@@ -1,0 +1,8 @@
+{
+  "tools/underground_room_memory.py": "3a00fc651f5aa3193c7d8fba3b7826b582d4f116a0ffa22a9e1a07570cd908b5",
+  "tools/test_underground_room_memory.py": "51fadc710dbe2c06ce741ba53018ea66cfac86a5094833193f3a70341639cc56",
+  "tools/underground_memory_budget.py": "d36ba233192752a3d32284fe1065f3e0b970887bc84bb0463320bf0e79b45341",
+  "tools/test_underground_memory_budget.py": "ac21eb2193837487e7daa35187b93f4e29d1b7985fd9e7964809ced4e3f29a01",
+  "docs/validation/evidence/underground-room-memory-integration-2026-10-05/manifest.json": "40097d0372f0bd4c351f51f75882e151778e8c94248a3af20b414349f9c675b7",
+  "docs/planning/underground_memory_pack.json": "43435af736095c42ba07cc56ffe18b494157aa1fd65bcd8669d4f584c3d25720"
+}

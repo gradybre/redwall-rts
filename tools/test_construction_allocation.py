@@ -28,7 +28,7 @@ def main():
             project=clone/'godot/project.godot';config,n=re.subn(r'(?ms)^\[autoload\]\n.*?(?=^\[|\Z)','',project.read_text());assert n==1;project.write_text(config)
             (clone/'godot/test/construction_allocation_probe.gd').write_bytes(originals[PROBE])
             results.append(execute(clone,'baseline',('PASS','',0)))
-            source=originals[BRIDGE].decode();needle='	var columns: Construction.Columns = Construction.Columns.new(false)';assert source.count(needle)==1
+            source=originals[BRIDGE].decode();needle='		return preflight\n	var columns: Construction.Columns = Construction.Columns.new(false)';assert source.count(needle)==1
             (clone/BRIDGE).write_text(source.replace(needle,needle.replace('new(false)','new()')))
             results.append(execute(clone,'forbidden-default-constructor',('FAIL','ALLOCATION_EXTRA_OWNER',1)))
             (clone/BRIDGE).write_bytes(originals[BRIDGE])

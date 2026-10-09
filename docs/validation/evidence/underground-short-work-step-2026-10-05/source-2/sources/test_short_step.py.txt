@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+"""Finite-step source and integer counterexamples; these tests do not publish gameplay permission."""
+import copy
+from fractions import Fraction
+import importlib.util
+from pathlib import Path
+import random
+import struct
+import unittest
+
+import numpy as np
+
+SPEC = importlib.util.spec_from_file_location("tested_short_step", Path(__file__).with_name("compile_short_step.py"))
+M = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(M)
+R = M.R
+
+
+def trace(remainder=0, direction=1):
+    state, result = R.begin(remainder), []
+    while state[0] != R.READY:
+        state = R.tick(state)
+        result.append((state, R.pose(state, direction)))
+        if len(result) > 19:
+            raise AssertionError("unbounded source programme")
+    return result
+
+
+class IntegerProtocolTests(unittest.TestCase):
+    def test_every_original_thirtieth_uses_three_motion_and_complete_fade_ticks(self):
+        for rem in range(30):
+            for direction in (1, -1):
+                rows = trace(R.encode_fraction(rem, 30), direction)
+                self.assertEqual(len(rows), 19)
+                changed = [row[0][2] for index, row in enumerate(rows)
+                           if row[0][2] != (rows[index - 1][0][2] if index else 0)]
+                self.assertIn(changed[0], (109, 110))
+                self.assertIn(changed[1], (218, 219))
+                self.assertEqual(changed[2:], [232])
+                self.assertEqual(rows[-1][0], (R.READY, 0, 232, 0))
+
+    def test_non_thirtieth_rationals_match_exact_existing_distance_law(self):
+        rng = random.Random(1164)
+        fractions = [Fraction(0), Fraction(1, 2), Fraction(999, 1000), Fraction(65535, 65536)]
+        fractions += [Fraction(rng.randrange(den), den) for den in range(2, 1000, 7)]
+        for original in fractions:
+            encoded = R.encode_fraction(original.numerator, original.denominator)
+            progress, carry = 0, encoded
+            for at in range(3):
+                progress, carry = R.distance_tick(progress, carry)
+                expected = original + Fraction((at + 1) * 3277, 30)
+                self.assertEqual(progress, min(232, expected.numerator // expected.denominator))
+                if progress < 232:
+                    n, d = R.fraction(carry)
+                    self.assertEqual(Fraction(n, d), expected - progress)
+            self.assertEqual((progress, carry), (232, 0))
+
+    def test_large_denominator_refuses_before_reference_state_changes(self):
+        # A finite proper input is representable, but lcm(denominator,30) is not.
+        state = R.begin(R.encode_fraction(1, R.I32_MAX))
+        for _ in range(8):
+            state = R.tick(state)
+        before = R.save(state)
+        with self.assertRaisesRegex(ValueError, "STEP_FRACTION_CAPACITY"):
+            R.tick(state)
+        self.assertEqual(R.save(state), before)
+
+    def test_pause_or_rejected_observation_changes_no_phase_position_or_remainder(self):
+        for state, _ in trace(R.encode_fraction(17, 30)):
+            before = R.save(state)
+            for _ in range(5):
+                self.assertEqual(R.save(R.tick(state, advance=False)), before)
+
+    def test_save_and_headless_resume_are_identical_at_every_interruption(self):
+        for direction in (1, -1):
+            baseline = trace(R.encode_fraction(7, 19), direction)
+            for stop in range(len(baseline)):
+                state = R.restore(R.save(baseline[stop][0]))
+                tail = []
+                while state[0] != R.READY:
+                    state = R.tick(state)
+                    tail.append((state, R.pose(state, direction)))
+                self.assertEqual(tail, baseline[stop + 1:])
+
+    def test_ready_pose_and_complete_fade_weights_are_exact(self):
+        rows = trace()
+        for at in range(7):
+            target, previous, blend = rows[at][1]
+            self.assertEqual(target, (1, 0, 1, 0))
+            self.assertEqual(previous, (0, 8, 8, 0))
+            self.assertEqual(blend, (at + 1) * R.ONE * R.ONE // R.FADE_TIME)
+        self.assertEqual(rows[7][1][2], R.ONE)
+        self.assertEqual(rows[10][1], ((0, 8, 8, 0), (1, 3, 4, 0), 0))
+        self.assertEqual(rows[-1][1], ((0, 8, 8, 0), (0, 8, 8, 0), R.ONE))
+
+    def test_backward_short_seam_is_not_forward_or_uniform_key_reversal(self):
+        self.assertEqual(R.source_interval(0, -1), (0, 1, 0))
+        self.assertEqual(R.source_interval(1, -1), (32, 0, 0))
+        self.assertEqual(R.source_interval(2, -1), (31, 32, 65535))
+        self.assertEqual(R.source_interval(3 * R.ONE, -1), (29, 30, 1))
+        self.assertNotEqual(R.pose(trace(direction=-1)[10][0], -1), R.pose(trace()[10][0], 1))
+
+    def test_fourth_move_or_forged_phase_progress_never_enters_finite_prefix(self):
+        invalid = [(R.WALK, 3 * R.ONE, 232, 0), (R.WALK, R.ONE, 100, 0),
+                   (R.WALK, 2 * R.ONE, 231, 0), (R.READY, 0, 109, 0),
+                   (R.FADE_READY, 2 * R.ONE << 32, 232, 0),
+                   (R.FADE_WALK, R.FADE_TIME, 0, 0), (4, 0, 0, 0),
+                   (R.WALK, 1 << 31, 0, 0)]
+        for state in invalid:
+            with self.subTest(state=state), self.assertRaises(ValueError):
+                R.tick(state)
+
+    def test_changed_heading_tool_source_pace_or_successor_scope_is_not_admitted(self):
+        start, end = (124160, -4608, 102912), (124392, -4608, 102912)
+        R.request_refusal(start, end, 1)
+        R.request_refusal(end, start, -1)
+        for kw in ({"pace": 3276}, {"pace": True}, {"body_yaw": 16384},
+                   {"queued_successors": 1}, {"queued_successors": False},
+                   {"actor": "0" * 64}, {"parent_program": "0" * 64}):
+            with self.subTest(kw=kw), self.assertRaises(ValueError):
+                R.request_refusal(start, end, 1, **kw)
+        for bad in ((end[0] + 1, *end[1:]), (end[0], end[1] + 1, end[2]),
+                    (end[0], end[1], end[2] + 1)):
+            with self.assertRaises(ValueError):
+                R.request_refusal(start, bad, 1)
+
+    def test_malformed_or_noncanonical_fraction_and_save_images_refuse(self):
+        for bad in (-1, True, 1, 2 << 32 | 2, 2 << 32 | 4, 1 << 63, 1 << 32 | (1 << 31)):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                R.begin(bad)
+        for raw in (b"", bytes(31), bytes(33), struct.pack("<4q", 17, 0, 0, 0)):
+            with self.assertRaises(ValueError):
+                R.restore(raw)
+
+
+class SourceClosureTests(unittest.TestCase):
+    def test_interval_partition_exhausts_exact_prefix_and_keeps_reverse_seam(self):
+        for direction, count in ((1, 3), (-1, 4)):
+            rows = M.intervals(direction)
+            self.assertEqual(len(rows), count)
+            cursor = 0
+            for row in rows:
+                self.assertEqual(row["from_q16"], cursor)
+                self.assertGreater(row["to_q16"], cursor)
+                cursor = row["to_q16"]
+            self.assertEqual(cursor, 3 * R.ONE)
+        self.assertEqual(M.intervals(-1)[0]["to_q16"], 1)
+        self.assertEqual(M.intervals(-1)[-1]["source_share_to_q16"], 65535)
+
+    def test_every_prefix_ready_simplex_requires_the_full_accepted_predecessor(self):
+        def case(count, duration):
+            return {"frames": count, "source_loop_mode": 1,
+                    "source_duration_s": Fraction(duration, 30 * R.ONE), "duration_q16": duration}
+        cases = [case(122, 121 * R.ONE), case(34, R.WALK_DURATION)]
+        checked = M.C.H.handoff_sets(cases)
+        proof = {"carry_handoffs": {"checked": checked}}
+        self.assertEqual(len(M.handoff_subset(cases, proof, 1)), 4)
+        self.assertEqual(len(M.handoff_subset(cases, proof, -1)), 5)
+        for row in checked:
+            if row["from"] != "idle":
+                bad = copy.deepcopy(proof)
+                bad["carry_handoffs"]["checked"].remove(row)
+                with self.assertRaises(ValueError):
+                    M.handoff_subset(cases, bad, -1)
+
+    def test_missing_air_is_not_relabelled_support(self):
+        air = [[-4096, 0, -2048, 2048, 4096, 4096], [2048, 0, 0, 3072, 1024, 2048]]
+        slab = [2048, 1024, 694, 2244, 1036, 1422]
+        self.assertEqual(M.uncovered(slab, air), [slab])
+        self.assertEqual(M.uncovered([1407, 379, 697, 2244, 972, 1309], air), [])
+        self.assertNotEqual(M.uncovered([1307, 379, 1220, 2244, 966, 1916], air[:1]), [])
+
+    def test_subtraction_preserves_all_positive_volume_and_half_open_adjacency(self):
+        box, middle = [0, 0, 0, 10, 10, 10], [2, 3, 4, 6, 7, 8]
+        parts = M.subtract(box, middle)
+        volume = lambda b: (b[3] - b[0]) * (b[4] - b[1]) * (b[5] - b[2])
+        self.assertEqual(sum(map(volume, parts)) + volume(middle), volume(box))
+        self.assertEqual(M.uncovered(box, [[0, 0, 0, 5, 10, 10], [5, 0, 0, 10, 10, 10]]), [])
+        self.assertEqual(M.subtract(box, [10, 0, 0, 20, 10, 10]), [box])
+
+    def test_profile_boxes_retain_both_collision_roles_and_full_foot_support(self):
+        cache = [{"low": np.zeros((36, 3, 3), dtype=np.int64),
+                  "high": np.ones((36, 3, 3), dtype=np.int64) * M.P.SCALE} for _ in range(2)]
+        cache[0]["low"][:, :, 1] = -1
+        cache[1]["low"][:, :, 1] = M.P.SCALE // 2
+        floor = [0, -1, 0, 1024, 0, 1024]
+        full = {"BODY_HELD_LOAD": [[], floor], "STANCE_SUPPORT": [[-1, -1, -1, 1025, 0, 1025]]}
+        roles, _ = M.prefix_roles(cache, full, 1, [34, 35])
+        self.assertEqual(len(roles["BODY_HELD_LOAD"]), 3)
+        self.assertEqual(roles["BODY_HELD_LOAD"], roles["TURN_RECOVERY"])
+        self.assertEqual(roles["BODY_HELD_LOAD"][1], floor)
+        self.assertEqual(roles["STANCE_SUPPORT"], full["STANCE_SUPPORT"])
+        full["STANCE_SUPPORT"][0][0] = 1
+        with self.assertRaisesRegex(ValueError, "STEP_STANCE_GAP"):
+            M.prefix_roles(cache, full, -1, [34, 35])
+
+
+if __name__ == "__main__":
+    unittest.main()

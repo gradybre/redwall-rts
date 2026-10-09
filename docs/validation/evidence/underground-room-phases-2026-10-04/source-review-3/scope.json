@@ -1,0 +1,12 @@
+{
+  "base": "7ecf15153031507dd59194b060708b5d8c1393fc",
+  "branch": "codex/underground-room-phases",
+  "source_frozen": true,
+  "full_paid_ordinary_positive": false,
+  "physical_blocker": "Published v2 WALK1 cannot fit front wall; new1156 Approach5/WORK24/retreat9 source readiness remains pending. No synthetic successful ordinary composition accepted.",
+  "last_result": "expired-entry-corrected:38 tests/441 assertions/0; strict/raw/expected/tolerated/leaks0; analyzer0/4; all restored",
+  "review_delta": "One conditional distinguishes never-bound optional Entry Contacts from an expired original receiver, plus a targeted real receiver-lifetime refusal regression. Source-review-2 bytes remain preserved.",
+  "census_source": "../census.py",
+  "context": "Accepted1153 committed; no diagnostic source overlay or active engine. No source commit authorized until independent review.",
+  "frontier_report": "../next-frontier-readonly/README.md"
+}

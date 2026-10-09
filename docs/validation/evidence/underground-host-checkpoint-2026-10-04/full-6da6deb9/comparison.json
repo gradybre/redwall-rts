@@ -1,0 +1,34 @@
+{
+  "head": "6da6deb952ebfce5d748563c1c1166f0f6b15dd3",
+  "ci_run": 37251846477,
+  "full_counts": {
+    "tests": 11156,
+    "assertions": 1026365,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "shard_counts": {
+    "tests": 11156,
+    "assertions": 1026355,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "same_402_files_exactly_once": true,
+  "same_11156_named_test_cases": true,
+  "same_test_failure_diagnostic_leak_counts": true,
+  "strict_all_counter_match": false,
+  "assertion_delta_full_minus_shards": 10,
+  "assertion_delta_cause": "Unattributed. No-argument runner does not emit per-suite assertion totals. Strict baseline aggregation remains unchanged and would reject this difference.",
+  "full_log_sha256": "e4235ee65c4167d531920e6097e44eee6deacff7eda242c9f0e6cfa25d58d7f7",
+  "ci_aggregate_sha256": "6490029e90c943193370ce84863a06b280d883034df33dbb00dad7afaa663945"
+}

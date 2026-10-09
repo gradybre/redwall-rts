@@ -1,0 +1,35 @@
+import sys,struct,numpy as np,json
+from pathlib import Path
+sys.path.insert(0,'tools');import export_underground_envelopes as E
+r=Path('godot/data/underground/mole-worker/evidence/contact-qualification')
+b=(r/'analysis-forward-entry-v3/result/mole-worker.ugactor').read_bytes();v,rev,parts,clips,frames,stride=struct.unpack_from('<6I',b,8)
+tables=[struct.unpack_from('<4I',b,184+72*parts+48*i) for i in range(clips)];start=184+72*parts+48*clips
+M=np.frombuffer(b,dtype='<f4',count=frames*stride,offset=start).reshape(frames,stride//12,12);G=np.frombuffer(b,dtype='<f4',count=frames,offset=start+frames*stride*4)
+with open('godot/demo/assets/underground-matrices/mole-grip-v3.ugpal','rb') as f: case=next(E.PaletteSource(f,'08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda').cases())
+topo=json.loads((r/'topology-v5/topology.json').read_text());tri=[np.array(x['surfaces'][0]['indices']).reshape(-1,3) for x in topo['parts']]
+geo=case['geometry'];p=geo[0]['geometry'][0];head=np.any((p['ids']>=20)&(p['weights']>.01),axis=1);headtri=np.any(head[tri[0]],axis=1);import importlib.util
+sp=importlib.util.spec_from_file_location('selfproof',r/'prove_self_clearance.py');S=importlib.util.module_from_spec(sp);sp.loader.exec_module(S)
+body_ids,omitted=S.body_triangle_ids(geo[0],tri[0],topo['rig_binding']);headtri=np.zeros(len(tri[0]),dtype=bool);headtri[body_ids]=True
+
+def intersections(start,end,triangles):
+ d=end-start;e1=triangles[:,1]-triangles[:,0];e2=triangles[:,2]-triangles[:,0];h=np.cross(d,e2);det=np.einsum('ij,ij->i',e1,h);valid=np.abs(det)>1e-14;inv=np.zeros(len(det));inv[valid]=1/det[valid];s=start-triangles[:,0];u=inv*np.einsum('ij,ij->i',s,h);q=np.cross(s,e1);vv=inv*np.einsum('j,ij->i',d,q);t=inv*np.einsum('ij,ij->i',e2,q)
+ return valid&(u>1e-7)&(vv>1e-7)&(u+vv<1-1e-7)&(t>1e-7)&(t<1-1e-7)
+
+hits=[]
+for clip in [6,7]:
+ first,n,_,_=tables[clip]
+ for local in range(n):
+  at=first+local;basis=M[at,:,:9].astype(np.float64).reshape(-1,3,3);origin=M[at,:,9:].astype(np.float64)
+  raw=p['points'].astype(np.float64);ids=p['ids'];weights=p['weights'].astype(np.float64)
+  body=np.einsum('nj,nijk->nik',raw,basis[ids])+origin[ids];body=(body*weights[...,None]).sum(axis=1)
+  tool=geo[1]['geometry'][0]['points'].astype(np.float64)@basis[-1]+origin[-1]
+  bt=body[tri[0][headtri]];tt=tool[tri[1]];blo=bt.min(axis=1);bhi=bt.max(axis=1)
+  pairs=[]
+  for ti,t in enumerate(tt):
+   cand=np.flatnonzero(np.all((blo<=t.max(axis=0))&(bhi>=t.min(axis=0)),axis=1))
+   if not len(cand):continue
+   subset=bt[cand];found=np.zeros(len(cand),dtype=bool)
+   for e in range(3):found|=intersections(t[e],t[(e+1)%3],subset)
+   for j in np.flatnonzero(found):pairs.append([int(ti),int(body_ids[cand[j]])])
+  if pairs:hits.append({'clip':clip,'frame':local,'pairs':pairs[:10],'count':len(pairs)})
+print(json.dumps({'scope':'diagnostic exact source endpoints only; no continuous clearance proof', 'intentional_grip_triangles':omitted,'hits':hits,'production_qualified':False},indent=2))

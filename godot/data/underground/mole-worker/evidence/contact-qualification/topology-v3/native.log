@@ -1,0 +1,19 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+SCRIPT ERROR: Compile Error: Identifier not found: GameManager
+          at: GDScript::reload (res://scripts/ui/ui_shell.gd:2772)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://demo/tunnel/tunnel_view.gd:0)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://demo/tunnel/tunnel_ext.gd:0)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://data/underground/mole-worker/evidence/contact-qualification/capture_topology.gd:0)
+ERROR: Failed to load script "res://data/underground/mole-worker/evidence/contact-qualification/capture_topology.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+mole-topology: 2 parts, 34093 assertions, 0 failures; qualified=0

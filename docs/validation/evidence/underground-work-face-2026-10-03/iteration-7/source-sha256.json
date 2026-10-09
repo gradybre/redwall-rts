@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/underground_work_face.gd": "dd8c421703ed497dbfe65e11d1d0c56cebf8d717f7b25da0d6fd878d6ae76d2a",
+  "godot/test/test_underground_work_face.gd": "a3814e306526a9173b602b5a9f99a757fe303a44bc2bf03c75e60acee4ad7662",
+  "godot/scripts/core/underground_terrain.gd": "aa5c54017f49d79d3a2d17deb244aaeffea0c225e572d03605726d62054e2a5c",
+  "godot/test/test_underground_terrain.gd": "e9fcdb193efdcc5bd4905f81cfe0dcbbe8168b894d5453969ec29f12c6e115bc",
+  "godot/scripts/core/underground_final_facts.gd": "034d743016fa6c2868698ffc88da3a29ef075f7121fbe0616ba63efbfe2fca02",
+  "godot/scripts/core/underground_space_owner.gd": "940c4363ed3e85c48c31f9c00cc3f0bd982ed7310a57e22f8af7d3f62b6584d3",
+  "godot/test/test_underground_final_facts.gd": "6f27530106fb606d63e36a380fbdef4e5a731e2aba6ed53fd20d260ebafa5600"
+}

@@ -1,0 +1,14 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": {
+    "current_locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v1/source-snapshots/author_install_source.py",
+    "sha256": "5226c837d67765ef0e3195ef638bfe4d1b3fa886a824de2af3f71f9f55c36fdf"
+  },
+  "godot/data/underground/mole-worker/evidence/contact-qualification/run_install_capture.py": {
+    "current_locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v1/source-snapshots/run_install_capture.py",
+    "sha256": "319e62b80c47b2dcdd02afe73d9bffca72420607841f3c04deb6e4dd6f26c639"
+  },
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_install_source.gd": {
+    "current_locator": "godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v1/source-snapshots/capture_install_source.gd.txt",
+    "sha256": "be3f39692b162afa3e4c21a67c5dec473176ede82a1dd6d375adc1c9efcd58c6"
+  }
+}

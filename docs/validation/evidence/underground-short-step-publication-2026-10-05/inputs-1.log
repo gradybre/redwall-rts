@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 243, in inputs
+    old = lineage(pins)
+          ^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 117, in lineage
+    check(row["locator"], expected, pins)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 76, in check
+    path = canonical(name, 512 * 1024 * 1024)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 68, in canonical
+    require(path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(ROOT)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 56, in require
+    raise ValueError("STEP_PUBLICATION_" + code)
+ValueError: STEP_PUBLICATION_FILE:godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v5/.gdignore

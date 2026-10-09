@@ -1,0 +1,353 @@
+{
+  "counts": {
+    "assertions": 28205,
+    "expected": 4,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1380,
+    "tolerated": 26,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "6625e1c236de722aa8fab3a4434b62a828ba03c1ba284922935a52afb835f479",
+  "shard_count": 8,
+  "shard_index": 7,
+  "suite_counts": {
+    "test_canonical_state_hash.gd": {
+      "assertions": 4724,
+      "failures": 0,
+      "tests": 60
+    },
+    "test_catalog_ids.gd": {
+      "assertions": 1843,
+      "failures": 0,
+      "tests": 67
+    },
+    "test_clip_root_motion.gd": {
+      "assertions": 8,
+      "failures": 0,
+      "tests": 4
+    },
+    "test_demo_camera.gd": {
+      "assertions": 115,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_demo_care.gd": {
+      "assertions": 156,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_command.gd": {
+      "assertions": 157,
+      "failures": 0,
+      "tests": 30
+    },
+    "test_demo_farm_ui.gd": {
+      "assertions": 363,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_demo_fitout.gd": {
+      "assertions": 298,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_demo_input_live.gd": {
+      "assertions": 555,
+      "failures": 0,
+      "tests": 3
+    },
+    "test_demo_lens_live.gd": {
+      "assertions": 66,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_lens_probes.gd": {
+      "assertions": 174,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_demo_manifest.gd": {
+      "assertions": 5,
+      "failures": 0,
+      "tests": 3
+    },
+    "test_demo_notices_live.gd": {
+      "assertions": 48,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_opening_pantry.gd": {
+      "assertions": 192,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_orchard_live.gd": {
+      "assertions": 50,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_playtest_live.gd": {
+      "assertions": 18,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_sound_cost.gd": {
+      "assertions": 19,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_tending.gd": {
+      "assertions": 82,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_demo_village_cloth.gd": {
+      "assertions": 72,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_family_hunger_wiring.gd": {
+      "assertions": 2655,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_forage.gd": {
+      "assertions": 1064,
+      "failures": 0,
+      "tests": 133
+    },
+    "test_gear_columns.gd": {
+      "assertions": 1322,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_haul_carry.gd": {
+      "assertions": 173,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_households.gd": {
+      "assertions": 1097,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_input_map.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_inventory_stock_counts.gd": {
+      "assertions": 1400,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_modular_draft.gd": {
+      "assertions": 201,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_modular_projects.gd": {
+      "assertions": 2339,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_resident_crowd.gd": {
+      "assertions": 78,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_residents.gd": {
+      "assertions": 2019,
+      "failures": 0,
+      "tests": 98
+    },
+    "test_residents_columns.gd": {
+      "assertions": 152,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_resource_claim_lifecycle.gd": {
+      "assertions": 95,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_room_space.gd": {
+      "assertions": 249,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_save_section_01.gd": {
+      "assertions": 872,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_save_section_directory.gd": {
+      "assertions": 480,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_save_section_name_pool.gd": {
+      "assertions": 466,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_save_section_navigation.gd": {
+      "assertions": 644,
+      "failures": 0,
+      "tests": 61
+    },
+    "test_settlement_demolition_complete.gd": {
+      "assertions": 413,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_stock_age.gd": {
+      "assertions": 335,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_stock_authority_lifetime.gd": {
+      "assertions": 49,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_ui_manager.gd": {
+      "assertions": 328,
+      "failures": 0,
+      "tests": 49
+    },
+    "test_ui_theme_resource.gd": {
+      "assertions": 208,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_underground_actor.gd": {
+      "assertions": 225,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_underground_actor_content.gd": {
+      "assertions": 109,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_underground_phase_structure.gd": {
+      "assertions": 240,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_underground_world_structure.gd": {
+      "assertions": 64,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_weather.gd": {
+      "assertions": 1377,
+      "failures": 0,
+      "tests": 97
+    }
+  },
+  "suite_usec": {
+    "test_canonical_state_hash.gd": 334159,
+    "test_catalog_ids.gd": 315073,
+    "test_clip_root_motion.gd": 2519,
+    "test_demo_camera.gd": 24594,
+    "test_demo_care.gd": 1500120,
+    "test_demo_command.gd": 2269892,
+    "test_demo_farm_ui.gd": 9020113,
+    "test_demo_fitout.gd": 65792,
+    "test_demo_input_live.gd": 39599565,
+    "test_demo_lens_live.gd": 30209885,
+    "test_demo_lens_probes.gd": 994353,
+    "test_demo_manifest.gd": 2373,
+    "test_demo_notices_live.gd": 19054720,
+    "test_demo_opening_pantry.gd": 9170526,
+    "test_demo_orchard_live.gd": 38758840,
+    "test_demo_playtest_live.gd": 2120925,
+    "test_demo_sound_cost.gd": 1158745,
+    "test_demo_tending.gd": 952553,
+    "test_demo_village_cloth.gd": 57206,
+    "test_family_hunger_wiring.gd": 2497997,
+    "test_forage.gd": 5502773,
+    "test_gear_columns.gd": 1581188,
+    "test_haul_carry.gd": 1181980,
+    "test_households.gd": 4666438,
+    "test_input_map.gd": 29054,
+    "test_inventory_stock_counts.gd": 127226,
+    "test_modular_draft.gd": 34390,
+    "test_modular_projects.gd": 3015497,
+    "test_resident_crowd.gd": 1070451,
+    "test_residents.gd": 3159123,
+    "test_residents_columns.gd": 1677335,
+    "test_resource_claim_lifecycle.gd": 233174,
+    "test_room_space.gd": 22567,
+    "test_save_section_01.gd": 11451993,
+    "test_save_section_directory.gd": 1034327,
+    "test_save_section_name_pool.gd": 1455830,
+    "test_save_section_navigation.gd": 3880688,
+    "test_settlement_demolition_complete.gd": 5810424,
+    "test_stock_age.gd": 107581,
+    "test_stock_authority_lifetime.gd": 10483,
+    "test_ui_manager.gd": 8035420,
+    "test_ui_theme_resource.gd": 121617,
+    "test_underground_actor.gd": 262664,
+    "test_underground_actor_content.gd": 58966,
+    "test_underground_phase_structure.gd": 7542878,
+    "test_underground_world_structure.gd": 2169038,
+    "test_weather.gd": 41418
+  },
+  "suites": [
+    "test_canonical_state_hash.gd",
+    "test_catalog_ids.gd",
+    "test_clip_root_motion.gd",
+    "test_demo_camera.gd",
+    "test_demo_care.gd",
+    "test_demo_command.gd",
+    "test_demo_farm_ui.gd",
+    "test_demo_fitout.gd",
+    "test_demo_input_live.gd",
+    "test_demo_lens_live.gd",
+    "test_demo_lens_probes.gd",
+    "test_demo_manifest.gd",
+    "test_demo_notices_live.gd",
+    "test_demo_opening_pantry.gd",
+    "test_demo_orchard_live.gd",
+    "test_demo_playtest_live.gd",
+    "test_demo_sound_cost.gd",
+    "test_demo_tending.gd",
+    "test_demo_village_cloth.gd",
+    "test_family_hunger_wiring.gd",
+    "test_forage.gd",
+    "test_gear_columns.gd",
+    "test_haul_carry.gd",
+    "test_households.gd",
+    "test_input_map.gd",
+    "test_inventory_stock_counts.gd",
+    "test_modular_draft.gd",
+    "test_modular_projects.gd",
+    "test_resident_crowd.gd",
+    "test_residents.gd",
+    "test_residents_columns.gd",
+    "test_resource_claim_lifecycle.gd",
+    "test_room_space.gd",
+    "test_save_section_01.gd",
+    "test_save_section_directory.gd",
+    "test_save_section_name_pool.gd",
+    "test_save_section_navigation.gd",
+    "test_settlement_demolition_complete.gd",
+    "test_stock_age.gd",
+    "test_stock_authority_lifetime.gd",
+    "test_ui_manager.gd",
+    "test_ui_theme_resource.gd",
+    "test_underground_actor.gd",
+    "test_underground_actor_content.gd",
+    "test_underground_phase_structure.gd",
+    "test_underground_world_structure.gd",
+    "test_weather.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 226
+}

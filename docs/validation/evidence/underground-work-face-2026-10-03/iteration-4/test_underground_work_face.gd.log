@@ -1,0 +1,51 @@
+state_registry_coverage: PASS -- 126 modules, 627 rows, 981 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_work_face.gd
+  PASS  test_exact_complete_corridor_and_authored_stroke_reach_one_solid_face
+  PASS  test_max_face_is_a_legal_exact_plane_without_reversing_already_oriented_boxes
+  PASS  test_interior_one_unit_void_hole_blocks_approach_even_when_endpoints_fit
+  PASS  test_actual_support_and_negative_body_residual_are_never_clipped
+  PASS  test_stroke_cannot_enter_a_second_solid_cube_or_floor
+  PASS  test_full_profile_endpoint_and_face_identity_are_mandatory
+  PASS  test_final_callback_drift_refuses_actual_replacement_and_mutated_input
+  PASS  test_foreign_arena_or_unbound_sources_never_allocate_geometry_permission
+SCRIPT ERROR: Assertion failed: only a preflighted transaction may publish
+          at: ObservedSpace.publish (res://scripts/core/underground_space_owner.gd:995)
+          GDScript backtrace (most recent call first):
+              [0] publish (res://scripts/core/underground_space_owner.gd:995)
+              [1] _actual_space (res://test/test_underground_work_face.gd:80)
+              [2] _actual_fixture (res://test/test_underground_world_routes.gd:283)
+              [3] _setup (res://test/test_underground_work_face.gd:155)
+              [4] test_finite_scan_exhaustion_never_becomes_clearance (res://test/test_underground_work_face.gd:370)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_finite_scan_exhaustion_never_becomes_clearance
+        actual corridor fixture checks: ["actual Room source (expected , got SPACE_TRANSACTION_STALE)", "actual geometry row (expected , got SPACE_TRANSACTION_STALE)", "actual geometry row (expected , got SPACE_TRANSACTION_STALE)", "actual geometry row (expected , got SPACE_TRANSACTION_STALE)", "real owner seals explicit fixture space (expected , got SPACE_TRANSACTION_STALE)", "actual endpoint added (expected , got LOCATION_SECTION_STALE)", "actual endpoint added (expected , got LOCATION_SECTION_STALE)"] (expected true, got false)
+        source pass precharge exhausts the real finite budget (expected WORLD_ROUTE_CHECK_CAPACITY, got LOCATION_STALE)
+        nested actual cleanup checks: ["actual Room source (expected , got SPACE_TRANSACTION_STALE)", "actual geometry row (expected , got SPACE_TRANSACTION_STALE)", "actual geometry row (expected , got SPACE_TRANSACTION_STALE)", "actual geometry row (expected , got SPACE_TRANSACTION_STALE)", "real owner seals explicit fixture space (expected , got SPACE_TRANSACTION_STALE)", "actual endpoint added (expected , got LOCATION_SECTION_STALE)", "actual endpoint added (expected , got LOCATION_SECTION_STALE)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_original_lease_must_cover_the_whole_packet_before_private_copies
+  PASS  test_reentry_poison_survives_final_otherwise_valid_source_read
+CI_SUITE_TIME {"assertions":117,"failures":1,"suite":"test_underground_work_face.gd","tests":11,"usec":3677913}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 117 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

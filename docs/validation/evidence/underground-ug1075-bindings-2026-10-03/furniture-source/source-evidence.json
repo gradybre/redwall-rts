@@ -1,0 +1,27 @@
+{
+  "scope": "exact staged Furniture source transition with actual Router, Work, Inventory, Buildings; synthetic shape/contact fixture, no production geometry qualification",
+  "sources": {
+    "godot/scripts/core/underground_space_owner.gd": "938522471c5fed1691ad229f4bf47a9c743890d14a7cc4502d163d3cda6380e9",
+    "godot/test/test_underground_space_owner.gd": "1c9d5a0d97b50c43ca8041c7225aa63a1b06761056a47f8fe81a1dd1bdb95610",
+    "godot/scripts/core/modular_projects.gd": "770a8326c6b5d80497978945a4d403748a2e43b57debbbdcb3919ebf6f19b0f5",
+    "godot/scripts/core/modular_project_contract.gd": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+    "godot/scripts/core/buildings.gd": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
+    "godot/scripts/core/construction.gd": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+    "godot/scripts/core/excavation_inventory.gd": "09435e1d90fbf65359e49dbf78a223946a34694b063b68017e82115b12378823",
+    "godot/test/test_modular_projects.gd": "0505a17c786f4c2abb4ac04580b80ee3bd9c12530aea20f4734576b14419ed68"
+  },
+  "accepted": {
+    "tests": 39,
+    "assertions": 570,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0,
+    "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)"
+  },
+  "review": "Root independently accepted exact identities, single-field future transition, actual after-fact publication, abort/retry and final helper extraction at Owner SHA93852247.",
+  "process": "Assets aside; own .godot removed; godot --headless --path godot --editor --quit; strict tools/run_tests.sh --shard INDEX/COUNT --output-dir <fresh>; restore assets; gdscript_warnings.py --port 6153 --max 0 over owner/location sources and tests."
+}

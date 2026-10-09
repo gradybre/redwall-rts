@@ -1,0 +1,18 @@
+test_actual_full_source_and_native_admission (__main__.PublicationTests.test_actual_full_source_and_native_admission) ... ok
+test_actual_ground_pace_names_twelve_exact_walk_rows (__main__.PublicationTests.test_actual_ground_pace_names_twelve_exact_walk_rows) ... ok
+test_current_consumer_manifest_cannot_omit_tenth_program (__main__.PublicationTests.test_current_consumer_manifest_cannot_omit_tenth_program) ... ok
+test_exact_old_geometry_and_new_row_map (__main__.PublicationTests.test_exact_old_geometry_and_new_row_map) ... ok
+test_existing_output_and_wrong_destination_refuse_before_admission (__main__.PublicationTests.test_existing_output_and_wrong_destination_refuse_before_admission) ... ok
+test_final_input_mutation_refuses_before_first_output (__main__.PublicationTests.test_final_input_mutation_refuses_before_first_output) ... ok
+test_fixed_review_hash_rejects_relabelled_acceptance (__main__.PublicationTests.test_fixed_review_hash_rejects_relabelled_acceptance) ... ok
+test_hash_paths_are_bounded_and_cannot_escape (__main__.PublicationTests.test_hash_paths_are_bounded_and_cannot_escape) ... ok
+test_motion_all_geometry_and_independent_rates_are_preserved (__main__.PublicationTests.test_motion_all_geometry_and_independent_rates_are_preserved) ... ok
+test_motion_corrupt_original_cannot_be_rehashed_by_caller (__main__.PublicationTests.test_motion_corrupt_original_cannot_be_rehashed_by_caller) ... ok
+test_motion_rebind_rejects_stripped_or_self_declared_publication (__main__.PublicationTests.test_motion_rebind_rejects_stripped_or_self_declared_publication) ... ok
+test_mutated_actual_current_script_cannot_borrow_historical_pin (__main__.PublicationTests.test_mutated_actual_current_script_cannot_borrow_historical_pin) ... ok
+test_successful_publication_is_create_only (__main__.PublicationTests.test_successful_publication_is_create_only) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.418s
+
+OK

@@ -1,0 +1,18 @@
+{
+  "candidate": "1152 source-review-2; root partial delta review",
+  "manifest": "docs/validation/evidence/underground-room-phases-2026-10-04/source-review-2/source-sha256.json",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-phases",
+  "source_pins_matched": 11,
+  "reviewed_delta": "Direct reciprocal graph/source/Catalog initialization guards and ten observer-mutation refusal/state/retry cases; no new retained members or numeric values.",
+  "prior_high": "Withdrawn: existing Placement guard prevented all ten mutations; neither crash nor partial publication reproduced.",
+  "remaining_finding": {
+    "severity": "medium",
+    "file": "godot/scripts/core/underground_room_world_bindings.gd:243",
+    "issue": "Expired originally bound optional EntryContacts must not be treated as never bound by qualification_revision; unavailable original source must return zero rather than a reduced epoch.",
+    "action": "Author implementing targeted live-to-expired lifetime refusal regression; source-review-2 immutable."
+  },
+  "partial_acceptance": "No further blocker in reviewed delta; author proceeds to final source-qualified approach/work/recovery integration once1156 freezes. No paid ordinary positive accepted yet.",
+  "whole_room_gap": "No current owner automatically schedules the next ordinary Room Site, creates a newly reachable endpoint/edge frontier, and drives real Jobs/materials/motion until every paid Site completes. A one-cube positive cannot close whole Kitchen delivery.",
+  "author_fixture": "fixture-17:37 tests/429 assertions/0 failures; strict/raw/expected/tolerated/leaks0; analyzer0/4; all restoration flags true.",
+  "root_rerun": "Source review and source-hash verification only; no redundant engine rerun."
+}

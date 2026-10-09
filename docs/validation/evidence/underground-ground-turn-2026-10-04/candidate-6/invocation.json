@@ -1,0 +1,81 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.651,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "97/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-ground-turn-2026-10-04/candidate-6"
+      ],
+      "exit_code": 0,
+      "seconds": 12.174,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "62/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-ground-turn-2026-10-04/candidate-6"
+      ],
+      "exit_code": 0,
+      "seconds": 12.247,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "229/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-ground-turn-2026-10-04/candidate-6"
+      ],
+      "exit_code": 0,
+      "seconds": 3.207,
+      "log": "test_transforms.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6274",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-ground-turn-2026-10-04/candidate-6/analyzer.json",
+        "godot/scripts/core/transforms.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_transforms.gd",
+        "godot/test/test_underground_world_routes.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.609,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-geometry-turn-tests",
+  "project_test_sha256": "71f8eee3837e8f479eea0c98e88f4d35f825ccdd2d0c9ffee802ad2f98ceb486",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

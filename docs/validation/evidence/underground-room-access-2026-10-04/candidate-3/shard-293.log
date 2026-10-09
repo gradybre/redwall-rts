@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_editor.gd
+  PASS  test_world_release_only_retains_blueprint
+  PASS  test_unbound_editor_cannot_authorize_a_room
+  PASS  test_changed_world_and_owner_rejection_preserve_draft
+  PASS  test_callback_cannot_duplicate_confirmation
+  PASS  test_malformed_owner_answer_disables_retry_without_erasing_draft
+  PASS  test_checker_cannot_replace_session_with_same_revision
+  PASS  test_committed_receipt_preserves_a_newer_draft_created_during_submit
+  PASS  test_tool_selection_and_escape_preserve_previous_blueprint
+  PASS  test_all_buttons_have_keyboard_focus_and_minimum_hit_height
+  PASS  test_live_drawing_and_inspector_input_at_1280x720
+CI_SUITE_TIME {"assertions":116,"failures":0,"suite":"test_modular_editor.gd","tests":10,"usec":2241428}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 116 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 116 assertions, 0 failures.

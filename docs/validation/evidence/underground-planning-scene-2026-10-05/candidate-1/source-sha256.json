@@ -1,0 +1,7 @@
+{
+  "godot/demo/demo_village.gd": "b57db0a6d97046a9b07588196f54ef539dcfffdd71a4ddedcff209a9de8561ba",
+  "godot/demo/tunnel/tunnel_panel.gd": "20a5b1bb1a958ff8d845ccad8b4af15be517fd8f82cdbb9fec4e29e19a1083e1",
+  "godot/demo/burrow/modular_demo_mode.gd": "400e5ec9a3058dde2262858aac42ec5b08412e417c707721f6554d442fafa7e0",
+  "godot/demo/burrow/modular_demo_live.gd": "014d8a435918dd8a4901cbf1b73b1c85872bdb0c3f484afebef5599c4210b08d",
+  "godot/test/test_modular_demo_live.gd": "eebdbfd721d63d5e7f03d01982f28e911594e3873c7651e7680705900f60671a"
+}

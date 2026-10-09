@@ -1,0 +1,20 @@
+test_exact_proof_capacity_exhaustion_refuses (__main__.ExactPolynomialTests.test_exact_proof_capacity_exhaustion_refuses) ... ok
+test_interior_stock_degeneracy_and_detached_hand_refuse (__main__.ExactPolynomialTests.test_interior_stock_degeneracy_and_detached_hand_refuse) ... ok
+test_positive_endpoints_do_not_prove_the_interior (__main__.ExactPolynomialTests.test_positive_endpoints_do_not_prove_the_interior) ... ok
+test_real_endpoint_contacts_can_leave_triangle_between_keys (__main__.ExactPolynomialTests.test_real_endpoint_contacts_can_leave_triangle_between_keys) ... ok
+test_rotating_affine_stock_keeps_the_real_edge_intersection (__main__.ExactPolynomialTests.test_rotating_affine_stock_keeps_the_real_edge_intersection) ... ok
+test_complete_loaded_motion_keeps_every_primitive_and_supported_contact (__main__.ActualGaitTests.test_complete_loaded_motion_keeps_every_primitive_and_supported_contact) ... ok
+test_complete_stock_crossing_body_between_clear_keys_refuses (__main__.ActualGaitTests.test_complete_stock_crossing_body_between_clear_keys_refuses) ... ok
+test_current_source_legs_and_whole_stock_survive_every_original_key (__main__.ActualGaitTests.test_current_source_legs_and_whole_stock_survive_every_original_key) ... ok
+test_grounding_change_cannot_hide_full_mesh_floor_penetration (__main__.ActualGaitTests.test_grounding_change_cannot_hide_full_mesh_floor_penetration) ... ok
+test_late_hand_departure_cannot_inherit_a_frozen_contact (__main__.ActualGaitTests.test_late_hand_departure_cannot_inherit_a_frozen_contact) ... ok
+test_lift_hold_gait_recovery_place_and_repost_share_exact_hub (__main__.ActualGaitTests.test_lift_hold_gait_recovery_place_and_repost_share_exact_hub) ... ok
+test_one_unit_variant_reuses_the_actual_catalog_mass (__main__.ActualGaitTests.test_one_unit_variant_reuses_the_actual_catalog_mass) ... ok
+test_rejected_original_sole_transfer_still_refuses_without_added_key (__main__.ActualGaitTests.test_rejected_original_sole_transfer_still_refuses_without_added_key) ... ok
+test_reviewed_static_and_four_phase_sources_are_unchanged (__main__.ActualGaitTests.test_reviewed_static_and_four_phase_sources_are_unchanged) ... ok
+test_wrong_key_shape_nan_or_excess_capacity_refuses (__main__.ActualGaitTests.test_wrong_key_shape_nan_or_excess_capacity_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 72.375s
+
+OK

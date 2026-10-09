@@ -1,0 +1,191 @@
+extends "../evidence/grip-authoring/native_grip_sequence.gd"
+## Diagnostic native replay: real source, Driver, Routes and stores; fixture spatial certificates only.
+
+const Driver := preload("res://data/underground/mole-worker/mole_profile_driver.gd")
+const Fixture := preload("res://test/test_underground_routes.gd")
+const START: Vector3i = Vector3i(1536, 0, 1536)
+const DIRECTIONS: Array[Vector3i] = [Vector3i(0, 0, -1), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(1, 0, 0)]
+var _events: Array[Dictionary] = []
+var _native: FileAccess = null
+var _actual: Fixture = null
+var _driver: Driver = null
+var _job: Vector2i = Vector2i(-1, 0)
+var _tool: Vector2i = Vector2i(-1, 0)
+var _first: Vector2i = Vector2i(-1, 0)
+var _last: Vector2i = Vector2i(-1, 0)
+var _matrix_count: int = 0
+
+
+func _run() -> void:
+	"""One borrowed Content image serves sequential actual canonical owners, never a presentation clock."""
+	_suite.assert_equal(_content.load_file(_spec.content, _spec.content_sha256, _spec.reserve_bytes), &"", "actual immutable source")
+	_world = Node3D.new()
+	root.add_child(_world)
+	_build_stage()
+	var meshes: Dictionary = _borrow_actual_meshes()
+	_native = FileAccess.open(_out + "/native.bin", FileAccess.WRITE)
+	_native.store_buffer("UGAPPN01".to_ascii_buffer())
+	for view: String in ["side", "rts"]:
+		for heading: int in 4:
+			if not _suite.failures.is_empty():
+				break
+			_setup_sequence(meshes, heading, view)
+			if _suite.failures.is_empty():
+				await _sequence(heading, view)
+			_release_sequence()
+	_native.close()
+	_native = null
+	_world.free()
+	_world = null
+	_camera = null
+	_finish()
+
+
+func _build_stage() -> void:
+	"""Presentation-only stage, independent of the actual fixture support bank."""
+	super._build_stage()
+	root.size = Vector2i(1280, 720)
+	_camera.size = 3.5
+
+
+func _setup_sequence(meshes: Dictionary, heading: int, view: String) -> void:
+	"""Every run starts with actual full Resident/Job/Gear identities and exact whole source boxes."""
+	_actual = Fixture.new()
+	_actual.before_each()
+	_suite.assert_true(_actual._residents.despawn(_actual._worker).ok, "remove old unregistered actor")
+	var slot: int = _actual._residents.spawn(&"mole").value
+	_actual._worker = _actual._residents.ref_of(slot)
+	_suite.assert_true(_actual._residents.spatial_profile_identity_into(_actual._worker, _actual._identity), "real mole")
+	_suite.assert_true(_actual._transforms.place(_actual._worker, START.x, START.y, START.z, heading * 16384), "real root")
+	var store: Vector2i = _actual._inventory.create_container(_actual._world, 1000000, -1, 0, true).ref
+	_tool = _actual._inventory.create_lot(store, _actual._items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	_suite.assert_true(_actual._gear.create_gear(_actual._inventory, _actual._items, _tool, _actual.Gear.MANUFACTURE_BASIC).ok, "actual BASIC pick")
+	_suite.assert_true(_actual._gear.equip(_tool, _actual._worker).ok, "actual equipment")
+	_job = _actual._clock_job()
+	_suite.assert_true(_actual._work.claim_tool_for_work(slot, _tool).ok, "actual retained BUILD claim")
+	_suite.assert_equal(_actual._profiles.load_file(_spec.profiles, _spec.profiles_sha256, 2), &"", "whole source-derived diagnostic rows")
+	_suite.assert_equal(_actual._routes.refresh_profile_extent(), &"", "actual whole extent")
+	var end: Vector3i = START + DIRECTIONS[heading] * 1024
+	_first = _actual._location(START)
+	_last = _actual._location(end)
+	_actual._publish_edges([_actual._edge(_first, _last, [START, end]), _actual._edge(_last, _first, [end, START])])
+	_bind_actor(meshes)
+	var pins: PackedInt64Array = PackedInt64Array()
+	for row: int in 18:
+		pins.append_array(PackedInt64Array([row if row < 2 else row + 8, 1, 2]))
+	_driver = Driver.new()
+	_suite.assert_equal(_driver.configure(_content, _actual._profiles, _actual._residents, _actual._worker,
+		_tool, pins, Driver.SourceProgram.ACTOR_SHA, Driver.PROGRAM_APPROACH), &"", "actual canonical Driver")
+	_suite.assert_equal(_actual._routes.admit_travel_actor(_actual._worker, _job, _first, 2 + heading, 1, 2, 0, -1, _tool), &"", "canonical ready")
+	_suite.assert_equal(_actual._routes.request_route(_actual._worker, _last, 0), &"", "actual directed approach")
+	var focus: Vector3 = Vector3(START + DIRECTIONS[heading] * 512) / 1024.0 + Vector3(0, 0.5, 0)
+	_camera.position = focus + (Vector3(3.0, 1.0, -3.0) if view == "side" else Vector3(3.0, 4.0, 3.0))
+	_camera.look_at(focus, Vector3.UP)
+
+
+func _bind_actor(meshes: Dictionary) -> void:
+	"""The actual route World ref is borrowed; the numerical source Domain remains explicitly presentation-only."""
+	var basis: Actor.WorldBasis = Actor.WorldBasis.new()
+	_suite.assert_equal(basis.load_file(_spec.basis, _spec.basis_sha256, _spec.basis_producer_sha256,
+		Actor.WorldBasis.RESERVED_BYTES), &"", "actual full native basis")
+	_actor = Actor.new()
+	_world.add_child(_actor)
+	_suite.assert_equal(_content.configure_actor(_actor, meshes.meshes, meshes.materials), &"", "same actual meshes")
+	var domain: Actor.Space.Domain = Actor.Space.Domain.new()
+	_suite.assert_equal(domain.configure(_actual._world, Vector3i(0, 512, 0), Vector3i(0, -32, 0),
+		Vector3i(256, 48, 256), 8192, 6144, Actor.Space.MAX_CHECKS), &"", "exact finite root domain")
+	_suite.assert_true(_content.domain_matches(domain.descriptor().bounds_u), "source numerical bounds")
+	_suite.assert_equal(_actor.bind_world_source(basis, domain, domain.descriptor(), _content.source_digest(), basis.source_digest()), &"", "source/world binding")
+	_matrix_count = _actor._palette.bind_count(0) + 2 # All body bones, actual rigid pick, actual body instance.
+
+
+func _sequence(heading: int, view: String) -> void:
+	"""188 accepted 30 Hz ticks cover arrival, full FRONT work loop, recovery, and same-heading retreat."""
+	var profile: int = 2 + heading
+	var frame: Driver.Frame = Driver.Frame.new()
+	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	for tick: int in range(1, 189):
+		if tick == 47:
+			profile = 12 + 4 * heading
+			_suite.assert_equal(_actual._routes.refresh_work_actor(_actual._worker, _job, profile, 1, 2, 0, -1, _tool), &"", "ready to FRONT")
+		elif tick == 113:
+			_suite.assert_equal(_actual._routes.request_source_ready(_actual._worker, _job), &"", "request exact productive recovery")
+		elif tick == 143:
+			profile = 6 + heading
+			_suite.assert_equal(_actual._routes.refresh_travel_actor(_actual._worker, _job, profile, 1, 2, 0, -1, _tool), &"", "ready to backward")
+			_suite.assert_equal(_actual._routes.request_route(_actual._worker, _first, tick), &"", "actual reverse edge")
+		_suite.assert_equal(_actual._routes.advance_tick(tick), 1, "canonical owner tick")
+		_suite.assert_equal(_driver.read_route_into(_actual._routes, profile, _job, frame), &"", "actual Driver consumes canonical source")
+		_suite.assert_equal(_actual._routes.source_state_into(_actual._worker, _job, profile, 1, 2, state), &"", "original source state")
+		_suite.assert_equal(frame.yaw, heading * 16384, "body never turns with path direction")
+		_suite.assert_equal(_actor.set_world_root(_actual._world, frame.point, frame.yaw), &"", "actual integer root")
+		_suite.assert_equal(_actor.apply_pose(frame.frames), &"", "native original palette and grounding")
+		_record_pose(heading, view, tick, frame, state)
+		await process_frame
+		if tick in [4, 24, 46, 62, 94, 128, 158, 188]:
+			_save_frame("%s-yaw%d-tick%03d" % [view, frame.yaw, tick], profile, tick)
+		if not _suite.failures.is_empty():
+			break
+	_suite.assert_true(frame.ready and frame.point == START, "exact recovered access endpoint")
+
+
+func _record_pose(heading: int, view: String, tick: int, frame: Driver.Frame, state: PackedInt64Array) -> void:
+	"""Record actual native matrices, not the Actor's CPU scratch; Python independently verifies every scalar."""
+	_events.append({"heading": heading, "view": view, "tick": tick, "profile": frame.profile_id,
+		"state": Array(state), "point": [frame.point.x, frame.point.y, frame.point.z], "yaw": frame.yaw,
+		"frames": Array(frame.frames), "ready": frame.ready})
+	for bind: int in _actor._palette.bind_count(0):
+		_write_matrix(_actor.native_matrix(0, bind))
+	_write_matrix(_actor.native_matrix(1, 0))
+	_write_matrix(_actor._nodes[0].global_transform)
+	_observed += 1
+
+
+func _write_matrix(matrix: Transform3D) -> void:
+	"""Fixed twelve binary32 scalars per native affine matrix, column basis followed by origin."""
+	for vector: Vector3 in [matrix.basis.x, matrix.basis.y, matrix.basis.z, matrix.origin]:
+		_native.store_float(vector.x)
+		_native.store_float(vector.y)
+		_native.store_float(vector.z)
+
+
+func _save_frame(label: String, clip: int, tick: int) -> void:
+	"""Use the already accepted main-thread native draw/readback, independent of window draw scheduling."""
+	RenderingServer.force_draw(false, 0.0)
+	var image: Image = root.get_texture().get_image()
+	var path: String = _out + "/" + label + ".png"
+	_suite.assert_false(FileAccess.file_exists(path), "create-only frame")
+	_suite.assert_equal(image.save_png(path), OK, "actual rendered native frame")
+	_shots.append({"path": label + ".png", "clip": clip, "half_tick": tick, "sha256": FileAccess.get_sha256(path)})
+	print("canonical-frame: ", _observed, " ", label)
+
+
+func _release_sequence() -> void:
+	"""One actual owner set at a time; presentation retirement cannot release real tool or Job state."""
+	if _driver != null:
+		_driver.retire()
+	_driver = null
+	if _actor != null:
+		_actor.free()
+	_actor = null
+	if _actual != null:
+		_actual.after_each()
+		_suite.assert_true(_actual.failures.is_empty(), "all nested real-store assertions: " + str(_actual.failures))
+	_actual = null
+
+
+func _finish() -> void:
+	"""This sampled native consumer witness does not issue profile certificates or physical route permission."""
+	var report: Dictionary = {"schema": 1, "program_version": 5, "content_sha256": _content.source_digest(),
+		"poses": _observed, "matrix_count": _matrix_count, "assertions": _suite.assertions, "failures": _suite.failures,
+		"events": _events, "screenshots": _shots, "native_sha256": FileAccess.get_sha256(_out + "/native.bin"),
+		"resolution": [root.size.x, root.size.y], "user_directory": OS.get_user_data_dir(), "production_qualified": false,
+		"spatial_authority": "explicit synthetic test provider and diagnostic source flags; no physical qualification",
+		"source_time": "actual canonical 30 Hz Routes owner; native render clock grants no progress"}
+	var output: FileAccess = FileAccess.open(_out + "/report.json", FileAccess.WRITE)
+	output.store_string(JSON.stringify(report, "\t") + "\n")
+	output.close()
+	for failure: String in _suite.failures:
+		printerr("FAIL: ", failure)
+	print("native-canonical: %d poses, %d assertions, %d failures; qualified=0" % [_observed, _suite.assertions, _suite.failures.size()])
+	quit(0 if _suite.failures.is_empty() else 2)

@@ -1,0 +1,832 @@
+{
+  "scope": "Logical numeric/packed payload only. References, headers, expression temporaries, interpreter/native frames and HashingContext/FileAccess/String storage are not measured.",
+  "source_sha256": {
+    "underground_connector_workpieces": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d",
+    "underground_connector_contacts": "80bff631643de2720342ff99c3f04c6fe90f997f7aa8b7ddfd4ff94af6a3e781",
+    "underground_connector_work": "53e813a3b97c601e2b8648df2bae4df8cf315e8720dbebe61d76c2320214b0de",
+    "underground_entry_frontier": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c"
+  },
+  "workpieces": {
+    "all_top_level_members": {
+      "_live": "Bank",
+      "_stage": "Bank",
+      "_header": "PackedInt64Array",
+      "_digests": "PackedByteArray",
+      "_parts": "PackedInt32Array",
+      "_profile_revisions": "PackedInt64Array",
+      "_capacity": "int",
+      "_assembly_capacity": "int",
+      "_configured": "bool",
+      "_loaded": "bool",
+      "_busy": "bool",
+      "_placements": "RefCounted",
+      "_router": "Router",
+      "_paid_owner": "WeakRef",
+      "_contacts": "WeakRef",
+      "_budget": "Budget",
+      "_catalog": "Catalog",
+      "_assemblies": "Assemblies",
+      "_recipes": "Recipes",
+      "_profiles": "Profiles",
+      "_stage_placement": "Vector2i",
+      "_stage_project": "Vector2i",
+      "_stage_action": "int",
+      "_cold_token": "int",
+      "_cold_bytes": "int",
+      "_stage_assembly": "int",
+      "_stage_payload": "int",
+      "_context": "RefCounted",
+      "_bounds": "PackedInt32Array",
+      "_scratch": "PackedInt32Array"
+    },
+    "numeric_fields": {
+      "_capacity": 8,
+      "_assembly_capacity": 8,
+      "_configured": 1,
+      "_loaded": 1,
+      "_busy": 1,
+      "_stage_placement": 8,
+      "_stage_project": 8,
+      "_stage_action": 8,
+      "_cold_token": 8,
+      "_cold_bytes": 8,
+      "_stage_assembly": 8,
+      "_stage_payload": 8
+    },
+    "fixed_controls": 123,
+    "two_banks_per_placement": 42,
+    "immutable_source": {
+      "header": 72,
+      "digests": 160,
+      "rows_per_assembly": 32
+    },
+    "stream_peak": {
+      "source_header_and_digest_and_magic_slice": 252,
+      "source_row_and_digest_and_trailer": 72,
+      "capture_header_and_row": 81,
+      "admitted_stream_allowance": 512
+    },
+    "control_helper_allowance": 2048,
+    "provisional_native_reserve": 8192,
+    "parametric_bytes": "42P + 32A + 10,984",
+    "maximum_256_each": 29928,
+    "design_ceiling": 32768,
+    "whole_capture_wire_bytes": "60 + 21P (streamed, never retained)"
+  },
+  "contacts": {
+    "fixed_components": {
+      "numeric_members": 221,
+      "packed_members": 452,
+      "order": 96,
+      "locations": 232,
+      "descriptor": 184,
+      "selection": 168,
+      "boxes": 64,
+      "number": 9,
+      "fragments": 1633
+    },
+    "fixed_total": 3059,
+    "packed_fields": {
+      "_frame": 36,
+      "_install": 36,
+      "_station": 36,
+      "_endpoint": 28,
+      "_cut": 28,
+      "_bearing": 36,
+      "_part": 36,
+      "_region": 32,
+      "_pair": 8,
+      "_remaining": 4,
+      "_bounds": 24,
+      "_support": 24,
+      "_target": 24,
+      "_scratch": 24,
+      "_episode": 76
+    },
+    "helper_allowance": 1024,
+    "total": 4083,
+    "reservation": 4096,
+    "retained_delta": 0
+  },
+  "connector_work": {
+    "fixed_total": 179,
+    "numeric_fields": {
+      "_world": 8,
+      "_ready": 1,
+      "_busy": 1,
+      "_poisoned": 1,
+      "_stage_placement": 8,
+      "_stage_project": 8,
+      "_stage_assembly": 8,
+      "_stage_action": 8,
+      "_cold_token": 8
+    },
+    "retained_numeric_delta": 0,
+    "new_reference": "Strong exact Workpieces owner, native/header cost remains unmeasured"
+  },
+  "own_numeric_chains": {
+    "underground_connector_workpieces": {
+      "bytes": 296,
+      "path": [
+        "prepare_start",
+        "_finish_preparation",
+        "prepared_leaf_refusal",
+        "prepared_bounds_leaf_refusal",
+        "_bounds_into",
+        "_coordinate"
+      ],
+      "frames": {
+        "prepare_start": {
+          "bytes": 32,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "original_cold",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "_finish_preparation": {
+          "bytes": 0,
+          "fields": []
+        },
+        "prepared_leaf_refusal": {
+          "bytes": 32,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "action",
+              "int"
+            ],
+            [
+              "original_cold",
+              "int"
+            ]
+          ]
+        },
+        "prepared_bounds_leaf_refusal": {
+          "bytes": 40,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "action",
+              "int"
+            ],
+            [
+              "original_cold",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ]
+          ]
+        },
+        "_bounds_into": {
+          "bytes": 112,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "assembly",
+              "int"
+            ],
+            [
+              "part",
+              "int"
+            ],
+            [
+              "at",
+              "int"
+            ],
+            [
+              "first",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ],
+            [
+              "low",
+              "int"
+            ],
+            [
+              "high",
+              "int"
+            ],
+            [
+              "index",
+              "int"
+            ],
+            [
+              "x",
+              "int"
+            ],
+            [
+              "y",
+              "int"
+            ],
+            [
+              "z",
+              "int"
+            ],
+            [
+              "top",
+              "int"
+            ],
+            [
+              "bottom",
+              "int"
+            ]
+          ]
+        },
+        "_coordinate": {
+          "bytes": 80,
+          "fields": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "assembly",
+              "int"
+            ],
+            [
+              "x",
+              "int"
+            ],
+            [
+              "y",
+              "int"
+            ],
+            [
+              "z",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ],
+            [
+              "rotation",
+              "int"
+            ],
+            [
+              "sx",
+              "int"
+            ],
+            [
+              "sz",
+              "int"
+            ],
+            [
+              "value",
+              "int"
+            ]
+          ]
+        }
+      }
+    },
+    "underground_connector_contacts": {
+      "bytes": 368,
+      "path": [
+        "transition_refusal",
+        "_prepared_start_proof",
+        "_crew_leaf",
+        "_worker_leaf",
+        "_handling_leaf",
+        "_occupancy_leaf",
+        "_dynamic_selection",
+        "_prepare_dynamic_leaf",
+        "_dynamic_job_leaf",
+        "_dynamic_directory_row"
+      ],
+      "frames": {
+        "transition_refusal": {
+          "bytes": 32,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "assembly",
+              "int"
+            ],
+            [
+              "action",
+              "int"
+            ]
+          ]
+        },
+        "_prepared_start_proof": {
+          "bytes": 32,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "assembly",
+              "int"
+            ],
+            [
+              "action",
+              "int"
+            ]
+          ]
+        },
+        "_crew_leaf": {
+          "bytes": 48,
+          "fields": [
+            [
+              "primary",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "count",
+              "int"
+            ],
+            [
+              "workers",
+              "int"
+            ],
+            [
+              "job",
+              "Vector2i"
+            ],
+            [
+              "worker",
+              "Vector2i"
+            ]
+          ]
+        },
+        "_worker_leaf": {
+          "bytes": 24,
+          "fields": [
+            [
+              "job",
+              "Vector2i"
+            ],
+            [
+              "worker",
+              "Vector2i"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "_handling_leaf": {
+          "bytes": 32,
+          "fields": [
+            [
+              "worker",
+              "Vector2i"
+            ],
+            [
+              "job",
+              "Vector2i"
+            ],
+            [
+              "profile",
+              "int"
+            ],
+            [
+              "posture",
+              "int"
+            ]
+          ]
+        },
+        "_occupancy_leaf": {
+          "bytes": 32,
+          "fields": [
+            [
+              "worker",
+              "Vector2i"
+            ],
+            [
+              "source_profile",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "other",
+              "Vector2i"
+            ]
+          ]
+        },
+        "_dynamic_selection": {
+          "bytes": 56,
+          "fields": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "worker",
+              "Vector2i"
+            ],
+            [
+              "job",
+              "Vector2i"
+            ],
+            [
+              "profile",
+              "int"
+            ],
+            [
+              "mode",
+              "int"
+            ],
+            [
+              "posture",
+              "int"
+            ],
+            [
+              "family",
+              "int"
+            ]
+          ]
+        },
+        "_prepare_dynamic_leaf": {
+          "bytes": 48,
+          "fields": [
+            [
+              "worker",
+              "Vector2i"
+            ],
+            [
+              "job",
+              "Vector2i"
+            ],
+            [
+              "mode",
+              "int"
+            ],
+            [
+              "posture",
+              "int"
+            ],
+            [
+              "family",
+              "int"
+            ],
+            [
+              "hint",
+              "Vector2i"
+            ]
+          ]
+        },
+        "_dynamic_job_leaf": {
+          "bytes": 40,
+          "fields": [
+            [
+              "worker",
+              "Vector2i"
+            ],
+            [
+              "job",
+              "Vector2i"
+            ],
+            [
+              "mode",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "worker_row",
+              "int"
+            ]
+          ]
+        },
+        "_dynamic_directory_row": {
+          "bytes": 24,
+          "fields": [
+            [
+              "ref",
+              "Vector2i"
+            ],
+            [
+              "kind",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        }
+      }
+    },
+    "underground_connector_work": {
+      "bytes": 106,
+      "path": [
+        "transition_refusal",
+        "_stage_refusal",
+        "_action_state_refusal",
+        "_project_row",
+        "_composition_leaf",
+        "_actual_router"
+      ],
+      "frames": {
+        "transition_refusal": {
+          "bytes": 24,
+          "fields": [
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "action",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "_stage_refusal": {
+          "bytes": 32,
+          "fields": [
+            [
+              "placement",
+              "Vector2i"
+            ],
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "assembly",
+              "int"
+            ],
+            [
+              "action",
+              "int"
+            ]
+          ]
+        },
+        "_action_state_refusal": {
+          "bytes": 33,
+          "fields": [
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "action",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "phase",
+              "int"
+            ],
+            [
+              "funded",
+              "bool"
+            ]
+          ]
+        },
+        "_project_row": {
+          "bytes": 16,
+          "fields": [
+            [
+              "project",
+              "Vector2i"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "_composition_leaf": {
+          "bytes": 1,
+          "fields": [
+            [
+              "require_ready",
+              "bool"
+            ]
+          ]
+        },
+        "_actual_router": {
+          "bytes": 0,
+          "fields": []
+        }
+      }
+    },
+    "underground_entry_frontier": {
+      "bytes": 200,
+      "path": [
+        "load_file",
+        "_semantic_refusal",
+        "_row_refusal",
+        "_episode_refusal",
+        "_episode_selectors_refusal",
+        "_prior_station",
+        "_prior_endpoint",
+        "_field"
+      ],
+      "frames": {
+        "load_file": {
+          "bytes": 16,
+          "fields": [
+            [
+              "revision",
+              "int"
+            ],
+            [
+              "index",
+              "int"
+            ]
+          ]
+        },
+        "_semantic_refusal": {
+          "bytes": 16,
+          "fields": [
+            [
+              "table",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "_row_refusal": {
+          "bytes": 16,
+          "fields": [
+            [
+              "table",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "_episode_refusal": {
+          "bytes": 32,
+          "fields": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "mask",
+              "int"
+            ],
+            [
+              "prefix",
+              "int"
+            ],
+            [
+              "previous",
+              "int"
+            ]
+          ]
+        },
+        "_episode_selectors_refusal": {
+          "bytes": 56,
+          "fields": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "mask",
+              "int"
+            ],
+            [
+              "prefix",
+              "int"
+            ],
+            [
+              "phase",
+              "int"
+            ],
+            [
+              "station",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ],
+            [
+              "target",
+              "int"
+            ]
+          ]
+        },
+        "_prior_station": {
+          "bytes": 16,
+          "fields": [
+            [
+              "station",
+              "int"
+            ],
+            [
+              "prefix",
+              "int"
+            ]
+          ]
+        },
+        "_prior_endpoint": {
+          "bytes": 16,
+          "fields": [
+            [
+              "endpoint",
+              "int"
+            ],
+            [
+              "prefix",
+              "int"
+            ]
+          ]
+        },
+        "_field": {
+          "bytes": 32,
+          "fields": [
+            [
+              "table",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ],
+            [
+              "at",
+              "int"
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "existing_foreign_helper_envelope": 576,
+  "conservative_contacts_helper_peak": 944,
+  "conservative_workpieces_controls_helper_peak": 995,
+  "lifetime": "Both row banks and immutable source coexist. Streaming uses one bounded row/header, never a full wire. Shared InstallationContext and companion banks are counted once by Placement; Workpieces borrows them. All scratch drops before original Budget release.",
+  "runtime_qualified": false
+}

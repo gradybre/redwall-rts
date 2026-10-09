@@ -378,3 +378,103 @@ func test_public_care_treatment_latches_and_stale_healthy_rescuer_history() -> v
 	assert_equal(injury.injured_count(),1,"injured count preserved")
 	assert_true(injury.despawn(511).ok,"despawn")
 	_expect(_from_owner(injury),&"")
+
+# --- ADR 1222 step 2: bulk capture and apply -------------------------------------------------
+
+func _spawned_needs(slots: Array) -> Needs:
+	"""A Needs store with each listed resident spawned, for collaborator calls in fixtures."""
+	var needs: Needs = Needs.new()
+	for slot: int in slots:
+		assert_true(needs.spawn(slot,Needs.SIZE_SMALL).ok,"needs spawn %d" % slot)
+	return needs
+
+func _live_owner(needs: Needs, directory: Directory) -> Injury:
+	"""A store with live, edited, freed and reused rows, built through the public lifecycle only."""
+	var injury: Injury = Injury.new()
+	for slot: int in [0,3,7,511]:
+		assert_true(injury.spawn(slot).ok,"spawn %d" % slot)
+	assert_true(injury.apply_incident(3,Injury.KIND_CUT,Injury.SEVERITY_MINOR,0,1,needs).ok,"incident")
+	var rescuer: Vector2i = directory.create(Directory.KIND_RESIDENT)
+	assert_true(injury.set_rescuer(3,rescuer,directory,needs).ok,"rescuer")
+	assert_true(injury.set_care_context_blocked(7,true).ok,"context flag")
+	assert_true(injury.despawn(0).ok,"free a row")
+	assert_true(injury.spawn(0).ok,"reuse the freed row")
+	assert_true(injury.despawn(511).ok,"leave a freed row behind")
+	return injury
+
+func _image(injury: Injury) -> Injury.Columns:
+	"""The owner's eleven columns through the bulk reader."""
+	var columns: Injury.Columns = Injury.Columns.new()
+	assert_true(injury.copy_columns_into(columns),"bulk copy succeeds")
+	return columns
+
+func test_capture_then_apply_into_a_fresh_store_is_exact_and_continues_identically() -> void:
+	"""The restored store holds the same columns and counts, and answers the next edits the same."""
+	var needs: Needs = _spawned_needs([0,3,7,511])
+	var directory: Directory = Directory.new()
+	var source: Injury = _live_owner(needs,directory)
+	var frame: Section.FramedOwner = Section.FramedOwner.new(6)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var target: Injury = Injury.new()
+	assert_true(Bridge.apply(frame,target).is_ok(),"apply succeeds")
+	assert_true(_image(target).equals(_image(source)),"columns are byte-identical")
+	assert_equal(target.present_count(),source.present_count(),"present_count is rebuilt")
+	assert_equal(target.injured_count(),source.injured_count(),"injured_count is rebuilt")
+	for store: Injury in [source,target]:
+		assert_true(store.spawn(511).ok,"the freed row is reusable")
+		assert_equal(store.spawn(3).error,store.spawn(3).error,"occupied refusals agree")
+		assert_true(store.set_care_context_blocked(7,false).ok,"a later edit succeeds")
+	assert_true(_image(target).equals(_image(source)),"both stores stayed identical after edits")
+
+func test_capture_matches_the_public_reader_projection() -> void:
+	"""The captured record equals the projection built only from public per-slot readers."""
+	var needs: Needs = _spawned_needs([0,3,7,511])
+	var directory: Directory = Directory.new()
+	var source: Injury = _live_owner(needs,directory)
+	var frame: Section.FramedOwner = Section.FramedOwner.new(6)
+	assert_true(Bridge.capture_into(source,frame).is_ok(),"capture succeeds")
+	var witness: Array = _from_owner(source)
+	for field: int in 11:
+		assert_true(_held(frame,field) == witness[field],"field %d matches" % field)
+
+func test_every_column_refusal_leaves_the_target_byte_identical() -> void:
+	"""Each column code refuses through apply with the exact code and writes nothing."""
+	var needs: Needs = _spawned_needs([0,3,7,511])
+	var directory: Directory = Directory.new()
+	var target: Injury = _live_owner(needs,directory)
+	var before: Injury.Columns = _image(target)
+	var present_count: int = target.present_count()
+	var injured_count: int = target.injured_count()
+	for field: int in 11:
+		var bad: Array = _empty()
+		var value: int = 6 if field == 1 else (2 if field < 5 else (-2 if field == 6 else -1))
+		_put(bad,field,511,value)
+		var refusal: Variant = Bridge.apply(_frame(bad),target)
+		assert_equal(refusal.code,CODES[field],"exact code for field %d" % field)
+	var free_row: Array = _empty()
+	_put(free_row,4,511,1)
+	assert_equal(Bridge.apply(_frame(free_row),target).code,&"COLUMN_INACTIVE",
+		"a free row carrying data refuses")
+	assert_true(_image(target).equals(before),"no refusal wrote a column")
+	assert_equal(target.present_count(),present_count,"no refusal moved present_count")
+	assert_equal(target.injured_count(),injured_count,"no refusal moved injured_count")
+
+func test_null_and_misshaped_inputs_refuse_without_writing() -> void:
+	"""Null stores, null records, a wrong owner and a short bulk buffer all refuse."""
+	var needs: Needs = _spawned_needs([0,3,7,511])
+	var directory: Directory = Directory.new()
+	var target: Injury = _live_owner(needs,directory)
+	var before: Injury.Columns = _image(target)
+	assert_equal(Bridge.apply(_frame(_empty()),null).code,Bridge.REFUSE_NULL_STORE,"null store")
+	assert_equal(Bridge.capture_into(null,Section.FramedOwner.new(6)).code,
+		Bridge.REFUSE_NULL_STORE,"capture from no store")
+	assert_equal(Bridge.capture_into(target,null).code,&"SAVE_COMPONENT_SHAPE","null record")
+	assert_equal(Bridge.capture_into(target,Section.FramedOwner.new(5)).code,
+		&"SAVE_COMPONENT_OWNER","wrong owner")
+	var short: Injury.Columns = Injury.Columns.new()
+	short.present.resize(3)
+	assert_false(target.restore_columns(short),"a short column refuses")
+	assert_equal(target.last_column_refusal(),Injury.REFUSE_COLUMN_SHAPE,"shape code")
+	assert_false(target.copy_columns_into(short),"a short output buffer refuses")
+	assert_false(target.restore_columns(null),"null columns refuse")
+	assert_true(_image(target).equals(before),"nothing was written")

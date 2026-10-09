@@ -1,0 +1,38 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.814,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "297/372",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-connector-payment-2026-10-04/rejected-unprotected"
+      ],
+      "exit_code": 1,
+      "seconds": 4.536,
+      "log": "test_underground_connector_payment_guard.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-connector-payment-tests",
+  "project_test_sha256": "2544965a11d9cba3fc38395d75cc68c08b97f16e72a6417428a4bd26c0b66638",
+  "assets_present_before": false,
+  "error": "test_underground_connector_payment_guard.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

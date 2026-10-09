@@ -1,0 +1,3609 @@
+extends "res://scripts/core/underground_space_owner.gd".ResidentLocations
+## Actual sparse route/occupancy owner. Connected edges require the actual World binding's
+## complete geometry/profile proof; neither paid cubes nor matching X/Z create connections.
+## Finite technical arenas, exact full local refs and integer path costs. Decision 1075.
+
+const Space := preload("res://scripts/core/room_space.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Residents := preload("res://scripts/core/residents.gd")
+const Transforms := preload("res://scripts/core/transforms.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
+const Work := preload("res://scripts/core/work.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Carry := preload("res://scripts/core/haul_carry.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const Reservations := preload("res://scripts/core/reservations.gd")
+const Piles := preload("res://scripts/core/ground_piles.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const I32_MAX: int = 2147483647
+const I64_MAX: int = 9223372036854775807
+const RESIDENT_CAPACITY: int = Residents.RESIDENT_CAPACITY
+const MAX_EDGES: int = 1536
+const MAX_VERTICES: int = 4096
+const MAX_LINKS: int = 4096
+const MAX_LOCATIONS: int = 1024
+const ARENA_BYTES: int = 1048576
+const HEADER_RESERVE: int = 2112
+const PROFILE_PATH_COLD_BYTES: int = 512 # Private descriptor/query packet; caller output is separately admitted.
+const FIXED_PACKED_BYTES: int = 216 # Domain/section, two Location records, broadphase and candidate bounds.
+const EDGE_FIELDS: int = 14
+const EDGE_LONGS: int = 3
+const RESIDENT_FIELDS: int = 27
+const RESIDENT_LONGS: int = 6
+const LINK_FIELDS: int = 4
+const E_GENERATION: int = 0
+const E_FROM_SLOT: int = 1
+const E_FROM_GENERATION: int = 2
+const E_TO_SLOT: int = 3
+const E_TO_GENERATION: int = 4
+const E_SECTION_SLOT: int = 5
+const E_SECTION_GENERATION: int = 6
+const E_FAMILY: int = 7
+const E_VARIANT: int = 8
+const E_ROTATION: int = 9
+const E_PATH_START: int = 10
+const E_PATH_COUNT: int = 11
+const E_MODE: int = 12
+const E_POSTURE: int = 13
+const E_CONTENT_REVISION: int = 0
+const E_GEOMETRY_REVISION: int = 1
+const E_LENGTH: int = 2
+const R_SLOT: int = 0
+const R_GENERATION: int = 1
+const R_LOCATION_SLOT: int = 2
+const R_LOCATION_GENERATION: int = 3
+const R_EDGE_SLOT: int = 4
+const R_EDGE_GENERATION: int = 5
+const R_JOB_SLOT: int = 6
+const R_JOB_GENERATION: int = 7
+const R_HEAD: int = 8
+const R_TAIL: int = 9
+const R_MODE: int = 10
+const R_POSTURE: int = 11
+const R_PHASE: int = 12
+const R_PROFILE: int = 13
+const R_FAMILY: int = 14
+const R_TOOL_SLOT: int = 15
+const R_TOOL_GENERATION: int = 16
+const R_CARGO_SLOT: int = 17
+const R_CARGO_GENERATION: int = 18
+const R_SATCHEL_SLOT: int = 19
+const R_SATCHEL_GENERATION: int = 20
+const R_SEGMENT: int = 21
+const R_ROOM_SLOT: int = 22
+const R_ROOM_GENERATION: int = 23
+const R_SECTION_SLOT: int = 24
+const R_SECTION_GENERATION: int = 25
+const R_LEVEL: int = 26
+const R_PROFILE_REVISION: int = 0
+const R_CONTENT_REVISION: int = 1
+const R_QUANTITY: int = 2
+const R_PROGRESS: int = 3
+const R_REMAINDER: int = 4
+const R_REQUEST_TICK: int = 5
+const L_EDGE_SLOT: int = 0
+const L_EDGE_GENERATION: int = 1
+const L_NEXT: int = 2
+const L_OWNER: int = 3
+const PHASE_ABSENT: int = -1
+const PHASE_IDLE: int = 0
+const PHASE_QUEUED: int = 1
+const PHASE_TRAVELLING: int = 2
+const PHASE_HELD: int = 3
+
+
+class Actor extends RefCounted:
+	## One caller-owned live observation. Every failed read leaves all prior output fields unchanged.
+	var worker: Vector2i = NULL_REF
+	var job: Vector2i = NULL_REF
+	var room: Vector2i = NULL_REF
+	var section: Vector2i = NULL_REF
+	var location: Vector2i = NULL_REF
+	var edge: Vector2i = NULL_REF
+	var point: Vector3i = Vector3i.ZERO
+	var yaw: int = 0
+	var level: int = -1
+	var mode: int = -1
+	var posture: int = -1
+	var phase: int = PHASE_ABSENT
+	var profile_id: int = -1
+	var profile_revision: int = 0
+	var content_revision: int = 0
+	var tool: Vector2i = NULL_REF
+	var cargo: Vector2i = NULL_REF
+	var satchel: Vector2i = NULL_REF
+	var cargo_quantity_milli: int = 0
+
+
+class Edge extends RefCounted:
+	## One caller-owned cold packet; no per-edge object is retained by either authoritative bank.
+	var ref: Vector2i = NULL_REF
+	var from_location: Vector2i = NULL_REF
+	var to_location: Vector2i = NULL_REF
+	var section: Vector2i = NULL_REF
+	var room: Vector2i = NULL_REF
+	var level: int = -1
+	var family: int = -1
+	var variant: int = -1
+	var rotation: int = 0
+	var mode: int = -1
+	var posture: int = -1
+	var content_revision: int = 0
+	var geometry_revision: int = 0
+	var points: PackedInt32Array = PackedInt32Array()
+	var point_count: int = 0
+	var length_u: int = 0
+
+
+class Result extends RefCounted:
+	var error: StringName = &""
+	var token: int = 0
+	var ref: Vector2i = NULL_REF
+	var count: int = 0
+
+	func _init(code: StringName = &"", next_token: int = 0, handle: Vector2i = NULL_REF, length: int = 0) -> void:
+		"""A refusal never returns a partly allocated route identity."""
+		error = code
+		token = next_token
+		ref = handle
+		count = length
+
+
+class MotionStep extends RefCounted:
+	## One fixed unpublished step packet, never one object per actor.
+	var edge: Vector2i = NULL_REF
+	var point: Vector3i = Vector3i.ZERO
+	var segment: int = 0
+	var progress: int = 0
+	var remainder: int = 0
+	var yaw: int = 0
+	var room: Vector2i = NULL_REF
+	var section: Vector2i = NULL_REF
+	var level: int = -1
+	var finished: bool = false
+	var numerator: int = 0
+	var denominator: int = 1
+	var pace: int = 0
+	var cursor: int = -1
+	var consumed: int = 0
+
+
+class ProfilePath extends RefCounted:
+	## Cold private observation, never stored in an actor or exposed to provider callbacks.
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var bindings: Bindings = null
+	var owner: Owner = null
+	var profiles: Profiles = null
+	var locations: Locations = null
+	var sources: Owner.CoreSources = null
+	var catalog: Catalog = null
+	var first: Vector2i = NULL_REF
+	var last: Vector2i = NULL_REF
+	var geometry_revision: int = 0
+	var graph_revision: int = 0
+	var catalog_revision: int = 0
+	var cold_token: int = 0
+
+
+class Bindings extends RefCounted:
+	## Actual WorldBindings implements these read-only proofs; base callbacks fail closed.
+	var _catalog: Catalog = null
+
+	func exact_binding(_routes: RefCounted, _locations: Locations, _owner: Owner, _cold: Budget) -> bool:
+		"""Equality must include the actual World and physical/profile/contact owners."""
+		return false
+
+	func edge_refusal(_edge: Edge, _route_token: int, _space_token: int, _location_token: int) -> StringName:
+		"""Prove authored shape, full supported sweeps, endpoints and real current/future physical truth."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func actor_admission_refusal(_location: Vector2i, _selection: Profiles.Selection) -> StringName:
+		"""Prove the actual current pose and complete body/stance in a real supported endpoint."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func travel_refusal(_edge: Vector2i, _selection: Profiles.Selection) -> StringName:
+		"""Qualify this actor's local body/load over a prospective complete span, independently of arrival."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func static_catalog_owner() -> Catalog:
+		"""Borrow the actual immutable catalog identity; this reader grants no route permission."""
+		return null
+
+	func static_profile_edge_refusal(_edge: Vector2i, _profile_id: int, _profile_revision: int,
+			_content_revision: int) -> StringName:
+		"""Observe a complete committed profile-specific span proof before any actor or Job exists."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func transit_region_into(_section: Vector2i, _segment: int, _point: Vector3i, _out: Owner.Region) -> StringName:
+		"""Read actual span containment at its exact integer point; a floor datum alone grants no support."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func motion_refusal(_worker: Vector2i, _edge: Vector2i, _segment: int, _from: Vector3i,
+			_to: Vector3i, _selection: Profiles.Selection) -> StringName:
+		"""Validate the complete actual supported sweep and fresh dynamic obstacles without a world scan."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func pace_into(_selection: Profiles.Selection, _family: int, _variant: int, _out: IntMath.IntResult) -> StringName:
+		"""Read an authored integer units/second rate; missing stairs or ladder content never borrows ground pace."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func publication_refusal(_route_token: int, _space_token: int, _location_token: int) -> StringName:
+		"""Future graph publication belongs to its exact physical coordinator callback, never a preview token."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+
+class EndpointRetention extends Locations.Retention:
+	var routes: WeakRef = null
+
+	func _init(actual: RefCounted) -> void:
+		"""The endpoint observer must never close a Routes/Locations/Space reference cycle."""
+		routes = weakref(actual)
+
+	func exact_binding(locations: RefCounted) -> bool:
+		"""Only the actual local endpoint namespace qualifies a full location ref."""
+		var actual: RefCounted = routes.get_ref()
+		return actual != null and actual.retention_binding_matches(locations)
+
+	func retains(location: Vector2i) -> bool:
+		"""An expired actual graph cannot authorize endpoint retirement."""
+		var actual: RefCounted = routes.get_ref()
+		return actual == null or actual.retains_location(location)
+
+
+class EdgeBank extends RefCounted:
+	## Exact two-bank180E+24V schema. Compact point prefixes are copied into preallocated storage.
+	var fields: PackedInt32Array = PackedInt32Array()
+	var longs: PackedInt64Array = PackedInt64Array()
+	var present: PackedByteArray = PackedByteArray()
+	var retired: PackedByteArray = PackedByteArray()
+	var free_rows: PackedInt32Array = PackedInt32Array()
+	var ordered: PackedInt32Array = PackedInt32Array()
+	var vertices: PackedInt32Array = PackedInt32Array()
+	var free_count: int = 0
+	var edge_count: int = 0
+	var vertex_count: int = 0
+	var revision: int = 1
+
+	func allocate(edges: int, points: int) -> void:
+		"""Allocate only after the combined Location, route, load and lookup peak has been admitted."""
+		fields.resize(EDGE_FIELDS * edges)
+		longs.resize(EDGE_LONGS * edges)
+		present.resize(edges)
+		retired.resize(edges)
+		free_rows.resize(edges)
+		ordered.resize(edges)
+		vertices.resize(points * 3)
+		ordered.fill(-1)
+		for row: int in edges:
+			free_rows[row] = row
+		free_count = edges
+
+	func copy_from(other: EdgeBank) -> void:
+		"""Element copies avoid an uncharged copy-on-write third graph image."""
+		for index: int in fields.size():
+			fields[index] = other.fields[index]
+		for index: int in longs.size():
+			longs[index] = other.longs[index]
+		for index: int in present.size():
+			present[index] = other.present[index]
+			retired[index] = other.retired[index]
+			free_rows[index] = other.free_rows[index]
+			ordered[index] = other.ordered[index]
+		for index: int in vertices.size():
+			vertices[index] = other.vertices[index]
+		free_count = other.free_count
+		edge_count = other.edge_count
+		vertex_count = other.vertex_count
+		revision = other.revision
+
+
+class MotionBank extends RefCounted:
+	## Resident+route pools have one live bank and one finite inactive load image.
+	var resident: PackedInt32Array = PackedInt32Array()
+	var resident_long: PackedInt64Array = PackedInt64Array()
+	var links: PackedInt32Array = PackedInt32Array()
+	var free_links: PackedInt32Array = PackedInt32Array()
+	var free_count: int = 0
+
+	func allocate(capacity: int) -> void:
+		"""The512 typed rows do not raise the256 living population limit."""
+		resident.resize(RESIDENT_FIELDS * RESIDENT_CAPACITY)
+		resident_long.resize(RESIDENT_LONGS * RESIDENT_CAPACITY)
+		links.resize(LINK_FIELDS * capacity)
+		free_links.resize(capacity)
+		links.fill(-1)
+		for row: int in capacity:
+			free_links[row] = row
+		for row: int in RESIDENT_CAPACITY:
+			for field: int in [R_SLOT, R_LOCATION_SLOT, R_EDGE_SLOT, R_JOB_SLOT, R_HEAD, R_TAIL, R_MODE,
+					R_POSTURE, R_PHASE, R_PROFILE, R_FAMILY, R_TOOL_SLOT, R_CARGO_SLOT, R_SATCHEL_SLOT, R_ROOM_SLOT, R_SECTION_SLOT]:
+				resident[field * RESIDENT_CAPACITY + row] = -1
+		free_count = capacity
+
+
+var _residents: Residents = null
+var _transforms: Transforms = null
+var _ids: Directory = null
+var _locations_ref: WeakRef = null
+var _locations: Locations:
+	get: return _locations_ref.get_ref() as Locations if _locations_ref != null else null
+	set(value): _locations_ref = weakref(value) if value != null else null
+var _owner_ref: WeakRef = null
+var _owner: Owner:
+	get: return _owner_ref.get_ref() as Owner if _owner_ref != null else null
+	set(value): _owner_ref = weakref(value) if value != null else null
+var _sources_ref: WeakRef = null
+var _sources: Owner.CoreSources:
+	get: return _sources_ref.get_ref() as Owner.CoreSources if _sources_ref != null else null
+	set(value): _sources_ref = weakref(value) if value != null else null
+var _buildings: Buildings = null
+var _cold: Budget = null
+var _bindings_ref: WeakRef = null
+var _bindings: Bindings:
+	get: return _bindings_ref.get_ref() as Bindings if _bindings_ref != null else null
+	set(value): _bindings_ref = weakref(value) if value != null else null
+var _profiles_ref: WeakRef = null
+var _profiles: Profiles:
+	get: return _profiles_ref.get_ref() as Profiles if _profiles_ref != null else null
+	set(value): _profiles_ref = weakref(value) if value != null else null
+var _work_ref: WeakRef = null
+var _work: Work:
+	get: return _work_ref.get_ref() as Work if _work_ref != null else null
+	set(value): _work_ref = weakref(value) if value != null else null
+var _jobs: Jobs = null
+var _world: Vector2i = NULL_REF
+var _domain: Space.Domain = null
+var _edge_capacity: int = 0
+var _vertex_capacity: int = 0
+var _link_capacity: int = 0
+var _location_capacity: int = 0
+var _live: EdgeBank = EdgeBank.new()
+var _stage: EdgeBank = EdgeBank.new()
+var _motion: MotionBank = MotionBank.new()
+var _load_motion: MotionBank = MotionBank.new()
+var _distance: PackedInt64Array = PackedInt64Array()
+var _predecessor: PackedInt32Array = PackedInt32Array()
+var _heap_node: PackedInt32Array = PackedInt32Array()
+var _heap_position: PackedInt32Array = PackedInt32Array()
+var _search_state: PackedByteArray = PackedByteArray()
+var _proposed_edges: PackedInt32Array = PackedInt32Array()
+var _occupancy_heads: PackedInt32Array = PackedInt32Array()
+var _occupancy_next: PackedInt32Array = PackedInt32Array()
+var _occupancy_cell: PackedInt32Array = PackedInt32Array()
+var _occupancy_visit: PackedInt32Array = PackedInt32Array()
+var _occupancy_bounds: PackedInt32Array = PackedInt32Array()
+var _occupancy_profile: PackedInt64Array = PackedInt64Array()
+var _token: int = 0
+var _next_token: int = 1
+var _cold_token: int = 0
+var _space_token: int = 0
+var _location_token: int = 0
+var _sealed: bool = false
+var _base_geometry_revision: int = 0
+var _target_geometry_revision: int = 0
+var _operation_error: StringName = &""
+var _in_callback: bool = false
+var _callback_reentered: bool = false
+var _retention: EndpointRetention = null
+var _heap_count: int = 0
+var _proposed_count: int = 0
+var _path_serial: int = 1 # Unsaved scratch identity; zero permanently disables witness reuse after saturation.
+var _searching: bool = false
+var _search_worker: Vector2i = NULL_REF
+var _search_job: Vector2i = NULL_REF
+var _remaining: int = 0
+var _advancing: bool = false
+var _last_tick: int = -1
+var _last_published_token: int = 0
+var _occupancy_expected_revision: int = 0
+var _occupancy_epoch: int = 0
+var _occupancy_remaining: int = 0
+var _occupancy_reading: bool = false
+var _section: Owner.Region = Owner.Region.new()
+var _number: IntMath.IntResult = IntMath.IntResult.new()
+var _pose: Transforms.Pose = Transforms.Pose.new()
+var _first: Locations.Record = Locations.Record.new()
+var _second: Locations.Record = Locations.Record.new()
+var _edge: Edge = Edge.new()
+var _actor: Actor = Actor.new()
+var _step: MotionStep = MotionStep.new()
+var _selection: Profiles.Selection = Profiles.Selection.new()
+var _checked_selection: Profiles.Selection = Profiles.Selection.new()
+var _occupant_selection: Profiles.Selection = Profiles.Selection.new()
+var _pinned_selection: Profiles.Selection = Profiles.Selection.new()
+var _profile_box: Profiles.Box = Profiles.Box.new()
+var _occupant_box: Profiles.Box = Profiles.Box.new()
+var _catalog_extent: PackedInt32Array = PackedInt32Array()
+var _candidate_bounds: PackedInt32Array = PackedInt32Array()
+var _occupant_bounds: PackedInt32Array = PackedInt32Array()
+var _extent_revision: int = 0
+
+
+func _init(residents: Residents, transforms: Transforms) -> void:
+	"""Identity wiring precedes Space/CoreSources creation; no movement or room fact is inferred here."""
+	if residents != null and transforms != null and transforms.is_bound_directory(residents.directory()):
+		_residents = residents
+		_transforms = transforms
+		_ids = residents.directory()
+	_first.envelope.resize(6)
+	_first.support.resize(6)
+	_second.envelope.resize(6)
+	_second.support.resize(6)
+	_section.box.resize(6)
+	_catalog_extent.resize(6)
+	_candidate_bounds.resize(6)
+	_occupant_bounds.resize(6)
+
+
+func directory() -> Directory:
+	"""This exact Directory is the source namespace for every resident and Room reference."""
+	return _ids
+
+
+func configure(locations: Locations, owner: Owner, sources: Owner.CoreSources, buildings: Buildings, cold: Budget,
+		bindings: Bindings, nodes: int, edges: int, vertices: int, links: int, arena_bytes: int) -> StringName:
+	"""Admit the whole declared peak, including the real Locations banks and simultaneous load state."""
+	if _reject_callback() or _edge_capacity != 0:
+		return &"ROUTE_ALREADY_BOUND"
+	if nodes < 1 or nodes > MAX_LOCATIONS or edges < 1 or edges > MAX_EDGES \
+			or vertices < 2 or vertices > MAX_VERTICES or links < 1 or links > MAX_LINKS:
+		return &"ROUTE_CAPACITY"
+	if _ids == null or locations == null or owner == null or buildings == null or cold == null or bindings == null or sources == null:
+		return &"ROUTE_OWNER_MISMATCH"
+	var world: Vector2i = locations.world_ref()
+	if not locations.is_bound_world(_ids, world, owner) or not locations.is_bound_budget(cold) \
+			or not locations.allocation_within(nodes) or buildings.directory() != _ids \
+			or not owner.is_bound_sources(sources) or sources.resident_locations_owner() != self \
+			or not _attest_binding(bindings, locations, owner, cold):
+		return &"ROUTE_OWNER_MISMATCH"
+	var bytes: int = _required_bytes(locations.packed_memory_bytes(), nodes, edges, vertices, links)
+	if arena_bytes > ARENA_BYTES or arena_bytes < bytes:
+		return &"ROUTE_ARENA_CAPACITY"
+	_bind_stores(locations, owner, sources, buildings, cold, bindings)
+	return _configure_arenas(nodes, edges, vertices, links)
+
+
+func _bind_stores(locations: Locations, owner: Owner, sources: Owner.CoreSources,
+		buildings: Buildings, cold: Budget, bindings: Bindings) -> void:
+	"""Borrow graph collaborators weakly wherever CoreSources can retain this actual Routes instance."""
+	_locations = locations
+	_owner = owner
+	_sources = sources
+	_buildings = buildings
+	_cold = cold
+	_bindings = bindings
+	_world = locations.world_ref()
+	_domain = owner.domain_copy()
+
+
+func _configure_arenas(nodes: int, edges: int, vertices: int, links: int) -> StringName:
+	"""Install the exact endpoint observer before allocating pre-admitted fixed graph/actor banks."""
+	_location_capacity = nodes
+	_edge_capacity = edges
+	_vertex_capacity = vertices
+	_link_capacity = links
+	_retention = EndpointRetention.new(self)
+	var code: StringName = _locations.bind_retention(_retention)
+	if code != &"":
+		_edge_capacity = 0
+		return code
+	_allocate()
+	return &""
+
+
+func retention_binding_matches(locations: RefCounted) -> bool:
+	"""Read only the exact retained namespace, without consulting geometry or re-entering Locations."""
+	return _edge_capacity > 0 and locations != null and locations == _locations
+
+
+func retains_location(location: Vector2i) -> bool:
+	"""Immutable endpoints remain retained by live spans and actors, even when entry proofs expire."""
+	if _edge_capacity == 0:
+		return false
+	for row: int in _edge_capacity:
+		if _live.present[row] != 0 and (_edge_pair(_live, E_FROM_SLOT, row) == location \
+				or _edge_pair(_live, E_TO_SLOT, row) == location):
+			return true
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_pair(R_LOCATION_SLOT, row) == location:
+			return true
+	return false
+
+
+static func _required_bytes(location_bytes: int, nodes: int, edges: int, vertices: int, links: int) -> int:
+	"""All scalar arguments are bounded before this arithmetic; no independent maximum grants extra bytes."""
+	return location_bytes + 180 * edges + 24 * vertices + 312 * RESIDENT_CAPACITY + 40 * links \
+		+ 12 * vertices + 33 * nodes + 48 * RESIDENT_CAPACITY + HEADER_RESERVE
+
+
+func packed_memory_bytes() -> int:
+	"""Report all retained packed arrays, including fixed query packets within the control reservation."""
+	if _edge_capacity == 0:
+		return 0
+	return _required_bytes(0, _location_capacity, _edge_capacity, _vertex_capacity, _link_capacity) \
+		- HEADER_RESERVE + FIXED_PACKED_BYTES
+
+
+func _allocate() -> void:
+	"""One finite allocation per column; no per-resident route Array or retained graph object."""
+	_live.allocate(_edge_capacity, _vertex_capacity)
+	_stage.allocate(_edge_capacity, _vertex_capacity)
+	_motion.allocate(_link_capacity)
+	_load_motion.allocate(_link_capacity)
+	_distance.resize(_location_capacity)
+	_predecessor.resize(_location_capacity)
+	_heap_node.resize(_location_capacity)
+	_heap_position.resize(_location_capacity)
+	_search_state.resize(_location_capacity)
+	_proposed_edges.resize(2 * _location_capacity)
+	_occupancy_heads.resize(_location_capacity)
+	_occupancy_next.resize(RESIDENT_CAPACITY)
+	_occupancy_cell.resize(3 * RESIDENT_CAPACITY)
+	_occupancy_visit.resize(RESIDENT_CAPACITY)
+	_occupancy_bounds.resize(6 * RESIDENT_CAPACITY)
+	_occupancy_profile.resize(RESIDENT_CAPACITY)
+	_occupancy_heads.fill(-1)
+	_occupancy_next.fill(-1)
+	_occupancy_expected_revision = _transforms.mutation_revision()
+	_edge.points.resize(3 * _vertex_capacity) # One explicitly charged reusable whole-edge packet; decision1075.
+
+
+func bind_profiles(profiles: Profiles, inventory: Inventory, gear: Gear, carry: Carry,
+		work: Work, reservations: Reservations, piles: Piles) -> StringName:
+	"""Attest every actual profile collaborator before retaining its exact immutable-query owner."""
+	if _reject_callback() or _profiles != null or _ids == null:
+		return &"ROUTE_PROFILES_ALREADY_BOUND"
+	if profiles == null or work == null or not profiles.binding_matches(_residents, _transforms,
+			inventory, gear, carry, work, reservations, piles):
+		return &"ROUTE_PROFILE_OWNER_MISMATCH"
+	_profiles = profiles
+	_work = work
+	_jobs = work.jobs()
+	return refresh_profile_extent() if profiles.content_revision() > 0 else &""
+
+
+func binding_matches(residents: Residents, transforms: Transforms, locations: Locations,
+		owner: Owner, cold: Budget, profiles: Profiles) -> bool:
+	"""The World composer must share exact instances, including its actual Residents/Profile namespace."""
+	return _edge_capacity > 0 and _residents == residents and _transforms == transforms \
+		and _locations == locations and _owner == owner and _cold == cold and profiles != null \
+		and _profiles == profiles and _world != NULL_REF and _ids.is_valid_of_kind(_world, Directory.KIND_WORLD)
+
+
+func read_into(worker: Vector2i, out: Owner.Facts) -> StringName:
+	"""CoreSources receives real transform, mode and containing Room, never a flat tile or guessed level."""
+	if out == null:
+		return &"ROUTE_OUTPUT_REQUIRED"
+	var code: StringName = read_actor_into(worker, _actor)
+	if code != &"":
+		return code
+	out.kind = Directory.KIND_RESIDENT
+	out.parent = _actor.room
+	out.a = _actor.point.x
+	out.b = _actor.point.y
+	out.c = _actor.point.z
+	out.d = _actor.mode
+	return &""
+
+
+func read_actor_into(worker: Vector2i, out: Actor) -> StringName:
+	"""Read one actual committed actor at its exact full identity; there is no surface fallback."""
+	if out == null or _edge_capacity == 0 or _profiles == null or _work == null or _work.jobs() != _jobs:
+		return &"ROUTE_ACTOR_UNBOUND"
+	if not _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) or not _transforms.read_into(worker, _pose):
+		return &"ROUTE_ACTOR_STALE"
+	var row: int = _ids.get_typed_row(worker)
+	if _resident_ref(row) != worker or not _residents.is_alive(row):
+		return &"ROUTE_ACTOR_NOT_REGISTERED"
+	var code: StringName = _actor_location_refusal(row)
+	if code == &"":
+		code = _source_clock_refusal(row)
+	if code != &"":
+		return code
+	_write_actor(row, worker, out)
+	return &""
+
+
+func _resident_ref(row: int) -> Vector2i:
+	"""A typed row alone never qualifies the occupant that previously owned it."""
+	return Vector2i(_motion.resident[R_SLOT * RESIDENT_CAPACITY + row],
+		_motion.resident[R_GENERATION * RESIDENT_CAPACITY + row])
+
+
+func _resident_pair(field: int, row: int) -> Vector2i:
+	"""Copy one packed full reference; pairs always retain distinct external/local namespaces."""
+	return Vector2i(_motion.resident[field * RESIDENT_CAPACITY + row],
+		_motion.resident[(field + 1) * RESIDENT_CAPACITY + row])
+
+
+func _actor_location_refusal(row: int) -> StringName:
+	"""Endpoints own idle containment; occupied-edge containment is validated by actual route progress."""
+	var location: Vector2i = _resident_pair(R_LOCATION_SLOT, row)
+	var code: StringName = _locations.read_location_into(location, _first)
+	if code != &"":
+		return code
+	if _first.world != _world or not _owner.is_live_region(_resident_pair(R_SECTION_SLOT, row)):
+		return &"ROUTE_LOCATION_STALE"
+	var room: Vector2i = _resident_pair(R_ROOM_SLOT, row)
+	if room != NULL_REF and not _buildings.is_live_room(room):
+		return &"ROUTE_LOCATION_STALE"
+	if _resident_pair(R_EDGE_SLOT, row) != NULL_REF:
+		return _transit_identity_refusal(row)
+	if _first.point != Vector3i(_pose.x, _pose.y, _pose.z):
+		return &"ROUTE_ACTOR_POSITION_DRIFT"
+	if _first.room != room or _first.section != _resident_pair(R_SECTION_SLOT, row) \
+			or _first.level != _motion.resident[R_LEVEL * RESIDENT_CAPACITY + row]:
+		return &"ROUTE_ACTOR_CONTAINMENT_DRIFT"
+	return &""
+
+
+func _write_actor(row: int, worker: Vector2i, out: Actor) -> void:
+	"""Only a fully validated observation writes caller scratch; the output owns no authoritative arrays."""
+	out.worker = worker
+	out.job = _resident_pair(R_JOB_SLOT, row)
+	out.location = _resident_pair(R_LOCATION_SLOT, row)
+	out.edge = _resident_pair(R_EDGE_SLOT, row)
+	out.room = _resident_pair(R_ROOM_SLOT, row)
+	out.section = _resident_pair(R_SECTION_SLOT, row)
+	out.level = _motion.resident[R_LEVEL * RESIDENT_CAPACITY + row]
+	out.point = Vector3i(_pose.x, _pose.y, _pose.z)
+	out.yaw = _pose.yaw
+	out.mode = _motion.resident[R_MODE * RESIDENT_CAPACITY + row]
+	out.posture = _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
+	out.phase = _route_phase_at(row)
+	out.profile_id = _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	out.profile_revision = _motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]
+	out.content_revision = _motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]
+	out.tool = _resident_pair(R_TOOL_SLOT, row)
+	out.cargo = _resident_pair(R_CARGO_SLOT, row)
+	out.satchel = _resident_pair(R_SATCHEL_SLOT, row)
+	out.cargo_quantity_milli = _motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row]
+
+
+func at_contact_refusal(worker: Vector2i, job: Vector2i, location: Vector2i,
+		selection: Profiles.Selection) -> StringName:
+	"""Prove actual arrival and re-read actual profile/load; a mutable caller Selection grants no permission."""
+	var code: StringName = read_actor_into(worker, _actor)
+	if code != &"":
+		return code
+	if selection == null or _actor.edge != NULL_REF or _actor.phase != PHASE_IDLE \
+			or _actor.location != location or _actor.job != job:
+		return &"ROUTE_CONTACT_NOT_REACHED"
+	if _first.geometry_revision != _owner.revision():
+		return &"ROUTE_CONTACT_GEOMETRY_STALE"
+	if not _ids.is_valid_of_kind(job, Directory.KIND_JOB) or _jobs.job_of(_ids.get_typed_row(worker)) != job \
+			or _jobs.worker_of(_ids.get_typed_row(job)) != worker:
+		return &"ROUTE_CONTACT_JOB_STALE"
+	var row: int = _ids.get_typed_row(worker)
+	code = _current_profile_into(row, _selection)
+	if code != &"":
+		return code
+	if not _same_selection(selection, _selection) or not _committed_selection(row, _selection):
+		return &"ROUTE_CONTACT_PROFILE_STALE"
+	return &""
+
+
+static func _same_selection(first: Profiles.Selection, second: Profiles.Selection) -> bool:
+	"""Compare every observed key, content identity and current actual pose/ownership field."""
+	return first.profile_id == second.profile_id and first.profile_revision == second.profile_revision \
+		and first.content_revision == second.content_revision and first.source_id == second.source_id \
+		and first.species == second.species and first.life_stage == second.life_stage and first.rig == second.rig \
+		and first.mode == second.mode and first.posture == second.posture and first.orientation == second.orientation \
+		and first.x == second.x and first.y == second.y and first.z == second.z and first.yaw == second.yaw \
+		and first.worker == second.worker and first.job == second.job and first.tool == second.tool \
+		and first.cargo == second.cargo and first.satchel == second.satchel \
+		and first.cargo_quantity_milli == second.cargo_quantity_milli and first.box_count == second.box_count
+
+
+func _committed_selection(row: int, selection: Profiles.Selection) -> bool:
+	"""Entry/load changes require explicit requalification; the prior profile cannot follow new cargo silently."""
+	return selection.worker == _resident_ref(row) and selection.job == _resident_pair(R_JOB_SLOT, row) \
+		and selection.profile_id == _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row] \
+		and selection.profile_revision == _motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] \
+		and selection.content_revision == _motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] \
+		and selection.mode == _motion.resident[R_MODE * RESIDENT_CAPACITY + row] \
+		and selection.posture == _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row] \
+		and selection.tool == _resident_pair(R_TOOL_SLOT, row) and selection.cargo == _resident_pair(R_CARGO_SLOT, row) \
+		and selection.satchel == _resident_pair(R_SATCHEL_SLOT, row) \
+		and selection.cargo_quantity_milli == _motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row]
+
+
+func _edge_i32(bank: EdgeBank, field: int, row: int) -> int:
+	"""Read a single bounded packed field; all callers validate row identity first."""
+	return bank.fields[field * _edge_capacity + row]
+
+
+func _set_edge_i32(bank: EdgeBank, field: int, row: int, value: int) -> void:
+	"""Write only an admitted int32 field into the selected private bank."""
+	bank.fields[field * _edge_capacity + row] = value
+
+
+func _edge_i64(bank: EdgeBank, field: int, row: int) -> int:
+	"""Revision/path-length fields retain int64 range independently of XYZ bounds."""
+	return bank.longs[field * _edge_capacity + row]
+
+
+func _edge_pair(bank: EdgeBank, field: int, row: int) -> Vector2i:
+	"""Endpoint/Room namespaces remain distinct even when their integer pairs coincide."""
+	return Vector2i(bank.fields[field * _edge_capacity + row], bank.fields[(field + 1) * _edge_capacity + row])
+
+
+func _live_edge(bank: EdgeBank, ref: Vector2i) -> bool:
+	"""An authored path is identified by its full local generation, never its recycled row alone."""
+	return ref.x >= 0 and ref.x < _edge_capacity and ref.y > 0 and bank.present[ref.x] == 1 \
+		and bank.fields[E_GENERATION * _edge_capacity + ref.x] == ref.y
+
+
+func is_live_edge(ref: Vector2i) -> bool:
+	"""Liveness is identity evidence; traversal additionally requires current physical and profile proof."""
+	return _edge_capacity > 0 and _live_edge(_live, ref)
+
+
+func revision() -> int:
+	"""Authored topology has a separate revision from physical-space and immutable profile content."""
+	return _live.revision if _edge_capacity > 0 else 0
+
+
+func _binding_refusal() -> StringName:
+	"""Revalidate exact actual instances and live World before any public route mutation."""
+	if _edge_capacity == 0 or _profiles == null or _ids == null or _locations == null \
+			or _owner == null or _sources == null or _bindings == null or _work == null \
+			or not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD):
+		return &"ROUTE_OWNER_UNBOUND"
+	if not _locations.is_bound_world(_ids, _world, _owner) or not _locations.is_bound_budget(_cold) \
+			or not _owner.is_bound_sources(_sources) or _sources.resident_locations_owner() != self or _work.jobs() != _jobs:
+		return &"ROUTE_OWNER_MISMATCH"
+	return &"" if _attest_binding(_bindings, _locations, _owner, _cold) else &"ROUTE_OWNER_MISMATCH"
+
+
+func begin_prepare(cold_token: int, space_token: int = 0, location_token: int = 0) -> Result:
+	"""Copy only within this World's already admitted shared operation; graph banks are preallocated."""
+	if _reject_callback() or _token != 0 or _searching:
+		return Result.new(&"ROUTE_TRANSACTION_BUSY")
+	var code: StringName = _binding_refusal()
+	if code != &"":
+		return Result.new(code)
+	if not _cold.covers(cold_token, 1) or _next_token >= I64_MAX or _live.revision >= I64_MAX:
+		return Result.new(&"ROUTE_COLD_LEASE")
+	var base_revision: int = _owner._header[17]
+	code = _preparation_sources_refusal(space_token, location_token)
+	if code != &"":
+		return Result.new(code)
+	if not _cold.covers(cold_token, 1) or _owner._header[17] != base_revision or _token != 0:
+		return Result.new(&"ROUTE_COLD_LEASE")
+	_stage.copy_from(_live)
+	_token = _next_token
+	_next_token += 1
+	_cold_token = cold_token
+	_space_token = space_token
+	_location_token = location_token
+	_base_geometry_revision = base_revision
+	_target_geometry_revision = _owner._s_header[17] if space_token != 0 else base_revision
+	_operation_error = &""
+	_remaining = _domain._checks
+	_sealed = false
+	return Result.new(&"", _token)
+
+
+func _preparation_sources_refusal(space_token: int, location_token: int) -> StringName:
+	"""Keep source observers inside the route reentry guard, then close exact candidate pins without callbacks."""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _owner.prepared_refusal(space_token) if space_token != 0 else &""
+	if code == &"" and location_token != 0:
+		code = _locations.prepared_refusal(location_token)
+	_in_callback = false
+	if _callback_reentered:
+		return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"":
+		return code
+	if _owner._stage_token != space_token or (space_token != 0 and not _owner._sealed):
+		return &"ROUTE_SPACE_TRANSACTION"
+	if location_token != 0 and (_locations._token != location_token or not _locations._sealed):
+		return &"ROUTE_LOCATION_TRANSACTION"
+	return &""
+
+
+func _reject_callback() -> bool:
+	"""A validation callback may inspect but cannot mutate or recursively prepare this route owner."""
+	if _in_callback:
+		_callback_reentered = true
+		return true
+	return false
+
+
+func _editable(token: int) -> StringName:
+	"""All staged mutations share one exact receiver/token, and a failed candidate must be discarded."""
+	if _reject_callback():
+		return &"ROUTE_CALLBACK_REENTRY"
+	if token <= 0 or token != _token or _sealed or not _cold.covers(_cold_token, 1):
+		return &"ROUTE_TRANSACTION_STALE"
+	return _operation_error
+
+
+func _location_into(ref: Vector2i, out: Locations.Record) -> StringName:
+	"""Read sealed fixed metadata inside full candidate proofs; public live reads retain their original contract."""
+	if _location_token == 0:
+		return _locations.read_location_into(ref, out)
+	if not _spend(Locations.PREPARED_OBSERVATION_CHECKS):
+		return _operation_error
+	return Locations.prepared_route_location_into(_locations, self, ref, out)
+
+
+func _edge_format_refusal(edge: Edge) -> StringName:
+	"""Check every integer and complete authored polyline before it reaches a packed column."""
+	if edge == null or edge.point_count < 2 or edge.point_count > _vertex_capacity \
+			or edge.points.size() < edge.point_count * 3 or edge.from_location == edge.to_location:
+		return &"ROUTE_EDGE_FORMAT"
+	if not Space.valid_ref(edge.from_location) or not Space.valid_ref(edge.to_location) \
+			or not Space.valid_ref(edge.section):
+		return &"ROUTE_EDGE_IDENTITY"
+	if edge.family < -1 or edge.family >= 5 or edge.variant < 0 or edge.variant > I32_MAX \
+			or edge.rotation < 0 or edge.rotation > 3 or edge.mode < Profiles.MODE_WALK \
+			or edge.mode > Profiles.MODE_CLIMB or edge.mode == Profiles.MODE_WORK \
+			or edge.posture < Profiles.POSTURE_UPRIGHT or edge.posture > Profiles.POSTURE_STOOPED:
+		return &"ROUTE_EDGE_FORMAT"
+	if edge.content_revision != _profiles.content_revision() or edge.content_revision < 1 \
+			or edge.geometry_revision != _target_geometry_revision:
+		return &"ROUTE_EDGE_REVISION"
+	var code: StringName = _location_into(edge.from_location, _first)
+	if code == &"":
+		code = _location_into(edge.to_location, _second)
+	if code != &"":
+		return code
+	if _first.world != _world or _second.world != _world:
+		return &"ROUTE_EDGE_DOMAIN"
+	if _edge_point(edge, 0) != _first.point or _edge_point(edge, edge.point_count - 1) != _second.point:
+		return &"ROUTE_EDGE_ENDPOINT"
+	code = _edge_section_refusal(edge)
+	return _edge_length_refusal(edge) if code == &"" else code
+
+
+static func _edge_point(edge: Edge, ordinal: int) -> Vector3i:
+	"""Read one XYZ triple from an already bounded caller packet."""
+	var index: int = ordinal * 3
+	return Vector3i(edge.points[index], edge.points[index + 1], edge.points[index + 2])
+
+
+func _edge_length_refusal(edge: Edge) -> StringName:
+	"""Length is the sum of ceil integer Euclidean segment lengths; no float chooses a route."""
+	var length: int = 0
+	for index: int in edge.point_count:
+		var point: Vector3i = _edge_point(edge, index)
+		for axis: int in 3:
+			if point[axis] < _domain._bounds[axis] or point[axis] >= _domain._bounds[axis + 3]:
+				return &"ROUTE_EDGE_BOUNDS"
+		if index == 0:
+			continue
+		var distance: int = _segment_length(_edge_point(edge, index - 1), point)
+		if distance < 1 or length > I64_MAX - distance:
+			return &"ROUTE_EDGE_LENGTH"
+		length += distance
+	return &"" if length == edge.length_u else &"ROUTE_EDGE_LENGTH"
+
+
+static func _segment_length(first: Vector3i, second: Vector3i) -> int:
+	"""Exact ceil length; a single-axis segment avoids square-root work on ordinary straight spans."""
+	var square: int = 0
+	var nonzero: int = 0
+	var largest: int = 0
+	for axis: int in 3:
+		var delta: int = absi(int(second[axis]) - int(first[axis]))
+		if delta > 1753413056: # floor(sqrt(INT64_MAX/3)); also bounds interpolation products.
+			return -1
+		square += delta * delta
+		nonzero += 1 if delta != 0 else 0
+		largest = maxi(largest, delta)
+	return largest if nonzero < 2 else _ceil_root(square)
+
+
+static func _ceil_root(square: int) -> int:
+	"""Newton descent from an integer power-of-two upper bound returns the exact outward root."""
+	var bits: int = 0
+	var remaining: int = square
+	var shift: int = 32
+	while shift > 0:
+		if remaining >> shift != 0:
+			remaining >>= shift
+			bits += shift
+		shift >>= 1
+	@warning_ignore("integer_division") var root: int = 1 << ((bits + 2) / 2)
+	while true:
+		@warning_ignore("integer_division") var next: int = (root + square / root) / 2
+		if next >= root:
+			return root if root * root == square else root + 1
+		root = next
+	return -1 # Unreachable: positive integer descent reaches the floor root.
+
+
+func stage_add(token: int, edge: Edge) -> Result:
+	"""Stage a complete exact authored path; callback refusal poisons only the invisible candidate."""
+	var code: StringName = _editable(token)
+	if code == &"" and (edge == null or edge.point_count < 2 or edge.point_count > _vertex_capacity):
+		code = &"ROUTE_EDGE_FORMAT"
+	if code == &"" and not _spend(1 + edge.point_count * 34):
+		code = &"ROUTE_OPERATION_BUDGET"
+	if code == &"":
+		code = _edge_format_refusal(edge)
+	if code != &"":
+		return Result.new(code)
+	if _stage.free_count == 0 or edge.point_count > _vertex_capacity - _stage.vertex_count:
+		return Result.new(&"ROUTE_ARENA_CAPACITY")
+	var row: int = _pop_free(_stage.free_rows, _stage.free_count)
+	_stage.free_count -= 1
+	_write_edge(row, edge)
+	_read_edge(_stage, row, _edge)
+	code = _attest_edge(_edge)
+	if code == &"" and not _edge_packet_matches(_stage, row, _edge):
+		code = &"ROUTE_CALLBACK_CHANGED_PACKET"
+	if code != &"":
+		_operation_error = code
+		return Result.new(code)
+	return Result.new(&"", token, Vector2i(row, _edge_i32(_stage, E_GENERATION, row)))
+
+
+func _write_edge(row: int, edge: Edge) -> void:
+	"""Every source field is copied before callback attestation; no caller array remains authoritative."""
+	_set_edge_i32(_stage, E_GENERATION, row, _edge_i32(_stage, E_GENERATION, row) + 1)
+	_set_edge_i32(_stage, E_FROM_SLOT, row, edge.from_location.x)
+	_set_edge_i32(_stage, E_FROM_GENERATION, row, edge.from_location.y)
+	_set_edge_i32(_stage, E_TO_SLOT, row, edge.to_location.x)
+	_set_edge_i32(_stage, E_TO_GENERATION, row, edge.to_location.y)
+	_set_edge_i32(_stage, E_SECTION_SLOT, row, edge.section.x)
+	_set_edge_i32(_stage, E_SECTION_GENERATION, row, edge.section.y)
+	_set_edge_i32(_stage, E_FAMILY, row, edge.family)
+	_set_edge_i32(_stage, E_VARIANT, row, edge.variant)
+	_set_edge_i32(_stage, E_ROTATION, row, edge.rotation)
+	_set_edge_i32(_stage, E_PATH_START, row, _stage.vertex_count)
+	_set_edge_i32(_stage, E_PATH_COUNT, row, edge.point_count)
+	_set_edge_i32(_stage, E_MODE, row, edge.mode)
+	_set_edge_i32(_stage, E_POSTURE, row, edge.posture)
+	_stage.longs[E_CONTENT_REVISION * _edge_capacity + row] = edge.content_revision
+	_stage.longs[E_GEOMETRY_REVISION * _edge_capacity + row] = edge.geometry_revision
+	_stage.longs[E_LENGTH * _edge_capacity + row] = edge.length_u
+	for index: int in edge.point_count * 3:
+		_stage.vertices[_stage.vertex_count * 3 + index] = edge.points[index]
+	_stage.vertex_count += edge.point_count
+	_stage.present[row] = 1
+	_stage.edge_count += 1
+
+
+func _read_edge_metadata(bank: EdgeBank, row: int, out: Edge) -> void:
+	"""Copy fixed metadata only; callers never borrow authoritative packed bank storage."""
+	out.ref = Vector2i(row, _edge_i32(bank, E_GENERATION, row))
+	out.from_location = _edge_pair(bank, E_FROM_SLOT, row)
+	out.to_location = _edge_pair(bank, E_TO_SLOT, row)
+	out.section = _edge_pair(bank, E_SECTION_SLOT, row)
+	out.room = _section.owner if _ids.get_kind(_section.owner) == Directory.KIND_ROOM else NULL_REF
+	out.level = _section.level
+	out.family = _edge_i32(bank, E_FAMILY, row)
+	out.variant = _edge_i32(bank, E_VARIANT, row)
+	out.rotation = _edge_i32(bank, E_ROTATION, row)
+	out.mode = _edge_i32(bank, E_MODE, row)
+	out.posture = _edge_i32(bank, E_POSTURE, row)
+	out.point_count = _edge_i32(bank, E_PATH_COUNT, row)
+	out.content_revision = _edge_i64(bank, E_CONTENT_REVISION, row)
+	out.geometry_revision = _edge_i64(bank, E_GEOMETRY_REVISION, row)
+	out.length_u = _edge_i64(bank, E_LENGTH, row)
+
+
+func _read_edge(bank: EdgeBank, row: int, out: Edge) -> void:
+	"""Copy the complete polyline only for bounded cold graph operations or explicit caller reads."""
+	_read_edge_metadata(bank, row, out)
+	var start: int = _edge_i32(bank, E_PATH_START, row) * 3
+	for index: int in out.point_count * 3:
+		out.points[index] = bank.vertices[start + index]
+
+
+func _edge_packet_matches(bank: EdgeBank, row: int, edge: Edge) -> bool:
+	"""A trusted callback is read-only; even a mutation to another valid packet must refuse."""
+	if edge.ref != Vector2i(row, _edge_i32(bank, E_GENERATION, row)) \
+			or edge.from_location != _edge_pair(bank, E_FROM_SLOT, row) or edge.to_location != _edge_pair(bank, E_TO_SLOT, row) \
+			or edge.section != _edge_pair(bank, E_SECTION_SLOT, row) or edge.family != _edge_i32(bank, E_FAMILY, row) \
+			or edge.variant != _edge_i32(bank, E_VARIANT, row) or edge.rotation != _edge_i32(bank, E_ROTATION, row) \
+			or edge.mode != _edge_i32(bank, E_MODE, row) or edge.posture != _edge_i32(bank, E_POSTURE, row) \
+			or edge.content_revision != _edge_i64(bank, E_CONTENT_REVISION, row) \
+			or edge.geometry_revision != _edge_i64(bank, E_GEOMETRY_REVISION, row) \
+			or edge.length_u != _edge_i64(bank, E_LENGTH, row) or edge.point_count != _edge_i32(bank, E_PATH_COUNT, row) \
+			or edge.points.size() < edge.point_count * 3:
+		return false
+	var start: int = _edge_i32(bank, E_PATH_START, row) * 3
+	for index: int in edge.point_count * 3:
+		if edge.points[index] != bank.vertices[start + index]:
+			return false
+	return true
+
+
+func _attest_edge(edge: Edge) -> StringName:
+	"""The real World provider proves complete geometry/profile content and may not mutate route state."""
+	_in_callback = true
+	_callback_reentered = false
+	var room: Vector2i = edge.room
+	var level: int = edge.level
+	var code: StringName = _bindings.edge_refusal(edge, _token, _space_token, _location_token)
+	_in_callback = false
+	if edge.room != room or edge.level != level:
+		return &"ROUTE_CALLBACK_CHANGED_PACKET"
+	return &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else code
+
+
+func edge_into(ref: Vector2i, out: Edge) -> StringName:
+	"""Read exact live metadata/polyline into sufficient caller scratch, preserving output on refusal."""
+	if not is_live_edge(ref):
+		return &"ROUTE_EDGE_STALE"
+	if out == null or out.points.size() < _edge_i32(_live, E_PATH_COUNT, ref.x) * 3:
+		return &"ROUTE_OUTPUT_SHAPE"
+	var code: StringName = _owner.region_into_reused(_edge_pair(_live, E_SECTION_SLOT, ref.x), _section)
+	if code != &"" or _section.role != Space.FLOOR_DATUM:
+		return &"ROUTE_SECTION_STALE"
+	_read_edge(_live, ref.x, out)
+	return &""
+
+
+func edge_metadata_into(ref: Vector2i, out: Edge) -> StringName:
+	"""Read a fixed live span observation without touching its caller's polyline array."""
+	if not is_live_edge(ref):
+		return &"ROUTE_EDGE_STALE"
+	if out == null:
+		return &"ROUTE_OUTPUT_SHAPE"
+	var code: StringName = _owner.region_into_reused(_edge_pair(_live, E_SECTION_SLOT, ref.x), _section)
+	if code != &"" or _section.role != Space.FLOOR_DATUM:
+		return &"ROUTE_SECTION_STALE"
+	_read_edge_metadata(_live, ref.x, out)
+	return &""
+
+
+static func _pop_free(rows: PackedInt32Array, count: int) -> int:
+	"""Deterministic minimum free slot with no temporary collections."""
+	var result: int = rows[0]
+	count -= 1
+	if count > 0:
+		rows[0] = rows[count]
+		var parent: int = 0
+		while parent * 2 + 1 < count:
+			var child: int = parent * 2 + 1
+			if child + 1 < count and rows[child + 1] < rows[child]:
+				child += 1
+			if rows[parent] <= rows[child]:
+				break
+			var old: int = rows[parent]
+			rows[parent] = rows[child]
+			rows[child] = old
+			parent = child
+	rows[count] = -1
+	return result
+
+
+static func _push_free(rows: PackedInt32Array, count: int, row: int) -> void:
+	"""Return one exact unused row to a preallocated minimum heap."""
+	rows[count] = row
+	while count > 0:
+		@warning_ignore("integer_division") var parent: int = (count - 1) / 2
+		if rows[parent] <= rows[count]:
+			break
+		var old: int = rows[parent]
+		rows[parent] = rows[count]
+		rows[count] = old
+		count = parent
+
+
+func _attest_binding(bindings: Bindings, locations: Locations, owner: Owner, cold: Budget) -> bool:
+	"""Exact-instance callbacks remain read-only even during initial configuration."""
+	if _reject_callback():
+		return false
+	_in_callback = true
+	_callback_reentered = false
+	var matches: bool = bindings.exact_binding(self, locations, owner, cold)
+	_in_callback = false
+	return matches and not _callback_reentered
+
+
+func _spend(count: int = 1) -> bool:
+	"""Finite cold graph work refuses before the next charged loop; no capacity multiplication shortcut."""
+	if _operation_error != &"":
+		return false
+	if count < 0 or count > _remaining:
+		_operation_error = &"ROUTE_OPERATION_BUDGET"
+		return false
+	_remaining -= count
+	return true
+
+
+func _section_into(ref: Vector2i) -> StringName:
+	"""Read one actual full section, never infer a floor from its height or a nearby endpoint."""
+	var code: StringName = _owner.prepared_region_into(_space_token, ref, _section) if _space_token != 0 \
+		else _owner.region_into_reused(ref, _section)
+	if code != &"":
+		return code
+	return &"" if _section.role == Space.FLOOR_DATUM else &"ROUTE_SECTION_ROLE"
+
+
+func _edge_section_refusal(edge: Edge) -> StringName:
+	"""Section ownership names containment; only the separate actual provider proves its sweep/support."""
+	var code: StringName = _section_into(edge.section)
+	if code != &"":
+		return code
+	var room: Vector2i = _section.owner if _ids.get_kind(_section.owner) == Directory.KIND_ROOM else NULL_REF
+	return &"" if edge.room == room and edge.level == _section.level else &"ROUTE_SECTION_DOMAIN"
+
+
+func _held_edge(ref: Vector2i) -> bool:
+	"""Current motion and queued links retain full edge generations even while their proof is stale."""
+	for row: int in RESIDENT_CAPACITY:
+		if not _spend():
+			return true
+		if _resident_pair(R_EDGE_SLOT, row) == ref:
+			return true
+	for link: int in _link_capacity:
+		if not _spend():
+			return true
+		if _motion.links[L_OWNER * _link_capacity + link] >= 0 \
+				and Vector2i(_motion.links[L_EDGE_SLOT * _link_capacity + link],
+				_motion.links[L_EDGE_GENERATION * _link_capacity + link]) == ref:
+			return true
+	return false
+
+
+func stage_remove(token: int, ref: Vector2i) -> StringName:
+	"""Retained/occupied spans cannot be recycled; compact vertices in the single admitted scratch arena."""
+	var code: StringName = _editable(token)
+	if code != &"" or not _live_edge(_stage, ref):
+		return code if code != &"" else &"ROUTE_EDGE_STALE"
+	if _held_edge(ref):
+		return _operation_error if _operation_error != &"" else &"ROUTE_EDGE_RETAINED"
+	if not _spend(_edge_capacity + _stage.vertex_count * 6):
+		return _operation_error
+	_stage.present[ref.x] = 0
+	_stage.edge_count -= 1
+	_clear_edge_payload(_stage, ref.x)
+	if ref.y == I32_MAX:
+		_stage.retired[ref.x] = 1
+	else:
+		_push_free(_stage.free_rows, _stage.free_count, ref.x)
+		_stage.free_count += 1
+	_compact_vertices()
+	return &""
+
+
+func _clear_edge_payload(bank: EdgeBank, row: int) -> void:
+	"""A retired span retains its generation only, with no hidden endpoints or profile requirements."""
+	for field: int in range(1, EDGE_FIELDS):
+		_set_edge_i32(bank, field, row, 0)
+	for field: int in EDGE_LONGS:
+		bank.longs[field * _edge_capacity + row] = 0
+
+
+func _compact_vertices() -> void:
+	"""Copy through the preallocated complete-packet scratch so overlapping source spans cannot be overwritten."""
+	var count: int = 0
+	for row: int in _edge_capacity:
+		if _stage.present[row] == 0:
+			continue
+		var start: int = _edge_i32(_stage, E_PATH_START, row)
+		var length: int = _edge_i32(_stage, E_PATH_COUNT, row)
+		for index: int in length * 3:
+			_edge.points[count * 3 + index] = _stage.vertices[start * 3 + index]
+		_set_edge_i32(_stage, E_PATH_START, row, count)
+		count += length
+	for index: int in count * 3:
+		_stage.vertices[index] = _edge.points[index]
+	for index: int in range(count * 3, _stage.vertex_count * 3):
+		_stage.vertices[index] = 0
+	_stage.vertex_count = count
+
+
+func stage_refresh(token: int, ref: Vector2i) -> StringName:
+	"""Requalify an unchanged full span against the exact new physical/content revision before use."""
+	var code: StringName = _editable(token)
+	if code != &"" or not _live_edge(_stage, ref):
+		return code if code != &"" else &"ROUTE_EDGE_STALE"
+	if not _spend(1 + _edge_i32(_stage, E_PATH_COUNT, ref.x) * 34):
+		return _operation_error
+	code = _section_into(_edge_pair(_stage, E_SECTION_SLOT, ref.x))
+	if code != &"":
+		return code
+	_read_edge(_stage, ref.x, _edge)
+	_edge.geometry_revision = _target_geometry_revision
+	_edge.content_revision = _profiles.content_revision()
+	code = _edge_format_refusal(_edge)
+	if code == &"":
+		code = _attest_edge(_edge)
+	if code != &"":
+		_operation_error = code
+		return code
+	_stage.longs[E_GEOMETRY_REVISION * _edge_capacity + ref.x] = _target_geometry_revision
+	_stage.longs[E_CONTENT_REVISION * _edge_capacity + ref.x] = _profiles.content_revision()
+	if not _edge_packet_matches(_stage, ref.x, _edge):
+		_operation_error = &"ROUTE_CALLBACK_CHANGED_PACKET"
+	return _operation_error
+
+
+func _context_refusal() -> StringName:
+	"""A cold candidate remains tied to exactly one actual geometry/endpoint preparation."""
+	var code: StringName = _binding_refusal()
+	if code != &"":
+		return code
+	if _owner.revision() != _base_geometry_revision:
+		return &"ROUTE_GEOMETRY_STALE"
+	if _space_token != 0:
+		code = _owner.prepared_refusal(_space_token)
+	elif _owner.has_prepared():
+		code = &"ROUTE_SPACE_TRANSACTION"
+	else:
+		code = _owner.snapshot_revision_refusal(_base_geometry_revision)
+	if code == &"" and _location_token != 0:
+		code = _locations.prepared_refusal(_location_token)
+	if code == &"" and (not _cold.covers(_cold_token, 1) or _owner.revision() != _base_geometry_revision):
+		code = &"ROUTE_TRANSACTION_STALE"
+	return code
+
+
+func seal(token: int) -> StringName:
+	"""Seal a complete finite graph after actual identity/geometry validation and deterministic indexing."""
+	var code: StringName = _editable(token)
+	if code == &"":
+		code = _context_refusal()
+	if code != &"":
+		return code
+	code = _validate_graph()
+	if code == &"":
+		code = _build_edge_order()
+	if code == &"":
+		code = _context_refusal()
+	if code != &"":
+		_operation_error = code
+		return code
+	_stage.revision = _live.revision + 1
+	_sealed = true
+	return &""
+
+
+func _validate_graph() -> StringName:
+	"""Every retained span must have actual current endpoints, section and provider-qualified revision."""
+	for row: int in _edge_capacity:
+		if not _spend():
+			return _operation_error
+		if _stage.present[row] == 0:
+			continue
+		if not _spend(_edge_i32(_stage, E_PATH_COUNT, row) * 34):
+			return _operation_error
+		var code: StringName = _section_into(_edge_pair(_stage, E_SECTION_SLOT, row))
+		if code != &"":
+			return code
+		_read_edge(_stage, row, _edge)
+		code = _edge_format_refusal(_edge)
+		if code != &"":
+			return code
+	return &""
+
+
+func _edge_less(bank: EdgeBank, first: int, second: int) -> bool:
+	"""Index order is full origin Location then stable edge slot, independent of insertion history."""
+	var a: Vector2i = _edge_pair(bank, E_FROM_SLOT, first)
+	var b: Vector2i = _edge_pair(bank, E_FROM_SLOT, second)
+	return a.x < b.x or (a.x == b.x and (a.y < b.y or (a.y == b.y and first < second)))
+
+
+func _build_edge_order() -> StringName:
+	"""Heapsort the existing fixed index, avoiding unbounded insertion-sort work and temporary arrays."""
+	_stage.ordered.fill(-1)
+	var count: int = 0
+	for row: int in _edge_capacity:
+		if not _spend():
+			return _operation_error
+		if _stage.present[row] == 1:
+			_stage.ordered[count] = row
+			count += 1
+	@warning_ignore("integer_division") var parent: int = count / 2 - 1
+	while parent >= 0:
+		if not _sift_edge_order(parent, count):
+			return _operation_error
+		parent -= 1
+	var end: int = count - 1
+	while end > 0:
+		var first: int = _stage.ordered[0]
+		_stage.ordered[0] = _stage.ordered[end]
+		_stage.ordered[end] = first
+		if not _sift_edge_order(0, end):
+			return _operation_error
+		end -= 1
+	return &""
+
+
+func _sift_edge_order(parent: int, count: int) -> bool:
+	"""One charged bounded heap descent retains exact endpoint generations in every comparison."""
+	while parent * 2 + 1 < count:
+		if not _spend(2):
+			return false
+		var child: int = parent * 2 + 1
+		if child + 1 < count and _edge_less(_stage, _stage.ordered[child], _stage.ordered[child + 1]):
+			child += 1
+		if not _edge_less(_stage, _stage.ordered[parent], _stage.ordered[child]):
+			break
+		var old: int = _stage.ordered[parent]
+		_stage.ordered[parent] = _stage.ordered[child]
+		_stage.ordered[child] = old
+		parent = child
+	return true
+
+
+func prepared_refusal(token: int) -> StringName:
+	"""Exact sealed preparation identity remains separate from permission to enter or move an actor."""
+	if _reject_callback() or token <= 0 or token != _token or not _sealed \
+			or not _cold.covers(_cold_token, 1) or _operation_error != &"":
+		return &"ROUTE_TRANSACTION_STALE"
+	return _context_refusal()
+
+
+func publish(token: int) -> StringName:
+	"""Only a prepared exact companion publishes after its real physical and endpoint owners have committed."""
+	if _reject_callback() or token <= 0 or token != _token or not _sealed or _operation_error != &"" \
+			or not _cold.covers(_cold_token, 1):
+		return &"ROUTE_TRANSACTION_STALE"
+	if _locations._installation != null and _locations._installation.route_token == token:
+		return &"ROUTE_INSTALLATION_WINDOW"
+	if _locations._phase_context != null and _locations._phase_context.route_token == token:
+		return &"ROUTE_PHASE_WINDOW"
+	if _binding_refusal() != &"" or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
+		return &"ROUTE_GEOMETRY_STALE"
+	var code: StringName = _companion_publications_refusal()
+	if code == &"":
+		code = _publication_refusal()
+	if code != &"":
+		return code
+	code = _published_endpoints_refusal()
+	if code != &"":
+		return code
+	if not _cold.covers(_cold_token, 1) or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
+		return &"ROUTE_PUBLICATION_STALE"
+	code = _companion_publications_refusal()
+	if code != &"":
+		return code
+	var previous: EdgeBank = _live
+	_live = _stage
+	_stage = previous
+	_last_published_token = token
+	_reset_preparation()
+	return &""
+
+
+static func installation_leaf_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""A sealed add/refresh-only graph retains every old path and exact shared companion token."""
+	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
+			or not actual._sealed or actual._operation_error != &"" or actual._in_callback \
+			or actual._searching or actual._advancing or actual._occupancy_reading \
+			or actual._cold != context.budget or actual._cold_token != context.cold_token \
+			or not actual._cold.covers(context.cold_token, Budget.COLD_BYTES) \
+			or actual._space_token != context.space_token or actual._location_token != context.location_token \
+			or actual._base_geometry_revision != context.base_revision or actual._target_geometry_revision != context.target_revision:
+		return &"ROUTE_INSTALLATION_CONTEXT"
+	return _installation_paths_refusal(actual, context)
+
+
+static func _installation_paths_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""Installation may add real supported paths while preserving every retained path payload."""
+	if context.action != Locations.Modular.COMMIT and (actual._stage.edge_count != actual._live.edge_count \
+			or actual._stage.vertex_count != actual._live.vertex_count or actual._stage.free_count != actual._live.free_count):
+		return &"ROUTE_WORKPIECE_REFRESH_ONLY"
+	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
+
+
+static func _retained_paths_refusal(actual: RefCounted, target_revision: int, profile_revision: int) -> StringName:
+	"""Preserve occupied and queued spans without a new retention observer after payment."""
+	if actual._stage.vertex_count < actual._live.vertex_count:
+		return &"ROUTE_INSTALLATION_CREATE_ONLY"
+	for row: int in actual._edge_capacity:
+		if actual._live.present[row] != 0:
+			if actual._stage.present[row] != actual._live.present[row]:
+				return &"ROUTE_INSTALLATION_CREATE_ONLY"
+			for field: int in EDGE_FIELDS:
+				if actual._live.fields[field * actual._edge_capacity + row] != actual._stage.fields[field * actual._edge_capacity + row]:
+					return &"ROUTE_INSTALLATION_CREATE_ONLY"
+			if actual._live.longs[E_LENGTH * actual._edge_capacity + row] != actual._stage.longs[E_LENGTH * actual._edge_capacity + row]:
+				return &"ROUTE_INSTALLATION_CREATE_ONLY"
+		if actual._stage.present[row] != 0 and (actual._stage.longs[E_CONTENT_REVISION * actual._edge_capacity + row] != profile_revision \
+				or actual._stage.longs[E_GEOMETRY_REVISION * actual._edge_capacity + row] != target_revision):
+			return &"ROUTE_INSTALLATION_REFRESH_REQUIRED"
+	for index: int in actual._live.vertex_count * 3:
+		if actual._live.vertices[index] != actual._stage.vertices[index]:
+			return &"ROUTE_INSTALLATION_CREATE_ONLY"
+	return &""
+
+
+static func room_prepared_leaf_refusal(actual: RefCounted, context: Locations.RoomContext) -> StringName:
+	"""A Room admission cannot create a path, delete a queue/occupied edge or change an old span payload."""
+	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
+			or not actual._sealed or actual._operation_error != &"" or actual._in_callback or actual._callback_reentered \
+			or actual._searching or actual._advancing or actual._occupancy_reading or actual._cold != context.budget \
+			or actual._cold_token != context.cold_token or actual._space_token != context.space_token \
+			or actual._location_token != context.location_token or actual._base_geometry_revision != context.base_revision \
+			or actual._target_geometry_revision != context.target_revision or actual._profiles._loading \
+			or actual._profiles._live.header[0] != context.profile_revision:
+		return &"ROUTE_ROOM_CONTEXT"
+	var code: StringName = Locations.room_scope_leaf_refusal(actual._locations, context)
+	if code != &"":
+		return code
+	if actual._stage.edge_count != actual._live.edge_count or actual._stage.vertex_count != actual._live.vertex_count \
+			or actual._stage.free_count != actual._live.free_count:
+		return &"ROUTE_ROOM_REFRESH_ONLY"
+	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
+
+
+static func publish_room_preflighted(actual: RefCounted, context: Locations.RoomContext) -> bool:
+	"""Only the same preflighted Room's actual Space and endpoint receipts can publish the refreshed path bank."""
+	if room_prepared_leaf_refusal(actual, context) != &"" \
+			or Locations.room_scope_leaf_refusal(actual._locations, context, true) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
+		return false
+	_commit_preflighted_bank(actual, context.route_token)
+	return true
+
+
+static func phase_prepared_leaf_refusal(actual: RefCounted, context: Locations.PhaseContext) -> StringName:
+	"""A phase refresh cannot create a path, delete a queue/occupied edge or change an old span payload."""
+	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
+			or not actual._sealed or actual._operation_error != &"" or actual._in_callback or actual._callback_reentered \
+			or actual._searching or actual._advancing or actual._occupancy_reading or actual._cold != context.budget \
+			or actual._cold_token != context.cold_token or actual._space_token != context.space_token \
+			or actual._location_token != context.location_token or actual._base_geometry_revision != context.base_revision \
+			or actual._target_geometry_revision != context.target_revision or actual._profiles._loading \
+			or actual._profiles._live.header[0] != context.profile_revision:
+		return &"ROUTE_PHASE_CONTEXT"
+	var code: StringName = Locations.phase_scope_leaf_refusal(actual._locations, context)
+	if code != &"":
+		return code
+	if actual._stage.edge_count != actual._live.edge_count or actual._stage.vertex_count != actual._live.vertex_count \
+			or actual._stage.free_count != actual._live.free_count:
+		return &"ROUTE_PHASE_REFRESH_ONLY"
+	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
+
+
+static func publish_phase_preflighted(actual: RefCounted, context: Locations.PhaseContext) -> bool:
+	"""Only the same preflighted phase's actual Space and endpoint receipts can publish the refreshed path bank."""
+	if phase_prepared_leaf_refusal(actual, context) != &"" \
+			or Locations.phase_scope_leaf_refusal(actual._locations, context, true) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
+		return false
+	_commit_preflighted_bank(actual, context.route_token)
+	return true
+
+
+static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
+	"""Static paid tail follows actual Space and Locations receipts; no provider or endpoint observer runs."""
+	if installation_leaf_refusal(actual, context) != &"" \
+			or Locations.installation_scope_refusal(actual._locations, context, true) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
+		return false
+	_commit_preflighted_bank(actual, context.route_token)
+	return true
+
+
+static func _commit_preflighted_bank(actual: RefCounted, token: int) -> void:
+	"""Both typed coordinators prove their own original receipt before this observer-free bank swap."""
+	var previous: EdgeBank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._last_published_token = token
+	actual._token = 0
+	actual._cold_token = 0
+	actual._space_token = 0
+	actual._location_token = 0
+	actual._base_geometry_revision = 0
+	actual._target_geometry_revision = 0
+	actual._operation_error = &""
+	actual._remaining = 0
+	actual._sealed = false
+
+
+func _companion_publications_refusal() -> StringName:
+	"""Equal future revisions or recycled absent handles cannot replace the exact prepared companion."""
+	if _space_token != 0 and _owner.last_published_token() != _space_token:
+		return &"ROUTE_SPACE_PUBLICATION"
+	if _location_token != 0 and _locations.last_published_token() != _location_token:
+		return &"ROUTE_LOCATION_PUBLICATION"
+	return &""
+
+
+func _publication_refusal() -> StringName:
+	"""The concrete provider attests its same-stack coordinator, not a caller's claimed callback flag."""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.publication_refusal(_token, _space_token, _location_token)
+	_in_callback = false
+	return &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else code
+
+
+func _published_endpoints_refusal() -> StringName:
+	"""Final defensive identity checks never prepare or rebuild geometry after a physical commit."""
+	for row: int in _edge_capacity:
+		if _stage.present[row] == 0:
+			continue
+		if not _owner.is_live_region(_edge_pair(_stage, E_SECTION_SLOT, row)):
+			return &"ROUTE_SECTION_STALE"
+		if _edge_i64(_stage, E_CONTENT_REVISION, row) != _profiles.content_revision():
+			return &"ROUTE_CONTENT_STALE"
+		var code: StringName = _locations.read_location_into(_edge_pair(_stage, E_FROM_SLOT, row), _first)
+		if code == &"":
+			code = _locations.read_location_into(_edge_pair(_stage, E_TO_SLOT, row), _second)
+		if code != &"":
+			return code
+	return &""
+
+
+func abort(token: int) -> bool:
+	"""Drop only this exact invisible candidate; the caller continues to own the shared cold lease."""
+	if _reject_callback() or token <= 0 or token != _token:
+		return false
+	_reset_preparation()
+	return true
+
+
+func _reset_preparation() -> void:
+	"""No graph/actor state is published by cancellation; stale tokens can never identify a later candidate."""
+	_token = 0
+	_cold_token = 0
+	_space_token = 0
+	_location_token = 0
+	_base_geometry_revision = 0
+	_target_geometry_revision = 0
+	_operation_error = &""
+	_remaining = 0
+	_sealed = false
+
+
+func candidate_path_into(first: Vector2i, last: Vector2i, mode: int, posture: int,
+		out: PackedInt32Array) -> Result:
+	"""Return a deterministic topology candidate only; no resident is admitted by a graph search."""
+	if _reject_callback() or _token != 0 or _searching:
+		return Result.new(&"ROUTE_TRANSACTION_BUSY")
+	var code: StringName = _binding_refusal()
+	if code != &"":
+		return Result.new(code)
+	if not _locations.is_live_location(first) or not _locations.is_live_location(last):
+		return Result.new(&"ROUTE_LOCATION_STALE")
+	if mode < Profiles.MODE_WALK or mode > Profiles.MODE_CLIMB or mode == Profiles.MODE_WORK \
+			or posture < Profiles.POSTURE_UPRIGHT or posture > Profiles.POSTURE_STOOPED:
+		return Result.new(&"ROUTE_PROFILE_TERMS")
+	_remaining = _domain._checks
+	_operation_error = &""
+	_searching = true
+	code = _find_path(first, last, mode, posture)
+	_searching = false
+	if code != &"":
+		return Result.new(code)
+	if out.size() < _proposed_count * 2:
+		return Result.new(&"ROUTE_OUTPUT_SHAPE")
+	for index: int in _proposed_count:
+		var reverse: int = (_proposed_count - index - 1) * 2
+		out[index * 2] = _proposed_edges[reverse]
+		out[index * 2 + 1] = _proposed_edges[reverse + 1]
+	return Result.new(&"", 0, NULL_REF, _proposed_count)
+
+
+
+func profile_path_into(first: Vector2i, last: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int, out: PackedInt32Array, cold_token: int) -> Result:
+	"""Find an actually certified static profile path; no actor, Job, contact or dynamic permission is created."""
+	if _reject_callback() or _token != 0 or _searching or _advancing or _occupancy_reading:
+		return Result.new(&"ROUTE_TRANSACTION_BUSY")
+	if _cold == null or not _cold.covers(cold_token, PROFILE_PATH_COLD_BYTES):
+		return Result.new(&"ROUTE_COLD_LEASE")
+	var query: ProfilePath = ProfilePath.new()
+	query.first = first
+	query.last = last
+	query.cold_token = cold_token
+	_searching = true
+	var code: StringName = _prepare_profile_path(query, profile_id, profile_revision, content_revision)
+	if code == &"":
+		code = _find_path(first, last, query.descriptor.mode, query.descriptor.posture, query)
+	if code == &"":
+		code = _profile_path_final_refusal(query)
+	_searching = false
+	if code != &"":
+		return Result.new(code)
+	return _copy_proposed_path(out)
+
+
+func _prepare_profile_path(query: ProfilePath, profile_id: int, profile_revision: int,
+		content_revision: int) -> StringName:
+	"""Hold original actual collaborators across callbacks before touching the shared Dijkstra scratch."""
+	query.bindings = _bindings
+	query.owner = _owner
+	query.profiles = _profiles
+	query.locations = _locations
+	query.sources = _sources
+	var code: StringName = _binding_refusal()
+	if code != &"":
+		return code
+	_in_callback = true
+	_callback_reentered = false
+	query.catalog = query.bindings.static_catalog_owner()
+	_in_callback = false
+	if _callback_reentered:
+		return &"ROUTE_CALLBACK_REENTRY"
+	if query.catalog == null or query.catalog.content_revision() <= 0:
+		return &"ROUTE_STATIC_CATALOG_UNBOUND"
+	query.geometry_revision = query.owner.revision()
+	query.graph_revision = _live.revision
+	query.catalog_revision = query.catalog.content_revision()
+	code = query.profiles.descriptor_into(profile_id, content_revision, query.descriptor)
+	if code == &"" and (query.descriptor.profile_revision != profile_revision 			or query.descriptor.certificate_flags != Profiles.CERT_REQUIRED):
+		code = &"ROUTE_STATIC_PROFILE_STALE"
+	if code != &"":
+		return code
+	return _start_profile_path(query)
+
+
+func _start_profile_path(query: ProfilePath) -> StringName:
+	"""A valid immutable travel descriptor is necessary even for a zero-span path."""
+	if query.descriptor.mode < Profiles.MODE_WALK or query.descriptor.mode > Profiles.MODE_CLIMB 			or query.descriptor.mode == Profiles.MODE_WORK or query.descriptor.posture < Profiles.POSTURE_UPRIGHT 			or query.descriptor.posture > Profiles.POSTURE_STOOPED:
+		return &"ROUTE_PROFILE_TERMS"
+	_remaining = _domain._checks
+	_operation_error = &""
+	return _current_profile_path_refusal(query)
+
+
+func _current_profile_path_refusal(query: ProfilePath) -> StringName:
+	"""Pure full-identity and revision reads follow every external callback and precede output writes."""
+	if not _cold.covers(query.cold_token, PROFILE_PATH_COLD_BYTES):
+		return &"ROUTE_COLD_LEASE"
+	if query.bindings._catalog != query.catalog:
+		return &"ROUTE_OWNER_MISMATCH"
+	if query.bindings != _bindings or query.owner != _owner or query.profiles != _profiles 			or query.locations != _locations or query.sources != _sources 			or not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD):
+		return &"ROUTE_OWNER_MISMATCH"
+	if query.owner.has_prepared() or query.owner.revision() != query.geometry_revision 			or _live.revision != query.graph_revision or query.profiles.content_revision() != query.descriptor.content_revision 			or query.catalog.content_revision() != query.catalog_revision:
+		return &"ROUTE_STATIC_PROFILE_STALE"
+	if not query.locations.is_live_location(query.first) or not query.locations.is_live_location(query.last):
+		return &"ROUTE_LOCATION_STALE"
+	return &""
+
+
+func _static_travel_profile_refusal(row: int, query: ProfilePath) -> StringName:
+	"""A refused span may be bypassed; changed source/lease context invalidates the complete search."""
+	if not _spend(64):
+		return _operation_error
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = query.bindings.static_profile_edge_refusal(
+		Vector2i(row, _edge_i32(_live, E_GENERATION, row)), query.descriptor.profile_id,
+		query.descriptor.profile_revision, query.descriptor.content_revision)
+	_in_callback = false
+	_operation_error = &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else _current_profile_path_refusal(query)
+	return code if _operation_error == &"" else _operation_error
+
+
+func _profile_path_final_refusal(query: ProfilePath) -> StringName:
+	"""Check every collected full edge and endpoint chain after the final permission callback."""
+	var code: StringName = _current_profile_path_refusal(query)
+	if code != &"":
+		return code
+	return _path_chain_refusal(query.first, query.last, query.geometry_revision, query.descriptor.content_revision)
+
+
+func _path_chain_refusal(first: Vector2i, last: Vector2i, geometry: int, content: int,
+		certificate: RefCounted = null) -> StringName:
+	"""Cold and pure live searches validate the same collected full-generation endpoint chain."""
+	var endpoint: Vector2i = first
+	for index: int in _proposed_count:
+		if not _spend(16 if certificate != null else 1):
+			return _operation_error
+		var offset: int = (_proposed_count - index - 1) * 2
+		var edge: Vector2i = Vector2i(_proposed_edges[offset], _proposed_edges[offset + 1])
+		if not _live_edge(_live, edge) or _edge_pair(_live, E_FROM_SLOT, edge.x) != endpoint 				or _edge_i64(_live, E_GEOMETRY_REVISION, edge.x) != geometry 				or _edge_i64(_live, E_CONTENT_REVISION, edge.x) != content:
+			return &"ROUTE_EDGE_REVISION"
+		endpoint = _edge_pair(_live, E_TO_SLOT, edge.x)
+		if not _path_location_live(endpoint, certificate):
+			return &"ROUTE_LOCATION_STALE"
+	return &"" if endpoint == last else &"ROUTE_NOT_CONNECTED"
+
+
+func _copy_proposed_path(out: PackedInt32Array) -> Result:
+	"""Only a fully checked path overwrites caller-provided storage; no resize or partial refusal writes."""
+	if out.size() < _proposed_count * 2:
+		return Result.new(&"ROUTE_OUTPUT_SHAPE")
+	for index: int in _proposed_count:
+		var reverse: int = (_proposed_count - index - 1) * 2
+		out[index * 2] = _proposed_edges[reverse]
+		out[index * 2 + 1] = _proposed_edges[reverse + 1]
+	return Result.new(&"", 0, NULL_REF, _proposed_count)
+
+
+func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int,
+		query: ProfilePath = null, certificate: RefCounted = null) -> StringName:
+	"""Positive exact lengths admit ordinary Dijkstra; a flat octile heuristic cannot connect floors."""
+	if _path_serial > 0:
+		_path_serial = 0 if _path_serial == I64_MAX else _path_serial + 1
+	_distance.fill(I64_MAX)
+	_predecessor.fill(-1)
+	_heap_position.fill(-1)
+	_search_state.fill(0)
+	_heap_count = 0
+	_proposed_count = 0
+	_distance[first.x] = 0
+	_heap_insert(first.x)
+	while _heap_count > 0:
+		if _operation_error != &"" or not _spend():
+			return _operation_error
+		var node: int = _heap_take()
+		if _operation_error != &"":
+			return _operation_error
+		_search_state[node] = 2
+		if node == last.x:
+			return _collect_path(first, last)
+		var generation: int = first.y if node == first.x else _edge_i32(_live, E_TO_GENERATION, _predecessor[node])
+		var code: StringName = _relax_edges(Vector2i(node, generation), mode, posture, query, certificate)
+		if code != &"":
+			return code
+	return &"ROUTE_NOT_CONNECTED"
+
+
+func _first_edge_index(origin: Vector2i) -> int:
+	"""Binary search the existing endpoint-sorted edge index, including full local generation."""
+	var low: int = 0
+	var high: int = _live.edge_count
+	while low < high:
+		if not _spend():
+			return high
+		@warning_ignore("integer_division") var middle: int = (low + high) / 2
+		var ref: Vector2i = _edge_pair(_live, E_FROM_SLOT, _live.ordered[middle])
+		if ref.x < origin.x or (ref.x == origin.x and ref.y < origin.y):
+			low = middle + 1
+		else:
+			high = middle
+	return low
+
+
+func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath = null,
+		certificate: RefCounted = null) -> StringName:
+	"""Visit only this node's authored outgoing edges; endpoint coincidence never fabricates a link."""
+	var index: int = _first_edge_index(origin)
+	while index < _live.edge_count:
+		if not _spend():
+			return _operation_error
+		var row: int = _live.ordered[index]
+		if _edge_pair(_live, E_FROM_SLOT, row) != origin:
+			break
+		index += 1
+		if not _path_terms_match(row, mode, posture):
+			continue
+		if not _path_edge_current(row, certificate):
+			return &"ROUTE_EDGE_REVISION"
+		var next: Vector2i = _edge_pair(_live, E_TO_SLOT, row)
+		if not _path_location_live(next, certificate):
+			return &"ROUTE_LOCATION_STALE"
+		if _search_state[next.x] == 2:
+			continue
+		var code: StringName = _path_profile_refusal(row, query, certificate)
+		if _operation_error != &"":
+			return _operation_error
+		if code != &"":
+			continue
+		var length: int = _edge_i64(_live, E_LENGTH, row)
+		if _distance[origin.x] > I64_MAX - length:
+			return &"ROUTE_DISTANCE_OVERFLOW"
+		_relax(next.x, row, _distance[origin.x] + length)
+	return _operation_error
+
+
+func _path_terms_match(row: int, mode: int, posture: int) -> bool:
+	"""Actor, cold static and pure live searches filter the same authored edge terms."""
+	return (mode < 0 or _live.fields[E_MODE * _edge_capacity + row] == mode) \
+		and (posture < 0 or _live.fields[E_POSTURE * _edge_capacity + row] == posture)
+
+
+func _path_profile_refusal(row: int, query: ProfilePath, certificate: RefCounted = null) -> StringName:
+	"""Only a clean span refusal can choose a detour; callers must stop on a recorded operation fault."""
+	if certificate != null:
+		return _committed_mask_refusal(row, certificate)
+	if query != null:
+		return _static_travel_profile_refusal(row, query)
+	return _travel_profile_refusal(row) if _search_worker != NULL_REF else &""
+
+
+func _path_location_live(ref: Vector2i, certificate: RefCounted) -> bool:
+	"""The concrete live query holds its World proof and invokes no public endpoint observation."""
+	return _locations._live_ref(_locations._live, ref) if certificate != null else _locations.is_live_location(ref)
+
+
+func _path_edge_current(row: int, certificate: RefCounted) -> bool:
+	"""Only the actual static entry supplies a certificate context; cold/actor behavior remains unchanged."""
+	var geometry: int = _owner._header[17] if certificate != null else _owner.revision()
+	var content: int = _profiles._live.header[0] if certificate != null else _profiles.content_revision()
+	return _live.longs[E_GEOMETRY_REVISION * _edge_capacity + row] == geometry \
+		and _live.longs[E_CONTENT_REVISION * _edge_capacity + row] == content
+
+
+func _committed_mask_refusal(row: int, certificate: RefCounted) -> StringName:
+	"""Read the actual bound provider's current bank directly; no observer or caller-created mask grants an edge."""
+	if not _spend(64):
+		return _operation_error
+	if certificate != _bindings or certificate._routes_ref.get_ref() != self \
+			or not certificate._reading or not _searching:
+		_operation_error = &"ROUTE_OWNER_MISMATCH"
+		return _operation_error
+	var descriptor: Profiles.Descriptor = certificate._descriptor
+	var bank: RefCounted = certificate._live
+	var profile: int = descriptor.profile_id
+	@warning_ignore("integer_division") var byte: int = profile / 8
+	return &"" if bank.generations[row] == _live.fields[E_GENERATION * _edge_capacity + row] \
+		and bank.geometry[row] == _owner._header[17] \
+		and bank.content[row] == descriptor.content_revision \
+		and (bank.masks[row * 32 + byte] & (1 << (profile % 8))) != 0 \
+		else &"WORLD_ROUTE_CERTIFICATE_STALE"
+
+
+func _travel_profile_refusal(row: int) -> StringName:
+	"""Reject unusable spans during actual actor search, so another connected fitting route can win."""
+	if not _spend(64):
+		return _operation_error
+	var worker_row: int = _ids.get_typed_row(_search_worker)
+	if worker_row < 0 or worker_row >= RESIDENT_CAPACITY or _resident_ref(worker_row) != _search_worker:
+		_operation_error = &"ROUTE_ACTOR_STALE"
+		return _operation_error
+	var code: StringName = _edge_profile_into(worker_row, row, _selection)
+	if code != &"":
+		return code
+	_copy_selection(_selection, _pinned_selection)
+	_in_callback = true
+	_callback_reentered = false
+	code = _bindings.travel_refusal(Vector2i(row, _edge_i32(_live, E_GENERATION, row)), _selection)
+	_in_callback = false
+	if _callback_reentered:
+		_operation_error = &"ROUTE_CALLBACK_REENTRY"
+	elif not _same_selection(_selection, _pinned_selection):
+		_operation_error = &"ROUTE_CALLBACK_CHANGED_PACKET"
+	return code if _operation_error == &"" else _operation_error
+
+
+func _relax(node: int, edge: int, distance: int) -> void:
+	"""Equal-cost ties choose the stable lower edge slot; all lengths are positive."""
+	if distance > _distance[node] or (distance == _distance[node] and edge >= _predecessor[node]):
+		return
+	_distance[node] = distance
+	_predecessor[node] = edge
+	if _heap_position[node] < 0:
+		_heap_insert(node)
+	else:
+		_heap_up(_heap_position[node])
+
+
+func _collect_path(first: Vector2i, last: Vector2i) -> StringName:
+	"""Collect full edge generations in fixed reverse scratch; malformed cycles cannot exceed the node cap."""
+	var cursor: Vector2i = last
+	while cursor != first:
+		if not _spend() or _proposed_count >= _location_capacity:
+			return &"ROUTE_OPERATION_BUDGET"
+		var row: int = _predecessor[cursor.x]
+		if row < 0 or _edge_pair(_live, E_TO_SLOT, row) != cursor:
+			return &"ROUTE_PATH_STALE"
+		_proposed_edges[_proposed_count * 2] = row
+		_proposed_edges[_proposed_count * 2 + 1] = _edge_i32(_live, E_GENERATION, row)
+		_proposed_count += 1
+		cursor = _edge_pair(_live, E_FROM_SLOT, row)
+	return &""
+
+
+func _node_less(first: int, second: int) -> bool:
+	"""Stable minimum distance then local Location slot gives deterministic heap ties."""
+	return _distance[first] < _distance[second] or (_distance[first] == _distance[second] and first < second)
+
+
+func _heap_insert(node: int) -> void:
+	"""Each node occupies at most one preallocated heap row."""
+	_heap_node[_heap_count] = node
+	_heap_position[node] = _heap_count
+	_search_state[node] = 1
+	_heap_count += 1
+	_heap_up(_heap_count - 1)
+
+
+func _heap_up(index: int) -> void:
+	"""A charged decrease-key uses no duplicate heap entry and no growable collection."""
+	while index > 0:
+		if not _spend():
+			return
+		@warning_ignore("integer_division") var parent: int = (index - 1) / 2
+		if not _node_less(_heap_node[index], _heap_node[parent]):
+			return
+		_heap_swap(index, parent)
+		index = parent
+
+
+func _heap_take() -> int:
+	"""Remove the exact minimum and repair both row-to-node and node-to-row indexes."""
+	var node: int = _heap_node[0]
+	_heap_count -= 1
+	_heap_position[node] = -1
+	if _heap_count == 0:
+		return node
+	_heap_node[0] = _heap_node[_heap_count]
+	_heap_position[_heap_node[0]] = 0
+	var parent: int = 0
+	while parent * 2 + 1 < _heap_count:
+		if not _spend(2):
+			return node
+		var child: int = parent * 2 + 1
+		if child + 1 < _heap_count and _node_less(_heap_node[child + 1], _heap_node[child]):
+			child += 1
+		if not _node_less(_heap_node[child], _heap_node[parent]):
+			break
+		_heap_swap(parent, child)
+		parent = child
+	return node
+
+
+func _heap_swap(first: int, second: int) -> void:
+	"""Update the paired indexes together before the next heap comparison."""
+	var old: int = _heap_node[first]
+	_heap_node[first] = _heap_node[second]
+	_heap_node[second] = old
+	_heap_position[_heap_node[first]] = first
+	_heap_position[_heap_node[second]] = second
+
+
+func refresh_profile_extent() -> StringName:
+	"""Cold global collision bounds include every authored load/recovery variant; no profile image is copied."""
+	if _reject_callback() or _profiles == null or _token != 0:
+		return &"ROUTE_PROFILE_OWNER_MISMATCH"
+	var revision_now: int = _profiles.content_revision()
+	var code: StringName = _profiles.body_extent_into(revision_now, _catalog_extent)
+	if code == &"":
+		_extent_revision = revision_now
+	return code
+
+
+func admit_actor(worker: Vector2i, job: Vector2i, location: Vector2i, mode: int,
+		posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Ordinary admission uses unambiguous actual selection; multiple WORK contacts require exact pins."""
+	return _admit_actor(worker, job, location, mode, posture, family, equipped_tool_hint)
+
+
+func admit_work_actor(worker: Vector2i, job: Vector2i, location: Vector2i, profile_id: int,
+		profile_revision: int, content_revision: int, posture: int, family: int,
+		equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Admit an exact authored WORK contact through the same actual pose, body and endpoint proofs."""
+	if profile_id < 0 or profile_revision <= 0 or content_revision <= 0:
+		return &"PROFILE_SELECTION_STALE"
+	return _admit_actor(worker, job, location, Profiles.MODE_WORK, posture, family,
+		equipped_tool_hint, profile_id, profile_revision, content_revision)
+
+
+func admit_travel_actor(worker: Vector2i, job: Vector2i, location: Vector2i, profile_id: int,
+		profile_revision: int, content_revision: int, posture: int, family: int,
+		equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""A newly registered explicit source actor starts at shared ready, with no implied travel or productive permission."""
+	if SourceProgram.profile_refusal(_profiles, profile_id, profile_revision, content_revision) != &"" or profile_id >= 10:
+		return &"ROUTE_SOURCE_PROFILE"
+	return _admit_actor(worker, job, location, Profiles.MODE_WALK, posture, family,
+		equipped_tool_hint, profile_id, profile_revision, content_revision)
+
+
+func _admit_actor(worker: Vector2i, job: Vector2i, location: Vector2i, mode: int,
+		posture: int, family: int, hint: Vector2i, profile_id: int = -1,
+		profile_revision: int = 0, content_revision: int = 0) -> StringName:
+	"""Register only an already positioned actual actor; explicit profile pins never bypass qualification."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"":
+		return code
+	var row: int = _ids.get_typed_row(worker)
+	if _resident_ref(row) != NULL_REF:
+		return &"ROUTE_ACTOR_ALREADY_REGISTERED"
+	_advancing = true
+	code = _qualify_actor_at(worker, job, location, mode, posture, family, hint,
+		profile_id, profile_revision, content_revision)
+	_advancing = false
+	if code != &"":
+		return code
+	_set_resident_pair(R_SLOT, row, worker)
+	_set_resident_pair(R_LOCATION_SLOT, row, location)
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = PHASE_IDLE
+	_write_actor_profile(row, family)
+	_reset_source_clock(row)
+	_index_actor(row, Vector3i(_selection.x, _selection.y, _selection.z), false)
+	return &""
+
+
+func refresh_actor(worker: Vector2i, job: Vector2i, mode: int, posture: int,
+		family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Requalify an idle actor through ordinary unambiguous selection, preserving any refused old state."""
+	return _refresh_actor(worker, job, mode, posture, family, equipped_tool_hint)
+
+
+func refresh_work_actor(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int, posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Explicitly select another current WORK contact; queued/occupied routes still forbid a refresh."""
+	if profile_id < 0 or profile_revision <= 0 or content_revision <= 0:
+		return &"PROFILE_SELECTION_STALE"
+	return _refresh_actor(worker, job, Profiles.MODE_WORK, posture, family,
+		equipped_tool_hint, profile_id, profile_revision, content_revision)
+
+
+func refresh_travel_actor(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int, posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Change direction only after the original canonical source has recovered to ready at a real endpoint."""
+	if SourceProgram.profile_refusal(_profiles, profile_id, profile_revision, content_revision) != &"" or profile_id >= 10:
+		return &"ROUTE_SOURCE_PROFILE"
+	return _refresh_actor(worker, job, Profiles.MODE_WALK, posture, family,
+		equipped_tool_hint, profile_id, profile_revision, content_revision)
+
+
+func _refresh_actor(worker: Vector2i, job: Vector2i, mode: int, posture: int,
+		family: int, hint: Vector2i, profile_id: int = -1, profile_revision: int = 0,
+		content_revision: int = 0) -> StringName:
+	"""Refresh the existing idle row only after the same complete proof used for first admission."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"":
+		return code
+	var row: int = _ids.get_typed_row(worker)
+	if _resident_ref(row) != worker or _route_phase_at(row) != PHASE_IDLE \
+			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
+		return &"ROUTE_ACTOR_BUSY"
+	code = _source_refresh_refusal(row, profile_id, profile_revision, content_revision)
+	if code != &"":
+		return code
+	_advancing = true
+	code = _qualify_actor_at(worker, job, _resident_pair(R_LOCATION_SLOT, row), mode, posture,
+		family, hint, profile_id, profile_revision, content_revision)
+	_advancing = false
+	if code == &"":
+		code = _source_refresh_refusal(row, profile_id, profile_revision, content_revision)
+	if code == &"":
+		_write_actor_profile(row, family)
+		_reset_source_clock(row)
+	return code
+
+func _actor_edit_refusal(worker: Vector2i) -> StringName:
+	"""Actor changes cannot run inside graph preparation or a provider attestation callback."""
+	if _reject_callback() or _token != 0 or _searching or _advancing:
+		return &"ROUTE_TRANSACTION_BUSY"
+	var code: StringName = _binding_refusal()
+	if code != &"":
+		return code
+	if not _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) or not _residents.is_alive(_ids.get_typed_row(worker)):
+		return &"ROUTE_ACTOR_STALE"
+	if _extent_revision == 0 or _extent_revision != _profiles.content_revision():
+		return &"ROUTE_PROFILE_EXTENT_STALE"
+	if _occupancy_expected_revision != _transforms.mutation_revision() or _occupancy_expected_revision <= 0:
+		code = refresh_occupancy()
+		if code != &"":
+			return code
+	return &"ROUTE_SPACE_TRANSACTION" if _owner.has_prepared() else &""
+
+
+func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
+		mode: int, posture: int, family: int, hint: Vector2i, profile_id: int = -1,
+		profile_revision: int = 0, content_revision: int = 0) -> StringName:
+	"""Pin source values around the actual callback and re-read current identity/gear/load before publication."""
+	var code: StringName = _actor_profile_into(worker, job, mode, posture, family, hint, _selection,
+		profile_id, profile_revision, content_revision)
+	if code == &"" and Profiles.selection_policy_leaf(_profiles, _selection.profile_id,
+			_selection.profile_revision, _selection.content_revision) != Profiles.POLICY_AUTOMATIC:
+		code = SourceProgram.profile_refusal(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
+	if code == &"":
+		code = _profile_endpoint_refusal(location)
+	if code != &"":
+		return code
+	_copy_selection(_selection, _checked_selection)
+	code = _attest_actor(location, _selection)
+	if code == &"" and not _same_selection(_selection, _checked_selection):
+		code = &"ROUTE_CALLBACK_CHANGED_PACKET"
+	if code == &"":
+		code = _actor_profile_into(worker, job, mode, posture, family, hint, _selection,
+			profile_id, profile_revision, content_revision)
+	if code == &"" and not _same_selection(_selection, _checked_selection):
+		code = &"ROUTE_ACTOR_PROFILE_DRIFT"
+	if code == &"":
+		code = _profile_endpoint_refusal(location)
+	if code == &"":
+		code = _occupancy_context_refusal()
+	if code == &"":
+		code = _selected_bounds_into(_selection, _profile_box, _candidate_bounds)
+	return code
+
+
+func _actor_profile_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, family: int,
+		hint: Vector2i, out: Profiles.Selection, profile_id: int = -1,
+		profile_revision: int = 0, content_revision: int = 0) -> StringName:
+	"""Exact WORK selection shares the same actual identities; other modes retain ordinary lookup."""
+	if mode == Profiles.MODE_WORK and profile_id >= 0:
+		return _profiles.query_work_profile_into(worker, job, profile_id, profile_revision,
+			content_revision, posture, family, hint, out)
+	if mode == Profiles.MODE_WALK and profile_id >= 0 and Profiles.selection_policy_leaf(_profiles,
+			profile_id, profile_revision, content_revision) != Profiles.POLICY_AUTOMATIC:
+		return _profiles.query_travel_profile_into(worker, job, profile_id, profile_revision,
+			content_revision, posture, family, hint, out)
+	return _profiles.query_into(worker, job, mode, posture, family, hint, out)
+
+
+func _attest_actor(location: Vector2i, selection: Profiles.Selection) -> StringName:
+	"""WorldBindings must prove actual support, complete body and exclusive movement ownership."""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.actor_admission_refusal(location, selection)
+	_in_callback = false
+	return &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else code
+
+
+func actor_phase(worker: Vector2i) -> int:
+	"""Public geometric phase only; a source tag or stale full ref never escapes as PHASE_IDLE."""
+	return actor_phase_in(self, worker)
+
+
+static func actor_phase_in(actual: RefCounted, worker: Vector2i) -> int:
+	"""Payment/arrival leaves decode the actual original row without an overridable observation."""
+	if actual == null or actual._ids == null or actual._edge_capacity == 0:
+		return PHASE_ABSENT
+	var row: int = _turn_directory_row(actual, worker, Directory.KIND_RESIDENT)
+	if row < 0 or row >= RESIDENT_CAPACITY or _source_clock_leaf(actual, row) != &"" \
+			or actual._motion.resident[R_SLOT * RESIDENT_CAPACITY + row] != worker.x \
+			or actual._motion.resident[R_GENERATION * RESIDENT_CAPACITY + row] != worker.y:
+		return PHASE_ABSENT
+	return actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & 3
+
+
+func _route_phase_at(row: int) -> int:
+	"""Decode only a complete current policy/tag/clock tuple; do not merely mask malformed words."""
+	return (_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & 3) if _source_clock_refusal(row) == &"" else PHASE_ABSENT
+
+
+func _source_clock_refusal(row: int) -> StringName:
+	"""Existing row widths have an explicit versioned interpretation, including zero reserved bits."""
+	return _source_clock_leaf(self, row)
+
+
+static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
+	"""This final source check uses only original owner columns and concrete stateless equations."""
+	if actual == null or row < 0 or row >= RESIDENT_CAPACITY or actual._edge_capacity == 0:
+		return &"ROUTE_SOURCE_CLOCK"
+	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	var profile_revision: int = actual._motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]
+	var content: int = actual._motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row]
+	var policy: int = Profiles.selection_policy_leaf(actual._profiles, profile, profile_revision, content)
+	var phase: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if phase >= PHASE_IDLE and phase <= PHASE_HELD:
+		# Legacy identity stays readable after source reload; renewed physical permission is separate.
+		return &"" if policy <= Profiles.POLICY_AUTOMATIC else &"ROUTE_SOURCE_CLOCK"
+	if policy == Profiles.POLICY_AUTOMATIC:
+		return &"ROUTE_SOURCE_CLOCK"
+	var code: StringName = SourceProgram.profile_refusal(actual._profiles, profile, profile_revision, content)
+	return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile) \
+		if code == &"" else code
+
+
+func _set_route_phase(row: int, phase: int) -> void:
+	"""Every ordinary route write deliberately preserves the source subphase/tag in clocked rows."""
+	var old: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = (old & ~3) | phase if (old & ~63) == SourceProgram.TAG else phase
+
+
+func _reset_source_clock(row: int) -> void:
+	"""Only a fully qualified fresh admission or completed ready handoff can initialize a new policy."""
+	var policy: int = Profiles.selection_policy_leaf(_profiles, _selection.profile_id,
+		_selection.profile_revision, _selection.content_revision)
+	if policy == Profiles.POLICY_AUTOMATIC and (_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & ~63) != SourceProgram.TAG:
+		return # Ordinary refresh preserves the prior request tick exactly.
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = PHASE_IDLE if policy == Profiles.POLICY_AUTOMATIC \
+		else SourceProgram.word(PHASE_IDLE, SourceProgram.ENTRY if policy == Profiles.POLICY_SOURCE_WORK else SourceProgram.READY)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = 0
+
+
+func _source_refresh_refusal(row: int, profile: int, profile_revision: int, content: int) -> StringName:
+	"""An unclocked old actor cannot claim a ready pose; a source actor must finish recovery before any rebind."""
+	var code: StringName = _source_clock_refusal(row)
+	if code != &"": return code
+	var old: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (old & ~63) == SourceProgram.TAG:
+		return &"" if ((old >> 2) & 15) == SourceProgram.READY else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+	if profile >= 0 and Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) > Profiles.POLICY_AUTOMATIC:
+		return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+	return &""
+
+
+static func _source_tuple_row(actual: RefCounted, worker: Vector2i, job: Vector2i, profile: int,
+		profile_revision: int, content: int) -> int:
+	"""Bind a caller to the actual original full actor/Job/profile tuple; physical pose permission remains separate."""
+	if actual == null or actual._ids == null or actual._edge_capacity == 0 or actual._profiles == null:
+		return -1
+	if Profiles.selection_policy_leaf(actual._profiles, profile, profile_revision, content) < 0:
+		return -1
+	var row: int = _turn_directory_row(actual, worker, Directory.KIND_RESIDENT)
+	if row < 0 or row >= RESIDENT_CAPACITY:
+		return -1
+	var bank: MotionBank = actual._motion
+	if bank.resident[R_SLOT * RESIDENT_CAPACITY + row] != worker.x \
+			or bank.resident[R_GENERATION * RESIDENT_CAPACITY + row] != worker.y \
+			or bank.resident[R_JOB_SLOT * RESIDENT_CAPACITY + row] != job.x \
+			or bank.resident[R_JOB_GENERATION * RESIDENT_CAPACITY + row] != job.y \
+			or bank.resident[R_PROFILE * RESIDENT_CAPACITY + row] != profile \
+			or bank.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] != profile_revision \
+			or bank.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] != content \
+			or _source_clock_leaf(actual, row) != &"":
+		return -1
+	return row
+
+
+static func source_work_leaf_refusal(actual: RefCounted, worker: Vector2i, job: Vector2i,
+		profile_id: int, profile_revision: int, content_revision: int) -> StringName:
+	"""Canonical source readiness supplements the caller's current physical/economic proof, never replaces it."""
+	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+	if row < 0:
+		return &"ROUTE_SOURCE_TUPLE_STALE"
+	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (word & 3) != PHASE_IDLE or actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] != -1 \
+			or actual._motion.resident[R_EDGE_GENERATION * RESIDENT_CAPACITY + row] != 0 \
+			or actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] != -1 \
+			or actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] != -1 \
+			or actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row] != Profiles.MODE_WORK:
+		return &"ROUTE_SOURCE_WORK_NOT_READY"
+	if (word & ~63) == SourceProgram.TAG and ((word >> 2) & 15) != SourceProgram.WORK:
+		return &"ROUTE_SOURCE_WORK_NOT_READY"
+	return &""
+
+
+static func source_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job: Vector2i,
+		profile_id: int, profile_revision: int, content_revision: int) -> StringName:
+	"""An automatic policy has no canonical ready witness and cannot reopen a source handoff."""
+	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+	if row < 0: return &"ROUTE_SOURCE_TUPLE_STALE"
+	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	return &"" if word == SourceProgram.word(PHASE_IDLE, SourceProgram.READY) \
+		and actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] == -1 \
+		and actual._motion.resident[R_EDGE_GENERATION * RESIDENT_CAPACITY + row] == 0 \
+		and actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] == -1 \
+		and actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] == -1 else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+
+
+func source_work_observation_refusal(worker: Vector2i, job: Vector2i, profile_id: int,
+		profile_revision: int, content_revision: int) -> StringName:
+	"""Observe the actual actor/tool/cargo first; the subsequent static leaf is renderer-independent."""
+	var row: int = _source_tuple_row(self, worker, job, profile_id, profile_revision, content_revision)
+	if row < 0: return &"ROUTE_SOURCE_TUPLE_STALE"
+	var code: StringName = _current_profile_into(row, _selection)
+	return source_work_leaf_refusal(self, worker, job, profile_id, profile_revision, content_revision) if code == &"" else code
+
+
+func source_state_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int, out: PackedInt64Array) -> StringName:
+	"""Copy four scalars into existing caller scratch; no frame, palette or rendering availability grants state."""
+	return source_state_leaf_into(self, worker, job, profile_id, profile_revision, content_revision, out)
+
+
+static func source_state_leaf_into(actual: RefCounted, worker: Vector2i, job: Vector2i, profile_id: int,
+		profile_revision: int, content_revision: int, out: PackedInt64Array) -> StringName:
+	"""The visual consumer borrows the actual canonical packet through a concrete output-preserving leaf."""
+	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+	if row < 0 or out.size() < 4: return &"ROUTE_SOURCE_TUPLE_STALE"
+	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (word & ~63) != SourceProgram.TAG: return &"ROUTE_SOURCE_PROFILE"
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	out[0] = (word >> 2) & 15
+	out[1] = clock & I32_MAX
+	out[2] = clock >> 32
+	out[3] = word & 3
+	return &""
+
+
+func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
+	"""Stop productive source motion through its exact loop boundary/recovery; no route cancellation or work credit."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"": return code
+	var row: int = _ids.get_typed_row(worker)
+	if _resident_ref(row) != worker or _resident_pair(R_JOB_SLOT, row) != job \
+			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
+		return &"ROUTE_ACTOR_BUSY"
+	_in_callback = true
+	_callback_reentered = false
+	code = _current_profile_into(row, _selection)
+	_in_callback = false
+	if code != &"" or _callback_reentered: return code if code != &"" else &"ROUTE_CALLBACK_REENTRY"
+	code = _source_clock_refusal(row)
+	if code != &"": return code
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (word & ~63) != SourceProgram.TAG: return &"ROUTE_SOURCE_PROFILE"
+	var phase: int = (word >> 2) & 15
+	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var time: int = clock & I32_MAX
+	if phase == SourceProgram.ENTRY:
+		phase = SourceProgram.ENTRY_RETRACE
+	elif phase == SourceProgram.WORK:
+		phase = SourceProgram.RECOVERY if time == 0 else SourceProgram.RECOVERY_WAIT
+	elif phase == SourceProgram.WALK:
+		phase = SourceProgram.FADE_READY
+		clock = SourceProgram.clock(0, time)
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = SourceProgram.word(word & 3, phase)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = clock
+	return &""
+
+
+func _profile_endpoint_refusal(location: Vector2i) -> StringName:
+	"""Idle containment comes from the exact actual location, with no floor-height or nearest-cell fallback."""
+	var code: StringName = _locations.read_location_into(location, _first)
+	if code != &"":
+		return code
+	if _first.point != Vector3i(_selection.x, _selection.y, _selection.z) or _first.world != _world:
+		return &"ROUTE_ACTOR_POSITION_DRIFT"
+	if _first.geometry_revision != _owner.revision() or _owner.has_prepared() \
+			or not _owner.is_live_region(_first.section):
+		return &"ROUTE_CONTACT_GEOMETRY_STALE"
+	if _first.room != NULL_REF and not _buildings.is_live_room(_first.room):
+		return &"ROUTE_LOCATION_STALE"
+	return &""
+
+
+static func _copy_selection(first: Profiles.Selection, out: Profiles.Selection) -> void:
+	"""One fixed private observation pins all fields around the trusted read-only callback."""
+	out.profile_id = first.profile_id
+	out.profile_revision = first.profile_revision
+	out.content_revision = first.content_revision
+	out.source_id = first.source_id
+	out.species = first.species
+	out.life_stage = first.life_stage
+	out.rig = first.rig
+	out.mode = first.mode
+	out.posture = first.posture
+	out.orientation = first.orientation
+	out.x = first.x
+	out.y = first.y
+	out.z = first.z
+	out.yaw = first.yaw
+	out.worker = first.worker
+	out.job = first.job
+	out.tool = first.tool
+	out.cargo = first.cargo
+	out.satchel = first.satchel
+	out.cargo_quantity_milli = first.cargo_quantity_milli
+	out.box_count = first.box_count
+
+
+func _selected_bounds_into(selection: Profiles.Selection, box: Profiles.Box, out: PackedInt32Array) -> StringName:
+	"""Translate at the current real actor root without altering the caller's source observation."""
+	return _selected_bounds_at(selection, Vector3i(selection.x, selection.y, selection.z), box, out)
+
+
+func _selected_bounds_at(selection: Profiles.Selection, point: Vector3i, box: Profiles.Box, out: PackedInt32Array) -> StringName:
+	"""Translate the complete already-oriented body/recovery envelope without clipping below-root geometry."""
+	var low: Vector3i = Vector3i(I32_MAX, I32_MAX, I32_MAX)
+	var high: Vector3i = Vector3i(-2147483648, -2147483648, -2147483648)
+	var found: bool = false
+	for index: int in selection.box_count:
+		var code: StringName = _profiles.box_into(selection.profile_id, selection.profile_revision,
+			selection.content_revision, index, box)
+		if code != &"":
+			return code
+		if box.role != Profiles.BODY_HELD_LOAD and box.role != Profiles.TURN_RECOVERY:
+			continue
+		found = true
+		for axis: int in 3:
+			var a: int = int(point[axis]) + int(box.low[axis])
+			var b: int = int(point[axis]) + int(box.high[axis])
+			if not IntMath.fits_int32(a) or not IntMath.fits_int32(b):
+				return &"ROUTE_ACTOR_BOUNDS"
+			low[axis] = mini(low[axis], a)
+			high[axis] = maxi(high[axis], b)
+	if not found:
+		return &"ROUTE_ACTOR_PROFILE_MISSING"
+	for axis: int in 3:
+		out[axis] = low[axis]
+		out[axis + 3] = high[axis]
+	return &""
+
+
+func _set_resident_pair(field: int, row: int, ref: Vector2i) -> void:
+	"""Publish only complete full references in their documented separate namespaces."""
+	_motion.resident[field * RESIDENT_CAPACITY + row] = ref.x
+	_motion.resident[(field + 1) * RESIDENT_CAPACITY + row] = ref.y
+
+
+func _write_actor_profile(row: int, family: int) -> void:
+	"""Idle admission derives its containing Room/section/level from the actual immutable endpoint."""
+	_write_selected_fields(row, family, _first.room, _first.section, _first.level)
+
+
+func _write_selected_fields(row: int, family: int, room: Vector2i, section: Vector2i, level: int) -> void:
+	"""All fallible geometry/identity proof has completed before any actual record is changed."""
+	_set_resident_pair(R_JOB_SLOT, row, _selection.job)
+	_set_resident_pair(R_ROOM_SLOT, row, room)
+	_set_resident_pair(R_SECTION_SLOT, row, section)
+	_set_resident_pair(R_TOOL_SLOT, row, _selection.tool)
+	_set_resident_pair(R_CARGO_SLOT, row, _selection.cargo)
+	_set_resident_pair(R_SATCHEL_SLOT, row, _selection.satchel)
+	_motion.resident[R_LEVEL * RESIDENT_CAPACITY + row] = level
+	_motion.resident[R_MODE * RESIDENT_CAPACITY + row] = _selection.mode
+	_motion.resident[R_POSTURE * RESIDENT_CAPACITY + row] = _selection.posture
+	_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row] = _selection.profile_id
+	_motion.resident[R_FAMILY * RESIDENT_CAPACITY + row] = family
+	_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] = _selection.profile_revision
+	_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] = _selection.content_revision
+	_motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row] = _selection.cargo_quantity_milli
+	for axis: int in 6:
+		_occupancy_bounds[axis * RESIDENT_CAPACITY + row] = _candidate_bounds[axis]
+	_occupancy_profile[row] = _selection.profile_revision
+
+
+func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> StringName:
+	"""Atomically replace an idle/queued actor's pooled route after a complete actual profile-aware search."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code == &"":
+		code = read_actor_into(worker, _actor)
+	if code != &"":
+		return code
+	if tick < 0 or _actor.edge != NULL_REF or _actor.phase not in [PHASE_IDLE, PHASE_QUEUED] \
+			or not _locations.is_live_location(destination):
+		return &"ROUTE_REQUEST_CONTEXT"
+	var row: int = _ids.get_typed_row(worker)
+	code = _current_profile_into(row, _checked_selection)
+	if code != &"":
+		return code
+	_search_worker = worker
+	_search_job = _resident_pair(R_JOB_SLOT, row)
+	_searching = true
+	_remaining = _domain._checks
+	_operation_error = &""
+	code = _find_path(_resident_pair(R_LOCATION_SLOT, row), destination, -1, -1)
+	_searching = false
+	_search_worker = NULL_REF
+	_search_job = NULL_REF
+	if code == &"":
+		code = _request_final_refusal(row, destination)
+	if code == &"":
+		_publish_route(row, tick)
+	return code
+
+
+func _current_profile_into(row: int, out: Profiles.Selection) -> StringName:
+	"""Actual Job, held load and immutable content must still match the actor's committed observation."""
+	var code: StringName = _actor_profile_into(_resident_ref(row), _resident_pair(R_JOB_SLOT, row),
+		_motion.resident[R_MODE * RESIDENT_CAPACITY + row], _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row],
+		_motion.resident[R_FAMILY * RESIDENT_CAPACITY + row], _resident_pair(R_TOOL_SLOT, row), out,
+		_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+		_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row],
+		_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row])
+	if code != &"":
+		return code
+	return &"" if _committed_selection(row, out) else &"ROUTE_CONTACT_PROFILE_STALE"
+
+
+func _request_final_refusal(row: int, destination: Vector2i) -> StringName:
+	"""Callback/source drift or pool exhaustion refuses before releasing a previous valid route."""
+	var code: StringName = _current_profile_into(row, _selection)
+	if code != &"":
+		return code
+	if not _same_selection(_selection, _checked_selection) or _owner.has_prepared() \
+			or _occupancy_context_refusal() != &"" or not _locations.is_live_location(destination):
+		return &"ROUTE_REQUEST_STALE"
+	code = read_actor_into(_resident_ref(row), _actor)
+	if code != &"":
+		return code
+	var retained: int = _route_count(row)
+	if retained < 0:
+		return &"ROUTE_POOL_CORRUPT"
+	if _proposed_count > _motion.free_count + retained:
+		return &"ROUTE_LINK_CAPACITY"
+	for index: int in _proposed_count:
+		var ref: Vector2i = Vector2i(_proposed_edges[index * 2], _proposed_edges[index * 2 + 1])
+		if not is_live_edge(ref) or _edge_i64(_live, E_GEOMETRY_REVISION, ref.x) != _owner.revision() \
+				or _edge_i64(_live, E_CONTENT_REVISION, ref.x) != _profiles.content_revision():
+			return &"ROUTE_EDGE_REVISION"
+	return &""
+
+
+func _route_count(row: int) -> int:
+	"""A full chain must have this exact typed actor owner, terminate and agree with its saved tail."""
+	var count: int = 0
+	var cursor: int = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row]
+	var tail: int = -1
+	while cursor >= 0:
+		if cursor >= _link_capacity or count >= _link_capacity or _link(L_OWNER, cursor) != row:
+			return -1
+		count += 1
+		tail = cursor
+		cursor = _link(L_NEXT, cursor)
+	return count if cursor == -1 and tail == _motion.resident[R_TAIL * RESIDENT_CAPACITY + row] else -1
+
+
+func _link(field: int, row: int) -> int:
+	"""Read one already-bounded packed route-list field; local link rows never escape as entity refs."""
+	return _motion.links[field * _link_capacity + row]
+
+
+func _set_link(field: int, row: int, value: int) -> void:
+	"""Publish one internal link field only while holding the actual route mutation boundary."""
+	_motion.links[field * _link_capacity + row] = value
+
+
+func _publish_route(row: int, tick: int) -> void:
+	"""All fallible proof/capacity checks precede this fixed-pool non-allocating replacement."""
+	_release_route(row)
+	var tail: int = -1
+	for index: int in _proposed_count:
+		var link: int = _pop_free(_motion.free_links, _motion.free_count)
+		_motion.free_count -= 1
+		var reverse: int = (_proposed_count - index - 1) * 2
+		_set_link(L_EDGE_SLOT, link, _proposed_edges[reverse])
+		_set_link(L_EDGE_GENERATION, link, _proposed_edges[reverse + 1])
+		_set_link(L_OWNER, link, row)
+		_set_link(L_NEXT, link, -1)
+		if tail < 0:
+			_motion.resident[R_HEAD * RESIDENT_CAPACITY + row] = link
+		else:
+			_set_link(L_NEXT, tail, link)
+		tail = link
+	_motion.resident[R_TAIL * RESIDENT_CAPACITY + row] = tail
+	_set_route_phase(row, PHASE_QUEUED if tail >= 0 else PHASE_IDLE)
+	if (_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & ~63) != SourceProgram.TAG:
+		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = tick
+
+
+func _release_route(row: int) -> void:
+	"""Return only this validated actor's queued links; an occupied span remains separately retained."""
+	var cursor: int = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row]
+	while cursor >= 0:
+		var next: int = _link(L_NEXT, cursor)
+		for field: int in LINK_FIELDS:
+			_set_link(field, cursor, -1)
+		_push_free(_motion.free_links, _motion.free_count, cursor)
+		_motion.free_count += 1
+		cursor = next
+	_motion.resident[R_HEAD * RESIDENT_CAPACITY + row] = -1
+	_motion.resident[R_TAIL * RESIDENT_CAPACITY + row] = -1
+
+
+func cancel_route(worker: Vector2i) -> StringName:
+	"""Cancel future spans; an actor already on a span retains it and finishes at its safe endpoint."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"":
+		return code
+	var row: int = _ids.get_typed_row(worker)
+	if _resident_ref(row) != worker or _route_count(row) < 0:
+		return &"ROUTE_ACTOR_NOT_REGISTERED"
+	_release_route(row)
+	if _resident_pair(R_EDGE_SLOT, row) == NULL_REF:
+		_set_route_phase(row, PHASE_IDLE)
+	return &""
+
+
+func queued_path_into(worker: Vector2i, out: PackedInt32Array) -> Result:
+	"""Read full queued edge generations into caller scratch; a refused read preserves prior output."""
+	if not _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT):
+		return Result.new(&"ROUTE_ACTOR_STALE")
+	var row: int = _ids.get_typed_row(worker)
+	if _resident_ref(row) != worker:
+		return Result.new(&"ROUTE_ACTOR_NOT_REGISTERED")
+	var count: int = _route_count(row)
+	if count < 0 or out.size() < count * 2:
+		return Result.new(&"ROUTE_OUTPUT_SHAPE")
+	var cursor: int = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row]
+	for index: int in count:
+		out[index * 2] = _link(L_EDGE_SLOT, cursor)
+		out[index * 2 + 1] = _link(L_EDGE_GENERATION, cursor)
+		cursor = _link(L_NEXT, cursor)
+	return Result.new(&"", 0, NULL_REF, count)
+
+
+func _transit_identity_refusal(row: int) -> StringName:
+	"""Read committed actual span progress, not a new entry/profile proof or a global region scan."""
+	var edge: Vector2i = _resident_pair(R_EDGE_SLOT, row)
+	if not is_live_edge(edge):
+		return &"ROUTE_EDGE_STALE"
+	var segment: int = _motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row]
+	var progress: int = _motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row]
+	if segment < 0 or segment + 1 >= _edge_i32(_live, E_PATH_COUNT, edge.x):
+		return &"ROUTE_PROGRESS_STALE"
+	var first: Vector3i = _vertex(edge.x, segment)
+	var second: Vector3i = _vertex(edge.x, segment + 1)
+	var length: int = _segment_length(first, second)
+	if progress < 0 or progress >= length or _edge_pair(_live, E_SECTION_SLOT, edge.x) != _resident_pair(R_SECTION_SLOT, row):
+		return &"ROUTE_PROGRESS_STALE"
+	return &"" if _interpolate(first, second, progress, length) == Vector3i(_pose.x, _pose.y, _pose.z) \
+		else &"ROUTE_ACTOR_POSITION_DRIFT"
+
+
+func _vertex(row: int, ordinal: int) -> Vector3i:
+	"""Read one already-bounded actual polyline vertex directly from its packed span."""
+	var index: int = (_edge_i32(_live, E_PATH_START, row) + ordinal) * 3
+	return Vector3i(_live.vertices[index], _live.vertices[index + 1], _live.vertices[index + 2])
+
+
+static func _interpolate(first: Vector3i, second: Vector3i, progress: int, length: int) -> Vector3i:
+	"""Truncate signed fractions toward the segment start; prior distance bounds prevent int64 overflow."""
+	var out: Vector3i = first
+	for axis: int in 3:
+		var delta: int = int(second[axis]) - int(first[axis])
+		@warning_ignore("integer_division") var offset: int = absi(delta) * progress / length
+		out[axis] = int(first[axis]) + (offset if delta >= 0 else -offset)
+	return out
+
+
+static func heading_for_delta(delta: Vector3i, previous: int) -> int:
+	"""Integer CORDIC:0=-Z,+quarter=-X; exact axial ties, positive right-handed yaw, no float authority."""
+	if delta.x == 0 and delta.z == 0:
+		return previous
+	if delta.x == 0:
+		return 0 if delta.z < 0 else 32768
+	if delta.z == 0:
+		return 16384 if delta.x < 0 else 49152
+	var x: int = -int(delta.z) * 1048576
+	var y: int = -int(delta.x) * 1048576
+	var angle: int = 0
+	if x < 0:
+		x = -x
+		y = -y
+		angle = 32768
+	const TURNS: Array[int] = [8192, 4836, 2555, 1297, 651, 326, 163, 81, 41, 20, 10, 5, 3, 1, 1]
+	for index: int in TURNS.size():
+		if y == 0:
+			break
+		var old_x: int = x
+		var positive: bool = y > 0
+		x += (y >> index) if positive else -(y >> index)
+		y += -(old_x >> index) if positive else (old_x >> index)
+		angle += TURNS[index] if positive else -TURNS[index]
+	return posmod(angle, 65536)
+
+
+func advance_tick(tick: int) -> int:
+	"""Process each actual actor once at 30Hz; return accepted steps, including carried sub-unit fractions."""
+	if _reject_callback() or _advancing or _searching or _token != 0 or tick < 0 or tick <= _last_tick:
+		return 0
+	if _binding_refusal() != &"" or _owner.has_prepared() or _occupancy_context_refusal() != &"":
+		return 0
+	_advancing = true
+	_last_tick = tick
+	var moved: int = 0
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref(row) == NULL_REF or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == PHASE_IDLE \
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == SourceProgram.word(PHASE_IDLE, SourceProgram.READY):
+			continue
+		var code: StringName = _advance_actor(row)
+		if code == &"":
+			moved += 1
+		else:
+			_set_route_phase(row, PHASE_HELD)
+	_advancing = false
+	return moved
+
+
+func _advance_actor(row: int) -> StringName:
+	"""Every refusal retains the current pose, span, queue and fractional progress for a safe retry."""
+	var code: StringName = read_actor_into(_resident_ref(row), _actor)
+	if code != &"":
+		return code
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (word & ~63) == SourceProgram.TAG and (((word >> 2) & 15) != SourceProgram.WALK \
+			or (_resident_pair(R_EDGE_SLOT, row) == NULL_REF and _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0)):
+		return _advance_stationary_source(row)
+	code = _prepare_motion(row)
+	if code == &"":
+		code = _compute_motion(row)
+	if code == &"":
+		code = _final_motion_refusal(row)
+	if code == &"":
+		_commit_motion(row)
+	return code
+
+
+func _advance_stationary_source(row: int) -> StringName:
+	"""Headless entry/fade/recovery uses the same real endpoint proof before the sole canonical clock write."""
+	if _resident_pair(R_EDGE_SLOT, row) != NULL_REF:
+		return &"ROUTE_SOURCE_CLOCK"
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var code: StringName = _qualify_actor_at(_resident_ref(row), _resident_pair(R_JOB_SLOT, row),
+		_resident_pair(R_LOCATION_SLOT, row), _motion.resident[R_MODE * RESIDENT_CAPACITY + row],
+		_motion.resident[R_POSTURE * RESIDENT_CAPACITY + row], _motion.resident[R_FAMILY * RESIDENT_CAPACITY + row],
+		_resident_pair(R_TOOL_SLOT, row), _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+		_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row],
+		_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row])
+	if code != &"": return code
+	if _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != word \
+			or _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] != clock \
+			or not _committed_selection(row, _selection): return &"ROUTE_SOURCE_TUPLE_STALE"
+	code = _source_clock_refusal(row)
+	if code != &"": return code
+	var phase: int = (word >> 2) & 15
+	var time: int = clock & I32_MAX
+	var old: int = clock >> 32
+	var queued: bool = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0
+	if phase == SourceProgram.READY and queued:
+		phase = SourceProgram.FADE_WALK
+	elif phase == SourceProgram.WALK and not queued:
+		phase = SourceProgram.FADE_READY
+		old = time
+		time = 0
+	var next: Vector3i = SourceProgram.advance(phase, time, old, _selection.profile_id)
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = SourceProgram.word(PHASE_QUEUED if queued else PHASE_IDLE, next.x)
+	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(next.y, next.z)
+	return &""
+
+
+func _edge_profile_into(row: int, edge: int, out: Profiles.Selection) -> StringName:
+	"""Clocked travel keeps its exact selected row across search, entry and every subdivided span."""
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (word & ~63) == SourceProgram.TAG:
+		if _edge_i32(_live, E_MODE, edge) != _motion.resident[R_MODE * RESIDENT_CAPACITY + row] \
+				or _edge_i32(_live, E_POSTURE, edge) != _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]:
+			return &"ROUTE_SOURCE_PROFILE"
+		return _actor_profile_into(_resident_ref(row), _resident_pair(R_JOB_SLOT, row), _edge_i32(_live, E_MODE, edge),
+			_edge_i32(_live, E_POSTURE, edge), _edge_i32(_live, E_FAMILY, edge), _resident_pair(R_TOOL_SLOT, row), out,
+			_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+			_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row],
+			_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row])
+	return _profiles.query_into(_resident_ref(row), _resident_pair(R_JOB_SLOT, row), _edge_i32(_live, E_MODE, edge),
+		_edge_i32(_live, E_POSTURE, edge), _edge_i32(_live, E_FAMILY, edge), _resident_pair(R_TOOL_SLOT, row), out)
+
+
+func _prepare_motion(row: int) -> StringName:
+	"""Select the actual queued/current span and pin one complete profile before prospective motion."""
+	_step.edge = _resident_pair(R_EDGE_SLOT, row)
+	var entering: bool = _step.edge == NULL_REF
+	if entering:
+		var head: int = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row]
+		if head < 0 or head >= _link_capacity or _link(L_OWNER, head) != row:
+			return &"ROUTE_QUEUE_EMPTY"
+		_step.edge = Vector2i(_link(L_EDGE_SLOT, head), _link(L_EDGE_GENERATION, head))
+	if not is_live_edge(_step.edge) or _edge_i64(_live, E_GEOMETRY_REVISION, _step.edge.x) != _owner.revision() \
+			or _edge_i64(_live, E_CONTENT_REVISION, _step.edge.x) != _profiles.content_revision():
+		return &"ROUTE_EDGE_REVISION"
+	if entering and _edge_pair(_live, E_FROM_SLOT, _step.edge.x) != _resident_pair(R_LOCATION_SLOT, row):
+		return &"ROUTE_PATH_STALE"
+	var code: StringName = _select_motion_profile(row, entering)
+	if code != &"":
+		return code
+	_step.point = Vector3i(_selection.x, _selection.y, _selection.z)
+	_step.segment = 0 if entering else _motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row]
+	_step.progress = 0 if entering else _motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row]
+	_step.yaw = _selection.yaw
+	_step.finished = false
+	_step.section = _edge_pair(_live, E_SECTION_SLOT, _step.edge.x)
+	_step.cursor = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row]
+	_step.consumed = 1 if entering else 0
+	if entering:
+		_step.cursor = _link(L_NEXT, _step.cursor)
+	_copy_selection(_selection, _checked_selection)
+	return &""
+
+
+func _select_motion_profile(row: int, entering: bool) -> StringName:
+	"""Travel mode/posture comes from the authored span, with current full tool/load/Job ownership."""
+	var edge: int = _step.edge.x
+	var code: StringName = _edge_profile_into(row, edge, _selection)
+	if code != &"":
+		return code
+	if not entering and not _committed_selection(row, _selection):
+		return &"ROUTE_CONTACT_PROFILE_STALE"
+	_in_callback = true
+	_callback_reentered = false
+	_copy_selection(_selection, _pinned_selection)
+	code = _bindings.travel_refusal(_step.edge, _selection)
+	_in_callback = false
+	if _callback_reentered or not _same_selection(_selection, _pinned_selection):
+		return &"ROUTE_CALLBACK_REENTRY"
+	return code
+
+
+func _compute_motion(row: int) -> StringName:
+	"""Spend exactly one tick across finite queued spans; graph subdivision never discards travel time."""
+	var code: StringName = _pace_refusal()
+	if code == &"":
+		code = _tick_distance(_motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row], _number.value)
+	if code != &"":
+		return code
+	_remaining = _domain._checks
+	var transitions: int = 0
+	while true:
+		if transitions >= _vertex_capacity + _location_capacity or not _spend(128):
+			return &"ROUTE_MOTION_BUDGET"
+		transitions += 1
+		if _step.finished:
+			if _step.cursor < 0 or _step.numerator == 0:
+				_step.numerator = 0
+				break
+			code = _next_motion_edge(row)
+		else:
+			code = _advance_motion_segment(row)
+		if code != &"":
+			return code
+		if not _step.finished and _step.numerator < _step.denominator:
+			break
+	_step.remainder = _encode_fraction(_step.numerator % _step.denominator, _step.denominator)
+	return _read_motion_containment()
+
+
+static func _gcd(first: int, second: int) -> int:
+	"""Euclid on bounded positive int64 values needs no allocation or floating-point approximation."""
+	while second != 0:
+		var next: int = first % second
+		first = second
+		second = next
+	return first
+
+
+static func _encode_fraction(numerator: int, denominator: int) -> int:
+	"""One existing I64 holds the exact reduced sub-unit distance as two positive31-bit lanes."""
+	return 0 if numerator == 0 else (numerator << 32) | denominator
+
+
+func _tick_distance(encoded: int, pace: int) -> StringName:
+	"""Add pace/30 to the last accepted exact fraction, checking finite representability before motion."""
+	var fraction: int = encoded >> 32
+	var denominator: int = encoded & 4294967295 if encoded != 0 else 1
+	if encoded < 0 or denominator < 1 or denominator > I32_MAX or fraction >= denominator:
+		return &"ROUTE_FRACTION_FORMAT"
+	var common: int = _gcd(denominator, 30)
+	@warning_ignore("integer_division") var scale: int = 30 / common
+	@warning_ignore("integer_division") var step_scale: int = denominator / common
+	#31-bit inputs and scale<=30 keep this sum belowINT64_MAX without hidden wrapping.
+	_step.numerator = fraction * scale + pace * step_scale
+	_step.denominator = denominator * scale
+	_step.pace = pace
+	return _reduce_distance()
+
+
+func _reduce_distance() -> StringName:
+	"""Out-of-range exact rational state refuses; it is never rounded into a different physical pace."""
+	var common: int = _gcd(_step.numerator, _step.denominator)
+	@warning_ignore("integer_division") _step.numerator /= common
+	@warning_ignore("integer_division") _step.denominator /= common
+	return &"" if _step.denominator <= I32_MAX else &"ROUTE_FRACTION_CAPACITY"
+
+
+func _rescale_distance(pace: int) -> StringName:
+	"""Convert unspent distance at the old pace to the same exact remaining time at the new pace."""
+	if pace == _step.pace:
+		return &""
+	var common: int = _gcd(pace, _step.pace)
+	@warning_ignore("integer_division") var above: int = pace / common
+	@warning_ignore("integer_division") var below: int = _step.pace / common
+	common = _gcd(_step.numerator, below)
+	@warning_ignore("integer_division") var numerator: int = _step.numerator / common
+	@warning_ignore("integer_division") below /= common
+	common = _gcd(above, _step.denominator)
+	@warning_ignore("integer_division") above /= common
+	@warning_ignore("integer_division") var denominator: int = _step.denominator / common
+	if not IntMath.checked_mul_into(numerator, above, _number):
+		return &"ROUTE_FRACTION_CAPACITY"
+	_step.numerator = _number.value
+	if not IntMath.checked_mul_into(denominator, below, _number):
+		return &"ROUTE_FRACTION_CAPACITY"
+	_step.denominator = _number.value
+	_step.pace = pace
+	return _reduce_distance()
+
+
+func _advance_motion_segment(row: int) -> StringName:
+	"""Prove one full swept segment before accepting its distance; zero-unit steps also require fresh clearance."""
+	var first: Vector3i = _vertex(_step.edge.x, _step.segment)
+	var last: Vector3i = _vertex(_step.edge.x, _step.segment + 1)
+	var length: int = _segment_length(first, last)
+	@warning_ignore("integer_division") var whole: int = _step.numerator / _step.denominator
+	var used: int = mini(whole, length - _step.progress)
+	var next: Vector3i = _interpolate(first, last, _step.progress + used, length)
+	var previous_yaw: int = _step.yaw
+	var code: StringName = _motion_segment_refusal(row, first, last, next)
+	if code != &"":
+		_step.yaw = previous_yaw
+		if code == &"ROUTE_CALLBACK_REENTRY" \
+				or _step.point == Vector3i(_checked_selection.x, _checked_selection.y, _checked_selection.z):
+			return code
+		_step.numerator = 0 # A clear prefix may arrive at a new obstacle; blocked time is never banked.
+		return &""
+	_step.numerator -= used * _step.denominator
+	_step.progress += used
+	_step.point = next
+	if _step.progress == length:
+		_step.segment += 1
+		_step.progress = 0
+	_step.finished = _step.segment + 1 == _edge_i32(_live, E_PATH_COUNT, _step.edge.x)
+	return &""
+
+
+func _next_motion_edge(row: int) -> StringName:
+	"""A new span gets fresh current profile, entry, pace and turn proofs before consuming any remaining time."""
+	var previous: Vector2i = _step.edge
+	var previous_yaw: int = _step.yaw
+	var previous_segment: int = _step.segment
+	_step.segment = 0
+	var code: StringName = _next_motion_refusal(row)
+	if code != &"":
+		_step.edge = previous
+		_step.yaw = previous_yaw
+		_step.segment = previous_segment
+		_copy_selection(_checked_selection, _selection)
+		_step.numerator = 0 # Stop at the fully reached endpoint, retaining the blocked queued link.
+		return code if code == &"ROUTE_CALLBACK_REENTRY" else &""
+	code = _rescale_distance(_number.value)
+	if code != &"":
+		return code
+	_step.segment = 0
+	_step.progress = 0
+	_step.finished = false
+	_step.section = _edge_pair(_live, E_SECTION_SLOT, _step.edge.x)
+	_step.consumed += 1
+	_step.cursor = _link(L_NEXT, _step.cursor)
+	_copy_selection(_selection, _checked_selection)
+	return &""
+
+
+func _next_motion_refusal(row: int) -> StringName:
+	"""Validate the exact next full ref against the just-reached endpoint, without copying a polyline."""
+	var cursor: int = _step.cursor
+	if cursor < 0 or cursor >= _link_capacity or _link(L_OWNER, cursor) != row:
+		return &"ROUTE_PATH_STALE"
+	var origin: Vector2i = _edge_pair(_live, E_TO_SLOT, _step.edge.x)
+	_step.edge = Vector2i(_link(L_EDGE_SLOT, cursor), _link(L_EDGE_GENERATION, cursor))
+	if not is_live_edge(_step.edge) or _edge_pair(_live, E_FROM_SLOT, _step.edge.x) != origin \
+			or _edge_i64(_live, E_GEOMETRY_REVISION, _step.edge.x) != _owner.revision() \
+			or _edge_i64(_live, E_CONTENT_REVISION, _step.edge.x) != _profiles.content_revision():
+		return &"ROUTE_EDGE_REVISION"
+	var code: StringName = _select_motion_profile(row, true)
+	if code == &"":
+		code = _motion_segment_refusal(row, _vertex(_step.edge.x, 0), _vertex(_step.edge.x, 1), _step.point)
+	if code == &"":
+		code = _pace_refusal()
+	return code
+
+
+func _pace_refusal() -> StringName:
+	"""A real family/variant rate must be finite positive integer content, never a borrowed missing-mode default."""
+	_copy_selection(_selection, _pinned_selection)
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.pace_into(_selection, _edge_i32(_live, E_FAMILY, _step.edge.x),
+		_edge_i32(_live, E_VARIANT, _step.edge.x), _number)
+	_in_callback = false
+	if _callback_reentered or not _same_selection(_selection, _pinned_selection):
+		return &"ROUTE_CALLBACK_REENTRY"
+	if code == &"" and (_number.value < 1 or _number.value > I32_MAX):
+		return &"ROUTE_PACE_UNAUTHORED"
+	return code
+
+
+func _motion_segment_refusal(row: int, first: Vector3i, last: Vector3i, next: Vector3i) -> StringName:
+	"""Every traversed bend has its own complete sweep and current dynamic proof before the single pose commit."""
+	var yaw: int = heading_for_delta(last - first, _step.yaw)
+	var policy: int = Profiles.selection_policy_leaf(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
+	var expected: int = (_selection.yaw + 32768) % 65536 if policy == Profiles.POLICY_READY_BACKWARD else _selection.yaw
+	if _selection.orientation != Profiles.YAW_ALL and yaw != expected:
+		return &"ROUTE_TURN_UNCERTIFIED"
+	_step.yaw = _selection.yaw if policy == Profiles.POLICY_READY_BACKWARD else yaw
+	_copy_selection(_selection, _pinned_selection)
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.motion_refusal(_resident_ref(row), _step.edge, _step.segment,
+		_step.point, next, _selection)
+	_in_callback = false
+	if _callback_reentered or not _same_selection(_selection, _pinned_selection):
+		return &"ROUTE_CALLBACK_REENTRY"
+	return code
+
+
+func _read_motion_containment() -> StringName:
+	"""Cross-section endpoints publish their actual endpoint Room; interior points use the authored span section."""
+	if _step.finished:
+		var endpoint_code: StringName = _locations.read_location_into(_edge_pair(_live, E_TO_SLOT, _step.edge.x), _second)
+		if endpoint_code != &"":
+			return endpoint_code
+		_step.room = _second.room
+		_step.section = _second.section
+		_step.level = _second.level
+		return &""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _bindings.transit_region_into(_step.section, _step.segment, _step.point, _section)
+	_in_callback = false
+	if _callback_reentered:
+		return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"":
+		return code
+	_step.room = _section.owner if _ids.get_kind(_section.owner) == Directory.KIND_ROOM else NULL_REF
+	_step.level = _section.level
+	return &"" if _section.role == Space.FLOOR_DATUM else &"ROUTE_SECTION_STALE"
+
+
+func _final_motion_refusal(row: int) -> StringName:
+	"""Re-read actual source identities after every callback, before any Transform or route mutation."""
+	if _occupancy_context_refusal() != &"":
+		return &"ROUTE_OCCUPANCY_STALE"
+	var code: StringName = _edge_profile_into(row, _step.edge.x, _occupant_selection)
+	if code != &"" or not _same_selection(_checked_selection, _occupant_selection):
+		return code if code != &"" else &"ROUTE_ACTOR_PROFILE_DRIFT"
+	if _owner.has_prepared() or _edge_i64(_live, E_GEOMETRY_REVISION, _step.edge.x) != _owner.revision() \
+			or not _owner.is_live_region(_step.section):
+		return &"ROUTE_CONTACT_GEOMETRY_STALE"
+	code = _owner.region_into_reused(_step.section, _section)
+	var room: Vector2i = _section.owner if _ids.get_kind(_section.owner) == Directory.KIND_ROOM else NULL_REF
+	if code != &"" or _section.role != Space.FLOOR_DATUM or _step.room != room or _step.level != _section.level:
+		return &"ROUTE_ACTOR_CONTAINMENT_DRIFT"
+	if _step.finished and not _locations.is_live_location(_edge_pair(_live, E_TO_SLOT, _step.edge.x)):
+		return &"ROUTE_LOCATION_STALE"
+	_copy_selection(_occupant_selection, _selection)
+	return _selected_bounds_at(_selection, _step.point, _profile_box, _candidate_bounds)
+
+
+func _commit_motion(row: int) -> void:
+	"""Commit the single prevalidated pose, containment/profile and pooled-route cursor without callbacks."""
+	var worker: Vector2i = _resident_ref(row)
+	var advanced: bool = _transforms.advance(worker, _step.point.x, _step.point.y, _step.point.z)
+	var turned: bool = _transforms.set_yaw(worker, _step.yaw)
+	assert(advanced and turned, "prevalidated live Transform and integer heading")
+	for entered: int in _step.consumed:
+		_pop_route_head(row)
+	_set_resident_pair(R_EDGE_SLOT, row, NULL_REF if _step.finished else _step.edge)
+	_set_resident_pair(R_LOCATION_SLOT, row, _edge_pair(_live, E_TO_SLOT if _step.finished else E_FROM_SLOT, _step.edge.x))
+	_motion.resident[R_SEGMENT * RESIDENT_CAPACITY + row] = 0 if _step.finished else _step.segment
+	_motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row] = 0 if _step.finished else _step.progress
+	_motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row] = _step.remainder
+	_set_route_phase(row, PHASE_TRAVELLING)
+	if _step.finished:
+		_set_route_phase(row, PHASE_QUEUED if _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0 else PHASE_IDLE)
+	_advance_source_motion_clock(row)
+	_write_selected_fields(row, _edge_i32(_live, E_FAMILY, _step.edge.x), _step.room, _step.section, _step.level)
+	_index_actor(row, _step.point, true)
+	_occupancy_expected_revision = _transforms.mutation_revision()
+
+
+func _advance_source_motion_clock(row: int) -> void:
+	"""Root and forward/reversed source advance together only after the entire physical tick succeeds."""
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if (word & ~63) != SourceProgram.TAG: return
+	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var time: int = ((clock & I32_MAX) + SourceProgram.ONE) % SourceProgram.WALK_DURATION
+	if (word & 3) == PHASE_IDLE:
+		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = SourceProgram.word(PHASE_IDLE, SourceProgram.FADE_READY)
+		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(0, time)
+	else:
+		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(time, 0)
+
+
+func _pop_route_head(row: int) -> void:
+	"""Entry consumes the first pooled link while retaining the occupied edge separately."""
+	var head: int = _motion.resident[R_HEAD * RESIDENT_CAPACITY + row]
+	var next: int = _link(L_NEXT, head)
+	for field: int in LINK_FIELDS:
+		_set_link(field, head, -1)
+	_push_free(_motion.free_links, _motion.free_count, head)
+	_motion.free_count += 1
+	_motion.resident[R_HEAD * RESIDENT_CAPACITY + row] = next
+	if next < 0:
+		_motion.resident[R_TAIL * RESIDENT_CAPACITY + row] = -1
+
+
+func last_published_token() -> int:
+	"""Only a completed actual graph swap can qualify the matching prepared companion certificates."""
+	return _last_published_token
+
+
+func edge_point_into(ref: Vector2i, ordinal: int, out: PackedInt32Array) -> StringName:
+	"""Read one exact actual vertex without allocating or copying the complete polyline."""
+	if not is_live_edge(ref):
+		return &"ROUTE_EDGE_STALE"
+	if ordinal < 0 or ordinal >= _edge_i32(_live, E_PATH_COUNT, ref.x) or out.size() != 3:
+		return &"ROUTE_OUTPUT_SHAPE"
+	var point: Vector3i = _vertex(ref.x, ordinal)
+	out[0] = point.x
+	out[1] = point.y
+	out[2] = point.z
+	return &""
+
+
+func prepared_edge_metadata_into(token: int, ref: Vector2i, out: Edge) -> StringName:
+	"""Observe an exact sealed companion span without publishing it or copying its points."""
+	var code: StringName = prepared_refusal(token)
+	if code != &"":
+		return code
+	if out == null or not _live_edge(_stage, ref):
+		return &"ROUTE_EDGE_STALE"
+	code = _section_into(_edge_pair(_stage, E_SECTION_SLOT, ref.x))
+	if code != &"":
+		return code
+	_read_edge_metadata(_stage, ref.x, out)
+	return &""
+
+
+func prepared_edge_metadata_reused_into(token: int, ref: Vector2i, out: Edge) -> StringName:
+	"""Observation only: require full prepared_refusal before and after the whole fixed-metadata batch."""
+	if token <= 0 or token != _token or not _sealed or _operation_error != &"" \
+			or not _cold.covers(_cold_token, 1):
+		return &"ROUTE_TRANSACTION_STALE"
+	if not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD) or _owner.revision() != _base_geometry_revision:
+		return &"ROUTE_GEOMETRY_STALE"
+	if out == null or not _live_edge(_stage, ref):
+		return &"ROUTE_EDGE_STALE"
+	if _edge_i64(_stage, E_CONTENT_REVISION, ref.x) != _profiles.content_revision() \
+			or _edge_i64(_stage, E_GEOMETRY_REVISION, ref.x) != _target_geometry_revision:
+		return &"ROUTE_EDGE_REVISION"
+	if _space_token == 0 and _owner.has_prepared():
+		return &"ROUTE_SPACE_TRANSACTION"
+	var section: Vector2i = _edge_pair(_stage, E_SECTION_SLOT, ref.x)
+	var code: StringName = _owner.prepared_region_observation_into(_space_token, section, _section) \
+		if _space_token != 0 else _owner.region_into_reused(section, _section)
+	if code != &"":
+		return code
+	if _section.role != Space.FLOOR_DATUM:
+		return &"ROUTE_SECTION_ROLE"
+	_read_edge_metadata(_stage, ref.x, out)
+	return &""
+
+
+func refresh_occupancy() -> StringName:
+	"""Rebuild roots once after foreign pose changes; no profile image, world scan or authority mutation."""
+	if _reject_callback() or _advancing or _searching or _occupancy_reading or _token != 0:
+		return &"ROUTE_TRANSACTION_BUSY"
+	if _edge_capacity == 0 or _transforms.mutation_revision() <= 0:
+		return &"ROUTE_OCCUPANCY_STALE"
+	var revision_now: int = _transforms.mutation_revision()
+	_occupancy_expected_revision = 0
+	_occupancy_heads.fill(-1)
+	_occupancy_next.fill(-1)
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref(row) == NULL_REF:
+			continue
+		var code: StringName = read_actor_into(_resident_ref(row), _actor)
+		if code != &"":
+			return code
+		_index_actor(row, _actor.point, false)
+	if _transforms.mutation_revision() != revision_now:
+		return &"ROUTE_OCCUPANCY_STALE"
+	_occupancy_expected_revision = revision_now
+	return &""
+
+
+static func _root_cell(point: Vector3i) -> Vector3i:
+	"""The existing1024u quantum is a hash resolution only, never a collision or paid-void approximation."""
+	return Vector3i(_floor_cell(point.x), _floor_cell(point.y), _floor_cell(point.z))
+
+
+static func _floor_cell(value: int) -> int:
+	"""Integer floor division keeps negative coordinates in the correct half-open hash cell."""
+	@warning_ignore("integer_division") var cell: int = value / Space.QUANTUM_U
+	return cell - 1 if value < 0 and value % Space.QUANTUM_U != 0 else cell
+
+
+func _bucket(cell: Vector3i) -> int:
+	"""Exact cell equality resolves finite hash collisions; I32 root cells keep products in int64."""
+	return posmod(int(cell.x) * 73856093 + int(cell.y) * 19349663 + int(cell.z) * 83492791, _location_capacity)
+
+
+func _index_actor(row: int, point: Vector3i, replace: bool) -> void:
+	"""A committed pose updates its derived root bucket before the next actor or work query."""
+	if replace:
+		_unindex_actor(row)
+	var cell: Vector3i = _root_cell(point)
+	for axis: int in 3:
+		_occupancy_cell[axis * RESIDENT_CAPACITY + row] = cell[axis]
+	var bucket: int = _bucket(cell)
+	_occupancy_next[row] = _occupancy_heads[bucket]
+	_occupancy_heads[bucket] = row
+
+
+func _unindex_actor(row: int) -> void:
+	"""Remove only one typed actor link; no endpoint, edge or gameplay owner is mutated."""
+	var cell: Vector3i = Vector3i(_occupancy_cell[row], _occupancy_cell[RESIDENT_CAPACITY + row],
+		_occupancy_cell[2 * RESIDENT_CAPACITY + row])
+	var bucket: int = _bucket(cell)
+	var cursor: int = _occupancy_heads[bucket]
+	var previous: int = -1
+	while cursor >= 0:
+		if cursor == row:
+			if previous < 0:
+				_occupancy_heads[bucket] = _occupancy_next[cursor]
+			else:
+				_occupancy_next[previous] = _occupancy_next[cursor]
+			_occupancy_next[row] = -1
+			return
+		previous = cursor
+		cursor = _occupancy_next[cursor]
+
+
+func _occupancy_context_refusal() -> StringName:
+	"""Positive exact pose/content tokens are mandatory; unchanged cached boxes never excuse stale truth."""
+	if _edge_capacity == 0 or _profiles == null or _owner == null or _locations == null \
+			or _extent_revision <= 0 or _extent_revision != _profiles.content_revision() \
+			or _occupancy_expected_revision <= 0 or _occupancy_expected_revision != _transforms.mutation_revision():
+		return &"ROUTE_OCCUPANCY_STALE"
+	return &""
+
+
+func occupancy_refusal(bounds: PackedInt32Array, except_worker: Vector2i = NULL_REF) -> StringName:
+	"""Check nearby actual bodies/recovery volumes; stale or unavailable occupants are never empty space."""
+	if _occupancy_reading or not Space.valid_box(bounds):
+		return &"ROUTE_OCCUPANCY_QUERY"
+	var code: StringName = _occupancy_context_refusal()
+	if code != &"":
+		return code
+	if except_worker != NULL_REF and not _ids.is_valid_of_kind(except_worker, Directory.KIND_RESIDENT):
+		return &"ROUTE_ACTOR_STALE"
+	_occupancy_reading = true
+	_occupancy_remaining = _domain._checks
+	if _occupancy_epoch >= I32_MAX:
+		_occupancy_visit.fill(0)
+		_occupancy_epoch = 0
+	_occupancy_epoch += 1
+	code = _query_occupants(bounds, except_worker)
+	_occupancy_reading = false
+	return _occupancy_context_refusal() if code == &"" else code
+
+
+func _query_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
+	"""Expand root-cell lookup by the entire current catalog, including newly changed held loads."""
+	var low: Vector3i = Vector3i.ZERO
+	var high: Vector3i = Vector3i.ZERO
+	var cells: int = 1
+	for axis: int in 3:
+		low[axis] = _floor_cell(maxi(int(bounds[axis]) - int(_catalog_extent[axis + 3]), _domain._bounds[axis]))
+		high[axis] = _floor_cell(mini(int(bounds[axis + 3]) - int(_catalog_extent[axis]), _domain._bounds[axis + 3] - 1))
+		var width: int = int(high[axis]) - int(low[axis]) + 1
+		if width < 1:
+			return &""
+		@warning_ignore("integer_division")
+		if width > _location_capacity or cells > _location_capacity / width:
+			return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+		cells *= width
+	var x: int = low.x
+	while x <= high.x:
+		var y: int = low.y
+		while y <= high.y:
+			var z: int = low.z
+			while z <= high.z:
+				var code: StringName = _query_cell(Vector3i(x, y, z), bounds, except_worker)
+				if code != &"":
+					return code
+				z += 1
+			y += 1
+		x += 1
+	return &""
+
+
+func _query_cell(cell: Vector3i, bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
+	"""Visit only exact matching root cells; each candidate's real profile is read at most once per query."""
+	var cursor: int = _occupancy_heads[_bucket(cell)]
+	while cursor >= 0:
+		_occupancy_remaining -= 1
+		if _occupancy_remaining < 0 or cursor >= RESIDENT_CAPACITY:
+			return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+		var next: int = _occupancy_next[cursor]
+		if _cell_matches(cursor, cell) and _occupancy_visit[cursor] != _occupancy_epoch \
+				and _resident_ref(cursor) != except_worker:
+			_occupancy_visit[cursor] = _occupancy_epoch
+			var code: StringName = _occupant_refusal(cursor, bounds)
+			if code != &"":
+				return code
+		cursor = next
+	_occupancy_remaining -= 1
+	return &"" if _occupancy_remaining >= 0 else &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+
+
+func _cell_matches(row: int, cell: Vector3i) -> bool:
+	"""A hash collision never aliases two different three-dimensional root cells."""
+	return _occupancy_cell[row] == cell.x and _occupancy_cell[RESIDENT_CAPACITY + row] == cell.y \
+		and _occupancy_cell[2 * RESIDENT_CAPACITY + row] == cell.z
+
+
+func _occupant_refusal(row: int, bounds: PackedInt32Array) -> StringName:
+	"""Current actual load/profile truth is mandatory even when the old cached body would not intersect."""
+	_occupancy_remaining -= 128 # At most12 boxes plus bounded actual identity/key reads.
+	if _occupancy_remaining < 0:
+		return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+	var code: StringName = read_actor_into(_resident_ref(row), _actor)
+	if code != &"":
+		return code
+	code = _current_profile_into(row, _occupant_selection)
+	if code != &"":
+		return &"ROUTE_OCCUPANT_PROFILE_STALE"
+	for index: int in _occupant_selection.box_count:
+		code = _occupant_box_refusal(index, bounds)
+		if code != &"":
+			return code
+	return &""
+
+
+func _occupant_box_refusal(index: int, bounds: PackedInt32Array) -> StringName:
+	"""Test complete translated body and recovery boxes without clipping or rotating them a second time."""
+	var code: StringName = _profiles.box_into(_occupant_selection.profile_id, _occupant_selection.profile_revision,
+		_occupant_selection.content_revision, index, _occupant_box)
+	if code != &"":
+		return code
+	if _occupant_box.role != Profiles.BODY_HELD_LOAD and _occupant_box.role != Profiles.TURN_RECOVERY:
+		return &""
+	var point: Vector3i = Vector3i(_occupant_selection.x, _occupant_selection.y, _occupant_selection.z)
+	for axis: int in 3:
+		var low: int = int(point[axis]) + int(_occupant_box.low[axis])
+		var high: int = int(point[axis]) + int(_occupant_box.high[axis])
+		if not IntMath.fits_int32(low) or not IntMath.fits_int32(high):
+			return &"ROUTE_ACTOR_BOUNDS"
+		_occupant_bounds[axis] = low
+		_occupant_bounds[axis + 3] = high
+	return &"ROUTE_OCCUPIED" if Space.overlaps(bounds, _occupant_bounds) else &""
+
+
+static func turn_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
+	"""Read one committed profile from direct current actor/Job/tool/load facts after all observers."""
+	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+		return &"ROUTE_ACTOR_NOT_REGISTERED"
+	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	var profiles: Profiles = actual._profiles
+	if profiles == null or profiles._loading or profile < 0 or profile >= profiles._live.header[1] \
+			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED \
+			or profiles._live.header[0] != actual._motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] \
+			or profiles._live.quantities[profile] != actual._motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]:
+		return &"ROUTE_TURN_PROFILE_STALE"
+	var mode: int = actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row]
+	var posture: int = actual._motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
+	var family: int = actual._motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
+	var code: StringName = _turn_dynamic_leaf(actual, actual._resident_ref(row),
+		actual._resident_pair(R_JOB_SLOT, row), mode, posture, family, actual._resident_pair(R_TOOL_SLOT, row))
+	if code != &"": return code
+	if not profiles._matches(profile, mode, posture, family):
+		return &"ROUTE_TURN_PROFILE_STALE"
+	_turn_write_selection(actual, row, profile, out)
+	return &"" if actual._committed_selection(row, out) else &"ROUTE_TURN_PROFILE_STALE"
+
+
+static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
+	"""Read the retained complete body source after assignment release; this grants neither work nor turning."""
+	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+		return &"ROUTE_ACTOR_NOT_REGISTERED"
+	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	var profiles: Profiles = actual._profiles
+	if profiles == null or profiles._loading or profile < 0 or profile >= profiles._live.header[1] \
+			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED \
+			or profiles._live.header[0] != actual._motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] \
+			or profiles._live.quantities[profile] != actual._motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]:
+		return &"ROUTE_TURN_PROFILE_STALE"
+	var code: StringName = _turn_identity_leaf(actual, actual._resident_ref(row))
+	if code != &"": return code
+	profiles._query_values.fill(-1)
+	profiles._candidate.tool = NULL_REF
+	profiles._candidate.satchel = NULL_REF
+	profiles._candidate.cargo = NULL_REF
+	profiles._candidate.cargo_quantity_milli = 0
+	code = _physical_tool_leaf(actual, actual._resident_ref(row), actual._resident_pair(R_TOOL_SLOT, row))
+	if code == &"": code = _turn_cargo_leaf(actual, actual._resident_ref(row))
+	if code != &"": return code
+	if not _physical_profile_matches(actual, row, profile): return &"ROUTE_TURN_PROFILE_STALE"
+	if not _physical_payload_matches(actual, row): return &"ROUTE_TURN_PROFILE_STALE"
+	_turn_write_selection(actual, row, profile, out)
+	return &""
+
+
+static func _physical_payload_matches(actual: RefCounted, row: int) -> bool:
+	"""A changed full carried/equipped payload refuses before writing any caller-owned Selection field."""
+	var candidate: Profiles.Selection = actual._profiles._candidate
+	return candidate.tool == actual._resident_pair(R_TOOL_SLOT, row) \
+		and candidate.cargo == actual._resident_pair(R_CARGO_SLOT, row) \
+		and candidate.satchel == actual._resident_pair(R_SATCHEL_SLOT, row) \
+		and candidate.cargo_quantity_milli == actual._motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row]
+
+
+static func _physical_tool_leaf(actual: RefCounted, worker: Vector2i, tool: Vector2i) -> StringName:
+	"""The exact equipped lot remains physical after its Job claim ends; no Work assignment is inferred."""
+	var profiles: Profiles = actual._profiles
+	var row: int = profiles._worker_row
+	if tool == NULL_REF:
+		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
+	var gear: Gear = profiles._gear as Gear
+	var inventory: Inventory = profiles._inventory
+	if tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0: return &"ROUTE_TURN_ACTOR_STALE"
+	var at: int = gear._lot_row[tool.x]
+	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != tool.x \
+			or gear._lot_generation[at] != tool.y or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
+			or inventory._l_generation[tool.x] != tool.y or inventory._l_container_slot[tool.x] != -1 \
+			or gear._equipped[at] != 1 or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
+			or actual._residents._equip_tool_item_id[row] != gear._item_id[at]: return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._query_values[0] = gear._item_id[at]
+	profiles._query_values[1] = gear._manufacture_recipe[at]
+	profiles._candidate.tool = tool
+	return &""
+
+
+static func _physical_profile_matches(actual: RefCounted, row: int, profile: int) -> bool:
+	"""Current identity, pose, load and equipment must fit the same immutable full body/entry/recovery source."""
+	var profiles: Profiles = actual._profiles
+	var stride: int = profiles._profile_capacity
+	for index: int in 3:
+		if profiles._live.fields[(Profiles.F_SPECIES + index) * stride + profile] != profiles._identity[index]: return false
+	for index: int in 4:
+		if profiles._live.fields[(Profiles.F_TOOL + index) * stride + profile] != profiles._query_values[index]: return false
+	if profiles._live.fields[Profiles.F_MODE * stride + profile] != actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row] \
+			or profiles._live.fields[Profiles.F_POSTURE * stride + profile] != actual._motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]:
+		return false
+	var quantity: int = profiles._candidate.cargo_quantity_milli
+	if quantity < profiles._live.quantities[Profiles.L_QUANTITY_MIN * stride + profile] \
+			or quantity > profiles._live.quantities[Profiles.L_QUANTITY_MAX * stride + profile]: return false
+	if profiles._live.fields[Profiles.F_YAW_KIND * stride + profile] == Profiles.YAW_EXACT \
+			and profiles._live.fields[Profiles.F_YAW * stride + profile] != profiles._pose.yaw: return false
+	var family: int = actual._motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
+	return family == -1 or (family >= 0 and family < 5 \
+		and (profiles._live.fields[Profiles.F_FAMILIES * stride + profile] & (1 << family)) != 0)
+
+
+static func _turn_write_selection(actual: RefCounted, row: int, profile: int, out: Profiles.Selection) -> void:
+	"""Copy reusable selection scratch directly; no public profile or Transform hook remains."""
+	var profiles: Profiles = actual._profiles
+	out.profile_id = profile
+	out.profile_revision = profiles._live.quantities[profile]
+	out.content_revision = profiles._live.header[0]
+	out.source_id = profiles._field(profiles._live, profile, Profiles.F_SOURCE)
+	out.species = profiles._identity[0]
+	out.life_stage = profiles._identity[1]
+	out.rig = profiles._identity[2]
+	out.mode = profiles._field(profiles._live, profile, Profiles.F_MODE)
+	out.posture = profiles._field(profiles._live, profile, Profiles.F_POSTURE)
+	out.x = profiles._pose.x
+	out.y = profiles._pose.y
+	out.z = profiles._pose.z
+	out.yaw = profiles._pose.yaw
+	out.orientation = profiles._field(profiles._live, profile, Profiles.F_YAW_KIND)
+	out.box_count = profiles._field(profiles._live, profile, Profiles.F_BOX_COUNT)
+	out.worker = actual._resident_ref(row)
+	out.job = actual._resident_pair(R_JOB_SLOT, row)
+	out.tool = profiles._candidate.tool
+	out.satchel = profiles._candidate.satchel
+	out.cargo = profiles._candidate.cargo
+	out.cargo_quantity_milli = profiles._candidate.cargo_quantity_milli
+
+
+static func commit_stationary_turn(actual: RefCounted, expected: Profiles.Selection,
+		pose_revision: int, target_yaw: int) -> bool:
+	"""The concrete World proof calls this once, after all fallible observations and leaf checks."""
+	var cache_current: bool = actual._occupancy_expected_revision == pose_revision
+	if not Transforms.turn_stationary_preflighted(actual._transforms, expected.worker,
+		Vector3i(expected.x, expected.y, expected.z), expected.yaw, pose_revision, target_yaw):
+		return false
+	actual._occupancy_expected_revision = actual._transforms._mutation_revision \
+		if cache_current and actual._transforms._mutation_revision < I64_MAX else 0
+	return true
+
+
+static func _turn_dynamic_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i, mode: int, posture: int,
+		family: int, hint: Vector2i) -> StringName:
+	"""Reuse Profiles scratch while deriving current facts directly after all observation callbacks."""
+	if mode < Profiles.MODE_STAND or mode > Profiles.MODE_CLIMB or posture < 0 \
+			or posture > Profiles.POSTURE_STOOPED or family < -1 or family >= 5:
+		return &"ROUTE_TURN_PROFILE_STALE"
+	var code: StringName = _turn_identity_leaf(actual, worker)
+	if code != &"": return code
+	var profiles: Profiles = actual._profiles
+	profiles._query_values.fill(-1)
+	profiles._candidate.tool = NULL_REF
+	profiles._candidate.satchel = NULL_REF
+	profiles._candidate.cargo = NULL_REF
+	profiles._candidate.cargo_quantity_milli = 0
+	code = _turn_job_leaf(actual, worker, job, mode)
+	if code == &"": code = _turn_tool_leaf(actual, worker, job, mode, hint)
+	return _turn_cargo_leaf(actual, worker) if code == &"" else code
+
+
+static func _turn_identity_leaf(actual: RefCounted, worker: Vector2i) -> StringName:
+	"""Full Directory and mirrored Resident identity precede actual species/rig and persistent Transform reads."""
+	var residents: Residents = actual._residents
+	var row: int = _turn_directory_row(actual, worker, Directory.KIND_RESIDENT)
+	if row < 0 or row >= RESIDENT_CAPACITY or residents._present[row] != 1 \
+			or residents._ref_slot[row] != worker.x or residents._ref_generation[row] != worker.y \
+			or residents._needs._present[row] != 1 or residents._needs._health[row] <= 0 \
+			or residents._catalog_error != "" or residents._rig_catalog_error != "" \
+			or residents._life_stage[row] != Residents.LIFE_STAGE_ADULT:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var species: int = residents._species[row]
+	if species < 0 or species >= residents._species_key.size(): return &"ROUTE_TURN_PROFILE_STALE"
+	var key: StringName = StringName(residents._species_key[species])
+	if not Residents.SPECIES_RIG_KEY.has(key): return &"ROUTE_TURN_PROFILE_STALE"
+	var rig: StringName = Residents.SPECIES_RIG_KEY[key] as StringName
+	if not residents._rig_ids.has(rig): return &"ROUTE_TURN_PROFILE_STALE"
+	var profiles: Profiles = actual._profiles
+	profiles._worker_row = row
+	profiles._identity[0] = species
+	profiles._identity[1] = residents._life_stage[row]
+	profiles._identity[2] = int(residents._rig_ids[rig])
+	return _turn_pose_leaf(actual, worker, row)
+
+
+static func _turn_directory_row(actual: RefCounted, ref: Vector2i, kind: int) -> int:
+	"""The final leaf checks full identity and the reverse typed owner directly, without Directory observers."""
+	var ids: Directory = actual._ids
+	if ref.x < 0 or ref.x >= Directory.DIRECTORY_CAPACITY or ids._active[ref.x] != 1 \
+			or ids._generation[ref.x] != ref.y or ids._kind[ref.x] != kind:
+		return -1
+	var row: int = ids._typed_row[ref.x]
+	return row if row >= 0 and row < Directory.KIND_CAPACITY[kind] \
+		and ids._typed_owner_slot[ids._kind_base[kind] + row] == ref.x else -1
+
+
+static func _turn_pose_leaf(actual: RefCounted, worker: Vector2i, resident_row: int) -> StringName:
+	"""A reused typed row cannot inherit another full resident's pose; no read_into observer is dispatched."""
+	var transforms: Transforms = actual._transforms
+	var row: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + resident_row
+	var pid: int = actual._ids._persistent_id[worker.x]
+	if pid <= 0 or row < 0 or row >= Transforms.TRANSFORM_CAPACITY \
+			or transforms._bound_persistent_id[row] != pid or transforms._yaw[row] < 0 or transforms._yaw[row] >= 65536:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var profiles: Profiles = actual._profiles
+	profiles._pose.x = transforms._x[row]
+	profiles._pose.y = transforms._y[row]
+	profiles._pose.z = transforms._z[row]
+	profiles._pose.yaw = transforms._yaw[row]
+	return &""
+
+
+static func _turn_job_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i, mode: int) -> StringName:
+	"""Read both actual Job and generation-safe resident-agent links without requester or worker observers."""
+	if job == NULL_REF: return &"ROUTE_TURN_ACTOR_STALE" if mode == Profiles.MODE_WORK else &""
+	var ids: Directory = actual._ids
+	var jobs: Jobs = actual._jobs
+	var row: int = _turn_directory_row(actual, job, Directory.KIND_JOB)
+	var worker_row: int = actual._profiles._worker_row
+	if row < 0 or row >= Jobs.JOB_CAPACITY or jobs._job_present[row] != 1 \
+			or jobs._job_ref_slot[row] != job.x or jobs._job_ref_generation[row] != job.y \
+			or jobs._worker_slot[row] != worker.x or jobs._worker_generation[row] != worker.y \
+			or jobs._agent_present[worker_row] != 1 or jobs._agent_persistent_id[worker_row] != ids._persistent_id[worker.x] \
+			or jobs._agent_job_slot[worker_row] != job.x or jobs._agent_job_generation[worker_row] != job.y:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	if mode == Profiles.MODE_WORK: actual._profiles._query_values[4] = jobs._kind[row]
+	return &""
+
+
+static func _turn_tool_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i, mode: int, hint: Vector2i) -> StringName:
+	"""An actual Work-bound or hinted lot must be equipped by this resident, and WORK needs its exact live claim."""
+	var profiles: Profiles = actual._profiles
+	var row: int = profiles._worker_row
+	var work: RefCounted = actual._work
+	var tool: Vector2i = Vector2i(work._tool_lot_slot[row], work._tool_lot_generation[row])
+	if tool != NULL_REF and hint != NULL_REF and tool != hint: return &"ROUTE_TURN_ACTOR_STALE"
+	if tool == NULL_REF: tool = hint
+	if tool == NULL_REF:
+		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
+	var gear: Gear = actual._profiles._gear as Gear
+	var at: int = gear._resolve_row(tool)
+	var inventory: Inventory = actual._profiles._inventory
+	if at < 0 or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
+			or inventory._l_generation[tool.x] != tool.y or inventory._l_container_slot[tool.x] != -1 \
+			or gear._equipped[at] != 1 or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
+			or actual._residents._equip_tool_item_id[row] != gear._item_id[at]: return &"ROUTE_TURN_ACTOR_STALE"
+	if mode == Profiles.MODE_WORK and (work._tool_job_slot[row] != job.x or work._tool_job_generation[row] != job.y \
+			or gear._claim_job_slot[at] != job.x or gear._claim_job_generation[at] != job.y or gear._durability[at] <= 0):
+		return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._query_values[0] = gear._item_id[at]
+	profiles._query_values[1] = gear._manufacture_recipe[at]
+	profiles._candidate.tool = tool
+	return &""
+
+
+static func _turn_cargo_leaf(actual: RefCounted, worker: Vector2i) -> StringName:
+	"""The actual resident mirror and full live satchel/lot list must agree; no carried-load observer is called."""
+	var profiles: Profiles = actual._profiles
+	var row: int = profiles._worker_row
+	var residents: Residents = actual._residents
+	var inventory: Inventory = actual._profiles._inventory
+	var satchel: Vector2i = Vector2i(residents._equip_satchel_slot[row], residents._equip_satchel_generation[row])
+	if satchel == NULL_REF: return &""
+	if satchel.x < 0 or satchel.x >= inventory._c_capacity or inventory._c_live[satchel.x] != 1 \
+			or inventory._c_generation[satchel.x] != satchel.y or inventory._c_policy[satchel.x] != Inventory.POLICY_SATCHEL \
+			or inventory._c_owner_slot[satchel.x] != worker.x or inventory._c_owner_generation[satchel.x] != worker.y:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._candidate.satchel = satchel
+	var count: int = inventory._c_lot_count[satchel.x]
+	if count == 0: return &"" if inventory._c_first_lot[satchel.x] == -1 else &"ROUTE_TURN_ACTOR_STALE"
+	var lot: int = inventory._c_first_lot[satchel.x]
+	if count != 1 or lot < 0 or lot >= inventory._l_capacity or inventory._l_live[lot] != 1 \
+			or inventory._l_container_slot[lot] != satchel.x or inventory._l_container_generation[lot] != satchel.y \
+			or inventory._l_next[lot] != -1 or inventory._l_prev[lot] != -1 or inventory._l_quantity_milli[lot] < 1:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._candidate.cargo = Vector2i(lot, inventory._l_generation[lot])
+	profiles._candidate.cargo_quantity_milli = inventory._l_quantity_milli[lot]
+	profiles._query_values[2] = inventory._l_item_id[lot]
+	profiles._query_values[3] = inventory._l_recipe_id[lot]
+	return &""

@@ -1,0 +1,18 @@
+{
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "diagnostic_failure": false,
+  "exception": "",
+  "source_unchanged": true,
+  "source_after": {
+    "tools/capture_underground_metal_inputs.gd": "48af02d87b1a5ff50373d998220eacc4569d129bcc4066897927ee4a950ecbb6",
+    "godot/test/test_underground_metal_inputs.gd": "de6d3abca754228307329848181964eb11526e497b02296e1c9ff4c3036f6da1"
+  },
+  "assets_restored": true,
+  "user_directory_name": "Redwall-Codex-Metal-Input-Checks",
+  "override_sha256": "670b0c0d37b1aa68fe2c6e94f0f6a955bb302859cf4d1f15998284b189f229bb",
+  "override_removed": true
+}

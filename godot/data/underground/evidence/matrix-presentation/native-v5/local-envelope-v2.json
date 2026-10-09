@@ -1,0 +1,4765 @@
+{
+  "schema": 1,
+  "source_sha256": "a8a16d1111ac1583fcc4d9dd83b6382395b9158c5d69b5af7981e2c780fd7457",
+  "profiles": [
+    {
+      "id": "mouse_keeper.idle.plain",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "idle",
+      "scenario": "plain",
+      "frames": 122,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -295,
+            -2,
+            -381,
+            298,
+            969,
+            290
+          ],
+          "all_yaw_bounds_u": [
+            -484,
+            -2,
+            -484,
+            484,
+            969,
+            484
+          ],
+          "residual_m": {
+            "numerator": 25285025380689396796904689044699945425054676887035439574648103,
+            "denominator": 1684987025080904907844622847300874978073059417204465212269801766912
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.walk.plain",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "plain",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -261,
+            -1,
+            -443,
+            260,
+            1031,
+            317
+          ],
+          "all_yaw_bounds_u": [
+            -514,
+            -1,
+            -514,
+            514,
+            1031,
+            514
+          ],
+          "residual_m": {
+            "numerator": 3612113541937487958659127283473955723649839642055032858135009,
+            "denominator": 240712432154414986834946121042982139724722773886352173181400252416
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.walk.ramp_up",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_up",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -261,
+            -49,
+            -372,
+            260,
+            968,
+            421
+          ],
+          "all_yaw_bounds_u": [
+            -495,
+            -49,
+            -495,
+            495,
+            968,
+            495
+          ],
+          "residual_m": {
+            "numerator": 25284564206435434624323092923935434706043078101735020439242023,
+            "denominator": 1684987025080904907844622847300874978073059417204465212269801766912
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.walk.ramp_down",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_down",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -261,
+            -115,
+            -668,
+            260,
+            806,
+            273
+          ],
+          "all_yaw_bounds_u": [
+            -717,
+            -115,
+            -717,
+            717,
+            806,
+            717
+          ],
+          "residual_m": {
+            "numerator": 25284565713540839729462248466813750100549651953974564292625703,
+            "denominator": 1684987025080904907844622847300874978073059417204465212269801766912
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.cautious_crouch_walk_forward.plain",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "plain",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -362,
+            -2,
+            -646,
+            364,
+            840,
+            296
+          ],
+          "all_yaw_bounds_u": [
+            -742,
+            -2,
+            -742,
+            742,
+            840,
+            742
+          ],
+          "residual_m": {
+            "numerator": 428519801149759531512973220051096074860562237023539879365637,
+            "denominator": 28559102120015337421095302496624999628356939274651952750335623168
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.cautious_crouch_walk_forward.standard_bore",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "standard_bore",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -362,
+            -2,
+            -646,
+            364,
+            840,
+            296
+          ],
+          "all_yaw_bounds_u": [
+            -742,
+            -2,
+            -742,
+            742,
+            840,
+            742
+          ],
+          "residual_m": {
+            "numerator": 428519801149759531512973220051096074860562237023539879365637,
+            "denominator": 28559102120015337421095302496624999628356939274651952750335623168
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.carry_heavy_object_walk.plain",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "plain",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -296,
+            -1,
+            -359,
+            340,
+            1022,
+            245
+          ],
+          "all_yaw_bounds_u": [
+            -494,
+            -1,
+            -494,
+            494,
+            1022,
+            494
+          ],
+          "residual_m": {
+            "numerator": 25284812878827276972283757498857474799627763721259756247549223,
+            "denominator": 1684987025080904907844622847300874978073059417204465212269801766912
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -342,
+            580,
+            -260,
+            358,
+            758,
+            -43
+          ],
+          "all_yaw_bounds_u": [
+            -442,
+            580,
+            -442,
+            442,
+            758,
+            442
+          ],
+          "residual_m": {
+            "numerator": 2569064890747311650760361087595290064234559689854166205,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -144,
+            523,
+            -365,
+            164,
+            822,
+            -82
+          ],
+          "all_yaw_bounds_u": [
+            -400,
+            523,
+            -400,
+            400,
+            822,
+            400
+          ],
+          "residual_m": {
+            "numerator": 2238911517316271653911831421034193900382955047487192830318666709991469,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -183,
+            554,
+            -373,
+            202,
+            791,
+            -75
+          ],
+          "all_yaw_bounds_u": [
+            -424,
+            554,
+            -424,
+            424,
+            791,
+            424
+          ],
+          "residual_m": {
+            "numerator": 1173393964138137264255443302493252077245199168011054007315611219132443,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -240,
+            441,
+            -251,
+            259,
+            904,
+            -197
+          ],
+          "all_yaw_bounds_u": [
+            -360,
+            441,
+            -360,
+            360,
+            904,
+            360
+          ],
+          "residual_m": {
+            "numerator": 3681559911960016853499713298055984426687053095937537670318633441558483,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -153,
+            573,
+            -409,
+            172,
+            773,
+            -38
+          ],
+          "all_yaw_bounds_u": [
+            -444,
+            573,
+            -444,
+            444,
+            773,
+            444
+          ],
+          "residual_m": {
+            "numerator": 4525705881329247983982945391577900098957215933488898872227769649987719,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -152,
+            574,
+            -359,
+            171,
+            771,
+            -89
+          ],
+          "all_yaw_bounds_u": [
+            -397,
+            574,
+            -397,
+            397,
+            771,
+            397
+          ],
+          "residual_m": {
+            "numerator": 600569077592236394161093248279380682530393207125017996714441619537947,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -311,
+            585,
+            -444,
+            330,
+            760,
+            -3
+          ],
+          "all_yaw_bounds_u": [
+            -553,
+            585,
+            -553,
+            553,
+            760,
+            553
+          ],
+          "residual_m": {
+            "numerator": 2701805820597212260250156544970000241923165679119207741,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -180,
+            545,
+            -399,
+            200,
+            801,
+            -48
+          ],
+          "all_yaw_bounds_u": [
+            -446,
+            545,
+            -446,
+            446,
+            801,
+            446
+          ],
+          "residual_m": {
+            "numerator": 153895133730873594211323783990322139737084593780674251043283687467045,
+            "denominator": 15332609690338028283105636607264289228461782572213915393355747925560393728
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -285,
+            562,
+            -386,
+            304,
+            784,
+            -62
+          ],
+          "all_yaw_bounds_u": [
+            -491,
+            562,
+            -491,
+            491,
+            784,
+            491
+          ],
+          "residual_m": {
+            "numerator": 2172160968441583225528779015679285404185067183647324541137022619746223,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -150,
+            604,
+            -379,
+            170,
+            742,
+            -69
+          ],
+          "all_yaw_bounds_u": [
+            -415,
+            604,
+            -415,
+            415,
+            742,
+            415
+          ],
+          "residual_m": {
+            "numerator": 8962389956627867165172391144364033251293101027694691933001193411837547,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -248,
+            375,
+            -267,
+            267,
+            971,
+            -181
+          ],
+          "all_yaw_bounds_u": [
+            -377,
+            375,
+            -377,
+            377,
+            971,
+            377
+          ],
+          "residual_m": {
+            "numerator": 3034792808350161364695381053055447011815043895505685688686844246491055,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -272,
+            375,
+            -310,
+            291,
+            971,
+            -137
+          ],
+          "all_yaw_bounds_u": [
+            -425,
+            375,
+            -425,
+            425,
+            971,
+            425
+          ],
+          "residual_m": {
+            "numerator": 6116536567026695961491753786456169460800679559243802668844279603921193,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mouse_keeper.carry_heavy_object_walk.standard_bore",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "standard_bore",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -296,
+            -1,
+            -359,
+            340,
+            983,
+            267
+          ],
+          "all_yaw_bounds_u": [
+            -494,
+            -1,
+            -494,
+            494,
+            983,
+            494
+          ],
+          "residual_m": {
+            "numerator": 25284812878827276972283757498857474799627763721259756247549223,
+            "denominator": 1684987025080904907844622847300874978073059417204465212269801766912
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -342,
+            471,
+            -294,
+            358,
+            664,
+            -93
+          ],
+          "all_yaw_bounds_u": [
+            -463,
+            471,
+            -463,
+            463,
+            664,
+            463
+          ],
+          "residual_m": {
+            "numerator": 2569065043875520995834120395106166428108065934340662461,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -144,
+            421,
+            -408,
+            164,
+            711,
+            -123
+          ],
+          "all_yaw_bounds_u": [
+            -439,
+            421,
+            -439,
+            439,
+            711,
+            439
+          ],
+          "residual_m": {
+            "numerator": 1789668655605159634525457957165815070455698676794287074838261471903789,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -183,
+            452,
+            -415,
+            202,
+            680,
+            -115
+          ],
+          "all_yaw_bounds_u": [
+            -462,
+            452,
+            -462,
+            462,
+            680,
+            462
+          ],
+          "residual_m": {
+            "numerator": 950257998056726499557509970265728853594703968355203815169286939344923,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -240,
+            339,
+            -293,
+            259,
+            793,
+            -237
+          ],
+          "all_yaw_bounds_u": [
+            -391,
+            339,
+            -391,
+            391,
+            793,
+            391
+          ],
+          "residual_m": {
+            "numerator": 2815019650555047436301831492539861623628754089142332916252019794116563,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -153,
+            471,
+            -452,
+            172,
+            661,
+            -78
+          ],
+          "all_yaw_bounds_u": [
+            -484,
+            471,
+            -484,
+            484,
+            661,
+            484
+          ],
+          "residual_m": {
+            "numerator": 3691968953948839925967531223821685614296864428683082258180653321289863,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -152,
+            472,
+            -402,
+            171,
+            660,
+            -129
+          ],
+          "all_yaw_bounds_u": [
+            -436,
+            472,
+            -436,
+            436,
+            660,
+            436
+          ],
+          "residual_m": {
+            "numerator": 490171581828021912519824535122851083051326941752220058446515572572187,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -311,
+            483,
+            -487,
+            330,
+            648,
+            -44
+          ],
+          "all_yaw_bounds_u": [
+            -588,
+            483,
+            -588,
+            588,
+            648,
+            588
+          ],
+          "residual_m": {
+            "numerator": 2214374709453488010559772681939648717947357321121205565,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -180,
+            443,
+            -442,
+            200,
+            689,
+            -89
+          ],
+          "all_yaw_bounds_u": [
+            -485,
+            443,
+            -485,
+            485,
+            689,
+            485
+          ],
+          "residual_m": {
+            "numerator": 7325671077754984448383294542091718528342029027549710488035547131412615,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -285,
+            460,
+            -429,
+            304,
+            672,
+            -102
+          ],
+          "all_yaw_bounds_u": [
+            -525,
+            460,
+            -525,
+            525,
+            672,
+            525
+          ],
+          "residual_m": {
+            "numerator": 1764536243963753026829121693221275337686527495580269954944974924545967,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -150,
+            502,
+            -422,
+            170,
+            630,
+            -109
+          ],
+          "all_yaw_bounds_u": [
+            -454,
+            502,
+            -454,
+            454,
+            630,
+            454
+          ],
+          "residual_m": {
+            "numerator": 7391590223133383133428786103408141522269658204589004972820099017735787,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -248,
+            273,
+            -309,
+            267,
+            859,
+            -221
+          ],
+          "all_yaw_bounds_u": [
+            -409,
+            273,
+            -409,
+            409,
+            859,
+            409
+          ],
+          "residual_m": {
+            "numerator": 2260990501798710980199297892493692163128815950009121585078577878007727,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -272,
+            273,
+            -353,
+            291,
+            859,
+            -178
+          ],
+          "all_yaw_bounds_u": [
+            -457,
+            273,
+            -457,
+            457,
+            859,
+            457
+          ],
+          "residual_m": {
+            "numerator": 4480102624820268993889220661532055023847917596580535921971775565463849,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.idle.plain",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "idle",
+      "scenario": "plain",
+      "frames": 122,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -413,
+            -2,
+            -358,
+            367,
+            856,
+            259
+          ],
+          "all_yaw_bounds_u": [
+            -546,
+            -2,
+            -546,
+            546,
+            856,
+            546
+          ],
+          "residual_m": {
+            "numerator": 116359163591613181330384191215794469567948648009390894449301,
+            "denominator": 7507600223139648712201048609527708061589794117313128208386752512
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.walk.plain",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "plain",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -444,
+            -1,
+            -473,
+            414,
+            930,
+            366
+          ],
+          "all_yaw_bounds_u": [
+            -649,
+            -1,
+            -649,
+            649,
+            930,
+            649
+          ],
+          "residual_m": {
+            "numerator": 2210726368550260654808290850511235970667075050002658792091919,
+            "denominator": 142644404239653325531819923581026453170206088228949435959348297728
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.walk.ramp_up",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_up",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -444,
+            -59,
+            -319,
+            414,
+            915,
+            512
+          ],
+          "all_yaw_bounds_u": [
+            -677,
+            -59,
+            -677,
+            677,
+            915,
+            677
+          ],
+          "residual_m": {
+            "numerator": 2210815086115383695387852668553431018610352072592971468157199,
+            "denominator": 142644404239653325531819923581026453170206088228949435959348297728
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.walk.ramp_down",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_down",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -444,
+            -71,
+            -613,
+            414,
+            867,
+            219
+          ],
+          "all_yaw_bounds_u": [
+            -757,
+            -71,
+            -757,
+            757,
+            867,
+            757
+          ],
+          "residual_m": {
+            "numerator": 2210726368550260654808290850511235970667075050002658792091919,
+            "denominator": 142644404239653325531819923581026453170206088228949435959348297728
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.cautious_crouch_walk_forward.plain",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "plain",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -274,
+            -1,
+            -760,
+            461,
+            768,
+            382
+          ],
+          "all_yaw_bounds_u": [
+            -889,
+            -1,
+            -889,
+            889,
+            768,
+            889
+          ],
+          "residual_m": {
+            "numerator": 15474143271448993678525735985876717896152721686602751625713513,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.cautious_crouch_walk_forward.standard_bore",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "standard_bore",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -274,
+            -1,
+            -760,
+            461,
+            768,
+            382
+          ],
+          "all_yaw_bounds_u": [
+            -889,
+            -1,
+            -889,
+            889,
+            768,
+            889
+          ],
+          "residual_m": {
+            "numerator": 15474143271448993678525735985876717896152721686602751625713513,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.carry_heavy_object_walk.plain",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "plain",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -435,
+            -1,
+            -351,
+            477,
+            938,
+            267
+          ],
+          "all_yaw_bounds_u": [
+            -592,
+            -1,
+            -592,
+            592,
+            938,
+            592
+          ],
+          "residual_m": {
+            "numerator": 15475498093926550620257688495300747357117002997685323170371433,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -431,
+            474,
+            -206,
+            457,
+            673,
+            16
+          ],
+          "all_yaw_bounds_u": [
+            -501,
+            474,
+            -501,
+            501,
+            673,
+            501
+          ],
+          "residual_m": {
+            "numerator": 2556400036045168697724333652276552128999530451882549597,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -133,
+            419,
+            -306,
+            160,
+            744,
+            -20
+          ],
+          "all_yaw_bounds_u": [
+            -345,
+            419,
+            -345,
+            345,
+            744,
+            345
+          ],
+          "residual_m": {
+            "numerator": 1926208580419881973790582052528479299239623950438723154785839922282541,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -172,
+            449,
+            -313,
+            199,
+            714,
+            -12
+          ],
+          "all_yaw_bounds_u": [
+            -371,
+            449,
+            -371,
+            371,
+            714,
+            371
+          ],
+          "residual_m": {
+            "numerator": 1018076478056990151203976973416342609911148761776999249204761721831451,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -229,
+            337,
+            -191,
+            256,
+            826,
+            -134
+          ],
+          "all_yaw_bounds_u": [
+            -319,
+            337,
+            -319,
+            319,
+            826,
+            319
+          ],
+          "residual_m": {
+            "numerator": 3078390206272967678471935194210424808646840675888574117513198143799251,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -142,
+            468,
+            -350,
+            169,
+            695,
+            25
+          ],
+          "all_yaw_bounds_u": [
+            -389,
+            468,
+            -389,
+            389,
+            695,
+            389
+          ],
+          "residual_m": {
+            "numerator": 3945369638723983169221981720537033704489041048413985970337804680429703,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -141,
+            470,
+            -299,
+            168,
+            694,
+            -26
+          ],
+          "all_yaw_bounds_u": [
+            -343,
+            470,
+            -343,
+            343,
+            694,
+            343
+          ],
+          "residual_m": {
+            "numerator": 523725071612958491317465956350436672101025131649985457985311656116251,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -300,
+            481,
+            -385,
+            327,
+            682,
+            59
+          ],
+          "all_yaw_bounds_u": [
+            -504,
+            481,
+            -504,
+            504,
+            682,
+            504
+          ],
+          "residual_m": {
+            "numerator": 2362521412913790039102737852236198091217559843539750205,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -169,
+            440,
+            -340,
+            196,
+            723,
+            15
+          ],
+          "all_yaw_bounds_u": [
+            -392,
+            440,
+            -392,
+            392,
+            723,
+            392
+          ],
+          "residual_m": {
+            "numerator": 7858813419210615570685657224219871569897487046805293648716150379380871,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -274,
+            457,
+            -326,
+            301,
+            706,
+            1
+          ],
+          "all_yaw_bounds_u": [
+            -444,
+            457,
+            -444,
+            444,
+            706,
+            444
+          ],
+          "residual_m": {
+            "numerator": 1888426879910410676389656526836052949811215437051701290889354774839215,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -139,
+            499,
+            -319,
+            166,
+            664,
+            -6
+          ],
+          "all_yaw_bounds_u": [
+            -360,
+            499,
+            -360,
+            360,
+            664,
+            360
+          ],
+          "residual_m": {
+            "numerator": 7869008777305632217545437590028906362572771495667021470989754518470251,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -237,
+            270,
+            -207,
+            264,
+            893,
+            -118
+          ],
+          "all_yaw_bounds_u": [
+            -336,
+            270,
+            -336,
+            336,
+            893,
+            336
+          ],
+          "residual_m": {
+            "numerator": 2456240810868164523023154041785382022830232870276541605085700939579311,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -261,
+            270,
+            -251,
+            288,
+            893,
+            -75
+          ],
+          "all_yaw_bounds_u": [
+            -381,
+            270,
+            -381,
+            381,
+            893,
+            381
+          ],
+          "residual_m": {
+            "numerator": 4950468386044689576348573713932485376745487194482239605865037774717225,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.carry_heavy_object_walk.standard_bore",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "standard_bore",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -435,
+            -1,
+            -351,
+            477,
+            938,
+            267
+          ],
+          "all_yaw_bounds_u": [
+            -592,
+            -1,
+            -592,
+            592,
+            938,
+            592
+          ],
+          "residual_m": {
+            "numerator": 15475498093926550620257688495300747357117002997685323170371433,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -431,
+            474,
+            -206,
+            457,
+            673,
+            16
+          ],
+          "all_yaw_bounds_u": [
+            -501,
+            474,
+            -501,
+            501,
+            673,
+            501
+          ],
+          "residual_m": {
+            "numerator": 2556400036045168697724333652276552128999530451882549597,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -133,
+            419,
+            -306,
+            160,
+            744,
+            -20
+          ],
+          "all_yaw_bounds_u": [
+            -345,
+            419,
+            -345,
+            345,
+            744,
+            345
+          ],
+          "residual_m": {
+            "numerator": 1926208580419881973790582052528479299239623950438723154785839922282541,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -172,
+            449,
+            -313,
+            199,
+            714,
+            -12
+          ],
+          "all_yaw_bounds_u": [
+            -371,
+            449,
+            -371,
+            371,
+            714,
+            371
+          ],
+          "residual_m": {
+            "numerator": 1018076478056990151203976973416342609911148761776999249204761721831451,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -229,
+            337,
+            -191,
+            256,
+            826,
+            -134
+          ],
+          "all_yaw_bounds_u": [
+            -319,
+            337,
+            -319,
+            319,
+            826,
+            319
+          ],
+          "residual_m": {
+            "numerator": 3078390206272967678471935194210424808646840675888574117513198143799251,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -142,
+            468,
+            -350,
+            169,
+            695,
+            25
+          ],
+          "all_yaw_bounds_u": [
+            -389,
+            468,
+            -389,
+            389,
+            695,
+            389
+          ],
+          "residual_m": {
+            "numerator": 3945369638723983169221981720537033704489041048413985970337804680429703,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -141,
+            470,
+            -299,
+            168,
+            694,
+            -26
+          ],
+          "all_yaw_bounds_u": [
+            -343,
+            470,
+            -343,
+            343,
+            694,
+            343
+          ],
+          "residual_m": {
+            "numerator": 523725071612958491317465956350436672101025131649985457985311656116251,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -300,
+            481,
+            -385,
+            327,
+            682,
+            59
+          ],
+          "all_yaw_bounds_u": [
+            -504,
+            481,
+            -504,
+            504,
+            682,
+            504
+          ],
+          "residual_m": {
+            "numerator": 2362521412913790039102737852236198091217559843539750205,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -169,
+            440,
+            -340,
+            196,
+            723,
+            15
+          ],
+          "all_yaw_bounds_u": [
+            -392,
+            440,
+            -392,
+            392,
+            723,
+            392
+          ],
+          "residual_m": {
+            "numerator": 7858813419210615570685657224219871569897487046805293648716150379380871,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -274,
+            457,
+            -326,
+            301,
+            706,
+            1
+          ],
+          "all_yaw_bounds_u": [
+            -444,
+            457,
+            -444,
+            444,
+            706,
+            444
+          ],
+          "residual_m": {
+            "numerator": 1888426879910410676389656526836052949811215437051701290889354774839215,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -139,
+            499,
+            -319,
+            166,
+            664,
+            -6
+          ],
+          "all_yaw_bounds_u": [
+            -360,
+            499,
+            -360,
+            360,
+            664,
+            360
+          ],
+          "residual_m": {
+            "numerator": 7869008777305632217545437590028906362572771495667021470989754518470251,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -237,
+            270,
+            -207,
+            264,
+            893,
+            -118
+          ],
+          "all_yaw_bounds_u": [
+            -336,
+            270,
+            -336,
+            336,
+            893,
+            336
+          ],
+          "residual_m": {
+            "numerator": 2456240810868164523023154041785382022830232870276541605085700939579311,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -261,
+            270,
+            -251,
+            288,
+            893,
+            -75
+          ],
+          "all_yaw_bounds_u": [
+            -381,
+            270,
+            -381,
+            381,
+            893,
+            381
+          ],
+          "residual_m": {
+            "numerator": 4950468386044689576348573713932485376745487194482239605865037774717225,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "mole_digger.heavy_hammer_swing.plain",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "heavy_hammer_swing",
+      "scenario": "plain",
+      "frames": 58,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -354,
+            -217,
+            -528,
+            611,
+            1157,
+            761
+          ],
+          "all_yaw_bounds_u": [
+            -975,
+            -217,
+            -975,
+            975,
+            1157,
+            975
+          ],
+          "residual_m": {
+            "numerator": 15475475538613383745534071083934087599165322398721684354422633,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            -317,
+            -128,
+            -392,
+            695,
+            977,
+            669
+          ],
+          "all_yaw_bounds_u": [
+            -964,
+            -128,
+            -964,
+            964,
+            977,
+            964
+          ],
+          "residual_m": {
+            "numerator": 2723323855998290276746667824030616039453240422746157957899946263838693,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.idle.plain",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "idle",
+      "scenario": "plain",
+      "frames": 122,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -408,
+            -2,
+            -633,
+            413,
+            1181,
+            552
+          ],
+          "all_yaw_bounds_u": [
+            -755,
+            -2,
+            -755,
+            755,
+            1181,
+            755
+          ],
+          "residual_m": {
+            "numerator": 4509810889570553663541127717622955515568139942055936560839737,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.walk.plain",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "plain",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -299,
+            -1,
+            -686,
+            266,
+            1216,
+            562
+          ],
+          "all_yaw_bounds_u": [
+            -748,
+            -1,
+            -748,
+            748,
+            1216,
+            748
+          ],
+          "residual_m": {
+            "numerator": 4509806857485893169870189358419673759333786016514090136878137,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.walk.ramp_up",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_up",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -306,
+            7,
+            -608,
+            283,
+            1149,
+            682
+          ],
+          "all_yaw_bounds_u": [
+            -747,
+            7,
+            -747,
+            747,
+            1149,
+            747
+          ],
+          "residual_m": {
+            "numerator": 6483930829185304337240421050139996772706276221582278147292217,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.walk.ramp_down",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_down",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -306,
+            -231,
+            -1065,
+            283,
+            682,
+            529
+          ],
+          "all_yaw_bounds_u": [
+            -1108,
+            -231,
+            -1108,
+            1108,
+            682,
+            1108
+          ],
+          "residual_m": {
+            "numerator": 5394559399174342429443868506742432868229250074493996944440377,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.cautious_crouch_walk_forward.plain",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "plain",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -630,
+            -7,
+            -928,
+            646,
+            1044,
+            548
+          ],
+          "all_yaw_bounds_u": [
+            -1131,
+            -7,
+            -1131,
+            1131,
+            1044,
+            1131
+          ],
+          "residual_m": {
+            "numerator": 4507129015660037306544327066213483385558198933322485103180857,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.cautious_crouch_walk_forward.standard_bore",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "standard_bore",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -630,
+            -7,
+            -877,
+            646,
+            871,
+            553
+          ],
+          "all_yaw_bounds_u": [
+            -1089,
+            -7,
+            -1089,
+            1089,
+            871,
+            1089
+          ],
+          "residual_m": {
+            "numerator": 4509748526661138028097281095278864352476799227008711870233657,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.carry_heavy_object_walk.plain",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "plain",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -373,
+            -4,
+            -625,
+            413,
+            1242,
+            528
+          ],
+          "all_yaw_bounds_u": [
+            -749,
+            -4,
+            -749,
+            749,
+            1242,
+            749
+          ],
+          "residual_m": {
+            "numerator": 4509802556595588643287855108602839886017141829269453951319097,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -416,
+            740,
+            -521,
+            451,
+            940,
+            -279
+          ],
+          "all_yaw_bounds_u": [
+            -689,
+            740,
+            -689,
+            689,
+            940,
+            689
+          ],
+          "residual_m": {
+            "numerator": 2588062555621049442998800509350587876770869158027831757,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -144,
+            680,
+            -628,
+            179,
+            989,
+            -339
+          ],
+          "all_yaw_bounds_u": [
+            -653,
+            680,
+            -653,
+            653,
+            989,
+            653
+          ],
+          "residual_m": {
+            "numerator": 2911398799996522210946956541218193303368252950506038151247722033709101,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -182,
+            711,
+            -636,
+            217,
+            958,
+            -331
+          ],
+          "all_yaw_bounds_u": [
+            -672,
+            711,
+            -672,
+            672,
+            958,
+            672
+          ],
+          "residual_m": {
+            "numerator": 1507413961532808932139663776012375863478164573902549729195835485323291,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -239,
+            598,
+            -514,
+            274,
+            1071,
+            -453
+          ],
+          "all_yaw_bounds_u": [
+            -582,
+            598,
+            -582,
+            582,
+            1071,
+            582
+          ],
+          "residual_m": {
+            "numerator": 4978714202861124512771420628589343234935125536444136016341887600295891,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -152,
+            730,
+            -673,
+            187,
+            939,
+            -294
+          ],
+          "all_yaw_bounds_u": [
+            -698,
+            730,
+            -698,
+            698,
+            939,
+            698
+          ],
+          "residual_m": {
+            "numerator": 5773755377454677704480921273046913797399058734743495169075530996646023,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -151,
+            731,
+            -622,
+            186,
+            938,
+            -345
+          ],
+          "all_yaw_bounds_u": [
+            -649,
+            731,
+            -649,
+            649,
+            938,
+            649
+          ],
+          "residual_m": {
+            "numerator": 765826933128118176917531956599406367681441371258318513329354932486171,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -310,
+            742,
+            -707,
+            345,
+            927,
+            -260
+          ],
+          "all_yaw_bounds_u": [
+            -787,
+            742,
+            -787,
+            787,
+            927,
+            787
+          ],
+          "residual_m": {
+            "numerator": 3431458223748137741223740983864457944850261992542276925,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -180,
+            702,
+            -663,
+            215,
+            967,
+            -305
+          ],
+          "all_yaw_bounds_u": [
+            -696,
+            702,
+            -696,
+            696,
+            967,
+            696
+          ],
+          "residual_m": {
+            "numerator": 11705648849631497962116449082039012420849522130427993876106212242620551,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -284,
+            719,
+            -649,
+            319,
+            950,
+            -318
+          ],
+          "all_yaw_bounds_u": [
+            -723,
+            719,
+            -723,
+            723,
+            950,
+            723
+          ],
+          "residual_m": {
+            "numerator": 2782348445193111186654616751091614046491558432823343742181737871966127,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -150,
+            761,
+            -642,
+            185,
+            908,
+            -325
+          ],
+          "all_yaw_bounds_u": [
+            -668,
+            761,
+            -668,
+            668,
+            908,
+            668
+          ],
+          "residual_m": {
+            "numerator": 11313774774160825838609354197562249089659284254732488455049826403352171,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -247,
+            532,
+            -530,
+            282,
+            1137,
+            -437
+          ],
+          "all_yaw_bounds_u": [
+            -600,
+            532,
+            -600,
+            600,
+            1137,
+            600
+          ],
+          "residual_m": {
+            "numerator": 4279005401062170822955792697266651600219539905281793266603199809191855,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -271,
+            532,
+            -573,
+            306,
+            1137,
+            -394
+          ],
+          "all_yaw_bounds_u": [
+            -650,
+            532,
+            -650,
+            650,
+            1137,
+            650
+          ],
+          "residual_m": {
+            "numerator": 8624238882685060498579533389668545370779397963017141727772461320110377,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "squirrel_gatherer.carry_heavy_object_walk.standard_bore",
+      "cast": "squirrel_gatherer",
+      "species": "squirrel",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "standard_bore",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -373,
+            -4,
+            -705,
+            413,
+            1132,
+            566
+          ],
+          "all_yaw_bounds_u": [
+            -817,
+            -4,
+            -817,
+            817,
+            1132,
+            817
+          ],
+          "residual_m": {
+            "numerator": 4509803094206876709110646889829944120181722352675033474513977,
+            "denominator": 249627707419393319680684866266796293047860654400661512928859521024
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -416,
+            517,
+            -572,
+            451,
+            756,
+            -364
+          ],
+          "all_yaw_bounds_u": [
+            -728,
+            517,
+            -728,
+            728,
+            756,
+            728
+          ],
+          "residual_m": {
+            "numerator": 2588062555621049442998800509350587876770869158027831757,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -144,
+            472,
+            -702,
+            179,
+            809,
+            -410
+          ],
+          "all_yaw_bounds_u": [
+            -725,
+            472,
+            -725,
+            725,
+            809,
+            725
+          ],
+          "residual_m": {
+            "numerator": 2347878268024344142806714499042389838134881223458428380841759045845037,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -182,
+            502,
+            -710,
+            217,
+            779,
+            -402
+          ],
+          "all_yaw_bounds_u": [
+            -742,
+            502,
+            -742,
+            742,
+            779,
+            742
+          ],
+          "residual_m": {
+            "numerator": 1166175648471529048283166176436974961351538869342753138653510028492827,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -239,
+            390,
+            -588,
+            274,
+            891,
+            -524
+          ],
+          "all_yaw_bounds_u": [
+            -648,
+            390,
+            -648,
+            648,
+            891,
+            648
+          ],
+          "residual_m": {
+            "numerator": 4528799946584744829817483202300689163484483258595209944279416404180947,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -152,
+            521,
+            -747,
+            187,
+            760,
+            -365
+          ],
+          "all_yaw_bounds_u": [
+            -770,
+            521,
+            -770,
+            770,
+            760,
+            770
+          ],
+          "residual_m": {
+            "numerator": 4429548968796981654172070924818203457341843968944384144706280466940039,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -151,
+            522,
+            -696,
+            186,
+            758,
+            -416
+          ],
+          "all_yaw_bounds_u": [
+            -720,
+            522,
+            -720,
+            720,
+            758,
+            720
+          ],
+          "residual_m": {
+            "numerator": 587836661763083520318100369668817719473966294291808075118538485923867,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -310,
+            534,
+            -781,
+            345,
+            747,
+            -331
+          ],
+          "all_yaw_bounds_u": [
+            -854,
+            534,
+            -854,
+            854,
+            747,
+            854
+          ],
+          "residual_m": {
+            "numerator": 2645589202164564588944968245881112144978036403040390461,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -180,
+            493,
+            -736,
+            215,
+            788,
+            -376
+          ],
+          "all_yaw_bounds_u": [
+            -767,
+            493,
+            -767,
+            767,
+            788,
+            767
+          ],
+          "residual_m": {
+            "numerator": 9167672524837373474169782735844168933737316501909117170512251628552327,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -284,
+            510,
+            -723,
+            319,
+            771,
+            -389
+          ],
+          "all_yaw_bounds_u": [
+            -790,
+            510,
+            -790,
+            790,
+            771,
+            790
+          ],
+          "residual_m": {
+            "numerator": 2130368786121278161726437547091058154217318696941584092553944655462319,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -150,
+            552,
+            -716,
+            185,
+            729,
+            -396
+          ],
+          "all_yaw_bounds_u": [
+            -739,
+            552,
+            -739,
+            739,
+            729,
+            739
+          ],
+          "residual_m": {
+            "numerator": 8781225744045634485424431754867508484377318462335149596718067584335467,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -247,
+            323,
+            -604,
+            282,
+            958,
+            -508
+          ],
+          "all_yaw_bounds_u": [
+            -667,
+            323,
+            -667,
+            667,
+            958,
+            667
+          ],
+          "residual_m": {
+            "numerator": 4343961957287707682100770669046828366066086640833182657534520069193647,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -271,
+            323,
+            -647,
+            306,
+            958,
+            -465
+          ],
+          "all_yaw_bounds_u": [
+            -716,
+            323,
+            -716,
+            716,
+            958,
+            716
+          ],
+          "residual_m": {
+            "numerator": 8755230022254197133597439499196469324090915771714418709919546319307049,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.idle.plain",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "idle",
+      "scenario": "plain",
+      "frames": 122,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -567,
+            -2,
+            -633,
+            508,
+            1473,
+            520
+          ],
+          "all_yaw_bounds_u": [
+            -849,
+            -2,
+            -849,
+            849,
+            1473,
+            849
+          ],
+          "residual_m": {
+            "numerator": 19691962075658125036509878283170472909715967490519907675274045,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.walk.plain",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "plain",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -417,
+            -1,
+            -678,
+            378,
+            1580,
+            479
+          ],
+          "all_yaw_bounds_u": [
+            -796,
+            -1,
+            -796,
+            796,
+            1580,
+            796
+          ],
+          "residual_m": {
+            "numerator": 3505822198519421202534505740992180776995274832448554119369115,
+            "denominator": 142644404239653325531819923581026453170206088228949435959348297728
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.walk.ramp_up",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_up",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -417,
+            -33,
+            -631,
+            378,
+            1325,
+            783
+          ],
+          "all_yaw_bounds_u": [
+            -887,
+            -33,
+            -887,
+            887,
+            1325,
+            887
+          ],
+          "residual_m": {
+            "numerator": 32979321446661095271002840173572405095397748748974774025845565,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.walk.ramp_down",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_down",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -417,
+            -203,
+            -1256,
+            378,
+            976,
+            511
+          ],
+          "all_yaw_bounds_u": [
+            -1323,
+            -203,
+            -1323,
+            1323,
+            976,
+            1323
+          ],
+          "residual_m": {
+            "numerator": 4331435010879191904387068306555503005931847415326623479271835,
+            "denominator": 142644404239653325531819923581026453170206088228949435959348297728
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.cautious_crouch_walk_forward.plain",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "plain",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -537,
+            -2,
+            -1074,
+            688,
+            1301,
+            426
+          ],
+          "all_yaw_bounds_u": [
+            -1275,
+            -2,
+            -1275,
+            1275,
+            1301,
+            1275
+          ],
+          "residual_m": {
+            "numerator": 19691628735635392604010779427643353537299080013247062652615485,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.cautious_crouch_walk_forward.standard_bore",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "standard_bore",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -621,
+            -2,
+            -938,
+            688,
+            1229,
+            515
+          ],
+          "all_yaw_bounds_u": [
+            -1163,
+            -2,
+            -1163,
+            1163,
+            1229,
+            1163
+          ],
+          "residual_m": {
+            "numerator": 21477811293995067180880994373430957713010742870232051901659965,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.carry_heavy_object_walk.plain",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "plain",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -499,
+            -1,
+            -572,
+            556,
+            1567,
+            502
+          ],
+          "all_yaw_bounds_u": [
+            -797,
+            -1,
+            -797,
+            797,
+            1567,
+            797
+          ],
+          "residual_m": {
+            "numerator": 25891721467681828017962606073263567029943988408282910807423805,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -565,
+            929,
+            -399,
+            595,
+            1226,
+            -85
+          ],
+          "all_yaw_bounds_u": [
+            -716,
+            929,
+            -716,
+            716,
+            1226,
+            716
+          ],
+          "residual_m": {
+            "numerator": 2918305698359647744638464290678371902367447333909791249,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -163,
+            903,
+            -504,
+            196,
+            1269,
+            -193
+          ],
+          "all_yaw_bounds_u": [
+            -541,
+            903,
+            -541,
+            541,
+            1269,
+            541
+          ],
+          "residual_m": {
+            "numerator": 4042642875619928298982763055466956386262038571867337016628931490480173,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -201,
+            934,
+            -511,
+            235,
+            1239,
+            -186
+          ],
+          "all_yaw_bounds_u": [
+            -563,
+            934,
+            -563,
+            563,
+            1239,
+            563
+          ],
+          "residual_m": {
+            "numerator": 2069295309662859038736655889345462691550621919488129180012578936455195,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -258,
+            821,
+            -389,
+            292,
+            1351,
+            -308
+          ],
+          "all_yaw_bounds_u": [
+            -486,
+            821,
+            -486,
+            486,
+            1351,
+            486
+          ],
+          "residual_m": {
+            "numerator": 7160760086172000873641145678044295281855879765279105344840998483656659,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -172,
+            953,
+            -548,
+            205,
+            1220,
+            -149
+          ],
+          "all_yaw_bounds_u": [
+            -585,
+            953,
+            -585,
+            585,
+            1220,
+            585
+          ],
+          "residual_m": {
+            "numerator": 7873197742839154306548000362707354921604548647773339649239381264302215,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -171,
+            954,
+            -498,
+            204,
+            1219,
+            -200
+          ],
+          "all_yaw_bounds_u": [
+            -538,
+            954,
+            -538,
+            538,
+            1219,
+            538
+          ],
+          "residual_m": {
+            "numerator": 1043820310116306391802766440296741431520848670893821018648307197542427,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -329,
+            966,
+            -583,
+            363,
+            1207,
+            -114
+          ],
+          "all_yaw_bounds_u": [
+            -686,
+            966,
+            -686,
+            686,
+            1207,
+            686
+          ],
+          "residual_m": {
+            "numerator": 4658864005277890112721525291585447377394628049539927357,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -199,
+            925,
+            -538,
+            232,
+            1248,
+            -159
+          ],
+          "all_yaw_bounds_u": [
+            -586,
+            925,
+            -586,
+            586,
+            1248,
+            586
+          ],
+          "residual_m": {
+            "numerator": 16122774352313612529064066808912064504004801322728663841390793351757959,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -304,
+            942,
+            -525,
+            337,
+            1231,
+            -173
+          ],
+          "all_yaw_bounds_u": [
+            -623,
+            942,
+            -623,
+            623,
+            1231,
+            623
+          ],
+          "residual_m": {
+            "numerator": 3808792863860995934724535450851962389425729926767638221287303885619119,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -169,
+            984,
+            -518,
+            202,
+            1189,
+            -180
+          ],
+          "all_yaw_bounds_u": [
+            -556,
+            984,
+            -556,
+            556,
+            1189,
+            556
+          ],
+          "residual_m": {
+            "numerator": 15269226113554572797764159291608658091520892207409292286206322705170027,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -267,
+            755,
+            -405,
+            300,
+            1418,
+            -292
+          ],
+          "all_yaw_bounds_u": [
+            -504,
+            755,
+            -504,
+            504,
+            1418,
+            504
+          ],
+          "residual_m": {
+            "numerator": 107999881797071040971715183271590427208963966684892040150275589233437,
+            "denominator": 7666304845169014141552818303632144614230891286106957696677873962780196864
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -291,
+            755,
+            -449,
+            324,
+            1418,
+            -248
+          ],
+          "all_yaw_bounds_u": [
+            -553,
+            755,
+            -553,
+            553,
+            1418,
+            553
+          ],
+          "residual_m": {
+            "numerator": 12842645084947290393607565122788633434930648369472749434608714438934825,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "otter_boatwright.carry_heavy_object_walk.standard_bore",
+      "cast": "otter_boatwright",
+      "species": "otter",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "standard_bore",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -499,
+            -1,
+            -808,
+            556,
+            1334,
+            632
+          ],
+          "all_yaw_bounds_u": [
+            -980,
+            -1,
+            -980,
+            980,
+            1334,
+            980
+          ],
+          "residual_m": {
+            "numerator": 22120549544446917537823006642309910439181222903909798725155645,
+            "denominator": 998510829677573278722739465067185172191442617602646051715438084096
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -565,
+            636,
+            -515,
+            595,
+            966,
+            -251
+          ],
+          "all_yaw_bounds_u": [
+            -787,
+            636,
+            -787,
+            787,
+            966,
+            787
+          ],
+          "residual_m": {
+            "numerator": 2656537270943343060120513813447311068986869078832677393,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -163,
+            628,
+            -644,
+            196,
+            978,
+            -333
+          ],
+          "all_yaw_bounds_u": [
+            -673,
+            628,
+            -673,
+            673,
+            978,
+            673
+          ],
+          "residual_m": {
+            "numerator": 2865832089679491464593700704097323794641538580042046476291746939535405,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -201,
+            658,
+            -652,
+            235,
+            947,
+            -326
+          ],
+          "all_yaw_bounds_u": [
+            -692,
+            658,
+            -692,
+            692,
+            947,
+            692
+          ],
+          "residual_m": {
+            "numerator": 1484781277088997439647321090712373711956065570249600612415544250859547,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -258,
+            546,
+            -529,
+            292,
+            1059,
+            -448
+          ],
+          "all_yaw_bounds_u": [
+            -604,
+            546,
+            -604,
+            604,
+            1059,
+            604
+          ],
+          "residual_m": {
+            "numerator": 4890821010926834799920578262783075481991650880172470418346961128128467,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -172,
+            677,
+            -688,
+            205,
+            928,
+            -289
+          ],
+          "all_yaw_bounds_u": [
+            -718,
+            677,
+            -718,
+            718,
+            928,
+            718
+          ],
+          "residual_m": {
+            "numerator": 5689189451353286206931233198858198162089170407931360223399619252453511,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -171,
+            679,
+            -638,
+            204,
+            927,
+            -340
+          ],
+          "all_yaw_bounds_u": [
+            -669,
+            679,
+            -669,
+            669,
+            927,
+            669
+          ],
+          "residual_m": {
+            "numerator": 754629313448523917994560528859259845393557531574125569980732247375899,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -329,
+            690,
+            -723,
+            363,
+            915,
+            -254
+          ],
+          "all_yaw_bounds_u": [
+            -808,
+            690,
+            -808,
+            808,
+            915,
+            808
+          ],
+          "residual_m": {
+            "numerator": 3382018092250049608486304056688635730931495573391379773,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -199,
+            649,
+            -678,
+            232,
+            956,
+            -299
+          ],
+          "all_yaw_bounds_u": [
+            -717,
+            649,
+            -717,
+            717,
+            956,
+            717
+          ],
+          "residual_m": {
+            "numerator": 11527726218841878556176222533127754697200831783974683624327689774563463,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -304,
+            666,
+            -665,
+            337,
+            939,
+            -313
+          ],
+          "all_yaw_bounds_u": [
+            -745,
+            666,
+            -745,
+            745,
+            939,
+            745
+          ],
+          "residual_m": {
+            "numerator": 2741002851200781941274843340854849457213135220336790312850250272866223,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -169,
+            708,
+            -658,
+            202,
+            897,
+            -320
+          ],
+          "all_yaw_bounds_u": [
+            -688,
+            708,
+            -688,
+            688,
+            897,
+            688
+          ],
+          "residual_m": {
+            "numerator": 11154448533228277224498914810659209181010603644945568066864589102382699,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -267,
+            479,
+            -546,
+            300,
+            1126,
+            -432
+          ],
+          "all_yaw_bounds_u": [
+            -622,
+            479,
+            -622,
+            622,
+            1126,
+            622
+          ],
+          "residual_m": {
+            "numerator": 4194699017785150299817492837380758240173008988945742388991292656844719,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -290,
+            479,
+            -589,
+            324,
+            1126,
+            -388
+          ],
+          "all_yaw_bounds_u": [
+            -672,
+            479,
+            -672,
+            672,
+            1126,
+            672
+          ],
+          "residual_m": {
+            "numerator": 8454321693612318493143743676478381304175590832261037665798030119403817,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.idle.plain",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "idle",
+      "scenario": "plain",
+      "frames": 122,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -838,
+            -1,
+            -630,
+            772,
+            2442,
+            544
+          ],
+          "all_yaw_bounds_u": [
+            -1048,
+            -1,
+            -1048,
+            1048,
+            2442,
+            1048
+          ],
+          "residual_m": {
+            "numerator": 1195222938428514940503921720898290784537094305317406464638855,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.walk.plain",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "plain",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -1001,
+            -2,
+            -914,
+            921,
+            2628,
+            789
+          ],
+          "all_yaw_bounds_u": [
+            -1355,
+            -2,
+            -1355,
+            1355,
+            2628,
+            1355
+          ],
+          "residual_m": {
+            "numerator": 1378264383003483024702129740802073983963340778989288564555655,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.walk.ramp_up",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_up",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -1001,
+            -168,
+            -777,
+            921,
+            2091,
+            1155
+          ],
+          "all_yaw_bounds_u": [
+            -1528,
+            -168,
+            -1528,
+            1528,
+            2091,
+            1528
+          ],
+          "residual_m": {
+            "numerator": 2413360487604985952013416256749411852397438746456777267183495,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.walk.ramp_down",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_down",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -1001,
+            -275,
+            -1581,
+            921,
+            2060,
+            608
+          ],
+          "all_yaw_bounds_u": [
+            -1871,
+            -275,
+            -1871,
+            1871,
+            2060,
+            1871
+          ],
+          "residual_m": {
+            "numerator": 2660576856157253325058775019552334849571593089568313845579655,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.cautious_crouch_walk_forward.plain",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "plain",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -471,
+            -1,
+            -1805,
+            995,
+            2107,
+            750
+          ],
+          "all_yaw_bounds_u": [
+            -2061,
+            -1,
+            -2061,
+            2061,
+            2107,
+            2061
+          ],
+          "residual_m": {
+            "numerator": 1426953403886295396505747565221432711781449652778105322438535,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.cautious_crouch_walk_forward.standard_bore",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "standard_bore",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -471,
+            -80,
+            -1264,
+            995,
+            1992,
+            735
+          ],
+          "all_yaw_bounds_u": [
+            -1608,
+            -80,
+            -1608,
+            1608,
+            1992,
+            1608
+          ],
+          "residual_m": {
+            "numerator": 1861998881319251897592707448807281031041571604641304810192775,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.carry_heavy_object_walk.plain",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "plain",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -883,
+            -1,
+            -619,
+            945,
+            2518,
+            660
+          ],
+          "all_yaw_bounds_u": [
+            -1152,
+            -1,
+            -1152,
+            1152,
+            2518,
+            1152
+          ],
+          "residual_m": {
+            "numerator": 2459790529029510239678842236798408582150792428597468730064775,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -969,
+            1749,
+            -448,
+            1034,
+            2223,
+            123
+          ],
+          "all_yaw_bounds_u": [
+            -1126,
+            1749,
+            -1126,
+            1126,
+            2223,
+            1126
+          ],
+          "residual_m": {
+            "numerator": 2750131610017710008744497505287014860200490190253976709,
+            "denominator": 401733744816976065507333508643391912542262099599375439233024
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -206,
+            1810,
+            -540,
+            279,
+            2170,
+            -161
+          ],
+          "all_yaw_bounds_u": [
+            -608,
+            1810,
+            -608,
+            608,
+            2170,
+            608
+          ],
+          "residual_m": {
+            "numerator": 7675232362030276733106925408575665070840528028518514626119157829074989,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -244,
+            1840,
+            -548,
+            318,
+            2140,
+            -153
+          ],
+          "all_yaw_bounds_u": [
+            -633,
+            1840,
+            -633,
+            633,
+            2140,
+            633
+          ],
+          "residual_m": {
+            "numerator": 3873578668227707107292424921774140214323388349997153513546394890141723,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -301,
+            1728,
+            -426,
+            375,
+            2252,
+            -275
+          ],
+          "all_yaw_bounds_u": [
+            -567,
+            1728,
+            -567,
+            567,
+            2252,
+            567
+          ],
+          "residual_m": {
+            "numerator": 14167628170039451348835440273464930412483407752395865571064356720869331,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -215,
+            1859,
+            -584,
+            288,
+            2121,
+            -117
+          ],
+          "all_yaw_bounds_u": [
+            -651,
+            1859,
+            -651,
+            651,
+            2121,
+            651
+          ],
+          "residual_m": {
+            "numerator": 14614814873814792855884765326828930023766218777642602227145520682369159,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -214,
+            1860,
+            -534,
+            287,
+            2120,
+            -167
+          ],
+          "all_yaw_bounds_u": [
+            -606,
+            1860,
+            -606,
+            606,
+            2120,
+            606
+          ],
+          "residual_m": {
+            "numerator": 1936497398138646855999940405275206159548246254905714131076810186686491,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -372,
+            1872,
+            -619,
+            446,
+            2108,
+            -82
+          ],
+          "all_yaw_bounds_u": [
+            -763,
+            1872,
+            -763,
+            763,
+            2108,
+            763
+          ],
+          "residual_m": {
+            "numerator": 8600243859210747304917457220395186561544921318277745981,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -242,
+            1831,
+            -574,
+            315,
+            2149,
+            -127
+          ],
+          "all_yaw_bounds_u": [
+            -655,
+            1831,
+            -655,
+            655,
+            2149,
+            655
+          ],
+          "residual_m": {
+            "numerator": 30306811718396625689907717399782096432497612425529587350895581022126215,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -347,
+            1848,
+            -561,
+            420,
+            2132,
+            -140
+          ],
+          "all_yaw_bounds_u": [
+            -700,
+            1848,
+            -700,
+            700,
+            2132,
+            700
+          ],
+          "residual_m": {
+            "numerator": 7104856328607970811043415404214539576079178637720420475439309331103663,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -212,
+            1890,
+            -554,
+            285,
+            2090,
+            -147
+          ],
+          "all_yaw_bounds_u": [
+            -623,
+            1890,
+            -623,
+            623,
+            2090,
+            623
+          ],
+          "residual_m": {
+            "numerator": 27970754551816985302938320406019890158941589183957995185165169271504491,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -310,
+            1661,
+            -442,
+            383,
+            2319,
+            -259
+          ],
+          "all_yaw_bounds_u": [
+            -585,
+            1661,
+            -585,
+            585,
+            2319,
+            585
+          ],
+          "residual_m": {
+            "numerator": 13092883039504733557334768751122270796337648359440691810205874006261679,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -334,
+            1661,
+            -485,
+            407,
+            2319,
+            -216
+          ],
+          "all_yaw_bounds_u": [
+            -633,
+            1661,
+            -633,
+            633,
+            2319,
+            633
+          ],
+          "residual_m": {
+            "numerator": 26388559759349152065038423251739234971937877626739837679033324813680937,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.carry_heavy_object_walk.standard_bore",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "standard_bore",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -883,
+            -1,
+            -824,
+            945,
+            2196,
+            647
+          ],
+          "all_yaw_bounds_u": [
+            -1253,
+            -1,
+            -1253,
+            1253,
+            2196,
+            1253
+          ],
+          "residual_m": {
+            "numerator": 1512351150261460173256321174205204204168493476573480521138055,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -969,
+            1073,
+            -632,
+            1034,
+            1647,
+            -155
+          ],
+          "all_yaw_bounds_u": [
+            -1211,
+            1073,
+            -1211,
+            1211,
+            1647,
+            1211
+          ],
+          "residual_m": {
+            "numerator": 2379713390631738456375241272234677546611772630299700357,
+            "denominator": 401733744816976065507333508643391912542262099599375439233024
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -206,
+            1170,
+            -768,
+            279,
+            1528,
+            -401
+          ],
+          "all_yaw_bounds_u": [
+            -817,
+            1170,
+            -817,
+            817,
+            1528,
+            817
+          ],
+          "residual_m": {
+            "numerator": 5085617553673900995402779977512923206075948748315795759414621530751021,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -244,
+            1201,
+            -775,
+            318,
+            1497,
+            -393
+          ],
+          "all_yaw_bounds_u": [
+            -838,
+            1201,
+            -838,
+            838,
+            1497,
+            838
+          ],
+          "residual_m": {
+            "numerator": 2587334074734515672895399888611465351184533810964867702637163020550171,
+            "denominator": 113077996466242958587904069978574133059905646470077626025998640951007903744
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -301,
+            1088,
+            -653,
+            375,
+            1610,
+            -515
+          ],
+          "all_yaw_bounds_u": [
+            -753,
+            1088,
+            -753,
+            753,
+            1610,
+            753
+          ],
+          "residual_m": {
+            "numerator": 9172543972324951043983753553057246352886585530289910279373711439036371,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -215,
+            1219,
+            -812,
+            288,
+            1479,
+            -356
+          ],
+          "all_yaw_bounds_u": [
+            -861,
+            1219,
+            -861,
+            861,
+            1479,
+            861
+          ],
+          "residual_m": {
+            "numerator": 9808824426163697633659137230052314375781137416190494704605745148592263,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -214,
+            1221,
+            -761,
+            287,
+            1477,
+            -407
+          ],
+          "all_yaw_bounds_u": [
+            -813,
+            1221,
+            -813,
+            813,
+            1477,
+            813
+          ],
+          "residual_m": {
+            "numerator": 1300122256310992804648008249578045499630554104837924894169097975103515,
+            "denominator": 56538998233121479293952034989287066529952823235038813012999320475503951872
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -372,
+            1232,
+            -846,
+            446,
+            1466,
+            -322
+          ],
+          "all_yaw_bounds_u": [
+            -956,
+            1232,
+            -956,
+            956,
+            1466,
+            956
+          ],
+          "residual_m": {
+            "numerator": 5790497538623644516901519395574126748247757956625435965,
+            "denominator": 803467489633952131014667017286783825084524199198750878466048
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -242,
+            1191,
+            -802,
+            315,
+            1507,
+            -366
+          ],
+          "all_yaw_bounds_u": [
+            -861,
+            1191,
+            -861,
+            861,
+            1507,
+            861
+          ],
+          "residual_m": {
+            "numerator": 20195239559053912849159202971003182255234029398182015917225522732466311,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -347,
+            1208,
+            -788,
+            420,
+            1490,
+            -380
+          ],
+          "all_yaw_bounds_u": [
+            -893,
+            1208,
+            -893,
+            893,
+            1490,
+            893
+          ],
+          "residual_m": {
+            "numerator": 4755145685201369431072675997802645701675617416968713480793402216808367,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -212,
+            1250,
+            -781,
+            285,
+            1448,
+            -387
+          ],
+          "all_yaw_bounds_u": [
+            -831,
+            1250,
+            -831,
+            831,
+            1448,
+            831
+          ],
+          "residual_m": {
+            "numerator": 18916039168414048138686243450620529763200964329966299008274870378167915,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -310,
+            1021,
+            -669,
+            383,
+            1677,
+            -499
+          ],
+          "all_yaw_bounds_u": [
+            -771,
+            1021,
+            -771,
+            771,
+            1677,
+            771
+          ],
+          "residual_m": {
+            "numerator": 8301668620626541543250373189463059390210462718286186296354829915652015,
+            "denominator": 452311985864971834351616279914296532239622585880310504103994563804031614976
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -334,
+            1021,
+            -712,
+            407,
+            1677,
+            -456
+          ],
+          "all_yaw_bounds_u": [
+            -820,
+            1021,
+            -820,
+            820,
+            1677,
+            820
+          ],
+          "residual_m": {
+            "numerator": 16731895005910279667131325968644189159128777384223224124782422295314729,
+            "denominator": 904623971729943668703232559828593064479245171760621008207989127608063229952
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    },
+    {
+      "id": "badger_quarryman.heavy_hammer_swing.plain",
+      "cast": "badger_quarryman",
+      "species": "badger",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "heavy_hammer_swing",
+      "scenario": "plain",
+      "frames": 58,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -527,
+            -1,
+            -924,
+            1299,
+            3188,
+            1972
+          ],
+          "all_yaw_bounds_u": [
+            -2361,
+            -1,
+            -2361,
+            2361,
+            3188,
+            2361
+          ],
+          "residual_m": {
+            "numerator": 3284350985299247876116002111612129415016358877357769526706055,
+            "denominator": 35661101059913331382954980895256613292551522057237358989837074432
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            -20,
+            427,
+            -651,
+            829,
+            2777,
+            1706
+          ],
+          "all_yaw_bounds_u": [
+            -1897,
+            427,
+            -1897,
+            1897,
+            2777,
+            1897
+          ],
+          "residual_m": {
+            "numerator": 9037368542997276043442274021502063534413151251441588810114599619657701,
+            "denominator": 226155992932485917175808139957148266119811292940155252051997281902015807488
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    }
+  ],
+  "qualified_profile_count": 0,
+  "backend_certificate": {
+    "engine": {
+      "build": "official",
+      "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+      "hex": 263938,
+      "major": 4,
+      "minor": 7,
+      "patch": 2,
+      "status": "stable",
+      "string": "4.7.2-stable (official)",
+      "timestamp": 0
+    },
+    "driver": "opengl3",
+    "api_version": "4.1 Metal - 90.5",
+    "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+    "sections": [
+      "4.5",
+      "4.5.1"
+    ],
+    "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+    "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+  },
+  "verified_source_files": 529,
+  "method": "finite final binary32 matrices; outward Q24 vertex hull; convex positive matrix interpolation; explicit IEEE/UNORM/decode residual"
+}

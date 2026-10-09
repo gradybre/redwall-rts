@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""Create-only actual-World default-backend witness; source/restoration and exact image census fail closed."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+import time
+
+ROOT = Path(__file__).resolve().parents[4]
+FILES = ["godot/demo/burrow/modular_world_view.gd", "godot/demo/burrow/modular_world_view_live.gd",
+         "godot/test/test_modular_world_view.gd", "godot/data/underground/initial_level_pack.uglvl"]
+IMAGES = ["surface-overview.png", "surface-shore.png", "section-overview.png", "section-drawing.png"]
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def write(path, value):
+    path.write_text(json.dumps(value, indent=2) + "\n")
+
+
+def snapshot():
+    paths = {p for folder in ("scripts", "demo", "test", "data")
+             for p in (ROOT / "godot" / folder).rglob("*.gd") if p.is_file()}
+    paths.update(ROOT / name for name in FILES)
+    paths.add(Path(__file__).resolve())
+    paths.add(Path(__file__).with_name("native_scene.tscn"))
+    return {str(p.relative_to(ROOT)): sha(p) for p in sorted(paths)}
+
+
+def validate(out):
+    report = json.loads((out / "report.json").read_text())
+    assert report["checks"] == 25 and report["failures"] == [], "Incomplete native observation census"
+    assert report["backend"] == "forward_plus" and report["driver"] == "metal", "Actual default backend missing"
+    assert report["canonical_unchanged"] is True and report["world_qualified"] is False
+    assert report["datum_u"] == [0, 512, 0] and report["floor_u"] == -4608
+    assert report["section_runs"] == 402
+    assert report["runs"] == 410 and report["banks"] == 465 and report["rebuilds"] == 1
+    assert 0 < report["lines"] <= 65536 and report["build_usec"] > 0
+    assert [row["path"] for row in report["images"]] == IMAGES, "Wrong image set"
+    pins = {}
+    for row in report["images"]:
+        assert (row["width"], row["height"]) == (1280, 720)
+        data = (out / row["path"]).read_bytes()
+        assert data[:8] == b"\x89PNG\r\n\x1a\n"
+        assert (int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")) == (1280, 720)
+        pins[row["path"]] = hashlib.sha256(data).hexdigest()
+    assert sorted(p.name for p in out.glob("*.png")) == sorted(IMAGES)
+    return pins
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out", type=Path, required=True)
+    args = parser.parse_args()
+    if args.out.is_symlink() or args.out.exists():
+        raise ValueError("Output must be absent and not a symlink")
+    out = args.out.resolve()
+    out.mkdir(parents=True)
+    project = ROOT / "godot/project.godot"
+    original = project.read_bytes()
+    assert original.count(b"[application]\n") == 1 and b"config/use_custom_user_dir" not in original
+    isolated = "Redwall-ug1175-native-" + hashlib.sha256(str(out).encode()).hexdigest()[:16]
+    candidate = original.replace(b"[application]\n", ("[application]\nconfig/use_custom_user_dir=true\n"
+        'config/custom_user_dir_name="' + isolated + '"\n').encode(), 1)
+    scene_path = "res://../docs/validation/evidence/underground-actual-world-view-2026-10-05/native_scene.tscn"
+    candidate, changes = re.subn(rb'(?m)^run/main_scene=.*$', ('run/main_scene="' + scene_path + '"').encode(), candidate)
+    assert changes == 1, "Original main scene missing/ambiguous"
+    before = snapshot()
+    write(out / "inputs-before.json", before)
+    write(out / "source-sha256.json", {name: sha(ROOT / name) for name in FILES})
+    executed = out / "executed-source"
+    executed.mkdir()
+    for name in FILES[:3]:
+        (executed / (Path(name).name + ".txt")).write_bytes((ROOT / name).read_bytes())
+    (executed / "run_native.py.txt").write_bytes(Path(__file__).read_bytes())
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    command = ["godot", "--path", "godot", "--windowed", "--resolution", "1280x720", "--position", "80,80", "--", str(out)]
+    record = {"command": command, "head": head, "user_dir": isolated, "world_qualified": False}
+    status = 1
+    try:
+        project.write_bytes(candidate)
+        start = time.monotonic()
+        with (out / "native.log").open("w") as log:
+            result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=180)
+        record.update(native_exit=result.returncode, seconds=time.monotonic()-start)
+        raw = (out / "native.log").read_text()
+        findings = re.findall(r"^\s*(?:USER )?(?:SCRIPT ERROR|ERROR|WARNING):|(?:Parse|Parser) Error:|"
+            r"resources still in use at exit|ObjectDB instances? (?:were |was )?leaked", raw, re.M)
+        record["raw_findings"] = findings
+        assert result.returncode == 0 and not findings, "Native exit/diagnostics refused"
+        assert "WORLD-VIEW-NATIVE 25 checks / 0 failures / 4 images" in raw
+        write(out / "image-sha256.json", validate(out))
+        status = 0
+    except (Exception, KeyboardInterrupt) as error:
+        record["error"] = repr(error)
+    finally:
+        record["project_override_unchanged"] = project.read_bytes() == candidate
+        project.write_bytes(original)
+        after = snapshot()
+        write(out / "inputs-after.json", after)
+        record.update(source_unchanged=before == after, project_restored=project.read_bytes() == original,
+            head_unchanged=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() == head)
+        if not all(record[k] for k in ("source_unchanged", "project_restored", "project_override_unchanged", "head_unchanged")):
+            status = 1
+        record["exit_code"] = status
+        write(out / "invocation.json", record)
+    return status
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

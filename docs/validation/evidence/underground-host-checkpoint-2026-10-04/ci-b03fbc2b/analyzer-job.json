@@ -1,0 +1,9 @@
+{
+  "run": 37223870212,
+  "job": 111499416335,
+  "head": "b03fbc2b0322381248998bfc57ce0a89ee3e76c0",
+  "conclusion": "failure",
+  "summary": "12 GDScript warning(s) in 6 of 1235 file(s)",
+  "uncompressed_sha256": "fbadac9c6a1a1576be803bce2d87a6b25a68d77cb19153bfb55ff03ec44d5cf2",
+  "cause": "Historical rejected native capture sources v1-v6 were indexed by the full analyzer; no active executable warning. No analyzer rule change."
+}

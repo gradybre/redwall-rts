@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_room_orders.gd": "9aa0e0dcb9b82fd2f6e56045026b505fe98271f1f9f08023d8998e2c4b121246",
+  "godot/scripts/core/underground_furniture_work.gd": "b3adf99266cb8659afe55eedd73a3fade96b5554873696726ee558a8d3bdbac8",
+  "godot/scripts/core/underground_layout_sources.gd": "d7c5699ddb4c54e255468392720d199828a3909242f0d5970cf6ecf1ec328fbe",
+  "godot/test/test_underground_furniture_batches.gd": "efbd98950a70fdde613b01a10322ba88cde1d6e1ca05969b70034c3ade4f7afd",
+  "godot/test/test_underground_layout_sources.gd": "ef317a4ccfd9f79cdc5ce0b1a3d598582528b494905cca44589caa16e615c2a4"
+}

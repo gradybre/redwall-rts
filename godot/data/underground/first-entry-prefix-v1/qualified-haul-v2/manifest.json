@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "decision": "1200",
+  "predecessor": "qualified-handling-v1 (ADR 1190)",
+  "content_revision": 5,
+  "census": {
+    "INSTALL": 2,
+    "STATION": 8,
+    "CUT": 2,
+    "BEARING": 10,
+    "ENDPOINT": 12,
+    "EPISODE": 6
+  },
+  "added_ground_pace_profiles": [
+    31,
+    32
+  ],
+  "files": {
+    "structure.ugconn": {
+      "role": "CATALOG",
+      "sha256": "82dff49dc3da23383b9e22b05ee82b267378dcc801ca42931806946db8392aa3",
+      "predecessor_sha256": "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520",
+      "change": "content 5 + v6 ground pace table"
+    },
+    "assemblies.ugasmb": {
+      "role": "GROUPING",
+      "sha256": "9cf6d8bbd7748f3756f766592215eb2ac836afd3fbf4b68e5bb3c1677306b7de",
+      "predecessor_sha256": "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54",
+      "change": "content revision word and linked digests only"
+    },
+    "recipes.ugrecp": {
+      "role": "RECIPE",
+      "sha256": "d18ac338c76a9b3d03d5aa864d1cb36ffbef815fa98b47d44f8e6219eeac27fc",
+      "predecessor_sha256": "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8",
+      "change": "content revision word and linked digests only"
+    },
+    "frontier.ugfront": {
+      "role": "FRONTIER",
+      "sha256": "8ccac2cf0617146924619eb26b834c2bb890c3a02181ad31005d15b075c2cdc8",
+      "predecessor_sha256": "1068db6b1217e6542f6489cd56add7af52db663c756e572c86c1128e8227a058",
+      "change": "content revision word and linked digests only"
+    },
+    "workpieces.ugwipc": {
+      "role": "WORKPIECES",
+      "sha256": "3999e4c0064c8336a5268171c6f74ed14abd257a04c54f910c7ffdcab2f43421",
+      "predecessor_sha256": "e68a7d9340675c495d875d97f5c51b063ba2a20b17041dc881b25a3e8b0f79ee",
+      "change": "content revision word and linked digests only"
+    },
+    "ground-pace.ugconn": {
+      "role": "GROUND",
+      "sha256": "1ae7ffc421f2a93deac4ccde12a843652da1fd46c91f58c28c559979015422f0",
+      "predecessor_sha256": "877be0982eb6945c4c4f014e9de428b3ab278d1fddc630080e9c6bfe341a1ea8",
+      "change": "copied from qualified-haul-v6"
+    },
+    "mole-worker.ugprof": {
+      "role": "PROFILE",
+      "sha256": "dc4969e4dc562e39b941a7fefa4be4b72851490f59492f0b04b3f26954bc5d8e",
+      "predecessor_sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+      "change": "copied from qualified-haul-v6"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py", line 256, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py", line 211, in main
+    feet[str(clip)] = foot_projection(parts[0], topology[0], low, high, local[str(clip)][0]["floor_intersection_u"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py", line 106, in foot_projection
+    P.require(all(support[a] <= floor[a] <= floor[a+3] <= support[a+3] for a in range(3)),
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: PROGRAM_NONFOOT_FLOOR

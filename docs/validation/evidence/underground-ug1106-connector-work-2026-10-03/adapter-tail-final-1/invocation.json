@@ -1,0 +1,100 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.651,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "109/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1"
+      ],
+      "exit_code": 0,
+      "seconds": 9.885,
+      "log": "test_underground_connector_work.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "94/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.089,
+      "log": "test_underground_connector_placements.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "91/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.657,
+      "log": "test_modular_projects.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "164/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.483,
+      "log": "test_modular_inventory.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "182/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.567,
+      "log": "test_construction_modular.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6156",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1/analyzer.json",
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/modular_projects.gd",
+        "godot/scripts/core/underground_connector_work.gd",
+        "godot/test/test_underground_connector_work.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.484,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "assets_present_before": false,
+  "assets_restored": true,
+  "exit_code": 0
+}

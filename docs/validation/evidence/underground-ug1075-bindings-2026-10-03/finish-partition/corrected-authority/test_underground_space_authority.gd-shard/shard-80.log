@@ -1,0 +1,58 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_space_authority.gd
+  PASS  test_unbound_or_foreign_owner_and_unadmitted_capacity_cannot_allocate_proofs
+  PASS  test_cold_reservation_refuses_before_snapshot_or_plan_allocation
+  PASS  test_cold_proof_only_and_qualification_refusals_release_after_last_copy
+  PASS  test_cold_refresh_reserves_before_copy_and_work_never_acquires
+  PASS  test_actual_work_cycle_changes_only_the_paid_cube_and_keeps_room_claim
+  PASS  test_direct_publication_and_failed_companion_preserve_geometry_and_payment
+  PASS  test_actual_cut_stages_floor_support_then_sealed_companions_and_rolls_back_both_failures
+  PASS  test_physical_geometry_hook_refuses_unbound_foreign_token_and_wrong_room
+  PASS  test_productive_work_uses_static_proof_and_fresh_dynamic_checks
+  PASS  test_backfill_and_recut_change_actual_space_without_duplicate_earth
+  PASS  test_unopened_support_closure_never_publishes_a_void_or_earth
+  PASS  test_material_free_cut_cancellation_preserves_geometry_and_rebinds_progress
+  PASS  test_cancelled_closure_releases_only_its_marker_and_retains_actual_void
+  PASS  test_blocked_output_does_not_publish_geometry_or_consume_work_twice
+  PASS  test_static_refresh_is_read_only_and_cannot_fund_or_publish_a_phase
+  PASS  test_failed_refresh_retains_the_prior_proof_and_earned_labor
+  PASS  test_interior_unknown_gap_cannot_be_authorized_by_corner_coverage
+  PASS  test_same_room_actual_obstacle_is_not_a_claim_exemption
+  PASS  test_retained_unfinished_approach_never_becomes_supported_for_finishing
+  PASS  test_missing_floor_generation_blocks_cut_output_until_exact_retry
+  PASS  test_full_proof_capacity_refuses_before_payment_then_retries_freed_row
+  PASS  test_wrong_identity_or_stage_cannot_discard_another_candidate
+  PASS  test_direct_start_and_commit_require_the_actual_paid_construction_phase
+UG21_SINGLE_SITE_PROOF_BATCH: 256 pairs, 7629 usec; synthetic dynamic profile; no Work ticks
+  PASS  test_repeated_productive_proofs_do_not_scan_or_mutate_the_spatial_owner
+  PASS  test_phase_plan_allowance_and_shape_are_checked_before_survey
+  PASS  test_phase_plan_lease_expiry_and_survey_refusal_release_all_scratch
+  PASS  test_fine_finish_publishes_exact_claim_union_and_retains_paid_outside_cavity
+  PASS  test_finish_rejects_missing_extra_overlapping_and_outside_masks_before_payment
+  PASS  test_finish_accepts_a_different_disjoint_partition_of_the_same_claim_union
+  PASS  test_finish_mask_unbound_and_oversized_output_preserve_real_earned_phase
+  PASS  test_finish_partition_peak_includes_actual_banks_handles_and_original_inputs
+  PASS  test_finish_late_region_exhaustion_aborts_the_entire_paid_geometry_candidate
+  PASS  test_finish_mask_callback_cannot_outlive_its_exact_lease_or_qualification
+  PASS  test_flat_finish_subtraction_preserves_negative_bounds_and_refuses_fragment_exhaustion
+  PASS  test_finish_handle_observer_cannot_allocate_banks_after_replacing_the_actual_lease
+CI_SUITE_TIME {"assertions":4816,"failures":0,"suite":"test_underground_space_authority.gd","tests":35,"usec":1792632}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+35 test(s), 4816 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 35 tests, 4816 assertions, 0 failures.

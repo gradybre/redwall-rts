@@ -1,0 +1,3 @@
+# Rejected second stepped-foot source experiment
+
+128u ascent preserves link lengths with the lead transfer moved only60u forward and50u upward. The exact vertex enclosure probe still finds156 body vertex/pose intrusions in an explicit32u upper deck and lower deck. The main error is foot skin deformation below its intended support plane: a fixed ankle origin is not a fixed sole when original mesh weights also depend on the shin. The256u and both descent attempts refuse fixed-length reach. No native/production clearance was inferred. Executed sources are retained before sole-aware joint authoring refinement.

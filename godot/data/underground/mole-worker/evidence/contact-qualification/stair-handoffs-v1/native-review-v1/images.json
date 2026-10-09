@@ -1,0 +1,653 @@
+[
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-approach-000.png",
+    "sha256": "67dca1e10cc1a454474c31a381429b84e68657f6d489bef6b22ae6dafc959c91",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65592
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-approach-060.png",
+    "sha256": "8b27a3aa8ebfb3479849663697f46b741f8ea7a1c9e269ecfe0c777eed0b8616",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67467
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-approach-120.png",
+    "sha256": "1701429434d84880b38c9275fc2341206f26dda07da93f9c3db6c7a8210dc3b8",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65868
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-approach-180.png",
+    "sha256": "83426a7e873e6a3b627847aaf6db5f68c214375b5063de01aae282bd9cde10a8",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65053
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-descent-000.png",
+    "sha256": "eb939b94c83586282223fa504a6ad13604322323030443259d566c9e816c3ffa",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65964
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-descent-060.png",
+    "sha256": "1d856c91c95b52b3b3700b59735934dc1dcf5034e3708528340fc6fb1d61cc11",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66023
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-descent-120.png",
+    "sha256": "f7afcebaee43c38d64f90dfa0c62cc443885077e6a62603fbedc5a5262fd5baf",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65618
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-descent-180.png",
+    "sha256": "6305038c32d9010214c3c90e6b32f2744a7ff17553a427cc6809f8e493ad0c3e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65799
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-000.png",
+    "sha256": "d88a32db8427cbc49906af83b3e034209c2384bb76207c0366e98a9a5546ed83",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66423
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-060.png",
+    "sha256": "d32eb968b924082309edcbb7d91058852823428c5afadbd084cfdfbfb9f5b888",
+    "width": 1280,
+    "height": 720,
+    "bytes": 72254
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-120.png",
+    "sha256": "e50228048d1349cb09ed572f18c676b7a8be0fefb09b4fbca7c638fdef08c4e4",
+    "width": 1280,
+    "height": 720,
+    "bytes": 75538
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-180.png",
+    "sha256": "42add41be26978028181ddde9069f8ecaaafa1539dae0d446343cac21866c678",
+    "width": 1280,
+    "height": 720,
+    "bytes": 70450
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-240.png",
+    "sha256": "74d67cddfa0ebb7221c5f1208c5c2798e2f887335d14bff0d4cb8da2c3c83d39",
+    "width": 1280,
+    "height": 720,
+    "bytes": 60634
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-300.png",
+    "sha256": "d20a4ce5d0e225fee69ced6bea3d74cf44975c0a812ad4735dfb916612322fab",
+    "width": 1280,
+    "height": 720,
+    "bytes": 60213
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-316.png",
+    "sha256": "b96fcc1aefdbe9b85cd608062b42f7f404b1f1af79920671a9e5c0e9b5a989ff",
+    "width": 1280,
+    "height": 720,
+    "bytes": 61222
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-318.png",
+    "sha256": "3f786e79d52e3131bdc782268445fc074529326a6fa82a4acdf8ddcaaad38871",
+    "width": 1280,
+    "height": 720,
+    "bytes": 61423
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-360.png",
+    "sha256": "650b43b101b6cfb0026dec37ef69275a4c23e78768105f8adc67499eee42f13d",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67182
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-420.png",
+    "sha256": "b5405fa9ebeb4d06ef0f466da57d39e8f93e49d977e63de0a8ced3636bf7889f",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67021
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-462.png",
+    "sha256": "dbdaf83c7e0b32543d98073f6aa625dfa4f36a6ada04a7328e1cca7eb55c4f41",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66323
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-466.png",
+    "sha256": "54c1d8fdd24e88df0419c483fbb2d98362c73195ab510604fde69483a104e2b5",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66324
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-468.png",
+    "sha256": "d72117f674758381bcf7aab3a0f663084ae26484b29125221b6e1a84540cec80",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66408
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-480.png",
+    "sha256": "3fe8e0053a2d274fad34cd6b4f98b72e3aa894ac328e14f2d89c90db9aebc951",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67085
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-turn-540.png",
+    "sha256": "ba3208b177d8eb3fbd7965c36aa7fe02a064a4d7fcee2ac60e8fffdd44f10b59",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66607
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-ascent-000.png",
+    "sha256": "1f4ff4a53219c53ccc34a060ad6e4450bea25afae326179fe069a983cb1f15c0",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65742
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-ascent-060.png",
+    "sha256": "f39a414150e67022c7b26f7345150dc25091f254668961b8edd8181a14c9879c",
+    "width": 1280,
+    "height": 720,
+    "bytes": 69705
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-ascent-120.png",
+    "sha256": "3c75291536712307bdaf2886729b71e931ec26e2c6cb3f2853cccc94ba3f07ef",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67207
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-ascent-180.png",
+    "sha256": "7dc36f5a047061b019984b2c3ae54bc407ee084abfffada3af4c999bfd47aca5",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66457
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-retreat-000.png",
+    "sha256": "7b1af956edc1522009c11e465e427514356e8118314bf8c2ecdc4ba51c09f050",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65519
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-retreat-060.png",
+    "sha256": "82c671eb208548ce219c1e0bd72d795c84e4e0d9ef3e24d1ee0e6f242a4155d7",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66084
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-retreat-120.png",
+    "sha256": "f6b5fd4c7a2251354b350e3fda4c5e63aa2494dd1e64072307ef39b7ff507486",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66561
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/side-retreat-180.png",
+    "sha256": "57ceefc5464a789c193bcf961f1d7c3d8219a1abce00aee7c4b51c397fd5458e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65950
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-approach-000.png",
+    "sha256": "207f0d389baf3b3c68a107447aeab5a1d543c23440866a662b68ff28c0433dd4",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67190
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-approach-060.png",
+    "sha256": "77dfe99f02ff326d5cd147086a788651c31440b967567f1ffb1ddcf132897f64",
+    "width": 1280,
+    "height": 720,
+    "bytes": 68971
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-approach-120.png",
+    "sha256": "b739c849463daecdf9636eb25e09f41db5efa907fcf6f8fb0e482de31b82e9b5",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67822
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-approach-180.png",
+    "sha256": "3d073881af9b521dcc7ea0801da95956d187f49b625de935a0c81950b979704e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66866
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-descent-000.png",
+    "sha256": "7d4ea500452ba89cc0c3d5c816e71fb57d10bac784a456a054f477ebea492ef5",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66544
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-descent-060.png",
+    "sha256": "f8484d448959fd6604ca86abf2a043cf5a87f7c6379f85d0e8b76625b14a16bb",
+    "width": 1280,
+    "height": 720,
+    "bytes": 64262
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-descent-120.png",
+    "sha256": "df2500b2c43f00705bb6c9af67320839ec04e950d0d709f3dc7bac321fefdd8a",
+    "width": 1280,
+    "height": 720,
+    "bytes": 65060
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-descent-180.png",
+    "sha256": "ea5256f89584624f43c99dd0181ba8e04df99c80f7ab3e90cb197c8cc154d1d2",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66814
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-000.png",
+    "sha256": "2cce58d487245ae67602c44ff908c6967ea1c2e46fbfb054e55a3446323cb24f",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66987
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-060.png",
+    "sha256": "9313080b13db4b38ad9ac1da4add9587e217d2de293cd187a9c49cff49ed3093",
+    "width": 1280,
+    "height": 720,
+    "bytes": 72636
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-120.png",
+    "sha256": "abdd2373e74315fb797126db6d8e99e28ffa1d7021b78a458ddf6c1c20fb511d",
+    "width": 1280,
+    "height": 720,
+    "bytes": 74992
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-180.png",
+    "sha256": "883e35c90f428fe896eca28e74354f95b55fd65258db5d7ba8a2dba14220c160",
+    "width": 1280,
+    "height": 720,
+    "bytes": 71238
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-240.png",
+    "sha256": "87e28c03a4d377f5f6b59148d922b84e1c54e975149fe4628d20a45ee5904dee",
+    "width": 1280,
+    "height": 720,
+    "bytes": 59804
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-300.png",
+    "sha256": "37a7c4f777974cb82158b21d69b13159334a5f08cc7a596204f05044ddc09aae",
+    "width": 1280,
+    "height": 720,
+    "bytes": 63102
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-316.png",
+    "sha256": "43fec92b15034dccee2360c88ac4e91c051af7fa11662ad5211e5aeff709535d",
+    "width": 1280,
+    "height": 720,
+    "bytes": 63528
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-318.png",
+    "sha256": "fa3379461053c33a52cef2adffb5dc04c19a72befe02eaa7eb8b8c2f003fce69",
+    "width": 1280,
+    "height": 720,
+    "bytes": 63664
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-360.png",
+    "sha256": "ef97ae01859ac5038a7abb463a715f1dfe9d316cc7d54f0d61b536b115653cad",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67093
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-420.png",
+    "sha256": "d48e5ca6c8598e77bcafe883e0718c9977442bf4bbb28a6cd13a0b631cb69ced",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67004
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-462.png",
+    "sha256": "383de77f4ec1396192738adad6226567bc7a4ee541e7ca5a2055c23255ef0ea0",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67435
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-466.png",
+    "sha256": "1c6ad4ded147da82ea3d50e5301487356959987072073edc341d7d871358f6c9",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67503
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-468.png",
+    "sha256": "1d82e9acb55e1a7d971ad35830928217716d0771df33a25a6a50c8ddeb3cd390",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67715
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-480.png",
+    "sha256": "497bb936d5a8c63028a09bdb817db085cef47f00955876d74c124511de9afafc",
+    "width": 1280,
+    "height": 720,
+    "bytes": 68234
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-turn-540.png",
+    "sha256": "5e6e0d26d472a579ca088eed8b5eec952a828372fada8ca8bfd16fe2dbe5674e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66595
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-ascent-000.png",
+    "sha256": "001704065b8dc0c4935fd292aa219e6ac706bec89664a85242567bbd690d749a",
+    "width": 1280,
+    "height": 720,
+    "bytes": 66692
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-ascent-060.png",
+    "sha256": "00f6f7ffb73ab69574b1d8cd322f3d32cb029642af24143b1f64d495deef24a6",
+    "width": 1280,
+    "height": 720,
+    "bytes": 68556
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-ascent-120.png",
+    "sha256": "3832cd37f66c4ff17b190811364ca330fd1b3ef00c2ff575fd4af64d5262abfa",
+    "width": 1280,
+    "height": 720,
+    "bytes": 69430
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-ascent-180.png",
+    "sha256": "2a77630ffd0c9b6b63bc1690ca4b0e0e7aa104bf3d23976e3e658afab51b2dee",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67301
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-retreat-000.png",
+    "sha256": "537155e73b62605189fb2f16d182bdf6cdbac2d7ea9d280281536b52319f7082",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67555
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-retreat-060.png",
+    "sha256": "7242aee19d1e50a16879b4027caba536a2fc1d72ce1e7ae558bd00590b424f1e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67901
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-retreat-120.png",
+    "sha256": "1c6ac6891c06c65619af707f9166060318cba58ba28d713d0e669104ed9e5cbc",
+    "width": 1280,
+    "height": 720,
+    "bytes": 68694
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/opposite-retreat-180.png",
+    "sha256": "8b0640fb978eeed9810ba844a86d12e07541f2bf6087999c5c995aea4fd789e7",
+    "width": 1280,
+    "height": 720,
+    "bytes": 67565
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-approach-000.png",
+    "sha256": "47219dcb00340b7dde2d6fcfd5cb2ff241f22df8a8e8fd32ece913ca10a5d907",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17654
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-approach-060.png",
+    "sha256": "6786f15541217541fc8709bbc115dc70f724221fe1d49f42c6c7d9c756c5e87b",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17671
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-approach-120.png",
+    "sha256": "8d4d6cd77415d9332d85b73bc31f3a5109fe5c0443c3e094ce6305e8e1a77f30",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17528
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-approach-180.png",
+    "sha256": "c67de4eb4a49629b000a9dea7388c6d14c9582432491594da66556c81fb4c117",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17491
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-descent-000.png",
+    "sha256": "d7fbecbc12a6969af38dc5f96f206543c1ac457293208b96234d10861474461e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17648
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-descent-060.png",
+    "sha256": "22e9726073b7251026ff091092071c35bf56bc704d3360f4df05c7f9eafebe88",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17644
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-descent-120.png",
+    "sha256": "2964540d4abddcc1f5088031d4a52da00e181d544bbb870ef3090d8f909de143",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17461
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-descent-180.png",
+    "sha256": "219a82fbbcc9450072e62f8db8e8baf76aa1d89ac8f58d1e163ebea178f38e8c",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17561
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-000.png",
+    "sha256": "874e00eebcfe9e2337e063f7e07fceb86685da0e362e759231ff9f8454aa4df7",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17603
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-060.png",
+    "sha256": "f0877dc6ef26404fe8563b65999d332661ca3627417b7fa4f7af2eddbb7d52ee",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17534
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-120.png",
+    "sha256": "81085ff13c2b12ccf0f044fa43c574b9813985d70638596cd3f575166943acbb",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17164
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-180.png",
+    "sha256": "3407eba2da477dec194a32f53af1de01c27983a4b53359c78a8bf927b6a3e54c",
+    "width": 1280,
+    "height": 720,
+    "bytes": 15869
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-240.png",
+    "sha256": "9dd59cfc330b29eeff978996160b6b56ff1493a1b4117ae531f09d4bb451e20f",
+    "width": 1280,
+    "height": 720,
+    "bytes": 15492
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-300.png",
+    "sha256": "8483287f980f23643c84b6797fa772acd2cb7e67273b27ace4582b296208a812",
+    "width": 1280,
+    "height": 720,
+    "bytes": 15889
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-316.png",
+    "sha256": "41067f8708798c134a32b906b8c62779162471623242c88ced8317c7248f31a7",
+    "width": 1280,
+    "height": 720,
+    "bytes": 15960
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-318.png",
+    "sha256": "ea990b10130b52099f94817aae4a44f0b376b7cd622d03de0c1b89f04269be89",
+    "width": 1280,
+    "height": 720,
+    "bytes": 15945
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-360.png",
+    "sha256": "978e29572557b025d3ad2180145ef317b3c61d3315cd747d422d00e0fd18514b",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16516
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-420.png",
+    "sha256": "54ab1ba65400313914b1ec2ae4c1ba92ca19fbe03711d2b270468dbc06d3e606",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16626
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-462.png",
+    "sha256": "630b4dc7bfaf5ec756c042aaff35cebf08c87fac6095ba7531c453e5f8db21da",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16343
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-466.png",
+    "sha256": "e61e632c97795c8fa2814d8ccdcca2941385094b95f7e439904aa19640832af7",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16318
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-468.png",
+    "sha256": "4a60b0f58bbe346354b4f702268bc857edb9ff17bace60f069d68ba2770cf449",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16349
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-480.png",
+    "sha256": "02887bd30f7d608f81313079193dae96427d891c04e92c9f78113271245c5f4e",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16354
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-turn-540.png",
+    "sha256": "6bab65cb3d25584441eefd325cdf984b9c03317611f375941b8b2ba38f50e7ee",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16594
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-ascent-000.png",
+    "sha256": "5e0371354c2599086448cd581ac6eebb78e7a1b76b1c80829c0cff361a2555bc",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16466
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-ascent-060.png",
+    "sha256": "f3be676f407a66cbb69f8e752fefa6ce6a7d7f1f77ff218e6b40d5a37cf90589",
+    "width": 1280,
+    "height": 720,
+    "bytes": 17049
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-ascent-120.png",
+    "sha256": "c7006d918a124b990865f60e5c9d959e953f23504acb02dc5bb8517af283b9c1",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16738
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-ascent-180.png",
+    "sha256": "50b5b401721f9001ddf398218389ad5188cd63031e6a1c6e56fedbcb3c25696d",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16793
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-retreat-000.png",
+    "sha256": "e736ca4e605b600116e44939df434bae32fa8b1bbbbd927c061ead43559a9775",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16587
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-retreat-060.png",
+    "sha256": "8b0a36a6f7a4efd1bcb10362c45807f96e46dd640585c6618a690d98108e5486",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16548
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-retreat-120.png",
+    "sha256": "3847dc5c5f75cf47e2976dbafed05c829ee235e6812087b6e01ee14657131787",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16507
+  },
+  {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/rts-retreat-180.png",
+    "sha256": "422c8bde6ea59c9868f23a729c5934754af20860ab9b111091ff9d891edef2a0",
+    "width": 1280,
+    "height": 720,
+    "bytes": 16657
+  }
+]

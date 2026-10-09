@@ -1,0 +1,16 @@
+; Isolated offline native witness. Never imported by the main project.
+config_version=5
+
+[application]
+config/name="Haul source native replay"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Redwall-ug-haul-native-1144"
+
+[display]
+window/size/viewport_width=960
+window/size/viewport_height=720
+
+[rendering]
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="forward_plus"
+rendering_device/driver.macos="metal"

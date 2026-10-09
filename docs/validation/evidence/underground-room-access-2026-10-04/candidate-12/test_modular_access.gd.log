@@ -1,0 +1,53 @@
+state_registry_coverage: PASS -- 147 modules, 723 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_access.gd
+ACCESS_STEP_USEC fixture=2951 proofs=1
+  PASS  test_real_suggestion_is_exact_and_never_mutates_authoritative_owners
+  PASS  test_disconnected_endpoint_cannot_be_its_own_invented_access_anchor
+  PASS  test_invalid_edit_keeps_original_marker_and_drawing_without_silent_replacement
+  PASS  test_selected_request_and_render_arrays_do_not_alias_private_selection
+  PASS  test_source_reload_expires_search_and_old_choice_without_guessing_a_new_version
+  PASS  test_busy_actual_cold_arena_refuses_without_closing_foreign_operation
+  PASS  test_expired_actual_provider_never_rebinds_to_equal_numeric_world
+  PASS  test_planar_target_derivation_uses_exact_signed_datum_and_full_patch
+  PASS  test_exact_concave_boundary_and_picked_cell_filter
+  PASS  test_access_configuration_refuses_view_teardown_without_a_refresh_crash
+  PASS  test_access_configuration_preserves_original_drawing_owner_and_existing_binding
+  PASS  test_final_configuration_view_callback_cannot_replace_the_original_tuple
+  PASS  test_existing_drawing_starts_access_search_on_next_frame_without_more_input
+  PASS  test_real_ui_suggestion_then_atomic_room_confirmation
+  PASS  test_ui_reposition_is_a_world_selection_not_a_paint_or_order_gesture
+  PASS  test_old_or_float_selection_stamp_cannot_replace_the_reviewed_access
+  PASS  test_recursive_mutation_during_actual_proof_refuses_and_releases_original_lease
+  PASS  test_late_actual_profile_reload_cannot_mix_candidate_with_new_content
+  PASS  test_malformed_and_oversize_drawing_refuses_before_copy_and_preserves_marker
+ACCESS_STEP_USEC sparse128=698 proofs=0
+  PASS  test_sparse_actual_capacity_search_yields_and_remains_view_only
+ACCESS_STEP_USEC sparse128=702 proofs=0
+  PASS  test_final_liveness_observer_cannot_hide_a_real_profile_reload
+  PASS  test_access_guard_and_teardown_preserve_exact_view_binding
+ACCESS_STEP_USEC paint16384_region6144_source2048=3173 proofs=1
+  PASS  test_maximum_paint_and_actual_space_capacity_candidate_is_measured
+  PASS  test_boundary_index_matches_full_paint_scan_for_signed_edges_holes_and_seams
+ACCESS_STEP_USEC full1024_1536_4096_paint16384=69176 proofs=1
+  PASS  test_full_populated_graph_and_maximum_paint_candidate_latency
+CI_SUITE_TIME {"assertions":768,"failures":0,"suite":"test_modular_access.gd","tests":25,"usec":9661236}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+25 test(s), 768 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 25 tests, 768 assertions, 0 failures.

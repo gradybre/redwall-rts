@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_space_owner.gd:1566: (SHADOWED_VARIABLE): The local function parameter "revision" is shadowing an already-declared function at line 515 in the current class.
+test/test_underground_room_publication.gd:180: (INCOMPATIBLE_TERNARY): Values of the ternary operator are not mutually compatible.
+2 GDScript warning(s) in 2 of 5 file(s)

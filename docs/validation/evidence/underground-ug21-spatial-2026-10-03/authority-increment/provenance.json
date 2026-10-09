@@ -1,0 +1,58 @@
+{
+  "base_head": "f9f3949e4e059419fae6f40d6c216b563075cfcd",
+  "files": {
+    "godot/scripts/core/underground_space_owner.gd": "e23ddd26a19f80a365cd8f0860cf0f6f293773079d723c8e826fe102ab6a8ca7",
+    "godot/scripts/core/underground_space_authority.gd": "52196d1ac0396ad332a3f4362ec78498948b2bb640fe84c0d933644ee47e3907",
+    "godot/test/test_underground_space_owner.gd": "c3f59217d5050a94bcf99191c237665bf4fa4f22fc466bbb835b947d7c8ee46d",
+    "godot/test/test_underground_space_authority.gd": "a801ce7fb973b86434d101b249b1727fe11a5eb697c77c36f194a34ab9c4fe9b"
+  },
+  "results": {
+    "owner": {
+      "tests": 31,
+      "assertions": 418,
+      "failures": 0
+    },
+    "authority": {
+      "tests": 19,
+      "assertions": 2621,
+      "failures": 0
+    },
+    "both_suites": {
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "import": {
+      "exit": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "analyzer": {
+      "warnings": 0,
+      "files": 4
+    },
+    "one_site_proof_probe": {
+      "pairs": 256,
+      "usec": 7485,
+      "distinct_workers": 1,
+      "production_dynamic_profiles": false,
+      "advances_work": false
+    }
+  },
+  "rejected_import": {
+    "exit": -11,
+    "errors": 1,
+    "reason": "native thread propagate_notification error during font import",
+    "successful_validation": false
+  },
+  "logs": {
+    "analyzer.log": "77771551fcde99b8d9f7f6c8a245f17e7847017408188b493b2068226c178eca",
+    "authority-tests.log": "a68a245c5ebc3137b24ec2dc8de1d64a0ac3bbf64703b357867179b0d8df8f52",
+    "import.log": "264c4913b4df3b1e4c9dce3261130c2b6f593689e21a845797d0be5cc72fbe81",
+    "owner-tests.log": "7e407c4bcb3f664da79fdb26a2031a43e2c8e060b5b41df3968b0448d9fe5c04",
+    "rejected-native-import.log": "4e8a044b183c154bdf244b2044cb6b9fbca5199e5246d9e598ab8cd28c73a114"
+  }
+}

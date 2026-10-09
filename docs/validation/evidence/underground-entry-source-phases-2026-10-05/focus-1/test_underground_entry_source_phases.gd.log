@@ -1,0 +1,26 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_source_phases.gd
+  FAIL  test_real_source_first_cube_earns_paid_brace_cut_and_finish
+        real-source execution: ["actual finite phase admission: ENTRY_PHASE_PLAN (expected true, got false)"] (expected true, got false)
+        actual nested owner checks executed; not added to the suite assertion counter (expected true, got false)
+        actual source fixture: ["actual finite phase admission: ENTRY_PHASE_PLAN (expected true, got false)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":3,"failures":1,"suite":"test_underground_entry_source_phases.gd","tests":1,"usec":1098919}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 3 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

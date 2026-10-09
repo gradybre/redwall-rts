@@ -1,0 +1,13 @@
+test_exact_closed_derivation_preserves_every_other_fact (__main__.RuntimeInputTests.test_exact_closed_derivation_preserves_every_other_fact) ... ok
+test_exact_previous_packet_and_three_immutable_current_blobs (__main__.RuntimeInputTests.test_exact_previous_packet_and_three_immutable_current_blobs) ... ok
+test_existing_output_or_dangling_symlink_refuses_before_input (__main__.RuntimeInputTests.test_existing_output_or_dangling_symlink_refuses_before_input) ... ok
+test_imported_scene_uses_exact_archive_instead_of_current_cache (__main__.RuntimeInputTests.test_imported_scene_uses_exact_archive_instead_of_current_cache) ... ok
+test_missing_known_location_and_capacity_refuse (__main__.RuntimeInputTests.test_missing_known_location_and_capacity_refuse) ... ok
+test_missing_or_duplicate_source_refuses (__main__.RuntimeInputTests.test_missing_or_duplicate_source_refuses) ... ok
+test_unlisted_raw_source_drift_and_symlink_refuse (__main__.RuntimeInputTests.test_unlisted_raw_source_drift_and_symlink_refuse) ... ok
+test_wrong_prior_digest_is_not_approved_current_source (__main__.RuntimeInputTests.test_wrong_prior_digest_is_not_approved_current_source) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.051s
+
+OK

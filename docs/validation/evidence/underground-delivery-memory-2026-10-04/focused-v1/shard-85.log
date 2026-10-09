@@ -1,0 +1,99 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_work.gd
+  PASS  test_base_rate_tick_produces_eighty_milli_wu
+  PASS  test_work_factor_is_the_one_needs_publishes
+  PASS  test_default_mood_worker_uses_the_1100_band
+  PASS  test_factor_reader_scratch_preserves_mood_and_health_boundaries
+  PASS  test_first_fractional_tick_carries_its_remainder
+  PASS  test_carried_remainder_releases_an_extra_milli_wu
+  PASS  test_long_run_matches_closed_form_arithmetic
+  PASS  test_carry_survives_a_job_switch
+  PASS  test_fractional_contribution_credits_no_xp
+  PASS  test_xp_lands_on_the_tick_the_threshold_is_crossed
+  PASS  test_xp_totals_ten_per_whole_wu_over_a_long_run
+  PASS  test_xp_progress_is_retained_per_skill
+  PASS  test_xp_is_credited_only_from_accepted_work
+  PASS  test_a_travelling_job_produces_nothing
+  PASS  test_a_collapsed_worker_produces_nothing
+  PASS  test_a_dead_worker_produces_nothing
+  PASS  test_a_job_without_a_worker_produces_nothing
+  PASS  test_a_finished_job_refuses_further_work
+  PASS  test_decision_0017_acceptance_example
+  PASS  test_party_output_is_not_multiplied_by_crew_size
+  PASS  test_party_progress_accumulates_only_on_the_coordinator
+  PASS  test_party_of_one_advances_at_one_worker_rate
+  PASS  test_leftover_goes_to_the_largest_fractional_remainder
+  PASS  test_leftover_ties_break_by_ascending_persistent_id
+  PASS  test_finishing_tick_allocates_exactly_the_accepted_total
+  PASS  test_only_the_coordinator_records_completion
+  PASS  test_a_completed_party_produces_no_second_completion
+  PASS  test_worker_departure_preserves_shared_progress
+  PASS  test_a_party_with_no_contributing_worker_produces_nothing
+  PASS  test_tick_solo_refuses_a_coordinator_and_a_member
+  PASS  test_tick_party_refuses_an_ordinary_job
+  PASS  test_memory_total_moves_the_work_factor
+  PASS  test_the_factor_call_site_still_reports_the_unfused_chains_number
+  PASS  test_the_factor_call_site_maps_a_missing_needs_row_to_the_same_code_as_before
+  PASS  test_the_factor_call_site_refuses_an_unspawned_row_at_the_skills_read
+  PASS  test_reserved_skill_index_is_refused
+  PASS  test_out_of_range_addresses_refuse_rather_than_return_a_number
+  PASS  test_clear_returns_every_carry_to_zero
+  PASS  test_an_ordinary_solo_tick_reads_no_persistent_id
+  PASS  test_an_ordinary_party_tick_reads_no_persistent_id
+  PASS  test_a_finishing_tick_with_no_leftover_reads_no_persistent_id
+  PASS  test_a_leftover_tick_reads_each_frozen_identity_exactly_once
+  PASS  test_reversed_member_order_gives_the_tie_to_the_same_worker
+  PASS  test_reversed_member_order_keeps_the_largest_fraction_winner
+  PASS  test_an_identity_refusal_leaves_shared_progress_and_xp_untouched
+  PASS  test_a_refused_tick_leaves_the_activity_finishable
+  PASS  test_a_departure_on_the_completion_tick_freezes_the_contributor_set
+  PASS  test_leftover_allocation_reloads_identities_after_a_scratch_reset
+  PASS  test_tick_solo_into_produces_the_same_outcome_as_the_wrapper
+  PASS  test_tick_party_into_produces_the_same_outcome_as_the_wrapper
+  PASS  test_a_solo_refusal_overwrites_every_field_of_a_reused_result
+  PASS  test_a_refusal_after_a_completing_tick_clears_the_completion_flag
+  PASS  test_a_party_refusal_overwrites_every_field_of_a_reused_result
+  PASS  test_a_later_unfinished_tick_clears_a_previous_completion
+  PASS  test_a_success_clears_a_previous_refusal_code
+  PASS  test_the_into_forms_refuse_a_null_result_without_ticking
+  PASS  test_the_allocating_wrappers_hand_back_a_fresh_result_each_call
+  PASS  test_tool_wear_is_charged_to_the_contributor_who_earned_it
+  PASS  test_a_party_wears_every_tool_once_and_never_one_tool_three_times
+  PASS  test_the_first_durability_point_falls_at_exactly_ten_completed_wu
+  PASS  test_one_job_keeps_settling_point_after_point_without_retaking_the_tool
+  PASS  test_the_wear_carry_survives_releasing_the_claim_and_changing_job
+  PASS  test_a_tool_claim_left_on_another_job_refuses_the_tick_and_moves_nothing
+  PASS  test_a_broken_tool_stops_the_contributor_rather_than_working_for_free
+  PASS  test_a_broken_tool_stops_one_builder_without_stopping_the_crew
+  PASS  test_a_settlement_that_cannot_be_charged_refuses_before_consuming_the_work
+  PASS  test_a_completed_job_spends_no_further_work_xp_or_durability_on_retry
+  PASS  test_a_worker_with_no_tool_binding_is_charged_no_wear_at_all
+  PASS  test_a_tool_can_only_be_claimed_by_the_resident_who_owns_and_wears_it
+  PASS  test_a_tool_claim_needs_a_live_job_a_bound_store_and_a_real_resident
+  PASS  test_releasing_a_claim_returns_the_gear_and_refuses_a_second_release
+  PASS  test_binding_a_gear_store_refuses_null_and_refuses_a_swap_under_a_live_claim
+  PASS  test_the_settlement_columns_are_one_row_per_resident_and_sized_once
+  PASS  test_tip_work_rounds_up_and_matches_the_amendment_worked_examples
+  PASS  test_splitting_a_tip_order_can_only_ever_cost_more_work
+  PASS  test_tip_work_refuses_a_nonpositive_quantity_instead_of_answering_zero
+  PASS  test_spatial_handling_numbers_reject_changed_original_contributor
+CI_SUITE_TIME {"assertions":9283,"failures":0,"suite":"test_work.gd","tests":77,"usec":1847138}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+77 test(s), 9283 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 77 tests, 9283 assertions, 0 failures.

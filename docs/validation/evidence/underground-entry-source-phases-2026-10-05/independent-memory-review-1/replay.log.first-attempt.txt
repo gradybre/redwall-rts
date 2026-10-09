@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-timber-program-binding/docs/validation/evidence/underground-timber-program-binding-2026-10-05/entry-memory-review-1/review.py", line 122, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-timber-program-binding/docs/validation/evidence/underground-timber-program-binding-2026-10-05/entry-memory-review-1/review.py", line 94, in main
+    raise ValueError('STORAGE_MUTANT_ACCEPTED:' + label)
+ValueError: STORAGE_MUTANT_ACCEPTED:mixed_doc_executable

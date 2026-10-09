@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""ADR1154 additive presentation census; shared cold admission and native qualification remain separate."""
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT / "tools"))
+import underground_memory_budget as MEMORY
+
+PREFIX = "godot/demo/burrow/"
+FILES = tuple(PREFIX + name for name in ("modular_access.gd", "modular_runtime.gd", "modular_editor.gd", "modular_world_tool.gd"))
+BASE = "b5c63281264bd4d4273dc84fc0a3e94ec5ca24f9"
+WIDTH = {"int": 8, "bool": 1, "float": 8, "Vector2i": 8, "Vector3i": 12,
+         "Vector2": 8, "Vector3": 12, "Rect2i": 16, "Color": 16}
+
+
+def require(value, message):
+    if not value:
+        raise ValueError(message)
+
+
+def nested(source, name):
+    matches = re.findall(r"^class " + re.escape(name) + r" extends [^:\n]+:\n((?:(?:[\t ].*|)\n)*)", source, re.M)
+    require(len(matches) == 1, "exact nested class " + name)
+    return MEMORY.explicit_members(matches[0], "\t")
+
+
+def scalar_bytes(fields):
+    return sum(WIDTH.get(kind, 0) for kind in fields.values())
+
+
+def functions(source):
+    """All numeric own frames are summed, including sequential alternatives; no claimed stack-layout byte size."""
+    lines, result = source.splitlines(), {}
+    for start, line in enumerate(lines):
+        match = re.match(r"^(\s*)(?:static )?func (\w+)\(", line)
+        if not match:
+            continue
+        indent, name, end = len(match[1]), match[2], start + 1
+        while end < len(lines) and (not lines[end].strip() or len(lines[end]) - len(lines[end].lstrip()) > indent):
+            end += 1
+        body = "\n".join(lines[start:end]).rstrip()
+        require(len(body.splitlines()) <= 30, "function length " + name)
+        executable = re.sub(r'""".*?"""', "", body, flags=re.S)
+        executable = re.sub(r"#.*", "", executable)
+        kinds = re.findall(r"\b\w+\s*:\s*(" + "|".join(WIDTH) + r")\b", executable)
+        require(name not in result, "duplicate function " + name)
+        result[name] = {"body": body, "numeric": sum(WIDTH[kind] for kind in kinds)}
+    return result
+
+
+def inputs():
+    return {name: (ROOT / name).read_text() for name in FILES}
+
+
+def build(sources=None):
+    sources = inputs() if sources is None else sources
+    access, runtime, editor, tool = (sources[name] for name in FILES)
+    af = functions(access)
+    require("const PAIRS_PER_STEP: int = 32" in access, "finite cheap work bound")
+    require("6 * Routes.MAX_VERTICES - 6" in af["_route_lines"]["body"], "full route line cap")
+    require("2 * Footprint.MAX_OPERATION_CELLS" in af["_plan_valid"]["body"], "finite paint cap")
+    require("out.cells = plan.cells" in af["copy_request"]["body"] and
+            "out.cells = plan.cells.duplicate()" in af["selected_request"]["body"], "internal borrow versus caller copy")
+    require("await " not in access and "var result: Attempt = _observe(provider, request, token)" in af["_attempt"]["body"] and
+            "config.budget.release(token)" in af["_attempt"]["body"], "whole witness frame dies before original lease")
+    require(af["_source_refusal"]["body"].count("_epochs_match(config, _pins, _plan.space_revision)") == 2,
+            "source epochs bracket final observer")
+    require(not re.search(r"\.\w+\(", af["_epochs_match"]["body"].replace("pins.size()", "")), "pure final epoch leaf")
+    members = MEMORY.explicit_members(access)
+    expected = {"revision": "int", "last_step_usec": "int", "max_step_usec": "int", "proof_attempts": "int",
+                "_provider": "WeakRef", "_anchor": "Vector2i", "_owners": "Array", "_plan": "Orders.RoomPlan",
+                "_drawing_revision": "int", "_choice": "Choice", "_candidate": "Approach.Request", "_pins": "PackedInt64Array",
+                "_datum": "Vector3i", "_picked": "Vector2i", "_has_pick": "bool", "_slot": "int", "_profile": "int",
+                "_travel": "int", "_recheck": "bool", "_searching": "bool", "_reading": "bool", "_locked": "bool",
+                "_error": "StringName", "_reentered": "bool", "_last_candidate_error": "StringName",
+                "_scan_record": "Locations.Record", "_scan_ref": "PackedInt32Array", "_loaded_slot": "int",
+                "_plan_bounds": "PackedInt64Array"}
+    require(members == expected, "complete selector retained census")
+    require("var _owners: Array[WeakRef] = []" in access, "explicit weak owner element type")
+    require(re.findall(r"config\.(\w+)", af["_owner_list"]["body"]) ==
+            ["routes", "owner", "sources", "locations", "profiles", "catalog", "levels", "movement", "residents",
+             "transforms", "world", "terrain", "budget"], "thirteen actual weak owners")
+    choice = nested(access, "Choice")
+    require(choice == {"request": "Approach.Request", "roles": "PackedInt32Array", "route_lines": "PackedInt32Array",
+                       "patch": "PackedInt32Array", "root": "Vector3i", "access_root": "Vector3i", "graph_revision": "int",
+                       "graph_receipt": "int", "location_receipt": "int", "catalog_revision": "int"}, "complete Choice census")
+    require(nested(access, "Attempt") == {"error": "StringName", "choice": "Choice"}, "no escaped witness or source owner")
+    deltas, frames, baselines = {}, {}, {}
+    for name in FILES:
+        old = "" if name == FILES[0] else subprocess.check_output(["git", "show", BASE + ":" + name], cwd=ROOT, text=True)
+        before, after = MEMORY.explicit_members(old), MEMORY.explicit_members(sources[name])
+        require(all(after.get(key) == kind for key, kind in before.items()), "existing field retained " + name)
+        deltas[name] = {key: kind for key, kind in after.items() if key not in before}
+        baselines[name] = hashlib.sha256(old.encode()).hexdigest()
+        frames[name] = {key: value["numeric"] for key, value in functions(sources[name]).items()}
+    orders = (ROOT / "godot/scripts/core/underground_room_orders.gd").read_text()
+    approach = (ROOT / "godot/scripts/core/underground_room_approach.gd").read_text()
+    locations = (ROOT / "godot/scripts/core/underground_locations.gd").read_text()
+    plan_fixed = scalar_bytes(nested(orders, "RoomPlan"))
+    request_fixed = plan_fixed + scalar_bytes(nested(approach, "Request"))
+    record_fixed = scalar_bytes(nested(locations, "Record")) + 48
+    require((plan_fixed, request_fixed, record_fixed) == (60, 144, 116), "foreign packet census")
+    require("const MAX_OPERATION_CELLS: int = 16384" in (ROOT / "godot/scripts/core/room_footprint.gd").read_text(), "paint capacity")
+    routes = (ROOT / "godot/scripts/core/underground_routes.gd").read_text()
+    require("const MAX_VERTICES: int = 4096" in routes and "const MAX_EDGES: int = 1536" in routes, "route capacities")
+    require("const MAX_SELECTION_BOXES: int = 12" in (ROOT / "godot/scripts/core/underground_profiles.gd").read_text(), "role capacity")
+    paint, route, roles, patch = 8 * 16384, 24 * 4096, 2 * 12 * 7 * 4, 6 * 4
+    preview = route + roles + patch
+    fixed = sum(scalar_bytes(value) for value in deltas.values())
+    fixed += plan_fixed + request_fixed + scalar_bytes(choice) + request_fixed + record_fixed + 48 + 8 + 32
+    retained = 2 * paint + preview + fixed
+    numeric_frames = sum(sum(value.values()) for value in frames.values())
+    # Deliberately overcount sequential view copies and two image rebuilds. This is
+    # a raw logical payload proposal, not a measured native allocator/GPU bound.
+    line_vertices = 2 * 4096 + 24 * (2 * 12 + 2)
+    mesh_positions = line_vertices * 12
+    return {"schema": 1, "source_sha256": {name: hashlib.sha256(source.encode()).hexdigest() for name, source in sources.items()},
+            "baseline_commit": BASE, "baseline_sha256": baselines, "added_fields": deltas,
+            "maximum_cells": 16384, "maximum_role_rows": 24, "maximum_route_line_ints": 24576,
+            "plan_fixed": plan_fixed, "request_fixed": request_fixed, "location_record_fixed": record_fixed,
+            "one_cell_image": paint, "one_route_lines": route, "one_role_array": roles, "one_patch": patch,
+            "retained_cell_images": 2, "retained_fixed_numeric": fixed, "retained_added_logical_bytes": retained,
+            "all_own_numeric_frames": frames, "conservative_own_frame_sum": numeric_frames,
+            "view_payload_peaks": {"begin_with_old_marker_and_input_copy": retained + 2 * paint + numeric_frames,
+                                   "observe_and_copy_new_choice": retained + paint + preview + 200 + numeric_frames,
+                                   "confirmation_command_copies": retained + 4 * paint + numeric_frames,
+                                   "preview_copy_and_two_raw_position_images": retained + preview + 2 * mesh_positions + numeric_frames},
+            "conservative_confirmation_plus_full_reserved_cold": retained + 4 * paint + numeric_frames + 1048960,
+            "cold_reservation_unchanged": 1048960, "actual_1150_maximum": 938368,
+            "preview_approach_required_cold": 395264, "cold_lease_held_between_frames": False,
+            "maximum_access_line_vertices": line_vertices, "one_raw_position_image": mesh_positions,
+            "native_handles": {"selector_weak_refs": 14, "selector_object_refs": 4, "choice_object_refs": 1,
+                               "command_adapter_access_ref": 1, "editor_access_ref": 1, "editor_new_callable": 1,
+                               "new_controls": ["Label", "HBoxContainer", "2 Button"],
+                               "world_marks": ["MeshInstance3D", "StandardMaterial3D", "ImmediateMesh"]},
+            "qualification": {"simulation_state_added": False, "save_columns_added": 0, "runtime_memory_qualified": False,
+                              "native_allocators_gpu_strings_variants_measured": False, "whole_client_qualified": False},
+            "lifetime": "Choice may retain the prior copied drawing while the active search owns a new one; candidate cells borrow current. "
+                        "The full Approach helper returns only copied view values before its original cold token is released. "
+                        "Confirmation formula deliberately counts four caller/command copy images plus the entire reserved cold arena, "
+                        "including potential overlap already inside that arena; it is a conservative additive view payload census. "
+                        "Existing Draft history/Overlay/Session budgets are not reclaimed. Raw position rebuild count does not bound "
+                        "native engine/GPU deferred lifetime, capacity slack, String/Dictionary/Callable/WeakRef allocation or driver work."}
+
+
+if __name__ == "__main__":
+    print(json.dumps(build(), indent=2))

@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+content-memory: before=159461498; after=160008978; prior_peak=257065986; peak=257065986; declared_peak=7039052; isolated=false
+native-handoffs-program: side/approach; total_poses=181
+native-handoffs-program: side/descent; total_poses=362
+native-handoffs-program: side/turn; total_poses=903
+native-handoffs-program: side/ascent; total_poses=1084
+native-handoffs-program: side/retreat; total_poses=1265
+native-handoffs-program: opposite/approach; total_poses=1446
+native-handoffs-program: opposite/descent; total_poses=1627
+native-handoffs-program: opposite/turn; total_poses=2168
+native-handoffs-program: opposite/ascent; total_poses=2349
+native-handoffs-program: opposite/retreat; total_poses=2530
+native-handoffs-program: rts/approach; total_poses=2711
+native-handoffs-program: rts/descent; total_poses=2892
+native-handoffs-program: rts/turn; total_poses=3433
+native-handoffs-program: rts/ascent; total_poses=3614
+native-handoffs-program: rts/retreat; total_poses=3795
+native-handoffs: 3795 poses, 125652 assertions, 0 failures; qualified=0

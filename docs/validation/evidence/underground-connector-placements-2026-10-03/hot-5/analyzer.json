@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_world_routes.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_attested_catalog_revision\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 30,
+     "line": 278
+    },
+    "start": {
+     "character": 4,
+     "line": 278
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

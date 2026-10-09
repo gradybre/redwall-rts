@@ -1,0 +1,194 @@
+{
+  "head_before": "e234bde0882695d9a0d28288f7bf45ca05b9a953",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.376,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "109/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 9.13,
+      "log": "test_underground_session.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "208/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 9.956,
+      "log": "test_underground_world_retirement.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "96/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 16.908,
+      "log": "test_underground_host.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "55/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 13.05,
+      "log": "test_underground_surface_anchor.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "209/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 14.109,
+      "log": "test_underground_route_composition.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "204/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 16.856,
+      "log": "test_underground_room_composition.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6411",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/candidate-2/analyzer.json",
+        "godot/scripts/core/underground_session.gd",
+        "godot/scripts/core/underground_world_retirement.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/underground_surface_anchor.gd",
+        "godot/test/test_underground_session.gd",
+        "godot/test/test_underground_world_retirement.gd",
+        "godot/test/test_underground_host.gd",
+        "godot/test/test_underground_surface_anchor.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 15.811,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1171-c1687570c8a1e087",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "import_raw_findings": [],
+  "strict_suites": {
+    "test_underground_session.gd": {
+      "tests": 15,
+      "assertions": 225,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_world_retirement.gd": {
+      "tests": 19,
+      "assertions": 1963,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_host.gd": {
+      "tests": 28,
+      "assertions": 326,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_surface_anchor.gd": {
+      "tests": 32,
+      "assertions": 344,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_route_composition.gd": {
+      "tests": 19,
+      "assertions": 337,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_composition.gd": {
+      "tests": 16,
+      "assertions": 371,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "executed_source_unchanged": true,
+  "project_restored": true,
+  "registry_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "original_sources_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

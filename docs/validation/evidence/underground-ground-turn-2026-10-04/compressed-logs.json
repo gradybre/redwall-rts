@@ -1,0 +1,30 @@
+[
+  {
+    "path": "candidate-3/shard-98.log",
+    "original_bytes": 18915153,
+    "sha256": "29d6fb8a429552a9731eb95bbb5917a768bf13dd74f1afa28bf69e19ba099c54",
+    "compressed_path": "candidate-3/shard-98.log.gz",
+    "compressed_sha256": "2e0354672e56d9709b443cddd6aab84954209fc07856c19041214a7451747d3c"
+  },
+  {
+    "path": "candidate-3/test_underground_world_routes.gd.log",
+    "original_bytes": 18915263,
+    "sha256": "f13a1a19851ee0311921154997621f2f3564391c6c7651965907ecccc380ce71",
+    "compressed_path": "candidate-3/test_underground_world_routes.gd.log.gz",
+    "compressed_sha256": "51e5eb32b9b3980ab3c0bacc955d23c48e92c7564d9f72cdc084cd8ed5459a88"
+  },
+  {
+    "path": "review-occupancy-rejected/shard-97.log",
+    "original_bytes": 18915192,
+    "sha256": "0f5af7343e9c8543add677816bcdfdc3c531d083c5e395809d47ffb5e7ab583e",
+    "compressed_path": "review-occupancy-rejected/shard-97.log.gz",
+    "compressed_sha256": "7483af26e763d1eab18a4b443a42bcfd6d7d9d0b1f20ead5076048ee5552598f"
+  },
+  {
+    "path": "review-occupancy-rejected/test_underground_world_routes.gd.log",
+    "original_bytes": 18915302,
+    "sha256": "decd5a864e2855a6103df9724b317a22b3bbf21f3ad1a8757945cd3f643f2a4d",
+    "compressed_path": "review-occupancy-rejected/test_underground_world_routes.gd.log.gz",
+    "compressed_sha256": "ea1912e4ac89565e904104084afd529c4bddb7fe6785db819e6cda1d1c3c6c83"
+  }
+]

@@ -1,0 +1,519 @@
+#!/usr/bin/env python3
+"""ADR1139: finite source-indexed stair tables; no runtime allocation or traversal permission."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import resource
+import struct
+import sys
+import platform
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("accepted_stair_sequence", HERE / "prove_stair_sequence.py")
+Q = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(Q)
+T, A, M, P, S = Q.T, Q.A, Q.M, Q.P, Q.S
+ROOT = P.ROOT
+INPUT = HERE / "stair-program-v1/source-inputs.json"
+INPUT_SHA = "19e70bb13c0bf6e089c504a5d8a343f9638e59a5996d20fe74fde1b9f9832aa8"
+FRAME_COUNT, INTERVALS, ONE = 91, 90, 65536
+MAX_JSON, MAX_PINS, MAX_WIRE = 2 * 1048576, 4096, 262144
+MAX_BOXES, MAX_SUPPORTS, MAX_SOLIDS = 540, 360, 64
+HEADROOM_BYTES = 8386  # Reported paired-pack headroom, not an allocation grant.
+require = P.require
+
+
+def sha(path):
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def unique_object(pairs):
+    value = {}
+    for key, item in pairs:
+        require(key not in value, "STAIR_PROGRAM_DUPLICATE_KEY")
+        value[key] = item
+    return value
+
+
+def read_json(path, expected):
+    require(path.is_file() and not path.is_symlink() and path.stat().st_size <= MAX_JSON,
+            "STAIR_PROGRAM_INPUT_CAPACITY")
+    raw = path.read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == expected, "STAIR_PROGRAM_SOURCE_DRIFT")
+    return json.loads(raw, object_pairs_hook=unique_object,
+                      parse_constant=lambda _: require(False, "STAIR_PROGRAM_NONFINITE"))
+
+
+def source_path(name):
+    require(type(name) is str and 0 < len(name) <= 1024 and not Path(name).is_absolute() and
+            ".." not in Path(name).parts, "STAIR_PROGRAM_SOURCE_PATH")
+    result = ROOT / name
+    require(result.is_file() and not result.is_symlink() and result.resolve().is_relative_to(ROOT),
+            "STAIR_PROGRAM_SOURCE_PATH")
+    return result
+
+
+def add_pins(pins, incoming):
+    require(type(incoming) is dict and 0 < len(incoming) <= MAX_PINS, "STAIR_PROGRAM_PIN_CENSUS")
+    for name, digest in incoming.items():
+        require(type(digest) is str and len(digest) == 64 and all(c in "0123456789abcdef" for c in digest),
+                "STAIR_PROGRAM_DIGEST")
+        require(name not in pins or pins[name] == digest, "STAIR_PROGRAM_PIN_CONFLICT")
+        require(sha(source_path(name)) == digest, "STAIR_PROGRAM_SOURCE_DRIFT")
+        pins[name] = digest
+    require(len(pins) <= MAX_PINS, "STAIR_PROGRAM_PIN_CENSUS")
+
+
+def load_inputs():
+    config = read_json(INPUT, INPUT_SHA)
+    require(config.get("schema") == 1 and config.get("engineering_only") is True and
+            config.get("rate_adopted") is False and config.get("runtime_bindings") == [] and
+            config.get("root_equation") == A.ROOT_CONTRACT and len(config.get("programs", [])) == 2,
+            "STAIR_PROGRAM_SOURCE_SCOPE")
+    pins = {str(INPUT.relative_to(ROOT)): INPUT_SHA, str(Path(__file__).relative_to(ROOT)): sha(Path(__file__))}
+    reviewed = {}
+    require(len(config.get("review_packets", {})) == 6, "STAIR_PROGRAM_REVIEW_CENSUS")
+    for name, digest in config["review_packets"].items():
+        add_pins(pins, {name: digest})
+        add_pins(reviewed, read_json(source_path(name), digest))
+    add_pins(pins, reviewed)
+    require(len(config.get("accepted_source_adapter", {})) == 3, "STAIR_PROGRAM_ADAPTER_CENSUS")
+    add_pins(pins, config["accepted_source_adapter"])
+    records = []
+    for index, item in enumerate(config["programs"]):
+        require(item.get("direction") == ("ascent", "descent")[index] and item.get("clip") == 0 and
+                item.get("rise_u") == (128, -128)[index] and set(item["paths"]) == set(item["sha256"]) ==
+                {"image", "candidate", "plan", "compilation", "terrain", "self", "sequence", "fixture"},
+                "STAIR_PROGRAM_EXACT_SOURCE_SET")
+        files = {key: source_path(name) for key, name in item["paths"].items()}
+        add_pins(pins, {str(files[key].relative_to(ROOT)): item["sha256"][key] for key in files})
+        require(all(reviewed.get(str(path.relative_to(ROOT))) == item["sha256"][key] for key, path in files.items()),
+                "STAIR_PROGRAM_UNREVIEWED_INPUT")
+        data = {key: read_json(path, item["sha256"][key]) for key, path in files.items() if key != "image"}
+        for key in ("candidate", "terrain", "self", "sequence"):
+            add_pins(pins, data[key]["producer_sources"])
+        records.append((item, files, data))
+    return records, pins
+
+
+def accepted_adapter(pins):
+    """The unchanged approved adapter is the only historical-source location mechanism."""
+    path = HERE / "source-gates-v3/renew_source_closure.py"
+    expected = "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272"
+    require(sha(path) == expected and pins.get(str(path.relative_to(ROOT))) == expected,
+            "STAIR_PROGRAM_ADAPTER_SOURCE")
+    spec = importlib.util.spec_from_file_location("accepted_stair_input_locator", path)
+    adapter = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(adapter)
+    return adapter
+
+
+def observed_current_sources(adapter):
+    """Observe the twelve explicit predecessors; these hashes confer no current runtime permission."""
+    originals = {row["path"]: row["sha256"] for row in adapter.historical_locators()}
+    originals["res://scripts/core/underground_profiles.gd"] = M.W.HISTORICAL_PROFILE
+    require(len(originals) == 12, "STAIR_PROGRAM_HISTORICAL_CENSUS")
+    rows = {}
+    for name, expected in sorted(originals.items()):
+        require(name.startswith("res://"), "STAIR_PROGRAM_SOURCE_PATH")
+        path = source_path("godot/" + name[6:])
+        require(path.stat().st_size <= adapter.MAX_HISTORICAL_BYTES, "STAIR_PROGRAM_CURRENT_CAPACITY")
+        rows[name] = {"original_sha256": expected, "current_sha256": sha(path),
+                      "current_bytes": path.stat().st_size}
+    return rows
+
+
+def actual_source(pins):
+    """Reuse the accepted eleven-file adapter plus original Profiles predecessor, preserving live files."""
+    adapter = accepted_adapter(pins)
+    current = observed_current_sources(adapter)
+    before = M.W.read_record, M.W.snapshot_sources
+    try:
+        with adapter.same_source_inputs(M.W):
+            result = M.read_actual_source()
+    finally:
+        require((M.W.read_record, M.W.snapshot_sources) == before, "STAIR_PROGRAM_ADAPTER_RESTORE")
+    require(observed_current_sources(adapter) == current, "STAIR_PROGRAM_CURRENT_SOURCE_CHANGED")
+    historical = result[-1]
+    require(set(historical) == set(current) and all(historical[name]["sha256"] == row["original_sha256"]
+            for name, row in current.items()), "STAIR_PROGRAM_HISTORICAL_CENSUS")
+    boundary = {"adapter_path": str(Path(adapter.__file__).relative_to(ROOT)), "adapter_sha256": sha(Path(adapter.__file__)),
+                "reader_path": str(Path(M.W.__file__).relative_to(ROOT)),
+                "reader_sha256": sha(Path(M.W.__file__)), "raw_source": adapter.INPUTS["source"],
+                "invocation_sha256": adapter.INVOCATION_SHA, "locator_sha256": adapter.LOCATORS_SHA,
+                "current_pre_post_equal": True, "current_sources": current,
+                "current_runtime_qualified": False, "snapshot_mechanism": "unchanged accepted adapter; private temporary copies only"}
+    return (*result, boundary)
+
+
+def check_current_sources(boundary):
+    """Preserve observed live source bytes; never interpret them as a current consumer certificate."""
+    for name, row in boundary["current_sources"].items():
+        path = source_path("godot/" + name[6:])
+        require(path.stat().st_size == row["current_bytes"] and sha(path) == row["current_sha256"],
+                "STAIR_PROGRAM_CURRENT_SOURCE_CHANGED")
+
+
+def phase_keys(q):
+    require(type(q) is int and 0 <= q <= INTERVALS * ONE, "STAIR_PROGRAM_PHASE")
+    if q == INTERVALS * ONE:
+        return INTERVALS, INTERVALS, 0
+    return q // ONE, q // ONE + 1, q % ONE
+
+
+def local_root(roots, q):
+    require(type(roots) is list and len(roots) == FRAME_COUNT and all(type(row) is list and len(row) == 3 and
+            all(type(v) is int and -512 <= v <= 512 for v in row) for row in roots), "STAIR_PROGRAM_ROOTS")
+    first, last, share = phase_keys(q)
+    return [-(-(a * (ONE-share) + b * share) // ONE) for a, b in zip(roots[first], roots[last])]
+
+
+def pose_digest(case, frame):
+    return hashlib.sha256(case["matrices"][frame].astype("<f4").tobytes() +
+                          np.asarray(case["grounding"][frame], dtype="<f4").tobytes()).hexdigest()
+
+
+def select_source(item, files, data, parts, topology):
+    cases = S.read_image(files["image"], item["sha256"]["image"], parts)
+    with files["image"].open("rb") as stream:
+        header = stream.read(184)
+    require(header[120:152].hex() == item["sha256"]["candidate"] and
+            header[152:184].hex() == item["sha256"]["plan"], "STAIR_PROGRAM_HEADER_IDENTITY")
+    recipes = [row for row in data["candidate"]["attempts"] if row["status"] == "SOURCE_CANDIDATE_ONLY"]
+    require(len(recipes) == len(cases) == (2 if item["direction"] == "ascent" else 1), "STAIR_PROGRAM_CLIP_CENSUS")
+    case, recipe = cases[0], recipes[0]
+    T.validate_recipe(recipe, case["frames"])
+    require(recipe["rise_u"] == item["rise_u"] and case["frames"] == FRAME_COUNT and
+            case["source_loop_mode"] == 0 and case["duration_q16"] == INTERVALS * ONE and
+            P.rendered_intervals(case) == [(i, i+1) for i in range(INTERVALS)], "STAIR_PROGRAM_TIMING")
+    require(pose_digest(case, 0) == pose_digest(case, INTERVALS), "STAIR_PROGRAM_ENDPOINT_POSE")
+    terrain = [r for r in data["terrain"]["clips"] if r["rise_u"] == item["rise_u"]]
+    require(len(terrain) == 1, "STAIR_PROGRAM_TERRAIN_CENSUS")
+    base = terrain[0]
+    Q.retained_supports(base, case, recipe, topology)
+    check_prior_proofs(item, data, case, topology)
+    return case, recipe, base
+
+
+def check_prior_proofs(item, data, case, topology):
+    self_, sequence = data["self"]["result"], data["sequence"]["result"]
+    for key in ("compilation", "terrain", "self", "sequence"):
+        require(data[key]["content_sha256"] == item["sha256"]["image"] and
+                data[key].get("production_qualified") is False, "STAIR_PROGRAM_PROOF_IDENTITY")
+    require(self_.get("clear") is True and self_.get("unresolved") == [] and
+            self_["body_triangles"] + self_["intentional_grip_triangles"] == len(topology[0][0]) and
+            self_["tool_triangles"] == len(topology[1][0]) and self_["intervals"] == INTERVALS and
+            self_["rendered_edges"] == [list(pair) for pair in P.rendered_intervals(case)], "STAIR_PROGRAM_SELF_PROOF")
+    require(sequence.get("clear") is True and sequence.get("unresolved") == [] and
+            sequence["segments"] == 1 and sequence["intervals_per_segment"] == INTERVALS and
+            sequence["fixture_prisms"] == 22 and sequence["native_source_yaw"] == 0 and
+            sequence["exact_fixture_turns_are_native_yaw_permissions"] is False and
+            data["sequence"]["baseline_proof_sha256"] == item["sha256"]["terrain"], "STAIR_PROGRAM_SEQUENCE_PROOF")
+
+
+def support_rows(base, recipe):
+    rows = {}
+    for row in base["supports"]:
+        key = (row["interval"], row["foot"])
+        require(key not in rows, "STAIR_PROGRAM_DUPLICATE_SUPPORT")
+        rows[key] = row
+    wanted = {(i, foot) for i in range(INTERVALS) for foot in (0, 1)
+              if recipe["planted_mask"][i] & recipe["planted_mask"][i+1] & (1 << foot)}
+    require(set(rows) == wanted and {i for i, _ in rows} == set(range(INTERVALS)), "STAIR_PROGRAM_SUPPORT_COVERAGE")
+    return rows
+
+
+def check_support(row, raw_low, raw_high, low, high, vertices, recipe, exact, solid, primitive):
+    frame, foot, deck = row["interval"], row["foot"], row["deck"]
+    require(T.plane_for(foot, frame, frame+1, recipe, recipe["rise_u"]) == {deck}, "STAIR_PROGRAM_SUPPORT_PLANE")
+    plane = 0 if deck == 0 else recipe["rise_u"]
+    bounds = P.outward_units(low[:, vertices].min(axis=(0, 1)), high[:, vertices].max(axis=(0, 1)))
+    require(bounds == row["full_foot_enclosure_u"] and solid[4] == plane and
+            all(solid[a] <= bounds[a] <= bounds[a+3] <= solid[a+3] for a in (0, 2)), "STAIR_PROGRAM_SUPPORT_ENCLOSURE")
+    require(T.source_above_plane(raw_low, raw_high, vertices, (frame, frame+1), plane, exact),
+            "STAIR_PROGRAM_SOURCE_PENETRATION")
+    witness = row["continuous_contact_vertex"]
+    require(type(witness) is int and bool(np.any(vertices == witness)), "STAIR_PROGRAM_CONTACT_VERTEX")
+    gaps = [exact(at, witness)-plane for at in (frame, frame+1)]
+    require(all(Fraction(0) <= gap < 1 for gap in gaps) and
+            [[gap.numerator, gap.denominator] for gap in gaps] == row["exact_source_gap_u"], "STAIR_PROGRAM_CONTACT_WITNESS")
+    return {"interval": frame, "foot": foot, "primitive": primitive, "plane_u": plane,
+            "full_foot_enclosure_u": bounds, "witness_vertex": witness,
+            "exact_source_gap_u": row["exact_source_gap_u"]}
+
+
+def source_y_evaluator(part, case, recipe):
+    cache = {}
+    def exact(frame, vertex):
+        key = frame, vertex
+        if key not in cache:
+            require(len(cache) < T.MAX_EXACT_VERTICES, "STAIR_PROGRAM_EXACT_CAPACITY")
+            cache[key] = T.exact_source_y(part, case, frame, vertex) + recipe["root_u"][frame][1]
+        return cache[key]
+    return exact
+
+
+def part_intervals(part, matrices, case, recipe, padding, foot_vertices, supports, solids, segment, exact):
+    boxes, report = [], []
+    previous = P._vertex_hulls(part, matrices[:1], case["grounding"][:1])[0]
+    for frame in range(INTERVALS):
+        following = P._vertex_hulls(part, matrices[frame+1:frame+2], case["grounding"][frame+1:frame+2])[0]
+        roots = np.asarray(recipe["root_u"][frame:frame+2], dtype=np.int64)
+        raw_low, raw_high = T.translated_endpoint_hulls(np.stack([previous[0], following[0]]),
+                                                      np.stack([previous[1], following[1]]), roots)
+        low, high = raw_low-padding, raw_high+padding+P.SCALE//1024
+        bounds = P.outward_units(low.min(axis=(0, 1)), high.max(axis=(0, 1)))
+        require(all(abs(v) <= 8192 for v in bounds) and all(bounds[a] < bounds[a+3] for a in range(3)),
+                "STAIR_PROGRAM_BOX_CAPACITY")
+        boxes.append(bounds)
+        for foot in range(len(foot_vertices)):
+            if (frame, foot) in supports:
+                row = supports[frame, foot]
+                primitive = segment["support_solids"][row["deck"]]
+                report.append(check_support(row, raw_low, raw_high, low, high, foot_vertices[foot], recipe,
+                                            exact, solids[primitive], primitive))
+        previous = following
+    return boxes, report
+
+
+def compile_part(index, part, triangles, case, recipe, base, matrices, roots, supports, solids, segment):
+    all_raw = P._vertex_hulls(part, matrices, case["grounding"])
+    padding, residual = P._residual_padding(part, matrices, case["grounding"], roots, all_raw)
+    require(padding.tolist() == base["parts"][index]["native_padding_q24"] and
+            residual == base["parts"][index]["native_residual_m"], "STAIR_PROGRAM_NUMERICAL_PROOF")
+    feet = [np.unique(triangles[mask]) for mask in T.foot_membership(part, triangles)] if index == 0 else []
+    boxes, contacts = part_intervals(part, matrices, case, recipe, padding, feet, supports, solids, segment,
+                                    source_y_evaluator(part, case, recipe))
+    record = {"part": index, "vertices": len(part["geometry"][0]["points"]), "triangles": len(triangles),
+              "padding_q24": padding.tolist(), "residual": residual}
+    return boxes, contacts, record
+
+
+def compile_program(item, files, data, parts, topology, world_roots):
+    require(len(parts) == len(topology) == 2 and all(len(p["geometry"]) == len(t) == 1 for p, t in zip(parts, topology)),
+            "STAIR_PROGRAM_PART_CENSUS")
+    case, recipe, base = select_source(item, files, data, parts, topology)
+    _, segments = Q.validate_fixture(data["fixture"], recipe)
+    require(len(segments) == 1, "STAIR_PROGRAM_ONE_PLACEMENT")
+    segment = segments[0]
+    solids = [Q.local_box(box, segment) for box in data["fixture"]["solids_u"]]
+    require(len(solids) == 22, "STAIR_PROGRAM_PRIMITIVE_CENSUS")
+    supports, report, boxes, offset, part_records = support_rows(base, recipe), [], [], 0, []
+    for index, part in enumerate(parts):
+        count = max(1, part["binds"])
+        bounds, contacts, record = compile_part(index, part, topology[index][0], case, recipe, base,
+            case["matrices"][:, offset:offset+count], world_roots, supports, solids, segment)
+        boxes.append(bounds)
+        report.extend(contacts)
+        part_records.append(record)
+        offset += count
+    return {"direction": item["direction"], "source": item, "root_u": recipe["root_u"],
+            "planted_masks": recipe["planted_mask"], "body_tool_boxes_u": [list(pair) for pair in zip(*boxes)], "supports": report,
+            "fixture_prisms_program_local_u": solids, "fixture_placement": segment, "parts": part_records,
+            "stationary_intervals": [i for i in range(INTERVALS) if recipe["root_u"][i] == recipe["root_u"][i+1]],
+            "pose_entry_sha256": pose_digest(case, 0), "pose_exit_sha256": pose_digest(case, INTERVALS),
+            "duration_q16": case["duration_q16"], "source_duration_seconds": [3, 1],
+            "source_yaw": 0, "flags": 0, "runtime_profile_binding": None}
+
+
+def intern(rows, indexes, row, limit):
+    key = tuple(row)
+    require(all(type(v) is int and -(1 << 31) <= v < (1 << 31) for v in key), "STAIR_PROGRAM_I32")
+    if key not in indexes:
+        require(len(rows) < limit, "STAIR_PROGRAM_TABLE_CAPACITY")
+        indexes[key] = len(rows)
+        rows.append(list(key))
+    return indexes[key]
+
+
+def pack_program(number, program, tables, box_ids, support_ids):
+    require(len(program["root_u"]) == FRAME_COUNT and len(program["body_tool_boxes_u"]) == INTERVALS and
+            0 < len(program["supports"]) <= 2*INTERVALS and len(program["fixture_prisms_program_local_u"]) == 22,
+            "STAIR_PROGRAM_TABLE_CENSUS")
+    root_first, step_first, solid_first = len(tables["ROOT"]), len(tables["STEP"]), len(tables["SOLI"])
+    tables["ROOT"].extend(program["root_u"])
+    tables["SOLI"].extend(program["fixture_prisms_program_local_u"])
+    for interval, pair in enumerate(program["body_tool_boxes_u"]):
+        require(len(pair) == 2 and all(len(box) == 6 and all(type(v) is int and abs(v) <= 8192 for v in box) and
+                all(box[a] < box[a+3] for a in range(3)) for box in pair), "STAIR_PROGRAM_ROLE_COVERAGE")
+        body, tool = [intern(tables["BOXE"], box_ids, box, MAX_BOXES) for box in pair]
+        at = len(tables["SIDX"])
+        expected_feet = [foot for foot in (0, 1) if program["planted_masks"][interval] &
+                         program["planted_masks"][interval+1] & (1 << foot)]
+        rows = [row for row in program["supports"] if row["interval"] == interval]
+        require([row["foot"] for row in rows] == expected_feet and rows, "STAIR_PROGRAM_SUPPORT_COVERAGE")
+        for row in rows:
+            b = row["full_foot_enclosure_u"]
+            packed = [row["foot"], solid_first+row["primitive"], row["plane_u"], b[0], b[2], b[3], b[5], row["witness_vertex"]]
+            tables["SIDX"].append([intern(tables["SUPP"], support_ids, packed, MAX_SUPPORTS)])
+        tables["STEP"].append([body, tool, at, len(rows)])
+    tables["DESC"].append([number, (128, -128)[number], root_first, FRAME_COUNT, step_first, INTERVALS,
+                           solid_first, 22, program["duration_q16"], 0, 0, 0])
+
+
+def pack_tables(programs):
+    require(len(programs) == 2, "STAIR_PROGRAM_COUNT")
+    tables = {"DESC": [], "ROOT": [], "STEP": [], "BOXE": [], "SUPP": [], "SIDX": [], "SOLI": []}
+    widths = dict(DESC=12, ROOT=3, STEP=4, BOXE=6, SUPP=8, SIDX=1, SOLI=6)
+    box_ids, support_ids = {}, {}
+    for number, program in enumerate(programs):
+        pack_program(number, program, tables, box_ids, support_ids)
+    raw = bytearray(b"UGSTEP01" + struct.pack("<2I", 1, 0) + bytes.fromhex(INPUT_SHA))
+    for name, rows in tables.items():
+        require(all(len(row) == widths[name] for row in rows), "STAIR_PROGRAM_TABLE_WIDTH")
+        raw.extend(name.encode() + struct.pack("<2I", widths[name], len(rows)))
+        for row in rows:
+            require(all(type(v) is int and -(1 << 31) <= v < (1 << 31) for v in row), "STAIR_PROGRAM_I32")
+            raw.extend(struct.pack("<" + "i"*len(row), *row))
+    raw.extend(b"UGSEND01")
+    require(len(raw) <= MAX_WIRE, "STAIR_PROGRAM_WIRE_CAPACITY")
+    return bytes(raw), tables, widths
+
+
+def decode_tables(raw, expected):
+    """Offline wire census only. A matching stream is not a runtime or physical certificate."""
+    require(type(raw) is bytes and 140 <= len(raw) <= MAX_WIRE, "STAIR_PROGRAM_WIRE_CAPACITY")
+    require(hashlib.sha256(raw).hexdigest() == expected and raw[:16] == b"UGSTEP01" + struct.pack("<2I", 1, 0) and
+            raw[16:48] == bytes.fromhex(INPUT_SHA), "STAIR_PROGRAM_WIRE_IDENTITY")
+    shape = [("DESC", 12, 2, 2), ("ROOT", 3, 182, 182), ("STEP", 4, 180, 180),
+             ("BOXE", 6, 1, MAX_BOXES), ("SUPP", 8, 1, MAX_SUPPORTS), ("SIDX", 1, 180, 360), ("SOLI", 6, 44, 44)]
+    at, result = 48, {}
+    for name, width, minimum, maximum in shape:
+        require(at+12 <= len(raw), "STAIR_PROGRAM_WIRE_TRUNCATED")
+        seen_width, count = struct.unpack_from("<2I", raw, at+4)
+        require(raw[at:at+4] == name.encode() and seen_width == width and minimum <= count <= maximum,
+                "STAIR_PROGRAM_WIRE_CENSUS")
+        at += 12
+        require(at + count*width*4 <= len(raw), "STAIR_PROGRAM_WIRE_TRUNCATED")
+        result[name] = [list(struct.unpack_from("<"+"i"*width, raw, at+i*width*4)) for i in range(count)]
+        at += count*width*4
+    require(at+8 == len(raw) and raw[at:] == b"UGSEND01", "STAIR_PROGRAM_WIRE_FOOTER")
+    check_table_references(result)
+    return result
+
+
+def check_table_references(tables):
+    for number, row in enumerate(tables["DESC"]):
+        require(row == [number, (128, -128)[number], number*FRAME_COUNT, FRAME_COUNT, number*INTERVALS,
+                        INTERVALS, number*22, 22, INTERVALS*ONE, 0, 0, 0], "STAIR_PROGRAM_DESCRIPTOR")
+        roots = tables["ROOT"][number*FRAME_COUNT:(number+1)*FRAME_COUNT]
+        require(local_root(roots, 0) == [0, 0, 0] and local_root(roots, INTERVALS*ONE) == [0, (128, -128)[number], -512],
+                "STAIR_PROGRAM_ROOTS")
+    for box in tables["BOXE"] + tables["SOLI"]:
+        require(all(abs(v) <= 8192 for v in box) and all(box[a] < box[a+3] for a in range(3)), "STAIR_PROGRAM_WIRE_BOX")
+    next_support = 0
+    for index, (body, tool, first, count) in enumerate(tables["STEP"]):
+        require(0 <= body < len(tables["BOXE"]) and 0 <= tool < len(tables["BOXE"]) and first == next_support and
+                count in (1, 2) and first+count <= len(tables["SIDX"]), "STAIR_PROGRAM_WIRE_PREFIX")
+        feet = []
+        for reference in tables["SIDX"][first:first+count]:
+            require(0 <= reference[0] < len(tables["SUPP"]), "STAIR_PROGRAM_WIRE_SUPPORT")
+            foot, solid, plane, x0, z0, x1, z1, vertex = tables["SUPP"][reference[0]]
+            require(foot in (0, 1) and foot not in feet and index//INTERVALS*22 <= solid < (index//INTERVALS+1)*22 and
+                    plane == tables["SOLI"][solid][4] and x0 < x1 and z0 < z1 and 0 <= vertex < 17172,
+                    "STAIR_PROGRAM_WIRE_SUPPORT")
+            box = tables["SOLI"][solid]
+            require(box[0] <= x0 < x1 <= box[3] and box[2] <= z0 < z1 <= box[5], "STAIR_PROGRAM_WIRE_SUPPORT")
+            feet.append(foot)
+        next_support += count
+    require(next_support == len(tables["SIDX"]), "STAIR_PROGRAM_WIRE_PREFIX")
+
+
+def presentation_census(programs):
+    """Source-counted alternatives only: no runtime lifetime or native allocation is admitted here."""
+    rows = [{"direction": p["direction"], **read_json(source_path(p["source"]["paths"]["compilation"]),
+             p["source"]["sha256"]["compilation"])["presentation_budget"]} for p in programs]
+    shared = ("borrowed_mesh_array_allowance_bytes", "reader_native_control_reserve_bytes", "world_basis_separately_shared_bytes")
+    require(all(rows[0][key] == rows[1][key] for key in shared), "STAIR_PROGRAM_PRESENTATION_CENSUS")
+    retained = sum(row["retained_palette_bytes"] + row["packed_tables_bytes"] for row in rows)
+    sequential = retained + max(row["decode_staging_bytes"] for row in rows) + sum(rows[0][key] for key in shared)
+    return {"existing_images": rows, "both_retained_palette_and_table_bytes": retained,
+            "both_old_and_new_retained_palette_and_table_bytes": 2*retained,
+            "conservative_both_existing_load_peaks_plus_one_basis_bytes":
+                sum(row["admitted_peak_bytes"] for row in rows) + rows[0]["world_basis_separately_shared_bytes"],
+            "unadopted_sequential_single_reader_peak_bytes": sequential,
+            "sequential_replacement_of_both_images_numeric_peak_bytes": sequential + retained,
+            "single_reader_and_borrowed_array_lifetimes_proved": False, "native_peak_measured": False,
+            "per_actor_rids_meshes_textures_and_whole_client_excluded": True,
+            "note": "original ascent image retains its rejected256u comparison clip; it remains unselectable; shared Basis counted once; no raw triangles or per-resident program copies"}
+
+
+def memory_census(raw, tables, widths, programs):
+    columns = {name: 4 * widths[name] * len(rows) for name, rows in tables.items()}
+    dense = dict(columns, BOXE=2*INTERVALS*2*24, SUPP=len(tables["SIDX"])*32)
+    packed = sum(columns.values()) + 32  # exact immutable input digest; no copied JSON image.
+    proposal = 2*packed + 4096 + 160
+    return {"wire_bytes": len(raw), "rows": {k: len(v) for k, v in tables.items()}, "column_bytes": columns,
+            "dense_column_bytes": dense, "dense_packed_with_source_digest": sum(dense.values())+32,
+            "exact_dedup_saved_bytes_per_bank": sum(dense.values())-sum(columns.values()),
+            "packed_with_source_digest": packed, "two_images": 2*packed, "bounded_stream_decode_scratch": 4096,
+            "proposed_reusable_caller_numeric_bytes": 160,
+            "caller_proposal": {"phase_keys_3_i64": 24, "root_3_i32": 12, "body_tool_boxes_12_i32": 48,
+                                "two_support_rows_16_i32": 64, "lookup_indexes_3_i32": 12},
+            "proposed_numeric_coexistence": proposal,
+            "native_control_allocation_measured": False, "actual_runtime_allocation_bytes": 0,
+            "remaining_joint_headroom_bytes": HEADROOM_BYTES, "numeric_shortfall_before_native_bytes": max(0, proposal-HEADROOM_BYTES),
+            "approved_reservation_reuse": None, "runtime_admitted": False,
+            "source_presentation": presentation_census(programs),
+            "lifetime": "source triangle/JSON compiler is offline; a future retained bank plus simultaneous candidate, decoder and caller must fit a separately reviewed reservation; original mesh/texture and shared WorldBasis are not charged twice or granted here"}
+
+
+def handoff_status(programs):
+    ascent, descent = programs
+    end = Q.endpoint(descent["fixture_placement"], descent["root_u"][-1])
+    start = Q.endpoint(ascent["fixture_placement"], ascent["root_u"][0])
+    return {"descent_terminal_root_u": end, "ascent_initial_root_u": start,
+            "reposition_u": [b-a for a, b in zip(end, start)],
+            "quarter_turn_change": (ascent["fixture_placement"]["quarter_turn"]-descent["fixture_placement"]["quarter_turn"])%4,
+            "source_endpoint_pose_equal": ascent["pose_entry_sha256"] == descent["pose_exit_sha256"],
+            "turn_reposition_proved": False, "stationary_terminal_hold_proved": False,
+            "shared_hub_entry_exit_proved": False, "return_route_qualified": False}
+
+
+def make_report(raw, tables, widths, programs, pins, sources, historical, boundary):
+    return {"schema": 1, "source_input_sha256": INPUT_SHA, "root_equation": A.ROOT_CONTRACT,
+              "coordinate_frame": "program local, authored root already included; rotate then translate by fixed program origin",
+              "programs": programs, "wire_sha256": hashlib.sha256(raw).hexdigest(), "memory": memory_census(raw, tables, widths, programs),
+              "handoff": handoff_status(programs), "source_pins": pins, "verified_original_source_files": sources,
+              "historical_source_snapshot": historical, "source_boundary": boundary,
+              "process_peak_diagnostic": {"system": platform.system(), "ru_maxrss": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+                                          "unit": "bytes" if platform.system() == "Darwin" else "KiB", "isolated_runtime_measurement": False},
+              "qualification_bits": 0, "production_qualified": False, "backend": "inherited OpenGL/yaw0 numerical source scope only; no Metal deformation certificate"}
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    require(not args.out.exists() and not args.out.is_symlink(), "STAIR_PROGRAM_OUTPUT_EXISTS")
+    records, pins = load_inputs()
+    _, parts, _, topology, roots, sources, historical, boundary = actual_source(pins)
+    programs = []
+    for item, files, data in records:
+        print("stair-program " + item["direction"], file=sys.stderr, flush=True)
+        programs.append(compile_program(item, files, data, parts, topology, roots))
+    raw, tables, widths = pack_tables(programs)
+    require(decode_tables(raw, hashlib.sha256(raw).hexdigest()) == tables, "STAIR_PROGRAM_WIRE_ROUNDTRIP")
+    report = make_report(raw, tables, widths, programs, pins, sources, historical, boundary)
+    add_pins({}, pins)
+    check_current_sources(boundary)
+    args.out.mkdir()
+    with (args.out/"stair-program.ugstep").open("xb") as stream:
+        stream.write(raw)
+    with (args.out/"program.json").open("x") as stream:
+        json.dump(report, stream, indent=2)
+        stream.write("\n")
+    print(json.dumps({"sha256": report["wire_sha256"], "wire_bytes": len(raw), "rows": report["memory"]["rows"],
+                      "numeric_coexistence": report["memory"]["proposed_numeric_coexistence"], "production_qualified": False}))
+
+
+if __name__ == "__main__":
+    main()

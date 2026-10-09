@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "source_sha256": "ebbdc4149aded37a85a8444aef882fb943c738f91d72db3301874ac405df91c1",
+  "profiles": [
+    {
+      "id": "mouse_keeper.carry_heavy_object_walk.plain",
+      "cast": "mouse_keeper",
+      "species": "mouse",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "carry_heavy_object_walk",
+      "scenario": "plain",
+      "frames": 197,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -296,
+            -1,
+            -359,
+            340,
+            1022,
+            245
+          ],
+          "all_yaw_bounds_u": [
+            -494,
+            -1,
+            -494,
+            494,
+            1022,
+            494
+          ],
+          "residual_m": {
+            "numerator": 535826638335087558939767926530451976876853163,
+            "denominator": 59862935795459549171851904062050898420068796858368
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "log",
+          "bounds_u": [
+            -342,
+            580,
+            -260,
+            358,
+            758,
+            -43
+          ],
+          "all_yaw_bounds_u": [
+            -442,
+            580,
+            -442,
+            442,
+            758,
+            442
+          ],
+          "residual_m": {
+            "numerator": 1342228230453478813603464027691538838593,
+            "denominator": 713623165788246098652216057975532704654950400
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_radish",
+          "bounds_u": [
+            -144,
+            523,
+            -365,
+            164,
+            822,
+            -82
+          ],
+          "all_yaw_bounds_u": [
+            -400,
+            523,
+            -400,
+            400,
+            822,
+            400
+          ],
+          "residual_m": {
+            "numerator": 1648615220085458717775509979765244161162449724398108657,
+            "denominator": 200867063970431176206637966749266931526627421880458831462400
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_turnip",
+          "bounds_u": [
+            -183,
+            554,
+            -373,
+            202,
+            791,
+            -75
+          ],
+          "all_yaw_bounds_u": [
+            -424,
+            554,
+            -424,
+            424,
+            791,
+            424
+          ],
+          "residual_m": {
+            "numerator": 647008787674188864708483956691967613754787687832383,
+            "denominator": 74230252760691491576732434127593101081532676230768230400
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_carrot",
+          "bounds_u": [
+            -240,
+            441,
+            -251,
+            259,
+            904,
+            -197
+          ],
+          "all_yaw_bounds_u": [
+            -360,
+            441,
+            -360,
+            360,
+            904,
+            360
+          ],
+          "residual_m": {
+            "numerator": 2735844927795742101384950503277215375274611602448449551,
+            "denominator": 401734127940862352413275933498533863053254843760917662924800
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_beetroot",
+          "bounds_u": [
+            -153,
+            573,
+            -409,
+            172,
+            773,
+            -38
+          ],
+          "all_yaw_bounds_u": [
+            -444,
+            573,
+            -444,
+            444,
+            773,
+            444
+          ],
+          "residual_m": {
+            "numerator": 312233481165698437649266996765173997134011497599562841,
+            "denominator": 36521284358260213855752357590775805732114076705537969356800
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_onion",
+          "bounds_u": [
+            -152,
+            574,
+            -359,
+            171,
+            771,
+            -89
+          ],
+          "all_yaw_bounds_u": [
+            -397,
+            574,
+            -397,
+            397,
+            771,
+            397
+          ],
+          "residual_m": {
+            "numerator": 447637277265967812050927657028450131060836329253240823,
+            "denominator": 50216765992607794051659491687316732881656855470114707865600
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_leek",
+          "bounds_u": [
+            -311,
+            585,
+            -444,
+            330,
+            760,
+            -3
+          ],
+          "all_yaw_bounds_u": [
+            -553,
+            585,
+            -553,
+            553,
+            760,
+            553
+          ],
+          "residual_m": {
+            "numerator": 470526592337159097576399334280779533547,
+            "denominator": 237874388596082032884072019325177568218316800
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_lettuce",
+          "bounds_u": [
+            -180,
+            545,
+            -399,
+            200,
+            801,
+            -48
+          ],
+          "all_yaw_bounds_u": [
+            -446,
+            545,
+            -446,
+            446,
+            801,
+            446
+          ],
+          "residual_m": {
+            "numerator": 123632447431573743312703269116937778170522663143675717,
+            "denominator": 14608513743304085542300943036310322292845630682215187742720
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_celery",
+          "bounds_u": [
+            -285,
+            562,
+            -386,
+            304,
+            784,
+            -62
+          ],
+          "all_yaw_bounds_u": [
+            -491,
+            562,
+            -491,
+            491,
+            784,
+            491
+          ],
+          "residual_m": {
+            "numerator": 551180431545932073930449599372695792453133440456327177,
+            "denominator": 66955687990143725402212655583088977175542473960152943820800
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_peas",
+          "bounds_u": [
+            -150,
+            604,
+            -379,
+            170,
+            742,
+            -69
+          ],
+          "all_yaw_bounds_u": [
+            -415,
+            604,
+            -415,
+            415,
+            742,
+            415
+          ],
+          "residual_m": {
+            "numerator": 277335883356963532769982768826356452669935170639993247,
+            "denominator": 32138730235268988193062074679882709044260387500873413033984
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_barley",
+          "bounds_u": [
+            -248,
+            375,
+            -267,
+            267,
+            971,
+            -181
+          ],
+          "all_yaw_bounds_u": [
+            -377,
+            375,
+            -377,
+            377,
+            971,
+            377
+          ],
+          "residual_m": {
+            "numerator": 2258847100124920634934491164505515511430098817082458139,
+            "denominator": 401734127940862352413275933498533863053254843760917662924800
+          }
+        },
+        {
+          "kind": "attachment",
+          "name": "item_oats",
+          "bounds_u": [
+            -272,
+            375,
+            -310,
+            291,
+            971,
+            -137
+          ],
+          "all_yaw_bounds_u": [
+            -425,
+            375,
+            -425,
+            425,
+            971,
+            425
+          ],
+          "residual_m": {
+            "numerator": 1203481311668536578590065962310411459672786097695321,
+            "denominator": 210718136869059718024272716233167512747576629300245299200
+          }
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "remaining": [
+        "ACTUAL_RENDERER_SOURCE_BINDING",
+        "NATIVE_VISUAL_GATE",
+        "WORLD_ROOT_TRANSFORM",
+        "STANCE_CONTACT_AND_POLICY"
+      ]
+    }
+  ],
+  "qualified_profile_count": 0,
+  "method": "finite final binary32 matrices; outward Q24 vertex hull; convex positive matrix interpolation; explicit IEEE/UNORM/decode residual"
+}

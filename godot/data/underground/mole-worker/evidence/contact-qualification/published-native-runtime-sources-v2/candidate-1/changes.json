@@ -1,0 +1,162 @@
+{
+  "schema": 2,
+  "previous": {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/published-native-runtime-sources-v1/bake-spec.json",
+    "sha256": "a3e6e55ed0ea158606ed649983920d8f0198d020c70aff5cc519c06d16c45674"
+  },
+  "current": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/published-native-runtime-sources-v2/candidate-1/bake-spec.json",
+    "sha256": "7b6d2bd152bd6ac4f8b13b5fd740726fbf7a27253ff84451cafcfb5cdc428962"
+  },
+  "producer": {
+    "path": "godot/data/underground/mole-worker/evidence/contact-qualification/published-native-runtime-sources-v2/prepare_runtime_bake.py",
+    "sha256": "fe49f130b765e3bc5121342cf5e34a662ee5bc2b169cc4c7384a1c2d808f5f57"
+  },
+  "changed_sources": [
+    {
+      "path": "res://demo/cast/underground_actor.gd",
+      "prior_sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "current_sha256": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91"
+    },
+    {
+      "path": "res://scripts/core/modular_project_contract.gd",
+      "prior_sha256": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
+      "current_sha256": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849"
+    },
+    {
+      "path": "res://scripts/core/transforms.gd",
+      "prior_sha256": "75a07d3fb01806e96d0ac6aa12c7a85e4fd7073489cf1a86897c41ee501e8319",
+      "current_sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa"
+    }
+  ],
+  "same_source_locations": [
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/reproduce.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/docs/design/underground-planning/evidence/modular-build/profiles/runtime/reproduce.py",
+      "sha256": "9a11af7b1e52f95848fb24e490155188cc8adf2d64cb61a94e335351ab9b252f"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/reproduce.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/evidence/matrix-presentation/reproduce.py",
+      "sha256": "460af20d367438aa0b238037cd27349988e4cdd7f7ef35487e92de678da7bc39"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-authoring/rebake.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/grip-authoring/rebake.py",
+      "sha256": "23fbd424aec0871b439a81a2e298fcb3d7b06886ec4132aaacd42fba7e1ae94f"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/source-plan.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/source-plan.json",
+      "sha256": "922f4855fdf4f8202ccf8b8761ec2974438f8df4134b74d9c99b6c51d4c14b1c"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_barley.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_barley.made.json",
+      "sha256": "344fa799714dccbbf34e62b85addaeed6430d56be96f5ea15b13efdbf6909955"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_beetroot.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_beetroot.made.json",
+      "sha256": "663d9ed9a4d7c2575b428a9ddef79d5de26878a12b0ef1dd96e24b54e3b2a175"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_carrot.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_carrot.made.json",
+      "sha256": "239bdf5d5cf273d230654edd575a71f608a24f186deedaf1e54b05bb6ed1b9cb"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_celery.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_celery.made.json",
+      "sha256": "0705bf99b15b1a7c1c1b796c749e1ca8850c0b1bbad061de806989476af8caeb"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_leek.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_leek.made.json",
+      "sha256": "dda90eb4e90b7f90786b96bba9c5f9f107beec0eab2102ed6f839d08da2c94bc"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_lettuce.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_lettuce.made.json",
+      "sha256": "7057fc245a3c777dfbe6fc276e6deeae18cd21c82223e7cba4944ca55e015e6b"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_oats.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_oats.made.json",
+      "sha256": "f830daa8a8fbda01a075b711df7d61c58b45694d685e39bf040a1929a762e5de"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_onion.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_onion.made.json",
+      "sha256": "5796d64ee2df1fcc2c892acd317625b3d4952f3c358410edb5ed2c6825a132c7"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_peas.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_peas.made.json",
+      "sha256": "b93f4645fa237c0fe5b40e36dcc0c02343a97ea124c5c08d4c144ef03d97bc7c"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_radish.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_radish.made.json",
+      "sha256": "e229cddab08a0d274043fceabb2e69f56ca703476fa755629ee0018c7a366c2c"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_turnip.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/item_turnip.made.json",
+      "sha256": "a8ce6c81af8b4b85c1e2d40fe20d2e102f8233cf12be968522dc72dfb34639e6"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/mole_pick.made.json",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/demo/assets/props/mole_pick.made.json",
+      "sha256": "963b11f1221e58e3fdfabe3868926ddb4f65d77ea7ec886ff99129445d9b222a"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_mole_grip_content.gd",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/bake_mole_grip_content.gd",
+      "sha256": "8f0a4846bc66bce1f4df2cdd603481f0445790758c215a2dd1d6e10382373e89"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_underground_matrices.gd",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/bake_underground_matrices.gd",
+      "sha256": "d38ff6fd787294b48636840a4df18342d14519213884380d44e9240b999e8066"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_profiles.gd",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/demo_props_blender.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/demo_props_blender.py",
+      "sha256": "1669e2e973339d75b6f4249ff944ce658c94b3cdbb83718353f1cfd822b55d6d"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/demo_texture_imports.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/demo_texture_imports.py",
+      "sha256": "0a0662b2b0fabc6d6c97099eb93188008b52f0e6ce0bcf41fb160e136f5c074e"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ground_meshy_clips.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/ground_meshy_clips.py",
+      "sha256": "bd19bee47712cc5019552ab511affca2f77d249ebbaf0a0caedff20407769e0b"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/make_demo_props.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/make_demo_props.py",
+      "sha256": "8a1e6187b9a0834364ca5e17125ec308e891788122f0c2c599d391f14574d832"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/repair_meshy_rig.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/repair_meshy_rig.py",
+      "sha256": "a8ed3b9aa755cb462109be6b56e23881d066284725ad507388acd2eb69359205"
+    },
+    {
+      "prior_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/stage_demo_assets.py",
+      "current_path": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/tools/stage_demo_assets.py",
+      "sha256": "10c489d39fd650183affaf003236897828478c831032ace1bb7d2a0735d5db2e"
+    }
+  ],
+  "current_source_commit": "bdef27f082611b68ce61cdd54d4f2d23bf11472b",
+  "native_executed": false,
+  "certificate_bits_written": 0
+}

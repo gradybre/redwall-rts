@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "clip": "hold.npz",
+  "loop": 0,
+  "source_proof": {
+    "all_intervals_complete": true,
+    "non_grip_separation": true,
+    "unresolved": [],
+    "initial_contained_vertices": [],
+    "pairs": 50,
+    "checks": 50,
+    "floor_penetrations": [],
+    "supported_feet": true,
+    "support_failures": [],
+    "continuous_two_hand_contact": true,
+    "grip_failures": [],
+    "body_triangles": 10209,
+    "non_grip_triangles": 9283,
+    "intentional_grip_triangles": [
+      478,
+      448
+    ],
+    "stock_triangles": 108,
+    "body_union_u": [
+      -316,
+      0,
+      -397,
+      316,
+      860,
+      233
+    ],
+    "stock_union_u": [
+      -173,
+      448,
+      -538,
+      153,
+      704,
+      -230
+    ],
+    "foot_union_u": [
+      [
+        -274,
+        0,
+        -169,
+        -79,
+        98,
+        89
+      ],
+      [
+        70,
+        0,
+        -64,
+        298,
+        102,
+        173
+      ]
+    ],
+    "rendered_timing": [
+      0,
+      65536
+    ],
+    "intervals": [
+      {
+        "interval": [
+          0,
+          1
+        ],
+        "pairs": 50,
+        "checks": 50,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      }
+    ],
+    "star_contained_vertices": [],
+    "passes": true
+  },
+  "scope": "Exact rendered affine source edges, including the loop wrap; exact star containment at every key. No native error, rate, root advance or runtime permission.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_stone_gait.py": "d4f17d9f791bf7a8a11e1f980afe8126c55871e748309c9073050b1eaf2eb100",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py": "4b3702a73c7792bdbfd259cae2fba80014a753c57e837a1b08973bf90ae1f1ef",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_carried_grip.py": "05b20c42e254aa33753aabf30f3e7b3c46dad69da3a123760076c5125ec25747",
+    "godot/data/underground/mole-worker/haul-handling-v1/stone_geometry.py": "68f3117e7932c6359b6bfc05b206fd61e692b350422fe2634b9f599f8b9bab87",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_stone_grip.py": "a2ba6bd458b19e4440576d4d17f059892fd56756db3b30bba431054307e3e0d8",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-gait-v1/hold.npz": "a28934d9e7a1da9f7a9019360cc4fe92a9c88af2247fa159d70b527b7f848f77",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-contact-v1/static-contact.json": "111252adcd8c4bd63fddd96f10f0c5e949360fa63069450aef690619a61e3c54"
+  }
+}

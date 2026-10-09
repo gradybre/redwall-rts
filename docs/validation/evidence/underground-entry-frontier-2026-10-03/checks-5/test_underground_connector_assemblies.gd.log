@@ -1,0 +1,40 @@
+state_registry_coverage: PASS -- 135 modules, 680 rows, 1014 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_assemblies.gd
+  PASS  test_two_groups_cover_four_actual_parts_with_one_anchor_each
+  PASS  test_unknown_empty_gap_overlap_and_outside_anchor_refuse
+  PASS  test_actual_catalog_census_prevents_missing_or_invented_parts
+  PASS  test_extra_included_part_bill_missing_group_and_wrong_anchor_refuse
+  PASS  test_refused_reads_preserve_every_output_and_successful_load_is_immutable
+  PASS  test_failed_first_hash_load_clears_bank_and_can_retry
+  PASS  test_wire_truncation_tail_version_counts_and_recipe_digest_refuse
+  PASS  test_allocation_preflight_and_independent_packed_census
+  PASS  test_exact_generic_maximum_and_twenty_six_candidate_groups
+  PASS  test_foreign_actual_recipe_inventory_and_rebinding_refuse
+  PASS  test_current_catalog_replacement_invalidates_grouping_without_output_writes
+  PASS  test_final_recipe_callback_cannot_reenter_or_replace_current_source
+  PASS  test_last_observer_world_retirement_refuses_initial_publication
+  PASS  test_last_observer_registration_rewire_preserves_hash_output
+  PASS  test_last_callback_output_resize_is_not_a_partial_hash_success
+  PASS  test_recipe_digest_callback_resize_refuses_before_any_hash_index
+  PASS  test_catalog_digest_callback_resize_refuses_unpublished_header
+CI_SUITE_TIME {"assertions":1002,"failures":0,"suite":"test_underground_connector_assemblies.gd","tests":17,"usec":613161}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+17 test(s), 1002 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 17 tests, 1002 assertions, 0 failures.

@@ -1,0 +1,91 @@
+{
+  "run_url": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961",
+  "source_commit": "92fcf82a32eba7daf57926a0554100322e288855",
+  "scope": "Integrated implementation. Later commits may update documentation and evidence only.",
+  "checks": [
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111086769469",
+      "name": "Godot headless suite",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673848",
+      "name": "Godot suite shard 2 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673932",
+      "name": "Godot suite shard 6 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673737",
+      "name": "Godot suite shard 3 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673876",
+      "name": "Godot suite shard 4 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673882",
+      "name": "Godot suite shard 5 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673830",
+      "name": "Godot suite shard 0 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673893",
+      "name": "Godot suite shard 7 / 8",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673780",
+      "name": "Godot gates (analyzer)",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673699",
+      "name": "Godot gates (metadata-a)",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673779",
+      "name": "Godot gates (metadata-b)",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673782",
+      "name": "Godot gates (metadata-c)",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673553",
+      "name": "Specification contracts",
+      "state": "SUCCESS"
+    },
+    {
+      "bucket": "pass",
+      "link": "https://github.com/gradybre/redwall-rts/actions/runs/37082107961/job/111084673852",
+      "name": "Godot suite shard 1 / 8",
+      "state": "SUCCESS"
+    }
+  ]
+}

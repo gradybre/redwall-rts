@@ -1,0 +1,11 @@
+test_carry_union_has_explicit_unique_clip_and_corner_budgets (__main__.StateHandoffs.test_carry_union_has_explicit_unique_clip_and_corner_budgets) ... ok
+test_clear_source_endpoints_do_not_establish_clear_cross_clip_blend (__main__.StateHandoffs.test_clear_source_endpoints_do_not_establish_clear_cross_clip_blend) ... ok
+test_complete_native_rows_bound_inverse_not_assumed_unit_norm (__main__.StateHandoffs.test_complete_native_rows_bound_inverse_not_assumed_unit_norm) ... ok
+test_padding_is_outward_and_retains_vertical_component (__main__.StateHandoffs.test_padding_is_outward_and_retains_vertical_component) ... ok
+test_shared_translation_is_removed_only_with_common_convex_weights (__main__.StateHandoffs.test_shared_translation_is_removed_only_with_common_convex_weights) ... ok
+test_uncertainty_and_exhausted_work_cannot_be_accepted (__main__.StateHandoffs.test_uncertainty_and_exhausted_work_cannot_be_accepted) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.477s
+
+OK

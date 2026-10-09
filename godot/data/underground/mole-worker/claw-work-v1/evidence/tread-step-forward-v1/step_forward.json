@@ -1,0 +1,268 @@
+{
+ "schema": 1,
+ "decision": [
+  "1209",
+  "1217"
+ ],
+ "motion": "tool-free 141 u step forward on a tread",
+ "recipe": "ADR 1164 finite short step on the approved claw walk, forward; no authored key",
+ "arrival_from_far_edge_u": 169,
+ "station_from_far_edge_u": 310,
+ "span_u": 141,
+ "moves": 2,
+ "walk_keys": [
+  0,
+  1,
+  2
+ ],
+ "pace_u_per_s": 3277,
+ "hz": 30,
+ "clip_sha256": "4414cf906ea0b9e3afab45220e6db7f05b38b3bf9344e1c1a3d5c00e6a1f5fcf",
+ "walk_sha256": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179",
+ "stand_sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+ "fixture": {
+  "solids_u": [
+   [
+    -1024,
+    -64,
+    -310,
+    1024,
+    0,
+    202
+   ],
+   [
+    -896,
+    -896,
+    -310,
+    -768,
+    -64,
+    202
+   ],
+   [
+    768,
+    -896,
+    -310,
+    896,
+    -64,
+    202
+   ],
+   [
+    -1024,
+    64,
+    202,
+    1024,
+    128,
+    2250
+   ],
+   [
+    -896,
+    -896,
+    202,
+    -768,
+    64,
+    2250
+   ],
+   [
+    768,
+    -896,
+    202,
+    896,
+    64,
+    2250
+   ],
+   [
+    -2048,
+    -896,
+    -822,
+    -1024,
+    768,
+    2250
+   ],
+   [
+    1024,
+    -896,
+    -822,
+    2048,
+    768,
+    2250
+   ],
+   [
+    -1024,
+    -896,
+    -822,
+    1024,
+    -128,
+    -310
+   ]
+  ],
+  "labels": [
+   "support deck T_{k-1}",
+   "T_{k-1} left bearer and posts (superset)",
+   "T_{k-1} right bearer and posts (superset)",
+   "deck behind (L0, or T_{k-2})",
+   "behind left bearer and posts (superset)",
+   "behind right bearer and posts (superset)",
+   "trench side wall, -x",
+   "trench side wall, +x",
+   "T_{k+1} fitted: its deck and everything under it (superset)"
+  ],
+  "swept_u": [
+   [
+    -1024,
+    -64,
+    -310,
+    1024,
+    0,
+    343
+   ],
+   [
+    -896,
+    -896,
+    -310,
+    -768,
+    -64,
+    343
+   ],
+   [
+    768,
+    -896,
+    -310,
+    896,
+    -64,
+    343
+   ],
+   [
+    -1024,
+    64,
+    202,
+    1024,
+    128,
+    2391
+   ],
+   [
+    -896,
+    -896,
+    202,
+    -768,
+    64,
+    2391
+   ],
+   [
+    768,
+    -896,
+    202,
+    896,
+    64,
+    2391
+   ],
+   [
+    -2048,
+    -896,
+    -822,
+    -1024,
+    768,
+    2391
+   ],
+   [
+    1024,
+    -896,
+    -822,
+    2048,
+    768,
+    2391
+   ],
+   [
+    -1024,
+    -896,
+    -822,
+    1024,
+    -128,
+    -169
+   ]
+  ],
+  "support_u": [
+   -1024,
+   -64,
+   -169,
+   1024,
+   0,
+   202
+  ]
+ },
+ "clear": true,
+ "world": {
+  "clear": true,
+  "unresolved": [],
+  "pairs": 55,
+  "numerical_sole_pairs": 42,
+  "checks": 29,
+  "ready_fade_without_contact_witness": [
+   {
+    "kind": "NO_SOURCE_STANCE_CONTACT",
+    "interval": 0
+   },
+   {
+    "kind": "NO_SOURCE_STANCE_CONTACT",
+    "interval": 3
+   }
+  ]
+ },
+ "self": {
+  "right_arm_vs_rest": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 217,
+   "checks": 217,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1000,
+   "second_triangles": 7776
+  },
+  "left_arm_vs_rest": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1056,
+   "second_triangles": 6901
+  },
+  "right_arm_vs_left_arm": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1000,
+   "second_triangles": 1056
+  },
+  "excluded_shoulder_seam_triangles": {
+   "right": 1433,
+   "left": 2252
+  },
+  "clear": true
+ },
+ "next_tread_fitted": true,
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/prove_tread_step_forward.py": "dc1749b92fd6a2d22ae4b8f0a82cc6752e8caf2a60829cbd835bcb4b960ac5bc",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_tread_step_back.py": "1d7edad53eda882bf121f1a33a0138cfac19372a8f7525e1404138eb8be912dc"
+ }
+}

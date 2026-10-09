@@ -1,0 +1,77 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_placements.gd
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_results' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_connector_placements.gd:208)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_connector_placements.gd:208)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_source_registration_copies_full_identity_without_building_geometry
+        actual Placement registration: PLACEMENT_STALE (expected , got PLACEMENT_STALE)
+        actual current record (expected , got PLACEMENT_STALE)
+        full permanent Room (expected (821, 2), got (-1, 0))
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_results' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_connector_placements.gd:208)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_connector_placements.gd:208)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_stream_capture_restore_is_bounded_and_authority_is_mandatory
+        actual Placement registration: PLACEMENT_STALE (expected , got PLACEMENT_STALE)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_results' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_connector_placements.gd:208)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_connector_placements.gd:208)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_registration_replaced_lease_preserves_new_lease_and_empty_state
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_results' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_connector_placements.gd:208)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_connector_placements.gd:208)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_retirement_requires_cleanup_and_reuses_full_generation
+        actual Placement registration: PLACEMENT_STALE (expected , got PLACEMENT_STALE)
+        actual cleanup mandatory (expected TEST_CLEANUP_CLOSED, got PLACEMENT_ORDER)
+        explicit fixture cleanup (expected , got PLACEMENT_ORDER)
+        same finite slot reused (expected , got PLACEMENT_STALE)
+        new full generation (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":69,"failures":3,"suite":"test_underground_connector_placements.gd","tests":4,"usec":1506251}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 69 assertion(s), 4 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

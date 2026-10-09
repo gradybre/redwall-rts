@@ -1,0 +1,25 @@
+clean-import.log 0
+test_underground_profiles.gd.log 0
+28 test(s), 669 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 28 tests, 669 assertions, 0 failures.
+test_underground_routes.gd.log 0
+SOURCE-CLOCK-TIMING samples4096 digest_us=19126 phase_us=32146 work_us=38669 one_actor_ticks512_us=87614 synthetic_geometry=true qualification=false
+HOT-REACH 256-callers 3-spans O2048 batches20 us min=17517 median=17968 p95=18471 max=18834
+79 test(s), 12206 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 79 tests, 12206 assertions, 0 failures.
+test_underground_world_routes.gd.log 0
+43 test(s), 2746 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 43 tests, 2746 assertions, 0 failures.
+test_mole_profile_driver.gd.log 0
+17 test(s), 2786 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 17 tests, 2786 assertions, 0 failures.
+analyzer.log 0
+0 GDScript warning(s) in 0 of 11 file(s)

@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-1/result"
+  ],
+  "source_before": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py": "486c6e965d6f1fab01f1127edfa3079ef457f2e420a9ac9cf43d889b75fe05b0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py": "6efee24f1fa1c8517f640fab026f6365bd5bc23549c1f0012bc0dcf30e70c3d5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/source-inputs.json": "08bdbc095e2ef1aa63666c5c55bc1cc2e9ab338704f392d5e3c765a1104da076"
+  },
+  "production_qualified": false,
+  "exit_code": 1,
+  "elapsed_seconds": 1.354513166937977,
+  "source_after": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py": "486c6e965d6f1fab01f1127edfa3079ef457f2e420a9ac9cf43d889b75fe05b0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py": "6efee24f1fa1c8517f640fab026f6365bd5bc23549c1f0012bc0dcf30e70c3d5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/source-inputs.json": "08bdbc095e2ef1aa63666c5c55bc1cc2e9ab338704f392d5e3c765a1104da076"
+  },
+  "source_unchanged": true
+}

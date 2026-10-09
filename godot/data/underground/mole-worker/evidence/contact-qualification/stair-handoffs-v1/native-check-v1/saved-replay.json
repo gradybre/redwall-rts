@@ -1,0 +1,17 @@
+{
+  "poses": 3795,
+  "joins": 12,
+  "screenshots": 93,
+  "bone_checks": 91080,
+  "world_checks": 7590,
+  "assertions": 125652,
+  "production_qualified": false,
+  "scope": "source_only_stair_handoffs_gl",
+  "all_image_bytes_match": true,
+  "image_width": 1280,
+  "image_height": 720,
+  "source_count": 911,
+  "sources_unchanged": true,
+  "exact_old_review_pins": 356,
+  "runtime_bake_sha256": "063417e6f215fc80d820237c2af43ec162c0f0d6a18420c5cd7c20a28ea465c9"
+}

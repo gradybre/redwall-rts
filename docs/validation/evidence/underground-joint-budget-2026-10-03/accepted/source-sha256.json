@@ -1,0 +1,20 @@
+{
+  ".github/workflows/tests.yml": "c0ceb1eacdc481d8c2d4a416b8121f88ad78aea28c127b574a4e6a9e14a8dd52",
+  "docs/decisions/1072-joint-underground-state-and-memory.md": "c009e63a12a297633e9220da3b245f757af0ddb2295bebce8839d1242cb55216",
+  "docs/persistence_state_registry.md": "0dcf3b5bcacf0fe47e01fe992cae324e0691c1cade5767294a03d211dc212f9f",
+  "docs/planning/canonical_state_registry.json": "e0f9278bec43386af0a59cd4b2a81b9143c9c907cbcf16cdd2da8975b197d17c",
+  "docs/planning/registry_capacity_audit.json": "a288936144f5ce200a126c2384716e0af7a19678cc5fa3bafef31cb6b82426ae",
+  "docs/planning/underground_memory_pack.json": "e01c04320b8d403e914443645e57f00e78c7ec4c2d782e0cd7b53076335016f8",
+  "docs/systems_architecture.md": "ae54eb8fffb0df5d80259fa72b8fee68811b15168b4a02ad61a78eddd7862433",
+  "docs/validation/ready07_arithmetic.py": "651206233f7e6a9748f72874a0b53d68a1e30520a7f60f31029e07351ac506c1",
+  "docs/validation/validate_cycle02_handoff.py": "cf5e21429ecfb7f29f31b0f6d773df23775d78ce3809779dd5fedad3b63482bf",
+  "docs/validation/validate_save_registry_handoff.py": "304bd9d5f78bb114495d4b96f6dbfca76b047716e778f9f05928fd8156544a5a",
+  "godot/scripts/core/canonical_state_hash.gd": "31853e27681b6aa41c3eb0f2b9c466860d24332eb6188c3f70879afdbdacd74f",
+  "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+  "godot/test/test_canonical_state_hash.gd": "0be76f210f4752bf0889fb860f0d9856f4991a8ca339e3d89d302b2e6cebd2f0",
+  "godot/test/test_underground_budget.gd": "fc1ac2a18428d0061d59dbbe5313a0b9d130cac09e7aebf3e4b008fe0dca1cd6",
+  "tools/audit_registry_capacities.py": "40c8cafc95f5b8045314a659e8002f79a06813aeb1b39056e2392da72aadb5ef",
+  "tools/test_registry_capacity_audit.py": "e1522c2eec8a030b70b01d872241f2b8e1901525bc7ecf1384865cd6f53b1abf",
+  "tools/test_underground_memory_budget.py": "52f58e70a9c1ace1c181cb27b2d80ce65db97f145e8476d77236f8202e5f1f1a",
+  "tools/underground_memory_budget.py": "a2ba1c6dd4cc6104f75de52c758975e5caa83181afdca21f1a452991b81485e3"
+}

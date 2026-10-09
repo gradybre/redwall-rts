@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_world_retirement.gd
+  PASS  test_populated_world_prepares_without_clearing_and_repeats_exactly
+  PASS  test_live_world_and_partial_clear_refuse_all_links_atomically
+  PASS  test_clear_alone_preserves_links_release_preserves_ordinary_owners
+  PASS  test_foreign_owner_host_session_and_mutable_packet_cannot_replace_scope
+  PASS  test_transaction_and_cold_scopes_refuse_without_publishing_output
+  PASS  test_publication_and_observer_brackets_refuse_before_clearing
+  PASS  test_foreign_empty_directory_cannot_attest_spatial_inventory
+  PASS  test_expired_nonnull_binding_is_not_optional_unbound_state
+  PASS  test_same_numeric_world_on_other_directory_and_reused_generation_refuse
+  PASS  test_settled_project_does_not_need_individual_cancellation
+  PASS  test_inventory_remount_reuses_identical_arena_and_rejects_capacity_change
+  PASS  test_pending_world_requires_explicit_original_allowance
+  PASS  test_pending_request_and_profile_image_cannot_be_replaced_after_prepare
+  PASS  test_catalog_loading_and_source_receiver_replacement_refuse
+  PASS  test_cleared_hidden_work_and_goods_columns_refuse_atomically
+SCRIPT ERROR: Invalid type in function 'release_preflighted' in base 'GDScript'. The Object-derived class of argument 2 (previously freed) is not a subclass of the expected argument class.
+          at: test_freed_host_refuses_and_scope_retains_original_receivers (res://test/test_underground_world_retirement.gd:417)
+          GDScript backtrace (most recent call first):
+              [0] test_freed_host_refuses_and_scope_retains_original_receivers (res://test/test_underground_world_retirement.gd:417)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-retirement/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_freed_host_refuses_and_scope_retains_original_receivers
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":1744,"failures":0,"suite":"test_underground_world_retirement.gd","tests":16,"usec":4528982}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: 273 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 45 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+
+16 test(s), 1744 assertion(s), 1 failure(s)
+diagnostics: 1 unexpected error(s), 1 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 273 object(s), 45 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

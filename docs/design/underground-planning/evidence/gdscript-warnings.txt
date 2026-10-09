@@ -1,0 +1,3 @@
+Integrated baseline: origin/master 82d60ba8
+Command: python3 tools/gdscript_warnings.py --max 0 --json /tmp/redwall-underground-warnings-final.json
+0 GDScript warning(s) in 0 of 1028 file(s)

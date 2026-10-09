@@ -1,0 +1,55 @@
+{
+  "head_before": "e234bde0882695d9a0d28288f7bf45ca05b9a953",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 13.356,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6411",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/compile-1/analyzer.json",
+        "godot/scripts/core/underground_session.gd",
+        "godot/scripts/core/underground_world_retirement.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/underground_surface_anchor.gd",
+        "godot/test/test_underground_session.gd",
+        "godot/test/test_underground_world_retirement.gd",
+        "godot/test/test_underground_host.gd",
+        "godot/test/test_underground_surface_anchor.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 16.545,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1171-28231f95490c9cb1",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "import_raw_findings": [],
+  "strict_suites": {},
+  "executed_source_unchanged": true,
+  "project_restored": true,
+  "registry_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "original_sources_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

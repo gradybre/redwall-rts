@@ -1,0 +1,1 @@
+The initial proof adapter treated compile_profiles._vertex_hulls as one row per frame. That helper returns one hull per surface, so frame 1 raised IndexError before a report was emitted. The correction calls it separately for each exact endpoint; no acceptance result existed.

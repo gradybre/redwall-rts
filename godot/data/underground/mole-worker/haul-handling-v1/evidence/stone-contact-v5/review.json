@@ -1,0 +1,69 @@
+{
+  "hands": {
+    "left": {
+      "grip_vertices": 786,
+      "grip_vertices_inside": 5,
+      "deepest_grip_penetration_u": 1.0,
+      "wrist_forearm_min_gap_u": 3.68
+    },
+    "right": {
+      "grip_vertices": 783,
+      "grip_vertices_inside": 9,
+      "deepest_grip_penetration_u": 7.03,
+      "wrist_forearm_min_gap_u": 47.69
+    }
+  },
+  "stone_bounds_u": [
+    -172.975879676178,
+    0.0019504791180224856,
+    -793.4553070010861,
+    152.69392696594878,
+    255.51787738507937,
+    -486.3999938964844
+  ],
+  "torso_legs_head_min_gap_u": 63.26,
+  "torso_legs_head_nearest": {
+    "vertex": 15251,
+    "point_u": [
+      18.9,
+      143.3,
+      -430.8
+    ],
+    "dominant_bone": "Head"
+  },
+  "floor_contacts_exact": [
+    {
+      "role": "left_foot",
+      "gap_u": 0.0019748655653753083
+    },
+    {
+      "role": "right_foot",
+      "gap_u": 0.002004901896102612
+    },
+    {
+      "role": "stock",
+      "gap_u": 0.0019504791180224856
+    }
+  ],
+  "witness_points_u": [
+    [
+      -160.85,
+      111.49,
+      -610.33
+    ],
+    [
+      122.09,
+      171.75,
+      -609.1
+    ]
+  ],
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "scope": "Float radial diagnostics for a human reviewer; the exact rules are in static-contact.json.",
+  "inputs_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/review_stone_grip.py": "225e77fc07a89fa69b5cc0c5c915f08694aca9cdcc63bd81a14afe7257808fbb",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-contact-v5/poses.npz": "122779c8aade8395c9a2df2f686962d847b9007ce79974cf5c10c5e8d3d60562",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-contact-v5/static-contact.json": "d941310d4692930c9718ef8c9c114b739501934ed0ae9adc35f4dc6847d8bd7e"
+  }
+}

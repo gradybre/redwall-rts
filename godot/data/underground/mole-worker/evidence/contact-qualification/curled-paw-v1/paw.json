@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "decision": "1216",
+  "step": 1,
+  "inversion_round_trip_error_m": 1.1102230246251565e-16,
+  "mid_plane_z_m": -0.025571491946120177,
+  "palm_surface_z_m": 0.04207030589397003,
+  "finger_thickness_after_thinning_m": 0.04393604063219727,
+  "shaft_radius_m": 0.028185962905393304,
+  "shaft_axis_yz_m": [
+    0.078125,
+    0.07025626879936334
+  ],
+  "neutral_radius_m": 0.050153983221491935,
+  "full_curl_degrees_at_finger_tip": 101.00243932542551,
+  "moved_vertices": 841,
+  "witness": {
+    "paw_vertices_inside_shaft": 8,
+    "paw_vertices_in_contact_shell": 66,
+    "wrap_sectors_covered": 7,
+    "wrap_sectors": 24,
+    "wrap_degrees": 105.0
+  },
+  "paw_width_x_m": [
+    -0.11713076539665239,
+    0.09352110295004296
+  ],
+  "fit_hand_to_pick_lateral_2": [
+    [
+      0.28919971622107926,
+      0.0,
+      0.0,
+      -0.12510302385249344
+    ],
+    [
+      0.0,
+      0.0,
+      0.28919971622107926,
+      0.078125
+    ],
+    [
+      0.0,
+      -0.28919971622107926,
+      0.0,
+      0.1266015408994742
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "curled_rest_points_sha256": "5a1278d2b75694b34880cfdbab7bbffb09191a7baac3fdc183aa6e346bc48a24",
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_curled_paw.py": "8840376af319bcd0a5926054b3a26b9abffb9f6bb14b16ee5473a6fece238fb2",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_pick_refit.py": "5ccb78d12f6ddfc0111d4ece412b1fd72de4ba1df6b12b34342944c0c54ae9f7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/pick-fit-v1/lateral-1/fit.json": "f9831649032c39f710219a655e0a673e8cd4773c952b7082627d1ecd79ece45b"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://demo/cast/underground_actor.gd": {
+      "commit": "eddf9027811a25749da0b632e813ae38e078ad6d",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6"
+    },
+    "res://demo/tunnel/tunnel_panel.gd": {
+      "commit": "ca8506677eba7d5f6dd41dfa89f989666f7f6d31",
+      "sha256": "83edb7c2eeb6d2878f25c9b3a19ea4a1f5ccd35d8e4f7ee4f802d3f7f9a11d7c"
+    },
+    "res://scripts/core/buildings.gd": {
+      "commit": "e3027d5fa467622494620eb123ba0e6d7a618af4",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977"
+    },
+    "res://scripts/core/construction.gd": {
+      "commit": "9e590f0beff258339dae33e764decdaeb7726e6d",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "commit": "8d6176042d25b6d4f9395b6c67fa0dface604d29",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "commit": "0172e80800a52d5da2f912e88a2e90d37f26417d",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f"
+    },
+    "res://scripts/core/inventory.gd": {
+      "commit": "88c5fbac8143e128c5c63e91d20cc4318312ef15",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "commit": "8e8e2bac1e038165330fcb7ccacd08793ce63d50",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58"
+    },
+    "res://scripts/core/reservations.gd": {
+      "commit": "848218558ebda685a6d12ebf2d9b883e202cbc18",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465"
+    },
+    "res://scripts/core/transforms.gd": {
+      "commit": "2d36d76a01a128335e6071c28cdb6270610bd850",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7"
+    },
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "a65b4b1879f3de2eec72772b8b615ab635bf2fc7",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    },
+    "res://scripts/core/work.gd": {
+      "commit": "8e8e2bac1e038165330fcb7ccacd08793ce63d50",
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d"
+    },
+    "res://scripts/core/world_init.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4"
+    },
+    "res://scripts/systems/settlement_system.gd": {
+      "commit": "1443127111f9e3eac452a2f4ba3d8d96bde1398c",
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a"
+    },
+    "res://scripts/systems/ui_manager.gd": {
+      "commit": "8d6176042d25b6d4f9395b6c67fa0dface604d29",
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d"
+    },
+    "res://scripts/ui/ui_notices.gd": {
+      "commit": "5467083b6570ed4e845edf9c9426e280e407f347",
+      "sha256": "cc315ea1e8dee188cc4a17a9dc5c1b52e967f6768f171f780e2edeb5cec2f055"
+    },
+    "res://scripts/ui/ui_resident_card.gd": {
+      "commit": "787bca73fe17ac453af7d0354aa657753c6e5241",
+      "sha256": "96d07f75a9db6459162a8c8e2b59ba6965fe182cbd6d86a981a010d4650c8cc6"
+    },
+    "res://scripts/ui/ui_resident_snapshot.gd": {
+      "commit": "f6f5fe2bcc0597ecd36866137ea03c661648b103",
+      "sha256": "7c43dcd07c0183b45d480aec9a817a3a83f5d4db51c14468befb81d80eb56023"
+    },
+    "res://scripts/ui/ui_world_session.gd": {
+      "commit": "74d0f66b7c9e40df11bb403b32e79fb32279bb95",
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5"
+    }
+  },
+  "scope": "authored shape for review only: no palette, presentation, GDScript port or proof",
+  "production_qualified": false
+}

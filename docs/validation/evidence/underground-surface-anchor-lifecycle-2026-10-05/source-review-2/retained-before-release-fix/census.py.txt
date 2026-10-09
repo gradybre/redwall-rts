@@ -1,0 +1,374 @@
+#!/usr/bin/env python3
+"""1171 exact source/lifetime census; reference/header terms are provisional."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[4]
+HERE = Path(__file__).resolve().parent
+OLD = ROOT / 'docs/validation/evidence/underground-route-owner-composition-2026-10-04'
+PREDECESSOR_SHA = '36450885299daa6948158177bc0042bd0f633e76eef67807f2a75aa952d9e75c'
+CONSTRUCTOR_SHA = '6aafb8a74519ab22ab7013256b199c538ef2362678189ee7c7a2191feb3cc200'
+FILES = {
+    'Session': 'godot/scripts/core/underground_session.gd',
+    'Retirement': 'godot/scripts/core/underground_world_retirement.gd',
+    'Host': 'godot/scripts/systems/settlement_system.gd',
+    'SurfaceAnchor': 'godot/scripts/core/underground_surface_anchor.gd',
+    'RouteComposition': 'godot/scripts/core/underground_route_composition.gd',
+    'Composition': 'godot/scripts/core/underground_room_composition.gd',
+}
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def verified(path, expected):
+    data = path.read_bytes()
+    require(sha(data) == expected, 'immutable manifest drift: ' + str(path))
+    rows = json.loads(data)
+    for name, row in rows.items():
+        locator = row.get('locator', name) if isinstance(row, dict) else name
+        digest = row['sha256'] if isinstance(row, dict) else row
+        require(sha((ROOT / locator).read_bytes()) == digest, 'immutable input drift: ' + name)
+    return rows
+
+
+def predecessor():
+    rows = verified(HERE / 'predecessor/manifest.json', PREDECESSOR_SHA)
+    # No predecessor Python executes until its own bytes, report and all input
+    # manifests have matched the fixed outer digest. Its build repeats every
+    # transitive producer/source check before its constructor parser import.
+    spec = importlib.util.spec_from_file_location('ug1171_base', OLD / 'census.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    old = {key: (ROOT / rows[name]['locator']).read_text()
+           for key, name in FILES.items() if name in rows and 'locator' in rows[name]}
+    old_base = {key: value for key, value in old.items() if key in module.FILES}
+    result = module.build(old_base)
+    expected = json.loads((OLD / 'source-review-1/census.json').read_text())
+    require(json.loads(json.dumps(result)) == expected, 'complete predecessor census reproduction')
+    return module, old, result
+
+
+def source_guards(base, source, old):
+    for name in ('Session', 'Host', 'SurfaceAnchor'):
+        require(base.members(source[name]) == base.members(old[name]), 'no new ' + name + ' member')
+    require(base.class_members(source['Retirement'], 'Scope') ==
+            base.class_members(old['Retirement'], 'Scope'), 'unchanged private Scope')
+    expected = base.class_members(old['Retirement'], 'Owners') | {'surface_anchor': 'SurfaceAnchor'}
+    require(base.class_members(source['Retirement'], 'Owners') == expected, 'one original Anchor alias')
+    # A matching name/type does not bound an initializer's payload. Preserve
+    # every original top-level declaration (including multiline initializers)
+    # and both packet-class declaration blocks, admitting only this null alias
+    # and its script preload. The separate method parser counts local frames.
+    for name in ('Session', 'Host', 'SurfaceAnchor', 'Retirement'):
+        actual = declaration_blocks(source[name])
+        original = declaration_blocks(old[name])
+        if name == 'Retirement':
+            extra = 'const SurfaceAnchor := preload("res://scripts/core/underground_surface_anchor.gd")'
+            require(actual.count(extra) == 1, 'one exact Anchor preload')
+            actual.remove(extra)
+        require(actual == original, 'unchanged original member/constant initializers: ' + name)
+    for klass in ('Owners', 'Scope'):
+        actual = nested_declarations(source['Retirement'], klass)
+        original = nested_declarations(old['Retirement'], klass)
+        if klass == 'Owners':
+            actual.remove('var surface_anchor: SurfaceAnchor = null')
+        require(actual == original, 'unchanged private packet initializers')
+    for name in ('Session', 'Host', 'Retirement', 'SurfaceAnchor'):
+        old_frames = base.parse(old[name], name)
+        for key, row in base.parse(source[name], name).items():
+            expected = allocation_signature(old_frames[key]) if key in old_frames else ([], [], [])
+            require(allocation_signature(row) == expected, 'uncharged owned collection allocation: ' + key)
+    require(source['Retirement'].count('target.surface_anchor = source.surface_anchor') == 1 and
+            source['Retirement'].count('first.surface_anchor == second.surface_anchor') == 1,
+            'copied and compared original Anchor alias')
+    require(source['Session'].count('Retirement.Owners.new()') == 1 and
+            source['Session'].count('Retirement.Scope.new()') == 1 and
+            source['Session'].count('Retirement.SurfaceAnchor.new()') == 1, 'single original packets and Anchor')
+    for module in ('RouteComposition', 'Composition'):
+        require(source[module] == (ROOT / FILES[module]).read_text(), 'unchanged constructor: ' + module)
+    for token in ('_retirement_scope != null', '_operations_state = 1', '_operations_state == 3'):
+        require(token in source['Session'], 'retirement and constructor exclusion')
+    require('Retirement.SurfaceAnchor.RESERVED_BYTES' in source['Session'] and
+            'const RESERVED_BYTES: int = 2048' in source['SurfaceAnchor'] and
+            'const RETIREMENT_RESERVED_BYTES: int = 8192' in source['Retirement'], 'unchanged reservations')
+    configure = base.parse(source['SurfaceAnchor'], 'SurfaceAnchor')['SurfaceAnchor.configure']['body']
+    require(configure.count('.resize(6)') == 4 and configure.count('.resize(') == 4,
+            'only the existing four six-I32 buffers')
+    require('_locations != null' in configure and '_refuse_configuration()' in configure,
+            'bound refused Anchor cannot reconfigure')
+    host = base.parse(source['Host'], 'Host')
+    caller = host['Host.compose_underground_route_owners']['body']
+    require('var final_code:' not in caller and
+            'return _finish_route_owner_composition(original, code, starting)' in caller,
+            'route constructor final result has a separate frame')
+    require('var final_code: StringName' in host['Host._finish_route_owner_composition']['body'],
+            'post-constructor final result still exists')
+    anchor = base.parse(source['SurfaceAnchor'], 'SurfaceAnchor')
+    for name in ('retirement_refusal_in', '_retirement_stores_in'):
+        body = re.sub(r'""".*?"""|#[^\n]*', '', anchor['SurfaceAnchor.' + name]['body'], flags=re.S)
+        dotted = set(re.findall(r'\b([\w.]+)\(', body))
+        require(dotted <= {'original.locations._world_scope.get_ref', '_retirement_stores_in'},
+                'final Anchor leaf must not observe public owners')
+
+
+def declaration_blocks(text):
+    """Capture complete top-level declarations through continuation lines."""
+    result = []
+    for match in re.finditer(r'^(?:static var|var|const) [^\n]*(?:\n[ \t]+[^\n]*)*', text, re.M):
+        result.append(match[0].rstrip())
+    return result
+
+
+def nested_declarations(text, name):
+    chunk = text.split('class ' + name + ' extends RefCounted:\n', 1)[1]
+    chunk = re.split(r'^\S', chunk, maxsplit=1, flags=re.M)[0]
+    return declaration_blocks(re.sub(r'^\t', '', chunk, flags=re.M))
+
+
+def collection_refusal(name, row):
+    """No uncharged inline, typed or constructor-created collection is a scalar slot."""
+    code = re.sub(r'""".*?"""|#[^\n]*', '', row['body'], flags=re.S)
+    code = re.sub(r'&?"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', '""', code)
+    require(all(kind not in ('Array', 'Dictionary', 'Variant') and not kind.startswith('Packed')
+                for _, kind in row['values']), 'unbounded constructor local: ' + name)
+    require(not re.search(r'\b(?:Packed\w+Array|Dictionary|Array(?:\[[^\]]+\])?)\s*\(', code),
+            'uncharged collection constructor: ' + name)
+    # Indexed reads have an identifier, dot, close bracket or close parenthesis
+    # before '['. A bracket after an operator/comma/opening delimiter/return is
+    # a collection literal and needs an explicit lifetime/payload census.
+    literals = re.findall(r'(?<![\w.\]\)])\[[^\]]*\]', code)
+    permitted = []
+    if name == 'Owner._read_source':
+        permitted = ['[Directory.KIND_WORLD, Directory.KIND_BUILDING, Directory.KIND_ROOM, '
+                     'Directory.KIND_FURNITURE, Directory.KIND_CONSTRUCTION, Directory.KIND_RESIDENT]']
+    require([' '.join(value.split()) for value in literals] == permitted and '{' not in code,
+            'uncharged collection literal: ' + name)
+
+
+def allocation_signature(row):
+    """Detect new collection locals, inline constructors and literal payloads in all own methods."""
+    code = re.sub(r'""".*?"""|#[^\n]*', '', row['body'], flags=re.S)
+    code = re.sub(r'&?"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', '""', code)
+    types = [(name, kind) for name, kind in row['values']
+             if kind in ('Array', 'Dictionary', 'Variant') or kind.startswith('Packed')]
+    constructors = re.findall(r'\b(?:Packed\w+Array|Dictionary|Array(?:\[[^\]]+\])?)\s*\(', code)
+    literals = [' '.join(value.split()) for value in re.findall(r'(?<![\w.\]\)])\[[^\]]*\]|\{[^}]*\}', code)]
+    return types, constructors, literals
+
+
+def anchor_reservation(base, source):
+    """Existing logical owner reservation, explicitly separate from native allocation claims."""
+    fields = base.members(source['SurfaceAnchor'])
+    record = base.class_members((ROOT / 'godot/scripts/core/underground_locations.gd').read_text(), 'Record')
+    region = base.class_members((ROOT / 'godot/scripts/core/underground_space_owner.gd').read_text(), 'Region')
+    result = base.class_members(source['SurfaceAnchor'], 'Result')
+    for values, expected in ((record, {'envelope', 'support'}), (region, {'box'}), (result, set())):
+        require({name for name, kind in values.items() if kind not in base.WIDTH} == expected,
+                'only existing nested fixed numeric/packed packets')
+    own_numeric = sum(base.WIDTH.get(kind, 0) for kind in fields.values())
+    packet_numeric = sum(base.WIDTH.get(kind, 0) for values in (record, region, result) for kind in values.values())
+    packed = 4 * 6 * 4
+    fixed = own_numeric + packet_numeric + packed
+    require(fixed + 1024 <= 2048, 'existing SurfaceAnchor logical reservation')
+    borrowed = {name: kind for name, kind in fields.items()
+                if kind not in base.WIDTH and name not in ('_record', '_region', '_surface_box')}
+    require(len(borrowed) == 21, 'complete original borrowed owner census')
+    return {'reserved_bytes': 2048, 'own_numeric_bytes': own_numeric,
+            'record_region_result_numeric_bytes': packet_numeric, 'packed_bytes': packed,
+            'fixed_numeric_and_packed_bytes': fixed, 'logical_helper_allowance': 1024,
+            'borrowed_owner_references': borrowed, 'retained_packet_objects': 2,
+            'packed_buffer_count': 4, 'native_measured': False,
+            'scope': 'Existing separately charged logical SurfaceAnchor reservation, not a new retirement allocation. '
+                     'Native object/ref/header costs are source-enumerated but unmeasured; the 2048-byte logical '
+                     'reservation is not a whole-native-allocation certificate. No second anchor is copied into Scope.'}
+
+
+def frames_for(base, source, prior):
+    frames = {}
+    for phase in prior['phases'].values():
+        frames.update(phase['frames'])
+    for name, text in source.items():
+        parsed = base.parse(text, name)
+        for row in parsed.values():
+            # The accepted parser's receiver set predates this one additive
+            # static owner leaf; include its actual transitive callees.
+            row['calls'] += ['SurfaceAnchor.' + method for method in
+                             re.findall(r'\bSurfaceAnchor\.([a-z_]\w*)\(', row['body'])]
+            row['calls'] = sorted(set(row['calls']))
+        frames.update(parsed)
+    return frames
+
+
+def surface_constructor(base, source):
+    """Finite actual configure graph, including original foreign leaf frames.
+
+    Terrain's ordinary source read is of the already-pinned World. It cannot
+    take a Building/Resident result-object branch in this original concrete
+    composition. FinalFacts' distinct complete source scan includes all kinds,
+    including the Resident/Route branches, using preallocated output packets.
+    """
+    aliases = {'Owner': 'underground_space_owner', 'Locations': 'underground_locations',
+               'Routes': 'underground_routes', 'FinalFacts': 'underground_final_facts',
+               'Terrain': 'underground_terrain', 'World': 'world_init',
+               'Directory': 'entity_directory', 'Space': 'room_space',
+               'Budget': 'underground_budget', 'Work': 'work', 'Residents': 'residents', 'Needs': 'needs',
+               'Buildings': 'buildings', 'Construction': 'construction'}
+    texts = {name: (ROOT / 'godot/scripts/core' / (path + '.gd')).read_text()
+             for name, path in aliases.items()}
+    texts.update(source)
+    for name in ('CoreSources', 'Facts', 'Value'):
+        parent = 'Space' if name == 'Value' else 'Owner'
+        chunk = texts[parent].split('class ' + name + ' extends ', 1)[1].split('\n', 1)[1]
+        chunk = re.split(r'^\S', chunk, maxsplit=1, flags=re.M)[0]
+        texts[name] = re.sub(r'^\t', '', chunk, flags=re.M)
+    frames = {}
+    for name, text in texts.items():
+        # A trailing nested class (World.SavedMap) is not part of the previous
+        # scalar getter's frame. Nested CoreSources/Facts are extracted above.
+        top = re.sub(r'^class [^\n]*\n(?:[ \t][^\n]*(?:\n|$)|\n)*', '', text, flags=re.M)
+        frames.update(base.parse(top, name))
+    edges = {
+        'Session._configure_surface_anchor': ['SurfaceAnchor.configure'],
+        'SurfaceAnchor.configure': ['Budget.is_quiescent', 'Locations.bind_world_scope'],
+        'SurfaceAnchor._bind_owners': ['CoreSources.resident_locations_owner', 'Locations.world_ref', 'World.section_1_published_seed'],
+        'SurfaceAnchor._initial_binding_refusal': ['Owner.has_prepared', 'Owner.allocation_within', 'Owner.revision',
+            'Locations.cold_peak_bytes', 'Terrain.binding_refusal', 'FinalFacts.snapshot_refusal'],
+        'SurfaceAnchor.exact_binding': ['World.directory', 'World.is_published', 'World.section_1_published_seed',
+            'Directory.is_valid_of_kind', 'FinalFacts._same_domain'],
+        'Locations.bind_world_scope': ['SurfaceAnchor.exact_binding', 'Budget.is_quiescent', 'Owner.has_prepared'],
+        'Locations.world_ref': ['Directory.is_valid'],
+        'Terrain.binding_refusal': ['Owner.is_bound_sources', 'World.is_published', 'World.section_1_published_seed',
+            'World.resource_nodes', 'World.directory', 'CoreSources.directory', 'CoreSources.construction_owner',
+            'Construction.buildings'],
+        'Terrain._world_source_refusal': ['CoreSources.directory', 'Directory.is_valid_of_kind',
+            'Owner.revision', 'Owner.source_revision', 'Owner.source_refusal'],
+        'Owner._read_source': ['CoreSources.directory', 'CoreSources.read_into', 'Directory.is_valid',
+            'Directory.get_kind', 'Directory.is_valid_of_kind', 'Space.int32'],
+        'Owner._nullable_ref': ['Space.valid_ref'],
+        'CoreSources.read_into': ['Directory.is_valid_of_kind', 'Facts.clear'],
+        'CoreSources.read_leaf_into': ['Facts.clear', 'Directory.is_valid', 'Directory.get_kind'],
+        'CoreSources.read_final_into': ['Facts.clear'],
+        'FinalFacts._sources_refusal': ['Directory.is_valid_of_kind', 'CoreSources.read_final_into', 'Owner._facts_match'],
+        'FinalFacts._claims_refusal': ['Directory.is_valid_of_kind', 'CoreSources.read_final_into'],
+        'FinalFacts._facts_refusal': ['Directory.get_kind', 'Directory.is_valid_of_kind', 'Owner._nullable_ref', 'Space.int32'],
+        'FinalFacts._location_binding': ['Directory.is_valid_of_kind'],
+        'FinalFacts._resident_into': ['Work.jobs', 'Routes._resident_ref', 'Residents.is_alive', 'Routes._resident_pair'],
+        'FinalFacts._resident_location_refusal': ['Routes._resident_pair', 'Locations._live_ref', 'Owner._region_live',
+            'Buildings.is_live_room', 'Locations._get32', 'Locations._ref_at'],
+        'FinalFacts._transit_refusal': ['Routes._resident_pair', 'Routes._live_edge', 'Routes._edge_i32',
+            'Routes._vertex', 'Routes._segment_length', 'Routes._edge_pair', 'Routes._interpolate'],
+        'Buildings._room_row_of': ['Directory.is_valid_of_kind', 'Directory.get_typed_row'],
+        'Residents.is_alive': ['Needs.is_alive'],
+        'Space.int32': ['Value.int32'],
+        'Space.valid_ref': ['Value.valid_ref'],
+    }
+    for name, children in edges.items():
+        require(name in frames, 'missing surface constructor caller: ' + name)
+        for child in children:
+            require(child in frames, 'missing surface constructor callee: ' + child)
+        frames[name]['calls'] += children
+        frames[name]['calls'] = sorted(set(frames[name]['calls']))
+    # CoreSources.read_into has one ordinary use in this graph: Terrain's
+    # exact immutable World source. The other full-kind reader is static and
+    # deliberately retains all of its actual final source branches below.
+    frames['CoreSources.read_leaf_into']['calls'] = ['Facts.clear', 'Directory.is_valid', 'Directory.get_kind']
+    require('space.source_refusal(_world_ref)' in frames['Terrain._world_source_refusal']['body'] and
+            'Directory.KIND_WORLD' in frames['Terrain._world_source_refusal']['body'],
+            'only the pinned original World enters the ordinary source reader')
+    selected = base.reachable(frames, ['Session._configure_surface_anchor'])
+    for name, row in selected.items():
+        collection_refusal(name, row)
+        if name == 'Session._configure_surface_anchor':
+            continue
+        code = re.sub(r'""".*?"""|#[^\n]*', '', row['body'], flags=re.S)
+        require(not re.search(r'\.new\(|\.duplicate\(|\.append\(', code),
+                'unreconciled constructor allocation: ' + name)
+        require('.resize(' not in code or name == 'SurfaceAnchor.configure',
+                'unreconciled constructor packed allocation: ' + name)
+    # Sum the maxima for numeric and reference columns independently, matching
+    # the already-reviewed conservative frame census; add the two caller
+    # frames, and the complete temporary six-kind literal in Owner._read_source.
+    count = base.peak(selected, ['Session._configure_surface_anchor'])
+    caller_keys = ['Host.compose_underground_surface_anchor', 'Session.compose_surface_anchor']
+    caller_bytes = sum(frames[key]['numeric_and_name_bytes'] + 32 * frames[key]['reference_values']
+                       for key in caller_keys)
+    literal_bytes = 6 * 32 + 256
+    weak_scope_bytes = 32 + 256
+    total = count['provisional_bytes'] + caller_bytes + literal_bytes + weak_scope_bytes
+    for row in count['frames'].values():
+        row.pop('body', None)
+        row.pop('values', None)
+    return {'graph': count, 'caller_chain': caller_keys, 'caller_frame_bytes': caller_bytes,
+            'world_source_six_kind_literal_bytes': literal_bytes,
+            'retained_weak_scope_charged_again_bytes': weak_scope_bytes,
+            'provisional_total': total, 'new_cold_lease_or_snapshot_bytes': 0,
+            'native_measured': False}
+
+
+def build(replacements=None):
+    verified(HERE / 'constructor-source-sha256.json', CONSTRUCTOR_SHA)
+    base, old, prior = predecessor()
+    source = {name: (ROOT / path).read_text() for name, path in FILES.items()}
+    require(not replacements or set(replacements) <= set(FILES), 'only named current source replacements')
+    source.update(replacements or {})
+    source_guards(base, source, old)
+    frames = frames_for(base, source, prior)
+    phases = {name: base.peak(frames, roots) for name, roots in {
+        'reset_with_ui': ['UI.create_world'],
+        'direct_reset': ['Host.reset', 'Host.prepare_world_reset', 'Host.abandon_world_reset', 'Host._notification'],
+        'route_own_prefix_and_result_tail': ['Host.compose_underground_route_owners'],
+        'surface_own_prefix_and_result_tail': ['Host.compose_underground_surface_anchor'],
+    }.items()}
+    for phase in phases.values():
+        for row in phase['frames'].values():
+            row.pop('body', None)
+            row.pop('values', None)
+    controls = prior['accounting']['controls'] + 2 * 32
+    helper = max(phase['provisional_bytes'] for phase in phases.values())
+    require(controls <= 6144 and helper <= 2048, 'retained/reset envelope exceeded')
+    constructor = base.constructor(source)
+    surface = surface_constructor(base, source)
+    absent = prior['constructor_exclusive_reuse']['absent_original_scope_and_copy_bytes'] + 32
+    remaining = controls - absent
+    maximum = max(constructor['maximum_provisional_bytes'], surface['provisional_total'])
+    total = remaining + maximum
+    require(total <= 8192, 'constructor lifetime exceeds unchanged 8192')
+    return {
+        'source_sha256': {FILES[name]: sha(text.encode()) for name, text in source.items()},
+        'predecessor_manifest_sha256': PREDECESSOR_SHA,
+        'constructor_source_manifest_sha256': CONSTRUCTOR_SHA,
+        'retained_numeric_delta': 0, 'retained_reference_delta': 2,
+        'additional_packed_bytes': 0, 'phases': phases, 'route_constructor': constructor,
+        'surface_constructor': surface,
+        'existing_surface_reservation': anchor_reservation(base, source),
+        'constructor_exclusive_reuse': {
+            'absent_original_scope_and_copy_bytes': absent,
+            'remaining_controls': remaining,
+            'constructor_stack_and_heap': maximum,
+            'simultaneous_total': total, 'ceiling': 8192, 'remaining': 8192 - total},
+        'accounting': {'controls': controls, 'control_ceiling': 6144,
+                       'helpers': helper, 'helper_ceiling': 2048,
+                       'retirement_reserved_bytes': 8192,
+                       'existing_session_reserved_bytes': 1536,
+                       'profile_joint': 246868, 'profile_ceiling': 262144},
+        'native_measured': False, 'runtime_qualified': False,
+    }
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--out', type=Path, required=True)
+    args = parser.parse_args()
+    require(not args.out.exists() and not args.out.is_symlink(), 'create-only census')
+    args.out.write_text(json.dumps(build(), indent=2) + '\n')

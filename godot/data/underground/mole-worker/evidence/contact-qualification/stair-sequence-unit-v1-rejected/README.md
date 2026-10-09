@@ -1,0 +1,1 @@
+Rejected first unit fixture: the missing-triangle test omitted source_duration_s and refused before its intended census branch. This was corrected to a complete 91-row timing/support fixture. No physical source proof had run.

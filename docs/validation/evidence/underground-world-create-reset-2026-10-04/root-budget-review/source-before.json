@@ -1,0 +1,12 @@
+{
+  "tools/underground_memory_budget.py": "6f724e328b0ec83b67da2ada7c4bacd8e9d411d5984580df9cbc380c0925181a",
+  "tools/underground_motion_memory.py": "b12e238855d7faf09cf7bba1202f0694d185d8f4e70835440ceb4e36c186c381",
+  "tools/underground_motion_clock_memory.py": "6e50b6aa0c8518821c6a233639ff217e72a950f7a1e76c131f73c6479a619cb4",
+  "tools/underground_session_memory.py": "9f10067df850374fbd4c02d3a19551c850841c8a82ac346d9e94b65de42faace",
+  "tools/underground_retirement_memory.py": "f06437b9ef11cd346e83000d99b3498b37807f871ea7e1ee33bb19566483426c",
+  "tools/test_underground_memory_budget.py": "9c8295e699c948d50d20e38ca968985158e7437afe6ba58fe5f7c3692952492a",
+  "docs/persistence_state_registry.md": "22fa9be7026e3b76b1ab22002550b94a50e425f376095f335d967f947ec3aed0",
+  "docs/systems_architecture.md": "45c0103d224c99e392d54b1322c27fac0abe12359d81a64b350420d661e257a2",
+  "docs/validation/ready07_arithmetic.py": "be09d07b68973d03d15e2f8f9acb79c5f1bc81ede900c957d64106d35f089c74",
+  "docs/decisions/1162-current-underground-profile-integration.md": "6118ece9e297280e6ecd6b0319cdbd1e29d42ed2a7aa2c48d6546db92ee66862"
+}

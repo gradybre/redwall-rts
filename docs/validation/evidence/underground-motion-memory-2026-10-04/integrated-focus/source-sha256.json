@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/underground_motion_catalog.gd": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
+  "godot/test/test_underground_motion_catalog.gd": "8c836e098c08cc706cd29ba80b2ab11fa6ec494f7b1e6eddb94de8bd8ef5bf1a",
+  "tools/underground_memory_budget.py": "421ecdb1903905869e5482a77c9ce41a10322ec08cd79344136ced380acabf2d",
+  "tools/underground_motion_memory.py": "5f323c778aca66722c2c0d589984f1b3d44dbe70bfb18457baf89136005ab5b4",
+  "tools/test_underground_memory_budget.py": "2a865766c5f4d7b75077cb4918897702b26a408ac5510baf6fdc122e466ff515",
+  "docs/planning/underground_memory_pack.json": "153c056ad9bf711091ae1568205d52374fad18bb728dfa33d2466e2d43f536e3",
+  "docs/planning/registry_capacity_audit.json": "22693b7196e13738c9a8d6ae9872d916fb40532fbe60e5324cf9a4e726f43939"
+}

@@ -1,0 +1,1148 @@
+{
+  "schema": 3,
+  "roles": {
+    "stand": {
+      "BODY_HELD_LOAD": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -406,
+          -1,
+          -406,
+          406,
+          0,
+          406
+        ]
+      ]
+    },
+    "ground_walk": {
+      "BODY_HELD_LOAD": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -406,
+          -1,
+          -406,
+          406,
+          0,
+          406
+        ]
+      ]
+    },
+    "down": {
+      "BODY_HELD_LOAD": [
+        [
+          -306,
+          0,
+          -528,
+          367,
+          1157,
+          648
+        ],
+        [
+          -121,
+          -1,
+          -305,
+          282,
+          0,
+          342
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -274,
+          -1,
+          -305,
+          328,
+          0,
+          454
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -452,
+          0,
+          -732,
+          780,
+          1192,
+          909
+        ],
+        [
+          -248,
+          -1,
+          -145,
+          203,
+          0,
+          338
+        ]
+      ],
+      "WORK_APPROACH": [
+        [
+          -409,
+          0,
+          -732,
+          548,
+          840,
+          234
+        ],
+        [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ]
+      ],
+      "WORK_STROKE": [
+        [
+          -272,
+          0,
+          -820,
+          328,
+          1422,
+          909
+        ],
+        [
+          -190,
+          -60,
+          -678,
+          49,
+          0,
+          -536
+        ]
+      ],
+      "CONTACT_POINT": [
+        [
+          42,
+          0,
+          -673,
+          42,
+          0,
+          -673
+        ]
+      ],
+      "CONTACT_PATCH": [
+        [
+          -190,
+          0,
+          -678,
+          49,
+          0,
+          -536
+        ]
+      ]
+    },
+    "high": {
+      "BODY_HELD_LOAD": [
+        [
+          -208,
+          0,
+          -528,
+          367,
+          1157,
+          648
+        ],
+        [
+          -105,
+          -1,
+          57,
+          282,
+          0,
+          342
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -274,
+          -1,
+          -171,
+          328,
+          0,
+          454
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -452,
+          0,
+          -536,
+          780,
+          1192,
+          909
+        ],
+        [
+          185,
+          514,
+          -732,
+          672,
+          878,
+          -536
+        ],
+        [
+          -248,
+          -1,
+          -145,
+          203,
+          0,
+          338
+        ]
+      ],
+      "WORK_APPROACH": [
+        [
+          -409,
+          0,
+          -732,
+          548,
+          840,
+          234
+        ],
+        [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ]
+      ],
+      "WORK_STROKE": [
+        [
+          -198,
+          660,
+          -536,
+          328,
+          1422,
+          909
+        ],
+        [
+          -11,
+          949,
+          -578,
+          128,
+          1043,
+          -536
+        ]
+      ],
+      "CONTACT_POINT": [
+        [
+          122,
+          1039,
+          -536,
+          122,
+          1039,
+          -536
+        ]
+      ],
+      "CONTACT_PATCH": [
+        [
+          120,
+          1038,
+          -536,
+          123,
+          1041,
+          -536
+        ]
+      ]
+    },
+    "front": {
+      "BODY_HELD_LOAD": [
+        [
+          -396,
+          0,
+          -646,
+          433,
+          933,
+          234
+        ],
+        [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -274,
+          -1,
+          -169,
+          299,
+          0,
+          174
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -537,
+          0,
+          -768,
+          594,
+          997,
+          234
+        ],
+        [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ]
+      ],
+      "WORK_APPROACH": [
+        [
+          -409,
+          0,
+          -732,
+          548,
+          840,
+          234
+        ],
+        [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ]
+      ],
+      "WORK_STROKE": [
+        [
+          -359,
+          94,
+          -768,
+          594,
+          1169,
+          -108
+        ],
+        [
+          -129,
+          189,
+          -814,
+          15,
+          717,
+          -768
+        ]
+      ],
+      "CONTACT_POINT": [
+        [
+          6,
+          707,
+          -768,
+          6,
+          707,
+          -768
+        ]
+      ],
+      "CONTACT_PATCH": [
+        [
+          4,
+          705,
+          -768,
+          7,
+          710,
+          -768
+        ]
+      ]
+    },
+    "install": {
+      "BODY_HELD_LOAD": [
+        [
+          -409,
+          0,
+          -350,
+          321,
+          840,
+          234
+        ],
+        [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -274,
+          -1,
+          -169,
+          299,
+          0,
+          174
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -274,
+          0,
+          -169,
+          299,
+          128,
+          189
+        ],
+        [
+          -409,
+          128,
+          -732,
+          548,
+          842,
+          234
+        ]
+      ],
+      "WORK_APPROACH": [
+        [
+          -274,
+          0,
+          -169,
+          299,
+          128,
+          189
+        ],
+        [
+          -409,
+          128,
+          -732,
+          548,
+          840,
+          234
+        ]
+      ],
+      "WORK_STROKE": [
+        [
+          112,
+          125,
+          -459,
+          141,
+          128,
+          -437
+        ],
+        [
+          -30,
+          128,
+          -674,
+          259,
+          669,
+          -212
+        ]
+      ],
+      "CONTACT_POINT": [
+        [
+          128,
+          128,
+          -448,
+          128,
+          128,
+          -448
+        ]
+      ],
+      "CONTACT_PATCH": [
+        [
+          127,
+          128,
+          -449,
+          129,
+          128,
+          -447
+        ]
+      ]
+    }
+  },
+  "source_matrices_timing_grounding_rederived": true,
+  "old_roles_and_source_values_preserved": true,
+  "install_proof_sha256": "a5685deb7d65ec524548f717b3d425d38bbd4a9d2b181425205ca4bfcbb0cbbd",
+  "install_loop_edge_equivalence": [
+    {
+      "proved": [
+        0,
+        1
+      ],
+      "rendered": [
+        0,
+        1
+      ]
+    },
+    {
+      "proved": [
+        1,
+        2
+      ],
+      "rendered": [
+        1,
+        2
+      ]
+    },
+    {
+      "proved": [
+        2,
+        3
+      ],
+      "rendered": [
+        2,
+        3
+      ]
+    },
+    {
+      "proved": [
+        3,
+        4
+      ],
+      "rendered": [
+        3,
+        4
+      ]
+    },
+    {
+      "proved": [
+        4,
+        5
+      ],
+      "rendered": [
+        4,
+        5
+      ]
+    },
+    {
+      "proved": [
+        5,
+        6
+      ],
+      "rendered": [
+        5,
+        6
+      ]
+    },
+    {
+      "proved": [
+        6,
+        7
+      ],
+      "rendered": [
+        6,
+        7
+      ]
+    },
+    {
+      "proved": [
+        7,
+        8
+      ],
+      "rendered": [
+        7,
+        8
+      ]
+    },
+    {
+      "proved": [
+        8,
+        9
+      ],
+      "rendered": [
+        8,
+        9
+      ]
+    },
+    {
+      "proved": [
+        9,
+        10
+      ],
+      "rendered": [
+        9,
+        10
+      ]
+    },
+    {
+      "proved": [
+        10,
+        11
+      ],
+      "rendered": [
+        10,
+        11
+      ]
+    },
+    {
+      "proved": [
+        11,
+        12
+      ],
+      "rendered": [
+        11,
+        12
+      ]
+    },
+    {
+      "proved": [
+        12,
+        13
+      ],
+      "rendered": [
+        12,
+        13
+      ]
+    },
+    {
+      "proved": [
+        13,
+        14
+      ],
+      "rendered": [
+        13,
+        14
+      ]
+    },
+    {
+      "proved": [
+        14,
+        15
+      ],
+      "rendered": [
+        14,
+        15
+      ]
+    },
+    {
+      "proved": [
+        15,
+        16
+      ],
+      "rendered": [
+        15,
+        16
+      ]
+    },
+    {
+      "proved": [
+        16,
+        17
+      ],
+      "rendered": [
+        16,
+        17
+      ]
+    },
+    {
+      "proved": [
+        17,
+        18
+      ],
+      "rendered": [
+        17,
+        18
+      ]
+    },
+    {
+      "proved": [
+        18,
+        19
+      ],
+      "rendered": [
+        18,
+        19
+      ]
+    },
+    {
+      "proved": [
+        19,
+        20
+      ],
+      "rendered": [
+        19,
+        20
+      ]
+    },
+    {
+      "proved": [
+        20,
+        21
+      ],
+      "rendered": [
+        20,
+        21
+      ]
+    },
+    {
+      "proved": [
+        21,
+        22
+      ],
+      "rendered": [
+        21,
+        22
+      ]
+    },
+    {
+      "proved": [
+        22,
+        23
+      ],
+      "rendered": [
+        22,
+        23
+      ]
+    },
+    {
+      "proved": [
+        23,
+        24
+      ],
+      "rendered": [
+        23,
+        24
+      ]
+    },
+    {
+      "proved": [
+        24,
+        25
+      ],
+      "rendered": [
+        24,
+        25
+      ]
+    },
+    {
+      "proved": [
+        25,
+        26
+      ],
+      "rendered": [
+        25,
+        26
+      ]
+    },
+    {
+      "proved": [
+        26,
+        27
+      ],
+      "rendered": [
+        26,
+        27
+      ]
+    },
+    {
+      "proved": [
+        27,
+        28
+      ],
+      "rendered": [
+        27,
+        28
+      ]
+    },
+    {
+      "proved": [
+        28,
+        29
+      ],
+      "rendered": [
+        28,
+        29
+      ]
+    },
+    {
+      "proved": [
+        29,
+        30
+      ],
+      "rendered": [
+        29,
+        30
+      ]
+    },
+    {
+      "proved": [
+        30,
+        31
+      ],
+      "rendered": [
+        30,
+        31
+      ]
+    },
+    {
+      "proved": [
+        31,
+        32
+      ],
+      "rendered": [
+        31,
+        0
+      ]
+    }
+  ],
+  "entry_body_plane_partition": {
+    "bounds_u": [
+      -274,
+      -1,
+      -169,
+      299,
+      128,
+      189
+    ],
+    "plane_u": 128,
+    "native_triangles": 10209,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ]
+    ],
+    "residual_m": [
+      {
+        "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+        "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+      },
+      {
+        "numerator": 27041000162059753850445069400396516160227176887328496068702094189340225377964195160415,
+        "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+      },
+      {
+        "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+        "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+      }
+    ],
+    "complement": "all original body geometry at or above the exact same plane"
+  },
+  "install_contact": [
+    {
+      "source_vertex": 478,
+      "rendered_edge": [
+        14,
+        15
+      ],
+      "anchor_u": [
+        128,
+        128,
+        -448
+      ],
+      "patch_u": [
+        127,
+        128,
+        -449,
+        129,
+        128,
+        -447
+      ],
+      "share_range": [
+        {
+          "numerator": 13281744517010795829,
+          "denominator": 24004186013884743680
+        },
+        {
+          "numerator": 14820849689664662837,
+          "denominator": 24004186013884743680
+        }
+      ],
+      "residual_m": [
+        {
+          "numerator": 371792645206760672793595672145637501140424423803132101037240685262207133490497130112270343529602202476662623183832035055108087,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 56429020601421495933458061693259748951137405677478005104666392807762131914380328034034979401659236617192784479962856291827703,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 371792645206760672793595672145637501140424423803132101037240685262207133490497130112270343529602202476662623183832035055108087,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ]
+    }
+  ],
+  "install_phase_partition": {
+    "common_planted_floor": {
+      "role": "BODY_HELD_LOAD",
+      "bounds_u": [
+        -134,
+        -1,
+        44,
+        -126,
+        0,
+        60
+      ],
+      "phases": [
+        "ready",
+        "entry",
+        "work",
+        "recovery"
+      ],
+      "proof": "Exact same full-triangle numerical sole enclosure in all four sources; mandatory BODY role always participates."
+    },
+    "productive_body_above_floor": "BODY_HELD_LOAD",
+    "entry_and_recovery_above_floor": "TURN_RECOVERY",
+    "ready_body_and_held_tool_above_floor": "WORK_APPROACH",
+    "productive_active_adze": "WORK_STROKE"
+  },
+  "source_primitive_census": [
+    10209,
+    1150
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "2a8882267d4c72e01e71aac563d8e225c109aa0b4b996843eb49ca1069790670",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py": "19fe426df8373229df330666b4f0cdc453e4a202455424ae1a442a62c8ffe548",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "input_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/program.json": "22d25b7a0f542c86ed75e22c71b4f076eed7423ac46a756bf9e58c72aca1df2f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/roles.json": "84cf43a446a6e5d42d9bc2c0398caea681dcaa46bdf0491320346d4c6ddf80c6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/plan.json": "93f7e3c4baf07070fa6e6dbed5ce6a7b471236299322929ea66912712c9e7b8e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json": "4a771e103b400e967bb752fd0ce340735574fc84aa2c5373dd1a2ff7c770dc57",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json": "50fd154de80b00625c7e7cd677334aa6ecd4cd735ce1c7499ff2bf091281340c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-proof-v4/proof.json": "a5685deb7d65ec524548f717b3d425d38bbd4a9d2b181425205ca4bfcbb0cbbd"
+  },
+  "production_qualified": false,
+  "scope": "source-local yaw0 INSTALL with complete unchanged compact source program; no actual handling or runtime target",
+  "remaining": [
+    "INDEPENDENT_INSTALL_PROGRAM_REVIEW",
+    "NATIVE_V3_DRIVER",
+    "PROFILE_CERTIFICATE_BINDING",
+    "ACTUAL_PAID_WIP_AND_CARRY_LAY_HANDLING",
+    "ACTUAL_SUPPORT_TARGET_AND_RETREAT",
+    "PRESENTATION_PEAK"
+  ]
+}

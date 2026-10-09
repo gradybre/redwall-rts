@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 134 modules, 666 rows, 1002 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_placements.gd
+  PASS  test_actual_confirmation_publishes_future_placement_and_refreshes_old_paths
+  PASS  test_unbound_or_refused_companion_preserves_all_live_owners
+  PASS  test_first_frontier_bind_is_exact_and_remains_bound_after_retirement_to_empty
+  PASS  test_late_frontier_tuple_and_original_request_changes_refuse_atomically
+  PASS  test_original_lease_replacement_after_sites_never_publishes_or_releases_replacement
+  PASS  test_final_candidate_and_prepared_payload_changes_refuse_before_identity
+  PASS  test_original_context_reentry_and_early_publication_cannot_commit
+  PASS  test_second_admission_preserves_prior_self_target_and_rejects_other_source_tuple
+CI_SUITE_TIME {"assertions":284,"failures":0,"suite":"test_underground_entry_placements.gd","tests":8,"usec":3197767}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 284 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 284 assertions, 0 failures.

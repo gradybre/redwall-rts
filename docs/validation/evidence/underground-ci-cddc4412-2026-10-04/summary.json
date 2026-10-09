@@ -1,0 +1,105 @@
+{
+  "commit": "cddc4412e3d829ec3193b2aaa3a5c7e257bcdfe5",
+  "run": 37196812223,
+  "shards": [
+    {
+      "file": "shards/godot-shard-0/shard-0.log",
+      "sha256": "91cadfb20e51f4647f1b0cb34772b35492b601ee0c688e3a38b02a111bfad025",
+      "lines": [
+        "1258 test(s), 312425 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 9 expected, 27 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "file": "shards/godot-shard-1/shard-1.log",
+      "sha256": "cb91a9f79f44c9429f35d96398db25e87d8fd6eb7006b9072c1278f8a609805c",
+      "lines": [
+        "1303 test(s), 112750 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 216 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "file": "shards/godot-shard-2/shard-2.log",
+      "sha256": "5a3c4539be99dedc596d1fa55995e41ed5c23fe2e7ea6a56060ada96ec6e3c28",
+      "lines": [
+        "1526 test(s), 97089 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 7 expected, 21 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "file": "shards/godot-shard-3/shard-3.log",
+      "sha256": "6086d34bb36ae73ccfea52d7330fa6893825fca9b4ddd323a52d6b1c684554cd",
+      "lines": [
+        "  FAIL  test_actual_profile_actor_and_cached_sources_pass_without_world_permission",
+        "  FAIL  test_stripped_cached_script_refuses_even_with_same_identity",
+        "  FAIL  test_changed_cached_source_refuses_and_restore_recovers",
+        "1655 test(s), 124052 assertion(s), 3 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 23 expected, 248 tolerated; leaked at exit: 0 object(s), 0 resource(s)"
+      ]
+    },
+    {
+      "file": "shards/godot-shard-4/shard-4.log",
+      "sha256": "0b814adfd970458b6bbf70694ab7a241d0dd77969d26b83a352bb2263af702c8",
+      "lines": [
+        "1235 test(s), 53573 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 3 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "file": "shards/godot-shard-5/shard-5.log",
+      "sha256": "c3264fecb9eafed3b39a24b25781c99a5f47444330e181a295141405607ed439",
+      "lines": [
+        "  FAIL  test_actual_source_rows_and_headings_keep_every_contact_distinct",
+        "  FAIL  test_all_yaw_ground_profile_preserves_full_tool_and_ground_stance",
+        "  FAIL  test_stale_claim_or_job_preserves_previous_selected_source",
+        "  FAIL  test_wrong_domain_content_and_renderer_refuse_before_profile_publication",
+        "  FAIL  test_cold_descriptor_does_not_create_actual_worker_permission",
+        "  FAIL  test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_larger_box",
+        "  FAIL  test_actual_cached_source_hashes_and_bounded_unicode_chunks",
+        "  FAIL  test_driver_uses_the_published_source_tuple_without_work_credit",
+        "1116 test(s), 80332 assertion(s), 8 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 14 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)"
+      ]
+    },
+    {
+      "file": "shards/godot-shard-6/shard-6.log",
+      "sha256": "bc17087d3c656b9ad0da1cc7be2e1c014e533b6fb893b1e7291fd006650d952f",
+      "lines": [
+        "1412 test(s), 158886 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 43 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "file": "shards/godot-shard-7/shard-7.log",
+      "sha256": "9f787d716b8f88eb10c918ada56e195f806a47a0405ffa29a5396c0b284037fd",
+      "lines": [
+        "1328 test(s), 56895 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 11 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    }
+  ],
+  "qualification": "rejected",
+  "totals": {
+    "tests": 10833,
+    "assertions": 996002,
+    "failures": 11
+  },
+  "strict_diagnostics": {
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "observed_suite_files": 383,
+  "every_observed_file_once": true,
+  "analyzer": "0 GDScript warning(s) in 0 of 1201 file(s)",
+  "raw": "Six passing shards all zero; failed shards3/5 stop before raw guard"
+}

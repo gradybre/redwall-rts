@@ -1,0 +1,11 @@
+--- 
++++ 
+@@ -123,7 +123,7 @@
+ 		_record_pose(heading, view, tick, frame, state)
+ 		await process_frame
+ 		if tick in [4, 24, 46, 62, 94, 128, 158, 188]:
+-			await _save_frame("%s-yaw%d-tick%03d" % [view, frame.yaw, tick], profile, tick)
++			_save_frame("%s-yaw%d-tick%03d" % [view, frame.yaw, tick], profile, tick)
+ 		if not _suite.failures.is_empty():
+ 			break
+ 	_suite.assert_true(frame.ready and frame.point == START, "exact recovered access endpoint")

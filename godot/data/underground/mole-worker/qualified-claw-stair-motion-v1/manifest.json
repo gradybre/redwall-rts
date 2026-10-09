@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "decision": [
+    "1229",
+    "1217",
+    "1209"
+  ],
+  "content_revision": 10,
+  "wire_sha256": "e7840c7babc9bbe21c8f8c36a3d3a313172bc4a3adff9f13dcd6f4a99c25a58b",
+  "wire_bytes": 9620,
+  "programs": [
+    {
+      "row": 51,
+      "keys": 2,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        141
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 11
+    },
+    {
+      "row": 52,
+      "keys": 2,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -310,
+          1024,
+          0,
+          202
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        -141
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 12
+    },
+    {
+      "row": 53,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ],
+        [
+          -1024,
+          -192,
+          -681,
+          1024,
+          -128,
+          -169
+        ]
+      ],
+      "end_u": [
+        0,
+        -128,
+        -512
+      ],
+      "yaw": [
+        0,
+        0
+      ],
+      "clip": 13
+    },
+    {
+      "row": 54,
+      "keys": 91,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -343,
+          1024,
+          0,
+          169
+        ],
+        [
+          -1024,
+          64,
+          169,
+          1024,
+          128,
+          681
+        ]
+      ],
+      "end_u": [
+        0,
+        128,
+        512
+      ],
+      "yaw": [
+        32768,
+        32768
+      ],
+      "clip": 14
+    },
+    {
+      "row": 55,
+      "keys": 271,
+      "decks": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ]
+      ],
+      "end_u": [
+        0,
+        0,
+        174
+      ],
+      "yaw": [
+        0,
+        32768
+      ],
+      "clip": 15
+    }
+  ],
+  "inputs": {
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/motion.ugmotion": "8055dd9bd31a48c71137470309bd5748e0d439a71f195aa0a5fcb0d26ca7f5d6",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/stair-rows-v1/rows.json": "4d8ec575798d6169503fd7d7cfea683698771054d0e02c7dbdb751aac8a1a525",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-stairs-v1/proof.json": "38039e10fcc8527a2af75b927800bbe77ab1bbc7403b9f0af03f3fe1a9d2ad24",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-turn-v1/candidate.json": "f6fed167fd1d3ade3883c85eb7146973b317753ae1cd26f04d4c37d06367367b",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-step-back-v1/step_back.json": "329369a115a7144da806cb081e7ef3403de193a5994f087c65c891a8f013cdf1",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-step-forward-v1/step_forward.json": "7e24dd46b85d30b10d5b70fb145c054b90632821e5f6ba8bb3253419afc65e1e",
+    "godot/data/underground/mole-worker/publish_claw_stair_motion.py": "2d202420ab2417c87f8f6843f5d65671c21f4a8501c82b8537523debd4f921e7"
+  },
+  "runtime_admitted": false
+}

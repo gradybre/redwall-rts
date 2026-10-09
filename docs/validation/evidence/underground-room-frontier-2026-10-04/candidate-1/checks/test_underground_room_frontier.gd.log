@@ -1,0 +1,3 @@
+FAIL C4 underground_room_frontier.gd line 1993: member cell '`remaining_out`' names no column
+FAIL C4 underground_room_frontier.gd line 1993: member cell '`remaining_out`' names no column
+state_registry_coverage: 2 failure(s)

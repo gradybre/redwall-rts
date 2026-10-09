@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "engineering_only": true,
+  "review_packets": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/source-sha256.json": "93597572925d214984f3e015af569c1d8cd631a5f282cf50ae4f20384fe43aac",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/output-sha256.json": "2323432455f6b09a91aefa1ae734dd40c16dc449bc5492d48f5181661c3401b1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/source-sha256.json": "def65c0ee0479e8c9df45e818b86aedceaf6895b13080e4777967bd5a7742a96",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/output-sha256.json": "c02ef973f4807d2f15d07fbae6e9437dc078f5ef42dff3c5dc5abcb7d0a7ca8f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/source-sha256.json": "2880bae71e5a63ad84abbe22599e071f0fa9a1e05a918a1ad5144b6220fdfc64",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/output-sha256.json": "944a0d460732c54a3977d2cd9c253e96aff05e5a93381f6e585f93aa81eb79ca"
+  },
+  "programs": [
+    {
+      "direction": "ascent",
+      "clip": 0,
+      "rise_u": 128,
+      "paths": {
+        "image": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor",
+        "candidate": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/candidate.json",
+        "plan": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/plan.json",
+        "compilation": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/compilation.json",
+        "terrain": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v3.json",
+        "self": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/self-v1.json",
+        "sequence": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-proof.json",
+        "fixture": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-fixture.json"
+      },
+      "sha256": {
+        "image": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+        "candidate": "3f66b788004e971f8291f81b714aedaaaef77185974aae47cf540521508e0334",
+        "plan": "8aa50f9d5bb508bdb2cd6e34d047f73f18a8ae45a784c1b790057aa136251ef4",
+        "compilation": "eebaf6368442b9fc51a567375623186b115a044d19b236b03de685947f6e9108",
+        "terrain": "caef0c5208a06a15d62f63b86a12673179dee929506a527dfac918e1077d9258",
+        "self": "6ad8b1930aa8f00c120afbe7905da9e3b5b720d26397e04a4b82216cec4f09c3",
+        "sequence": "a89ce7143fbcd9f322aaf874a63f5d58c7cf9e15b629b69366de9d10f713c434",
+        "fixture": "8b1afca6f6d1f280a5ba6a463e5b3997d3b2ae92ad43d342e120d7f7af57c235"
+      }
+    },
+    {
+      "direction": "descent",
+      "clip": 0,
+      "rise_u": -128,
+      "paths": {
+        "image": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor",
+        "candidate": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/candidate.json",
+        "plan": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/plan.json",
+        "compilation": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/compilation.json",
+        "terrain": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/terrain-v1.json",
+        "self": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/self-v1.json",
+        "sequence": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-proof.json",
+        "fixture": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-fixture.json"
+      },
+      "sha256": {
+        "image": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+        "candidate": "c6a58567a036c38fc3d61d74f48202cecfeb080e162866acbc117d22f7fa4196",
+        "plan": "638c7e1c9f74f2248b583086e5e75e928f90504beb5dc3b616ff11497db6df03",
+        "compilation": "1541cb1daa1b78e66fa67285bd5870844b035ce1e12a798b1eb399c1b9b60fc8",
+        "terrain": "a79a7f4fe233cf3ff2172173631cfde2d8392edc50e355b7082e0370f806c7ae",
+        "self": "278f616404492054207e7cb2e417b3f84a79654da7e39314a08071c5d12f4db3",
+        "sequence": "276911c3fe2c939bb8fed2643a13256644389e5f54cfa6b0cd9601668f8e0f89",
+        "fixture": "58ce062868be6ff08a07fce5411d31d0c05ae495839127129a0aee7e3d9fa787"
+      }
+    }
+  ],
+  "root_equation": "separate_integer_ceil_v1",
+  "rate_adopted": false,
+  "runtime_bindings": [],
+  "accepted_source_adapter": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py": "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json": "46741887b362bfbc32a175b7fdeb48824d54d4b39564fd5f79fe8c439139467a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "reviewer": "root integration owner, independent of implementation author",
+  "reviewed_at_utc": "2026-10-04T20:57:21.472472+00:00",
+  "source_base": "dc6baa12a2c78d873a5f3673e28df177552ce8c0",
+  "verdict": "accepted_component_only",
+  "manifests": {
+    "source-sha256.json": {
+      "sha256": "f9bbaa9af33f8c0abddce431b54a130f1b565c433c1c1baeb6e9979e1f24c58a",
+      "verified_pins": 12
+    },
+    "output-sha256.json": {
+      "sha256": "d7285a60787de7b866bc5809df382c81300b7bb5a28fec62cda3235a6054a769",
+      "verified_pins": 28
+    },
+    "history-sha256.json": {
+      "sha256": "f563f30322ec662976c93d43ccb720e01c8e3de780d8a6b9a869e2b544454f87",
+      "verified_pins": 187
+    }
+  },
+  "findings": [],
+  "closed_early_finding": "Inherited EntryWorldBindings observer/cold brackets now checked; actual subtype regression included.",
+  "reviewed": [
+    "All four owner-owned static release leaves and shared whole-World predicate",
+    "Kernel full owner tuple, retained private source images and optional-null semantics",
+    "Complete joint preflight before first release; no transitive observer or allocation in final release",
+    "Populated, live World, partial clear, expired, foreign allocator, reused generation, late source, prepared request, and same-arena remount tests",
+    "Complete source/control/cross-owner helper census and explicit provisional native allowances"
+  ],
+  "independent_checks": {
+    "source_pins": 12,
+    "current_evidence_pins": 28,
+    "historic_evidence_pins": 187,
+    "python_census_tests": 13,
+    "python_census_failures": 0
+  },
+  "author_evidence": {
+    "final_tests": 19,
+    "final_assertions": 1963,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 6,
+    "selected_regression_tests": 430,
+    "selected_regression_assertions": 15829
+  },
+  "not_claimed": [
+    "Actual Session mount/stop/clear/release/remount composition",
+    "Delivery-specific integrated lifetime witness",
+    "Demo boot/Create or playable Kitchen",
+    "Full-suite milestone at integrated source",
+    "Native memory qualification"
+  ],
+  "root_obligations": [
+    "Reconcile additional 8192 logical retirement carve-out inside unchanged PROFILE_BYTES and include host-held references",
+    "Prove exact mounted fifteen borrowed owners and full World before preparation",
+    "Stop admission and fixed-tick dispatch for synchronous retirement",
+    "Retain and then explicitly drop private Scope before dropping Session to break temporary cycle",
+    "Integrate operational owner binding and complete strict full milestone"
+  ]
+}

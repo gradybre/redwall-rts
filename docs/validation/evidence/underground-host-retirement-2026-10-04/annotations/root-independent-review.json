@@ -1,0 +1,54 @@
+{
+  "candidate": "1158 source freeze",
+  "reviewer": "integration owner /root, independent of author",
+  "source_pins": {
+    "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+    "godot/scripts/systems/settlement_system.gd": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5",
+    "godot/test/test_underground_session.gd": "21168d78638f629c9e071b1fc6856d4fcfd2d2bc6740912bd65dc59c335c9801",
+    "godot/test/test_underground_host.gd": "8148ff5a4be70e41b1ede30db3a9273c9943ad29092c838dd43a244681cf3d1d",
+    "docs/validation/evidence/underground-host-retirement-2026-10-04/census.py": "fcf045d97239a993cde1dede85b4bfcaca33fbe5816b4acb5d09a64784a1630b",
+    "docs/validation/evidence/underground-host-retirement-2026-10-04/test_census.py": "11505eacedcec27d4698cd7ffb511b2eb48f27de54a353f60af6828e99de4d19",
+    "docs/validation/evidence/underground-host-retirement-2026-10-04/reproduce.py": "084520a2d972f175a1af9e0c38ad5ef350b1e26ef1f2032c8921f152fee4e63c"
+  },
+  "verified_original_source_output_history_counts": [
+    7,
+    38,
+    50
+  ],
+  "findings": [],
+  "source_delta_accepted": true,
+  "accepted_for_author_commit": true,
+  "reviewed": [
+    "Read full Session/Host production delta and all new actual host tests against81950fe5.",
+    "Actual mounted15-owner tuple is rechecked after cold observers; only private original Owners/Scope are retained; operational foreign authorities remain refused.",
+    "Four host phases stop fixed/day dispatch and fresh admissions before preparation; recursion cannot clear twice; abandonment only proves the unchanged original pre-clear tuple.",
+    "Release uses accepted static owner retirement after actual clear; failures after clear remain stopped. Host PREDELETE breaks only private Scope retention without granting resume or releasing owner links.",
+    "Exact staged request, Profile bank, expired ownership and partial clear cases retain identity/refusal behavior.",
+    "Independently executed16 census mutants; full frozen source/output/history pins verified. Corrected Main boot prose is an annotated wording fix, not a source delta."
+  ],
+  "strict": {
+    "tests": 250,
+    "assertions": 8529,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 5,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzed_files": 4
+  },
+  "memory": {
+    "control_within_6144": 5673,
+    "helper_within_2048": 1162,
+    "retirement_inside_profile_reserve": 8192,
+    "unchanged_session_reserve": 1536,
+    "native_measured": false
+  },
+  "remaining": [
+    "Root-owned UI callback must distinguish unchanged pre-clear refusal from partial clear, preserving staged request before original-live abandonment.",
+    "Actual operational Room owner construction still required; private optional slots are intentionally absent at this checkpoint.",
+    "Shared registry/source-census integration and combined strict milestone."
+  ]
+}

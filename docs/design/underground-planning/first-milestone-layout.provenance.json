@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-02",
+  "kind": "authored schematic; not an engine capture",
+  "purpose": "D21 stair-placement comparison for the D20 test milestone",
+  "status_at_creation": "D20 scope approved; D21 layout pending",
+  "selection": {
+    "decision": "D21",
+    "approved_option": 1,
+    "approved_on": "2026-10-02",
+    "description": "Shared stair passage for the first test build"
+  },
+  "source": "first-milestone-layout.html",
+  "source_sha256": "27a3d2392da829aa7fe477030332063e30a5ee84288a41a2c453da3eefc5ee13",
+  "image": "first-milestone-layout.png",
+  "image_sha256": "f47145fba63a42a125fdc5c6a118f5fcf07781d999e87c4f9b20c1ba20dcd372",
+  "render": "Playwright with Chromium; 760 CSS-pixel viewport, device scale 2",
+  "validation": {
+    "viewport_widths": [
+      320,
+      736,
+      760
+    ],
+    "overflow": false,
+    "clipped_svg_labels": [],
+    "script_errors": 0,
+    "png_visually_inspected": true
+  },
+  "limits": "Symbolic floor plans only; no dimensions, depths, geometry qualification, game art or performance measurements."
+}

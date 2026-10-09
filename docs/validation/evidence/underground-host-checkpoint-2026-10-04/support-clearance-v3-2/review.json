@@ -1,0 +1,12 @@
+{
+  "reviewer": "/root/ug_geometry",
+  "scope": "Independent source-only review of the current publication migration in test_underground_support_clearance.gd",
+  "source_sha256": "c058027f4de7b5c55c3ed8ccfc4d0f08d42d6e1c39d81faf352ddf4aee506606",
+  "initial_finding": "MEDIUM: descriptor_into expects content revision, not row revision. Retained first run9tests126assertions1failure confirms the mismatch.",
+  "resolution": "descriptor_into now uses Published.CONTENT_REVISION (2). Exact INSTALL5 at yaw0 maps to v3 row13; complete historical support/air/contact/negative geometry remains unchanged. Historical v1wire SHA assertion remains.",
+  "outcome": "ACCEPTED: no remaining high/medium findings after exact one-line correction.",
+  "strict_run": "9 test(s), 138 assertion(s), 0 failure(s)",
+  "diagnostics": "0 unexpected errors,0 unexpected warnings,0 expected,0 tolerated;0 leaked objects/resources",
+  "analyzer": "0 GDScript warning(s) in 0 of 1 file(s)",
+  "limits": "Test-only correction. Production sources, profiles, admission guards and allowances unchanged; full corrected-head checkpoint still required."
+}

@@ -1,0 +1,121 @@
+# 1154 — Select an actual prospective room access in the world editor
+
+Date: 2026-10-04 · Status: frozen component candidate; independent review pending; no playable-room claim
+
+## Decision
+
+D11's editable suggestion uses the actual completed Location graph and authored
+profile contacts. The view never creates an endpoint, a passage, a Room candidate
+or an excavation claim while previewing. Its host supplies an explicit existing
+access anchor and the actual WorldRoutes instance. Missing source content or
+reachable contact is a visible refusal, including in the real demo.
+
+The first increment labels its marker **First cut / work face**. A source contact
+patch and paid cube do not define the eventual finished entrance lining, width
+or height. Required work/support clearance and the existing access route are
+shown separately. D11's complete finished opening remains dependent on its real
+opening/lining content; this increment cannot invent those dimensions.
+
+`ModularAccess` owns only bounded presentation search/selection data. It copies
+the exact drawn RoomPlan, scans actual live endpoints and qualified BUILD WORK
+descriptors, derives the one datum-aligned cube face containing the full source
+contact patch, and requires that patch to be on the exact painted boundary.
+Travel and work descriptors must describe the same actor/tool/load. The existing
+`Approach.begin` proves the resulting complete path, stance, body, recovery and
+target stroke under the actual shared cold lease. No synthetic success provider
+or implicit `access = work_location` substitutes for the host's anchor.
+
+## Search and edits
+
+Search is resumable view work: a bounded number of cheap endpoint/profile pairs
+and at most one complete cold proof per step. No snapshot, witness, prepared
+candidate or cold lease survives a step. Exact owner identities and source,
+graph, endpoint and geometry revisions bracket every observation. A changed
+source refuses the current search rather than continuing across mixed epochs.
+Elapsed native step time is evidence, never gameplay authority.
+
+The first valid candidate is suggested in stable slot/profile order. The player
+can explicitly request another search or choose a boundary cell in the world.
+An existing selected marker survives drawing edits and refused revalidation;
+it is not silently replaced. The original drawing and exact selection stamp
+are part of the confirmation command. Confirmation reconstructs the selected
+`Approach.Request` and calls actual RoomOrders, which repeats its normal cold,
+prepared and final proofs. A selected marker grants no work or travel permission.
+
+## Ownership and prerequisites
+
+This lane owns the new demo `modular_access.gd` and its test, the existing demo
+Runtime/Editor/WorldTool and Runtime test, and this decision/evidence directory.
+The actual host/Session, registry, queue, memory ledger and all approach/profile/
+route producers stay with their existing owners. Geometry supplies the narrow
+public live-Location enumeration prerequisite separately; UI code does not read
+private endpoint banks. No producer semantics are changed to rescue a UI result.
+
+Presentation arrays and command copies require a complete retained/step/submit
+census. The shared cold proof must still fit its unchanged Budget, and the view
+must not count that admission as whole-client native memory qualification.
+Focused tests must exercise real prospective proof and real Room confirmation,
+explicitly label synthetic test geometry, verify unchanged world stores during
+preview, preserve selection/drawing across refusals, and cover source drift,
+stale handles, reentry, view changes, bounds and teardown. Native search latency
+and direct-on-dirt input/preview evidence remain distinct from source tests.
+
+## Frozen component evidence
+
+The review packet is
+`docs/validation/evidence/underground-room-access-2026-10-04/review-v1/`.
+Candidate 11 uses the accepted Locations iterator permanently (no temporary
+producer overlay), passes 56 tests / 1,075 assertions with every strict/raw
+diagnostic and leak count zero, and has a zero-warning six-file analyzer result.
+The test source is an actual owner/RoomOrders composition with explicitly
+synthetic profile/physical geometry. It proves UI → selected Request → actual
+atomic Room confirmation; it does not activate the installed demo's real content.
+
+Native 2 renders the actual editor and markers on Metal/Forward+ at 1280×720:
+three states, 15 assertions, no diagnostic/leak findings, and one-file analyzer
+zero. Native 1 is retained as a rejected diagnostic-panel contrast witness.
+The native scene is a labelled plain fixture, not whole-game visual acceptance.
+
+The search is finite but not qualified for the 1.5 ms steady UI budget. The
+populated actual 1,024-Location / 1,536-edge / 4,096-vertex graph with 16,384
+painted cells took 68,858 µs in candidate 10 and 70,021 µs in candidate 11 for
+one candidate. Actual Region/Source capacities 6,144/2,048 are allocated, not all
+filled with adversarial live data. These measurements do not establish a worst
+source-population bound or the full demo's 0.25-second overload margin. Full
+Approach proof is synchronous and depends on live owner identity; safely slicing
+or dispatching it requires a separate lifetime design. No check is skipped to
+meet a timing target.
+
+The source-counted additive presentation payload retains at most two independent
+131,072-byte cell images, 98,304 route bytes, 672 role bytes, 24 patch bytes and
+731 fixed numeric bytes: 361,875 bytes. The conservative view-copy plus full
+unchanged cold reservation figure is 1,937,436 logical bytes; it deliberately
+overcounts some alternative/caller lifetimes and is not a native allocation
+measurement. The existing 1,048,960-byte cold reservation is unchanged and no
+lease survives a search step. String/Variant/Dictionary/Callable/WeakRef overhead,
+render-server copies and deferred GPU lifetime remain unmeasured. Existing
+Draft/Overlay/Session budgets are not reclaimed, no authoritative/save state is
+added, and no simulation or whole-client memory qualification is asserted.
+
+## Independent review correction, candidate 12 / native 3
+
+Root identified the review-v1 configuration lifetime bug and player-facing
+backlog wording. Exact original executable, documentation and manifest bytes
+remain locatable under `source-review-1/` and `review-v1/`. Candidate 12 captures
+the full original view/draft/provider tuple, holds its owners through every
+observation, checks it again before publishing and removes the synchronous
+post-publication refresh. Configuration refusal preserves prior bindings.
+A successful bind disables Confirm; the existing editor revision sentinel starts
+or rechecks the already drawn room on the next ordinary frame, without requiring
+another click and without running while a stroke is in progress.
+
+The corrected selected suites are Access 25/768, Runtime 16/227, Editor 10/116,
+all zero diagnostics/leaks, analyzer 0/6; unchanged WorldTool 9/149 from candidate
+11 remains applicable. Native 3 passes 15 assertions with three 1280×720
+Metal/Forward+ states and analyzer 0/1. Eight Python census/oracle tests pass.
+The dense measurement is 69,176 µs; performance qualification remains failed/open
+as above. The original configuration snapshot is separately counted: one bounded
+131,072-byte drawing plus 33 scalar bytes and explicitly unmeasured native
+references. No retained fields change. Updated conservative view/cold payload is
+1,937,477 logical bytes; this is not whole-client/native qualification. Exact
+current sources and results are frozen under `review-v2/` for independent review.

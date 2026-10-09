@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "decision": [
+    "1209",
+    "1142",
+    "1217"
+  ],
+  "motion": "tool-free half-turn and reposition on a tread",
+  "author": "author_stair_handoffs.source_case('turn') unchanged (candidate 6)",
+  "author_sha256": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda",
+  "keys": 271,
+  "controls_u": [
+    [
+      0,
+      -128,
+      -2391
+    ],
+    [
+      0,
+      -128,
+      -2362
+    ],
+    [
+      0,
+      -128,
+      -2333
+    ],
+    [
+      0,
+      -128,
+      -2304
+    ],
+    [
+      0,
+      -128,
+      -2304
+    ],
+    [
+      0,
+      -128,
+      -2304
+    ],
+    [
+      0,
+      -128,
+      -2304
+    ],
+    [
+      0,
+      -128,
+      -2304
+    ],
+    [
+      0,
+      -128,
+      -2217
+    ],
+    [
+      0,
+      -128,
+      -2217
+    ]
+  ],
+  "heading_controls": [
+    0,
+    5461,
+    10923,
+    16384,
+    21845,
+    27307,
+    32768,
+    32768,
+    32768,
+    32768
+  ],
+  "arm_swing_degrees": {
+    "right": 0
+  },
+  "swing_search": [
+    {
+      "side": "right",
+      "degrees": 0,
+      "clear": true
+    }
+  ],
+  "basis": {
+    "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "heading_count": 65536,
+    "exact_norm_squared": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "max_norm_yaw": 40791,
+    "max_component": {
+      "numerator": 1,
+      "denominator": 1
+    },
+    "metadata": {
+      "api_version": "4.1 Metal - 90.5",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "heading_count": 65536,
+      "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+      "orientation": "0=-Z,+quarter=-X; +Y remains up",
+      "rendering_driver": "opengl3",
+      "rendering_method": "gl_compatibility",
+      "schema": 1,
+      "source": {
+        "path": "res://../tools/bake_underground_world_basis.gd",
+        "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+      }
+    },
+    "backend_certificate": {
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "driver": "opengl3",
+      "api_version": "4.1 Metal - 90.5",
+      "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+      "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+      "sections": [
+        "4.5",
+        "4.5.1"
+      ],
+      "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+      "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+    }
+  },
+  "clip_sha256": "6fe92a20f7f45f9930bb280f302b562693b868d4e19ee8852aba86c83808ae9a",
+  "stand_sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+  "replaced_guards": [
+    "HANDOFF_PROOF_ENDPOINT",
+    "HANDOFF_PROOF_PARTS"
+  ],
+  "clear": true,
+  "production_qualified": false,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_turn.py": "30a14e64868529e5e2b2b014f50390a5230f5a923bb836f8e18b795d995a82f1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "72e07b93d40b6d8fe6b0738f85bce35c7a6d5fe5cc932dbcf3324547cf5caf78",
+    "godot/data/underground/mole-worker/claw-work-v1/author_claw_stairs.py": "8aeb75f3449cad8259dc1f5e9555d7b4777746f06806d30b4a2b38bf4e151351"
+  }
+}

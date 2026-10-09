@@ -1,0 +1,154 @@
+diff --git a/tools/test_underground_room_memory.py b/tools/test_underground_room_memory.py
+index ae431816..db177991 100644
+--- a/tools/test_underground_room_memory.py
++++ b/tools/test_underground_room_memory.py
+@@ -242,6 +242,82 @@ class RoomMemoryWitnessTests(unittest.TestCase):
+         self.assertEqual(result["historical_motion"]["joint"]["total"], 237140)
+         self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
+ 
++    def test_ui_successor_changes_only_reviewed_alias_and_dependency_closure(self):
++        row = self.manifest["ui_alias"]
++        old = json.loads((room.ROOT / row["previous_manifest"]["path"]).read_bytes())
++        sources = dict(old["sources"])
++        sources["ui_manager"] = self.manifest["sources"]["ui_manager"]
++        self.assertEqual(self.manifest["sources"], sources)
++        witnesses = dict(old["witnesses"])
++        witnesses.update({self.manifest["sources"]["ui_manager"]["path"]:
++                          self.manifest["sources"]["ui_manager"]["sha256"],
++                          row["previous_manifest"]["path"]: row["previous_manifest"]["sha256"],
++                          row["original"]["locator"]: row["original"]["sha256"],
++                          row["dependency"]["path"]: row["dependency"]["sha256"]})
++        self.assertEqual(self.manifest["witnesses"], witnesses)
++        versions = dict(old["historical_versions"])
++        versions[row["original"]["sha256"]] = row["original"]
++        self.assertEqual(self.manifest["historical_versions"], versions)
++        for key in set(old) - {"checkpoint", "sources", "witnesses", "historical_versions"}:
++            self.assertEqual(self.manifest[key], old[key])
++
++    def test_current_ui_alias_keeps_original_accounting_bytes_separate(self):
++        result, historical = room.build(self.index)
++        alias = result["current_ui_alias"]
++        row = self.manifest["ui_alias"]
++        self.assertEqual(alias["historical_ui_manager_sha256"], row["original"]["sha256"])
++        self.assertEqual(hashlib.sha256(historical["ui_manager"].text.encode()).hexdigest(),
++                         row["original"]["sha256"])
++        self.assertEqual(alias["source_sha256"][row["original"]["path"]],
++                         self.manifest["sources"]["ui_manager"]["sha256"])
++        self.assertEqual(alias["additional_reserved_bytes"], 0)
++        self.assertEqual(result["route_composition"]["constructor_exclusive_reuse"]["simultaneous_total"], 8185)
++        self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
++
++    def test_injected_ui_alias_text_cannot_use_the_current_disk_or_cached_hash(self):
++        _, _, current = room.verified_inputs(self.index)
++        source = current["ui_manager"]
++        for suffix in ("\nvar extra: Array = [1, 2]\n", "\nfunc hidden_callback():\n\tpass\n"):
++            changed = source._replace(text=source.text + suffix)
++            with self.subTest(suffix=suffix), mock.patch.object(room, "producer") as execute:
++                with self.assertRaisesRegex(ValueError, "current reviewed source changed: ui_manager"):
++                    room.build(dict(self.index, ui_manager=changed))
++                execute.assert_not_called()
++
++    def test_notice_dependency_value_or_body_changes_refuse_before_import(self):
++        path = room.ROOT / self.manifest["ui_alias"]["dependency"]["path"]
++        original = path.read_bytes()
++        for changed in (original.replace(b'"CLOCK_OVERLOADED"', b'"DIFFERENT"', 1),
++                        original + b"\nvar uncounted: Array = [1, 2]\n"):
++            with self.subTest(changed=changed[-64:]):
++                self.refuses_before_replay({path: changed})
++
++    def test_alias_equivalence_refuses_any_other_ui_source_byte(self):
++        manifest, blobs, current = room.verified_inputs(self.index)
++        source = current["ui_manager"]
++        for text in (source.text + "\n# another change\n",
++                     source.text.replace("UiNotices.CLOCK_OVERLOAD_CODE", "UiNotices.other_code()", 1),
++                     source.text + "\n" + 'const CLOCK_OVERLOAD_CODE: String = UiNotices.CLOCK_OVERLOAD_CODE\n'):
++            with self.subTest(tail=text[-70:]), self.assertRaises(ValueError):
++                room.ui_notice_alias(dict(current, ui_manager=source._replace(text=text)), manifest, blobs)
++
++    def test_alias_literal_proof_refuses_changed_computed_or_duplicate_values(self):
++        manifest, blobs, current = room.verified_inputs(self.index)
++        path = manifest["ui_alias"]["dependency"]["path"]
++        original = blobs[path]
++        for changed in (original.replace(b'"CLOCK_OVERLOADED"', b'"DIFFERENT"', 1),
++                        original.replace(b'"CLOCK_OVERLOADED"', b'code_from_observer()', 1),
++                        original + b'\nconst CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"\n'):
++            with self.subTest(tail=changed[-80:]), self.assertRaisesRegex(ValueError, "alias literal changed"):
++                room.ui_notice_alias(current, manifest, dict(blobs, **{path: changed}))
++
++    def test_old_ui_bytes_and_original_manifest_remain_immutable(self):
++        row = self.manifest["ui_alias"]
++        for relative in (row["original"]["locator"], row["previous_manifest"]["path"]):
++            path = room.ROOT / relative
++            with self.subTest(path=relative):
++                self.refuses_before_replay({path: path.read_bytes() + b"\n# altered original\n"})
++
+ 
+ if __name__ == "__main__":
+     unittest.main(verbosity=2)
+diff --git a/tools/underground_room_memory.py b/tools/underground_room_memory.py
+index fdad350e..4cb984e3 100644
+--- a/tools/underground_room_memory.py
++++ b/tools/underground_room_memory.py
+@@ -19,8 +19,8 @@ import audit_registry_capacities as audit
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ E = Path("docs/validation/evidence/underground-current-memory-2026-10-05")
+-MANIFEST = E / "manifest.json"
+-MANIFEST_SHA = "9eb1a296a595e4788f52bdbc28e6f6a852dab3c905b116e3075538588a64e3bc"
++MANIFEST = Path("docs/validation/evidence/underground-memory-ui-alias-2026-10-05/manifest.json")
++MANIFEST_SHA = "4e87cd9bd60b16266f1b08fa2db7aa755348ab2b6c76576ac3911ea7cd02444b"
+ P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
+ I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
+ C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
+@@ -230,6 +230,35 @@ def same_accounting(actual, expected, label):
+     require(actual == expected, label + " reviewed allocation/lifetime result changed")
+ 
+ 
++def ui_notice_alias(current, manifest, blobs):
++    """Prove the sole current UI alias before replaying its original source.
++
++    Both full current sources and the archived original were captured and
++    hashed above. This equality admits no body, initializer or preload change.
++    The existing UiNotices preload must resolve the exact former literal.
++    """
++    row = manifest["ui_alias"]
++    module = current["ui_manager"]
++    original = blobs[row["original"]["locator"]]
++    actual = module.text.encode()
++    dependency = blobs[row["dependency"]["path"]].decode()
++    old = b'const CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"\n'
++    new = b'const CLOCK_OVERLOAD_CODE: String = UiNotices.CLOCK_OVERLOAD_CODE\n'
++    require(original.count(old) == actual.count(new) == 1,
++            "one exact UI notice alias")
++    require(actual.replace(new, old, 1) == original,
++            "UI notice alias changed another source byte")
++    require(module.text.count('const UiNotices := preload("res://scripts/ui/ui_notices.gd")\n') == 1,
++            "UI notice alias original dependency")
++    require(re.findall(r"^const CLOCK_OVERLOAD_CODE\b[^\n]*", dependency, re.M) == [old.decode().rstrip("\n")],
++            "UI notice alias literal changed")
++    return {"source_sha256": {module.relative_path: digest(actual),
++                              row["dependency"]["path"]: digest(dependency.encode())},
++            "historical_ui_manager_sha256": digest(original),
++            "reconstruction": "one exact constant alias; all other bytes identical",
++            "additional_reserved_bytes": 0}
++
++
+ def publication(current, manifest, blobs, view):
+     census = producer(P / "census.py", blobs, view=view)
+ 
+@@ -387,6 +416,7 @@ def surface_composition(current, manifest, blobs, view, previous_routes):
+ def build(index):
+     """Return current recounts and explicitly separate unchanged older slices."""
+     manifest, blobs, current = verified_inputs(index)
++    alias = ui_notice_alias(current, manifest, blobs)
+     view = FrozenInputs(blobs, current)
+     runtime, paths, metadata = source_extensions(current, manifest, blobs, view)
+     # Only after all current changed-call/source proofs, select the exact old
+@@ -408,6 +438,7 @@ def build(index):
+             and surface["retained_numeric_delta"] == 0, "new room reservation is not admitted")
+     result = {
+         "scope": __doc__, "manifest_sha256": MANIFEST_SHA,
++        "current_ui_alias": alias,
+         "current_source_sha256": {row["path"]: row["sha256"] for row in manifest["sources"].values()},
+         "historical_projection": manifest["baseline"],
+         "historical_current_projection": manifest["previous_current"],

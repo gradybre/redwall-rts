@@ -1,0 +1,43 @@
+{
+  "tests": 17,
+  "failures": 0,
+  "errors": 0,
+  "seconds": 6.255,
+  "current_source_probes": 54,
+  "immutable_closure_probes": 61,
+  "all_refused_before_producer": true,
+  "nested_closure": {
+    "constructor-source-sha256.json": {
+      "count": 22,
+      "missing": []
+    },
+    "inherited-sha256.json": {
+      "count": 11,
+      "missing": []
+    },
+    "engine-lifetime/source-sha256.json": {
+      "count": 6,
+      "missing": []
+    },
+    "predecessor/manifest.json": {
+      "count": 3,
+      "missing": []
+    }
+  },
+  "current_source_pins": 54,
+  "unique_closure_pins": 115,
+  "all_pins_unchanged": true,
+  "rebuilt_pack_sha256": "bdd0fced7c88ee5389c75282a1f4cabb576cd9d42afd588b1bdf89a9e60f4582",
+  "rebuilt_pack_byte_identical": true,
+  "controls": 6067,
+  "helpers": 1919,
+  "constructor_coexistence": 8161,
+  "existing_retirement_reserve": 8192,
+  "live_with_reserve_bytes": 99999806,
+  "headroom_bytes": 194,
+  "runtime_qualified": false,
+  "native_measured": false,
+  "engine_processes_started": 0,
+  "foreign_writes": 0
+}
+

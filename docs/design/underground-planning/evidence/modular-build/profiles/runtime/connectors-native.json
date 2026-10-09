@@ -1,0 +1,53 @@
+{
+  "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+  },
+  "families": [
+    {
+      "family": "Earth / timber",
+      "parts": 6,
+      "production_qualified": false,
+      "triangles": 72
+    },
+    {
+      "family": "Stone stairs",
+      "parts": 6,
+      "production_qualified": false,
+      "triangles": 72
+    },
+    {
+      "family": "Sloping passage",
+      "parts": 2,
+      "production_qualified": false,
+      "triangles": 24
+    },
+    {
+      "family": "Spiral treads",
+      "parts": 5,
+      "production_qualified": false,
+      "triangles": 60
+    },
+    {
+      "family": "Ladder + hatch",
+      "parts": 8,
+      "production_qualified": false,
+      "triangles": 96
+    }
+  ],
+  "image_sha256": "2e0fa949c920bd406a22375c3ed3fc5fdde3f0acfe36835ebcdf18f2d667ac45",
+  "production_qualified": false,
+  "renderer": "opengl3",
+  "save_error": 0,
+  "size": [
+    1280,
+    720
+  ]
+}

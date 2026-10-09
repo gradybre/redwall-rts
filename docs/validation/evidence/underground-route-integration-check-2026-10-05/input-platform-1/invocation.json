@@ -1,0 +1,46 @@
+{
+  "head": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-route-integration-check",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.839,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "/Users/brendan/Developer/ug-checkpoint-assets-ugadz1tj/input_map_probe.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 1.804,
+      "log": "input-map.log"
+    }
+  ],
+  "source_unchanged": true,
+  "procedure_source_sha256": "704e20886a1ab6c54ab28a32651af821868843feb0dc7359dba1631dbe40caf5",
+  "custom_user_dir": "Redwall-ug-route-integration-platform-census-20261005",
+  "analyzer_port": 6465,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "isolated_project_sha256": "fd1a85d6a279d093949c4bc8e89ae49c56ec19862c3e814e28f9c53362b681b6",
+  "assets_present_before": false,
+  "probe_source_sha256": "81ec7f8dc35487f07a232661d28b544532186f8eaccc382cd2ce2c035bbec97e",
+  "source_unchanged_before_cleanup": true,
+  "sidecars_restored": true,
+  "assets_restored": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

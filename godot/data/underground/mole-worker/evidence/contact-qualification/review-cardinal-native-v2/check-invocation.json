@@ -1,0 +1,26 @@
+{
+  "commands": [
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "godot/data/underground/mole-worker/evidence/contact-qualification/test_cardinal_capture.py"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "godot/data/underground/mole-worker/evidence/contact-qualification/capture_cardinal_program.gd",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "--json",
+      "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-native-v2/analyzer.json"
+    ]
+  ],
+  "codes": [
+    0,
+    0
+  ],
+  "source_sha256": "be7adfd1ef9ffadea76ec334201d2972a69b747abe912a039d7de194d0c6668b",
+  "source_unchanged": true,
+  "isolated_override_restored": true
+}

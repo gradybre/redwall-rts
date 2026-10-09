@@ -1,0 +1,43 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_host.gd
+  PASS  test_mount_requires_actual_world_and_refused_attempt_can_retry
+  PASS  test_mount_borrows_actual_owners_and_duplicate_preserves_foundation
+  PASS  test_held_arena_refuses_reset_before_any_store_is_cleared
+  PASS  test_prepared_space_refuses_reset_and_keeps_original_candidate
+  PASS  test_reset_retires_borrowers_and_regeneration_gets_fresh_full_identity
+  PASS  test_reentrant_reset_during_mount_preserves_stores_and_refuses_outer_attempt
+  PASS  test_prepared_world_remains_unavailable_except_for_explicit_retirement
+  PASS  test_retirement_allowance_still_checks_original_live_seed
+  PASS  test_prepare_keeps_populated_stores_and_stops_all_fresh_access
+  PASS  test_repeated_prepare_reuses_scope_then_actual_reset_breaks_cycle
+  PASS  test_abandon_drops_only_scope_and_keeps_original_owners
+  PASS  test_late_cold_observer_cannot_substitute_mounted_host_owner
+  PASS  test_unowned_authority_is_not_adopted_by_host_retirement
+  PASS  test_original_packet_or_owner_mutation_refuses_repeated_prepare
+  PASS  test_recursive_clear_refuses_without_clearing_twice
+  PASS  test_partial_clear_cannot_resume_and_host_destruction_breaks_scope_cycle
+  PASS  test_settled_space_receipt_is_retired_with_its_complete_world
+  PASS  test_reentrant_prepare_observer_cannot_clear_or_publish_a_scope
+  PASS  test_open_inventory_journal_refuses_host_reset_unchanged
+  PASS  test_staged_world_scope_can_abandon_only_its_original_request
+  PASS  test_pending_scope_rejects_replaced_profile_bank_before_clear
+CI_SUITE_TIME {"assertions":219,"failures":0,"suite":"test_underground_host.gd","tests":21,"usec":8138018}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+21 test(s), 219 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 21 tests, 219 assertions, 0 failures.

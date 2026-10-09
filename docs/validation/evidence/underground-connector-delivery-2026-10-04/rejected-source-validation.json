@@ -1,0 +1,35 @@
+{
+  "late-terrain-rejected": {
+    "godot/scripts/core/underground_connector_delivery.gd": true,
+    "godot/scripts/core/haul_planner.gd": true,
+    "godot/scripts/core/work.gd": true,
+    "godot/test/test_underground_connector_delivery.gd": true,
+    "godot/scripts/core/haul_transfer_contract.gd": true,
+    "godot/scripts/core/inventory.gd": true,
+    "godot/scripts/core/reservations.gd": true
+  },
+  "live-claim-rejected": {
+    "godot/scripts/core/underground_connector_delivery.gd": true,
+    "godot/scripts/core/haul_planner.gd": true,
+    "godot/scripts/core/work.gd": true,
+    "godot/test/test_underground_connector_delivery.gd": true,
+    "godot/test/test_haul_planner.gd": true,
+    "godot/test/test_work.gd": true
+  },
+  "return-factor-rejected": {
+    "godot/scripts/core/underground_connector_delivery.gd": true,
+    "godot/scripts/core/haul_planner.gd": true,
+    "godot/scripts/core/work.gd": true,
+    "godot/test/test_underground_connector_delivery.gd": true,
+    "godot/test/test_haul_planner.gd": true,
+    "godot/test/test_work.gd": true
+  },
+  "return-factor-rejected-2": {
+    "godot/scripts/core/underground_connector_delivery.gd": true,
+    "godot/scripts/core/haul_planner.gd": true,
+    "godot/scripts/core/work.gd": true,
+    "godot/test/test_underground_connector_delivery.gd": true,
+    "godot/test/test_haul_planner.gd": true,
+    "godot/test/test_work.gd": true
+  }
+}

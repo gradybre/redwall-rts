@@ -1,0 +1,372 @@
+{
+  "schema": 1,
+  "decision": "1209",
+  "revision": 4,
+  "station": {
+    "front_z_below_plane_u": -168.3016950881437,
+    "back_z_in_riser_band_u": 188.42886427595374,
+    "d_range_u": [
+      297,
+      323
+    ],
+    "chosen_d_u": 310
+  },
+  "station_from_far_edge_u": 310,
+  "fixture": {
+    "assembly": 1,
+    "solids_u": [
+      [
+        -1024,
+        -64,
+        -310,
+        1024,
+        0,
+        202
+      ],
+      [
+        -896,
+        -896,
+        -310,
+        -768,
+        -64,
+        202
+      ],
+      [
+        768,
+        -896,
+        -310,
+        896,
+        -64,
+        202
+      ],
+      [
+        -1024,
+        64,
+        202,
+        1024,
+        128,
+        2250
+      ],
+      [
+        -896,
+        -896,
+        202,
+        -768,
+        64,
+        2250
+      ],
+      [
+        768,
+        -896,
+        202,
+        896,
+        64,
+        2250
+      ],
+      [
+        -256,
+        0,
+        -310,
+        256,
+        128,
+        -182
+      ]
+    ],
+    "source_labels": [
+      "support deck T_{k-1}",
+      "T_{k-1} left bearer and posts (superset)",
+      "T_{k-1} right bearer and posts (superset)",
+      "deck behind (L0, or T_{k-2})",
+      "behind left bearer and posts (superset)",
+      "behind right bearer and posts (superset)",
+      "paid WIP candidate: T_k left bearer, quarter-turned"
+    ],
+    "support_solid": 0,
+    "workpiece_solid": 6,
+    "workpiece_support": false
+  },
+  "source_recipe": {
+    "x_u": 64,
+    "z_u": -294,
+    "lean_degrees": 30,
+    "azimuth_degrees": 60,
+    "torso_degrees": 0,
+    "elbow_rule": "wrist_preserving_swivel",
+    "grip": "curled paw, lateral-2 fit (ADR 1216)",
+    "contact_plane_y_u": 128,
+    "poll_y_u": [
+      208,
+      126,
+      208
+    ]
+  },
+  "poll_source_vertex": 478,
+  "pose_solver_diagnostics": [
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "wrist_deviation_degrees": 30.952301732972565,
+      "hand_origin_u": [
+        107.72479796718306,
+        613.1343675866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        207.99999380379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "wrist_deviation_degrees": 30.44830896578047,
+      "hand_origin_u": [
+        107.72479796718306,
+        612.2134691491897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        207.07909536629018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "wrist_deviation_degrees": 29.02205090260365,
+      "hand_origin_u": [
+        107.72479796718306,
+        609.6109300866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        204.47655630379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.1102230246251565e-16,
+      "wrist_deviation_degrees": 26.801709286739065,
+      "hand_origin_u": [
+        107.72479796718306,
+        605.5669847741897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        200.43261099129018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "wrist_deviation_degrees": 23.919003076927854,
+      "hand_origin_u": [
+        107.72479796718306,
+        600.3218675866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        195.18749380379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 20.513515526674606,
+      "hand_origin_u": [
+        107.72479796718306,
+        594.1158128991897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        188.98143911629018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 16.73448487481651,
+      "hand_origin_u": [
+        107.72479796718306,
+        587.1890550866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        182.05468130379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 12.74521607240562,
+      "hand_origin_u": [
+        107.72479796718306,
+        579.7818285241897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        174.64745474129018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "wrist_deviation_degrees": 8.713162892750658,
+      "hand_origin_u": [
+        107.72479796718306,
+        572.1343675866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        166.99999380379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 4.802319195223482,
+      "hand_origin_u": [
+        107.72479796718306,
+        564.4869066491897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        159.35253286629018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 9.71445146547012e-17,
+      "wrist_deviation_degrees": 1.1635369922304322,
+      "hand_origin_u": [
+        107.72479796718306,
+        557.0796800866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        151.94530630379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "wrist_deviation_degrees": 2.0919686551081105,
+      "hand_origin_u": [
+        107.72479796718306,
+        550.1529222741897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        145.01854849129018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 4.856144131579786,
+      "hand_origin_u": [
+        107.72479796718306,
+        543.9468675866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        138.81249380379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 9.71445146547012e-17,
+      "wrist_deviation_degrees": 7.075467440248993,
+      "hand_origin_u": [
+        107.72479796718306,
+        538.7017503991897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        133.56737661629018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "wrist_deviation_degrees": 8.708634179875963,
+      "hand_origin_u": [
+        107.72479796718306,
+        534.6578050866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        129.52343130379018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "wrist_deviation_degrees": 9.72246551166355,
+      "hand_origin_u": [
+        107.72479796718306,
+        532.0552660241897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        126.92089224129018,
+        -293.9999964420276
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "wrist_deviation_degrees": 10.074089936714314,
+      "hand_origin_u": [
+        107.72479796718306,
+        531.1343675866897,
+        -162.48150679623504
+      ],
+      "poll_u": [
+        64.00000310344876,
+        125.99999380379018,
+        -293.9999964420276
+      ]
+    }
+  ],
+  "wall_margin": {
+    "sampled_max_abs_x_u": 697.4539675522628,
+    "trench_wall_abs_x_u": 1024
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v4.py": "5f1516da5686224db1386305d480040800afc7f6e53402b834c035fc7f3865ba",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install_v2.py": "1b4b9669372d00f0313a15e3dd677aad94d5125d9e80c33ab9145e554a86d0e8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py": "5b00fcc8b0af1c3e369dc7778ba4b6b8fa89285f3d4700dcb25c570d8adb971f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-proof-v4/prove_candidate.py": "3d05189072337c7dfe2309a791d5b4f3d2bdb990cdbcb41d43c27de8420b96bc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/curl_source.py": "3280968de8dadb469564a4ac2ba3340672da9112d42571b001ae6e89f1fc2cb6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/first-entry-prefix-v1.source.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v4/content/mole-grip-v4.ugpal": "d72d3fd63705beb191775ace4150ac2d1d68f8d0c60d0832b07c9dc27b1bcb74",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v3/envelopes.json": "8f5e4d2c02eb5e7c33c1ba310463e63fbf39e6293e0ae6a33cbbb53661d97d76",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v4/source-plan.json": "432f669df101fe4e776a7da9d0b08ebe8df4c9415de57f41e7bb4825c3bf8daf",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-curl-v1/topology.json": "f3c326a6b7530ba3699f16665a1e4a970f92adaaf5a0754fbe729488d0e0faf4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/curled-paw-v1/paw.json": "64c9f6c545d28859e00083c1383328cc9005bb0a44b6fbfba495e19dd47a7246"
+  },
+  "verified_source_files": 612,
+  "historical_source_snapshot": {},
+  "remaining": [
+    "BRENDAN_REVIEW",
+    "ARRIVAL_REPOSITION_FROM_DESCENT_END",
+    "T6_SILL_WORKPIECE_PLANE_64",
+    "HANDLING_PROGRAM",
+    "NATIVE_TAP_CAPTURE",
+    "INTEGER_ROWS_AND_CONTENT_7"
+  ],
+  "production_qualified": false
+}

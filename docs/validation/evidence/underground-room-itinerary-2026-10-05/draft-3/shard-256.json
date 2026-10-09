@@ -1,0 +1,31 @@
+{
+  "counts": {
+    "assertions": 107,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 12,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "8ed166a9d9655ed1f90c182388cd328f7be97916e10538e31ed481396b4beebd",
+  "shard_count": 403,
+  "shard_index": 256,
+  "suite_counts": {
+    "test_underground_room_itinerary.gd": {
+      "assertions": 107,
+      "failures": 0,
+      "tests": 12
+    }
+  },
+  "suite_usec": {
+    "test_underground_room_itinerary.gd": 3616391
+  },
+  "suites": [
+    "test_underground_room_itinerary.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 7
+}

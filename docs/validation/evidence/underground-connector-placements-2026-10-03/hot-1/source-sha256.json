@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_locations.gd": "4a1336bc80608bba38fafa10d7f4fb27d4dc3b96e5d822e4d7fcce5230d7cb04",
+  "godot/scripts/core/underground_routes.gd": "2ec35d3f3596844e0b9c395be5245efbd06e8ba3a97828611aabcd235d869488",
+  "godot/scripts/core/underground_world_routes.gd": "0f7e5959419e9eb18443d8ffe5333436fa522662ab117d1dc02290cbd2f2c862",
+  "godot/test/test_underground_locations.gd": "d1ee295eba2916c24493b415b9e2e717edf17311b3ce82c1fd828b971c5166c1",
+  "godot/test/test_underground_routes.gd": "0ff001973dc4d85f49a4de876534831a7f3d61359cfee6a73d83b5288260aba0"
+}

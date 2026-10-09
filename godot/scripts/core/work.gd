@@ -139,14 +139,10 @@ extends RefCounted
 ## this reason: the shares must be FINAL before wear is preflighted against them, and it mutates
 ## nothing but this store's own per-tick scratch.
 ##
-## WHAT IS NOT ENFORCED HERE, AND WHY -- named, not papered over. A Job row carries §5.3's tool
-## gate (`jobs.tool_gate_of()`), which is what says whether a job requires a tool at all. This
-## file does NOT read it on the productive tick, because that reader allocates an `IntResult` per
-## call and `jobs.gd` publishes no `_into` form of it; adding one is that module's owner's change,
-## not this one's. The consequence is exact and is the caller's obligation until then: a
-## tool-required job whose worker holds NO binding produces work and wears nothing. What IS
-## enforced is everything about a binding that exists -- it must belong to this job, its tool must
-## be this resident's own equipped tool, and a tool worn to 0 stops that contributor.
+## TOOL-REQUIRED WORK rechecks Jobs' non-allocating tool gate on every productive tick.
+## A required job without an actual equipped-tool binding cannot produce WU, XP or wear.
+## An optional typed excavation owner also preflights its bound phase's pause/input/contact
+## state and consumes the resulting real Job progress after Work commits (decision 1056).
 ##
 ## ---------------------------------------------------------------------------------------
 ## WHAT COUNTS AS A PRODUCTIVE TICK. §5.2: "travel/eating/social/sleep do not produce job
@@ -223,6 +219,7 @@ extends RefCounted
 ## and also storing a reference to it means the stored reference changes underneath the holder on
 ## the next tick. That is not a bug in these functions; it is what caller-owned storage means.
 
+const RetirementBuildings := preload("res://scripts/core/buildings.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
@@ -230,6 +227,8 @@ const ResidentsScript := preload("res://scripts/core/residents.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const GearScript := preload("res://scripts/core/gear.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
+const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 # --- capacities -----------------------------------------------------------------------------
 
@@ -295,6 +294,10 @@ const REFUSE_JOB_NOT_WORKING: StringName = &"JOB_NOT_IN_WORK_STATE"
 const REFUSE_JOB_HAS_NO_WORKER: StringName = &"JOB_HAS_NO_WORKER"
 const REFUSE_NO_WORK_REMAINING: StringName = &"NO_WORK_REMAINING"
 const REFUSE_NO_CONTRIBUTORS: StringName = &"NO_CONTRIBUTING_WORKER"
+## REQ-SET-034 (ADR1226): the worker's hour forbids work and its Job stands at a safe point; it rests there.
+const REFUSE_SCHEDULE_REST: StringName = &"WORK_SCHEDULE_REST"
+## REQ-SET-034's "current 30-WU safe work segment": safe points are where remaining work is a whole multiple.
+const SAFE_SEGMENT_MWU: int = 30000
 const REFUSE_PARTY_TOO_LARGE: StringName = &"PARTY_EXCEEDS_CAPACITY"
 const REFUSE_MEMBER_MISLINKED: StringName = &"MEMBER_LINKS_TO_ANOTHER_COORDINATOR"
 const REFUSE_NEEDS_UNAVAILABLE: StringName = &"NEEDS_ROW_UNAVAILABLE"
@@ -312,6 +315,7 @@ const REFUSE_TOOL_NOT_OWNED: StringName = &"TOOL_NOT_OWNED_BY_THIS_RESIDENT"
 const REFUSE_TOOL_BROKEN: StringName = &"TOOL_BROKEN"
 const REFUSE_TOOL_CLAIM_STALE: StringName = &"TOOL_CLAIM_BELONGS_TO_ANOTHER_JOB"
 const REFUSE_TOOL_SETTLEMENT: StringName = &"TOOL_SETTLEMENT_REFUSED"
+const REFUSE_TOOL_GATE_BLOCKED: StringName = &"TOOL_GATE_BLOCKED"
 const REFUSE_INVALID_QUANTITY: StringName = &"INVALID_QUANTITY_MILLI"
 
 
@@ -398,6 +402,164 @@ static func _handle_is_valid(slot: int, generation: int, capacity: int) -> bool:
 	if slot == NULL_SLOT and generation == EntityDirectory.NULL_GENERATION:
 		return true
 	return slot >= 0 and slot < capacity and generation > 0
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 16's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is
+# an exact snapshot of the nine section-4 columns over ALL 512 physical rows; `restore_columns()`
+# judges a candidate with the SAME `columns_refusal()` the offline bridge uses, writes nothing on
+# refusal, then installs the nine columns and REBUILDS `_bound_tool_count` (category 2) from the
+# installed `tool_lot_slot` column. The WeakRef authorities (`_excavation_authority`,
+# `_modular_authority`, `_spatial_delivery`) and every per-tick scratch column belong to other
+# sections and are untouched by either call; `_last_column_refusal` is the only other member
+# either writes.
+
+class Columns:
+	"""Caller-owned image of the nine section-4 columns, in `columns_refusal()`'s argument order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var potential_remainder: PackedInt32Array = PackedInt32Array()
+	var xp_remainder: PackedInt32Array = PackedInt32Array()
+	var memory_total: PackedInt32Array = PackedInt32Array()
+	var wear_remainder: PackedInt32Array = PackedInt32Array()
+	var tool_lot_slot: PackedInt32Array = PackedInt32Array()
+	var tool_lot_generation: PackedInt32Array = PackedInt32Array()
+	var tool_job_slot: PackedInt32Array = PackedInt32Array()
+	var tool_job_generation: PackedInt32Array = PackedInt32Array()
+	var tool_broken: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size all nine columns to their declared extents, then fill the empty-store image."""
+		potential_remainder.resize(RESIDENT_CAPACITY)
+		xp_remainder.resize(RESIDENT_CAPACITY * SKILL_COUNT)
+		memory_total.resize(RESIDENT_CAPACITY)
+		wear_remainder.resize(RESIDENT_CAPACITY)
+		tool_lot_slot.resize(RESIDENT_CAPACITY)
+		tool_lot_generation.resize(RESIDENT_CAPACITY)
+		tool_job_slot.resize(RESIDENT_CAPACITY)
+		tool_job_generation.resize(RESIDENT_CAPACITY)
+		tool_broken.resize(RESIDENT_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `clear()` leaves: unbound, all zero."""
+		potential_remainder.fill(0)
+		xp_remainder.fill(0)
+		memory_total.fill(0)
+		wear_remainder.fill(0)
+		tool_lot_slot.fill(NULL_SLOT)
+		tool_lot_generation.fill(EntityDirectory.NULL_GENERATION)
+		tool_job_slot.fill(NULL_SLOT)
+		tool_job_generation.fill(EntityDirectory.NULL_GENERATION)
+		tool_broken.fill(0)
+
+	func equals(other: Columns) -> bool:
+		"""True when all nine columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and potential_remainder == other.potential_remainder \
+			and xp_remainder == other.xp_remainder and memory_total == other.memory_total \
+			and wear_remainder == other.wear_remainder and tool_lot_slot == other.tool_lot_slot \
+			and tool_lot_generation == other.tool_lot_generation \
+			and tool_job_slot == other.tool_job_slot \
+			and tool_job_generation == other.tool_job_generation \
+			and tool_broken == other.tool_broken
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the TickResult/OpResult every mutator returns, so a load can never
+	overwrite the reason some earlier call was refused before its caller read it.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the nine section-4 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	Snapshots only: mutating `out` afterwards cannot reach a live column, and a later live write
+	cannot reach `out`. WeakRef authorities and the per-tick scratch columns are never read here.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_ints(out.potential_remainder, _potential_remainder)
+	_refill_ints(out.xp_remainder, _xp_remainder)
+	_refill_ints(out.memory_total, _memory_total)
+	_refill_ints(out.wear_remainder, _wear_remainder)
+	_refill_ints(out.tool_lot_slot, _tool_lot_slot)
+	_refill_ints(out.tool_lot_generation, _tool_lot_generation)
+	_refill_ints(out.tool_job_slot, _tool_job_slot)
+	_refill_ints(out.tool_job_generation, _tool_job_generation)
+	_refill_bytes(out.tool_broken, _tool_broken)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all nine columns and rebuild `_bound_tool_count`. False refuses; nothing written.
+
+	Allocate before consume (decision 0059): the whole `columns_refusal()` predicate runs before
+	any write, so a refusal leaves every column and the derived count byte-identical. WeakRef
+	authorities and the per-tick scratch columns belong to other sections and stay untouched.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.potential_remainder, columns.xp_remainder,
+			columns.memory_total, columns.wear_remainder, columns.tool_lot_slot,
+			columns.tool_lot_generation, columns.tool_job_slot, columns.tool_job_generation,
+			columns.tool_broken)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_potential_remainder = columns.potential_remainder.duplicate()
+	_xp_remainder = columns.xp_remainder.duplicate()
+	_memory_total = columns.memory_total.duplicate()
+	_wear_remainder = columns.wear_remainder.duplicate()
+	_tool_lot_slot = columns.tool_lot_slot.duplicate()
+	_tool_lot_generation = columns.tool_lot_generation.duplicate()
+	_tool_job_slot = columns.tool_job_slot.duplicate()
+	_tool_job_generation = columns.tool_job_generation.duplicate()
+	_tool_broken = columns.tool_broken.duplicate()
+	_bound_tool_count = _count_bound(_tool_lot_slot)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.potential_remainder.size() == RESIDENT_CAPACITY \
+		and columns.xp_remainder.size() == RESIDENT_CAPACITY * SKILL_COUNT \
+		and columns.memory_total.size() == RESIDENT_CAPACITY \
+		and columns.wear_remainder.size() == RESIDENT_CAPACITY \
+		and columns.tool_lot_slot.size() == RESIDENT_CAPACITY \
+		and columns.tool_lot_generation.size() == RESIDENT_CAPACITY \
+		and columns.tool_job_slot.size() == RESIDENT_CAPACITY \
+		and columns.tool_job_generation.size() == RESIDENT_CAPACITY \
+		and columns.tool_broken.size() == RESIDENT_CAPACITY
+
+
+static func _count_bound(tool_lot_slot: PackedInt32Array) -> int:
+	"""How many rows hold a non-null tool-lot slot, recomputed rather than carried across a save."""
+	var count: int = 0
+	for row: int in tool_lot_slot.size():
+		if tool_lot_slot[row] != NULL_SLOT:
+			count += 1
+	return count
+
+
+static func _refill_ints(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
 
 
 class TickResult:
@@ -512,6 +674,15 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 ## The gear store this module settles tool wear against, or null. Optional by design: a world with
 ## no gear store ticks exactly as it did before this integration, and every binding operation
 ## refuses GEAR_STORE_UNAVAILABLE rather than silently doing nothing.
+var _excavation_authority: WeakRef = null
+var _publishing_excavation_job: Vector2i = Vector2i(-1, 0)
+var _modular_authority: WeakRef = null
+var _publishing_modular_job: Vector2i = Vector2i(-1, 0)
+var _pending_modular_job: Vector2i = Vector2i(-1, 0)
+## ADR1140: fixed concrete script loaded once to avoid the Profiles -> Work preload cycle.
+var _delivery_script: Script = null
+var _spatial_delivery: WeakRef = null
+var _handling_tick: bool = false
 var _gear: GearScript = null
 ## Reused outcome for the wear debit, so a settlement tick allocates nothing. Consumed immediately
 ## inside `_charge_tool()` and never handed to a caller.
@@ -519,6 +690,9 @@ var _wear_outcome: GearScript.WearOutcome = GearScript.WearOutcome.new()
 ## Live tool bindings. Derived from `_tool_lot_slot`, kept as a counter so `bind_gear()` can refuse
 ## to swap the store out from under one.
 var _bound_tool_count: int = 0
+## The code of the most recent refused bulk column call, or REFUSE_NONE. A diagnostic channel
+## separate from every mutator's TickResult/OpResult, never saved or hashed (ADR 1222 step 2).
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init(p_jobs: JobsScript = null) -> void:
@@ -599,6 +773,7 @@ func _refuse_into(out: TickResult, code: StringName) -> bool:
 	out.remaining_mwu = 0
 	out.contributor_count = 0
 	out.completed = false
+	_discard_modular_tick()
 	return false
 
 
@@ -642,6 +817,102 @@ func needs() -> NeedsScript:
 func gear() -> GearScript:
 	"""The gear store tool wear settles against, or null while none is bound."""
 	return _gear
+
+
+func bind_excavation_authority(authority: ExcavationContract) -> OpResult:
+	"""Bind one fail-closed physical owner without retaining a Work-to-site cycle."""
+	var code: StringName = excavation_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_excavation_authority = weakref(authority)
+	return _succeed(1)
+
+
+func excavation_binding_refusal(authority: ExcavationContract) -> StringName:
+	"""Read-only preflight prevents half-binding a physical ledger across Work and Construction."""
+	return ExcavationContract.REFUSE_AUTHORITY if authority == null or _excavation_authority != null else REFUSE_NONE
+
+
+func _excavation_refusal(job_slot: int) -> StringName:
+	"""A once-bound owner disappearing is a wiring failure, never permission for free work."""
+	if _excavation_authority == null:
+		return REFUSE_NONE
+	var authority: ExcavationContract = _excavation_authority.get_ref() as ExcavationContract
+	return authority.work_tick_refusal(_jobs.ref_of(job_slot)) if authority != null else ExcavationContract.REFUSE_AUTHORITY
+
+
+func _notify_excavation(job_slot: int) -> void:
+	"""Publish only actual accepted Job progress after Work's own atomic tick succeeded."""
+	if _excavation_authority != null:
+		var authority: ExcavationContract = _excavation_authority.get_ref() as ExcavationContract
+		_publishing_excavation_job = _jobs.ref_of(job_slot)
+		authority.accept_work_tick(_publishing_excavation_job)
+		_publishing_excavation_job = Vector2i(-1, 0)
+
+
+func is_publishing_excavation_tick(job: Vector2i) -> bool:
+	"""Attest only this synchronous post-commit callback, never a manually adjusted Job counter."""
+	return job != Vector2i(-1, 0) and _publishing_excavation_job == job
+
+
+func modular_binding_refusal(authority: ModularContract) -> StringName:
+	"""Preflight the optional shared paid owner before Construction and Work bind together."""
+	return ModularContract.REFUSE_AUTHORITY if authority == null or _modular_authority != null \
+		else REFUSE_NONE
+
+
+func bind_modular_authority(authority: ModularContract) -> OpResult:
+	"""Bind once and weakly; an expired paid owner cannot be replaced to reset old authorization."""
+	var code: StringName = modular_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_modular_authority = weakref(authority)
+	return _succeed(1)
+
+
+func modular_authority() -> ModularContract:
+	"""Expose only the actual live weak target; the router additionally validates world composition."""
+	return _modular_authority.get_ref() as ModularContract if _modular_authority != null else null
+
+
+func _work_owner_refusal(job_slot: int) -> StringName:
+	"""Resolve every paid-owner gate before any work carry, XP, remaining work or wear changes."""
+	var code: StringName = _excavation_refusal(job_slot)
+	if code != REFUSE_NONE or _modular_authority == null:
+		return code
+	var authority: ModularContract = modular_authority()
+	if authority == null:
+		return ModularContract.REFUSE_AUTHORITY
+	code = authority.work_tick_refusal(_jobs.ref_of(job_slot))
+	if code == REFUSE_NONE:
+		_pending_modular_job = _jobs.ref_of(job_slot)
+	return code
+
+
+func _notify_work_owners(job_slot: int) -> void:
+	"""Only actual successful Work commits open their exact synchronous paid-owner callbacks."""
+	_notify_excavation(job_slot)
+	if _modular_authority != null:
+		var authority: ModularContract = modular_authority()
+		_publishing_modular_job = _jobs.ref_of(job_slot)
+		authority.accept_work_tick(_publishing_modular_job)
+		_publishing_modular_job = Vector2i(-1, 0)
+		_pending_modular_job = Vector2i(-1, 0)
+
+
+func _discard_modular_tick() -> void:
+	"""Every refusal after a successful gate closes only that Job's prepared productive proof."""
+	if _pending_modular_job == Vector2i(-1, 0):
+		return
+	var authority: ModularContract = modular_authority()
+	if authority != null:
+		authority.discard_work_tick(_pending_modular_job)
+	_pending_modular_job = Vector2i(-1, 0)
+
+
+func is_publishing_modular_tick(job: Vector2i) -> bool:
+	"""A manually changed Job counter or a direct owner call is never accepted as labor."""
+	return job != Vector2i(-1, 0) and _publishing_modular_job == job
 
 
 func bind_gear(store: GearScript) -> OpResult:
@@ -958,6 +1229,13 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	"""
 	if out == null:
 		return false
+	if _handling_tick:
+		return _refuse_into(out, &"HAUL_WORK_REENTRY")
+	if _spatial_handling_job(job_slot):
+		return _tick_spatial_handling_into(job_slot, out)
+	var owner_refusal: StringName = _work_owner_refusal(job_slot)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse_into(out, owner_refusal)
 	if _jobs.is_coordinator(job_slot):
 		return _refuse_into(out, REFUSE_JOB_IS_COORDINATOR)
 	if _jobs.is_member(job_slot):
@@ -966,12 +1244,15 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	_begin_contributors()
-	code = _offer_contributor(job_slot)
+	code = _offer_contributor(job_slot, job_slot)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	if _party_count == 0:
 		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
-	return _commit_into(job_slot, out)
+	if not _commit_into(job_slot, out):
+		return false
+	_notify_work_owners(job_slot)
+	return true
 
 
 func tick_party(coordinator_slot: int) -> TickResult:
@@ -996,6 +1277,11 @@ func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 	"""
 	if out == null:
 		return false
+	if _handling_tick:
+		return _refuse_into(out, &"HAUL_WORK_REENTRY")
+	var owner_refusal: StringName = _work_owner_refusal(coordinator_slot)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse_into(out, owner_refusal)
 	if not _jobs.is_coordinator(coordinator_slot):
 		return _refuse_into(out, REFUSE_NOT_A_COORDINATOR)
 	var code: StringName = _check_progress_row(coordinator_slot)
@@ -1006,7 +1292,10 @@ func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 		return _refuse_into(out, code)
 	if _party_count == 0:
 		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
-	return _commit_into(coordinator_slot, out)
+	if not _commit_into(coordinator_slot, out):
+		return false
+	_notify_work_owners(coordinator_slot)
+	return true
 
 
 func _check_progress_row(job_slot: int) -> StringName:
@@ -1035,7 +1324,7 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 	var member: int = _math.value
 	var walking: bool = true
 	while walking:
-		var code: StringName = _offer_contributor(member)
+		var code: StringName = _offer_contributor(member, coordinator_slot)
 		if code != REFUSE_NONE and not _member_may_be_skipped(code):
 			return code
 		walking = _jobs.next_member_into(member, _math)
@@ -1057,7 +1346,8 @@ func _member_may_be_skipped(code: StringName) -> bool:
 	than as the generic "no contributing worker".
 	"""
 	return code == REFUSE_JOB_NOT_WORKING or code == REFUSE_JOB_HAS_NO_WORKER \
-		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE
+		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE \
+		or code == REFUSE_TOOL_NOT_CLAIMED or code == REFUSE_TOOL_GATE_BLOCKED or code == REFUSE_SCHEDULE_REST
 
 
 func _begin_contributors() -> void:
@@ -1072,7 +1362,7 @@ func _begin_contributors() -> void:
 	_pending_leftover = 0
 
 
-func _offer_contributor(job_slot: int) -> StringName:
+func _offer_contributor(job_slot: int, progress_slot: int) -> StringName:
 	"""Compute one Job's potential for this tick and append it to the party scratch.
 
 	Refuses one of `_member_may_be_skipped()`'s codes for a row that simply is not producing;
@@ -1095,6 +1385,8 @@ func _offer_contributor(job_slot: int) -> StringName:
 		return REFUSE_JOB_HAS_NO_WORKER
 	if not _jobs.resident_may_work_into(resident_slot, _math):
 		return REFUSE_JOB_NOT_WORKING
+	if _jobs.schedule().rests_now(resident_slot) and _jobs._remaining_mwu[progress_slot] % SAFE_SEGMENT_MWU == 0:
+		return REFUSE_SCHEDULE_REST
 	var tool_code: StringName = _tool_gate(job_slot, resident_slot)
 	if tool_code != REFUSE_NONE:
 		return tool_code
@@ -1104,20 +1396,14 @@ func _offer_contributor(job_slot: int) -> StringName:
 
 
 func _tool_gate(job_slot: int, resident_slot: int) -> StringName:
-	"""REFUSE_NONE when this resident's tool binding, if any, may take this tick's work.
-
-	Three packed reads and no gear-store lookup, because this runs once per contributor per tick.
-	A resident with NO binding passes: whether the job required a tool is `jobs.gd`'s tool gate,
-	which this file cannot read per tick without allocating (see the header).
-
-	The job comparison is the FULL `(slot, generation)` pair. A worker moved to a different job
-	still holds a claim keyed on the old one, and settling that work under the old claim would bill
-	a job that no longer exists -- ECON-002's "job/worker replacement must not rebill old WU or
-	bill only the last worker". The new job must take its own claim, and the §5.7 carry survives
-	the handover because `release_tool_claim()` never touches it.
-	"""
+	"""Require actual bound equipment whenever the live Job declares a tool requirement."""
+	if not _jobs.tool_gate_into(job_slot, _math):
+		return StringName(_math.error)
+	var requirement: int = _math.value
+	if requirement == JobsScript.GATE_BLOCKED or requirement == JobsScript.GATE_UNAVAILABLE:
+		return REFUSE_TOOL_GATE_BLOCKED
 	if _tool_lot_slot[resident_slot] == NULL_SLOT:
-		return REFUSE_NONE
+		return REFUSE_NONE if requirement == JobsScript.GATE_NOT_REQUIRED else REFUSE_TOOL_NOT_CLAIMED
 	if _tool_broken[resident_slot] == 1:
 		return REFUSE_TOOL_BROKEN
 	var job_ref: Vector2i = _jobs.ref_of(job_slot)
@@ -1176,7 +1462,7 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	var potential_total: int = 0
 	for index: int in _party_count:
 		potential_total += _party_potential[index]
-	var accepted: int = potential_total if potential_total < remaining else remaining
+	var accepted: int = _segment_capped(remaining, potential_total if potential_total < remaining else remaining)
 	var code: StringName = _allocate_shares(accepted, potential_total)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
@@ -1194,6 +1480,16 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	return _finish_into(progress_slot, accepted, left, out)
+
+
+func _segment_capped(remaining: int, accepted: int) -> int:
+	"""REQ-SET-034 (ADR1226): while any contributor's hour forbids work, the tick stops at the next safe point, so
+	at most the current 30-WU segment is finished before the worker rests."""
+	for index: int in _party_count:
+		if _jobs.schedule().rests_now(_party_resident[index]):
+			@warning_ignore("integer_division") var safe: int = ((remaining - 1) / SAFE_SEGMENT_MWU) * SAFE_SEGMENT_MWU
+			return mini(accepted, remaining - safe)
+	return accepted
 
 
 func _allocate_shares(accepted: int, potential_total: int) -> StringName:
@@ -1485,3 +1781,227 @@ func settlement_payload_bytes() -> int:
 	"""
 	var int32_columns: int = 5
 	return int32_columns * _wear_remainder.size() * 4 + _tool_broken.size()
+
+
+func bind_spatial_delivery(authority: RefCounted) -> StringName:
+	"""Bind the exact concrete delivery script once, cold; no script loading or virtual permission on a tick."""
+	if authority == null or _spatial_delivery != null or _delivery_script != null or _handling_tick:
+		return &"HAUL_WORK_BINDING"
+	var script: Script = load("res://scripts/core/underground_connector_delivery.gd") as Script
+	if script == null or authority.get_script() != script or authority._work != self \
+			or authority._planner == null or authority._planner._residents != _residents:
+		return &"HAUL_WORK_BINDING"
+	_delivery_script = script
+	_spatial_delivery = weakref(authority)
+	return &""
+
+
+func _spatial_handling_job(job_slot: int) -> bool:
+	"""Only the existing admitted spatial Planner row opts into handling; ordinary hauling remains unchanged."""
+	if _spatial_delivery == null or job_slot < 0 or job_slot >= JobsScript.JOB_CAPACITY \
+			or _jobs._job_present[job_slot] != 1 or _jobs._kind[job_slot] != JobsScript.JOB_KIND_HAUL:
+		return false
+	var authority: RefCounted = _spatial_delivery.get_ref()
+	if authority == null or authority.get_script() != _delivery_script:
+		return true # An expired once-bound spatial owner grants no ordinary-work fallback.
+	return bool(_delivery_script.call(&"handles_job", authority,
+		Vector2i(_jobs._job_ref_slot[job_slot], _jobs._job_ref_generation[job_slot])))
+
+
+func _tick_spatial_handling_into(job_slot: int, out: TickResult) -> bool:
+	"""Observe and prove one solo handling tick before any carry, WU or XP write; no tool wear is implied."""
+	var authority: RefCounted = _spatial_delivery.get_ref()
+	if authority == null or authority.get_script() != _delivery_script:
+		return _refuse_into(out, &"HAUL_WORK_BINDING")
+	_handling_tick = true
+	var job: Vector2i = _jobs.ref_of(job_slot)
+	var code: StringName = _prepare_handling_numbers(job_slot)
+	if code == &"":
+		code = StringName(_delivery_script.call(&"work_tick_observation_refusal", authority, job))
+	if code == &"":
+		code = &"HAUL_WORK_BINDING" if authority.get_script() != _delivery_script else \
+			StringName(_delivery_script.call(&"work_tick_leaf_refusal", authority, job))
+	if code == &"":
+		code = _handling_numbers_leaf(self, job_slot)
+	if code == &"":
+		_publish_handling_tick(self, job_slot, out)
+	_delivery_script.call(&"discard_work_tick", authority, job)
+	_handling_tick = false
+	return out.ok if code == &"" else _refuse_into(out, code)
+
+
+func _prepare_handling_numbers(job_slot: int) -> StringName:
+	"""Reuse the existing party scratch for one HAUL worker; the established factor owner still computes the rate."""
+	if _jobs.is_coordinator(job_slot) or _jobs.is_member(job_slot): return REFUSE_JOB_IS_MEMBER
+	var worker: Vector2i = _jobs.worker_of(job_slot)
+	var row: int = _directory.get_typed_row(worker)
+	if row < 0 or row >= RESIDENT_CAPACITY or not _jobs.resident_may_work_into(row, _math):
+		return REFUSE_JOB_HAS_NO_WORKER
+	if _jobs._tool_gate[job_slot] != JobsScript.GATE_NOT_REQUIRED or _tool_lot_slot[row] != NULL_SLOT:
+		return REFUSE_TOOL_GATE_BLOCKED
+	_begin_contributors()
+	_party_job[0] = job_slot
+	_party_resident[0] = row
+	_party_skill[0] = JobsScript.JOB_KIND_HAUL
+	_capture_handling_inputs(self, job_slot, row)
+	var code: StringName = _compute_factor(row, JobsScript.JOB_KIND_HAUL)
+	if code != &"": return code
+	_party_fraction[14] = _factor_out
+	if _party_fraction[12] <= 0: return REFUSE_NO_WORK_REMAINING
+	if _party_fraction[13] != JOB_STATE_WORK and _party_fraction[13] != JobsScript.JOB_STATE_HAUL_OUTPUT:
+		return REFUSE_JOB_NOT_WORKING
+	@warning_ignore("integer_division")
+	_party_potential[0] = (_party_fraction[10] + BASE_MWU_PER_TICK * _party_fraction[14]) / WORK_FACTOR_DENOMINATOR
+	_party_share[0] = mini(_party_potential[0], _party_fraction[12])
+	@warning_ignore("integer_division")
+	var earned: int = ((_party_fraction[11] + _party_share[0]) / MILLI_WU_PER_WU) * XP_PER_WU
+	return &"" if IntMath.checked_add_into(_party_fraction[8], earned, _math) else REFUSE_OVERFLOW
+
+
+static func _capture_handling_inputs(actual: RefCounted, job: int, row: int) -> void:
+	"""Freeze the exact rate/progress inputs in already allocated transient party cells, never a saved haul ledger."""
+	for need: int in NeedsScript.NEED_COUNT:
+		actual._party_fraction[need] = actual._needs._need_value[row * NeedsScript.NEED_COUNT + need]
+	actual._party_fraction[5] = actual._needs._health[row]
+	actual._party_fraction[6] = actual._needs._status[row]
+	actual._party_fraction[7] = actual._residents._skill_level[row * SKILL_COUNT + JobsScript.JOB_KIND_HAUL]
+	actual._party_fraction[8] = actual._residents._skill_xp[row * SKILL_COUNT + JobsScript.JOB_KIND_HAUL]
+	actual._party_fraction[9] = actual._memory_total[row]
+	actual._party_fraction[10] = actual._potential_remainder[row]
+	actual._party_fraction[11] = actual._xp_remainder[row * SKILL_COUNT + JobsScript.JOB_KIND_HAUL]
+	actual._party_fraction[12] = actual._jobs._remaining_mwu[job]
+	actual._party_fraction[13] = actual._jobs._state[job]
+
+
+static func _handling_numbers_leaf(actual: RefCounted, job: int) -> StringName:
+	"""Reject copied-old rate/progress facts after all contact observations without invoking another reader."""
+	var row: int = actual._party_resident[0]
+	if not _handling_contributor_leaf(actual, job, row): return &"HAUL_WORK_CHANGED"
+	if actual._jobs._job_present[job] != 1 or actual._jobs._kind[job] != JobsScript.JOB_KIND_HAUL \
+			or actual._jobs._remaining_mwu[job] != actual._party_fraction[12] \
+			or actual._jobs._state[job] != actual._party_fraction[13] \
+			or actual._jobs._tool_gate[job] != JobsScript.GATE_NOT_REQUIRED or actual._tool_lot_slot[row] != NULL_SLOT:
+		return &"HAUL_WORK_CHANGED"
+	for need: int in NeedsScript.NEED_COUNT:
+		if actual._needs._need_value[row * NeedsScript.NEED_COUNT + need] != actual._party_fraction[need]:
+			return &"HAUL_WORK_CHANGED"
+	var skill: int = row * SKILL_COUNT + JobsScript.JOB_KIND_HAUL
+	if actual._needs._present[row] != 1 or actual._needs._health[row] != actual._party_fraction[5] \
+			or actual._needs._status[row] != actual._party_fraction[6] \
+			or actual._residents._skill_level[skill] != actual._party_fraction[7] \
+			or actual._residents._skill_xp[skill] != actual._party_fraction[8] \
+			or actual._memory_total[row] != actual._party_fraction[9] \
+			or actual._potential_remainder[row] != actual._party_fraction[10] \
+			or actual._xp_remainder[skill] != actual._party_fraction[11]: return &"HAUL_WORK_CHANGED"
+	return &""
+
+
+static func _handling_contributor_leaf(actual: RefCounted, job: int, row: int) -> bool:
+	"""The originally calculated contributor must still be the full Job's actual assigned Resident."""
+	if row < 0 or row >= RESIDENT_CAPACITY or actual._residents._present[row] != 1: return false
+	var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
+	var ids: EntityDirectory = actual._directory
+	if worker.x < 0 or worker.x >= EntityDirectory.DIRECTORY_CAPACITY or ids._active[worker.x] != 1 \
+			or ids._generation[worker.x] != worker.y or ids._kind[worker.x] != EntityDirectory.KIND_RESIDENT \
+			or ids._typed_row[worker.x] != row or ids._typed_owner_slot[ids._kind_base[EntityDirectory.KIND_RESIDENT] + row] != worker.x:
+		return false
+	return actual._jobs._worker_slot[job] == worker.x and actual._jobs._worker_generation[job] == worker.y \
+		and actual._jobs._agent_present[row] == 1 and actual._jobs._agent_persistent_id[row] == ids._persistent_id[worker.x] \
+		and actual._jobs._agent_job_slot[row] == actual._jobs._job_ref_slot[job] \
+		and actual._jobs._agent_job_generation[row] == actual._jobs._job_ref_generation[job]
+
+
+static func _publish_handling_tick(actual: RefCounted, job: int, out: TickResult) -> void:
+	"""Publish established integer WU/XP columns only; zero remaining waits for the actual guarded goods transfer."""
+	var row: int = actual._party_resident[0]
+	var skill: int = row * SKILL_COUNT + JobsScript.JOB_KIND_HAUL
+	var accepted: int = actual._party_share[0]
+	var xp_accumulator: int = actual._party_fraction[11] + accepted
+	@warning_ignore("integer_division") var whole: int = xp_accumulator / MILLI_WU_PER_WU
+	actual._potential_remainder[row] = actual._party_fraction[10] + BASE_MWU_PER_TICK * actual._party_fraction[14] \
+		- actual._party_potential[0] * WORK_FACTOR_DENOMINATOR
+	actual._xp_remainder[skill] = xp_accumulator - whole * MILLI_WU_PER_WU
+	actual._residents._skill_xp[skill] = actual._party_fraction[8] + whole * XP_PER_WU
+	actual._residents._skill_level[skill] = ResidentsScript._skill_level_curve(actual._residents._skill_xp[skill])
+	actual._jobs._remaining_mwu[job] = actual._party_fraction[12] - accepted
+	out.ok = true
+	out.error = &""
+	out.accepted_mwu = accepted
+	out.remaining_mwu = actual._jobs._remaining_mwu[job]
+	out.contributor_count = 1
+	out.completed = out.remaining_mwu == 0
+
+
+# --- ADR1155: release Work's original authorities only after whole-World retirement. ---
+
+static func world_retirement_refusal_in(actual: RefCounted, ids: EntityDirectory,
+		world: Vector2i, persistent_id: int, excavation: ExcavationContract,
+		modular: ModularContract, delivery: RefCounted, delivery_script: Script, cleared: bool) -> StringName:
+	"""Keep actual owner identity and Work publication brackets independent of a caller's empty Directory."""
+	if actual == null or actual._directory != ids or actual._jobs == null or actual._residents == null \
+			or actual._jobs._directory != ids or actual._residents._directory != ids:
+		return &"WORLD_RETIREMENT_WORK"
+	if not _retirement_authority_matches(actual._excavation_authority, excavation) \
+			or not _retirement_authority_matches(actual._modular_authority, modular) \
+			or not _retirement_authority_matches(actual._spatial_delivery, delivery) \
+			or actual._delivery_script != delivery_script \
+			or (delivery == null) != (delivery_script == null):
+		return &"WORLD_RETIREMENT_WORK"
+	if actual._handling_tick or actual._publishing_excavation_job != Vector2i(-1, 0) \
+			or actual._publishing_modular_job != Vector2i(-1, 0) or actual._pending_modular_job != Vector2i(-1, 0):
+		return &"WORLD_RETIREMENT_BUSY"
+	var code: StringName = RetirementBuildings.whole_world_retirement_refusal_in(ids, world, persistent_id, cleared)
+	if code != &"": return code
+	return _retirement_empty_refusal(actual) if cleared else &""
+
+
+static func _retirement_authority_matches(binding: WeakRef, expected: RefCounted) -> bool:
+	"""Require the original target, including its null versus expired distinction."""
+	return binding == null if expected == null else binding != null and binding.get_ref() == expected
+
+
+static func _retirement_empty_refusal(actual: RefCounted) -> StringName:
+	"""Every cleared carry and participant scratch is read directly; no Gear or Job observer runs."""
+	if actual._jobs._live_count != 0 or actual._jobs._agent_count != 0 or actual._residents._live_count != 0 \
+			or actual._jobs._job_present.has(1) or actual._jobs._agent_present.has(1) or actual._residents._present.has(1) \
+			or actual._bound_tool_count != 0 or actual._party_count != 0 or actual._party_identity_count != 0 \
+			or actual._pending_leftover != 0 or actual._factor_out != 0:
+		return &"WORLD_RETIREMENT_NOT_EMPTY"
+	if actual._potential_remainder.count(0) != actual._potential_remainder.size() \
+			or actual._xp_remainder.count(0) != actual._xp_remainder.size() \
+			or actual._memory_total.count(0) != actual._memory_total.size() \
+			or actual._wear_remainder.count(0) != actual._wear_remainder.size() \
+			or actual._tool_lot_slot.count(NULL_SLOT) != actual._tool_lot_slot.size() \
+			or actual._tool_job_slot.count(NULL_SLOT) != actual._tool_job_slot.size():
+		return &"WORLD_RETIREMENT_NOT_EMPTY"
+	return _retirement_participant_refusal(actual)
+
+
+static func _retirement_participant_refusal(actual: RefCounted) -> StringName:
+	"""Read all remaining clear-owned tool and contributor columns without temporary array construction."""
+	if actual._tool_lot_generation.count(0) != actual._tool_lot_generation.size() \
+			or actual._tool_job_generation.count(0) != actual._tool_job_generation.size() \
+			or actual._tool_broken.count(0) != actual._tool_broken.size() \
+			or actual._party_job.count(0) != actual._party_job.size() \
+			or actual._party_resident.count(0) != actual._party_resident.size() \
+			or actual._party_skill.count(0) != actual._party_skill.size() \
+			or actual._party_persistent_id.count(0) != actual._party_persistent_id.size() \
+			or actual._party_potential.count(0) != actual._party_potential.size() \
+			or actual._party_share.count(0) != actual._party_share.size() \
+			or actual._party_fraction.count(0) != actual._party_fraction.size():
+		return &"WORLD_RETIREMENT_NOT_EMPTY"
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, ids: EntityDirectory,
+		world: Vector2i, persistent_id: int, excavation: ExcavationContract,
+		modular: ModularContract, delivery: RefCounted, delivery_script: Script) -> StringName:
+	"""Release only the three expected Work links and the derived cached delivery Script."""
+	var code: StringName = world_retirement_refusal_in(actual, ids, world, persistent_id,
+		excavation, modular, delivery, delivery_script, true)
+	if code != &"": return code
+	actual._excavation_authority = null
+	actual._modular_authority = null
+	actual._spatial_delivery = null
+	actual._delivery_script = null
+	return &""

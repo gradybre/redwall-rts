@@ -1,0 +1,102 @@
+{
+  "head": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+  "run": "https://github.com/gradybre/redwall-rts/actions/runs/37259107677",
+  "conclusion": "failure",
+  "all_observed_suite_files": 405,
+  "each_planned_suite_header_observed_once": true,
+  "counts_observed_from_raw_logs": {
+    "tests": 11207,
+    "assertions": 1027796,
+    "failures": 2,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "shards": [
+    {
+      "index": 0,
+      "files": 47,
+      "tests": 1224,
+      "assertions": 57718,
+      "failures": 2,
+      "summary": "1224 test(s), 57718 assertion(s), 2 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 211 expected, 8 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": false
+    },
+    {
+      "index": 1,
+      "files": 50,
+      "tests": 1353,
+      "assertions": 362197,
+      "failures": 0,
+      "summary": "1353 test(s), 362197 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 4 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    },
+    {
+      "index": 2,
+      "files": 51,
+      "tests": 1402,
+      "assertions": 124370,
+      "failures": 0,
+      "summary": "1402 test(s), 124370 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 1 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    },
+    {
+      "index": 3,
+      "files": 50,
+      "tests": 1259,
+      "assertions": 73521,
+      "failures": 0,
+      "summary": "1259 test(s), 73521 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 166 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    },
+    {
+      "index": 4,
+      "files": 51,
+      "tests": 1547,
+      "assertions": 58091,
+      "failures": 0,
+      "summary": "1547 test(s), 58091 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 46 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    },
+    {
+      "index": 5,
+      "files": 52,
+      "tests": 1705,
+      "assertions": 73955,
+      "failures": 0,
+      "summary": "1705 test(s), 73955 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 26 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    },
+    {
+      "index": 6,
+      "files": 52,
+      "tests": 1291,
+      "assertions": 164926,
+      "failures": 0,
+      "summary": "1291 test(s), 164926 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 26 expected, 132 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    },
+    {
+      "index": 7,
+      "files": 52,
+      "tests": 1426,
+      "assertions": 113018,
+      "failures": 0,
+      "summary": "1426 test(s), 113018 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 4 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "success_report_exists": true
+    }
+  ],
+  "acceptance": false,
+  "limitation": "Failed shard0 has no valid success report. Unchanged CI aggregate refuses; observed header coverage is not a green aggregate gate."
+}

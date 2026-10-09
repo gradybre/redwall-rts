@@ -1,0 +1,10 @@
+Specification contracts	Memory ledger arithmetic	﻿2026-10-03T19:58:00.6736171Z ##[group]Run python3 docs/validation/ready07_arithmetic.py
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.6736401Z ^[[36;1mpython3 docs/validation/ready07_arithmetic.py^[[0m
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.6782588Z shell: /usr/bin/bash -e {0}
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.6782722Z ##[endgroup]
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.9294510Z Traceback (most recent call last):
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.9295077Z   File "/home/runner/work/redwall-rts/redwall-rts/docs/validation/ready07_arithmetic.py", line 196, in <module>
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.9295663Z     assert sum(width*capacity for width,capacity in shapes.values())==expected_bytes,module
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.9296043Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.9296303Z AssertionError: excavation_inventory
+Specification contracts	Memory ledger arithmetic	2026-10-03T19:58:00.9414551Z ##[error]Process completed with exit code 1.

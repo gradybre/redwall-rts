@@ -1,0 +1,19 @@
+..E...
+======================================================================
+ERROR: test_current_joint_admission (__main__.CensusTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/docs/validation/evidence/underground-motion-clock-2026-10-04/test_census.py", line 12, in test_current_joint_admission
+    result = census.build(self.source)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/docs/validation/evidence/underground-motion-clock-2026-10-04/census.py", line 48, in build
+    baseline = motion.build(index)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/tools/underground_motion_memory.py", line 135, in build
+    derived = joint_sources(index, memory)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/tools/underground_motion_memory.py", line 190, in joint_sources
+    original = index[name]
+KeyError: 'mole_profile_catalog'
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.149s
+
+FAILED (errors=1)

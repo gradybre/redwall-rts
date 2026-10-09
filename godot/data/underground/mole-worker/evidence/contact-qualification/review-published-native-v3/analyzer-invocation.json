@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/gdscript_warnings.py",
+    "--port",
+    "6149",
+    "--max",
+    "0",
+    "--json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/review-published-native-v3/analyzer.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_published_mole.gd"
+  ],
+  "exit_code": 0,
+  "source_before": "bbbeb53376eae13eae626c9a853da94b60c64bbab87c7fd12c924382e382e7a2",
+  "source_after": "bbbeb53376eae13eae626c9a853da94b60c64bbab87c7fd12c924382e382e7a2",
+  "source_unchanged": true,
+  "own_override_restored": true
+}

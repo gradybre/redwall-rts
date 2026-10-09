@@ -1,0 +1,33 @@
+state_registry_coverage: PASS -- 140 modules, 699 rows, 1038 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_prepared_location_observation.gd
+  PASS  test_fixed_observations_copy_unpublished_row_without_repeating_full_proofs
+  PASS  test_foreign_actual_graph_with_coincident_tokens_never_supplies_the_namespace
+  PASS  test_full_handle_and_candidate_seals_preserve_refused_output
+  PASS  test_original_real_lease_is_required_before_any_output_write
+  PASS  test_world_retirement_and_reuse_cannot_alias_a_prepared_endpoint
+  PASS  test_strict_public_reader_keeps_complete_observer_refusal
+  PASS  test_graph_post_validation_rechecks_drift_after_last_metadata_observation
+  PASS  test_final_guard_rechecks_drift_after_successful_seal
+  PASS  test_route_edge_reads_use_fixed_observations_with_the_existing_full_boundaries
+  PASS  test_prepared_route_read_refuses_before_copy_when_fixed_work_is_unpaid
+CI_SUITE_TIME {"assertions":337,"failures":0,"suite":"test_underground_prepared_location_observation.gd","tests":10,"usec":779490}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 337 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 337 assertions, 0 failures.

@@ -1,0 +1,162 @@
+{
+ "self": {
+  "right_arm_vs_rest": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1000,
+   "second_triangles": 7776
+  },
+  "left_arm_vs_rest": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1056,
+   "second_triangles": 6901
+  },
+  "right_arm_vs_left_arm": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "released_stand_contact": {
+    "pairs": 0,
+    "intervals": [],
+    "is_prefix_from_ready": true,
+    "paw_triangles": 0,
+    "thigh_triangles": 0
+   },
+   "first_triangles": 1000,
+   "second_triangles": 1056
+  },
+  "excluded_shoulder_seam_triangles": {
+   "right": 1433,
+   "left": 2252
+  },
+  "clear": true
+ },
+ "T0": {
+  "clear": true,
+  "checks": 3048,
+  "unresolved": [],
+  "supports": 270,
+  "fixture": {
+   "standing_deck": "T0",
+   "swapped_indices": [
+    7,
+    7
+   ],
+   "shift_u": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "T1": {
+  "clear": true,
+  "checks": 3048,
+  "unresolved": [],
+  "supports": 270,
+  "fixture": {
+   "standing_deck": "T1",
+   "swapped_indices": [
+    7,
+    22
+   ],
+   "shift_u": [
+    0,
+    128,
+    512
+   ]
+  }
+ },
+ "T2": {
+  "clear": true,
+  "checks": 3048,
+  "unresolved": [],
+  "supports": 270,
+  "fixture": {
+   "standing_deck": "T2",
+   "swapped_indices": [
+    7,
+    33
+   ],
+   "shift_u": [
+    0,
+    256,
+    1024
+   ]
+  }
+ },
+ "T3": {
+  "clear": true,
+  "checks": 3048,
+  "unresolved": [],
+  "supports": 270,
+  "fixture": {
+   "standing_deck": "T3",
+   "swapped_indices": [
+    7,
+    44
+   ],
+   "shift_u": [
+    0,
+    384,
+    1536
+   ]
+  }
+ },
+ "T4": {
+  "clear": true,
+  "checks": 3048,
+  "unresolved": [],
+  "supports": 270,
+  "fixture": {
+   "standing_deck": "T4",
+   "swapped_indices": [
+    7,
+    55
+   ],
+   "shift_u": [
+    0,
+    512,
+    2048
+   ]
+  }
+ },
+ "T5": {
+  "clear": true,
+  "checks": 3048,
+  "unresolved": [],
+  "supports": 270,
+  "fixture": {
+   "standing_deck": "T5",
+   "swapped_indices": [
+    7,
+    66
+   ],
+   "shift_u": [
+    0,
+    640,
+    2560
+   ]
+  }
+ }
+}

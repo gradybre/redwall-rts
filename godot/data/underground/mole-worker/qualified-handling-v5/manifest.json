@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "decision": "1194",
+  "content_revision": 4,
+  "profile_count": 30,
+  "box_count": 281,
+  "source_count": 2,
+  "wire_sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+  "wire_bytes": 10912,
+  "paired_bank_bytes": 21808,
+  "handling_source_sha256": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+  "superset_of": {
+    "wire_sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+    "rows": "0-28",
+    "boxes": "0-270"
+  },
+  "ground_sha256": "877be0982eb6945c4c4f014e9de428b3ab278d1fddc630080e9c6bfe341a1ea8",
+  "motion_sha256": "16c3c6b030c21fa9185a706493815b87441cfbfe8ceed2fdaa5733c0c4693fcc",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-step-v4/motion.ugmotion": "69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c",
+    "godot/data/underground/first-entry-prefix-v1/qualified-handling-v1/mole-worker.ugprof": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+    "godot/data/underground/mole-worker/publish_handling_runtime.py": "f821d0cdab6f3961cb6cbbd7b6efd2a16606b21a08b8cc71583963ee175a5703"
+  },
+  "motion_numerical_input_sha256": "29c63c658ab5f1a49bade158c9a4ccfcc5998df1dfbd96e9d439ddf0de9263a0",
+  "consumers": {
+    "godot/scripts/core/underground_profiles.gd": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf",
+    "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+    "godot/scripts/core/underground_connector_contacts.gd": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
+    "godot/scripts/core/underground_routes.gd": "8a4cd2a60b05f7c34e9baef32b8bdc6e38d458bb5594fb4999730dee3f74fef0",
+    "godot/scripts/core/underground_world_routes.gd": "a61a708e0f68c8cf6cad9b316558a4f54bc2fcd98719ceb4c4ad6e0477cf78e5",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879"
+  },
+  "presentation": "Row 29 has no actor-source presentation; rows 0-28 unchanged.",
+  "renewals": [
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "from": "6d0ce5822a9fb41f7b1e660f57ac47932560767efb0a73655c96d1489c8bf86b",
+      "to": "a2a76aea6f890cdfaa38015536a08a5ec331d180300441a1c7d50dc4bca9545a"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "from": "a2a76aea6f890cdfaa38015536a08a5ec331d180300441a1c7d50dc4bca9545a",
+      "to": "ed6c4ba5ae878d065c7e07ade93793c22264a73b56fbef8ee38d8253f9de79ca"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "from": "ed6c4ba5ae878d065c7e07ade93793c22264a73b56fbef8ee38d8253f9de79ca",
+      "to": "7fdcb6a40869c1563d8766a5af9ced736f271c33ee5146a2971eab0d3e64516f"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "from": "7fdcb6a40869c1563d8766a5af9ced736f271c33ee5146a2971eab0d3e64516f",
+      "to": "64325eed6772207817a043220fe4db371fe5aa68a89fec60a287099ea589dfaf"
+    }
+  ]
+}

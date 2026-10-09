@@ -1,0 +1,44 @@
+{
+  "interpreter": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "tests_cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification",
+  "tests": [
+    "-m",
+    "unittest",
+    "test_stair_rig_assessment",
+    "test_stair_motion",
+    "test_stair_terrain",
+    "test_stair_capture"
+  ],
+  "author": [
+    "author_stair_motion.py",
+    "stair-motion-v15",
+    "--lead-root-advance",
+    "68",
+    "--lead-root-lift",
+    "50"
+  ],
+  "terrain": [
+    "prove_stair_terrain.py",
+    "stair-motion-v15",
+    "stair-motion-v15/terrain-v3.json"
+  ],
+  "expected_terrain_exit": 2,
+  "self": [
+    "prove_stair_self.py",
+    "stair-motion-v15",
+    "stair-motion-v15/self-v1.json",
+    "--rise",
+    "128"
+  ],
+  "native_record": "../native-stair-v2/invocation.json",
+  "analyzer_reproduction": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--port",
+    "6149",
+    "--max",
+    "0",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_stair_motion.gd"
+  ],
+  "production_qualified": false
+}

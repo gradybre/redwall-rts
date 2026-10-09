@@ -1,0 +1,30 @@
+{
+  "head_before": "798220a753fdfc44e4d324d8e9e560c8f4fef298",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 5.112,
+      "log": "clean-import.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1147-95872b32c5647182",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "registry_sha256_before": "b5981912c5c35baa42b85813482f7abcae01d58693fdfd915d5db9eed16c705e",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "error": "RuntimeError('Import contains raw errors, warnings or leaked resources')",
+  "project_restored": true,
+  "registry_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

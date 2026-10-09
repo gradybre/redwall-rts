@@ -1,0 +1,114 @@
+{
+  "source_manifest": "source-review-2/source-sha256.json",
+  "all_current_pins_match": true,
+  "runtime_production_and_tests_match": true,
+  "native_actual_Script_closure_matches": true,
+  "script_rows": {
+    "godot/scripts/core/underground_profiles.gd": {
+      "frozen": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
+      "runtime_7": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
+      "native_4": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec"
+    },
+    "godot/scripts/core/underground_routes.gd": {
+      "frozen": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
+      "runtime_7": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f",
+      "native_4": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f"
+    },
+    "godot/scripts/core/underground_world_routes.gd": {
+      "frozen": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66",
+      "runtime_7": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66",
+      "native_4": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66"
+    },
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": {
+      "frozen": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+      "runtime_7": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+      "native_4": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064"
+    },
+    "godot/test/test_underground_profiles.gd": {
+      "frozen": "5df62c2e2ac4ea4a2520378a6c3594333d53ce86fbe4df64ca473e75445a1709",
+      "runtime_7": "5df62c2e2ac4ea4a2520378a6c3594333d53ce86fbe4df64ca473e75445a1709",
+      "native_4": null
+    },
+    "godot/test/test_underground_routes.gd": {
+      "frozen": "2f362bbffd10327cf1d39b35fb7ffba2b73391e79a54cfe9b1d7b1d2dc50069a",
+      "runtime_7": "2f362bbffd10327cf1d39b35fb7ffba2b73391e79a54cfe9b1d7b1d2dc50069a",
+      "native_4": null
+    },
+    "godot/test/test_underground_world_routes.gd": {
+      "frozen": "b412a1e12754128375647284b6217bcdb0c6e7bb222444019bf90d20b8c75d31",
+      "runtime_7": "b412a1e12754128375647284b6217bcdb0c6e7bb222444019bf90d20b8c75d31",
+      "native_4": "b412a1e12754128375647284b6217bcdb0c6e7bb222444019bf90d20b8c75d31"
+    },
+    "godot/test/test_mole_profile_driver.gd": {
+      "frozen": "138383809d0b04fd8c4baf64d9e35338ea65c4dff0485dfd52df6e103c68ccfd",
+      "runtime_7": "138383809d0b04fd8c4baf64d9e35338ea65c4dff0485dfd52df6e103c68ccfd",
+      "native_4": null
+    },
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": {
+      "frozen": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524",
+      "runtime_7": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524",
+      "native_4": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524"
+    },
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd.uid": {
+      "frozen": "804aa29c479b86238d091f0454ab22ef03cf7414061a5f81ebfedd22c46ed198",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "godot/data/underground/mole-worker/work-step-v1/assemble_diagnostic.py": {
+      "frozen": "07d0b78fb5e4dc4046285a93862e7dd7f99e83103661a5fc82cccc5ca4e1c3da",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "godot/data/underground/mole-worker/work-step-v1/assemble_ground_diagnostic.py": {
+      "frozen": "28e53b7f6a7efad1755b5bc96cbb6410a2445e6452eb7ce74e7a7dd6d833fd2f",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "godot/data/underground/mole-worker/work-step-v1/capture_canonical.gd": {
+      "frozen": "101afe9a3d20a59b80e6eb5c83cf282e963639fe3cde0ffb193e5c66fa332b91",
+      "runtime_7": "101afe9a3d20a59b80e6eb5c83cf282e963639fe3cde0ffb193e5c66fa332b91",
+      "native_4": "101afe9a3d20a59b80e6eb5c83cf282e963639fe3cde0ffb193e5c66fa332b91"
+    },
+    "godot/data/underground/mole-worker/work-step-v1/capture_canonical.gd.uid": {
+      "frozen": "c51a703ce4c10faffa816b7cc17c85abad2529833e880d0418447aa64064b1f6",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "godot/data/underground/mole-worker/work-step-v1/run_canonical.py": {
+      "frozen": "9144d16446d4da81ffde9e457da96b3625d6123f39391c7304e5ccc1113d17fa",
+      "runtime_7": null,
+      "native_4": "9144d16446d4da81ffde9e457da96b3625d6123f39391c7304e5ccc1113d17fa"
+    },
+    "godot/data/underground/mole-worker/work-step-v1/test_diagnostic.py": {
+      "frozen": "a430fc08c9871eb490c6be7b87b57fa9eeabc21f921c8c36b07e11ca4e27fecd",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "godot/data/underground/mole-worker/work-step-v1/test_run_canonical.py": {
+      "frozen": "95b50785f9261e83d920c220eb7d5c2c450aec447175dbd06bd9cc58e35ef5d7",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/census.py": {
+      "frozen": "984b9db1ab316c27efc2446ed70a708273b54bbb9b9f11af9481e479a044436d",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/test_census.py": {
+      "frozen": "e216dd136c3cf0e28f6c68f547f00439b2b19b008caed388f2c681339edd5c8d",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/reproduce.py": {
+      "frozen": "e7cbb64929bea0ca6b88c1b2b4804c53c1148c3baa64e54e44e91f209a220963",
+      "runtime_7": null,
+      "native_4": null
+    },
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/stage_native_inputs.py": {
+      "frozen": "6f56c14e8a82a73b50c09ef21ffc7af507aa8c0764d233c50cf66925b3ea5dd9",
+      "runtime_7": null,
+      "native_4": null
+    }
+  },
+  "native_source_unchanged": true
+}

@@ -1,0 +1,49 @@
+{
+  "head": "a1a162557c7c8ff95cc514b47ec575d19d2663b5",
+  "kind": "Normal integration source, no injection",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "tools/test_underground_memory_budget.py"
+      ],
+      "exit_code": 0,
+      "seconds": 34.844,
+      "log": "tests.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.495,
+      "log": "check.log"
+    },
+    {
+      "command": [
+        "python3",
+        "docs/validation/ready07_arithmetic.py",
+        "--output",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-world-memory-2026-10-04/integration-source-v1/ready07.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.772,
+      "log": "ready07.log"
+    }
+  ],
+  "source_sha256": {
+    "tools/underground_memory_budget.py": "d05799d3dc3041dcbc1fdfc3c66c425047cfed064cee506c2cc48941910850dc",
+    "tools/test_underground_memory_budget.py": "a8f95f9ff1f43d39ffd9df7e31c01e4077abda44b4f3a706fd469edbddd0e0c6",
+    "docs/systems_architecture.md": "539f6ad9a7bc972481926cd083f431219ec26cf1b5cfe2d04c5a4b50dc5fcbf5",
+    "docs/validation/ready07_arithmetic.py": "d7635c033907f4ef7392bc806a454954e9e7a702d575a24202ffc96c39ea5635",
+    "docs/planning/underground_memory_pack.json": "f8d05ebc818a5cde1c566bb93ae81cf4b00e5b68b56072d90d18e7853ba82878",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "godot/scripts/core/underground_connector_contacts.gd": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d"
+  },
+  "runtime_qualified": false,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

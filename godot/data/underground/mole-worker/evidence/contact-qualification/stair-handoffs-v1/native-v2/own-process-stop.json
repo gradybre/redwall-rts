@@ -1,0 +1,6 @@
+{
+  "pid": 32273,
+  "verified_command": "godot --path godot --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 60 --log-file /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/engine-native.log --script /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd -- /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/spec.json /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2",
+  "signal": "SIGTERM",
+  "reason": "No progress after first PNG for more than four minutes; native main loop remains active; own process only."
+}

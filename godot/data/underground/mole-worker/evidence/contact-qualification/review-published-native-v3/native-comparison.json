@@ -1,0 +1,41 @@
+{
+  "event_contact_pose_equality": {
+    "events": true,
+    "native_contacts": true,
+    "phase_counts": true,
+    "poses": true,
+    "content_sha256": true,
+    "program_version": true,
+    "actual_species_stage_rig": true
+  },
+  "compared_image_count": 304,
+  "all_images_byte_identical": true,
+  "different_images": [],
+  "native_source_count": 660,
+  "native_sources_unchanged": true,
+  "current_native_sources_match": true,
+  "pre_import_source_count": 584,
+  "pre_import_sources_unchanged": true,
+  "prior_assertions": 46852,
+  "actual_catalog_assertions": 46873,
+  "all_assertions_passed": true,
+  "logs": {
+    "engine-import.log": {
+      "sha256": "597f2bd1072f580f14fc0e59b8b68e47dbe98c81fe92db0335dd12e5a2f2766d",
+      "unexpected_diagnostic_lines": []
+    },
+    "engine-native.log": {
+      "sha256": "f44480ce15aad7eb3beb515c6ac18655e03d0f2c6c8e4851e2f07c9cf1ccdc4b",
+      "unexpected_diagnostic_lines": []
+    },
+    "native.log": {
+      "sha256": "f44480ce15aad7eb3beb515c6ac18655e03d0f2c6c8e4851e2f07c9cf1ccdc4b",
+      "unexpected_diagnostic_lines": []
+    },
+    "import.log": {
+      "sha256": "ead78b2af7ecc2f4ecd10593355b305df63759f54d1cdd74786fca2fb879908e",
+      "unexpected_diagnostic_lines": []
+    }
+  },
+  "scope": "Actual emitted source catalog attachment on exact OpenGL backend; World/paid-target fixtures, no Forward Plus activation."
+}

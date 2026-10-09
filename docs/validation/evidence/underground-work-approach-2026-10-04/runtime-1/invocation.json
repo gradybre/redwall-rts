@@ -1,0 +1,42 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.272,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "248/398",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/runtime-1"
+      ],
+      "exit_code": 1,
+      "seconds": 5.765,
+      "log": "test_underground_profiles.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-work-approach",
+  "project_test_sha256": "d1f6a408a8ae9162554bb8e6ec8c3cc6b480183ba64633dbef823c6f440a9e07",
+  "assets_present_before": true,
+  "registry_sha256_before": "390d3a9e009d6e8eddbc034b9decf4c0f0c895c5d955f04e43ffd7a25a46fb94",
+  "registry_diagnostic_append_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "clean_import_raw_diagnostics": 0,
+  "error": "test_underground_profiles.gd.log",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

@@ -1,0 +1,374 @@
+{
+  "counts": {
+    "assertions": 362197,
+    "expected": 4,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1353,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "a1a9f00e85e446f54583058ed38749f51b8a86be57352ec8821c08c6f4a85ebe",
+  "shard_count": 8,
+  "shard_index": 1,
+  "suite_counts": {
+    "test_buildings_spatial.gd": {
+      "assertions": 434,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_construction_demolition_completion.gd": {
+      "assertions": 232,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_demo_art_wiring.gd": {
+      "assertions": 247,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_demo_care_desk.gd": {
+      "assertions": 134,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_demo_cellar.gd": {
+      "assertions": 819,
+      "failures": 0,
+      "tests": 40
+    },
+    "test_demo_crop_roles.gd": {
+      "assertions": 106,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_hud_truth.gd": {
+      "assertions": 301,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_kitchen_ui.gd": {
+      "assertions": 62,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_demo_lens_kit.gd": {
+      "assertions": 213,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_demo_lifetimes.gd": {
+      "assertions": 12,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_demo_map_lenses.gd": {
+      "assertions": 168,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_demo_planner_live.gd": {
+      "assertions": 80,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_resident_cells.gd": {
+      "assertions": 14,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_demo_routes_live.gd": {
+      "assertions": 76,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_work_index.gd": {
+      "assertions": 4,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_work_screen.gd": {
+      "assertions": 152,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_excavation_physical.gd": {
+      "assertions": 23926,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_excavation_sites.gd": {
+      "assertions": 3804,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_field_policy.gd": {
+      "assertions": 1002,
+      "failures": 0,
+      "tests": 82
+    },
+    "test_forest_root_field.gd": {
+      "assertions": 56,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_inventory_spatial.gd": {
+      "assertions": 274,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_modular_draft.gd": {
+      "assertions": 201,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_modular_spatial_outputs.gd": {
+      "assertions": 415,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_movement_readmission.gd": {
+      "assertions": 100,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_navigation.gd": {
+      "assertions": 7694,
+      "failures": 0,
+      "tests": 52
+    },
+    "test_priorities.gd": {
+      "assertions": 276,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_resident_crowd.gd": {
+      "assertions": 78,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_resident_stage.gd": {
+      "assertions": 110,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_rng.gd": {
+      "assertions": 473,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_room_footprint_packed.gd": {
+      "assertions": 196768,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_room_space.gd": {
+      "assertions": 249,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_save_component_columns_schema.gd": {
+      "assertions": 2685,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_save_owner_field_policy.gd": {
+      "assertions": 42353,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_save_section_component_columns.gd": {
+      "assertions": 9129,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_save_section_pending_commands.gd": {
+      "assertions": 9583,
+      "failures": 0,
+      "tests": 56
+    },
+    "test_settlement_furniture_removal.gd": {
+      "assertions": 359,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_spatial_world.gd": {
+      "assertions": 16755,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_ui_frame_geometry.gd": {
+      "assertions": 3070,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_ui_hit_test.gd": {
+      "assertions": 334,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_ui_resident_snapshot.gd": {
+      "assertions": 918,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_ui_shell.gd": {
+      "assertions": 1877,
+      "failures": 0,
+      "tests": 170
+    },
+    "test_underground_connector_catalog.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_underground_connector_payment_guard.gd": {
+      "assertions": 142,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_underground_entry_world_bindings.gd": {
+      "assertions": 10790,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_underground_room_admission.gd": {
+      "assertions": 821,
+      "failures": 0,
+      "tests": 24
+    },
+    "test_underground_room_itinerary.gd": {
+      "assertions": 114,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_underground_routes.gd": {
+      "assertions": 11633,
+      "failures": 0,
+      "tests": 73
+    },
+    "test_underground_world_bindings.gd": {
+      "assertions": 828,
+      "failures": 0,
+      "tests": 37
+    },
+    "test_underground_world_routes.gd": {
+      "assertions": 2437,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_work.gd": {
+      "assertions": 9283,
+      "failures": 0,
+      "tests": 77
+    }
+  },
+  "suite_usec": {
+    "test_buildings_spatial.gd": 2865309,
+    "test_construction_demolition_completion.gd": 3263380,
+    "test_demo_art_wiring.gd": 3926777,
+    "test_demo_care_desk.gd": 2747382,
+    "test_demo_cellar.gd": 720146,
+    "test_demo_crop_roles.gd": 1167838,
+    "test_demo_hud_truth.gd": 5629838,
+    "test_demo_kitchen_ui.gd": 447027,
+    "test_demo_lens_kit.gd": 1495714,
+    "test_demo_lifetimes.gd": 53487,
+    "test_demo_map_lenses.gd": 4434773,
+    "test_demo_planner_live.gd": 34953699,
+    "test_demo_resident_cells.gd": 207436,
+    "test_demo_routes_live.gd": 40242294,
+    "test_demo_work_index.gd": 103573,
+    "test_demo_work_screen.gd": 8578509,
+    "test_excavation_physical.gd": 7924848,
+    "test_excavation_sites.gd": 3479847,
+    "test_field_policy.gd": 5101763,
+    "test_forest_root_field.gd": 284164,
+    "test_inventory_spatial.gd": 553910,
+    "test_modular_draft.gd": 24973,
+    "test_modular_spatial_outputs.gd": 1154083,
+    "test_movement_readmission.gd": 756719,
+    "test_navigation.gd": 13489832,
+    "test_priorities.gd": 12200,
+    "test_resident_crowd.gd": 1933629,
+    "test_resident_stage.gd": 787840,
+    "test_rng.gd": 206009,
+    "test_room_footprint_packed.gd": 4530156,
+    "test_room_space.gd": 25656,
+    "test_save_component_columns_schema.gd": 43323,
+    "test_save_owner_field_policy.gd": 8561767,
+    "test_save_section_component_columns.gd": 1776550,
+    "test_save_section_pending_commands.gd": 2653016,
+    "test_settlement_furniture_removal.gd": 7100300,
+    "test_spatial_world.gd": 986849,
+    "test_ui_frame_geometry.gd": 70526,
+    "test_ui_hit_test.gd": 22840,
+    "test_ui_resident_snapshot.gd": 646917,
+    "test_ui_shell.gd": 5565073,
+    "test_underground_connector_catalog.gd": 1796127,
+    "test_underground_connector_payment_guard.gd": 11034073,
+    "test_underground_entry_world_bindings.gd": 184849495,
+    "test_underground_room_admission.gd": 19490394,
+    "test_underground_room_itinerary.gd": 7632284,
+    "test_underground_routes.gd": 30136102,
+    "test_underground_world_bindings.gd": 20699621,
+    "test_underground_world_routes.gd": 20126357,
+    "test_work.gd": 4729252
+  },
+  "suites": [
+    "test_buildings_spatial.gd",
+    "test_construction_demolition_completion.gd",
+    "test_demo_art_wiring.gd",
+    "test_demo_care_desk.gd",
+    "test_demo_cellar.gd",
+    "test_demo_crop_roles.gd",
+    "test_demo_hud_truth.gd",
+    "test_demo_kitchen_ui.gd",
+    "test_demo_lens_kit.gd",
+    "test_demo_lifetimes.gd",
+    "test_demo_map_lenses.gd",
+    "test_demo_planner_live.gd",
+    "test_demo_resident_cells.gd",
+    "test_demo_routes_live.gd",
+    "test_demo_work_index.gd",
+    "test_demo_work_screen.gd",
+    "test_excavation_physical.gd",
+    "test_excavation_sites.gd",
+    "test_field_policy.gd",
+    "test_forest_root_field.gd",
+    "test_inventory_spatial.gd",
+    "test_modular_draft.gd",
+    "test_modular_spatial_outputs.gd",
+    "test_movement_readmission.gd",
+    "test_navigation.gd",
+    "test_priorities.gd",
+    "test_resident_crowd.gd",
+    "test_resident_stage.gd",
+    "test_rng.gd",
+    "test_room_footprint_packed.gd",
+    "test_room_space.gd",
+    "test_save_component_columns_schema.gd",
+    "test_save_owner_field_policy.gd",
+    "test_save_section_component_columns.gd",
+    "test_save_section_pending_commands.gd",
+    "test_settlement_furniture_removal.gd",
+    "test_spatial_world.gd",
+    "test_ui_frame_geometry.gd",
+    "test_ui_hit_test.gd",
+    "test_ui_resident_snapshot.gd",
+    "test_ui_shell.gd",
+    "test_underground_connector_catalog.gd",
+    "test_underground_connector_payment_guard.gd",
+    "test_underground_entry_world_bindings.gd",
+    "test_underground_room_admission.gd",
+    "test_underground_room_itinerary.gd",
+    "test_underground_routes.gd",
+    "test_underground_world_bindings.gd",
+    "test_underground_world_routes.gd",
+    "test_work.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 489
+}

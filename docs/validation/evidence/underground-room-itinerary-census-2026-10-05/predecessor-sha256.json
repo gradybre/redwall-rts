@@ -1,0 +1,27 @@
+{
+  "underground_room_world_bindings": {
+    "source": "godot/scripts/core/underground_room_world_bindings.gd",
+    "commit": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+    "snapshot": "predecessors/underground_room_world_bindings.gd.txt",
+    "sha256": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9"
+  },
+  "underground_room_frontier": {
+    "source": "godot/scripts/core/underground_room_frontier.gd",
+    "commit": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+    "snapshot": "predecessors/underground_room_frontier.gd.txt",
+    "sha256": "554fbf053c377c0305ac9d2e5890dee90b7b511d056ee2a8b9388b1b3f06f52d"
+  },
+  "turn_paths": {
+    "source": "docs/validation/evidence/underground-ground-turn-2026-10-04/census.py",
+    "commit": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+    "snapshot": "predecessors/turn-census.py.txt",
+    "sha256": "3d531ce5ba7329ffd8641344304f42abd2c952cb87b86e2425e24fa08e15d278",
+    "imports": [
+      "hashlib",
+      "json",
+      "pathlib",
+      "re"
+    ],
+    "closure": "Only PATHS is borrowed; all current referenced GDScript functions are re-parsed and pinned in source-sha256.json. Imported dependencies are Python standard library only. The producer main function is never called."
+  }
+}

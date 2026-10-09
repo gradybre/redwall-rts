@@ -1,0 +1,154 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 6.367,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "163/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.836,
+      "log": "test_underground_room_admission.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "116/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.92,
+      "log": "test_underground_room_orders.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "142/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.531,
+      "log": "test_underground_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "229/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.917,
+      "log": "test_underground_world_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "52/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.046,
+      "log": "test_underground_space_owner.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "79/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.425,
+      "log": "test_underground_space_authority.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "138/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.046,
+      "log": "test_underground_actor.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "71/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.705,
+      "log": "test_excavation_physical.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "262/346",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 2.866,
+      "log": "test_buildings_room_identity.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "godot/scripts/core/underground_room_bindings.gd",
+        "godot/scripts/core/underground_room_orders.gd",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/scripts/core/underground_space_authority.gd",
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/scripts/core/buildings.gd",
+        "godot/test/test_underground_room_admission.gd",
+        "godot/test/test_underground_room_orders.gd",
+        "godot/test/test_underground_space_authority.gd",
+        "godot/test/test_excavation_physical.gd",
+        "godot/test/test_buildings_room_identity.gd",
+        "godot/test/test_underground_actor.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.202,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

@@ -1,0 +1,37 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/test_underground_memory_budget.py"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "docs/validation/ready07_arithmetic.py",
+        "--output",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-create-reset/docs/validation/evidence/underground-world-create-reset-2026-10-04/root-budget-review/current-pass-1/ready07.json"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+      "exit_code": 0
+    }
+  ],
+  "source_unchanged": true,
+  "changed": [],
+  "scope": "Read-only current shared budget review; no engine or source edits."
+}

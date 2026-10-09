@@ -1,0 +1,245 @@
+{
+ "clear": true,
+ "stroke": {
+  "residual_m": [
+   {
+    "numerator": 328927022641663262960158657655567416621051434252745492471794530314592104761119047340279,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   },
+   {
+    "numerator": 26846904540100509310938088946097366562171254173758019389657928684075056763410065498463,
+    "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+   },
+   {
+    "numerator": 328927022641663262960158657655567416621051434252745492471794530314592104761119047340279,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   }
+  ],
+  "below_face": {
+   "bounds_u": [
+    61,
+    -61,
+    -620,
+    191,
+    0,
+    -486
+   ],
+   "triangles": 86,
+   "only_paw": true
+  },
+  "world": {
+   "clear": true,
+   "unresolved": [],
+   "paw_in_target_admitted": true,
+   "checks": 0,
+   "pairs": 1146,
+   "numerical_sole_pairs": 384,
+   "intentional_paw_target_pairs": 762,
+   "supported_intervals": 32,
+   "fixture": {
+    "solids_u": [
+     [
+      -2048,
+      -1024,
+      -406,
+      2048,
+      0,
+      1024
+     ],
+     [
+      -2048,
+      -1024,
+      -1430,
+      -512,
+      0,
+      -406
+     ],
+     [
+      512,
+      -1024,
+      -1430,
+      2048,
+      0,
+      -406
+     ],
+     [
+      -2048,
+      -1024,
+      -2560,
+      2048,
+      0,
+      -1430
+     ],
+     [
+      -512,
+      -1024,
+      -1430,
+      512,
+      0,
+      -406
+     ]
+    ],
+    "source_labels": [
+     "retained exterior earth (support)",
+     "earth left of the cube",
+     "earth right of the cube",
+     "earth beyond the cube",
+     "target cube (paid Site, uncut)"
+    ],
+    "support_solid": 0,
+    "target_solid": 4
+   }
+  },
+  "self": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 0,
+   "checks": 0,
+   "arm_triangles": 1000,
+   "rest_triangles": 7776,
+   "excluded_shoulder_blend_triangles": 1433,
+   "check_budget": "S.MAX_CHECKS per rendered interval"
+  },
+  "contact": {
+   "vertex": 2,
+   "rendered_edge": [
+    8,
+    9
+   ],
+   "anchor_u": [
+    128,
+    0,
+    -608
+   ],
+   "patch_u": [
+    127,
+    0,
+    -609,
+    129,
+    0,
+    -607
+   ],
+   "share_range": [
+    {
+     "numerator": 5447429287295,
+     "denominator": 7507653165056
+    },
+    {
+     "numerator": 5547689930111,
+     "denominator": 7507653165056
+    }
+   ]
+  },
+  "patch_inside_cube_face": true
+ },
+ "entry": {
+  "residual_m": [
+   {
+    "numerator": 328908848673718070805397371157876005073829404556912264689215328587224561181029268115703,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   },
+   {
+    "numerator": 27040997064075789008120182171161998928914312573080373764230639869542222568156074713439,
+    "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+   },
+   {
+    "numerator": 328908848673718070805397371157876005073829404556912264689215328587224561181029268115703,
+    "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+   }
+  ],
+  "below_face": {
+   "bounds_u": null,
+   "triangles": 0,
+   "only_paw": true
+  },
+  "world": {
+   "clear": true,
+   "unresolved": [],
+   "paw_in_target_admitted": false,
+   "checks": 0,
+   "pairs": 484,
+   "numerical_sole_pairs": 484,
+   "intentional_paw_target_pairs": 0,
+   "supported_intervals": 30,
+   "fixture": {
+    "solids_u": [
+     [
+      -2048,
+      -1024,
+      -406,
+      2048,
+      0,
+      1024
+     ],
+     [
+      -2048,
+      -1024,
+      -1430,
+      -512,
+      0,
+      -406
+     ],
+     [
+      512,
+      -1024,
+      -1430,
+      2048,
+      0,
+      -406
+     ],
+     [
+      -2048,
+      -1024,
+      -2560,
+      2048,
+      0,
+      -1430
+     ],
+     [
+      -512,
+      -1024,
+      -1430,
+      512,
+      0,
+      -406
+     ]
+    ],
+    "source_labels": [
+     "retained exterior earth (support)",
+     "earth left of the cube",
+     "earth right of the cube",
+     "earth beyond the cube",
+     "target cube (paid Site, uncut)"
+    ],
+    "support_solid": 0,
+    "target_solid": 4
+   }
+  },
+  "self": {
+   "clear": true,
+   "unresolved": [],
+   "pairs": 68,
+   "checks": 68,
+   "arm_triangles": 1000,
+   "rest_triangles": 7776,
+   "excluded_shoulder_blend_triangles": 1433,
+   "check_budget": "S.MAX_CHECKS per rendered interval"
+  },
+  "nothing_below_face": true
+ },
+ "recovery": {
+  "reused_exact_reverse_of": "entry"
+ },
+ "schema": 1,
+ "decision": "1217",
+ "exact_yaw": 0,
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_stroke.py": "e74d660078198b552c5854c07a1f1f59c71fdf0822183b963f761eaae7fa9af2",
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_stroke.py": "3edc742c993acd7a1731160633396b62a4fdf5e0014453432decab5e5974dda6",
+  "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+  "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000"
+ }
+}

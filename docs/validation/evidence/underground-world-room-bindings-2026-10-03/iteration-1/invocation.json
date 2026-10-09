@@ -1,0 +1,22 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 6.153,
+      "log": "clean-import.log"
+    }
+  ],
+  "error": "make_plan() got an unexpected keyword argument 'root'",
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

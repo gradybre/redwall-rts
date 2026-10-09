@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "wire_version": 2,
+  "catalog_revision": 1,
+  "artifact": "ground-pace.ugconn",
+  "artifact_sha256": "1880788c064b87424c203509a7ad65498b9d11fc18842affe909364b8a8aca4a",
+  "artifact_bytes": 468,
+  "counts": {
+    "variants": 0,
+    "points": 0,
+    "regions": 0,
+    "parts": 0,
+    "vertices": 0,
+    "materials": 0,
+    "paces": 9
+  },
+  "profile_content_revision": 2,
+  "profile_source_id": 0,
+  "profile_source_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "profile_wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+  "level_revision": 1,
+  "level_sha256": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
+  "movement": {
+    "profile_id": 1,
+    "profile_key": "starter.ground.adult.mole",
+    "profile_revision": 1,
+    "species_id": 6,
+    "life_stage": 0
+  },
+  "rate_kind": "RATE_GROUND_CAP",
+  "rate_value": 0,
+  "rows": [
+    {
+      "profile_id": 1,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 1,
+      "yaw": 0,
+      "selection_policy": 0
+    },
+    {
+      "profile_id": 2,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 0,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 3,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 16384,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 4,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 32768,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 5,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 6,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 0,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 7,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 16384,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 8,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 32768,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 9,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "selection_policy": 2
+    }
+  ],
+  "excluded_non_walk": [
+    {
+      "profile_id": 0,
+      "mode": 0
+    },
+    {
+      "profile_id": 10,
+      "mode": 3
+    },
+    {
+      "profile_id": 11,
+      "mode": 3
+    },
+    {
+      "profile_id": 12,
+      "mode": 3
+    },
+    {
+      "profile_id": 13,
+      "mode": 3
+    },
+    {
+      "profile_id": 14,
+      "mode": 3
+    },
+    {
+      "profile_id": 15,
+      "mode": 3
+    },
+    {
+      "profile_id": 16,
+      "mode": 3
+    },
+    {
+      "profile_id": 17,
+      "mode": 3
+    },
+    {
+      "profile_id": 18,
+      "mode": 3
+    },
+    {
+      "profile_id": 19,
+      "mode": 3
+    },
+    {
+      "profile_id": 20,
+      "mode": 3
+    },
+    {
+      "profile_id": 21,
+      "mode": 3
+    },
+    {
+      "profile_id": 22,
+      "mode": 3
+    },
+    {
+      "profile_id": 23,
+      "mode": 3
+    },
+    {
+      "profile_id": 24,
+      "mode": 3
+    },
+    {
+      "profile_id": 25,
+      "mode": 3
+    }
+  ],
+  "inputs": {
+    "godot/data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+    "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
+    "godot/scripts/core/movement.gd": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
+    "godot/scripts/core/residents.gd": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+    "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/data/underground/ground-pace-v1/compile_ground_pace.py": "14dbac8fa70c17648711db856cab2fe5b7666a53ae1a0ca61b2eb4761bebf539"
+  },
+  "source": "Exact current immutable WALK identities; actual Movement supplies every rate.",
+  "runtime_activation_qualified": false,
+  "clearance_or_actor_permission": false,
+  "native_memory_measured": false
+}

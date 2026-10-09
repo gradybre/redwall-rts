@@ -1,0 +1,40 @@
+{
+  "decision": 1125,
+  "reviewer": "ug_construction",
+  "verdict": "accepted",
+  "source_pins": {
+    "godot/scripts/core/transforms.gd": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
+    "godot/scripts/core/underground_routes.gd": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+    "godot/scripts/core/underground_world_routes.gd": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+    "godot/test/test_transforms.gd": "a338b99fa49c779c2eee4f2ddde0c6681756618fc454f5533fd145b4c237e69e",
+    "godot/test/test_underground_world_routes.gd": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2"
+  },
+  "hashes_matched_at_review": 5,
+  "engine_rerun_by_reviewer": false,
+  "finding": {
+    "severity": "MEDIUM",
+    "description": "An actual living Resident without Routes registration was skipped during final turn occupancy.",
+    "rejected_evidence": "review-occupancy-rejected",
+    "correction": "Direct current Resident/Needs liveness and full Directory kind/generation/reverse typed row/positive PID now precede ACTOR_UNBOUND refusal; no registered body cannot mean empty air.",
+    "regression": "Actual spawn/place preserves complete Transform and route images on refusal; actual despawn permits retry."
+  },
+  "remaining_high_medium_findings": 0,
+  "census_review": {
+    "declared_peak": 464,
+    "expression_result_allowance": 48,
+    "numeric_helper_ceiling": 512,
+    "retained_delta": 0,
+    "native_measured": false
+  },
+  "final_runtime": {
+    "tests": 133,
+    "assertions": 13051,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "exit_objects": 0,
+    "exit_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 5
+  }
+}

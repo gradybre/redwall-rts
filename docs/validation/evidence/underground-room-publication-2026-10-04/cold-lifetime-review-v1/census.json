@@ -1,0 +1,887 @@
+{
+  "scope": "Preparatory lifetime review; 1150 remains moving and not source-accepted by this report.",
+  "source_sha256": {
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/focused-2/source-sha256.json": "76ebbb1f15e3a1f1bc53ea4ca13176904643c15ea94bd1f8bbe0b26971b3f1a7",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/buildings.gd": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_locations.gd": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_final_facts.gd": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/test/test_underground_room_orders.gd": "99fc2a769bc9d5923ab0a40c313ca6829e7216d54773af846d14cf6743ad7ec5",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/test/test_excavation_claim_batch.gd": "c89417f5f7b641afc1b7c69407d6df6db7d6bb5cfdf6a540cbf9e34a09a8ead8",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/test/test_underground_furniture_work.gd": "d364168364c1151933bd787972bbdd7f92724befc12124e30dd8e9fd5c6e5a09",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/test/test_underground_final_facts.gd": "8195be7d9a97c62fd0f43a9903cf9526ad5d634d9429491e4b6a9ed67b7fa037",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/test/test_underground_room_publication.gd": "0c10cb87c93e88fdb28d9dd6c3ca70be36eabdcdd39e64a37c7523bc7353a572",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/docs/validation/evidence/underground-ordinary-room-publication-review-2026-10-04/review-v2/numeric_frames.py": "21e2edeea11719b2f01979e7cd14e20137b2428fece944082ee3791887e37d2f",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/docs/validation/evidence/underground-ordinary-room-publication-review-2026-10-04/review-v2/numeric-frames.json": "2fcf6acdf8927c7075a39fc8ca9f0817c71b9a4cc31f6193a8b7debb04ed0a9c",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_room_cut_map.gd": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_work_face.gd": "e138d653af2cd532da4d8014562cf00be19c0a5f263839521807014cae78a7cc",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/godot/scripts/core/underground_room_approach.gd": "39c6684e302296d025c8d3796d0c636532becc58c859ecbcb7dccff7ac757764",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_world_routes.gd": "7de9ae26375baff235c90f7d2b5703f9ca638fa1c7276ddf4c86e46c6a85434c",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_connector_source_facts.gd": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-room-publication/docs/validation/evidence/underground-room-publication-2026-10-04/census.json": "56c748f4849091627dd9e3dd575a016005c17e78bbe5069fcd9df85acc638a48",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-room-publication/docs/validation/evidence/underground-room-publication-2026-10-04/existing-workpiece-census.json": "1bf85de035e1c866b9036bd6fcb22b3333b5c935d073291594f49ef6a90ff290"
+  },
+  "root_11_pins_match": true,
+  "sources_unchanged_during_read": true,
+  "packet_components": {
+    "descriptor": 184,
+    "box": 32,
+    "record_including_two_six_i32_arrays": 116,
+    "region_including_six_i32_array": 72,
+    "domain_including_bounds": 92,
+    "face_direct": 31,
+    "face_request": 68,
+    "room_context": 80,
+    "witness_direct": 32,
+    "approach_request_extension": 84
+  },
+  "retained_face_without_proof_bytes": 907,
+  "witness_without_face_or_path_bytes": 1744,
+  "combined_retained_numeric_bytes": 2651,
+  "path_max_bytes": 12288,
+  "approach_all_declared_function_frames": [
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_init",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "hold",
+      "numeric": [
+        [
+          "cold",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "current_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "observe",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_path_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_profiles_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_capture_profile",
+      "numeric": [
+        [
+          "index",
+          "int",
+          8
+        ],
+        [
+          "at",
+          "int",
+          8
+        ],
+        [
+          "ordinal",
+          "int",
+          8
+        ],
+        [
+          "offset",
+          "int",
+          8
+        ],
+        [
+          "axis",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 40
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "source_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_profile_pin_refusal",
+      "numeric": [
+        [
+          "index",
+          "int",
+          8
+        ],
+        [
+          "at",
+          "int",
+          8
+        ],
+        [
+          "ordinal",
+          "int",
+          8
+        ],
+        [
+          "offset",
+          "int",
+          8
+        ],
+        [
+          "axis",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 40
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_travel_endpoint_refusal",
+      "numeric": [
+        [
+          "point",
+          "Vector3i",
+          12
+        ],
+        [
+          "ordinal",
+          "int",
+          8
+        ],
+        [
+          "role",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 28
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_travel_body_covered",
+      "numeric": [
+        [
+          "point",
+          "Vector3i",
+          12
+        ]
+      ],
+      "bytes": 12
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_travel_supports",
+      "numeric": [
+        [
+          "point",
+          "Vector3i",
+          12
+        ],
+        [
+          "ordinal",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 20
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_travel_solid_contacts",
+      "numeric": [
+        [
+          "point",
+          "Vector3i",
+          12
+        ],
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "axis",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 28
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_sweep_box",
+      "numeric": [
+        [
+          "ordinal",
+          "int",
+          8
+        ],
+        [
+          "first",
+          "Vector3i",
+          12
+        ],
+        [
+          "last",
+          "Vector3i",
+          12
+        ],
+        [
+          "axis",
+          "int",
+          8
+        ],
+        [
+          "low",
+          "int",
+          8
+        ],
+        [
+          "high",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 56
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "pin_candidate",
+      "numeric": [
+        [
+          "space_token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "scope_refusal",
+      "numeric": [
+        [
+          "space_token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "prepared_observation",
+      "numeric": [
+        [
+          "space_token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "prepared_facts_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_local_facts_refusal",
+      "numeric": [
+        [
+          "checks",
+          "int",
+          8
+        ],
+        [
+          "ordinal",
+          "int",
+          8
+        ],
+        [
+          "offset",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_local_checks",
+      "numeric": [
+        [
+          "checks",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "count",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_edge_facts",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "count",
+          "int",
+          8
+        ],
+        [
+          "start",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ],
+        [
+          "at",
+          "int",
+          8
+        ],
+        [
+          "first",
+          "Vector3i",
+          12
+        ],
+        [
+          "last",
+          "Vector3i",
+          12
+        ]
+      ],
+      "bytes": 64
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_travel_facts",
+      "numeric": [
+        [
+          "first",
+          "Vector3i",
+          12
+        ],
+        [
+          "last",
+          "Vector3i",
+          12
+        ],
+        [
+          "ordinal",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_terrain_refusal",
+      "numeric": [
+        [
+          "purpose",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "prepare_companions",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_refresh_locations",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "generation",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "_prepare_routes",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "generation",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "final_refusal",
+      "numeric": [
+        [
+          "index",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "abort",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "publish",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "capture_configuration",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "exact_configuration",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "face_request",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "extra_values",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "same_extra",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "same_plan",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "same_actor",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "same_descriptor",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "target_member_refusal",
+      "numeric": [
+        [
+          "target",
+          "Vector3i",
+          12
+        ],
+        [
+          "at",
+          "int",
+          8
+        ],
+        [
+          "x",
+          "int",
+          8
+        ],
+        [
+          "z",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 36
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "metadata_refusal",
+      "numeric": [
+        [
+          "room",
+          "Vector2i",
+          8
+        ],
+        [
+          "token",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "unchanged_region",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "begin",
+      "numeric": [
+        [
+          "cold_token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_approach.gd",
+      "function": "input_refusal",
+      "numeric": [
+        [
+          "cold",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    }
+  ],
+  "approach_all_declared_function_frames_sum": 556,
+  "additional_static_companion_frames": [
+    {
+      "file": "underground_locations.gd",
+      "function": "room_scope_leaf_refusal",
+      "numeric": [
+        [
+          "publishing",
+          "bool",
+          1
+        ]
+      ],
+      "bytes": 1
+    },
+    {
+      "file": "underground_locations.gd",
+      "function": "room_prepared_leaf_refusal",
+      "numeric": [
+        [
+          "room_type",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_locations.gd",
+      "function": "_room_rows_leaf_refusal",
+      "numeric": [
+        [
+          "target_revision",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "field",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "underground_locations.gd",
+      "function": "publish_room_preflighted",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_locations.gd",
+      "function": "_clear_installation_preparation",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_routes.gd",
+      "function": "room_prepared_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_routes.gd",
+      "function": "publish_room_preflighted",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_routes.gd",
+      "function": "_retained_paths_refusal",
+      "numeric": [
+        [
+          "target_revision",
+          "int",
+          8
+        ],
+        [
+          "profile_revision",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "field",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 40
+    },
+    {
+      "file": "underground_routes.gd",
+      "function": "_commit_preflighted_bank",
+      "numeric": [
+        [
+          "token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_world_routes.gd",
+      "function": "room_prepared_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_world_routes.gd",
+      "function": "publish_room_preflighted",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_world_routes.gd",
+      "function": "_prepared_masks_refusal",
+      "numeric": [
+        [
+          "target_revision",
+          "int",
+          8
+        ],
+        [
+          "profile_revision",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "found",
+          "bool",
+          1
+        ],
+        [
+          "index",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 33
+    },
+    {
+      "file": "underground_world_routes.gd",
+      "function": "_commit_preflighted_certificates",
+      "numeric": [
+        [
+          "catalog_revision",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_connector_source_facts.gd",
+      "function": "_same_actual_owners",
+      "numeric": [
+        [
+          "world",
+          "Vector2i",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_connector_source_facts.gd",
+      "function": "_source_storage_matches",
+      "numeric": [
+        [
+          "source_id",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_connector_source_facts.gd",
+      "function": "_source_digests_match",
+      "numeric": [
+        [
+          "source_offset",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    }
+  ],
+  "additional_static_companion_frame_sum": 154,
+  "root_reviewed_packet_and_frames": 1582,
+  "finalfacts_own_chain_upper": 160,
+  "core_final_reader_upper": 88,
+  "combined_scoped_room_tail_upper": 1984,
+  "room_helper_allowance": 2048,
+  "caveat": "The 1984 scoped allowance excludes 1150 functions and packets, charged separately. It conservatively sums sequential kernels and alternative final-reader chains. It is not a complete native/interpreter stack measurement.",
+  "conservative_proposal_allowances": {
+    "retained_face_and_helpers": 2048,
+    "approach_witness_and_helpers": 4096,
+    "original_room_packets_and_helpers": 2048
+  },
+  "sequential_cold_peaks": {
+    "original_survey": 854016,
+    "prospective_face": 790528,
+    "locations_preparation": 938368,
+    "worldroutes_preparation": 791552,
+    "sites_four_images_and_final_publication": 675840
+  },
+  "maximum_proposed_cold_peak": 938368,
+  "cold_reserve": 1048960,
+  "cold_headroom": 110592,
+  "finding": "Draft 1150 omitted the larger Locations preparation peak; corrected lifetime must retain the path and Face fixed controls after proof=null.",
+  "open": "Frozen 1150 exact helper/observer/source review and closure of every foreign call remain separate. No new bank/reserve is proposed or runtime qualification inferred.",
+  "engine_run": false,
+  "runtime_qualified": false
+}

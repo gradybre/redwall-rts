@@ -1,0 +1,23 @@
+{
+	"hand_geometry": "original open paw; translation is not a closed-grip pose",
+	"offsets_hand_local_u": [
+		[
+			0,
+			0,
+			0
+		],
+		[
+			-41,
+			50,
+			-18
+		],
+		[
+			-40,
+			80,
+			5
+		]
+	],
+	"poses": 642,
+	"production_qualified": false,
+	"schema": 1
+}

@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py", line 168, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py", line 122, in main
+    inputs = M.input_pins(basis_path) | {str(path.relative_to(P.ROOT)): digest for path, digest in zip(paths, wanted)}
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/compile_profile_publication.py", line 236, in input_pins
+    return {str(path.resolve().relative_to(P.ROOT)): P.content.file_hash(path) for path in paths}
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 682, in relative_to
+    raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+ValueError: '/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal' is not in the subpath of '/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal'

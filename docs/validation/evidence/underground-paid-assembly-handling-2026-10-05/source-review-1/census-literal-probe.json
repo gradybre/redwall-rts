@@ -1,0 +1,44 @@
+{
+  "source_sha256": "042f43c8ccc812642608773bd0b068bf7d0b0838a2e1f1a1180d77fec9ef3275",
+  "census_sha256": "917d1898786b8ac97dce0affed1a3f1470da13cad038db57f7c2f7fbdf118d9e",
+  "mutation": "Replace out[0] = clip with a parenthesized 1024-element Array literal .size() expression.",
+  "mutant_sha256": "160eb5f337a244015e82bd87cd82622e9aeff18627b2d91e584a5a717ad4e6ea",
+  "accepted": true,
+  "returned_census": {
+    "schema": 1,
+    "source_image_sha256": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+    "image_bytes": 135328,
+    "parts": 2,
+    "palette_rows": 25,
+    "keys": 112,
+    "clips": [
+      55,
+      2,
+      55
+    ],
+    "intervals": 109,
+    "retained_palette": 134848,
+    "retained_tables": 456,
+    "incremental_retained_presentation": 135304,
+    "new_meshes": 0,
+    "second_actor": false,
+    "clock_retained_fields": 0,
+    "clock_constant_numeric_bytes": 72,
+    "clock_caller_output_bytes": 8,
+    "clock_frames": {
+      "state_valid": 16,
+      "advance": 16,
+      "interrupt": 16,
+      "source_into": 32
+    },
+    "maximum_declared_clock_chain": 48,
+    "expression_return_allowance": 32,
+    "clock_own_logical_proposal": 160,
+    "numeric_scope": "Pure clock only; foreign actual-owner caller chains must be counted at integration.",
+    "native_memory_measured": false,
+    "shared_runtime_admission": false,
+    "decode_scope": "Content1181 must admit simultaneous original palettes and decode; no duplicate mesh/native reserve is assumed."
+  },
+  "engine_run": false,
+  "scope": "Actual producer run with injected source; only own evidence written."
+}

@@ -1,0 +1,104 @@
+[
+  {
+    "file": "core__math__basis.cpp",
+    "source": "core/math/basis.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/core/math/basis.cpp",
+    "sha256": "07b6d2d2e43b6a738d76b3c860fd21863ae9b480fcc9e91bd16f6bd2d3053441"
+  },
+  {
+    "file": "core__math__quaternion.cpp",
+    "source": "core/math/quaternion.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/core/math/quaternion.cpp",
+    "sha256": "e17f8509dc2ca546512b421d0ea3d1d8e1afd7c959d4cc38f067dbf7b7990acc"
+  },
+  {
+    "file": "scene__3d__skeleton_3d.cpp",
+    "source": "scene/3d/skeleton_3d.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/3d/skeleton_3d.cpp",
+    "sha256": "d390fbb7d1d225da06d6f163a7549b4bc3cdc44a3024f6084058dae77c8dc288"
+  },
+  {
+    "file": "scene__3d__spring_bone_simulator_3d.cpp",
+    "source": "scene/3d/spring_bone_simulator_3d.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/3d/spring_bone_simulator_3d.cpp",
+    "sha256": "82e91038ed069fd8e12cc7efd1909856b142bf280c8d1cdc9da58d32386c21fc"
+  },
+  {
+    "file": "scene__animation__animation_mixer.cpp",
+    "source": "scene/animation/animation_mixer.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/animation/animation_mixer.cpp",
+    "sha256": "e41ffd0f9e49a8327f2bee2246c44af1cbe666379f1f92ff201dca4be0a598da"
+  },
+  {
+    "file": "scene__animation__animation_mixer.h",
+    "source": "scene/animation/animation_mixer.h",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/animation/animation_mixer.h",
+    "sha256": "2753bfe46f658318544d5efa427e055eb98bde390778b70999c8718a6156eb12"
+  },
+  {
+    "file": "scene__animation__animation_player.cpp",
+    "source": "scene/animation/animation_player.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/animation/animation_player.cpp",
+    "sha256": "4fba3c96f82748ea514f459805186b90dc537b657d8b725d739dd39051353bf1"
+  },
+  {
+    "file": "scene__animation__animation_player.h",
+    "source": "scene/animation/animation_player.h",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/animation/animation_player.h",
+    "sha256": "446ba0d725414f976888195d8a5310f94567b3d121c5399a685d6c8b4018d2a7"
+  },
+  {
+    "file": "scene__resources__animation.cpp",
+    "source": "scene/resources/animation.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/resources/animation.cpp",
+    "sha256": "6faaa27c9d032bfd95ea1dc541a7700032f2a66093814fc34e1ed7cae928f988"
+  },
+  {
+    "file": "servers__rendering__renderer_rd__shaders__forward_clustered__scene_forward_clustered.glsl",
+    "source": "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl",
+    "sha256": "453d31b46060b907d63b8cb57fc5ee818d8b9d3c5c6e7491e677d6a95e27dab7"
+  },
+  {
+    "file": "servers__rendering__renderer_rd__shaders__skeleton.glsl",
+    "source": "servers/rendering/renderer_rd/shaders/skeleton.glsl",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/renderer_rd/shaders/skeleton.glsl",
+    "sha256": "a36b5b2ac9141314b63f7e8b67607eb405a1664a575318e5165f71c75851fcf6"
+  },
+  {
+    "file": "drivers__gles3__shaders__scene.glsl",
+    "source": "drivers/gles3/shaders/scene.glsl",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/gles3/shaders/scene.glsl",
+    "sha256": "2c77be0c85b7ab1a85ed8009c77cdb6216f1494d43083592213ad68f9e812977"
+  },
+  {
+    "file": "drivers__gles3__shaders__skeleton.glsl",
+    "source": "drivers/gles3/shaders/skeleton.glsl",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/gles3/shaders/skeleton.glsl",
+    "sha256": "4a7637ef93114055cfeb670a5dbf1de264ba7ed69b9b064de68e14f8d9b1b941"
+  },
+  {
+    "file": "scene__3d__mesh_instance_3d.cpp",
+    "source": "scene/3d/mesh_instance_3d.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/scene/3d/mesh_instance_3d.cpp",
+    "sha256": "ca512fb89b38508d76b60f0062040dd80cfac4818458fab9c695942c523e5d2e"
+  },
+  {
+    "file": "servers__rendering__rendering_server.cpp",
+    "source": "servers/rendering/rendering_server.cpp",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_server.cpp",
+    "sha256": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca"
+  },
+  {
+    "file": "servers__rendering__rendering_server.h",
+    "source": "servers/rendering/rendering_server.h",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_server.h",
+    "sha256": "5e0e9b836f0c2e41c7237c0a72b76c5d60f632bd8294294a5f28ff1b975c2cd8"
+  },
+  {
+    "file": "servers__rendering__rendering_server_enums.h",
+    "source": "servers/rendering/rendering_server_enums.h",
+    "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_server_enums.h",
+    "sha256": "194c1e12997cc2fe4178c972dca250428627655a79b26e4ee93528f6a8b254a8"
+  }
+]

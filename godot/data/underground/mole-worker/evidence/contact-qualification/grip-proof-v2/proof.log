@@ -1,0 +1,7 @@
+mole_digger.idle.plain.held_pick.firm_grip_v1 [-413, -1, -358, 367, 857, 259]
+mole_digger.walk.plain.held_pick.firm_grip_v1 [-444, -1, -473, 411, 930, 345]
+mole_digger.walk.ramp_up.held_pick.firm_grip_v1 [-444, -1, -319, 411, 965, 489]
+mole_digger.walk.ramp_down.held_pick.firm_grip_v1 [-444, -1, -613, 411, 929, 194]
+mole_digger.cautious_crouch_walk_forward.plain.held_pick.firm_grip_v1 [-274, -1, -760, 441, 768, 355]
+mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.firm_grip_v1 [-274, -1, -760, 441, 768, 355]
+mole_digger.heavy_hammer_swing.plain.firm_grip_v1 [-354, -1, -528, 611, 1157, 727]

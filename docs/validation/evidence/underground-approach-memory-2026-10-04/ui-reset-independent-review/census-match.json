@@ -1,0 +1,19 @@
+{
+  "structured_equal": true,
+  "accounting": {
+    "retirement_reserved_bytes": 8192,
+    "controls": 5995,
+    "control_ceiling": 6144,
+    "helpers": 1882,
+    "helper_ceiling": 2048,
+    "original_session_reserved_bytes": 1536,
+    "profile_joint_unchanged": 246868,
+    "profile_ceiling": 262144,
+    "reference_bytes_assumed": 32,
+    "one_outcome_header_assumed": 256,
+    "expression_allowance": 256
+  },
+  "maximum_numeric_name_bytes": 186,
+  "maximum_reference_values": 45,
+  "maximum_simultaneous_outcome_objects": 1
+}

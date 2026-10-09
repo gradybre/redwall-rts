@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "rows": [
+    {
+      "x": 128,
+      "lean": 25,
+      "azimuth": 15,
+      "samples": [
+        {
+          "height": 208,
+          "clear": false,
+          "body_triangle": 1342,
+          "tool_triangle": 995
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 25,
+      "azimuth": 30,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 25,
+      "azimuth": 45,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": false,
+          "body_triangle": 615,
+          "tool_triangle": 664
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 35,
+      "azimuth": 15,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 35,
+      "azimuth": 30,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 35,
+      "azimuth": 45,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 45,
+      "azimuth": 15,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 45,
+      "azimuth": 30,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 128,
+      "lean": 45,
+      "azimuth": 45,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 25,
+      "azimuth": 15,
+      "samples": [
+        {
+          "height": 208,
+          "clear": false,
+          "body_triangle": 1404,
+          "tool_triangle": 999
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 25,
+      "azimuth": 30,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": false,
+          "body_triangle": 835,
+          "tool_triangle": 664
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 25,
+      "azimuth": 45,
+      "samples": [
+        {
+          "height": 208,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        },
+        {
+          "height": 167,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        },
+        {
+          "height": 126,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 35,
+      "azimuth": 15,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 35,
+      "azimuth": 30,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 35,
+      "azimuth": 45,
+      "samples": [
+        {
+          "height": 208,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        },
+        {
+          "height": 167,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        },
+        {
+          "height": 126,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 45,
+      "azimuth": 15,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 45,
+      "azimuth": 30,
+      "samples": [
+        {
+          "height": 208,
+          "clear": true
+        },
+        {
+          "height": 167,
+          "clear": true
+        },
+        {
+          "height": 126,
+          "clear": true
+        }
+      ]
+    },
+    {
+      "x": 192,
+      "lean": 45,
+      "azimuth": 45,
+      "samples": [
+        {
+          "height": 208,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        },
+        {
+          "height": 167,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        },
+        {
+          "height": 126,
+          "clear": false,
+          "refusal": "STEP_LEG_REACH"
+        }
+      ]
+    }
+  ],
+  "source_pins": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-pose-study-v1/study_pose.py": "4b369eba149f5feddfe6758a10193a6dd2d45958bfb20d8c0f9836aac63c385e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "10dd2c3946848be80a3acce02374d2b19dfa9cf93a5045d14a6bc4fbce6a0e49",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6"
+  },
+  "verified_source_files": 537,
+  "scope": "sampled floating authoring diagnostics only; all candidate interval/primitive/native/target proof remains required",
+  "production_qualified": false
+}

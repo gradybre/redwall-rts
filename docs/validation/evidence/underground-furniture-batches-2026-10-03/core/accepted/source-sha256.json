@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/buildings.gd": "2b3f9c2c2be6a53913353279a8ab1e79f1047c824853e98138920f77b505a8e3",
+  "godot/scripts/core/construction.gd": "ae8f77c76a44f3630f6ce055ae7783efc4552a6f50b810dffed1a4422860b026",
+  "godot/scripts/core/modular_project_contract.gd": "f4209b09cc46b898dac45c51fbd7eafc4de44ca8238ec9dfdf1731afa8d4cdb5",
+  "godot/scripts/core/modular_projects.gd": "f1f30fa58cda56ec07a3245ab493f94dcd5cd885e3d4d6af7d653179710460ea",
+  "godot/test/test_construction_furniture_batches.gd": "5f925ed70d231c7884cfb85e8f69fcc8771325c3fff4a1693d281b3806528257"
+}

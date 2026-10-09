@@ -43,6 +43,17 @@ func _resident() -> Vector2i:
 
 # --- the derived row ----------------------------------------------------------------------------
 
+func test_directory_binding_compares_actual_owner_not_coincident_refs() -> void:
+	"""Two independent allocators can issue the same pair; only the borrowed instance qualifies."""
+	var foreign: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_equal(_resident(), foreign.create(EntityDirectoryScript.KIND_RESIDENT), "pairs coincide")
+	assert_true(_transforms.is_bound_directory(_directory), "actual directory is bound")
+	assert_false(_transforms.is_bound_directory(foreign), "foreign namespace refuses")
+	assert_false(_transforms.is_bound_directory(null), "null never qualifies")
+	assert_equal(_transforms.bound_count(), 0, "reader did not place a transform")
+	assert_equal(_transforms.last_refusal(), TransformsScript.REFUSE_NONE, "reader has no side effect")
+
+
 func test_capacity_is_the_sum_of_the_four_positioned_kinds() -> void:
 	"""systems_architecture.md 2.1: `P = 512 + 1024 + 81920 + 4096 = 87552`."""
 	assert_equal(TransformsScript.TRANSFORM_CAPACITY, 87552, "P is 87552 rows")
@@ -387,3 +398,108 @@ func test_a_refused_place_leaves_the_whole_store_byte_identical() -> void:
 	assert_equal(_transforms.last_refusal(), TransformsScript.REFUSE_OUT_OF_INT32, "by that name")
 	assert_equal(_transforms.state_bytes(), before, "and not one byte of any column moved")
 	assert_equal(_transforms.bound_count(), 0, "nor did the derived count")
+
+
+func test_runtime_revision_changes_for_every_successful_write_including_same_values() -> void:
+	"""Cache invalidation observes successful owner writes, not only unequal coordinate values."""
+	var resident: Vector2i = _resident()
+	var revision: int = _transforms.mutation_revision()
+	assert_true(revision > 0, "new owner has a positive runtime token")
+	assert_true(_transforms.place(resident, 1, 2, 3, 4), "actual placement")
+	assert_equal(_transforms.mutation_revision(), revision + 1, "placement invalidates")
+	assert_true(_transforms.place(resident, 1, 2, 3, 4), "same-value placement")
+	assert_equal(_transforms.mutation_revision(), revision + 2, "same values still invalidate")
+	assert_true(_transforms.advance(resident, 1, 2, 3), "same-value actual advance")
+	assert_equal(_transforms.mutation_revision(), revision + 3, "advance invalidates")
+	assert_true(_transforms.set_yaw(resident, 4), "same-value facing")
+	assert_equal(_transforms.mutation_revision(), revision + 4, "yaw invalidates")
+	assert_true(_transforms.unbind(resident), "actual unbind")
+	assert_equal(_transforms.mutation_revision(), revision + 5, "retirement invalidates")
+
+
+func test_refused_mutations_preserve_runtime_revision_and_authoritative_bytes() -> void:
+	"""A failed external write cannot claim movement or invalidate an otherwise current observation."""
+	var resident: Vector2i = _resident()
+	assert_true(_transforms.place(resident, 1, 2, 3, 4), "actual initial pose")
+	var revision: int = _transforms.mutation_revision()
+	var bytes: PackedByteArray = _transforms.state_bytes()
+	assert_false(_transforms.place(resident, IntMathScript.INT64_MAX, 2, 3, 4), "overflow placement refuses")
+	assert_false(_transforms.advance(resident, 1, IntMathScript.INT64_MAX, 3), "overflow advance refuses")
+	assert_false(_transforms.set_yaw(resident, IntMathScript.INT64_MAX), "overflow facing refuses")
+	assert_false(_transforms.unbind(Vector2i(-1, 0)), "null unbind refuses")
+	assert_equal(_transforms.mutation_revision(), revision, "no successful write")
+	assert_equal(_transforms.state_bytes(), bytes, "actual pose bytes remain equal")
+
+
+func test_reset_reuse_and_explicit_restore_invalidation_never_recycle_runtime_token() -> void:
+	"""The owner survives a whole-settlement reset, so runtime tokens cannot restart at one."""
+	var resident: Vector2i = _resident()
+	assert_true(_transforms.place(resident, 1, 2, 3, 4), "old actual pose")
+	var revision: int = _transforms.mutation_revision()
+	assert_true(_directory.destroy(resident), "actual generation retired")
+	var next: Vector2i = _resident()
+	assert_true(_transforms.place(next, 1, 2, 3, 4), "reused row needs actual placement")
+	assert_equal(_transforms.mutation_revision(), revision + 1, "same pose on new identity invalidates")
+	var bytes: PackedByteArray = _transforms.state_bytes()
+	var digest: int = _transforms.authoritative_digest()
+	_transforms.invalidate_runtime_caches()
+	assert_equal(_transforms.mutation_revision(), revision + 2, "explicit restore boundary invalidates")
+	assert_equal(_transforms.state_bytes(), bytes, "runtime invalidation is not authoritative pose state")
+	assert_equal(_transforms.authoritative_digest(), digest, "runtime token excluded from canonical digest")
+	_transforms.reset()
+	assert_equal(_transforms.mutation_revision(), revision + 3, "whole reset does not restart token")
+	assert_equal(_transforms.bound_count(), 0, "whole reset completes")
+
+
+func test_revision_exhaustion_poison_never_prevents_pose_write_or_whole_reset() -> void:
+	"""Saturation refuses cache reuse permanently while ordinary owner reset remains complete."""
+	var resident: Vector2i = _resident()
+	_transforms._mutation_revision = IntMathScript.INT64_MAX - 1 # Adversarial finite-lifetime fixture.
+	assert_true(_transforms.place(resident, 1, 2, 3, 4), "last revision still commits actual pose")
+	assert_equal(_transforms.mutation_revision(), 0, "zero never qualifies a cache")
+	assert_true(_transforms.advance(resident, 5, 6, 7), "pose semantics unchanged after saturation")
+	_transforms.reset()
+	assert_equal(_transforms.bound_count(), 0, "global reset is never partly refused")
+	assert_equal(_transforms.mutation_revision(), 0, "reset cannot recycle saturated owner token")
+	_transforms.invalidate_runtime_caches()
+	assert_equal(_transforms.mutation_revision(), 0, "restore invalidation cannot recover poison")
+	assert_true(_transforms.place(resident, 9, 8, 7, 6), "owner coordinates remain usable")
+	assert_true(_transforms.read_into(resident, _pose), "actual placed state")
+	assert_equal(_pose.x, 9, "successful write not hidden behind an assertion")
+
+
+func test_stationary_turn_commits_one_tick_without_replaying_prior_translation() -> void:
+	"""The pure commit rolls history once, preserves current XYZ and invalidates exactly once."""
+	var ref: Vector2i = _resident()
+	assert_true(_transforms.place(ref, 1, 2, 3, 65000), "original pose")
+	assert_true(_transforms.advance(ref, 10, 20, 30), "prior moving tick")
+	var revision: int = _transforms.mutation_revision()
+	assert_true(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(10, 20, 30), 65000, revision, 1000), "same-position next tick")
+	assert_true(_transforms.read_into(ref, _pose), "actual committed pose")
+	assert_equal(Vector3i(_pose.x, _pose.y, _pose.z), Vector3i(10, 20, 30), "no current translation")
+	assert_equal(Vector3i(_pose.prev_x, _pose.prev_y, _pose.prev_z), Vector3i(10, 20, 30), "prior travel not repeated")
+	assert_equal(_pose.prev_yaw, 65000, "exact old yaw retained")
+	assert_equal(_pose.yaw, 1000, "exact new yaw")
+	assert_equal(TransformsScript.shortest_yaw_delta(_pose.prev_yaw, _pose.yaw), 1536, "existing shortest arc")
+	assert_equal(_transforms.mutation_revision(), revision + 1, "one invalidation")
+
+
+func test_stationary_turn_refuses_stale_identity_pose_token_and_yaw_atomically() -> void:
+	"""A saved proof cannot turn a replacement Resident, moved pose or changed actual owner."""
+	var ref: Vector2i = _resident()
+	assert_true(_transforms.place(ref, 1, 2, 3, 4), "actual pose")
+	var revision: int = _transforms.mutation_revision()
+	var before: PackedByteArray = _transforms.state_bytes()
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, Vector2i(ref.x, ref.y + 1),
+		Vector3i(1, 2, 3), 4, revision, 5), "full generation")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 4), 4, revision, 5), "exact XYZ")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 3), 5, revision, 5), "exact current yaw")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 3), 4, revision + 1, 5), "original mutation token")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 3), 4, revision, 65536), "canonical yaw range")
+	assert_equal(_transforms.state_bytes(), before, "complete refused image unchanged")
+	assert_equal(_transforms.mutation_revision(), revision, "refusal did not invalidate")

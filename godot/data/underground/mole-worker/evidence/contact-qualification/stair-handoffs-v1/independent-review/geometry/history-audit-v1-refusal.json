@@ -1,0 +1,5 @@
+{
+  "scope": "Reviewer harness only; no product failure",
+  "error": "KeyError: source_before",
+  "cause": "First two retained historical invocations use source_sha256, while later invocations use source_before/source_after. The corrected review checks each recorded schema against the exact retained producer snapshot."
+}

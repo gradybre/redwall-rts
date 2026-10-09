@@ -1,0 +1,33 @@
+{
+  "commands": [
+    [
+      "/opt/homebrew/bin/godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/scripts/core/underground_connector_catalog.gd",
+      "godot/test/test_underground_connector_catalog.gd",
+      "godot/scripts/core/movement.gd",
+      "godot/test/test_movement.gd"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "selector": "[\"test_underground_connector_catalog.gd\", \"test_movement.gd\", \"test_underground_profiles.gd\", \"test_underground_level_catalog.gd\"]"
+}

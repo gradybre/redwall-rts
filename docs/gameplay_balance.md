@@ -580,3 +580,24 @@ See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-mov
 ## SET-MOVE-ECON-001 — active authoring targets
 
 Use [the owning numerical amendment](underground_economy_hazard_amendment.md) and [values manifest](planning/underground_economy_hazard_values.json) for exact DEC-040 parameters; do not substitute older draft prices. The manifest is not automatically active production content. Validate [the arithmetic/account oracle](validation/validate_underground_economy_hazards.py), then collect actual labor/haul/survival evidence after implementation. All GDD-inherited anchors remain separate from new authoring choices.
+
+## BAL-UG-001 — Active underground work amounts (DEC-059)
+
+Brendan's DEC-059 (2026-10-08, "Reduce time to build them greatly") scales the active excavation phases and the
+tread fastening by **0.47**. The factor is not a round number. Only work changes; bills of material, spoil and
+hazards are unchanged.
+
+| Work | Previous (source) | Active (milli-WU) | Where it lives |
+|---|---:|---:|---|
+| Brace one cube | 2,000 (ECON-001, DEC-052) | 940 | `excavation_contract.gd` `BRACE_WORK_MWU` |
+| Cut one cube | 4,000 (ECON-001, DEC-052) | 1,880 | `excavation_contract.gd` `CUT_WORK_MWU` |
+| Finish one cube | 3,000 (ECON-001, DEC-052) | 1,410 | `excavation_contract.gd` `FINISH_WORK_MWU` |
+| Fasten one tread, T1–T6 | 12,000 (ADR 1209 D3, T0's bill) | 5,640 | `qualified-stairs-v9/recipes.ugrecp` |
+| Fasten L0 / T0 | 32,000 / 12,000 (ADR 1202) | unchanged | the claw bundle's recipes |
+
+- **Cube total.** A cube is 4,230 milli-WU instead of 9,000. At 80 milli-WU per work tick and factor 1,100, that is
+  about 49 ticks instead of 103.
+- **Every excavation phase.** The constants apply to every phase through `ExcavationContract.work_mwu`, so Room
+  cuts get them too.
+- **The authoring manifest is not changed.** `planning/underground_economy_hazard_values.json` and its oracle
+  keep SET-MOVE-ECON-001's authored targets (2,000/4,000/3,000); DEC-059 overrides them for active content.

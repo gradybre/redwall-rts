@@ -1,0 +1,18 @@
+E
+======================================================================
+ERROR: test_export_underground_envelopes (unittest.loader._FailedTest.test_export_underground_envelopes)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_export_underground_envelopes
+Traceback (most recent call last):
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_export_underground_envelopes.py", line 13, in <module>
+    import export_underground_envelopes as e
+ModuleNotFoundError: No module named 'export_underground_envelopes'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

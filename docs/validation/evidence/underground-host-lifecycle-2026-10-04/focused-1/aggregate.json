@@ -1,0 +1,16 @@
+{
+  "suite_count": 7,
+  "counts": {
+    "assertions": 7020,
+    "expected": 6,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 286,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "analyzer": "0 GDScript warning(s) in 0 of 8 file(s)",
+  "scope": "Rejected initial lifecycle candidate: duplicate World allocation and missing successful-Create remount; focused passes alone do not close review findings"
+}

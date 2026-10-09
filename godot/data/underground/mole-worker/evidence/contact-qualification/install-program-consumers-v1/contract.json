@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "source_commit": "454eae23dec8de897cc606540829db4e00d6bde6",
+  "consumer_sources": [
+    {
+      "source": "godot/scripts/core/underground_profiles.gd",
+      "snapshot": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-consumers-v1/underground_profiles.gd.txt",
+      "sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca"
+    },
+    {
+      "source": "godot/scripts/core/underground_work_face.gd",
+      "snapshot": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-consumers-v1/underground_work_face.gd.txt",
+      "sha256": "e138d653af2cd532da4d8014562cf00be19c0a5f263839521807014cae78a7cc"
+    },
+    {
+      "source": "godot/scripts/core/underground_connector_contacts.gd",
+      "snapshot": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-consumers-v1/underground_connector_contacts.gd.txt",
+      "sha256": "a6454ab756cdc242aeb2078916b2a89a1da4968ecdff7eeeb6427854235856aa"
+    },
+    {
+      "source": "godot/scripts/core/underground_routes.gd",
+      "snapshot": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-consumers-v1/underground_routes.gd.txt",
+      "sha256": "d1bfd9c42c0fab50673b0abe0bba988e1e2caa1c639f8e68c4a07c3b96b300d8"
+    },
+    {
+      "source": "godot/scripts/core/underground_world_routes.gd",
+      "snapshot": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-consumers-v1/underground_world_routes.gd.txt",
+      "sha256": "7ee66e9918e45002b9afb68fdd168eb90b5078ed395a78802899297645db612f"
+    }
+  ],
+  "scope": "Exact reviewed collision/contact consumers; immutable source contract only. Live runtime re-attestation remains required before production activation.",
+  "production_qualified": false
+}

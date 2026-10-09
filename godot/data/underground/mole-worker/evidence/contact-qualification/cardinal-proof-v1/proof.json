@@ -1,0 +1,245 @@
+{
+  "schema": 1,
+  "program_version": 4,
+  "source_image_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "program_sha256": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+  "source_roles_sha256": "0f2da835a381460231c1560ea116fa3aafd51d32a4f3185f25b11b782bd4fd83",
+  "plan_sha256": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+  "selected_source_roles": [
+    "down",
+    "high",
+    "front",
+    "install"
+  ],
+  "all_work_roles": true,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "world_basis": {
+    "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "heading_count": 65536,
+    "exact_norm_squared": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "max_norm_yaw": 40791,
+    "max_component": {
+      "numerator": 1,
+      "denominator": 1
+    },
+    "metadata": {
+      "api_version": "4.1 Metal - 90.5",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "heading_count": 65536,
+      "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+      "orientation": "0=-Z,+quarter=-X; +Y remains up",
+      "rendering_driver": "opengl3",
+      "rendering_method": "gl_compatibility",
+      "schema": 1,
+      "source": {
+        "path": "res://../tools/bake_underground_world_basis.gd",
+        "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+      }
+    },
+    "backend_certificate": {
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "driver": "opengl3",
+      "api_version": "4.1 Metal - 90.5",
+      "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+      "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+      "sections": [
+        "4.5",
+        "4.5.1"
+      ],
+      "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+      "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+    },
+    "inverse_norm": {
+      "numerator": 398065705943040,
+      "denominator": 281474953696313
+    },
+    "cardinals": [
+      {
+        "yaw": 0,
+        "native_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 0,
+            "denominator": 1
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 0,
+            "denominator": 1
+          }
+        ]
+      },
+      {
+        "yaw": 16384,
+        "native_c_s": [
+          {
+            "numerator": -6151831,
+            "denominator": 140737488355328
+          },
+          {
+            "numerator": 1,
+            "denominator": 1
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 6151831,
+            "denominator": 140737488355328
+          }
+        ]
+      },
+      {
+        "yaw": 32768,
+        "native_c_s": [
+          {
+            "numerator": -1,
+            "denominator": 1
+          },
+          {
+            "numerator": -6151831,
+            "denominator": 70368744177664
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 6151831,
+            "denominator": 70368744177664
+          }
+        ]
+      },
+      {
+        "yaw": 49152,
+        "native_c_s": [
+          {
+            "numerator": 6713111,
+            "denominator": 562949953421312
+          },
+          {
+            "numerator": -1,
+            "denominator": 1
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 6713111,
+            "denominator": 562949953421312
+          }
+        ]
+      }
+    ]
+  },
+  "native_primitive_census": [
+    10209,
+    1150
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/compile_profile_publication.py": "e57be66923d732b5519380f95ffb31e5a683403710379b2764983b283af61b58",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "613629249386906fea9ce35c4d633cfff83e481c27a08eccb938476d6d0e466f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py": "19fe426df8373229df330666b4f0cdc453e4a202455424ae1a442a62c8ffe548",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py": "f55701948939a10706d175dabd750db741ea9550b9cbe0308928422084ae1413",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "input_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/program.json": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/roles.json": "0f2da835a381460231c1560ea116fa3aafd51d32a4f3185f25b11b782bd4fd83",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json": "4a771e103b400e967bb752fd0ce340735574fc84aa2c5373dd1a2ff7c770dc57",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json": "50fd154de80b00625c7e7cd677334aa6ecd4cd735ce1c7499ff2bf091281340c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+    "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json": "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json": "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42"
+  },
+  "profile_count": 16,
+  "box_count": 180,
+  "self_clearance_proved": true,
+  "production_qualified": false,
+  "remaining": [
+    "ALL_YAW_GROUND_SOURCE_CLOSURE",
+    "EXACT_CARDINAL_NATIVE_BINDING",
+    "CURRENT_CONSUMER_CLOSURE",
+    "INDEPENDENT_PUBLICATION_REVIEW",
+    "ACTUAL_WORLD_WIP_SUPPORT_AND_HANDLING"
+  ],
+  "certificate_bits_written": 0
+}

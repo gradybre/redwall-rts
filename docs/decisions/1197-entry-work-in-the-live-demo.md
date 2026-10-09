@@ -1,0 +1,89 @@
+# 1197 — Running the first-entry work in the live demo, with explicit "not built yet" alerts
+
+Date: 2026-10-06 · Status: Accepted direction; implementation in progress
+
+## Brendan's direction
+
+> Build this work into the existing demo work (all of it) so that it takes
+> advantage of everything already built, including surface walking, and then
+> can properly alert to anything new we need to build out.
+
+For brace and stone inputs, Brendan chose to **extend Delivery to the
+excavation cuts**, giving one real haul path for cut and installation inputs.
+
+## What this means
+
+The demo runs the real chain end to end on fixed ticks:
+
+1. Mount.
+2. Compose the room, route, surface and entry owners.
+3. Publish the work area.
+4. Confirm the entry.
+5. The foreman takes it from there: cuts, retirement, paid handling,
+   installation, then T0 and the room.
+
+It reuses everything that already exists, including the demo's presentation
+surface walking. **Where a required piece does not exist, the game must not
+fake it or stall silently.** It raises a visible alert through
+`UIManager.push_refusal`, naming the missing capability and keeping the exact
+refusal code. Each alert maps to a row in the table below. Building that row
+clears the alert.
+
+## Gaps, in build order
+
+| # | Gap | Today | Plan |
+|---|---|---|---|
+| G1 | Work-area publication | Only test fixtures create the nine entry Locations and 28 paths | Runtime publisher from the ADR 1190 bundle and the ADR 1191 layout. It goes through SurfaceAnchor and real WorldRoutes publication, against actual terrain. |
+| G2 | Entry confirmation in the demo | The demo only calls `confirm_room` | `RoomOrders.confirm_entry` with the bundle's EntryPlan at the chosen origin. |
+| G3 | Delivery for cuts | `Delivery._pin_project` accepts only `PURPOSE_CONNECTOR_INSTALL` | Extend it to excavation phase Projects, with the same final guards. |
+| G4 | Surface stock as a haul source | Surface stock has no spatial Location | Stage settlement stock at the anchor (`create_spatial_ground_staging`), then haul through Delivery. |
+| G5 | Surface arrival | Residents do not walk in the simulation (`settlement_system.gd:120-135`) | The demo's presentation walk brings the resident to the stair-top anchor. The simulation hand-off places the Transform exactly on the anchor point, then `admit_travel_actor` (WALK) and a real route underground. The hand-off is shown as a known gap until surface Movement/Navigation is composed. |
+| G6 | Crew selection | Tests pass the worker, tool and lots explicitly | Choose a real demo resident with an equipped tool, and real stock lots. Refuse with an alert when none qualifies. |
+| G7 | Fixed-tick hookup | Nothing calls `Foreman.advance` | `SettlementSystem.run_tick` advances the foreman. |
+| G8 | Row 29 presentation | The actor matches rows by actor source digest, so handling has no clip | Alert until a handling clip or reviewed fallback exists. **Presentation built (ADR 1201):** per-source Content and Actor, with row 29 drawn from the handling clock. **Live demo composition built (ADR 1211):** one worker Actor per source (stone included) for the entry crew, drawn from the selected row. |
+| G9 | T0 and the room | The foreman stops after L0 | Extend it to T0 (ADR 1193 unblocked it) and to the Kitchen's own cuts. |
+| G10 | Saving the cursor | Registry rows are UNRESOLVED | Decide re-derive vs save; alert on save while dispatch is in flight. **Decided and built: save explicitly (Brendan, 2026-10-07; ADR 1218).** No alert: a dispatch in flight is saved like any other state. |
+
+## Alert rule
+
+An alert carries the exact refusal code and the gap row (G#). It never offers a
+workaround that grants work or movement. A completed step's world state is
+never rolled back to hide a later gap.
+
+## Status (2026-10-06)
+
+| # | State |
+|---|---|
+| G1 | **Done.** `underground_entry_work_area.gd` (`7af6e990`) and the read-only site survey and suggestion in `underground_entry_site.gd` (`d9688b48`) publish all 9 endpoints and 28 paths on generated ground. |
+| G2 | **Done.** The EntryPlan comes from the bundle, and `confirm_entry` succeeds on a real settlement (`8f7c7b37`, which also fixed a per-slot budget scaling bug). |
+| G3 | **Done.** Delivery hauls cut inputs (`6936d505`). |
+| G4 | **Done for the hauling half (ADR 1210).** With Brendan's switch at rest (ADR 1168 amended), the foreman puts its tool down at M (no tool since ADR 1217 step 5: the hauler only switches at rest), hauls every missing whole unit of wood (lift row 34) and stone (row 39) from R's staging through Delivery, and re-equips. The hauled complete prefix installs L0 and T0 once with exact ledgers (9 trips, 500 wood and 500 stone left at M). **Open:** moving settlement stores to R's staging (`ENTRY_HAUL_NO_STAGED_STOCK`); tests stage the stock as a stand-in. |
+| G5 | **Done (ADR 1219, registration on arrival).** The crew mole walks from its surface pose to H over BAL-WORK-003's straight-leg tick count (no surface path is modelled; Navigation/Movement are not composed), is placed exactly on H at its authored heading, and the foreman registers it there on H's own approach row, then leaves by the authored retreat. Only the crew is a route actor: every occupancy proof now bounds an unregistered living resident by a conservative reach cube around its Transform (`ROUTE_UNREGISTERED_RESIDENT_NEAR`, G5 alert), so `ROUTE_TURN_ACTOR_UNBOUND` is no longer a stop. Routes has no unregister; the crew stays registered after the prefix. The live chain now runs from the surface through the first brace's hauls and stops at G6 (`JOB_HAS_WORKER`). |
+| G6 | **Done (ADR 1223).** Crew selection is real (an idle adult mole; a busy one is passed over, `JOB_AGENT_BUSY`; since ADR 1217 step 5 no tool is required and none is claimed, and `ENTRY_CREW_NO_IDLE_MOLE` stops the chain when no mole qualifies). Inputs come from the storage container's stock (ADR 1210). The entry runtime is now the Jobs dispatcher: the JobSelector never selects the reserved crew and never offers the entry's Jobs (any Job an EXCAVATION or CONNECTOR_INSTALL Project requests) to anyone; only the foreman commits them, still revalidating steps 1-6. An idle crew waits, reserved, for a work hour instead of refusing STEP2. Crew death or departure stops the chain with `STEP1_RESIDENT_DEAD`/`ENTRY_CREW_LOST` (G6 alert); its Jobs stay the dispatcher's and are offered to nobody. No new saved state: the reservation is derived from the ADR 1218 record, Routes and the owners' own columns. **Crew loss (DEC-056, DEC-057, ADR 1225):** the lost actor is unregistered from Routes, a replacement mole walks in by the G5 arrival path and resumes the step (a funded phase is rebound, not paid again); an installation is resumed too, its piece re-handled in place. The live chain now runs past G6, through the walk home, re-equipping and entering WORK at the first BRACE station, to G12 at tick 619. |
+| G7 | **Done (ADR 1210).** The runtime plans the whole prefix after crew selection, and `SettlementSystem.run_tick` advances the foreman after ProductiveWork. Refusals raise `UIManager.push_refusal` plus the `gap_of` row once. G5 is checked explicitly (`ENTRY_SURFACE_ARRIVAL_MISSING`). |
+| G8 | **Done (ADRs 1201, 1211).** The live demo composes the entry worker's four source Actors and draws rows 29–41 from the simulation's selected row, applying each clip's mask on every draw. Source-0 rows still need the pinned driver hooked up live (ADR 1211, Remaining). |
+| G9 | **Prefix done; Kitchen scoped (ADRs 1202, 1205, 1207).** The foreman runs the whole first-entry prefix from the confirmed entry: six cubes, the paid L0 (split landing, `qualified-landing-v4`), the crossing survey and the paid T0, each group INSTALLED exactly once, with exact ledgers. The crossing survey's `SURFACE_ANCHOR_CHECK_CAPACITY` (ADR 1202 blocker 4) was cleared by re-proving only the Locations a change touches (ADR 1207: 551,353 of 1,048,576 checks), and the T0 commit's route budget by ADR 1205. **Open: the Kitchen's own cuts**, scoped in ADR 1202 ("Kitchen excavation: scope"). Brendan placed the Kitchen off T0's far end at the same depth; ADR 1208 records why the authored data cannot carry that as planned (nothing stands past T0, no motion on T0 reaches a Kitchen face, no far opening) and recommends cutting the Kitchen from surface stations like the Corridor's own cubes. Waiting on that choice. |
+| G10 | **Done for the entry chain (ADR 1218).** Brendan chose to save the cursor. The runtime, foreman, installer and hauler write one versioned canonical record (`capture`) and restore it exactly into fresh dispatchers (`restore`), re-proving every handle against the restored owners with exact `ENTRY_SAVE_*` refusals. The hauled prefix restored before every one of its 4,751 ticks ends byte-identical. **Owner codecs done (ADR 1221).** Routes, WorldRoutes (with both geometry journals), the Contacts scope and the Planner's admitted-haul record (section 6 `haul_planner`) are saved and restored exactly. Delivery, ConnectorWork and the cold Budget hold nothing between operations, so a save or load only requires them quiescent. Both goal chains cold-restore every one of these owners into blanked banks and end byte-identical. **Open:** the section-6 body and orchestrator, and a load into a fresh settlement. The settlement itself has no save or load yet (task 09), so ADR 1221 stops at Brendan's choice. |
+| **G11 (retired, ADR 1217 step 5)** | **Retired.** No settlement resident ever gets a tool equipped, and none needs one: moles dig with claws and fit by paw (DEC-052). Crew selection picks an idle adult mole with no tool and no Job; `ENTRY_CREW_NO_TOOLED_MOLE` and the G11 alert are removed from the runtime. When no mole qualifies the chain stops with `ENTRY_CREW_NO_IDLE_MOLE`, mapped to G6. The tools-from-stores plan stays parked until tools return. |
+| **G12 (ADR 1223; done, ADR 1224)** | **Done.** Entry composition stage 13 now builds the entry structure provider and its phase Scope, retains them in the Owners packet and calls `bind_phase_structure`; `WORLD_COMPOSITION_BINDING` maps to G12. The live chain settles all twelve paid L0 phases and stops in the L0 installation with `ROUTE_ASSEMBLY_ACTOR_UNBOUND` (tick 2575): the assembly-handling occupancy proof still requires every living resident to be a route actor. That was mapped to **G5** and is now built: ADR 1219's reach-cube rule covers this sixth proof as well. |
+| **G13 (ADR 1224; done)** | **Done.** The contact-retirement scope checks and snapshots the Workpieces bank at its own configured capacity, so the live L0 FUND passes and L0 is installed. |
+| **G14 (ADR 1224 update; done, ADR 1227)** | **Done.** Measured, the reach scan was not the cause (8,192 of the 1,046,706 checks T0's START operation spent). Nearly half went to two Contacts scans of the Space Region bank charged 16 and 12 checks for each of its 6,144 slots, present or not. They now charge one check per slot plus the old per-row figure per present row: the same loops and results, never more than before. T0's START leaves 443,268 checks. **The live chain now runs the whole first-entry prefix and finishes at tick 4630** (tick 4670 on the claw rows, ADR 1217 step 5) (L0 and T0 INSTALLED once each, 54,000 mWU cut, 44,000 mWU fastened, 9 units hauled). The finished prefix raises `ENTRY_DESCENT_UNBUILT` (G9): the descent past T0 (ADR 1209 stairs, then the Kitchen dug to reachable height, DEC-054) is not planned yet. |
+
+### G11 decision (Brendan, 2026-10-06)
+
+Moles will take their tools **from stores**. That gameplay is built **later**,
+after the overall entry functionality has been tested end to end. Until then,
+tests equip a real basic tool lot to an adult mole explicitly, as a labelled
+stand-in for stores. The live demo keeps raising the G11 alert.
+
+### G11 amended (DEC-052, 2026-10-07)
+
+Brendan scrapped tools for now: all digging uses the claws and timber is fitted by paw (ADR 1217). The stores
+plan above is parked. G11 no longer blocks the first entry; the live demo keeps raising the alert only until claw
+and paw rows are published and `_select_crew` stops requiring an equipped tool.
+
+### G11 retired (ADR 1217 step 5, 2026-10-07)
+
+Content 9 is active. `_select_crew` picks an idle adult mole with no tool, the crew record's tool is always
+`NULL_REF`, the foreman and installer submit tool-free Jobs (`GATE_NOT_REQUIRED`), and the hauler no longer puts a
+tool down or picks it up. The G11 code and alert are removed.

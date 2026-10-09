@@ -1,0 +1,34 @@
+{
+  "review_probe.py.txt": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/review_probe.py",
+    "sha256": "3f300d1cd6d677fa821c73502d2f7d3f51588b3e3e173273e9a2d9420c456bda"
+  },
+  "allocation-probes.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/allocation-probes.json",
+    "sha256": "3252a915e60e74405a34e9a61e9905dc8e192a7fd389d0a8080125cf49c40c16"
+  },
+  "allocation-probe.log": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/allocation-probe.log",
+    "sha256": "6ffe9dbb1fa34c4fc384ae4d393612fd0ce37a4b74584f2fc81ebe1132c79d35"
+  },
+  "routes_literal.gd.txt": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/routes_literal.gd.txt",
+    "sha256": "85d35f1410ba4cd445e5da5932a708437f0b0d7914bca78ef897bdad460d0ef1"
+  },
+  "short_source_literal.gd.txt": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/short_source_literal.gd.txt",
+    "sha256": "2cfab6f167d06781abbe2f05bddfd92b5682e128c69898f203d04d491f60035b"
+  },
+  "initializer-probes.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/initializer-probes.json",
+    "sha256": "8a23e23e668f474f6b6b03bfa78ff2dff2765d4b706e3c084f90669904186311"
+  },
+  "probe_initializers.py.txt": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/probe_initializers.py",
+    "sha256": "8f6d36e5a4bf53f68104c55877e4b27f73fe230c1aa3aa3afed7726e5052c93c"
+  },
+  "replay-results.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/short-step-review-1/replay-results.json",
+    "sha256": "7f08a167692f758cbadc040ed118d5c0379c1c657ba2f7cb8a52b4e4aa0d5eb1"
+  }
+}

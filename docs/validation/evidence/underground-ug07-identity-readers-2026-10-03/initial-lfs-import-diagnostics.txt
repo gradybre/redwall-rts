@@ -1,0 +1,27 @@
+WARNING: Not a PNG file
+ERROR: Condition "!success" is true. Returning: ERR_FILE_CORRUPT
+ERROR: Error loading image: 'res://assets/lookdev/captures/rts_orbit_120m_pitch48_yaw045.png'.
+WARNING: Not a PNG file
+ERROR: Condition "!success" is true. Returning: ERR_FILE_CORRUPT
+ERROR: Error loading image: 'res://assets/lookdev/captures/rts_orbit_040m_pitch65_yaw045.png'.
+WARNING: Not a PNG file
+ERROR: Condition "!success" is true. Returning: ERR_FILE_CORRUPT
+ERROR: Error loading image: 'res://assets/lookdev/captures/rts_orbit_040m_pitch48_yaw045.png'.
+WARNING: Not a PNG file
+ERROR: Condition "!success" is true. Returning: ERR_FILE_CORRUPT
+ERROR: Error loading image: 'res://assets/lookdev/captures/rts_orbit_008m_pitch48_yaw225.png'.
+WARNING: Not a PNG file
+ERROR: Condition "!success" is true. Returning: ERR_FILE_CORRUPT
+ERROR: Error loading image: 'res://assets/lookdev/captures/rts_orbit_008m_pitch35_yaw225_work_contact.png'.
+ERROR: Error importing 'res://assets/lookdev/captures/rts_orbit_120m_pitch48_yaw045.png'.
+WARNING: Not a PNG file
+ERROR: Error importing 'res://assets/lookdev/captures/rts_orbit_040m_pitch48_yaw045.png'.
+ERROR: Error importing 'res://assets/lookdev/captures/rts_orbit_040m_pitch65_yaw045.png'.
+ERROR: Condition "!success" is true. Returning: ERR_FILE_CORRUPT
+ERROR: Error loading image: 'res://assets/lookdev/captures/elevation_front.png'.
+ERROR: Error importing 'res://assets/lookdev/captures/rts_orbit_008m_pitch48_yaw225.png'.
+ERROR: Error importing 'res://assets/lookdev/captures/rts_orbit_008m_pitch35_yaw225_work_contact.png'.
+ERROR: Error importing 'res://assets/lookdev/captures/elevation_front.png'.
+ERROR: glTF: Error parsing .gltf JSON data: Expected 'true', 'false', or 'null', got 'version' at line: 0
+ERROR: Condition "err != OK" is true. Returning: err
+ERROR: Error importing 'res://assets/units/species_mouse_body_a_lod0.glb'.

@@ -1,0 +1,112 @@
+{
+  "scope": "Source-derived logical numeric/control census only. Object/reference/StringName/native frame allocation remains unmeasured.",
+  "baseline_commit": "1a754780",
+  "retained_members_match_baseline": [
+    "underground_entry_bindings",
+    "underground_locations",
+    "underground_surface_anchor"
+  ],
+  "retained_delta_bytes": 0,
+  "existing_record_box_bytes": 48,
+  "retained_entry": {
+    "numeric_controls": 74,
+    "packet_bytes": 300,
+    "packed_rows": 112,
+    "fixed_numeric_and_packed_bytes": 486,
+    "logical_helper_allowance_bytes": 2048,
+    "reserved_bytes": 4096,
+    "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
+  },
+  "entry_numeric_chain": {
+    "bytes": 253,
+    "path": [
+      "_stage_timber",
+      "_timber_physical",
+      "_timber_parts",
+      "_stage_timber_datums",
+      "_timber_contact_air",
+      "_timber_profile_envelope",
+      "_timber_profile_bounds",
+      "_timber_extend_support"
+    ],
+    "frames": {
+      "_stage_timber": 40,
+      "_timber_physical": 9,
+      "_timber_parts": 33,
+      "_stage_timber_datums": 32,
+      "_timber_contact_air": 17,
+      "_timber_profile_envelope": 16,
+      "_timber_profile_bounds": 61,
+      "_timber_extend_support": 45
+    }
+  },
+  "installed_location_numeric_chain": {
+    "bytes": 336,
+    "path": [
+      "_installed_witnesses_refusal",
+      "_record_paid_site",
+      "_installed_surface_site",
+      "_installed_row_site",
+      "installed_prism_into",
+      "_installed_world_box",
+      "installed_coordinate"
+    ],
+    "frames": {
+      "_installed_witnesses_refusal": 16,
+      "_record_paid_site": 16,
+      "_installed_surface_site": 40,
+      "_installed_row_site": 56,
+      "installed_prism_into": 72,
+      "_installed_world_box": 80,
+      "installed_coordinate": 56
+    }
+  },
+  "record_geometry_numeric_chain": {
+    "bytes": 344,
+    "path": [
+      "_record_geometry_refusal",
+      "_survey_for",
+      "_observed_record_site",
+      "_installed_surface_site",
+      "_installed_row_site",
+      "installed_prism_into",
+      "_installed_world_box",
+      "installed_coordinate"
+    ],
+    "frames": {
+      "_record_geometry_refusal": 16,
+      "_survey_for": 8,
+      "_observed_record_site": 16,
+      "_installed_surface_site": 40,
+      "_installed_row_site": 56,
+      "installed_prism_into": 72,
+      "_installed_world_box": 80,
+      "installed_coordinate": 56
+    }
+  },
+  "surface_numeric_chain": {
+    "bytes": 113,
+    "path": [
+      "create_in_section",
+      "_create",
+      "_commit",
+      "prepared_refusal",
+      "_staged_rows_refusal"
+    ],
+    "frames": {
+      "create_in_section": 28,
+      "_create": 28,
+      "_commit": 1,
+      "prepared_refusal": 16,
+      "_staged_rows_refusal": 40
+    }
+  },
+  "support_root_leaf_numeric_bytes": 12,
+  "entry_outer_clearance_and_nested_allowance_bytes": 672,
+  "entry_total_helper_bytes": 925,
+  "entry_helper_reserve_bytes": 2048,
+  "location_nested_helper_ceiling_bytes": 512,
+  "surface_existing_reserve_bytes": 2048,
+  "cold_variable_delta_bytes": 0,
+  "runtime_qualified": false
+}

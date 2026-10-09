@@ -1,0 +1,23 @@
+[
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-world-create-reset/docs/validation/evidence/underground-world-create-reset-2026-10-04/test_census.py",
+      "-v"
+    ],
+    "exit": 0,
+    "elapsed_seconds": 0.448499125
+  },
+  {
+    "argv": [
+      "python3",
+      "-B",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-world-create-reset/docs/validation/evidence/underground-world-create-reset-2026-10-04/census.py",
+      "--out",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-approach-memory/docs/validation/evidence/underground-approach-memory-2026-10-04/ui-reset-independent-review/census.json"
+    ],
+    "exit": 0,
+    "elapsed_seconds": 0.07805254199999995
+  }
+]

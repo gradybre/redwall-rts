@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/export_underground_envelopes.py",
+    "godot/demo/assets/underground-matrices/mole-grip-v2.ugpal",
+    "--sha256",
+    "6d5ae0e52e50d715e7d9832cc62f08e9a4e1a0a95f4bc2a199efec1d75a8c9c8",
+    "--out",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-proof-v1/envelopes.json",
+    "--palette",
+    "--import-archive",
+    "godot/demo/assets/underground-matrices/mole-grip-v2.inputs",
+    "--world-basis",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+    "--world-basis-sha256",
+    "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "--world-basis-producer-sha256",
+    "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "--world-root-bounds",
+    "0",
+    "-32256",
+    "0",
+    "262144",
+    "16896",
+    "262144"
+  ],
+  "returncode": 0
+}

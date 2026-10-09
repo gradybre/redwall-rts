@@ -1,0 +1,2364 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_building_definitions.gd
+  PASS  test_every_catalog_key_has_a_fact_row_and_vice_versa
+  PASS  test_every_building_unlock_is_a_valid_milestone_id
+  PASS  test_no_building_unlock_uses_minus_one_or_an_unknown_ordinal
+  PASS  test_the_starting_mask_unlocks_exactly_the_start_buildings
+  PASS  test_a_sparse_mask_still_locks_the_m1_buildings
+  PASS  test_the_eleven_station_keys_bind_to_their_own_ids
+  PASS  test_a_station_id_is_never_the_building_id_that_provides_it
+  PASS  test_a_building_with_no_service_answers_minus_one_and_not_zero
+  PASS  test_the_kitchen_service_has_two_provider_kinds
+  PASS  test_no_other_furniture_provides_a_station
+  PASS  test_buildings_providing_lists_exactly_one_provider_per_service
+  PASS  test_catalog_slots_for_station_refuses_the_wrong_service
+  PASS  test_the_furniture_bit_is_one_shifted_by_the_definition_id
+  PASS  test_shelf_capacity_belongs_to_the_shelf_alone
+  PASS  test_the_footprints_and_work_match_the_owning_rows
+  PASS  test_managed_interiors_and_room_tiles_agree_with_bal_cat_007
+  PASS  test_base_store_capacities_are_the_section_4_2_values
+  PASS  test_passive_and_worker_slots_are_separate_columns
+  PASS  test_tier_two_is_restricted_to_the_four_upgradeable_keys
+  PASS  test_furniture_floor_sizes_and_user_slots_match_section_4_3
+  PASS  test_unknown_ids_answer_zero_and_never_another_row
+CI_SUITE_TIME {"assertions":420,"failures":0,"suite":"test_building_definitions.gd","tests":21,"usec":17236}
+test_buildings_spatial.gd
+  PASS  test_authority_binding_refuses_unbound_foreign_replacement_and_expiration
+  PASS  test_room_identity_is_real_permanent_and_not_limited_to_sixteen_surface_rooms
+  PASS  test_candidate_preflight_never_creates_until_exact_publication_window
+  PASS  test_candidate_wrong_kind_foreign_owner_and_wrong_type_leave_both_stores_unchanged
+  PASS  test_candidate_stale_after_intervening_allocation_cannot_roll_back_identity_history
+  PASS  test_building_spatial_identity_reads_current_actual_type_rotation_origin_and_state
+  PASS  test_building_spatial_identity_clears_stale_wrong_kind_and_unmirrored_rows
+  PASS  test_building_spatial_identity_rejects_and_clears_wrong_sized_output_without_resize
+  PASS  test_unknown_type_wrong_permit_and_stale_identity_refuse_without_writes
+  PASS  test_pending_bed_reserves_identity_membership_but_supplies_no_presence_or_use
+  PASS  test_installation_is_owner_scoped_idempotent_and_generation_safe
+  PASS  test_pending_pantry_and_kitchen_furniture_grant_no_service_capacity
+  PASS  test_area_and_countable_rules_use_actual_floor_identity_without_rounding_up
+  PASS  test_legacy_mutators_cannot_reassign_remove_or_validate_spatial_rows
+  PASS  test_exact_installed_user_condition_and_temperature_publications_remain_available
+  PASS  test_late_foreign_owner_rewiring_blocks_mutations_and_service_reads
+  PASS  test_spatial_removal_requires_occupants_released_and_new_purpose_gets_fresh_identity
+  PASS  test_surface_and_spatial_slot_reuse_initializes_both_new_columns
+  PASS  test_clear_resets_pending_flags_and_preserves_only_weak_owner_wiring
+  PASS  test_legacy_capture_and_restore_refuse_spatial_or_unknown_state_atomically
+  PASS  test_legacy_restore_explicitly_initializes_old_live_furniture_and_rejects_unknowns
+CI_SUITE_TIME {"assertions":434,"failures":0,"suite":"test_buildings_spatial.gd","tests":21,"usec":2839126}
+test_catalog.gd
+  PASS  test_compile_domain_assigns_ascending_ascii_order_ids
+  PASS  test_compile_domain_is_independent_of_insertion_order
+  PASS  test_compile_domain_sorts_by_ascii_content_not_stringname_identity
+  PASS  test_compile_domain_rejects_duplicate_keys
+  PASS  test_compile_domain_handles_the_empty_key_set
+  PASS  test_compile_domain_accepts_exactly_256_item_definition_keys
+  PASS  test_compile_domain_rejects_257_item_definition_keys
+  PASS  test_compile_domain_256_ceiling_is_scoped_to_item_definition
+  PASS  test_fixed_speed_enum_matches_gdd_4_3_exactly
+  PASS  test_fixed_job_kind_enum_preserves_the_reserved_gap
+  PASS  test_fixed_zone_type_enum_preserves_the_reserved_gap
+  PASS  test_fixed_season_quality_severity_enums_match_gdd_4_3
+  PASS  test_fixed_activity_enum_matches_gdd_4_3_exactly
+  PASS  test_fixed_job_state_enum_matches_gdd_4_3_exactly
+  PASS  test_the_whole_job_kind_and_zone_type_tables_are_unchanged
+  PASS  test_job_state_work_is_not_activity_work
+  PASS  test_activity_and_job_state_refuse_recompilation
+  PASS  test_every_protected_domain_has_a_fixed_enum_table
+  PASS  test_fixed_enum_returns_empty_for_an_unknown_domain
+  PASS  test_compile_domain_refuses_to_recompile_a_protected_enum
+  PASS  test_compile_catalog_returns_every_domains_ids_when_all_succeed
+  PASS  test_compile_catalog_aborts_before_producing_any_domain_on_failure
+  PASS  test_compile_catalog_accepts_a_plain_untyped_array_of_string_keys
+  PASS  test_compile_catalog_refuses_an_untyped_array_with_a_non_string_element
+  PASS  test_fixed_soil_enum_matches_gdd_4_3_exactly
+  PASS  test_fixed_crop_state_enum_matches_gdd_4_3_exactly
+  PASS  test_fixed_order_mode_enum_matches_gdd_4_3_exactly
+  PASS  test_soil_crop_state_and_order_mode_refuse_recompilation
+  PASS  test_the_three_new_protected_enums_are_named_in_the_protected_table
+  PASS  test_the_compiled_enum_tables_are_the_generated_ascii_order
+  PASS  test_every_compiled_domain_regenerates_its_own_table_from_its_keys
+  PASS  test_verify_compiled_enum_accepts_the_compiled_domains_and_refuses_others
+  PASS  test_the_compiled_domains_are_registered_and_never_protected
+  PASS  test_compiled_id_of_resolves_every_key_and_refuses_the_unknown
+  PASS  test_compiled_key_of_resolves_every_id_and_refuses_the_unknown
+  PASS  test_the_legacy_conversion_maps_translate_every_old_ordinal
+  PASS  test_the_legacy_maps_are_the_ruled_permutations
+  PASS  test_an_untranslatable_ordinal_is_refused_rather_than_reinterpreted
+  PASS  test_absence_converts_to_absence_in_every_compiled_domain
+  PASS  test_building_definition_is_the_complete_thirty_row_catalog
+  PASS  test_furniture_definition_is_the_complete_nine_row_catalog
+  PASS  test_the_starter_buildings_and_furniture_are_inside_the_complete_domains
+  PASS  test_display_names_are_not_keys_in_either_new_domain
+  PASS  test_building_and_furniture_are_two_domains_that_never_share_an_id
+  PASS  test_unknown_keys_and_ids_in_the_new_domains_are_refused_without_a_sentinel
+  PASS  test_the_new_compiled_domains_regenerate_from_shuffled_keys
+  PASS  test_room_type_and_building_state_match_gdd_4_3_exactly
+  PASS  test_room_type_and_building_state_are_not_their_own_ascii_order
+  PASS  test_the_fixed_enum_table_index_and_the_protected_list_name_the_same_domains
+  PASS  test_the_new_domains_were_never_numbered_any_other_way
+  PASS  test_fixed_injury_kind_enum_matches_gdd_4_3_exactly
+  PASS  test_injury_kind_hazard_bindings_are_the_inherited_numbers
+  PASS  test_injury_kind_is_not_its_own_ascii_order_and_refuses_recompilation
+  PASS  test_descending_input_still_compiles_to_ascending_ascii_ids
+  PASS  test_injury_kind_is_absent_from_the_compiled_domain_list
+  PASS  test_fixed_inventory_provenance_matches_prov_r01_exactly
+  PASS  test_the_named_provenance_constants_are_the_ruled_numbers
+  PASS  test_provenance_membership_admits_exactly_the_six
+  PASS  test_inventory_provenance_is_not_its_own_ascii_order_and_refuses_recompilation
+  PASS  test_inventory_provenance_is_absent_from_the_compiled_domain_list
+  PASS  test_the_label_rule_binds_each_restricted_member_to_its_item
+  PASS  test_the_label_rule_restricts_no_item_for_ordinary_or_starter
+  PASS  test_salt_input_requires_both_the_brine_item_and_coastal_brine
+  PASS  test_recipe_output_is_ordinary_unless_its_contract_names_an_origin
+  PASS  test_a_withdrawal_needs_a_ledger_balance_and_not_merely_a_label
+CI_SUITE_TIME {"assertions":686,"failures":0,"suite":"test_catalog.gd","tests":65,"usec":33886}
+test_command_dispatch_store_policy.gd
+  PASS  test_a_filter_command_filters_the_main_store
+  PASS  test_a_minimum_command_keeps_a_full_int64_reserve
+  PASS  test_a_full_256_row_group_commits
+  PASS  test_one_bad_row_refuses_the_whole_group_with_the_stores_code
+  PASS  test_rows_out_of_ascending_item_order_refuse_the_schema
+  PASS  test_a_malformed_group_refuses_the_schema
+  PASS  test_a_nonzero_argument_is_refused_rather_than_ignored
+  PASS  test_a_target_demolished_after_admission_refuses_stale
+  PASS  test_a_target_that_is_not_a_building_is_refused_by_kind
+  PASS  test_a_directory_building_the_building_store_does_not_hold_is_refused_by_the_store
+  PASS  test_an_unbound_policy_refuses_and_a_foreign_one_never_binds
+  PASS  test_both_kinds_are_supported_and_name_no_missing_store
+CI_SUITE_TIME {"assertions":552,"failures":0,"suite":"test_command_dispatch_store_policy.gd","tests":12,"usec":1218795}
+test_construction_furniture_batches.gd
+  PASS  test_actual_mixed_pending_rows_and_protected_catalog_projects_publish_together
+  PASS  test_direct_preparation_or_publication_never_allocates_any_identity
+  PASS  test_null_and_foreign_owner_cannot_open_the_real_batch
+  PASS  test_unfinished_shell_and_late_geometry_refusal_leave_all_owner_bytes_unchanged
+  PASS  test_wrong_room_generation_and_foreign_packet_are_rejected
+  PASS  test_wrong_kind_order_or_tuple_shape_never_publishes_a_prefix
+  PASS  test_actual_surface_room_cannot_enter_underground_pair_admission
+  PASS  test_unknown_type_edge_piece_and_rotation_refuse_the_whole_layout
+  PASS  test_stale_single_allocation_and_retirement_never_roll_back_generations
+  PASS  test_duplicate_observation_cannot_allocate_again_or_invent_pending_services
+  PASS  test_publication_cleanup_cannot_erase_the_committed_scalar_receipt
+  PASS  test_bound_owner_without_batch_implementation_cleanly_refuses_the_new_operation
+  PASS  test_mutation_in_final_provider_callback_refuses_without_an_identity_prefix
+  PASS  test_callback_reentry_is_closed_before_any_provider_runs
+  PASS  test_initial_owner_purpose_callback_is_already_inside_exclusive_bracket
+  PASS  test_missing_typed_row_capacity_and_pid_capacity_refuse_before_first_write
+  PASS  test_live_typed_owner_mirror_conflict_refuses_in_either_store
+  PASS  test_reused_free_typed_rows_reset_all_paid_delivery_and_installed_flags
+CI_SUITE_TIME {"assertions":523,"failures":0,"suite":"test_construction_furniture_batches.gd","tests":18,"usec":3507695}
+test_demo_chronicle_live.gd
+  PASS  test_the_chronicle_on_the_real_scene_at_1280x720
+  PASS  test_the_chronicle_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":66,"failures":0,"suite":"test_demo_chronicle_live.gd","tests":2,"usec":34851384}
+test_demo_chronicle_ui.gd
+  PASS  test_the_book_opens_on_the_newest_page_and_pages_by_season
+  PASS  test_with_no_page_written_it_opens_on_the_season_so_far
+  PASS  test_a_tab_shows_its_page_and_a_new_page_adds_a_tab
+  PASS  test_the_book_s_type_and_buttons_meet_the_floors
+  PASS  test_headings_wear_the_heading_face_and_the_facts_ink
+  PASS  test_village_news_has_a_chronicle_button_that_closes_it_first
+  PASS  test_the_village_guide_has_a_chronicle_button_that_closes_it_first
+  PASS  test_with_no_page_staged_the_page_is_drawn_as_before
+  PASS  test_the_staged_page_lies_under_the_text_scaled_to_the_sheet
+  PASS  test_the_page_body_fills_the_text_area_and_the_shared_picture_keeps_its_size
+  PASS  test_a_page_laid_then_unstaged_is_drawn_plain_again
+CI_SUITE_TIME {"assertions":82,"failures":0,"suite":"test_demo_chronicle_ui.gd","tests":11,"usec":1900423}
+test_demo_hall_art.gd
+  PASS  test_nothing_staged_draws_the_plain_homes_and_no_stage
+  PASS  test_a_lit_home_is_drawn_with_its_windows_model_dark
+  PASS  test_only_a_lit_home_takes_its_windows_model
+  PASS  test_each_home_glows_on_its_own_material
+  PASS  test_the_stone_stage_is_built_hidden_at_the_timber_halls_transform
+  PASS  test_no_stage_without_the_timber_hall_staged
+  PASS  test_a_rebuild_refills_the_same_glow_list
+  PASS  test_the_windows_are_dark_by_day_and_glow_with_each_homes_lamp
+  PASS  test_the_windows_are_written_only_when_their_value_changes
+  PASS  test_the_full_night_glow_is_the_art_maps_value
+  PASS  test_without_windows_bound_nothing_is_written
+  PASS  test_an_empty_glow_list_is_bound_harmlessly
+  PASS  test_the_window_glow_allocates_nothing
+  PASS  test_the_stone_hall_replaces_the_timber_one_at_tier_2
+  PASS  test_without_the_stone_hall_the_composed_stand_in_stays
+  PASS  test_the_linen_banner_hangs_upright_and_dyes_only_its_cloth
+  PASS  test_without_the_linen_banner_the_stand_in_hangs
+CI_SUITE_TIME {"assertions":93,"failures":0,"suite":"test_demo_hall_art.gd","tests":17,"usec":1012616}
+test_demo_kitchen_round_back.gd
+  PASS  test_a_brain_keeping_the_cooks_round_does_not_keep_its_kitchen
+  PASS  test_the_round_is_stale_once_the_kitchen_is_gone
+  PASS  test_a_drawers_trip_calls_the_draw_take_back
+  PASS  test_the_round_asks_its_kitchen_while_it_lives
+CI_SUITE_TIME {"assertions":11,"failures":0,"suite":"test_demo_kitchen_round_back.gd","tests":4,"usec":39574}
+test_demo_levels.gd
+  PASS  test_the_levels_lie_the_candidate_spacing_apart
+  PASS  test_a_ramp_down_is_never_steeper_than_one_in_two_and_a_half
+  PASS  test_stairs_are_steeper_timber_risers_and_slower
+  PASS  test_a_link_is_refused_too_short_or_too_long_in_words
+  PASS  test_a_link_costs_and_cuts_by_its_slope
+  PASS  test_the_second_level_is_more_clay_and_rock_and_less_sand
+  PASS  test_below_the_ground_is_wet_only_near_the_water_table
+  PASS  test_stairs_are_one_link_from_a_level_1_bore_down_to_a_blind_foot
+  PASS  test_stairs_take_a_quarter_more_work_than_a_ramp
+  PASS  test_a_link_is_dug_through_each_level_s_ground
+  PASS  test_a_room_on_level_2_has_no_door_to_the_surface
+  PASS  test_a_room_on_level_2_is_refused_only_by_what_lies_on_its_level
+  PASS  test_the_room_tool_joins_a_level_2_room_at_its_door
+  PASS  test_a_level_2_piece_starts_on_its_network_and_may_end_blind
+  PASS  test_snapping_keeps_to_the_level_laid_on
+  PASS  test_a_link_starts_on_level_1_and_runs_straight_down
+  PASS  test_levels_keep_their_pillars_in_height_not_in_plan
+  PASS  test_a_link_passes_under_a_ramp_s_mouth_it_is_deep_enough_under
+  PASS  test_a_route_across_the_levels_equals_the_dijkstra_reference
+  PASS  test_a_trip_bound_for_level_2_ends_at_its_node_by_the_cheapest_way
+  PASS  test_at_dusk_they_go_down_the_stairs_to_their_beds_on_level_2
+  PASS  test_a_basket_is_carried_up_the_stairs_to_the_heap
+  PASS  test_the_cool_rule_counts_a_cellar_s_depth_by_its_level
+  PASS  test_a_hearth_never_warms_a_cellar_down_a_link
+  PASS  test_the_readout_names_the_link_its_run_slope_and_grade
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_each_level_is_drawn_on_its_own_layers (res://test/test_demo_levels.gd:899)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_each_level_is_drawn_on_its_own_layers (res://test/test_demo_levels.gd:899)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_each_level_is_drawn_on_its_own_layers (res://test/test_demo_levels.gd:899)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_each_level_is_drawn_on_its_own_layers (res://test/test_demo_levels.gd:899)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_each_level_is_drawn_on_its_own_layers
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_a_go_to_on_a_level_2_tunnel_shows_its_level (res://test/test_demo_levels.gd:931)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_a_go_to_on_a_level_2_tunnel_shows_its_level (res://test/test_demo_levels.gd:931)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_a_go_to_on_a_level_2_tunnel_shows_its_level (res://test/test_demo_levels.gd:931)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_a_go_to_on_a_level_2_tunnel_shows_its_level (res://test/test_demo_levels.gd:931)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_go_to_on_a_level_2_tunnel_shows_its_level
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_level_2_s_rooms_and_marks_stand_on_its_floor (res://test/test_demo_levels.gd:957)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_level_2_s_rooms_and_marks_stand_on_its_floor (res://test/test_demo_levels.gd:957)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_level_2_s_rooms_and_marks_stand_on_its_floor (res://test/test_demo_levels.gd:957)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_level_2_s_rooms_and_marks_stand_on_its_floor (res://test/test_demo_levels.gd:957)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_level_2_s_rooms_and_marks_stand_on_its_floor
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_the_tool_lays_on_the_level_the_view_shows (res://test/test_demo_levels.gd:983)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_the_tool_lays_on_the_level_the_view_shows (res://test/test_demo_levels.gd:983)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_the_tool_lays_on_the_level_the_view_shows (res://test/test_demo_levels.gd:983)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_the_tool_lays_on_the_level_the_view_shows (res://test/test_demo_levels.gd:983)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_tool_lays_on_the_level_the_view_shows
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1042)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1042)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1042)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1042)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1047)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] test_a_level_switch_writes_the_cull_mask_and_builds_nothing (res://test/test_demo_levels.gd:1054)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_level_switch_writes_the_cull_mask_and_builds_nothing
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_pgup_and_pgdn_switch_levels_only_in_the_u_view (res://test/test_demo_levels.gd:1077)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_pgup_and_pgdn_switch_levels_only_in_the_u_view (res://test/test_demo_levels.gd:1077)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_pgup_and_pgdn_switch_levels_only_in_the_u_view (res://test/test_demo_levels.gd:1077)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_pgup_and_pgdn_switch_levels_only_in_the_u_view (res://test/test_demo_levels.gd:1077)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_pgup_and_pgdn_switch_levels_only_in_the_u_view
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_clicks_land_on_the_shown_level_s_floor (res://test/test_demo_levels.gd:1136)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_clicks_land_on_the_shown_level_s_floor (res://test/test_demo_levels.gd:1136)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_clicks_land_on_the_shown_level_s_floor (res://test/test_demo_levels.gd:1136)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_clicks_land_on_the_shown_level_s_floor (res://test/test_demo_levels.gd:1136)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_clicks_land_on_the_shown_level_s_floor
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_the_prewarm_covers_the_second_level_and_registered_it_at_boot (res://test/test_demo_levels.gd:1175)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_the_prewarm_covers_the_second_level_and_registered_it_at_boot (res://test/test_demo_levels.gd:1175)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_the_prewarm_covers_the_second_level_and_registered_it_at_boot (res://test/test_demo_levels.gd:1175)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_the_prewarm_covers_the_second_level_and_registered_it_at_boot (res://test/test_demo_levels.gd:1175)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_prewarm_covers_the_second_level_and_registered_it_at_boot
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_each_cap_outlines_the_other_level_from_its_own_mask (res://test/test_demo_levels.gd:1191)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_each_cap_outlines_the_other_level_from_its_own_mask (res://test/test_demo_levels.gd:1191)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_each_cap_outlines_the_other_level_from_its_own_mask (res://test/test_demo_levels.gd:1191)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_each_cap_outlines_the_other_level_from_its_own_mask (res://test/test_demo_levels.gd:1191)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_each_cap_outlines_the_other_level_from_its_own_mask
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_residents_on_another_level_show_as_markers (res://test/test_demo_levels.gd:1215)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_residents_on_another_level_show_as_markers (res://test/test_demo_levels.gd:1215)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_residents_on_another_level_show_as_markers (res://test/test_demo_levels.gd:1215)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_residents_on_another_level_show_as_markers (res://test/test_demo_levels.gd:1215)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_residents_on_another_level_show_as_markers
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_a_resident_on_the_stairs_is_seen_from_the_level_it_is_nearest (res://test/test_demo_levels.gd:1242)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_a_resident_on_the_stairs_is_seen_from_the_level_it_is_nearest (res://test/test_demo_levels.gd:1242)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_a_resident_on_the_stairs_is_seen_from_the_level_it_is_nearest (res://test/test_demo_levels.gd:1242)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_a_resident_on_the_stairs_is_seen_from_the_level_it_is_nearest (res://test/test_demo_levels.gd:1242)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_resident_on_the_stairs_is_seen_from_the_level_it_is_nearest
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] _process (res://demo/tunnel/tunnel_ext.gd:399)
+       [3] _frame (res://test/test_demo_underground_view.gd:202)
+       [4] _dig (res://test/test_demo_underground_view.gd:122)
+       [5] _village_below (res://test/test_demo_levels.gd:823)
+       [6] test_the_surface_signs_are_the_top_level_s (res://test/test_demo_levels.gd:1259)
+       [7] _run_test (res://test/run_tests.gd:194)
+       [8] _run_suite (res://test/run_tests.gd:168)
+       [9] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [10] _run_worker (res://test/run_tests.gd:121)
+       [11] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _dig (res://test/test_demo_underground_view.gd:122)
+       [3] _village_below (res://test/test_demo_levels.gd:823)
+       [4] test_the_surface_signs_are_the_top_level_s (res://test/test_demo_levels.gd:1259)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:829)
+       [3] test_the_surface_signs_are_the_top_level_s (res://test/test_demo_levels.gd:1259)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _place_rings (res://demo/control/demo_command.gd:815)
+       [1] _frame (res://test/test_demo_underground_view.gd:204)
+       [2] _village_below (res://test/test_demo_levels.gd:839)
+       [3] test_the_surface_signs_are_the_top_level_s (res://test/test_demo_levels.gd:1259)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_surface_signs_are_the_top_level_s
+  PASS  test_a_level_2_dig_is_reached_paused_and_resumed_through_the_stairs
+  PASS  test_one_on_level_2_walks_out_the_cheapest_way_up
+CI_SUITE_TIME {"assertions":4427,"failures":0,"suite":"test_demo_levels.gd","tests":39,"usec":42674307}
+test_demo_notices_live.gd
+  PASS  test_the_notices_on_the_real_scene_at_1280x720
+  PASS  test_the_notices_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":48,"failures":0,"suite":"test_demo_notices_live.gd","tests":2,"usec":34103044}
+test_demo_object_list.gd
+  PASS  test_collect_lists_what_exists_in_kind_order
+  PASS  test_rows_name_things_as_their_owners_do
+  PASS  test_the_list_shows_a_row_per_thing_and_the_count
+  PASS  test_choosing_a_row_selects_centres_and_closes
+  PASS  test_a_room_is_centred_on_the_ground_above_it
+  PASS  test_a_filter_lists_one_kind
+  PASS  test_a_thing_gone_since_says_so_and_stays_open
+  PASS  test_an_empty_kind_says_so
+  PASS  test_rings_are_drawn_on_the_surface_and_below
+  PASS  test_bridge_state_reads_gone_when_the_row_is_reused
+  PASS  test_the_rings_refreshing_never_move_the_lists_rows
+CI_SUITE_TIME {"assertions":33,"failures":0,"suite":"test_demo_object_list.gd","tests":11,"usec":459481}
+test_demo_orchard_live.gd
+  PASS  test_the_orchard_on_the_real_scene_at_1280x720
+  PASS  test_the_orchard_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":50,"failures":0,"suite":"test_demo_orchard_live.gd","tests":2,"usec":53628458}
+test_demo_playtest_live.gd
+  PASS  test_the_real_logger_captures_every_kind_of_line_and_f12_marks
+CI_SUITE_TIME {"assertions":18,"failures":0,"suite":"test_demo_playtest_live.gd","tests":1,"usec":4847246}
+test_demo_rooms.gd
+  PASS  test_both_templates_cut_twenty_four_quanta_on_twelve_floor_quanta
+  PASS  test_the_cells_are_cut_out_from_the_door_two_quanta_each
+  PASS  test_quarter_turns_are_exact
+  PASS  test_the_door_the_mouth_and_the_sockets_stand_where_the_template_puts_them
+  PASS  test_the_void_distances_are_exact
+  PASS  test_a_room_is_one_piece_its_door_a_mouth
+  PASS  test_a_cellar_s_mouth_is_a_hatch
+  PASS  test_the_body_cuts_the_room_cell_by_cell
+  PASS  test_the_walks_open_with_the_body_and_are_not_counted_in_the_piece
+  PASS  test_a_room_dropped_before_any_ground_is_broken_frees_its_row
+  PASS  test_the_fixture_home_may_be_dug
+  PASS  test_only_the_two_levels_are_dug
+  PASS  test_eight_rooms_fill_the_rooms_and_twenty_four_mouths_the_network
+  PASS  test_a_room_keeps_inside_the_village
+  PASS  test_a_turned_cellar_keeps_its_length_inside_the_village
+  PASS  test_a_room_needs_a_node_row_for_every_socket
+  PASS  test_a_room_is_not_dug_under_water_or_its_no_dig_band
+  PASS  test_a_room_is_not_dug_under_the_crop_beds
+  PASS  test_a_room_is_not_dug_under_a_building
+  PASS  test_a_room_keeps_a_metre_of_earth_from_another
+  PASS  test_a_room_s_door_ramp_keeps_a_metre_of_earth_from_another_s
+  PASS  test_a_room_s_door_ramp_keeps_off_trees
+  PASS  test_a_room_s_mound_keeps_off_work_spots
+  PASS  test_a_room_keeps_a_metre_of_earth_from_a_tunnel
+  PASS  test_a_room_s_mound_and_door_keep_off_trees_heaps_and_spots
+  PASS  test_every_refusal_has_its_own_words
+  PASS  test_a_point_snaps_to_a_free_socket_never_the_middle_or_the_door
+  PASS  test_a_passage_straight_out_of_a_socket_joins_the_room
+  PASS  test_a_passage_must_leave_its_socket_straight
+  PASS  test_a_socket_takes_one_passage
+  PASS  test_a_tunnel_keeps_a_metre_of_earth_from_a_room
+  PASS  test_a_room_near_the_network_proposes_its_passage_to_the_nearest_socket
+  PASS  test_the_passage_takes_the_foot_of_the_perpendicular_when_it_is_shorter
+  PASS  test_the_passage_runs_straight_out_where_the_perpendicular_leans_too_far
+  PASS  test_the_passage_may_start_at_a_ramp_s_foot_but_never_on_a_ramp_s_side
+  PASS  test_a_proposed_passage_starts_where_its_join_snapped
+  PASS  test_a_passage_the_rules_pass_is_refused_beside_the_room_s_own_ramp
+  PASS  test_the_mound_is_cut_back_to_its_face_for_the_door
+  PASS  test_a_proposed_passage_keeps_off_the_room_s_own_door_ramp
+  PASS  test_a_passage_the_whole_piece_rules_refuse_is_not_proposed
+  PASS  test_the_proposed_passage_is_laid_ending_at_the_room_s_socket
+  PASS  test_the_door_is_a_way_in_and_out_on_the_paths
+  PASS  test_a_route_goes_in_by_the_front_door_or_by_the_tunnel
+  PASS  test_a_standalone_room_s_door_leads_only_into_its_room
+  PASS  test_a_standalone_room_s_door_is_not_offered_for_a_trip_on_the_surface
+  PASS  test_everybeast_stands_upright_in_a_room
+  PASS  test_the_cellar_api_keeps_its_shape_served_from_rooms
+  PASS  test_a_home_is_no_cellar_and_a_relaid_row_is_a_new_store
+  PASS  test_a_room_s_crew_works_three_faces
+  PASS  test_the_room_readout_counts_its_cells_ramp_and_passage
+  PASS  test_a_room_needs_its_rows_to_the_last
+  PASS  test_a_tunnel_may_not_cross_a_room_s_door_ramp
+  PASS  test_the_digger_s_line_names_the_room_it_digs
+  PASS  test_a_bed_alcove_bows_the_wall_out
+  PASS  test_a_passage_is_cut_by_the_room_s_wall_once_the_room_is_dug
+CI_SUITE_TIME {"assertions":695,"failures":0,"suite":"test_demo_rooms.gd","tests":55,"usec":256019}
+test_demo_routes.gd
+  PASS  test_a_tunnel_s_after_estimate_is_the_router_s_cost_once_it_is_dug
+  PASS  test_a_before_estimate_over_the_live_network_is_the_router_s_cost_in_the_rain
+  PASS  test_a_bridge_s_after_estimate_is_the_router_s_cost_once_it_is_built
+  PASS  test_a_loaded_haul_walked_before_and_after_the_bridge_takes_what_the_estimate_says
+  PASS  test_the_estimate_plans_one_piece_a_window_and_only_when_the_desk_has_room
+  PASS  test_an_estimate_starts_again_when_the_network_changes_and_not_otherwise
+  PASS  test_a_group_s_fit_is_said_member_by_member_never_the_lead_s
+  PASS  test_a_route_s_stretches_are_surface_underground_by_level_and_its_crossings
+  PASS  test_water_stretches_are_wading_a_bridge_a_swim_and_the_proposed_bridge
+  PASS  test_finding_a_route_is_the_desk_s_wait
+  PASS  test_a_flood_or_a_fall_ahead_is_said_at_that_segment_s_entry
+  PASS  test_a_load_taken_up_after_planning_is_too_wide_for_the_bore_ahead
+  PASS  test_waiting_in_a_mouth_s_line_is_said_at_the_mouth
+  PASS  test_stranded_below_with_every_way_out_closed_is_no_safe_exit
+  PASS  test_a_trip_with_no_route_at_all_is_said_at_its_goal
+  PASS  test_a_large_dig_reads_as_a_junction_then_a_connection
+  PASS  test_a_finished_stage_is_told_apart_from_a_dead_end_heading
+  PASS  test_the_next_payoff_counts_the_work_left_to_it
+  PASS  test_a_stage_s_benefit_opens_only_the_segments_to_it
+  PASS  test_a_piece_laid_but_not_dug_is_estimated_as_the_router_will_cost_it_once_dug
+  PASS  test_a_trip_reads_calculating_then_now_and_after_honestly
+  PASS  test_the_village_s_work_places_stand_on_land_and_the_far_banks_lie_across_the_water
+  PASS  test_a_planned_bridge_s_materials_are_reserved_then_delivered_and_nothing_is_missing
+  PASS  test_a_crew_member_aboard_reads_by_boat_out_and_back
+  PASS  test_the_rescue_card_names_victim_responder_landing_and_a_time_the_same_while_paused
+  PASS  test_with_its_rescuer_called_away_the_card_says_the_blockage_and_the_safety_net
+  PASS  test_the_overlay_draws_each_member_and_redraws_only_on_change
+  PASS  test_a_dig_ending_blind_below_is_a_spur_and_levels_are_named
+  PASS  test_past_a_reached_stage_the_next_payoff_counts_from_it
+  PASS  test_after_a_step_longer_than_the_budget_the_estimate_rests_as_many_windows
+  PASS  test_a_discarded_copy_of_the_network_is_freed
+  PASS  test_a_route_read_from_a_waypoint_on_is_that_stretch_of_it
+  PASS  test_a_swimmer_treading_above_one_it_cannot_fetch_is_a_blockage_on_the_card
+CI_SUITE_TIME {"assertions":246,"failures":0,"suite":"test_demo_routes.gd","tests":33,"usec":4663855}
+test_demo_tending.gd
+  PASS  test_everything_is_off_at_the_start
+  PASS  test_water_below_the_band_orders_a_watering_within_the_budget
+  PASS  test_a_spent_budget_is_an_exception_said_once_and_refilled_at_midnight
+  PASS  test_protect_from_frost_covers_growing_beds_not_raised
+  PASS  test_avoid_waterlogging_opens_a_fitted_drain_and_says_the_rest
+  PASS  test_the_next_day_s_most_is_shown_before_anything_is_spent
+  PASS  test_groups_and_words
+  PASS  test_an_idle_hour_allocates_nothing
+  PASS  test_the_tending_tab_sets_and_shows_the_policies
+  PASS  test_water_skips_a_bed_tended_today
+  PASS  test_a_refused_order_is_said
+CI_SUITE_TIME {"assertions":82,"failures":0,"suite":"test_demo_tending.gd","tests":11,"usec":1796270}
+test_demo_water_safety.gd
+  PASS  test_consent_turned_off_on_the_way_is_rechecked_at_the_bank
+  PASS  test_a_flood_risen_since_planning_turns_a_weak_swimmer_back_at_the_bank
+  PASS  test_the_bank_recheck_names_each_failed_condition
+  PASS  test_a_swimmer_already_in_the_stream_is_not_pulled_out
+  PASS  test_one_dive_at_the_air_boundary_posts_one_low_air_notice
+  PASS  test_the_air_advisory_and_air_out_rearm_only_back_at_the_surface
+  PASS  test_a_fresh_dive_rearms_the_advisory_even_short_of_600
+  PASS  test_two_divers_at_the_boundary_say_low_air_once_each_and_the_history_survives
+  PASS  test_a_victim_held_below_says_air_out_once
+  PASS  test_a_submerged_victim_gets_the_farther_diver_not_the_nearer_swimmer
+  PASS  test_a_rescuer_called_away_frees_the_victim_for_the_next_diver
+  PASS  test_a_second_victim_gets_a_stated_fallback_and_nobody_answers_two
+  PASS  test_with_no_swimmer_free_a_line_waits_and_a_diver_come_free_takes_over
+  PASS  test_with_nobody_able_to_swim_the_safety_net_still_brings_it_ashore
+  PASS  test_a_diver_short_of_air_is_passed_over_with_the_reason_until_it_has_breathed
+  PASS  test_a_reservation_is_released_only_by_the_rescuer_that_holds_it
+  PASS  test_a_rescuer_fetches_only_with_the_air_for_down_up_and_the_reserve
+  PASS  test_a_line_hauling_in_is_not_replaced_by_a_swimmer_come_free
+  PASS  test_one_waiting_above_is_kept_while_the_victim_floats_up
+  PASS  test_a_watcher_that_dives_is_promoted_once_it_has_breathed_not_relieved
+  PASS  test_a_thrower_called_away_mid_haul_frees_the_victim
+  PASS  test_a_rescuer_whose_consent_is_withdrawn_does_not_go_in
+  PASS  test_a_rescue_task_no_longer_holding_its_victim_ends
+CI_SUITE_TIME {"assertions":144,"failures":0,"suite":"test_demo_water_safety.gd","tests":23,"usec":10220677}
+test_demo_work.gd
+  PASS  test_six_queued_tasks_with_nobody_selected_go_to_the_right_eligible_residents
+  PASS  test_an_idle_resident_takes_any_eligible_work_its_crew_allows
+  PASS  test_safety_rest_and_needs_come_before_work
+  PASS  test_a_rescue_interrupts_hauling_and_the_haul_resumes_exactly_once
+  PASS  test_a_harvest_reassigned_at_each_phase_is_stored_once_by_its_carrier
+  PASS  test_a_harvest_cancelled_in_hand_is_delivered_by_its_carrier_not_credited_at_the_cancel
+  PASS  test_a_haul_reassigned_paused_and_cancelled_at_each_phase_conserves_its_wood
+  PASS  test_a_bridge_reassigned_while_its_material_is_carried_is_built_once
+  PASS  test_urgent_and_priority_order_what_an_idle_resident_takes
+  PASS  test_task_priority_breaks_ties_before_distance
+  PASS  test_crews_start_by_trade_and_the_player_edits_them
+  PASS  test_presets_preview_their_changes_and_apply_whole_tables
+  PASS  test_a_members_status_reads_its_brain
+  PASS  test_the_order_list_adds_removes_and_reorders_up_to_eight
+  PASS  test_interruptions_keep_three_and_never_push_out_the_players_queue
+  PASS  test_a_queued_task_is_left_to_its_resident_and_taken_up_when_its_work_is_done
+  PASS  test_the_same_schedule_has_the_same_outcome_at_one_two_and_four_times
+  PASS  test_a_card_left_on_the_board_names_the_crew_first_then_anyone
+  PASS  test_a_mixed_group_previews_each_members_eligibility
+  PASS  test_with_the_board_claiming_the_old_routine_crews_stand_down
+  PASS  test_a_farm_job_left_for_another_order_is_promised_to_its_worker
+  PASS  test_a_paused_job_is_not_taken_back_by_its_worker_either
+  PASS  test_a_resident_looks_at_most_thirty_two_candidates_a_pass_and_goes_on_from_its_cursor
+  PASS  test_a_stale_queued_entry_does_not_take_a_new_job_in_the_same_row
+  PASS  test_a_tasks_priority_is_its_own_not_its_rows
+  PASS  test_a_tasks_state_says_finding_a_route_and_cant_reach_it
+  PASS  test_one_farm_job_a_resident_in_the_picker_and_the_command_alike
+CI_SUITE_TIME {"assertions":196,"failures":0,"suite":"test_demo_work.gd","tests":27,"usec":14368661}
+test_demo_work_index.gd
+  PASS  test_the_index_is_the_old_rebuilds_entry_for_entry
+  PASS  test_a_source_that_never_waits_is_not_read
+CI_SUITE_TIME {"assertions":4,"failures":0,"suite":"test_demo_work_index.gd","tests":2,"usec":66888}
+test_entity_directory.gd
+  PASS  test_create_returns_unique_live_references
+  PASS  test_reference_validates_from_create_until_destroy
+  PASS  test_destroy_rejects_unknown_reference
+  PASS  test_null_reference_never_validates
+  PASS  test_stale_reference_is_rejected_after_destroy
+  PASS  test_destroyed_slot_is_reused_lowest_first
+  PASS  test_reuse_increments_generation_invalidating_the_old_reference
+  PASS  test_persistent_ids_are_never_reused
+  PASS  test_living_cap_refuses_the_two_hundred_fifty_seventh_resident
+  PASS  test_living_cap_frees_room_after_a_destroy
+  PASS  test_living_cap_does_not_block_other_kinds
+  PASS  test_kind_capacity_refusal_is_explicit
+  PASS  test_directory_capacity_refusal_is_explicit
+  PASS  test_unknown_kind_is_refused
+  PASS  test_generation_exhaustion_retires_the_slot
+  PASS  test_persistent_id_exhaustion_refuses_creation
+  PASS  test_repeated_create_and_destroy_leaks_no_slots
+  PASS  test_interleaved_free_returns_slots_in_ascending_order
+  PASS  test_reverse_owner_mismatch_invalidates_the_reference
+  PASS  test_reference_is_rejected_for_the_wrong_kind
+  PASS  test_typed_rows_are_independent_per_kind
+  PASS  test_kind_capacities_sum_to_the_directory_length
+  PASS  test_spec_capacities_do_not_drift_from_the_inventory_copies
+  PASS  test_kind_ids_follow_ascending_ascii_keys
+  PASS  test_no_per_row_array_is_allocated
+  PASS  test_columns_are_allocated_once_and_never_resized
+  PASS  test_ref_of_slot_rebuilds_a_live_reference_and_refuses_a_dead_one
+  PASS  test_ref_of_slot_tracks_the_generation_across_reuse
+  PASS  test_clear_resets_the_directory
+  PASS  test_clear_does_not_let_a_pre_clear_reference_alias_a_rebuilt_row
+  PASS  test_clear_does_not_resurrect_a_generation_exhausted_slot
+  PASS  test_thousand_entity_lifecycle_within_frame_budget
+  PASS  test_copy_columns_into_reads_live_free_retired_and_never_used_slots
+  PASS  test_copy_columns_into_is_the_only_reader_of_an_inactive_slots_generation
+  PASS  test_copy_columns_into_refuses_a_buffer_that_is_not_capacity_sized
+  PASS  test_copied_columns_are_snapshots_not_aliases
+  PASS  test_restore_columns_reproduces_the_source_world_in_another_directory
+  PASS  test_restore_columns_pins_allocation_order_across_a_round_trip
+  PASS  test_restore_columns_excludes_live_slots_from_the_free_heap
+  PASS  test_restore_columns_keeps_a_retired_slot_out_of_the_pool
+  PASS  test_restore_columns_rebuilds_the_reverse_owner_map
+  PASS  test_restore_columns_rebuilds_counters_over_a_directory_that_already_held_a_world
+  PASS  test_two_restores_of_one_column_set_produce_the_same_image
+  PASS  test_restore_columns_does_not_restore_the_persistent_id_allocator
+  PASS  test_state_bytes_ignores_the_stale_heap_tail_and_the_refusal_code
+  PASS  test_restore_columns_refuses_a_duplicate_typed_row_and_changes_nothing
+  PASS  test_restore_columns_refuses_a_mis_sized_column_set
+  PASS  test_restore_columns_refuses_an_occupancy_byte_outside_zero_and_one
+  PASS  test_restore_columns_refuses_a_negative_generation_from_the_int32_sign_trap
+  PASS  test_restore_columns_refuses_each_broken_live_identity
+  PASS  test_restore_columns_refuses_a_free_slot_carrying_a_stale_identity
+  PASS  test_restore_columns_refuses_both_halves_of_a_retirement_disagreement
+  PASS  test_restore_columns_refuses_a_two_hundred_fifty_seventh_living_resident
+  PASS  test_three_creates_one_destroy_and_a_round_trip_still_issue_four
+  PASS  test_a_world_whose_every_entity_died_still_issues_four
+  PASS  test_the_final_int32_identity_survives_a_load_as_the_exhausted_cursor
+  PASS  test_the_exhausted_cursor_is_exactly_max_int32_plus_one
+  PASS  test_an_invalid_or_stale_cursor_refuses_before_anything_is_published
+  PASS  test_the_exhausted_value_can_never_enter_a_live_persistent_id_column
+  PASS  test_restore_columns_alone_still_leaves_the_cursor_to_section_one
+  PASS  test_clear_returns_the_cursor_to_one_and_is_not_a_load_step
+CI_SUITE_TIME {"assertions":638,"failures":0,"suite":"test_entity_directory.gd","tests":61,"usec":5342377}
+test_farming.gd
+  PASS  test_the_five_crop_keys_compile_to_the_ids_the_module_uses
+  PASS  test_every_crop_family_matches_the_gdd_table
+  PASS  test_family_ids_are_the_generated_ascii_order
+  PASS  test_every_allowed_soil_mask_matches_the_gdd_table
+  PASS  test_soil_compatibility_follows_the_mask_for_all_fifteen_pairs
+  PASS  test_every_growth_duration_and_base_yield_matches_the_gdd_table
+  PASS  test_every_seed_quantity_moisture_range_and_frost_damage_matches_the_gdd_table
+  PASS  test_every_fertility_cost_matches_the_gdd_table_including_the_bean_gain
+  PASS  test_the_plant_windows_match_the_gdd_table_on_both_sides_of_every_endpoint
+  PASS  test_the_two_window_crops_carry_both_of_their_gdd_windows
+  PASS  test_crop_readers_refuse_an_unknown_crop_without_a_value
+  PASS  test_temperature_factor_hits_every_stated_band
+  PASS  test_temperature_factor_boundaries_are_exact_on_both_sides
+  PASS  test_the_weather_module_temperatures_land_in_the_expected_bands
+  PASS  test_moisture_factor_is_1000_inside_the_stated_range_inclusive
+  PASS  test_moisture_factor_boundaries_below_the_range_are_exact
+  PASS  test_moisture_factor_boundaries_above_the_range_are_exact
+  PASS  test_every_crop_uses_its_own_moisture_range
+  PASS  test_moisture_factor_refuses_a_moisture_outside_the_stated_clamp
+  PASS  test_the_hourly_growth_step_is_the_stated_formula
+  PASS  test_growth_accumulates_one_milli_hour_per_hour_at_ideal_conditions
+  PASS  test_growth_is_frozen_below_zero_and_slowed_in_the_cool_band
+  PASS  test_the_growth_remainder_column_stays_zero_under_every_stated_factor_pair
+  PASS  test_growth_refuses_a_plot_that_is_not_growing
+  PASS  test_bal_probe_001_moisture_factors_reproduce_the_published_column
+  PASS  test_bal_probe_001_growth_totals_reproduce_the_published_column
+  PASS  test_bal_probe_001_first_ripe_day_is_day_nineteen
+  PASS  test_a_crop_ripens_exactly_at_its_stated_duration_not_one_hour_early
+  PASS  test_every_crop_ripens_at_its_own_duration
+  PASS  test_ripening_dates_the_tile_and_exposes_the_stated_job_priority
+  PASS  test_the_fertility_factor_is_500_plus_a_twentieth_and_clamped
+  PASS  test_the_health_factor_is_health_divided_by_ten
+  PASS  test_the_first_crop_on_a_tile_scores_the_first_crop_rotation_factor
+  PASS  test_repeating_a_family_scores_850_then_700
+  PASS  test_a_family_change_resets_the_factor_and_legumes_score_1100
+  PASS  test_the_yield_formula_is_the_stated_product
+  PASS  test_the_pollination_factor_is_a_caller_supplied_multiplier
+  PASS  test_the_yield_is_capped_at_125_percent_of_base
+  PASS  test_the_formula_does_not_overflow_at_the_table_maxima
+  PASS  test_the_yield_formula_refuses_a_negative_pollination_factor
+  PASS  test_harvest_applies_the_fertility_change_once_and_empties_the_plot
+  PASS  test_a_bean_harvest_raises_fertility_because_its_stated_cost_is_negative
+  PASS  test_harvest_refuses_a_plot_that_is_not_ripe
+  PASS  test_emptying_a_plot_clears_the_tiles_ripe_tick
+  PASS  test_the_ripe_grace_is_48_hours_on_both_sides
+  PASS  test_the_decay_takes_ten_percent_of_the_remaining_yield_each_day
+  PASS  test_a_late_harvest_delivers_the_decayed_yield
+  PASS  test_a_ripe_crop_withers_after_five_days_and_not_before
+  PASS  test_the_elapsed_reader_refuses_a_plot_that_never_ripened
+  PASS  test_frost_removes_the_crops_listed_damage_only_below_zero
+  PASS  test_each_crop_takes_its_own_frost_damage
+  PASS  test_only_tended_cabbage_halves_its_frost_damage
+  PASS  test_blight_removes_400_a_day_and_200_when_tended
+  PASS  test_tending_restores_moisture_and_water_only_below_the_minimum
+  PASS  test_tending_marks_the_tile_and_the_daily_reset_clears_it
+  PASS  test_emptying_a_plot_cancels_its_tending_so_the_next_crop_starts_untended
+  PASS  test_tending_refuses_a_plot_that_is_not_growing
+  PASS  test_health_reaching_zero_withers_the_plot_and_clears_its_tending
+  PASS  test_health_loss_clamps_at_zero_rather_than_going_negative
+  PASS  test_clearing_a_withered_plot_yields_the_stated_compost_and_work
+  PASS  test_moisture_is_clamped_to_the_stated_range_at_both_ends
+  PASS  test_compost_adds_1500_fertility_and_consumes_two_units
+  PASS  test_compost_is_capped_at_ten_thousand_fertility
+  PASS  test_compost_is_refused_twice_in_the_same_season
+  PASS  test_the_compost_season_is_absolute_so_next_years_spring_is_a_new_season
+  PASS  test_the_absolute_season_index_advances_every_twelve_days
+  PASS  test_a_fallow_tile_gains_fifty_fertility_a_day
+  PASS  test_the_legume_fallow_bonus_lasts_exactly_twelve_days
+  PASS  test_a_non_legume_harvest_leaves_no_fallow_bonus
+  PASS  test_fallow_recovery_is_capped_and_refuses_a_worked_plot
+  PASS  test_fallow_recovery_works_on_a_tile_with_no_plot_at_all
+  PASS  test_recreating_a_field_does_not_restore_fertility
+  PASS  test_recreating_a_field_does_not_reset_compost_eligibility
+  PASS  test_recreating_a_field_keeps_the_last_family_and_the_legume_clock
+  PASS  test_a_redrawn_designation_cannot_fabricate_a_rotation_bonus
+  PASS  test_destroying_a_plot_frees_its_tile_and_its_directory_row
+  PASS  test_the_orchard_row_column_is_allocated_and_never_written
+  PASS  test_the_tile_ledger_covers_exactly_the_stated_sixteen_thousand_rows
+  PASS  test_a_tile_holds_at_most_one_plot
+  PASS  test_the_store_fills_to_its_stated_four_thousand_and_ninety_six_rows
+  PASS  test_a_new_plot_starts_at_the_stated_initial_values
+  PASS  test_incompatible_soil_rejects_planting
+  PASS  test_planting_refuses_outside_the_stated_window_and_returns_the_seed_quantity
+  PASS  test_planting_refuses_invalid_arguments_without_writing_anything
+  PASS  test_begin_growing_moves_a_sown_plot_and_only_a_sown_plot
+  PASS  test_the_live_list_stays_ascending_across_creates_and_destroys
+  PASS  test_clear_releases_every_row_and_resets_the_tile_ledger
+  PASS  test_the_store_shares_a_directory_when_one_is_passed_in
+  PASS  test_every_plot_reader_refuses_an_absent_row_without_a_value
+  PASS  test_readers_that_need_a_crop_refuse_an_empty_plot
+  PASS  test_the_streak_survives_an_erase_and_recreate_so_a_third_harvest_still_scores_700
+  PASS  test_a_family_change_after_a_redraw_still_scores_1000_and_1100_for_a_legume
+  PASS  test_a_harvest_writes_the_family_and_the_count_onto_the_tile_together
+  PASS  test_a_different_family_resets_the_count_to_one_rather_than_continuing_it
+  PASS  test_withering_and_fallow_days_neither_reset_nor_advance_the_count
+  PASS  test_an_unfinished_sowing_never_advances_the_count
+  PASS  test_the_streak_saturates_at_int32_max_instead_of_overflowing
+  PASS  test_one_below_the_maximum_still_increments_to_the_maximum
+  PASS  test_a_populated_family_with_a_zero_count_is_refused_not_reinterpreted
+  PASS  test_the_tile_history_gate_refuses_invalid_arguments_and_an_occupied_tile
+  PASS  test_an_invalid_or_stale_plot_reference_cannot_alter_tile_history
+  PASS  test_the_planner_decay_fixture_is_100000_then_90000_then_81000_then_unharvestable
+  PASS  test_a_harvest_at_120_hours_refuses_even_before_the_expiry_sweep_runs
+  PASS  test_the_ripe_and_growth_clocks_live_on_the_tile_so_a_redraw_cannot_restart_them
+  PASS  test_a_sown_plot_takes_no_growth_no_tending_no_frost_and_no_blight
+  PASS  test_a_replacement_worker_cannot_commit_the_seed_a_second_time
+  PASS  test_the_seed_committed_at_productive_start_is_exactly_250_milli_units
+  PASS  test_cancelling_a_committed_sowing_refunds_nothing_and_keeps_every_history
+  PASS  test_cancel_sowing_applies_only_to_a_plot_that_holds_committed_seed
+  PASS  test_a_redraw_in_the_same_season_derives_the_mirror_back_to_2000
+  PASS  test_the_season_boundary_resets_the_mirror_without_touching_history_or_fertility
+  PASS  test_the_mirror_refresh_is_idempotent_and_refuses_a_day_before_the_calendar
+  PASS  test_creating_a_plot_refuses_a_day_before_the_calendar_and_allocates_nothing
+CI_SUITE_TIME {"assertions":5172,"failures":0,"suite":"test_farming.gd","tests":113,"usec":7440153}
+test_inventory_anchor.gd
+  PASS  test_anchor_domain_is_the_exterior_grid_buildings_indexes
+  PASS  test_domain_predicate_accepts_unplaced_and_both_grid_ends_only
+  PASS  test_a_container_created_without_an_anchor_is_unplaced
+  PASS  test_create_container_records_the_anchor_at_both_ends_of_the_grid
+  PASS  test_create_container_refuses_an_out_of_domain_anchor_before_writing
+  PASS  test_create_container_checks_the_anchor_before_store_capacity
+  PASS  test_a_reused_slot_does_not_inherit_the_retired_rows_anchor
+  PASS  test_the_query_reports_the_current_generation_of_a_reused_slot
+  PASS  test_clear_resets_every_anchor_to_unplaced
+  PASS  test_an_anchor_beyond_int32_is_refused_not_truncated
+  PASS  test_set_container_anchor_places_moves_and_unplaces
+  PASS  test_set_container_anchor_refuses_an_out_of_domain_tile_without_writing
+  PASS  test_set_container_anchor_refuses_a_dead_or_stale_container
+  PASS  test_a_poisoned_transaction_restores_the_anchor_byte_for_byte
+  PASS  test_a_committed_transaction_keeps_the_anchor
+  PASS  test_the_refusal_carrying_reader_tells_unplaced_from_missing
+  PASS  test_the_query_finds_every_container_on_a_footprint_in_slot_order
+  PASS  test_an_unplaced_container_is_never_reported_whatever_the_mask_marks
+  PASS  test_any_nonzero_mask_byte_marks_a_tile
+  PASS  test_a_clear_footprint_is_a_complete_scan_reporting_zero
+  PASS  test_the_query_refuses_a_mask_of_the_wrong_size
+  PASS  test_the_query_refuses_an_undersized_buffer_without_truncating
+  PASS  test_the_query_is_read_only_on_success_and_refusal
+  PASS  test_audit_refuses_an_out_of_domain_anchor_on_a_live_row_only
+  PASS  test_the_rollback_image_includes_the_anchor
+  PASS  test_the_canonical_projection_copies_live_anchors_and_masks_dead_ones
+  PASS  test_restore_refuses_an_out_of_domain_live_anchor_and_a_dead_anchor_residue
+CI_SUITE_TIME {"assertions":229,"failures":0,"suite":"test_inventory_anchor.gd","tests":27,"usec":25630}
+test_inventory_capacity_reduction.gd
+  PASS  test_a_reduction_lowers_the_capacity_and_reports_it
+  PASS  test_contents_plus_reservations_must_still_fit
+  PASS  test_bad_inputs_refuse_by_name_writing_nothing
+  PASS  test_a_ground_pile_keeps_its_fixed_capacity
+  PASS  test_an_aborted_transaction_restores_the_capacity
+CI_SUITE_TIME {"assertions":34,"failures":0,"suite":"test_inventory_capacity_reduction.gd","tests":5,"usec":7033}
+test_inventory_spatial.gd
+  PASS  test_stacked_floors_hold_distinct_piles_without_aliasing_surface_tiles
+  PASS  test_duplicate_location_handles_cannot_own_the_same_placement_cell
+  PASS  test_endpoint_exhaustion_and_full_generation_reuse_are_atomic
+  PASS  test_actual_capacity_never_exceeds_the_adopted_finite_ground_pile_bound
+  PASS  test_output_and_promotion_abort_restore_every_container_lot_and_endpoint_byte
+  PASS  test_staging_create_and_destroy_rollback_restore_the_sparse_row_with_container
+  PASS  test_empty_pile_auto_retirement_releases_only_its_actual_floor_endpoint
+  PASS  test_flat_authority_readers_and_legacy_codec_cannot_reinterpret_spatial_locations
+  PASS  test_stale_existing_endpoint_and_late_foreign_binding_refuse_before_admission
+  PASS  test_reentrant_authority_poison_aborts_before_container_or_endpoint_publication
+  PASS  test_reentrant_lifecycle_cannot_publish_discard_or_reset_prior_provisional_goods
+  PASS  test_read_callback_cannot_open_close_or_clear_a_transaction
+  PASS  test_read_callback_cannot_rewire_catalog_or_authorities_outside_a_transaction
+  PASS  test_flat_complete_footprint_query_refuses_without_partial_output_when_spatial_goods_exist
+  PASS  test_empty_claimed_spatial_pile_refuses_goods_removal_without_releasing_ownership
+  PASS  test_journal_exhaustion_aborts_new_endpoint_and_preserves_existing_state
+  PASS  test_foreign_provider_or_oversized_configuration_cannot_replace_existing_history
+  PASS  test_promotion_revalidates_the_exact_location_after_output_is_staged
+CI_SUITE_TIME {"assertions":274,"failures":0,"suite":"test_inventory_spatial.gd","tests":18,"usec":559073}
+test_modular_draft.gd
+  PASS  test_stroke_is_preview_until_released_and_snapshot_is_isolated
+  PASS  test_cancel_is_one_layer_and_preserves_earlier_paint
+  PASS  test_disconnected_draft_can_be_repaired_before_confirmation
+  PASS  test_out_of_bounds_stroke_is_not_partially_kept
+  PASS  test_undo_redo_and_new_edit_keep_consistent_geometry
+  PASS  test_topology_is_cached_and_not_recomputed_for_pointer_motion
+  PASS  test_preview_has_its_own_revision_for_cached_world_renderers
+  PASS  test_organic_tools_and_bent_tunnel_share_one_retained_plan
+  PASS  test_holes_are_explicit_and_erasing_everything_never_confirms
+  PASS  test_reconfigure_cannot_relabel_retained_room_or_level
+  PASS  test_bad_grid_bounds_tool_and_capacity_fail_closed
+CI_SUITE_TIME {"assertions":201,"failures":0,"suite":"test_modular_draft.gd","tests":11,"usec":23894}
+test_mole_profile_driver.gd
+  PASS  test_actual_source_program_reads_the_headless_clock_without_owning_it
+  PASS  test_programme6_consumes_actual_ground_short_step_high_recovery_and_retreat_source
+  PASS  test_pause_and_refusal_preserve_exact_visible_frame_and_integer_phase
+  PASS  test_productive_interruption_completes_retrace_before_contact_or_job_handoff
+  PASS  test_actual_tool_assignment_content_and_pose_drift_never_become_a_successful_recovery
+  PASS  test_ground_walk_uses_complete_fade_and_safe_hub_before_switching_to_work
+  PASS  test_cold_pins_are_copied_and_retirement_releases_no_actual_owner_state
+  PASS  test_swapped_work_tuples_cannot_pair_a_downward_clip_with_the_upper_contact
+  PASS  test_compact_version_requires_explicit_protocol_and_preserves_original_refusals
+  PASS  test_install_requires_its_explicit_program_and_exact_source_role_tuple
+  PASS  test_install_partial_entry_retraces_and_pause_preserves_the_exact_source
+  PASS  test_install_productive_interruption_retains_actual_job_tool_and_recovery
+  PASS  test_compact_front_uses_its_own_clip_then_recovers_to_the_single_shared_hub
+  PASS  test_cardinal_map_preserves_each_source_role_at_all_four_exact_work_headings
+  PASS  test_cardinal_heading_change_requires_recovery_with_the_original_actual_observation
+  PASS  test_cardinal_binding_refuses_swapped_rows_and_wrong_descriptor_heading
+  PASS  test_cardinal_updates_keep_actual_claim_staleness_and_unsupported_heading_refusals
+CI_SUITE_TIME {"assertions":2786,"failures":0,"suite":"test_mole_profile_driver.gd","tests":17,"usec":1921191}
+test_mole_qualified_profiles.gd
+  PASS  test_actual_source_rows_and_headings_keep_every_contact_distinct
+  PASS  test_all_yaw_ground_profile_preserves_full_tool_and_ground_stance
+  PASS  test_directed_approach_mapping_preserves_body_heading_and_explicit_policy
+  PASS  test_canonical_ground_and_finite_step_are_explicit_current_source_selections
+  PASS  test_tenth_cached_source_and_old_publication_remain_distinct
+  PASS  test_stale_claim_or_job_preserves_previous_selected_source
+  PASS  test_wrong_domain_content_and_renderer_refuse_before_profile_publication
+  PASS  test_cold_descriptor_does_not_create_actual_worker_permission
+  PASS  test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_larger_box
+  PASS  test_actual_cached_source_hashes_and_bounded_unicode_chunks
+  PASS  test_driver_uses_the_published_source_tuple_without_work_credit
+  PASS  test_driver_subset_pins_preserve_output_on_geometry_or_shape_refusal
+CI_SUITE_TIME {"assertions":411,"failures":0,"suite":"test_mole_qualified_profiles.gd","tests":12,"usec":1309638}
+test_movement_readmission.gd
+  PASS  test_readmitting_one_row_counts_exactly_one_traveller
+  PASS  test_replacing_travel_with_one_cell_arrival_clears_the_count
+  PASS  test_readmitting_reused_row_counts_the_new_owner_once
+  PASS  test_replacement_preserves_other_travellers_and_first_admission
+  PASS  test_rejected_replacement_preserves_cursor_fraction_and_count
+CI_SUITE_TIME {"assertions":100,"failures":0,"suite":"test_movement_readmission.gd","tests":5,"usec":757667}
+test_needs_columns.gd
+  PASS  test_column_order_matches_the_canonical_registry_artifact
+  PASS  test_the_three_order_tables_are_the_same_length
+  PASS  test_a_populated_store_round_trips_into_a_different_instance
+  PASS  test_a_released_rows_retained_bytes_survive_and_no_reader_can_see_them
+  PASS  test_a_dead_but_present_row_survives_as_present_and_not_living
+  PASS  test_an_empty_columns_object_matches_a_cleared_store
+  PASS  test_a_short_column_refuses_on_shape
+  PASS  test_an_out_of_domain_status_byte_refuses
+  PASS  test_a_need_above_ten_thousand_refuses
+  PASS  test_a_negative_health_refuses_and_the_test_proves_it_is_negative
+  PASS  test_a_remainder_at_its_denominator_refuses
+  PASS  test_the_remainder_bound_is_exclusive_on_both_ends
+  PASS  test_a_negative_starvation_clock_refuses
+  PASS  test_an_occupancy_byte_that_is_neither_zero_nor_one_refuses
+  PASS  test_a_boolean_input_column_holding_two_refuses
+  PASS  test_a_clothing_tier_of_zero_refuses
+  PASS  test_a_free_row_carrying_a_live_value_refuses
+  PASS  test_a_free_row_that_is_not_dead_refuses
+  PASS  test_more_than_the_cap_of_living_residents_refuses
+  PASS  test_exactly_the_cap_of_living_residents_is_accepted
+  PASS  test_a_column_refusal_does_not_touch_the_operation_channel
+  PASS  test_every_published_column_refusal_code_is_prefixed
+  PASS  test_a_successful_restore_clears_the_column_refusal
+  PASS  test_a_restored_store_integrates_exactly_as_the_source_does
+CI_SUITE_TIME {"assertions":149,"failures":0,"suite":"test_needs_columns.gd","tests":24,"usec":152367}
+test_rng.gd
+  PASS  test_gt004_fixed_stream_from_state_one
+  PASS  test_next_u32_refuses_zero_and_non_u32_state
+  PASS  test_next_u32_never_produces_zero_over_a_long_run
+  PASS  test_hash_pair_matches_the_published_constants
+  PASS  test_stream_keys_are_the_nine_names_in_ascii_order
+  PASS  test_unknown_stream_names_and_ids_are_refused
+  PASS  test_seed_derivation_is_hash_pair_of_seed_and_stream_id_plus_one
+  PASS  test_zero_hash_seed_is_replaced_with_one
+  PASS  test_extreme_int32_world_seeds_derive_their_published_states
+  PASS  test_seed_world_refuses_a_seed_outside_int32
+  PASS  test_two_independent_stores_produce_the_same_literal_sequence
+  PASS  test_different_seeds_produce_different_sequences
+  PASS  test_streams_do_not_perturb_one_another
+  PASS  test_every_stream_has_its_own_counter
+  PASS  test_draw_count_increments_exactly_once_per_draw_of_every_form
+  PASS  test_a_refused_draw_consumes_nothing
+  PASS  test_draws_refuse_until_the_world_is_seeded
+  PASS  test_clear_returns_the_store_to_unseeded
+  PASS  test_hunting_tombstone_is_seeded_but_refuses_every_draw
+  PASS  test_hunting_tombstone_rejects_noncanonical_loaded_values
+  PASS  test_hunting_tombstone_detects_a_seed_mismatch
+  PASS  test_restore_round_trips_state_and_count_and_reproduces_the_next_values
+  PASS  test_restore_refuses_illegal_state_and_count
+  PASS  test_signed_storage_form_round_trips_across_the_sign_boundary
+  PASS  test_stored_state_matches_the_conversion_of_the_live_state
+  PASS  test_draw_below_is_exactly_the_modulo_of_the_raw_draw
+  PASS  test_draw_in_range_reproduces_the_quality_rule
+  PASS  test_small_bound_reduction_is_near_uniform_over_sixty_thousand_draws
+  PASS  test_modulo_bias_is_present_and_exactly_the_disclosed_size
+CI_SUITE_TIME {"assertions":473,"failures":0,"suite":"test_rng.gd","tests":29,"usec":204545}
+test_save_owner_construction.gd
+  PASS  test_null_record_refuses_shape
+  PASS  test_wrong_owner_index_refuses_owner
+  PASS  test_valid_clear_record_accepted_with_empty_detail
+  PASS  test_corrupted_u8_column_extent_refuses_shape
+  PASS  test_corrupted_i32_column_extent_refuses_shape
+  PASS  test_missing_bucket_column_refuses_shape
+  PASS  test_row_semantic_fault_forwards_exact_column_code
+  PASS  test_row_workers_fault_forwards_exact_column_code
+  PASS  test_direct_project_columns_matches_distinguishable_patterns
+  PASS  test_omitted_projection_assignment_is_shape_invalid
+  PASS  test_direct_columns_full_equality_after_success
+  PASS  test_direct_columns_full_equality_after_shape_refusal
+  PASS  test_direct_columns_full_equality_after_flag_refusal
+  PASS  test_direct_columns_full_equality_after_late_semantic_refusal
+  PASS  test_framed_record_full_equality_after_success
+  PASS  test_framed_record_full_equality_after_representative_refusal
+CI_SUITE_TIME {"assertions":146,"failures":0,"suite":"test_save_owner_construction.gd","tests":16,"usec":1995686}
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  PASS  test_frozen_domains_history_relations_and_projection_witnesses
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+CI_SUITE_TIME {"assertions":16230,"failures":0,"suite":"test_save_owner_fishing.gd","tests":7,"usec":425884}
+test_save_owner_movement.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  PASS  test_frozen_domains_terminal_history_and_projection_witnesses
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_mixed_phase_and_retained_history
+  PASS  test_row_priority_and_target_before_state
+CI_SUITE_TIME {"assertions":24406,"failures":0,"suite":"test_save_owner_movement.gd","tests":6,"usec":8090074}
+test_save_owner_schedule.gd
+  PASS  test_exact_field_layout_and_nonzero_empty_defaults
+  PASS  test_six_independent_mapping_witnesses
+  PASS  test_every_hourly_byte_and_each_i32_row_is_checked
+  PASS  test_all_local_template_and_activity_values_and_signed_extrema
+  PASS  test_unresolved_and_latched_state_implications
+  PASS  test_free_rows_require_exact_anything_defaults_at_both_ends
+  PASS  test_refusal_precedence_is_global_across_distinct_rows
+  PASS  test_all512_present_rows_remain_valid
+  PASS  test_public_edits_reassignment_and_failed_resolution_preserve_history
+  PASS  test_shared_inactive_reader_preserves_address_and_presence_guards
+  PASS  test_every_extent_is_checked_before_domains
+  PASS  test_null_wrong_owner_and_typed_bucket_shapes
+CI_SUITE_TIME {"assertions":17060,"failures":0,"suite":"test_save_owner_schedule.gd","tests":12,"usec":2875781}
+test_save_section_01.gd
+  PASS  test_the_nine_owners_their_versions_and_their_counts_are_the_ruled_ones
+  PASS  test_only_resource_nodes_moved_to_owner_schema_two
+  PASS  test_every_wrapper_block_and_payload_offset_matches_the_ruling
+  PASS  test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself
+  PASS  test_resource_nodes_declares_one_field_and_the_three_scratch_arrays_are_absent
+  PASS  test_every_declared_field_lands_at_the_rulings_count_and_value_offsets
+  PASS  test_the_section_carries_forty_four_stored_fields_and_thirty_six_records
+  PASS  test_the_encoded_section_is_exactly_the_ruled_length
+  PASS  test_the_provenance_prefix_and_store_count_sit_at_their_absolute_offsets
+  PASS  test_every_wrapper_is_pinned_at_its_absolute_offset
+  PASS  test_every_element_count_prefix_is_pinned_at_its_absolute_offset
+  PASS  test_the_two_fixed_format_payloads_carry_no_count_prefix
+  PASS  test_the_weather_block_is_one_aggregate_row_of_eight_and_two
+  PASS  test_the_mixed_grid_owners_declare_grid_primary_counts_not_singletons
+  PASS  test_the_module_declares_no_float_path
+  PASS  test_every_owner_round_trips_with_boundary_sentinels_intact
+  PASS  test_a_decoded_section_re_encodes_to_the_same_bytes
+  PASS  test_the_section_decodes_at_the_offset_a_real_file_puts_it_at
+  PASS  test_a_store_count_other_than_nine_is_refused
+  PASS  test_two_owner_keys_swapped_in_place_are_refused
+  PASS  test_a_wrong_key_byte_count_is_refused
+  PASS  test_a_wrong_owner_schema_version_is_refused_for_each_owner
+  PASS  test_a_wrong_primary_count_or_payload_length_is_refused
+  PASS  test_singleton_primary_counts_for_the_mixed_grids_are_rejected
+  PASS  test_every_element_count_prefix_must_equal_its_declared_count
+  PASS  test_a_section_one_byte_short_is_refused_rather_than_measured
+  PASS  test_a_refused_decode_leaves_the_callers_state_byte_identical
+  PASS  test_an_out_of_domain_value_is_refused_by_its_owners_own_validator
+  PASS  test_changing_only_the_deposit_scratch_changes_no_section_byte
+  PASS  test_a_placement_that_really_lands_does_change_the_section
+  PASS  test_the_resource_adapter_refuses_each_scratch_field_by_name
+  PASS  test_legacy_nine_adapters_do_not_claim_the_underground_owner
+  PASS  test_every_declared_section_one_record_is_supplied_at_its_declared_count
+  PASS  test_an_unknown_field_key_is_refused_by_every_owner_adapter
+  PASS  test_the_runtime_adapter_emits_four_records_and_never_debt
+  PASS  test_a_published_seed_must_agree_with_provenance_and_with_the_runtime
+  PASS  test_an_unpublished_map_asserts_nothing_about_the_seed
+  PASS  test_a_validated_section_restores_into_a_second_world_and_captures_identically
+  PASS  test_a_refused_restore_leaves_the_target_world_unchanged
+  PASS  test_a_restore_that_refuses_late_still_leaves_the_earlier_owners_alone
+  PASS  test_an_unbound_store_refuses_rather_than_skipping_an_owner
+CI_SUITE_TIME {"assertions":872,"failures":0,"suite":"test_save_section_01.gd","tests":41,"usec":19703241}
+test_save_section_pending_commands.gd
+  PASS  test_section_identity_matches_the_ruling
+  PASS  test_owner_keys_are_in_ascii_order
+  PASS  test_layout_arithmetic_is_the_contracts_own
+  PASS  test_extension_length_inverse_is_a_shape_predicate
+  PASS  test_declared_field_ordinals_match_the_registry
+  PASS  test_record_field_ordinals_follow_the_wire_record_order
+  PASS  test_empty_section_bytes_are_pinned
+  PASS  test_one_command_and_one_event_bytes_are_pinned
+  PASS  test_descriptor_row_count_is_both_live_windows
+  PASS  test_round_trip_is_byte_identical
+  PASS  test_round_trip_survives_a_wrapped_economic_head
+  PASS  test_round_trip_survives_a_wrapped_scheduler_head
+  PASS  test_wrapped_scheduler_queue_restores_in_order
+  PASS  test_economic_sequence_at_the_u32_sign_bit_round_trips
+  PASS  test_economic_key_order_is_unsigned_across_the_sign_bit
+  PASS  test_reversed_sign_bit_keys_are_refused
+  PASS  test_scheduler_sequence_at_the_u32_sign_bit_round_trips
+  PASS  test_scheduler_sequence_read_signed_would_break_the_applied_gate
+  PASS  test_drained_rows_leave_no_trace_in_the_record
+  PASS  test_a_record_carrying_ring_garbage_is_refused
+  PASS  test_arena_bytes_no_command_owns_must_be_zero
+  PASS  test_arena_bytes_between_two_spans_must_be_zero
+  PASS  test_overlapping_payload_spans_are_refused
+  PASS  test_nonzero_reserved_word_is_refused
+  PASS  test_nonzero_flags_are_refused
+  PASS  test_unknown_command_kind_is_refused
+  PASS  test_foreign_player_id_is_refused
+  PASS  test_malformed_null_target_is_refused
+  PASS  test_nonzero_scheduler_head_is_refused
+  PASS  test_nonzero_scheduler_reserved_padding_is_refused
+  PASS  test_scheduler_events_at_two_boundaries_are_refused
+  PASS  test_non_increasing_scheduler_sequence_is_refused
+  PASS  test_exhausted_scheduler_sentinel_is_never_a_pending_event
+  PASS  test_extension_payload_length_must_agree_with_the_body
+  PASS  test_prefix_extension_bytes_must_agree_with_the_body
+  PASS  test_extension_tag_must_sit_after_every_economic_byte
+  PASS  test_wrong_extension_tag_is_refused
+  PASS  test_wrong_extension_schema_version_is_refused
+  PASS  test_wrong_section_schema_is_refused
+  PASS  test_extent_refusal_is_the_primary_gate
+  PASS  test_extent_refusal_bounds_every_declared_count
+  PASS  test_section_tiles_at_a_nonzero_offset_with_no_gaps
+  PASS  test_commands_due_at_first_midnight_round_trip
+  PASS  test_commands_due_at_a_day_boundary_round_trip
+  PASS  test_apply_restores_payload_bytes_verbatim
+  PASS  test_apply_refuses_a_non_empty_store_and_changes_nothing
+  PASS  test_apply_refuses_a_tick_the_restored_clock_has_already_completed
+  PASS  test_apply_refuses_a_boundary_the_scheduler_owner_rejects
+  PASS  test_apply_passes_through_the_load_barrier
+  PASS  test_agrees_with_stores_cross_checks_the_public_readers
+  PASS  test_arena_rebuild_gate_accepts_a_contiguous_arena
+  PASS  test_arena_restore_accepts_a_dead_prefix_and_retains_offsets
+  PASS  test_arena_restore_accepts_offsets_permuted_relative_to_keys
+  PASS  test_arena_restore_accepts_a_zero_dead_tail_without_compaction
+  PASS  test_source_contains_no_float
+  PASS  test_record_clear_restores_the_declared_unused_values
+CI_SUITE_TIME {"assertions":9583,"failures":0,"suite":"test_save_section_pending_commands.gd","tests":56,"usec":2675236}
+test_settlement_starter_colony.gd
+  PASS  test_generation_materialises_the_colony_at_its_planned_tiles
+  PASS  test_generation_creates_the_world_row_and_binds_the_composer_to_it
+  PASS  test_a_building_over_a_live_pile_is_refused_by_name
+  PASS  test_a_reset_unbinds_the_world_and_piles_refuse_until_the_next_colony
+  PASS  test_a_second_materialisation_is_refused_and_changes_nothing
+  PASS  test_a_site_with_a_stray_building_is_refused_before_any_write
+  PASS  test_a_live_world_row_alone_also_means_the_colony_is_present
+  PASS  test_an_ungenerated_settlement_can_materialise_the_colony_alone
+  PASS  test_the_store_binding_opens_the_economy_on_the_colonys_buildings
+  PASS  test_no_binding_is_published_without_a_colony
+  PASS  test_the_directory_round_trip_keeps_the_world_row_and_every_structure_ref
+  PASS  test_section_1_carries_every_footprint_room_and_furniture_tile
+  PASS  test_section_4_accepts_the_colonys_building_room_and_furniture_columns
+  PASS  test_section_7_round_trips_the_owned_anchored_stores
+  PASS  test_the_same_seed_builds_the_same_colony_rows_and_ids
+  PASS  test_the_colony_is_authored_not_seeded
+  PASS  test_a_refusal_after_the_first_write_resets_the_settlement_to_empty
+  PASS  test_the_world_row_and_the_colony_take_the_ids_after_every_world_entity
+  PASS  test_the_starter_stores_block_the_hall_and_the_stockpiles
+  PASS  test_the_well_is_admitted_into_the_last_stockpiles_headroom
+  PASS  test_the_workbench_then_falls_back_to_ground_piles
+  PASS  test_the_starter_well_completes_into_the_fourth_stockpile
+  PASS  test_the_starter_workbench_completes_onto_ground_piles
+  PASS  test_the_emptied_starter_hall_is_demolished_with_its_31_pieces
+  PASS  test_a_starter_bed_is_removed_into_the_fourth_stockpile
+  PASS  test_a_starter_pantry_shelf_cannot_leave_a_full_pantry
+  PASS  test_without_the_adoption_the_hall_would_read_as_empty
+CI_SUITE_TIME {"assertions":288,"failures":0,"suite":"test_settlement_starter_colony.gd","tests":27,"usec":127703984}
+test_soak_harness.gd
+  PASS  test_the_table_keeps_rows_up_to_its_capacity
+  PASS  test_a_day_of_frames_reduces_to_percentiles_and_starts_again
+  PASS  test_a_frame_value_is_clamped_to_int32
+  PASS  test_the_slope_and_the_rising_share
+  PASS  test_growth_fails_only_on_a_rise_over_its_tolerance_both_ways
+  PASS  test_the_check_reads_every_tolerance_column_after_the_skip
+  PASS  test_the_leak_watch_finds_a_cycle_and_spares_what_is_freed_or_held
+  PASS  test_an_object_its_own_script_caches_is_held
+  PASS  test_a_static_member_met_on_the_way_holds_too
+  PASS  test_labels_name_a_script_file_or_a_class
+  PASS  test_the_error_counter_counts_by_kind_and_keeps_the_first_few
+  PASS  test_the_harness_reads_its_arguments
+  PASS  test_a_few_hours_with_a_restart_leave_nothing_behind
+test_soak_harness: the one-day soak run is skipped (set REDWALL_SLOW_TESTS=1)
+  PASS  test_one_game_day_with_a_restart_has_no_errors_leaks_or_growth
+CI_SUITE_TIME {"assertions":52,"failures":0,"suite":"test_soak_harness.gd","tests":14,"usec":27912427}
+test_spatial_world.gd
+  PASS  test_grid_is_512_squared_half_metre_cells
+  PASS  test_cell_index_is_z_times_512_plus_x
+  PASS  test_cell_index_refuses_off_grid_coordinates
+  PASS  test_cell_centres_and_position_lookup_round_trip
+  PASS  test_position_lookup_refuses_outside_the_map
+  PASS  test_macro_cells_are_16_by_16_and_tile_the_grid
+  PASS  test_walkability_follows_world_init_terrain_tile_for_tile
+  PASS  test_the_ford_is_walkable_river
+  PASS  test_the_ford_is_not_a_fishing_work_tile
+  PASS  test_the_river_blocks_everywhere_except_the_ford
+  PASS  test_heights_are_the_three_authored_surfaces
+  PASS  test_readers_refuse_an_out_of_range_cell
+  PASS  test_clearance_is_the_largest_open_square_at_the_cell
+  PASS  test_clearance_class_is_a_caller_input_not_a_published_profile
+  PASS  test_clearance_shrinks_beside_a_blocked_cell
+  PASS  test_macro_anchor_is_the_lowest_passable_cell_of_the_macro
+  PASS  test_the_macro_anchor_skips_cells_that_fail_the_clearance_class
+  PASS  test_a_ground_location_carries_domain_layer_revision_and_owner
+  PASS  test_a_location_requires_a_generation_safe_owner
+  PASS  test_same_x_and_z_does_not_identify_a_destination_across_domains
+  PASS  test_uncontracted_domains_and_layers_refuse_by_name
+  PASS  test_a_location_minted_before_an_edit_is_no_longer_current
+  PASS  test_revisions_start_positive_and_are_bounded_not_wrapped
+  PASS  test_legality_override_refuses_an_out_of_range_cell
+  PASS  test_legality_override_updates_walkability_and_the_walkable_count
+  PASS  test_a_contact_separates_its_work_point_from_the_cell_a_body_stands_on
+  PASS  test_a_contact_with_no_destination_revision_is_not_a_valid_target
+  PASS  test_a_contact_refuses_an_approach_cell_a_body_cannot_stand_on
+  PASS  test_a_contact_accepts_an_unwalkable_work_point_reached_from_a_walkable_approach
+  PASS  test_a_contact_refuses_off_grid_cells_and_a_null_owner
+  PASS  test_no_adjacency_rule_is_imposed_between_a_work_point_and_its_approach
+  PASS  test_a_contact_minted_before_an_edit_is_no_longer_current
+  PASS  test_an_unbound_contact_is_never_current
+  PASS  test_clearing_a_contact_releases_both_endpoints_and_its_revision
+CI_SUITE_TIME {"assertions":16755,"failures":0,"suite":"test_spatial_world.gd","tests":34,"usec":1000038}
+test_starter_colony.gd
+  PASS  test_the_seven_buildings_stand_active_at_their_authored_tiles
+  PASS  test_the_hall_holds_four_rooms_over_its_eighty_interior_tiles
+  PASS  test_thirty_one_floor_furniture_stand_on_the_diagram_and_no_edge_piece_is_placed
+  PASS  test_the_applied_colony_matches_its_plan_and_a_changed_row_does_not
+  PASS  test_room_and_furniture_drift_are_caught
+  PASS  test_the_apply_is_deterministic_over_a_fresh_store
+  PASS  test_interior_tiles_map_to_the_exterior_grid
+  PASS  test_an_occupied_footprint_refuses_before_anything_is_placed
+  PASS  test_a_locked_mask_and_missing_inputs_refuse_without_writing
+  PASS  test_a_full_building_directory_refuses_by_capacity_before_placing
+  PASS  test_a_footprint_over_a_live_ground_pile_refuses_through_the_placement_authority
+  PASS  test_the_binding_names_the_hall_and_the_four_stockpiles_at_their_origins
+  PASS  test_no_binding_without_the_colony_standing
+  PASS  test_an_impostor_at_a_planned_origin_does_not_bind
+  PASS  test_a_building_of_another_type_on_a_planned_origin_is_caught
+  PASS  test_a_piece_of_another_type_or_rotation_on_a_planned_tile_is_caught
+  PASS  test_a_plan_naming_a_fifth_stockpile_does_not_bind
+  PASS  test_a_room_whose_tiles_run_in_another_order_is_caught
+  PASS  test_a_stockpile_covering_a_planned_origin_from_elsewhere_does_not_bind
+  PASS  test_a_building_covering_its_planned_origin_from_elsewhere_is_caught
+CI_SUITE_TIME {"assertions":1278,"failures":0,"suite":"test_starter_colony.gd","tests":20,"usec":1476579}
+test_starter_structures.gd
+  PASS  test_plan_row_counts_match_the_contract
+  PASS  test_null_refusals
+  PASS  test_fresh_default_plan_is_all_sentinel_and_refuses
+  PASS  test_shape_gates
+  PASS  test_building_layout_gates
+  PASS  test_room_layout_gates
+  PASS  test_furniture_layout_gates
+  PASS  test_edge_layout_gates
+  PASS  test_exit_interior_gates
+  PASS  test_exit_wall_gates
+  PASS  test_exit_exterior_gates
+  PASS  test_walk_disconnected_gates
+  PASS  test_access_candidate_gates
+  PASS  test_authored_layout_final_gate_header_drift
+  PASS  test_authored_layout_final_gate_stockpile_relocated_to_legal_disjoint_footprint
+  PASS  test_plan_refusal_accepts_canonical_plan
+  PASS  test_exact_building_contents
+  PASS  test_exact_room_contents
+  PASS  test_exact_furniture_contents
+  PASS  test_exact_edge_contents
+  PASS  test_exact_exit_and_header_contents
+  PASS  test_room_ordinals_are_not_the_protected_room_type_ids
+  PASS  test_pantry_shelves_reach_common_room
+  PASS  test_seats_have_a_vertical_walk_neighbor
+  PASS  test_repeated_preparation_is_byte_identical
+  PASS  test_refusal_after_success_preserves_prior_output
+  PASS  test_source_metadata_refusal_is_stable_across_calls
+  PASS  test_edge_blocks_helper_distinguishes_partition_from_door
+  PASS  test_neighbour_candidates_helper_rejects_across_a_blocked_partition
+  PASS  test_extreme_and_out_of_range_values_refuse_without_crashing
+  PASS  test_frozen_layout_reference_diagram_matches_the_oracle
+  PASS  test_frozen_layout_reference_furniture_matches_the_oracle
+  PASS  test_frozen_layout_reference_edges_match_the_oracle
+  PASS  test_frozen_layout_reference_exit_and_walk_tiles_match_the_oracle
+  PASS  test_same_producer_two_outputs_do_not_alias
+CI_SUITE_TIME {"assertions":3674,"failures":0,"suite":"test_starter_structures.gd","tests":35,"usec":257677}
+test_ui_frame_geometry.gd
+  PASS  test_the_edge_inset_is_a_cross_axis_thickness_not_a_square_extent
+  PASS  test_the_corner_extent_is_the_draw_size_of_its_own_source
+  PASS  test_each_piece_slot_maps_to_the_registry_asset_it_claims
+  PASS  test_every_piece_lies_inside_the_panel_rectangle
+  PASS  test_the_four_corners_sit_at_the_four_corners
+  PASS  test_each_strip_runs_exactly_between_the_two_corners_that_bracket_it
+  PASS  test_no_two_pieces_of_a_frame_overlap
+  PASS  test_no_piece_is_zero_sized_at_any_accepted_panel_size
+  PASS  test_a_strip_is_scaled_along_its_run_only_and_never_across_it
+  PASS  test_a_panel_too_small_for_its_own_corners_is_refused_by_name
+  PASS  test_a_refused_call_leaves_the_output_array_untouched
+  PASS  test_the_minimum_size_is_both_corner_pairs_plus_one_run_pixel
+  PASS  test_apply_builds_eight_named_decorative_pieces_inside_the_panel
+  PASS  test_the_built_rectangles_equal_the_computed_rectangles_at_every_sheet_size
+  PASS  test_every_built_piece_is_decorative_and_unreachable
+  PASS  test_the_built_pieces_carry_the_texture_of_their_declared_source
+  PASS  test_the_frame_follows_the_panel_through_a_relayout
+  PASS  test_refresh_brings_an_off_tree_frame_up_to_date_without_rebuilding_it
+  PASS  test_a_panel_shrunk_below_the_minimum_hides_the_frame_rather_than_clamping_it
+EXPECTED ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] apply (res://ui/ui_frame_builder.gd:81)
+       [1] test_apply_refuses_instead_of_building_something_wrong (res://test/test_ui_frame_geometry.gd:397)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] apply (res://ui/ui_frame_builder.gd:81)
+       [1] test_apply_refuses_instead_of_building_something_wrong (res://test/test_ui_frame_geometry.gd:401)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] apply (res://ui/ui_frame_builder.gd:77)
+       [1] test_apply_refuses_instead_of_building_something_wrong (res://test/test_ui_frame_geometry.gd:403)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_apply_refuses_instead_of_building_something_wrong
+  PASS  test_applying_twice_replaces_the_frame_rather_than_stacking_it
+  PASS  test_the_manifest_records_the_placement_contract_and_agrees_with_the_code
+  PASS  test_the_journal_places_its_asymmetric_pieces_on_the_correct_sides
+CI_SUITE_TIME {"assertions":3070,"failures":0,"suite":"test_ui_frame_geometry.gd","tests":23,"usec":65296}
+test_ui_manager.gd
+  PASS  test_food_days_reaches_the_label_exactly_as_the_economy_derived_it
+  PASS  test_every_supplied_counter_matches_the_starter_fixture
+  PASS  test_an_unpopulated_food_days_reaches_the_label_as_the_marker
+  PASS  test_the_counters_track_the_stores_rather_than_a_constant
+  PASS  test_a_lost_population_returns_the_label_to_the_marker
+  PASS  test_status_readout_forwards_the_game_managers_own_values
+EXPECTED ERROR: UIManager.register_hud() was given null; the HUD will not update.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] register_hud (res://scripts/systems/ui_manager.gd:161)
+       [1] test_register_hud_refuses_null_and_stays_unbound (res://test/test_ui_manager.gd:266)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_register_hud_refuses_null_and_stays_unbound
+  PASS  test_unregister_hud_stops_further_repaints
+  PASS  test_a_freed_hud_is_never_written_to
+  PASS  test_depletion_and_diagnostics_reach_the_alert_zone
+  PASS  test_the_world_opens_paused_for_inspection_with_the_player_reason
+  PASS  test_the_opening_pause_retains_the_requested_speed
+  PASS  test_the_first_resume_hands_time_to_the_player_and_is_not_undone
+  PASS  test_the_opening_pause_refuses_before_the_clock_has_started
+  PASS  test_the_interface_exposes_a_command_bridge_and_starts_with_no_orders
+  PASS  test_a_refusal_reaches_the_accessible_error_display_with_its_code
+  PASS  test_an_unknown_refusal_code_is_still_displayed_rather_than_swallowed
+  PASS  test_the_create_action_generates_the_authored_world_into_the_live_stores
+  PASS  test_a_generated_world_is_populated_and_beds_stay_unpopulated
+  PASS  test_create_refuses_busy_underground_reset_and_retains_actual_world_and_stores
+  PASS  test_create_materialises_the_starter_colony_and_rebinds_the_stores_to_it
+  PASS  test_create_repaints_the_new_settlements_figures
+  PASS  test_a_create_refused_before_its_reset_keeps_the_running_stores
+  PASS  test_a_create_that_loses_the_old_colony_drops_the_stores_it_owned
+  PASS  test_a_create_whose_colony_refuses_leaves_nothing_half_made
+  PASS  test_create_stands_the_cohort_exactly_where_boot_stands_it
+  PASS  test_the_generation_report_reaches_the_player_with_its_own_counts
+  PASS  test_a_refused_generation_reports_the_generators_own_code
+  PASS  test_the_roster_lists_the_living_residents_from_the_store
+  PASS  test_choosing_a_roster_row_opens_that_residents_real_detail
+  PASS  test_all_five_need_rows_reach_the_card_for_a_real_resident
+  PASS  test_all_five_need_rows_carry_a_published_rate_on_screen
+  PASS  test_a_real_residents_species_medallion_is_loaded_and_identified_as_generic
+  PASS  test_the_card_states_that_age_is_unavailable_rather_than_inventing_one
+  PASS  test_health_and_activity_reach_their_own_lines_from_the_stores
+  PASS  test_an_empty_settlement_shows_no_roster_rows_rather_than_placeholders
+  PASS  test_an_absent_residents_store_is_unpopulated_and_an_empty_one_is_zero
+  PASS  test_a_refused_generation_becomes_an_error_notice_with_the_ruling_s_title
+  PASS  test_the_refusal_still_fills_the_error_panel_as_well_as_the_card
+  PASS  test_a_command_refusal_is_retained_as_a_retrievable_error_notice
+  PASS  test_a_depletion_names_the_item_as_its_source_so_two_items_stay_two_notices
+  PASS  test_create_still_succeeds_in_a_running_game
+  PASS  test_create_still_succeeds_while_a_demolition_is_admitted
+  PASS  test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve
+  PASS  test_a_roster_row_caches_the_generation_and_persistent_id_of_its_resident
+  PASS  test_a_reused_slot_refuses_the_stale_click_instead_of_selecting_the_replacement
+  PASS  test_the_reused_slot_refusal_reaches_the_player_as_its_own_notice
+  PASS  test_a_refreshed_roster_selects_the_resident_that_now_holds_the_reused_slot
+  PASS  test_an_emptied_roster_slot_still_refuses_with_the_stale_code
+  PASS  test_a_replaced_directory_identity_refuses_even_though_the_reference_validates
+  PASS  test_create_abandons_original_prepared_scope_before_new_request_and_content_borrow
+  PASS  test_invalid_form_preserves_prepared_scope_and_request_without_abandoning
+  PASS  test_create_stopped_scope_preserves_plan_and_reports_no_false_empty_or_retry
+  PASS  test_nested_create_during_actual_colony_placement_preserves_outer_generation
+  PASS  test_late_cleanup_refusal_keeps_actual_world_and_original_failure_code
+  PASS  test_actual_remount_refusal_checks_cleanup_before_withdrawing_map
+CI_SUITE_TIME {"assertions":429,"failures":0,"suite":"test_ui_manager.gd","tests":56,"usec":19435068}
+test_ui_resident_snapshot.gd
+  PASS  test_a_valid_reference_resolves_its_resident_row_and_fills_five_rows
+  PASS  test_all_five_rows_come_from_one_snapshot_identity
+  PASS  test_a_stale_generation_refuses_rather_than_reading_the_replacement
+  PASS  test_a_refused_capture_clears_every_row_it_previously_held
+  PASS  test_a_reference_of_another_kind_refuses_by_name
+  PASS  test_a_missing_store_refuses_rather_than_printing_an_empty_card
+  PASS  test_capturing_changes_no_byte_of_the_store
+  PASS  test_hunger_negates_the_published_magnitude_exactly_once
+  PASS  test_the_hunger_row_follows_the_size_class_the_store_verified
+  PASS  test_all_five_rows_bind_a_published_rate
+  PASS  test_a_signed_net_rate_is_passed_through_and_never_negated_again
+  PASS  test_every_inherited_fixture_condition_reaches_the_row_intact
+  PASS  test_winter_reaches_the_hunger_row_through_the_published_magnitude
+  PASS  test_an_immediate_context_change_is_read_with_no_cached_lag
+  PASS  test_a_reader_that_refuses_leaves_no_zero_behind
+  PASS  test_a_capped_row_keeps_its_rate_and_is_marked
+  PASS  test_an_interior_value_is_not_marked_capped
+  PASS  test_an_inward_rate_at_the_ceiling_is_not_capped
+  PASS  test_elapsed_simulation_does_not_change_a_per_hour_rate
+  PASS  test_a_childs_hunger_row_shows_the_child_rate
+CI_SUITE_TIME {"assertions":918,"failures":0,"suite":"test_ui_resident_snapshot.gd","tests":20,"usec":647952}
+test_underground_connector_placements.gd
+  PASS  test_actual_source_registration_copies_full_identity_without_building_geometry
+  PASS  test_frame_reader_copies_exact_existing_tuple_without_observers_or_aliases
+  PASS  test_frame_reader_preserves_output_for_shape_generation_and_actual_source_drift
+  PASS  test_stream_capture_restore_is_bounded_and_authority_is_mandatory
+  PASS  test_registration_replaced_lease_preserves_new_lease_and_empty_state
+  PASS  test_retirement_requires_cleanup_and_reuses_full_generation
+  PASS  test_actual_paid_completion_commits_all_companions_once_without_postpayment_observers
+  PASS  test_final_observer_replaced_budget_refuses_before_funding_and_preserves_replacement
+  PASS  test_final_actual_building_drift_refuses_without_spending_then_retries
+  PASS  test_prepaid_observer_cannot_use_generic_or_static_paid_publication
+  PASS  test_postpayment_tail_uses_no_source_endpoint_or_binding_observers
+  PASS  test_final_reentry_poison_preserves_payment_and_permits_new_retry
+  PASS  test_constructor_and_opening_exhaustion_refuse_without_growing_any_bank
+  PASS  test_streamed_hostile_transform_and_generation_preserve_live_state
+  PASS  test_refund_clears_only_project_and_never_installs_or_erases_geometry
+  PASS  test_mutated_installation_packet_cannot_substitute_original_project_or_token
+  PASS  test_replaced_location_candidate_survives_failed_original_publication
+  PASS  test_source_lease_replacement_precedes_location_bank_copy
+  PASS  test_source_lease_replacement_precedes_route_bank_copy
+  PASS  test_final_leaf_precharges_capacity_scans_before_reading_sources
+  PASS  test_admit_requires_revision_for_both_identity_attach_and_terminal_transition
+  PASS  test_all_mutations_preserve_active_order_terminal_revision_reservation
+  PASS  test_streamed_active_exhaustion_and_false_active_count_preserve_live_project
+  PASS  test_refund_preflight_refuses_exhaustion_before_actual_inventory_settlement
+  PASS  test_foreign_actual_catalog_group_recipe_cannot_bind_existing_route_provider
+  PASS  test_late_route_catalog_rewire_refuses_before_payment_and_geometry
+  PASS  test_completion_never_normalizes_an_unrelated_stale_placement_source
+  PASS  test_completion_never_normalizes_an_unrelated_stale_opening_source
+  PASS  test_completion_preserves_retained_section_level_before_payment
+CI_SUITE_TIME {"assertions":4004,"failures":0,"suite":"test_underground_connector_placements.gd","tests":29,"usec":18572968}
+test_underground_entry_structure.gd
+  PASS  test_entry_proves_all_four_landing_cubes_without_a_flat_natural_roof
+  PASS  test_future_tread_cannot_borrow_the_landing_episode_or_early_prefix
+  PASS  test_unpaid_start_commit_and_cut_remain_closed
+  PASS  test_last_observer_prefix_change_refuses_and_original_tuple_can_retry
+  PASS  test_reentry_poison_survives_successful_outer_natural_query
+  PASS  test_placement_source_digest_change_refuses_without_rebinding
+  PASS  test_busy_placement_cannot_borrow_an_unrelated_structural_observation
+  PASS  test_phase_mode_without_the_exact_prepared_tuple_refuses_even_when_not_busy
+  PASS  test_old_cut_history_cannot_be_relabelled_natural_by_a_filled_geometry_image
+  PASS  test_late_history_change_is_checked_after_last_geometry_observation
+  PASS  test_late_resource_exclusion_is_read_again_after_last_world_observer
+  PASS  test_source_rotation_checks_int64_bounds_before_packed_narrowing
+  PASS  test_asymmetric_episode_turns_match_the_existing_connector_frame_convention
+  PASS  test_exact_two_assembly_prices_and_six_cube_phase_ledger
+  PASS  test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress
+  PASS  test_common_metadata_grants_no_support_over_any_future_paid_cube
+  PASS  test_actual_surface_paths_connect_each_selected_contact_without_entering_cut_pockets
+  PASS  test_fine_entry_request_keeps_tail_outside_claims_and_derives_all_six_paid_keys
+CI_SUITE_TIME {"assertions":1471,"failures":0,"suite":"test_underground_entry_structure.gd","tests":18,"usec":21599802}
+test_underground_final_facts.gd
+  PASS  test_room_final_is_pure_and_ordinary_snapshot_remains_live_only
+  PASS  test_room_final_precharges_whole_census_and_mutable_input_comparison
+  PASS  test_room_final_rejects_replaced_original_lease_and_foreign_same_number_budget
+  PASS  test_room_final_rederives_actual_free_identity_and_whole_candidate
+  PASS  test_room_final_catches_late_actual_source_drift_without_observation
+  PASS  test_room_final_future_exception_is_only_own_metadata_and_claims
+  PASS  test_room_final_rejects_foreign_companion_and_active_observer_states
+  PASS  test_room_commit_requires_actual_publishing_bracket_and_original_budget
+  PASS  test_room_commit_does_not_borrow_replacement_lease_or_changed_after_facts
+  PASS  test_final_sources_skip_observer_and_preserve_authority
+  PASS  test_late_building_change_refuses_without_geometry_revision_change
+  PASS  test_all_nonresident_leaf_facts_equal_normal_observation
+  PASS  test_project_claim_generation_remains_mandatory
+  PASS  test_budget_refuses_before_any_leaf_read
+  PASS  test_admitted_real_capacity_uses_actual_source_census
+  PASS  test_foreign_binding_stale_revision_and_busy_owners_refuse
+  PASS  test_endpoint_match_compares_every_packed_payload_and_proof_field
+  PASS  test_retired_reused_endpoint_does_not_match_old_generation
+  PASS  test_idle_resident_matches_actual_transform_and_location
+  PASS  test_idle_final_leaf_skips_late_public_transform_reader
+  PASS  test_transit_final_leaf_skips_late_public_transform_reader
+  PASS  test_final_pose_requires_actual_persistent_transform_binding
+  PASS  test_final_pose_requires_full_directory_generation_and_reverse_row
+  PASS  test_transit_resident_uses_exact_current_segment_and_generation
+  PASS  test_retired_world_invalidates_facts_and_endpoint_observation
+  PASS  test_full_256_resident_leaf_census_fits_unchanged_domain_budget
+  PASS  test_actor_and_world_generation_reuse_cannot_match_stored_sources
+  PASS  test_domain_and_source_kind_changes_refuse_without_public_observers
+  PASS  test_static_leaf_never_substitutes_unbound_resident_or_half_null_reference
+  PASS  test_final_actual_store_rows_skip_every_public_kind_observer
+  PASS  test_final_room_and_furniture_stored_domain_and_mirror_facts_are_current
+CI_SUITE_TIME {"assertions":1175,"failures":0,"suite":"test_underground_final_facts.gd","tests":31,"usec":3781323}
+test_underground_furniture_batches.gd
+  PASS  test_actual_batch_reserves_pending_furniture_projects_and_exact_geometry_together
+  PASS  test_final_publication_may_discard_borrowed_inputs_without_losing_the_receipt
+  PASS  test_full_catalog_bill_and_real_work_remain_required_after_layout_acceptance
+  PASS  test_purpose_shell_and_late_geometry_refusals_spend_no_identity_prefix
+  PASS  test_every_provider_mutation_of_entries_or_directory_tuples_refuses_all_pairs
+  PASS  test_initial_scope_callback_cannot_change_the_original_unpinned_request
+  PASS  test_provider_reentry_cannot_end_or_replace_the_running_layout_scope
+  PASS  test_reacquired_foreign_budget_token_cannot_authorize_future_source_publication
+  PASS  test_refused_or_busy_cold_admission_never_enters_snapshot_or_sparse_copy
+  PASS  test_missing_actual_budget_owner_refuses_before_any_provider_acquisition_or_copy
+  PASS  test_stale_room_revision_and_generation_refuse_without_changed_owner_bytes
+  PASS  test_direct_requests_cannot_bypass_planner_pitch_level_or_shape_bounds
+  PASS  test_layout_scope_and_receipt_end_before_the_next_simulation_or_input_operation
+  PASS  test_one_scope_cannot_retain_multiple_accepted_receipt_buffers
+CI_SUITE_TIME {"assertions":1364,"failures":0,"suite":"test_underground_furniture_batches.gd","tests":14,"usec":4277653}
+test_underground_host.gd
+  PASS  test_mount_requires_actual_world_and_refused_attempt_can_retry
+  PASS  test_mount_borrows_actual_owners_and_duplicate_preserves_foundation
+  PASS  test_held_arena_refuses_reset_before_any_store_is_cleared
+  PASS  test_prepared_space_refuses_reset_and_keeps_original_candidate
+  PASS  test_reset_retires_borrowers_and_regeneration_gets_fresh_full_identity
+  PASS  test_reentrant_reset_during_mount_preserves_stores_and_refuses_outer_attempt
+  PASS  test_prepared_world_remains_unavailable_except_for_explicit_retirement
+  PASS  test_retirement_allowance_still_checks_original_live_seed
+  PASS  test_prepare_keeps_populated_stores_and_stops_all_fresh_access
+  PASS  test_repeated_prepare_reuses_scope_then_actual_reset_breaks_cycle
+  PASS  test_abandon_drops_only_scope_and_keeps_original_owners
+  PASS  test_late_cold_observer_cannot_substitute_mounted_host_owner
+  PASS  test_unowned_authority_is_not_adopted_by_host_retirement
+  PASS  test_original_packet_or_owner_mutation_refuses_repeated_prepare
+  PASS  test_recursive_clear_refuses_without_clearing_twice
+  PASS  test_partial_clear_cannot_resume_and_host_destruction_breaks_scope_cycle
+  PASS  test_settled_space_receipt_is_retired_with_its_complete_world
+  PASS  test_reentrant_prepare_observer_cannot_clear_or_publish_a_scope
+  PASS  test_open_inventory_journal_refuses_host_reset_unchanged
+  PASS  test_staged_world_scope_can_abandon_only_its_original_request
+  PASS  test_pending_scope_rejects_replaced_profile_bank_before_clear
+  PASS  test_actual_surface_owner_is_strong_original_idempotent_and_does_not_publish_on_bind
+  PASS  test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias
+  PASS  test_stale_surface_borrow_cannot_retain_old_arenas_or_bind_the_remounted_world
+  PASS  test_surface_release_leaf_refuses_live_world_without_dropping_any_own_pin
+  PASS  test_surface_partial_clear_keeps_original_arenas_and_stays_stopped
+  PASS  test_surface_binding_reentry_retains_exact_exposed_prefix_and_can_only_reset
+  PASS  test_surface_late_host_identity_change_preserves_original_binding_and_refuses_reset_until_restored
+  PASS  test_surface_late_source_drift_keeps_bound_scope_until_exact_source_is_restored
+  PASS  test_surface_captured_scope_rejects_packet_and_weak_backlink_replacement_without_clearing
+  PASS  test_surface_active_publication_rejects_whole_world_reset_and_keeps_its_original_lease
+CI_SUITE_TIME {"assertions":463,"failures":0,"suite":"test_underground_host.gd","tests":31,"usec":31718283}
+test_underground_room_phase_refresh.gd
+  PASS  test_fresh_unbound_and_partial_owners_refuse_before_companion_reads
+  PASS  test_actual_ordinary_paid_cycle_refreshes_opening_targets_and_all_old_banks
+  PASS  test_original_entry_method_cannot_accept_null_and_ordinary_cannot_take_entry_room
+  PASS  test_wrong_original_site_room_operation_stage_and_tokens_refuse_before_payment
+  PASS  test_late_full_project_generation_drift_refuses_payment_and_retries
+  PASS  test_late_discard_never_reopens_generic_or_static_space_publication
+  PASS  test_terminal_commit_and_refund_retry_need_no_released_worker
+  PASS  test_entry_ordinary_entry_reuses_one_context_without_laundering_old_openings
+  PASS  test_ordinary_phase_does_not_need_any_live_placement_record
+  PASS  test_replaced_original_cold_lease_refuses_and_cleanup_does_not_release_replacement
+  PASS  test_ordinary_corridor_is_distinct_from_real_entry_corridor_ownership
+  PASS  test_changed_borrowed_context_fields_refuse_and_original_cleanup_still_releases
+CI_SUITE_TIME {"assertions":736,"failures":0,"suite":"test_underground_room_phase_refresh.gd","tests":12,"usec":10332525}
+test_underground_work_face.gd
+  PASS  test_exact_complete_corridor_and_authored_stroke_reach_one_solid_face
+  PASS  test_max_face_is_a_legal_exact_plane_without_reversing_already_oriented_boxes
+  PASS  test_interior_one_unit_void_hole_blocks_approach_even_when_endpoints_fit
+  PASS  test_actual_support_and_negative_body_residual_are_never_clipped
+  PASS  test_stroke_cannot_enter_a_second_solid_cube_or_floor
+  PASS  test_full_profile_endpoint_and_face_identity_are_mandatory
+  PASS  test_final_callback_drift_refuses_actual_replacement_and_mutated_input
+  PASS  test_foreign_arena_or_unbound_sources_never_allocate_geometry_permission
+  PASS  test_finite_scan_exhaustion_never_becomes_clearance
+  PASS  test_original_lease_must_cover_the_whole_packet_before_private_copies
+  PASS  test_reentry_poison_survives_final_otherwise_valid_source_read
+  PASS  test_complete_contact_patch_must_fit_one_face_with_the_matching_normal
+  PASS  test_first_endpoint_callback_replaced_lease_stops_before_later_reads
+  PASS  test_final_endpoint_callback_cannot_hide_new_actual_terrain_exclusions
+  PASS  test_final_endpoint_callback_cannot_hide_retained_actual_building_drift
+  PASS  test_region_callback_expired_lease_stops_before_target_terrain_observation
+  PASS  test_snapshot_source_callback_expired_lease_refuses_before_actual_image_allocation
+  PASS  test_finish_scope_requires_real_paid_history_before_nullable_admission_project
+  PASS  test_finish_scope_tracks_real_start_work_terminal_and_released_worker
+CI_SUITE_TIME {"assertions":206,"failures":0,"suite":"test_underground_work_face.gd","tests":19,"usec":12402685}
+test_world_init.gd
+  PASS  test_tile_index_is_z_times_128_plus_x
+  PASS  test_tile_coordinates_invert_the_index
+  PASS  test_tile_centre_is_2048x_plus_1024
+  PASS  test_distance_is_squared_in_simulation_units
+  PASS  test_the_validation_anchor_puts_the_river_at_exactly_24_metres
+  PASS  test_mask_precedence_is_coast_river_lake_land
+  PASS  test_coast_band_boundary
+  PASS  test_river_mask_boundary
+  PASS  test_lake_mask_is_the_stated_circle
+  PASS  test_lake_area_matches_the_stated_circle
+  PASS  test_the_ford_is_walkable_and_not_a_fishing_work_tile
+  PASS  test_published_ford_tiles_are_not_fishing_work_tiles
+  PASS  test_elevations_are_the_three_stated_heights
+  PASS  test_soil_precedence_is_loam_then_sand_then_clay
+  PASS  test_loam_rectangle_boundaries
+  PASS  test_sand_bands_at_their_boundaries
+  PASS  test_water_tiles_have_no_soil_and_refuse_explicitly
+  PASS  test_cleared_loam_rectangle_boundaries
+  PASS  test_cleared_rectangle_is_published_and_is_64_loam_tiles
+  PASS  test_the_seven_starter_footprints_are_transcribed_from_5_9
+  PASS  test_the_hall_footprint_closes_against_its_authored_interior
+  PASS  test_each_authored_footprint_is_cleared_at_its_exact_tiles
+  PASS  test_the_one_tile_apron_is_cleared_around_each_footprint
+  PASS  test_two_tiles_out_from_every_footprint_is_untouched_ground
+  PASS  test_authored_building_footprints_never_overlap
+  PASS  test_shared_aprons_are_permitted_to_overlap
+  PASS  test_a_footprint_may_lie_inside_another_footprints_apron
+  PASS  test_footprint_covers_tile_answers_the_empty_set_outside_the_roster
+  PASS  test_the_published_cleared_census_is_376_tiles
+  PASS  test_the_clearing_takes_no_tree_centre_because_its_forest_overlap_is_odd
+  PASS  test_a_cleared_tile_is_never_a_tree_centre
+  PASS  test_the_grove_plants_only_on_unused_uncleared_ground
+  PASS  test_the_guaranteed_grove_is_still_exactly_100_after_the_apron_clears_five_tiles
+  PASS  test_no_resource_node_stands_inside_a_footprint_or_its_apron
+  PASS  test_the_well_and_workbench_ground_holds_no_node
+  PASS  test_clearing_happens_before_placement_across_a_regeneration
+  PASS  test_forest_basins_split_at_z_62
+  PASS  test_forest_basins_stop_at_their_stated_bounds
+  PASS  test_forest_basins_exclude_water
+  PASS  test_generation_creates_exactly_seven_basins
+  PASS  test_every_forest_basin_carries_five_patches_at_80_percent
+  PASS  test_dormant_patches_are_stocked_too
+  PASS  test_basin_danger_bands_come_from_the_distance_rule
+  PASS  test_every_land_tile_of_a_basin_maps_back_to_its_zone
+  PASS  test_tree_centres_are_every_second_x_and_z_of_the_forest_masks
+  PASS  test_qualifying_centres_stay_under_the_3000_cap
+  PASS  test_the_cap_retains_the_lowest_tile_indices
+  PASS  test_the_first_and_last_retained_centres_are_the_extremes
+  PASS  test_ore_footprints_sit_on_tree_centres
+  PASS  test_the_guaranteed_grove_is_exactly_100_nodes
+  PASS  test_grove_skips_duplicate_centres_and_relocates_them
+  PASS  test_grove_replacements_are_the_lowest_unused_tiles_of_the_window
+  PASS  test_generated_node_count_is_centres_plus_grove_less_replaced_plus_ore
+  PASS  test_every_tree_node_holds_12_wood_u_and_regrows_in_48_days
+  PASS  test_the_two_deposits_are_decision_0029s_sixteen_nodes_each
+  PASS  test_ore_nodes_do_not_regrow_and_replaced_trees_are_gone
+  PASS  test_no_renewable_bedrock_node_is_invented_at_48_70
+  PASS  test_no_node_stands_on_a_cleared_tile
+  PASS  test_three_habitats_nine_stocks_with_the_ruled_capacities
+  PASS  test_fish_stocks_start_at_80_percent
+  PASS  test_every_fish_stock_carries_its_own_species_item_id
+  PASS  test_the_coast_and_river_stocks_are_not_each_others_species
+  PASS  test_every_forage_patch_carries_its_own_kind_item_id
+  PASS  test_each_habitat_is_bound_to_its_own_fish_basin
+  PASS  test_fauna_stock_reserved_is_allocated_and_canonically_empty
+  PASS  test_generation_creates_live_rows_of_only_three_kinds
+  PASS  test_generation_creates_no_farm_plot_orchard_or_hive
+  PASS  test_generation_seeds_the_world_rng
+  PASS  test_a_seeded_world_draws_where_an_unseeded_one_refuses
+  PASS  test_an_invalid_seed_is_regenerated_with_seed_plus_one
+  PASS  test_sixteen_attempts_bound_the_retry_and_return_the_failing_code
+  PASS  test_the_sixteenth_attempt_returns_without_a_seventeenth_advance
+  PASS  test_an_advance_overflow_inside_the_retry_is_its_own_refusal
+  PASS  test_a_short_grove_refuses_before_anything_is_cleared
+  PASS  test_every_stated_guarantee_holds_on_the_generated_world
+  PASS  test_validate_measurements_accepts_a_satisfying_world
+  PASS  test_each_guarantee_reports_its_own_assertion
+  PASS  test_the_remaining_guarantees_report_their_own_assertion
+  PASS  test_a_missing_feature_is_never_within_range
+  PASS  test_guarantees_are_reported_in_the_sections_own_order
+  PASS  test_boundary_distances_are_inclusive
+  PASS  test_a_refused_generation_leaves_the_previous_world_byte_identical
+  PASS  test_an_invalid_item_id_refuses_before_anything_is_cleared
+  PASS  test_an_unbound_request_refuses_before_anything_is_cleared
+  PASS  test_a_valid_but_wrong_item_id_refuses_and_leaves_every_store_byte_identical
+  PASS  test_a_sorted_forage_array_refuses_and_leaves_every_store_byte_identical
+  PASS  test_a_bound_request_carries_the_seventeen_compiled_ids_the_catalog_reports
+  PASS  test_a_caller_that_knows_only_the_catalog_can_build_the_request
+  PASS  test_a_stale_catalog_artifact_refuses_the_request_and_generates_nothing
+  PASS  test_bound_request_refuses_an_unloaded_registry
+  PASS  test_building_a_request_without_a_binding_refuses
+  PASS  test_a_wrong_sized_item_set_refuses
+  PASS  test_a_foreign_live_row_refuses_rather_than_being_orphaned
+  PASS  test_declaring_one_cleared_kind_does_not_excuse_the_others
+  PASS  test_an_out_of_range_declared_kind_is_ignored_rather_than_trusted
+  PASS  test_the_declaration_reaches_the_last_directory_kind
+  PASS  test_a_second_declaration_replaces_the_first_rather_than_adding_to_it
+  PASS  test_a_store_on_another_directory_refuses
+  PASS  test_a_missing_store_refuses
+  PASS  test_readers_refuse_before_the_first_world_is_published
+  PASS  test_an_off_grid_tile_refuses_on_a_published_world
+  PASS  test_regeneration_reproduces_the_same_world
+  PASS  test_two_independent_worlds_agree
+  PASS  test_publishing_resets_job_and_command_state
+  PASS  test_map_payload_is_the_declared_size
+  PASS  test_designate_zone_designates_real_forest_after_generation
+  PASS  test_a_designation_shares_the_generated_basins_stock
+  PASS  test_a_designated_forest_zone_publishes_a_real_forage_job
+  PASS  test_the_generator_publishes_the_directory_it_was_composed_over
+  PASS  test_clear_discards_the_published_map_without_touching_the_stores
+  PASS  test_a_cleared_generator_generates_the_same_world_again
+  PASS  test_preflight_accepts_a_plan_without_creating_anything
+  PASS  test_a_refused_preflight_holds_no_plan
+  PASS  test_the_three_steps_publish_the_same_world_the_wrapper_does
+  PASS  test_publication_keeps_directory_rows_it_did_not_create
+  PASS  test_publication_refuses_a_world_the_caller_never_reset
+  PASS  test_publication_refuses_streams_that_carry_another_seed
+  PASS  test_publication_refuses_unseeded_streams
+  PASS  test_seeding_refuses_without_a_prepared_plan
+  PASS  test_a_published_plan_cannot_be_published_twice
+  PASS  test_discarding_a_plan_makes_publication_refuse
+  PASS  test_a_foreign_live_row_still_refuses_at_preflight
+CI_SUITE_TIME {"assertions":18192,"failures":0,"suite":"test_world_init.gd","tests":122,"usec":55613403}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1342 test(s), 141649 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 4 expected, 69 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 1342 tests, 141649 assertions, 0 failures.

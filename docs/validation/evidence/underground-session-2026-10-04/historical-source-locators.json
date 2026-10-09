@@ -1,0 +1,32 @@
+{
+  "docs/validation/evidence/underground-session-2026-10-04/historical-source/candidate-1/underground_session.gd.txt": {
+    "sha256": "e4725c1c8479756811d0175b11f5b4475d7344e830e8382444ccaf45d824955c",
+    "executed_path": "godot/scripts/core/underground_session.gd",
+    "candidate": "candidate-1"
+  },
+  "docs/validation/evidence/underground-session-2026-10-04/historical-source/candidate-2/underground_session.gd.txt": {
+    "sha256": "e4725c1c8479756811d0175b11f5b4475d7344e830e8382444ccaf45d824955c",
+    "executed_path": "godot/scripts/core/underground_session.gd",
+    "candidate": "candidate-2"
+  },
+  "docs/validation/evidence/underground-session-2026-10-04/historical-source/candidate-3/underground_session.gd.txt": {
+    "sha256": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
+    "executed_path": "godot/scripts/core/underground_session.gd",
+    "candidate": "candidate-3"
+  },
+  "docs/validation/evidence/underground-session-2026-10-04/historical-source/candidate-3/test_underground_session.gd.txt": {
+    "sha256": "24061b76c06650c7883e6e31a1f3cd3367f23e73edddbd7b176f8384d2862966",
+    "executed_path": "godot/test/test_underground_session.gd",
+    "candidate": "candidate-3"
+  },
+  "docs/validation/evidence/underground-session-2026-10-04/historical-source/candidate-1/test_underground_session.gd.txt": {
+    "sha256": "5c3bacf5ce7dcac7b3067f93a43166e4103c3651fdb63f51b3558498f47f65f4",
+    "executed_path": "godot/test/test_underground_session.gd",
+    "candidate": "candidate-1"
+  },
+  "docs/validation/evidence/underground-session-2026-10-04/historical-source/candidate-2/test_underground_session.gd.txt": {
+    "sha256": "3f14010677182544fbec0cf426e8e6c153654e7a01d5bbf1ad74cb5a8279f45a",
+    "executed_path": "godot/test/test_underground_session.gd",
+    "candidate": "candidate-2"
+  }
+}

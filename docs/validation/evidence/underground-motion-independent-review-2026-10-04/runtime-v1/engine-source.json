@@ -1,0 +1,17 @@
+{
+  "gdscript_compiler.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_compiler.cpp",
+    "sha256": "882cf3947a4cd2b643ef268e8fa760f38993ca85e8bc27baf04b5ea4c66e26ac",
+    "bytes": 132148
+  },
+  "file_access.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/core/io/file_access.cpp",
+    "sha256": "4059251adffe2fa633572ee917578f78abfb8e813f4cf3f19578366d8a8d5ca5",
+    "bytes": 37705
+  },
+  "gdscript_byte_codegen.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_byte_codegen.cpp",
+    "sha256": "5fec4b4ac86bd749e6766f161f59ae79aef8f8eb15135d1b0c88eed8fb5f541b",
+    "bytes": 74920
+  }
+}

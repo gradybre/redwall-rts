@@ -1,0 +1,51 @@
+{
+  "checkpoint": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+  "result": "FAILED; original full run preserved without fixture overlay",
+  "counts": {
+    "tests": 11207,
+    "assertions": 1027804,
+    "failures": 2,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "raw_counts": {
+    "script_errors": 0,
+    "errors": 0,
+    "warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "parse_errors": 0,
+    "leak_lines": 0
+  },
+  "suite_coverage": {
+    "discovered": 405,
+    "executed": 405,
+    "each_exactly_once": true
+  },
+  "failures": [
+    "test_actual_paid_first_cube_preserves_full_geometry_refusal_and_every_live_owner",
+    "test_actual_paid_first_cube_adds_lateral_corridor_contact_without_movement_or_free_work"
+  ],
+  "strict_parser_refusal": "unclean test result: {'tests': 11207, 'assertions': 1027804, 'failures': 2, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}",
+  "shell_exit": 1,
+  "shell_log_summary_emitted": false,
+  "analyzer_attempted": false,
+  "analyzer_reason": "unchanged full procedure stops after failing test command",
+  "source_pins_checked": 10546,
+  "source_mismatches": [],
+  "restoration": {
+    "source_unchanged_before_cleanup": true,
+    "source_unchanged": true,
+    "sidecars_restored": true,
+    "assets_restored": true,
+    "project_restored": true,
+    "head_unchanged": true
+  },
+  "clean_import_seconds": 12.06,
+  "full_suite_seconds": 1911.074,
+  "log_sha256": "6dc39cc9b5b05d5f5172a095b38e40cbb14ceaeed28aad225f4e03599f9f311c"
+}

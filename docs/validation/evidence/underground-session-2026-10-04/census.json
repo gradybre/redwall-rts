@@ -1,0 +1,272 @@
+{
+  "accepted_motion_joint_before_session_bytes": 232436,
+  "control_reservation_bytes": 1024,
+  "existing_level_bytes": 2292,
+  "existing_profile_paired_plus_control_bytes": 47288,
+  "foundation_profile_level_session_bytes": 51116,
+  "frames": {
+    "_borrow": {
+      "borrowed_reference_values": 14,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [],
+      "returns": "void"
+    },
+    "_content_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [],
+      "returns": "StringName"
+    },
+    "_drop_borrowed": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [],
+      "returns": "void"
+    },
+    "_drop_foundations": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [],
+      "returns": "void"
+    },
+    "_equipment_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [],
+      "returns": "StringName"
+    },
+    "_finish": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_drop_borrowed",
+        "_drop_foundations"
+      ],
+      "returns": "StringName"
+    },
+    "_foundation_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "_profile_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_initial_authority_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [],
+      "returns": "StringName"
+    },
+    "_input_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_initial_authority_refusal",
+        "_owners_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_observe_current": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_content_refusal",
+        "_foundation_refusal",
+        "_original_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_original_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_owners_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_owners_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "_equipment_refusal",
+        "_world_identity_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_prepare": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_content_refusal",
+        "_observe_current",
+        "_original_refusal",
+        "_prepare_catalogs",
+        "_prepare_space"
+      ],
+      "returns": "StringName"
+    },
+    "_prepare_catalogs": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_original_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_prepare_space": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_original_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "_profile_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [],
+      "returns": "StringName"
+    },
+    "_world_identity_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [],
+      "returns": "StringName"
+    },
+    "cold_budget": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Budget"
+    },
+    "configure": {
+      "borrowed_reference_values": 14,
+      "numeric_and_name_bytes": 16,
+      "own_calls": [
+        "_borrow",
+        "_finish",
+        "_initial_authority_refusal",
+        "_input_refusal",
+        "_prepare"
+      ],
+      "returns": "StringName"
+    },
+    "current_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_observe_current"
+      ],
+      "returns": "StringName"
+    },
+    "level_catalog": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Levels"
+    },
+    "profile_catalog": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Profiles"
+    },
+    "reset_refusal": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 8,
+      "own_calls": [
+        "_initial_authority_refusal",
+        "current_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "route_owner": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Routes"
+    },
+    "source_owner": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Owner.CoreSources"
+    },
+    "space_owner": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Owner"
+    },
+    "terrain_owner": {
+      "borrowed_reference_values": 0,
+      "numeric_and_name_bytes": 0,
+      "own_calls": [
+        "current_refusal"
+      ],
+      "returns": "Terrain"
+    }
+  },
+  "helper_reservation_bytes": 512,
+  "joint_remaining_bytes": 28172,
+  "native_memory_qualified": false,
+  "own_longest_borrowed_reference_chain": [
+    "configure",
+    "_borrow"
+  ],
+  "own_longest_borrowed_reference_chain_values": 28,
+  "own_longest_numeric_and_name_chain": [
+    "configure",
+    "_prepare",
+    "_observe_current",
+    "_original_refusal",
+    "_owners_refusal",
+    "_world_identity_refusal"
+  ],
+  "own_longest_numeric_and_name_chain_bytes": 48,
+  "own_packed_columns": 0,
+  "own_total_slice_bytes": 1536,
+  "own_variable_bank_bytes": 0,
+  "profile_envelope_bytes": 262144,
+  "profile_level_motion_session_joint_bytes": 233972,
+  "provisional_reference_native_header_bytes_in_control": 997,
+  "references_are_not_measured_native_bytes": true,
+  "retained_numeric_bytes": 27,
+  "runtime_activation_qualified": false,
+  "sequential_foundation_allocations": {
+    "Budget": 1,
+    "Levels": 1,
+    "Owner": 1,
+    "Owner.CoreSources": 1,
+    "Profiles": 1,
+    "Routes": 1,
+    "Space.Domain": 1,
+    "Terrain": 1
+  },
+  "slice_source": "existing PROFILE_BYTES; no global reserve increase",
+  "source_sha256": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
+  "strong_reference_or_alias_members": 24,
+  "unchanged_foundation_sources": {
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "e9be7e504514355e61e9b2f325e0c245e3990ee95449056daa0a2eba954c8ea4",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "godot/scripts/core/underground_space_owner.gd": "32eff2b94f5ccc6c8b11c9490b857ac89ce30ca88f37b04b65d78d19f9408d96",
+    "godot/scripts/core/underground_terrain.gd": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d"
+  }
+}

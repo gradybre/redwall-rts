@@ -463,3 +463,21 @@ func fishing() -> FishingScript:
 func orchard_hive() -> OrchardHiveScript:
 	"""The §5.6 OrchardPlot, Hive and pollination-link store. ARCH-SYS-006 borrows this."""
 	return _orchard_hive
+
+
+# --- ARCH-SAVE-002 section 6 save pair (ADR 1222 build step 4) ------------------------------------
+#
+# Section 6 owner `ecology` is the one day latch: NO_DAY_RUN or a positive absolute day.
+
+
+func save_last_day() -> int:
+	"""The day latch."""
+	return _last_day
+
+
+func restore_last_day(last_day: int) -> bool:
+	"""Install the day latch after its domain check. False writes nothing."""
+	if last_day < NO_DAY_RUN:
+		return false
+	_last_day = last_day
+	return true

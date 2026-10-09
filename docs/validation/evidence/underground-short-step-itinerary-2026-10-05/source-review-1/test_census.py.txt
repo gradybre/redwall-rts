@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""Negative allocation and unresolved-call probes for the actual 1172 helper."""
+import importlib.util
+from pathlib import Path
+import unittest
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("itinerary_census", HERE / "census.py")
+C = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(C)
+SOURCE = (C.ROOT / "godot/scripts/core/underground_room_itinerary.gd").read_text()
+MARKER = '\tvar stride: int = profiles._profile_capacity'
+
+
+class CensusTests(unittest.TestCase):
+    def refused(self, source, phrase):
+        with self.assertRaisesRegex(ValueError, phrase):
+            C.build({C.I: source})
+
+    def test_complete_current_callers_fit_existing_slices(self):
+        result = C.build()
+        self.assertEqual(result["itinerary"]["inclusive_peak"], 432)
+        self.assertEqual(result["provider_source_bound"], 509)
+        self.assertEqual(result["contacts_foreign_source_bound"], 344)
+        self.assertEqual(result["new_bank_bytes"], 0)
+
+    def test_retained_state_cannot_hide_outside_the_call_graph(self):
+        self.refused(SOURCE + '\nvar hidden: int = 0\n', "retained state")
+
+    def test_packed_literal_payload_is_not_just_an_eight_byte_reference(self):
+        literal = '\tvar hidden: PackedInt32Array = [' + ', '.join(['0'] * 4096) + ']\n'
+        self.refused(SOURCE.replace(MARKER, literal + MARKER, 1), "collection literal")
+
+    def test_constructor_payload_is_not_a_borrowed_parameter(self):
+        self.refused(SOURCE.replace(MARKER, '\tvar hidden: PackedInt32Array = PackedInt32Array()\n' + MARKER, 1),
+                     "allocation|unresolved")
+
+    def test_unknown_child_cannot_silently_disappear_from_peak(self):
+        self.refused(SOURCE.replace(MARKER, '\tunknown_helper()\n' + MARKER, 1), "unresolved")
+
+    def test_reached_numeric_frame_growth_exceeds_existing_reserve(self):
+        payload = ''.join('\tvar extra_%d: int = 0\n' % n for n in range(80))
+        self.refused(SOURCE.replace(MARKER, payload + MARKER, 1), "helper512")
+
+    def test_borrowed_parameter_does_not_allow_a_second_container_local(self):
+        self.refused(SOURCE.replace(MARKER, '\tvar hidden: PackedInt32Array = profiles._live.fields\n' + MARKER, 1),
+                     "unaccounted child payload")
+
+    def test_outer_provider_and_contact_own_changes_require_review(self):
+        for name in (C.P, C.C):
+            source = (C.ROOT / "godot/scripts/core" / (name + '.gd')).read_text()
+            with self.assertRaisesRegex(ValueError, "unreviewed outer caller"):
+                C.build({name: source + '\nvar hidden: int = 0\n'})
+
+
+if __name__ == '__main__':
+    unittest.main()

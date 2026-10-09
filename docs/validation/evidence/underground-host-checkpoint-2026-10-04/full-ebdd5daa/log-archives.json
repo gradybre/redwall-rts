@@ -1,0 +1,10 @@
+{
+  "full-suite.log.gz": {
+    "decoded_length": 1704841,
+    "decoded_sha256": "5192e1d8fd31f92071cfc678c378cdb490a0fd6c253867a19460f6604936639e"
+  },
+  "clean-import.log.gz": {
+    "decoded_length": 251996,
+    "decoded_sha256": "1ff627a06d0302277538e4e218e04a9a6f205458da1a2df0adfa5e7e293b7c9e"
+  }
+}

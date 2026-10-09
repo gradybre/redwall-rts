@@ -1,0 +1,13 @@
+{
+	"assertions": 15,
+	"driver": "metal",
+	"failures": [],
+	"images": [
+		"ready.png",
+		"choose-boundary.png",
+		"invalid-boundary.png"
+	],
+	"qualified": false,
+	"renderer": "forward_plus",
+	"scope": "actual room-access view with synthetic source/physical fixture"
+}

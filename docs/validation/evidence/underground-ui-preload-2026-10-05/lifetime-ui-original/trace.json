@@ -1,0 +1,162 @@
+[
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/hud.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/hud.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_availability.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_availability.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_command_bridge.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_command_bridge.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_focus_order.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_focus_order.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_hit_test.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_hit_test.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_layout.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_layout.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_need_rate.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_need_rate.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_notices.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_notices.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_registry.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_registry.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_resident_card.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_resident_card.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_resident_header.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_resident_header.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_resident_snapshot.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_resident_snapshot.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_shell.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_shell.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_specimen.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_specimen.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_theme.gd",
+    "editor_bytes": 1017
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_theme.gd",
+    "editor_bytes": 2876
+  },
+  {
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_world_session.gd",
+    "editor_bytes": 2876
+  },
+  {
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/godot/scripts/ui/ui_world_session.gd",
+    "editor_bytes": 2876
+  }
+]

@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""Enforce the independently reviewed complete host retirement census inside the existing Profile reserve."""
+import hashlib
+import importlib.util
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / "docs/validation/evidence/underground-host-retirement-2026-10-04/census.py"
+SOURCE_SHA = "fcf045d97239a993cde1dede85b4bfcaca33fbe5816b4acb5d09a64784a1630b"
+
+
+def build(index, session, ceiling):
+    """Use current parsed sources, including mutation tests, against the accepted portable predecessor witnesses."""
+    if hashlib.sha256(SOURCE.read_bytes()).hexdigest() != SOURCE_SHA:
+        raise ValueError("reviewed host retirement census changed; independent review required")
+    spec = importlib.util.spec_from_file_location("reviewed_host_retirement_census", SOURCE)
+    census = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(census)
+    replacements = {}
+    for name, relative in census.FILES.items():
+        module = Path(relative).stem
+        if module not in index:
+            raise ValueError("retirement source missing from current index: " + module)
+        replacements[name] = index[module].text
+    result = census.build(ROOT, replacements)
+    joint = session["profile_level_motion_session_joint_bytes"]
+    reserve = result["accounting"]["retirement_reserved_bytes"]
+    if result["accounting"]["parent_1156_joint_bytes"] != joint or joint + reserve > ceiling:
+        raise ValueError("current Profile/Level/Motion/Session/retirement joint reservation disagrees or overbooks")
+    result["accounting"]["joint_remaining_bytes"] = ceiling - joint - reserve
+    result["current_joint_source_derived"] = True
+    return result

@@ -1,0 +1,48 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_ui_notices.gd
+  PASS  test_every_authored_summary_fits_the_narrow_card
+  PASS  test_the_widest_summary_is_the_one_the_fit_test_would_catch
+  PASS  test_the_generation_failure_is_the_severity_and_title_the_ruling_names
+  PASS  test_no_two_categories_share_a_title_and_none_is_generic
+  PASS  test_every_severity_carries_a_word_an_icon_and_a_colour
+  PASS  test_the_count_suffix_appears_only_when_other_notices_are_active
+  PASS  test_the_three_line_generation_refusal_is_retained_byte_for_byte
+  PASS  test_the_expanded_disclosure_carries_message_source_code_and_recovery
+  PASS  test_an_absent_recovery_is_stated_rather_than_invented
+  PASS  test_the_accessible_text_exposes_severity_the_full_message_and_the_action
+  PASS  test_twenty_notices_are_all_retained
+  PASS  test_a_repeat_of_the_same_code_and_source_counts_rather_than_adding_a_row
+  PASS  test_two_different_sources_of_one_code_stay_two_notices
+  PASS  test_two_uncoded_messages_never_overwrite_each_other
+  PASS  test_the_top_card_is_the_highest_severity_then_the_earliest
+  PASS  test_resolving_a_condition_keeps_it_in_the_history
+  PASS  test_resolved_notices_sort_below_active_ones
+  PASS  test_an_unknown_category_is_refused_by_name
+  PASS  test_an_empty_message_is_refused_rather_than_stored_as_a_blank_notice
+  PASS  test_reading_a_row_that_does_not_exist_is_refused_and_leaves_no_stale_notice
+  PASS  test_an_empty_record_refuses_a_top_card_instead_of_answering_zero
+  PASS  test_a_full_record_of_live_conditions_refuses_rather_than_evicting_by_an_unstated_rule
+  PASS  test_the_oldest_resolved_info_is_evicted_before_a_resolved_warning
+  PASS  test_every_authored_summary_fits_the_card_height_it_is_drawn_in
+  PASS  test_the_narrow_summary_padding_is_what_makes_its_forty_four_fit
+CI_SUITE_TIME {"assertions":1210,"failures":0,"suite":"test_ui_notices.gd","tests":25,"usec":117090}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+25 test(s), 1210 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 25 tests, 1210 assertions, 0 failures.

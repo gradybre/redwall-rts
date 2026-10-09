@@ -1,0 +1,29 @@
+{
+  "input_sha256": "6cae5de988d7dbe55035d692592cfb050ba7dcbc80680512bd794f937704741d",
+  "outer_hash_recomputed": true,
+  "cases": [
+    {
+      "case": "actual body bone word changed",
+      "refusal": "INPUT_BONE_WORD"
+    },
+    {
+      "case": "actual body weight word changed",
+      "refusal": "INPUT_WEIGHT_SUM"
+    },
+    {
+      "case": "coherently changed actual main topology",
+      "refusal": "INPUT_INDEX_WORD"
+    },
+    {
+      "case": "actual compressed primary position changed",
+      "refusal": "INPUT_POSITION_DECODE"
+    },
+    {
+      "case": "actual shadow LOD index outside all vertices",
+      "refusal": "INPUT_LOD_INDEX"
+    }
+  ],
+  "source_unchanged": true,
+  "engine_run": false,
+  "prior_system_python_attempt": "Python3.9 lacks hashlib.file_digest; refused before input mutation, rerun with prescribed runtime"
+}

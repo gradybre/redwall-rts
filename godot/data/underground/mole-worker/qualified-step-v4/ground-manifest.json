@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "wire_version": 2,
+  "catalog_revision": 1,
+  "artifact_sha256": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24",
+  "artifact_bytes": 576,
+  "counts": {
+    "variants": 0,
+    "points": 0,
+    "regions": 0,
+    "parts": 0,
+    "vertices": 0,
+    "materials": 0,
+    "paces": 12
+  },
+  "profile_content_revision": 3,
+  "profile_wire_sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+  "profile_manifest_sha256": "a93e6c23b706a71b4cd66e08778494eb8e4b3adcd5a610cfa0b891b71c012927",
+  "rows": [
+    {
+      "profile_id": 1,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 1,
+      "yaw": 0,
+      "selection_policy": 0
+    },
+    {
+      "profile_id": 2,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 0,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 3,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 16384,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 4,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 32768,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 5,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "selection_policy": 1
+    },
+    {
+      "profile_id": 6,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 0,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 7,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 16384,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 8,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 32768,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 9,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "selection_policy": 2
+    },
+    {
+      "profile_id": 10,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "selection_policy": 4
+    },
+    {
+      "profile_id": 11,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "selection_policy": 5
+    },
+    {
+      "profile_id": 12,
+      "profile_revision": 1,
+      "mode": 1,
+      "yaw_kind": 1,
+      "yaw": 0,
+      "selection_policy": 6
+    }
+  ],
+  "excluded_non_walk": [
+    {
+      "profile_id": 0,
+      "mode": 0
+    },
+    {
+      "profile_id": 13,
+      "mode": 3
+    },
+    {
+      "profile_id": 14,
+      "mode": 3
+    },
+    {
+      "profile_id": 15,
+      "mode": 3
+    },
+    {
+      "profile_id": 16,
+      "mode": 3
+    },
+    {
+      "profile_id": 17,
+      "mode": 3
+    },
+    {
+      "profile_id": 18,
+      "mode": 3
+    },
+    {
+      "profile_id": 19,
+      "mode": 3
+    },
+    {
+      "profile_id": 20,
+      "mode": 3
+    },
+    {
+      "profile_id": 21,
+      "mode": 3
+    },
+    {
+      "profile_id": 22,
+      "mode": 3
+    },
+    {
+      "profile_id": 23,
+      "mode": 3
+    },
+    {
+      "profile_id": 24,
+      "mode": 3
+    },
+    {
+      "profile_id": 25,
+      "mode": 3
+    },
+    {
+      "profile_id": 26,
+      "mode": 3
+    },
+    {
+      "profile_id": 27,
+      "mode": 3
+    },
+    {
+      "profile_id": 28,
+      "mode": 3
+    }
+  ],
+  "movement": {
+    "profile_id": 1,
+    "profile_key": "starter.ground.adult.mole",
+    "profile_revision": 1,
+    "species_id": 6,
+    "life_stage": 0
+  },
+  "rate_kind": "RATE_GROUND_CAP",
+  "rate_value": 0,
+  "compiler_sha256": "14dbac8fa70c17648711db856cab2fe5b7666a53ae1a0ca61b2eb4761bebf539",
+  "runtime_activation_qualified": false,
+  "clearance_or_actor_permission": false,
+  "native_memory_measured": false
+}

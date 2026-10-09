@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/excavation_inventory.gd": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
+  "godot/scripts/core/modular_project_contract.gd": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
+  "godot/scripts/core/modular_projects.gd": "6eb595ba9f4933af46184b2585b2d81a9dfd9ddc9987aa96314ef5433ace00e5",
+  "godot/scripts/core/reservations.gd": "6c355448dccf60543c2977622481bd4ef03b580d4b61cf7a25f90f30c6f4d94f",
+  "godot/test/test_modular_inventory.gd": "9aee4125d7e0bd859aa5b080d52371ac91398b692689f57fc976163b405a9c75",
+  "godot/test/test_modular_projects.gd": "ce4e7b35cd2c1e26a55e789597388ffa809ea2e7fb46c0ddfae75cba87b141fd",
+  "godot/test/test_reservations.gd": "9c93d0678a050f47ca7ee78a975c777a043b80ffb34cd3feaab2c56f1fe7b6ef"
+}

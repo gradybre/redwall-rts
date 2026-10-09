@@ -1,0 +1,34 @@
+{
+  "commit": "b03fbc2b0322381248998bfc57ce0a89ee3e76c0",
+  "full_counts": {
+    "tests": 11000,
+    "assertions": 1019580,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "shard_counts": {
+    "tests": 11000,
+    "assertions": 1019572,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "suite_count": 396,
+  "test_count_equal": true,
+  "diagnostic_totals_equal": true,
+  "assertion_difference_full_minus_shards": 8,
+  "assertion_difference_attributed": false,
+  "exact_all_counter_verifier": "refused as designed; unchanged",
+  "full_per_suite_counters_present": false,
+  "restoration_and_full_analyzer": "Wrapper complete: source/HEAD unchanged, assets/project restored. Full analyzer correctly fails the same12 historical-source warnings as CI; no complete milestone pass.",
+  "verifier_refusal": "shard totals differ from full suite: shards={'tests': 11000, 'assertions': 1019572, 'failures': 0, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}, baseline={'tests': 11000, 'assertions': 1019580, 'failures': 0, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}"
+}

@@ -1,0 +1,374 @@
+{
+  "counts": {
+    "assertions": 195142,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1360,
+    "tolerated": 45,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "f14d039dafa8f0573fb9f9ee16e204836157328aca4201036fb6cda51ef48d25",
+  "shard_count": 8,
+  "shard_index": 6,
+  "suite_counts": {
+    "test_connector_view.gd": {
+      "assertions": 16536,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_demo_actor_underground_heading.gd": {
+      "assertions": 2619,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_demo_build.gd": {
+      "assertions": 214,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_camera.gd": {
+      "assertions": 115,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_demo_camera_modes.gd": {
+      "assertions": 280,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_demo_chronicle.gd": {
+      "assertions": 310,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_crop_roles.gd": {
+      "assertions": 106,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_fitout.gd": {
+      "assertions": 298,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_demo_group_select.gd": {
+      "assertions": 183,
+      "failures": 0,
+      "tests": 24
+    },
+    "test_demo_guide_pages.gd": {
+      "assertions": 1607,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_demo_infirmary_building.gd": {
+      "assertions": 145,
+      "failures": 0,
+      "tests": 24
+    },
+    "test_demo_levels_edges.gd": {
+      "assertions": 269,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_demo_orchard_ui.gd": {
+      "assertions": 223,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_demo_people_live.gd": {
+      "assertions": 70,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_people_pairs.gd": {
+      "assertions": 4919,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_select_live.gd": {
+      "assertions": 126,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_underground_view.gd": {
+      "assertions": 3516,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_demo_water_play.gd": {
+      "assertions": 793,
+      "failures": 0,
+      "tests": 94
+    },
+    "test_demo_water_safety.gd": {
+      "assertions": 144,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_demo_work_index.gd": {
+      "assertions": 4,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_ecology.gd": {
+      "assertions": 299,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_equipment_authority_lifetime.gd": {
+      "assertions": 133,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_excavation_claim_batch.gd": {
+      "assertions": 331,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_gear.gd": {
+      "assertions": 1169,
+      "failures": 0,
+      "tests": 82
+    },
+    "test_input_map.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_job_planner_columns.gd": {
+      "assertions": 750,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_jobs.gd": {
+      "assertions": 3831,
+      "failures": 0,
+      "tests": 93
+    },
+    "test_memory_ledger_probe.gd": {
+      "assertions": 109,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_mole_qualified_profiles.gd": {
+      "assertions": 227,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_reservations.gd": {
+      "assertions": 467,
+      "failures": 0,
+      "tests": 45
+    },
+    "test_reservations_carry.gd": {
+      "assertions": 66,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_room_catalog.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_save_identity_restore.gd": {
+      "assertions": 133,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_save_owner_resource_nodes.gd": {
+      "assertions": 85132,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_save_section_inventories.gd": {
+      "assertions": 1366,
+      "failures": 0,
+      "tests": 70
+    },
+    "test_stock_authority_lifetime.gd": {
+      "assertions": 49,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_ui_command_bridge.gd": {
+      "assertions": 120,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_ui_notices.gd": {
+      "assertions": 1210,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_underground_connector_placements.gd": {
+      "assertions": 4004,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_underground_entry_bindings.gd": {
+      "assertions": 3245,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_underground_final_facts.gd": {
+      "assertions": 1175,
+      "failures": 0,
+      "tests": 31
+    },
+    "test_underground_furniture_batches.gd": {
+      "assertions": 1364,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_underground_motion_clock.gd": {
+      "assertions": 2090,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_underground_phase_companions.gd": {
+      "assertions": 234,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_underground_room_cut_map.gd": {
+      "assertions": 40215,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_underground_routes.gd": {
+      "assertions": 11132,
+      "failures": 0,
+      "tests": 69
+    },
+    "test_underground_surface_anchor.gd": {
+      "assertions": 329,
+      "failures": 0,
+      "tests": 31
+    },
+    "test_underground_world_bindings.gd": {
+      "assertions": 828,
+      "failures": 0,
+      "tests": 37
+    },
+    "test_weather.gd": {
+      "assertions": 1377,
+      "failures": 0,
+      "tests": 97
+    },
+    "test_world_material_targets.gd": {
+      "assertions": 68,
+      "failures": 0,
+      "tests": 5
+    }
+  },
+  "suite_usec": {
+    "test_connector_view.gd": 61572,
+    "test_demo_actor_underground_heading.gd": 538015,
+    "test_demo_build.gd": 9926,
+    "test_demo_camera.gd": 42789,
+    "test_demo_camera_modes.gd": 1470463,
+    "test_demo_chronicle.gd": 6883481,
+    "test_demo_crop_roles.gd": 201273,
+    "test_demo_fitout.gd": 113300,
+    "test_demo_group_select.gd": 333853,
+    "test_demo_guide_pages.gd": 3278131,
+    "test_demo_infirmary_building.gd": 1488452,
+    "test_demo_levels_edges.gd": 1000600,
+    "test_demo_orchard_ui.gd": 931562,
+    "test_demo_people_live.gd": 32079145,
+    "test_demo_people_pairs.gd": 540772,
+    "test_demo_select_live.gd": 33113785,
+    "test_demo_underground_view.gd": 38613522,
+    "test_demo_water_play.gd": 14900195,
+    "test_demo_water_safety.gd": 9150838,
+    "test_demo_work_index.gd": 73192,
+    "test_ecology.gd": 1178904,
+    "test_equipment_authority_lifetime.gd": 128425,
+    "test_excavation_claim_batch.gd": 2460181,
+    "test_gear.gd": 2073306,
+    "test_input_map.gd": 38908,
+    "test_job_planner_columns.gd": 2891716,
+    "test_jobs.gd": 3931261,
+    "test_memory_ledger_probe.gd": 4555463,
+    "test_mole_qualified_profiles.gd": 706146,
+    "test_reservations.gd": 3268437,
+    "test_reservations_carry.gd": 529865,
+    "test_room_catalog.gd": 17320,
+    "test_save_identity_restore.gd": 1465701,
+    "test_save_owner_resource_nodes.gd": 17023649,
+    "test_save_section_inventories.gd": 43496337,
+    "test_stock_authority_lifetime.gd": 13146,
+    "test_ui_command_bridge.gd": 712398,
+    "test_ui_notices.gd": 227452,
+    "test_underground_connector_placements.gd": 15247209,
+    "test_underground_entry_bindings.gd": 35253498,
+    "test_underground_final_facts.gd": 3103136,
+    "test_underground_furniture_batches.gd": 4084378,
+    "test_underground_motion_clock.gd": 545547,
+    "test_underground_phase_companions.gd": 7774147,
+    "test_underground_room_cut_map.gd": 740273,
+    "test_underground_routes.gd": 25384090,
+    "test_underground_surface_anchor.gd": 14725225,
+    "test_underground_world_bindings.gd": 16305934,
+    "test_weather.gd": 68412,
+    "test_world_material_targets.gd": 1069374
+  },
+  "suites": [
+    "test_connector_view.gd",
+    "test_demo_actor_underground_heading.gd",
+    "test_demo_build.gd",
+    "test_demo_camera.gd",
+    "test_demo_camera_modes.gd",
+    "test_demo_chronicle.gd",
+    "test_demo_crop_roles.gd",
+    "test_demo_fitout.gd",
+    "test_demo_group_select.gd",
+    "test_demo_guide_pages.gd",
+    "test_demo_infirmary_building.gd",
+    "test_demo_levels_edges.gd",
+    "test_demo_orchard_ui.gd",
+    "test_demo_people_live.gd",
+    "test_demo_people_pairs.gd",
+    "test_demo_select_live.gd",
+    "test_demo_underground_view.gd",
+    "test_demo_water_play.gd",
+    "test_demo_water_safety.gd",
+    "test_demo_work_index.gd",
+    "test_ecology.gd",
+    "test_equipment_authority_lifetime.gd",
+    "test_excavation_claim_batch.gd",
+    "test_gear.gd",
+    "test_input_map.gd",
+    "test_job_planner_columns.gd",
+    "test_jobs.gd",
+    "test_memory_ledger_probe.gd",
+    "test_mole_qualified_profiles.gd",
+    "test_reservations.gd",
+    "test_reservations_carry.gd",
+    "test_room_catalog.gd",
+    "test_save_identity_restore.gd",
+    "test_save_owner_resource_nodes.gd",
+    "test_save_section_inventories.gd",
+    "test_stock_authority_lifetime.gd",
+    "test_ui_command_bridge.gd",
+    "test_ui_notices.gd",
+    "test_underground_connector_placements.gd",
+    "test_underground_entry_bindings.gd",
+    "test_underground_final_facts.gd",
+    "test_underground_furniture_batches.gd",
+    "test_underground_motion_clock.gd",
+    "test_underground_phase_companions.gd",
+    "test_underground_room_cut_map.gd",
+    "test_underground_routes.gd",
+    "test_underground_surface_anchor.gd",
+    "test_underground_world_bindings.gd",
+    "test_weather.gd",
+    "test_world_material_targets.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 362
+}

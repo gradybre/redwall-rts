@@ -1,0 +1,85 @@
+{
+  "source_before": {
+    "godot/scripts/core/underground_profiles.gd": "6d0ce5822a9fb41f7b1e660f57ac47932560767efb0a73655c96d1489c8bf86b",
+    "godot/test/test_underground_profiles.gd": "5bfe6e35241f4ed33398dd76a8d181df14fd15da6c2c0b34cb2a3e8a89b6de97",
+    "godot/test/test_underground_entry_work_area.gd": "9969178eccad8997c412864e87708a7157e9c59b1a205d4e061b8c3275ba1880",
+    "godot/scripts/core/underground_connector_placements.gd": "07d41b2dfdb6294a13e681e21fbb93b8e4b643f4befd60ae5136888512009c7a",
+    "godot/scripts/core/underground_locations.gd": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+    "godot/test/test_underground_entry_source_phases.gd": "0529d1ba91efe782c2319e9b3edc12a32b9537a27bddd607f97ae4a67ce4fc76",
+    "godot/scripts/core/underground_world_routes.gd": "74632bf8aafc350b2377077186cb96d1e29c09c4c06b6575c14d851c3b506cfe",
+    "godot/scripts/core/underground_connector_contacts.gd": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/source_program.gd": "399e419321f46ba2213c663d246fb1966a1556c6312036defc1a3afd794c0611",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd": "72c3fa5e4ae8d46fb4a81056de8eddd143d8ff9ca0c3d03b01d949595f66a610",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd": "042f43c8ccc812642608773bd0b068bf7d0b0838a2e1f1a1180d77fec9ef3275",
+    "godot/test/test_underground_world_routes.gd": "aa49b50a28c959dbfc789c2a1bfcaf993f9565cd275d64c5c9b9b9e37850be53",
+    "godot/test/test_underground_connector_contacts.gd": "f363dd019a3db7da100461ef935ef8292f895f9c5cd23c98cf7d4a9b9e0fb3da",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd": "8fee03354819a6a47f8686be6db8d134c191714ea304c689c3fe6a1932ba091c",
+    "godot/scripts/core/underground_routes.gd": "e0cf75d54a7ab065e47a5a70a16e516f3f2d751f446ceca9894f7d753e4fd407",
+    "godot/scripts/core/underground_connector_workpieces.gd": "2dd9fcfa5c9373cd14f5842a6cce55ea5c56525092f42bc26ad22a3a2efa57f7",
+    "godot/scripts/core/underground_connector_work.gd": "3efb1b9faf15585ed732682433aa0b5df0e77e5fb4666ea88466fde17b6bf602",
+    "godot/scripts/core/modular_project_contract.gd": "b008e397952a9eeffeefa805d1f70e586a4e580e261ef29682187b6df537b437",
+    "godot/scripts/core/modular_projects.gd": "b1254a5040614a2151d6bb30a6789f92afc20da3d54a5c7a500b64e1e5b03e50",
+    "godot/test/test_modular_projects.gd": "93b27f5ae857c1598772f56d17f3f54a52a12c8d5be1cc4b967dda151a2e8807",
+    "godot/test/test_underground_connector_work.gd": "6af69852efb010a9557f4d730b13a4e78f564207ccf61527224c0490226a3bc8",
+    "godot/test/test_underground_connector_workpieces.gd": "e0223e0a648ccee366c9b7ed3fa20b34133035d583b6760da5430b9b9366732d"
+  },
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit": 0,
+      "raw_bad": false
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "272/414",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-work-area-2026-10-05/focus-3/focused"
+      ],
+      "exit": 1,
+      "raw_bad": false
+    }
+  ],
+  "error": "test_underground_entry_work_area.gd.log",
+  "project_restored": true,
+  "registry_unchanged": true,
+  "source_after": {
+    "godot/scripts/core/underground_profiles.gd": "6d0ce5822a9fb41f7b1e660f57ac47932560767efb0a73655c96d1489c8bf86b",
+    "godot/test/test_underground_profiles.gd": "5bfe6e35241f4ed33398dd76a8d181df14fd15da6c2c0b34cb2a3e8a89b6de97",
+    "godot/test/test_underground_entry_work_area.gd": "9969178eccad8997c412864e87708a7157e9c59b1a205d4e061b8c3275ba1880",
+    "godot/scripts/core/underground_connector_placements.gd": "07d41b2dfdb6294a13e681e21fbb93b8e4b643f4befd60ae5136888512009c7a",
+    "godot/scripts/core/underground_locations.gd": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+    "godot/test/test_underground_entry_source_phases.gd": "0529d1ba91efe782c2319e9b3edc12a32b9537a27bddd607f97ae4a67ce4fc76",
+    "godot/scripts/core/underground_world_routes.gd": "74632bf8aafc350b2377077186cb96d1e29c09c4c06b6575c14d851c3b506cfe",
+    "godot/scripts/core/underground_connector_contacts.gd": "4d0aa197154ce4d8ea30b6107ddd408950a32efc0a8cd69a64670567458d2fd1",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/source_program.gd": "399e419321f46ba2213c663d246fb1966a1556c6312036defc1a3afd794c0611",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd": "72c3fa5e4ae8d46fb4a81056de8eddd143d8ff9ca0c3d03b01d949595f66a610",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd": "042f43c8ccc812642608773bd0b068bf7d0b0838a2e1f1a1180d77fec9ef3275",
+    "godot/test/test_underground_world_routes.gd": "aa49b50a28c959dbfc789c2a1bfcaf993f9565cd275d64c5c9b9b9e37850be53",
+    "godot/test/test_underground_connector_contacts.gd": "f363dd019a3db7da100461ef935ef8292f895f9c5cd23c98cf7d4a9b9e0fb3da",
+    "godot/data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd": "8fee03354819a6a47f8686be6db8d134c191714ea304c689c3fe6a1932ba091c",
+    "godot/scripts/core/underground_routes.gd": "e0cf75d54a7ab065e47a5a70a16e516f3f2d751f446ceca9894f7d753e4fd407",
+    "godot/scripts/core/underground_connector_workpieces.gd": "2dd9fcfa5c9373cd14f5842a6cce55ea5c56525092f42bc26ad22a3a2efa57f7",
+    "godot/scripts/core/underground_connector_work.gd": "3efb1b9faf15585ed732682433aa0b5df0e77e5fb4666ea88466fde17b6bf602",
+    "godot/scripts/core/modular_project_contract.gd": "b008e397952a9eeffeefa805d1f70e586a4e580e261ef29682187b6df537b437",
+    "godot/scripts/core/modular_projects.gd": "b1254a5040614a2151d6bb30a6789f92afc20da3d54a5c7a500b64e1e5b03e50",
+    "godot/test/test_modular_projects.gd": "93b27f5ae857c1598772f56d17f3f54a52a12c8d5be1cc4b967dda151a2e8807",
+    "godot/test/test_underground_connector_work.gd": "6af69852efb010a9557f4d730b13a4e78f564207ccf61527224c0490226a3bc8",
+    "godot/test/test_underground_connector_workpieces.gd": "e0223e0a648ccee366c9b7ed3fa20b34133035d583b6760da5430b9b9366732d"
+  },
+  "cache_clean_import": true,
+  "assets_restored": true,
+  "sidecars_restored": true,
+  "source_unchanged": true,
+  "exit": 1
+}

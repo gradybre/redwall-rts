@@ -1,0 +1,71 @@
+{
+  "head": "e67adf30f4c88f8f966069f0c47da2bb74259040",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.295
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "341/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-6"
+      ],
+      "log": "suite.log",
+      "exit_code": 0,
+      "seconds": 13.907
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6481",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-6/analyzer.json",
+        "godot/demo/demo_village.gd",
+        "godot/demo/tunnel/tunnel_panel.gd",
+        "godot/demo/burrow/modular_demo_mode.gd",
+        "godot/demo/burrow/modular_demo_live.gd",
+        "godot/test/test_modular_demo_live.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 17.53
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "tests": 1,
+    "assertions": 63,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

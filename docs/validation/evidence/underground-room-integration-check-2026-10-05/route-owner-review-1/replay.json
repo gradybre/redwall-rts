@@ -1,0 +1,27 @@
+{
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/evidence/underground-route-owner-composition-2026-10-04/test_census.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.398,
+      "log": "census-tests.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/route-owner-review-1/census.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.118,
+      "log": "census-build.log"
+    }
+  ],
+  "census_byte_identical": true
+}

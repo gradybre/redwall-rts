@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--max",
+    "0",
+    "--port",
+    "6164",
+    "--json",
+    "docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-16/analyzer.json",
+    "godot/scripts/core/underground_entry_world_bindings.gd",
+    "godot/test/test_underground_entry_world_bindings.gd",
+    "godot/test/test_underground_first_prefix.gd"
+  ],
+  "exit_code": 0,
+  "reason": "Analyzed the three owned files after the strict run stopped at the known actual companion dependency. The diagnostic root dependency is not independently accepted here.",
+  "source_unchanged": true
+}

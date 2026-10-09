@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
+  "godot/scripts/core/underground_world_retirement.gd": "81ecd6795d7394e6d98f6fadcc1301053af0a5252bf7894a41b52d455098aa33",
+  "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50",
+  "godot/scripts/core/underground_surface_anchor.gd": "c53bc83249e7b808616b972a96ad92722838e5b7451994cd21e40249a6eb6d1e",
+  "godot/test/test_underground_session.gd": "a737e9ae1e414c96fbc62fff9663015640b7cd34be76bbac5b11e2b9634313f5",
+  "godot/test/test_underground_world_retirement.gd": "98d3343f679b980ceb1778c1fe99e6fa71f4358173b27365fed68cfe05e35dcc",
+  "godot/test/test_underground_host.gd": "5ea6fc04a73bc23570b61c1e8062e354b26c252ef10331f4c1d8bfb5fb12d527",
+  "godot/test/test_underground_surface_anchor.gd": "ec51b3036955d34bbb4725bed9f64c5b47e3375bd48c08ba5c09a79317aa1ac7"
+}

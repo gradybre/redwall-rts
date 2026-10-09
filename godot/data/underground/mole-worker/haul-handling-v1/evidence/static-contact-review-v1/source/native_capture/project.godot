@@ -1,0 +1,10 @@
+; Isolated offline geometry capture. Does not load or mutate the settlement project.
+config_version=5
+
+[application]
+config/name="Redwall haul source capture"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Redwall-ug-haul-source-capture"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

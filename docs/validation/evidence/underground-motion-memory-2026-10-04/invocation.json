@@ -1,0 +1,76 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "seconds": 57.663,
+    "log": "memory-tests.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.538,
+    "log": "memory-pack.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py"
+    ],
+    "exit_code": 0,
+    "seconds": 1.695,
+    "log": "capacity-generate.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.735,
+    "log": "capacity-check.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "seconds": 3.375,
+    "log": "capacity-tests.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.846,
+    "log": "ready07.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.34,
+    "log": "registry.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "log": "merge-gate.log"
+  }
+]

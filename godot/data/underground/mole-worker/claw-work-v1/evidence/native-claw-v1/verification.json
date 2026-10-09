@@ -1,0 +1,40 @@
+{
+  "adr": "1217",
+  "clip_frames": [
+    122,
+    45,
+    31,
+    33,
+    31,
+    31,
+    2,
+    31,
+    31,
+    33,
+    31
+  ],
+  "clips": [
+    "stand",
+    "walk",
+    "dig_entry",
+    "dig_stroke",
+    "dig_recovery",
+    "seat_entry",
+    "seat_work",
+    "seat_recovery",
+    "tap_entry",
+    "tap_work",
+    "tap_recovery"
+  ],
+  "coefficient_mismatches": 0,
+  "exact_joins": 36,
+  "floor_rule": "every body vertex, except paw vertices in the dig clips",
+  "max_source_to_native_input_vertex_error_u": 0.000285631152564747,
+  "minimum_floor_gap_u": 0.0013546068610139628,
+  "native_capture_sha256": "b4020e15cc9d792737708d5b3cce972f40e7235779cf5cd636be8212cd2ddf7f",
+  "production_qualified": false,
+  "rows": 4953,
+  "runtime_admitted": false,
+  "schema": 1,
+  "scope": "Actual native registered matrix inputs at all keys and quarter intervals in three views; binary64 vertex reconstruction. GPU shader roundoff and unsampled Q16 times are not certified."
+}

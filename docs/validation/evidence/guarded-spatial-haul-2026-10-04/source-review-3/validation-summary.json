@@ -1,0 +1,446 @@
+{
+  "candidate-1": {
+    "tests": 10,
+    "assertions": 505,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 505,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 10,
+        "usec": 42091,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 1,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "candidate-2": {
+    "tests": 313,
+    "assertions": 4111,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 555,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 12,
+        "usec": 44721,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 467,
+        "failures": 0,
+        "suite": "test_reservations.gd",
+        "tests": 45,
+        "usec": 1640640,
+        "log": "test_reservations.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 1384,
+        "failures": 0,
+        "suite": "test_reservations_columns.gd",
+        "tests": 22,
+        "usec": 1248876,
+        "log": "test_reservations_columns.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 66,
+        "failures": 0,
+        "suite": "test_reservations_carry.gd",
+        "tests": 10,
+        "usec": 332418,
+        "log": "test_reservations_carry.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 173,
+        "failures": 0,
+        "suite": "test_haul_carry.gd",
+        "tests": 29,
+        "usec": 816348,
+        "log": "test_haul_carry.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 179,
+        "failures": 0,
+        "suite": "test_haul_planner.gd",
+        "tests": 33,
+        "usec": 876304,
+        "log": "test_haul_planner.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 1013,
+        "failures": 0,
+        "suite": "test_inventory.gd",
+        "tests": 144,
+        "usec": 279744,
+        "log": "test_inventory.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 274,
+        "failures": 0,
+        "suite": "test_inventory_spatial.gd",
+        "tests": 18,
+        "usec": 244568,
+        "log": "test_inventory_spatial.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 0,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "return-tail-rejected": {
+    "tests": 12,
+    "assertions": 555,
+    "failures": 1,
+    "suites": [
+      {
+        "assertions": 555,
+        "failures": 1,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 12,
+        "usec": 47216,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 1
+      }
+    ],
+    "invocation_exit": 1,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "candidate-3": {
+    "tests": 40,
+    "assertions": 895,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 555,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 12,
+        "usec": 47329,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 66,
+        "failures": 0,
+        "suite": "test_reservations_carry.gd",
+        "tests": 10,
+        "usec": 348064,
+        "log": "test_reservations_carry.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 274,
+        "failures": 0,
+        "suite": "test_inventory_spatial.gd",
+        "tests": 18,
+        "usec": 243802,
+        "log": "test_inventory_spatial.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 0,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "candidate-4": {
+    "tests": 68,
+    "assertions": 1105,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 572,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 13,
+        "usec": 46148,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 467,
+        "failures": 0,
+        "suite": "test_reservations.gd",
+        "tests": 45,
+        "usec": 1672524,
+        "log": "test_reservations.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 66,
+        "failures": 0,
+        "suite": "test_reservations_carry.gd",
+        "tests": 10,
+        "usec": 339833,
+        "log": "test_reservations_carry.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 0,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "inventory-tail-rejected": {
+    "tests": 15,
+    "assertions": 593,
+    "failures": 2,
+    "suites": [
+      {
+        "assertions": 593,
+        "failures": 2,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 15,
+        "usec": 76890,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 1
+      }
+    ],
+    "invocation_exit": 1,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "candidate-5": {
+    "tests": 216,
+    "assertions": 2181,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 595,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 15,
+        "usec": 75145,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 1013,
+        "failures": 0,
+        "suite": "test_inventory.gd",
+        "tests": 144,
+        "usec": 286666,
+        "log": "test_inventory.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 274,
+        "failures": 0,
+        "suite": "test_inventory_spatial.gd",
+        "tests": 18,
+        "usec": 239039,
+        "log": "test_inventory_spatial.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 233,
+        "failures": 0,
+        "suite": "test_inventory_ground_piles.gd",
+        "tests": 29,
+        "usec": 21054,
+        "log": "test_inventory_ground_piles.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 66,
+        "failures": 0,
+        "suite": "test_reservations_carry.gd",
+        "tests": 10,
+        "usec": 349752,
+        "log": "test_reservations_carry.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 0,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "outer-commit-rejected": {
+    "tests": 16,
+    "assertions": 603,
+    "failures": 3,
+    "suites": [
+      {
+        "assertions": 603,
+        "failures": 3,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 16,
+        "usec": 73667,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 1
+      }
+    ],
+    "invocation_exit": 1,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "candidate-6": {
+    "tests": 346,
+    "assertions": 4392,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 603,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 16,
+        "usec": 75879,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 1013,
+        "failures": 0,
+        "suite": "test_inventory.gd",
+        "tests": 144,
+        "usec": 281928,
+        "log": "test_inventory.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 274,
+        "failures": 0,
+        "suite": "test_inventory_spatial.gd",
+        "tests": 18,
+        "usec": 246455,
+        "log": "test_inventory_spatial.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 233,
+        "failures": 0,
+        "suite": "test_inventory_ground_piles.gd",
+        "tests": 29,
+        "usec": 21519,
+        "log": "test_inventory_ground_piles.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 467,
+        "failures": 0,
+        "suite": "test_reservations.gd",
+        "tests": 45,
+        "usec": 1715178,
+        "log": "test_reservations.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 1384,
+        "failures": 0,
+        "suite": "test_reservations_columns.gd",
+        "tests": 22,
+        "usec": 1282021,
+        "log": "test_reservations_columns.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 66,
+        "failures": 0,
+        "suite": "test_reservations_carry.gd",
+        "tests": 10,
+        "usec": 339031,
+        "log": "test_reservations_carry.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 173,
+        "failures": 0,
+        "suite": "test_haul_carry.gd",
+        "tests": 29,
+        "usec": 859821,
+        "log": "test_haul_carry.gd.log",
+        "strict_exit": 0
+      },
+      {
+        "assertions": 179,
+        "failures": 0,
+        "suite": "test_haul_planner.gd",
+        "tests": 33,
+        "usec": 926617,
+        "log": "test_haul_planner.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 1,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "candidate-7": {
+    "tests": 16,
+    "assertions": 603,
+    "failures": 0,
+    "suites": [
+      {
+        "assertions": 603,
+        "failures": 0,
+        "suite": "test_haul_transfer_guard.gd",
+        "tests": 16,
+        "usec": 92716,
+        "log": "test_haul_transfer_guard.gd.log",
+        "strict_exit": 0
+      }
+    ],
+    "invocation_exit": 0,
+    "source_unchanged": true,
+    "restored": {
+      "registry_restored": true,
+      "project_restored": true,
+      "assets_restored": true
+    }
+  },
+  "final_difference": {
+    "baseline": "candidate-6",
+    "exact_change": "@warning_ignore(\"unused_private_class_variable\") # Borrowed through the concrete static transfer continuation.",
+    "other_source_and_test_files_unchanged": true,
+    "static_field_annotation_only": true
+  },
+  "rejected_fixture_note": "inventory-tail-rejected has one valid late reclamation/closure witness plus a second test with invalid promote-without-journal setup; that extra setup failure is not claimed as source evidence. Corrected from candidate-5 onward."
+}

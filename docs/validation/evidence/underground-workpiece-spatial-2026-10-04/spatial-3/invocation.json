@@ -1,0 +1,85 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.593,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "299/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-support-clearance/docs/validation/evidence/underground-workpiece-spatial-2026-10-04/spatial-3"
+      ],
+      "exit_code": 0,
+      "seconds": 4.486,
+      "log": "test_underground_workpiece_spatial.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "94/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-support-clearance/docs/validation/evidence/underground-workpiece-spatial-2026-10-04/spatial-3"
+      ],
+      "exit_code": 0,
+      "seconds": 11.462,
+      "log": "test_underground_connector_placements.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "78/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-support-clearance/docs/validation/evidence/underground-workpiece-spatial-2026-10-04/spatial-3"
+      ],
+      "exit_code": 0,
+      "seconds": 21.598,
+      "log": "test_underground_entry_bindings.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6283",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-support-clearance/docs/validation/evidence/underground-workpiece-spatial-2026-10-04/spatial-3/analyzer.json",
+        "godot/scripts/core/underground_connector_placements.gd",
+        "godot/scripts/core/underground_entry_bindings.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_underground_workpiece_spatial.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.633,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "diagnostic_registry_sha256": "995e480e943ccf42c9fdafa2f613cda3a787e7306662db7457160aedbd950f54",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-workpiece-spatial",
+  "project_test_sha256": "04f569eca3c418f3f4d4efcbf9caf2a9ebb912b99eba18a2448fcaf0d1f270e8",
+  "assets_present_before": false,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

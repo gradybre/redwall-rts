@@ -1,0 +1,68 @@
+state_registry_coverage: PASS -- 142 modules, 707 rows, 1044 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_reservations.gd
+  PASS  test_connector_input_entry_requires_typed_bound_settlement_before_any_journal
+  PASS  test_claim_metadata_mutation_observes_only_its_actual_inventory_transaction
+  PASS  test_indexing_allocation_matches_the_decision_0019_budget
+  PASS  test_capacity_requests_are_clamped_to_the_specified_maxima
+  PASS  test_recipe_reserves_across_five_or_more_lots
+  PASS  test_one_job_may_claim_far_more_lots_than_four
+  PASS  test_job_list_is_iterated_in_canonical_lot_order
+  PASS  test_rows_come_from_the_lowest_free_index
+  PASS  test_freed_rows_return_to_the_pool
+  PASS  test_clear_returns_every_row_to_the_pool
+  PASS  test_identical_job_lot_purpose_claims_coalesce_into_one_row
+  PASS  test_a_different_purpose_or_job_gets_its_own_row
+  PASS  test_coalescing_keeps_the_later_expiry_and_never_the_earlier
+  PASS  test_pool_exhaustion_refuses_explicitly_with_no_partial_reservations
+  PASS  test_a_full_pool_still_accepts_a_batch_that_only_coalesces
+  PASS  test_a_batch_that_outruns_one_lot_reserves_nothing
+  PASS  test_an_invalid_lot_anywhere_in_the_batch_voids_the_whole_batch
+  PASS  test_reserved_milli_equals_the_sum_of_active_rows
+  PASS  test_audit_catches_a_reserved_total_that_drifts
+  PASS  test_audit_reports_a_healthy_pool_and_counts_its_rows
+  PASS  test_audit_bites_on_structural_corruption
+  PASS  test_a_release_refuses_when_the_inventory_no_longer_covers_the_rows
+  PASS  test_a_claim_is_never_found_under_the_wrong_job_generation
+  PASS  test_spoiling_a_reserved_lot_releases_every_claim_in_stable_order
+  PASS  test_a_lot_consumed_to_nothing_leaves_droppable_rows
+  PASS  test_replacing_a_party_member_leaves_the_coordinator_claims_intact
+  PASS  test_cancelling_the_coordinator_releases_only_the_shared_claims
+  PASS  test_releasing_a_job_with_no_claims_is_not_a_refusal
+  PASS  test_two_logically_identical_worlds_serialize_identically
+  PASS  test_a_different_claim_changes_the_image
+  PASS  test_expired_claims_release_and_live_ones_survive
+  PASS  test_renewal_only_ever_extends_a_lease
+  PASS  test_batch_refuses_an_unusable_job_reference
+  PASS  test_batch_refuses_malformed_input
+  PASS  test_batch_refuses_to_join_an_open_inventory_transaction
+  PASS  test_a_reused_job_slot_refuses_until_the_old_claims_are_released
+  PASS  test_a_null_inventory_is_refused_rather_than_dereferenced
+  PASS  test_releasing_an_unknown_claim_is_an_explicit_refusal
+  PASS  test_claim_expiry_is_reported_without_a_sentinel
+  PASS  test_row_accessors_refuse_an_inactive_row
+  PASS  test_foreign_inventory_refuses_all_reservation_mutation_doors_before_changes
+  PASS  test_failed_claim_does_not_bind_and_empty_bound_pool_never_switches_world
+  PASS  test_inventory_aware_restore_binds_only_success_and_rejects_foreign_recovery
+  PASS  test_save_adapter_passes_actual_inventory_binding_before_restore_publication
+  PASS  test_expired_weak_inventory_binding_never_licenses_a_new_world
+CI_SUITE_TIME {"assertions":467,"failures":0,"suite":"test_reservations.gd","tests":45,"usec":1640640}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+45 test(s), 467 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 45 tests, 467 assertions, 0 failures.

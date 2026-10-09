@@ -1,0 +1,238 @@
+extends "res://test/framework/test_case.gd"
+## The whole finite actual native Y matrix table; no profile or world-contact qualification.
+
+const TEMP: String = "user://test-underground-world-basis.bin"
+const REPORT: String = "user://test-underground-world-basis.json"
+const Actor := preload("res://demo/cast/underground_actor.gd")
+const SOURCE: String = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+var _baker: GDScript = null
+
+
+func before_each() -> void:
+	"""Read the uniquely owned offline tool without constructing its SceneTree or running its output CLI."""
+	var path: String = ProjectSettings.globalize_path("res://").path_join("../tools/bake_underground_world_basis.gd").simplify_path()
+	_baker = load(path) as GDScript
+	assert_true(_baker != null, "actual source script loaded")
+
+
+func after_each() -> void:
+	"""Remove only the local fixture output bytes created by these tests."""
+	_baker = null
+	for path: String in [TEMP, REPORT]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func test_every_finite_heading_reconstructs_the_actual_native_basis_exactly() -> void:
+	"""All65536 stored entries, including noncardinal cases, reproduce the native basis without interpolation."""
+	var out: PackedFloat32Array = PackedFloat32Array([0.0, 0.0])
+	var first_bad: int = -1
+	for yaw: int in 65536:
+		var actual: Basis = Basis(Vector3.UP, float(yaw) * TAU / 65536.0)
+		var code: StringName = _baker.coefficients_into(yaw, out)
+		var rebuilt: Basis = Basis(Vector3(out[0], 0.0, -out[1]), Vector3.UP, Vector3(out[1], 0.0, out[0]))
+		if code != &"" or rebuilt != actual:
+			first_bad = yaw
+			break
+	assert_equal(first_bad, -1, "all native values and seven implied components match")
+	assert_equal(_baker.HEADING_COUNT, 65536, "complete16-bit source domain")
+
+
+func test_zero_and_quarter_heading_keep_the_adopted_forward_convention() -> void:
+	"""The real native transform maps0 to-Z and the positive quarter turn to-X, without gameplay rounding."""
+	var out: PackedFloat32Array = PackedFloat32Array([9.0, 9.0])
+	assert_equal(_baker.coefficients_into(0, out), &"", "zero native heading")
+	assert_equal(out, PackedFloat32Array([1.0, 0.0]), "exact origin orientation")
+	assert_equal(_baker.coefficients_into(16384, out), &"", "positive native quarter")
+	var forward: Vector3 = Vector3(-out[1], 0.0, -out[0])
+	assert_true(forward.x < -0.9999 and absf(forward.z) < 0.0001, "native handedness agrees with integer world")
+	assert_true(out[0] != 0.0, "the actual small native cosine is retained, never replaced by cardinal zero")
+
+
+func test_refused_heading_or_wrong_output_shape_leaves_previous_bytes_unchanged() -> void:
+	"""No out-of-domain index is wrapped and no scratch is resized before proof."""
+	var out: PackedFloat32Array = PackedFloat32Array([7.0, 8.0])
+	for yaw: int in [-1, 65536, 9223372036854775807]:
+		assert_equal(_baker.coefficients_into(yaw, out), &"WORLD_BASIS_INPUT", "outside finite table")
+		assert_equal(out, PackedFloat32Array([7.0, 8.0]), "refused row preserved")
+	var short: PackedFloat32Array = PackedFloat32Array([7.0])
+	assert_equal(_baker.coefficients_into(0, short), &"WORLD_BASIS_INPUT", "exact shape")
+	assert_equal(short, PackedFloat32Array([7.0]), "wrong-shaped output preserved")
+
+
+func _metadata() -> Dictionary:
+	"""Synthetic metadata validation fixture; only the real native bake can bind an actual backend."""
+	return {"engine": {"major": 4, "minor": 7, "patch": 2, "hash": _baker.ENGINE_HASH,
+		"build": "official", "status": "stable"}, "rendering_driver": "opengl3",
+		"rendering_method": "gl_compatibility", "display_server": "macOS", "api_version": "4.1 fixture"}
+
+
+func test_backend_engine_and_precision_scope_never_silently_expand() -> void:
+	"""A matching version number alone does not claim this source certificate for another engine/shader backend."""
+	var metadata: Dictionary = _metadata()
+	assert_equal(_baker.backend_refusal(metadata), &"", "only a format fixture")
+	metadata.engine.hash = "0".repeat(40)
+	assert_equal(_baker.backend_refusal(metadata), &"WORLD_BASIS_ENGINE_UNREVIEWED", "exact official source")
+	metadata = _metadata()
+	metadata.rendering_driver = "vulkan"
+	assert_equal(_baker.backend_refusal(metadata), &"WORLD_BASIS_BACKEND_UNREVIEWED", "another shader path")
+	metadata = _metadata()
+	metadata.display_server = "headless"
+	assert_equal(_baker.backend_refusal(metadata), &"WORLD_BASIS_BACKEND_UNREVIEWED", "no native renderer")
+	metadata = _metadata()
+	metadata.api_version = "OpenGL ES 3.2"
+	assert_equal(_baker.backend_refusal(metadata), &"WORLD_BASIS_PRECISION_UNREVIEWED", "no mediump substitution")
+	metadata.engine = "not an engine record"
+	assert_equal(_baker.backend_refusal(metadata), &"WORLD_BASIS_ENGINE_UNREVIEWED", "malformed record")
+
+
+func test_existing_source_or_output_is_never_overwritten_by_preflight() -> void:
+	"""A refused rebake preserves all prior bytes, including a lone incomplete raw source."""
+	var file: FileAccess = FileAccess.open(TEMP, FileAccess.WRITE)
+	file.store_buffer(PackedByteArray([1, 2, 3, 4]))
+	file.close()
+	assert_equal(_baker.output_refusal(TEMP, REPORT, _baker.resource_path), &"WORLD_BASIS_OUTPUT_EXISTS", "existing raw")
+	assert_equal(FileAccess.get_file_as_bytes(TEMP), PackedByteArray([1, 2, 3, 4]), "previous source unchanged")
+	assert_equal(_baker.output_refusal(REPORT, REPORT, _baker.resource_path), &"WORLD_BASIS_OUTPUT_IDENTITY", "outputs alias")
+	assert_equal(_baker.output_refusal(_baker.resource_path, REPORT, _baker.resource_path),
+		&"WORLD_BASIS_OUTPUT_IDENTITY", "input source protected")
+	assert_false(FileAccess.file_exists(REPORT), "preflight never starts a partial report")
+
+
+func test_shared_presentation_budget_does_not_borrow_simulation_arenas() -> void:
+	"""One native coefficient image plus explicit loading/native allowance, not one image per resident."""
+	assert_equal(_baker.COEFFICIENT_BYTES, 524288, "two native float32 values for every finite heading")
+	assert_equal(_baker.PRESENTATION_RESERVE, 544768, "planned separate presentation peak")
+	assert_equal(_baker.MAX_FILE_BYTES, 528412, "finite metadata and trailer bound")
+
+
+func _metal_metadata() -> Dictionary:
+	"""A complete synthetic source-format fixture, not native or physical qualification."""
+	var metadata: Dictionary = _metadata()
+	metadata.merge({"schema": 2, "source": {"sha256": SOURCE}, "rendering_driver": "metal",
+		"rendering_method": "forward_plus", "display_server": "macOS", "api_version": "4.0",
+		"coefficient_source_sha256": SOURCE, "heading_count": 65536, "physical_qualified": false,
+		"orientation": "0=-Z,+quarter=-X; +Y up", "coefficient_order": ["basis.x.x", "basis.z.x"]}, true)
+	return metadata
+
+
+func _reader_metadata(version: int) -> Dictionary:
+	"""Retain v1's old optional schema while requiring every v2 source field."""
+	var metadata: Dictionary = _metal_metadata() if version == 2 else _metadata()
+	metadata.source = {"sha256": SOURCE}
+	return metadata
+
+
+func _write_reader_fixture(version: int, metadata: Dictionary, modifier: int = 0) -> void:
+	"""Stream one disposable source; corrupt fixed fields without trusting a refreshed caller digest."""
+	var bytes: PackedByteArray = JSON.stringify(metadata).to_utf8_buffer()
+	var file: FileAccess = FileAccess.open(TEMP, FileAccess.WRITE)
+	file.store_buffer(("UGYAW001" if version == 1 else "UGYAW002").to_ascii_buffer())
+	file.store_32(3 - version if modifier == 1 else version)
+	file.store_32(65536)
+	file.store_32(bytes.size())
+	file.store_buffer(bytes)
+	for yaw: int in 65536:
+		var native: Basis = Basis(Vector3.UP, float(yaw) * TAU / 65536.0)
+		file.store_float(INF if modifier == 3 and yaw == 55555 else native.x.x)
+		file.store_float(native.z.x)
+	var footer_version: int = 3 - version if modifier == 2 else version
+	file.store_buffer(("UGYEND01" if footer_version == 1 else "UGYEND02").to_ascii_buffer())
+	if modifier == 4:
+		file.store_8(1)
+	file.close()
+
+
+func _refused_reader(version: int, metadata: Dictionary, modifier: int = 0) -> void:
+	"""Every failed source leaves no admitted table, does not mutate file bytes and preserves prior caller data."""
+	_write_reader_fixture(version, metadata, modifier)
+	var digest: String = FileAccess.get_sha256(TEMP)
+	var source: Actor.WorldBasis = Actor.WorldBasis.new()
+	assert_true(source.load_file(TEMP, digest, SOURCE, Actor.WorldBasis.RESERVED_BYTES) != &"", "exact source refused")
+	assert_equal(source.source_digest(), "", "no partial source publication")
+	assert_equal(source.producer_digest(), "", "no partial producer publication")
+	assert_equal(source._coefficients.size(), 0, "partial numeric image released")
+	var out: PackedFloat32Array = PackedFloat32Array([31, 47])
+	assert_equal(source.coefficients_into(16384, out), &"UNDERGROUND_WORLD_BASIS_SELECTION", "unbound selection refuses")
+	assert_equal(out, PackedFloat32Array([31, 47]), "borrowed caller data unchanged")
+	assert_equal(FileAccess.get_sha256(TEMP), digest, "read-only source bytes unchanged")
+
+
+func test_both_wire_versions_preserve_every_native_coefficient_and_one_immutable_bank() -> void:
+	"""The old optional-schema GL source and distinct Metal source reproduce the same actual CPU equation."""
+	for version: int in [1, 2]:
+		_write_reader_fixture(version, _reader_metadata(version))
+		var digest: String = FileAccess.get_sha256(TEMP)
+		var source: Actor.WorldBasis = Actor.WorldBasis.new()
+		assert_equal(source.load_file(TEMP, digest, SOURCE, Actor.WorldBasis.RESERVED_BYTES), &"", "exact wire")
+		var out: PackedFloat32Array = PackedFloat32Array([0, 0])
+		var first_bad: int = -1
+		for yaw: int in 65536:
+			var native: Basis = Basis(Vector3.UP, float(yaw) * TAU / 65536.0)
+			if source.coefficients_into(yaw, out) != &"" or out[0] != native.x.x or out[1] != native.z.x:
+				first_bad = yaw
+				break
+		assert_equal(first_bad, -1, "all finite coefficients equal native, no heading rounding")
+		assert_equal(source._coefficients.size(), 131072, "one exact numeric image")
+		assert_equal(source.load_file(TEMP, digest, SOURCE, Actor.WorldBasis.RESERVED_BYTES),
+			&"UNDERGROUND_WORLD_BASIS_ALREADY_LOADED", "no second bank or replacement")
+		assert_equal(source.source_digest(), digest, "source identity retained")
+		assert_equal(source.producer_digest(), SOURCE, "producer identity retained")
+	assert_equal(Actor.WorldBasis.RESERVED_BYTES, 544768, "unchanged source reservation")
+
+
+func test_reader_rejects_cross_version_footer_numeric_header_and_row_relabels() -> void:
+	"""Even a freshly matching whole-file hash cannot authorize a different version/footer pairing."""
+	for version: int in [1, 2]:
+		for modifier: int in [1, 2, 3, 4]:
+			_refused_reader(version, _reader_metadata(version), modifier)
+	_refused_reader(1, _reader_metadata(2))
+	_refused_reader(2, _reader_metadata(1))
+
+
+func test_reader_backend_pairing_is_checked_even_when_schema_and_footer_match() -> void:
+	"""Cross-backend fixtures preserve valid schema/footer and complete metadata, isolating the backend-pair guard."""
+	var metadata: Dictionary = _reader_metadata(2)
+	metadata.schema = 1
+	_refused_reader(1, metadata)
+	metadata = _reader_metadata(2)
+	metadata.rendering_driver = "opengl3"
+	metadata.rendering_method = "gl_compatibility"
+	metadata.api_version = "4.1 fixture"
+	_refused_reader(2, metadata)
+	metadata = _reader_metadata(1)
+	metadata.schema = 1
+	_write_reader_fixture(1, metadata)
+	var source: Actor.WorldBasis = Actor.WorldBasis.new()
+	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES), &"", "explicit valid v1 schema retained")
+
+
+func test_reader_rejects_cross_backend_schema_and_incomplete_metal_source_metadata() -> void:
+	"""Driver, display, API and source schema stay bound together; complete rows alone grant nothing."""
+	var metadata: Dictionary = _reader_metadata(1)
+	metadata.schema = 2
+	_refused_reader(1, metadata)
+	for key: String in ["schema", "coefficient_source_sha256", "heading_count", "physical_qualified", "orientation", "coefficient_order"]:
+		metadata = _reader_metadata(2)
+		metadata.erase(key)
+		_refused_reader(2, metadata)
+	for replacement: Array in [["schema", 1], ["rendering_driver", "vulkan"], ["rendering_method", "mobile"],
+			["display_server", "Windows"], ["api_version", "4.1"], ["physical_qualified", true],
+			["coefficient_source_sha256", "a".repeat(63)]]:
+		metadata = _reader_metadata(2)
+		metadata[replacement[0]] = replacement[1]
+		_refused_reader(2, metadata)
+
+
+func test_refused_metal_digest_can_retry_without_publishing_or_expanding_storage() -> void:
+	"""Late same-stream digest and early capacity failures preserve a reusable unbound reader."""
+	_write_reader_fixture(2, _reader_metadata(2))
+	var source: Actor.WorldBasis = Actor.WorldBasis.new()
+	assert_equal(source.load_file(TEMP, "f".repeat(64), SOURCE, Actor.WorldBasis.RESERVED_BYTES),
+		&"UNDERGROUND_WORLD_BASIS_DIGEST", "exact byte identity after complete stream")
+	assert_equal(source._coefficients.size(), 0, "failed image released")
+	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES - 1),
+		&"UNDERGROUND_WORLD_BASIS_ADMISSION", "no reservation borrowing")
+	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES), &"", "clean retry")
+	if DisplayServer.get_name() == "headless":
+		assert_false(source.matches_runtime(), "the headless CI runner cannot claim an actual Metal renderer")

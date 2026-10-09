@@ -1,0 +1,246 @@
+{
+  "scope": "Logical numeric/packed payloads only; borrowed references, interpreter frames, Variant/StringName headers and native allocations remain unmeasured.",
+  "base": "ac766929",
+  "diagnostic_workpieces_source": "/Users/brendan/Developer/redwall-rts-codex-ug-room-publication/godot/scripts/core/underground_connector_workpieces.gd",
+  "source_sha256": {
+    "godot/scripts/core/underground_connector_placements.gd": "ace6b6eb9eefa70690eacfdbc46606a18cae1f008fb5d270e3632e04559907b4",
+    "godot/scripts/core/underground_entry_bindings.gd": "b71f39c5e00dc3036bb823a975eebc11377437c73b237b60e5e63654714cf6e7",
+    "godot/scripts/core/underground_locations.gd": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd",
+    "godot/scripts/core/underground_connector_workpieces.gd": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d",
+    "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
+    "godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "godot/scripts/core/underground_world_routes.gd": "7de9ae26375baff235c90f7d2b5703f9ca638fa1c7276ddf4c86e46c6a85434c",
+    "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "godot/scripts/core/underground_final_facts.gd": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a"
+  },
+  "fixed_components": {
+    "owner": 135,
+    "bank_free_counts": 32,
+    "installation_context": 128,
+    "room_context": 80,
+    "phase_context": 128,
+    "directory_candidate": 32,
+    "private_and_caller_requests": 616,
+    "shared_order_and_assembly_records": 128,
+    "returned_result": 8,
+    "final_digest": 32,
+    "helper_frames": 576
+  },
+  "fixed_total": 1895,
+  "fixed_reserve": 2048,
+  "new_retained_numeric_bytes": 32,
+  "new_packed_columns": 0,
+  "helper_headroom_reassigned_bytes": 64,
+  "weak_workpieces_binding": "One once-bound WeakRef in Placement. Workpieces is strongly borrowed across preparation/publication; its reference/header/native costs remain in the existing provisional native allowance, not declared free or qualified.",
+  "cross_owner_numeric_chains": {
+    "workpiece_endpoint_refresh": {
+      "bytes": 568,
+      "frames": {
+        "underground_connector_workpieces.prepare_cancel": 32,
+        "underground_connector_placements.prepare_workpiece_cancel": 32,
+        "underground_connector_placements._prepare_workpiece": 40,
+        "underground_connector_placements._prepare_workpiece_candidates": 0,
+        "underground_connector_placements._prepare_locations": 0,
+        "underground_entry_bindings._stage_timber_locations": 40,
+        "underground_entry_bindings._timber_refresh_locations": 24,
+        "underground_entry_bindings.AdmissionAuthority.stage_locations": 40,
+        "underground_locations.stage_refresh": 16,
+        "underground_locations._validate_record": 0,
+        "underground_locations._record_geometry_refusal": 16,
+        "underground_locations._survey_for": 8,
+        "underground_locations._observed_record_site": 16,
+        "underground_locations._installed_surface_site": 40,
+        "underground_locations._installed_row_site": 56,
+        "underground_locations.installed_prism_into": 72,
+        "underground_locations._installed_world_box": 80,
+        "underground_locations.installed_coordinate": 56
+      }
+    },
+    "existing_phase_endpoint_refresh": {
+      "bytes": 572,
+      "frames": {
+        "underground_space_authority.operation_refusal": 44,
+        "underground_space_authority._run_cold_operation": 32,
+        "underground_space_authority._prepare": 32,
+        "underground_connector_placements.prepare_phase_refresh": 56,
+        "underground_connector_placements._phase_prepare_banks": 0,
+        "underground_connector_placements._phase_prepare_locations": 8,
+        "phase_provider_callback_numeric_allowance": 40,
+        "underground_locations.stage_refresh": 16,
+        "underground_locations._validate_record": 0,
+        "underground_locations._record_geometry_refusal": 16,
+        "underground_locations._survey_for": 8,
+        "underground_locations._observed_record_site": 16,
+        "underground_locations._installed_surface_site": 40,
+        "underground_locations._installed_row_site": 56,
+        "underground_locations.installed_prism_into": 72,
+        "underground_locations._installed_world_box": 80,
+        "underground_locations.installed_coordinate": 56
+      }
+    },
+    "immutable_preparation_bounds": {
+      "bytes": 376,
+      "frames": {
+        "underground_connector_workpieces.prepare_start": 32,
+        "underground_connector_placements.prepare_workpiece_start": 24,
+        "underground_connector_placements._prepare_workpiece": 40,
+        "underground_connector_placements._workpiece_admission_leaf": 48,
+        "underground_connector_workpieces.prepared_bounds_leaf_refusal": 40,
+        "underground_connector_workpieces._bounds_into": 112,
+        "underground_connector_workpieces._coordinate": 80
+      }
+    },
+    "final_actual_source_claim": {
+      "bytes": 224,
+      "frames": {
+        "underground_connector_workpieces.prepare_cancel": 32,
+        "underground_connector_placements.prepare_workpiece_cancel": 32,
+        "underground_connector_placements._prepare_workpiece": 40,
+        "underground_connector_placements._prepare_workpiece_candidates": 0,
+        "underground_connector_placements.prepared_workpiece_leaf_refusal": 0,
+        "underground_connector_placements._prepared_geometry_leaf": 0,
+        "underground_connector_placements._prepared_sources_leaf": 0,
+        "underground_connector_placements._prepared_claims_leaf": 32,
+        "underground_space_owner.CoreSources.read_final_into": 24,
+        "underground_space_owner.CoreSources._final_furniture": 40,
+        "underground_space_owner.CoreSources._final_row": 24
+      }
+    },
+    "current_physical_occupancy": {
+      "bytes": 272,
+      "frames": {
+        "underground_connector_workpieces.prepare_cancel": 32,
+        "underground_connector_placements.prepare_workpiece_cancel": 32,
+        "underground_connector_placements._prepare_workpiece": 40,
+        "underground_connector_placements._prepare_workpiece_candidates": 0,
+        "underground_entry_bindings._workpiece_refusal": 32,
+        "underground_entry_bindings._workpiece_physical": 8,
+        "underground_entry_bindings._workpiece_occupants": 8,
+        "underground_world_routes.workpiece_occupancy_refusal": 16,
+        "entry_workpiece_authority_callback": 32,
+        "underground_routes.physical_selection_into": 16,
+        "underground_routes._turn_identity_leaf": 24,
+        "underground_routes._turn_pose_leaf": 32
+      }
+    }
+  },
+  "own_numeric_chains": {
+    "underground_connector_placements.prepare_workpiece_cancel": {
+      "bytes": 225,
+      "path": [
+        "underground_connector_placements.prepare_workpiece_cancel",
+        "underground_connector_placements._prepare_workpiece",
+        "underground_connector_placements._prepare_workpiece_candidates",
+        "underground_connector_placements.prepared_workpiece_leaf_refusal",
+        "underground_connector_placements._workpiece_rows_refusal",
+        "underground_connector_placements._workpiece_source_pins_refusal",
+        "underground_connector_placements._retained_admission_opening",
+        "underground_connector_placements._section_refusal"
+      ],
+      "frames": {
+        "underground_connector_placements.prepare_workpiece_cancel": 32,
+        "underground_connector_placements._prepare_workpiece": 40,
+        "underground_connector_placements._prepare_workpiece_candidates": 0,
+        "underground_connector_placements.prepared_workpiece_leaf_refusal": 0,
+        "underground_connector_placements._workpiece_rows_refusal": 40,
+        "underground_connector_placements._workpiece_source_pins_refusal": 32,
+        "underground_connector_placements._retained_admission_opening": 48,
+        "underground_connector_placements._section_refusal": 33
+      }
+    },
+    "underground_entry_bindings._workpiece_refusal": {
+      "bytes": 168,
+      "path": [
+        "underground_entry_bindings._workpiece_refusal",
+        "underground_entry_bindings._workpiece_physical",
+        "underground_entry_bindings._workpiece_foot",
+        "underground_entry_bindings._workpiece_natural_foot",
+        "underground_entry_bindings._timber_virgin_keys",
+        "underground_entry_bindings._timber_site_row"
+      ],
+      "frames": {
+        "underground_entry_bindings._workpiece_refusal": 32,
+        "underground_entry_bindings._workpiece_physical": 8,
+        "underground_entry_bindings._workpiece_foot": 24,
+        "underground_entry_bindings._workpiece_natural_foot": 24,
+        "underground_entry_bindings._timber_virgin_keys": 44,
+        "underground_entry_bindings._timber_site_row": 36
+      }
+    },
+    "underground_connector_workpieces.bind_prepared_completion": {
+      "bytes": 288,
+      "path": [
+        "underground_connector_workpieces.bind_prepared_completion",
+        "underground_connector_workpieces._finish_preparation",
+        "underground_connector_workpieces.prepared_leaf_refusal",
+        "underground_connector_workpieces.prepared_bounds_leaf_refusal",
+        "underground_connector_workpieces._bounds_into",
+        "underground_connector_workpieces._coordinate"
+      ],
+      "frames": {
+        "underground_connector_workpieces.bind_prepared_completion": 24,
+        "underground_connector_workpieces._finish_preparation": 0,
+        "underground_connector_workpieces.prepared_leaf_refusal": 32,
+        "underground_connector_workpieces.prepared_bounds_leaf_refusal": 40,
+        "underground_connector_workpieces._bounds_into": 112,
+        "underground_connector_workpieces._coordinate": 80
+      }
+    },
+    "underground_world_routes.workpiece_occupancy_refusal": {
+      "bytes": 76,
+      "path": [
+        "underground_world_routes.workpiece_occupancy_refusal",
+        "underground_world_routes._workpiece_occupant_boxes",
+        "underground_world_routes._turn_box_into"
+      ],
+      "frames": {
+        "underground_world_routes.workpiece_occupancy_refusal": 16,
+        "underground_world_routes._workpiece_occupant_boxes": 44,
+        "underground_world_routes._turn_box_into": 16
+      }
+    },
+    "underground_routes.physical_selection_into": {
+      "bytes": 72,
+      "path": [
+        "underground_routes.physical_selection_into",
+        "underground_routes._turn_identity_leaf",
+        "underground_routes._turn_pose_leaf"
+      ],
+      "frames": {
+        "underground_routes.physical_selection_into": 16,
+        "underground_routes._turn_identity_leaf": 24,
+        "underground_routes._turn_pose_leaf": 32
+      }
+    }
+  },
+  "fixed_cold_packet": "The new Region borrows the immutable bounds array. Its48 numeric bytes and Owner.Result16 are included in the existing4096 cold controls; they do not coexist with Location observation scratch.",
+  "sequential_cold_peaks": {
+    "physical": 626688,
+    "locations": 545152,
+    "routes": 380928
+  },
+  "original_cold_lease": 1048960,
+  "cold_lifetime": "Physical fragment scratch drops before Location proof, which drops before route qualification. All candidate banks are preallocated and already reserved; no RoomPlan images coexist.",
+  "workpieces_rows_and_source": "Separately owned1134 two21P banks and32A immutable source, never duplicated or charged as Placement state.",
+  "final_source_reader_numeric_chain": {
+    "bytes": 88,
+    "path": [
+      "underground_space_owner.CoreSources.read_final_into",
+      "underground_space_owner.CoreSources._final_furniture",
+      "underground_space_owner.CoreSources._final_row"
+    ],
+    "frames": {
+      "underground_space_owner.CoreSources.read_final_into": 24,
+      "underground_space_owner.CoreSources._final_furniture": 40,
+      "underground_space_owner.CoreSources._final_row": 24
+    }
+  },
+  "final_source_packed_reads": {
+    "building": 16,
+    "room": 21,
+    "furniture": 29,
+    "project": 16
+  },
+  "source_work": "The new concrete reader has at most29 source-counted packed-column reads, including both full Directory/reverse-row checks for Furniture. Existing64-check allowance per non-Resident source/claim bounds complete Directory full-kind/reverse-row/store mirrors plus source fields and final format comparison. Source/region scans remain separately precharged; no full image is added.",
+  "runtime_qualified": false
+}

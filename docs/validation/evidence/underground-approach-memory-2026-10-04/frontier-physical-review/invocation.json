@@ -1,0 +1,23 @@
+{
+  "wire_check": [
+    "python3",
+    "-B",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/frontier-physical-review/inspect_frontier.py"
+  ],
+  "source_diagnosis": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/frontier-physical-review/inspect_short_gait.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw"
+  ],
+  "results": {
+    "exact_source_bounds": 0,
+    "final_wire_arithmetic": 0,
+    "retained_initial_z1024_rejection": 1
+  },
+  "engine_runs": 0,
+  "foreign_writes": false,
+  "qualification": false
+}

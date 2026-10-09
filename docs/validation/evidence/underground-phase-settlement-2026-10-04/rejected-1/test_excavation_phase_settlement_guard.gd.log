@@ -1,0 +1,35 @@
+state_registry_coverage: PASS -- 138 modules, 694 rows, 1033 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_excavation_phase_settlement_guard.gd
+  FAIL  test_cut_output_observer_cannot_publish_after_the_room_changes
+        late room change refuses output settlement (expected false, got true)
+        paid owner 0 unchanged (expected true, got false)
+        paid owner 2 unchanged (expected true, got false)
+        earned WIP retained (expected true, got false)
+        no geological output committed (expected 0, got 2000)
+        worker-free terminal retry settles once (expected true, got false)
+  FAIL  test_paid_refund_observer_cannot_publish_after_the_room_changes
+        late room change refuses paid refund (expected false, got true)
+        paid owner 0 unchanged (expected true, got false)
+        paid owner 2 unchanged (expected true, got false)
+        original WIP retained (expected true, got false)
+        fresh refund retries (expected true, got false)
+CI_SUITE_TIME {"assertions":33,"failures":2,"suite":"test_excavation_phase_settlement_guard.gd","tests":2,"usec":241480}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+2 test(s), 33 assertion(s), 2 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 2 failing test(s).

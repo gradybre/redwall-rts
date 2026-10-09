@@ -1,0 +1,20 @@
+{
+ "demo/burrow/modular_world_view.gd": [
+  {
+   "code": 0,
+   "message": "(INCOMPATIBLE_TERNARY): Values of the ternary operator are not mutually compatible.",
+   "range": {
+    "end": {
+     "character": 67,
+     "line": 276
+    },
+    "start": {
+     "character": 29,
+     "line": 275
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

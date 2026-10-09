@@ -1,0 +1,27 @@
+{
+  "checker_pins": {
+    "tools/underground_memory_budget.py": "b94215e181f648a74f7c5f92ca5218d85199f9639861b97fb465c3d36637fdd7",
+    "tools/test_underground_memory_budget.py": "f8a2ba5eb400bb9cfae24afe0695315c5d6362b04e7028bb7caaed7038f28555"
+  },
+  "review_mode": "in-memory parsed-source mutation; no production file changes or engine run",
+  "mutations": [
+    {
+      "owner": "reservations",
+      "replacement_base": "res://scripts/core/review_haul_base.gd",
+      "base_source": "extends RefCounted\nvar inherited_haul_buffer: PackedByteArray = PackedByteArray()\nfunc _init() -> void:\n\tinherited_haul_buffer.resize(65536)\n",
+      "accepted": true,
+      "reported_fixed_numeric_bytes": 433,
+      "reported_live_bytes": 99994686,
+      "omitted_inherited_logical_bytes": 65536
+    },
+    {
+      "owner": "inventory",
+      "replacement_base": "res://scripts/core/review_haul_base.gd",
+      "base_source": "extends RefCounted\nvar inherited_haul_buffer: PackedByteArray = PackedByteArray()\nfunc _init() -> void:\n\tinherited_haul_buffer.resize(65536)\n",
+      "accepted": true,
+      "reported_fixed_numeric_bytes": 433,
+      "reported_live_bytes": 99994686,
+      "omitted_inherited_logical_bytes": 65536
+    }
+  ]
+}

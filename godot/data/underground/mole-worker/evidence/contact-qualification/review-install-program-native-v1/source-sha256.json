@@ -1,0 +1,6 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_install_program.gd": "22a0e91f467d50c375cc978d15913eecaa1f4053b2359977d025ef7e26b0feef",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-native-check-v1/run.py": "d6534a9b237144969cc224fa3c08b7a781b83aecf575ae5435c92e6f5ce52315",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/run_install_program_capture.py": "f0fb69451c0b51ba1757c481c5f3dc68a889ba0302f0471b53e7faaaf2e2ceb8",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_install_program_capture.py": "6429f829461122ad3cfcf360b5417f0717fa6d861f0f9825de158ab915166a13"
+}

@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_audit_underground_metal_inputs.py"
+      ],
+      "exit": 0,
+      "log": "auditor-tests.log"
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/test_capture_inputs.py"
+      ],
+      "exit": 0,
+      "log": "wrapper-tests.log"
+    }
+  ],
+  "source_pins": {
+    "tools/capture_underground_metal_inputs.gd": "8d438a6cae45c827a794f7e525ae50e25af988e9181d017a503bcbbbe10bd73f",
+    "tools/capture_underground_metal_inputs.gd.uid": "af55111553aba9b6b22d96e95a6273494b29dc9997c88b2091d6d272be693c99",
+    "godot/test/test_underground_metal_inputs.gd": "1c8babe149f14c4e2bb0d4c1e871920700364dea5fad90756afb3bdb754f8b5a",
+    "godot/test/test_underground_metal_inputs.gd.uid": "f9f6dba2b5da2c4f565df69aff9574741c929f67ceb9e0ff7f92347d24c6ebc5",
+    "tools/audit_underground_metal_inputs.py": "4ab640ade6e267d9ce8951fc03726d3674efd896488981791c54b361879a94b6",
+    "tools/test_audit_underground_metal_inputs.py": "8c913bd946662ada92dd182ec4a03e043db18d8075190d957206999171f24434",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py": "54dd5dd60505e5908b6b88533a893ec2dd6b35f9bbcbac2e45d2dc81198040b3",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/test_capture_inputs.py": "7dfb922ff6307bfc079c3bce9b6e263f2f3f1db1a65e97e81475d9a25534843b",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/run_checks.py": "6c0568e1e9035e592f2696f8002234d2dfabc3e4f7bba24b8531b57bab41a0ad"
+  },
+  "source_unchanged": true,
+  "engine_run": false
+}

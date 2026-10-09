@@ -1,0 +1,39 @@
+{
+  "head": "5b440aedc2dc70cd1703686f10cc4b7366a6f3d4",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.955,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "256/403",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/draft-3"
+      ],
+      "exit_code": 0,
+      "seconds": 8.11,
+      "log": "test_underground_room_itinerary.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "completed_suites": [
+    "test_underground_room_itinerary.gd"
+  ],
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

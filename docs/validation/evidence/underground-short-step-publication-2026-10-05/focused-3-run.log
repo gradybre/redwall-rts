@@ -1,0 +1,28 @@
+clean-import.log 0
+test_mole_qualified_profiles.gd.log 0
+12 test(s), 411 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 12 tests, 411 assertions, 0 failures.
+test_underground_motion_catalog.gd.log 0
+16 test(s), 13721 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 16 tests, 13721 assertions, 0 failures.
+test_underground_motion_clock.gd.log 0
+14 test(s), 2090 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 14 tests, 2090 assertions, 0 failures.
+test_underground_route_composition.gd.log 0
+20 test(s), 372 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 20 tests, 372 assertions, 0 failures.
+test_underground_support_clearance.gd.log 0
+9 test(s), 138 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 9 tests, 138 assertions, 0 failures.
+analyzer.log 0
+0 GDScript warning(s) in 0 of 10 file(s)

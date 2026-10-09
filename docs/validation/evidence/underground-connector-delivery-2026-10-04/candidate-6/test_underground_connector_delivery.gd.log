@@ -1,0 +1,26 @@
+state_registry_coverage: PASS -- 143 modules, 712 rows, 1050 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_delivery.gd
+  PASS  test_actual_capacity_limited_spatial_shipment_uses_haul_output_unload
+  PASS  test_wrong_owner_binding_refuses_without_allocating_and_valid_retry_binds
+  PASS  test_final_terrain_observer_cannot_move_worker_then_commit_loading
+CI_SUITE_TIME {"assertions":877,"failures":0,"suite":"test_underground_connector_delivery.gd","tests":3,"usec":21727872}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+3 test(s), 877 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 3 tests, 877 assertions, 0 failures.

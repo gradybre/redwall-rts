@@ -1,0 +1,28 @@
+state_registry_coverage: PASS -- 141 modules, 706 rows, 1044 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_profile_pack.gd
+  PASS  test_actual_profile_actor_and_cached_sources_pass_without_world_permission
+  PASS  test_missing_or_wrong_size_artifacts_refuse
+  PASS  test_changed_equal_size_profile_and_unbounded_size_refuse
+  PASS  test_stripped_cached_script_refuses_even_with_same_identity
+  PASS  test_changed_cached_source_refuses_and_restore_recovers
+CI_SUITE_TIME {"assertions":21,"failures":0,"suite":"test_demo_profile_pack.gd","tests":5,"usec":707666}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+5 test(s), 21 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 5 tests, 21 assertions, 0 failures.

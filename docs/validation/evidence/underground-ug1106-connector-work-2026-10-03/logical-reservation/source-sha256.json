@@ -1,0 +1,6 @@
+{
+  "tools/underground_memory_budget.py": "40a52e4c0e72c8ef0c84f73e7ed3b8a8c37deeeea1165c4cdf875c0b43a2687e",
+  "tools/test_underground_memory_budget.py": "7badceed3e33e6f6635a31bbef9369e1c85979642c52ddd68ccb8c5bd823df89",
+  "docs/planning/underground_memory_pack.json": "993eeea25a3822ff3f8c1f962f58cd521d3e67bafb32063a1122f05421094e8d",
+  "docs/planning/registry_capacity_audit.json": "a9b116b16162a2b27f65df9b98c2194764e582511d2222b1b04e7ae1ed2209aa"
+}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-03",
+  "scope": "Read-only sealed endpoint copy; no new state or production traversal permission.",
+  "source_sha256": {
+    "godot/scripts/core/underground_locations.gd": "62818ce0d78f24ce1a14eb2076000ebbc8901c7061b457d23a463f908b94cd6e",
+    "godot/test/test_underground_locations.gd": "402904cd92c50dae3530ee3c94691861cb71409aefcdd05873f52a776ea354fd"
+  },
+  "logs_sha256": {
+    "analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "clean-import.log": "19214659035ed72c40530bae5f9d671ee3e927857efce7a74440971d81652b36",
+    "test_underground_locations.log": "542b08dfa5d884443ec57afea2aa07b5994e5b5b1e5449c1a9d592ad66fccc35"
+  },
+  "commands": [
+    "Move demo assets aside, delete godot/.godot, godot --headless --path godot --editor --quit; restore assets afterwards",
+    "./tools/run_tests.sh --shard INDEX/COUNT --output-dir DIR (actual singleton file shard)",
+    "python3 tools/gdscript_warnings.py --port 6153 --max 0 godot/scripts/core/underground_locations.gd godot/test/test_underground_locations.gd"
+  ],
+  "results": {
+    "tests": 18,
+    "assertions": 420,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected_diagnostics": 0,
+    "tolerated_diagnostics": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 2
+  }
+}

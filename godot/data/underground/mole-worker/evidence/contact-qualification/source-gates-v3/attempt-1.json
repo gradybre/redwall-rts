@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/candidate-1",
+    "--consumer-revision",
+    "1e71c67879240fc293b0e41a6e04c34f64ecf42b"
+  ],
+  "source_head": "1e71c67879240fc293b0e41a6e04c34f64ecf42b",
+  "exit_code": 1,
+  "seconds": 0.1,
+  "scope": "Developmental source reconstruction/current-consumer snapshot only; no compatibility review or publication permission"
+}

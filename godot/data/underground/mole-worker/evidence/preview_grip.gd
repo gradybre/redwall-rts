@@ -1,0 +1,145 @@
+extends SceneTree
+## Authored contact candidates, original hand geometry. No candidate is a clenched-hand or physical certificate.
+
+const Demo := preload("res://demo/cast/demo_actor.gd")
+const CastSpace := preload("res://demo/cast/cast_space.gd")
+const Props := preload("res://demo/props/demo_props.gd")
+const OFFSETS_U: Array[Vector3i] = [Vector3i.ZERO, Vector3i(-41, 50, -18), Vector3i(-40, 80, 5)]
+const NAMES: PackedStringArray = ["Original wrist fit", "Measured palm median", "Authored finger-base candidate"]
+
+var _actors: Array[Demo] = []
+var _world: Node3D = null
+var _out: String = ""
+var _label: Label = null
+var _samples: int = 0
+
+
+func _initialize() -> void:
+	"""Do not overwrite earlier native authoring evidence."""
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() != 1 or DisplayServer.get_name() == "headless" or FileAccess.file_exists(args[0] + "/report.json"):
+		printerr("GRIP_PREVIEW_INPUT_OR_OUTPUT")
+		quit(2)
+		return
+	_out = args[0]
+	call_deferred("_run")
+
+
+func _run() -> void:
+	"""Compare the actual hand-local fits through whole idle, walk and strike timelines."""
+	_world = Node3D.new()
+	root.add_child(_world)
+	_stage()
+	if not _build_actors():
+		_world.free()
+		quit(2)
+		return
+	for clip: StringName in [&"idle", &"walk", &"heavy_hammer_swing"]:
+		await _capture_clip(clip)
+	_actors.clear()
+	_world.free()
+	_world = null
+	var file: FileAccess = FileAccess.open(_out + "/report.json", FileAccess.WRITE)
+	file.store_string(JSON.stringify({"schema": 1, "poses": _samples, "production_qualified": false,
+		"hand_geometry": "original open paw; translation is not a closed-grip pose",
+		"offsets_hand_local_u": [[0, 0, 0], [-41, 50, -18], [-40, 80, 5]]}, "\t") + "\n")
+	file.close()
+	print("grip-preview: ", _samples, " actual poses across 3 candidates; qualification=0")
+	quit(0)
+
+
+func _build_actors() -> bool:
+	"""Use actual source fitting and body; only the explicit candidate hand-local translation differs."""
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://demo/assets/manifest.json")) as Dictionary
+	var props: Props = Props.new()
+	props.load_from(manifest)
+	var tunnel: GDScript = load("res://demo/tunnel/tunnel_ext.gd") as GDScript
+	var fit: Transform3D = tunnel.call("pick_fit", props)
+	for index: int in OFFSETS_U.size():
+		var space: CastSpace = CastSpace.new()
+		space.setup([], [])
+		var actor: Demo = Demo.new()
+		if not actor.setup_creature(index, &"mole_digger", manifest.cast.mole_digger, space, 1729):
+			actor.free()
+			return false
+		_world.add_child(actor)
+		actor.position.x = float(1 - index) * 1.1
+		actor.rotation.y = PI
+		actor.animation_player().callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+		var skeleton: Skeleton3D = actor.get("_skeleton") as Skeleton3D
+		skeleton.modifier_callback_mode_process = Skeleton3D.MODIFIER_CALLBACK_MODE_PROCESS_MANUAL
+		actor.set_work_tool(props.mesh_of(&"mole_pick"), Transform3D(Basis.IDENTITY, Vector3(OFFSETS_U[index]) / 1024.0) * fit)
+		var marker: Node3D = actor.get("_marker") as Node3D
+		if marker != null:
+			marker.visible = false
+		_actors.append(actor)
+	return true
+
+
+func _capture_clip(clip: StringName) -> void:
+	"""Fixed actual native source steps include both non-looping endpoints and every intermediate skeleton pose."""
+	var duration: float = _actors[0].animation_player().get_animation(StringName("cast/" + clip)).length
+	var steps: int = ceili(duration * 30.0)
+	for step: int in steps + 1:
+		var time: float = minf(float(step) / 30.0, duration)
+		for actor: Demo in _actors:
+			var player: AnimationPlayer = actor.animation_player()
+			player.play(StringName("cast/" + clip))
+			player.seek(time, true)
+			player.advance(0.0)
+			(actor.get("_skeleton") as Skeleton3D).advance(0.0)
+			actor.call("_place_tool")
+			_samples += 1
+		_label.text = str(clip) + "  source t=%.3f s  |  " % time + _geometry_note()
+		await process_frame
+		if step % 6 == 0 or step == steps:
+			await RenderingServer.frame_post_draw
+			var path: String = _out + "/%s-%03d.png" % [clip, step]
+			if FileAccess.file_exists(path) or root.get_texture().get_image().save_png(path) != OK:
+				printerr("GRIP_PREVIEW_FRAME_REFUSED")
+				quit(2)
+				return
+
+
+func _geometry_note() -> String:
+	"""The derived authoring comparison must override this original-source label."""
+	return "original open-paw geometry; no physical qualification"
+
+
+func _stage() -> void:
+	"""Neutral comparison lighting and captions are not material or support authoring."""
+	root.size = Vector2i(1280, 720)
+	var camera: Camera3D = Camera3D.new()
+	_world.add_child(camera)
+	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	camera.size = 2.0
+	camera.position = Vector3(0.8, 1.1, -4)
+	camera.look_at(Vector3(0, 0.5, 0), Vector3.UP)
+	camera.current = true
+	var environment: WorldEnvironment = WorldEnvironment.new()
+	environment.environment = Environment.new()
+	environment.environment.background_mode = Environment.BG_COLOR
+	environment.environment.background_color = Color("272b29")
+	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.environment.ambient_light_color = Color("ccd7df")
+	environment.environment.ambient_light_energy = 0.7
+	_world.add_child(environment)
+	var light: DirectionalLight3D = DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-43, -35, 0)
+	light.light_energy = 1.8
+	_world.add_child(light)
+	_labels()
+
+
+func _labels() -> void:
+	"""Keep original versus authored candidates explicit in every retained native witness."""
+	for index: int in NAMES.size():
+		var label: Label = Label.new()
+		label.text = NAMES[index]
+		label.position = Vector2(28 + index * 420, 24)
+		label.add_theme_font_size_override("font_size", 20)
+		root.add_child(label)
+	_label = Label.new()
+	_label.position = Vector2(28, 674)
+	_label.add_theme_font_size_override("font_size", 17)
+	root.add_child(_label)

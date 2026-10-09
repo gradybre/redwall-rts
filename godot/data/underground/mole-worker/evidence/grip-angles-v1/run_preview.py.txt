@@ -1,0 +1,66 @@
+"""Run a create-only native grip authoring comparison, never a profile certificate."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+
+
+def run(out: Path, angles: bool = False) -> None:
+    root = Path(__file__).resolve().parents[6]
+    out = out.resolve()
+    if out.exists():
+        raise ValueError("Refusing an existing evidence bundle")
+    paths = [
+        "godot/data/underground/mole-worker/evidence/preview_grip.gd",
+        "godot/data/underground/mole-worker/evidence/grip-authoring/preview_closed.gd",
+        "godot/data/underground/mole-worker/evidence/grip-authoring/run_preview.py",
+        "godot/demo/cast/demo_actor.gd",
+        "godot/demo/cast/underground_actor_content.gd",
+        "godot/demo/tunnel/tunnel_ext.gd",
+        "godot/demo/assets/manifest.json",
+    ]
+    if angles:
+        paths.append("godot/data/underground/mole-worker/evidence/grip-authoring/preview_angles.gd")
+    pins = {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in paths}
+    out.mkdir(parents=True)
+    (out / "source-sha256.json").write_text(json.dumps(pins, indent=2) + "\n")
+    for name in paths[:3]:
+        (out / (Path(name).name + ".txt")).write_bytes((root / name).read_bytes())
+    if angles:
+        (out / "preview_angles.gd.txt").write_bytes((root / paths[-1]).read_bytes())
+    script = "preview_angles.gd" if angles else "preview_closed.gd"
+    command = ["godot", "--path", "godot", "--rendering-method", "gl_compatibility",
+               "--audio-driver", "Dummy", "--fixed-fps", "30", "--script",
+               "res://data/underground/mole-worker/evidence/grip-authoring/" + script,
+               "--", str(out)]
+    with (out / "native.log").open("x") as log:
+        result = subprocess.run(command, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+    text = (out / "native.log").read_text()
+    bad = bool(re.search(r"(?m)^(?:ERROR:|WARNING:|SCRIPT ERROR:)|leaked|still in use", text))
+    (out / "invocation.json").write_text(json.dumps({
+        "command": command, "returncode": result.returncode,
+        "unexpected_diagnostics_or_leaks": bad,
+    }, indent=2) + "\n")
+    print(text)
+    if result.returncode or bad:
+        raise ValueError("Native comparison failed")
+    report = json.loads((out / "report.json").read_text())
+    if report["poses"] != (1926 if angles else 642) or report["source_mesh_unchanged_checks"] != 3:
+        raise ValueError("Incomplete native comparison")
+    if len(set(report["original_mesh_sha256"])) != 1 or len(set(report["derived_mesh_sha256"])) != 2:
+        raise ValueError("Source mutation or missing derivative")
+    if report["production_qualified"]:
+        raise ValueError("A visual comparison cannot qualify a profile")
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--angles", action="store_true")
+    arguments = parser.parse_args()
+    run(arguments.out, arguments.angles)

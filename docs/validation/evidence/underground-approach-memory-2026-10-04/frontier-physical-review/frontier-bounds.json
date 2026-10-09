@@ -1,0 +1,1481 @@
+{
+  "scope": "integer physical feasibility only; positive what-if cubes must first complete real BRACE/CUT/FINISH; not runtime qualification",
+  "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+  "coordinate_frame": "relative to X=122880,FLOOR=-4608,Z=102400",
+  "profiles": {
+    "1": {
+      "yaw": 0,
+      "policy": 0,
+      "boxes": [
+        {
+          "ordinal": 7,
+          "role": "BODY",
+          "bounds": [
+            -738,
+            0,
+            -738,
+            738,
+            930,
+            738
+          ]
+        },
+        {
+          "ordinal": 8,
+          "role": "BODY",
+          "bounds": [
+            -402,
+            -1,
+            -402,
+            402,
+            0,
+            402
+          ]
+        },
+        {
+          "ordinal": 9,
+          "role": "BODY",
+          "bounds": [
+            -1256,
+            355,
+            -1256,
+            1256,
+            1036,
+            1256
+          ]
+        },
+        {
+          "ordinal": 10,
+          "role": "STANCE",
+          "bounds": [
+            -406,
+            -1,
+            -406,
+            406,
+            0,
+            406
+          ]
+        },
+        {
+          "ordinal": 11,
+          "role": "RECOVERY",
+          "bounds": [
+            -738,
+            0,
+            -738,
+            738,
+            930,
+            738
+          ]
+        },
+        {
+          "ordinal": 12,
+          "role": "RECOVERY",
+          "bounds": [
+            -402,
+            -1,
+            -402,
+            402,
+            0,
+            402
+          ]
+        },
+        {
+          "ordinal": 13,
+          "role": "RECOVERY",
+          "bounds": [
+            -1256,
+            355,
+            -1256,
+            1256,
+            1036,
+            1256
+          ]
+        }
+      ]
+    },
+    "5": {
+      "yaw": 49152,
+      "policy": 1,
+      "boxes": [
+        {
+          "ordinal": 35,
+          "role": "BODY",
+          "bounds": [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ]
+        },
+        {
+          "ordinal": 36,
+          "role": "BODY",
+          "bounds": [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ]
+        },
+        {
+          "ordinal": 37,
+          "role": "BODY",
+          "bounds": [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        },
+        {
+          "ordinal": 38,
+          "role": "STANCE",
+          "bounds": [
+            -249,
+            -1,
+            -274,
+            274,
+            0,
+            299
+          ]
+        },
+        {
+          "ordinal": 39,
+          "role": "RECOVERY",
+          "bounds": [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ]
+        },
+        {
+          "ordinal": 40,
+          "role": "RECOVERY",
+          "bounds": [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ]
+        },
+        {
+          "ordinal": 41,
+          "role": "RECOVERY",
+          "bounds": [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        }
+      ]
+    },
+    "9": {
+      "yaw": 49152,
+      "policy": 2,
+      "boxes": [
+        {
+          "ordinal": 63,
+          "role": "BODY",
+          "bounds": [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ]
+        },
+        {
+          "ordinal": 64,
+          "role": "BODY",
+          "bounds": [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ]
+        },
+        {
+          "ordinal": 65,
+          "role": "BODY",
+          "bounds": [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        },
+        {
+          "ordinal": 66,
+          "role": "STANCE",
+          "bounds": [
+            -249,
+            -1,
+            -274,
+            274,
+            0,
+            299
+          ]
+        },
+        {
+          "ordinal": 67,
+          "role": "RECOVERY",
+          "bounds": [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ]
+        },
+        {
+          "ordinal": 68,
+          "role": "RECOVERY",
+          "bounds": [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ]
+        },
+        {
+          "ordinal": 69,
+          "role": "RECOVERY",
+          "bounds": [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        }
+      ]
+    },
+    "22": {
+      "yaw": 49152,
+      "policy": 3,
+      "boxes": [
+        {
+          "ordinal": 205,
+          "role": "BODY",
+          "bounds": [
+            -648,
+            0,
+            -306,
+            528,
+            1157,
+            367
+          ]
+        },
+        {
+          "ordinal": 206,
+          "role": "BODY",
+          "bounds": [
+            -342,
+            -1,
+            -121,
+            305,
+            0,
+            282
+          ]
+        },
+        {
+          "ordinal": 207,
+          "role": "STANCE",
+          "bounds": [
+            -454,
+            -1,
+            -274,
+            305,
+            0,
+            328
+          ]
+        },
+        {
+          "ordinal": 208,
+          "role": "RECOVERY",
+          "bounds": [
+            -909,
+            0,
+            -452,
+            732,
+            1192,
+            780
+          ]
+        },
+        {
+          "ordinal": 209,
+          "role": "RECOVERY",
+          "bounds": [
+            -338,
+            -1,
+            -248,
+            145,
+            0,
+            203
+          ]
+        },
+        {
+          "ordinal": 210,
+          "role": "APPROACH",
+          "bounds": [
+            -234,
+            0,
+            -409,
+            732,
+            840,
+            548
+          ]
+        },
+        {
+          "ordinal": 211,
+          "role": "APPROACH",
+          "bounds": [
+            -60,
+            -1,
+            -134,
+            -44,
+            0,
+            -126
+          ]
+        },
+        {
+          "ordinal": 212,
+          "role": "STROKE",
+          "bounds": [
+            -909,
+            0,
+            -272,
+            820,
+            1422,
+            328
+          ]
+        },
+        {
+          "ordinal": 213,
+          "role": "STROKE",
+          "bounds": [
+            536,
+            -60,
+            -190,
+            678,
+            0,
+            49
+          ]
+        },
+        {
+          "ordinal": 214,
+          "role": "POINT",
+          "bounds": [
+            673,
+            0,
+            42,
+            673,
+            0,
+            42
+          ]
+        },
+        {
+          "ordinal": 215,
+          "role": "PATCH",
+          "bounds": [
+            672,
+            0,
+            41,
+            674,
+            0,
+            44
+          ]
+        }
+      ]
+    },
+    "23": {
+      "yaw": 49152,
+      "policy": 3,
+      "boxes": [
+        {
+          "ordinal": 216,
+          "role": "BODY",
+          "bounds": [
+            -648,
+            0,
+            -208,
+            528,
+            1157,
+            367
+          ]
+        },
+        {
+          "ordinal": 217,
+          "role": "BODY",
+          "bounds": [
+            -342,
+            -1,
+            -105,
+            -57,
+            0,
+            282
+          ]
+        },
+        {
+          "ordinal": 218,
+          "role": "STANCE",
+          "bounds": [
+            -454,
+            -1,
+            -274,
+            171,
+            0,
+            328
+          ]
+        },
+        {
+          "ordinal": 219,
+          "role": "RECOVERY",
+          "bounds": [
+            -909,
+            0,
+            -452,
+            536,
+            1192,
+            780
+          ]
+        },
+        {
+          "ordinal": 220,
+          "role": "RECOVERY",
+          "bounds": [
+            536,
+            514,
+            185,
+            732,
+            878,
+            672
+          ]
+        },
+        {
+          "ordinal": 221,
+          "role": "RECOVERY",
+          "bounds": [
+            -338,
+            -1,
+            -248,
+            145,
+            0,
+            203
+          ]
+        },
+        {
+          "ordinal": 222,
+          "role": "APPROACH",
+          "bounds": [
+            -234,
+            0,
+            -409,
+            732,
+            840,
+            548
+          ]
+        },
+        {
+          "ordinal": 223,
+          "role": "APPROACH",
+          "bounds": [
+            -60,
+            -1,
+            -134,
+            -44,
+            0,
+            -126
+          ]
+        },
+        {
+          "ordinal": 224,
+          "role": "STROKE",
+          "bounds": [
+            -909,
+            660,
+            -198,
+            536,
+            1422,
+            328
+          ]
+        },
+        {
+          "ordinal": 225,
+          "role": "STROKE",
+          "bounds": [
+            536,
+            949,
+            -11,
+            578,
+            1043,
+            128
+          ]
+        },
+        {
+          "ordinal": 226,
+          "role": "POINT",
+          "bounds": [
+            536,
+            1039,
+            122,
+            536,
+            1039,
+            122
+          ]
+        },
+        {
+          "ordinal": 227,
+          "role": "PATCH",
+          "bounds": [
+            536,
+            1038,
+            120,
+            536,
+            1041,
+            123
+          ]
+        }
+      ]
+    },
+    "24": {
+      "yaw": 49152,
+      "policy": 3,
+      "boxes": [
+        {
+          "ordinal": 228,
+          "role": "BODY",
+          "bounds": [
+            -234,
+            0,
+            -396,
+            646,
+            933,
+            433
+          ]
+        },
+        {
+          "ordinal": 229,
+          "role": "BODY",
+          "bounds": [
+            -60,
+            -1,
+            -134,
+            -44,
+            0,
+            -126
+          ]
+        },
+        {
+          "ordinal": 230,
+          "role": "STANCE",
+          "bounds": [
+            -174,
+            -1,
+            -274,
+            169,
+            0,
+            299
+          ]
+        },
+        {
+          "ordinal": 231,
+          "role": "RECOVERY",
+          "bounds": [
+            -234,
+            0,
+            -537,
+            768,
+            997,
+            594
+          ]
+        },
+        {
+          "ordinal": 232,
+          "role": "RECOVERY",
+          "bounds": [
+            -60,
+            -1,
+            -134,
+            -44,
+            0,
+            -126
+          ]
+        },
+        {
+          "ordinal": 233,
+          "role": "APPROACH",
+          "bounds": [
+            -234,
+            0,
+            -409,
+            732,
+            840,
+            548
+          ]
+        },
+        {
+          "ordinal": 234,
+          "role": "APPROACH",
+          "bounds": [
+            -60,
+            -1,
+            -134,
+            -44,
+            0,
+            -126
+          ]
+        },
+        {
+          "ordinal": 235,
+          "role": "STROKE",
+          "bounds": [
+            108,
+            94,
+            -359,
+            768,
+            1169,
+            594
+          ]
+        },
+        {
+          "ordinal": 236,
+          "role": "STROKE",
+          "bounds": [
+            768,
+            189,
+            -129,
+            814,
+            717,
+            15
+          ]
+        },
+        {
+          "ordinal": 237,
+          "role": "POINT",
+          "bounds": [
+            768,
+            707,
+            6,
+            768,
+            707,
+            6
+          ]
+        },
+        {
+          "ordinal": 238,
+          "role": "PATCH",
+          "bounds": [
+            768,
+            705,
+            4,
+            768,
+            710,
+            7
+          ]
+        }
+      ]
+    },
+    "25": {
+      "yaw": 49152,
+      "policy": 3,
+      "boxes": [
+        {
+          "ordinal": 239,
+          "role": "BODY",
+          "bounds": [
+            -234,
+            0,
+            -409,
+            350,
+            840,
+            321
+          ]
+        },
+        {
+          "ordinal": 240,
+          "role": "BODY",
+          "bounds": [
+            -60,
+            -1,
+            -134,
+            -44,
+            0,
+            -126
+          ]
+        },
+        {
+          "ordinal": 241,
+          "role": "STANCE",
+          "bounds": [
+            -174,
+            -1,
+            -274,
+            169,
+            0,
+            299
+          ]
+        },
+        {
+          "ordinal": 242,
+          "role": "RECOVERY",
+          "bounds": [
+            -189,
+            0,
+            -274,
+            169,
+            128,
+            299
+          ]
+        },
+        {
+          "ordinal": 243,
+          "role": "RECOVERY",
+          "bounds": [
+            -234,
+            128,
+            -409,
+            732,
+            842,
+            548
+          ]
+        },
+        {
+          "ordinal": 244,
+          "role": "APPROACH",
+          "bounds": [
+            -189,
+            0,
+            -274,
+            169,
+            128,
+            299
+          ]
+        },
+        {
+          "ordinal": 245,
+          "role": "APPROACH",
+          "bounds": [
+            -234,
+            128,
+            -409,
+            732,
+            840,
+            548
+          ]
+        },
+        {
+          "ordinal": 246,
+          "role": "STROKE",
+          "bounds": [
+            437,
+            125,
+            112,
+            459,
+            128,
+            141
+          ]
+        },
+        {
+          "ordinal": 247,
+          "role": "STROKE",
+          "bounds": [
+            212,
+            128,
+            -30,
+            674,
+            669,
+            259
+          ]
+        },
+        {
+          "ordinal": 248,
+          "role": "POINT",
+          "bounds": [
+            448,
+            128,
+            128,
+            448,
+            128,
+            128
+          ]
+        },
+        {
+          "ordinal": 249,
+          "role": "PATCH",
+          "bounds": [
+            447,
+            128,
+            127,
+            449,
+            128,
+            129
+          ]
+        }
+      ]
+    }
+  },
+  "cases": {
+    "original_first_front": {
+      "profile": 24,
+      "root": [
+        1280,
+        0,
+        512
+      ],
+      "start": null,
+      "target": [
+        2048,
+        0,
+        0,
+        3072,
+        1024,
+        1024
+      ],
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "proposed_next_deep_front_after_one_cube": {
+      "profile": 24,
+      "root": [
+        2304,
+        0,
+        512
+      ],
+      "start": null,
+      "target": [
+        3072,
+        0,
+        0,
+        4096,
+        1024,
+        1024
+      ],
+      "complete_geometry_covered": false,
+      "failures": [
+        {
+          "box": 231,
+          "role": "RECOVERY",
+          "uncovered": [
+            [
+              2070,
+              0,
+              -25,
+              3072,
+              997,
+              0
+            ],
+            [
+              2070,
+              0,
+              1024,
+              3072,
+              997,
+              1106
+            ]
+          ]
+        },
+        {
+          "box": 233,
+          "role": "APPROACH",
+          "uncovered": [
+            [
+              2070,
+              0,
+              1024,
+              3036,
+              840,
+              1060
+            ]
+          ]
+        },
+        {
+          "box": 235,
+          "role": "STROKE",
+          "uncovered": [
+            [
+              2412,
+              1024,
+              153,
+              3072,
+              1169,
+              1106
+            ],
+            [
+              2412,
+              94,
+              1024,
+              3072,
+              1024,
+              1106
+            ]
+          ]
+        }
+      ]
+    },
+    "proposed_next_deep_travel_after_one_cube": {
+      "profile": 5,
+      "root": [
+        2304,
+        0,
+        512
+      ],
+      "start": [
+        1280,
+        0,
+        512
+      ],
+      "target": null,
+      "complete_geometry_covered": false,
+      "failures": [
+        {
+          "box": 35,
+          "role": "BODY",
+          "uncovered": [
+            [
+              2048,
+              0,
+              1024,
+              2778,
+              930,
+              1058
+            ]
+          ]
+        },
+        {
+          "box": 37,
+          "role": "BODY",
+          "uncovered": [
+            [
+              2048,
+              1024,
+              694,
+              3036,
+              1036,
+              1422
+            ],
+            [
+              2048,
+              379,
+              1024,
+              3036,
+              1024,
+              1422
+            ]
+          ]
+        },
+        {
+          "box": 39,
+          "role": "RECOVERY",
+          "uncovered": [
+            [
+              2048,
+              0,
+              1024,
+              2778,
+              930,
+              1058
+            ]
+          ]
+        },
+        {
+          "box": 41,
+          "role": "RECOVERY",
+          "uncovered": [
+            [
+              2048,
+              1024,
+              694,
+              3036,
+              1036,
+              1422
+            ],
+            [
+              2048,
+              379,
+              1024,
+              3036,
+              1024,
+              1422
+            ]
+          ]
+        }
+      ]
+    },
+    "lateral_front_from_old_corridor": {
+      "profile": 24,
+      "root": [
+        1280,
+        0,
+        1536
+      ],
+      "start": null,
+      "target": [
+        2048,
+        0,
+        1024,
+        3072,
+        1024,
+        2048
+      ],
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "lateral_forward_from_new_local_gateway": {
+      "profile": 5,
+      "root": [
+        1280,
+        0,
+        1536
+      ],
+      "start": [
+        -1024,
+        0,
+        1536
+      ],
+      "target": null,
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "lateral_backward_to_new_local_gateway": {
+      "profile": 9,
+      "root": [
+        -1024,
+        0,
+        1536
+      ],
+      "start": [
+        1280,
+        0,
+        1536
+      ],
+      "target": null,
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "high_first_after_widening": {
+      "profile": 23,
+      "root": [
+        1512,
+        0,
+        512
+      ],
+      "start": null,
+      "target": [
+        2048,
+        1024,
+        0,
+        3072,
+        2048,
+        1024
+      ],
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "high_second_after_widening": {
+      "profile": 23,
+      "root": [
+        1512,
+        0,
+        1035
+      ],
+      "start": null,
+      "target": [
+        2048,
+        1024,
+        1024,
+        3072,
+        2048,
+        2048
+      ],
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "current_full_walk_to_high_after_widening": {
+      "profile": 5,
+      "root": [
+        1512,
+        0,
+        512
+      ],
+      "start": [
+        1280,
+        0,
+        512
+      ],
+      "target": null,
+      "complete_geometry_covered": false,
+      "failures": [
+        {
+          "box": 37,
+          "role": "BODY",
+          "uncovered": [
+            [
+              2048,
+              1024,
+              694,
+              2244,
+              1036,
+              1422
+            ]
+          ]
+        },
+        {
+          "box": 41,
+          "role": "RECOVERY",
+          "uncovered": [
+            [
+              2048,
+              1024,
+              694,
+              2244,
+              1036,
+              1422
+            ]
+          ]
+        }
+      ]
+    },
+    "deeper_front_after_four_paid_cubes": {
+      "profile": 24,
+      "root": [
+        2304,
+        0,
+        768
+      ],
+      "start": null,
+      "target": [
+        3072,
+        0,
+        0,
+        4096,
+        1024,
+        1024
+      ],
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "deeper_forward_after_four_paid_cubes": {
+      "profile": 5,
+      "root": [
+        2304,
+        0,
+        768
+      ],
+      "start": [
+        1280,
+        0,
+        768
+      ],
+      "target": null,
+      "complete_geometry_covered": true,
+      "failures": []
+    },
+    "deeper_backward_after_four_paid_cubes": {
+      "profile": 9,
+      "root": [
+        1280,
+        0,
+        768
+      ],
+      "start": [
+        2304,
+        0,
+        768
+      ],
+      "target": null,
+      "complete_geometry_covered": true,
+      "failures": []
+    }
+  },
+  "short_step_cases": [
+    {
+      "direction": "forward",
+      "root_from": [
+        1280,
+        0,
+        512
+      ],
+      "root_to": [
+        1512,
+        0,
+        512
+      ],
+      "whole_source_primitive_sweeps": {
+        "body_u": [
+          1043,
+          -1,
+          74,
+          1906,
+          926,
+          988
+        ],
+        "tool_u": [
+          1407,
+          379,
+          697,
+          2244,
+          972,
+          1309
+        ]
+      },
+      "retained_complete_walk_floor_body_sweep": [
+        1031,
+        -1,
+        273,
+        1786,
+        0,
+        796
+      ],
+      "retained_full_walk_stance_sweep": [
+        1031,
+        -1,
+        238,
+        1786,
+        0,
+        811
+      ],
+      "complete_geometry_covered": true,
+      "failures": [],
+      "current_profile_authority": false
+    },
+    {
+      "direction": "backward",
+      "root_from": [
+        1512,
+        0,
+        512
+      ],
+      "root_to": [
+        1280,
+        0,
+        512
+      ],
+      "whole_source_primitive_sweeps": {
+        "body_u": [
+          1046,
+          -1,
+          74,
+          1906,
+          926,
+          1039
+        ],
+        "tool_u": [
+          1307,
+          379,
+          697,
+          2244,
+          966,
+          1393
+        ]
+      },
+      "retained_complete_walk_floor_body_sweep": [
+        1031,
+        -1,
+        273,
+        1786,
+        0,
+        796
+      ],
+      "retained_full_walk_stance_sweep": [
+        1031,
+        -1,
+        238,
+        1786,
+        0,
+        811
+      ],
+      "complete_geometry_covered": true,
+      "failures": [],
+      "current_profile_authority": false
+    },
+    {
+      "direction": "forward",
+      "root_from": [
+        1280,
+        0,
+        1035
+      ],
+      "root_to": [
+        1512,
+        0,
+        1035
+      ],
+      "whole_source_primitive_sweeps": {
+        "body_u": [
+          1043,
+          -1,
+          597,
+          1906,
+          926,
+          1511
+        ],
+        "tool_u": [
+          1407,
+          379,
+          1220,
+          2244,
+          972,
+          1832
+        ]
+      },
+      "retained_complete_walk_floor_body_sweep": [
+        1031,
+        -1,
+        796,
+        1786,
+        0,
+        1319
+      ],
+      "retained_full_walk_stance_sweep": [
+        1031,
+        -1,
+        761,
+        1786,
+        0,
+        1334
+      ],
+      "complete_geometry_covered": true,
+      "failures": [],
+      "current_profile_authority": false
+    },
+    {
+      "direction": "backward",
+      "root_from": [
+        1512,
+        0,
+        1035
+      ],
+      "root_to": [
+        1280,
+        0,
+        1035
+      ],
+      "whole_source_primitive_sweeps": {
+        "body_u": [
+          1046,
+          -1,
+          597,
+          1906,
+          926,
+          1562
+        ],
+        "tool_u": [
+          1307,
+          379,
+          1220,
+          2244,
+          966,
+          1916
+        ]
+      },
+      "retained_complete_walk_floor_body_sweep": [
+        1031,
+        -1,
+        796,
+        1786,
+        0,
+        1319
+      ],
+      "retained_full_walk_stance_sweep": [
+        1031,
+        -1,
+        761,
+        1786,
+        0,
+        1334
+      ],
+      "complete_geometry_covered": true,
+      "failures": [],
+      "current_profile_authority": false
+    }
+  ],
+  "root_step": {
+    "u": 232,
+    "speed_u_per_s": 3277,
+    "ticks_for_each_remainder_0_through_29": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "new_speed_or_duration_adopted": false
+  },
+  "critical_root_z_intervals_u": {
+    "front_recovery_in_single_paid_cube": [
+      537,
+      430
+    ],
+    "travel5_full_box_union_in_single_paid_cube": [
+      445,
+      114
+    ],
+    "high_work_wall_crossing_roles_after_one_lower_cube": [
+      409,
+      352
+    ],
+    "high_upper0_after_two_lower_cubes_including_full_tip_stroke": [
+      409,
+      896
+    ],
+    "high_upper1_after_two_lower_cubes_including_full_tip_stroke": [
+      1035,
+      1376
+    ]
+  },
+  "limitations": [
+    "A Location/section does not create void or support",
+    "Current provider has one fixed retreat profile and endpoint; hypothetical local gateways are not existing certified paths",
+    "Source prefix geometry is not an admitted short-step policy",
+    "No new native replay, source flags, paid work or engine execution"
+  ]
+}

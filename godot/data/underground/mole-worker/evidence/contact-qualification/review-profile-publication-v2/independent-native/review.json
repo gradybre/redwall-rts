@@ -1,0 +1,44 @@
+{
+  "scope": "OpenGL component replay only; no World, Metal, stair, handling or whole-game permission",
+  "validated": {
+    "driver_poses": 7648,
+    "contact_poses": 144,
+    "assertions": 46873,
+    "exact_work_profiles": 16,
+    "headings": [
+      0,
+      16384,
+      32768,
+      49152
+    ],
+    "production_qualified": false,
+    "published_wire_sha256": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+    "actual_catalog_profiles": 18,
+    "source_geometry_qualified": true,
+    "world_activation_qualified": false
+  },
+  "current_closure_counts": {
+    "sources.json": 677,
+    "pre-import-sources.json": 601
+  },
+  "unchanged_oracle_fields": [
+    "events",
+    "native_contacts",
+    "phase_counts",
+    "poses",
+    "actual_species_stage_rig",
+    "content_sha256",
+    "program_version",
+    "screenshots"
+  ],
+  "identical_pngs": 304,
+  "scope_text": {
+    "prior": "actual Resident/Job/Work/Gear and renderer; fixture profile flags, no World/WIP/handling permission",
+    "renewed": "actual source-qualified catalog/Resident/Job/Work/Gear/renderer; fixture World, no paid target or WIP"
+  },
+  "unchanged_source_manifest": "d6adb96b0c8018e1d61a08c79f6d07c313f93e9c736a9800100f3a36173bf2ab",
+  "unchanged_output_manifest": "e3e555a81312b215542ae598a0d6bc8b033e1631cfe5475a98b032efe9a30230",
+  "current_wrapper_sha256": "c6083cb48f61543b734987466b93c0d78e3183e075aba629a505eea94192abf0",
+  "native_engine_rerun": false,
+  "reviewer_note": "Initial independent comparison incorrectly included descriptive world_identity scope text; actual oracle fields and image bytes are unchanged; the accepted published helper deliberately updates that descriptive text."
+}

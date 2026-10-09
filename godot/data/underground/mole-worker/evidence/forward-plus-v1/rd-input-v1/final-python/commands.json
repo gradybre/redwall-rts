@@ -1,0 +1,10 @@
+[
+  [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/test_audit_underground_metal_inputs.py"
+  ],
+  [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/test_capture_inputs.py"
+  ]
+]

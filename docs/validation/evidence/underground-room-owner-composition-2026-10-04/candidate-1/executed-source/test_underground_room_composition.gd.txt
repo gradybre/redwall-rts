@@ -1,0 +1,88 @@
+extends "res://test/framework/test_case.gd"
+## Real generated/populated Host and shipped Content; no synthetic source, geometry or phase permission.
+
+const Host := preload("res://scripts/systems/settlement_system.gd")
+const Session := preload("res://scripts/core/underground_session.gd")
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Composition := preload("res://scripts/core/underground_room_composition.gd")
+const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Orders := preload("res://scripts/core/underground_room_orders.gd")
+
+var _host: Host = null
+var _content: Content = null
+var _session: Session = null
+
+
+func before_each() -> void:
+	"""Use actual current source/content and the same public World/foundation mount used by boot."""
+	_host = Host.new()
+	_content = Content.new()
+	assert_equal(_content.load_file(Session.ACTOR_PATH, Session.Catalog.Pins.ACTOR_SHA,
+		Session.PRESENTATION_BYTES), &"", "current actual image")
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "actual populated World")
+	assert_true(_host.mount_underground(_content), "source foundation: %s" % _host.last_refusal())
+	_session = _host.underground_session()
+
+
+func after_each() -> void:
+	"""Drop this test's original owners; no private external weak link is cleared by the fixture."""
+	_session = null
+	_content = null
+	if _host != null: _host.free()
+	_host = null
+
+
+func _snapshot() -> Array[PackedByteArray]:
+	"""Canonical gameplay bytes exclude newly allocated empty derived namespaces and owner references."""
+	return [_host.directory().state_bytes(), _host.inventory().state_bytes(), _host.jobs().state_bytes(),
+		_host.residents().state_bytes(), _host.transforms().state_bytes(), _host.construction().state_bytes(),
+		_host.reservations().state_bytes(), _host.buildings().spatial_state_bytes()]
+
+
+func test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation() -> void:
+	"""Every receiver comes from the mounted host; source-qualified geometry creates no endpoint or Room."""
+	var before: Array[PackedByteArray] = _snapshot()
+	assert_true(_host.compose_underground_room_owners(), "actual composition: %s" % _host.last_refusal())
+	assert_equal(_snapshot(), before, "stock, Jobs, identities, buildings and World unchanged")
+	var o: Retirement.Owners = _session._retirement_owners
+	assert_equal(_session._operations_state, 2, "complete owner graph")
+	assert_equal(_session._operations_prefix, 4, "all four owner groups")
+	assert_equal(Composition.complete_refusal(o), &"", "complete exact wiring")
+	assert_equal(_session.room_orders(), o.rooms, "actual Rooms borrowed")
+	assert_equal(_session.location_owner(), o.locations, "actual Locations borrowed")
+	assert_equal(_session.room_phase_provider(), o.world_bindings, "actual closed provider")
+	assert_equal(o.sites._capacity, Composition.Sites.MAX_SITE_CAPACITY, "real Site budget")
+	assert_equal(o.sites._funding._capacity, Composition.Funding.MAX_RECEIPT_CAPACITY, "one real Funding arena")
+	assert_equal(o.router._funding, o.sites._funding, "shared funding, not duplicated")
+	assert_equal(o.sites._count, 0, "no Site introduced")
+	assert_equal(o.locations._live.count, 0, "no endpoint invented")
+	assert_equal(o.routes._edge_capacity, 0, "route remains an unconfigured source shell")
+	assert_equal(o.world_routes, null, "no synthetic route provider")
+	assert_equal(o.contacts, null, "no work permission")
+	assert_true(_host.compose_underground_room_owners(), "idempotent current recheck")
+	assert_equal(_session._retirement_owners, o, "no second owner packet")
+	assert_equal(_snapshot(), before, "repeat changes no gameplay bytes")
+
+
+func test_actual_reset_releases_original_graph_then_reuses_inventory_arena() -> void:
+	"""Canonical host clearing precedes exact owner release and a fresh same-capacity namespace."""
+	assert_true(_host.compose_underground_room_owners(), "compose")
+	var original: Retirement.Owners = _session._retirement_owners
+	var world_ref: Vector2i = _host.world_ref()
+	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "finite arena")
+	assert_true(_host.prepare_world_reset(), "actual complete tuple preflight")
+	assert_true(_host.prepare_world_reset(), "same Scope repeated")
+	assert_true(_host.reset(), "actual clear/release: %s" % _host.last_refusal())
+	assert_equal(_host.construction()._excavation_authority, null, "owner-owned excavation release")
+	assert_equal(_host.work()._modular_authority, null, "owner-owned modular release")
+	assert_equal(_host.buildings()._spatial_authority, null, "owner-owned Room release")
+	assert_equal(_host.inventory()._spatial_authority, null, "owner-owned namespace release")
+	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "same arena retained")
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "new full World")
+	assert_true(_host.mount_underground(_content), "remount current source")
+	_session = _host.underground_session()
+	assert_true(_host.compose_underground_room_owners(), "new actual owner graph")
+	assert_not_equal(_session._retirement_owners.locations, original.locations, "fresh namespace owner")
+	assert_false(_host.directory().is_valid(world_ref), "old full World generation refuses")
+	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "no growth")

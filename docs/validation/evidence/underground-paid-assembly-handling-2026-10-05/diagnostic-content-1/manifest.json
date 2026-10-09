@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "scope": "Exact diagnostic content4 rebind; source geometry unchanged",
+  "production_qualified": false,
+  "world_activation_qualified": false,
+  "paid_execution_qualified": false,
+  "profile_content_revision": 4,
+  "source_count": 2,
+  "profile_count": 30,
+  "box_count": 281,
+  "predecessor_profile": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+  "diagnostic_profile": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+  "producer_sha256": "cc19250c6ad2586aacd6510433bf01b6036007a10bee59547b71961b05a1ea77",
+  "predecessor_frontier_manifest": "0e881c78cb620fdab69a4a10a994d05c2e7fa837640ecc8239ff775c783a6072",
+  "predecessor_structural_manifest": "ca5e0e5819a5acf08e2d1d6ab42797defdee49b0da9982f5d9055634b6a914ed",
+  "unchanged_profile_rows": [
+    0,
+    28
+  ],
+  "unchanged_profile_boxes": [
+    0,
+    270
+  ],
+  "frontier_payload_unchanged": true,
+  "inputs": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+    "godot/data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24",
+    "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "5eaf2cf19cfcb1e1ac32dbcec53f04df7ca3832daa56a0c2c00382a5beeb94ba",
+    "godot/scripts/core/underground_connector_catalog.gd": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+    "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
+    "godot/scripts/core/connector_geometry.gd": "0ad18857dd936f9f6df235a8ec4130955df2c3106c15229ef53fb554ce0e5c35",
+    "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn": "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb": "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp": "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/manifest.json": "ca5e0e5819a5acf08e2d1d6ab42797defdee49b0da9982f5d9055634b6a914ed",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py": "80e8446a89616982c9a6c39d0a2db4c4a388aa2e43534192a99f4728e2b548a0",
+    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c"
+  },
+  "outputs": {
+    "mole-worker.ugprof": {
+      "bytes": 10912,
+      "sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
+    },
+    "structure.ugconn": {
+      "bytes": 2732,
+      "sha256": "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520"
+    },
+    "assemblies.ugasmb": {
+      "bytes": 128,
+      "sha256": "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54"
+    },
+    "recipes.ugrecp": {
+      "bytes": 284,
+      "sha256": "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8"
+    },
+    "frontier.ugfront": {
+      "bytes": 2212,
+      "sha256": "a8d30864cf8e79ae51a0fa2f2b317d5ef07fbf3ceebc1c6eac0e4380a11b038a"
+    },
+    "ground-pace.ugconn": {
+      "bytes": 576,
+      "sha256": "877be0982eb6945c4c4f014e9de428b3ab278d1fddc630080e9c6bfe341a1ea8"
+    }
+  }
+}

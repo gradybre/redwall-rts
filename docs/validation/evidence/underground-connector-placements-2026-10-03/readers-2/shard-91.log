@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_placements.gd
+  PASS  test_actual_source_registration_copies_full_identity_without_building_geometry
+  PASS  test_frame_reader_copies_exact_existing_tuple_without_observers_or_aliases
+  PASS  test_frame_reader_preserves_output_for_shape_generation_and_actual_source_drift
+  PASS  test_stream_capture_restore_is_bounded_and_authority_is_mandatory
+  PASS  test_registration_replaced_lease_preserves_new_lease_and_empty_state
+  PASS  test_retirement_requires_cleanup_and_reuses_full_generation
+  PASS  test_actual_paid_completion_commits_all_companions_once_without_postpayment_observers
+  PASS  test_final_observer_replaced_budget_refuses_before_funding_and_preserves_replacement
+  PASS  test_final_actual_building_drift_refuses_without_spending_then_retries
+  PASS  test_prepaid_observer_cannot_use_generic_or_static_paid_publication
+  PASS  test_postpayment_tail_uses_no_source_endpoint_or_binding_observers
+  PASS  test_final_reentry_poison_preserves_payment_and_permits_new_retry
+  PASS  test_constructor_and_opening_exhaustion_refuse_without_growing_any_bank
+  PASS  test_streamed_hostile_transform_and_generation_preserve_live_state
+  PASS  test_refund_clears_only_project_and_never_installs_or_erases_geometry
+  PASS  test_mutated_installation_packet_cannot_substitute_original_project_or_token
+  PASS  test_replaced_location_candidate_survives_failed_original_publication
+  PASS  test_source_lease_replacement_precedes_location_bank_copy
+  PASS  test_source_lease_replacement_precedes_route_bank_copy
+  PASS  test_final_leaf_precharges_capacity_scans_before_reading_sources
+  PASS  test_admit_requires_revision_for_both_identity_attach_and_terminal_transition
+  PASS  test_all_mutations_preserve_active_order_terminal_revision_reservation
+  PASS  test_streamed_active_exhaustion_and_false_active_count_preserve_live_project
+  PASS  test_refund_preflight_refuses_exhaustion_before_actual_inventory_settlement
+  PASS  test_foreign_actual_catalog_group_recipe_cannot_bind_existing_route_provider
+  PASS  test_late_route_catalog_rewire_refuses_before_payment_and_geometry
+  PASS  test_completion_never_normalizes_an_unrelated_stale_placement_source
+  PASS  test_completion_never_normalizes_an_unrelated_stale_opening_source
+  PASS  test_completion_preserves_retained_section_level_before_payment
+CI_SUITE_TIME {"assertions":4004,"failures":0,"suite":"test_underground_connector_placements.gd","tests":29,"usec":8766987}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+29 test(s), 4004 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 29 tests, 4004 assertions, 0 failures.

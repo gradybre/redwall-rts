@@ -1,0 +1,21 @@
+test_capture_oversize_closes_before_array_decoder (__main__.NativeProgramTests.test_capture_oversize_closes_before_array_decoder) ... ok
+test_capture_truncation_refuses_before_array_decoder (__main__.NativeProgramTests.test_capture_truncation_refuses_before_array_decoder) ... ok
+test_changed_hub_is_not_silently_blended_or_snapped (__main__.NativeProgramTests.test_changed_hub_is_not_silently_blended_or_snapped) ... ok
+test_changed_stock_point_cannot_inherit_original_geometry (__main__.NativeProgramTests.test_changed_stock_point_cannot_inherit_original_geometry) ... ok
+test_complete_native_lift_has_both_actual_triangle_contacts (__main__.NativeProgramTests.test_complete_native_lift_has_both_actual_triangle_contacts) ... ok
+test_complete_native_stock_representation_preserves_all_source_geometry (__main__.NativeProgramTests.test_complete_native_stock_representation_preserves_all_source_geometry) ... ok
+test_every_join_and_authored_reversal_has_identical_native_inputs (__main__.NativeProgramTests.test_every_join_and_authored_reversal_has_identical_native_inputs) ... ok
+test_every_native_event_has_the_exact_original_source_selection (__main__.NativeProgramTests.test_every_native_event_has_the_exact_original_source_selection) ... ok
+test_invalid_clock_does_not_index_or_wrap_another_clip (__main__.NativeProgramTests.test_invalid_clock_does_not_index_or_wrap_another_clip) ... ok
+test_missing_or_reordered_complete_stock_triangle_refuses (__main__.NativeProgramTests.test_missing_or_reordered_complete_stock_triangle_refuses) ... ok
+test_native_body_palette_change_refuses (__main__.NativeProgramTests.test_native_body_palette_change_refuses) ... ok
+test_one_departed_hand_is_not_two_hand_contact (__main__.NativeProgramTests.test_one_departed_hand_is_not_two_hand_contact) ... ok
+test_shifted_stock_cannot_borrow_grip_permission (__main__.NativeProgramTests.test_shifted_stock_cannot_borrow_grip_permission) ... ok
+test_true_loop_last_interval_returns_to_first_not_unused_last_key (__main__.NativeProgramTests.test_true_loop_last_interval_returns_to_first_not_unused_last_key) ... ok
+test_world_root_applied_twice_is_detected (__main__.NativeProgramTests.test_world_root_applied_twice_is_detected) ... ok
+test_wrong_selected_clip_is_not_a_valid_palette_sample (__main__.NativeProgramTests.test_wrong_selected_clip_is_not_a_valid_palette_sample) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.194s
+
+OK

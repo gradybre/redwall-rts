@@ -307,6 +307,12 @@ const FuelPanelScript := preload("res://demo/winter/fuel_panel.gd")
 const DayNightScript := preload("res://demo/world/day_night.gd")
 const NightLightsScript := preload("res://demo/world/night_lights.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
+const ModularSession := preload("res://scripts/core/underground_session.gd")
+const ModularSources := preload("res://demo/cast/underground_content_set.gd")
+const MolePresentation := preload("res://data/underground/mole-worker/mole_presentation.gd")
+const EntryWorkerView := preload("res://demo/cast/entry_worker_view.gd")
+const EntryWorkerMeshes := preload("res://demo/cast/entry_worker_meshes.gd")
+const ModularDemoMode := preload("res://demo/burrow/modular_demo_mode.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
@@ -436,6 +442,11 @@ var _care: CareScript = null
 var _forage: ForageNodeScript = null
 ## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
 var _orchard: OrchardScript = null
+var _modular_mode: ModularDemoMode = null
+## ADR1201/1211: one pinned presentation image per mole profile source (actor, assembly handling, wood haul, stone).
+var _modular_sources: ModularSources = null
+## ADR1211: the entry crew's worker Actors and the G5 surface walk to the stair-top anchor.
+var _entry_worker: EntryWorkerView = null
 
 
 func _ready() -> void:
@@ -450,7 +461,9 @@ func _ready() -> void:
 		push_warning("demo assets are not staged (tools/stage_demo_assets.py); running on placeholders")
 	DemoWorldScript.Look.apply_shadow_quality()
 	_build_world(manifest)
+	_mount_modular_foundation()
 	_build_cast(manifest)
+	_build_entry_worker(manifest)
 	_command = DemoCommandScript.new()
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
@@ -493,6 +506,7 @@ func _ready() -> void:
 	_hold_restart_open()
 	_warm_and_open()
 	_build_input()
+	_build_modular_room_mode()
 	PlaytestTaps.wire(self, _gate, _zone, _farm.lenses, _command as DemoCommandScript, _services.notices,
 		_services.calendar)
 
@@ -563,6 +577,63 @@ func _warm_and_open() -> void:
 func prewarm() -> PrewarmScript:
 	"""The boot prewarm and its report (demo_prewarm.gd)."""
 	return _prewarm
+
+
+func _mount_modular_foundation() -> void:
+	"""Give the actual settlement its single source-qualified underground foundation, without free construction."""
+	var sources: ModularSources = ModularSources.new()
+	# Content 9 publishes the wood and stone haul rows (ADR1200/1206) and the claw and paw rows (ADR1217 step 5), so
+	# every image loads (ADR1211).
+	var code: StringName = MolePresentation.load_sources(sources, true, true, true)
+	if code == &"":
+		_modular_sources = sources
+	if code == &"" and not SettlementSystem.mount_underground(sources.content(MolePresentation.SOURCE_ACTOR)):
+		code = SettlementSystem.last_refusal()
+	if code == &"" and not SettlementSystem.compose_underground_room_owners():
+		code = SettlementSystem.last_refusal()
+	if code == &"" and not SettlementSystem.compose_underground_route_owners():
+		code = SettlementSystem.last_refusal()
+	if code != &"":
+		UIManager.push_refusal(code)
+		push_warning("Underground foundation unavailable: %s" % code)
+
+
+func _build_entry_worker(manifest: Dictionary) -> void:
+	"""ADR1211: one hidden worker Actor per loaded source for the entry crew, driven from its actual selected row.
+	A composition refusal (assets not staged, a fingerprint mismatch) is retained and alerted only when the crew's
+	resident is underground and would need drawing; the renderer's absence in a headless run is not a game gap."""
+	if _modular_sources == null:
+		return
+	_entry_worker = EntryWorkerView.new()
+	_entry_worker.name = "EntryWorker"
+	add_child(_entry_worker)
+	var code: StringName = _entry_worker.configure(SettlementSystem, _cast, _modular_sources, UIManager.push_refusal)
+	if code != &"":
+		UIManager.push_refusal(code)
+		return
+	_entry_worker.compose_actors(EntryWorkerMeshes.build(manifest, _services.props))
+
+
+func _build_modular_room_mode() -> void:
+	"""Open actual-world dirt planning from the existing tunnel panel; retain the older village on close."""
+	_modular_mode = ModularDemoMode.new()
+	add_child(_modular_mode)
+	var code: StringName = _modular_mode.configure(SettlementSystem, self, _camera as DemoCameraScript,
+		_stall_banner, [_camera, _camera_modes, _camera_modes.edge] as Array[Node], _modular_view_blocked)
+	if code != &"": UIManager.push_refusal(code)
+	_tunnel_tool().ext.panel.action.connect(_modular_panel_action)
+
+
+func _modular_panel_action(action: StringName) -> void:
+	"""The new blueprint action belongs to the original settlement's inspector, not a legacy dig timer."""
+	if action != TunnelPanelScript.ACTION_MODULAR_ROOM: return
+	var code: StringName = _modular_mode.open()
+	if code != &"": UIManager.push_refusal(code)
+
+
+func _modular_view_blocked() -> bool:
+	"""Existing modals and the original stall banner keep their input ownership during a view handover."""
+	return _gate.modal_open() or _stall_banner.is_shown()
 
 
 func _build_world(manifest: Dictionary) -> void:

@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+native-world-memory: live_before=148917988; live_after=149442440; peak_before=244623287; peak_after=244623287; reserved=544768; isolated_peak_qualified=false
+native-world: part=0; initial=(117.0, 496.0, 74.0); turned=(116.6667, 528.0, 180.6667); grounded=(85.0, 496.0, 74.0); shifted=(117.0, 496.0, 106.0)
+native-world: part=1; initial=(106.3333, 2016.0, 180.6667); turned=(106.0, 2080.0, 74.0); grounded=(74.33334, 2016.0, 180.6667); shifted=(106.3333, 2016.0, 212.6667)
+native-forward-reentry: body=(117.0, 496.0, 74.0); held=(106.3333, 2016.0, 180.6667)
+native-forward: 45 assertions, 0 failures; actual Metal pixels and two attachment cycles; qualified=0

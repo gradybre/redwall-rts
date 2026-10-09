@@ -1,0 +1,135 @@
+extends "../preview_grip.gd"
+## An explicitly authored geometric grip preview. This is not the source or envelope of any accepted profile.
+
+var _changed: PackedInt32Array = PackedInt32Array()
+
+
+func _run() -> void:
+	"""Keep the source-pose comparison while labeling the two derivative hand variants truthfully."""
+	_world = Node3D.new()
+	root.add_child(_world)
+	_stage()
+	if not _build_actors():
+		_world.free()
+		quit(2)
+		return
+	for clip: StringName in [&"idle", &"walk", &"heavy_hammer_swing"]:
+		await _capture_clip(clip)
+	_actors.clear()
+	_world.free()
+	_world = null
+	var file: FileAccess = FileAccess.open(_out + "/report.json", FileAccess.WRITE)
+	file.store_string(JSON.stringify({"schema": 1, "poses": _samples, "changed_vertices": Array(_changed),
+		"production_qualified": false, "hand_geometry": "authored distal palm contraction; original rig, weights and materials",
+		"status": "VISUAL_CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW_AND_REBAKE"}, "\t") + "\n")
+	file.close()
+	print("grip-closed-preview: ", _samples, " actual poses; changed=", _changed, "; qualification=0")
+	quit(0)
+
+
+func _build_actors() -> bool:
+	"""Derive only the held-tool hand; every original mesh remains immutable and reusable."""
+	if not super._build_actors():
+		return false
+	for index: int in [1, 2]:
+		var nodes: Array[Node] = _actors[index].get_node("Body").find_children("*", "MeshInstance3D", true, false)
+		if nodes.size() != 1:
+			return false
+		var instance: MeshInstance3D = nodes[0] as MeshInstance3D
+		var bind: int = _hand_bind(instance, _actors[index].get("_skeleton") as Skeleton3D)
+		if bind < 0:
+			return false
+		instance.mesh = _derive(instance.mesh as ArrayMesh, instance.skin.get_bind_pose(bind), bind, index)
+		if instance.mesh == null:
+			return false
+	return true
+
+
+func _hand_bind(instance: MeshInstance3D, skeleton: Skeleton3D) -> int:
+	"""Resolve the real named/indexed Skin mapping; a neighboring bone is never substituted."""
+	var hand: int = skeleton.find_bone("RightHand")
+	for bind: int in instance.skin.get_bind_count():
+		var name: StringName = instance.skin.get_bind_name(bind)
+		var bone: int = skeleton.find_bone(name) if name != &"" else instance.skin.get_bind_bone(bind)
+		if hand >= 0 and bone == hand:
+			return bind
+	return -1
+
+
+func _derive(mesh: ArrayMesh, hand_from_mesh: Transform3D, hand: int, variant: int) -> ArrayMesh:
+	"""An authored smooth distal contraction preserves wrist, all original influences, UVs and material resources."""
+	if mesh == null or mesh.get_surface_count() != 1 or mesh.get_blend_shape_count() != 0:
+		return null
+	var arrays: Array = mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).duplicate()
+	var normals: PackedVector3Array = (arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array).duplicate()
+	var tangents: PackedFloat32Array = (arrays[Mesh.ARRAY_TANGENT] as PackedFloat32Array).duplicate()
+	var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+	var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+	@warning_ignore("integer_division") var stride: int = weights.size() / points.size()
+	var changed: int = 0
+	for vertex: int in points.size():
+		var share: float = _hand_share(vertex, stride, hand, bones, weights)
+		if share <= 0.0 or (hand_from_mesh * points[vertex]).y <= 0.025:
+			continue
+		_deform_vertex(vertex, hand_from_mesh, share, variant, points, normals, tangents)
+		changed += 1
+	_changed.append(changed)
+	arrays[Mesh.ARRAY_VERTEX] = points
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TANGENT] = tangents
+	var result: ArrayMesh = ArrayMesh.new()
+	result.add_surface_from_arrays(mesh.surface_get_primitive_type(0), arrays)
+	result.surface_set_material(0, mesh.surface_get_material(0))
+	return result
+
+
+func _hand_share(vertex: int, stride: int, hand: int, bones: PackedInt32Array, weights: PackedFloat32Array) -> float:
+	"""Retain a continuous weight transition at the same original wrist skin boundary."""
+	var share: float = 0.0
+	for influence: int in stride:
+		if bones[vertex * stride + influence] == hand:
+			share += weights[vertex * stride + influence]
+	return clampf(share, 0.0, 1.0)
+
+
+func _deform_vertex(vertex: int, hand: Transform3D, share: float, variant: int, points: PackedVector3Array,
+		normals: PackedVector3Array, tangents: PackedFloat32Array) -> void:
+	"""A nonsingular analytic derivative updates normals/tangents without changing untouched body shading."""
+	var point: Vector3 = hand * points[vertex]
+	var center: Vector3 = Vector3(OFFSETS_U[variant]) / 1024.0
+	var t: float = clampf((point.y - 0.025) / 0.105, 0.0, 1.0)
+	var factor: float = t * t * (3.0 - 2.0 * t) * share
+	var derivative: float = 6.0 * t * (1.0 - t) / 0.105 * share
+	var amount: float = 0.45 if variant == 1 else 0.7
+	var narrow: float = 1.0 - amount * factor
+	var shorten: float = 1.0 - 0.15 * factor
+	var jacobian: Basis = Basis(Vector3(narrow, 0, 0),
+		Vector3(-(point.x - center.x) * amount * derivative, shorten - (point.y - 0.025) * 0.15 * derivative,
+			-(point.z - center.z) * amount * derivative), Vector3(0, 0, narrow))
+	point = Vector3(center.x + (point.x - center.x) * narrow,
+		0.025 + (point.y - 0.025) * shorten, center.z + (point.z - center.z) * narrow)
+	points[vertex] = hand.affine_inverse() * point
+	var transform: Basis = hand.basis.inverse() * jacobian * hand.basis
+	normals[vertex] = (transform.inverse().transposed() * normals[vertex]).normalized()
+	if tangents.size() == points.size() * 4:
+		var tangent: Vector3 = transform * Vector3(tangents[vertex * 4], tangents[vertex * 4 + 1], tangents[vertex * 4 + 2])
+		tangent = (tangent - normals[vertex] * tangent.dot(normals[vertex])).normalized()
+		tangents[vertex * 4] = tangent.x
+		tangents[vertex * 4 + 1] = tangent.y
+		tangents[vertex * 4 + 2] = tangent.z
+
+
+func _labels() -> void:
+	"""The retained image identifies source and both authored geometry candidates explicitly."""
+	var labels: PackedStringArray = ["Original open paw / wrist fit", "Authored moderate grasp", "Authored firmer grasp"]
+	for index: int in labels.size():
+		var label: Label = Label.new()
+		label.text = labels[index]
+		label.position = Vector2(28 + index * 420, 24)
+		label.add_theme_font_size_override("font_size", 20)
+		root.add_child(label)
+	_label = Label.new()
+	_label.position = Vector2(28, 674)
+	_label.add_theme_font_size_override("font_size", 17)
+	root.add_child(_label)

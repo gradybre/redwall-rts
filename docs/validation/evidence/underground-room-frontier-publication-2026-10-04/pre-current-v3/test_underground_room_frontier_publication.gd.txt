@@ -1,0 +1,32 @@
+extends "res://test/framework/test_case.gd"
+## Atomic next-contact publication; actual paid/source fixture is kept separate from malformed-input checks.
+
+const Publication := preload("res://scripts/core/underground_room_frontier_publication.gd")
+const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+
+
+func test_cross_section_long_spans_refuse_and_four_directed_spans_fit() -> void:
+	"""The actual fixture's section extents require a boundary endpoint in both directions."""
+	var old_section: PackedInt32Array = PackedInt32Array([-4096, -4608, -2048, 2048, -4607, 4096])
+	var paid_section: PackedInt32Array = PackedInt32Array([2048, -4608, 0, 4096, -4607, 2048])
+	var gateway: Vector3i = Vector3i(1280, -4608, 512)
+	var boundary: Vector3i = Vector3i(2048, -4608, 512)
+	var work: Vector3i = Vector3i(2304, -4608, 512)
+	assert_equal(Publication.section_span_refusal(gateway, work, old_section), Publication.REFUSE_SECTION, "old section cannot own the interior in Kitchen")
+	assert_equal(Publication.section_span_refusal(work, gateway, paid_section), Publication.REFUSE_SECTION, "Kitchen cannot own old corridor interior")
+	assert_equal(Publication.section_span_refusal(gateway, boundary, old_section), &"", "forward outer")
+	assert_equal(Publication.section_span_refusal(boundary, work, paid_section), &"", "forward inner")
+	assert_equal(Publication.section_span_refusal(work, boundary, paid_section), &"", "reverse inner")
+	assert_equal(Publication.section_span_refusal(boundary, gateway, old_section), &"", "reverse outer")
+	assert_equal(Publication.section_span_refusal(boundary, Vector3i(2048, -4608, 1024), old_section), Publication.REFUSE_SECTION, "exclusive far boundary cannot own a parallel interior")
+
+
+func test_unbound_publication_and_direct_tail_preserve_output() -> void:
+	"""No caller-created packet or context substitutes for actual owners and the retained publication window."""
+	var out: Publication.Result = Publication.Result.new()
+	out.work = Vector2i(71, 9)
+	assert_equal(Publication.publish_into(null, Frontier.Candidate.new(), Publication.Request.new(), 1, 1000, out), Frontier.REFUSE_BINDING, "unbound coordinator refuses")
+	assert_equal(out.work, Vector2i(71, 9), "unchanged refused output")
+	assert_false(WorldRoutes.commit_frontier_preflighted(null, Locations.FrontierContext.new()), "no detached static publication")

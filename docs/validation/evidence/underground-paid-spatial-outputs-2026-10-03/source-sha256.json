@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/excavation_inventory.gd": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
+  "godot/scripts/core/excavation_sites.gd": "72d2a5a2c795ffe9afcf6c9bd55a88276c1534d7da363aaf3c8b9a325a27de93",
+  "godot/scripts/core/modular_projects.gd": "f0f0af6f713d2819ec6260d0bd06ea1e54457e931bd06143e35876572fbd63b3",
+  "godot/test/test_excavation_physical.gd": "aab823a9d1f36e026039475b411aec7f1fa07deef15f42e7fce5dffd09760640",
+  "godot/test/test_modular_spatial_outputs.gd": "697223de0c48ac87aa6de7ad1cc5fb169401c6c80c99471ce917ca13a6d116b0"
+}

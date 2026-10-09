@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+  "godot/scripts/systems/settlement_system.gd": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5",
+  "godot/test/test_underground_session.gd": "21168d78638f629c9e071b1fc6856d4fcfd2d2bc6740912bd65dc59c335c9801",
+  "godot/test/test_underground_host.gd": "5c2a9fea8625fe44fc77a1810a52294ef7851ce907341c5f6019695fd5111bca"
+}

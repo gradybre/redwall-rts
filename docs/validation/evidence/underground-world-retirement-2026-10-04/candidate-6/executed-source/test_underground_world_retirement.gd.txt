@@ -1,0 +1,420 @@
+extends "res://test/framework/test_case.gd"
+## Actual World/stores/one-way bindings. Geometry/Profile fixtures grant no production or host-mount qualification.
+
+const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
+const WorldFixture := preload("res://test/test_underground_world_routes.gd")
+const WorldBindings := preload("res://scripts/core/underground_world_bindings.gd")
+const RoomBindings := preload("res://scripts/core/underground_room_bindings.gd")
+const Authority := preload("res://scripts/core/underground_space_authority.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
+const Router := preload("res://scripts/core/modular_projects.gd")
+const Orders := preload("res://scripts/core/underground_room_orders.gd")
+const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const Construction := preload("res://scripts/core/construction.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Catalog := preload("res://scripts/core/catalog.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const World := preload("res://scripts/core/world_init.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+
+
+class Fixture extends WorldFixture:
+	var provider: WorldBindings = null
+	var authority: Authority = null
+	var sites: Sites = null
+	var router: Router = null
+	var rooms: Orders = null
+	var room_binding: RoomBindings = null
+	var adapter: Locations.InventoryLocations = null
+	var content: RefCounted = RefCounted.new()
+
+	func configure_retirement() -> void:
+		"""Every lifetime receiver is real; unspent synthetic geometry is irrelevant to whole-World clearing."""
+		_actual_fixture()
+		provider = WorldBindings.new()
+		assert_equal(provider.configure(_world, _terrain, _owner, _sources, _budget), &"", "actual composer")
+		authority = Authority.new()
+		assert_equal(authority.configure(_owner, provider, 32), &"", "actual phase authority")
+		sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, authority, 32, 256)
+		assert_equal(sites.initialization_refusal(), &"", "actual physical ledger")
+		assert_equal(authority.bind_sites(sites), &"", "actual Sites back-link")
+		router = Router.new(_construction, _inventory, _pool, _items, _jobs, _work, sites)
+		assert_equal(router.initialization_refusal(), &"", "actual project router")
+		room_binding = RoomBindings.new()
+		assert_equal(room_binding.configure(provider, sites, _budget), &"", "actual room composer")
+		rooms = Orders.new()
+		assert_equal(rooms.configure(router, _owner, _sources, RoomCatalog.new(), room_binding), &"", "actual Room binding")
+		assert_equal(room_binding.configure_room_admission(rooms, _levels), &"", "actual Room level link")
+		assert_equal(_locations.bind_sites(sites), &"", "original Site endpoints")
+		assert_equal(_locations.bind_room_orders(rooms), &"", "original Room endpoints")
+		adapter = Locations.InventoryLocations.new(_locations)
+		assert_true(_inventory.bind_spatial_locations(adapter, 8).ok, "actual Inventory namespace")
+
+	func clear_host_stores() -> void:
+		"""The same store order as the host; this helper supplies no release permission."""
+		_residents.clear()
+		_jobs.clear()
+		_work.clear()
+		_gear.clear()
+		_pool.clear()
+		_inventory.clear()
+		assert_true(_items.load_default(_inventory).ok, "host reloads its ordinary item definitions")
+		_buildings.clear()
+		_construction.clear()
+		_world.clear()
+
+	func after_each() -> void:
+		"""Strong fixture references are released after the caller scope and private operational owners."""
+		adapter = null
+		rooms = null
+		room_binding = null
+		router = null
+		sites = null
+		authority = null
+		provider = null
+		content = null
+		super.after_each()
+
+
+var _f: Fixture = null
+var _owners: Retirement.Owners = null
+var _scope: Retirement.Scope = null
+var _host: RefCounted = null
+var _session: RefCounted = null
+
+
+func before_each() -> void:
+	"""Tokens stand for caller identities only; actual Session mounting remains a separate host test."""
+	_f = Fixture.new()
+	_f.configure_retirement()
+	_owners = _owner_packet()
+	_scope = Retirement.Scope.new()
+	_host = RefCounted.new()
+	_session = RefCounted.new()
+
+
+func after_each() -> void:
+	"""Aggregate actual nested setup assertions, then drop every strong scope and fixture reference."""
+	_scope = null
+	_owners = null
+	_host = null
+	_session = null
+	_f.after_each()
+	assertions += _f.assertions
+	failures.append_array(_f.failures)
+	_f = null
+
+
+func _owner_packet() -> Retirement.Owners:
+	"""Map the exact actual store objects, not capacities or coincident numeric IDs."""
+	var out: Retirement.Owners = Retirement.Owners.new()
+	out.world = _f._world
+	out.world_ref = _f._world_ref
+	out.directory = _f._residents.directory()
+	out.buildings = _f._buildings
+	out.construction = _f._construction
+	out.inventory = _f._inventory
+	out.items = _f._items
+	out.residents = _f._residents
+	out.jobs = _f._jobs
+	out.work = _f._work
+	out.reservations = _f._pool
+	out.transforms = _f._transforms
+	out.gear = _f._gear
+	out.carry = _f._carry
+	out.piles = _f._piles
+	out.content = _f.content
+	_fill_private(out)
+	return out
+
+
+func _fill_private(out: Retirement.Owners) -> void:
+	"""Retain the real sparse and operational receiver graph until explicit release finishes."""
+	out.budget = _f._budget
+	out.space = _f._owner
+	out.sources = _f._sources
+	out.routes = _f._routes
+	out.terrain = _f._terrain
+	out.profiles = _f._profiles
+	out.levels = _f._levels
+	out.rooms = _f.rooms
+	out.room_bindings = _f.room_binding
+	out.world_bindings = _f.provider
+	out.sites = _f.sites
+	out.router = _f.router
+	out.authority = _f.authority
+	out.locations = _f._locations
+	out.inventory_locations = _f.adapter
+	out.world_routes = _f._binding
+
+
+func _prepare() -> StringName:
+	"""Only the actual fixed caller packet enters the component under test."""
+	return Retirement.prepare_into(_host, _session, _owners, _scope)
+
+
+func _links_retained() -> void:
+	"""A refusal or ordinary clear never privately unbinds an authority."""
+	assert_equal(_f._buildings._spatial_authority.get_ref(), _f.rooms, "Room link retained")
+	assert_equal(_f._construction._excavation_authority.get_ref(), _f.sites, "Site link retained")
+	assert_equal(_f._construction._modular_authority.get_ref(), _f.router, "paid link retained")
+	assert_equal(_f._work._modular_authority.get_ref(), _f.router, "Work link retained")
+	assert_equal(_f._inventory._spatial_authority.get_ref(), _f.adapter, "Inventory link retained")
+
+
+func test_populated_world_prepares_without_clearing_and_repeats_exactly() -> void:
+	"""Settled residents, goods and ordinary construction may exist; prepare changes no authoritative bytes."""
+	var store: Vector2i = _f._inventory.create_container(_f._world_ref, 100000, -1, 0, true).ref
+	assert_true(_f._inventory.create_lot(store, _f._items.compiled_id(&"wood"), 1000, 0, 0, -1, 0, 0).ok, "settled goods")
+	var before: PackedByteArray = _f._inventory.state_bytes()
+	assert_equal(_prepare(), &"", "actual operational tuple prepares")
+	assert_equal(_prepare(), &"", "same original boot/reset repeat")
+	assert_equal(_f._inventory.state_bytes(), before, "preparation changes no paid state")
+	assert_true(_owners.directory.is_valid(_f._worker), "original resident remains alive")
+	_links_retained()
+
+
+func test_live_world_and_partial_clear_refuse_all_links_atomically() -> void:
+	"""Empty one store cannot release any other owner's link or the living World."""
+	assert_equal(_prepare(), &"", "prepared original")
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_WORLD", "live World refuses")
+	_f._inventory.clear()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_WORLD", "partial clear refuses")
+	_links_retained()
+	_f.clear_host_stores()
+	_f._work._wear_remainder[0] = 1
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_NOT_EMPTY", "late Work carry refuses before first release")
+	_links_retained()
+	_f._work.clear()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "all exact leaves clear")
+
+
+func test_clear_alone_preserves_links_release_preserves_ordinary_owners() -> void:
+	"""The second explicit handshake releases only operational weak links and leaves the arena allocated."""
+	assert_equal(_prepare(), &"", "prepared")
+	var original_slots: PackedInt32Array = _f._inventory._spatial_container_slot
+	_f.clear_host_stores()
+	_links_retained()
+	assert_equal(Retirement.cleared_refusal(_scope, _host, _session), &"", "post-clear leaf")
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "one explicit release")
+	assert_equal(_f._buildings._spatial_authority, null, "Room link retired")
+	assert_equal(_f._construction._excavation_authority, null, "Site link retired")
+	assert_equal(_f._work._modular_authority, null, "Work paid link retired")
+	assert_equal(_f._inventory._spatial_authority, null, "spatial Inventory retired")
+	assert_equal(_f._inventory._spatial_world, NULL_REF, "old World removed")
+	assert_equal(_f._inventory._equipment_authority.get_ref(), _f._gear, "Gear lifetime preserved")
+	assert_equal(_f._inventory._ground_pile_authority.get_ref(), _f._piles, "Piles lifetime preserved")
+	assert_equal(original_slots.size(), 8, "same endpoint arena survives")
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_SCOPE", "no double release")
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_SCOPE", "scope cannot adopt another World")
+
+
+func test_foreign_owner_host_session_and_mutable_packet_cannot_replace_scope() -> void:
+	"""The Scope copies every optional field; later caller mutation grants no different release target."""
+	assert_equal(_prepare(), &"", "prepared")
+	var original: Retirement.Owners = _owners
+	_owners = _owner_packet()
+	_owners.directory = Directory.new()
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_SCOPE", "foreign allocator with same shapes")
+	_owners = original
+	_owners.locations = null
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_SCOPE", "optional receiver cannot silently disappear")
+	_f.clear_host_stores()
+	assert_equal(Retirement.release_preflighted(_scope, RefCounted.new(), _session), &"WORLD_RETIREMENT_SCOPE", "wrong host token")
+	assert_equal(Retirement.release_preflighted(_scope, _host, RefCounted.new()), &"WORLD_RETIREMENT_SCOPE", "wrong Session token")
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "original immutable copy remains valid")
+
+
+func test_transaction_and_cold_scopes_refuse_without_publishing_output() -> void:
+	"""Real held leases and an open journal block reset before any authoritative mutation."""
+	var lease: int = _f._budget.acquire(128)
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_BUSY", "held cold arena")
+	assert_equal(_scope._stage, 0, "refusal did not publish scope")
+	assert_equal(_f._budget.release(lease), &"", "original lease released")
+	assert_true(_f._inventory.begin().ok, "actual journal begins")
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_BUSY", "active journal")
+	_f._inventory.abort()
+	assert_false(_f._inventory._tx_open, "actual journal abort")
+	assert_equal(_prepare(), &"", "clean retry")
+	_links_retained()
+
+
+func test_publication_and_observer_brackets_refuse_before_clearing() -> void:
+	"""Every concrete idle bracket is observed directly, with no permissive callback during retirement."""
+	for row: Array in [[_f.rooms, "_publishing"], [_f.room_binding, "_reading"], [_f.provider, "_worker_reading"],
+			[_f.sites, "_starting"], [_f.router, "_busy"], [_f._locations, "_in_retention"],
+			[_f._routes, "_advancing"], [_f._binding, "_reading"], [_f._inventory, "_attesting"], [_f._work, "_handling_tick"]]:
+		row[0].set(row[1], true)
+		assert_equal(_prepare(), &"WORLD_RETIREMENT_BUSY", "active original bracket: " + String(row[1]))
+		assert_equal(_scope._stage, 0, "no partially published scope")
+		row[0].set(row[1], false)
+	assert_equal(_prepare(), &"", "all original brackets ended")
+
+
+func test_foreign_empty_directory_cannot_attest_spatial_inventory() -> void:
+	"""The Inventory leaf follows its original concrete namespace, not an unrelated empty allocator."""
+	assert_equal(_prepare(), &"", "prepared")
+	_f.clear_host_stores()
+	var foreign: Directory = Directory.new()
+	assert_equal(Inventory.world_retirement_refusal_in(_f._inventory, foreign, _f._world_ref,
+		_scope._persistent_id, _f.adapter, _f._locations, true), &"WORLD_RETIREMENT_INVENTORY", "foreign empty Directory")
+	_links_retained()
+
+
+func test_expired_nonnull_binding_is_not_optional_unbound_state() -> void:
+	"""Losing the original authority refuses, including when a caller presents a null optional field."""
+	var detached: Orders = Orders.new()
+	_f._buildings._spatial_authority = weakref(detached)
+	detached = null
+	_owners.rooms = null
+	_owners.room_bindings = null
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_BUILDINGS", "expired link remains a refusal")
+	assert_equal(_scope._stage, 0, "no forgotten original binding")
+	_f._buildings._spatial_authority = weakref(_f.rooms)
+
+
+func test_same_numeric_world_on_other_directory_and_reused_generation_refuse() -> void:
+	"""Allocator object and full generation both remain part of retirement identity."""
+	var foreign: Directory = Directory.new()
+	assert_equal(Buildings.world_retirement_refusal_in(_f._buildings, foreign, _f._world_ref,
+		_owners.directory._persistent_id[_f._world_ref.x], _f.rooms, false),
+		&"WORLD_RETIREMENT_BUILDINGS", "same numeric World/PID cannot substitute a foreign allocator")
+	assert_equal(_prepare(), &"", "prepared actual World")
+	_f.clear_host_stores()
+	for index: int in _f._world_ref.x:
+		assert_true(_owners.directory.create(Directory.KIND_RESOURCE_NODE) != NULL_REF, "occupy lower global slot")
+	var next: Vector2i = _owners.directory.create(Directory.KIND_WORLD)
+	assert_equal(next.x, _f._world_ref.x, "actual old global slot reused")
+	assert_true(next.y > _f._world_ref.y, "generation moves forward")
+	_owners.directory.clear()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_WORLD", "old scope cannot release after generation reuse")
+	_links_retained()
+
+
+func test_settled_project_does_not_need_individual_cancellation() -> void:
+	"""Whole-World preparation permits an actual surface Building/project and its current materials."""
+	var building: Buildings.OpResult = _f._buildings.place_building(int(Catalog.BUILDING_DEFINITION["open_stockpile"]),
+		60 * 128 + 50, 0, 1)
+	assert_true(building.ok, "real surface blueprint")
+	var project: Construction.OpResult = _f._construction.open_build(building.ref)
+	assert_true(project.ok, "real current project")
+	assert_true(_f._construction.deliver_material(project.ref, 0, 1000).ok, "real settled WIP")
+	var original: PackedByteArray = _f._construction.state_bytes()
+	assert_equal(_prepare(), &"", "no per-project cancellation required")
+	assert_equal(_f._construction.state_bytes(), original, "no refund, debit or cancellation during prepare")
+	_f.clear_host_stores()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "actual emptied project permits release")
+
+
+func _new_inventory_namespace(world: Vector2i) -> Locations:
+	"""Construct a fresh real namespace against the reused stores and newly published full World identity."""
+	var routes: Routes = Routes.new(_f._residents, _f._transforms)
+	var sources: Owner.CoreSources = Owner.CoreSources.new(_owners.directory, _f._buildings, _f._construction, routes)
+	var owner: Owner = Owner.new(sources)
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(world, Vector3i(0, 512, 0), Vector3i(0, -32, 0),
+		Vector3i(256, 48, 256), 8192, 6144, Space.MAX_CHECKS), &"", "new full World Domain")
+	assert_equal(owner.configure(domain, 6144, 2048), &"", "new actual sparse namespace")
+	var locations: Locations = Locations.new()
+	assert_equal(locations.configure(_owners.directory, _f._buildings, _f._transforms, _f._inventory,
+		owner, sources, _f._budget, 8, 228 * 8 + 256), &"", "new actual Locations")
+	return locations
+
+
+func test_inventory_remount_reuses_identical_arena_and_rejects_capacity_change() -> void:
+	"""A real new namespace can bind only after explicit retirement, without resizing endpoint columns."""
+	var slots: PackedInt32Array = _f._inventory._spatial_container_slot
+	assert_equal(_prepare(), &"", "original prepares")
+	_f.clear_host_stores()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "original releases")
+	assert_true(_f._world.generate(World.bound_request(_f._items).request).ok, "next actual World")
+	var world: Vector2i = _owners.directory.create(Directory.KIND_WORLD)
+	assert_false(_owners.directory.is_valid(_f._world_ref), "old World remains stale")
+	var locations: Locations = _new_inventory_namespace(world)
+	var adapter: Locations.InventoryLocations = Locations.InventoryLocations.new(locations)
+	assert_equal(_f._inventory.bind_spatial_locations(adapter, 7).error, Inventory.REFUSE_SPATIAL_CAPACITY, "cannot shrink old arena")
+	assert_equal(_f._inventory.bind_spatial_locations(adapter, 9).error, Inventory.REFUSE_SPATIAL_CAPACITY, "cannot expand old arena")
+	assert_equal(_f._inventory._spatial_authority, null, "capacity refusals do not publish a link")
+	assert_true(_f._inventory.bind_spatial_locations(adapter, 8).ok, "identical existing arena remounts")
+	assert_equal(_f._inventory._spatial_world, world, "new exact World captured")
+	slots[0] = 123
+	assert_equal(_f._inventory._spatial_container_slot[0], 123, "old alias observes the identical reused packed allocation")
+	slots[0] = -1
+	assert_equal(_f._inventory.bind_spatial_locations(_f.adapter, 8).error, Inventory.REFUSE_SPATIAL_BINDING, "old adapter cannot replace new lifetime")
+
+
+func test_pending_world_requires_explicit_original_allowance() -> void:
+	"""Host WorldInit staging is the existing explicit reset exception, not automatic permission."""
+	_f._world.declare_externally_cleared(PackedInt32Array([Directory.KIND_WORLD, Directory.KIND_RESIDENT]))
+	var next: World.GenerateResult = _f._world.preflight(World.bound_request(_f._items).request)
+	assert_equal(next.error, &"", "real staged next World after the actual caller-cleared-kind declaration")
+	assert_true(next.ok, "real staged next World")
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_WORLD", "default refuses staged World")
+	assert_equal(Retirement.prepare_into(_host, _session, _owners, _scope, true), &"", "host explicitly retains original staging")
+	_f.clear_host_stores()
+	assert_true(_f._world._prepared, "ordinary clear preserves the candidate World")
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "same explicit staging scope retires old World")
+	_f._world.discard_prepared_plan()
+
+
+func test_pending_request_and_profile_image_cannot_be_replaced_after_prepare() -> void:
+	"""Original source images and optional staging are fixed for the synchronous reset window."""
+	assert_equal(_prepare(), &"", "actual original tuple")
+	_f._profiles._live = _f._profiles._stage
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_SOURCE", "replacement source image refuses")
+	_f._profiles._live = _scope._profile_bank
+	_f.clear_host_stores()
+	_f._world._prepared_request = World.bound_request(_f._items).request
+	_f._world._prepared = true
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_WORLD", "late next-World introduction refuses")
+	_links_retained()
+	_f._world.discard_prepared_plan()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "same original source closure retries")
+
+
+func test_catalog_loading_and_source_receiver_replacement_refuse() -> void:
+	"""Direct source identity checks include the actual pace Catalog rather than only its numeric revision."""
+	_f._catalog._loading = true
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_BUSY", "active actual source loader")
+	_f._catalog._loading = false
+	_f._profiles._inventory = Inventory.new()
+	assert_equal(_prepare(), &"WORLD_RETIREMENT_SOURCE", "foreign source binding")
+	_f._profiles._inventory = _f._inventory
+	assert_equal(_prepare(), &"", "restored real source tuple")
+
+
+func test_cleared_hidden_work_and_goods_columns_refuse_atomically() -> void:
+	"""Zero live counters alone cannot attest a partially cleared tool party or paid quantity."""
+	assert_equal(_prepare(), &"", "actual original")
+	_f.clear_host_stores()
+	_f._work._party_fraction[0] = 1
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_NOT_EMPTY", "hidden party carry")
+	_links_retained()
+	_f._work.clear()
+	_f._inventory._l_quantity_milli[0] = 1
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_NOT_EMPTY", "hidden paid quantity")
+	_links_retained()
+	_f._inventory.clear()
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"", "complete clear retries")
+
+
+func test_freed_host_refuses_and_scope_retains_original_receivers() -> void:
+	"""Nodes can expire independently of strong RefCounted authorities; identity pins do not prove mounting."""
+	var host: Node = Node.new()
+	assert_equal(Retirement.prepare_into(host, _session, _owners, _scope), &"", "valid host identity")
+	var retained: WeakRef = weakref(_f.rooms)
+	_owners.rooms = null
+	_f.rooms = null
+	assert_true(retained.get_ref() != null, "private Scope keeps original authority alive")
+	_f.rooms = retained.get_ref() as Orders
+	_f.clear_host_stores()
+	host.free()
+	host = null # A previously freed object is rejected by Godot before a typed API body can run.
+	assert_equal(Retirement.release_preflighted(_scope, host, _session), &"WORLD_RETIREMENT_SCOPE", "absent host refuses")
+	assert_equal(Retirement.release_preflighted(_scope, _host, _session), &"WORLD_RETIREMENT_SCOPE", "expired original host cannot be replaced")
+	_links_retained()

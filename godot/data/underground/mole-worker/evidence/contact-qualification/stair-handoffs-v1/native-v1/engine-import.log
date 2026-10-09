@@ -1,0 +1,931 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+[   0% ] update_scripts_classes | Started Registering global classes... (205 steps)
+[   0% ] update_scripts_classes | 
+[   0% ] update_scripts_classes | 
+[   0% ] update_scripts_classes | 
+[   1% ] update_scripts_classes | 
+[   1% ] update_scripts_classes | 
+[   2% ] update_scripts_classes | 
+[   2% ] update_scripts_classes | 
+[   3% ] update_scripts_classes | 
+[   3% ] update_scripts_classes | 
+[   4% ] update_scripts_classes | 
+[   4% ] update_scripts_classes | 
+[   5% ] update_scripts_classes | 
+[   5% ] update_scripts_classes | 
+[   6% ] update_scripts_classes | 
+[   6% ] update_scripts_classes | 
+[   7% ] update_scripts_classes | 
+[   7% ] update_scripts_classes | 
+[   8% ] update_scripts_classes | 
+[   8% ] update_scripts_classes | 
+[   9% ] update_scripts_classes | 
+[   9% ] update_scripts_classes | 
+[  10% ] update_scripts_classes | 
+[  10% ] update_scripts_classes | 
+[  11% ] update_scripts_classes | 
+[  11% ] update_scripts_classes | 
+[  12% ] update_scripts_classes | 
+[  12% ] update_scripts_classes | 
+[  13% ] update_scripts_classes | 
+[  13% ] update_scripts_classes | 
+[  14% ] update_scripts_classes | 
+[  14% ] update_scripts_classes | 
+[  15% ] update_scripts_classes | 
+[  15% ] update_scripts_classes | 
+[  16% ] update_scripts_classes | 
+[  16% ] update_scripts_classes | 
+[  16% ] update_scripts_classes | 
+[  17% ] update_scripts_classes | 
+[  17% ] update_scripts_classes | 
+[  18% ] update_scripts_classes | 
+[  18% ] update_scripts_classes | 
+[  19% ] update_scripts_classes | 
+[  19% ] update_scripts_classes | 
+[  20% ] update_scripts_classes | 
+[  20% ] update_scripts_classes | 
+[  21% ] update_scripts_classes | 
+[  21% ] update_scripts_classes | 
+[  22% ] update_scripts_classes | 
+[  22% ] update_scripts_classes | 
+[  23% ] update_scripts_classes | 
+[  23% ] update_scripts_classes | 
+[  24% ] update_scripts_classes | 
+[  24% ] update_scripts_classes | 
+[  25% ] update_scripts_classes | 
+[  25% ] update_scripts_classes | 
+[  26% ] update_scripts_classes | 
+[  26% ] update_scripts_classes | 
+[  27% ] update_scripts_classes | 
+[  27% ] update_scripts_classes | 
+[  28% ] update_scripts_classes | 
+[  28% ] update_scripts_classes | 
+[  29% ] update_scripts_classes | 
+[  29% ] update_scripts_classes | 
+[  30% ] update_scripts_classes | 
+[  30% ] update_scripts_classes | 
+[  31% ] update_scripts_classes | 
+[  31% ] update_scripts_classes | 
+[  32% ] update_scripts_classes | 
+[  32% ] update_scripts_classes | 
+[  33% ] update_scripts_classes | 
+[  33% ] update_scripts_classes | 
+[  33% ] update_scripts_classes | 
+[  34% ] update_scripts_classes | 
+[  34% ] update_scripts_classes | 
+[  35% ] update_scripts_classes | 
+[  35% ] update_scripts_classes | 
+[  36% ] update_scripts_classes | 
+[  36% ] update_scripts_classes | 
+[  37% ] update_scripts_classes | 
+[  37% ] update_scripts_classes | 
+[  38% ] update_scripts_classes | 
+[  38% ] update_scripts_classes | 
+[  39% ] update_scripts_classes | 
+[  39% ] update_scripts_classes | 
+[  40% ] update_scripts_classes | 
+[  40% ] update_scripts_classes | 
+[  41% ] update_scripts_classes | 
+[  41% ] update_scripts_classes | 
+[  42% ] update_scripts_classes | 
+[  42% ] update_scripts_classes | 
+[  43% ] update_scripts_classes | 
+[  43% ] update_scripts_classes | 
+[  44% ] update_scripts_classes | 
+[  44% ] update_scripts_classes | 
+[  45% ] update_scripts_classes | 
+[  45% ] update_scripts_classes | 
+[  46% ] update_scripts_classes | 
+[  46% ] update_scripts_classes | 
+[  47% ] update_scripts_classes | 
+[  47% ] update_scripts_classes | 
+[  48% ] update_scripts_classes | 
+[  48% ] update_scripts_classes | 
+[  49% ] update_scripts_classes | 
+[  49% ] update_scripts_classes | 
+[  50% ] update_scripts_classes | 
+[  50% ] update_scripts_classes | 
+[  50% ] update_scripts_classes | 
+[  51% ] update_scripts_classes | 
+[  51% ] update_scripts_classes | 
+[  52% ] update_scripts_classes | 
+[  52% ] update_scripts_classes | 
+[  53% ] update_scripts_classes | 
+[  53% ] update_scripts_classes | 
+[  54% ] update_scripts_classes | 
+[  54% ] update_scripts_classes | 
+[  55% ] update_scripts_classes | 
+[  55% ] update_scripts_classes | 
+[  56% ] update_scripts_classes | 
+[  56% ] update_scripts_classes | 
+[  57% ] update_scripts_classes | 
+[  57% ] update_scripts_classes | 
+[  58% ] update_scripts_classes | 
+[  58% ] update_scripts_classes | 
+[  59% ] update_scripts_classes | 
+[  59% ] update_scripts_classes | 
+[  60% ] update_scripts_classes | 
+[  60% ] update_scripts_classes | 
+[  61% ] update_scripts_classes | 
+[  61% ] update_scripts_classes | 
+[  62% ] update_scripts_classes | 
+[  62% ] update_scripts_classes | 
+[  63% ] update_scripts_classes | 
+[  63% ] update_scripts_classes | 
+[  64% ] update_scripts_classes | 
+[  64% ] update_scripts_classes | 
+[  65% ] update_scripts_classes | 
+[  65% ] update_scripts_classes | 
+[  66% ] update_scripts_classes | 
+[  66% ] update_scripts_classes | 
+[  66% ] update_scripts_classes | 
+[  67% ] update_scripts_classes | 
+[  67% ] update_scripts_classes | 
+[  68% ] update_scripts_classes | 
+[  68% ] update_scripts_classes | 
+[  69% ] update_scripts_classes | 
+[  69% ] update_scripts_classes | 
+[  70% ] update_scripts_classes | 
+[  70% ] update_scripts_classes | 
+[  71% ] update_scripts_classes | 
+[  71% ] update_scripts_classes | 
+[  72% ] update_scripts_classes | 
+[  72% ] update_scripts_classes | 
+[  73% ] update_scripts_classes | 
+[  73% ] update_scripts_classes | 
+[  74% ] update_scripts_classes | 
+[  74% ] update_scripts_classes | 
+[  75% ] update_scripts_classes | 
+[  75% ] update_scripts_classes | 
+[  76% ] update_scripts_classes | 
+[  76% ] update_scripts_classes | 
+[  77% ] update_scripts_classes | 
+[  77% ] update_scripts_classes | 
+[  78% ] update_scripts_classes | 
+[  78% ] update_scripts_classes | 
+[  79% ] update_scripts_classes | 
+[  79% ] update_scripts_classes | 
+[  80% ] update_scripts_classes | 
+[  80% ] update_scripts_classes | 
+[  81% ] update_scripts_classes | 
+[  81% ] update_scripts_classes | 
+[  82% ] update_scripts_classes | 
+[  82% ] update_scripts_classes | 
+[  83% ] update_scripts_classes | 
+[  83% ] update_scripts_classes | 
+[  83% ] update_scripts_classes | 
+[  84% ] update_scripts_classes | 
+[  84% ] update_scripts_classes | 
+[  85% ] update_scripts_classes | 
+[  85% ] update_scripts_classes | 
+[  86% ] update_scripts_classes | 
+[  86% ] update_scripts_classes | 
+[  87% ] update_scripts_classes | 
+[  87% ] update_scripts_classes | 
+[  88% ] update_scripts_classes | 
+[  88% ] update_scripts_classes | 
+[  89% ] update_scripts_classes | 
+[  89% ] update_scripts_classes | 
+[  90% ] update_scripts_classes | 
+[  90% ] update_scripts_classes | 
+[  91% ] update_scripts_classes | 
+[  91% ] update_scripts_classes | 
+[  92% ] update_scripts_classes | 
+[  92% ] update_scripts_classes | 
+[  93% ] update_scripts_classes | 
+[  93% ] update_scripts_classes | 
+[  94% ] update_scripts_classes | 
+[  94% ] update_scripts_classes | 
+[  95% ] update_scripts_classes | 
+[  95% ] update_scripts_classes | 
+[  96% ] update_scripts_classes | 
+[  96% ] update_scripts_classes | 
+[  97% ] update_scripts_classes | 
+[  97% ] update_scripts_classes | 
+[  98% ] update_scripts_classes | 
+[  98% ] update_scripts_classes | 
+[  99% ] update_scripts_classes | 
+[ DONE ] update_scripts_classes
+
+[   0% ] _update_scan_actions | Started Scanning actions... (700 steps)
+[   0% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[   0% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[   0% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[   0% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.plain.png
+[   0% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.standard_bore.png
+[   0% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.plain.png
+[   0% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.standard_bore.png
+[   0% ] _update_scan_actions | badger_quarryman.heavy_hammer_swing.plain.png
+[   1% ] _update_scan_actions | badger_quarryman.idle.plain.png
+[   1% ] _update_scan_actions | badger_quarryman.walk.plain.png
+[   1% ] _update_scan_actions | badger_quarryman.walk.ramp_down.png
+[   1% ] _update_scan_actions | badger_quarryman.walk.ramp_up.png
+[   1% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.plain.png
+[   1% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.standard_bore.png
+[   1% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.plain.png
+[   2% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.standard_bore.png
+[   2% ] _update_scan_actions | mole_digger.heavy_hammer_swing.plain.png
+[   2% ] _update_scan_actions | mole_digger.idle.plain.png
+[   2% ] _update_scan_actions | mole_digger.walk.plain.png
+[   2% ] _update_scan_actions | mole_digger.walk.ramp_down.png
+[   2% ] _update_scan_actions | mole_digger.walk.ramp_up.png
+[   2% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[   3% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.standard_bore.png
+[   3% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.plain.png
+[   3% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.standard_bore.png
+[   3% ] _update_scan_actions | mouse_keeper.idle.plain.png
+[   3% ] _update_scan_actions | mouse_keeper.walk.plain.png
+[   3% ] _update_scan_actions | mouse_keeper.walk.ramp_down.png
+[   3% ] _update_scan_actions | mouse_keeper.walk.ramp_up.png
+[   4% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.plain.png
+[   4% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.standard_bore.png
+[   4% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.plain.png
+[   4% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.standard_bore.png
+[   4% ] _update_scan_actions | otter_boatwright.idle.plain.png
+[   4% ] _update_scan_actions | otter_boatwright.walk.plain.png
+[   4% ] _update_scan_actions | otter_boatwright.walk.ramp_down.png
+[   5% ] _update_scan_actions | otter_boatwright.walk.ramp_up.png
+[   5% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.plain.png
+[   5% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.standard_bore.png
+[   5% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.plain.png
+[   5% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png
+[   5% ] _update_scan_actions | squirrel_gatherer.idle.plain.png
+[   5% ] _update_scan_actions | squirrel_gatherer.walk.plain.png
+[   6% ] _update_scan_actions | squirrel_gatherer.walk.ramp_down.png
+[   6% ] _update_scan_actions | squirrel_gatherer.walk.ramp_up.png
+[   6% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.plain.png
+[   6% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.standard_bore.png
+[   6% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.plain.png
+[   6% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.standard_bore.png
+[   6% ] _update_scan_actions | badger_quarryman.heavy_hammer_swing.plain.png
+[   7% ] _update_scan_actions | badger_quarryman.idle.plain.png
+[   7% ] _update_scan_actions | badger_quarryman.walk.plain.png
+[   7% ] _update_scan_actions | badger_quarryman.walk.ramp_down.png
+[   7% ] _update_scan_actions | badger_quarryman.walk.ramp_up.png
+[   7% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.plain.png
+[   7% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.standard_bore.png
+[   7% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.plain.png
+[   8% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.standard_bore.png
+[   8% ] _update_scan_actions | mole_digger.heavy_hammer_swing.plain.png
+[   8% ] _update_scan_actions | mole_digger.idle.plain.png
+[   8% ] _update_scan_actions | mole_digger.walk.plain.png
+[   8% ] _update_scan_actions | mole_digger.walk.ramp_down.png
+[   8% ] _update_scan_actions | mole_digger.walk.ramp_up.png
+[   8% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[   9% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.standard_bore.png
+[   9% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.plain.png
+[   9% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.standard_bore.png
+[   9% ] _update_scan_actions | mouse_keeper.idle.plain.png
+[   9% ] _update_scan_actions | mouse_keeper.walk.plain.png
+[   9% ] _update_scan_actions | mouse_keeper.walk.ramp_down.png
+[   9% ] _update_scan_actions | mouse_keeper.walk.ramp_up.png
+[  10% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.plain.png
+[  10% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.standard_bore.png
+[  10% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.plain.png
+[  10% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.standard_bore.png
+[  10% ] _update_scan_actions | otter_boatwright.idle.plain.png
+[  10% ] _update_scan_actions | otter_boatwright.walk.plain.png
+[  10% ] _update_scan_actions | otter_boatwright.walk.ramp_down.png
+[  11% ] _update_scan_actions | otter_boatwright.walk.ramp_up.png
+[  11% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.plain.png
+[  11% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.standard_bore.png
+[  11% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.plain.png
+[  11% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png
+[  11% ] _update_scan_actions | squirrel_gatherer.idle.plain.png
+[  11% ] _update_scan_actions | squirrel_gatherer.walk.plain.png
+[  12% ] _update_scan_actions | squirrel_gatherer.walk.ramp_down.png
+[  12% ] _update_scan_actions | squirrel_gatherer.walk.ramp_up.png
+[  12% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.plain.png
+[  12% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.standard_bore.png
+[  12% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.plain.png
+[  12% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.standard_bore.png
+[  12% ] _update_scan_actions | badger_quarryman.heavy_hammer_swing.plain.png
+[  13% ] _update_scan_actions | badger_quarryman.idle.plain.png
+[  13% ] _update_scan_actions | badger_quarryman.walk.plain.png
+[  13% ] _update_scan_actions | badger_quarryman.walk.ramp_down.png
+[  13% ] _update_scan_actions | badger_quarryman.walk.ramp_up.png
+[  13% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.plain.png
+[  13% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.standard_bore.png
+[  13% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.plain.png
+[  14% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.standard_bore.png
+[  14% ] _update_scan_actions | mole_digger.heavy_hammer_swing.plain.png
+[  14% ] _update_scan_actions | mole_digger.idle.plain.png
+[  14% ] _update_scan_actions | mole_digger.walk.plain.png
+[  14% ] _update_scan_actions | mole_digger.walk.ramp_down.png
+[  14% ] _update_scan_actions | mole_digger.walk.ramp_up.png
+[  14% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[  15% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.standard_bore.png
+[  15% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.plain.png
+[  15% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.standard_bore.png
+[  15% ] _update_scan_actions | mouse_keeper.idle.plain.png
+[  15% ] _update_scan_actions | mouse_keeper.walk.plain.png
+[  15% ] _update_scan_actions | mouse_keeper.walk.ramp_down.png
+[  15% ] _update_scan_actions | mouse_keeper.walk.ramp_up.png
+[  16% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.plain.png
+[  16% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.standard_bore.png
+[  16% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.plain.png
+[  16% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.standard_bore.png
+[  16% ] _update_scan_actions | otter_boatwright.idle.plain.png
+[  16% ] _update_scan_actions | otter_boatwright.walk.plain.png
+[  16% ] _update_scan_actions | otter_boatwright.walk.ramp_down.png
+[  17% ] _update_scan_actions | otter_boatwright.walk.ramp_up.png
+[  17% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.plain.png
+[  17% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.standard_bore.png
+[  17% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.plain.png
+[  17% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png
+[  17% ] _update_scan_actions | squirrel_gatherer.idle.plain.png
+[  17% ] _update_scan_actions | squirrel_gatherer.walk.plain.png
+[  18% ] _update_scan_actions | squirrel_gatherer.walk.ramp_down.png
+[  18% ] _update_scan_actions | squirrel_gatherer.walk.ramp_up.png
+[  18% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.plain.png
+[  18% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.standard_bore.png
+[  18% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.plain.png
+[  18% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.standard_bore.png
+[  18% ] _update_scan_actions | badger_quarryman.heavy_hammer_swing.plain.png
+[  19% ] _update_scan_actions | badger_quarryman.idle.plain.png
+[  19% ] _update_scan_actions | badger_quarryman.walk.plain.png
+[  19% ] _update_scan_actions | badger_quarryman.walk.ramp_down.png
+[  19% ] _update_scan_actions | badger_quarryman.walk.ramp_up.png
+[  19% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.plain.png
+[  19% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.standard_bore.png
+[  19% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.plain.png
+[  20% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.standard_bore.png
+[  20% ] _update_scan_actions | mole_digger.heavy_hammer_swing.plain.png
+[  20% ] _update_scan_actions | mole_digger.idle.plain.png
+[  20% ] _update_scan_actions | mole_digger.walk.plain.png
+[  20% ] _update_scan_actions | mole_digger.walk.ramp_down.png
+[  20% ] _update_scan_actions | mole_digger.walk.ramp_up.png
+[  20% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[  21% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.standard_bore.png
+[  21% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.plain.png
+[  21% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.standard_bore.png
+[  21% ] _update_scan_actions | mouse_keeper.idle.plain.png
+[  21% ] _update_scan_actions | mouse_keeper.walk.plain.png
+[  21% ] _update_scan_actions | mouse_keeper.walk.ramp_down.png
+[  21% ] _update_scan_actions | mouse_keeper.walk.ramp_up.png
+[  22% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.plain.png
+[  22% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.standard_bore.png
+[  22% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.plain.png
+[  22% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.standard_bore.png
+[  22% ] _update_scan_actions | otter_boatwright.idle.plain.png
+[  22% ] _update_scan_actions | otter_boatwright.walk.plain.png
+[  22% ] _update_scan_actions | otter_boatwright.walk.ramp_down.png
+[  23% ] _update_scan_actions | otter_boatwright.walk.ramp_up.png
+[  23% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.plain.png
+[  23% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.standard_bore.png
+[  23% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.plain.png
+[  23% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png
+[  23% ] _update_scan_actions | squirrel_gatherer.idle.plain.png
+[  23% ] _update_scan_actions | squirrel_gatherer.walk.plain.png
+[  24% ] _update_scan_actions | squirrel_gatherer.walk.ramp_down.png
+[  24% ] _update_scan_actions | squirrel_gatherer.walk.ramp_up.png
+[  24% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.plain.png
+[  24% ] _update_scan_actions | badger_quarryman.carry_heavy_object_walk.standard_bore.png
+[  24% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.plain.held_pick.png
+[  24% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.plain.png
+[  24% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.standard_bore.held_pick.png
+[  25% ] _update_scan_actions | badger_quarryman.cautious_crouch_walk_forward.standard_bore.png
+[  25% ] _update_scan_actions | badger_quarryman.heavy_hammer_swing.plain.png
+[  25% ] _update_scan_actions | badger_quarryman.idle.plain.held_pick.png
+[  25% ] _update_scan_actions | badger_quarryman.idle.plain.png
+[  25% ] _update_scan_actions | badger_quarryman.walk.plain.held_pick.png
+[  25% ] _update_scan_actions | badger_quarryman.walk.plain.png
+[  25% ] _update_scan_actions | badger_quarryman.walk.ramp_down.held_pick.png
+[  26% ] _update_scan_actions | badger_quarryman.walk.ramp_down.png
+[  26% ] _update_scan_actions | badger_quarryman.walk.ramp_up.held_pick.png
+[  26% ] _update_scan_actions | badger_quarryman.walk.ramp_up.png
+[  26% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.plain.png
+[  26% ] _update_scan_actions | mole_digger.carry_heavy_object_walk.standard_bore.png
+[  26% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.plain.held_pick.png
+[  26% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.plain.png
+[  27% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.png
+[  27% ] _update_scan_actions | mole_digger.cautious_crouch_walk_forward.standard_bore.png
+[  27% ] _update_scan_actions | mole_digger.heavy_hammer_swing.plain.png
+[  27% ] _update_scan_actions | mole_digger.idle.plain.held_pick.png
+[  27% ] _update_scan_actions | mole_digger.idle.plain.png
+[  27% ] _update_scan_actions | mole_digger.walk.plain.held_pick.png
+[  27% ] _update_scan_actions | mole_digger.walk.plain.png
+[  28% ] _update_scan_actions | mole_digger.walk.ramp_down.held_pick.png
+[  28% ] _update_scan_actions | mole_digger.walk.ramp_down.png
+[  28% ] _update_scan_actions | mole_digger.walk.ramp_up.held_pick.png
+[  28% ] _update_scan_actions | mole_digger.walk.ramp_up.png
+[  28% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.plain.png
+[  28% ] _update_scan_actions | mouse_keeper.carry_heavy_object_walk.standard_bore.png
+[  28% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.plain.png
+[  29% ] _update_scan_actions | mouse_keeper.cautious_crouch_walk_forward.standard_bore.png
+[  29% ] _update_scan_actions | mouse_keeper.idle.plain.png
+[  29% ] _update_scan_actions | mouse_keeper.walk.plain.png
+[  29% ] _update_scan_actions | mouse_keeper.walk.ramp_down.png
+[  29% ] _update_scan_actions | mouse_keeper.walk.ramp_up.png
+[  29% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.plain.png
+[  29% ] _update_scan_actions | otter_boatwright.carry_heavy_object_walk.standard_bore.png
+[  30% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.plain.png
+[  30% ] _update_scan_actions | otter_boatwright.cautious_crouch_walk_forward.standard_bore.png
+[  30% ] _update_scan_actions | otter_boatwright.idle.plain.png
+[  30% ] _update_scan_actions | otter_boatwright.walk.plain.png
+[  30% ] _update_scan_actions | otter_boatwright.walk.ramp_down.png
+[  30% ] _update_scan_actions | otter_boatwright.walk.ramp_up.png
+[  30% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.plain.png
+[  31% ] _update_scan_actions | squirrel_gatherer.carry_heavy_object_walk.standard_bore.png
+[  31% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.plain.png
+[  31% ] _update_scan_actions | squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png
+[  31% ] _update_scan_actions | squirrel_gatherer.idle.plain.png
+[  31% ] _update_scan_actions | squirrel_gatherer.walk.plain.png
+[  31% ] _update_scan_actions | squirrel_gatherer.walk.ramp_down.png
+[  31% ] _update_scan_actions | squirrel_gatherer.walk.ramp_up.png
+[  32% ] _update_scan_actions | native-world.png
+[  32% ] _update_scan_actions | native-world.png
+[  32% ] _update_scan_actions | source-pick-orthographic.png
+[  32% ] _update_scan_actions | opposite-000-source030.png
+[  32% ] _update_scan_actions | opposite-003-source033.png
+[  32% ] _update_scan_actions | opposite-006-source036.png
+[  32% ] _update_scan_actions | opposite-009-source039.png
+[  33% ] _update_scan_actions | opposite-012-source042.png
+[  33% ] _update_scan_actions | opposite-015-source041.png
+[  33% ] _update_scan_actions | opposite-018-source038.png
+[  33% ] _update_scan_actions | opposite-021-source035.png
+[  33% ] _update_scan_actions | opposite-024-source032.png
+[  33% ] _update_scan_actions | opposite-entry-00.png
+[  33% ] _update_scan_actions | opposite-entry-06.png
+[  34% ] _update_scan_actions | opposite-entry-12.png
+[  34% ] _update_scan_actions | opposite-entry-18.png
+[  34% ] _update_scan_actions | opposite-entry-24.png
+[  34% ] _update_scan_actions | opposite-entry-30.png
+[  34% ] _update_scan_actions | opposite-entry-36.png
+[  34% ] _update_scan_actions | opposite-entry-42.png
+[  34% ] _update_scan_actions | opposite-entry-48.png
+[  35% ] _update_scan_actions | opposite-entry-54.png
+[  35% ] _update_scan_actions | opposite-entry-60.png
+[  35% ] _update_scan_actions | opposite-recovery-00.png
+[  35% ] _update_scan_actions | opposite-recovery-06.png
+[  35% ] _update_scan_actions | opposite-recovery-12.png
+[  35% ] _update_scan_actions | opposite-recovery-18.png
+[  35% ] _update_scan_actions | opposite-recovery-24.png
+[  36% ] _update_scan_actions | opposite-recovery-30.png
+[  36% ] _update_scan_actions | opposite-recovery-36.png
+[  36% ] _update_scan_actions | opposite-recovery-42.png
+[  36% ] _update_scan_actions | opposite-recovery-48.png
+[  36% ] _update_scan_actions | opposite-recovery-54.png
+[  36% ] _update_scan_actions | opposite-recovery-60.png
+[  36% ] _update_scan_actions | rts-000-source030.png
+[  37% ] _update_scan_actions | rts-003-source033.png
+[  37% ] _update_scan_actions | rts-006-source036.png
+[  37% ] _update_scan_actions | rts-009-source039.png
+[  37% ] _update_scan_actions | rts-012-source042.png
+[  37% ] _update_scan_actions | rts-015-source041.png
+[  37% ] _update_scan_actions | rts-018-source038.png
+[  37% ] _update_scan_actions | rts-021-source035.png
+[  38% ] _update_scan_actions | rts-024-source032.png
+[  38% ] _update_scan_actions | rts-entry-00.png
+[  38% ] _update_scan_actions | rts-entry-06.png
+[  38% ] _update_scan_actions | rts-entry-12.png
+[  38% ] _update_scan_actions | rts-entry-18.png
+[  38% ] _update_scan_actions | rts-entry-24.png
+[  38% ] _update_scan_actions | rts-entry-30.png
+[  39% ] _update_scan_actions | rts-entry-36.png
+[  39% ] _update_scan_actions | rts-entry-42.png
+[  39% ] _update_scan_actions | rts-entry-48.png
+[  39% ] _update_scan_actions | rts-entry-54.png
+[  39% ] _update_scan_actions | rts-entry-60.png
+[  39% ] _update_scan_actions | rts-recovery-00.png
+[  39% ] _update_scan_actions | rts-recovery-06.png
+[  40% ] _update_scan_actions | rts-recovery-12.png
+[  40% ] _update_scan_actions | rts-recovery-18.png
+[  40% ] _update_scan_actions | rts-recovery-24.png
+[  40% ] _update_scan_actions | rts-recovery-30.png
+[  40% ] _update_scan_actions | rts-recovery-36.png
+[  40% ] _update_scan_actions | rts-recovery-42.png
+[  40% ] _update_scan_actions | rts-recovery-48.png
+[  41% ] _update_scan_actions | rts-recovery-54.png
+[  41% ] _update_scan_actions | rts-recovery-60.png
+[  41% ] _update_scan_actions | side-000-source030.png
+[  41% ] _update_scan_actions | side-003-source033.png
+[  41% ] _update_scan_actions | side-006-source036.png
+[  41% ] _update_scan_actions | side-009-source039.png
+[  41% ] _update_scan_actions | side-012-source042.png
+[  42% ] _update_scan_actions | side-015-source041.png
+[  42% ] _update_scan_actions | side-018-source038.png
+[  42% ] _update_scan_actions | side-021-source035.png
+[  42% ] _update_scan_actions | side-024-source032.png
+[  42% ] _update_scan_actions | side-entry-00.png
+[  42% ] _update_scan_actions | side-entry-06.png
+[  42% ] _update_scan_actions | side-entry-12.png
+[  43% ] _update_scan_actions | side-entry-18.png
+[  43% ] _update_scan_actions | side-entry-24.png
+[  43% ] _update_scan_actions | side-entry-30.png
+[  43% ] _update_scan_actions | side-entry-36.png
+[  43% ] _update_scan_actions | side-entry-42.png
+[  43% ] _update_scan_actions | side-entry-48.png
+[  43% ] _update_scan_actions | side-entry-54.png
+[  44% ] _update_scan_actions | side-entry-60.png
+[  44% ] _update_scan_actions | side-recovery-00.png
+[  44% ] _update_scan_actions | side-recovery-06.png
+[  44% ] _update_scan_actions | side-recovery-12.png
+[  44% ] _update_scan_actions | side-recovery-18.png
+[  44% ] _update_scan_actions | side-recovery-24.png
+[  44% ] _update_scan_actions | side-recovery-30.png
+[  45% ] _update_scan_actions | side-recovery-36.png
+[  45% ] _update_scan_actions | side-recovery-42.png
+[  45% ] _update_scan_actions | side-recovery-48.png
+[  45% ] _update_scan_actions | side-recovery-54.png
+[  45% ] _update_scan_actions | side-recovery-60.png
+[  45% ] _update_scan_actions | heavy_hammer_swing-000.png
+[  45% ] _update_scan_actions | heavy_hammer_swing-006.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-012.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-018.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-024.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-030.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-036.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-042.png
+[  46% ] _update_scan_actions | heavy_hammer_swing-048.png
+[  47% ] _update_scan_actions | heavy_hammer_swing-054.png
+[  47% ] _update_scan_actions | heavy_hammer_swing-057.png
+[  47% ] _update_scan_actions | idle-000.png
+[  47% ] _update_scan_actions | idle-006.png
+[  47% ] _update_scan_actions | idle-012.png
+[  47% ] _update_scan_actions | idle-018.png
+[  47% ] _update_scan_actions | idle-024.png
+[  48% ] _update_scan_actions | idle-030.png
+[  48% ] _update_scan_actions | idle-036.png
+[  48% ] _update_scan_actions | idle-042.png
+[  48% ] _update_scan_actions | idle-048.png
+[  48% ] _update_scan_actions | idle-054.png
+[  48% ] _update_scan_actions | idle-060.png
+[  48% ] _update_scan_actions | idle-066.png
+[  49% ] _update_scan_actions | idle-072.png
+[  49% ] _update_scan_actions | idle-078.png
+[  49% ] _update_scan_actions | idle-084.png
+[  49% ] _update_scan_actions | idle-090.png
+[  49% ] _update_scan_actions | idle-096.png
+[  49% ] _update_scan_actions | idle-102.png
+[  49% ] _update_scan_actions | idle-108.png
+[  50% ] _update_scan_actions | idle-114.png
+[  50% ] _update_scan_actions | idle-120.png
+[  50% ] _update_scan_actions | idle-121.png
+[  50% ] _update_scan_actions | walk-000.png
+[  50% ] _update_scan_actions | walk-006.png
+[  50% ] _update_scan_actions | walk-012.png
+[  50% ] _update_scan_actions | walk-018.png
+[  51% ] _update_scan_actions | walk-024.png
+[  51% ] _update_scan_actions | walk-030.png
+[  51% ] _update_scan_actions | walk-033.png
+[  51% ] _update_scan_actions | heavy_hammer_swing-000.png
+[  51% ] _update_scan_actions | heavy_hammer_swing-006.png
+[  51% ] _update_scan_actions | heavy_hammer_swing-012.png
+[  51% ] _update_scan_actions | heavy_hammer_swing-018.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-024.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-030.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-036.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-042.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-048.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-054.png
+[  52% ] _update_scan_actions | heavy_hammer_swing-057.png
+[  53% ] _update_scan_actions | idle-000.png
+[  53% ] _update_scan_actions | idle-006.png
+[  53% ] _update_scan_actions | idle-012.png
+[  53% ] _update_scan_actions | idle-018.png
+[  53% ] _update_scan_actions | idle-024.png
+[  53% ] _update_scan_actions | idle-030.png
+[  53% ] _update_scan_actions | idle-036.png
+[  54% ] _update_scan_actions | idle-042.png
+[  54% ] _update_scan_actions | idle-048.png
+[  54% ] _update_scan_actions | idle-054.png
+[  54% ] _update_scan_actions | idle-060.png
+[  54% ] _update_scan_actions | idle-066.png
+[  54% ] _update_scan_actions | idle-072.png
+[  54% ] _update_scan_actions | idle-078.png
+[  55% ] _update_scan_actions | idle-084.png
+[  55% ] _update_scan_actions | idle-090.png
+[  55% ] _update_scan_actions | idle-096.png
+[  55% ] _update_scan_actions | idle-102.png
+[  55% ] _update_scan_actions | idle-108.png
+[  55% ] _update_scan_actions | idle-114.png
+[  55% ] _update_scan_actions | idle-120.png
+[  56% ] _update_scan_actions | idle-121.png
+[  56% ] _update_scan_actions | walk-000.png
+[  56% ] _update_scan_actions | walk-006.png
+[  56% ] _update_scan_actions | walk-012.png
+[  56% ] _update_scan_actions | walk-018.png
+[  56% ] _update_scan_actions | walk-024.png
+[  56% ] _update_scan_actions | walk-030.png
+[  57% ] _update_scan_actions | walk-033.png
+[  57% ] _update_scan_actions | heavy_hammer_swing-000.png
+[  57% ] _update_scan_actions | heavy_hammer_swing-006.png
+[  57% ] _update_scan_actions | heavy_hammer_swing-012.png
+[  57% ] _update_scan_actions | heavy_hammer_swing-018.png
+[  57% ] _update_scan_actions | heavy_hammer_swing-024.png
+[  57% ] _update_scan_actions | heavy_hammer_swing-030.png
+[  58% ] _update_scan_actions | heavy_hammer_swing-036.png
+[  58% ] _update_scan_actions | heavy_hammer_swing-042.png
+[  58% ] _update_scan_actions | heavy_hammer_swing-048.png
+[  58% ] _update_scan_actions | heavy_hammer_swing-054.png
+[  58% ] _update_scan_actions | heavy_hammer_swing-057.png
+[  58% ] _update_scan_actions | idle-000.png
+[  58% ] _update_scan_actions | idle-006.png
+[  59% ] _update_scan_actions | idle-012.png
+[  59% ] _update_scan_actions | idle-018.png
+[  59% ] _update_scan_actions | idle-024.png
+[  59% ] _update_scan_actions | idle-030.png
+[  59% ] _update_scan_actions | idle-036.png
+[  59% ] _update_scan_actions | idle-042.png
+[  59% ] _update_scan_actions | idle-048.png
+[  60% ] _update_scan_actions | idle-054.png
+[  60% ] _update_scan_actions | idle-060.png
+[  60% ] _update_scan_actions | idle-066.png
+[  60% ] _update_scan_actions | idle-072.png
+[  60% ] _update_scan_actions | idle-078.png
+[  60% ] _update_scan_actions | idle-084.png
+[  60% ] _update_scan_actions | idle-090.png
+[  61% ] _update_scan_actions | idle-096.png
+[  61% ] _update_scan_actions | idle-102.png
+[  61% ] _update_scan_actions | idle-108.png
+[  61% ] _update_scan_actions | idle-114.png
+[  61% ] _update_scan_actions | idle-120.png
+[  61% ] _update_scan_actions | idle-121.png
+[  61% ] _update_scan_actions | walk-000.png
+[  62% ] _update_scan_actions | walk-006.png
+[  62% ] _update_scan_actions | walk-012.png
+[  62% ] _update_scan_actions | walk-018.png
+[  62% ] _update_scan_actions | walk-024.png
+[  62% ] _update_scan_actions | walk-030.png
+[  62% ] _update_scan_actions | walk-033.png
+[  62% ] _update_scan_actions | heavy_hammer_swing-000.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-006.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-012.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-018.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-024.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-030.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-036.png
+[  63% ] _update_scan_actions | heavy_hammer_swing-042.png
+[  64% ] _update_scan_actions | heavy_hammer_swing-048.png
+[  64% ] _update_scan_actions | heavy_hammer_swing-054.png
+[  64% ] _update_scan_actions | heavy_hammer_swing-057.png
+[  64% ] _update_scan_actions | idle-000.png
+[  64% ] _update_scan_actions | idle-006.png
+[  64% ] _update_scan_actions | idle-012.png
+[  64% ] _update_scan_actions | idle-018.png
+[  65% ] _update_scan_actions | idle-024.png
+[  65% ] _update_scan_actions | idle-030.png
+[  65% ] _update_scan_actions | idle-036.png
+[  65% ] _update_scan_actions | idle-042.png
+[  65% ] _update_scan_actions | idle-048.png
+[  65% ] _update_scan_actions | idle-054.png
+[  65% ] _update_scan_actions | idle-060.png
+[  66% ] _update_scan_actions | idle-066.png
+[  66% ] _update_scan_actions | idle-072.png
+[  66% ] _update_scan_actions | idle-078.png
+[  66% ] _update_scan_actions | idle-084.png
+[  66% ] _update_scan_actions | idle-090.png
+[  66% ] _update_scan_actions | idle-096.png
+[  66% ] _update_scan_actions | idle-102.png
+[  67% ] _update_scan_actions | idle-108.png
+[  67% ] _update_scan_actions | idle-114.png
+[  67% ] _update_scan_actions | idle-120.png
+[  67% ] _update_scan_actions | idle-121.png
+[  67% ] _update_scan_actions | walk-000.png
+[  67% ] _update_scan_actions | walk-006.png
+[  67% ] _update_scan_actions | walk-012.png
+[  68% ] _update_scan_actions | walk-018.png
+[  68% ] _update_scan_actions | walk-024.png
+[  68% ] _update_scan_actions | walk-030.png
+[  68% ] _update_scan_actions | walk-033.png
+[  68% ] _update_scan_actions | heavy_hammer_swing-000.png
+[  68% ] _update_scan_actions | heavy_hammer_swing-006.png
+[  68% ] _update_scan_actions | heavy_hammer_swing-012.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-018.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-024.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-030.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-036.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-042.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-048.png
+[  69% ] _update_scan_actions | heavy_hammer_swing-054.png
+[  70% ] _update_scan_actions | heavy_hammer_swing-057.png
+[  70% ] _update_scan_actions | idle-000.png
+[  70% ] _update_scan_actions | idle-006.png
+[  70% ] _update_scan_actions | idle-012.png
+[  70% ] _update_scan_actions | idle-018.png
+[  70% ] _update_scan_actions | idle-024.png
+[  70% ] _update_scan_actions | idle-030.png
+[  71% ] _update_scan_actions | idle-036.png
+[  71% ] _update_scan_actions | idle-042.png
+[  71% ] _update_scan_actions | idle-048.png
+[  71% ] _update_scan_actions | idle-054.png
+[  71% ] _update_scan_actions | idle-060.png
+[  71% ] _update_scan_actions | idle-066.png
+[  71% ] _update_scan_actions | idle-072.png
+[  72% ] _update_scan_actions | idle-078.png
+[  72% ] _update_scan_actions | idle-084.png
+[  72% ] _update_scan_actions | idle-090.png
+[  72% ] _update_scan_actions | idle-096.png
+[  72% ] _update_scan_actions | idle-102.png
+[  72% ] _update_scan_actions | idle-108.png
+[  72% ] _update_scan_actions | idle-114.png
+[  73% ] _update_scan_actions | idle-120.png
+[  73% ] _update_scan_actions | idle-121.png
+[  73% ] _update_scan_actions | walk-000.png
+[  73% ] _update_scan_actions | walk-006.png
+[  73% ] _update_scan_actions | walk-012.png
+[  73% ] _update_scan_actions | walk-018.png
+[  73% ] _update_scan_actions | walk-024.png
+[  74% ] _update_scan_actions | walk-030.png
+[  74% ] _update_scan_actions | walk-033.png
+[  74% ] _update_scan_actions | blend-0.png
+[  74% ] _update_scan_actions | blend-1.png
+[  74% ] _update_scan_actions | blend-6.png
+[  74% ] _update_scan_actions | crouch-00.png
+[  74% ] _update_scan_actions | crouch-12.png
+[  75% ] _update_scan_actions | crouch-24.png
+[  75% ] _update_scan_actions | crouch-36.png
+[  75% ] _update_scan_actions | crouch-48.png
+[  75% ] _update_scan_actions | crouch-60.png
+[  75% ] _update_scan_actions | hammer-00.png
+[  75% ] _update_scan_actions | hammer-12.png
+[  75% ] _update_scan_actions | hammer-24.png
+[  76% ] _update_scan_actions | hammer-36.png
+[  76% ] _update_scan_actions | hammer-48.png
+[  76% ] _update_scan_actions | hammer-60.png
+[  76% ] _update_scan_actions | hammer-72.png
+[  76% ] _update_scan_actions | hammer-84.png
+[  76% ] _update_scan_actions | hammer-96.png
+[  76% ] _update_scan_actions | hammer-108.png
+[  77% ] _update_scan_actions | idle-00.png
+[  77% ] _update_scan_actions | idle-12.png
+[  77% ] _update_scan_actions | idle-24.png
+[  77% ] _update_scan_actions | idle-36.png
+[  77% ] _update_scan_actions | idle-48.png
+[  77% ] _update_scan_actions | idle-60.png
+[  77% ] _update_scan_actions | idle-72.png
+[  78% ] _update_scan_actions | idle-84.png
+[  78% ] _update_scan_actions | idle-96.png
+[  78% ] _update_scan_actions | idle-108.png
+[  78% ] _update_scan_actions | idle-120.png
+[  78% ] _update_scan_actions | idle-132.png
+[  78% ] _update_scan_actions | idle-144.png
+[  78% ] _update_scan_actions | idle-156.png
+[  79% ] _update_scan_actions | idle-168.png
+[  79% ] _update_scan_actions | idle-180.png
+[  79% ] _update_scan_actions | idle-192.png
+[  79% ] _update_scan_actions | idle-204.png
+[  79% ] _update_scan_actions | idle-216.png
+[  79% ] _update_scan_actions | idle-228.png
+[  79% ] _update_scan_actions | idle-240.png
+[  80% ] _update_scan_actions | walk-00.png
+[  80% ] _update_scan_actions | walk-12.png
+[  80% ] _update_scan_actions | walk-24.png
+[  80% ] _update_scan_actions | walk-36.png
+[  80% ] _update_scan_actions | walk-48.png
+[  80% ] _update_scan_actions | walk-60.png
+[  80% ] _update_scan_actions | blend-0.png
+[  81% ] _update_scan_actions | blend-1.png
+[  81% ] _update_scan_actions | blend-6.png
+[  81% ] _update_scan_actions | crouch-00.png
+[  81% ] _update_scan_actions | crouch-12.png
+[  81% ] _update_scan_actions | crouch-24.png
+[  81% ] _update_scan_actions | crouch-36.png
+[  81% ] _update_scan_actions | crouch-48.png
+[  82% ] _update_scan_actions | crouch-60.png
+[  82% ] _update_scan_actions | hammer-00.png
+[  82% ] _update_scan_actions | hammer-12.png
+[  82% ] _update_scan_actions | hammer-24.png
+[  82% ] _update_scan_actions | hammer-36.png
+[  82% ] _update_scan_actions | hammer-48.png
+[  82% ] _update_scan_actions | hammer-60.png
+[  83% ] _update_scan_actions | hammer-72.png
+[  83% ] _update_scan_actions | hammer-84.png
+[  83% ] _update_scan_actions | hammer-96.png
+[  83% ] _update_scan_actions | hammer-108.png
+[  83% ] _update_scan_actions | idle-00.png
+[  83% ] _update_scan_actions | idle-12.png
+[  83% ] _update_scan_actions | idle-24.png
+[  84% ] _update_scan_actions | idle-36.png
+[  84% ] _update_scan_actions | idle-48.png
+[  84% ] _update_scan_actions | idle-60.png
+[  84% ] _update_scan_actions | idle-72.png
+[  84% ] _update_scan_actions | idle-84.png
+[  84% ] _update_scan_actions | idle-96.png
+[  84% ] _update_scan_actions | idle-108.png
+[  85% ] _update_scan_actions | idle-120.png
+[  85% ] _update_scan_actions | idle-132.png
+[  85% ] _update_scan_actions | idle-144.png
+[  85% ] _update_scan_actions | idle-156.png
+[  85% ] _update_scan_actions | idle-168.png
+[  85% ] _update_scan_actions | idle-180.png
+[  85% ] _update_scan_actions | idle-192.png
+[  86% ] _update_scan_actions | idle-204.png
+[  86% ] _update_scan_actions | idle-216.png
+[  86% ] _update_scan_actions | idle-228.png
+[  86% ] _update_scan_actions | idle-240.png
+[  86% ] _update_scan_actions | walk-00.png
+[  86% ] _update_scan_actions | walk-12.png
+[  86% ] _update_scan_actions | walk-24.png
+[  87% ] _update_scan_actions | walk-36.png
+[  87% ] _update_scan_actions | walk-48.png
+[  87% ] _update_scan_actions | walk-60.png
+[  87% ] _update_scan_actions | heavy_hammer_swing-000.png
+[  87% ] _update_scan_actions | heavy_hammer_swing-006.png
+[  87% ] _update_scan_actions | heavy_hammer_swing-012.png
+[  87% ] _update_scan_actions | heavy_hammer_swing-018.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-024.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-030.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-036.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-042.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-048.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-054.png
+[  88% ] _update_scan_actions | heavy_hammer_swing-057.png
+[  89% ] _update_scan_actions | idle-000.png
+[  89% ] _update_scan_actions | idle-006.png
+[  89% ] _update_scan_actions | idle-012.png
+[  89% ] _update_scan_actions | idle-018.png
+[  89% ] _update_scan_actions | idle-024.png
+[  89% ] _update_scan_actions | idle-030.png
+[  89% ] _update_scan_actions | idle-036.png
+[  90% ] _update_scan_actions | idle-042.png
+[  90% ] _update_scan_actions | idle-048.png
+[  90% ] _update_scan_actions | idle-054.png
+[  90% ] _update_scan_actions | idle-060.png
+[  90% ] _update_scan_actions | idle-066.png
+[  90% ] _update_scan_actions | idle-072.png
+[  90% ] _update_scan_actions | idle-078.png
+[  91% ] _update_scan_actions | idle-084.png
+[  91% ] _update_scan_actions | idle-090.png
+[  91% ] _update_scan_actions | idle-096.png
+[  91% ] _update_scan_actions | idle-102.png
+[  91% ] _update_scan_actions | idle-108.png
+[  91% ] _update_scan_actions | idle-114.png
+[  91% ] _update_scan_actions | idle-120.png
+[  92% ] _update_scan_actions | idle-121.png
+[  92% ] _update_scan_actions | walk-000.png
+[  92% ] _update_scan_actions | walk-006.png
+[  92% ] _update_scan_actions | walk-012.png
+[  92% ] _update_scan_actions | walk-018.png
+[  92% ] _update_scan_actions | walk-024.png
+[  92% ] _update_scan_actions | walk-030.png
+[  93% ] _update_scan_actions | walk-033.png
+[  93% ] _update_scan_actions | hand-local-projections.png
+[  93% ] _update_scan_actions | blend-0.png
+[  93% ] _update_scan_actions | blend-1.png
+[  93% ] _update_scan_actions | blend-6.png
+[  93% ] _update_scan_actions | crouch-00.png
+[  93% ] _update_scan_actions | crouch-12.png
+[  94% ] _update_scan_actions | crouch-24.png
+[  94% ] _update_scan_actions | crouch-36.png
+[  94% ] _update_scan_actions | crouch-48.png
+[  94% ] _update_scan_actions | crouch-60.png
+[  94% ] _update_scan_actions | hammer-00.png
+[  94% ] _update_scan_actions | hammer-12.png
+[  94% ] _update_scan_actions | hammer-24.png
+[  95% ] _update_scan_actions | hammer-36.png
+[  95% ] _update_scan_actions | hammer-48.png
+[  95% ] _update_scan_actions | hammer-60.png
+[  95% ] _update_scan_actions | hammer-72.png
+[  95% ] _update_scan_actions | hammer-84.png
+[  95% ] _update_scan_actions | hammer-96.png
+[  95% ] _update_scan_actions | hammer-108.png
+[  96% ] _update_scan_actions | idle-00.png
+[  96% ] _update_scan_actions | idle-12.png
+[  96% ] _update_scan_actions | idle-24.png
+[  96% ] _update_scan_actions | idle-36.png
+[  96% ] _update_scan_actions | idle-48.png
+[  96% ] _update_scan_actions | idle-60.png
+[  96% ] _update_scan_actions | idle-72.png
+[  97% ] _update_scan_actions | idle-84.png
+[  97% ] _update_scan_actions | idle-96.png
+[  97% ] _update_scan_actions | idle-108.png
+[  97% ] _update_scan_actions | idle-120.png
+[  97% ] _update_scan_actions | idle-132.png
+[  97% ] _update_scan_actions | idle-144.png
+[  97% ] _update_scan_actions | idle-156.png
+[  98% ] _update_scan_actions | idle-168.png
+[  98% ] _update_scan_actions | idle-180.png
+[  98% ] _update_scan_actions | idle-192.png
+[  98% ] _update_scan_actions | idle-204.png
+[  98% ] _update_scan_actions | idle-216.png
+[  98% ] _update_scan_actions | idle-228.png
+[  98% ] _update_scan_actions | idle-240.png
+[  99% ] _update_scan_actions | walk-00.png
+[  99% ] _update_scan_actions | walk-12.png
+[  99% ] _update_scan_actions | walk-24.png
+[  99% ] _update_scan_actions | walk-36.png
+[  99% ] _update_scan_actions | walk-48.png
+[  99% ] _update_scan_actions | walk-60.png
+[ DONE ] _update_scan_actions
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[  33% ] loading_editor_layout | Reopening scenes...
+[  50% ] loading_editor_layout | Loading central editor layout...
+[  66% ] loading_editor_layout | Loading plugin window layout...
+[  83% ] loading_editor_layout | Editor layout ready.
+[ DONE ] loading_editor_layout
+

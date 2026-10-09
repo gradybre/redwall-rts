@@ -1,0 +1,39 @@
+{
+  "branch": "codex/underground-room-section",
+  "base": "ab933592dfa5a7f52119dbb95f34ba76067ec437",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "demo_assets_present": false,
+  "deleted_import_cache": true,
+  "import_command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "strict_wrapper": "./tools/run_tests.sh --shard <index>/337 --output-dir /tmp/ug1091-run1",
+  "suites": [
+    "test_underground_room_orders.gd",
+    "test_underground_furniture_work.gd",
+    "test_underground_furniture_batches.gd",
+    "test_underground_layout_sources.gd"
+  ],
+  "totals": {
+    "tests": 62,
+    "assertions": 7688,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "scope": "Actual Room identity and shared floor metadata with unchanged exact painted claims. Terrain/profile/cut-map/cold qualification remains an explicitly synthetic fixture; no production physical mapping or demo/save/performance claim.",
+  "analyzer": {
+    "files": 2,
+    "warnings": 0,
+    "port": 6156
+  }
+}

@@ -1,0 +1,6 @@
+The first final batch completed test_underground_room_bindings.gd (16/573/0) and test_underground_room_orders.gd (25/1356/0), then the temporary orchestration helper requested nonexistent test_underground_room_confirmation.gd. Room confirmation tests are in test_underground_room_orders.gd.
+Traceback (most recent call last):
+  File "/tmp/ug-run-focused.py", line 7, in <module>
+    i=next(i for i,g in enumerate(plan["shards"]) if target in g)
+StopIteration
+Assets were absent throughout and no source changed. Remaining existing suites and analyzer were then executed with their correct paths; there is no successful claim for the nonexistent selection.

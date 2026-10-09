@@ -1,0 +1,494 @@
+{
+ "schema": 1,
+ "decision": [
+  "1217",
+  "1209"
+ ],
+ "motion": "side-on paw seating station (step 2c)",
+ "candidate": "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a",
+ "candidate_sha256": "34a61db67109290b9ef78b2c7332e87007b949a66ce5e8631be040e5971f61b3",
+ "deck_depth_u": 512,
+ "bearer_top_width_across_mole_u": 128,
+ "contact_spread_u": 256,
+ "footing": {
+  "per_clip": {
+   "stand": {
+    "keys": 122,
+    "min_span_u": 568.6809111498749,
+    "max_span_u": 570.8525296077712
+   },
+   "seat_entry": {
+    "keys": 31,
+    "min_span_u": 570.7172915754063,
+    "max_span_u": 570.7172915754063
+   },
+   "seat_work": {
+    "keys": 2,
+    "min_span_u": 570.7172915754063,
+    "max_span_u": 570.7172915754063
+   },
+   "tap_entry": {
+    "keys": 31,
+    "min_span_u": 570.7172915754063,
+    "max_span_u": 570.7172915754063
+   },
+   "tap_work": {
+    "keys": 33,
+    "min_span_u": 570.7172915754063,
+    "max_span_u": 570.7172915754063
+   }
+  },
+  "narrowest": {
+   "clip": "stand",
+   "key": 40,
+   "left_vertex": 10659,
+   "right_vertex": 2380,
+   "left_x_u": [
+    -1285642826264869699250487,
+    4722366482869645213696
+   ],
+   "right_x_u": [
+    667513298033270999,
+    2251799813685248
+   ],
+   "span_u": [
+    2685519674261940041345335,
+    4722366482869645213696
+   ],
+   "span_u_float": 568.6809111498749
+  }
+ },
+ "feet_excess_over_deck_depth_u": 56.68091114987492,
+ "turn": {
+  "deck_depth_u": 512,
+  "feet_z_extent_u_by_degree": [
+   341.0,
+   335.7,
+   330.3,
+   324.7,
+   319.1,
+   313.3,
+   307.5,
+   301.6,
+   295.6,
+   289.5,
+   283.3,
+   277.0,
+   270.6,
+   264.2,
+   257.6,
+   257.0,
+   258.0,
+   259.0,
+   263.4,
+   269.2,
+   274.8,
+   280.3,
+   285.8,
+   291.2,
+   296.5,
+   301.7,
+   306.8,
+   311.8,
+   317.5,
+   323.4,
+   329.4,
+   335.4,
+   341.3,
+   347.0,
+   352.7,
+   358.2,
+   363.6,
+   369.0,
+   374.2,
+   379.3,
+   384.3,
+   389.1,
+   393.9,
+   398.5,
+   403.0,
+   407.4,
+   411.6,
+   415.8,
+   419.8,
+   423.9,
+   427.9,
+   431.9,
+   435.8,
+   439.8,
+   443.8,
+   447.6,
+   451.3,
+   455.6,
+   460.2,
+   464.6,
+   468.8,
+   472.9,
+   476.9,
+   480.7,
+   484.4,
+   488.6,
+   492.8,
+   497.0,
+   501.0,
+   504.8,
+   508.5,
+   512.0,
+   515.3,
+   518.6,
+   522.6,
+   526.3,
+   530.0,
+   533.4,
+   536.7,
+   539.9,
+   542.9,
+   545.8,
+   548.8,
+   551.6,
+   554.2,
+   557.1,
+   560.2,
+   563.1,
+   565.8,
+   568.3,
+   570.7
+  ],
+  "largest_yaw_that_fits_degrees": 71,
+  "z_extent_at_0_u": 341.0,
+  "z_extent_at_90_u": 570.7,
+  "max_z_extent_u": 570.7
+ },
+ "sites": {
+  "tread": {
+   "tread": 3,
+   "plane_u": 128,
+   "station_xz_u": [
+    448,
+    -42
+   ],
+   "yaw": 16384,
+   "station_derivation": {
+    "bearer_centre_x_u": 0,
+    "reach_u": 448,
+    "deck_centre_z_u": -54.0,
+    "feet_lateral_centre_u": 12.31256207062026
+   },
+   "fixture_station_local": [
+    [
+     -1024,
+     -64,
+     -310,
+     1024,
+     0,
+     202
+    ],
+    [
+     -896,
+     -896,
+     -310,
+     -768,
+     -64,
+     202
+    ],
+    [
+     768,
+     -896,
+     -310,
+     896,
+     -64,
+     202
+    ],
+    [
+     -1024,
+     64,
+     202,
+     1024,
+     128,
+     2250
+    ],
+    [
+     -896,
+     -896,
+     202,
+     -768,
+     64,
+     2250
+    ],
+    [
+     768,
+     -896,
+     202,
+     896,
+     64,
+     2250
+    ],
+    [
+     -256,
+     0,
+     -310,
+     256,
+     128,
+     -182
+    ],
+    [
+     -2048,
+     -896,
+     -822,
+     -1024,
+     384,
+     2250
+    ],
+    [
+     1024,
+     -896,
+     -822,
+     2048,
+     384,
+     2250
+    ]
+   ],
+   "fixture_labels": [
+    "support deck T_{k-1}",
+    "T_{k-1} left bearer and posts (superset)",
+    "T_{k-1} right bearer and posts (superset)",
+    "deck behind (L0, or T_{k-2})",
+    "behind left bearer and posts (superset)",
+    "behind right bearer and posts (superset)",
+    "paid WIP candidate: T_k left bearer, quarter-turned",
+    "trench side wall, -x",
+    "trench side wall, +x"
+   ],
+   "ready_feet_world_z_u": [
+    -339.67120785832344,
+    231.04608371708292
+   ],
+   "deck_z_u": [
+    -310,
+    202
+   ],
+   "feet_over_far_edge_u": 29.67120785832344,
+   "feet_over_riser_u": 29.046083717082922,
+   "contacts": {
+    "right": {
+     "world_xz_u": [
+      0,
+      -170
+     ],
+     "on_bearer_top": false
+    },
+    "left": {
+     "world_xz_u": [
+      0,
+      86
+     ],
+     "on_bearer_top": false
+    }
+   },
+   "world_proof": {
+    "seat": {
+     "clear": false,
+     "unresolved": 32,
+     "stopped_at_limit": true,
+     "support_failures": 2,
+     "first_support_intervals": [
+      0
+     ],
+     "solids_met": [
+      3
+     ],
+     "other": []
+    },
+    "tap": {
+     "clear": false,
+     "unresolved": 32,
+     "stopped_at_limit": true,
+     "support_failures": 2,
+     "first_support_intervals": [
+      0
+     ],
+     "solids_met": [
+      3
+     ],
+     "other": []
+    }
+   }
+  },
+  "sill": {
+   "tread": 6,
+   "plane_u": 64,
+   "station_xz_u": [
+    448,
+    -42
+   ],
+   "yaw": 16384,
+   "station_derivation": {
+    "bearer_centre_x_u": 0,
+    "reach_u": 448,
+    "deck_centre_z_u": -54.0,
+    "feet_lateral_centre_u": 12.31256207062026
+   },
+   "fixture_station_local": [
+    [
+     -1024,
+     -64,
+     -310,
+     1024,
+     0,
+     202
+    ],
+    [
+     -896,
+     -896,
+     -310,
+     -768,
+     -64,
+     202
+    ],
+    [
+     768,
+     -896,
+     -310,
+     896,
+     -64,
+     202
+    ],
+    [
+     -1024,
+     64,
+     202,
+     1024,
+     128,
+     2250
+    ],
+    [
+     -896,
+     -896,
+     202,
+     -768,
+     64,
+     2250
+    ],
+    [
+     768,
+     -896,
+     202,
+     896,
+     64,
+     2250
+    ],
+    [
+     -256,
+     0,
+     -310,
+     256,
+     64,
+     -182
+    ],
+    [
+     -2048,
+     -896,
+     -822,
+     -1024,
+     768,
+     2250
+    ],
+    [
+     1024,
+     -896,
+     -822,
+     2048,
+     768,
+     2250
+    ]
+   ],
+   "fixture_labels": [
+    "support deck T_{k-1}",
+    "T_{k-1} left bearer and posts (superset)",
+    "T_{k-1} right bearer and posts (superset)",
+    "deck behind (L0, or T_{k-2})",
+    "behind left bearer and posts (superset)",
+    "behind right bearer and posts (superset)",
+    "paid WIP candidate: T_k left bearer, quarter-turned",
+    "trench side wall, -x",
+    "trench side wall, +x"
+   ],
+   "ready_feet_world_z_u": [
+    -339.67120785832344,
+    231.04608371708292
+   ],
+   "deck_z_u": [
+    -310,
+    202
+   ],
+   "feet_over_far_edge_u": 29.67120785832344,
+   "feet_over_riser_u": 29.046083717082922,
+   "contacts": {
+    "right": {
+     "world_xz_u": [
+      0,
+      -170
+     ],
+     "on_bearer_top": false
+    },
+    "left": {
+     "world_xz_u": [
+      0,
+      86
+     ],
+     "on_bearer_top": false
+    }
+   },
+   "world_proof": {
+    "seat": {
+     "clear": false,
+     "unresolved": 32,
+     "stopped_at_limit": true,
+     "support_failures": 2,
+     "first_support_intervals": [
+      0
+     ],
+     "solids_met": [
+      3
+     ],
+     "other": []
+    },
+    "tap": {
+     "clear": false,
+     "unresolved": 32,
+     "stopped_at_limit": true,
+     "support_failures": 2,
+     "first_support_intervals": [
+      0
+     ],
+     "solids_met": [
+      3
+     ],
+     "other": []
+    }
+   }
+  }
+ },
+ "refusals": [
+  "TREAD_SIDE_FOOTING",
+  "TREAD_SIDE_PAW_SPREAD"
+ ],
+ "station_admitted": false,
+ "stand_sha256": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+ "source_pins": {
+  "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "open_body": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+  "topology": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+  "stand": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d",
+  "profiles": "30c3dc1f5e9162f5530f410c437ed6f85d28dc6879f88dec81cb193ea87b0df5"
+ },
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/derive_tread_side_station.py": "3a86cd75eb1cf3fa66e922e7b2fb9bf4efa8da8660c1596570a168eb5c24222e",
+  "godot/data/underground/mole-worker/claw-work-v1/author_paw_seat.py": "2d8146588f9ea5dc15ee698b4442ea8acda8075c8ad672a6624d845247c6b778",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_paw_seat.py": "8298cbcd25ca18caeea4f55b0b07baaa9f77938c542282a70dbd737f7a110bc6",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_tread_seat.py": "1810e63e1974c301703dcb91c23fc89fc1d6cffc2e726ddd2ae027fc4ba14e08",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_stroke.py": "e74d660078198b552c5854c07a1f1f59c71fdf0822183b963f761eaae7fa9af2",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_tread_install.py": "5b00fcc8b0af1c3e369dc7778ba4b6b8fa89285f3d4700dcb25c570d8adb971f"
+ }
+}

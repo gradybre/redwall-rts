@@ -1,0 +1,69 @@
+--- adapter-1146-v2/modular_runtime.gd.txt
++++ adapter-1146-v3/modular_runtime.gd.txt
+@@ -111 +111 @@
+-func _view_refusal(request: Dictionary) -> StringName:
++func _pure_view_refusal(request: Dictionary) -> StringName:
+@@ -121 +121 @@
+-			or _tool.datum_u() != _datum or not _tool.confirmation_view_ready():
++			or _tool.datum_u() != _datum:
+@@ -123,0 +124,10 @@
++
++
++func _view_refusal(request: Dictionary) -> StringName:
++	"""A view observer may change the drawing itself; finish with a callback-free identity/snapshot check."""
++	var code: StringName = _pure_view_refusal(request)
++	if code != &"":
++		return code
++	if not _tool.confirmation_view_ready():
++		return REFUSE_LEVEL
++	return _pure_view_refusal(request)
+@@ -170,0 +181,3 @@
++	var space: Owner = provider.space_owner() if provider != null else null
++	if space == null:
++		return _refused(REFUSE_BINDING)
+@@ -173 +186 @@
+-	plan.space_revision = provider.space_owner().revision()
++	plan.space_revision = space.revision()
+--- adapter-1146-v2/test_modular_runtime.gd.txt
++++ adapter-1146-v3/test_modular_runtime.gd.txt
+@@ -58,0 +59,2 @@
++var _modal_calls: int = 0
++var _discard_on_modal_call: int = -1
+@@ -73,0 +76,2 @@
++	_modal_calls = 0
++	_discard_on_modal_call = -1
+@@ -103,0 +108,3 @@
++	_modal_calls += 1
++	if _modal_calls == _discard_on_modal_call:
++		_editor.draft.discard()
+@@ -134,0 +142,5 @@
++
++
++func _release_provider_late() -> void:
++	"""Release the host's last provider reference while its own genuine binding observer is active."""
++	_f._provider = null
+@@ -236,0 +249,24 @@
++func test_provider_expiry_between_check_and_confirm_is_a_safe_refusal() -> void:
++	"""A weak provider may expire after validation; a missing reborrow never becomes a null dereference."""
++	var request: Dictionary = _draw()
++	var before: PackedByteArray = _f._state()
++	var provider: WeakRef = weakref(_f._provider)
++	(_f._provider as BindingObserver).observer = _release_provider_late
++	assert_equal(_runtime.submit_request(request).error_code, Runtime.REFUSE_BINDING, "expired provider refuses")
++	assert_null(provider.get_ref(), "the view does not retain an orphan provider")
++	assert_equal(_f._rooms.preflights, 0, "no Room preflight after provider expiry")
++	assert_equal(_f._state(), before, "actual state conserved")
++	assert_false(_runtime._busy, "safe refusal releases busy gate")
++
++
++func test_final_modal_observer_cannot_change_the_drawing_after_snapshot_validation() -> void:
++	"""Late read-view/modal callbacks cannot smuggle an earlier valid snapshot into the actual owner."""
++	var request: Dictionary = _draw()
++	var before: PackedByteArray = _f._state()
++	_discard_on_modal_call = _modal_calls + 2
++	assert_equal(_runtime.submit_request(request).error_code, Runtime.REFUSE_DRAFT, "late drawing mutation refused")
++	assert_equal(_modal_calls, _discard_on_modal_call, "mutant ran in final callback window")
++	assert_equal(_f._rooms.preflights, 0, "changed drawing never enters Room preflight")
++	assert_equal(_f._state(), before, "actual state conserved")
++
++

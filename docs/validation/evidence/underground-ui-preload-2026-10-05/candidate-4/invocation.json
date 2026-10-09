@@ -1,0 +1,30 @@
+{
+  "head": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.179
+    }
+  ],
+  "scope": "Six focused official UI suites plus entire zero-warning analyzer and raw editor gate; not a full-suite milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [
+    "ERROR:"
+  ],
+  "error": "RuntimeError('Import diagnostics')",
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 1
+}

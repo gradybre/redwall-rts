@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 145, in <module>
+    capture(parser.parse_args().out)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 115, in capture
+    run(command, output / "native.log", record)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 139, in run
+    require(code == 0 and not re.search(BAD, log.read_text()), "INPUT_CAPTURE_COMMAND_OR_DIAGNOSTICS")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 27, in require
+    raise ValueError(code)
+ValueError: INPUT_CAPTURE_COMMAND_OR_DIAGNOSTICS

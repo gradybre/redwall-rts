@@ -1,0 +1,33 @@
+extends SceneTree
+## Evidence only: compare ordinary and macOS builtin keyboard-binding counts without changing InputMap.
+
+func _key_count(setting: String) -> int:
+	if not ProjectSettings.has_setting(setting):
+		return -1
+	var value: Dictionary = ProjectSettings.get_setting(setting)
+	var count: int = 0
+	for event: InputEvent in value.get("events", []):
+		if event is InputEventKey:
+			count += 1
+	return count
+
+
+func _initialize() -> void:
+	var rows: Array[Dictionary] = []
+	var total_actual: int = 0
+	var total_base: int = 0
+	for action: StringName in InputMap.get_actions():
+		var actual: int = 0
+		for event: InputEvent in InputMap.action_get_events(action):
+			if event is InputEventKey:
+				actual += 1
+		var base: int = _key_count("input/" + String(action))
+		var mac: int = _key_count("input/" + String(action) + ".macos")
+		total_actual += actual
+		total_base += base
+		rows.append({"action": String(action), "actual": actual, "base": base,
+			"macos": mac, "delta": actual - base})
+	print("INPUT_EVENT_CENSUS " + JSON.stringify({"os": OS.get_name(),
+		"keyboard_event_count": total_actual, "base_event_count": total_base,
+		"delta": total_actual - total_base, "actions": rows}))
+	quit(0)

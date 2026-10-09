@@ -1,0 +1,82 @@
+state_registry_coverage: PASS -- 145 modules, 720 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_settlement_demolition_complete.gd
+  PASS  test_a_finished_well_goes_and_its_return_lands_in_the_reserved_store
+  PASS  test_a_hall_with_rooms_and_no_furniture_takes_its_rooms_and_their_stores
+  PASS  test_a_tier_two_hall_returns_half_of_base_plus_upgrade
+  PASS  test_with_no_store_the_return_is_placed_on_ground_piles_from_the_door
+  PASS  test_a_dirt_path_with_an_empty_bill_completes_returning_nothing
+  PASS  test_a_store_sized_exactly_to_the_return_takes_it_through_the_released_claim
+  PASS  test_a_project_material_container_reached_twice_is_destroyed_once
+  PASS  test_a_second_completion_finds_no_building
+  PASS  test_completion_refuses_until_the_work_is_done
+  PASS  test_completion_refuses_a_demolition_the_coordinator_did_not_admit
+  PASS  test_completion_refuses_inside_a_callers_transaction_and_a_missing_claim
+  PASS  test_goods_that_arrive_after_admission_block_the_commit_until_moved
+  PASS  test_occupants_after_admission_block_the_commit
+  PASS  test_a_foreign_container_on_the_footprint_after_admission_blocks_the_commit
+  PASS  test_a_hall_with_furniture_returns_half_of_each_piece_and_takes_it_out
+  PASS  test_furniture_adds_items_the_building_never_named
+  PASS  test_two_pieces_of_one_kind_each_return_their_half
+  PASS  test_a_piece_with_a_live_furniture_project_refuses_by_name
+  PASS  test_a_piece_placed_after_admission_blocks_the_commit_until_removed
+  PASS  test_a_piece_placed_after_a_pile_admission_is_caught_too
+  PASS  test_recorded_grams_that_differ_from_the_snapshots_charge_refuse
+  PASS  test_a_pile_fallback_that_no_longer_places_stays_commit_pending_and_retries
+  PASS  test_a_store_that_can_no_longer_take_the_return_stays_commit_pending
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3846)
+       [1] _abandon_after_first_block (res://test/test_settlement_demolition_complete.gd:601)
+       [2] test_an_abandoned_store_commit_restores_inventory_and_re_records_the_admission (res://test/test_settlement_demolition_complete.gd:611)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_an_abandoned_store_commit_restores_inventory_and_re_records_the_admission
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3846)
+       [1] _abandon_after_first_block (res://test/test_settlement_demolition_complete.gd:601)
+       [2] test_an_abandoned_pile_commit_re_records_the_fallback_shape (res://test/test_settlement_demolition_complete.gd:628)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_an_abandoned_pile_commit_re_records_the_fallback_shape
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3846)
+       [1] _abandon_after_first_block (res://test/test_settlement_demolition_complete.gd:601)
+       [2] test_the_abandon_guard_zeroes_the_reports_counters_and_rereads_the_revision (res://test/test_settlement_demolition_complete.gd:649)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_abandon_guard_zeroes_the_reports_counters_and_rereads_the_revision
+CI_SUITE_TIME {"assertions":413,"failures":0,"suite":"test_settlement_demolition_complete.gd","tests":26,"usec":4349902}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+26 test(s), 413 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 3 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 26 tests, 413 assertions, 0 failures.

@@ -1,0 +1,15 @@
+[
+  "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "tools/audit_underground_metal_inputs.py",
+  "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v6/inputs.bin",
+  "--sha256",
+  "6cae5de988d7dbe55035d692592cfb050ba7dcbc80680512bd794f937704741d",
+  "--spec-sha256",
+  "a164ff374fcec655c58dfe635ac64b8b03b6db602727a03808d88f3161c8c5eb",
+  "--content",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+  "--topology",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json",
+  "--out",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/final-python/audit-replay.json"
+]

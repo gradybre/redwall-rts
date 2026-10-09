@@ -1,0 +1,20 @@
+{
+ "test/test_underground_room_bindings.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE_BASE_CLASS): The local function parameter \"revision\" is shadowing an already-declared function at line 422 in the base class \"res://scripts/core/underground_space_owner.gd\".",
+   "range": {
+    "end": {
+     "character": 40,
+     "line": 119
+    },
+    "start": {
+     "character": 32,
+     "line": 119
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

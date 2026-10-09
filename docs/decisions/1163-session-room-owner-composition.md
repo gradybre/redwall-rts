@@ -1,0 +1,121 @@
+# 1163 — Compose actual Room owners through the mounted Session
+
+Date: 2026-10-04 · Status: independently accepted lifecycle component
+
+The existing host mounts a source-qualified foundation and can retire that
+foundation. This increment constructs the actual Room/Sites/payment/Location
+owners from that same private Session tuple. It creates no Room, endpoint,
+route, paid phase, work contact or material. All missing physical bindings keep
+their existing refusals. The foundation-only mount remains supported.
+
+## Construction and failure lifetime
+
+`SettlementSystem.compose_underground_room_owners()` targets only the actual
+mounted Session. `Session.compose_room_owners()` accepts no external owner
+packet. The stateless RoomComposition helper fills the existing permanent
+Retirement.Owners; it does not allocate a second tuple or adopt foreign owners.
+Session state is foundation (0), composing (1), owners ready (2), or failed
+after a binding (3). A second scalar records the exact installed prefix:
+excavation (1), shared Router (2), Room authority (3), Inventory adapter (4).
+
+Before the first one-way binding, only private candidate owners exist. A
+refusal there drops those private candidates and keeps the ordinary foundation.
+After any binding, all installed original receivers remain strongly retained.
+Further construction, ordinary getters, fixed ticks and admission stop on
+failure; only the original whole-World reset may release that composition.
+Abandoning an otherwise valid reset never resumes a failed composition.
+
+Sites publishes the Construction/Work excavation links before Authority's
+backlink; RoomOrders publishes Buildings' spatial link before RoomBindings'
+Orders backlink. An exact Session-owned constructor-prefix retirement path
+admits only those specifically absent, empty, idle constructor backlinks. It
+does not weaken ordinary fully composed retirement. It derives the prefix from
+the actual cached Session Script, its private packet and stopped state, never
+from a caller-supplied prefix. Scope captures the original prefix and release
+rechecks the same original tuple after canonical host clearing. The existing
+static four-owner release tail stays observer/allocation free.
+
+## Owners and capacities
+
+Construction order is real RoomWorldBindings, SpaceAuthority, Sites and its
+single Funding arena, shared Router, RoomBindings/RoomOrders/RoomCatalog and
+their reciprocal links, then Locations and its Inventory adapter. Capacities
+are the existing source-admitted maxima: 256 Authority proofs, 73,909 Sites,
+32,768 Funding receipts, 1,024 Locations and 1,024 Inventory endpoints. Smaller
+test configurations are not substituted for the production constructor.
+Locations' paired storage is 233,728 bytes. Router borrows Sites' Funding; the
+Inventory endpoint arena is initially allocated once and reused at identical
+capacity after full retirement. RoomCatalog now accepts an optional original
+BuildingDefinitions argument while preserving its no-argument constructor. The
+Session passes the exact actual Buildings definitions after its last observation;
+a missing argument refuses before the standalone allocation fallback. Complete
+and failed-prefix identity checks retain that same borrowed object. This avoids
+a second 1,752-byte immutable packed catalog (plus 24 scalar bytes and native
+headers) and its compilation temporaries.
+
+The existing private Owners slots retain the objects. Two Session scalars and
+one Scope scalar add 24 logical bytes. The final source census composes the
+accepted boot/UI/reset callers: 6,019/6,144 provisional control bytes and
+1,903/2,048 helper bytes, or 7,922/8,192 together. The original Session 1,536
+is charged once outside this slice; PROFILE_BYTES remains 262,144 and the
+existing joint remains 246,868.
+
+Construction has a distinct lifetime. `current_refusal` rejects an existing
+Scope; `_busy` prevents even direct reentrant `prepare_retirement` from
+allocating one. The absent Scope and its private Owners copy release 49 scalar
+bytes, 47 reference slots and two object headers: 2,065 provisional bytes.
+Thus 3,954 controls coexist with 3,539 constructor stack/heap bytes, for
+7,493/8,192. The largest counted path is Locations → Owner.domain_copy →
+Domain.configure → Value.int32. Its complete descriptor, duplicate bounds,
+constructor list and new Domain are charged, including conservative sequential
+overlap. Fixed constructor source hashes guard this derivation. No cold lease
+is held through methods requiring actual Budget quiescence.
+
+The estimate uses the predecessor's explicitly provisional 32-byte reference,
+256-byte object/header and 256-byte expression terms. It is not native allocator
+measurement. Existing owner banks and source-hashing workspace retain their
+original reservations; no new bank, third image, global reserve or gameplay
+capacity is admitted. The constructor-only reuse was independently reviewed as this bounded logical
+component. Integrated-current binding and native measurement remain separate;
+the passing tests alone do not qualify runtime memory.
+
+WorldRoutes, Movement/ConnectorCatalog source, Contacts, real access endpoints,
+Placements/Workpieces/Delivery and Furniture/Tips are outside this increment.
+No synthetic graph/source or successful physical provider is installed to
+bridge those missing compositions. Ordinary Room confirmation still requires
+all existing Approach and current physical source checks.
+
+## Ownership and verification
+
+The furnishing lane owns Session, minimal SettlementSystem gates, Retirement,
+their three existing test files, the new stateless composer/test, this record
+and the dedicated evidence subtree, plus the narrowly granted RoomCatalog constructor
+seam. Root owns UI/main, registry/queue and
+shared memory tools. Other producers and published consumers remain frozen.
+
+Verification uses actual generated/populated hosts and current shipped Content:
+exact original owners, unchanged stock/jobs/World/Site counts, successful
+composition, every completed and incomplete prefix, reset/refusal/reuse,
+reentrant observers and original tuple mutation. Typed reset outcomes remain
+unchanged. Strict focused tests, zero-warning analysis, a complete source
+census and independent review precede author commit. This is a lifecycle
+component, not playable Room acceptance.
+
+## Validation packet
+
+`docs/validation/evidence/underground-room-owner-composition-2026-10-04/`
+retains all six candidates. Candidate 5 runs five official singleton suites:
+84 tests / 3,352 assertions, all strict/raw diagnostic and leak counters zero,
+analyzer zero warnings over nine files. Candidate 6 adds the final original-null
+catalog negative and reruns the affected composition suite: 16 tests / 371
+assertions, all counters zero, analyzer zero over the same nine files. The four
+unchanged suites retain Candidate 5's evidence. No full-suite or demo activation
+claim follows. All temporary registry/project/assets/input changes restore
+exactly. The final census has nineteen positive/mutation checks; its earlier
+capacity-substring test failure is retained and corrected to require the exact
+call boundary. Root independently reviewed the complete source/census chain,
+verified all 12 source, 71 output, 34 inherited, 104 history and five current
+constructor-compatibility pins, and reran the nineteen census tests. No remaining
+high or medium finding was reported. Acceptance preserves all native, integrated
+current-source and gameplay limits. The exact verdict and original pre-acceptance
+documentation are retained under `accepted-review/` in that evidence directory.

@@ -1,0 +1,427 @@
+{
+  "source_vertex_count": 1176,
+  "source_triangles": 1150,
+  "tool_source_bounds": [
+    -0.9508814215660095,
+    0.0,
+    -0.7396608591079712,
+    0.9508814215660095,
+    0.3896633982658386,
+    0.7396608591079712
+  ],
+  "ready_tool_bounds_u": [
+    185.579607323476,
+    380.0341591922397,
+    -731.4007356499042,
+    546.8456958434563,
+    809.310309508197,
+    -250.09930277716376
+  ],
+  "source_vertex_candidates": [
+    {
+      "vertex": 148,
+      "source_m": [
+        -0.6314398050308228,
+        0.1740776002407074,
+        -0.7260041832923889
+      ],
+      "ready_u": [
+        536.7142146714659,
+        519.0289741701472,
+        -707.6507693839017
+      ],
+      "downward_reference_u": [
+        [
+          125.50009169667669,
+          1057.5894733160517,
+          898.6539597161341
+        ],
+        [
+          37.737868641540146,
+          -59.69884173899709,
+          -637.7091488527094
+        ],
+        [
+          125.50009169667669,
+          1057.5894733160517,
+          898.6539597161341
+        ]
+      ],
+      "meaning": "known previously witnessed pick tip"
+    },
+    {
+      "vertex": 149,
+      "source_m": [
+        -0.6236627101898193,
+        0.2130647450685501,
+        -0.7396608591079712
+      ],
+      "ready_u": [
+        546.8456958434563,
+        521.8403505628062,
+        -700.9865029329683
+      ],
+      "downward_reference_u": [
+        [
+          128.32951765947644,
+          1049.8788026835255,
+          908.0082686007256
+        ],
+        [
+          42.18152760141206,
+          -52.91236445726258,
+          -647.1516533963263
+        ],
+        [
+          128.32951765947644,
+          1049.8788026835255,
+          908.0082686007256
+        ]
+      ],
+      "meaning": "raw mesh extremum; anatomical/head label unreviewed"
+    },
+    {
+      "vertex": 155,
+      "source_m": [
+        -0.5572671890258789,
+        0.3896633982658386,
+        0.7071331739425659
+      ],
+      "ready_u": [
+        261.34584662875386,
+        809.310309508197,
+        -550.8341234948248
+      ],
+      "downward_reference_u": [
+        [
+          -185.8609751398867,
+          831.5521664387315,
+          707.228219449481
+        ],
+        [
+          -265.24337383519594,
+          207.01868571720388,
+          -490.2420704375836
+        ],
+        [
+          -185.8609751398867,
+          831.5521664387315,
+          707.228219449481
+        ]
+      ],
+      "meaning": "raw mesh extremum; anatomical/head label unreviewed"
+    },
+    {
+      "vertex": 157,
+      "source_m": [
+        -0.5649862289428711,
+        0.0,
+        0.7109028100967407
+      ],
+      "ready_u": [
+        185.579607323476,
+        745.5540859952762,
+        -610.1394992147107
+      ],
+      "downward_reference_u": [
+        [
+          -171.35631303341142,
+          911.6188947975306,
+          625.3659032038104
+        ],
+        [
+          -266.5148056160251,
+          131.3537663040588,
+          -403.08866530511114
+        ],
+        [
+          -171.35631303341142,
+          911.6188947975306,
+          625.3659032038104
+        ]
+      ],
+      "meaning": "raw mesh extremum; anatomical/head label unreviewed"
+    },
+    {
+      "vertex": 478,
+      "source_m": [
+        -0.5544813275337219,
+        0.126980260014534,
+        0.7396608591079712
+      ],
+      "ready_u": [
+        203.31208375075676,
+        770.6274416815345,
+        -586.6202626745433
+      ],
+      "downward_reference_u": [
+        [
+          -181.16287580784058,
+          880.5516536751993,
+          646.2207908299781
+        ],
+        [
+          -271.1598868040762,
+          161.81500741520927,
+          -426.472525581406
+        ],
+        [
+          -181.16287580784058,
+          880.5516536751993,
+          646.2207908299781
+        ]
+      ],
+      "meaning": "raw mesh extremum; anatomical/head label unreviewed"
+    },
+    {
+      "vertex": 652,
+      "source_m": [
+        -0.9508814215660095,
+        0.18018996715545654,
+        -0.004074394702911377
+      ],
+      "ready_u": [
+        396.1359797665973,
+        704.3216654576772,
+        -731.4007356499042
+      ],
+      "downward_reference_u": [
+        [
+          -95.65669123627595,
+          1028.9458525970044,
+          828.4479101701445
+        ],
+        [
+          -184.8560933597201,
+          -5.5014497080319416,
+          -591.0803802700102
+        ],
+        [
+          -95.65669123627595,
+          1028.9458525970044,
+          828.4479101701445
+        ]
+      ],
+      "meaning": "raw mesh extremum; anatomical/head label unreviewed"
+    },
+    {
+      "vertex": 1153,
+      "source_m": [
+        0.9508814215660095,
+        0.21502093970775604,
+        0.025428473949432373
+      ],
+      "ready_u": [
+        300.75181686633186,
+        415.37416872900985,
+        -257.2952276334074
+      ],
+      "downward_reference_u": [
+        [
+          262.6902723396071,
+          675.0853082216859,
+          575.9898738981826
+        ],
+        [
+          182.97658226617554,
+          327.797361194014,
+          -324.6675148973841
+        ],
+        [
+          262.6902723396071,
+          675.0853082216859,
+          575.9898738981826
+        ]
+      ],
+      "meaning": "raw mesh extremum; anatomical/head label unreviewed"
+    }
+  ],
+  "ready_joints_u": [
+    {
+      "bind": 9,
+      "name": "Spine02",
+      "point": [
+        -3.333145401623419,
+        374.9760894036283,
+        20.138692114050556
+      ]
+    },
+    {
+      "bind": 10,
+      "name": "Spine01",
+      "point": [
+        -8.45370013267654,
+        457.0598525850205,
+        -1.7273874568150784
+      ]
+    },
+    {
+      "bind": 11,
+      "name": "Spine",
+      "point": [
+        -22.859424945904596,
+        532.6421558202778,
+        -38.08501680981577
+      ]
+    },
+    {
+      "bind": 16,
+      "name": "RightShoulder",
+      "point": [
+        -1.8496484797950146,
+        597.9277289610664,
+        -84.80619006944522
+      ]
+    },
+    {
+      "bind": 17,
+      "name": "RightArm",
+      "point": [
+        128.94616752344177,
+        548.9234177433675,
+        -38.38991635097956
+      ]
+    },
+    {
+      "bind": 18,
+      "name": "RightForeArm",
+      "point": [
+        199.52519555393326,
+        420.9959049877531,
+        -147.068758552119
+      ]
+    },
+    {
+      "bind": 19,
+      "name": "RightHand",
+      "point": [
+        275.9466138284964,
+        434.52623472031564,
+        -248.6659478664816
+      ]
+    }
+  ],
+  "actual_hand_fit": [
+    [
+      -1.84223500065972e-08,
+      -3.130845359355927e-08,
+      0.2891997226581987,
+      -0.03906247626812148
+    ],
+    [
+      -0.28919971622107693,
+      8.445603272289048e-09,
+      -2.8527171597181322e-09,
+      0.2761211721016477
+    ],
+    [
+      -3.179793268970332e-08,
+      -0.2891997185408717,
+      -1.4765100794789099e-08,
+      0.06122806039518245
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "targets": [
+    {
+      "assembly": 0,
+      "existing_target_kind": "retained_natural",
+      "target_bounds_u": [
+        -1024,
+        -128,
+        0,
+        -512,
+        0,
+        128
+      ],
+      "station_root_u": [
+        -832,
+        0,
+        512
+      ],
+      "local_target_box_u": [
+        -192,
+        -128,
+        -512,
+        320,
+        0,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -192,
+        0,
+        -512,
+        320,
+        0,
+        -384
+      ],
+      "scope": "candidate existing face only; no authored stroke, stance or work permission"
+    },
+    {
+      "assembly": 1,
+      "existing_target_kind": "installed_part",
+      "target_bounds_u": [
+        -256,
+        -64,
+        -2048,
+        256,
+        0,
+        -1920
+      ],
+      "station_root_u": [
+        0,
+        0,
+        -1536
+      ],
+      "local_target_box_u": [
+        -256,
+        -64,
+        -512,
+        256,
+        0,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -256,
+        0,
+        -512,
+        256,
+        0,
+        -384
+      ],
+      "scope": "candidate existing face only; no authored stroke, stance or work permission"
+    }
+  ],
+  "source_scope": "floating inspection of actual source coefficients for authoring only; no continuous/contact/native proof",
+  "production_qualified": false,
+  "schema": 1,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "c29d7465b6da8b117b1b05a853db4bcf365f0e8ecd16dc1f4c4aa2b39ade4c35",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/first-entry-prefix-v1.source.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
+  },
+  "verified_source_files": 537,
+  "compact_source_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+  "prefix_source_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  }
+}

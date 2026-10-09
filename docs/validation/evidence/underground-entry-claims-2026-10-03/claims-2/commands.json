@@ -1,0 +1,100 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.016,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "220/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/claims-2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 3.76,
+      "log": "test_underground_entry_cut_map.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "205/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/claims-2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 5.793,
+      "log": "test_excavation_entry_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "208/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/claims-2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 4.597,
+      "log": "test_excavation_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "70/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/claims-2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 6.237,
+      "log": "test_excavation_physical.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "103/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/claims-2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 5.532,
+      "log": "test_underground_room_orders.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6291",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/claims-2/analyzer.json",
+        "godot/scripts/core/underground_entry_cut_map.gd",
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/test/test_underground_entry_cut_map.gd",
+        "godot/test/test_excavation_entry_claim_batch.gd",
+        "godot/test/test_excavation_claim_batch.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.894,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

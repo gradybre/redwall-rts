@@ -1,0 +1,395 @@
+{
+  "status": "read-only design; no runtime allocation or qualification",
+  "sources_unchanged": true,
+  "pins": {
+    "runtime:godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "runtime:godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "runtime:godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "runtime:godot/data/underground/mole-worker/mole_profile_catalog.gd": "e9be7e504514355e61e9b2f325e0c245e3990ee95449056daa0a2eba954c8ea4",
+    "runtime:godot/data/underground/mole-worker/profile-publication-v2/catalog_source.gd": "f82a00a095b55b385880d73ae182a06791adf8c37925d2604819289cef71be94",
+    "runtime:godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "runtime:godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "runtime:docs/decisions/1080-source-bound-underground-profile-catalog.md": "850096d95071a7dde3581101c2d6b680aab7bf2bba0166ba9e325a40be2306e7",
+    "source:docs/decisions/1112-source-phase-route-motion.md": "d3dc4c7361d8f0a41d84c1e858e8e40aeb7da2436b97dcc5eaaefbf8beeb1920",
+    "runtime:docs/planning/underground_memory_pack.json": "0be9736b812734c76cdbf7e428cd9985d8ad9c832a634cf5f4b5eb3cce4c64fa",
+    "runtime:godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-4/result/program.json": "1f00fdfd773b129af04d5bd9a6eae0c20cca604959777221bae4b23f7fd91983",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-4/result/stair-program.ugstep": "c966b64608b0308cca2e54973aeb72dd55a2b5b4e59f0b834517933667b50ee8",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/column-proposal-v2/result/program.json": "34a62009ebefa9055444353a900abb24b5a225f10ee91dd81899292fe597177f",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/candidate.json": "e639a9500b8cbac23e1665f7a26477b83a0b971ad7c4c26ab3eb4818d9d01d49",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/plan.json": "bece055f840ef0fddda139ec5896b049b3cdab7b15a1673c0ea153bf7f756430",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/compilation.json": "486165f0efab7d8f31091176cc8f042a99358854d1b7ea19da05bed6bfde8477",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/mole-worker.ugactor": "c0d74030fc7e0a56a24d08315af197b82530aae682067f94e2bcd2faedd543af",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py": "576481ccebff74d8c131e8c646d7ee37a0a4ae541567bede236fd63f257bb34a",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/summarize_program.py": "bfaaa3014e7958d9ad60688137e1f69222044b66aa0617838dbc92d01d2e8c36",
+    "source:docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/plan.json": "8aa50f9d5bb508bdb2cd6e34d047f73f18a8ae45a784c1b790057aa136251ef4",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/plan.json": "638c7e1c9f74f2248b583086e5e75e928f90504beb5dc3b616ff11497db6df03",
+    "source:godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/compilation.json": "f3417994870ac0c8f9f365a4449b2017900a0d1769b745823922cb968ab94029"
+  },
+  "heads_observed": {
+    "runtime": "fa017ba4aa8bd9620d397f5713dc6e577a4164d0",
+    "source": "414ecec741fe98fdc008600f169300eb0f9ab88e"
+  },
+  "actual_profiles": {
+    "rows": 18,
+    "boxes": 194,
+    "sources": 1,
+    "paired_and_control_bytes": 47288,
+    "level_bytes_in_same_reserve": 2292,
+    "profile_reserve": 262144,
+    "global_caps": [
+      256,
+      3072,
+      64
+    ],
+    "population_cap": 256
+  },
+  "raw_tables": {
+    "gait_rows": {
+      "DESC": 2,
+      "ROOT": 182,
+      "STEP": 180,
+      "BOXE": 348,
+      "SUPP": 122,
+      "SIDX": 180,
+      "SOLI": 44
+    },
+    "handoff_rows": {
+      "PROGRAM": 3,
+      "KEY": 453,
+      "INTERVAL": 450,
+      "BOX": 681,
+      "SUPPORT": 306,
+      "SUPPORT_REF": 450,
+      "SOLID": 22
+    },
+    "gait_bank": 19224,
+    "handoff_bank": 48548,
+    "combined_bank": 67772,
+    "shared_decode": 4096,
+    "shared_caller": 176,
+    "paired_raw_peak": 139816
+  },
+  "joint_source_counts": {
+    "programs": 5,
+    "images": 3,
+    "keys": 635,
+    "intervals": 630,
+    "boxes": 1029,
+    "support_rows": 428,
+    "support_refs": 630,
+    "original_solid_rows": 66,
+    "canonical_fixture_primitives": 22
+  },
+  "images": [
+    {
+      "name": "ascent",
+      "sha256": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+      "wire_bytes": 219560,
+      "clip": 0,
+      "image_clip_count": 2,
+      "actual_clip_metadata": [
+        [
+          0,
+          91,
+          0,
+          5898240
+        ],
+        [
+          91,
+          91,
+          0,
+          5898240
+        ]
+      ]
+    },
+    {
+      "name": "descent",
+      "sha256": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+      "wire_bytes": 109948,
+      "clip": 0,
+      "image_clip_count": 1,
+      "actual_clip_metadata": [
+        [
+          0,
+          91,
+          0,
+          5898240
+        ]
+      ]
+    },
+    {
+      "name": "handoffs",
+      "sha256": "c0d74030fc7e0a56a24d08315af197b82530aae682067f94e2bcd2faedd543af",
+      "wire_bytes": 545892,
+      "clips": [
+        0,
+        1,
+        2
+      ],
+      "image_clip_count": 3,
+      "actual_clip_metadata": [
+        [
+          0,
+          91,
+          0,
+          5898240
+        ],
+        [
+          91,
+          271,
+          0,
+          17694720
+        ],
+        [
+          362,
+          91,
+          0,
+          5898240
+        ]
+      ]
+    }
+  ],
+  "exact_joins": {
+    "episode": [
+      "approach",
+      "descent",
+      "turn",
+      "ascent",
+      "retreat"
+    ],
+    "joins": [
+      {
+        "from": "approach",
+        "to": "descent",
+        "state": [
+          [
+            0,
+            0,
+            -1879
+          ],
+          0,
+          "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462"
+        ]
+      },
+      {
+        "from": "descent",
+        "to": "turn",
+        "state": [
+          [
+            0,
+            -128,
+            -2391
+          ],
+          0,
+          "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462"
+        ]
+      },
+      {
+        "from": "turn",
+        "to": "ascent",
+        "state": [
+          [
+            0,
+            -128,
+            -2217
+          ],
+          32768,
+          "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462"
+        ]
+      },
+      {
+        "from": "ascent",
+        "to": "retreat",
+        "state": [
+          [
+            0,
+            0,
+            -1705
+          ],
+          32768,
+          "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462"
+        ]
+      }
+    ],
+    "initial": [
+      [
+        0,
+        0,
+        -1536
+      ],
+      0,
+      "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462"
+    ],
+    "terminal": [
+      [
+        0,
+        0,
+        -1536
+      ],
+      32768,
+      "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462"
+    ],
+    "intervals_with_accepted_gaits": 630,
+    "no_heading_reset_at_terminal": true,
+    "source_endpoint_values_and_float32_bytes_match": true,
+    "scope": "source joining only; prior gait fixture quarter-turn proofs are not native yaw permissions. No new gait/runtime/paid-world qualification."
+  },
+  "additional_identity_proposal": {
+    "header": {
+      "fields_i64": [
+        "format_version",
+        "joint_content_revision",
+        "profiles_content_revision",
+        "level_revision",
+        "catalog_revision",
+        "grouping_revision",
+        "frontier_revision",
+        "basis_contract_revision",
+        "numerical_proof_revision",
+        "presentation_proof_revision",
+        "consumer_contract_revision",
+        "equation_contract_revision",
+        "gait_table_revision",
+        "handoff_table_revision",
+        "program_count",
+        "actor_source_count",
+        "primitive_map_count",
+        "join_count",
+        "backend_id",
+        "qualification_mask"
+      ],
+      "bytes": 160
+    },
+    "digests": {
+      "fields_sha256": [
+        "profile_wire",
+        "level_wire",
+        "connector_catalog",
+        "assemblies",
+        "frontier",
+        "world_basis",
+        "basis_producer",
+        "numerical_proof_manifest",
+        "presentation_proof_manifest",
+        "consumer_closure_manifest",
+        "shared_ready_pose",
+        "canonical_fixture"
+      ],
+      "bytes": 384
+    },
+    "actor_sources": {
+      "count": 3,
+      "fields_i64": [
+        "source_revision",
+        "clip_count",
+        "certificate_revision",
+        "flags"
+      ],
+      "sha256_per_row": 1,
+      "bytes": 192
+    },
+    "programs": {
+      "count": 5,
+      "fields_i32": [
+        "component",
+        "component_program",
+        "actor_source",
+        "clip",
+        "equation",
+        "fixed_quarter_turn",
+        "origin_x",
+        "origin_y",
+        "origin_z",
+        "profile_id",
+        "catalog_variant",
+        "first_assembly",
+        "assembly_count",
+        "first_primitive_map",
+        "primitive_map_count",
+        "entry_key",
+        "terminal_key",
+        "entry_yaw",
+        "terminal_yaw",
+        "flags"
+      ],
+      "fields_i64": [
+        "profile_revision",
+        "variant_revision",
+        "program_revision",
+        "source_phase_duration_q16",
+        "tick_phase_numerator",
+        "tick_phase_denominator",
+        "tick_rate_revision"
+      ],
+      "bytes": 680
+    },
+    "primitives": {
+      "count": 66,
+      "fields_i32": [
+        "component",
+        "source_solid",
+        "canonical_fixture_id",
+        "kind",
+        "authored_id",
+        "assembly"
+      ],
+      "bytes": 1584
+    },
+    "joins": {
+      "count": 4,
+      "fields_i32": [
+        "from_program",
+        "to_program",
+        "from_terminal_key",
+        "to_entry_key"
+      ],
+      "bytes": 64
+    },
+    "numerical_domain": {
+      "i32": [
+        0,
+        -32256,
+        0,
+        262144,
+        16896,
+        262144
+      ],
+      "bytes": 24
+    }
+  },
+  "proposed_configuration": {
+    "additional_identity_per_bank": 3088,
+    "motion_bank_with_identity": 70860,
+    "logical_fixed_and_helper_ceiling_unimplemented": 4096,
+    "native_control_ceiling_unmeasured": 32768,
+    "source_once_total": 161576,
+    "source_once_remaining": 100568,
+    "paired_replacement_total": 232436,
+    "paired_remaining": 29708,
+    "independent_max_profiles_with_paired_motion": 444284,
+    "independent_maxima_refuse": true,
+    "global_budget_reservation_delta": 0,
+    "per_resident_column_delta_proposed": 0,
+    "rate_adopted": false,
+    "runtime_admitted": false
+  },
+  "separate_coupled_presentation": {
+    "images_including_current_ground": 4,
+    "retained_palettes_and_tables": 1524064,
+    "sum_existing_reader_peaks_one_basis": 28041568,
+    "unimplemented_single_sequential_reader_peak": 9209768,
+    "unimplemented_replacement_old_plus_new_retained_peak": 10733832,
+    "native_measured": false,
+    "profile_arena_covers_this": false,
+    "mesh_texture_per_actor_rids_whole_client_excluded": true
+  },
+  "current_global_ledger_context": {
+    "total": 99994686,
+    "headroom": 5314,
+    "delivery_4096_included": false
+  }
+}

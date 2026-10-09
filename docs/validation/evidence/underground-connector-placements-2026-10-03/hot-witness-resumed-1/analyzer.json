@@ -1,0 +1,196 @@
+{
+ "scripts/core/underground_world_routes.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_graph\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 18,
+     "line": 279
+    },
+    "start": {
+     "character": 4,
+     "line": 279
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_owner\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 18,
+     "line": 280
+    },
+    "start": {
+     "character": 4,
+     "line": 280
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_locations\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 22,
+     "line": 281
+    },
+    "start": {
+     "character": 4,
+     "line": 281
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_graph_token\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 24,
+     "line": 282
+    },
+    "start": {
+     "character": 4,
+     "line": 282
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_space_token\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 24,
+     "line": 283
+    },
+    "start": {
+     "character": 4,
+     "line": 283
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_location_token\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 27,
+     "line": 284
+    },
+    "start": {
+     "character": 4,
+     "line": 284
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_geometry\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 21,
+     "line": 285
+    },
+    "start": {
+     "character": 4,
+     "line": 285
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_serial\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 19,
+     "line": 286
+    },
+    "start": {
+     "character": 4,
+     "line": 286
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_profile\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 20,
+     "line": 287
+    },
+    "start": {
+     "character": 4,
+     "line": 287
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_profile_revision\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 29,
+     "line": 288
+    },
+    "start": {
+     "character": 4,
+     "line": 288
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_content\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 20,
+     "line": 289
+    },
+    "start": {
+     "character": 4,
+     "line": 289
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_witness_work\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 17,
+     "line": 290
+    },
+    "start": {
+     "character": 4,
+     "line": 290
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

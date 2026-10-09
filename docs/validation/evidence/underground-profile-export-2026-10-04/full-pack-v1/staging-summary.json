@@ -1,0 +1,10 @@
+{
+  "world_assets": 141,
+  "cast_assets": 9,
+  "manifest_sha256": "997d2e2217408b76efbd9c6763f72047baf1a7ea8fe612965e79e385dcda4287",
+  "pipeline_refusal_lines": [],
+  "python_warning_lines": [
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/art_pass2_ui.py:94: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead."
+  ],
+  "scope": "complete normal staging input to full package attempt; no underground activation"
+}

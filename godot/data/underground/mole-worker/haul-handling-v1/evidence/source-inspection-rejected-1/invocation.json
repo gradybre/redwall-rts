@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py",
+    "--palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+    "--grip-palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+    "--out",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/source-inspection-v1.json"
+  ],
+  "exit_code": 1,
+  "scope": "Authoring guard exposed the known current-mesh replacement; old geometry must not be substituted."
+}

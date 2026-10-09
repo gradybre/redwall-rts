@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "decision": "1217",
+  "content_revision": 8,
+  "profile_count": 52,
+  "box_count": 477,
+  "source_count": 6,
+  "wire_sha256": "2b79e39bc21b7bbfaa4703d3bf5a111c8f50c70ad25dc4918c1f80661b56bb61",
+  "wire_bytes": 18684,
+  "paired_bank_bytes": 37352,
+  "sources": {
+    "4": "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b",
+    "5": "cbe80b76b3b9eb5fbd857865eac27b7a0c6f0fa251df53e52c471c457a865e2a"
+  },
+  "new_rows": {
+    "42": "WALK, YAW_ALL, canonical ground (source 4)",
+    "43": "dig yaw 0",
+    "44": "tap yaw 0",
+    "45": "dig yaw 16384",
+    "46": "tap yaw 16384",
+    "47": "dig yaw 32768",
+    "48": "tap yaw 32768",
+    "49": "dig yaw 49152",
+    "50": "tap yaw 49152",
+    "51": "paw handling yaw 0 (source 5)"
+  },
+  "walk_policy": "POLICY_CANONICAL_GROUND: an automatic copy of row 30/31 is PROFILE_AMBIGUOUS_KEY",
+  "stand_row": "not published: STAND admits only the automatic policy, which duplicates row 30's key",
+  "dormant_rows": "0-29 (pick, DEC-052)",
+  "superset_of": {
+    "wire_sha256": "8b79294f390fb8b16899ca83be70d01baa0eaf800f071d9042e2e1250cff2355",
+    "rows": "0-41"
+  },
+  "inputs": {
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/claw/compiled/claw.ugactor": "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/paw/compiled/paw-handling.ugactor": "cbe80b76b3b9eb5fbd857865eac27b7a0c6f0fa251df53e52c471c457a865e2a",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-rows-v1/rows.json": "540bb052151f3c54a8972640e6ad7067967083b22f8dbd6f075e94aa131666e0",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-split-rows-v1/stand-walk.json": "85394d1842971cc2ba3f845da88f2bcbedc5fdce4e2ffcba7ae6791561008f24"
+  },
+  "ground_sha256": "fb749b773a108c8d94b9013444889b54184b0313cdfabddcb946e374ec330feb",
+  "ground_pace_profiles": [
+    42
+  ],
+  "ground_source": 4,
+  "motion_sha256": "19b2b71c67d8339a33ebe5d211a30b7f5fa21e016054100c7fd43e1a937e4324",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-claw-v8/motion.ugmotion": "482456e1f9b6c58264b39b243d8faebd2083f7d1cc99a8eacbf1c0af9c4cdbe3",
+    "godot/data/underground/mole-worker/qualified-claw-split-v9/mole-worker.ugprof": "2b79e39bc21b7bbfaa4703d3bf5a111c8f50c70ad25dc4918c1f80661b56bb61",
+    "godot/data/underground/mole-worker/publish_claw_split_runtime.py": "ad9bee59d292eed0162c97b2648a66c9386d81cc26756fcfbd05956b9a80f37c"
+  },
+  "motion_numerical_input_sha256": "a94e7367a8de3f638fb057c35b797ca807589ddae66be8107d169e964bcf3544",
+  "runtime_admitted": false,
+  "not_qualified": [
+    "source programs and Routes dispatch for sources 4/5 (ADR 1217 step 5)",
+    "presentation of sources 4/5",
+    "consumer renewal and activation"
+  ]
+}

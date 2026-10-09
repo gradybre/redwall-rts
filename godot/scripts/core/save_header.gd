@@ -207,6 +207,8 @@ class Descriptor:
 # --- CRC-32/ISO-HDLC --------------------------------------------------------------------------
 
 static var _crc_table: PackedInt64Array = PackedInt64Array()
+## RFC 1952: a 10-byte member header and an 8-byte trailer (CRC-32, then ISIZE), at the least.
+const GZIP_MINIMUM_MEMBER_BYTES: int = 18
 
 
 static func _crc_lookup() -> PackedInt64Array:
@@ -237,7 +239,25 @@ static func crc32_update(register: int, bytes: PackedByteArray) -> int:
 
 
 static func crc32_of(bytes: PackedByteArray) -> int:
-	"""CRC-32/ISO-HDLC of exactly these bytes, as an unsigned 32-bit integer."""
+	"""CRC-32/ISO-HDLC of exactly these bytes, as an unsigned 32-bit integer.
+
+	ADR 1235: computed natively. A gzip member's trailer is the CRC-32/ISO-HDLC of its input
+	followed by the input length mod 2^32 (RFC 1952), so the engine's own zlib computes the very
+	value `crc32_update()` folds a byte at a time -- about 100 ms instead of a second for a whole
+	save. The deflate output itself is discarded. A trailer whose length field does not match
+	falls back to the byte loop rather than trusting it.
+	"""
+	if bytes.is_empty():
+		return 0
+	var member: PackedByteArray = bytes.compress(FileAccess.COMPRESSION_GZIP)
+	if member.size() >= GZIP_MINIMUM_MEMBER_BYTES \
+			and member.decode_u32(member.size() - 4) == (bytes.size() & SaveCodec.UINT32_MAX):
+		return member.decode_u32(member.size() - 8)
+	return crc32_update(CRC32_INITIAL_REGISTER, bytes) ^ CRC32_FINAL_XOR
+
+
+static func crc32_by_bytes(bytes: PackedByteArray) -> int:
+	"""The byte-at-a-time CRC-32/ISO-HDLC: the reference `crc32_of()` is tested against."""
 	return crc32_update(CRC32_INITIAL_REGISTER, bytes) ^ CRC32_FINAL_XOR
 
 
@@ -792,7 +812,17 @@ static func body_digest_refusal(bytes: PackedByteArray, header: Header) -> Refus
 		return Refusal.new(REFUSE_DIGEST_LENGTH,
 			"the stored body digest is %d bytes, not %d"
 				% [header.body_digest.size(), DIGEST_BYTES])
-	if compute_body_digest(bytes) != header.body_digest:
+	return body_digest_value_refusal(compute_body_digest(bytes), header)
+
+
+static func body_digest_value_refusal(computed: PackedByteArray, header: Header) -> Refusal:
+	"""`body_digest_refusal()` for a body digest already computed over the file (ADR 1235: on a
+	worker thread). The stored digest's length is judged first, exactly as there."""
+	if header.body_digest.size() != DIGEST_BYTES:
+		return Refusal.new(REFUSE_DIGEST_LENGTH,
+			"the stored body digest is %d bytes, not %d"
+				% [header.body_digest.size(), DIGEST_BYTES])
+	if computed != header.body_digest:
 		return Refusal.new(REFUSE_BODY_DIGEST_MISMATCH,
 			"the offset-%d body digest does not cover these bytes" % OFFSET_BODY_DIGEST)
 	return Refusal.new(REFUSE_NONE, "")

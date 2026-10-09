@@ -1,0 +1,229 @@
+{
+  "schema": 1,
+  "scope": "Exact owned executable bytes only; existing historical reports/specifications unchanged.",
+  "rows": [
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v1/source-sha256.json",
+      "original_path": "tools/capture_underground_metal_inputs.gd",
+      "sha256": "92016447baec6ff958fc2206d13df919f41c2f64ee1f72c217d7ca8fb8ec4ba3",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v1/source-sha256.json",
+      "original_path": "godot/test/test_underground_metal_inputs.gd",
+      "sha256": "aaee47d690b506b3ce02ffb63b74bba07afefdf30a1e6edeb9e494dc9466e000",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v2/source-sha256.json",
+      "original_path": "tools/capture_underground_metal_inputs.gd",
+      "sha256": "92016447baec6ff958fc2206d13df919f41c2f64ee1f72c217d7ca8fb8ec4ba3",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v2/source-sha256.json",
+      "original_path": "godot/test/test_underground_metal_inputs.gd",
+      "sha256": "aaee47d690b506b3ce02ffb63b74bba07afefdf30a1e6edeb9e494dc9466e000",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v3/source-sha256.json",
+      "original_path": "tools/capture_underground_metal_inputs.gd",
+      "sha256": "2bfce57e2d974a4696c8dbe66b7fc475e49fe075bb785e541a9b28d76f0ed36e",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v3/source-sha256.json",
+      "original_path": "godot/test/test_underground_metal_inputs.gd",
+      "sha256": "25cb7cba7caec9eccfa874701380b35918c62a0e45df489abab484e05cf060ee",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v4/source-sha256.json",
+      "original_path": "tools/capture_underground_metal_inputs.gd",
+      "sha256": "48af02d87b1a5ff50373d998220eacc4569d129bcc4066897927ee4a950ecbb6",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v4/source-sha256.json",
+      "original_path": "godot/test/test_underground_metal_inputs.gd",
+      "sha256": "de6d3abca754228307329848181964eb11526e497b02296e1c9ff4c3036f6da1",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v6/source-sha256.json",
+      "original_path": "tools/capture_underground_metal_inputs.gd",
+      "sha256": "e5749f22f2eb543edd90aea89ee7df6ecf2029a0eab92d44570bf3f18fbff127",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-empty-hash-v6/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v6/source-sha256.json",
+      "original_path": "godot/test/test_underground_metal_inputs.gd",
+      "sha256": "1c8babe149f14c4e2bb0d4c1e871920700364dea5fad90756afb3bdb754f8b5a",
+      "locator": "godot/test/test_underground_metal_inputs.gd"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v7/source-sha256.json",
+      "original_path": "tools/capture_underground_metal_inputs.gd",
+      "sha256": "8d438a6cae45c827a794f7e525ae50e25af988e9181d017a503bcbbbe10bd73f",
+      "locator": "tools/capture_underground_metal_inputs.gd"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v7/source-sha256.json",
+      "original_path": "godot/test/test_underground_metal_inputs.gd",
+      "sha256": "1c8babe149f14c4e2bb0d4c1e871920700364dea5fad90756afb3bdb754f8b5a",
+      "locator": "godot/test/test_underground_metal_inputs.gd"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/test/test_underground_metal_inputs.gd",
+      "sha256": "aaee47d690b506b3ce02ffb63b74bba07afefdf30a1e6edeb9e494dc9466e000",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_metal_inputs.gd",
+      "sha256": "92016447baec6ff958fc2206d13df919f41c2f64ee1f72c217d7ca8fb8ec4ba3",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py",
+      "sha256": "9068f83284f5afeeba0187f1f0d23f2473e09199f544a50b78935165cff7e930",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/capture_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_inputs.py",
+      "sha256": "17aff12f0b0df939d1ea1e1304534c309fa65c5bc3669d8132cf986356da6108",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_audit_underground_metal_inputs.py",
+      "sha256": "2e49d5774cd4585f846576f10019b8f24e0ce9fddcbadd91cf1558b0f180c651",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-main-only-v2/test_audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v3/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/test/test_underground_metal_inputs.gd",
+      "sha256": "25cb7cba7caec9eccfa874701380b35918c62a0e45df489abab484e05cf060ee",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v3/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_metal_inputs.gd",
+      "sha256": "2bfce57e2d974a4696c8dbe66b7fc475e49fe075bb785e541a9b28d76f0ed36e",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v3/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py",
+      "sha256": "f2fc0aaf222eeb0bc656806fd819e7ddf759660ca5bb07f4465c160a126eb27f",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/capture_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v3/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_inputs.py",
+      "sha256": "2d6f5eaf164b9f3fa3ce04e464c680b7bd790aa8d374728fed283ced32491114",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v3/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_audit_underground_metal_inputs.py",
+      "sha256": "880f0a94a01dd054fdd37b6ced069ffd8d92ae6084e5ab4503b3c3a4cef18233",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/test_audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v4/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/test/test_underground_metal_inputs.gd",
+      "sha256": "de6d3abca754228307329848181964eb11526e497b02296e1c9ff4c3036f6da1",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v4/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_metal_inputs.gd",
+      "sha256": "48af02d87b1a5ff50373d998220eacc4569d129bcc4066897927ee4a950ecbb6",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v4/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py",
+      "sha256": "f2fc0aaf222eeb0bc656806fd819e7ddf759660ca5bb07f4465c160a126eb27f",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/capture_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v4/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_inputs.py",
+      "sha256": "ab2e7c4382c8a3b51d17d30feb27bc4d3876e13c0971cd369c1a061646606fd3",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v4/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_audit_underground_metal_inputs.py",
+      "sha256": "291aceae856bfb0a38555e6727594a65568107cf9713d33c9c3dd7283b00ee18",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/test_audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v5-diagnostic/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/test/test_underground_metal_inputs.gd",
+      "sha256": "de6d3abca754228307329848181964eb11526e497b02296e1c9ff4c3036f6da1",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/test_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v5-diagnostic/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_metal_inputs.gd",
+      "sha256": "1619d3afa18ca8288648be39e6f7b7481df0d8dace180d2b5145ac8c06eb2db8",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-null-shadow-reference-v5/capture_underground_metal_inputs.gd.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v5-diagnostic/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py",
+      "sha256": "f2fc0aaf222eeb0bc656806fd819e7ddf759660ca5bb07f4465c160a126eb27f",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-fingerprint-v3/capture_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v5-diagnostic/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_inputs.py",
+      "sha256": "ab2e7c4382c8a3b51d17d30feb27bc4d3876e13c0971cd369c1a061646606fd3",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v5-diagnostic/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_audit_underground_metal_inputs.py",
+      "sha256": "291aceae856bfb0a38555e6727594a65568107cf9713d33c9c3dd7283b00ee18",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/rejected-shadow-v4/test_audit_underground_metal_inputs.py.txt"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v6/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/test/test_underground_metal_inputs.gd",
+      "sha256": "1c8babe149f14c4e2bb0d4c1e871920700364dea5fad90756afb3bdb754f8b5a",
+      "locator": "godot/test/test_underground_metal_inputs.gd"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v6/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_metal_inputs.gd",
+      "sha256": "8d438a6cae45c827a794f7e525ae50e25af988e9181d017a503bcbbbe10bd73f",
+      "locator": "tools/capture_underground_metal_inputs.gd"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v6/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py",
+      "sha256": "54dd5dd60505e5908b6b88533a893ec2dd6b35f9bbcbac2e45d2dc81198040b3",
+      "locator": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v6/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_inputs.py",
+      "sha256": "4ab640ade6e267d9ce8951fc03726d3674efd896488981791c54b361879a94b6",
+      "locator": "tools/audit_underground_metal_inputs.py"
+    },
+    {
+      "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v6/spec.json",
+      "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/test_audit_underground_metal_inputs.py",
+      "sha256": "8c913bd946662ada92dd182ec4a03e043db18d8075190d957206999171f24434",
+      "locator": "tools/test_audit_underground_metal_inputs.py"
+    }
+  ],
+  "unavailable": []
+}

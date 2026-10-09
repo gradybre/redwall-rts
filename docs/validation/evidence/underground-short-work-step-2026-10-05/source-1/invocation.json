@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "godot/data/underground/mole-worker/work-step-v1/compile_short_step.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step/docs/validation/evidence/underground-short-work-step-2026-10-05/source-1/result"
+  ],
+  "exit_code": 1,
+  "elapsed_s": 0.513144,
+  "source_pins": {
+    "godot/data/underground/mole-worker/work-step-v1/compile_short_step.py": "da946a7f35ac5614982c44ee97b138362450cc332d403554a4aa0aea366aeff4",
+    "godot/data/underground/mole-worker/work-step-v1/test_short_step.py": "a444ff7f44f04e5db408c2d5b12e0354ce73cb6a4e6b4a529a38b1213da6b67d",
+    "godot/data/underground/mole-worker/work-step-v1/reference_program.py": "2bb38604eda0a5ac1b2b18d25273d44b5ebc24f5628ab3119728ffab8dbca4d7"
+  },
+  "source_unchanged": true
+}

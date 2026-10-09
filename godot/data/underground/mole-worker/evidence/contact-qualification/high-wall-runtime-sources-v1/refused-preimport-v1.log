@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_high_wall.py", line 129, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_high_wall.py", line 82, in main
+    before_import = pre_import_pins(script, bake)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_high_wall.py", line 24, in pre_import_pins
+    raise ValueError("HIGH_WALL_PREIMPORT_SOURCE")
+ValueError: HIGH_WALL_PREIMPORT_SOURCE

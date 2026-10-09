@@ -1,0 +1,16 @@
+{
+  "base": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+  "root_head": "26a82d9e8b8a2752b55902dab0ea6ae0c390da3c",
+  "review": "accepted source delta and inspected author strict verification",
+  "exact_replacements": 3,
+  "unchanged_outside_exact_replacements": true,
+  "source_pins": {
+    "godot/test/test_underground_room_frontier_publication.gd": "43345305a871d94625928e35a6c68eeec53a5e324c7ef227b8badb2224c13383",
+    "godot/test/test_mole_qualified_profiles.gd": "e24ea64ed10bec81c6c85cfc36dc2d6cc1c8fcd546af02220b52f9d17dbfcf62",
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "0cda851709eab25720befa288364e9392cba4f9f629f70b7e7dd6d39138b83b5",
+    "godot/data/underground/mole-worker/profile-publication-v3-frontier/catalog_source.gd": "54bfe80c22bfe78ac2eb4fdf3259151beea64ce862753fdc05a399e933fe6bba"
+  },
+  "no_runtime_or_guard_change": true,
+  "independent_engine_run": false,
+  "running_full_9dad_unchanged": true
+}

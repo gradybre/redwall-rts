@@ -1,0 +1,146 @@
+{
+  "head_before": "81950fe54706f98bd81667e98e077f593970deb9",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.711,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "96/400",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-host-retirement/docs/validation/evidence/underground-host-retirement-2026-10-04/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 12.195,
+      "log": "test_underground_host.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "205/400",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-host-retirement/docs/validation/evidence/underground-host-retirement-2026-10-04/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 9.578,
+      "log": "test_underground_world_retirement.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "5/400",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-host-retirement/docs/validation/evidence/underground-host-retirement-2026-10-04/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 37.01,
+      "log": "test_settlement_system.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "134/400",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-host-retirement/docs/validation/evidence/underground-host-retirement-2026-10-04/candidate-2"
+      ],
+      "exit_code": 0,
+      "seconds": 5.749,
+      "log": "test_ui_world_session.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6363",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-host-retirement/docs/validation/evidence/underground-host-retirement-2026-10-04/candidate-2/analyzer.json",
+        "godot/scripts/core/underground_session.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_underground_session.gd",
+        "godot/test/test_underground_host.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.929,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1158-45b49076c2ecae3d",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "diagnostic_composition": false,
+  "import_raw_findings": [],
+  "strict_suites": {
+    "test_underground_host.gd": {
+      "tests": 21,
+      "assertions": 219,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_world_retirement.gd": {
+      "tests": 19,
+      "assertions": 1963,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_settlement_system.gd": {
+      "tests": 179,
+      "assertions": 6044,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 5,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_ui_world_session.gd": {
+      "tests": 16,
+      "assertions": 78,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "executed_source_unchanged": true,
+  "project_restored": true,
+  "registry_restored": true,
+  "prerequisites_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "original_sources_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

@@ -1,0 +1,27 @@
+test_accessor_range_and_capacity_refuse_before_decode (__main__.MeasurementTests) ... ok
+test_actual_bytes_required_hash_cannot_be_replaced_by_filename (__main__.MeasurementTests) ... ok
+test_actual_read_is_bounded_and_accepts_exact_capacity (__main__.MeasurementTests) ... ok
+test_additional_influence_sets_are_not_silently_dropped (__main__.MeasurementTests) ... ok
+test_cli_output_cannot_overwrite_read_only_source_manifest (__main__.MeasurementTests) ... ok
+test_continuous_rotation_covers_pose_extrema_absent_from_endpoints (__main__.MeasurementTests) ... ok
+test_cubic_morph_and_external_extensions_refuse (__main__.MeasurementTests) ... ok
+test_cycle_and_scene_omission_refuse (__main__.MeasurementTests) ... ok
+test_exact_norm_rounds_outward_at_and_between_integer_boundaries (__main__.MeasurementTests) ... ok
+test_file_measurement_never_writes_source (__main__.MeasurementTests) ... ok
+test_fractional_normalization_refuses_instead_of_certifying_float_division (__main__.MeasurementTests) ... ok
+test_glb_chunk_length_and_wrong_magic_are_named_refusals (__main__.MeasurementTests) ... ok
+test_invalid_source_and_sampling_budgets_refuse (__main__.MeasurementTests) ... ok
+test_inverse_bind_matrix_is_part_of_the_proof (__main__.MeasurementTests) ... ok
+test_missing_legal_state_cannot_be_relabelled_as_complete (__main__.MeasurementTests) ... ok
+test_omitted_embedded_or_external_attachment_refuses (__main__.MeasurementTests) ... ok
+test_rigid_attachment_is_included_and_extends_complete_bound (__main__.MeasurementTests) ... ok
+test_sample_count_cannot_weaken_continuous_bounds (__main__.MeasurementTests) ... ok
+test_skin_pair_negative_weight_and_nonfinite_geometry_refuse (__main__.MeasurementTests) ... ok
+test_stored_nonunit_quaternion_gets_exact_operator_norm_allowance (__main__.MeasurementTests) ... ok
+test_translation_scale_endpoint_enclosure_and_dense_pose_witness (__main__.MeasurementTests) ... ok
+test_understated_margin_fails_even_if_other_axes_cover_residual (__main__.MeasurementTests) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.043s
+
+OK

@@ -1,0 +1,23 @@
+{
+  "files": [
+    "demo/demo_village.gd",
+    "demo/ui/demo_stall_banner.gd",
+    "scripts/systems/ui_manager.gd",
+    "scripts/ui/ui_resident_card.gd",
+    "scripts/ui/ui_resident_snapshot.gd",
+    "scripts/ui/ui_shell.gd",
+    "scripts/ui/ui_specimen.gd"
+  ],
+  "source_sha256": {
+    "godot/demo/demo_village.gd": "78f4930147aaf5201cdb5aaccaadf54ff74ffd8668709a5cab25a3ed150c75f9",
+    "godot/demo/ui/demo_stall_banner.gd": "350739dc9ca18721f9eeb08efdc5a68e8bdced56ea3335c9eeceeb17f3996372",
+    "godot/scripts/systems/ui_manager.gd": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98",
+    "godot/scripts/ui/ui_resident_card.gd": "c50430ffc2150961e41683428c405e15067434a8ef1f90f2543e6ca3785febbe",
+    "godot/scripts/ui/ui_resident_snapshot.gd": "e029cc4eefc2d25c29398dd9dbeaadc9f0608456479948d1666d073cc6657245",
+    "godot/scripts/ui/ui_shell.gd": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db",
+    "godot/scripts/ui/ui_specimen.gd": "6b1728f220b46981b595bcc4685545062b23851827d80b3d47b333bf27006ef7"
+  },
+  "diagnostics": {},
+  "source_unchanged": true,
+  "raw_diagnostics": []
+}

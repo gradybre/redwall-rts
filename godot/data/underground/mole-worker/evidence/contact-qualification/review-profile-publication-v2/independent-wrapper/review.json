@@ -1,0 +1,59 @@
+{
+  "source_sha256": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/run_publication_checks.py": "b6590a4d00ce7f543ff76de472f957b9c4de4a0efd6c19770d4e718aa1f09d56",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/run_published_mole_capture.py": "c6083cb48f61543b734987466b93c0d78e3183e075aba629a505eea94192abf0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_published_mole_capture.py": "784875f42f815891c4b0a033107b0b93dd71726458b79d715c2dbebd67cacde0"
+  },
+  "native_wrapper_tests": 14,
+  "test_returncode": 0,
+  "manifest_counts": {
+    "source-sha256.json": 8,
+    "output-sha256.json": 46
+  },
+  "mock_import_checks": [
+    {
+      "raw": "SCRIPT ERROR: sample",
+      "refused": true
+    },
+    {
+      "raw": "ERROR: sample",
+      "refused": true
+    },
+    {
+      "raw": "WARNING: sample",
+      "refused": true
+    },
+    {
+      "raw": "USER WARNING: sample",
+      "refused": true
+    },
+    {
+      "raw": "1 ObjectDB instance was leaked",
+      "refused": true
+    },
+    {
+      "raw": "2 ObjectDB instances were leaked",
+      "refused": true
+    },
+    {
+      "raw": "WARNING: ObjectDB instances leaked at exit",
+      "refused": true
+    },
+    {
+      "raw": "2 resources still in use at exit",
+      "refused": true
+    },
+    {
+      "raw": "clean import",
+      "refused": false
+    }
+  ],
+  "source_paths_count": 1186,
+  "preflight_checks": 2,
+  "source_unchanged": true,
+  "native_engine_rerun": false,
+  "reviewer_probe_notes": [
+    "Initial mock lacked subprocess.STDOUT; corrected without executing candidate harness.",
+    "A second exploratory probe used a bare nonstandard ObjectDB diagnostic; final probes use actual official-runner forms and Godot WARNING form."
+  ]
+}

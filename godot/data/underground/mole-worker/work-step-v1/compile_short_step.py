@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""Reconstruct unchanged source and compile two finite232u enclosures; emit no certificate bits."""
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+BASE_PATH = HERE.parent / "work-approach-v1/compile_work_approach.py"
+BASE_SHA = "de98c0c3d7de383844bc2369300668d511d8256f7858ec95a5e2c6ca7d08ab9a"
+PREDECESSORS_SHA = "bec9889519fab92b45b74c9ba1e58b7cb07999fb03f79ce01af14425d0b899a8"
+MAX_REPORT_BYTES = 4 * 1024 * 1024
+MAX_SOURCE_BYTES = 1024 * 1024
+
+
+def exact_bytes(path, expected, limit=MAX_SOURCE_BYTES):
+    """Preflight regular-file size and digest before importing an executable or interpreting a source."""
+    if not path.is_file() or path.is_symlink() or not 0 < path.stat().st_size <= limit:
+        raise ValueError("STEP_INPUT_CAPACITY")
+    with path.open("rb") as stream:
+        raw = stream.read(limit + 1)
+    if len(raw) > limit or hashlib.sha256(raw).hexdigest() != expected:
+        raise ValueError("STEP_INPUT_IDENTITY")
+    return raw
+
+
+exact_bytes(BASE_PATH, BASE_SHA)
+SPEC = importlib.util.spec_from_file_location("short_step_accepted_source", BASE_PATH)
+B = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(B)
+SPEC = importlib.util.spec_from_file_location("short_step_integer_reference", HERE / "reference_program.py")
+R = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(R)
+P, C, N, S, G, M = B.P, B.C, B.N, B.S, B.G, B.M
+ROOT = B.ROOT
+
+
+def intervals(direction):
+    """Describe every continuously traversed source interval, including reversed one-unit seam."""
+    P.require(type(direction) is int and direction in (R.FORWARD, R.BACKWARD), "STEP_DIRECTION")
+    if direction == R.FORWARD:
+        return [{"a": a, "b": a + 1, "from_q16": a * R.ONE, "to_q16": (a + 1) * R.ONE,
+                 "source_share_from_q16": 0, "source_share_to_q16": R.ONE} for a in range(3)]
+    result = [{"a": 0, "b": 32, "from_q16": 0, "to_q16": 1,
+               "source_share_from_q16": 0, "source_share_to_q16": R.ONE}]
+    for at, (a, b) in enumerate(((32, 31), (31, 30), (30, 29))):
+        start, end = 1 + at * R.ONE, min(1 + (at + 1) * R.ONE, 3 * R.ONE)
+        result.append({"a": a, "b": b, "from_q16": start, "to_q16": end,
+                       "source_share_from_q16": 0, "source_share_to_q16": end - start})
+    return result
+
+
+def keys(direction):
+    result = sorted({key for row in intervals(direction) for key in (row["a"], row["b"])})
+    P.require(result == ([0, 1, 2, 3] if direction == R.FORWARD else [0, 29, 30, 31, 32]),
+              "STEP_KEY_CENSUS")
+    return result
+
+
+def handoff_subset(cases, proof, direction):
+    """Every emitted simplex has an exact independently accepted predecessor, not a true-flag alias."""
+    all_handoffs = B.selected_handoffs(cases, proof)
+    pairs = {frozenset((row["a"], row["b"])) for row in intervals(direction)}
+    selected = [row for row in all_handoffs if row["from"] == "ready" or
+                frozenset(row["interval"]) in pairs]
+    P.require(len(selected) == len(pairs) + 1 and selected[0]["from"] == "ready",
+              "STEP_FADE_CENSUS")
+    return selected
+
+
+def prefix_roles(cache, full_roles, direction, ready_keys):
+    """Narrow only actual source phase; retain full floor and full foot obligations separately."""
+    chosen = keys(direction) + ready_keys
+    primitive = []
+    for row in cache:
+        # At most7 selected keys; bounds include every original vertex, not endpoint landmarks.
+        P.require(len(chosen) <= 7 and all(0 <= key < row["low"].shape[0] for key in chosen),
+                  "STEP_CORNER_CAPACITY")
+        primitive.append(P.outward_units(row["low"][chosen].min(axis=(0, 1)),
+                                         row["high"][chosen].max(axis=(0, 1))))
+    P.require(len(primitive) == 2 and primitive[0][1] == -1 and primitive[1][1] > 0,
+              "STEP_PRIMITIVE_FLOOR")
+    floor = full_roles["BODY_HELD_LOAD"][1]
+    stance = full_roles["STANCE_SUPPORT"][0]
+    # Full-source triangle/plane clipping supplied this entire negative primitive.
+    # Above and below are both retained; broad full-bodyXZ is not invented footing.
+    body = [[primitive[0][0], 0, primitive[0][2], *primitive[0][3:]], floor, primitive[1]]
+    roles = {"BODY_HELD_LOAD": copy.deepcopy(body), "TURN_RECOVERY": copy.deepcopy(body),
+             "STANCE_SUPPORT": [copy.deepcopy(stance)]}
+    G.ground_coverage(body, stance, roles)
+    P.require(all(stance[a] <= floor[a] <= floor[a + 3] <= stance[a + 3] for a in range(3)),
+              "STEP_STANCE_GAP")
+    return roles, primitive
+
+
+def translated(box, start, end):
+    """Full source×root enclosure covers every intermediate integer position and render interpolation."""
+    P.require(len(box) == 6 and len(start) == len(end) == 3, "STEP_BOX_SHAPE")
+    return [box[a] + min(start[a], end[a]) for a in range(3)] + \
+           [box[a + 3] + max(start[a], end[a]) for a in range(3)]
+
+
+def positive(box):
+    return all(box[a] < box[a + 3] for a in range(3))
+
+
+def subtract(box, cover):
+    """Exact half-open six-slab difference; no positive primitive or paid remainder is silently dropped."""
+    intersection = [max(box[a], cover[a]) for a in range(3)] + \
+                   [min(box[a + 3], cover[a + 3]) for a in range(3)]
+    if not positive(intersection):
+        return [box]
+    cursor, result = list(box), []
+    for axis in range(3):
+        if cursor[axis] < intersection[axis]:
+            piece = cursor.copy(); piece[axis + 3] = intersection[axis]
+            result.append(piece); cursor[axis] = intersection[axis]
+        if intersection[axis + 3] < cursor[axis + 3]:
+            piece = cursor.copy(); piece[axis] = intersection[axis + 3]
+            result.append(piece); cursor[axis + 3] = intersection[axis + 3]
+    return result
+
+
+def uncovered(box, covers):
+    pending = [box]
+    for cover in covers:
+        pending = [piece for item in pending for piece in subtract(item, cover)]
+        P.require(len(pending) <= 128, "STEP_PARTITION_CAPACITY")
+    return pending
+
+
+def fixture_proof(rows):
+    """No paid state is created: geometric obligations name the exact two required prior paid cubes."""
+    air = [[-4096, 0, -2048, 2048, 4096, 4096],
+           [2048, 0, 0, 3072, 1024, 1024], [2048, 0, 1024, 3072, 1024, 2048]]
+    footing = [[-4096, -1024, -2048, 2048, 0, 4096]]
+    result = []
+    for root_z in (512, 1035):
+        for row in rows:
+            start, end = [1280, 0, root_z], [1512, 0, root_z]
+            if row["direction"] == R.BACKWARD:
+                start, end = end, start
+            R.request_refusal(tuple(start), tuple(end), row["direction"])
+            obligations = []
+            for role, boxes in row["roles"].items():
+                for box in boxes:
+                    swept = translated(box, start, end)
+                    covers = footing if role == "STANCE_SUPPORT" or box[4] <= 0 else air
+                    missing = uncovered(swept, covers)
+                    P.require(not missing, "STEP_FIXTURE_GEOMETRY_GAP")
+                    obligations.append({"role": role, "swept_u": swept, "uncovered": missing})
+            result.append({"from_u": start, "to_u": end, "direction": row["direction"],
+                           "obligations": obligations})
+    return {"relative_origin_u": [122880, -4608, 102400], "required_air_u": air,
+            "actual_corridor_footing_u": footing, "paths": result,
+            "paid_phases_executed": False, "new_runtime_permission": False}
+
+
+def integer_census():
+    """Finite headless traces are executable witnesses; the fraction inequalities cover arbitrary inputs."""
+    traces = []
+    for initial in range(30):
+        remainder = R.encode_fraction(initial, 30)
+        state, frames, progress = R.begin(remainder), [], []
+        while state[0] != R.READY:
+            before = state
+            state = R.tick(state)
+            frames.append(list(state))
+            if state[2] != before[2]:
+                progress.append(state[2])
+            P.require(len(frames) <= 19, "STEP_TICK_CENSUS")
+        P.require(len(frames) == 19 and len(progress) == 3 and state[2:] == (232, 0),
+                  "STEP_TICK_CENSUS")
+        traces.append({"initial_thirtieths": initial, "original_encoded_remainder": remainder,
+                       "movement_positions_u": progress, "terminal_state": list(state)})
+    return {"pace_u_per_second": R.PACE, "tick_hz": R.HZ, "distance_u": R.DISTANCE,
+            "movement_ticks": 3, "stationary_fade_ticks_each": 8, "total_ticks": 19,
+            "rational_proof": "0<=r<1: floor(r+2*3277/30)<=219<232; floor(r+3*3277/30)>=327>232",
+            "terminal_remainder": 0, "queued_successors": 0, "traces": traces}
+
+
+def compile_step():
+    """Reconstruct all537 original inputs and inspect current source without adopting a runtime policy."""
+    P.require(B.digest(BASE_PATH) == BASE_SHA and B.digest(Path(B.A.__file__)) == B.ADAPTER_SHA,
+              "STEP_PRODUCER_DRIFT")
+    predecessor_path = HERE / "runtime-predecessors.json"
+    predecessors = json.loads(exact_bytes(predecessor_path, PREDECESSORS_SHA))
+    P.require(predecessors["base_commit"] == "ebdd5daa2b723a63dd71e2018d2bed9b279cf894" and
+              len(predecessors["sources"]) == 5, "STEP_PREDECESSOR_CENSUS")
+    for path, digest in predecessors["sources"].items():
+        exact_bytes(ROOT / path, digest)
+    own_paths = (Path(__file__), HERE / "reference_program.py")
+    producer = M.producer_pins() | {str(path.relative_to(ROOT)): B.digest(path) for path in
+                                  (*own_paths, BASE_PATH, Path(B.A.__file__), Path(G.__file__))}
+    basis_path = ROOT / "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw"
+    with B.original_source_inputs():
+        inputs = M.input_pins(basis_path)
+        cases, parts, rig, topology, roots, count, historical, _ = M.source_program()
+        P.require(count == 537 and roots == list(R.ROOT_DOMAIN) and M.input_pins(basis_path) == inputs,
+                  "STEP_SOURCE_CLOSURE")
+    prior_path = B.CONTACT / "compact-program-source-v1/mole-worker.ugactor"
+    prior = S.read_image(prior_path, G.GROUND_SOURCE_SHA, parts)
+    G.same_ground_sources(cases, prior)
+    proof_path = B.CONTACT / "compact-program-proof-v1.json"
+    proof = P.content.read_json(proof_path, G.GROUND_PROOF_SHA, 1048576)
+    M.Q.producer_refusal(proof)
+    with basis_path.open("rb") as stream:
+        basis = N.CardinalBasis(stream, M.BASIS_SHA, M.BASIS_PRODUCER)
+    ids, omitted = S.body_triangle_ids(parts[0], topology[0][0], rig["rig_binding"])
+    G.handoff_refusal(proof, cases, basis, (len(ids), len(topology[1][0]), omitted))
+    B.interval_contract(cases[1])  # Exact loop metadata, not a source count approximation.
+    complete_roles, full_geometry = B.whole_roles(cases, parts, topology, roots, basis)
+    ready = P.indexed_sequence(cases[0], [8, 8], "short_step_exact_ready", False)
+    complete = C.H.case_union([cases[1], ready], (0, 1))
+    cache = N.endpoint_cache(complete, parts, roots, basis)
+    rows = []
+    for direction in (R.FORWARD, R.BACKWARD):
+        roles, primitive = prefix_roles(cache, complete_roles, direction, [34, 35])
+        rows.append({"direction": direction, "mode": "WALK", "body_yaw": 49152,
+                     "path_yaw": 49152 if direction == R.FORWARD else 16384,
+                     "runtime_profile_id": None, "runtime_policy": None,
+                     "intervals": intervals(direction), "keys_with_ready": keys(direction) + [34, 35],
+                     "whole_primitives_u": [N.orient_box(box, 3) for box in primitive],
+                     "roles": {role: [N.orient_box(box, 3) for box in boxes] for role, boxes in roles.items()},
+                     "inherited_handoff_simplices": handoff_subset(cases, proof, direction)})
+    inputs.update({str(prior_path.relative_to(ROOT)): G.GROUND_SOURCE_SHA,
+                   str(proof_path.relative_to(ROOT)): G.GROUND_PROOF_SHA,
+                   str(B.A.LOCATORS.relative_to(ROOT)): B.A.LOCATORS_SHA,
+                   str(B.LOCATORS.relative_to(ROOT)): B.LOCATORS_SHA,
+                   str(predecessor_path.relative_to(ROOT)): PREDECESSORS_SHA})
+    for mapping in (producer, inputs):
+        P.require(all(B.digest(ROOT / path) == digest for path, digest in mapping.items()), "STEP_INPUT_DRIFT")
+    endpoint_bytes = sum(item["low"].nbytes + item["high"].nbytes for item in cache)
+    return {"schema": 1, "protocol": "finite-work-step-v1", "actor_sha256": M.IMAGE_SHA,
+            "parent_program_sha256": M.PROGRAM_SHA, "root_domain_u": roots,
+            "ready_clip": 0, "ready_time_q16": R.READY_TIME, "fade_time_q16": R.FADE_TIME,
+            "clip": 1, "walk_duration_q16": R.WALK_DURATION, "rows": rows,
+            "work_joins": B.work_joins(cases), "integer_protocol": integer_census(),
+            "fixture": fixture_proof(rows), "basis": basis.cardinal_certificate(),
+            "full_ground_floor_and_foot_proof": full_geometry,
+            "numerical_residual": [item["errors"] for item in cache],
+            "continuous_scope": "Every whole body/tool vertex hull over the selected intervals and their entire ready fades, crossed with all232u root positions; unchanged full-ground floor/foot projection. Original full-triangle tool/body separation is reused by exact simplex inclusion. No limb-vs-limb or planted-foot no-slip proof is added.",
+            "verified_source_files": count, "historical_source_snapshot": historical,
+            "runtime_equation_predecessors": predecessors,
+            "source_inputs": inputs, "producer_sources": producer,
+            "storage": {"proposed_profiles": 2, "proposed_boxes": 14, "new_actor_sources": 0,
+                        "paired_profile_delta": 1176, "current_joint": 246868,
+                        "joint_before_new_controls": 248044, "reservation": 262144,
+                        "remaining_before_new_controls": 14100, "actor_image_delta": 0,
+                        "reference_state_bytes": R.STATE_BYTES, "new_resident_columns": 0,
+                        "runtime_controls_not_yet_allocated_or_admitted": True,
+                        "offline_endpoint_bank_bytes": endpoint_bytes,
+                        "offline_selected_copy_max_bytes": endpoint_bytes * 7 // 36},
+            "certificate_bits_written": 0, "production_qualified": False, "native_replay": False,
+            "remaining": ["EXACT_CANONICAL_FINITE_ROUTE_POLICY", "DRIVER_CONSUMER", "INTERRUPTION_SAVE_SCHEMA",
+                          "CURRENT_CONSUMER_AND_NATIVE_CLOSURE", "JOINT_CONTROLS_CENSUS", "ACTUAL_PAID_CUT_SEQUENCE"]}
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "STEP_OUTPUT_EXISTS")
+    result = compile_step()
+    raw = (json.dumps(result, indent=2) + "\n").encode()
+    P.require(len(raw) <= MAX_REPORT_BYTES, "STEP_REPORT_CAPACITY")
+    args.out.mkdir(parents=True)
+    with (args.out / "step-program.json").open("xb") as stream:
+        stream.write(raw)
+    print(json.dumps({"rows": len(result["rows"]), "boxes": 14, "verified_source_files": result["verified_source_files"],
+                      "certificate_bits_written": 0, "production_qualified": False,
+                      "report_sha256": hashlib.sha256(raw).hexdigest()}))
+
+
+if __name__ == "__main__":
+    main()

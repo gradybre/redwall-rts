@@ -1,0 +1,181 @@
+# 1152 ordinary Room phase source checkpoint
+
+This is a partial source/actual-owner checkpoint, not completed ordinary Room
+phase or playable Kitchen acceptance. The current source is frozen at
+`source-review-3/source-sha256.json` for independent review. No runtime production
+consumer fingerprint has been renewed for the changed WorkFace.
+
+The accepted 1153 prerequisite is `e9c8f092accd6cf7d57acc963255ed354d40c35b`
+(own cherry-pick `7ecf1515`). Its exact Authority/Placement/Locations APIs are
+now committed prerequisites, not diagnostic overlays. The earlier
+`diagnostic-dependencies*` folders retain their original/restoration manifests;
+none of those snapshots is an active source overlay.
+
+## Current result
+
+`expired-entry-corrected` invokes the official strict singleton suites:
+
+- Room provider: 19 tests, 235 assertions, 0 failures.
+- WorkFace: 19 tests, 206 assertions, 0 failures.
+- Combined: **38 tests, 441 assertions, 0 failures**.
+- Every strict/raw unexpected, expected, tolerated and leak counter is zero.
+- Clean import is zero diagnostics; analyzer is 0 warnings in 0 of 4 files.
+- `invocation.json` confirms source unchanged and original project, registry,
+  assets and import sidecars restored. The diagnostic registry appendix and
+  both original/temporary digests are retained, not committed as shared policy.
+
+Reproduce in this isolated worktree with no other engine/wrapper active:
+
+```sh
+python3 -B docs/validation/evidence/underground-room-phases-2026-10-04/reproduce.py --out docs/validation/evidence/underground-room-phases-2026-10-04/replay-new --port 6353 --suite test_underground_room_world_phases.gd --suite test_underground_work_face.gd
+python3 -B docs/validation/evidence/underground-room-phases-2026-10-04/census.py
+```
+
+The wrapper uses only `Redwall-ug-room-phases`, parks/restores original assets,
+cleans its own import cache, resolves exact singleton shards, and restores its
+temporary project/registry in `finally`. A zero exit status does not substitute
+for its raw diagnostics or explicit restoration fields.
+
+## What the actual tests establish
+
+The new ordinary fixture has a real generated World, Nodes, Directory,
+Resident/Transform, Inventory, Pool, Work/Gear, Construction, Sites, Router,
+SpaceOwner, Locations, WorldRoutes/Routes and original structural reader. It
+loads the published Mole wire unchanged. Its pre-existing Corridor identity
+and physical bootstrap are named fixture boundaries; no paid Site bytes or
+cut history are seeded.
+
+The complete published FRONT16/rev1 source locally clears its actual solid
+target through WorkFace. Tests retain real geometry when the published WALK
+cannot reach it. Binding/reentry/original weak reference failures preserve
+unbound state and permit corrected retry. Profile/Catalog publication,
+foreign replacements, Location restore, selector publication without a Space
+revision and overflow all invalidate cached qualification. Two genuinely
+WorkFace-qualified alternatives do not make an actual assigned worker's
+committed endpoint/profile ambiguous. Worker-free selection remains unique.
+All-living-resident physical registration is explicit and exercised with an
+actual remote unregistered Resident, removal and retry.
+
+The optional Entry Contacts lifetime is distinct from a never-bound ordinary
+composition. An existing WeakRef whose actual receiver expires keeps
+qualification unavailable. The targeted refusal-only injected fault checks a
+real RefCounted lifetime transition, repeated refusal, unchanged original
+packet identities, paid/physical state, lease counters and publication tokens.
+The correction introduces no allocation site or new member. These logical
+checks are not transient native-allocation measurement.
+
+Existing Entry fixture reuse proves that the new subclass does not grant an
+unbound Entry contact permission, and preserves real original BRACE START,
+Work, payment and settlement. Its source geometry/certificates remain the
+historical explicitly synthetic fixture. The FINISH adaptation tests use real
+BRACE/CUT/FINISH paid state from the accepted phase-refresh fixture, including
+released-worker terminal scope, but retain that fixture's synthetic physical
+companion. These are scoped component regressions, not the missing ordinary
+positive composition.
+
+## Physical positive gate
+
+The actual coordinates are:
+
+| Role | World XYZ u | Heading / source |
+|---|---|---|
+| Work station | (124160, -4608, 102912) | +X, yaw49152, FRONT16/rev1 |
+| Target cube origin | (124928, -4608, 102400) | exact -X face |
+| Access/retreat | (121856, -4608, 102912) | existing full TRANSIT |
+| Approach | access → work | +X / yaw49152 |
+| Retreat | work → access | -X / yaw16384 |
+
+Current WALK1/rev1 includes the 1,256u all-yaw held-pick extent and refuses
+`WORLD_ROUTE_NO_FITTING_PROFILE` at the 768u wall. Geometry's 1156 unchanged-key
+WALK/ready subset is a separate pending source/runtime packet. Its approach
+does not imply a backward walk or a turn-away retreat. No source geometry,
+support, material rule, route budget or flag is relaxed here. The full ordinary
+confirmation → BRACE/CUT/FINISH positive remains pending this dependency.
+
+The agreed 1156 successor contains no duplicate legacy WORK rows. For these
+coordinates its explicit approach is row5 (body/path yaw49152), FRONT work is
+row24, and retreat is row9 (body yaw49152, path yaw16384). This is the agreed
+pending source contract, not an activated selector or a changed v2 profile.
+The provider's private phase checks must migrate to the reviewed public
+source-work observation/final APIs before consuming that successor.
+
+## Memory and simultaneous lifetimes
+
+`census.py` derives and pins the complete reviewed member/packet shapes and
+active numeric chains. Current `census.json` reports:
+
+| Contribution | Logical bytes |
+|---|---:|
+| Provider numeric fields | 146 |
+| One original WorkFace Request | 68 |
+| One I32 remaining-query result | 4 |
+| New helper reservation (counted maximum429) | 512 |
+| Included provisional reference/native allowance | 256 |
+| Accounted / proposed global reserve | **986 / 1024** |
+| Combined actual ordinary companion chain / existing reserve | **572 / 576** |
+| FINISH cold controls / existing WorkFace reserve | **1843 / 2048** |
+| Mixed EntryStructure maximum / original cold lease | **1048912 / 1048960** |
+
+The three inherited Entry boxes, all current actor/profile selections and the
+one Placement PhaseContext are borrowed, never duplicated. WorkFace's large
+image/fragments drop before Structure CHECK and output Plan growth. The two
+existing Authority Plans coexist with Locations; its proof drops before
+WorldRoutes. Persistent new controls are charged globally, never hidden inside
+the last 48 cold bytes. The prospective shared total is99,999,806, leaving194
+bytes. Reference/native/allocator costs and whole-tick timing are unmeasured;
+the 256 allowance is included in1024 and grants no native qualification.
+
+## Retained rejected observations
+
+All prior wrappers/logs remain available. In particular:
+
+- `fixture-8`: two actor-admission failures exposed the test's16-node occupancy
+  table; the corrected fixture uses the existing production1024-node limit
+  within unchanged Routes.ARENA_BYTES, not an increased production budget.
+- `fixture-9`: runtime checks passed but LSP caught one shadowed local name.
+- `fixture-11`: two new mixed-fixture tests were correctly rejected because
+  the inherited Entry fixture uses an observation-spy Locations subclass,
+  outside the new ordinary coordinator's exact-reader boundary.
+- `fixture-12`: attempting to substitute that spy through its statically typed
+  inherited field emitted two real assignment diagnostics and failed. This
+  attempted fixture adaptation is rejected evidence, not a passed run.
+- `fixture-13`: the tests were scoped to the actual inherited Entry path,
+  preserving the concrete ordinary boundary; 35/330/0 and analyzer0/4.
+- `fixture-14`: adds the actual Terrain original weak-link loss cases; final
+  35/339/0, all diagnostics/leaks0, analyzer0/4.
+- `review-initial-binding-rejected`: all ten real late null/foreign WorldRoutes
+  mutations were already safely refused by the accepted Placement guard, with
+  unchanged state and successful retries. Its two failing test cases expected
+  an unnecessarily specific refusal code. No crash or partial publication was
+  reproduced; the HIGH impact hypothesis was withdrawn. Exact rejected test
+  and source bytes are retained. Successor assertions accept any named refusal.
+- `fixture-15`: expanded checks passed 37/429/0, but the analyzer caught one
+  newly introduced local name shadow. `fixture-16` records a faulty rename
+  that changed a Terrain field spelling; its actual script diagnostics and
+  failed tests are retained and are not accepted evidence.
+- `fixture-17`: exact corrected boundary hardening, 37/429/0, all strict/raw
+  diagnostics/leaks0, analyzer0/4. It checks all adopted reciprocal fields and
+  existing original Catalog/Profile/Levels identities before binding or
+  allocating, with no new tuple, retained field, packet or numeric reserve.
+- `expired-entry-rejected`: the source-review-2 provider reproduced the expired
+  optional receiver issue with 19/235/1 and all strict/raw diagnostics/leaks0.
+  Exact source/test bytes and restoration are retained. It is a real lifetime
+  refusal regression, independent of the withdrawn initialization hypothesis.
+- `expired-entry-corrected`: a single conditional distinguishes an unset
+  optional WeakRef from an expired one. Provider and WorkFace are38/441/0,
+  all strict/raw diagnostics/leaks0 and analyzer0/4. The source-derived census
+  remains986/1024 and572/576; no numeric or native-reference member changed.
+
+## Whole-room frontier responsibility
+
+`next-frontier-readonly/README.md` pins the current integration source trace.
+The Access selector proves confirmation's first work face. Sites opens and
+settles only the caller-selected Site/operation; the phase companion refresh
+preserves existing endpoints and paths. No current runtime owner selects the
+next reachable Site or publishes the next supported station/route. The host
+must sequence current BRACE/CUT/FINISH operations, genuine worker movement,
+materials, output and settlement across the actual Room's full claimed cube
+set. A one-cube positive will not establish whole Kitchen completion.
+
+No broader full-suite, real WALK-to-WORK handoff, production Profile renewal,
+whole-World retirement, native memory or playable-delivery claim is made.

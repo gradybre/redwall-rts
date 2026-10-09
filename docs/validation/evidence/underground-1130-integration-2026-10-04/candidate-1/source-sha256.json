@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/underground_locations.gd": "024e9cca9ffbf72c87f9bf31581f3cee09e5fd9b8344dbc66ea293c26d8f38a1",
+  "godot/scripts/core/underground_routes.gd": "6e551edf8eeca22e9ff602573b961eeb4f0fd004c33c63fe477dffdce2c34cde",
+  "godot/test/test_underground_prepared_location_observation.gd": "6c7cfa3543f2860428e71d0944b500f6cf03bd3f57c5926d62e5f5ac7d66b316",
+  "godot/scripts/core/underground_world_routes.gd": "438267e61eb7042cb9ccc56ae4859bf80ce77c9aca9bd10b033646469c98fe5b",
+  "godot/scripts/core/transforms.gd": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
+  "godot/test/test_underground_world_routes.gd": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2",
+  "godot/test/test_transforms.gd": "a338b99fa49c779c2eee4f2ddde0c6681756618fc454f5533fd145b4c237e69e",
+  "godot/test/test_underground_locations.gd": "2e190d613d2b832c2fc5ff9406d62120aa9d9b04363bbd3ea645963fee4f2f77",
+  "godot/test/test_underground_entry_bindings.gd": "2a9ff44c56d8edd70cb65229290dd45dad368600127d8b493b4642a8d03da35f",
+  "godot/test/test_underground_routes.gd": "0897fd3cd59f6a52ff5704db4bb4b3d4a00c393395481d16063243cfe3c7440a"
+}

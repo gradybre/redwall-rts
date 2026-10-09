@@ -1,0 +1,11 @@
+test_derived_hashes_bind_new_exact_sources (__main__.RebindTests) ... ok
+test_exact_bundle_rebuild (__main__.RebindTests) ... ok
+test_modified_frontier_predecessor_refuses_before_output (__main__.RebindTests) ... ok
+test_old_row_and_handling_changes_are_not_admitted (__main__.RebindTests) ... ok
+test_payload_and_bills_remain_exact (__main__.RebindTests) ... ok
+test_source_rebind_makes_no_runtime_qualification (__main__.RebindTests) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.014s
+
+OK

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/forward.ugyaw",
+    "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+    "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/capture-v1/metal.png",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/capture-v1/native-report.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw"
+  ],
+  "user_directory": "/Users/brendan/Library/Application Support/Redwall-Codex-Metal-Cache-902c1d5b8367e7aa",
+  "cache_initially_absent": true,
+  "scope": "fresh native synthetic attachment witness and generated shader-source provenance",
+  "exit": 0,
+  "cache_files": 5,
+  "source_unchanged": true,
+  "project_unchanged": true,
+  "override_restored": true
+}

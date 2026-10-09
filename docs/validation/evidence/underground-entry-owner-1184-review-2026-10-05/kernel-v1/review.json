@@ -1,0 +1,47 @@
+{
+  "scope": "Complete diagnostic original-owner retirement only; production Session and new constructor prefixes remain open.",
+  "reviewer": "/root",
+  "manifest_sha256": {
+    "source-sha256.json": "dfc6c17f24e2bf4561007b8ac7df0894ff369217da0ff9f0cb5760b6eaf530a0",
+    "inherited-sha256.json": "9b73c1df4eccbab20aa93403dec1acd6d00bdd2728bda412646731857c4f1ced",
+    "output-sha256.json": "de5ebcf852514fb2c93cb2a0a9993df599d7825ee67eacb30140e7feeb8ce9b2",
+    "history-sha256.json": "dee8c06ec509b11bc07023663b162b9c196bf6e9ebc298612963d4c73f4df2ae"
+  },
+  "verified_census": {
+    "source-sha256.json": 5,
+    "inherited-sha256.json": 182,
+    "output-sha256.json": 33,
+    "history-sha256.json": 30
+  },
+  "source_sha256": {
+    "godot/scripts/core/underground_world_retirement.gd": "7f509aed2c5710e6b148806baa90d178ba0857502d257cfc4dd42f26791134de",
+    "godot/test/test_underground_entry_composition.gd": "6eddd47072b799630c480ca341074685d8445aaeb523ebd9a18b45ab6d0bfdbc",
+    "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-kernel-v1/census.py": "61ead4c46b5855607005a6ded1c35198d119439bdbcff8f6f59a2b5cd7346dd7",
+    "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-kernel-v1/test_census.py": "ae69922eff91662a435d14ca7440a4f5ffe7211251a93f545dd627aacdb07260",
+    "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/entry-kernel-v1/reproduce.py": "500534f7c6f7667c9913e0318636bbab8ff866c936570626c44292ea49065ced"
+  },
+  "inputs_unchanged": true,
+  "independent_census_tests": 17,
+  "census_byte_identical": true,
+  "author_engine_evidence_verified": {
+    "tests": 27,
+    "assertions": 2134
+  },
+  "engine_repeated_by_reviewer": false,
+  "accounting": {
+    "controls": 6195,
+    "control_ceiling": 6208,
+    "helpers": 1968,
+    "helper_ceiling": 1984,
+    "retirement_reserved_bytes": 8192,
+    "session_reserved_bytes": 1536,
+    "retained_delta": 0,
+    "additional_global_reserved_bytes": 0
+  },
+  "verdict": "ACCEPTED diagnostic kernel; no high or medium finding in this scope.",
+  "outstanding": [
+    "Actual private Session constructor and all reachable failure prefixes 10\u201317.",
+    "Recount complete constructor and current peer source closure before integration.",
+    "Mount coherent reviewed source publication, then verify actual demo workflow and native memory."
+  ]
+}

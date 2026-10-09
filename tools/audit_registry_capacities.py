@@ -116,13 +116,38 @@ EXPLAINED_SINCE_CENSUS = {
 	# capacity prose "`_c_capacity` <= 101376" is an upper bound already in use, so it moves
 	# prose_records, upper_bound, packed_source_fields and canonical_records by one each and
 	# leaves distinct_expressions alone.
-	"prose_records": 2,
-	"equality": 1,
-	"upper_bound": 1,
-	"packed_source_fields": 2,
-	"canonical_records": 5,
-	"other_canonical_shapes": 3,
-	"distinct_expressions": -1,
+	# Decision1060 registers RoomProjects'11 columns: +11 equalities/prose/packed/records,
+	# +1 owner and +1 new capacity expression (PROJECT_CAPACITY). JOB_CAPACITY was present.
+	# Decision1066 adds36 packed and22 scalar/domain records over2 excavation owners.
+	# Free-stack prefix adds1 non-capacity shape;35 new capacity rows add9 equalities
+	# and26 upper bounds. Six new expression texts are independently source-proved.
+	# Decision1071 adds two fixed Buildings extension flags and one section6 owner.
+	# Decision1072 adds18 capacity declarations (5 equalities,13 clamped bounds)
+	# plus63 explicit scalar/dynamic-count records. Dynamic counts/strides require
+	# joint allocation and codec validation; they are listed, not claimed as proved maxima.
+	# Decision1218 adds one section6 owner (underground_entry_progress): two canonical
+	# non-capacity records (record length and the bounded progress record) and the hauler's
+	# `_queue` as one packed source field, declared hash=false inside the record.
+	# Decision1221 adds section6 owner haul_planner: five hashed packed columns, each declared
+	# "`JOB_CAPACITY` = 8192" (an expression already present), so five equalities.
+	# ADR 1222 step 5 implements chronicle.gd; its fixed 32-byte `_rolling_digest` gains source
+	# contract C197 and becomes one more packed source field (a fixed count, no capacity row).
+	# ADR 1222 (DEC-055 Q7(a)) adds five section6 owners and 32 hashed capacity-declared columns,
+	# all equalities: construction_extension (16) and the paid ledger (2) at CONSTRUCTION_CAPACITY,
+	# demolition admissions (7) and work (4) at BUILDING_CAPACITY, and store policy (3), whose
+	# POLICY_CELLS is the one new expression. Sixteen are new packed source fields; the extension
+	# owner re-carries construction's own columns.
+	# ADR 1228 adds seven section6 owners with no capacity rows: the underground mount record
+	# (three fixed-count fields) and six ADR 1221 wire owners (a length and a bounded image each),
+	# so fifteen canonical non-capacity records and no packed source field.
+	"prose_records": 105,
+	"equality": 65,
+	"upper_bound": 40,
+	"packed_source_fields": 141,
+	"canonical_records": 211,
+	"other_canonical_shapes": 106,
+	"distinct_expressions": 10,
+	"owners": 23,
 }
 
 RELATION_EQ = "eq"
@@ -618,7 +643,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167 and 0531: retire three deposit members; persist three dirty lists/counts, full Expedition claim slot and the container anchor tile")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners")
 		else:
 			unexplained.append(line)
 	return {

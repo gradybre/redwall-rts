@@ -29,33 +29,45 @@ const WeatherScript := preload("res://scripts/core/weather.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const SpaceOwner := preload("res://scripts/core/underground_space_owner.gd")
+const SpaceBudget := preload("res://scripts/core/underground_budget.gd")
+const RoomSpace := preload("res://scripts/core/room_space.gd")
+const ConstructionScript := preload("res://scripts/core/construction.gd")
 
-## R-WORLD-S1-001 §3's owner table, transcribed.
+## R-WORLD-S1-001 §3's owner table, transcribed, plus ADR 1222 step 0's tenth owner
+## (`underground_space_owner`, UNMOUNTED layout) at its ASCII position.
 const RULING_OWNER_KEYS: Array[String] = ["buildings", "entity_directory", "farming", "forage",
-	"resource_nodes", "spatial_world", "weather", "world_init", "world_runtime"]
-const RULING_OWNER_SCHEMAS: Array[int] = [1, 1, 1, 1, 2, 1, 1, 1, 1]
-const RULING_PRIMARY_COUNTS: Array[int] = [16384, 1, 16384, 16384, 16384, 262144, 1, 16384, 1]
-const RULING_WRAPPER_BYTES: Array[int] = [33, 40, 31, 30, 38, 37, 31, 34, 37]
-const RULING_PAYLOAD_BYTES: Array[int] = [196632, 4, 737360, 65544, 65544, 2621484, 64, 65697, 80]
+	"resource_nodes", "spatial_world", "underground_space_owner", "weather", "world_init",
+	"world_runtime"]
+const RULING_OWNER_SCHEMAS: Array[int] = [1, 1, 1, 1, 2, 1, 1, 1, 1, 1]
+const RULING_PRIMARY_COUNTS: Array[int] = [16384, 1, 16384, 16384, 16384, 262144, 0, 1, 16384, 1]
+const RULING_WRAPPER_BYTES: Array[int] = [33, 40, 31, 30, 38, 37, 47, 31, 34, 37]
+const RULING_PAYLOAD_BYTES: Array[int] = [196632, 4, 737360, 65544, 65544, 2621484, 416, 64,
+	65697, 80]
 
-## R-WORLD-S1-001 §8's block and payload offsets, transcribed.
+## Block and payload offsets: R-WORLD-S1-001 §8's up to the space block, then shifted by its
+## 463 UNMOUNTED bytes (ADR 1222 step 0).
 const RULING_BLOCK_OFFSETS: Array[int] = [48, 196713, 196757, 934148, 999722, 1065304, 3686825,
-	3686920, 3752651]
-const RULING_PAYLOAD_OFFSETS: Array[int] = [81, 196753, 196788, 934178, 999760, 1065341, 3686856,
-	3686954, 3752688]
-const RULING_END_OFFSETS: Array[int] = [196713, 196757, 934148, 999722, 1065304, 3686825, 3686920,
-	3752651, 3752768]
+	3687288, 3687383, 3753114]
+const RULING_PAYLOAD_OFFSETS: Array[int] = [81, 196753, 196788, 934178, 999760, 1065341, 3686872,
+	3687319, 3687417, 3753151]
+const RULING_END_OFFSETS: Array[int] = [196713, 196757, 934148, 999722, 1065304, 3686825, 3687288,
+	3687383, 3753114, 3753231]
 
-const RULING_SECTION_BYTES: int = 3752768
+const RULING_SECTION_BYTES: int = 3753231
+const RULING_MOUNTED_SECTION_BYTES: int = 4257039
+const RULING_MOUNTED_SPACE_PAYLOAD_BYTES: int = 504224
 const RULING_DESCRIPTOR_ROW_COUNT: int = 344067
+const RULING_MOUNTED_DESCRIPTOR_ROW_COUNT: int = 350211
 ## SAVE-REPLAY-R01 amends only the absolute file positions by+8.
 const RULING_FIRST_SECTION_OFFSET: int = 1224
-const RULING_SECTION_2_OFFSET: int = 3753992
-const RULING_SECTION_SCHEMA_VERSION: int = 3
-const RULING_STORE_COUNT: int = 9
-const RULING_COUNT_PREFIX_TOTAL: int = 248
-const RULING_STORED_FIELD_COUNT: int = 44
-const RULING_CANONICAL_RECORD_COUNT: int = 36
+const RULING_SECTION_2_OFFSET: int = 3754455
+const RULING_SECTION_SCHEMA_VERSION: int = 4
+const RULING_STORE_COUNT: int = 10
+## R-WORLD-S1-001's 31 prefixes / 44 stored / 36 records, plus the space owner's 33 fields.
+const RULING_COUNT_PREFIX_TOTAL: int = 512
+const RULING_STORED_FIELD_COUNT: int = 77
+const RULING_CANONICAL_RECORD_COUNT: int = 69
 
 const SCENARIO_VERSION: int = 7
 const GENERATOR_SCHEMA: int = 3
@@ -69,6 +81,8 @@ var _directory: EntityDirectory = null
 var _stores: Section.Stores = null
 var _runtime: WorldRuntime.Record = null
 var _state: Section.State = null
+var _space_buildings: BuildingsScript = null
+var _space_world: Vector2i = Vector2i(-1, 0)
 
 
 func before_each() -> void:
@@ -88,6 +102,7 @@ func before_each() -> void:
 		FishingScript.new(_directory, _stores.forage, _jobs), RngScript.new(), _stores.farming)
 	_runtime = _baseline_runtime()
 	_state = Section.State.new()
+	_space_buildings = null
 
 
 func _baseline_runtime() -> WorldRuntime.Record:
@@ -165,8 +180,8 @@ func test_the_nine_owners_their_versions_and_their_counts_are_the_ruled_ones() -
 	"""§3's owner table, key for key, in the strict ASCII order blocks must appear in."""
 	assert_equal(Section.SECTION_ID, 1, "section id")
 	assert_equal(Section.SECTION_SCHEMA_VERSION, RULING_SECTION_SCHEMA_VERSION,
-		"R-WORLD-S1-001 takes section 1 to schema 3")
-	assert_equal(Section.OWNER_COUNT, RULING_STORE_COUNT, "exactly nine owners")
+		"ADR 1222 step 0 takes section 1 to the registry's schema 4")
+	assert_equal(Section.OWNER_COUNT, RULING_STORE_COUNT, "exactly ten owners")
 	var previous: String = ""
 	for owner: int in RULING_STORE_COUNT:
 		assert_equal(Section.owner_key_of(owner), RULING_OWNER_KEYS[owner], "owner key %d" % owner)
@@ -192,7 +207,7 @@ func test_every_wrapper_block_and_payload_offset_matches_the_ruling() -> void:
 	for owner: int in RULING_STORE_COUNT:
 		assert_equal(Section.wrapper_bytes_of(owner), RULING_WRAPPER_BYTES[owner],
 			"wrapper bytes of '%s'" % RULING_OWNER_KEYS[owner])
-		assert_equal(Section.OWNER_PAYLOAD_BYTES[owner], RULING_PAYLOAD_BYTES[owner],
+		assert_equal(Section.compiled_payload_bytes_of(owner), RULING_PAYLOAD_BYTES[owner],
 			"payload bytes of '%s'" % RULING_OWNER_KEYS[owner])
 		assert_equal(Section.block_offset_of(owner), RULING_BLOCK_OFFSETS[owner],
 			"block offset of '%s'" % RULING_OWNER_KEYS[owner])
@@ -204,11 +219,12 @@ func test_every_wrapper_block_and_payload_offset_matches_the_ruling() -> void:
 
 
 func test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself() -> void:
-	"""§8: 3752768 bytes, descriptor row_count 344067, first offset 1224, §2 at 3753992."""
-	assert_equal(Section.SECTION_BYTES, RULING_SECTION_BYTES, "section 1 length")
-	assert_equal(Section.DESCRIPTOR_ROW_COUNT, RULING_DESCRIPTOR_ROW_COUNT, "descriptor row_count")
+	"""UNMOUNTED: 3753231 bytes, row_count 344067, first offset 1224, §2 at 3754455."""
+	assert_equal(Section.section_bytes_of(Section.LAYOUT_UNMOUNTED), RULING_SECTION_BYTES,
+		"section 1 length")
+	assert_equal(Section.DESCRIPTOR_ROW_COUNTS[Section.LAYOUT_UNMOUNTED],
+		RULING_DESCRIPTOR_ROW_COUNT, "descriptor row_count")
 	assert_equal(Section.FIRST_SECTION_OFFSET, RULING_FIRST_SECTION_OFFSET, "first body offset")
-	assert_equal(Section.SECTION_2_OFFSET, RULING_SECTION_2_OFFSET, "section 2 offset")
 	var wrappers: int = 0
 	var payloads: int = 0
 	var rows: int = 0
@@ -216,8 +232,8 @@ func test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself
 		wrappers += RULING_WRAPPER_BYTES[owner]
 		payloads += RULING_PAYLOAD_BYTES[owner]
 		rows += RULING_PRIMARY_COUNTS[owner]
-	assert_equal(wrappers, 311, "the nine wrappers total 311 bytes")
-	assert_equal(payloads, 3752409, "the nine payloads total 3752409 bytes")
+	assert_equal(wrappers, 358, "the ten wrappers total 358 bytes")
+	assert_equal(payloads, 3752825, "the ten UNMOUNTED payloads total 3752825 bytes")
 	assert_equal(44 + 4 + wrappers + payloads, RULING_SECTION_BYTES, "and the section is their sum")
 	assert_equal(rows, RULING_DESCRIPTOR_ROW_COUNT, "row_count is the SUM of the primary counts")
 	var table: SaveHeader.Refusal = Section.table_refusal()
@@ -229,7 +245,7 @@ func test_resource_nodes_declares_one_field_and_the_three_scratch_arrays_are_abs
 	"""R-WORLD-S1-001 §7: the deposit arrays have no wire representation at all."""
 	assert_equal(Section.field_keys_of(Section.OWNER_RESOURCE_NODES),
 		["_resource_slot"] as Array[String], "the sole declared field")
-	assert_equal(Section.OWNER_PAYLOAD_BYTES[Section.OWNER_RESOURCE_NODES], 65544,
+	assert_equal(Section.compiled_payload_bytes_of(Section.OWNER_RESOURCE_NODES), 65544,
 		"8 count bytes plus 16384 i32 values, and nothing for the scratch")
 	for key: String in ["_deposit_tiles", "_deposit_ref_slot", "_deposit_ref_generation"]:
 		assert_equal(Section.field_keys_of(Section.OWNER_RESOURCE_NODES).find(key), -1,
@@ -289,8 +305,8 @@ func _ruling_field_offsets() -> Dictionary:
 	}
 
 
-func test_the_section_carries_forty_four_stored_fields_and_thirty_six_records() -> void:
-	"""§8: 44 declared stored fields, 36 canonical field records, 31 count prefixes, 248 bytes."""
+func test_the_section_carries_seventy_seven_stored_fields_and_sixty_nine_records() -> void:
+	"""77 declared stored fields, 69 canonical field records, 64 count prefixes, 512 bytes."""
 	var stored: int = 0
 	var prefixes: int = 0
 	for owner: int in RULING_STORE_COUNT:
@@ -298,11 +314,11 @@ func test_the_section_carries_forty_four_stored_fields_and_thirty_six_records() 
 		prefixes += ordinary
 		stored += ordinary
 	stored += 1 + 12
-	assert_equal(prefixes, 31, "the seven ordinary owners declare 31 count prefixes")
-	assert_equal(prefixes * 8, RULING_COUNT_PREFIX_TOTAL, "248 structural count bytes")
-	assert_equal(stored, RULING_STORED_FIELD_COUNT, "44 declared stored fields")
+	assert_equal(prefixes, 64, "the eight ordinary owners declare 64 count prefixes")
+	assert_equal(prefixes * 8, RULING_COUNT_PREFIX_TOTAL, "512 structural count bytes")
+	assert_equal(stored, RULING_STORED_FIELD_COUNT, "77 declared stored fields")
 	assert_equal(stored - 8, RULING_CANONICAL_RECORD_COUNT,
-		"36 canonical records: world_runtime excludes the tick, debt and six counters")
+		"69 canonical records: world_runtime excludes the tick, debt and six counters")
 
 
 # --- the encoded bytes, read at absolute offsets ---------------------------------------------
@@ -319,7 +335,7 @@ func test_the_provenance_prefix_and_store_count_sit_at_their_absolute_offsets() 
 	assert_equal(bytes.decode_s32(4), WORLD_SEED, "effective_seed at offset 4")
 	assert_equal(bytes.decode_u32(8), GENERATOR_SCHEMA, "map_generator_schema at offset 8")
 	assert_equal(bytes.slice(12, 44), _digest_bytes(), "the 32-byte authored map digest at 12")
-	assert_equal(bytes.decode_u32(44), RULING_STORE_COUNT, "store_count = 9 at offset 44")
+	assert_equal(bytes.decode_u32(44), RULING_STORE_COUNT, "store_count = 10 at offset 44")
 
 
 func test_every_wrapper_is_pinned_at_its_absolute_offset() -> void:
@@ -567,7 +583,7 @@ func test_the_section_decodes_at_the_offset_a_real_file_puts_it_at() -> void:
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(RULING_FIRST_SECTION_OFFSET)
 	bytes.append_array(_encoded(_captured()))
-	assert_equal(bytes.size(), RULING_SECTION_2_OFFSET, "section 2 begins at 3753992")
+	assert_equal(bytes.size(), RULING_SECTION_2_OFFSET, "section 2 begins at 3754455")
 	var back: Section.State = Section.State.new()
 	var refusal: SaveHeader.Refusal = Section.decode_section(bytes, RULING_FIRST_SECTION_OFFSET,
 		RULING_SECTION_BYTES, back)
@@ -577,9 +593,9 @@ func test_the_section_decodes_at_the_offset_a_real_file_puts_it_at() -> void:
 
 # --- refusals -------------------------------------------------------------------------------------
 
-func test_a_store_count_other_than_nine_is_refused() -> void:
-	"""Eight owners is not a permitted target variant, and neither is ten."""
-	for wrong: int in [0, 1, 2, 8, 10, 4294967295]:
+func test_a_store_count_other_than_ten_is_refused() -> void:
+	"""Nine owners is not a permitted target variant, and neither is eleven."""
+	for wrong: int in [0, 1, 2, 8, 9, 11, 4294967295]:
 		var bytes: PackedByteArray = _encoded(_captured())
 		bytes.encode_u32(44, wrong)
 		assert_equal(_decoded_code(bytes), Section.REFUSE_STORE_COUNT,
@@ -785,19 +801,28 @@ func test_the_resource_adapter_refuses_each_scratch_field_by_name() -> void:
 
 # --- canonical value adapters ------------------------------------------------------------------
 
-func test_all_nine_section_one_owners_supply_a_canonical_adapter() -> void:
-	"""`missing_adapter_owners()` must stop naming any section-1 owner once these are registered."""
+func test_register_adapters_supplies_every_section_one_owner_including_the_space_owner() -> void:
+	"""ADR 1222 step 0: all ten §1 owners, the underground Space owner included, have adapters."""
 	var walker: Digest.Walker = Digest.production_walker()
-	var before: PackedStringArray = walker.missing_adapter_owners()
-	var section_one: int = 0
-	for entry: String in before:
-		if entry.begins_with("1:"):
-			section_one += 1
-	assert_equal(section_one, RULING_STORE_COUNT, "all nine start without an adapter")
+	var expected: PackedStringArray = PackedStringArray()
+	for key: String in RULING_OWNER_KEYS:
+		expected.append("1:" + key)
+	expected.sort()
+	assert_equal(_missing_world_adapters(walker), expected, "every §1 owner starts unregistered")
 	var refusal: Digest.Refusal = Section.register_adapters(walker, _captured())
 	assert_true(refusal.is_ok(), "register_adapters: %s %s" % [refusal.code, refusal.detail])
+	assert_equal(_missing_world_adapters(walker), PackedStringArray(),
+		"no §1 owner is left without an adapter")
+	assert_false(walker.covers_release_state(), "other sections still keep the digest partial")
+
+
+func _missing_world_adapters(walker: Digest.Walker) -> PackedStringArray:
+	"""Keep the legacy codec test precise while the production declaration spans newer sections."""
+	var missing: PackedStringArray = PackedStringArray()
 	for entry: String in walker.missing_adapter_owners():
-		assert_false(entry.begins_with("1:"), "'%s' still has no adapter" % entry)
+		if entry.begins_with("1:"):
+			missing.append(entry)
+	return missing
 
 
 func test_every_declared_section_one_record_is_supplied_at_its_declared_count() -> void:
@@ -820,7 +845,7 @@ func test_every_declared_section_one_record_is_supplied_at_its_declared_count() 
 				"'%s.%s' is supplied: %s" % [RULING_OWNER_KEYS[owner], key, values.detail])
 			supplied += 1
 	assert_equal(supplied, RULING_CANONICAL_RECORD_COUNT,
-		"section 1 emits 36 canonical field records")
+		"section 1 emits 69 canonical field records")
 
 
 func test_an_unknown_field_key_is_refused_by_every_owner_adapter() -> void:
@@ -960,3 +985,107 @@ func test_an_unbound_store_refuses_rather_than_skipping_an_owner() -> void:
 		"validation refuses")
 	assert_equal(Section.cross_check_refusal(partial).code, Section.REFUSE_STORE_MISSING,
 		"and so does the cross check")
+
+
+# --- ADR 1222 step 0: the underground Space block's two layouts ----------------------------------
+
+func _mounted_space() -> SpaceOwner:
+	"""A real Space owner at the production pack, bound to one shared Space-test world.
+
+	The Space owner judges only its own bank, so it borrows a separate Buildings directory, as
+	`test_underground_space_owner.gd` does; every owner made here binds the same World.
+	"""
+	if _space_buildings == null:
+		_space_buildings = BuildingsScript.new()
+		_space_world = _space_buildings.directory().create(EntityDirectory.KIND_WORLD)
+	var domain: RoomSpace.Domain = RoomSpace.Domain.new()
+	assert_equal(domain.configure(_space_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
+		Vector3i(16, 16, 16), SpaceBudget.PHASE_VOLUME_CAPACITY, SpaceBudget.REGION_CAPACITY,
+		100000), &"", "domain")
+	var sources: SpaceOwner.CoreSources = SpaceOwner.CoreSources.new(
+		_space_buildings.directory(), _space_buildings, ConstructionScript.new(_space_buildings))
+	var owner: SpaceOwner = SpaceOwner.new(sources)
+	assert_equal(owner.configure(domain, SpaceBudget.REGION_CAPACITY, SpaceBudget.SOURCE_CAPACITY),
+		&"", "the production-pack Space owner")
+	return owner
+
+
+func test_an_unmounted_world_writes_the_canonical_empty_space_block() -> void:
+	"""No Session: capacities 0, an all-zero header and no column bytes, read off the wire."""
+	var bytes: PackedByteArray = _encoded(_captured())
+	var payload: int = RULING_PAYLOAD_OFFSETS[Section.OWNER_UNDERGROUND_SPACE]
+	assert_equal(bytes.decode_u64(payload), 1, "the region capacity scalar's count")
+	assert_equal(bytes.decode_s32(payload + 8), 0, "region capacity 0")
+	assert_equal(bytes.decode_s32(payload + 20), 0, "source capacity 0")
+	assert_equal(bytes.decode_u64(payload + 24), 18, "the header carries 18 entries")
+	var header: PackedByteArray = bytes.slice(payload + 32, payload + 32 + 144)
+	assert_equal(header.count(0), 144, "and every header byte is zero")
+	assert_equal(bytes.decode_u64(payload + 176), 0, "the first region column is empty")
+
+
+func test_a_mounted_space_round_trips_through_the_mounted_layout_into_a_fresh_owner() -> void:
+	"""MOUNTED: 4257039 bytes, decoded and restored into a second owner byte-identically."""
+	var source: SpaceOwner = _mounted_space()
+	_stores.space_owner = source
+	var state: Section.State = _captured()
+	assert_equal(state.space_layout, Section.LAYOUT_MOUNTED, "the mounted layout is chosen")
+	var bytes: PackedByteArray = _encoded(state)
+	assert_equal(bytes.size(), RULING_MOUNTED_SECTION_BYTES, "the mounted section length")
+	var back: Section.State = Section.State.new()
+	var refusal: SaveHeader.Refusal = Section.decode_section(bytes, 0, bytes.size(), back)
+	assert_true(refusal.is_ok(), "decode: %s %s" % [refusal.code, refusal.detail])
+	assert_equal(_fingerprint(_encoded(back)), _fingerprint(bytes), "re-encodes identically")
+	var target: SpaceOwner = _mounted_space()
+	refusal = Section.restore_space_owner(back, target)
+	assert_true(refusal.is_ok(), "restore: %s %s" % [refusal.code, refusal.detail])
+	assert_equal(target.state_bytes(), source.state_bytes(), "the owner's image is exact")
+
+
+func test_space_capacities_outside_the_two_layouts_refuse() -> void:
+	"""A capacity pair that names no compiled layout, or the wrong length for it, refuses."""
+	var bytes: PackedByteArray = _encoded(_captured())
+	var payload: int = RULING_PAYLOAD_OFFSETS[Section.OWNER_UNDERGROUND_SPACE]
+	var odd: PackedByteArray = bytes.duplicate()
+	odd.encode_s32(payload + 8, 6144)
+	assert_equal(_decoded_code(odd), Section.REFUSE_SPACE_LAYOUT, "6144/0 is no layout")
+	var dirty: PackedByteArray = bytes.duplicate()
+	dirty[payload + 40] = 1
+	assert_equal(_decoded_code(dirty), Section.REFUSE_SPACE_HEADER,
+		"an unmounted header must be all zero")
+
+
+func test_a_mounted_header_must_carry_the_pack_and_a_revision() -> void:
+	"""The schema, both pack capacities and a revision of at least 1, checked before restore."""
+	_stores.space_owner = _mounted_space()
+	var state: Section.State = _captured()
+	for entry: Array in [[0, 9], [1, 64], [2, 7], [17, 0]]:
+		var copy: Section.State = Section.State.new()
+		copy.space_layout = state.space_layout
+		copy.space_values = state.space_values.duplicate(true)
+		var header: PackedByteArray = copy.space_values[2]
+		header.encode_s64(int(entry[0]) * 8, int(entry[1]))
+		assert_equal(Section.space_refusal(copy).code, Section.REFUSE_SPACE_HEADER,
+			"header slot %d = %d refuses" % [int(entry[0]), int(entry[1])])
+	assert_true(Section.space_refusal(state).is_ok(), "the untouched state still validates")
+
+
+func test_restore_space_owner_requires_the_mount_to_match_the_save() -> void:
+	"""An unmounted save fills no owner; a mounted save needs one; a refused restore changes nothing."""
+	var unmounted: Section.State = _captured()
+	assert_true(Section.restore_space_owner(unmounted, null).is_ok(), "nothing to fill")
+	var mounted_owner: SpaceOwner = _mounted_space()
+	assert_equal(Section.restore_space_owner(unmounted, mounted_owner).code,
+		Section.REFUSE_SPACE_MOUNT, "an unmounted save cannot fill a mounted Space")
+	_stores.space_owner = mounted_owner
+	var mounted: Section.State = _captured()
+	assert_equal(Section.restore_space_owner(mounted, null).code, Section.REFUSE_SPACE_MOUNT,
+		"a mounted save needs an owner")
+	var before: PackedByteArray = mounted_owner.state_bytes()
+	var wrong: Section.State = Section.State.new()
+	wrong.space_layout = mounted.space_layout
+	wrong.space_values = mounted.space_values.duplicate(true)
+	var header: PackedByteArray = wrong.space_values[2]
+	header.encode_s64(3 * 8, 999)
+	assert_equal(Section.restore_space_owner(wrong, mounted_owner).code,
+		Section.REFUSE_RESTORE_FAILED, "the owner refuses a foreign world binding")
+	assert_equal(mounted_owner.state_bytes(), before, "and its live bank is unchanged")

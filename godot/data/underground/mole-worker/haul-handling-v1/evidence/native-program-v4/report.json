@@ -1,0 +1,29 @@
+{
+	"api_version": "4.0",
+	"assertions": 8,
+	"basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+	"content_sha256": "6fadc7150b04738d73d06ec739559cf4f4f429126d90ce217c71999d0dec6f8e",
+	"display_server": "macOS",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": [
+		"both complete native mesh fingerprints"
+	],
+	"production_qualified": false,
+	"rendering_driver": "metal",
+	"rendering_method": "forward_plus",
+	"rows": 0,
+	"runtime_admitted": false,
+	"schema": 1,
+	"screenshots": [],
+	"user_directory": "/Users/brendan/Library/Application Support/Redwall-ug-haul-native-1144"
+}

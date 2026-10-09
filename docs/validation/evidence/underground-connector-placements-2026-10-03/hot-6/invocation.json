@@ -1,0 +1,81 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.841,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "68/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6"
+      ],
+      "exit_code": 0,
+      "seconds": 6.205,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "63/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6"
+      ],
+      "exit_code": 0,
+      "seconds": 11.69,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "118/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6"
+      ],
+      "exit_code": 0,
+      "seconds": 8.836,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6254",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6/analyzer.json",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_underground_locations.gd",
+        "godot/test/test_underground_routes.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.834,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-geometry-hot-tests",
+  "project_test_sha256": "c1ba8422b2967670e7d2487284f7affdc4910576c679f404d96917d75dd55c27",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

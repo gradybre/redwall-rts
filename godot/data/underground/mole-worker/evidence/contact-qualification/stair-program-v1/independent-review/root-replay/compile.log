@@ -1,0 +1,3 @@
+stair-program ascent
+stair-program descent
+{"sha256": "c966b64608b0308cca2e54973aeb72dd55a2b5b4e59f0b834517933667b50ee8", "wire_bytes": 19332, "rows": {"DESC": 2, "ROOT": 182, "STEP": 180, "BOXE": 348, "SUPP": 122, "SIDX": 180, "SOLI": 44}, "numeric_coexistence": 42704, "production_qualified": false}

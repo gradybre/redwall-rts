@@ -1,0 +1,39 @@
+{
+  "scope": "unqualified exact-source plane portions; not a paid face",
+  "portions": {
+    "work": [
+      {
+        "part": 0,
+        "forward": null
+      },
+      {
+        "part": 1,
+        "forward": [
+          -274,
+          199,
+          -850,
+          9,
+          797,
+          -768
+        ]
+      }
+    ],
+    "entry": [
+      {
+        "part": 0,
+        "forward": null
+      },
+      {
+        "part": 1,
+        "forward": [
+          -191,
+          514,
+          -910,
+          320,
+          834,
+          -768
+        ]
+      }
+    ]
+  }
+}

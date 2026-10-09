@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_approach.gd
+  PASS  test_actual_path_and_work_face_are_observed_before_any_candidate
+  PASS  test_disconnected_profile_path_refuses_a_genuine_available_work_face
+  PASS  test_zero_edge_path_still_proves_the_whole_selected_travel_pose
+  PASS  test_full_source_contact_rejects_an_interior_approach_hole
+  PASS  test_target_must_belong_to_exact_room_cut_union
+  PASS  test_every_added_request_field_is_pinned_against_late_mutation
+  PASS  test_same_revision_refuses_and_new_epochs_expire_original_source
+  PASS  test_endpoint_callbacks_close_original_request_and_lease
+  PASS  test_wrong_profile_and_preexisting_candidate_refuse_without_output
+  PASS  test_current_cold_admission_and_plain_plan_remain_explicit
+  PASS  test_real_room_preparation_retains_witness_without_large_surveys_after_sites
+  PASS  test_real_confirm_kitchen_preserves_fine_cells_and_refreshes_exact_existing_approach
+  PASS  test_prepared_final_rejects_every_extra_request_field_and_foreign_candidate
+  PASS  test_final_observer_reentry_cannot_close_or_reuse_the_original_room_scope
+  PASS  test_last_sites_observer_cannot_replace_the_actual_profile_source
+  PASS  test_last_sites_observer_cannot_hide_a_new_actual_foundation
+  PASS  test_last_sites_observer_cannot_substitute_equal_cold_capacity
+  PASS  test_actual_confirm_preserves_a_fine_hole_and_claims_whole_cubes_once
+  PASS  test_final_world_publication_read_cannot_run_after_terrain_proof
+  PASS  test_final_world_tile_reader_cannot_mutate_after_copying_terrain
+  PASS  test_final_resource_reader_cannot_mutate_after_copying_node_identity
+  PASS  test_final_building_tile_reader_cannot_mutate_after_copying_empty_ref
+  PASS  test_final_room_reader_cannot_run_after_prepared_companion_checks
+  PASS  test_static_terrain_preserves_water_ford_surface_and_local_boundaries
+  PASS  test_static_terrain_observes_actual_resource_lifecycle_and_full_generation
+  PASS  test_static_terrain_preserves_actual_rotated_foundation_and_site_envelope
+  PASS  test_static_terrain_requires_original_prepared_revision_and_lease
+CI_SUITE_TIME {"assertions":784,"failures":0,"suite":"test_underground_room_approach.gd","tests":27,"usec":8124224}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+27 test(s), 784 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 27 tests, 784 assertions, 0 failures.

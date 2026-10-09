@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-04",
+  "findings": "No high/medium finding within the stated component scope.",
+  "independent_python_tests": 14,
+  "remaining": [
+    "arbitrary fast-math rewrites",
+    "UNORM/source-input/model residuals",
+    "complete continuous enclosure",
+    "actual Actor renderer binding",
+    "native/runtime/World qualification"
+  ],
+  "reviewed_output_rows": 51,
+  "reviewed_output_sha256": "aa4e67dceb5c0c3e3d4bee6b8fb0593d45b72582a1b7ec741958d66f32d1ccf1",
+  "reviewer": "root independent source review",
+  "schema": 1,
+  "scope": "Native heading source and conditional finite-expression bound only; no profile/World activation.",
+  "source_commit": "65c1ddb9",
+  "source_pins": {
+    "godot/test/test_underground_forward_basis.gd": "90cd4bd75090d3bc0f95684dd48b090d449350bad9c93edb78383971ce570066",
+    "tools/bake_underground_forward_basis.gd": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+    "tools/prove_underground_forward_backend.py": "278c57cebb994ce3c4ec719bdee4dd0c9070abf76975aa8e2c2ea9e58db9b96a",
+    "tools/test_prove_underground_forward_backend.py": "04659dbc0136a155aad5c762bc47586ab32941d5a9922b54ac34c97f8b2f622e"
+  }
+}

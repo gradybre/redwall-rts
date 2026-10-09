@@ -1,0 +1,27 @@
+test_all_reset_failure_abandon_and_cold_phases_remain_counted (__main__.CensusTest) ... ok
+test_captured_pack_drift_refuses (__main__.CensusTest) ... ok
+test_captured_producer_drift_refuses_before_import (__main__.CensusTest) ... ok
+test_constructor_reference_growth_is_counted (__main__.CensusTest) ... ok
+test_coordinated_producer_manifest_rewrite_refuses (__main__.CensusTest) ... ok
+test_current_complete_lifetime_and_partitions (__main__.CensusTest) ... ok
+test_each_limit_remains_exact (__main__.CensusTest) ... ok
+test_exact_initial_entry_subtype (__main__.CensusTest) ... ok
+test_extra_host_reference_refuses (__main__.CensusTest) ... ok
+test_foreign_allocating_call_cannot_hide_in_leaf (__main__.CensusTest) ... ok
+test_foreign_capacity_drift_refuses_before_import (__main__.CensusTest) ... ok
+test_helper_numeric_growth_is_counted (__main__.CensusTest) ... ok
+test_literal_payload_cannot_hide_in_declared_numeric_slot (__main__.CensusTest) ... ok
+test_local_packed_constructor_refuses (__main__.CensusTest) ... ok
+test_member_packed_initializer_growth_refuses (__main__.CensusTest) ... ok
+test_no_extra_prepare_frame_or_owner_argument (__main__.CensusTest) ... ok
+test_no_late_configuration_lifetime (__main__.CensusTest) ... ok
+test_no_second_planner (__main__.CensusTest) ... ok
+test_no_skipped_reset (__main__.CensusTest) ... ok
+test_retained_scope_growth_refuses (__main__.CensusTest) ... ok
+test_serialization_reproduces_all_source_and_lifetime_rows (__main__.CensusTest) ... ok
+test_unknown_injected_source_is_never_ignored (__main__.CensusTest) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 1.791s
+
+OK

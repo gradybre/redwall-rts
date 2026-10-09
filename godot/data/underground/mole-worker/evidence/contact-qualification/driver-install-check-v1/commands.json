@@ -1,0 +1,27 @@
+[
+  [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  [
+    "./tools/run_tests.sh",
+    "--shard",
+    "168/331",
+    "--output-dir",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/driver-install-check-v1/shard"
+  ],
+  [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd",
+    "godot/test/test_mole_profile_driver.gd",
+    "--port",
+    "6149",
+    "--max",
+    "0"
+  ]
+]

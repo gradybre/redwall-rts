@@ -1,0 +1,70 @@
+{
+ "scripts/core/underground_connector_delivery.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_work_tick\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 14,
+     "line": 52
+    },
+    "start": {
+     "character": 4,
+     "line": 52
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(STATIC_CALLED_ON_INSTANCE): The function \"_v()\" is a static function but was called from an instance. Instead, it should be directly called from the type: \"res://scripts/core/underground_connector_catalog.gd._v()\".",
+   "range": {
+    "end": {
+     "character": 88,
+     "line": 308
+    },
+    "start": {
+     "character": 30,
+     "line": 308
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(STATIC_CALLED_ON_INSTANCE): The function \"_v()\" is a static function but was called from an instance. Instead, it should be directly called from the type: \"res://scripts/core/underground_connector_catalog.gd._v()\".",
+   "range": {
+    "end": {
+     "character": 73,
+     "line": 310
+    },
+    "start": {
+     "character": 15,
+     "line": 310
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "test/test_underground_connector_delivery.gd": [
+  {
+   "code": 0,
+   "message": "(STATIC_CALLED_ON_INSTANCE): The function \"turn_actor()\" is a static function but was called from an instance. Instead, it should be directly called from the type: \"res://scripts/core/underground_world_routes.gd.turn_actor()\".",
+   "range": {
+    "end": {
+     "character": 124,
+     "line": 251
+    },
+    "start": {
+     "character": 15,
+     "line": 251
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

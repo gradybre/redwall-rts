@@ -2,11 +2,24 @@ extends RefCounted
 ## Owner 13 (`resource_nodes`) framed-column validation bridge
 ## (RESOURCE-NODES-S4-VALIDATE-R01 v1, ADR 0176).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the ResourceNode store's own column rules and returns a `SaveHeader.Refusal`. It
-## constructs no ResourceNodes, Directory, WorldTileMaps or catalog store, consults no live
-## owner, reads no clock, captures nothing, applies nothing, normalises nothing and writes no
-## diagnostic.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the
+##     ResourceNode store's own column rules and returns a `SaveHeader.Refusal`. It constructs no
+##     ResourceNodes, Directory, WorldTileMaps or catalog store, consults no live owner, reads no
+##     clock, captures nothing and applies nothing.
+##   * `capture_into(store, record)` copies the live store's ten columns through
+##     `ResourceNodes.copy_columns_into()` and projects them into the record's typed buckets in
+##     ordinal order -- the exact inverse of the projection below -- then judges the written
+##     record with `framed_refusal()`, so a capture can never emit an image apply would refuse. A
+##     refused capture leaves the record's contents unspecified; the caller discards it.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `ResourceNodes.restore_columns()`, which re-runs the same predicate, writes nothing on
+##     refusal and rebuilds the live-row list. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline. None
+## touches section 1's `_resource_slot` tile map or the deposit scratch arrays: a different
+## section owns the first, and the second is category-3 operation scratch never saved.
 ##
 ## GATE ORDER:
 ##   1. a null record                   -> SAVE_COMPONENT_SHAPE
@@ -27,10 +40,10 @@ extends RefCounted
 ##
 ## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Owner-13 scalar-domain validation only. The saved
 ## §1 inverse in both directions, the Directory kind/typed-row/reference agreement, unique tile
-## and unique reference placement, verified same-file catalog membership of every
-## `_resource_id`, bulk restoration, derived counts and full-file provenance all remain
-## downstream obligations under RESOURCE-NODES-SAVED-BINDINGS. Duplicate tiles and duplicate
-## references are legal images here.
+## and unique reference placement, verified same-file catalog membership of every `_resource_id`
+## and full-file provenance all remain downstream obligations under RESOURCE-NODES-SAVED-BINDINGS.
+## Duplicate tiles and duplicate references are legal images here. Bulk capture/apply and the
+## live-row-list rebuild are the two entry points above.
 ##
 ## THE METADATA GUARD compares the compiled schema to pinned contract literals and the
 ## ResourceNodes source constants to their pinned values. That is not an owner-publication-table
@@ -91,6 +104,8 @@ const SOURCE_NO_NODE: int = -1
 const SOURCE_DIRECTORY_CAPACITY: int = 352418
 const SOURCE_NULL_SLOT: int = -1
 const SOURCE_NULL_GENERATION: int = 0
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -125,6 +140,82 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code, "%s refuses this image with column code %s"
 			% [COLUMN_DETAIL_PREFIX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: ResourceNodes, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's ten columns into one owner 13 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: ResourceNodes.Columns = ResourceNodes.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "%s capture refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	if not (record.set_u8(FIELD_PRESENT, columns.present)
+			and record.set_i32(FIELD_RESOURCE_ID, columns.resource_id)
+			and record.set_i64(FIELD_QUANTITY_MILLI, columns.quantity_milli)
+			and record.set_i64(FIELD_CAPACITY_MILLI, columns.capacity_milli)
+			and record.set_i32(FIELD_REGROW_DAYS, columns.regrow_days)
+			and record.set_i32(FIELD_PLANTED_DAY, columns.planted_day)
+			and record.set_u8(FIELD_EXHAUSTED, columns.exhausted)
+			and record.set_i32(FIELD_TILE, columns.tile)
+			and record.set_i32(FIELD_REF_SLOT, columns.ref_slot)
+			and record.set_i32(FIELD_REF_GENERATION, columns.ref_generation)):
+		return _refuse(Section.REFUSE_SHAPE,
+			"%s capture could not write a column" % COLUMN_DETAIL_PREFIX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: ResourceNodes) -> SaveHeader.Refusal:
+	"""Validate one owner 13 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no ResourceNodes store was supplied for owner %d"
+			% OWNER_INDEX)
+	var columns: ResourceNodes.Columns = ResourceNodes.Columns.new()
+	columns.present = record.u8_column(FIELD_PRESENT)
+	columns.resource_id = record.i32_column(FIELD_RESOURCE_ID)
+	columns.quantity_milli = record.i64_column(FIELD_QUANTITY_MILLI)
+	columns.capacity_milli = record.i64_column(FIELD_CAPACITY_MILLI)
+	columns.regrow_days = record.i32_column(FIELD_REGROW_DAYS)
+	columns.planted_day = record.i32_column(FIELD_PLANTED_DAY)
+	columns.exhausted = record.u8_column(FIELD_EXHAUSTED)
+	columns.tile = record.i32_column(FIELD_TILE)
+	columns.ref_slot = record.i32_column(FIELD_REF_SLOT)
+	columns.ref_generation = record.i32_column(FIELD_REF_GENERATION)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "%s restore refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: ResourceNodes) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no ResourceNodes store was supplied for owner %d"
+			% OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

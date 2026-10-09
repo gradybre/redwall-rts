@@ -1,0 +1,13 @@
+{
+  "checkpoint": "32c65ecd9b509d5944cce443cfff410fcadabfd2",
+  "focused_tests": 30,
+  "failures": 0,
+  "existing_arithmetic_unchanged": true,
+  "new_reserved_bytes": 0,
+  "global_bytes": 99999806,
+  "headroom_bytes": 194,
+  "constructor_bytes": 8185,
+  "profile_joint_bytes": 248632,
+  "normal_pending": true,
+  "independent_review_pending": true
+}

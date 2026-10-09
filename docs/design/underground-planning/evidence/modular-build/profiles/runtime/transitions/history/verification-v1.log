@@ -1,0 +1,9 @@
+transition input: 27 cases; 527 pins; no production permission
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 240, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 233, in main
+    result = run(spec, args.out_dir)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 198, in run
+    raise ValueError(f'TRANSITION_ENGINE_EXIT:{done.returncode}; see {log}')
+ValueError: TRANSITION_ENGINE_EXIT:2; see docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/native-v1/capture-native.log

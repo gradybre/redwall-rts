@@ -1,0 +1,80 @@
+{
+  "scope": "component/regression shards, not full suite",
+  "totals": {
+    "tests": 126,
+    "assertions": 8679,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0
+  },
+  "suites": [
+    {
+      "suite": "test_construction_modular.gd",
+      "footers": [
+        "12 test(s), 150 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_excavation_sites.gd",
+      "footers": [
+        "25 test(s), 3804 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_modular_inventory.gd",
+      "footers": [
+        "12 test(s), 291 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_modular_projects.gd",
+      "footers": [
+        "21 test(s), 1944 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_modular_spatial_outputs.gd",
+      "footers": [
+        "8 test(s), 415 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_spoil_work.gd",
+      "footers": [
+        "10 test(s), 874 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_underground_connector_recipes.gd",
+      "source": "final-source/test_underground_connector_recipes.gd.log",
+      "footers": [
+        "20 test(s), 869 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_underground_connector_catalog.gd",
+      "source": "final-source/test_underground_connector_catalog.gd.log",
+      "footers": [
+        "18 test(s), 332 assertion(s), 0 failure(s)",
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    }
+  ]
+}

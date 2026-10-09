@@ -1,0 +1,116 @@
+{
+  "base": "a92b7a7872ef57d270f1c20604a9b8f583d2c87d",
+  "head": "a92b7a7872ef57d270f1c20604a9b8f583d2c87d",
+  "manifests": {
+    "source-sha256.json": {
+      "sha256": "683d1ba51fe98a1e7828d2110b93dbc59bbc93ef982e742a83c1e52fd4ecc59a",
+      "entries": 10,
+      "all_match": true
+    },
+    "output-sha256.json": {
+      "sha256": "aa6d5fbb164019147812a38ae5fcf8856daa03f5cb85cd151f67fba5ea39aa86",
+      "entries": 53,
+      "all_match": true
+    },
+    "inherited-sha256.json": {
+      "sha256": "305a1bf2e7029cca076ce327089a4765ad98cafdfac5827a4005dfc8eb692990",
+      "entries": 47,
+      "all_match": true
+    },
+    "history-sha256.json": {
+      "sha256": "15a7e3f5d397cdadd6a86cffd07cab525af2e6c7678dd073221b19966ec23bd2",
+      "entries": 186,
+      "all_match": true
+    }
+  },
+  "source_pins": {
+    "godot/scripts/core/underground_session.gd": "c0e67daf30de3604873b743ba95ab5c196c1baf2b96aee407bddf088cf285a77",
+    "godot/scripts/core/underground_world_retirement.gd": "db439ef3a968b63666154e97cbdda91921c723ee8546b4ac2a0db0f7acce3467",
+    "godot/scripts/systems/settlement_system.gd": "71baf27780c8652b39958a566fede60f42edbe494b4f3907f1ff58040c99b129",
+    "godot/scripts/core/underground_route_composition.gd": "f47e5fd013bd106c5efa7368c7c7192985687d2b72d0c7750cebb5225532c227",
+    "godot/scripts/core/underground_route_composition.gd.uid": "87402e511d81ebb6c4329b2b8501695229b13ccf6d467bc30a91de1440738c98",
+    "godot/test/test_underground_route_composition.gd": "d6bf32d4cc5a8babe79930642b097d851e61db6ecdba2991c4f5a98be2e4167d",
+    "godot/test/test_underground_route_composition.gd.uid": "47f1c44b9d745798909518078102d517863c574168a9781fadd1b692f5857db2",
+    "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py": "8bd2efa690a3bb8df310297300a4cc54135e5d15452f993a49b56fd4d8fb6fbe",
+    "docs/validation/evidence/underground-route-owner-composition-2026-10-04/test_census.py": "035df0df5c6d9c259f6d1ca86e433c251754f6bc015d3d34abb285021a9f8a20",
+    "docs/validation/evidence/underground-route-owner-composition-2026-10-04/reproduce.py": "a49d409740ca1f15df8dfec1c9aac3cf96f5288e5fe8748d890a3548ceefe845"
+  },
+  "author_strict": {
+    "test_underground_host.gd.log": {
+      "counts": {
+        "tests": 21,
+        "assertions": 219,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "sha256": "5d96a457f2cd5fe0bb367fb9eb0564848393ae2498574a7cd5495c89a022b59d"
+    },
+    "test_underground_room_composition.gd.log": {
+      "counts": {
+        "tests": 16,
+        "assertions": 371,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "sha256": "0ad26996e20cdb1571d2623df69233a03cee517511cbd2bec630f6641532a50f"
+    },
+    "test_underground_route_composition.gd.log": {
+      "counts": {
+        "tests": 19,
+        "assertions": 337,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "sha256": "6e020566a327cbe7cb82c1cc59c4178cb5e00fbe3ea90802f3747d726b0080ed"
+    },
+    "test_underground_session.gd.log": {
+      "counts": {
+        "tests": 15,
+        "assertions": 225,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "sha256": "d4b6ac7a3133a1302a4e9c4a2930139037a8093e272900fa3563df29d4e56b12"
+    },
+    "test_underground_world_retirement.gd.log": {
+      "counts": {
+        "tests": 19,
+        "assertions": 1963,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "sha256": "e82b03201ccf53be3486ef6713be64e76bf7c2dea84321963d2c65aa6973aa81"
+    }
+  },
+  "tests": 90,
+  "assertions": 3115,
+  "author_invocation_sha256": "b013fe8c656540ba3aced75c3a3c0bf4ab8da0185e95a59404af4a386af7cc6c",
+  "independent_engine_rerun": false,
+  "census_byte_identical": true,
+  "verdict": "accepted for stated empty source-bound owner-composition scope; native/runtime/playable qualification remains false"
+}

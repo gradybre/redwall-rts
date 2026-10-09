@@ -1,0 +1,35 @@
+state_registry_coverage: PASS -- 96 modules, 463 rows, 808 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_paid_ledger.gd
+  PASS  test_each_purpose_records_its_paid_package_keys
+  PASS  test_a_stale_project_refuses_its_ledger_reads
+  PASS  test_a_tier_one_demolition_snapshots_only_the_base_package
+  PASS  test_a_tier_two_demolition_returns_half_of_base_plus_upgrade_per_item
+  PASS  test_a_tier_two_demolition_works_a_quarter_of_both_packages
+  PASS  test_the_fifty_percent_is_floored_once_per_item_not_per_package
+  PASS  test_cancelling_an_incomplete_upgrade_earns_its_refund_and_not_a_demolition_share
+  PASS  test_an_upgrade_in_progress_blocks_the_demolition
+  PASS  test_the_preview_matches_the_snapshot_the_transition_takes
+  PASS  test_the_preview_refuses_a_stale_building_and_a_short_buffer
+  PASS  test_the_open_refusal_preview_names_every_transition_refusal
+  PASS  test_the_open_refusal_preview_names_a_full_construction_kind
+CI_SUITE_TIME {"assertions":315,"failures":0,"suite":"test_construction_paid_ledger.gd","tests":12,"usec":644168}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+12 test(s), 315 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 12 tests, 315 assertions, 0 failures.

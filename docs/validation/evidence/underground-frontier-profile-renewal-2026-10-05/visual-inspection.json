@@ -1,0 +1,12 @@
+{
+  "inspector": "/root",
+  "images": [
+    "native-1/rts-yaw49152-tick094.png",
+    "native-1/side-yaw49152-tick188.png"
+  ],
+  "observations": [
+    "Textured worker and pick remain visible with intact pose and grip at the sampled strike and completed retreat.",
+    "These isolated actor renders have no wall, room, HUD or input workflow; they do not accept room appearance or playability."
+  ],
+  "whole_room_visual_qualified": false
+}

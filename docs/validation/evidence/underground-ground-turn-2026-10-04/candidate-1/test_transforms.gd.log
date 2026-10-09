@@ -1,0 +1,55 @@
+state_registry_coverage: PASS -- 138 modules, 692 rows, 1032 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_transforms.gd
+  PASS  test_directory_binding_compares_actual_owner_not_coincident_refs
+  PASS  test_capacity_is_the_sum_of_the_four_positioned_kinds
+  PASS  test_exactly_four_kinds_are_positioned
+  PASS  test_the_row_is_the_kind_base_plus_the_typed_row
+  PASS  test_the_row_refuses_an_unpositioned_kind_and_a_dead_reference
+  PASS  test_place_sets_previous_equal_to_current
+  PASS  test_advance_rolls_current_into_previous
+  PASS  test_advance_refuses_an_entity_that_was_never_placed
+  PASS  test_a_typed_row_inherited_from_another_slot_reads_as_unbound
+  PASS  test_a_successor_placing_the_row_replaces_the_pose_without_double_counting
+  PASS  test_unbind_clears_the_row_and_the_count
+  PASS  test_place_refuses_a_field_that_does_not_fit_int32
+  PASS  test_set_yaw_rolls_the_previous_yaw
+  PASS  test_yaw_scale_is_the_contracted_65536_units_per_turn
+  PASS  test_shortest_yaw_delta_takes_the_short_way_round
+  PASS  test_interpolation_returns_metres_from_the_two_committed_ticks
+  PASS  test_interpolation_refuses_an_alpha_outside_the_tick
+  PASS  test_interpolation_cannot_change_one_authoritative_field
+  PASS  test_interpolation_refuses_an_unplaced_or_dead_entity
+  PASS  test_identical_stores_digest_identically_and_a_changed_field_does_not
+  PASS  test_an_empty_store_digests_to_zero_and_a_placement_changes_it
+  PASS  test_the_state_image_covers_every_column_not_a_sample_of_them
+  PASS  test_every_written_field_moves_the_state_image
+  PASS  test_the_reset_returns_all_nine_columns_to_a_freshly_allocated_store
+  PASS  test_a_row_reused_after_a_reset_reads_as_unplaced_until_it_is_placed_again
+  PASS  test_a_refused_place_leaves_the_whole_store_byte_identical
+  PASS  test_runtime_revision_changes_for_every_successful_write_including_same_values
+  PASS  test_refused_mutations_preserve_runtime_revision_and_authoritative_bytes
+  PASS  test_reset_reuse_and_explicit_restore_invalidation_never_recycle_runtime_token
+  PASS  test_revision_exhaustion_poison_never_prevents_pose_write_or_whole_reset
+  PASS  test_stationary_turn_commits_one_tick_without_replaying_prior_translation
+  PASS  test_stationary_turn_refuses_stale_identity_pose_token_and_yaw_atomically
+CI_SUITE_TIME {"assertions":221,"failures":0,"suite":"test_transforms.gd","tests":32,"usec":431845}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+32 test(s), 221 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 32 tests, 221 assertions, 0 failures.

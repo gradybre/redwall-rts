@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/construction.gd": "5b7cdde0e087dc09c05ca9520b73e23edb9174932ed9d92c90bfe1860f7d3d2c",
+  "godot/scripts/core/modular_projects.gd": "eceba0d6c62baa8669ca3d31e6c41164a2283e29cd7b07fca19c2251ed94db98",
+  "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
+  "godot/test/test_underground_connector_work.gd": "b3e9abd2f2386ff797113762468bba79b44d3c62d9e34b6ee5ade38752af4d2d"
+}

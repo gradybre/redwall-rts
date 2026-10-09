@@ -1,0 +1,151 @@
+{
+  "scope": "Input locator inventory only. Existing native spec and evidence remain unchanged. No engine or source allocation.",
+  "spec_sha256": "103dd4a641f7aea542f8434386a0033a1d427bd8c9b373528630a706ce2dd0fb",
+  "replay_inputs": [
+    {
+      "field": "content",
+      "executed_path": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+      "repository_relative": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+      "bytes": 648760,
+      "sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+      "tracked": true
+    },
+    {
+      "field": "profiles",
+      "executed_path": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/native-2/diagnostic.ugprof",
+      "repository_relative": "docs/validation/evidence/underground-work-approach-2026-10-04/native-2/diagnostic.ugprof",
+      "bytes": 9620,
+      "sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+      "tracked": true
+    },
+    {
+      "field": "basis",
+      "executed_path": "res://demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+      "repository_relative": "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+      "bytes": 525013,
+      "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+      "tracked": false
+    },
+    {
+      "field": "manifest",
+      "executed_path": "res://demo/assets/manifest.json",
+      "repository_relative": "godot/demo/assets/manifest.json",
+      "bytes": 20171,
+      "sha256": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37",
+      "tracked": false
+    },
+    {
+      "repository_relative": "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-runtime-sources-v1/bake-spec.json",
+      "bytes": 126992,
+      "sha256": "f912989add1284bd8653ca7e071d1e5c577738e44f2e559e372fafbdaf420b86",
+      "tracked": true
+    },
+    {
+      "repository_relative": "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+      "bytes": 5906853,
+      "sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+      "tracked": false
+    },
+    {
+      "repository_relative": "godot/demo/assets/cast/mole_digger/body.glb",
+      "bytes": 20776868,
+      "sha256": "a559a5f8590d3f483307f61c99552bbbf84dde3e91e010de9d4a1abdcb405941",
+      "tracked": false
+    },
+    {
+      "repository_relative": "godot/demo/assets/props/mole_pick.glb",
+      "bytes": 1000044,
+      "sha256": "dc7fd045043cb1ca987f8393d1035ef2af219208fa8ae5dddd9698f14d40eeda",
+      "tracked": false
+    },
+    {
+      "repository_relative": "godot/data/underground/mole-worker/evidence/grip-native-v2/spec.json",
+      "bytes": 589,
+      "sha256": "46cb20fc0b126c4b43b16b905427d6a7ebab8bc1692d2240bbdbe3a4c30af4d7",
+      "tracked": true
+    }
+  ],
+  "historical_producer_rows": 311,
+  "historical_drift_rows": {
+    "res://demo/cast/underground_actor.gd": {
+      "original_sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "current_sha256": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91"
+    },
+    "res://scripts/core/buildings.gd": {
+      "original_sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
+      "current_sha256": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba"
+    },
+    "res://scripts/core/construction.gd": {
+      "original_sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+      "current_sha256": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "original_sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
+      "current_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "original_sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+      "current_sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e"
+    },
+    "res://scripts/core/inventory.gd": {
+      "original_sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+      "current_sha256": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "original_sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+      "current_sha256": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849"
+    },
+    "res://scripts/core/reservations.gd": {
+      "original_sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+      "current_sha256": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "original_sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465",
+      "current_sha256": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de"
+    },
+    "res://scripts/core/transforms.gd": {
+      "original_sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
+      "current_sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa"
+    },
+    "res://scripts/core/underground_profiles.gd": {
+      "original_sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "current_sha256": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e"
+    },
+    "res://scripts/core/work.gd": {
+      "original_sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
+      "current_sha256": "6bd7a29c6398dd1a8f795b40021bcf8602b85f5d51bf99aa9d6a0fb4fe074a6b"
+    },
+    "res://scripts/core/world_init.gd": {
+      "original_sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4",
+      "current_sha256": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
+    },
+    "res://scripts/systems/settlement_system.gd": {
+      "original_sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a",
+      "current_sha256": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e"
+    },
+    "res://scripts/systems/ui_manager.gd": {
+      "original_sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d",
+      "current_sha256": "bdb01f609234acc2786d9b0768e075e2ea14b5f5c7c88fe5db70a15f56a734e2"
+    },
+    "res://scripts/ui/ui_world_session.gd": {
+      "original_sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5",
+      "current_sha256": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1"
+    }
+  },
+  "current_executed_pin_count": 415,
+  "source_reconstruction_verified_inputs": 537,
+  "original_four_blob_locators": "godot/data/underground/mole-worker/work-approach-v1/source-input-locators.json",
+  "borrowed_sources": [
+    "borrowed-input-copy-sha256.json",
+    "borrowed-source-assets-sha256.json",
+    "borrowed-import-metadata-sha256.json"
+  ],
+  "rules": [
+    "Rebase paths only in a newly created replay spec; never rewrite the original native-2 spec or its accepted hash.",
+    "Resolve res:// paths against the replay checkout godot directory, preserve the exact basis and manifest bytes.",
+    "Copy missing ignored assets by exact recorded hashes; restore original import metadata/archive bytes rather than silently regenerate a changed source identity.",
+    "Native verification is sampled canonical matrix/palette evidence; source proof and production consumer closure remain distinct.",
+    "Historical producer source drift is recorded, never accepted as an exemption from the current nine cached Script hashes.",
+    "Diagnostic profile certificate flags do not establish current World, paid geometry or native allocation qualification."
+  ]
+}

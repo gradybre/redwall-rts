@@ -1,0 +1,134 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 15.55,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "288/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 6.641,
+      "log": "test_underground_host.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "216/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.284,
+      "log": "test_underground_session.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "313/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.664,
+      "log": "test_settlement_equipment.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "32/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.101,
+      "log": "test_ui_manager.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "87/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.579,
+      "log": "test_ui_world_session.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "1/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 36.911,
+      "log": "test_settlement_system.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "220/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.394,
+      "log": "test_modular_runtime.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6206",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/focused-1/analyzer.json",
+        "godot/scripts/core/underground_session.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/main.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/demo/demo_village.gd",
+        "godot/test/test_underground_host.gd",
+        "godot/test/test_ui_manager.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 16.931,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-host-lifecycle-20261004",
+  "project_test_sha256": "15934e2cb8c1dc92608d811517192fa881d72f898d5c244e5086ecb9ae6d20af",
+  "assets_present_before": false,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

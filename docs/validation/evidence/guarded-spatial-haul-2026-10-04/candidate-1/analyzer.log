@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+scripts/core/inventory.gd:1033: (SHADOWED_VARIABLE): The local function parameter "transfer" is shadowing an already-declared function at line 2679 in the current class.
+scripts/core/inventory.gd:1055: (SHADOWED_VARIABLE): The local function parameter "transfer" is shadowing an already-declared function at line 2679 in the current class.
+2 GDScript warning(s) in 1 of 4 file(s)

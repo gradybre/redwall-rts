@@ -1,0 +1,478 @@
+extends RefCounted
+## Presentation-only finite source clock. Clear/ready never grants Work credit or movement.
+## Host must retain the actual selected work/tool observation through recovery, or retire the Actor.
+
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Residents := preload("res://scripts/core/residents.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
+const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const ONE: int = 65536
+const READY_TIME: int = 8 * ONE
+# Existing DemoActor.CROSSFADE_S =0.25, expressed exactly in30Hz source ticks.
+const FADE_TIME: int = 15 * 32768
+const MAX_DELTA: int = 4 * ONE
+const PROGRAM_ORIGINAL: int = 1
+const PROGRAM_COMPACT: int = 2
+const PROGRAM_INSTALL: int = 3
+const PROGRAM_CARDINAL: int = 4
+const PROGRAM_APPROACH: int = 5
+const PROGRAM_SHORT_STEP: int = 6
+const PROFILE_STAND: int = 0
+const PROFILE_WALK: int = 1
+const PROFILE_DOWN: int = 2
+const PROFILE_HIGH: int = 3
+const PROFILE_FRONT: int = 4
+const PROFILE_INSTALL: int = 5
+const READY: int = 0
+const IDLE: int = 1
+const WALK: int = 2
+const FADE_READY: int = 3
+const FADE_WALK: int = 4
+const ENTRY: int = 5
+const WORK: int = 6
+const RECOVERY: int = 7
+const ENTRY_RETRACE: int = 8
+const RETIRED: int = 9
+const C_PHASE: int = 0
+const C_TIME: int = 1
+const C_PROFILE: int = 2
+const C_JOB_SLOT: int = 3
+const C_JOB_GENERATION: int = 4
+const C_OLD_A: int = 5
+const C_OLD_B: int = 6
+const C_OLD_SHARE: int = 7
+const C_X: int = 8
+const C_Y: int = 9
+const C_Z: int = 10
+const C_YAW: int = 11
+const C_COUNT: int = 12
+
+
+class Frame extends RefCounted:
+	## Caller-owned output. Host applies this only to the Actor configured with source_digest.
+	var frames: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, ONE])
+	var source_digest: String = ""
+	var worker: Vector2i = NULL_REF
+	var job: Vector2i = NULL_REF
+	var tool: Vector2i = NULL_REF
+	var point: Vector3i = Vector3i.ZERO
+	var yaw: int = 0
+	var phase: int = RETIRED
+	var ready: bool = false
+	var profile_id: int = -1
+	var profile_revision: int = 0
+	var content_revision: int = 0
+
+
+var _source: Content = null
+var _profiles: Profiles = null
+var _worker: Vector2i = NULL_REF
+var _tool: Vector2i = NULL_REF
+var _pins: PackedInt64Array = PackedInt64Array() # Four to six, or eighteen exact (profile,revision,content) tuples.
+var _durations: PackedInt32Array = PackedInt32Array() # Eight, eleven or fourteen immutable source clips.
+var _live: PackedInt64Array = PackedInt64Array()
+var _stage: PackedInt64Array = PackedInt64Array()
+var _pose: PackedInt32Array = PackedInt32Array([0, 0, 0])
+var _frames: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, ONE])
+var _selection: Profiles.Selection = Profiles.Selection.new()
+var _retired: bool = false
+
+
+func configure(source: Content, profiles: Profiles, definitions: Residents, worker: Vector2i,
+		tool: Vector2i, pins: PackedInt64Array, digest: String, program_version: int = PROGRAM_ORIGINAL) -> StringName:
+	"""Cold source/row binding only; each later update re-reads actual worker/Job/tool/pose owners."""
+	if _source != null or _retired:
+		return &"MOLE_DRIVER_ALREADY_BOUND"
+	if program_version < PROGRAM_ORIGINAL or program_version > PROGRAM_SHORT_STEP:
+		return &"MOLE_DRIVER_PROGRAM"
+	var profile_count: int = 18 if program_version >= PROGRAM_CARDINAL else program_version + 3
+	var clip_count: int = 14 if program_version >= PROGRAM_CARDINAL else profile_count * 3 - 4
+	if source == null or profiles == null or definitions == null or worker == NULL_REF or tool == NULL_REF \
+			or pins.size() != profile_count * 3 or source.source_digest() != digest or digest.length() != 64 \
+			or source.clip_count() != clip_count:
+		return &"MOLE_DRIVER_SOURCE"
+	if program_version >= PROGRAM_APPROACH and digest != SourceProgram.ACTOR_SHA:
+		return &"MOLE_DRIVER_SOURCE"
+	var code: StringName = _profile_bindings(source, profiles, definitions, pins, program_version)
+	if code == &"":
+		code = _read_timing(source)
+	if code != &"":
+		_durations.clear()
+		return code
+	_source = source
+	_profiles = profiles
+	_worker = worker
+	_tool = tool
+	_pins = pins.duplicate()
+	_live.resize(C_COUNT)
+	_stage.resize(C_COUNT)
+	_live[C_PROFILE] = -1
+	_live[C_JOB_SLOT] = -1
+	return &""
+
+
+func _profile_bindings(source: Content, profiles: Profiles, definitions: Residents,
+		pins: PackedInt64Array, program: int) -> StringName:
+	"""Catalog definitions name this source; actual mutable eligibility is exclusively queried later."""
+	var mole: Profiles.IntMath.IntResult = definitions.species_id(&"mole")
+	var rig: Profiles.IntMath.IntResult = definitions.rig_id(&"rig_mole_v1")
+	if not mole.ok or not rig.ok:
+		return &"MOLE_DRIVER_CATALOG"
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	@warning_ignore("integer_division") var profile_count: int = pins.size() / 3
+	for row: int in profile_count:
+		# Protocol4 repeats down/high/front/INSTALL for each exact cardinal heading after stand/walk.
+		# Fixed IDs and heading metadata prevent a caller exchanging otherwise compatible WORK tuples.
+		if pins[row * 3] != row + ((11 if program == PROGRAM_SHORT_STEP else 8) if program >= PROGRAM_APPROACH and row >= PROFILE_DOWN else 0):
+			return &"MOLE_DRIVER_PROFILE_ROLE"
+		var role: int = _mapped_role(row) if profile_count == 18 else row
+		var code: StringName = profiles.descriptor_into(pins[row * 3], pins[row * 3 + 2], descriptor)
+		if code != &"":
+			return code
+		if descriptor.profile_revision != pins[row * 3 + 1] or descriptor.mode != _mode(role) \
+				or descriptor.species != mole.value or descriptor.rig != rig.value \
+				or descriptor.life_stage != Residents.LIFE_STAGE_ADULT or descriptor.posture != Profiles.POSTURE_UPRIGHT \
+				or descriptor.tool_item < 0 or descriptor.tool_variant != Gear.MANUFACTURE_BASIC \
+				or descriptor.cargo_item != -1 or descriptor.quantity_min_milli != 0 or descriptor.quantity_max_milli != 0 \
+				or not source.profile_matches(profiles, descriptor.profile_id, descriptor.profile_revision, descriptor.content_revision):
+			return &"MOLE_DRIVER_PROFILE_SOURCE"
+		if row >= PROFILE_DOWN and descriptor.contact_kind != Profiles.CONTACT_ANCHOR_AND_PATCH:
+			return &"MOLE_DRIVER_CONTACT_SOURCE"
+		if profile_count == 18 and not _mapped_heading_matches(row, descriptor):
+			return &"MOLE_DRIVER_PROFILE_HEADING"
+		if program >= PROGRAM_APPROACH and row >= PROFILE_DOWN \
+				and _canonical_profile_refusal(profiles, descriptor.profile_id, descriptor.profile_revision, descriptor.content_revision, program) != &"":
+			return &"MOLE_DRIVER_PROFILE_SOURCE"
+	if program >= PROGRAM_APPROACH:
+		for profile: int in range(2, 13 if program == PROGRAM_SHORT_STEP else 10):
+			if _canonical_profile_refusal(profiles, profile, pins[4], pins[5], program) != &"":
+				return &"MOLE_DRIVER_PROFILE_SOURCE"
+	return &""
+
+
+static func _canonical_profile_refusal(profiles: Profiles, profile: int, revision: int, content: int, program: int) -> StringName:
+	"""Each supported visual consumer keeps the exact source version and actual original Profile row."""
+	return ShortStep.profile_refusal(profiles, profile, revision, content) if program == PROGRAM_SHORT_STEP \
+		else SourceProgram.profile_refusal(profiles, profile, revision, content)
+
+
+func _read_timing(source: Content) -> StringName:
+	"""Programs start idle/walk, then exact down/high, v2 front and v3 INSTALL work/entry/recovery triples."""
+	var timing: PackedInt32Array = PackedInt32Array([0, 0])
+	_durations.resize(source.clip_count())
+	for clip: int in source.clip_count():
+		if not source.clip_timing_into(clip, timing):
+			return &"MOLE_DRIVER_CLIP_SOURCE"
+		var loops: bool = clip < 2 or (clip - 2) % 3 == 0
+		if timing[1] != int(loops) or timing[0] <= 0:
+			return &"MOLE_DRIVER_CLIP_SOURCE"
+		_durations[clip] = timing[0]
+	if _durations[0] <= READY_TIME:
+		return &"MOLE_DRIVER_CLIP_SOURCE"
+	for work_clip: int in range(2, source.clip_count(), 3):
+		if _durations[work_clip + 1] != _durations[work_clip + 2]:
+			return &"MOLE_DRIVER_CLIP_SOURCE"
+	return &""
+
+
+func step_into(profile: int, job: Vector2i, delta_q16: int, request_ready: bool, out: Frame) -> StringName:
+	"""Advance a proved source phase, never an economic timer; every refused result preserves output and phase."""
+	if _pins.size() == 54 and profile >= PROFILE_DOWN:
+		return &"MOLE_DRIVER_EXACT_PROFILE_REQUIRED"
+	return _step(profile, profile, job, delta_q16, request_ready, out)
+
+
+func step_profile_into(profile_id: int, job: Vector2i, delta_q16: int, request_ready: bool, out: Frame) -> StringName:
+	"""Protocol4 consumes the actual selected catalog row; it never chooses a work heading for the caller."""
+	if _source == null or _retired:
+		return &"MOLE_DRIVER_UNBOUND"
+	if _pins.size() != 54 or profile_id < 0 or profile_id >= 18:
+		return &"MOLE_DRIVER_INPUT"
+	return _step(_mapped_role(profile_id), profile_id, job, delta_q16, request_ready, out)
+
+
+func _step(role: int, row: int, job: Vector2i, delta_q16: int, request_ready: bool, out: Frame) -> StringName:
+	"""Shared phase logic keeps every prior protocol's refusal, recovery and publication behavior."""
+	if _source == null or _retired or out == null or out.frames.size() != 7:
+		return &"MOLE_DRIVER_UNBOUND"
+	if _pins.size() == 54 and _pins[6] >= 10:
+		return &"MOLE_DRIVER_CANONICAL_ROUTES_REQUIRED"
+	if role < 0 or role > PROFILE_INSTALL or row < 0 or row * 3 >= _pins.size() \
+			or delta_q16 < 0 or delta_q16 > MAX_DELTA:
+		return &"MOLE_DRIVER_INPUT"
+	if _live[C_PHASE] != READY and (role != _live[C_PROFILE] or job != _job(_live)):
+		return &"MOLE_DRIVER_HANDOFF_REQUIRED"
+	var code: StringName = _observe(role, row, job)
+	if code != &"":
+		return code
+	for index: int in C_COUNT:
+		_stage[index] = _live[index]
+	_stage[C_PROFILE] = role
+	_stage[C_JOB_SLOT] = job.x
+	_stage[C_JOB_GENERATION] = job.y
+	code = _advance(delta_q16, request_ready)
+	if code == &"":
+		code = _render_frames()
+	if code == &"":
+		_publish(out)
+	return code
+
+
+func read_route_into(actual: Routes, profile_id: int, job: Vector2i, out: Frame) -> StringName:
+	"""Canonical programmes consume the original30Hz clock; drawing zero or many frames never advances it."""
+	if _source == null or _retired or out == null or out.frames.size() != 7 \
+			or actual == null or actual._profiles != _profiles or _pins.size() != 54 or (_pins[6] != 10 and _pins[6] != 13):
+		return &"MOLE_DRIVER_UNBOUND"
+	var work_first: int = _pins[6]
+	if profile_id < 2 or profile_id >= work_first + 16: return &"MOLE_DRIVER_INPUT"
+	var row: int = profile_id - work_first + 2 if profile_id >= work_first else 1
+	var code: StringName
+	if profile_id >= work_first:
+		code = _profiles.query_work_profile_into(_worker, job, profile_id, _pins[row * 3 + 1],
+			_pins[row * 3 + 2], Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+	else:
+		code = _profiles.query_travel_profile_into(_worker, job, profile_id, _pins[4], _pins[5],
+			Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+	if code != &"": return code
+	if _selection.tool != _tool: return &"MOLE_DRIVER_PROFILE_STALE"
+	code = Routes.source_state_leaf_into(actual, _worker, job, profile_id, _selection.profile_revision,
+		_selection.content_revision, _stage)
+	if code == &"": code = _source_route_frames(profile_id)
+	if code != &"": return code
+	for index: int in 7:
+		out.frames[index] = _frames[index]
+	out.source_digest = SourceProgram.ACTOR_SHA
+	out.worker = _worker
+	out.job = job
+	out.tool = _tool
+	out.point = Vector3i(_selection.x, _selection.y, _selection.z)
+	out.yaw = _selection.yaw
+	out.phase = _stage[0]
+	out.ready = _stage[0] == SourceProgram.READY
+	out.profile_id = profile_id
+	out.profile_revision = _selection.profile_revision
+	out.content_revision = _selection.content_revision
+	return &""
+
+
+func _source_route_frames(profile: int) -> StringName:
+	"""Resolve the actual Content loop seam and the complete supplied fade, without a second source clock."""
+	var phase: int = _stage[0]
+	var time: int = _stage[1]
+	var mapped_profile: int = ShortStep.mapped(profile) if _pins[6] == 13 else profile
+	var clip: int = SourceProgram.clip(mapped_profile, phase)
+	if phase == SourceProgram.READY or phase == SourceProgram.FADE_READY:
+		clip = 0
+		time = READY_TIME
+	elif phase == SourceProgram.FADE_WALK:
+		time = 0
+	elif phase == SourceProgram.WALK:
+		time = SourceProgram.walk_time(mapped_profile, time)
+	var code: StringName = _source.clip_into(clip, time, _pose)
+	if code != &"": return code
+	for index: int in 3:
+		_frames[index] = _pose[index]
+		_frames[index + 3] = _pose[index]
+	_frames[6] = ONE
+	if phase == SourceProgram.FADE_READY:
+		code = _source.clip_into(1, SourceProgram.walk_time(mapped_profile, _stage[2]), _pose)
+	elif phase == SourceProgram.FADE_WALK:
+		code = _source.clip_into(0, READY_TIME, _pose)
+	if code != &"": return code
+	if phase == SourceProgram.FADE_READY or phase == SourceProgram.FADE_WALK:
+		for index: int in 3:
+			_frames[index + 3] = _pose[index]
+		@warning_ignore("integer_division") _frames[6] = _stage[1] * ONE / FADE_TIME
+	return &""
+
+
+func _observe(role: int, row: int, job: Vector2i) -> StringName:
+	"""An explicit contact pin cannot hide changed actual manufacture, assigned work, cargo or actor pose."""
+	var code: StringName
+	if role >= PROFILE_DOWN:
+		code = _profiles.query_work_profile_into(_worker, job, _pins[row * 3], _pins[row * 3 + 1],
+			_pins[row * 3 + 2], Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+	else:
+		code = _profiles.query_into(_worker, job, _mode(role), Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+	if code != &"":
+		return code
+	if _selection.profile_id != _pins[row * 3] or _selection.profile_revision != _pins[row * 3 + 1] \
+			or _selection.content_revision != _pins[row * 3 + 2] or _selection.tool != _tool:
+		return &"MOLE_DRIVER_PROFILE_STALE"
+	if _live[C_PHASE] != READY and _live[C_PROFILE] >= PROFILE_DOWN \
+			and (_selection.x != _live[C_X] or _selection.y != _live[C_Y] or _selection.z != _live[C_Z] \
+			or _selection.yaw != _live[C_YAW]):
+		return &"MOLE_DRIVER_WORK_POSE_DRIFT"
+	return &""
+
+
+func _advance(delta: int, request_ready: bool) -> StringName:
+	"""Finite eight-phase transition bound; positive time is never banked behind a ready state."""
+	var remaining: int = delta
+	for transition: int in 8:
+		if remaining == 0:
+			return &""
+		var code: StringName = _choose_phase(request_ready)
+		if code != &"" or _stage[C_PHASE] == READY:
+			return code
+		var phase: int = _stage[C_PHASE]
+		if phase == IDLE or phase == WALK or (phase == WORK and not request_ready):
+			_stage[C_TIME] = (_stage[C_TIME] + remaining) % _durations[_clip()]
+			return &""
+		var end: int = FADE_TIME if phase == FADE_READY or phase == FADE_WALK else _durations[_clip()]
+		var span: int = _stage[C_TIME] if phase == ENTRY_RETRACE else end - _stage[C_TIME]
+		var spend: int = mini(remaining, span)
+		_stage[C_TIME] += -spend if phase == ENTRY_RETRACE else spend
+		remaining -= spend
+		if spend == span:
+			_finish_phase()
+	return &"MOLE_DRIVER_PHASE_BUDGET"
+
+
+func _choose_phase(request_ready: bool) -> StringName:
+	"""Carry fades cannot be interrupted; partial entry retraces the same exact source instead of snapping."""
+	var phase: int = _stage[C_PHASE]
+	if phase == READY and not request_ready:
+		if _stage[C_PROFILE] == PROFILE_STAND:
+			_stage[C_PHASE] = IDLE
+			_stage[C_TIME] = READY_TIME
+		elif _stage[C_PROFILE] == PROFILE_WALK:
+			return _begin_fade(FADE_WALK)
+		else:
+			_stage[C_PHASE] = ENTRY
+			_stage[C_TIME] = 0
+	elif request_ready and (phase == IDLE or phase == WALK):
+		return _begin_fade(FADE_READY)
+	elif request_ready and phase == ENTRY:
+		_stage[C_PHASE] = ENTRY_RETRACE
+	elif request_ready and phase == WORK and _stage[C_TIME] == 0:
+		_stage[C_PHASE] = RECOVERY
+	return &""
+
+
+func _begin_fade(phase: int) -> StringName:
+	"""Freeze the prior exact source interval; the admitted handoff simplex includes its entire blend."""
+	var code: StringName = _pose_into(_pose)
+	if code != &"":
+		return code
+	_stage[C_OLD_A] = _pose[0]
+	_stage[C_OLD_B] = _pose[1]
+	_stage[C_OLD_SHARE] = _pose[2]
+	_stage[C_PHASE] = phase
+	_stage[C_TIME] = 0
+	return &""
+
+
+func _finish_phase() -> void:
+	"""Endpoints are source-identical by the immutable compiled program's geometry certificate."""
+	var phase: int = _stage[C_PHASE]
+	_stage[C_TIME] = 0
+	if phase == FADE_WALK:
+		_stage[C_PHASE] = WALK
+	elif phase == ENTRY:
+		_stage[C_PHASE] = WORK
+	elif phase == WORK:
+		_stage[C_PHASE] = RECOVERY
+	else:
+		_stage[C_PHASE] = READY
+
+
+func _clip() -> int:
+	"""No lookup allocates or chooses a neighboring source family."""
+	var phase: int = _stage[C_PHASE]
+	if phase == WALK:
+		return 1
+	if phase == ENTRY or phase == ENTRY_RETRACE:
+		return 3 + 3 * (_stage[C_PROFILE] - PROFILE_DOWN)
+	if phase == WORK:
+		return 2 + 3 * (_stage[C_PROFILE] - PROFILE_DOWN)
+	if phase == RECOVERY:
+		return 4 + 3 * (_stage[C_PROFILE] - PROFILE_DOWN)
+	return 0
+
+
+func _pose_into(out: PackedInt32Array) -> StringName:
+	"""The immutable reader owns loop/short-last-interval semantics."""
+	var phase: int = _stage[C_PHASE]
+	if phase == READY or phase == FADE_READY:
+		return _source.clip_into(0, READY_TIME, out)
+	if phase == FADE_WALK:
+		return _source.clip_into(1, 0, out)
+	return _source.clip_into(_clip(), _stage[C_TIME], out)
+
+
+func _render_frames() -> StringName:
+	"""Produce the exact seven-int Palette equation after all state calculations succeed."""
+	var code: StringName = _pose_into(_pose)
+	if code != &"":
+		return code
+	var fading: bool = _stage[C_PHASE] == FADE_READY or _stage[C_PHASE] == FADE_WALK
+	for index: int in 3:
+		_frames[index] = _pose[index]
+		_frames[index + 3] = _stage[C_OLD_A + index] if fading else _pose[index]
+	@warning_ignore("integer_division") var weight: int = _stage[C_TIME] * ONE / FADE_TIME if fading else ONE
+	_frames[6] = weight
+	return &""
+
+
+func _publish(out: Frame) -> void:
+	"""No fallible read, callback or renderer mutation occurs during output/state publication."""
+	_stage[C_X] = _selection.x
+	_stage[C_Y] = _selection.y
+	_stage[C_Z] = _selection.z
+	_stage[C_YAW] = _selection.yaw
+	for index: int in C_COUNT:
+		_live[index] = _stage[index]
+	for index: int in 7:
+		out.frames[index] = _frames[index]
+	out.source_digest = _source.source_digest()
+	out.worker = _worker
+	out.job = _selection.job
+	out.tool = _selection.tool
+	out.point = Vector3i(_selection.x, _selection.y, _selection.z)
+	out.yaw = _selection.yaw
+	out.phase = _live[C_PHASE]
+	out.ready = out.phase == READY
+	out.profile_id = _selection.profile_id
+	out.profile_revision = _selection.profile_revision
+	out.content_revision = _selection.content_revision
+
+
+func retire() -> void:
+	"""Host must release the visible Actor before relinquishing its occupied source observation."""
+	_retired = true
+	_source = null
+	_profiles = null
+	_worker = NULL_REF
+	_tool = NULL_REF
+	_pins.clear()
+	_durations.clear()
+	_live.clear()
+	_stage.clear()
+
+
+static func _mode(profile: int) -> int:
+	"""Source versions retain one stand, one ground walk and their exact productive choices."""
+	return profile if profile <= PROFILE_WALK else Profiles.MODE_WORK
+
+
+static func _mapped_role(row: int) -> int:
+	"""The source-hashed protocol4 map preserves yaw0 IDs2–5 and the same fourteen clip ordinals."""
+	return row if row < PROFILE_DOWN else PROFILE_DOWN + (row - PROFILE_DOWN) % 4
+
+
+static func _mapped_heading_matches(row: int, descriptor: Profiles.Descriptor) -> bool:
+	"""All-yaw idle/travel and four explicitly authored work headings are distinct content contracts."""
+	if row < PROFILE_DOWN:
+		return descriptor.yaw_kind == Profiles.YAW_ALL and descriptor.yaw == 0
+	@warning_ignore("integer_division") var heading: int = (row - PROFILE_DOWN) / 4
+	return descriptor.yaw_kind == Profiles.YAW_EXACT and descriptor.yaw == heading * 16384
+
+
+static func _job(state: PackedInt64Array) -> Vector2i:
+	"""Presentation pins retain the complete actual Job generation through any uncompleted recovery."""
+	return Vector2i(state[C_JOB_SLOT], state[C_JOB_GENERATION])

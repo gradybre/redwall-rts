@@ -1,0 +1,10 @@
+config_version=5
+
+[application]
+config/name="Codex isolated profile export probe"
+run/main_scene="res://probe.tscn"
+run/main_loop_type="CodexProfileExportProbe"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true

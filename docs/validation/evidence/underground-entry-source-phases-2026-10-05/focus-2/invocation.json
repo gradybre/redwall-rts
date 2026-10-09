@@ -1,0 +1,41 @@
+{
+  "head": "b315b7c7deb32be41b006aaea3601faa486370c9",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.075
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "262/413",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-2/test_underground_entry_source_phases"
+      ],
+      "log": "test_underground_entry_source_phases.gd.log",
+      "exit_code": 1,
+      "seconds": 5.56
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {},
+  "error": "RuntimeError('test_underground_entry_source_phases.gd.log failed')",
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 1
+}

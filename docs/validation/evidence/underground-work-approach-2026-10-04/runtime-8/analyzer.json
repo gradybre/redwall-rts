@@ -1,0 +1,20 @@
+{
+ "data/underground/mole-worker/work-approach-v1/capture_canonical.gd": [
+  {
+   "code": 0,
+   "message": "(REDUNDANT_AWAIT): \"await\" keyword is unnecessary because the expression isn't a coroutine nor a signal.",
+   "range": {
+    "end": {
+     "character": 82,
+     "line": 125
+    },
+    "start": {
+     "character": 3,
+     "line": 125
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

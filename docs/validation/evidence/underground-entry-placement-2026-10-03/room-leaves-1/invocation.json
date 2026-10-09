@@ -1,0 +1,76 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.037,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "46/364",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-entry-placement-2026-10-03/room-leaves-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.88,
+      "log": "test_underground_space_owner.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "162/364",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-entry-placement-2026-10-03/room-leaves-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.357,
+      "log": "test_underground_final_facts.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "181/364",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-entry-placement-2026-10-03/room-leaves-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.55,
+      "log": "test_underground_entry_orders.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6245",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-entry-placement-2026-10-03/room-leaves-1/analyzer.json",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/scripts/core/underground_final_facts.gd",
+        "godot/test/test_underground_space_owner.gd",
+        "godot/test/test_underground_final_facts.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.526,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "assets_present_before": false,
+  "assets_restored": true,
+  "exit_code": 0
+}

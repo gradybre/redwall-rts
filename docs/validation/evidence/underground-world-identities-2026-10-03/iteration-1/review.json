@@ -1,0 +1,15 @@
+{
+  "reviewer": "ug_construction",
+  "source_sha256": "1b7720ed2d7b56d96eba67e3c0e594376a1a60b65eb74f5d99faeb066c73ca85",
+  "test_sha256": "d9b6dd4d2f627d8db64f12f885c636f87d6a73adabbd79d017a8b417922c459c",
+  "result": "accepted; no critical/high/medium findings",
+  "method": "independent source review, no repeated engine run",
+  "checks": [
+    "full Directory kind/generation and typed-row mirror before writes",
+    "exact caller output shape; refusal preserves all contents",
+    "permanent room purpose/domain without service or geometry grant",
+    "surface full parent and TileLinks retained; underground no surface projection",
+    "live wrong-kind regression added and reviewed",
+    "no new authoritative state or callee allocations"
+  ]
+}

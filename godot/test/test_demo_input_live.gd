@@ -12,10 +12,10 @@ const SUMMARY_PREFIX: String = "LIVE-SUMMARY "
 const MIN_CHECKS: int = 80
 
 
-func _run_harness(size: String) -> PackedStringArray:
+func _run_harness(size: String, harness: String = HARNESS) -> PackedStringArray:
 	"""The harness's output lines at a window size ("1280x720"); its exit code last."""
 	var args: PackedStringArray = ["--headless", "--path", ProjectSettings.globalize_path("res://"), "--script",
-		HARNESS, "--", "--size", size]
+		harness, "--", "--size", size]
 	var output: Array = []
 	var code: int = OS.execute(OS.get_executable_path(), args, output, true, false)
 	var lines: PackedStringArray = ("".join(PackedStringArray(output))).split("\n")
@@ -23,9 +23,9 @@ func _run_harness(size: String) -> PackedStringArray:
 	return lines
 
 
-func _assert_run(size: String) -> void:
+func _assert_run(size: String, harness: String = HARNESS, minimum_checks: int = MIN_CHECKS) -> void:
 	"""Every LIVE check passed, the summary came, no script error, exit 0."""
-	var lines: PackedStringArray = _run_harness(size)
+	var lines: PackedStringArray = _run_harness(size, harness)
 	var checks: int = 0
 	var summary: String = ""
 	for line: String in lines:
@@ -36,8 +36,15 @@ func _assert_run(size: String) -> void:
 			assert_true(line.contains(": PASS"), "%s %s" % [size, line.substr(CHECK_PREFIX.length())])
 		elif line.contains("SCRIPT ERROR"):
 			fail("%s: %s" % [size, line])
+		elif line.begins_with("ERROR:") or line.begins_with("USER ERROR:") or line.contains("leaked at exit") \
+				or line.contains("ObjectDB instance") or line.contains("resources still in use at exit"):
+			fail("%s: child diagnostics: %s" % [size, line])
+		elif line.begins_with("WARNING:"):
+			var unstaged := line == "WARNING: demo assets are not staged (tools/stage_demo_assets.py); running on placeholders" \
+					or (line.begins_with("WARNING: sound cue ") and line.ends_with("; it plays silent until they are staged"))
+			assert_true(unstaged, "%s: only the known unstaged-asset notices are allowed: %s" % [size, line])
 	assert_false(summary.is_empty(), "%s: the harness finished (summary line printed)" % size)
-	assert_true(checks >= MIN_CHECKS, "%s: %d checks ran" % [size, checks])
+	assert_true(checks >= minimum_checks, "%s: %d checks ran" % [size, checks])
 	assert_equal(lines[lines.size() - 1], "EXIT 0", "%s: the harness exited cleanly" % size)
 
 
@@ -49,3 +56,8 @@ func test_the_real_scene_routes_input_menu_and_focus_at_1280x720() -> void:
 func test_the_real_scene_routes_input_menu_focus_and_scale_at_1920x1080() -> void:
 	"""The same at 1920x1080, where the harness also picks 150 %, restarts at it and shrinks the window."""
 	_assert_run("1920x1080")
+
+
+func test_room_blueprints_use_real_clicks_and_fit_at_1280x720() -> void:
+	"""The live room review: held clicks, panel actions, explicit confirmation, refusal and Escape routing."""
+	_assert_run("1280x720", "res://test/live/demo_room_blueprint_live.gd", 24)

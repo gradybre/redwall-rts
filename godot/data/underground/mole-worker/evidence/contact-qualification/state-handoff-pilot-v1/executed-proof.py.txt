@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+"""Prove actual finite carry-pose handoffs. A source proof never admits a worker or work site."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import struct
+import sys
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("wall_source_proof", HERE / "prove_high_wall.py")
+W = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(W)
+S, P = W.S, W.P
+MAX_CORNERS = 256
+MAX_CHECKS = 2000000
+MAX_UNRESOLVED = 32
+
+
+class InverseHeading(P.envelope.WorldBasisSource):
+    """Every exact native row contributes to the inverse world-error enclosure in the source frame."""
+
+    def __init__(self, stream, digest: str, producer: str):
+        self.inverse_norm = Fraction(0)
+        self.inverse_yaw = -1
+        self.rows = 0
+        super().__init__(stream, digest, producer)
+        P.require(self.rows == 65536 and self.inverse_norm > 0, "STATE_HEADING_CENSUS")
+
+    @staticmethod
+    def inverse_row_norm(c: Fraction, s: Fraction) -> Fraction:
+        norm = c * c + s * s
+        P.require(norm > 0, "STATE_HEADING_SINGULAR")
+        return (abs(c) + abs(s)) / norm
+
+    def read(self, count: int) -> bytes:
+        data = super().read(count)
+        if count == 8 and hasattr(self, "metadata") and self.rows < 65536:
+            c, s = struct.unpack("<ff", data)
+            P.require(np.isfinite(c) and np.isfinite(s), "STATE_HEADING_FINITE")
+            factor = self.inverse_row_norm(Fraction(c), Fraction(s))
+            if factor > self.inverse_norm:
+                self.inverse_norm, self.inverse_yaw = factor, self.rows
+            self.rows += 1
+        return data
+
+
+def source_padding(padding: np.ndarray, inverse_norm: Fraction) -> np.ndarray:
+    """Map the entire conservative world/native uncertainty back, retaining the unrotated Y component."""
+    P.require(padding.shape == (3,) and padding.dtype == np.int64 and np.all(padding >= 0)
+              and 0 < inverse_norm <= 4, "STATE_PADDING_ARGUMENT")
+    amount = int(max(padding[0], padding[2])) * max(Fraction(1), inverse_norm)
+    horizontal = -(-amount.numerator // amount.denominator)
+    return np.array([horizontal, padding[1], horizontal], dtype=np.int64)
+
+
+def separated_simplex(al: np.ndarray, ah: np.ndarray, bl: np.ndarray, bh: np.ndarray,
+                      counter: list[int]) -> bool:
+    """One separating integer plane covers every common positive combination of the source poses."""
+    counter[0] += 1
+    P.require(counter[0] <= MAX_CHECKS, "STATE_CHECK_CAPACITY")
+    shape = al.shape
+    P.require(len(shape) == 3 and 2 <= shape[0] <= MAX_CORNERS and shape[1:] == (3, 3), "STATE_SIMPLEX_SHAPE")
+    for value in (al, ah, bl, bh):
+        P.require(value.dtype == np.int64 and value.shape == shape and
+                  np.all(value > -(1 << 29)) and np.all(value < (1 << 29)), "STATE_SIMPLEX_CAPACITY")
+    P.require(np.all(al <= ah) and np.all(bl <= bh), "STATE_SIMPLEX_ORDER")
+    # The SAME convex coefficients multiply this common origin and both
+    # triangles. Removing it preserves intersections for every blend, not just
+    # source endpoints. Different body/tool times are never mixed here.
+    origin = (al[:, 0] + ah[:, 0]) // 2
+    al, ah, bl, bh = (value - origin[:, None, :] for value in (al, ah, bl, bh))
+    P.require(all(np.all(value > -(1 << 29)) and np.all(value < (1 << 29))
+                  for value in (al, ah, bl, bh)), "STATE_SIMPLEX_RELATIVE_CAPACITY")
+    # Candidate directions need not be complete: only the following exact
+    # interval projection establishes success. A missing direction refuses.
+    for pair in ((0, shape[0] - 1), (shape[0] // 2, shape[0] // 2)):
+        ids = list(pair)
+        for axis in S.candidate_axes(al[ids], ah[ids], bl[ids], bh[ids]):
+            if S.projected_separation(al, ah, bl, bh, axis):
+                return True
+    return False
+
+
+def case_union(cases: list[dict], selected: tuple[int, ...]) -> dict:
+    """A bounded shared source hull includes all stored poses; any unused endpoint only enlarges the proof."""
+    P.require(1 <= len(selected) <= 8 and len(set(selected)) == len(selected) and
+              all(type(index) is int and 0 <= index < len(cases) for index in selected), "STATE_SOURCE_SELECTION")
+    frames = sum(cases[index]["frames"] for index in selected)
+    P.require(2 <= frames <= MAX_CORNERS and frames * 301 <= P.content.MAX_SCALARS, "STATE_CORNER_CAPACITY")
+    return {"frames": frames,
+            "matrices": np.concatenate([cases[index]["matrices"] for index in selected]),
+            "grounding": np.concatenate([cases[index]["grounding"] for index in selected])}
+
+
+def vertex_corners(case: dict, part: dict, offset: int, roots: list[int], inverse_norm: Fraction) -> tuple:
+    """Finite original vertices plus outward native residual; no mesh sampling or new shape is substituted."""
+    count = max(1, part["binds"])
+    matrices = case["matrices"][:, offset:offset + count]
+    hulls = P._vertex_hulls(part, matrices, case["grounding"])
+    padding, errors = P._residual_padding(part, matrices, case["grounding"], roots, hulls)
+    padding = source_padding(padding, inverse_norm)
+    low, high = [], []
+    for frame in range(case["frames"]):
+        bounds = P._vertex_hulls(part, matrices[frame:frame+1], case["grounding"][frame:frame+1])
+        P.require(len(bounds) == 1, "STATE_SURFACE_CENSUS")
+        low.append(bounds[0][0] - padding)
+        high.append(bounds[0][1] + padding)
+    return np.stack(low), np.stack(high), errors, padding
+
+
+def prove_hull(case: dict, geometry: list[dict], topology: list, rig: dict, roots: list[int],
+               inverse_norm: Fraction) -> dict:
+    """The exact complete carry simplex must separate every non-grip body/tool primitive pair."""
+    P.require(len(geometry) == 2 and all(len(part["geometry"]) == 1 for part in geometry), "STATE_PART_CENSUS")
+    body_ids, omitted = S.body_triangle_ids(geometry[0], topology[0][0], rig)
+    triangle_rows = [topology[0][0][body_ids], topology[1][0]]
+    corners, floors, offset = [], [], 0
+    for index, part in enumerate(geometry):
+        low, high, errors, padding = vertex_corners(case, part, offset, roots, inverse_norm)
+        # Independent per-vertex min/max only enlarges the temporal/triangle
+        # hull. Reusing the accepted six-corner clipping proof bounds this
+        # enclosure's intersection with support, including primitive interiors.
+        clipped = P.clipped_triangle_floor(np.stack([low.min(axis=0)] * 2),
+                                          np.stack([high.max(axis=0)] * 2), topology[index][0])
+        floors.append({"kind": part["kind"], "full_bounds_u": P.outward_units(low.min(axis=(0, 1)), high.max(axis=(0, 1))),
+                       "floor_intersection_u": None if clipped is None else
+                       P.outward_units(np.array(clipped[:3]), np.array(clipped[3:])),
+                       "native_residual_m": errors, "local_padding_q24": [int(v) for v in padding]})
+        corners.append((low[:, triangle_rows[index]].transpose(1, 0, 2, 3),
+                        high[:, triangle_rows[index]].transpose(1, 0, 2, 3)))
+        offset += max(1, part["binds"])
+    alo, ahi = corners[0]
+    blo, bhi = corners[1]
+    amin, amax = alo.min(axis=(1, 2)), ahi.max(axis=(1, 2))
+    bmin, bmax = blo.min(axis=(1, 2)), bhi.max(axis=(1, 2))
+    unresolved, counter = [], [0]
+    for tool in range(len(blo)):
+        possible = np.flatnonzero(np.all(amin <= bmax[tool], axis=1) & np.all(amax >= bmin[tool], axis=1))
+        for body in possible:
+            if not separated_simplex(alo[body], ahi[body], blo[tool], bhi[tool], counter):
+                unresolved.append({"body_triangle": int(body_ids[body]), "tool_triangle": tool})
+                if len(unresolved) == MAX_UNRESOLVED:
+                    return {"clear": False, "unresolved": unresolved, "checks": counter[0], "floor": floors}
+        if tool % 100 == 0:
+            print(json.dumps({"tool": tool, "checks": counter[0], "unresolved": len(unresolved)}), file=sys.stderr, flush=True)
+    return {"clear": not unresolved, "unresolved": unresolved, "checks": counter[0], "floor": floors,
+            "body_triangles": len(body_ids), "tool_triangles": len(triangle_rows[1]),
+            "intentional_grip_triangles": omitted, "pose_corners": case["frames"]}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("analysis", type=Path)
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "STATE_OUTPUT_EXISTS")
+    command = W.read_record(args.analysis / "invocation.json")["command"]
+    def value(key):
+        return command[command.index("--" + key) + 1]
+    proof = P.content.read_json(Path(value("proof")), value("proof-sha256"))
+    plan = P.content.read_json(Path(value("plan")), value("plan-sha256"), 65536)
+    original, pins, historical = W.extract_original(Path(value("source")), value("source-sha256"), proof, plan,
+                                                   Path(value("import-archive")))
+    with Path(value("world-basis")).open("rb") as stream:
+        basis = InverseHeading(stream, proof["world_basis"]["sha256"], proof["world_basis"]["producer_sha256"])
+    geometry = original[0]["geometry"]
+    topology = P.read_topology(Path(value("topology")), value("topology-sha256"), value("content-sha256"), geometry)
+    native = P.content.read_json(Path(value("topology")), value("topology-sha256"), P.MAX_TOPOLOGY_BYTES)
+    image = args.analysis / "result/mole-worker.ugactor"
+    expected = W.read_record(args.analysis / "result/compilation.json")["content_sha256"]
+    cases = S.read_image(image, expected, geometry)
+    result = prove_hull(case_union(cases, (0, 1)), geometry, topology, native["rig_binding"],
+                        plan["world_root_bounds_u"], basis.inverse_norm)
+    report = {"schema": 1, "image_sha256": expected, "selected_clips": [0, 1], "hull": result,
+              "inverse_heading_norm": P.envelope.fraction_record(basis.inverse_norm),
+              "inverse_heading_yaw": basis.inverse_yaw, "world_basis_sha256": basis.digest,
+              "verified_source_files": pins, "historical_source_snapshot": historical,
+              "source_scope": "all common positive matrix/grounding blends among actual idle/ground-walk source poses",
+              "orientation_scope": "self-contact native errors conservatively inverted through every finite WorldBasis row; reported boxes stay source-local",
+              "production_qualified": False,
+              "producer_sources": {str(Path(path).relative_to(P.ROOT)): P.content.file_hash(Path(path)) for path in
+                                   (__file__, W.__file__, S.__file__, P.__file__, P.content.__file__, P.envelope.__file__)}}
+    with args.out.open("x") as output:
+        json.dump(report, output, indent=2)
+        output.write("\n")
+    print(json.dumps({"clear": result["clear"], "checks": result["checks"], "floor": result["floor"]}, indent=2))
+
+
+if __name__ == "__main__":
+    main()

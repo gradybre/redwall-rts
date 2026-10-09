@@ -62,7 +62,9 @@ const REASON_WIRED: int = 0
 ## all exist on master. The index is kept and the claim now names the gap that remains.
 const REASON_NO_BUILDINGS_PLACED: int = 1
 const REASON_NO_WORLD_PICKING: int = 2
-const REASON_NO_SAVE_FILES: int = 3
+## ADR 1222 step 11 (2026-10-08) renamed index 3 as 0511 did: the save browser and the game menu
+## now exist, built and driven by the game scene's save controls rather than by this shell.
+const REASON_SAVE_CONTROLS_HOST: int = 3
 const REASON_NO_MANUAL_TASK_STORE: int = 4
 const REASON_NO_HEATING_DEMAND: int = 5
 const REASON_NO_RECIPE_ORDER_STORE: int = 6
@@ -82,7 +84,7 @@ const REASON_KEYS: Array[StringName] = [
 	&"WIRED",
 	&"UI_NO_BUILDINGS_PLACED",
 	&"UI_NO_WORLD_PICKING",
-	&"UI_NO_SAVE_FILES",
+	&"UI_SAVE_CONTROLS_HOST",
 	&"UI_NO_MANUAL_TASK_STORE",
 	&"UI_NO_HEATING_DEMAND",
 	&"UI_NO_RECIPE_ORDER_STORE",
@@ -112,7 +114,7 @@ const COMPACT_TEXTS: Array[String] = [
 	"",
 	"no build or room commands wired",
 	"needs camera picking and multi-select",
-	"no save files written yet (task 09)",
+	"drawn by the game's save controls",
 	"needs the ManualTask store",
 	"no system supplies heating demand",
 	"needs the recipe order store",
@@ -134,8 +136,9 @@ const REASON_TEXTS: Array[String] = [
 		+ " room, demolish or bed command is wired and no panel reads them; task 06 owns both",
 	"resident poses are stored, but the interface binds no camera to pick or project them and"
 		+ " keeps no multi-selection",
-	"the save codec encodes sections in memory, but some sections are still unwritten and nothing"
-		+ " writes or reads a save file on disk; task 09 owns it",
+	"the game menu and the save browser are drawn and driven by the game scene's save controls"
+		+ " (scripts/ui/ui_save_controls.gd, ADR 1222 step 11) on their own modal layer; this HUD"
+		+ " shell renders no modal of its own",
 	"no ManualTask store exists; blocker U6 leaves its indexing unspecified",
 	"no implemented system supplies a daily heating demand to divide fuel by",
 	"no recipe order or production station store exists",
@@ -232,9 +235,9 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 073 Tooltip
 	REASON_WIRED,                     # 074 Focus outline
 	REASON_PANEL_NOT_BUILT,           # 075 Search filter
-	REASON_NO_SAVE_FILES,             # 076 Save browser
-	REASON_NO_SAVE_FILES,             # 077 Save row
-	REASON_NO_SETTINGS_STORE,         # 078 Settings menu
+	REASON_SAVE_CONTROLS_HOST,        # 076 Save browser
+	REASON_SAVE_CONTROLS_HOST,        # 077 Save row
+	REASON_SAVE_CONTROLS_HOST,        # 078 Settings menu (its Game menu variant)
 	REASON_NO_SETTINGS_STORE,         # 079 Setting control
 	REASON_NO_SETTINGS_STORE,         # 080 Key binding row
 	REASON_NO_SETTINGS_STORE,         # 081 Rebind capture

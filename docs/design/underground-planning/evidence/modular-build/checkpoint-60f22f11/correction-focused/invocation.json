@@ -1,0 +1,40 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.586
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "69/358",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/design/underground-planning/evidence/modular-build/checkpoint-60f22f11/correction-focused/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 5.815
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "268/358",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/design/underground-planning/evidence/modular-build/checkpoint-60f22f11/correction-focused/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 2.886
+    }
+  ],
+  "assets_restored": true
+}

@@ -1,0 +1,22 @@
+{
+  "docs/validation/evidence/underground-short-work-step-2026-10-05/independent-root-review/0.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-work-step-review-2026-10-05/0.log",
+    "sha256": "899e5cc64e3e63d4daaa27382d40135d80e7618f4a9438b3e3166eb26995c0ad"
+  },
+  "docs/validation/evidence/underground-short-work-step-2026-10-05/independent-root-review/1.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-work-step-review-2026-10-05/1.log",
+    "sha256": "5a977e39f76fea828479b7ec756355441f563ce19a17bdc19a85415edf49e197"
+  },
+  "docs/validation/evidence/underground-short-work-step-2026-10-05/independent-root-review/2.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-work-step-review-2026-10-05/2.log",
+    "sha256": "4190e6532da5d52050bd5ea71ff40310f4ffe0846610b4b159650675a5a9c2b2"
+  },
+  "docs/validation/evidence/underground-short-work-step-2026-10-05/independent-root-review/rebuild/step-program.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-work-step-review-2026-10-05/rebuild/step-program.json",
+    "sha256": "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0"
+  },
+  "docs/validation/evidence/underground-short-work-step-2026-10-05/independent-root-review/review-run.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-short-work-step-review-2026-10-05/review-run.json",
+    "sha256": "ac6274010b6d5b89de155bb2fa2bce7783402a6f022e897a227322f292ad7a3a"
+  }
+}

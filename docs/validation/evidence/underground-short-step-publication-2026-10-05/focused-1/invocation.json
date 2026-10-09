@@ -1,0 +1,54 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.342,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "266/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.027,
+      "log": "test_mole_qualified_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "259/406",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/docs/validation/evidence/underground-short-step-publication-2026-10-05/focused-1"
+      ],
+      "exit_code": 1,
+      "seconds": 4.64,
+      "log": "test_underground_motion_catalog.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-short-step-publication",
+  "project_test_sha256": "eecb60f382b60e7c72caf3d78521212862ebdc6759f37dac84d7a083d4206355",
+  "assets_present_before": true,
+  "registry_sha256_before": "e8b739f9afff3a844ad3e3a4a4adc33b4698009205c3b82968641c99cd9b879f",
+  "registry_diagnostic_append_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "clean_import_raw_diagnostics": 0,
+  "error": "test_underground_motion_catalog.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "registry_restored": true,
+  "exit_code": 1
+}

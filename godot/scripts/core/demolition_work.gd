@@ -434,3 +434,44 @@ func state_bytes() -> PackedByteArray:
 	out.append_array(var_to_bytes(_job_slot))
 	out.append_array(var_to_bytes(_job_generation))
 	return out
+
+
+# --- ARCH-SAVE-002 section 6 save pair (ADR 1222 build step 4) ------------------------------------
+#
+# Section 6 owner `demolition_work` (DEC-055 Q7(a), C200): the evacuate-then-demolish intent and
+# the removal Job link, each the null reference or a live-shaped pair. A stale pair reads as none
+# at run time, so it is saved verbatim.
+
+
+func save_columns() -> Array:
+	"""Copies of the four columns in registry order."""
+	return [_intent_slot.duplicate(), _intent_generation.duplicate(), _job_slot.duplicate(),
+		_job_generation.duplicate()]
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the four columns after their checks. False writes nothing."""
+	if not columns_valid(columns):
+		return false
+	_intent_slot = (columns[0] as PackedInt32Array).duplicate()
+	_intent_generation = (columns[1] as PackedInt32Array).duplicate()
+	_job_slot = (columns[2] as PackedInt32Array).duplicate()
+	_job_generation = (columns[3] as PackedInt32Array).duplicate()
+	return true
+
+
+static func columns_valid(columns: Array) -> bool:
+	"""Types, extents and every pair's shape."""
+	if columns.size() != 4:
+		return false
+	for column: Variant in columns:
+		if typeof(column) != TYPE_PACKED_INT32_ARRAY or column.size() != BUILDING_CAPACITY:
+			return false
+	for row: int in BUILDING_CAPACITY:
+		for pair: int in [0, 2]:
+			var slot: int = columns[pair][row]
+			var generation: int = columns[pair + 1][row]
+			if (slot != NULL_REF.x or generation != NULL_REF.y) and (slot < 0 \
+					or slot >= EntityDirectory.DIRECTORY_CAPACITY or generation <= 0):
+				return false
+	return true

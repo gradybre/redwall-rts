@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/underground_room_itinerary.gd": "1b0a8ac711d8a3c21767f8d92883d01b08d9f3f23d71c8e2e52160a32491207a",
+  "godot/test/test_underground_room_itinerary.gd": "47d3c709204743e3364baa872e128aabad2b1813eab85bd2871cbf3cee68301d",
+  "godot/test/test_underground_short_room_itinerary.gd": "9c195ac977f543c524b63b8f8f54c85aea91aed0e4c411cb4c357d41927874e0",
+  "godot/test/test_underground_short_room_itinerary.gd.uid": "99fd501b9d5ec2f0553901cbf724478b961beea6eb6703ef0106d5d0a59ae331",
+  "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/census.py": "fabbc28c1ed1c08c290a5595a9831703ac35664aa3bb03cc9b5dd4572b637833",
+  "docs/validation/evidence/underground-short-step-itinerary-2026-10-05/test_census.py": "c71fd0cff18bf6ce45b7b4ef4e0d3a0d358646b4e7510ace38a56d0009af77cb"
+}

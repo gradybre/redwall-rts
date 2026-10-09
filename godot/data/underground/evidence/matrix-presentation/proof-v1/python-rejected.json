@@ -1,0 +1,8 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/test_export_underground_envelopes.py"
+  ],
+  "exit": 1,
+  "reason": "absolute /var and resolved /private/var aliases counted twice in a synthetic source-pin fixture; wrapper dangling-symlink test also exposed preflight ordering and was fixed separately"
+}

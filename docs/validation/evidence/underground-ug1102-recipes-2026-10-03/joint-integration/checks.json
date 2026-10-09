@@ -1,0 +1,79 @@
+[
+  {
+    "name": "capacity",
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "capacity-tests",
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "registry",
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "save-handoff",
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "declarations",
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "memory",
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "memory-tests",
+    "command": [
+      "python3",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "queue",
+    "command": [
+      "python3",
+      "tools/underground_build_queue.py",
+      "validate"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "whitespace",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0
+  }
+]

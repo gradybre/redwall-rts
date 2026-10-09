@@ -1,0 +1,28 @@
+--- a/godot/scripts/core/underground_work_face.gd
++++ b/godot/scripts/core/underground_work_face.gd
+@@ -699,17 +699,14 @@
+ func prospective_solid_face_refusal(config: Routes.Configuration, request: Request, cold: int,
+ 		context: Locations.FrontierContext) -> StringName:
+ 	"""Observe the complete solid-target source against one exact sealed, prospective work contact."""
+-	if _reading:
+-		_reentered = true
+-		return REFUSE_BUSY
+-	_reading = true
+-	_reentered = false
++	if _reading: return REFUSE_BUSY
+ 	var code: StringName = Check.input_refusal(config, request, cold)
+ 	if code == &"": code = Locations.frontier_scope_refusal(config.locations, context)
+-	if code == &"":
+-		var check: ProspectiveCheck = ProspectiveCheck.new()
+-		check.context = context
+-		check.hold(config, request, cold)
+-		code = check.run()
++	if code != &"": return code
++	_reading = true
++	var check: ProspectiveCheck = ProspectiveCheck.new()
++	check.context = context
++	check.hold(config, request, cold)
++	code = check.run()
+ 	_reading = false
+-	return REFUSE_BUSY if _reentered else code
++	return code

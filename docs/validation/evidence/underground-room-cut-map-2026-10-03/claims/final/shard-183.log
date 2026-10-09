@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_furniture_batches.gd
+  PASS  test_actual_batch_reserves_pending_furniture_projects_and_exact_geometry_together
+  PASS  test_final_publication_may_discard_borrowed_inputs_without_losing_the_receipt
+  PASS  test_full_catalog_bill_and_real_work_remain_required_after_layout_acceptance
+  PASS  test_purpose_shell_and_late_geometry_refusals_spend_no_identity_prefix
+  PASS  test_every_provider_mutation_of_entries_or_directory_tuples_refuses_all_pairs
+  PASS  test_initial_scope_callback_cannot_change_the_original_unpinned_request
+  PASS  test_provider_reentry_cannot_end_or_replace_the_running_layout_scope
+  PASS  test_reacquired_foreign_budget_token_cannot_authorize_future_source_publication
+  PASS  test_refused_or_busy_cold_admission_never_enters_snapshot_or_sparse_copy
+  PASS  test_missing_actual_budget_owner_refuses_before_any_provider_acquisition_or_copy
+  PASS  test_stale_room_revision_and_generation_refuse_without_changed_owner_bytes
+  PASS  test_direct_requests_cannot_bypass_planner_pitch_level_or_shape_bounds
+  PASS  test_layout_scope_and_receipt_end_before_the_next_simulation_or_input_operation
+  PASS  test_one_scope_cannot_retain_multiple_accepted_receipt_buffers
+CI_SUITE_TIME {"assertions":1364,"failures":0,"suite":"test_underground_furniture_batches.gd","tests":14,"usec":2058947}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 1364 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 14 tests, 1364 assertions, 0 failures.

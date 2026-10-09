@@ -1,0 +1,72 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 5.685,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "228/344",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-world-room-bindings-2026-10-03/iteration-3"
+      ],
+      "exit_code": 0,
+      "seconds": 5.1,
+      "log": "test_underground_world_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "99/344",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-world-room-bindings-2026-10-03/iteration-3"
+      ],
+      "exit_code": 0,
+      "seconds": 12.204,
+      "log": "test_underground_world_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "141/344",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-world-room-bindings-2026-10-03/iteration-3"
+      ],
+      "exit_code": 0,
+      "seconds": 7.723,
+      "log": "test_underground_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "godot/scripts/core/underground_world_bindings.gd",
+        "godot/test/test_underground_world_room_bindings.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 9.783,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

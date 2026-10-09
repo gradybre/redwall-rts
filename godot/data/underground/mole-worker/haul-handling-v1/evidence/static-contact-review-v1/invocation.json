@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+    "godot/data/underground/mole-worker/haul-handling-v1/probe_contact_reach.py": "5294e06056f645e1ee49265edaee2290ced5882a431b72da154855798afd5194",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+    "godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py": "33315d30c82d6b65739140bb7475b63db1f50124f0757d4ef8bac99aa4c63f18",
+    "godot/data/underground/mole-worker/haul-handling-v1/reproduce_static_contact.py": "99c544c54a7500298d6a9fee78c8dba2cdb0b53ecf4a7ad1586104f9013ae04b",
+    "godot/data/underground/mole-worker/haul-handling-v1/test_handling_source.py": "35d0d0cebfb2085470efed44c4b01d500b35d9608d7da775f7ffac216a0060ba",
+    "godot/data/underground/mole-worker/haul-handling-v1/native_capture/capture_stock.gd": "6a3d998431a81eb1880ced590bf33512ee259089e27e494bd62a6071363cfc52",
+    "godot/data/underground/mole-worker/haul-handling-v1/native_capture/project.godot": "38afe56c44049dad65ba3cb06372990512fc6e973aa89e0dd13556f1b77a8919"
+  },
+  "commands": [
+    {
+      "name": "native-stock",
+      "argv": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/native_capture",
+        "--script",
+        "capture_stock.gd",
+        "--",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/wood-topology.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "author",
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/author_handling.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate",
+        "--lean",
+        "95",
+        "--ahead",
+        "576",
+        "--drop",
+        "96",
+        "--grip-raise",
+        "64",
+        "--grip-back",
+        "192",
+        "--right-grip-back",
+        "160",
+        "--plant-soles"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "proof",
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--candidate",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate",
+        "--wood-topology",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/wood-topology.json",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/static-contact.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "preview",
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--candidate",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate",
+        "--wood-topology",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/wood-topology.json",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/preview.png"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_handling_source.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--candidate",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate",
+        "--wood-topology",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/wood-topology.json"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "scope": "Static source contact only; no gameplay project, runtime owner, source profile or cost/rate changed.",
+  "source_unchanged": true,
+  "outputs": {
+    "author.log": "62678311c3ec97919a24f2ee95e0f3a3c98086fd7ddbc4d1d67cde53c68d8dc1",
+    "candidate/candidate.json": "4dc0775fec520bed80cc61888638561d537bf05373abfd8804560e29a212ecd8",
+    "candidate/poses.npz": "996d0b4a0666e57d01c5f3592632e4c1f36c914854aae78a61ed91f8c3750894",
+    "candidate/producer/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "candidate/producer/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+    "native-stock.log": "570ab537574f9e620022385d952fb345cf4f2912cb519497a4d38e80f4bd98da",
+    "preview.log": "ebfca215eeb794b94a8d03622c8af85d919c65459af474ea538f8f040d56c939",
+    "preview.png": "21a8f7805961ec547d74596a783aff6989e0caba132810005f67bdb647f1d833",
+    "proof.log": "f7ac7d417a79a1f85913255a81a6ca0ac06ee4a49865f107ce7e8bc8da6f5d4e",
+    "source/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "source/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+    "source/native_capture/capture_stock.gd": "6a3d998431a81eb1880ced590bf33512ee259089e27e494bd62a6071363cfc52",
+    "source/native_capture/project.godot": "38afe56c44049dad65ba3cb06372990512fc6e973aa89e0dd13556f1b77a8919",
+    "source/probe_contact_reach.py": "5294e06056f645e1ee49265edaee2290ced5882a431b72da154855798afd5194",
+    "source/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+    "source/render_candidate.py": "33315d30c82d6b65739140bb7475b63db1f50124f0757d4ef8bac99aa4c63f18",
+    "source/reproduce_static_contact.py": "99c544c54a7500298d6a9fee78c8dba2cdb0b53ecf4a7ad1586104f9013ae04b",
+    "source/test_handling_source.py": "35d0d0cebfb2085470efed44c4b01d500b35d9608d7da775f7ffac216a0060ba",
+    "source-sha256.json": "cbe45b6f6b926406867fd8121c46e1396f8b681a085c52583c3afb8ff299f9e1",
+    "static-contact.json": "5f7839659edf811e6a71c72f0e4770d7cc4a4512be3572307b104868f4327f52",
+    "tests.log": "38d3c7efa13aaaea7f631d174a0b725d01db11bec91ea30df08d4367319dc475",
+    "wood-topology.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+  }
+}

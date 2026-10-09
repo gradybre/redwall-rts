@@ -1,0 +1,14 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py": {
+    "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-2/executed-sources/compile_stair_program.py.txt",
+    "sha256": "b500e5d112aa0c9c00ef55590aa99b1bdcb7d49f5b68f5bc39831d8e97bc37df"
+  },
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py": {
+    "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-2/executed-sources/test_stair_program.py.txt",
+    "sha256": "6efee24f1fa1c8517f640fab026f6365bd5bc23549c1f0012bc0dcf30e70c3d5"
+  },
+  "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/source-inputs.json": {
+    "locator": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-2/executed-sources/source-inputs.json.txt",
+    "sha256": "19e70bb13c0bf6e089c504a5d8a343f9638e59a5996d20fe74fde1b9f9832aa8"
+  }
+}

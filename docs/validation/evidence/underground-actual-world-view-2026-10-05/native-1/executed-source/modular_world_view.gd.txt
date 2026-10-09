@@ -1,0 +1,474 @@
+extends Node3D
+## Read-only presentation of the actual World; no Room, void, support or route is created.
+
+const World := preload("res://scripts/core/world_init.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const Materials := preload("res://demo/burrow/modular_materials.gd")
+const Look := preload("res://demo/world/world_look.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const TILE_M: float = float(World.TILE_SIZE_UNITS) / 1024.0
+const LAND_M: float = float(World.LAND_Y_UNITS) / 1024.0
+const MAX_RUNS: int = World.TILE_COUNT
+const MAX_BANKS: int = 2 * World.MAP_TILES_X * (World.MAP_TILES_Z - 1)
+const MAX_LINES: int = 2 * MAX_BANKS + 4 * World.MAP_TILES_X
+const QUAD_BYTES: int = 4 * (12 + 12 + 8) + 6 * 4
+
+class Quads extends RefCounted:
+	## One exact-sized staging buffer, released after its ArrayMesh surface is uploaded.
+	var vertices: PackedVector3Array = PackedVector3Array()
+	var normals: PackedVector3Array = PackedVector3Array()
+	var uvs: PackedVector2Array = PackedVector2Array()
+	var indices: PackedInt32Array = PackedInt32Array()
+	var count: int = 0
+
+	func _init(capacity: int) -> void:
+		"""Allocate only the previously counted finite rectangle total."""
+		vertices.resize(capacity * 4)
+		normals.resize(capacity * 4)
+		uvs.resize(capacity * 4)
+		indices.resize(capacity * 6)
+
+	func add(a: Vector3, b: Vector3, c: Vector3, d: Vector3, normal: Vector3) -> void:
+		"""Clockwise fronts and explicit metre UVs do not depend on normalized map bounds."""
+		var start: int = count * 4
+		vertices[start] = a
+		vertices[start + 1] = b
+		vertices[start + 2] = c
+		vertices[start + 3] = d
+		for corner: int in 4:
+			normals[start + corner] = normal
+			var point: Vector3 = vertices[start + corner]
+			uvs[start + corner] = Vector2(point.x if normal.x == 0 else point.z,
+				point.z if normal.y != 0 else point.y)
+		for offset: int in 6:
+			indices[count * 6 + offset] = start + (offset if offset < 3 else (0 if offset == 3 else offset - 2))
+		count += 1
+
+	func publish(mesh: ArrayMesh, material: Material) -> void:
+		"""Godot owns the uploaded surface; all producer arrays die with this cold frame."""
+		if count == 0:
+			return
+		var arrays: Array = []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = vertices
+		arrays[Mesh.ARRAY_NORMAL] = normals
+		arrays[Mesh.ARRAY_TEX_UV] = uvs
+		arrays[Mesh.ARRAY_INDEX] = indices
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, material)
+
+var _world: WeakRef = null
+var _directory: WeakRef = null
+var _levels: WeakRef = null
+var _domain: WeakRef = null
+var _world_ref: Vector2i = NULL_REF
+var _seed: int = 0
+var _level_revision: int = 0
+var _level_hash: PackedByteArray = PackedByteArray()
+var _identity: PackedInt32Array = PackedInt32Array()
+var _level_config: PackedInt32Array = PackedInt32Array()
+var _offsets: PackedInt32Array = PackedInt32Array()
+var _rises: PackedInt32Array = PackedInt32Array()
+var _bounds: PackedInt32Array = PackedInt32Array()
+var _surface: MeshInstance3D = null
+var _banks: MeshInstance3D = null
+var _slice: MeshInstance3D = null
+var _context: MeshInstance3D = null
+var _level_id: int = 0
+var _floor_u: int = World.LAND_Y_UNITS
+var build_usec: int = 0
+var run_count: int = 0
+var bank_count: int = 0
+var line_count: int = 0
+var rebuilds: int = 0
+
+
+func configure(world: World, full_ref: Vector2i, domain: Space.Domain, levels: Levels,
+		surface_layer: int, slice_layer: int) -> StringName:
+	"""One synchronous cold mount uses only the actual immutable source and original owner tuple."""
+	if _world_ref != NULL_REF:
+		return &"WORLD_VIEW_ALREADY_BOUND"
+	var code: StringName = _initial_refusal(world, full_ref, domain, levels, surface_layer, slice_layer)
+	if code != &"":
+		return code
+	var started: int = Time.get_ticks_usec()
+	_pin(world, full_ref, domain, levels)
+	var kinds: PackedByteArray = _read_terrain(world)
+	code = owner_refusal()
+	if kinds.size() != World.TILE_COUNT or code != &"":
+		clear_view()
+		return code if code != &"" else &"WORLD_VIEW_TERRAIN"
+	_build(kinds, surface_layer, slice_layer)
+	code = owner_refusal()
+	if code != &"":
+		clear_view()
+		return code
+	build_usec = Time.get_ticks_usec() - started
+	rebuilds += 1
+	visible = true
+	set_process(true)
+	return &""
+
+
+func _initial_refusal(world: World, full_ref: Vector2i, domain: Space.Domain, levels: Levels,
+		surface_layer: int, slice_layer: int) -> StringName:
+	"""Restrict presentation to the real finite producer; alternate layouts are explicit refusals."""
+	if transform != Transform3D.IDENTITY or surface_layer < 1 or slice_layer < 1 \
+			or surface_layer > 1048575 or slice_layer > 1048575:
+		return &"WORLD_VIEW_FORMAT"
+	if world == null or levels == null or domain == null or world.get_script() != World \
+			or levels.get_script() != Levels or world._directory == null \
+			or world._directory.get_script() != Directory:
+		return &"WORLD_VIEW_OWNER"
+	if not world._published or world._terrain.size() != World.TILE_COUNT \
+			or world._directory.live_count(Directory.KIND_WORLD) != 1 \
+			or not world._directory.is_valid_of_kind(full_ref, Directory.KIND_WORLD):
+		return &"WORLD_VIEW_WORLD"
+	if domain._world != full_ref or domain._datum != Terrain.DATUM \
+			or domain._min_quantum != Terrain.MIN_QUANTUM or domain._size_quanta != Terrain.SIZE_QUANTA \
+			or not levels.binding_matches(domain, world._directory, Space.VERSION):
+		return &"WORLD_VIEW_DOMAIN"
+	return &""
+
+
+func _pin(world: World, full_ref: Vector2i, domain: Space.Domain, levels: Levels) -> void:
+	"""Copy fixed metadata while keeping only weak borrows of every canonical owner."""
+	_world = weakref(world)
+	_directory = weakref(world._directory)
+	_levels = weakref(levels)
+	_domain = weakref(domain)
+	_world_ref = full_ref
+	_seed = world._published_seed
+	_level_revision = levels._revision
+	_level_hash = levels._digest.duplicate()
+	_identity = levels._identity.duplicate()
+	_level_config = levels._config.duplicate()
+	_offsets = levels._offsets.duplicate()
+	_rises = levels._short_rises.duplicate()
+	_bounds = domain._bounds.duplicate()
+
+
+func _read_terrain(world: World) -> PackedByteArray:
+	"""Read every actual row through the public reused-output API, never regenerate its layout."""
+	var kinds: PackedByteArray = PackedByteArray()
+	kinds.resize(World.TILE_COUNT)
+	var value: IntMath.IntResult = IntMath.IntResult.new()
+	for tile: int in World.TILE_COUNT:
+		if not world.terrain_into(tile, value) or not value.ok or value.value < 0 or value.value >= World.TERRAIN_COUNT:
+			return PackedByteArray()
+		kinds[tile] = value.value
+	return kinds
+
+
+func owner_refusal() -> StringName:
+	"""A constant-size original identity check neither leases cold work nor allocates geometry."""
+	var world: World = _world.get_ref() as World if _world != null else null
+	var ids: Directory = _directory.get_ref() as Directory if _directory != null else null
+	var levels: Levels = _levels.get_ref() as Levels if _levels != null else null
+	var domain: Space.Domain = _domain.get_ref() as Space.Domain if _domain != null else null
+	if world == null or ids == null or levels == null or domain == null:
+		return &"WORLD_VIEW_OWNER"
+	if world.get_script() != World or levels.get_script() != Levels or ids.get_script() != Directory \
+			or world._directory != ids or not world._published or world._published_seed != _seed \
+			or ids.live_count(Directory.KIND_WORLD) != 1 or not ids.is_valid_of_kind(_world_ref, Directory.KIND_WORLD):
+		return &"WORLD_VIEW_WORLD"
+	if levels._directory != ids or levels._revision != _level_revision or levels._digest != _level_hash \
+			or levels._identity != _identity or levels._config != _level_config or levels._offsets != _offsets \
+			or levels._short_rises != _rises or domain._world != _world_ref or domain._bounds != _bounds:
+		return &"WORLD_VIEW_SOURCE"
+	if not _domain_matches(domain) or transform != Transform3D.IDENTITY \
+			or (is_inside_tree() and global_transform != Transform3D.IDENTITY):
+		return &"WORLD_VIEW_DOMAIN"
+	return &""
+
+
+func _domain_matches(domain: Space.Domain) -> bool:
+	"""Every original domain scalar remains part of the view's immutable coordinate contract."""
+	return _identity.size() == Levels.IDENTITY_FIELDS and domain._datum == Terrain.DATUM \
+		and domain._min_quantum == Terrain.MIN_QUANTUM and domain._size_quanta == Terrain.SIZE_QUANTA \
+		and domain._cells == _identity[17] and domain._regions == _identity[18] and domain._checks == _identity[19]
+
+
+func set_floor(level_id: int, section_offset_u: int = 0) -> StringName:
+	"""Select the exact catalog plane; refused choices preserve the current geometry and selection."""
+	var code: StringName = owner_refusal()
+	if code != &"":
+		visible = false
+		return code
+	var levels: Levels = _levels.get_ref() as Levels
+	var record: Levels.Record = Levels.Record.new()
+	code = levels.level_into(level_id, section_offset_u, record)
+	if code == &"":
+		code = owner_refusal()
+	if code != &"":
+		return code
+	_level_id = level_id
+	_floor_u = record.floor_y_u
+	_surface.visible = level_id == 0
+	_banks.visible = level_id == 0
+	_slice.visible = level_id != 0
+	_slice.position.y = float(_floor_u) / 1024.0
+	_context.visible = level_id != 0
+	return &""
+
+
+func bounds_into(out: PackedInt32Array) -> bool:
+	"""Copy the actual finite World bounds; refusal preserves the caller's six integers."""
+	if out.size() != 6 or owner_refusal() != &"":
+		return false
+	for index: int in 6:
+		out[index] = _bounds[index]
+	return true
+
+
+func clear_view() -> void:
+	"""Drop this view's resources only; no borrowed World/store/authority is mutated."""
+	for child: MeshInstance3D in [_surface, _banks, _slice, _context]:
+		if is_instance_valid(child):
+			child.free()
+	_surface = null
+	_banks = null
+	_slice = null
+	_context = null
+	_world = null
+	_directory = null
+	_levels = null
+	_domain = null
+	_world_ref = NULL_REF
+	_level_hash = PackedByteArray()
+	_identity = PackedInt32Array()
+	_level_config = PackedInt32Array()
+	_offsets = PackedInt32Array()
+	_rises = PackedInt32Array()
+	_bounds = PackedInt32Array()
+	visible = false
+	set_process(false)
+
+
+func _process(_delta: float) -> void:
+	"""Only validate mounted identity per frame; reset/owner loss immediately hides stale geometry."""
+	if owner_refusal() != &"":
+		visible = false
+		set_process(false)
+
+
+func _build(kinds: PackedByteArray, surface_layer: int, slice_layer: int) -> void:
+	"""Four bounded nodes share full world coordinates, with no per-tile objects or physics."""
+	var surface_mesh: ArrayMesh = ArrayMesh.new()
+	var slice_mesh: ArrayMesh = ArrayMesh.new()
+	var earth: Materials = Materials.new()
+	run_count = 0
+	for kind: int in World.TERRAIN_COUNT:
+		_build_kind(kinds, kind, surface_mesh, slice_mesh, earth)
+	_surface = _mesh_node("ActualSurface", surface_mesh, surface_layer)
+	_slice = _mesh_node("UnexcavatedSection", slice_mesh, slice_layer)
+	_slice.visible = false
+	_banks = _mesh_node("ActualShoreSteps", _bank_mesh(kinds, earth), surface_layer)
+	_context = _mesh_node("ActualSurfaceContext", _context_mesh(kinds), slice_layer)
+	_context.visible = false
+
+
+func _build_kind(kinds: PackedByteArray, kind: int, surface_mesh: ArrayMesh,
+		slice_mesh: ArrayMesh, earth: Materials) -> void:
+	"""One kind's staging dies before the next kind; row rectangles retain exact source coverage."""
+	var count: int = _count_runs(kinds, kind)
+	run_count += count
+	var top: Quads = Quads.new(count)
+	_emit_runs(kinds, kind, LAND_M if kind == World.TERRAIN_LAND else 0.0, top)
+	top.publish(surface_mesh, _surface_material(kind))
+	top = null
+	var section: Quads = Quads.new(count)
+	_emit_runs(kinds, kind, 0.0, section)
+	var section_material: Material = earth.material(Materials.EARTH, Materials.FLOOR)
+	if kind != World.TERRAIN_LAND:
+		section_material = _wet_projection_material(kind)
+	section.publish(slice_mesh, section_material)
+
+
+static func _count_runs(kinds: PackedByteArray, kind: int) -> int:
+	"""At most one rectangle per tile; no run crosses a row or a differing source kind."""
+	var count: int = 0
+	for z: int in World.MAP_TILES_Z:
+		var previous: int = -1
+		for x: int in World.MAP_TILES_X:
+			var value: int = kinds[z * World.MAP_TILES_X + x]
+			if value == kind and previous != kind:
+				count += 1
+			previous = value
+	return count
+
+
+static func _emit_runs(kinds: PackedByteArray, kind: int, y: float, out: Quads) -> void:
+	"""Metre conversion happens only after exact tile start/end boundaries are known."""
+	for z: int in World.MAP_TILES_Z:
+		var x: int = 0
+		while x < World.MAP_TILES_X:
+			if kinds[z * World.MAP_TILES_X + x] != kind:
+				x += 1
+				continue
+			var start: int = x
+			while x < World.MAP_TILES_X and kinds[z * World.MAP_TILES_X + x] == kind:
+				x += 1
+			out.add(Vector3(start * TILE_M, y, z * TILE_M), Vector3(x * TILE_M, y, z * TILE_M),
+				Vector3(x * TILE_M, y, (z + 1) * TILE_M), Vector3(start * TILE_M, y, (z + 1) * TILE_M), Vector3.UP)
+
+
+func _bank_mesh(kinds: PackedByteArray, earth: Materials) -> ArrayMesh:
+	"""Only actual land/water adjacency produces a 0–512u vertical riser."""
+	bank_count = _edge_count(kinds, true)
+	var quads: Quads = Quads.new(bank_count)
+	for z: int in World.MAP_TILES_Z:
+		for x: int in World.MAP_TILES_X:
+			for axis: int in 2:
+				if not _edge_exists(kinds, x, z, axis, true):
+					continue
+				_add_bank(quads, x, z, axis, kinds[z * World.MAP_TILES_X + x] == World.TERRAIN_LAND)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.publish(mesh, earth.material(Materials.EARTH, Materials.WALL))
+	return mesh
+
+
+static func _add_bank(out: Quads, x: int, z: int, axis: int, first_land: bool) -> void:
+	"""Face normals point from the retained land into the actual adjacent water tile."""
+	var a: Vector3 = Vector3((x + 1) * TILE_M, 0, z * TILE_M) if axis == 0 else Vector3(x * TILE_M, 0, (z + 1) * TILE_M)
+	var b: Vector3 = a + (Vector3.BACK if axis == 0 else Vector3.RIGHT) * TILE_M
+	var normal: Vector3 = Vector3.RIGHT if axis == 0 else Vector3.BACK
+	if (axis == 0) == first_land:
+		out.add(a, b, b + Vector3.UP * LAND_M, a + Vector3.UP * LAND_M, normal if first_land else -normal)
+	else:
+		out.add(b, a, a + Vector3.UP * LAND_M, b + Vector3.UP * LAND_M, normal if first_land else -normal)
+
+
+static func _edge_exists(kinds: PackedByteArray, x: int, z: int, axis: int, land_only: bool) -> bool:
+	"""Adjacent source rows alone select an interior kind or height boundary."""
+	if (axis == 0 and x + 1 == World.MAP_TILES_X) or (axis == 1 and z + 1 == World.MAP_TILES_Z):
+		return false
+	var first: int = kinds[z * World.MAP_TILES_X + x]
+	var second: int = kinds[(z + axis) * World.MAP_TILES_X + x + 1 - axis]
+	return (first == World.TERRAIN_LAND) != (second == World.TERRAIN_LAND) if land_only else first != second
+
+
+static func _edge_count(kinds: PackedByteArray, land_only: bool) -> int:
+	"""A fixed two-neighbour scan gives an exact allocation, including checkerboard worst cases."""
+	var count: int = 0
+	for z: int in World.MAP_TILES_Z:
+		for x: int in World.MAP_TILES_X:
+			for axis: int in 2:
+				if _edge_exists(kinds, x, z, axis, land_only):
+					count += 1
+	return count
+
+
+func _context_mesh(kinds: PackedByteArray) -> ArrayMesh:
+	"""Above-floor outlines retain true surface heights without writing depth over the planning plane."""
+	var points: PackedVector3Array = PackedVector3Array()
+	points.resize((_edge_count(kinds, false) * 2 + 4 * World.MAP_TILES_X) * 2)
+	var cursor: int = 0
+	for z: int in World.MAP_TILES_Z:
+		for x: int in World.MAP_TILES_X:
+			cursor = _context_tile(kinds, x, z, points, cursor)
+	line_count = cursor >> 1
+	points.resize(cursor)
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = points
+	var mesh: ArrayMesh = ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arrays)
+	mesh.surface_set_material(0, _context_material())
+	return mesh
+
+
+static func _context_tile(kinds: PackedByteArray, x: int, z: int, points: PackedVector3Array, cursor: int) -> int:
+	"""Both sides of a height step are honest source contours; only finite map edges add outlines."""
+	var y: float = LAND_M if kinds[z * World.MAP_TILES_X + x] == World.TERRAIN_LAND else 0.0
+	for axis: int in 2:
+		if _edge_exists(kinds, x, z, axis, false):
+			cursor = _context_edge(kinds, x, z, axis, points, cursor)
+	for edge: int in 4:
+		if (edge == 0 and x != 0) or (edge == 1 and x != World.MAP_TILES_X - 1) \
+				or (edge == 2 and z != 0) or (edge == 3 and z != World.MAP_TILES_Z - 1):
+			continue
+		var start: Vector3 = Vector3((x + (1 if edge == 1 else 0)) * TILE_M, y,
+			(z + (1 if edge == 3 else 0)) * TILE_M)
+		points[cursor] = start
+		points[cursor + 1] = start + (Vector3.BACK if edge < 2 else Vector3.RIGHT) * TILE_M
+		cursor += 2
+	return cursor
+
+
+static func _context_edge(kinds: PackedByteArray, x: int, z: int, axis: int,
+		points: PackedVector3Array, cursor: int) -> int:
+	"""A height discontinuity retains both its land rim and actual water line."""
+	var first: int = kinds[z * World.MAP_TILES_X + x]
+	var second: int = kinds[(z + axis) * World.MAP_TILES_X + x + 1 - axis]
+	var y: float = LAND_M if first == World.TERRAIN_LAND else 0.0
+	var a: Vector3 = Vector3((x + 1) * TILE_M, y, z * TILE_M) if axis == 0 else Vector3(x * TILE_M, y, (z + 1) * TILE_M)
+	var direction: Vector3 = Vector3.BACK if axis == 0 else Vector3.RIGHT
+	points[cursor] = a
+	points[cursor + 1] = a + direction * TILE_M
+	cursor += 2
+	if (first == World.TERRAIN_LAND) != (second == World.TERRAIN_LAND):
+		a.y = LAND_M - y
+		points[cursor] = a
+		points[cursor + 1] = a + direction * TILE_M
+		cursor += 2
+	return cursor
+
+
+func _mesh_node(title: String, mesh: ArrayMesh, layer: int) -> MeshInstance3D:
+	"""A fixed four-node view shares identity coordinates and has no collision objects."""
+	var child: MeshInstance3D = MeshInstance3D.new()
+	child.name = title
+	child.mesh = mesh
+	child.layers = layer
+	child.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(child)
+	return child
+
+
+static func _surface_material(kind: int) -> Material:
+	"""Reuse world-art palette without importing the legacy village's path or clearing layout."""
+	if kind == World.TERRAIN_LAND:
+		return _ground_material()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.roughness = 0.28
+	material.albedo_color = [Look.INK.lerp(Look.SAGE, 0.45), Look.SAGE.lerp(Look.BRASS, 0.18), Look.INK.lerp(Look.SAGE, 0.65)][kind]
+	return material
+
+
+static func _ground_material() -> ShaderMaterial:
+	"""Existing grounded shader/noise, with every legacy origin-centred layout mask disabled."""
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = Look.GROUND_SHADER
+	material.set_shader_parameter(&"macro_noise", Look._noise_texture(Look.MACRO_NOISE_SEED, 0.006, 4, false))
+	material.set_shader_parameter(&"detail_noise", Look._noise_texture(Look.DETAIL_NOISE_SEED, 0.02, 5, false))
+	material.set_shader_parameter(&"detail_normal", Look._noise_texture(Look.DETAIL_NOISE_SEED, 0.03, 4, true))
+	Look.set_targets(material, Look.ground_targets())
+	material.set_shader_parameter(&"path_count", 0)
+	material.set_shader_parameter(&"clearing_radius", 100000.0)
+	material.set_shader_parameter(&"clearing_wobble", 0.0)
+	material.set_shader_parameter(&"south_opening", 0.0)
+	return material
+
+
+static func _wet_projection_material(kind: int) -> StandardMaterial3D:
+	"""A matte planning exclusion mark is not rendered as a second water surface or certified floor."""
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = Look.INK.lerp(Look.UMBER, 0.42 + float(kind) * 0.06)
+	material.roughness = 1.0
+	return material
+
+
+static func _context_material() -> StandardMaterial3D:
+	"""Context writes no depth; existing draft priorities 2/3 remain visibly above these lines."""
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.no_depth_test = true
+	material.albedo_color = Color(Look.SAGE, 0.24)
+	material.render_priority = -1
+	return material

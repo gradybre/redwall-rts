@@ -1,0 +1,19 @@
+{
+  "accepted": true,
+  "source_manifest": "1bc01db521fcf1a3a806e1f42385d465773df46609c9eab1a5c2b6dab809cf9b",
+  "acceptance_sha256": "6613e4cfa8c1b3a17b779d19bff46f8fb16b6115da5f50f47fc5f8a78818a37e",
+  "runtime": [
+    167,
+    18407,
+    0
+  ],
+  "native": {
+    "poses": 462,
+    "exact_native_scalar_comparisons": 144144,
+    "screenshots": 46,
+    "assertions": 2558,
+    "production_qualified": false,
+    "scope": "sampled real canonical driver, WorldRoutes and source; explicit test geometry and diagnostic flags"
+  },
+  "world_activation_qualified": false
+}

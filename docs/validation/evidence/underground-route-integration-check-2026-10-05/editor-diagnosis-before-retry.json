@@ -1,0 +1,31 @@
+{
+  "checkpoint": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "original_analyzer_uses_editor_project_override": false,
+  "files": {
+    "godot/scripts/systems/ui_manager.gd": {
+      "exists": true,
+      "sha256": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+      "original_sha256": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b"
+    },
+    "godot/scripts/ui/ui_shell.gd": {
+      "exists": true,
+      "sha256": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db",
+      "original_sha256": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db"
+    },
+    "godot/demo/ui/demo_stall_banner.gd": {
+      "exists": true,
+      "sha256": "6348b6f346159b28436520fcf3351af42c679c43d3b286f9bc9a26beec95bb17",
+      "original_sha256": "6348b6f346159b28436520fcf3351af42c679c43d3b286f9bc9a26beec95bb17"
+    },
+    "godot/scripts/ui/ui_specimen.gd": {
+      "exists": true,
+      "sha256": "27d809a1f1a514c7003eb2cfbfb91a4fa8e78bb7b5ad794179039effff4024ad",
+      "original_sha256": "27d809a1f1a514c7003eb2cfbfb91a4fa8e78bb7b5ad794179039effff4024ad"
+    }
+  },
+  "initial_failure": "8 raw editor SCRIPT ERROR/ERROR lines despite final empty LSP diagnostics",
+  "cause": "Not yet established; no source was removed and no alternate editor project was requested.",
+  "cache_snapshots": {
+    "pre-retry-filesystem_cache10.txt": "7c4d361348050a170c132b2d3472037a8f9e7eca19a56a97ad5711779aa9c242"
+  }
+}

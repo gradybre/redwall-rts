@@ -1,0 +1,646 @@
+{
+  "docs/planning/underground_memory_pack.json": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/underground_memory_pack.json.txt",
+    "sha256": "a47a2fb067fd3a7c13d189770a9236ff1980370de0ecd14ebf16a1d66fca110b"
+  },
+  "godot/scripts/core/underground_session.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/underground_session.gd.txt",
+    "sha256": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712"
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/underground_world_retirement.gd.txt",
+    "sha256": "d44232dfaa9581d82e5887bafc36664602ed830716a92d069a87dfd6aa2da889"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/settlement_system.gd.txt",
+    "sha256": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50"
+  },
+  "godot/scripts/core/underground_room_composition.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/underground_room_composition.gd.txt",
+    "sha256": "d30a41cb7f688cbfb2a450eb903ef7a3285804ac8ac4c8a171574334e3bbab63"
+  },
+  "godot/scripts/core/underground_route_composition.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/underground_route_composition.gd.txt",
+    "sha256": "1f70c75b46005b6ba8f37adc4f585511dab7f9de975edfb3f3e7bac15b39bc4f"
+  },
+  "godot/scripts/core/underground_surface_anchor.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/underground_surface_anchor.gd.txt",
+    "sha256": "ac38160fbfd6f64adfda8d4ea7fcde61df635af560774e4f60cb4d2505b27b12"
+  },
+  "godot/scripts/ui/ui_world_session.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/ui_world_session.gd.txt",
+    "sha256": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
+  },
+  "godot/scripts/systems/ui_manager.gd": {
+    "locator": "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/baseline/ui_manager.gd.txt",
+    "sha256": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py": {
+    "locator": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py",
+    "sha256": "8bd2efa690a3bb8df310297300a4cc54135e5d15452f993a49b56fd4d8fb6fbe"
+  },
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor_census.py": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor_census.py",
+    "sha256": "4aab4daf4810122ada334f169c08088826d22fa225693dd0b77ac2335049d9e5"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py",
+    "sha256": "d1aeaf209dd9c400fc3cb6a8dc6adc46ad52a6a44f2d136a044ab3705a4d7a17"
+  },
+  "godot/scripts/core/building_definitions.gd": {
+    "locator": "godot/scripts/core/building_definitions.gd",
+    "sha256": "32fd452ec16012a4a0662a622999e6ee20216bb55ee1035ee8cc996e7de45ac9"
+  },
+  "godot/scripts/core/buildings.gd": {
+    "locator": "godot/scripts/core/buildings.gd",
+    "sha256": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd"
+  },
+  "godot/scripts/core/canonical_state_hash.gd": {
+    "locator": "godot/scripts/core/canonical_state_hash.gd",
+    "sha256": "f6b09e6e5e4ce74d3764dac0207f206cef12a440ffd0426f6fddee51deda3760"
+  },
+  "godot/scripts/core/catalog.gd": {
+    "locator": "godot/scripts/core/catalog.gd",
+    "sha256": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1"
+  },
+  "godot/scripts/core/catalog_ids.gd": {
+    "locator": "godot/scripts/core/catalog_ids.gd",
+    "sha256": "63dfd84986c0761316301470c8dfb845a41670a91bb0f34f08cfc2ceeba84afb"
+  },
+  "godot/scripts/core/command_dispatch.gd": {
+    "locator": "godot/scripts/core/command_dispatch.gd",
+    "sha256": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e"
+  },
+  "godot/scripts/core/commands.gd": {
+    "locator": "godot/scripts/core/commands.gd",
+    "sha256": "6562db265811481fbb1b8a62c07b36854024c6c12e9b704d171eb4d04e46881c"
+  },
+  "godot/scripts/core/connector_geometry.gd": {
+    "locator": "godot/scripts/core/connector_geometry.gd",
+    "sha256": "0ad18857dd936f9f6df235a8ec4130955df2c3106c15229ef53fb554ce0e5c35"
+  },
+  "godot/scripts/core/construction.gd": {
+    "locator": "godot/scripts/core/construction.gd",
+    "sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a"
+  },
+  "godot/scripts/core/crop_weather.gd": {
+    "locator": "godot/scripts/core/crop_weather.gd",
+    "sha256": "0c45822d37a26fb05a57a2f591168b555d1a2be64ac5f8ae24e392e94db646f8"
+  },
+  "godot/scripts/core/demolition_admissions.gd": {
+    "locator": "godot/scripts/core/demolition_admissions.gd",
+    "sha256": "b80ec6961ccaf7189ba93ca052ac60d3232e93b2d2a26287224107030f10d557"
+  },
+  "godot/scripts/core/demolition_work.gd": {
+    "locator": "godot/scripts/core/demolition_work.gd",
+    "sha256": "3d2b482c14fd1cff6204935cb5aac3a889fafa0cbce8f47ddca70e8f46038735"
+  },
+  "godot/scripts/core/ecology.gd": {
+    "locator": "godot/scripts/core/ecology.gd",
+    "sha256": "88b21ac74ba75cb1fb75d4d487141ee646879616cafc947c8425dbcb04b2c800"
+  },
+  "godot/scripts/core/entity_directory.gd": {
+    "locator": "godot/scripts/core/entity_directory.gd",
+    "sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e"
+  },
+  "godot/scripts/core/event_schedule.gd": {
+    "locator": "godot/scripts/core/event_schedule.gd",
+    "sha256": "63cf17a3f8cd54adf4a2102d0026007fd52673984afa1e56ac910ea3d37ad8d7"
+  },
+  "godot/scripts/core/excavation_contract.gd": {
+    "locator": "godot/scripts/core/excavation_contract.gd",
+    "sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e"
+  },
+  "godot/scripts/core/excavation_inventory.gd": {
+    "locator": "godot/scripts/core/excavation_inventory.gd",
+    "sha256": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001"
+  },
+  "godot/scripts/core/excavation_sites.gd": {
+    "locator": "godot/scripts/core/excavation_sites.gd",
+    "sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74"
+  },
+  "godot/scripts/core/family_rules.gd": {
+    "locator": "godot/scripts/core/family_rules.gd",
+    "sha256": "3e7e41a936d9bddf746257aaac5b8f5f0f79f5f2ba478831aad82351f68b4d6d"
+  },
+  "godot/scripts/core/farming.gd": {
+    "locator": "godot/scripts/core/farming.gd",
+    "sha256": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539"
+  },
+  "godot/scripts/core/field_policy.gd": {
+    "locator": "godot/scripts/core/field_policy.gd",
+    "sha256": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d"
+  },
+  "godot/scripts/core/fishing.gd": {
+    "locator": "godot/scripts/core/fishing.gd",
+    "sha256": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe"
+  },
+  "godot/scripts/core/forage.gd": {
+    "locator": "godot/scripts/core/forage.gd",
+    "sha256": "fbc941117ee084e80998c91510ee7ff4a320a265c6a4c16fcee8134fd5fa115f"
+  },
+  "godot/scripts/core/gear.gd": {
+    "locator": "godot/scripts/core/gear.gd",
+    "sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea"
+  },
+  "godot/scripts/core/ground_piles.gd": {
+    "locator": "godot/scripts/core/ground_piles.gd",
+    "sha256": "b16df7763458d02a4c82e2e3f20bb119f2bd7e2b266af4b61db0ec6234ed27cb"
+  },
+  "godot/scripts/core/haul_carry.gd": {
+    "locator": "godot/scripts/core/haul_carry.gd",
+    "sha256": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b"
+  },
+  "godot/scripts/core/haul_planner.gd": {
+    "locator": "godot/scripts/core/haul_planner.gd",
+    "sha256": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59"
+  },
+  "godot/scripts/core/haul_transfer_contract.gd": {
+    "locator": "godot/scripts/core/haul_transfer_contract.gd",
+    "sha256": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d"
+  },
+  "godot/scripts/core/households.gd": {
+    "locator": "godot/scripts/core/households.gd",
+    "sha256": "e6c23d9c9826ac72627917bf5bf4e98f0b16bfaad8c2adbec1ef51f831ef4072"
+  },
+  "godot/scripts/core/injury.gd": {
+    "locator": "godot/scripts/core/injury.gd",
+    "sha256": "e881a967099df59cadb9440f4d69632ca19c1ea2b3c8eddfe79dde3857603447"
+  },
+  "godot/scripts/core/int_math.gd": {
+    "locator": "godot/scripts/core/int_math.gd",
+    "sha256": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1"
+  },
+  "godot/scripts/core/inventory.gd": {
+    "locator": "godot/scripts/core/inventory.gd",
+    "sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102"
+  },
+  "godot/scripts/core/inventory_spatial_contract.gd": {
+    "locator": "godot/scripts/core/inventory_spatial_contract.gd",
+    "sha256": "0919427cbe6ea08ca7caa0f759775f5b1536373e5e174fa739bc0f420725aa0a"
+  },
+  "godot/scripts/core/item_definitions.gd": {
+    "locator": "godot/scripts/core/item_definitions.gd",
+    "sha256": "e824b4f2c00278c6ce3460728bb327d1e6b960bd5416e6b4ea3676a6cb958571"
+  },
+  "godot/scripts/core/job_index_schema.gd": {
+    "locator": "godot/scripts/core/job_index_schema.gd",
+    "sha256": "31e567e2f8c10ecd87170fffa3b8f88e65190e9900f13be1caefa08dff77368f"
+  },
+  "godot/scripts/core/job_planner.gd": {
+    "locator": "godot/scripts/core/job_planner.gd",
+    "sha256": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591"
+  },
+  "godot/scripts/core/jobs.gd": {
+    "locator": "godot/scripts/core/jobs.gd",
+    "sha256": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b"
+  },
+  "godot/scripts/core/milestones.gd": {
+    "locator": "godot/scripts/core/milestones.gd",
+    "sha256": "34aabaa1d72187c984c4cbbd1f6772d96f0f9056c7af76bd9b912c1765fb4fc5"
+  },
+  "godot/scripts/core/modular_project_contract.gd": {
+    "locator": "godot/scripts/core/modular_project_contract.gd",
+    "sha256": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849"
+  },
+  "godot/scripts/core/modular_projects.gd": {
+    "locator": "godot/scripts/core/modular_projects.gd",
+    "sha256": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8"
+  },
+  "godot/scripts/core/movement.gd": {
+    "locator": "godot/scripts/core/movement.gd",
+    "sha256": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69"
+  },
+  "godot/scripts/core/navigation.gd": {
+    "locator": "godot/scripts/core/navigation.gd",
+    "sha256": "ae078227fb79879b3357e1ba174c58f1b209ac346a9b6cc6ded70e1080cd7255"
+  },
+  "godot/scripts/core/needs.gd": {
+    "locator": "godot/scripts/core/needs.gd",
+    "sha256": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190"
+  },
+  "godot/scripts/core/orchard_hive.gd": {
+    "locator": "godot/scripts/core/orchard_hive.gd",
+    "sha256": "5df8ff1b6c33deef47bbde0e16c94bcd7c2392f7a6e9b60c2ebab45daa6d459d"
+  },
+  "godot/scripts/core/presentation_extract.gd": {
+    "locator": "godot/scripts/core/presentation_extract.gd",
+    "sha256": "a0d4b3738e841b8cbe2ede918e562bfbe8da5fa590196130d753db9baa97532a"
+  },
+  "godot/scripts/core/priorities.gd": {
+    "locator": "godot/scripts/core/priorities.gd",
+    "sha256": "27b1bd69d315f822dc34ee59ab8e01c74cd23396f4228467a08171216605f3a4"
+  },
+  "godot/scripts/core/progression_interval.gd": {
+    "locator": "godot/scripts/core/progression_interval.gd",
+    "sha256": "a95f34d8274192855f5e34dc640a243917dfdecb628ad04c4953bcd246514737"
+  },
+  "godot/scripts/core/reservations.gd": {
+    "locator": "godot/scripts/core/reservations.gd",
+    "sha256": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534"
+  },
+  "godot/scripts/core/residents.gd": {
+    "locator": "godot/scripts/core/residents.gd",
+    "sha256": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da"
+  },
+  "godot/scripts/core/resource_catalog_binding.gd": {
+    "locator": "godot/scripts/core/resource_catalog_binding.gd",
+    "sha256": "f51acf0bd1a6e6bba4cfaa60c727f4972531c773ecd135268c26c277c4dc580b"
+  },
+  "godot/scripts/core/resource_nodes.gd": {
+    "locator": "godot/scripts/core/resource_nodes.gd",
+    "sha256": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de"
+  },
+  "godot/scripts/core/rng.gd": {
+    "locator": "godot/scripts/core/rng.gd",
+    "sha256": "4ad32c2e173774b3e30300b8516a006a68c34f4a3d8f46470fca6490d124149e"
+  },
+  "godot/scripts/core/room_catalog.gd": {
+    "locator": "godot/scripts/core/room_catalog.gd",
+    "sha256": "f6ecb4882fe9c0f0b919194f2287fa59701435be3c87764ab14978c1e9a49626"
+  },
+  "godot/scripts/core/room_connectors.gd": {
+    "locator": "godot/scripts/core/room_connectors.gd",
+    "sha256": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067"
+  },
+  "godot/scripts/core/room_footprint.gd": {
+    "locator": "godot/scripts/core/room_footprint.gd",
+    "sha256": "253eae560594d198ee7d0ac809d92a99e7c17795ef9c191cfb1c6940a0eb4b89"
+  },
+  "godot/scripts/core/room_layout.gd": {
+    "locator": "godot/scripts/core/room_layout.gd",
+    "sha256": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2"
+  },
+  "godot/scripts/core/room_projects.gd": {
+    "locator": "godot/scripts/core/room_projects.gd",
+    "sha256": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184"
+  },
+  "godot/scripts/core/room_space.gd": {
+    "locator": "godot/scripts/core/room_space.gd",
+    "sha256": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624"
+  },
+  "godot/scripts/core/save_codec.gd": {
+    "locator": "godot/scripts/core/save_codec.gd",
+    "sha256": "f5a6fb8d442fcb0bc7240de71566522b911537a42a00e3380050ed2d8e76432a"
+  },
+  "godot/scripts/core/save_component_columns_schema.gd": {
+    "locator": "godot/scripts/core/save_component_columns_schema.gd",
+    "sha256": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "godot/scripts/core/save_gear_restore.gd": {
+    "locator": "godot/scripts/core/save_gear_restore.gd",
+    "sha256": "da193149f2b79d960c699e69bbfa9faade9edaa409b80da52ff0ee65b676d8dc"
+  },
+  "godot/scripts/core/save_header.gd": {
+    "locator": "godot/scripts/core/save_header.gd",
+    "sha256": "e6677b8c2e18682a6767055b58930fd482a43272eaf308ffc84cf27d9eae20bb"
+  },
+  "godot/scripts/core/save_identity_restore.gd": {
+    "locator": "godot/scripts/core/save_identity_restore.gd",
+    "sha256": "dcce8b6977c47ee01130804c6556286c8810ad62cf60a7e790b300daab39da98"
+  },
+  "godot/scripts/core/save_owner_buildings.gd": {
+    "locator": "godot/scripts/core/save_owner_buildings.gd",
+    "sha256": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13"
+  },
+  "godot/scripts/core/save_owner_construction.gd": {
+    "locator": "godot/scripts/core/save_owner_construction.gd",
+    "sha256": "f275eedebde522821b159cf598bdf5d4aea57564bb974af8667917a338b62a86"
+  },
+  "godot/scripts/core/save_owner_farming.gd": {
+    "locator": "godot/scripts/core/save_owner_farming.gd",
+    "sha256": "f6a3498279d31c61bf1de43452e574bab50715bf7084fbeffc86d975640a4aea"
+  },
+  "godot/scripts/core/save_owner_field_policy.gd": {
+    "locator": "godot/scripts/core/save_owner_field_policy.gd",
+    "sha256": "b718dc513cd5068897fffa214c2334969a6ee08989af741555d22f8b73d3a297"
+  },
+  "godot/scripts/core/save_owner_fishing.gd": {
+    "locator": "godot/scripts/core/save_owner_fishing.gd",
+    "sha256": "6a46d2be1c7bc0c3b364ccaea29a39af51193647757ea15467bd42cd41a4bc6d"
+  },
+  "godot/scripts/core/save_owner_injury.gd": {
+    "locator": "godot/scripts/core/save_owner_injury.gd",
+    "sha256": "8c9a1b6320cfce6076fb1a77774ca3198d121b821fb141bc82804f87632d1f6c"
+  },
+  "godot/scripts/core/save_owner_movement.gd": {
+    "locator": "godot/scripts/core/save_owner_movement.gd",
+    "sha256": "e85eef0cae688df79cc14c606a50c7d57dd925984713dd5072913a15b7cbea82"
+  },
+  "godot/scripts/core/save_owner_needs.gd": {
+    "locator": "godot/scripts/core/save_owner_needs.gd",
+    "sha256": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2"
+  },
+  "godot/scripts/core/save_owner_priorities.gd": {
+    "locator": "godot/scripts/core/save_owner_priorities.gd",
+    "sha256": "82ae61b2cb1afe3b48660a191c52aedab29fb90f723322a22cd62fd308dfca7c"
+  },
+  "godot/scripts/core/save_owner_residents.gd": {
+    "locator": "godot/scripts/core/save_owner_residents.gd",
+    "sha256": "730cff604dd0c4d7f39caabfd96169c0438b503d3242cf5ccbe7681bb6b31785"
+  },
+  "godot/scripts/core/save_owner_resource_nodes.gd": {
+    "locator": "godot/scripts/core/save_owner_resource_nodes.gd",
+    "sha256": "599dea37303df8ecdf37f4a77a04d14fbf0a5500c30e1fbca12d5f787e4c03cc"
+  },
+  "godot/scripts/core/save_owner_schedule.gd": {
+    "locator": "godot/scripts/core/save_owner_schedule.gd",
+    "sha256": "1a123674881744ec4d97c510f9b75f5d46e8389dd1cfb6544a555cc10a816697"
+  },
+  "godot/scripts/core/save_owner_transforms.gd": {
+    "locator": "godot/scripts/core/save_owner_transforms.gd",
+    "sha256": "a82c4df98598a62cc97c84c936c6a00649b2f2f66788ac885cb5ea4378855790"
+  },
+  "godot/scripts/core/save_owner_work.gd": {
+    "locator": "godot/scripts/core/save_owner_work.gd",
+    "sha256": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe"
+  },
+  "godot/scripts/core/save_owner_world_init.gd": {
+    "locator": "godot/scripts/core/save_owner_world_init.gd",
+    "sha256": "cf4aa28da9f434dd5554697ebc8db8290c290ac4831e281901a7a0db0b08608e"
+  },
+  "godot/scripts/core/save_reservations_restore.gd": {
+    "locator": "godot/scripts/core/save_reservations_restore.gd",
+    "sha256": "b1dd3970fe08f145a37f335d731b269a400fed89a7b42aa3b4d22e3673f9f9bf"
+  },
+  "godot/scripts/core/save_resource_claims_reconcile.gd": {
+    "locator": "godot/scripts/core/save_resource_claims_reconcile.gd",
+    "sha256": "f901aaef4ee4f9a2212504e0801c6b87c9ac72f1176315d0e0f5bdeafa47f707"
+  },
+  "godot/scripts/core/save_resource_claims_restore.gd": {
+    "locator": "godot/scripts/core/save_resource_claims_restore.gd",
+    "sha256": "66baf9549b5d3584a33dbf89aa22fd2c03ce8a11bd8fe9ba40ebd694527c45fa"
+  },
+  "godot/scripts/core/save_section_01.gd": {
+    "locator": "godot/scripts/core/save_section_01.gd",
+    "sha256": "46605d156a333ab701593fdad344a8a77c21f5e5742ae471c33b0238f63992cb"
+  },
+  "godot/scripts/core/save_section_component_columns.gd": {
+    "locator": "godot/scripts/core/save_section_component_columns.gd",
+    "sha256": "f5bdc40458b1770eaaababa8a369461991b0cb2178d85c30d3ec976a854b1899"
+  },
+  "godot/scripts/core/save_section_directory.gd": {
+    "locator": "godot/scripts/core/save_section_directory.gd",
+    "sha256": "90a6ba62b6e33ae5f4b487aefa68e279f3167b6e7cf900284137c265bbaa9b55"
+  },
+  "godot/scripts/core/save_section_event_schedule.gd": {
+    "locator": "godot/scripts/core/save_section_event_schedule.gd",
+    "sha256": "b4e607fd51a55e8229d39fe8f2b7a699ad8dc941fe908fd9217fefbff64b338f"
+  },
+  "godot/scripts/core/save_section_inventories.gd": {
+    "locator": "godot/scripts/core/save_section_inventories.gd",
+    "sha256": "32f07e6f788fedfa1c81f62f98dbc5d1bae20f57d1a4fdfd313a306b5808437e"
+  },
+  "godot/scripts/core/save_section_job_indexes.gd": {
+    "locator": "godot/scripts/core/save_section_job_indexes.gd",
+    "sha256": "8bed3ef1c0c6a068a0b8e96821fc286a3a5d68bc5f92cfb82a72f6b1b4ff1eb3"
+  },
+  "godot/scripts/core/save_section_name_pool.gd": {
+    "locator": "godot/scripts/core/save_section_name_pool.gd",
+    "sha256": "d994a2c386944b6d2efe760fa697e17e2107f4b031150df2ddfc238efc6e439a"
+  },
+  "godot/scripts/core/save_section_navigation.gd": {
+    "locator": "godot/scripts/core/save_section_navigation.gd",
+    "sha256": "d9925692b8cc7792809805fa3a8a045a23c41014fba48eab70cb89a7509fa495"
+  },
+  "godot/scripts/core/save_section_pending_commands.gd": {
+    "locator": "godot/scripts/core/save_section_pending_commands.gd",
+    "sha256": "feaa82cb5fad122955fc47901b08b5ceef53313a194f625a7a67c906e9930477"
+  },
+  "godot/scripts/core/save_section_rng.gd": {
+    "locator": "godot/scripts/core/save_section_rng.gd",
+    "sha256": "4269c6e7bf9a59c96ef3b5d8cb58bfe5729a53446494d08dddd8a466a03fcaa4"
+  },
+  "godot/scripts/core/save_section_world_runtime.gd": {
+    "locator": "godot/scripts/core/save_section_world_runtime.gd",
+    "sha256": "2d56b86fd32655966469b184a82fe6819027b1f83f5fa142bc4f6cae7801c0e6"
+  },
+  "godot/scripts/core/save_stock_age_restore.gd": {
+    "locator": "godot/scripts/core/save_stock_age_restore.gd",
+    "sha256": "39e2071d3c4b4e8324d682464cf4a8523611a9d35de9cdf81da42717a7c081c9"
+  },
+  "godot/scripts/core/save_world_runtime_install.gd": {
+    "locator": "godot/scripts/core/save_world_runtime_install.gd",
+    "sha256": "bb065193b209048aeb5a45fd2b773b2dd9d544e6da7d4a50076132db1e88fd60"
+  },
+  "godot/scripts/core/schedule.gd": {
+    "locator": "godot/scripts/core/schedule.gd",
+    "sha256": "e6b3b67b00eb634009a33d7d0b54a08a6c6b110514266c859842d388e2108f4e"
+  },
+  "godot/scripts/core/scheduler_events.gd": {
+    "locator": "godot/scripts/core/scheduler_events.gd",
+    "sha256": "26247c895b25f83eec324228b9f675d95d657fc29e6a17e6e42bf948f04a2a6e"
+  },
+  "godot/scripts/core/sim_clock.gd": {
+    "locator": "godot/scripts/core/sim_clock.gd",
+    "sha256": "502c526bc93ca50e2553898dc9f82e175200c674b4a646021b4ede5a185d3070"
+  },
+  "godot/scripts/core/spatial_world.gd": {
+    "locator": "godot/scripts/core/spatial_world.gd",
+    "sha256": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e"
+  },
+  "godot/scripts/core/spoil_tips.gd": {
+    "locator": "godot/scripts/core/spoil_tips.gd",
+    "sha256": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8"
+  },
+  "godot/scripts/core/spoil_work.gd": {
+    "locator": "godot/scripts/core/spoil_work.gd",
+    "sha256": "1bfa2b36df3c7b41e16609cf27e110e92b86716b99174cf3a38927f19beddcde"
+  },
+  "godot/scripts/core/starter_colony.gd": {
+    "locator": "godot/scripts/core/starter_colony.gd",
+    "sha256": "56eaf003877415970dcd079623ba3451e088976cfd1f59849a53d1f8bc459215"
+  },
+  "godot/scripts/core/starter_structures.gd": {
+    "locator": "godot/scripts/core/starter_structures.gd",
+    "sha256": "f8f7183a4e0d4a34aa31836b694591d34bae58d41a039406acb045d90671bf49"
+  },
+  "godot/scripts/core/stock_age.gd": {
+    "locator": "godot/scripts/core/stock_age.gd",
+    "sha256": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e"
+  },
+  "godot/scripts/core/store_policy.gd": {
+    "locator": "godot/scripts/core/store_policy.gd",
+    "sha256": "f848574e2f45fe2eb5d6550053ca40c39fe6934ba995bf665854121f7c9ecd20"
+  },
+  "godot/scripts/core/transforms.gd": {
+    "locator": "godot/scripts/core/transforms.gd",
+    "sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa"
+  },
+  "godot/scripts/core/underground_budget.gd": {
+    "locator": "godot/scripts/core/underground_budget.gd",
+    "sha256": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779"
+  },
+  "godot/scripts/core/underground_connector_assemblies.gd": {
+    "locator": "godot/scripts/core/underground_connector_assemblies.gd",
+    "sha256": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4"
+  },
+  "godot/scripts/core/underground_connector_catalog.gd": {
+    "locator": "godot/scripts/core/underground_connector_catalog.gd",
+    "sha256": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8"
+  },
+  "godot/scripts/core/underground_connector_contacts.gd": {
+    "locator": "godot/scripts/core/underground_connector_contacts.gd",
+    "sha256": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3"
+  },
+  "godot/scripts/core/underground_connector_delivery.gd": {
+    "locator": "godot/scripts/core/underground_connector_delivery.gd",
+    "sha256": "e1d05e0d12980322b4710fd3b2710056da0efa51f882134397204969ca7c3bee"
+  },
+  "godot/scripts/core/underground_connector_placements.gd": {
+    "locator": "godot/scripts/core/underground_connector_placements.gd",
+    "sha256": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae"
+  },
+  "godot/scripts/core/underground_connector_recipes.gd": {
+    "locator": "godot/scripts/core/underground_connector_recipes.gd",
+    "sha256": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2"
+  },
+  "godot/scripts/core/underground_connector_source_facts.gd": {
+    "locator": "godot/scripts/core/underground_connector_source_facts.gd",
+    "sha256": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160"
+  },
+  "godot/scripts/core/underground_connector_work.gd": {
+    "locator": "godot/scripts/core/underground_connector_work.gd",
+    "sha256": "53e813a3b97c601e2b8648df2bae4df8cf315e8720dbebe61d76c2320214b0de"
+  },
+  "godot/scripts/core/underground_connector_workpieces.gd": {
+    "locator": "godot/scripts/core/underground_connector_workpieces.gd",
+    "sha256": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d"
+  },
+  "godot/scripts/core/underground_entry_bindings.gd": {
+    "locator": "godot/scripts/core/underground_entry_bindings.gd",
+    "sha256": "7d53f82aeb5ba4e3b97feaa242cf839dbcd38dc953b619d8cd2cb7b4fd1a5c55"
+  },
+  "godot/scripts/core/underground_entry_cut_map.gd": {
+    "locator": "godot/scripts/core/underground_entry_cut_map.gd",
+    "sha256": "6e72d422ec66cd4faced91f8608a571739a0c7f010748297684b336ff7122a9e"
+  },
+  "godot/scripts/core/underground_entry_frontier.gd": {
+    "locator": "godot/scripts/core/underground_entry_frontier.gd",
+    "sha256": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c"
+  },
+  "godot/scripts/core/underground_entry_plan.gd": {
+    "locator": "godot/scripts/core/underground_entry_plan.gd",
+    "sha256": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e"
+  },
+  "godot/scripts/core/underground_entry_structure.gd": {
+    "locator": "godot/scripts/core/underground_entry_structure.gd",
+    "sha256": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa"
+  },
+  "godot/scripts/core/underground_entry_world_bindings.gd": {
+    "locator": "godot/scripts/core/underground_entry_world_bindings.gd",
+    "sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2"
+  },
+  "godot/scripts/core/underground_final_facts.gd": {
+    "locator": "godot/scripts/core/underground_final_facts.gd",
+    "sha256": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46"
+  },
+  "godot/scripts/core/underground_furniture_work.gd": {
+    "locator": "godot/scripts/core/underground_furniture_work.gd",
+    "sha256": "b3adf99266cb8659afe55eedd73a3fade96b5554873696726ee558a8d3bdbac8"
+  },
+  "godot/scripts/core/underground_layout_sources.gd": {
+    "locator": "godot/scripts/core/underground_layout_sources.gd",
+    "sha256": "d7c5699ddb4c54e255468392720d199828a3909242f0d5970cf6ecf1ec328fbe"
+  },
+  "godot/scripts/core/underground_level_catalog.gd": {
+    "locator": "godot/scripts/core/underground_level_catalog.gd",
+    "sha256": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f"
+  },
+  "godot/scripts/core/underground_locations.gd": {
+    "locator": "godot/scripts/core/underground_locations.gd",
+    "sha256": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58"
+  },
+  "godot/scripts/core/underground_motion_catalog.gd": {
+    "locator": "godot/scripts/core/underground_motion_catalog.gd",
+    "sha256": "199bb60bfc6e62ac3f5e365d6d0b4247f82393511bc0eefaeedb31a93aefe8cd"
+  },
+  "godot/scripts/core/underground_motion_clock.gd": {
+    "locator": "godot/scripts/core/underground_motion_clock.gd",
+    "sha256": "a76b16440bbffe3751bfdc361e3e4195f80a3cd895e17af65d8d7773be6e4141"
+  },
+  "godot/scripts/core/underground_phase_structure.gd": {
+    "locator": "godot/scripts/core/underground_phase_structure.gd",
+    "sha256": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8"
+  },
+  "godot/scripts/core/underground_profiles.gd": {
+    "locator": "godot/scripts/core/underground_profiles.gd",
+    "sha256": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec"
+  },
+  "godot/scripts/core/underground_room_approach.gd": {
+    "locator": "godot/scripts/core/underground_room_approach.gd",
+    "sha256": "98b27b0f25588123aa38597be761306101454db3558d5a6f1859d984bdd875ca"
+  },
+  "godot/scripts/core/underground_room_bindings.gd": {
+    "locator": "godot/scripts/core/underground_room_bindings.gd",
+    "sha256": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615"
+  },
+  "godot/scripts/core/underground_room_cut_map.gd": {
+    "locator": "godot/scripts/core/underground_room_cut_map.gd",
+    "sha256": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5"
+  },
+  "godot/scripts/core/underground_room_frontier.gd": {
+    "locator": "godot/scripts/core/underground_room_frontier.gd",
+    "sha256": "c012d8eae1346fb1785ad71d105e79e3da747fbc9158fb3a74f749217bf233c6"
+  },
+  "godot/scripts/core/underground_room_frontier_publication.gd": {
+    "locator": "godot/scripts/core/underground_room_frontier_publication.gd",
+    "sha256": "8fb6fba60349cf71b8df6a7a34155dca2277dd0f67b00f22477f894d1fc6869b"
+  },
+  "godot/scripts/core/underground_room_itinerary.gd": {
+    "locator": "godot/scripts/core/underground_room_itinerary.gd",
+    "sha256": "1b0a8ac711d8a3c21767f8d92883d01b08d9f3f23d71c8e2e52160a32491207a"
+  },
+  "godot/scripts/core/underground_room_orders.gd": {
+    "locator": "godot/scripts/core/underground_room_orders.gd",
+    "sha256": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a"
+  },
+  "godot/scripts/core/underground_room_world_bindings.gd": {
+    "locator": "godot/scripts/core/underground_room_world_bindings.gd",
+    "sha256": "95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68"
+  },
+  "godot/scripts/core/underground_routes.gd": {
+    "locator": "godot/scripts/core/underground_routes.gd",
+    "sha256": "27d4f2e92472803235129159dd9fd92291b75aa09057bbf58f5417783f4eea1f"
+  },
+  "godot/scripts/core/underground_space_authority.gd": {
+    "locator": "godot/scripts/core/underground_space_authority.gd",
+    "sha256": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b"
+  },
+  "godot/scripts/core/underground_space_owner.gd": {
+    "locator": "godot/scripts/core/underground_space_owner.gd",
+    "sha256": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158"
+  },
+  "godot/scripts/core/underground_terrain.gd": {
+    "locator": "godot/scripts/core/underground_terrain.gd",
+    "sha256": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8"
+  },
+  "godot/scripts/core/underground_work_face.gd": {
+    "locator": "godot/scripts/core/underground_work_face.gd",
+    "sha256": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26"
+  },
+  "godot/scripts/core/underground_world_bindings.gd": {
+    "locator": "godot/scripts/core/underground_world_bindings.gd",
+    "sha256": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7"
+  },
+  "godot/scripts/core/underground_world_routes.gd": {
+    "locator": "godot/scripts/core/underground_world_routes.gd",
+    "sha256": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66"
+  },
+  "godot/scripts/core/underground_world_structure_scope.gd": {
+    "locator": "godot/scripts/core/underground_world_structure_scope.gd",
+    "sha256": "bce7c50627fb80689681a43543669c93688e3f1309b5570d958f144aafbdd57a"
+  },
+  "godot/scripts/core/weather.gd": {
+    "locator": "godot/scripts/core/weather.gd",
+    "sha256": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e"
+  },
+  "godot/scripts/core/work.gd": {
+    "locator": "godot/scripts/core/work.gd",
+    "sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
+  },
+  "godot/scripts/core/world_init.gd": {
+    "locator": "godot/scripts/core/world_init.gd",
+    "sha256": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
+  }
+}

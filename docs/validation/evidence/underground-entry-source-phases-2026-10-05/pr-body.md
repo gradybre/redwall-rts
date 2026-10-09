@@ -1,0 +1,24 @@
+## What changed
+
+Players can open **Plan an underground room** from the demo Tunnels panel, choose a room purpose and floor, and draw directly on the actual settlement's dirt. The view preserves drafts, modal input and World identity, and restores the village camera on close. Confirmation explains missing completed access and conserves resources.
+
+The new reviewed entry excavation increment fixes an air-contact check that rejected valid complete worker geometry. An actual-owner integration fixture now follows perimeter routes between four L0 cubes and completes 12 paid BRACE/CUT/FINISH phases: 36,000 milli-work units, 1,000 milli-units each of wood and stone consumed, and 8,000 milli-units of earth produced once. Unsupported complete body volumes still refuse before payment. Initial arrival and finite stock are explicit test setup; no synthetic motion certificate or injected paid state supplies successful work.
+
+**This is still a draft: the first worker-built empty Kitchen is incomplete.** Paid timber handling/fastening, original entry-owner composition and demo dispatch remain in progress. Furniture/services, deeper levels and the full connector catalog, amendments/replacement/renovation, composed saves, and 256-resident qualification remain in the durable build queue. Component evidence does not close those playable requirements.
+
+## Evidence
+
+- Current reviewed source increment: `b315b7c7` and `4972a96d`. The source-bound Frontier uses complete worker envelopes and retained-ground perimeter routes. Three clean-import strict focused suites pass **61 tests / 11,093 assertions / 0 failures**; analyzer `0 GDScript warning(s) in 0 of 2 file(s)`. Each reports `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)` and `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).` Original failed iterations, exact source hashes and independent review are retained in [entry phase evidence](https://github.com/gradybre/redwall-rts/blob/4972a96d/docs/validation/evidence/underground-entry-source-phases-2026-10-05/README.md).
+- Memory renewal passes **285 Python tests**, **190 registry-capacity checks**, independent **39 checks plus five injected mutations**, and byte-identical generated-pack reproduction. Logical allocation remains **99,999,806 bytes**, with no reserve increase. This is source accounting; native memory and target hardware remain unqualified.
+- The current `4972a96d` checkpoint has a new isolated local full run and CI in progress. Those results are not yet claimed. The last accepted full checkpoint is `eb95c0dd`: [CI](https://github.com/gradybre/redwall-rts/actions/runs/37277106463) passed all 14 jobs in **14m30s**, with **410 files exactly once across eight shards**, **11,283 tests / 1,082,436 assertions / 0 failures**, and analyzer **0/1264**.
+- Matching `eb95c0dd` local clean-assets/cache/import, no-argument `./tools/run_tests.sh` passed **11,283 tests / 1,082,447 assertions / 0 failures**. `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)`; `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).` All-file analyzer: `0 GDScript warning(s) in 0 of 1264 file(s)`, zero raw editor findings. Same files, named tests and all diagnostic/leak totals as CI; local has 11 additional assertions, unattributed. Exact assertion parity is not claimed. This full result predates the new excavation increment.
+- Planning scene acceptance: **30 focused tests / 1,132 assertions / 0 failures**, strict diagnostics/leaks zero, analyzer **0/6**. Native Metal/Forward+ passes **74 checks / 0 failures**, with five inspected **1280×720** captures covering dirt drawing, floor selection, conserving refusal, close/reopen, clock overload, keyboard containment and actual World replacement. [Drawing capture](https://github.com/gradybre/redwall-rts/blob/c713aa5f/docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/planning-drawing.png).
+- Structural source ADR1187 publishes all 14 L0/T0 timber parts, eight natural bearings and two wood-only bills. Real generated-Host readers pass **2 tests / 45 assertions / 0 failures**, all diagnostics/leaks zero, analyzer **0/1**. Independently reproduced source bytes grant no paid progress or access. The content4 handling bundle is explicitly diagnostic and is not an activated production publication.
+
+Exact commands, source pins, rejected iterations, independent reviews and restoration evidence live in `docs/validation/evidence/`. No diagnostic/leak gate was weakened. No paid asset generation was used.
+
+## Declarations
+
+DEVIATIONS: none
+SURVIVED_MUTANTS: none
+BLOCKED: none

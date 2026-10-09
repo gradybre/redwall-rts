@@ -1,0 +1,22 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-ud93whuj
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 0
+CI_SUITE_TIME {"assertions":5024,"failures":0,"suite":"test_underground_space_owner.gd","tests":88,"usec":4526189}
+88 test(s), 5024 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 88 tests, 5024 assertions, 0 failures.
+test_underground_space_authority.gd exit 0
+  PASS  test_actual_cut_stages_floor_support_then_sealed_companions_and_rolls_back_both_failures
+CI_SUITE_TIME {"assertions":4605,"failures":0,"suite":"test_underground_space_authority.gd","tests":34,"usec":1668684}
+34 test(s), 4605 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 34 tests, 4605 assertions, 0 failures.
+test_underground_room_bindings.gd exit 0
+CI_SUITE_TIME {"assertions":573,"failures":0,"suite":"test_underground_room_bindings.gd","tests":16,"usec":4626610}
+16 test(s), 573 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 16 tests, 573 assertions, 0 failures.
+assets restored True

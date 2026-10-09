@@ -1,0 +1,2 @@
+FAIL C6 underground_entry_frontier.gd line 1667: `_digests` count `DIGEST_BYTES` requires the 'runtime' form
+state_registry_coverage: 1 failure(s)

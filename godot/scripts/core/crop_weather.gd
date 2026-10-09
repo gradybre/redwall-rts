@@ -1114,3 +1114,23 @@ func _refuse(code: StringName) -> bool:
 	"""Record a refusal code and return false, so callers can `return _refuse(...)`."""
 	_last_refusal = code
 	return false
+
+
+# --- ARCH-SAVE-002 section 6 save pair (ADR 1222 build step 4) ------------------------------------
+#
+# Section 6 owner `crop_weather` is the two run latches. A day latch is NO_DAY_RUN or a positive
+# absolute day; an hour latch is NO_HOUR_RUN or a nonnegative tick.
+
+
+func save_latches() -> PackedInt64Array:
+	"""The two run latches in registry order: `_last_day`, `_last_hour_tick`."""
+	return PackedInt64Array([_last_day, _last_hour_tick])
+
+
+func restore_latches(day_latch: int, hour_latch: int) -> bool:
+	"""Install both latches after their domain checks. False writes nothing."""
+	if day_latch < NO_DAY_RUN or hour_latch < NO_HOUR_RUN:
+		return false
+	_last_day = day_latch
+	_last_hour_tick = hour_latch
+	return true

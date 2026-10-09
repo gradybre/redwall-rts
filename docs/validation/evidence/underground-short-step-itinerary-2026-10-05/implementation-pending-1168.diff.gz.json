@@ -1,0 +1,5 @@
+{
+  "raw_sha256": "1ab1a47f6100b57a707b855e8cd50081a5dddbde6c5f2096f5f6b1193e4e1c9f",
+  "raw_bytes": 3265,
+  "purpose": "Lossless historical patch; compressed to preserve whitespace-significant diff context."
+}

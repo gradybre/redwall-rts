@@ -1,0 +1,41 @@
+state_registry_coverage: PASS -- 147 modules, 723 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_approach.gd
+  PASS  test_actual_path_and_work_face_are_observed_before_any_candidate
+  PASS  test_disconnected_profile_path_refuses_a_genuine_available_work_face
+  PASS  test_zero_edge_path_still_proves_the_whole_selected_travel_pose
+  PASS  test_full_source_contact_rejects_an_interior_approach_hole
+  PASS  test_target_must_belong_to_exact_room_cut_union
+  PASS  test_every_added_request_field_is_pinned_against_late_mutation
+  PASS  test_same_revision_refuses_and_new_epochs_expire_original_source
+  PASS  test_endpoint_callbacks_close_original_request_and_lease
+  PASS  test_wrong_profile_and_preexisting_candidate_refuse_without_output
+  PASS  test_current_cold_admission_and_plain_plan_remain_explicit
+  PASS  test_real_room_preparation_retains_witness_without_large_surveys_after_sites
+  PASS  test_real_confirm_kitchen_preserves_fine_cells_and_refreshes_exact_existing_approach
+  PASS  test_prepared_final_rejects_every_extra_request_field_and_foreign_candidate
+  PASS  test_final_observer_reentry_cannot_close_or_reuse_the_original_room_scope
+  PASS  test_last_sites_observer_cannot_replace_the_actual_profile_source
+  PASS  test_last_sites_observer_cannot_hide_a_new_actual_foundation
+  PASS  test_last_sites_observer_cannot_substitute_equal_cold_capacity
+  PASS  test_actual_confirm_preserves_a_fine_hole_and_claims_whole_cubes_once
+CI_SUITE_TIME {"assertions":206,"failures":0,"suite":"test_underground_room_approach.gd","tests":18,"usec":5731009}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+18 test(s), 206 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 18 tests, 206 assertions, 0 failures.

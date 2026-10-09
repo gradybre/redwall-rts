@@ -1,0 +1,854 @@
+{
+  "scope": "Conservative sum of sequential final-publication functions, not a live native stack measurement.",
+  "source_sha256": {
+    "godot/scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+    "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+    "godot/scripts/core/buildings.gd": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba",
+    "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "godot/scripts/core/underground_room_cut_map.gd": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158"
+  },
+  "functions": [
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_publish_room",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_room_publication_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_publish_flat_room_identity",
+      "numeric": [
+        [
+          "made",
+          "Vector2i",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_flat_room_claims_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_flat_room_binding_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_same_room_plan",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_room_budget_covers",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_orders.gd",
+      "function": "_publish_room_geometry",
+      "numeric": [
+        [
+          "committed",
+          "bool",
+          1
+        ],
+        [
+          "flat_committed",
+          "bool",
+          1
+        ]
+      ],
+      "bytes": 2
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "room_claim_prepared_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "publish_room_claim_preflighted",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_room_claim_current_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_room_claim_composition_leaf_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_room_claim_bracket_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_entry_claim_receipt_refusal",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_publish_claim_rows_preflighted",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_merge_claim_rows_preflighted",
+      "numeric": [
+        [
+          "first_new",
+          "int",
+          8
+        ],
+        [
+          "last_new",
+          "int",
+          8
+        ],
+        [
+          "old",
+          "int",
+          8
+        ],
+        [
+          "added",
+          "int",
+          8
+        ],
+        [
+          "target",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 40
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_unchanged",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "matches_input",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "_drop_scratch",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "advance_cursor",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "cursor_key",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "cursor_error",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "excavation_sites.gd",
+      "function": "cursor_count",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "buildings.gd",
+      "function": "publish_spatial_room_preflighted",
+      "numeric": [
+        [
+          "ref",
+          "Vector2i",
+          8
+        ],
+        [
+          "room_type",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "buildings.gd",
+      "function": "_write_room_row_preflighted",
+      "numeric": [
+        [
+          "row",
+          "int",
+          8
+        ],
+        [
+          "ref",
+          "Vector2i",
+          8
+        ],
+        [
+          "building_ref",
+          "Vector2i",
+          8
+        ],
+        [
+          "room_type",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 40
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "create_candidate",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "candidate_refusal",
+      "numeric": [
+        [
+          "slot",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "create",
+      "numeric": [
+        [
+          "kind",
+          "int",
+          8
+        ],
+        [
+          "slot",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "_refuse_create",
+      "numeric": [
+        [
+          "kind",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "_pop_min",
+      "numeric": [
+        [
+          "base",
+          "int",
+          8
+        ],
+        [
+          "count",
+          "int",
+          8
+        ],
+        [
+          "smallest",
+          "int",
+          8
+        ],
+        [
+          "last",
+          "int",
+          8
+        ],
+        [
+          "index",
+          "int",
+          8
+        ],
+        [
+          "child",
+          "int",
+          8
+        ],
+        [
+          "carried",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 56
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "_publish_row",
+      "numeric": [
+        [
+          "slot",
+          "int",
+          8
+        ],
+        [
+          "kind",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "is_valid_of_kind",
+      "numeric": [
+        [
+          "ref",
+          "Vector2i",
+          8
+        ],
+        [
+          "expected_kind",
+          "int",
+          8
+        ],
+        [
+          "slot",
+          "int",
+          8
+        ],
+        [
+          "kind",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 40
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "is_valid",
+      "numeric": [
+        [
+          "ref",
+          "Vector2i",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "get_typed_row",
+      "numeric": [
+        [
+          "ref",
+          "Vector2i",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "get_persistent_id",
+      "numeric": [
+        [
+          "ref",
+          "Vector2i",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "entity_directory.gd",
+      "function": "last_refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "advance",
+      "numeric": [
+        [
+          "encoded",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_emit",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_prepare_band",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_gather_band",
+      "numeric": [
+        [
+          "at",
+          "int",
+          8
+        ],
+        [
+          "end",
+          "int",
+          8
+        ],
+        [
+          "low",
+          "int",
+          8
+        ],
+        [
+          "high",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_sort_intervals",
+      "numeric": [
+        [
+          "parent",
+          "int",
+          8
+        ],
+        [
+          "end",
+          "int",
+          8
+        ],
+        [
+          "saved",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_sift",
+      "numeric": [
+        [
+          "root",
+          "int",
+          8
+        ],
+        [
+          "length",
+          "int",
+          8
+        ],
+        [
+          "child",
+          "int",
+          8
+        ],
+        [
+          "saved",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_merge_intervals",
+      "numeric": [
+        [
+          "written",
+          "int",
+          8
+        ],
+        [
+          "at",
+          "int",
+          8
+        ],
+        [
+          "encoded",
+          "int",
+          8
+        ],
+        [
+          "right",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_row_first_quantum",
+      "numeric": [
+        [
+          "pair",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_row_last_quantum",
+      "numeric": [
+        [
+          "pair",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_quantum",
+      "numeric": [
+        [
+          "value",
+          "int",
+          8
+        ],
+        [
+          "axis",
+          "int",
+          8
+        ],
+        [
+          "delta",
+          "int",
+          8
+        ],
+        [
+          "coordinate",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 32
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_spend",
+      "numeric": [
+        [
+          "checks",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 8
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "_fail",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "current_key",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "refusal",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "emitted_count",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_room_cut_map.gd",
+      "function": "clear",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_budget.gd",
+      "function": "covers",
+      "numeric": [
+        [
+          "token",
+          "int",
+          8
+        ],
+        [
+          "bytes",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "room_prepared_leaf_refusal",
+      "numeric": [
+        [
+          "token",
+          "int",
+          8
+        ],
+        [
+          "room_type",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_room_source_leaf_refusal",
+      "numeric": [
+        [
+          "room_type",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "room_commit_preflighted",
+      "numeric": [
+        [
+          "token",
+          "int",
+          8
+        ],
+        [
+          "room_type",
+          "int",
+          8
+        ],
+        [
+          "cold_token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_room_issuer_leaf_matches",
+      "numeric": [
+        [
+          "token",
+          "int",
+          8
+        ],
+        [
+          "cold_token",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_ordinary_room_plan_matches",
+      "numeric": [
+        [
+          "world",
+          "Vector2i",
+          8
+        ],
+        [
+          "expected_geometry_revision",
+          "int",
+          8
+        ],
+        [
+          "room_type",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 24
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_room_after_leaf_matches",
+      "numeric": [
+        [
+          "room_type",
+          "int",
+          8
+        ],
+        [
+          "row",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_commit_preflighted_columns",
+      "numeric": [
+        [
+          "token",
+          "int",
+          8
+        ],
+        [
+          "count",
+          "int",
+          8
+        ]
+      ],
+      "bytes": 16
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_commit_columns_0",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_commit_columns_1",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_commit_columns_2",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_commit_columns_3",
+      "numeric": [],
+      "bytes": 0
+    },
+    {
+      "file": "underground_space_owner.gd",
+      "function": "_commit_columns_4",
+      "numeric": [],
+      "bytes": 0
+    }
+  ],
+  "all_declared_frames_bytes": 642,
+  "expression_and_numeric_return_allowance_bytes": 128,
+  "existing_ADR1095_packet_allowance_bytes": 812,
+  "combined_logical_allowance_bytes": 1582,
+  "existing_control_ceiling_bytes": 2048,
+  "no_new_retained_fields_or_arrays": true,
+  "native_runtime_qualified": false
+}

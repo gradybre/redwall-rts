@@ -1,0 +1,9 @@
+{
+  "tools/underground_motion_clock_memory.py": "e4404ca494d44e913b1089c7740c01374d5c0c64dd352de54b12e43adf19266f",
+  "tools/underground_memory_budget.py": "0a03d98a8622f29f77e1573e75a36900786b2b477dbabb6f848b53b10809922f",
+  "tools/test_underground_memory_budget.py": "f079f0c7834b19d7783e3222c4c095a4ff4e353eed85a91c8d90df3d1604d637",
+  "docs/persistence_state_registry.md": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+  "docs/planning/underground_memory_pack.json": "bea6e2ba05926df6e5cacfd4f7f7a4586c1802eb211ab555274f4269e204593f",
+  "godot/scripts/core/underground_motion_clock.gd": "51e9d783a79b9d74e26a64b88eb05f8927f18ca968dccabc32f9bdbfe5f74973",
+  "godot/scripts/core/underground_motion_catalog.gd": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f"
+}

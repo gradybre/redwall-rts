@@ -1,0 +1,41 @@
+{
+  "basis_producer_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+  "basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+  "clip_frames": [
+    31,
+    2,
+    31
+  ],
+  "clip_names": [
+    "seat_entry",
+    "seat_work",
+    "seat_recovery"
+  ],
+  "clips": 3,
+  "content_sha256": "cbe80b76b3b9eb5fbd857865eac27b7a0c6f0fa251df53e52c471c457a865e2a",
+  "frames": 64,
+  "parts": 1,
+  "presentation_only_reservation": {
+    "admitted_peak_bytes": 6567544,
+    "borrowed_mesh_array_allowance_bytes": 4396032,
+    "decode_staging_bytes": 73984,
+    "excluded_borrowed_resources": "original meshes/textures and per-Actor RIDs; separate actual presentation-owner admission",
+    "native_peak_measured": false,
+    "packed_tables_bytes": 376,
+    "reader_native_control_reserve_bytes": 2097152,
+    "retained_palette_bytes": 73984,
+    "world_basis_separately_shared_bytes": 544768
+  },
+  "production_qualified": false,
+  "runtime_admitted": false,
+  "schema": 1,
+  "source_sha256": {
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/seat_entry.npz": "4cc22be4377716668df303337ddcd688ac79bc856e399b6b3a3cfd7536c840c3",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/seat_recovery.npz": "1434d689e1469954556b9af54371e3023b278c286b326a5c446e4c4892eb60e3",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/seat_work.npz": "741d13662cc099623633fc5f753977e51412913bff5841646518346e338dabe4",
+    "godot/data/underground/mole-worker/claw-work-v1/native_claw.py": "f1b664c6431b1c037b635fbe262399c6248e1bc783d4efc3e4125abf003ba8a3",
+    "godot/data/underground/mole-worker/claw-work-v1/native_claw_split.py": "88993670cedf151b0ee0ef4bde006dd25dd3adc27db4d200a2799508f78e0be0"
+  },
+  "source_unchanged": true,
+  "wire_bytes": 74392
+}

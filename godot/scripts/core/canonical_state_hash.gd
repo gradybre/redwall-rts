@@ -65,6 +65,7 @@ extends RefCounted
 ## class cannot call them unqualified. Same pattern as `save_codec.gd`'s `SaveCodecScript`.
 const CanonicalStateHashScript := preload("res://scripts/core/canonical_state_hash.gd")
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 # --- stream framing -------------------------------------------------------------------------------
 
@@ -415,6 +416,26 @@ class Emitter:
 				return false
 			offset += width
 		return not failed()
+
+	func put_bulk(source: PackedByteArray) -> bool:
+		"""Append `source` verbatim by folding it straight into SHA-256 (ADR 1235).
+
+		The buffered bytes are folded first, so the stream order is exactly `put_raw()`'s; SHA-256
+		over a stream does not depend on how it is split, so the digest is the same. A capture
+		appends the whole run under the same cap.
+		"""
+		if failed():
+			return false
+		if _capture_limit > 0:
+			if _total + source.size() > _capture_limit:
+				return fail(REFUSE_CAPTURE_LIMIT, "stream exceeds the %d-byte capture cap"
+					% _capture_limit)
+			_capture.append_array(source)
+		_flush()
+		if source.size() > 0:
+			_context.update(source)
+		_total += source.size()
+		return true
 
 	func put_utf8_u32(text: String, max_bytes: int) -> bool:
 		"""Append a u32 UTF-8 BYTE-length prefix and the encoded bytes. Never a character count."""
@@ -963,7 +984,45 @@ class Walker:
 				return
 
 	func _emit_integers(type_code: int, emitter: Emitter) -> Refusal:
-		"""Types 0-4, each from the storage form the adapter declared. See the sign-trap note."""
+		"""Types 0-4, each from the storage form the adapter declared. See the sign-trap note.
+
+		ADR 1235: every column is emitted as ONE little-endian run (`Emitter.put_bulk`), the very
+		bytes the per-value writes produced; the per-value writes remain only for a host that is
+		not little-endian. A range refusal names the same first offending index either way.
+		"""
+		var count: int = _values.count
+		if not CanonicalStateHashScript.host_is_little_endian():
+			return _emit_per_value(type_code, emitter)
+		if type_code == TYPE_U8:
+			emitter.put_bulk(_values.bytes.slice(0, count))
+		elif type_code == TYPE_I32 or (type_code == TYPE_U32 and _values.storage == STORAGE_INT32):
+			emitter.put_bulk(_values.int32s.slice(0, count).to_byte_array())
+		elif type_code == TYPE_U32:
+			var narrowed: PackedInt32Array = PackedInt32Array()
+			var refusal: Refusal = _narrow_u32(narrowed)
+			if not refusal.is_ok():
+				return refusal
+			emitter.put_bulk(narrowed.to_byte_array())
+		else:
+			var wide: PackedInt64Array = _values.int64s.slice(0, count)
+			if type_code == TYPE_U64 and ColumnProofs.i64_minimum(wide) < 0:
+				return _emit_wide(type_code, emitter)
+			emitter.put_bulk(wide.to_byte_array())
+		return Refusal.new(REFUSE_NONE, "")
+
+	func _narrow_u32(out: PackedInt32Array) -> Refusal:
+		"""Logical u32 values from i64 storage as i32 bit patterns, refusing the first out of range."""
+		out.resize(_values.count)
+		for position: int in _values.count:
+			var value: int = _values.int64s[position]
+			if value < 0 or value > SaveCodec.UINT32_MAX:
+				return Refusal.new(REFUSE_VALUE_RANGE,
+					"u32 value %d at index %d is outside 0..4294967295" % [value, position])
+			out[position] = SaveCodec.u32_bits_to_int32(value)
+		return Refusal.new(REFUSE_NONE, "")
+
+	func _emit_per_value(type_code: int, emitter: Emitter) -> Refusal:
+		"""The value-by-value encoding: the reference the bulk runs reproduce byte for byte."""
 		if type_code == TYPE_U8:
 			for position: int in _values.count:
 				emitter.put_u8(_values.bytes[position])
@@ -1020,6 +1079,17 @@ class Walker:
 # --- module entry points --------------------------------------------------------------------------
 
 static var _production: Declaration = null
+
+
+static var _little_endian: int = -1
+
+
+static func host_is_little_endian() -> bool:
+	"""True when packed `to_byte_array()` conversions are little-endian here (probed once)."""
+	if _little_endian < 0:
+		var probe: PackedByteArray = PackedInt32Array([0x01020304]).to_byte_array()
+		_little_endian = 1 if probe == PackedByteArray([4, 3, 2, 1]) else 0
+	return _little_endian == 1
 
 
 static func ascii_compare(left: String, right: String) -> int:
@@ -1079,39 +1149,48 @@ static func production_walker() -> Walker:
 # Generated from docs/planning/canonical_state_registry.json by
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
-#   registry_id RWL-CANONICAL-REGISTRY-2026-09-15-3, registry_version 7
-#   52 owners, 612 declared fields, 604 canonical records, 555 persisted packed fields.
+#   registry_id RWL-CANONICAL-REGISTRY-2026-10-08-UG2, registry_version 16
+#   75 owners, 820 declared fields, 810 canonical records, 694 persisted packed fields.
 
-const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
-const DECLARATION_VERSION: int = 7
-const CANONICAL_OWNER_COUNT: int = 52
-const CANONICAL_FIELD_COUNT: int = 612
-const CANONICAL_RECORD_COUNT: int = 604
+const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-08-UG2"
+const DECLARATION_VERSION: int = 16
+const CANONICAL_OWNER_COUNT: int = 75
+const CANONICAL_FIELD_COUNT: int = 820
+const CANONICAL_RECORD_COUNT: int = 810
 
 const OWNER_SECTIONS: Array = [
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5,
-	5, 5, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5,
+	5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7,
+	7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
 ]
 
 const OWNER_KEYS: Array = [
 	"buildings", "entity_directory", "farming", "forage", "resource_nodes", "spatial_world",
-	"weather", "world_init", "world_runtime", "movement", "entity_directory", "buildings",
-	"construction", "farming", "field_policy", "fishing", "forage", "injury", "jobs", "movement",
-	"needs", "orchard_hive", "priorities", "residents", "resource_nodes", "schedule", "transforms",
-	"work", "world_init", "buildings", "construction", "forage", "jobs", "orchard_hive",
-	"command_dispatch", "crop_weather", "ecology", "fishing", "forage", "gear", "inventory",
-	"reservations", "stock_age", "job_planner", "movement", "navigation", "rng", "event_schedule",
-	"commands", "scheduler_events", "chronicle", "residents"
+	"underground_space_owner", "weather", "world_init", "world_runtime", "movement",
+	"entity_directory", "buildings", "construction", "farming", "field_policy", "fishing", "forage",
+	"injury", "jobs", "movement", "needs", "orchard_hive", "priorities", "residents",
+	"resource_nodes", "schedule", "transforms", "work", "world_init", "buildings", "construction",
+	"forage", "jobs", "orchard_hive", "buildings", "command_dispatch", "construction_extension",
+	"construction_paid_ledger", "crop_weather", "demolition_admissions", "demolition_work",
+	"ecology", "excavation_inventory", "excavation_sites", "haul_planner", "inventory",
+	"modular_projects", "room_layout", "room_projects", "spoil_tips", "store_policy",
+	"underground_connector_contacts", "underground_connector_placements",
+	"underground_connector_workpieces", "underground_entry_progress", "underground_locations",
+	"underground_mount", "underground_routes", "underground_world_routes", "fishing", "forage",
+	"gear", "inventory", "reservations", "stock_age", "job_planner", "movement", "navigation",
+	"rng", "event_schedule", "commands", "scheduler_events", "chronicle", "residents"
 ]
 
 const OWNER_VERSIONS: Array = [
-	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 2, 1, 1, 4, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
+	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 5,
+	1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
 ]
 
 const OWNER_FIELD_COUNTS: Array = [
-	3, 1, 10, 1, 1, 5, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9,
-	9, 9, 15, 1, 10, 4, 2, 4, 2, 1, 8, 11, 12, 31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2, 1
+	3, 1, 10, 1, 1, 5, 33, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6,
+	9, 9, 9, 15, 1, 10, 4, 2, 2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 2, 2, 2, 4,
+	2, 3, 2, 2, 8, 11, 12, 31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2, 1
 ]
 
 const FIELD_KEYS: Array = [
@@ -1119,30 +1198,35 @@ const FIELD_KEYS: Array = [
 	"_tile_last_family", "_tile_family_streak", "_tile_last_legume_day", "_tile_compost_season",
 	"_tile_active_plot_row", "_tile_orchard_row", "_tile_ripe_tick", "_tile_growth_remainder",
 	"_tile_tended_today", "_tile_link_head", "_resource_slot", "_map_revision", "_walkable",
-	"_layer", "_terrain", "_height_units", "_row", "_row64", "_published", "_published_seed",
-	"_terrain", "_soil", "_basin", "_cleared", "_basin_ref_slot", "_basin_ref_generation",
-	"_basin_danger", "_completed_tick", "_world_seed", "_seeded", "_requested_speed", "_pause_mask",
-	"_debt", "_fallback_count", "_diagnostic_pause_count", "_acknowledged_catchup_resets",
-	"_acknowledged_ticks_discarded", "_subtick_debt_discards", "_day_boundaries_crossed",
-	"_profile_revision", "_active", "_generation", "_retired", "_persistent_id", "_kind",
-	"_typed_row", "_b_present", "_r_present", "_f_present", "_b_type_id", "_b_tier",
-	"_b_origin_tile", "_b_rotation", "_b_state", "_b_condition", "_b_construction_slot",
-	"_b_construction_generation", "_b_interior_id", "_r_type", "_r_building_slot",
-	"_r_building_generation", "_r_tile_offset", "_r_tile_count", "_r_temperature_tenths",
-	"_r_furniture_mask", "_r_occupants", "_r_valid", "_f_type_id", "_f_room_slot",
-	"_f_room_generation", "_f_origin_tile", "_f_rotation", "_f_user_slot", "_f_user_generation",
-	"_f_condition", "_present", "_material_container_slot", "_material_container_generation",
-	"_assigned_count", "_max_workers", "_refund_policy", "_remaining_mwu", "_paused", "_work_begun",
-	"_ref_slot", "_ref_generation", "_subject_slot", "_subject_generation", "_purpose", "_type_id",
-	"_phase", "_present", "_crop_id", "_state", "_soil", "_fertility", "_moisture",
-	"_growth_milli_hours", "_health", "_last_family", "_family_streak", "_compost_milli",
-	"_sow_day", "_tile", "_ref_slot", "_ref_generation", "_field_present", "_zone_slot",
-	"_zone_generation", "_rotation_ids", "_rotation_cursor", "_auto_rotation", "_seed_reserve",
-	"_cycle_ordinal", "_participants", "_resolved", "_withdrawn", "_completed_cycles",
-	"_cancelled_cycles", "_requested_crop", "_cycle_state", "_close_reason", "_request_state",
-	"_plot_field_slot", "_plot_cycle", "_plot_outcome", "_habitat_present", "_stock_present",
-	"_habitat_type", "_habitat_zone_slot", "_habitat_zone_generation", "_habitat_effort_slots",
-	"_habitat_pollution", "_habitat_danger", "_habitat_protected_fraction",
+	"_layer", "_terrain", "_height_units", "_region_capacity", "_source_capacity", "_header",
+	"_r_present", "_r_retired", "_r_role", "_r_claim_kind", "_r_generation", "_r_lo_x", "_r_lo_y",
+	"_r_lo_z", "_r_hi_x", "_r_hi_y", "_r_hi_z", "_r_level", "_r_section_slot",
+	"_r_section_generation", "_r_owner_slot", "_r_owner_generation", "_r_claim_slot",
+	"_r_claim_generation", "_r_owner_revision", "_o_present", "_o_kind", "_o_slot", "_o_generation",
+	"_o_parent_slot", "_o_parent_generation", "_o_a", "_o_b", "_o_c", "_o_d", "_o_revision", "_row",
+	"_row64", "_published", "_published_seed", "_terrain", "_soil", "_basin", "_cleared",
+	"_basin_ref_slot", "_basin_ref_generation", "_basin_danger", "_completed_tick", "_world_seed",
+	"_seeded", "_requested_speed", "_pause_mask", "_debt", "_fallback_count",
+	"_diagnostic_pause_count", "_acknowledged_catchup_resets", "_acknowledged_ticks_discarded",
+	"_subtick_debt_discards", "_day_boundaries_crossed", "_profile_revision", "_active",
+	"_generation", "_retired", "_persistent_id", "_kind", "_typed_row", "_b_present", "_r_present",
+	"_f_present", "_b_type_id", "_b_tier", "_b_origin_tile", "_b_rotation", "_b_state",
+	"_b_condition", "_b_construction_slot", "_b_construction_generation", "_b_interior_id",
+	"_r_type", "_r_building_slot", "_r_building_generation", "_r_tile_offset", "_r_tile_count",
+	"_r_temperature_tenths", "_r_furniture_mask", "_r_occupants", "_r_valid", "_f_type_id",
+	"_f_room_slot", "_f_room_generation", "_f_origin_tile", "_f_rotation", "_f_user_slot",
+	"_f_user_generation", "_f_condition", "_present", "_material_container_slot",
+	"_material_container_generation", "_assigned_count", "_max_workers", "_refund_policy",
+	"_remaining_mwu", "_paused", "_work_begun", "_ref_slot", "_ref_generation", "_subject_slot",
+	"_subject_generation", "_purpose", "_type_id", "_phase", "_present", "_crop_id", "_state",
+	"_soil", "_fertility", "_moisture", "_growth_milli_hours", "_health", "_last_family",
+	"_family_streak", "_compost_milli", "_sow_day", "_tile", "_ref_slot", "_ref_generation",
+	"_field_present", "_zone_slot", "_zone_generation", "_rotation_ids", "_rotation_cursor",
+	"_auto_rotation", "_seed_reserve", "_cycle_ordinal", "_participants", "_resolved", "_withdrawn",
+	"_completed_cycles", "_cancelled_cycles", "_requested_crop", "_cycle_state", "_close_reason",
+	"_request_state", "_plot_field_slot", "_plot_cycle", "_plot_outcome", "_habitat_present",
+	"_stock_present", "_habitat_type", "_habitat_zone_slot", "_habitat_zone_generation",
+	"_habitat_effort_slots", "_habitat_pollution", "_habitat_danger", "_habitat_protected_fraction",
 	"_habitat_capacity_milli", "_habitat_ref_slot", "_habitat_ref_generation",
 	"_habitat_effort_used", "_habitat_intensive", "_stock_habitat_slot",
 	"_stock_habitat_generation", "_stock_species_id", "_stock_population_milli",
@@ -1193,9 +1277,43 @@ const FIELD_KEYS: Array = [
 	"_delivered_milli", "_link_bump", "_link_free_head", "_link_used", "_zone_link_head",
 	"_zone_tile_count", "_zone_patch_count", "_link_tile", "_link_zone", "_link_tile_next",
 	"_link_zone_next", "_coordinator_slot", "_coordinator_generation", "_member_head",
-	"_member_next", "_link_hive_slot", "_link_hive_generation", "_intent_player_id",
-	"_intent_sequence_high", "_intent_sequence_low", "_intent_zone_generation", "_last_day",
-	"_last_hour_tick", "_last_day", "_effort_claim_active", "_effort_claim_expedition_generation",
+	"_member_next", "_link_hive_slot", "_link_hive_generation", "_r_spatial_kind", "_f_installed",
+	"_intent_player_id", "_intent_sequence_high", "_intent_sequence_low", "_intent_zone_generation",
+	"_present", "_material_container_slot", "_material_container_generation", "_assigned_count",
+	"_max_workers", "_refund_policy", "_remaining_mwu", "_paused", "_work_begun", "_ref_slot",
+	"_ref_generation", "_subject_slot", "_subject_generation", "_purpose", "_type_id", "_phase",
+	"_paid_base_type", "_paid_upgrade_mask", "_last_day", "_last_hour_tick", "_project_slot",
+	"_project_generation", "_output_slot", "_output_generation", "_output_reserved_g",
+	"_admitted_charge_g", "_destination_revision", "_intent_slot", "_intent_generation",
+	"_job_slot", "_job_generation", "_last_day", "_capacity", "_free_count", "_free",
+	"_project_slot", "_project_generation", "_head", "_output_slot", "_output_generation",
+	"_output_mass_g", "_r_next", "_r_item", "_r_quality", "_r_provenance", "_r_recipe",
+	"_r_quantity", "_r_age", "_r_remainder", "_lost_milli", "_capacity", "_count",
+	"_domain_capacity", "_initial_earth_milli", "_virgin_sourced_milli", "_funded_braces",
+	"_completed_braces", "_salvaged_braces", "_returned_brace_milli", "_world_slot",
+	"_world_generation", "_datum_u_x", "_datum_u_y", "_datum_u_z", "_minimum_quantum_x",
+	"_minimum_quantum_y", "_minimum_quantum_z", "_size_quanta_x", "_size_quanta_y",
+	"_size_quanta_z", "_site_key", "_present", "_phase", "_installed", "_ever_cut",
+	"_closure_before", "_embedded_milli", "_earned_mwu", "_room_slot", "_room_generation",
+	"_project_slot", "_project_generation", "_operation", "_job_slot", "_job_generation",
+	"_output_slot", "_output_generation", "_promotion_tile", "_worker_site", "_worker_generation",
+	"_job_generation", "_dest_slot", "_dest_generation", "_dest_tile", "_reserved_g",
+	"_spatial_capacity", "_spatial_world_slot", "_spatial_world_generation",
+	"_spatial_container_slot", "_spatial_container_generation", "_spatial_location_slot",
+	"_spatial_location_generation", "_spatial_location_revision", "_job_slot", "_job_generation",
+	"_project_slot", "_project_generation", "_room_capacity", "_placement_capacity",
+	"_geometry_capacity", "_room_slots", "_room_generations", "_room_types", "_room_modes",
+	"_state", "_generation", "_room_row", "_type", "_x", "_z", "_rotation", "_project_slot",
+	"_project_generation", "_present", "_project_slot", "_project_generation", "_room_type",
+	"_pause_reasons", "_revision_state", "_revision_epoch", "_job_slot", "_job_generation",
+	"_job_project_slot", "_job_project_generation", "_world_slot", "_world_generation", "_capacity",
+	"_count", "_compacted_milli", "_reclaimed_milli", "_present", "_retired", "_prepared",
+	"_generation", "_tile", "_project_slot", "_project_generation", "_operation", "_embedded_milli",
+	"_quantity_milli", "_locked_milli", "_incoming_milli", "_earned_mwu", "_retained_quantity",
+	"_allowed", "_minimum_milli", "_bound_persistent_id", "wire_length", "wire", "wire_length",
+	"wire", "wire_length", "wire", "progress_length", "progress_record", "queue_length", "_queue",
+	"wire_length", "wire", "_mounted", "_operations_prefix", "_content_digest", "wire_length",
+	"wire", "wire_length", "wire", "_effort_claim_active", "_effort_claim_expedition_generation",
 	"_effort_claim_habitat_slot", "_effort_claim_habitat_generation", "_effort_claim_job_slot",
 	"_effort_claim_job_generation", "_effort_claim_slot_count", "_effort_claim_expedition_slot",
 	"_claim_active", "_claim_job_slot", "_claim_job_generation", "_claim_designation_slot",
@@ -1245,47 +1363,58 @@ const FIELD_KEYS: Array = [
 ]
 
 const FIELD_TYPES: Array = [
-	2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 0, 0, 2, 2, 2, 4, 0, 2, 0, 0, 0, 0, 2, 2, 2,
-	4, 2, 0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2,
-	0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0,
-	2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0,
-	2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0,
-	2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2,
-	0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 4, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2,
-	0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2,
-	2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2, 2,
-	0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1,
-	1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2,
-	2, 3, 0, 5
+	2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 4, 0, 0, 0, 0, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 4, 0, 2, 0, 0, 0, 0, 2, 2,
+	2, 4, 2, 0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2,
+	2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+	0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0,
+	0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0,
+	0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2,
+	2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+	2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 4, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+	2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 0, 4,
+	2, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 2, 0, 1, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2,
+	2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4,
+	4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2,
+	2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1, 1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
 ]
 
 ## Field indexes the registry marks hash=false: emitted by no record. See hash_location.
 const FIELD_EXCLUDED_INDEXES: Array = [
-	32, 37, 38, 39, 40, 41, 42, 43
+	65, 70, 71, 72, 73, 74, 75, 76, 585, 586
 ]
 
 ## Sparse (index, value) pairs for fields whose shape declares an exact element count.
 const FIELD_COUNT_INDEXES: Array = [
-	3, 16, 23, 24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 365, 366, 367, 385, 386, 387,
-	419, 420, 458, 459, 494, 496, 498, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519,
-	520, 567, 568, 575, 576, 577, 578, 595, 596, 597, 598, 599, 600, 601, 609, 610
+	3, 16, 21, 22, 56, 57, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 398, 399, 400, 438, 439,
+	451, 452, 453, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485,
+	486, 487, 488, 489, 515, 516, 517, 527, 528, 529, 554, 555, 556, 557, 558, 559, 577, 579, 581,
+	583, 585, 587, 589, 590, 591, 592, 594, 627, 628, 666, 667, 702, 704, 706, 716, 717, 718, 719,
+	720, 721, 722, 723, 724, 725, 726, 727, 728, 775, 776, 783, 784, 785, 786, 803, 804, 805, 806,
+	807, 808, 809, 817, 818
 ]
 const FIELD_COUNT_VALUES: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 32
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 32
 ]
 
 ## Sparse (index, value) pairs for type-5 fields' declared UTF-8 byte cap (SAVE-R09-002).
 const FIELD_MAX_UTF8_INDEXES: Array = [
-	611
+	819
 ]
 const FIELD_MAX_UTF8_VALUES: Array = [
 	128

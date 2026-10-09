@@ -1,0 +1,217 @@
+{
+  "scope": "Constructor body/frame compatibility only; no integrated engine, source-publication or runtime-memory qualification.",
+  "before_commit": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "after_commit": "3851584553399ee41fbdcb41c08e35543a416ffe",
+  "constructor_source_manifest_sha256": "4dfe119a902a11e99226fc6100e9c8bb596349efdef875af409e9b239731ff50",
+  "source_files": {
+    "godot/scripts/core/room_space.gd": {
+      "before_sha256": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+      "after_sha256": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+      "before_bytes": 28350,
+      "after_bytes": 28350,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_space_owner.gd": {
+      "before_sha256": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+      "after_sha256": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+      "before_bytes": 150920,
+      "after_bytes": 150920,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_space_authority.gd": {
+      "before_sha256": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+      "after_sha256": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+      "before_bytes": 74086,
+      "after_bytes": 74086,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_world_bindings.gd": {
+      "before_sha256": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7",
+      "after_sha256": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7",
+      "before_bytes": 35174,
+      "after_bytes": 35174,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_entry_world_bindings.gd": {
+      "before_sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+      "after_sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+      "before_bytes": 36875,
+      "after_bytes": 36875,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_room_world_bindings.gd": {
+      "before_sha256": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+      "after_sha256": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+      "before_bytes": 73454,
+      "after_bytes": 73454,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_room_bindings.gd": {
+      "before_sha256": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615",
+      "after_sha256": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615",
+      "before_bytes": 40639,
+      "after_bytes": 40639,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_room_orders.gd": {
+      "before_sha256": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+      "after_sha256": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+      "before_bytes": 83271,
+      "after_bytes": 83271,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_locations.gd": {
+      "before_sha256": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+      "after_sha256": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+      "before_bytes": 130680,
+      "after_bytes": 144957,
+      "byte_identical": false
+    },
+    "godot/scripts/core/excavation_sites.gd": {
+      "before_sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+      "after_sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+      "before_bytes": 100804,
+      "after_bytes": 100804,
+      "byte_identical": true
+    },
+    "godot/scripts/core/excavation_inventory.gd": {
+      "before_sha256": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
+      "after_sha256": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
+      "before_bytes": 37015,
+      "after_bytes": 37015,
+      "byte_identical": true
+    },
+    "godot/scripts/core/excavation_contract.gd": {
+      "before_sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e",
+      "after_sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e",
+      "before_bytes": 8842,
+      "after_bytes": 8842,
+      "byte_identical": true
+    },
+    "godot/scripts/core/modular_projects.gd": {
+      "before_sha256": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
+      "after_sha256": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
+      "before_bytes": 54500,
+      "after_bytes": 54500,
+      "byte_identical": true
+    },
+    "godot/scripts/core/inventory.gd": {
+      "before_sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "after_sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "before_bytes": 254450,
+      "after_bytes": 254450,
+      "byte_identical": true
+    },
+    "godot/scripts/core/construction.gd": {
+      "before_sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+      "after_sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+      "before_bytes": 170785,
+      "after_bytes": 170785,
+      "byte_identical": true
+    },
+    "godot/scripts/core/work.gd": {
+      "before_sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+      "after_sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+      "before_bytes": 93673,
+      "after_bytes": 93673,
+      "byte_identical": true
+    },
+    "godot/scripts/core/reservations.gd": {
+      "before_sha256": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+      "after_sha256": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+      "before_bytes": 121021,
+      "after_bytes": 121021,
+      "byte_identical": true
+    },
+    "godot/scripts/core/entity_directory.gd": {
+      "before_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+      "after_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+      "before_bytes": 52155,
+      "after_bytes": 52155,
+      "byte_identical": true
+    },
+    "godot/scripts/core/item_definitions.gd": {
+      "before_sha256": "e824b4f2c00278c6ce3460728bb327d1e6b960bd5416e6b4ea3676a6cb958571",
+      "after_sha256": "e824b4f2c00278c6ce3460728bb327d1e6b960bd5416e6b4ea3676a6cb958571",
+      "before_bytes": 22153,
+      "after_bytes": 22153,
+      "byte_identical": true
+    },
+    "godot/scripts/core/gear.gd": {
+      "before_sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "after_sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "before_bytes": 121085,
+      "after_bytes": 121085,
+      "byte_identical": true
+    },
+    "godot/scripts/core/jobs.gd": {
+      "before_sha256": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
+      "after_sha256": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
+      "before_bytes": 158573,
+      "after_bytes": 158573,
+      "byte_identical": true
+    },
+    "godot/scripts/core/underground_terrain.gd": {
+      "before_sha256": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+      "after_sha256": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+      "before_bytes": 37919,
+      "after_bytes": 37919,
+      "byte_identical": true
+    }
+  },
+  "equal_whole_files": 21,
+  "changed_whole_files": 1,
+  "constructor_roots": [
+    "configure",
+    "bind_sites",
+    "bind_room_orders",
+    "exact_inventory_binding",
+    "world_ref",
+    "_write_header",
+    "_reject_retention_callback"
+  ],
+  "complete_local_call_closure": {
+    "_reject_retention_callback": "43b24b374c1a949c627f40e4e42b66a66a754f1fe5011d1ee9d4e4533ed5d85d",
+    "_write_header": "ee6558918e1773a44a67790ad41c84142ad7b3069cf351c5b62a011f0a084e2d",
+    "bind_room_orders": "776581c592c4307b5357bac2db4cc4b70270894f7b68619e76e8ef396eb10229",
+    "bind_sites": "0920016c0bce2fe47cbf22e72f4a5eb6b94e911a774522d12cbf9de4d092b697",
+    "configure": "3dd2d5c0568920834d8813dfe1b189369a284f9cecf5e8c58e8741137e73b272",
+    "exact_inventory_binding": "c8a7b476a52e73e34037428eac0531f1e04f799afc3ba0b3fd3fb93a090e28d5",
+    "world_ref": "5a699d9a57d10f2052f65464ff68c9469b798b476fdaacc6f194a1ddb9fe5e43"
+  },
+  "existing_nested_classes_byte_identical": {
+    "Bank": "c336a6505704f3f3e9f5e07426ab2b6296ae44be68c5e197858e97ab7974eeda",
+    "InstallationContext": "afa1ec01f064afa8ba4aaa4869e10ada7fd6ff9e6b1abcc8e0b5414b34e96ee0",
+    "InventoryLocations": "12f7affb32463e9176c7eba5d09060bd31a848163f1d44b61963affa73c649e3",
+    "PhaseContext": "302b0598ddb17c5416afa8da33259633fdb485bf5a3abc05550de75f22dd8ae9",
+    "Record": "51542b484a87616734176b0ff95f7f76487c4b513b2e6bddfc9a6b3502745a07",
+    "Result": "d6c4604338cc766f1251488429a6db113167283f0ec1070ce11d8efe350eab35",
+    "Retention": "0fee67b9761fbbddbcd55c37ebfdbed8465b18a748142fd6e4ee6d23203bb937",
+    "RoomContext": "e73da2c049c1eba6b798168567de7b172cd5d7f92002353fbd6b4e98fe2b88ff",
+    "WorldScope": "21cfcd9e6157a282e9f03989a23131ede2234ceb2037c29d7c2d9ecc56ab7f62"
+  },
+  "modified_existing_methods": [
+    "_prepared_retention_refusal",
+    "_rebuild_allocation",
+    "begin_prepare",
+    "begin_room_prepare",
+    "begin_world_prepare",
+    "prepared_refusal",
+    "publish",
+    "restore_state_bytes"
+  ],
+  "all_original_top_level_var_initializers_byte_identical": true,
+  "added_top_level_variables": [
+    "var _frontier: FrontierContext = null # Borrowed only for one admitted synchronous cold transaction."
+  ],
+  "added_constants": [
+    "const FRONTIER_HEAP_WORDS: int = 168 # Six removals times14 bounded index/value writes; one caller-owned cold patch."
+  ],
+  "added_classes": [
+    "FrontierContext"
+  ],
+  "added_constructor_allocation_bytes": 0,
+  "existing_1161_retained_reference": "The added nullable _frontier reference is already an integration 1161 owner control; it is not an additional 1163 packet or an allocation of FrontierContext during construction.",
+  "component_census_and_manifests_unchanged": true,
+  "integration_obligation": "Root must reclose actual source identities and shared census on its integrated source. The frozen full-source constructor manifest continues to refuse changed source rather than accepting this report as an alias."
+}

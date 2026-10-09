@@ -1,0 +1,12 @@
+{
+  "README.md": "48062648960ae2fadd6ae62684352583bc9b78805b8f88207de1f2c506182a88",
+  "current-v3.ugprof": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+  "frontier-bounds.json": "6215b09dbfa314da39fb2e44e3ec2e1633e8ac565193b224517c03fe682c0c5d",
+  "initial-arithmetic-rejection.log": "d6a23974ec94b088886ae9a51bdea4ce6b97d6bac9e1902f496040eec48e74fa",
+  "initial-arithmetic.py.txt": "f4d39c26614cf643b4d23817a9cf9f9d0ca4d819cb7cebc1b6f0f2de61b5dc04",
+  "input-sha256.json": "6531bb6cf74df20ce6a15c172946f881fbc2f29b2091db4f7c77cc431191f389",
+  "inspect_frontier.py": "4cd6234c9a5a80ace182e4027527cd98535806da999c753bfcdce9f20fae25d2",
+  "inspect_short_gait.py": "3566a6dfc691da27de8045b384331f8a721a9d74900d0afa56b0e5f333c2ea65",
+  "invocation.json": "57c35dcae7c0635ef5cc558070effb8791d4fa4a4c40ef895553dad109ebbe36",
+  "short-gait.json": "06a58cb76cf53c189c139d3b8fee032af2b3c2640758ca2eccd4de688f740400"
+}

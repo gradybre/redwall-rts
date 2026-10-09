@@ -1,0 +1,34 @@
+{
+  "reviewer": "/root",
+  "scope": "Independent source review of frozen1153 source-review-1; not runtime or playable qualification",
+  "subject_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-phase-refresh",
+  "frozen_packet": "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/source-review-1/",
+  "source_pins": {
+    "Authority": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+    "Placements": "c79df28fc24e981aa6b8cae88f7fdea218e0629aa12e87fe675ee7a7b40cf6f3",
+    "Locations": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929"
+  },
+  "verdict": "changes requested",
+  "findings": [
+    {
+      "severity": "medium",
+      "path": "godot/scripts/core/underground_connector_placements.gd",
+      "function": "prepare_room_phase_refresh",
+      "evidence": "First guard reads _locations._token, _routes._token and _world_routes._route_token before _source_refusal or initialization checks; _reentry only checks _busy, while fresh collaborators are null. Existing entry prepare has the same inherited exposure.",
+      "impact": "A public preparation call on fresh or partially bound state errors instead of returning refusal.",
+      "requested_fix": "Nonobserving configured/ready and actual non-null collaborator guard before any dereference, with fresh/configure-only/partial-binding regression."
+    }
+  ],
+  "other_reviewed_paths": [
+    "Original Site/Room/Project/op/stage and cold/Space tokens before candidate copies",
+    "Ordinary Corridor distinguished by actual Placement ownership",
+    "One original PhaseContext and all retained opening-source pins",
+    "Borrowed-context mutation versus independently retained cleanup tokens",
+    "Final static publication and prevention of generic publication after discard",
+    "Live iterator full World/Room/section/source identity and refused output preservation",
+    "Unchanged retained members/allocation call sites; concrete1152 provider frames still need joint admission"
+  ],
+  "documentation_correction": "Authority has context/observation/final/discard methods; actual preparation calls original Placements directly, not an Authority forwarding wrapper.",
+  "reported_tests": "candidate8:11 tests/665 assertions, strict/raw diagnostics/leaks0, analyzer0/5; reviewer inspected invocation/restoration but has not rerun this rejected candidate.",
+  "next": "Review separately frozen corrected source and its regression; retain this rejected packet unchanged."
+}

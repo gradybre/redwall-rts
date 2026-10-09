@@ -1,0 +1,182 @@
+{
+  "schema": 1,
+  "content_sha256": "fa84815a4b9cb10c4126a341475122fa3e89e0ac2c53b434921424fe598321d2",
+  "source_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "topology_sha256": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+  "mesh_sha256": "c4029dd3ea3266e6fac9f9d5734c37925d7300020d494ca0f83529567a9a9b3a",
+  "clip": 6,
+  "part": 1,
+  "source_triangles": [
+    212,
+    213
+  ],
+  "witness": {
+    "vertex": 148,
+    "first_frame": 17,
+    "last_frame": 18,
+    "source_point_f32_m": [
+      -0.6314398050308228,
+      0.1740776002407074,
+      -0.7260041832923889
+    ],
+    "endpoint_intervals_q24": [
+      [
+        [
+          880999,
+          2491987,
+          -12505061
+        ],
+        [
+          899834,
+          2495558,
+          -12486227
+        ]
+      ],
+      [
+        [
+          608880,
+          -979890,
+          -10457645
+        ],
+        [
+          627714,
+          -976321,
+          -10438809
+        ]
+      ]
+    ],
+    "endpoint_ideal_m": [
+      [
+        {
+          "numerator": 3824312029179839,
+          "denominator": 72057594037927936
+        },
+        {
+          "numerator": 167354235023787,
+          "denominator": 1125899906842624
+        },
+        {
+          "numerator": -1677136958112097,
+          "denominator": 2251799813685248
+        }
+      ],
+      [
+        {
+          "numerator": 2655566424246827,
+          "denominator": 72057594037927936
+        },
+        {
+          "numerator": -131279141313573,
+          "denominator": 2251799813685248
+        },
+        {
+          "numerator": -350584312151345,
+          "denominator": 562949953421312
+        }
+      ]
+    ],
+    "ideal_crossing_share": {
+      "numerator": 111569490015858,
+      "denominator": 155329203787049
+    },
+    "ideal_crossing_m": [
+      {
+        "numerator": 463630991425086492985372400815,
+        "denominator": 11192648708721755400272152100864
+      },
+      {
+        "numerator": 0,
+        "denominator": 1
+      },
+      {
+        "numerator": -229849084899215036356171313567,
+        "denominator": 349770272147554856258504753152
+      }
+    ],
+    "authored_anchor_u": [
+      42,
+      0,
+      -673
+    ],
+    "residual_m": [
+      {
+        "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 73603857931212626274282689676674853835135091919238083489940843341763411668091422764113953146853960493490204445674712685084663,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      }
+    ],
+    "anchor_semantics": "nearest/even integer focus to exact ideal crossing; complete patch owns native trajectory uncertainty",
+    "crossing_semantics": "actual endpoint enclosures lie strictly on opposite sides; complete interpolated tool envelope bounds the swept contact"
+  },
+  "contact_kind": 2,
+  "contact_patch_u": [
+    -190,
+    0,
+    -678,
+    49,
+    0,
+    -536
+  ],
+  "complete_tool_primitive_proof": {
+    "kind": "attachment",
+    "name": "mole_pick",
+    "full_bounds_u": [
+      -272,
+      -60,
+      -820,
+      328,
+      1422,
+      909
+    ],
+    "floor_intersection_u": [
+      -190,
+      -60,
+      -678,
+      49,
+      0,
+      -536
+    ],
+    "above_floor_u": [
+      -272,
+      0,
+      -820,
+      328,
+      1422,
+      909
+    ],
+    "native_triangles": 1150,
+    "intervals": 36,
+    "residual_m": [
+      {
+        "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 73603857931212626274282689676674853835135091919238083489940843341763411668091422764113953146853960493490204445674712685084663,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      }
+    ],
+    "scope": "all triangle interiors in each adjacent finite interval; no arbitrary nonadjacent blend permission"
+  },
+  "exact_yaw": 0,
+  "production_qualified": false,
+  "native_witness": "PENDING",
+  "verified_source_files": 537,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_tip_contact.py": "79be038ab8bd519f9bd8c08d271950af24f11933d162880c85f5e0d370af32e2",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "08a9f10d56391092bcc0072e521a6950565aa7edfb253d7554525d0fa6757c46",
+    "godot/data/underground/mole-worker/compile_profiles.py": "0e5dab6d43f2651f1e55c2017a8c1976fc195b739d519067f65f5f88a4bd555d",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  }
+}

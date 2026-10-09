@@ -1,0 +1,6 @@
+{
+  "tools/underground_retirement_memory.py": "8385448b27b69cb4fa05e967ebc1494e1e69d4d1ac4978e848953d828c77949c",
+  "tools/underground_ui_reset_memory.py": "bf770512d174df316ef3403c19384509d84af9fe221e543a0df3c60216cd361b",
+  "tools/underground_memory_budget.py": "ae522e5efd1f549934752713091a7201292ab8e8f52bed8918cf68dea9673038",
+  "tools/test_underground_memory_budget.py": "760b81af0cacd1f9ba3ea95c5e2add4c360ab9aa460c296c70926bb9ab8dcf4e"
+}

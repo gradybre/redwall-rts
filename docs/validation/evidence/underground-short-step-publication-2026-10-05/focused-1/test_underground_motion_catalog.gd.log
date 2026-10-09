@@ -1,0 +1,40 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_motion_catalog.gd
+  PASS  test_actual_joint_banks_and_activation_refusal
+  PASS  test_independent_profile_maxima_refuse_before_bank_allocation
+  PASS  test_previous_shared_profile_binding_does_not_become_current_motion
+  PASS  test_all_five_exact_terminal_roots_and_frame_offsets
+  PASS  test_stationary_intervals_and_local_ceil_before_halfturn
+  PASS  test_all_complete_intervals_and_primitive_census
+  PASS  test_unbound_future_profiles_rates_and_exact_image_identity
+  PASS  test_wire_drift_and_matching_forged_digest_do_not_publish
+  PASS  test_oversized_column_truncated_and_reload_refuse
+  PASS  test_source_revision_and_busy_refusals_preserve_output
+  PASS  test_retired_and_reused_world_refuses_geometry_reads
+  PASS  test_exact_source_metadata_and_four_join_payloads
+  PASS  test_actual_actor_content_uses_same_phase_and_terminal_frames
+  PASS  test_primitive_mapping_preserves_authored_identity_and_output_is_copied
+  PASS  test_changed_actual_level_and_cached_source_refuse_before_banks
+  FAIL  test_query_shape_range_busy_and_stale_windows_preserve_all_outputs
+        exact content revision (expected MOTION_QUERY, got )
+        all refused phase fields preserved (expected [73, 73, 73, 73, 73, 73, 73, 73, 73], got [0, -128, -2217, 32768, 0, 0, 0, 1, 0])
+CI_SUITE_TIME {"assertions":13721,"failures":1,"suite":"test_underground_motion_catalog.gd","tests":16,"usec":367180}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+16 test(s), 13721 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

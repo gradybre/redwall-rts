@@ -1,0 +1,36 @@
+state_registry_coverage: PASS -- 132 modules, 661 rows, 1000 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_cut_map.gd
+  PASS  test_all_varying_height_subsets_match_independent_whole_cube_intersection
+  PASS  test_box_order_and_duplicate_parts_do_not_change_the_paid_cube_stream
+  PASS  test_offset_datum_negative_boundaries_and_one_unit_crossings_remain_exact
+  PASS  test_whole_cube_gaps_are_retained_between_different_courses
+  PASS  test_sparse_coordinate_gaps_use_visits_not_distance_as_the_work_budget
+  PASS  test_exact_capacity_accepts_and_one_missing_cube_refuses_explicitly
+  PASS  test_individual_box_capacity_and_malformed_input_refuse_before_allocation
+  PASS  test_unrepresentable_domain_rank_refuses_before_allocation
+  PASS  test_domain_box_and_work_limits_cannot_be_enlarged_by_the_caller
+  PASS  test_work_exhaustion_and_consumer_queries_share_one_finite_allowance
+  PASS  test_prepaid_replay_has_identical_output_and_no_second_allocation
+  PASS  test_invalid_replay_retains_original_cursor_and_cannot_reopen_a_closed_one
+  PASS  test_scratch_admission_is_bounded_and_excludes_caller_images
+CI_SUITE_TIME {"assertions":2085,"failures":0,"suite":"test_underground_entry_cut_map.gd","tests":13,"usec":29376}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 2085 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 2085 assertions, 0 failures.

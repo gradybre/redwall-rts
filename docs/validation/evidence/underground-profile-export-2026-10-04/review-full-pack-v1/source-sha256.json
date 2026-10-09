@@ -1,0 +1,7 @@
+{
+  "tools/demo_build/windows_export_preset.cfg": "6007721a210bdc4dbd21813596ebb0beed9ffe8f065bbf592db70f82fd94f167",
+  "tools/godot/verify_demo_pack.gd": "8e8c593178fa28037b31c5570f59c66e47f32dccdd03d4fb55c271410aef4090",
+  "tools/test_build_demo_windows.py": "9654e7222f0d12a8d7797b9eedc7dbaa2916cf78c41e65cdd0eb295e58b16bee",
+  "godot/test/test_demo_profile_pack.gd": "d2172e66e8d7795fc3b93f4498d3954ef5092fd21b1cc3ac76a5d0bd0b43f973",
+  "docs/validation/evidence/underground-profile-export-2026-10-04/run_full_pack.py": "437b10acc8e9c4276d0d1803ecf5296bcc88cbd90fc8adf587b96d50a4b62806"
+}

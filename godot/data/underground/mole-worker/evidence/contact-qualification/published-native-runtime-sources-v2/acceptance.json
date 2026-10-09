@@ -1,0 +1,18 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "outcome": "accepted bounded input-preparation component",
+  "tests": "8 tests in0.082s OK",
+  "reviewed_files": {
+    "prepare_runtime_bake.py": "fe49f130b765e3bc5121342cf5e34a662ee5bc2b169cc4c7384a1c2d808f5f57",
+    "test_prepare_runtime_bake.py": "4659b7597272adb73bccf9628401416c0a956177aa15a8f67474b83ca2741c7e",
+    "candidate-1/bake-spec.json": "7b6d2bd152bd6ac4f8b13b5fd740726fbf7a27253ff84451cafcfb5cdc428962",
+    "candidate-1/changes.json": "b63ef7283b2613b3a6f29014a2122db98be97d6f81d3391120eb9fea092ee343"
+  },
+  "source_rows": 536,
+  "changed_digests": 3,
+  "same_byte_relocations": 25,
+  "other_facts_unchanged": true,
+  "native_executed": false,
+  "certificate_bits_written": 0,
+  "high_medium_findings": []
+}

@@ -1,0 +1,10 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": {
+    "sha256": "2a8882267d4c72e01e71aac563d8e225c109aa0b4b996843eb49ca1069790670",
+    "retained_path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/superseded-source/author_install_program.py"
+  },
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_install_program.py": {
+    "sha256": "16254e8f0a55ada1c9a4be1a20162c339a48ec92ea846a9cda05886ddd72d94e",
+    "retained_path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/superseded-source/test_install_program.py"
+  }
+}

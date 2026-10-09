@@ -1,0 +1,2465 @@
+{
+  "source_manifest_sha256": "4dfe119a902a11e99226fc6100e9c8bb596349efdef875af409e9b239731ff50",
+  "domain_heap": {
+    "descriptor_entries": 512,
+    "dictionary_header": 256,
+    "descriptor_bounds_copy": 280,
+    "configure_bounds_temporary": 280,
+    "six_value_constructor_array": 448,
+    "domain_fields_and_bounds": 92,
+    "domain_header": 256,
+    "domain_bounds_header": 256
+  },
+  "cases": {
+    "provider_domain": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._prepare_phase",
+        "Provider.configure",
+        "Owner.domain_copy",
+        "Owner._copy_domain",
+        "Domain.configure"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._prepare_phase": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "7b969fe0076b3a9f84f969522a2a3dd27911da059ea9756afb5c1a93c0b513be",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Provider.configure": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 6,
+          "provisional_frame_bytes": 200,
+          "body_sha256": "b78ceab49e6bf13388cc963ae71c0aa725c6649a2855a78ff5000a8259349b85",
+          "values": [
+            [
+              "world",
+              "World"
+            ],
+            [
+              "terrain",
+              "Terrain"
+            ],
+            [
+              "owner",
+              "Owner"
+            ],
+            [
+              "reader",
+              "Owner.CoreSources"
+            ],
+            [
+              "budget",
+              "Budget"
+            ]
+          ]
+        },
+        "Owner.domain_copy": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "provisional_frame_bytes": 64,
+          "body_sha256": "ec1aa734e14376b5d6d945b297da02c6117bd5d050295b60972f39d58bd97d76",
+          "values": []
+        },
+        "Owner._copy_domain": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "provisional_frame_bytes": 104,
+          "body_sha256": "56a7f88848b8504521ad1e8d243717b19e3e7437e8a5eecb60e2dd7d32ed2e31",
+          "values": [
+            [
+              "binding",
+              "Dictionary"
+            ],
+            [
+              "out",
+              "Space.Domain"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Domain.configure": {
+          "numeric_and_name_bytes": 100,
+          "reference_values": 2,
+          "provisional_frame_bytes": 164,
+          "body_sha256": "d52f187037b34ea484cc9dc4e32d7d1566f1a903dd70e1cf67e6ae562d2469a1",
+          "values": [
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "datum",
+              "Vector3i"
+            ],
+            [
+              "minimum",
+              "Vector3i"
+            ],
+            [
+              "size",
+              "Vector3i"
+            ],
+            [
+              "cells",
+              "int"
+            ],
+            [
+              "regions",
+              "int"
+            ],
+            [
+              "checks",
+              "int"
+            ],
+            [
+              "bounds",
+              "PackedInt32Array"
+            ],
+            [
+              "low",
+              "int"
+            ],
+            [
+              "high",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 782,
+      "transient_heap_bytes": 2380,
+      "expression_bytes": 256,
+      "total": 3418,
+      "note": "Exact descriptor -> new Domain; no Scope/private Owners copy exists during construct."
+    },
+    "authority_domain": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._prepare_phase",
+        "Authority.configure",
+        "Owner.domain_copy",
+        "Owner._copy_domain",
+        "Domain.configure"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._prepare_phase": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "7b969fe0076b3a9f84f969522a2a3dd27911da059ea9756afb5c1a93c0b513be",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Authority.configure": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 4,
+          "provisional_frame_bytes": 152,
+          "body_sha256": "0b2f5c8db6413f6f44e91ba392a566694da949060754d4de18f5bf5ca8eba72b",
+          "values": [
+            [
+              "owner",
+              "Owner"
+            ],
+            [
+              "bindings",
+              "Bindings"
+            ],
+            [
+              "proof_rows",
+              "int"
+            ],
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Owner.domain_copy": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "provisional_frame_bytes": 64,
+          "body_sha256": "ec1aa734e14376b5d6d945b297da02c6117bd5d050295b60972f39d58bd97d76",
+          "values": []
+        },
+        "Owner._copy_domain": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "provisional_frame_bytes": 104,
+          "body_sha256": "56a7f88848b8504521ad1e8d243717b19e3e7437e8a5eecb60e2dd7d32ed2e31",
+          "values": [
+            [
+              "binding",
+              "Dictionary"
+            ],
+            [
+              "out",
+              "Space.Domain"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Domain.configure": {
+          "numeric_and_name_bytes": 100,
+          "reference_values": 2,
+          "provisional_frame_bytes": 164,
+          "body_sha256": "d52f187037b34ea484cc9dc4e32d7d1566f1a903dd70e1cf67e6ae562d2469a1",
+          "values": [
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "datum",
+              "Vector3i"
+            ],
+            [
+              "minimum",
+              "Vector3i"
+            ],
+            [
+              "size",
+              "Vector3i"
+            ],
+            [
+              "cells",
+              "int"
+            ],
+            [
+              "regions",
+              "int"
+            ],
+            [
+              "checks",
+              "int"
+            ],
+            [
+              "bounds",
+              "PackedInt32Array"
+            ],
+            [
+              "low",
+              "int"
+            ],
+            [
+              "high",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 734,
+      "transient_heap_bytes": 2380,
+      "expression_bytes": 256,
+      "total": 3370,
+      "note": "Exact descriptor -> new Domain; no Scope/private Owners copy exists during construct."
+    },
+    "room_domain": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_rooms",
+        "Orders.configure",
+        "Owner.domain_copy",
+        "Owner._copy_domain",
+        "Domain.configure"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_rooms": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "23ee7bc8ec6ff97780eef4104223e0ef6b5bb01cce50d1b85dce22c871437f86",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Orders.configure": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 9,
+          "provisional_frame_bytes": 296,
+          "body_sha256": "f0654c9b53c56937f8d13197288cfecd6e234a3a55c90cecc05807f7424b30fa",
+          "values": [
+            [
+              "router",
+              "Router"
+            ],
+            [
+              "space",
+              "SpaceOwner"
+            ],
+            [
+              "sources",
+              "SpaceOwner.CoreSources"
+            ],
+            [
+              "catalog",
+              "RoomCatalog"
+            ],
+            [
+              "bindings",
+              "Bindings"
+            ],
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "domain",
+              "RoomSpace.Domain"
+            ],
+            [
+              "bound",
+              "Buildings.OpResult"
+            ]
+          ]
+        },
+        "Owner.domain_copy": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "provisional_frame_bytes": 64,
+          "body_sha256": "ec1aa734e14376b5d6d945b297da02c6117bd5d050295b60972f39d58bd97d76",
+          "values": []
+        },
+        "Owner._copy_domain": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "provisional_frame_bytes": 104,
+          "body_sha256": "56a7f88848b8504521ad1e8d243717b19e3e7437e8a5eecb60e2dd7d32ed2e31",
+          "values": [
+            [
+              "binding",
+              "Dictionary"
+            ],
+            [
+              "out",
+              "Space.Domain"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Domain.configure": {
+          "numeric_and_name_bytes": 100,
+          "reference_values": 2,
+          "provisional_frame_bytes": 164,
+          "body_sha256": "d52f187037b34ea484cc9dc4e32d7d1566f1a903dd70e1cf67e6ae562d2469a1",
+          "values": [
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "datum",
+              "Vector3i"
+            ],
+            [
+              "minimum",
+              "Vector3i"
+            ],
+            [
+              "size",
+              "Vector3i"
+            ],
+            [
+              "cells",
+              "int"
+            ],
+            [
+              "regions",
+              "int"
+            ],
+            [
+              "checks",
+              "int"
+            ],
+            [
+              "bounds",
+              "PackedInt32Array"
+            ],
+            [
+              "low",
+              "int"
+            ],
+            [
+              "high",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 878,
+      "transient_heap_bytes": 2380,
+      "expression_bytes": 256,
+      "total": 3514,
+      "note": "Exact descriptor -> new Domain; no Scope/private Owners copy exists during construct."
+    },
+    "location_domain": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_locations",
+        "Locations.configure",
+        "Owner.domain_copy",
+        "Owner._copy_domain",
+        "Domain.configure"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_locations": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "8528e9bbddf5cfd16602fb5b3bd6365a140226eea5da3345a99d5f9c2a2415f2",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Locations.configure": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 9,
+          "provisional_frame_bytes": 312,
+          "body_sha256": "3dd2d5c0568920834d8813dfe1b189369a284f9cecf5e8c58e8741137e73b272",
+          "values": [
+            [
+              "ids",
+              "Directory"
+            ],
+            [
+              "buildings",
+              "Buildings"
+            ],
+            [
+              "transforms",
+              "Transforms"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "owner",
+              "Owner"
+            ],
+            [
+              "sources",
+              "Owner.CoreSources"
+            ],
+            [
+              "cold",
+              "Budget"
+            ],
+            [
+              "capacity",
+              "int"
+            ],
+            [
+              "arena_bytes",
+              "int"
+            ],
+            [
+              "domain",
+              "Space.Domain"
+            ]
+          ]
+        },
+        "Owner.domain_copy": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "provisional_frame_bytes": 64,
+          "body_sha256": "ec1aa734e14376b5d6d945b297da02c6117bd5d050295b60972f39d58bd97d76",
+          "values": []
+        },
+        "Owner._copy_domain": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "provisional_frame_bytes": 104,
+          "body_sha256": "56a7f88848b8504521ad1e8d243717b19e3e7437e8a5eecb60e2dd7d32ed2e31",
+          "values": [
+            [
+              "binding",
+              "Dictionary"
+            ],
+            [
+              "out",
+              "Space.Domain"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Domain.configure": {
+          "numeric_and_name_bytes": 100,
+          "reference_values": 2,
+          "provisional_frame_bytes": 164,
+          "body_sha256": "d52f187037b34ea484cc9dc4e32d7d1566f1a903dd70e1cf67e6ae562d2469a1",
+          "values": [
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "datum",
+              "Vector3i"
+            ],
+            [
+              "minimum",
+              "Vector3i"
+            ],
+            [
+              "size",
+              "Vector3i"
+            ],
+            [
+              "cells",
+              "int"
+            ],
+            [
+              "regions",
+              "int"
+            ],
+            [
+              "checks",
+              "int"
+            ],
+            [
+              "bounds",
+              "PackedInt32Array"
+            ],
+            [
+              "low",
+              "int"
+            ],
+            [
+              "high",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 894,
+      "transient_heap_bytes": 2380,
+      "expression_bytes": 256,
+      "total": 3530,
+      "note": "Exact descriptor -> new Domain; no Scope/private Owners copy exists during construct."
+    },
+    "site_domain": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_excavation",
+        "Sites._init",
+        "Sites._initialization_refusal",
+        "Sites._read_domain",
+        "Authority.domain_into"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "ebaa98a1f81d98f50a5aa4042d1f10941aaaeb298d4d580d81772e0a9d1b7cf6",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Sites._init": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 8,
+          "provisional_frame_bytes": 280,
+          "body_sha256": "48d2c2c07977f71df9cffdedd2ff99e7b5f20f2f7976138279df55a6ee6046ce",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "physical_site_capacity",
+              "int"
+            ],
+            [
+              "earned_request",
+              "int"
+            ]
+          ]
+        },
+        "Sites._initialization_refusal": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 2,
+          "provisional_frame_bytes": 88,
+          "body_sha256": "e129a93b19ae4a69be001ffc30276dae3f8c729a81933a11fb8358f0ac7c7e86",
+          "values": [
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipts",
+              "int"
+            ],
+            [
+              "sites",
+              "int"
+            ]
+          ]
+        },
+        "Sites._read_domain": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 3,
+          "provisional_frame_bytes": 97,
+          "body_sha256": "7e43767ac96517319638caf7585d2489c1d35eabd936812e9e7b19fd2ef04842",
+          "values": [
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "described",
+              "Domain"
+            ]
+          ]
+        },
+        "Authority.domain_into": {
+          "numeric_and_name_bytes": 1,
+          "reference_values": 2,
+          "provisional_frame_bytes": 65,
+          "body_sha256": "eb512968b5be8cf52b46daf74526cb5060c5009b3ee187313a20ca61eab9d588",
+          "values": [
+            [
+              "out",
+              "Contract.Domain"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 780,
+      "transient_heap_bytes": 300,
+      "expression_bytes": 256,
+      "total": 1336,
+      "note": ""
+    },
+    "site_allocation": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_excavation",
+        "Sites._init",
+        "Sites._allocate_columns"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "ebaa98a1f81d98f50a5aa4042d1f10941aaaeb298d4d580d81772e0a9d1b7cf6",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Sites._init": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 8,
+          "provisional_frame_bytes": 280,
+          "body_sha256": "48d2c2c07977f71df9cffdedd2ff99e7b5f20f2f7976138279df55a6ee6046ce",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "physical_site_capacity",
+              "int"
+            ],
+            [
+              "earned_request",
+              "int"
+            ]
+          ]
+        },
+        "Sites._allocate_columns": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 4,
+          "provisional_frame_bytes": 128,
+          "body_sha256": "4d60a14bf517464b7c9a0b025f732ffa715e7cf210d5794fb31f376cee739071",
+          "values": [
+            [
+              "column",
+              "PackedByteArray"
+            ],
+            [
+              "column",
+              "PackedInt32Array"
+            ],
+            [
+              "column",
+              "PackedInt32Array"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 658,
+      "transient_heap_bytes": 576,
+      "expression_bytes": 256,
+      "total": 1490,
+      "note": ""
+    },
+    "funding_allocate_projects": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_excavation",
+        "Sites._init",
+        "Funding._init",
+        "Funding._allocate_projects"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "ebaa98a1f81d98f50a5aa4042d1f10941aaaeb298d4d580d81772e0a9d1b7cf6",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Sites._init": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 8,
+          "provisional_frame_bytes": 280,
+          "body_sha256": "48d2c2c07977f71df9cffdedd2ff99e7b5f20f2f7976138279df55a6ee6046ce",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "physical_site_capacity",
+              "int"
+            ],
+            [
+              "earned_request",
+              "int"
+            ]
+          ]
+        },
+        "Funding._init": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 5,
+          "provisional_frame_bytes": 176,
+          "body_sha256": "b4c8261b948a6ae0ca43f7a08f587ce17280fb7568ee2f6a0ec84ee1a2cbc91e",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "Funding._allocate_projects": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 2,
+          "provisional_frame_bytes": 64,
+          "body_sha256": "97cb335ac3886abb83f2dd562cb146272ffdb21890c02b2bc9766f91f386ec2e",
+          "values": [
+            [
+              "column",
+              "PackedInt32Array"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 770,
+      "transient_heap_bytes": 416,
+      "expression_bytes": 256,
+      "total": 1442,
+      "note": ""
+    },
+    "funding_allocate_receipts": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_excavation",
+        "Sites._init",
+        "Funding._init",
+        "Funding._allocate_receipts"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "ebaa98a1f81d98f50a5aa4042d1f10941aaaeb298d4d580d81772e0a9d1b7cf6",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Sites._init": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 8,
+          "provisional_frame_bytes": 280,
+          "body_sha256": "48d2c2c07977f71df9cffdedd2ff99e7b5f20f2f7976138279df55a6ee6046ce",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "physical_site_capacity",
+              "int"
+            ],
+            [
+              "earned_request",
+              "int"
+            ]
+          ]
+        },
+        "Funding._init": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 5,
+          "provisional_frame_bytes": 176,
+          "body_sha256": "b4c8261b948a6ae0ca43f7a08f587ce17280fb7568ee2f6a0ec84ee1a2cbc91e",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "Funding._allocate_receipts": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 3,
+          "provisional_frame_bytes": 96,
+          "body_sha256": "b451b0f9eaaca5bb10811208ffb17d445b2ce094212facd40bc30f5f7020759d",
+          "values": [
+            [
+              "column",
+              "PackedInt32Array"
+            ],
+            [
+              "column",
+              "PackedInt64Array"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 802,
+      "transient_heap_bytes": 448,
+      "expression_bytes": 256,
+      "total": 1506,
+      "note": ""
+    },
+    "funding_allocate_scratch": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_excavation",
+        "Sites._init",
+        "Funding._init",
+        "Funding._allocate_scratch"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "ebaa98a1f81d98f50a5aa4042d1f10941aaaeb298d4d580d81772e0a9d1b7cf6",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Sites._init": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 8,
+          "provisional_frame_bytes": 280,
+          "body_sha256": "48d2c2c07977f71df9cffdedd2ff99e7b5f20f2f7976138279df55a6ee6046ce",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "physical_site_capacity",
+              "int"
+            ],
+            [
+              "earned_request",
+              "int"
+            ]
+          ]
+        },
+        "Funding._init": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 5,
+          "provisional_frame_bytes": 176,
+          "body_sha256": "b4c8261b948a6ae0ca43f7a08f587ce17280fb7568ee2f6a0ec84ee1a2cbc91e",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ]
+          ]
+        },
+        "Funding._allocate_scratch": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 3,
+          "provisional_frame_bytes": 96,
+          "body_sha256": "3d58e47f54356bc043a45e6f72f348c8196738fba3145b28231852b487d4796e",
+          "values": [
+            [
+              "column",
+              "PackedInt32Array"
+            ],
+            [
+              "column",
+              "PackedInt64Array"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 802,
+      "transient_heap_bytes": 384,
+      "expression_bytes": 256,
+      "total": 1442,
+      "note": ""
+    },
+    "site_publish": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_excavation",
+        "Sites._init",
+        "Sites._publish_owner_bindings"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_excavation": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "ebaa98a1f81d98f50a5aa4042d1f10941aaaeb298d4d580d81772e0a9d1b7cf6",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Sites._init": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 8,
+          "provisional_frame_bytes": 280,
+          "body_sha256": "48d2c2c07977f71df9cffdedd2ff99e7b5f20f2f7976138279df55a6ee6046ce",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "Items"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "spatial",
+              "SpatialAuthority"
+            ],
+            [
+              "receipt_capacity",
+              "int"
+            ],
+            [
+              "physical_site_capacity",
+              "int"
+            ],
+            [
+              "earned_request",
+              "int"
+            ]
+          ]
+        },
+        "Sites._publish_owner_bindings": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 4,
+          "provisional_frame_bytes": 128,
+          "body_sha256": "9baf15ac4b246c00a55b76603332e56f77ed025173f000132621ca8ec1da5dc5",
+          "values": [
+            [
+              "pool_bound",
+              "Inventory.OpResult"
+            ],
+            [
+              "bound",
+              "Construction.OpResult"
+            ],
+            [
+              "work_bound",
+              "Work.OpResult"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 658,
+      "transient_heap_bytes": 835,
+      "expression_bytes": 256,
+      "total": 1749,
+      "note": ""
+    },
+    "router_allocation_and_results": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_router",
+        "Router._init"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_router": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "6eaf739701ac4d25f4ac24e644ce4f2ae9a050c79b349cf0f4c26fb685c61438",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Router._init": {
+          "numeric_and_name_bytes": 0,
+          "reference_values": 11,
+          "provisional_frame_bytes": 352,
+          "body_sha256": "e2ef8c82292a66d624c5defc5fa8110c1be20afdbd6b57e9566b806dc9925bad",
+          "values": [
+            [
+              "construction",
+              "Construction"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "pool",
+              "Reservations"
+            ],
+            [
+              "items",
+              "ItemDefinitions"
+            ],
+            [
+              "jobs",
+              "Jobs"
+            ],
+            [
+              "work",
+              "Work"
+            ],
+            [
+              "sites",
+              "Sites"
+            ],
+            [
+              "bound",
+              "Construction.OpResult"
+            ],
+            [
+              "work_bound",
+              "Work.OpResult"
+            ],
+            [
+              "column",
+              "PackedInt32Array"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 602,
+      "transient_heap_bytes": 938,
+      "expression_bytes": 256,
+      "total": 1796,
+      "note": "Conservatively includes the sequential alias list plus both binding results."
+    },
+    "location_bank": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_locations",
+        "Locations.configure",
+        "LocationBank.allocate"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_locations": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "8528e9bbddf5cfd16602fb5b3bd6365a140226eea5da3345a99d5f9c2a2415f2",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Locations.configure": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 9,
+          "provisional_frame_bytes": 312,
+          "body_sha256": "3dd2d5c0568920834d8813dfe1b189369a284f9cecf5e8c58e8741137e73b272",
+          "values": [
+            [
+              "ids",
+              "Directory"
+            ],
+            [
+              "buildings",
+              "Buildings"
+            ],
+            [
+              "transforms",
+              "Transforms"
+            ],
+            [
+              "inventory",
+              "Inventory"
+            ],
+            [
+              "owner",
+              "Owner"
+            ],
+            [
+              "sources",
+              "Owner.CoreSources"
+            ],
+            [
+              "cold",
+              "Budget"
+            ],
+            [
+              "capacity",
+              "int"
+            ],
+            [
+              "arena_bytes",
+              "int"
+            ],
+            [
+              "domain",
+              "Space.Domain"
+            ]
+          ]
+        },
+        "LocationBank.allocate": {
+          "numeric_and_name_bytes": 24,
+          "reference_values": 1,
+          "provisional_frame_bytes": 56,
+          "body_sha256": "775b980e1a429723b5fc1723e65b9491773a189cfefc4506c3c516df1cfddc0e",
+          "values": [
+            [
+              "capacity",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 618,
+      "transient_heap_bytes": 320,
+      "expression_bytes": 256,
+      "total": 1194,
+      "note": ""
+    },
+    "inventory_arena": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_locations",
+        "Composition._bind_inventory",
+        "Inventory.bind_spatial_locations",
+        "Inventory._allocate_spatial_arena"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_locations": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "8528e9bbddf5cfd16602fb5b3bd6365a140226eea5da3345a99d5f9c2a2415f2",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_inventory": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "provisional_frame_bytes": 104,
+          "body_sha256": "4fbae8981bb04e0596bfa1b261630dcf9714fe04397c7b04d2001103d6d26c6c",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "result",
+              "Inventory.OpResult"
+            ]
+          ]
+        },
+        "Inventory.bind_spatial_locations": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 3,
+          "provisional_frame_bytes": 113,
+          "body_sha256": "85a2dbce9791dda08e60d9c7c1d6f064165fbb5e37b48002d22905dfabdf80af",
+          "values": [
+            [
+              "authority",
+              "SpatialLocations"
+            ],
+            [
+              "capacity",
+              "int"
+            ],
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "exact",
+              "bool"
+            ]
+          ]
+        },
+        "Inventory._allocate_spatial_arena": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 1,
+          "provisional_frame_bytes": 40,
+          "body_sha256": "1cf83258e73dd99a4ba40a99c1d7ecda7f760d304c7ced6a240ce68cfe7b95a5",
+          "values": [
+            [
+              "capacity",
+              "int"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 507,
+      "transient_heap_bytes": 281,
+      "expression_bytes": 256,
+      "total": 1044,
+      "note": ""
+    },
+    "inventory_adapter": {
+      "chain": [
+        "Host.compose_underground_room_owners",
+        "Session.compose_room_owners",
+        "Composition.construct",
+        "Composition._bind_locations",
+        "Composition._bind_inventory",
+        "Inventory.bind_spatial_locations",
+        "InventoryLocations.exact_binding",
+        "Locations.exact_inventory_binding"
+      ],
+      "frames": {
+        "Host.compose_underground_room_owners": {
+          "numeric_and_name_bytes": 10,
+          "reference_values": 2,
+          "provisional_frame_bytes": 74,
+          "body_sha256": "068b34ded12e35664260f447ebb02baaa408d78a4a6b24f75665e640ba773502",
+          "values": [
+            [
+              "original",
+              "UndergroundSession"
+            ],
+            [
+              "starting",
+              "bool"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Session.compose_room_owners": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "8ace9a5457cdff51dd8d17bce91952a9b2e972619e68910518d25231736320ad",
+          "values": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition.construct": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 1,
+          "provisional_frame_bytes": 48,
+          "body_sha256": "e9de74caf94fdc44af14e4c6bc90ffd94a8830648cf795da5438b16d2607ed3e",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_locations": {
+          "numeric_and_name_bytes": 16,
+          "reference_values": 2,
+          "provisional_frame_bytes": 80,
+          "body_sha256": "8528e9bbddf5cfd16602fb5b3bd6365a140226eea5da3345a99d5f9c2a2415f2",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "Composition._bind_inventory": {
+          "numeric_and_name_bytes": 8,
+          "reference_values": 3,
+          "provisional_frame_bytes": 104,
+          "body_sha256": "4fbae8981bb04e0596bfa1b261630dcf9714fe04397c7b04d2001103d6d26c6c",
+          "values": [
+            [
+              "session",
+              "RefCounted"
+            ],
+            [
+              "o",
+              "Retirement.Owners"
+            ],
+            [
+              "result",
+              "Inventory.OpResult"
+            ]
+          ]
+        },
+        "Inventory.bind_spatial_locations": {
+          "numeric_and_name_bytes": 17,
+          "reference_values": 3,
+          "provisional_frame_bytes": 113,
+          "body_sha256": "85a2dbce9791dda08e60d9c7c1d6f064165fbb5e37b48002d22905dfabdf80af",
+          "values": [
+            [
+              "authority",
+              "SpatialLocations"
+            ],
+            [
+              "capacity",
+              "int"
+            ],
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "exact",
+              "bool"
+            ]
+          ]
+        },
+        "InventoryLocations.exact_binding": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 3,
+          "provisional_frame_bytes": 105,
+          "body_sha256": "163d49f5948e4e9ce975b0aaa63466480015a8f0a09b8f71d31038e444ca7884",
+          "values": [
+            [
+              "inventory",
+              "RefCounted"
+            ],
+            [
+              "world",
+              "Vector2i"
+            ],
+            [
+              "locations",
+              "RefCounted"
+            ]
+          ]
+        },
+        "Locations.exact_inventory_binding": {
+          "numeric_and_name_bytes": 9,
+          "reference_values": 2,
+          "provisional_frame_bytes": 73,
+          "body_sha256": "c8a7b476a52e73e34037428eac0531f1e04f799afc3ba0b3fd3fb93a090e28d5",
+          "values": [
+            [
+              "inventory",
+              "RefCounted"
+            ],
+            [
+              "world",
+              "Vector2i"
+            ]
+          ]
+        }
+      },
+      "declared_provisional_bytes": 645,
+      "transient_heap_bytes": 281,
+      "expression_bytes": 256,
+      "total": 1182,
+      "note": ""
+    }
+  },
+  "maximum_case": "location_domain",
+  "maximum_provisional_bytes": 3530,
+  "additional_retained_packed_bytes": 0,
+  "existing_reservations": {
+    "WorldBindings and inherited Entry/Room controls": "existing binding/provider reservation, one actual provider",
+    "Authority proof columns": "69*256+60 within existing PROOF_BYTES; one cache",
+    "Sites history": "MAX_SITE_CAPACITY=73909 within existing 8388608, one history",
+    "Funding": "MAX_RECEIPT_CAPACITY=32768; one Sites Funding also borrowed by Router",
+    "Router job mapping": "one already counted JOB_CAPACITY=8192 arena",
+    "Room bindings/Orders": "existing controls/empty fixed RoomPlan; no cell/proof arrays allocated",
+    "Locations": "two 1024-row banks within existing 233728; no endpoint/cold snapshot",
+    "Inventory endpoints": "existing five 1024-I32 arrays, identical arena reused after retirement",
+    "RoomCatalog": "one reference to the original Buildings definitions; no duplicate 1752-byte catalog",
+    "source checking": "existing bounded Catalog source-hash workspace; no new image decode"
+  },
+  "native_measured": false,
+  "runtime_qualified": false
+}

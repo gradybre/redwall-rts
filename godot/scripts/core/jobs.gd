@@ -146,6 +146,14 @@ extends RefCounted
 ## is a throughput limit rather than a filter (above), so the only effect is that a settlement
 ## with many coordinators reaches a given job in more passes -- never that it cannot reach it.
 ##
+## A DISPATCHED JOB AND ITS RESERVED CREW (ADR 1223). One work dispatcher may be bound
+## (`bind_dispatcher()`): the underground entry, whose Jobs only its own registered crew can do
+## (ADR 1219). Its Jobs are excluded like a coordinator, categorically and ahead of the six steps,
+## for every resident but its crew; its crew is refused by `evaluate()` before any scan, so the
+## JobSelector never offers it work and never offers its Jobs to anyone. Only the dispatcher's own
+## `assign_worker()` commits one, which still revalidates steps 1-6 (REQ-SET-030). The binding is
+## composition: both answers are derived from saved state, so this store saves nothing new.
+##
 ## ---------------------------------------------------------------------------------------
 ## ALLOCATION. Every column is a packed array sized once in `_init()`; `clear()` refills the
 ## existing buffers and nothing outside `_allocate_columns()` calls `resize()`. One selection
@@ -442,6 +450,11 @@ const REFUSE_END_OF_MEMBERS: StringName = &"END_OF_MEMBER_LIST"
 const REFUSE_MWU_UNDERFLOW: StringName = &"REMAINING_MWU_UNDERFLOW"
 const REFUSE_PRIORITIES_UNAVAILABLE: StringName = &"PRIORITIES_ROW_UNAVAILABLE"
 const REFUSE_SKILLS_UNAVAILABLE: StringName = &"SKILLS_ROW_UNAVAILABLE"
+## ADR 1223: a bound dispatcher's Job is offered to nobody and committed only to that dispatcher's crew.
+const REFUSE_DISPATCHED_JOB: StringName = &"JOB_DISPATCHED_TO_CREW"
+## ADR 1223: a bound dispatcher's crew is never selected for work and is committed only to that dispatcher's Jobs.
+const REFUSE_AGENT_RESERVED: StringName = &"JOB_AGENT_RESERVED_BY_DISPATCH"
+const REFUSE_INVALID_DISPATCHER: StringName = &"INVALID_DISPATCHER"
 
 
 class OpResult:
@@ -607,6 +620,14 @@ var _walk_last_examined_id: int = 0
 ## persisted, and excluded from `state_bytes()` so a refusal cannot alter the image that proves
 ## it changed nothing.
 var _last_column_refusal: StringName = REFUSE_NONE
+## ADR 1223: the bound work dispatcher's two questions, `owns(job_slot) -> bool` and
+## `reserves(resident_slot) -> bool`. Composition, not state: the answers are derived from the
+## dispatcher's own saved record and the owners it reads, and a freed dispatcher's Callables read
+## as unbound. Plain method Callables hold only an object id, so no reference cycle forms.
+var _dispatch_owns: Callable = Callable()
+var _dispatch_reserves: Callable = Callable()
+## Scratch for the resident whose eligibility is being run: true when the dispatcher reserves it.
+var _scratch_reserved: bool = false
 
 
 func _init(p_residents: ResidentsScript = null, p_priorities: PrioritiesScript = null,
@@ -1939,6 +1960,13 @@ func should_evaluate(resident_slot: int, tick: int) -> bool:
 	return _check_evaluable(resident_slot, tick) == REFUSE_NONE
 
 
+func is_due(resident_slot: int, tick: int) -> bool:
+	"""ADR1226: this present agent's staggered 30-tick reevaluation falls on `tick`, busy or idle. The settlement
+	resolves every due resident's activity here, so a busy one learns its schedule changed (REQ-SET-034)."""
+	return _check_agent_slot(resident_slot) == REFUSE_NONE and tick >= 0 \
+		and tick % REEVALUATION_INTERVAL_TICKS == _agent_persistent_id[resident_slot] % STAGGER_MODULUS
+
+
 func _check_evaluable(resident_slot: int, tick: int) -> StringName:
 	"""REFUSE_NONE when a present, idle agent is due for a selection pass on `tick`."""
 	var code: StringName = _check_agent_slot(resident_slot)
@@ -2008,6 +2036,7 @@ func _load_resident_scratch(resident_slot: int) -> StringName:
 		return REFUSE_PRIORITIES_UNAVAILABLE
 	_dangerous_consent_scratch = consent.value == 1
 	_hazard_locked_scratch = _agent_hazard_locked[resident_slot] == 1
+	_scratch_reserved = _dispatch_reserves.is_valid() and bool(_dispatch_reserves.call(resident_slot))
 	return REFUSE_NONE
 
 
@@ -2053,16 +2082,13 @@ func _job_eligibility(job_slot: int) -> StringName:
 	record, not a rule it happens to fail, and it carries its own code so a caller is never told
 	a coordinator was merely busy or unqueued.
 	"""
-	if _is_coordinator[job_slot] == 1:
-		return REFUSE_COORDINATOR_JOB
-	if _worker_slot[job_slot] != EntityDirectory.NULL_SLOT:
-		return REFUSE_JOB_HAS_WORKER
-	if _state[job_slot] != JOB_STATE_QUEUED:
-		return REFUSE_JOB_NOT_QUEUED
+	var code: StringName = _candidacy_refusal(job_slot)
+	if code != REFUSE_NONE:
+		return code
 	var kind: int = _kind[job_slot]
 	if _priority_scratch[kind] == PrioritiesScript.PRIORITY_FORBIDDEN:
 		return REFUSE_KIND_PRIORITY_FORBIDDEN
-	var code: StringName = _station_tool_skill_unlock_gate(job_slot, kind)
+	code = _station_tool_skill_unlock_gate(job_slot, kind)
 	if code != REFUSE_NONE:
 		return code
 	code = _dangerous_consent_gate(job_slot)
@@ -2073,6 +2099,51 @@ func _job_eligibility(job_slot: int) -> StringName:
 	if _inputs_gate[job_slot] == GATE_UNAVAILABLE:
 		return REFUSE_INPUTS_UNAVAILABLE
 	return REFUSE_NONE
+
+
+func _candidacy_refusal(job_slot: int) -> StringName:
+	"""The categorical exclusions that precede the six steps: a coordinator, a worked or unqueued
+	job, then ADR 1223's dispatch rule against the resident whose scratch is loaded."""
+	if _is_coordinator[job_slot] == 1:
+		return REFUSE_COORDINATOR_JOB
+	if _worker_slot[job_slot] != EntityDirectory.NULL_SLOT:
+		return REFUSE_JOB_HAS_WORKER
+	if _state[job_slot] != JOB_STATE_QUEUED:
+		return REFUSE_JOB_NOT_QUEUED
+	return _dispatch_gate(job_slot)
+
+
+func _dispatch_gate(job_slot: int) -> StringName:
+	"""ADR 1223: a dispatcher's Job goes only to its reserved crew, and its crew only to its Jobs.
+
+	Selection never reaches this for the crew (`evaluate()` refuses a reserved resident before
+	scanning), so the JobSelector offers a dispatched Job to nobody; only the dispatcher's own
+	`assign_worker()` commits one, and only to its crew. Unbound, every job passes.
+	"""
+	if not _dispatch_owns.is_valid():
+		return REFUSE_NONE
+	var owned: bool = _requester_slot[job_slot] != EntityDirectory.NULL_SLOT \
+		and bool(_dispatch_owns.call(job_slot))
+	if owned == _scratch_reserved:
+		return REFUSE_NONE
+	return REFUSE_DISPATCHED_JOB if owned else REFUSE_AGENT_RESERVED
+
+
+func bind_dispatcher(owns: Callable, reserves: Callable) -> OpResult:
+	"""ADR 1223: bind the one work dispatcher (the underground entry) whose Jobs and crew selection
+	must leave alone. A later binding replaces it: a restored dispatcher rebinds itself."""
+	if not owns.is_valid() or not reserves.is_valid():
+		return _refuse(REFUSE_INVALID_DISPATCHER)
+	_dispatch_owns = owns
+	_dispatch_reserves = reserves
+	return _succeed(0, NULL_REF)
+
+
+func clear_dispatcher() -> void:
+	"""Drop the dispatcher binding; every job and resident is ordinary again."""
+	_dispatch_owns = Callable()
+	_dispatch_reserves = Callable()
+	_scratch_reserved = false
 
 
 func _station_tool_skill_unlock_gate(job_slot: int, kind: int) -> StringName:
@@ -2151,6 +2222,8 @@ func evaluate(resident_slot: int, tick: int) -> OpResult:
 	code = _load_resident_scratch(resident_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
+	if _scratch_reserved:
+		return _refuse(REFUSE_AGENT_RESERVED)
 	return _scan_pass(resident_slot)
 
 

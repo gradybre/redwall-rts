@@ -1,0 +1,26 @@
+state_registry_coverage: PASS -- 143 modules, 712 rows, 1050 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_delivery.gd
+  FAIL  test_actual_capacity_limited_spatial_shipment_uses_haul_output_unload
+        actual order: ["actual group 0 installation admission: CONNECTOR_CONTACT_GEOMETRY (expected true, got false)"] (expected true, got false)
+        actual fixture cleanup: ["actual group 0 installation admission: CONNECTOR_CONTACT_GEOMETRY (expected true, got false)"] (expected true, got false)
+  PASS  test_wrong_owner_binding_refuses_without_allocating_and_valid_retry_binds
+CI_SUITE_TIME {"assertions":14,"failures":1,"suite":"test_underground_connector_delivery.gd","tests":2,"usec":11431069}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+2 test(s), 14 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

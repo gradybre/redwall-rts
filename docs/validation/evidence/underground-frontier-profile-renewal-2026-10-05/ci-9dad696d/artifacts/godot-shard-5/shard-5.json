@@ -1,0 +1,388 @@
+{
+  "counts": {
+    "assertions": 73955,
+    "expected": 26,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1705,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "a1a9f00e85e446f54583058ed38749f51b8a86be57352ec8821c08c6f4a85ebe",
+  "shard_count": 8,
+  "shard_index": 5,
+  "suite_counts": {
+    "test_balance_harness.gd": {
+      "assertions": 88,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_canonical_state_hash.gd": {
+      "assertions": 4724,
+      "failures": 0,
+      "tests": 60
+    },
+    "test_catalog_ids.gd": {
+      "assertions": 1843,
+      "failures": 0,
+      "tests": 67
+    },
+    "test_construction.gd": {
+      "assertions": 515,
+      "failures": 0,
+      "tests": 48
+    },
+    "test_demo_build.gd": {
+      "assertions": 214,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_cast.gd": {
+      "assertions": 265,
+      "failures": 0,
+      "tests": 63
+    },
+    "test_demo_cellar_building.gd": {
+      "assertions": 237,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_demo_clock.gd": {
+      "assertions": 61,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_daylight_live.gd": {
+      "assertions": 44,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_ferry.gd": {
+      "assertions": 353,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_demo_hall.gd": {
+      "assertions": 384,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_menu.gd": {
+      "assertions": 104,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_demo_night.gd": {
+      "assertions": 260,
+      "failures": 0,
+      "tests": 52
+    },
+    "test_demo_panels_fit.gd": {
+      "assertions": 391,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_demo_pantry_stocks.gd": {
+      "assertions": 141,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_demo_people.gd": {
+      "assertions": 837,
+      "failures": 0,
+      "tests": 43
+    },
+    "test_demo_prewarm.gd": {
+      "assertions": 34,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_run_until.gd": {
+      "assertions": 90,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_session_live.gd": {
+      "assertions": 140,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_spoil.gd": {
+      "assertions": 62,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_standing.gd": {
+      "assertions": 158,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_demo_tending.gd": {
+      "assertions": 82,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_demo_water.gd": {
+      "assertions": 1738,
+      "failures": 0,
+      "tests": 88
+    },
+    "test_equipment_authority_lifetime.gd": {
+      "assertions": 133,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_event_schedule.gd": {
+      "assertions": 309,
+      "failures": 0,
+      "tests": 31
+    },
+    "test_fishing.gd": {
+      "assertions": 1463,
+      "failures": 0,
+      "tests": 121
+    },
+    "test_gear_columns.gd": {
+      "assertions": 1322,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_haul_transfer_guard.gd": {
+      "assertions": 603,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_input_map.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_lookdev_dimensions.gd": {
+      "assertions": 252,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_memory_ledger_probe.gd": {
+      "assertions": 109,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_modular_access.gd": {
+      "assertions": 768,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_movement.gd": {
+      "assertions": 2302,
+      "failures": 0,
+      "tests": 55
+    },
+    "test_proportion_comparison.gd": {
+      "assertions": 195,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_resource_claim_columns.gd": {
+      "assertions": 1698,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_resource_claim_lifecycle.gd": {
+      "assertions": 95,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_room_projects.gd": {
+      "assertions": 301,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_save_owner_farming.gd": {
+      "assertions": 17915,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_save_owner_work.gd": {
+      "assertions": 12786,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_save_replay_checkpoint.gd": {
+      "assertions": 279,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_save_section_directory.gd": {
+      "assertions": 480,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_save_section_job_indexes.gd": {
+      "assertions": 541,
+      "failures": 0,
+      "tests": 47
+    },
+    "test_save_section_rng.gd": {
+      "assertions": 176,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_settlement_system.gd": {
+      "assertions": 6044,
+      "failures": 0,
+      "tests": 179
+    },
+    "test_starter_colony.gd": {
+      "assertions": 1278,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_underground_entry_bindings.gd": {
+      "assertions": 3245,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_underground_room_phase_refresh.gd": {
+      "assertions": 736,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_underground_session.gd": {
+      "assertions": 225,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_underground_space_owner.gd": {
+      "assertions": 5461,
+      "failures": 0,
+      "tests": 113
+    },
+    "test_weir_fit.gd": {
+      "assertions": 1600,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_world_material_targets.gd": {
+      "assertions": 68,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_world_owner_columns.gd": {
+      "assertions": 200,
+      "failures": 0,
+      "tests": 43
+    }
+  },
+  "suite_usec": {
+    "test_balance_harness.gd": 12693605,
+    "test_canonical_state_hash.gd": 404756,
+    "test_catalog_ids.gd": 496817,
+    "test_construction.gd": 4744362,
+    "test_demo_build.gd": 9317,
+    "test_demo_cast.gd": 20438443,
+    "test_demo_cellar_building.gd": 3641657,
+    "test_demo_clock.gd": 260371,
+    "test_demo_daylight_live.gd": 46337567,
+    "test_demo_ferry.gd": 17056602,
+    "test_demo_hall.gd": 1297145,
+    "test_demo_menu.gd": 423048,
+    "test_demo_night.gd": 678888,
+    "test_demo_panels_fit.gd": 2734529,
+    "test_demo_pantry_stocks.gd": 1312449,
+    "test_demo_people.gd": 6279567,
+    "test_demo_prewarm.gd": 17326,
+    "test_demo_run_until.gd": 267111,
+    "test_demo_session_live.gd": 51014032,
+    "test_demo_spoil.gd": 1443866,
+    "test_demo_standing.gd": 6219577,
+    "test_demo_tending.gd": 2113451,
+    "test_demo_water.gd": 41177999,
+    "test_equipment_authority_lifetime.gd": 167655,
+    "test_event_schedule.gd": 34041,
+    "test_fishing.gd": 8643175,
+    "test_gear_columns.gd": 2516264,
+    "test_haul_transfer_guard.gd": 144644,
+    "test_input_map.gd": 35611,
+    "test_lookdev_dimensions.gd": 12592,
+    "test_memory_ledger_probe.gd": 5764519,
+    "test_modular_access.gd": 22035975,
+    "test_movement.gd": 2651953,
+    "test_proportion_comparison.gd": 135013,
+    "test_resource_claim_columns.gd": 14845219,
+    "test_resource_claim_lifecycle.gd": 411670,
+    "test_room_projects.gd": 2013866,
+    "test_save_owner_farming.gd": 31043315,
+    "test_save_owner_work.gd": 3923762,
+    "test_save_replay_checkpoint.gd": 89439,
+    "test_save_section_directory.gd": 1523886,
+    "test_save_section_job_indexes.gd": 865819,
+    "test_save_section_rng.gd": 45237,
+    "test_settlement_system.gd": 76103157,
+    "test_starter_colony.gd": 1417350,
+    "test_underground_entry_bindings.gd": 41947603,
+    "test_underground_room_phase_refresh.gd": 10394111,
+    "test_underground_session.gd": 10470800,
+    "test_underground_space_owner.gd": 12610323,
+    "test_weir_fit.gd": 3343200,
+    "test_world_material_targets.gd": 1257942,
+    "test_world_owner_columns.gd": 11052992
+  },
+  "suites": [
+    "test_balance_harness.gd",
+    "test_canonical_state_hash.gd",
+    "test_catalog_ids.gd",
+    "test_construction.gd",
+    "test_demo_build.gd",
+    "test_demo_cast.gd",
+    "test_demo_cellar_building.gd",
+    "test_demo_clock.gd",
+    "test_demo_daylight_live.gd",
+    "test_demo_ferry.gd",
+    "test_demo_hall.gd",
+    "test_demo_menu.gd",
+    "test_demo_night.gd",
+    "test_demo_panels_fit.gd",
+    "test_demo_pantry_stocks.gd",
+    "test_demo_people.gd",
+    "test_demo_prewarm.gd",
+    "test_demo_run_until.gd",
+    "test_demo_session_live.gd",
+    "test_demo_spoil.gd",
+    "test_demo_standing.gd",
+    "test_demo_tending.gd",
+    "test_demo_water.gd",
+    "test_equipment_authority_lifetime.gd",
+    "test_event_schedule.gd",
+    "test_fishing.gd",
+    "test_gear_columns.gd",
+    "test_haul_transfer_guard.gd",
+    "test_input_map.gd",
+    "test_lookdev_dimensions.gd",
+    "test_memory_ledger_probe.gd",
+    "test_modular_access.gd",
+    "test_movement.gd",
+    "test_proportion_comparison.gd",
+    "test_resource_claim_columns.gd",
+    "test_resource_claim_lifecycle.gd",
+    "test_room_projects.gd",
+    "test_save_owner_farming.gd",
+    "test_save_owner_work.gd",
+    "test_save_replay_checkpoint.gd",
+    "test_save_section_directory.gd",
+    "test_save_section_job_indexes.gd",
+    "test_save_section_rng.gd",
+    "test_settlement_system.gd",
+    "test_starter_colony.gd",
+    "test_underground_entry_bindings.gd",
+    "test_underground_room_phase_refresh.gd",
+    "test_underground_session.gd",
+    "test_underground_space_owner.gd",
+    "test_weir_fit.gd",
+    "test_world_material_targets.gd",
+    "test_world_owner_columns.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 495
+}

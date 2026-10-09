@@ -1,0 +1,163 @@
+# 1132 — Source-bound profiles on the default Metal / Forward Plus renderer
+Date: 2026-10-04 · Status: Additive source qualification in progress; no activation
+
+## Decision
+
+Qualify the actual demo renderer independently. Preserve the accepted OpenGL
+source, basis, actor/profile artifacts and historical native evidence. Do not
+switch the demo renderer to make its underground content pass. A matching
+matrix buffer or a relabelled backend field does not prove rendered deformation.
+
+Phase one owns only new `tools/bake_underground_forward_basis.gd`,
+`tools/prove_underground_forward_backend.py`, its Python test,
+`godot/test/test_underground_forward_basis.gd`, their applicable UIDs and
+`godot/data/underground/mole-worker/evidence/forward-plus-v1/`. Existing Actor,
+Profiles, source parsers and consumer files remain unchanged until a separate
+explicit shared-file lease and independent review.
+
+## Source and numerical contract
+
+The finite source table records all65,536 actual native heading coefficient
+pairs under the exact installed official Godot4.7.2 engine and actual Metal /
+Forward Plus backend. It retains nonunit norms and small cardinal coefficients;
+neither trigonometric idealization nor cardinal rounding substitutes for them.
+The new wire/version and exact producer digest distinguish it from OpenGL-v1.
+One active shared524,288-byte table uses the existing544,768-byte presentation
+reservation, with bounded streaming metadata/row scratch. No simultaneous
+second runtime table, per-resident copy or simulation-reserve borrowing is
+authorized. Native allocator peak remains a measurement obligation.
+
+Pin the exact engine RD skeleton compute shader, mesh packing and Forward
+Clustered vertex/decode/model path, as well as the Metal shader compiler and
+its actual options. The official Metal container uses fast math; the prior
+GLSL4.10 highp guarantee cannot simply be copied. Derive a conservative bound
+for the finite positive4/8-influence source expression, binary32 stores,
+UNORM16 weights/compressed static vertices, common root and model arithmetic,
+including permitted reassociation, contraction and subnormal behavior.
+Unsupported arithmetic or unproved precision refuses rather than accepting
+a guessed padding value. Existing source matrices/meshes may be reused only
+as explicitly pinned mathematical inputs, with their historical producer
+identity retained; they do not acquire a new renderer certificate by filename.
+
+The first result may certify only a bounded source arithmetic component. A
+rendered witness must separately exercise real native skin attachment/update,
+mesh/material identity and cleanup on Metal. Sampled images or palette reads
+alone do not prove continuous physical enclosure. No profile certificate bit,
+World permission or current publication version changes in this phase.
+
+## Later coherent runtime binding
+
+Only after source and native review may the separately leased Actor/Basis
+reader support the exact new contract. A separately versioned immutable actor
+and profile publication must pin the new basis/backend, reproduce every complete
+primitive/state/contact enclosure, and bind coherent actual consumers including
+the reviewed1130 and forthcoming1133 support contract. Current script drift
+continues to refuse. The existing two profile banks and presentation bounds
+remain fixed; any new retained scalar/text or decode coexistence must fit the
+already admitted budget or refuse.
+
+Actual Work, Gear, cargo, completed support/air, contact patches, installed
+timber, paid workpiece handling and source-phase stair travel remain their
+own requirements. This renderer work introduces no pace, geometry shortcut,
+material price, support tolerance or gameplay capability.
+
+## Source
+
+The user-authorized complete underground implementation; accepted1123 and1127
+source/pack evidence; exact installed engine source and Apple's Metal precision
+specification. Source URLs, hashes, refused probes and actual invocations are
+retained with each new bounded evidence packet.
+
+## First additive source checkpoint
+
+The new native baker produces a separate524,980-byte Metal4.0/Forward+ source
+under the unchanged544,768-byte one-table reservation. It records all65,536
+headings, retaining exact nonunit norms. The byte-identical CPU coefficient
+payload compared with GL does not imply GPU equivalence. A streaming Python
+reader verifies all rows and nine pinned engine-source files; a bounded
+sum-of-products theorem covers the finite source expression with explicit
+rounding/flush errors and cancellation-safe magnitude. This theorem requires
+already stored binary32 inputs and the stated finite expression tree; it does
+not certify arbitrary optimizer rewrites or missing input/decode/model error.
+
+The checkpoint is documented in
+`godot/data/underground/mole-worker/evidence/forward-plus-v1/README.md`. Final
+focused strict5tests/36assertions have zero failures/unexpected diagnostics/leaks;
+the analyzer has0warnings in2files and14Python tests pass. Earlier typed-script
+and refusal-expectation failures are retained. Actual Metal source generation
+is clean; runtime Actor, complete numerical/source enclosure and native rendered
+attachment remain the next explicit proof obligations. No production bit changes.
+
+Independent root review accepted the phase-one source/expression checkpoint
+on2026-10-04 after reading all four executable files and exact Apple source,
+rehashing4source/51output pins and rerunning14Python tests. The reviewed output
+manifest is preserved byte-exact before this annotation. This acceptance does
+not close arbitrary optimizer rewrites, source-input/UNORM/model error, complete
+continuous enclosure or runtime/presentation qualification.
+
+## Phase two: exact heading reader binding
+
+The explicitly leased Actor change is confined to `WorldBasis`. Decode the
+wire version locally, bind v1 to its existing OpenGL backend and v2 to the
+exact phase-one Metal/macOS/Forward+ source, and require the matching footer
+and metadata schema. Legacy v1 metadata without a schema remains compatible;
+an explicitly conflicting schema refuses. Only v2 admits the new coefficient
+source provenance fields. The exact expected producer and full-stream digest
+remain mandatory. Version selection is cold scratch, not a retained field or
+second coefficient bank. The existing544,768-byte reservation does not grow.
+
+The actor pose/root equations, immutable palette, all profile flags and current
+publication guards stay unchanged. Headless tests must independently reject
+cross-version/backend/footer/schema relabels and preserve caller output on
+refusal. Native Metal tests must load the actual new source and demonstrate
+rendered skin/static attachment movement, cleanup and re-entry. The GL reader
+and original native witness remain supported. This is a reader/presentation
+component; complete Metal numerical enclosure and source-qualified profiles
+still require their separate proof.
+
+## Phase-two reviewed witness and output-identity correction
+
+Root independently accepted the WorldBasis reader/native presentation scope
+with no high/medium finding, then identified a LOW native evidence path-alias
+risk. The helper now uses the exact pinned existing producer's canonical
+create-only guard. Equivalent relative/absolute output names refuse before
+writing either artifact. Original helper/test bytes, native-v1 and original
+review manifests remain unchanged, with explicit historical locators.
+
+The corrected clean singleton suite reports12tests/246assertions/0failures,
+zero strict/raw diagnostics and leaks, analyzer0/3; actual Metal45assertions
+and legacy OpenGL21assertions both pass cleanly. Source/project/assets/override
+restoration is verified. The unchanged Actor regression remains21tests/225
+assertions from the preceding exact source. Review-phase2-v2 records the narrow
+correction and all exact pins. No complete Metal enclosure/profile or World
+qualification follows, and the one-table reservation remains unchanged.
+
+## Phase three: actual generated Metal source census
+
+The next additive increment reads the exact Godot shader cache containers from
+a fresh isolated run of the accepted native witness. It owns only
+`tools/audit_underground_metal_cache.py`, its matching Python test and
+`forward-plus-v1/rd-source-v1/`. Shared Actor/Profile consumers stay unchanged.
+The source-only audit validates the pinned engine container ABI, full cache
+digests and every stage's embedded source digest before extracting generated
+MSL. All reflection counts, compressed/decompressed byte counts, variants and
+outputs have explicit offline caps; truncated, unsupported or trailing data
+refuses. Raw source and actual stage/renderer provenance remain visible.
+
+This census distinguishes the actual four/eight-influence skin expression,
+UNORM16 input, static vertex decode, model/view and projection paths. It does
+not turn an extracted source hash into a hardware arithmetic guarantee. The
+existing conditional finite-expression theorem still needs complete input,
+optimizer and continuous actor/source binding before any Metal profile bit.
+No optional toolchain download, renderer switch, simulation reservation or
+production permission is introduced by this offline work.
+
+The source-census candidate now retains five actual fresh native caches,
+34 compiled variants/66 stages/58 unique sources and every consumed source
+digest. It explicitly counts repeated decoded bytes (3,281,991). The native
+witness has45 assertions/0failures with no raw diagnostics/leaks and1,209
+unchanged input pins;18 Python tests include the real cache corpus and exact
+libzstd decoder. The first mistaken CharString-terminator assumption refused
+the actual input and is preserved alongside the corrected complete decode.
+No hardware optimizer/UNORM/model or complete continuous profile certificate
+is inferred; this remains independently reviewable phase-three provenance.

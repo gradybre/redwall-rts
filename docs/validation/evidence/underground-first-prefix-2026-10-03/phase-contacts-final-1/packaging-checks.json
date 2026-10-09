@@ -1,0 +1,23 @@
+{
+  "state_registry_coverage": {
+    "exit_code": 0,
+    "modules": 138,
+    "rows": 694,
+    "packed_columns": 1033
+  },
+  "frame_census_exact_reproduction": true,
+  "independent_review": "Root accepted exact a6454ab7 / 285f6a4f on 2026-10-04 for live, unprepared phase scope; prepared companion contexts remain fail-closed.",
+  "component_suites": {
+    "tests": 52,
+    "assertions": 7680,
+    "failures": 0
+  },
+  "additional_uncommitted_integration_fixture": {
+    "tests": 5,
+    "assertions": 414,
+    "failures": 0,
+    "scope": "Only source/owner/stock/ground graph preparation, not paid L0/T0 completion"
+  },
+  "analyzer_warnings": 0,
+  "analyzed_files": 2
+}

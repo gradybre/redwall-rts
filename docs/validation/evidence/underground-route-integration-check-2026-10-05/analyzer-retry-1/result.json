@@ -1,0 +1,41 @@
+{
+  "checkpoint": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "clean_import_exit": 0,
+  "clean_import_raw_diagnostics": 0,
+  "analyzer_exit": 0,
+  "analyzer_result": {},
+  "analyzer_summary": "0 GDScript warning(s) in 0 of 1252 file(s)",
+  "wrapper_exit": 1,
+  "raw_editor_diagnostics": [
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+    "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+    "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+    "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_shell.gd\".",
+    "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiShell\" constant because the value doesn't have a set type.",
+    "ERROR: Failed to load script \"res://scripts/ui/ui_specimen.gd\" with error \"Parse error\"."
+  ],
+  "same_diagnostic_lines_as_original": true,
+  "source_pin_count": 10551,
+  "independent_current_source_rehash_matches": true,
+  "restoration": {
+    "source_unchanged_before_cleanup": true,
+    "source_unchanged": true,
+    "project_restored": true,
+    "assets_restored": true,
+    "sidecars_restored": true,
+    "head_unchanged": true
+  },
+  "all_gates_passed": false,
+  "root_cause": "Unresolved. The identical failure reproduces with a fresh cache/import and separate userdata. Missing-named source files exist and match original pins; there is no alternate editor project or observed competing process.",
+  "artifacts": {
+    "analyzer-editor.log": "f13f4987c1c10636867652838aef17359d524ad3cec3c83c4f685e446a902330",
+    "source-sha256.json": "7e5140e8c185265d4f11f2248f7017d290dfb0b1947b0e82a31df5d539dbb3da",
+    "analyzer.log": "7a34c87a260cd191a52f13fcb6d01c62dc314176e7debe3e084925150e46299a",
+    "clean-import.log": "9e90acb464dbb23b107694b8a88552630b7014089ecb69e43ee2ad97726830e0",
+    "invocation.json": "a1f8c23bd415d5df5273608a57ba861ab1fd836af91e07139c7ef1edef3fb72f",
+    "analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "executed-procedure.py.txt": "aee4f7b20560bd2f89fc8ca724943e02923870875fb9797ab1d7c756346f762e"
+  }
+}

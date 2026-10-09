@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_room_approach.gd": "98b27b0f25588123aa38597be761306101454db3558d5a6f1859d984bdd875ca",
+  "godot/test/test_underground_room_approach.gd": "f3841c8ffebaa8258461645f9fe64e5b24dffdd31be520c11a0e13756fcc744d",
+  "godot/scripts/core/underground_room_bindings.gd": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615",
+  "godot/test/test_underground_room_admission.gd": "1735e4699f28125a9a8414fd0dffc6dd65a6381059e6fcf57d8a7aee8a3f4228",
+  "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8"
+}

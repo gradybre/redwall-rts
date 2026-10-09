@@ -1,0 +1,19 @@
+test_crossing_plane_outside_triangle_refuses (__main__.ContactMathTests.test_crossing_plane_outside_triangle_refuses) ... ok
+test_exact_segment_crossing_proves_contact (__main__.ContactMathTests.test_exact_segment_crossing_proves_contact) ... ok
+test_actual_wrist_penetration_is_retained_as_refusal (__main__.ActualSourceTests.test_actual_wrist_penetration_is_retained_as_refusal) ... ok
+test_all_non_grip_triangles_and_both_actual_contacts_pass (__main__.ActualSourceTests.test_all_non_grip_triangles_and_both_actual_contacts_pass) ... ok
+test_anatomical_partition_keeps_mixed_boundaries_and_full_world_mesh (__main__.ActualSourceTests.test_anatomical_partition_keeps_mixed_boundaries_and_full_world_mesh) ... ok
+test_changed_native_stock_topology_input_refuses (__main__.ActualSourceTests.test_changed_native_stock_topology_input_refuses) ... ok
+test_closed_stock_containment_refuses_without_surface_crossing (__main__.ActualSourceTests.test_closed_stock_containment_refuses_without_surface_crossing) ... ok
+test_complete_stock_overhang_hits_wall_that_misses_hands (__main__.ActualSourceTests.test_complete_stock_overhang_hits_wall_that_misses_hands) ... ok
+test_current_body_and_complete_native_stock_are_unchanged (__main__.ActualSourceTests.test_current_body_and_complete_native_stock_are_unchanged) ... ok
+test_every_rig_link_retains_its_original_length (__main__.ActualSourceTests.test_every_rig_link_retains_its_original_length) ... ok
+test_translated_stock_does_not_inherit_hand_contact (__main__.ActualSourceTests.test_translated_stock_does_not_inherit_hand_contact) ... ok
+test_unchanged_vertices_with_changed_triangle_indices_refuse (__main__.ActualSourceTests.test_unchanged_vertices_with_changed_triangle_indices_refuse) ... ok
+test_unreachable_pose_refuses_without_mutating_original_rig (__main__.ActualSourceTests.test_unreachable_pose_refuses_without_mutating_original_rig) ... ok
+test_whole_source_has_three_real_floor_contacts (__main__.ActualSourceTests.test_whole_source_has_three_real_floor_contacts) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.063s
+
+OK

@@ -1,0 +1,32 @@
+{
+  "source_before_equals_after": true,
+  "captured_paths": 1285,
+  "reviewed_paths_match_native": {
+    "godot/demo/burrow/modular_demo_mode.gd": true,
+    "godot/demo/burrow/modular_demo_live.gd": true,
+    "godot/demo/burrow/modular_demo_live.tscn": true,
+    "godot/test/test_modular_demo_live.gd": true,
+    "godot/demo/demo_village.gd": true,
+    "godot/demo/tunnel/tunnel_panel.gd": true,
+    "godot/demo/burrow/modular_editor.gd": true
+  },
+  "author_invocation_exit": 0,
+  "logs": {
+    "staged-import.log": {
+      "sha256": "bee5c88c9be4edf77179dfed11f4b2abe8fcebddd087e10a25ec0f685ebd23ba",
+      "diagnostics": []
+    },
+    "native.log": {
+      "sha256": "b48230d31ceacc9a2c6851a4ed528150972f6b9f232bc710b6d2eac5ebab55c7",
+      "diagnostics": []
+    }
+  },
+  "engine_rerun": false,
+  "inspected_images": [
+    "planning-open.png",
+    "planning-drawing.png",
+    "planning-other-floor.png",
+    "planning-refused.png"
+  ],
+  "remaining_findings": "findings.json"
+}

@@ -1,0 +1,1217 @@
+diff --git a/godot/data/underground/mole-worker/mole_profile_driver.gd b/godot/data/underground/mole-worker/mole_profile_driver.gd
+index 246c4b0f..dc35f497 100644
+--- a/godot/data/underground/mole-worker/mole_profile_driver.gd
++++ b/godot/data/underground/mole-worker/mole_profile_driver.gd
+@@ -8,6 +8,7 @@ const Residents := preload("res://scripts/core/residents.gd")
+ const Gear := preload("res://scripts/core/gear.gd")
+ const Routes := preload("res://scripts/core/underground_routes.gd")
+ const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
++const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+ const NULL_REF: Vector2i = Vector2i(-1, 0)
+ const ONE: int = 65536
+ const READY_TIME: int = 8 * ONE
+@@ -19,6 +20,7 @@ const PROGRAM_COMPACT: int = 2
+ const PROGRAM_INSTALL: int = 3
+ const PROGRAM_CARDINAL: int = 4
+ const PROGRAM_APPROACH: int = 5
++const PROGRAM_SHORT_STEP: int = 6
+ const PROFILE_STAND: int = 0
+ const PROFILE_WALK: int = 1
+ const PROFILE_DOWN: int = 2
+@@ -85,7 +87,7 @@ func configure(source: Content, profiles: Profiles, definitions: Residents, work
+ 	"""Cold source/row binding only; each later update re-reads actual worker/Job/tool/pose owners."""
+ 	if _source != null or _retired:
+ 		return &"MOLE_DRIVER_ALREADY_BOUND"
+-	if program_version < PROGRAM_ORIGINAL or program_version > PROGRAM_APPROACH:
++	if program_version < PROGRAM_ORIGINAL or program_version > PROGRAM_SHORT_STEP:
+ 		return &"MOLE_DRIVER_PROGRAM"
+ 	var profile_count: int = 18 if program_version >= PROGRAM_CARDINAL else program_version + 3
+ 	var clip_count: int = 14 if program_version >= PROGRAM_CARDINAL else profile_count * 3 - 4
+@@ -93,7 +95,7 @@ func configure(source: Content, profiles: Profiles, definitions: Residents, work
+ 			or pins.size() != profile_count * 3 or source.source_digest() != digest or digest.length() != 64 \
+ 			or source.clip_count() != clip_count:
+ 		return &"MOLE_DRIVER_SOURCE"
+-	if program_version == PROGRAM_APPROACH and digest != SourceProgram.ACTOR_SHA:
++	if program_version >= PROGRAM_APPROACH and digest != SourceProgram.ACTOR_SHA:
+ 		return &"MOLE_DRIVER_SOURCE"
+ 	var code: StringName = _profile_bindings(source, profiles, definitions, pins, program_version)
+ 	if code == &"":
+@@ -125,7 +127,7 @@ func _profile_bindings(source: Content, profiles: Profiles, definitions: Residen
+ 	for row: int in profile_count:
+ 		# Protocol4 repeats down/high/front/INSTALL for each exact cardinal heading after stand/walk.
+ 		# Fixed IDs and heading metadata prevent a caller exchanging otherwise compatible WORK tuples.
+-		if pins[row * 3] != row + (8 if program == PROGRAM_APPROACH and row >= PROFILE_DOWN else 0):
++		if pins[row * 3] != row + ((11 if program == PROGRAM_SHORT_STEP else 8) if program >= PROGRAM_APPROACH and row >= PROFILE_DOWN else 0):
+ 			return &"MOLE_DRIVER_PROFILE_ROLE"
+ 		var role: int = _mapped_role(row) if profile_count == 18 else row
+ 		var code: StringName = profiles.descriptor_into(pins[row * 3], pins[row * 3 + 2], descriptor)
+@@ -142,16 +144,22 @@ func _profile_bindings(source: Content, profiles: Profiles, definitions: Residen
+ 			return &"MOLE_DRIVER_CONTACT_SOURCE"
+ 		if profile_count == 18 and not _mapped_heading_matches(row, descriptor):
+ 			return &"MOLE_DRIVER_PROFILE_HEADING"
+-		if program == PROGRAM_APPROACH and row >= PROFILE_DOWN \
+-				and SourceProgram.profile_refusal(profiles, descriptor.profile_id, descriptor.profile_revision, descriptor.content_revision) != &"":
++		if program >= PROGRAM_APPROACH and row >= PROFILE_DOWN \
++				and _canonical_profile_refusal(profiles, descriptor.profile_id, descriptor.profile_revision, descriptor.content_revision, program) != &"":
+ 			return &"MOLE_DRIVER_PROFILE_SOURCE"
+-	if program == PROGRAM_APPROACH:
+-		for profile: int in range(2, 10):
+-			if SourceProgram.profile_refusal(profiles, profile, pins[4], pins[5]) != &"":
++	if program >= PROGRAM_APPROACH:
++		for profile: int in range(2, 13 if program == PROGRAM_SHORT_STEP else 10):
++			if _canonical_profile_refusal(profiles, profile, pins[4], pins[5], program) != &"":
+ 				return &"MOLE_DRIVER_PROFILE_SOURCE"
+ 	return &""
+ 
+ 
++static func _canonical_profile_refusal(profiles: Profiles, profile: int, revision: int, content: int, program: int) -> StringName:
++	"""Each supported visual consumer keeps the exact source version and actual original Profile row."""
++	return ShortStep.profile_refusal(profiles, profile, revision, content) if program == PROGRAM_SHORT_STEP \
++		else SourceProgram.profile_refusal(profiles, profile, revision, content)
++
++
+ func _read_timing(source: Content) -> StringName:
+ 	"""Programs start idle/walk, then exact down/high, v2 front and v3 INSTALL work/entry/recovery triples."""
+ 	var timing: PackedInt32Array = PackedInt32Array([0, 0])
+@@ -191,7 +199,7 @@ func _step(role: int, row: int, job: Vector2i, delta_q16: int, request_ready: bo
+ 	"""Shared phase logic keeps every prior protocol's refusal, recovery and publication behavior."""
+ 	if _source == null or _retired or out == null or out.frames.size() != 7:
+ 		return &"MOLE_DRIVER_UNBOUND"
+-	if _pins.size() == 54 and _pins[6] == 10:
++	if _pins.size() == 54 and _pins[6] >= 10:
+ 		return &"MOLE_DRIVER_CANONICAL_ROUTES_REQUIRED"
+ 	if role < 0 or role > PROFILE_INSTALL or row < 0 or row * 3 >= _pins.size() \
+ 			or delta_q16 < 0 or delta_q16 > MAX_DELTA:
+@@ -215,14 +223,15 @@ func _step(role: int, row: int, job: Vector2i, delta_q16: int, request_ready: bo
+ 
+ 
+ func read_route_into(actual: Routes, profile_id: int, job: Vector2i, out: Frame) -> StringName:
+-	"""Programme5 consumes the original30Hz source clock; drawing zero or many frames never advances it."""
++	"""Canonical programmes consume the original30Hz clock; drawing zero or many frames never advances it."""
+ 	if _source == null or _retired or out == null or out.frames.size() != 7 \
+-			or actual == null or actual._profiles != _profiles or _pins.size() != 54 or _pins[6] != 10:
++			or actual == null or actual._profiles != _profiles or _pins.size() != 54 or (_pins[6] != 10 and _pins[6] != 13):
+ 		return &"MOLE_DRIVER_UNBOUND"
+-	if profile_id < 2 or profile_id >= 26: return &"MOLE_DRIVER_INPUT"
+-	var row: int = profile_id - 8 if profile_id >= 10 else 1
++	var work_first: int = _pins[6]
++	if profile_id < 2 or profile_id >= work_first + 16: return &"MOLE_DRIVER_INPUT"
++	var row: int = profile_id - work_first + 2 if profile_id >= work_first else 1
+ 	var code: StringName
+-	if profile_id >= 10:
++	if profile_id >= work_first:
+ 		code = _profiles.query_work_profile_into(_worker, job, profile_id, _pins[row * 3 + 1],
+ 			_pins[row * 3 + 2], Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+ 	else:
+@@ -254,14 +263,15 @@ func _source_route_frames(profile: int) -> StringName:
+ 	"""Resolve the actual Content loop seam and the complete supplied fade, without a second source clock."""
+ 	var phase: int = _stage[0]
+ 	var time: int = _stage[1]
+-	var clip: int = SourceProgram.clip(profile, phase)
++	var mapped_profile: int = ShortStep.mapped(profile) if _pins[6] == 13 else profile
++	var clip: int = SourceProgram.clip(mapped_profile, phase)
+ 	if phase == SourceProgram.READY or phase == SourceProgram.FADE_READY:
+ 		clip = 0
+ 		time = READY_TIME
+ 	elif phase == SourceProgram.FADE_WALK:
+ 		time = 0
+ 	elif phase == SourceProgram.WALK:
+-		time = SourceProgram.walk_time(profile, time)
++		time = SourceProgram.walk_time(mapped_profile, time)
+ 	var code: StringName = _source.clip_into(clip, time, _pose)
+ 	if code != &"": return code
+ 	for index: int in 3:
+@@ -269,7 +279,7 @@ func _source_route_frames(profile: int) -> StringName:
+ 		_frames[index + 3] = _pose[index]
+ 	_frames[6] = ONE
+ 	if phase == SourceProgram.FADE_READY:
+-		code = _source.clip_into(1, SourceProgram.walk_time(profile, _stage[2]), _pose)
++		code = _source.clip_into(1, SourceProgram.walk_time(mapped_profile, _stage[2]), _pose)
+ 	elif phase == SourceProgram.FADE_WALK:
+ 		code = _source.clip_into(0, READY_TIME, _pose)
+ 	if code != &"": return code
+diff --git a/godot/scripts/core/underground_profiles.gd b/godot/scripts/core/underground_profiles.gd
+index 788af767..6982972c 100644
+--- a/godot/scripts/core/underground_profiles.gd
++++ b/godot/scripts/core/underground_profiles.gd
+@@ -61,6 +61,9 @@ const POLICY_AUTOMATIC: int = 0
+ const POLICY_READY_FORWARD: int = 1
+ const POLICY_READY_BACKWARD: int = 2
+ const POLICY_SOURCE_WORK: int = 3
++const POLICY_SHORT_FORWARD: int = 4
++const POLICY_SHORT_BACKWARD: int = 5
++const POLICY_CANONICAL_GROUND: int = 6
+ # Field-major columns, not one record/object per profile.
+ const F_SOURCE: int = 0
+ const F_SPECIES: int = 1
+@@ -376,7 +379,7 @@ func _validate_stage() -> StringName:
+ 
+ func _profile_refusal(row: int, next_box: int) -> StringName:
+ 	"""Qualification is an explicit source certificate requirement, not inferred from positive bounds."""
+-	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_SOURCE_WORK \
++	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_CANONICAL_GROUND \
+ 			or _long(_stage, row, L_REVISION) <= 0:
+ 		return &"PROFILE_CERTIFICATE_REQUIRED"
+ 	if _field(_stage, row, F_SOURCE) < 0 or _field(_stage, row, F_SOURCE) >= _stage.header[3] \
+@@ -385,7 +388,7 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
+ 		return &"PROFILE_IDENTITY_FORMAT"
+ 	var mode: int = _field(_stage, row, F_MODE)
+ 	var policy: int = _stage.flags[_profile_capacity + row]
+-	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != YAW_EXACT \
++	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
+ 			or _field(_stage, row, F_YAW) % 16384 != 0 \
+ 			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK else MODE_WALK)):
+ 		return &"PROFILE_POLICY_FORMAT"
+@@ -544,14 +547,14 @@ static func selection_policy_leaf(actual: RefCounted, profile_id: int, profile_r
+ 			or profile_revision <= 0 or profile_revision != actual._live.quantities[L_REVISION * actual._profile_capacity + profile_id]:
+ 		return -1
+ 	var policy: int = actual._live.flags[actual._profile_capacity + profile_id]
+-	return policy if policy <= POLICY_SOURCE_WORK else -1
++	return policy if policy <= POLICY_CANONICAL_GROUND else -1
+ 
+ 
+ func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+ 		revision: int, posture: int, connector_family: int, equipped_tool_hint: Vector2i, out: Selection) -> StringName:
+-	"""Explicit fixed-heading travel still proves the actual current actor, Job, tool, cargo and yaw."""
++	"""Explicit source travel still proves the actual current actor, Job, tool, cargo and orientation."""
+ 	var policy: int = selection_policy_leaf(self, profile_id, profile_revision, revision)
+-	if policy != POLICY_READY_FORWARD and policy != POLICY_READY_BACKWARD:
++	if policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK:
+ 		return &"PROFILE_TRAVEL_SELECTION_REQUIRED"
+ 	var code: StringName = _prepare_query(worker, job, MODE_WALK, posture, connector_family, equipped_tool_hint, out)
+ 	if code != &"":
+diff --git a/godot/scripts/core/underground_routes.gd b/godot/scripts/core/underground_routes.gd
+index e830682a..2ce02c0e 100644
+--- a/godot/scripts/core/underground_routes.gd
++++ b/godot/scripts/core/underground_routes.gd
+@@ -22,6 +22,7 @@ const Reservations := preload("res://scripts/core/reservations.gd")
+ const Piles := preload("res://scripts/core/ground_piles.gd")
+ const IntMath := preload("res://scripts/core/int_math.gd")
+ const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
++const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+ const NULL_REF: Vector2i = Vector2i(-1, 0)
+ const I32_MAX: int = 2147483647
+ const I64_MAX: int = 9223372036854775807
+@@ -1986,7 +1987,8 @@ func admit_travel_actor(worker: Vector2i, job: Vector2i, location: Vector2i, pro
+ 		profile_revision: int, content_revision: int, posture: int, family: int,
+ 		equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+ 	"""A newly registered explicit source actor starts at shared ready, with no implied travel or productive permission."""
+-	if SourceProgram.profile_refusal(_profiles, profile_id, profile_revision, content_revision) != &"" or profile_id >= 10:
++	if _source_profile_refusal(_profiles, profile_id, profile_revision, content_revision) != &"" \
++			or Profiles.selection_policy_leaf(_profiles, profile_id, profile_revision, content_revision) == Profiles.POLICY_SOURCE_WORK:
+ 		return &"ROUTE_SOURCE_PROFILE"
+ 	return _admit_actor(worker, job, location, Profiles.MODE_WALK, posture, family,
+ 		equipped_tool_hint, profile_id, profile_revision, content_revision)
+@@ -2035,7 +2037,8 @@ func refresh_work_actor(worker: Vector2i, job: Vector2i, profile_id: int, profil
+ func refresh_travel_actor(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+ 		content_revision: int, posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+ 	"""Change direction only after the original canonical source has recovered to ready at a real endpoint."""
+-	if SourceProgram.profile_refusal(_profiles, profile_id, profile_revision, content_revision) != &"" or profile_id >= 10:
++	if _source_profile_refusal(_profiles, profile_id, profile_revision, content_revision) != &"" \
++			or Profiles.selection_policy_leaf(_profiles, profile_id, profile_revision, content_revision) == Profiles.POLICY_SOURCE_WORK:
+ 		return &"ROUTE_SOURCE_PROFILE"
+ 	return _refresh_actor(worker, job, Profiles.MODE_WALK, posture, family,
+ 		equipped_tool_hint, profile_id, profile_revision, content_revision)
+@@ -2092,7 +2095,7 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
+ 		profile_id, profile_revision, content_revision)
+ 	if code == &"" and Profiles.selection_policy_leaf(_profiles, _selection.profile_id,
+ 			_selection.profile_revision, _selection.content_revision) != Profiles.POLICY_AUTOMATIC:
+-		code = SourceProgram.profile_refusal(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
++		code = _source_profile_refusal(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
+ 	if code == &"":
+ 		code = _profile_endpoint_refusal(location)
+ 	if code != &"":
+@@ -2165,6 +2168,22 @@ func _source_clock_refusal(row: int) -> StringName:
+ 	return _source_clock_leaf(self, row)
+ 
+ 
++static func _source_word_known(value: int) -> bool:
++	"""Only the two admitted source versions may share the existing geometric phase column."""
++	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG
++
++
++static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) -> int:
++	"""Publication uses the selected immutable source version, never a caller-selected clock tag."""
++	return ShortStep.word(phase, source_phase) if ShortStep.uses(profiles) else SourceProgram.word(phase, source_phase)
++
++
++static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
++	"""Version selection never substitutes for the complete source/descriptor/current-revision proof."""
++	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
++		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
++
++
+ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
+ 	"""This final source check uses only original owner columns and concrete stateless equations."""
+ 	if actual == null or row < 0 or row >= RESIDENT_CAPACITY or actual._edge_capacity == 0:
+@@ -2179,25 +2198,32 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
+ 		return &"" if policy <= Profiles.POLICY_AUTOMATIC else &"ROUTE_SOURCE_CLOCK"
+ 	if policy == Profiles.POLICY_AUTOMATIC:
+ 		return &"ROUTE_SOURCE_CLOCK"
+-	var code: StringName = SourceProgram.profile_refusal(actual._profiles, profile, profile_revision, content)
+-	return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile) \
+-		if code == &"" else code
++	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
++	if code != &"": return code
++	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
++	if not ShortStep.uses(actual._profiles): return SourceProgram.clock_refusal(phase, clock, profile)
++	code = ShortStep.clock_refusal(phase, clock, profile)
++	if code == &"" and ShortStep.is_short(profile):
++		code = ShortStep.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
++			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
++			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
++	return code
+ 
+ 
+ func _set_route_phase(row: int, phase: int) -> void:
+ 	"""Every ordinary route write deliberately preserves the source subphase/tag in clocked rows."""
+ 	var old: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = (old & ~3) | phase if (old & ~63) == SourceProgram.TAG else phase
++	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = (old & ~3) | phase if _source_word_known(old) else phase
+ 
+ 
+ func _reset_source_clock(row: int) -> void:
+ 	"""Only a fully qualified fresh admission or completed ready handoff can initialize a new policy."""
+ 	var policy: int = Profiles.selection_policy_leaf(_profiles, _selection.profile_id,
+ 		_selection.profile_revision, _selection.content_revision)
+-	if policy == Profiles.POLICY_AUTOMATIC and (_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & ~63) != SourceProgram.TAG:
++	if policy == Profiles.POLICY_AUTOMATIC and not _source_word_known(_motion.resident[R_PHASE * RESIDENT_CAPACITY + row]):
+ 		return # Ordinary refresh preserves the prior request tick exactly.
+ 	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = PHASE_IDLE if policy == Profiles.POLICY_AUTOMATIC \
+-		else SourceProgram.word(PHASE_IDLE, SourceProgram.ENTRY if policy == Profiles.POLICY_SOURCE_WORK else SourceProgram.READY)
++		else _source_word_for(_profiles, PHASE_IDLE, SourceProgram.ENTRY if policy == Profiles.POLICY_SOURCE_WORK else SourceProgram.READY)
+ 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = 0
+ 
+ 
+@@ -2206,7 +2232,9 @@ func _source_refresh_refusal(row: int, profile: int, profile_revision: int, cont
+ 	var code: StringName = _source_clock_refusal(row)
+ 	if code != &"": return code
+ 	var old: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	if (old & ~63) == SourceProgram.TAG:
++	if _source_word_known(old):
++		if ShortStep.uses(_profiles) and (profile < 0 or Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) == Profiles.POLICY_AUTOMATIC):
++			return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+ 		return &"" if ((old >> 2) & 15) == SourceProgram.READY else &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+ 	if profile >= 0 and Profiles.selection_policy_leaf(_profiles, profile, profile_revision, content) > Profiles.POLICY_AUTOMATIC:
+ 		return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+@@ -2249,7 +2277,7 @@ static func source_work_leaf_refusal(actual: RefCounted, worker: Vector2i, job:
+ 			or actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] != -1 \
+ 			or actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row] != Profiles.MODE_WORK:
+ 		return &"ROUTE_SOURCE_WORK_NOT_READY"
+-	if (word & ~63) == SourceProgram.TAG and ((word >> 2) & 15) != SourceProgram.WORK:
++	if _source_word_known(word) and ((word >> 2) & 15) != SourceProgram.WORK:
+ 		return &"ROUTE_SOURCE_WORK_NOT_READY"
+ 	return &""
+ 
+@@ -2260,7 +2288,7 @@ static func source_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job:
+ 	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+ 	if row < 0: return &"ROUTE_SOURCE_TUPLE_STALE"
+ 	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	return &"" if word == SourceProgram.word(PHASE_IDLE, SourceProgram.READY) \
++	return &"" if word == _source_word_for(actual._profiles, PHASE_IDLE, SourceProgram.READY) \
+ 		and actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] == -1 \
+ 		and actual._motion.resident[R_EDGE_GENERATION * RESIDENT_CAPACITY + row] == 0 \
+ 		and actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] == -1 \
+@@ -2288,7 +2316,7 @@ static func source_state_leaf_into(actual: RefCounted, worker: Vector2i, job: Ve
+ 	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+ 	if row < 0 or out.size() < 4: return &"ROUTE_SOURCE_TUPLE_STALE"
+ 	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	if (word & ~63) != SourceProgram.TAG: return &"ROUTE_SOURCE_PROFILE"
++	if not _source_word_known(word): return &"ROUTE_SOURCE_PROFILE"
+ 	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+ 	out[0] = (word >> 2) & 15
+ 	out[1] = clock & I32_MAX
+@@ -2313,7 +2341,7 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
+ 	code = _source_clock_refusal(row)
+ 	if code != &"": return code
+ 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	if (word & ~63) != SourceProgram.TAG: return &"ROUTE_SOURCE_PROFILE"
++	if not _source_word_known(word): return &"ROUTE_SOURCE_PROFILE"
+ 	var phase: int = (word >> 2) & 15
+ 	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+ 	var time: int = clock & I32_MAX
+@@ -2324,7 +2352,7 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
+ 	elif phase == SourceProgram.WALK:
+ 		phase = SourceProgram.FADE_READY
+ 		clock = SourceProgram.clock(0, time)
+-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = SourceProgram.word(word & 3, phase)
++	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, word & 3, phase)
+ 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = clock
+ 	return &""
+ 
+@@ -2446,6 +2474,7 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
+ 		return &"ROUTE_REQUEST_CONTEXT"
+ 	var row: int = _ids.get_typed_row(worker)
+ 	code = _current_profile_into(row, _checked_selection)
++	if code == &"": code = _short_request_refusal(row)
+ 	if code != &"":
+ 		return code
+ 	_search_worker = worker
+@@ -2457,6 +2486,8 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
+ 	_searching = false
+ 	_search_worker = NULL_REF
+ 	_search_job = NULL_REF
++	if code == &"":
++		code = _short_path_refusal()
+ 	if code == &"":
+ 		code = _request_final_refusal(row, destination)
+ 	if code == &"":
+@@ -2464,6 +2495,30 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
+ 	return code
+ 
+ 
++func _short_request_refusal(row: int) -> StringName:
++	"""An interrupted finite prefix cannot replace its original path, restart key0 or acquire a successor."""
++	if not ShortStep.uses(_profiles) or not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
++		return &""
++	if _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != ShortStep.word(PHASE_IDLE, SourceProgram.READY) \
++			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
++		return &"ROUTE_SOURCE_STEP_ACTIVE"
++	return _source_clock_refusal(row)
++
++
++func _short_path_refusal() -> StringName:
++	"""Before replacing any route links, prove the single full immutable span and its actual unchanged rate."""
++	if not ShortStep.uses(_profiles) or not ShortStep.is_short(_checked_selection.profile_id): return &""
++	if _proposed_count != 1: return &"ROUTE_SOURCE_STEP_SPAN"
++	_step.edge = Vector2i(_proposed_edges[0], _proposed_edges[1])
++	if not is_live_edge(_step.edge): return &"ROUTE_EDGE_STALE"
++	_copy_selection(_checked_selection, _selection)
++	var code: StringName = _pace_refusal()
++	if code != &"": return code
++	var count: int = _edge_i32(_live, E_PATH_COUNT, _step.edge.x)
++	return ShortStep.span_refusal(_selection.profile_id, _vertex(_step.edge.x, 0),
++		_vertex(_step.edge.x, count - 1), count, _number.value)
++
++
+ func _current_profile_into(row: int, out: Profiles.Selection) -> StringName:
+ 	"""Actual Job, held load and immutable content must still match the actor's committed observation."""
+ 	var code: StringName = _actor_profile_into(_resident_ref(row), _resident_pair(R_JOB_SLOT, row),
+@@ -2498,7 +2553,7 @@ func _request_final_refusal(row: int, destination: Vector2i) -> StringName:
+ 		if not is_live_edge(ref) or _edge_i64(_live, E_GEOMETRY_REVISION, ref.x) != _owner.revision() \
+ 				or _edge_i64(_live, E_CONTENT_REVISION, ref.x) != _profiles.content_revision():
+ 			return &"ROUTE_EDGE_REVISION"
+-	return &""
++	return _short_request_refusal(row)
+ 
+ 
+ func _route_count(row: int) -> int:
+@@ -2544,7 +2599,7 @@ func _publish_route(row: int, tick: int) -> void:
+ 		tail = link
+ 	_motion.resident[R_TAIL * RESIDENT_CAPACITY + row] = tail
+ 	_set_route_phase(row, PHASE_QUEUED if tail >= 0 else PHASE_IDLE)
+-	if (_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & ~63) != SourceProgram.TAG:
++	if not _source_word_known(_motion.resident[R_PHASE * RESIDENT_CAPACITY + row]):
+ 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = tick
+ 
+ 
+@@ -2570,6 +2625,9 @@ func cancel_route(worker: Vector2i) -> StringName:
+ 	var row: int = _ids.get_typed_row(worker)
+ 	if _resident_ref(row) != worker or _route_count(row) < 0:
+ 		return &"ROUTE_ACTOR_NOT_REGISTERED"
++	if ShortStep.uses(_profiles) and ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) \
++			and ((_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15) != SourceProgram.READY:
++		return &"ROUTE_SOURCE_STEP_ACTIVE"
+ 	_release_route(row)
+ 	if _resident_pair(R_EDGE_SLOT, row) == NULL_REF:
+ 		_set_route_phase(row, PHASE_IDLE)
+@@ -2666,7 +2724,7 @@ func advance_tick(tick: int) -> int:
+ 	var moved: int = 0
+ 	for row: int in RESIDENT_CAPACITY:
+ 		if _resident_ref(row) == NULL_REF or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == PHASE_IDLE \
+-				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == SourceProgram.word(PHASE_IDLE, SourceProgram.READY):
++				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY):
+ 			continue
+ 		var code: StringName = _advance_actor(row)
+ 		if code == &"":
+@@ -2683,7 +2741,7 @@ func _advance_actor(row: int) -> StringName:
+ 	if code != &"":
+ 		return code
+ 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	if (word & ~63) == SourceProgram.TAG and (((word >> 2) & 15) != SourceProgram.WALK \
++	if _source_word_known(word) and (((word >> 2) & 15) != SourceProgram.WALK \
+ 			or (_resident_pair(R_EDGE_SLOT, row) == NULL_REF and _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] < 0)):
+ 		return _advance_stationary_source(row)
+ 	code = _prepare_motion(row)
+@@ -2724,8 +2782,9 @@ func _advance_stationary_source(row: int) -> StringName:
+ 		phase = SourceProgram.FADE_READY
+ 		old = time
+ 		time = 0
+-	var next: Vector3i = SourceProgram.advance(phase, time, old, _selection.profile_id)
+-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = SourceProgram.word(PHASE_QUEUED if queued else PHASE_IDLE, next.x)
++	var profile: int = ShortStep.mapped(_selection.profile_id) if ShortStep.uses(_profiles) else _selection.profile_id
++	var next: Vector3i = SourceProgram.advance(phase, time, old, profile)
++	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_QUEUED if queued else PHASE_IDLE, next.x)
+ 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(next.y, next.z)
+ 	return &""
+ 
+@@ -2733,7 +2792,7 @@ func _advance_stationary_source(row: int) -> StringName:
+ func _edge_profile_into(row: int, edge: int, out: Profiles.Selection) -> StringName:
+ 	"""Clocked travel keeps its exact selected row across search, entry and every subdivided span."""
+ 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	if (word & ~63) == SourceProgram.TAG:
++	if _source_word_known(word):
+ 		if _edge_i32(_live, E_MODE, edge) != _motion.resident[R_MODE * RESIDENT_CAPACITY + row] \
+ 				or _edge_i32(_live, E_POSTURE, edge) != _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]:
+ 			return &"ROUTE_SOURCE_PROFILE"
+@@ -2773,6 +2832,9 @@ func _prepare_motion(row: int) -> StringName:
+ 	_step.consumed = 1 if entering else 0
+ 	if entering:
+ 		_step.cursor = _link(L_NEXT, _step.cursor)
++	if ShortStep.uses(_profiles) and ShortStep.is_short(_selection.profile_id) \
++			and (_step.cursor >= 0 or _edge_i32(_live, E_PATH_COUNT, _step.edge.x) != 2):
++		return &"ROUTE_SOURCE_STEP_SPAN"
+ 	_copy_selection(_selection, _checked_selection)
+ 	return &""
+ 
+@@ -2969,6 +3031,9 @@ func _pace_refusal() -> StringName:
+ 		return &"ROUTE_CALLBACK_REENTRY"
+ 	if code == &"" and (_number.value < 1 or _number.value > I32_MAX):
+ 		return &"ROUTE_PACE_UNAUTHORED"
++	if code == &"" and ShortStep.uses(_profiles) and ShortStep.is_short(_selection.profile_id) \
++			and _number.value != ShortStep.PACE:
++		return &"ROUTE_SOURCE_STEP_PACE"
+ 	return code
+ 
+ 
+@@ -2976,10 +3041,11 @@ func _motion_segment_refusal(row: int, first: Vector3i, last: Vector3i, next: Ve
+ 	"""Every traversed bend has its own complete sweep and current dynamic proof before the single pose commit."""
+ 	var yaw: int = heading_for_delta(last - first, _step.yaw)
+ 	var policy: int = Profiles.selection_policy_leaf(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
+-	var expected: int = (_selection.yaw + 32768) % 65536 if policy == Profiles.POLICY_READY_BACKWARD else _selection.yaw
++	var backward: bool = policy == Profiles.POLICY_READY_BACKWARD or policy == Profiles.POLICY_SHORT_BACKWARD
++	var expected: int = (_selection.yaw + 32768) % 65536 if backward else _selection.yaw
+ 	if _selection.orientation != Profiles.YAW_ALL and yaw != expected:
+ 		return &"ROUTE_TURN_UNCERTIFIED"
+-	_step.yaw = _selection.yaw if policy == Profiles.POLICY_READY_BACKWARD else yaw
++	_step.yaw = _selection.yaw if backward else yaw
+ 	_copy_selection(_selection, _pinned_selection)
+ 	_in_callback = true
+ 	_callback_reentered = false
+@@ -3059,11 +3125,11 @@ func _commit_motion(row: int) -> void:
+ func _advance_source_motion_clock(row: int) -> void:
+ 	"""Root and forward/reversed source advance together only after the entire physical tick succeeds."""
+ 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+-	if (word & ~63) != SourceProgram.TAG: return
++	if not _source_word_known(word): return
+ 	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+ 	var time: int = ((clock & I32_MAX) + SourceProgram.ONE) % SourceProgram.WALK_DURATION
+ 	if (word & 3) == PHASE_IDLE:
+-		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = SourceProgram.word(PHASE_IDLE, SourceProgram.FADE_READY)
++		_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, PHASE_IDLE, SourceProgram.FADE_READY)
+ 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(0, time)
+ 	else:
+ 		_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = SourceProgram.clock(time, 0)
+diff --git a/godot/scripts/core/underground_world_routes.gd b/godot/scripts/core/underground_world_routes.gd
+index 2bfa5caa..55ac7b12 100644
+--- a/godot/scripts/core/underground_world_routes.gd
++++ b/godot/scripts/core/underground_world_routes.gd
+@@ -793,13 +793,17 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
+ 		edge.family, edge.variant, _catalog_revision, _pace)
+ 	if code != &"":
+ 		return code
++	if Routes.ShortStep.uses(_profiles) and Routes.ShortStep.is_short(profile):
++		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
++		if code != &"": return code
+ 	for segment: int in edge.point_count - 1:
+ 		if not _proof.spend():
+ 			return _proof.error
+ 		var first: Vector3i = _point(edge, segment)
+ 		var last: Vector3i = _point(edge, segment + 1)
+ 		var policy: int = Profiles.selection_policy_leaf(_profiles, profile, _descriptor.profile_revision, _content_revision)
+-		var heading: int = (_descriptor.yaw + 32768) % 65536 if policy == Profiles.POLICY_READY_BACKWARD else _descriptor.yaw
++		var backward: bool = policy == Profiles.POLICY_READY_BACKWARD or policy == Profiles.POLICY_SHORT_BACKWARD
++		var heading: int = (_descriptor.yaw + 32768) % 65536 if backward else _descriptor.yaw
+ 		if _descriptor.yaw_kind != Profiles.YAW_ALL \
+ 				and Routes.heading_for_delta(last - first, heading) != heading:
+ 			return &"WORLD_ROUTE_PROFILE_HEADING"
+@@ -1250,7 +1254,7 @@ static func _reach_stores_refusal(actual: RefCounted, graph: Routes, owner: Owne
+ 			or catalog._movement != actual._movement or catalog._residents != actual._residents \
+ 			or catalog._transforms != actual._transforms or not _reach_profile_owners(actual, graph, locations):
+ 		return REFUSE_BINDING
+-	if catalog._live.header.size() != 11 or catalog._live.header[1] < 1 \
++	if catalog._live.header.size() != 11 or (catalog._live.header[1] < 1 and not _ground_catalog_shape(catalog)) \
+ 			or catalog._live.variant_revisions.size() != Catalog.MAX_VARIANTS \
+ 			or actual._live_catalog_revision <= 0 or actual._live_catalog_revision != catalog._live.header[0]:
+ 		return &"WORLD_ROUTE_CERTIFICATE_STALE"
+@@ -1265,18 +1269,29 @@ static func _reach_content_refusal(actual: RefCounted) -> StringName:
+ 	if not _immutable_owners_match(actual):
+ 		return REFUSE_BINDING
+ 	if not catalog._configured or catalog._loading or catalog._live.digests.size() != 96 \
+-			or catalog._live.variant_revisions[0] < 1 or not SourceFacts._same_actual_owners(catalog) \
++			or (not _ground_catalog_shape(catalog) and catalog._live.variant_revisions[0] < 1) \
++			or not SourceFacts._same_actual_owners(catalog) \
+ 			or not SourceFacts._source_storage_matches(catalog):
+ 		return SourceFacts.REFUSE
+ 	if actual._attested_catalog_revision == actual._live_catalog_revision:
+ 		return &""
+-	var code: StringName = SourceFacts.refusal(catalog, 0, catalog._live.variant_revisions[0],
+-		actual._live_catalog_revision, catalog._live.digests)
++	var code: StringName = (&"" if SourceFacts._source_digests_match(catalog) else SourceFacts.REFUSE) \
++		if _ground_catalog_shape(catalog) else SourceFacts.refusal(catalog, 0, catalog._live.variant_revisions[0],
++			actual._live_catalog_revision, catalog._live.digests)
+ 	if code == &"":
+ 		actual._attested_catalog_revision = actual._live_catalog_revision
+ 	return code
+ 
+ 
++static func _ground_catalog_shape(catalog: Catalog) -> bool:
++	"""An admitted ground-only image has six exactly empty geometry tables and positive actual pace rows."""
++	if catalog._live.header.size() != 11 or catalog._live.header[7] < 1 or catalog._live.header[7] > Catalog.MAX_PACES:
++		return false
++	for field: int in range(1, 7):
++		if catalog._live.header[field] != 0: return false
++	return true
++
++
+ static func _immutable_owners_match(actual: RefCounted) -> bool:
+ 	"""Native object IDs are unsaved composition pins; equal content revisions cannot name a foreign owner."""
+ 	return actual._catalog != null and actual._profiles != null and actual._levels != null \
+@@ -1730,6 +1745,9 @@ static func _turn_actor_scope(graph: Routes, row: int, worker: Vector2i, job: Ve
+ 		return &"ROUTE_ACTOR_BUSY"
+ 	if graph._resident_pair(Routes.R_JOB_SLOT, row) != job:
+ 		return &"ROUTE_TURN_JOB"
++	var word: int = graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row]
++	if Routes._source_word_known(word) and ((word >> 2) & 15) != Routes.SourceProgram.READY:
++		return &"ROUTE_SOURCE_HANDOFF_REQUIRED"
+ 	var mode: int = graph._motion.resident[Routes.R_MODE * Routes.RESIDENT_CAPACITY + row]
+ 	if (mode != Profiles.MODE_STAND and mode != Profiles.MODE_WALK) \
+ 			or graph._motion.resident[Routes.R_FAMILY * Routes.RESIDENT_CAPACITY + row] != -1:
+diff --git a/godot/test/test_mole_profile_driver.gd b/godot/test/test_mole_profile_driver.gd
+index 5af8612b..74d0e597 100644
+--- a/godot/test/test_mole_profile_driver.gd
++++ b/godot/test/test_mole_profile_driver.gd
+@@ -20,6 +20,16 @@ var _pins: PackedInt64Array = PackedInt64Array([0, 1, 1, 1, 1, 1, 2, 1, 1, 3, 1,
+ 
+ func test_actual_source_program_reads_the_headless_clock_without_owning_it() -> void:
+ 	"""Actual immutable palette/timing and real mole/tool owners; profile and World certificates stay explicitly synthetic."""
++	_actual_source_driver(5)
++
++
++func test_programme6_consumes_actual_ground_short_step_high_recovery_and_retreat_source() -> void:
++	"""The new driver consumes actual source timing with no per-render advancement or independent ready permission."""
++	_actual_source_driver(6)
++
++
++func _actual_source_driver(program: int) -> void:
++	"""Only the source-map version changes; all economic and source-content owners remain actual."""
+ 	var actual: RouteFixture = RouteFixture.new()
+ 	actual.before_each()
+ 	assert_true(actual._residents.despawn(actual._worker).ok, "remove the old unregistered fixture actor")
+@@ -33,23 +43,79 @@ func test_actual_source_program_reads_the_headless_clock_without_owning_it() ->
+ 	assert_true(actual._gear.equip(tool, actual._worker).ok, "actual carried equipment")
+ 	var job: Vector2i = actual._clock_job()
+ 	assert_true(actual._work.claim_tool_for_work(slot, tool).ok, "exact actual BUILD claim")
+-	actual._clock_profiles(tool, true)
++	actual._clock_profiles(tool, true, program)
+ 	var source: Content = Content.new()
+ 	assert_equal(source.load_file("res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+ 		Driver.SourceProgram.ACTOR_SHA, 7141920), &"", "unchanged supplied image in its existing7141920 presentation reserve")
+ 	var pins: PackedInt64Array = PackedInt64Array()
+ 	for row: int in 18:
+-		pins.append_array(PackedInt64Array([row if row < 2 else row + 8, 1, 2]))
++		pins.append_array(PackedInt64Array([row if row < 2 else row + (11 if program == 6 else 8), 1, 3 if program == 6 else 2]))
+ 	var driver: Driver = Driver.new()
+ 	assert_equal(driver.configure(source, actual._profiles, actual._residents, actual._worker,
+-		tool, pins, Driver.SourceProgram.ACTOR_SHA, Driver.PROGRAM_APPROACH), &"", "explicit canonical protocol")
+-	_source_clock_replay(actual, source, driver, job, tool)
++		tool, pins, Driver.SourceProgram.ACTOR_SHA, program), &"", "explicit canonical protocol")
++	if program == 6: _short_source_replay(actual, source, driver, job, tool)
++	else: _source_clock_replay(actual, source, driver, job, tool)
+ 	driver.retire()
+ 	assert_equal(actual._work.tool_job_of(slot), job, "presentation retirement cannot release authoritative work")
+ 	actual.after_each()
+ 	assert_true(actual.failures.is_empty(), "complete actual fixture assertion propagation: " + str(actual.failures))
+ 
+ 
++func _short_source_replay(actual: RouteFixture, source: Content, driver: Driver, job: Vector2i, tool: Vector2i) -> void:
++	"""Canonical ground and both finite prefixes retain the exact supplied READY, HIGH and reverse loop seam."""
++	actual._binding.synthetic_pace = 3277
++	var a: Vector3i = Vector3i(-512, 0, 512)
++	var b: Vector3i = Vector3i(512, 0, 512)
++	var c: Vector3i = b + Vector3i(232, 0, 0)
++	var first: Vector2i = actual._location(a)
++	var work_base: Vector2i = actual._location(b)
++	var high: Vector2i = actual._location(c)
++	actual._publish_edges([actual._edge(first, work_base, [a, b]), actual._edge(work_base, first, [b, a]),
++		actual._edge(work_base, high, [b, c]), actual._edge(high, work_base, [c, b])])
++	assert_equal(actual._routes.admit_travel_actor(actual._worker, job, first, 12, 1, 3, 0, -1, tool), &"", "source-ground initial admission")
++	assert_equal(actual._routes.request_route(actual._worker, work_base, 0), &"", "actual all-yaw source ground route")
++	_short_driver_steps(actual, source, driver, job, 12, 1, 26)
++	assert_equal(actual._routes.refresh_travel_actor(actual._worker, job, 10, 1, 3, 0, -1, tool), &"", "known READY begins short programme")
++	assert_equal(actual._routes.request_route(actual._worker, high, 26), &"", "232u destination")
++	_short_driver_steps(actual, source, driver, job, 10, 27, 19)
++	assert_equal(actual._routes.refresh_work_actor(actual._worker, job, 26, 1, 3, 0, -1, tool), &"", "exact HIGH source at terminal READY")
++	_short_driver_steps(actual, source, driver, job, 26, 46, 56)
++	assert_equal(actual._routes.request_source_ready(actual._worker, job), &"", "full HIGH loop recovery")
++	_short_driver_steps(actual, source, driver, job, 26, 102, 30)
++	assert_equal(actual._routes.refresh_travel_actor(actual._worker, job, 11, 1, 3, 0, -1, tool), &"", "same heading backward source")
++	assert_equal(actual._routes.request_route(actual._worker, work_base, 131), &"", "terminal reverse232u")
++	_short_driver_steps(actual, source, driver, job, 11, 132, 19)
++	assert_equal(actual._routes.refresh_travel_actor(actual._worker, job, 9, 1, 3, 0, -1, tool), &"", "ready-only full retreat")
++	assert_equal(actual._routes.request_route(actual._worker, first, 150), &"", "actual reverse span")
++	_short_driver_steps(actual, source, driver, job, 9, 151, 26)
++	assert_equal(_routes_ready(actual, job, 9), &"", "the complete original source ends at READY")
++
++
++func _routes_ready(actual: RouteFixture, job: Vector2i, profile: int) -> StringName:
++	"""Keep the production static readiness leaf visible in this source-only driver assertion."""
++	return RouteFixture.Routes.source_ready_leaf_refusal(actual._routes, actual._worker, job, profile, 1, 3)
++
++
++func _short_driver_steps(actual: RouteFixture, source: Content, driver: Driver, job: Vector2i,
++		profile: int, first: int, count: int) -> void:
++	"""Actual Content resolves complete finite fades and the nonuniform reverse seam at every accepted tick."""
++	var frame: Driver.Frame = Driver.Frame.new()
++	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
++	var expected: PackedInt32Array = PackedInt32Array([0, 0, 0])
++	for tick: int in range(first, first + count):
++		assert_equal(actual._routes.advance_tick(tick), 1, "one canonical headless tick")
++		assert_equal(actual._routes.source_state_into(actual._worker, job, profile, 1, 3, state), &"", "exact source state")
++		var original: PackedInt64Array = state.duplicate()
++		assert_equal(driver.read_route_into(actual._routes, profile, job, frame), &"", "real source pose reader")
++		assert_equal(driver.read_route_into(actual._routes, profile, job, frame), &"", "extra visual update")
++		assert_equal(actual._routes.source_state_into(actual._worker, job, profile, 1, 3, state), &"", "read actual owner after rendering")
++		assert_equal(state, original, "drawing cannot change authoritative phase")
++		if state[0] == Driver.SourceProgram.WALK:
++			assert_equal(source.clip_into(1, Driver.SourceProgram.walk_time(Driver.ShortStep.mapped(profile), state[1]), expected), &"", "same actual nonuniform clip resolver")
++			assert_equal(frame.frames.slice(0, 3), expected, "finite prefix never samples a different root programme")
++		assert_equal(frame.yaw, 49152, "reverse source keeps body heading")
++
++
+ func _source_clock_replay(actual: RouteFixture, source: Content, driver: Driver, job: Vector2i, tool: Vector2i) -> void:
+ 	"""Render twice or not at all between ticks; both directions resolve the actual nonuniform loop."""
+ 	var a: Vector3i = Vector3i(-512, 0, 512)
+@@ -345,7 +411,7 @@ func test_compact_version_requires_explicit_protocol_and_preserves_original_refu
+ 	var pins: PackedInt64Array = _use_compact_source()
+ 	var driver: Driver = Driver.new()
+ 	assert_equal(_bind(driver, pins), &"MOLE_DRIVER_SOURCE", "explicit version required")
+-	assert_equal(_bind(driver, pins, Driver.PROGRAM_APPROACH + 1), &"MOLE_DRIVER_PROGRAM", "no future implicit protocol")
++	assert_equal(_bind(driver, pins, Driver.PROGRAM_SHORT_STEP + 1), &"MOLE_DRIVER_PROGRAM", "no future implicit protocol")
+ 	assert_equal(_bind(driver, _pins, Driver.PROGRAM_COMPACT), &"MOLE_DRIVER_SOURCE", "missing exact front tuple")
+ 	var swapped: PackedInt64Array = pins.duplicate()
+ 	for field: int in 3:
+diff --git a/godot/test/test_underground_profiles.gd b/godot/test/test_underground_profiles.gd
+index 351e0ee2..0c17b0ba 100644
+--- a/godot/test/test_underground_profiles.gd
++++ b/godot/test/test_underground_profiles.gd
+@@ -166,7 +166,7 @@ func _policy_image(policies: Array[int], revision: int = 1) -> PackedByteArray:
+ 	for policy: int in policies:
+ 		var row: Dictionary = _row()
+ 		row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+-		if policy != Profiles.POLICY_AUTOMATIC:
++		if policy != Profiles.POLICY_AUTOMATIC and policy != Profiles.POLICY_CANONICAL_GROUND:
+ 			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+ 		row.flags[1] = policy
+ 		rows.append(row)
+@@ -194,13 +194,30 @@ func test_explicit_travel_policy_does_not_change_automatic_selection() -> void:
+ 	assert_equal(_profiles.query_travel_profile_into(_worker, NULL_REF, 0, 1, 1, 0, -1, NULL_REF, out), &"PROFILE_TRAVEL_SELECTION_REQUIRED", "automatic row is not selected protocol")
+ 
+ 
++func test_finite_step_and_canonical_ground_are_explicit_while_default_selection_stays_legacy() -> void:
++	"""New policy values partition source state without changing physical keys or default policy0 selection."""
++	assert_equal(_load(_policy_image([0, 4, 5, 6])), &"", "explicit source policies are separately admitted")
++	var out: Profiles.Selection = Profiles.Selection.new()
++	assert_equal(_profiles.query_into(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1, NULL_REF, out), &"", "ordinary lookup")
++	assert_equal(out.profile_id, 0, "default remains the original automatic row")
++	for row: int in range(1, 4):
++		assert_equal(_profiles.query_travel_profile_into(_worker, NULL_REF, row, 1, 1, 0, -1, NULL_REF, out), &"", "explicit actual travel selection")
++		assert_equal(out.profile_id, row, "caller selects an exact source row")
++		assert_equal(_profiles.selection_policy_of(row, 1, 1), row + 3, "immutable versioned policy")
++	var bad: PackedByteArray = _policy_image([0, 6], 2)
++	bad.encode_s32(64 + 98 + 4 * Profiles.F_YAW_KIND, Profiles.YAW_EXACT)
++	assert_equal(_load(bad, 2), &"PROFILE_POLICY_FORMAT", "canonical ground must retain the complete all-yaw source")
++	assert_equal(_load(_policy_image([0, 6, 6], 2), 2), &"PROFILE_AMBIGUOUS_KEY", "same canonical source policy still rejects overlap")
++	assert_equal(_profiles.content_revision(), 1, "failed replacement retains old content")
++
++
+ func test_policy_version_unknown_and_same_policy_ambiguity_refuse_atomically() -> void:
+ 	"""Schema1 reserved byte remains zero; schema2 never interprets an unknown or ambiguous programme."""
+ 	assert_equal(_load(_policy_image([0, 1, 2])), &"", "valid predecessor")
+ 	var image: PackedByteArray = _policy_image([0, 1], 2)
+ 	image.encode_u32(8, 1)
+ 	assert_equal(_load(image, 2), &"PROFILE_CERTIFICATE_REQUIRED", "historical wire cannot acquire new meaning")
+-	assert_equal(_load(_policy_image([0, 4], 2), 2), &"PROFILE_CERTIFICATE_REQUIRED", "unknown policy refuses")
++	assert_equal(_load(_policy_image([0, 7], 2), 2), &"PROFILE_CERTIFICATE_REQUIRED", "unknown policy refuses")
+ 	assert_equal(_load(_policy_image([0, 1, 1], 2), 2), &"PROFILE_AMBIGUOUS_KEY", "same-policy overlap remains ambiguous")
+ 	image = _policy_image([0, 1], 2)
+ 	image.encode_s32(64 + 98 + Profiles.F_YAW_KIND * 4, Profiles.YAW_ALL)
+diff --git a/godot/test/test_underground_routes.gd b/godot/test/test_underground_routes.gd
+index 61aa1f7c..9f87dbac 100644
+--- a/godot/test/test_underground_routes.gd
++++ b/godot/test/test_underground_routes.gd
+@@ -386,23 +386,28 @@ func _load(bytes: PackedByteArray, revision: int = 1, hash_override: String = ""
+ 	return _profiles.load_file(FILE_PATH, actual if hash_override == "" else hash_override, revision)
+ 
+ 
+-func _clock_profiles(tool: Vector2i = NULL_REF, contact_patches: bool = false) -> void:
+-	"""Synthetic certificate geometry exercises exact protocol5 state, never current mole source qualification."""
++func _clock_profiles(tool: Vector2i = NULL_REF, contact_patches: bool = false, program_version: int = 5) -> void:
++	"""Synthetic certificate geometry exercises exact clock state, never current mole source qualification."""
+ 	var rows: Array[Dictionary] = []
+ 	var boxes: Array[PackedInt32Array] = []
+-	for index: int in 26:
+-		var row: Dictionary = _row(Profiles.MODE_STAND if index == 0 else (Profiles.MODE_WORK if index >= 10 else Profiles.MODE_WALK))
++	var work_first: int = 13 if program_version == 6 else 10
++	for index: int in work_first + 16:
++		var row: Dictionary = _row(Profiles.MODE_STAND if index == 0 else (Profiles.MODE_WORK if index >= work_first else Profiles.MODE_WALK))
+ 		if tool != NULL_REF:
+ 			row.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+ 			row.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+ 		row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+ 		if index >= 2:
+ 			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+-			@warning_ignore("integer_division") var heading: int = (index - 10) / 4 if index >= 10 else (index - 2) % 4
++			@warning_ignore("integer_division") var heading: int = (index - work_first) / 4 if index >= work_first else (index - 2) % 4
+ 			row.fields[Profiles.F_YAW] = heading * 16384
+-			row.flags[1] = Profiles.POLICY_SOURCE_WORK if index >= 10 else (1 if index < 6 else 2)
++			row.flags[1] = Profiles.POLICY_SOURCE_WORK if index >= work_first else (1 if index < 6 else 2)
++		if program_version == 6 and index >= 10 and index < 13:
++			row.flags[1] = index - 6
++			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_ALL if index == 12 else Profiles.YAW_EXACT
++			row.fields[Profiles.F_YAW] = 0 if index == 12 else 49152
+ 		boxes.append_array(_boxes())
+-		if index >= 10:
++		if index >= work_first:
+ 			row.fields[Profiles.F_BOX_COUNT] = 7 if contact_patches else 6
+ 			row.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_BUILD
+ 			row.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ANCHOR_AND_PATCH if contact_patches else Profiles.CONTACT_ANCHOR_ONLY
+@@ -410,15 +415,16 @@ func _clock_profiles(tool: Vector2i = NULL_REF, contact_patches: bool = false) -
+ 			boxes.append(PackedInt32Array([-128, 300, -256, 128, 1000, 128, Profiles.WORK_STROKE]))
+ 			boxes.append(PackedInt32Array([0, 512, -200, 0, 512, -200, Profiles.CONTACT_POINT]))
+ 			if contact_patches:
+-				boxes.append(PackedInt32Array([-2, 512, -202, 2, 512, -198, Profiles.CONTACT_PATCH]) if (index - 10) % 4 == 0 \
++				boxes.append(PackedInt32Array([-2, 512, -202, 2, 512, -198, Profiles.CONTACT_PATCH]) if (index - work_first) % 4 == 0 \
+ 					else PackedInt32Array([-2, 510, -200, 2, 514, -200, Profiles.CONTACT_PATCH]))
+ 		rows.append(row)
+-	var bytes: PackedByteArray = _image(rows, boxes, 2)
++	var revision: int = 3 if program_version == 6 else 2
++	var bytes: PackedByteArray = _image(rows, boxes, revision)
+ 	bytes.encode_u32(8, 2)
+ 	var source: PackedByteArray = Routes.SourceProgram.ACTOR_SHA.hex_decode()
+ 	for index: int in 32:
+ 		bytes[32 + index] = source[index]
+-	assert_equal(_load(bytes, 2), &"", "explicit test certificates bind the finite programme")
++	assert_equal(_load(bytes, revision), &"", "explicit test certificates bind the finite programme")
+ 	assert_equal(_routes.refresh_profile_extent(), &"", "updated whole catalog broadphase")
+ 	assert_true(_transforms.set_yaw(_worker, 49152), "actual fixed body heading")
+ 
+@@ -435,6 +441,167 @@ func _clock_job() -> Vector2i:
+ 	return job.ref
+ 
+ 
++func _short_route_image() -> PackedByteArray:
++	"""Exact test-only canonical columns; this does not introduce or claim a production World save API."""
++	var image: PackedByteArray = _motion_image()
++	image.append_array(_transforms.state_bytes())
++	return image
++
++
++func _motion_image() -> PackedByteArray:
++	"""Keep phase, clock, rational remainder and original route links together for atomic refusal checks."""
++	var image: PackedByteArray = _routes._motion.resident.to_byte_array()
++	image.append_array(_routes._motion.resident_long.to_byte_array())
++	image.append_array(_routes._motion.links.to_byte_array())
++	image.append_array(_routes._motion.free_links.to_byte_array())
++	image.append_array(PackedInt64Array([_routes._motion.free_count]).to_byte_array())
++	return image
++
++
++func test_short_step_requires_three_root_ticks_and_complete_fades_in_both_directions() -> void:
++	"""Real Routes/Transforms consume the accepted integer law; World/source certificates here remain synthetic."""
++	_clock_profiles(NULL_REF, false, 6)
++	_binding.synthetic_pace = 3277
++	var a: Vector3i = Vector3i(-512, 0, 512)
++	var b: Vector3i = a + Vector3i(232, 0, 0)
++	var first: Vector2i = _location(a)
++	var last: Vector2i = _location(b)
++	_publish_edges([_edge(first, last, [a, b]), _edge(last, first, [b, a])])
++	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 12, 1, 3, 0, -1), &"", "original canonical ground admission")
++	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 10, 1, 3, 0, -1), &"", "same actual READY switches to finite source")
++	assert_equal(_routes.request_route(_worker, last, 0), &"", "one complete terminal span")
++	_short_replay(a, b, 10, 1)
++	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 11, 1, 3, 0, -1), &"", "only actual READY may reverse source")
++	assert_equal(_routes.request_route(_worker, first, 20), &"", "same complete reverse programme")
++	_short_replay(b, a, 11, 20)
++	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"", "complete recovery returns to canonical ground")
++	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no silent loss of canonical source into legacy policy0")
++
++
++func _short_replay(first: Vector3i, last: Vector3i, profile: int, first_tick: int) -> void:
++	"""Eight fade ticks, exactly three accepted root ticks, then eight recovery ticks independent of drawing."""
++	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
++	var actor: Routes.Actor = Routes.Actor.new()
++	for elapsed: int in 19:
++		assert_equal(_routes.advance_tick(first_tick + elapsed), 1, "actual accepted fixed tick")
++		assert_equal(_routes.source_state_into(_worker, NULL_REF, profile, 1, 3, state), &"", "original current canonical tuple")
++		assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual Transform and endpoint identity")
++		var distance: int = 0 if elapsed < 8 else (109 if elapsed == 8 else (218 if elapsed == 9 else 232))
++		assert_equal(actor.point, first + Vector3i(distance if last.x > first.x else -distance, 0, 0), "exact rational root progress")
++		assert_equal(actor.yaw, 49152, "backward root never reverses the body heading")
++		if elapsed < 18:
++			var original: PackedByteArray = _short_route_image()
++			assert_equal(_routes.cancel_route(_worker), &"ROUTE_SOURCE_STEP_ACTIVE", "partial source may only hold/resume")
++			assert_equal(_short_route_image(), original, "cancel refusal is byte-exact")
++	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, profile, 1, 3), &"", "whole programme completes at READY")
++
++
++func test_short_request_refuses_wrong_length_pace_and_successors_before_route_mutation() -> void:
++	"""Reachability alone cannot authorize a narrower prefix, a changed rate or multiple queued spans."""
++	_clock_profiles(NULL_REF, false, 6)
++	_binding.synthetic_pace = 3277
++	var a: Vector3i = Vector3i(-512, 0, 512)
++	var first: Vector2i = _location(a)
++	var wrong: Vector2i = _location(a + Vector3i(233, 0, 0))
++	var middle: Vector2i = _location(a + Vector3i(116, 0, 0))
++	var last: Vector2i = _location(a + Vector3i(232, 0, 0))
++	_publish_edges([_edge(first, wrong, [a, a + Vector3i(233, 0, 0)]),
++		_edge(first, middle, [a, a + Vector3i(116, 0, 0)]),
++		_edge(middle, last, [a + Vector3i(116, 0, 0), a + Vector3i(232, 0, 0)])])
++	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 10, 1, 3, 0, -1), &"", "new finite actor READY")
++	var original: PackedByteArray = _short_route_image()
++	assert_equal(_routes.request_route(_worker, wrong, 0), &"ROUTE_SOURCE_STEP_SPAN", "233u is not the source programme")
++	assert_equal(_routes.request_route(_worker, last, 0), &"ROUTE_SOURCE_STEP_SPAN", "two spans cannot spend the narrow source prefix twice")
++	_binding.synthetic_pace = 3278
++	assert_equal(_routes.request_route(_worker, wrong, 0), &"ROUTE_SOURCE_STEP_PACE", "source root rate is immutable")
++	assert_equal(_short_route_image(), original, "all refused requests preserve original canonical state")
++
++
++func test_short_interruption_and_source_corruption_cannot_restart_or_extend_the_prefix() -> void:
++	"""A refused real movement tick preserves the exact fraction/source time and resumes only the same original span."""
++	_clock_profiles(NULL_REF, false, 6)
++	_binding.synthetic_pace = 3277
++	var a: Vector3i = Vector3i(-512, 0, 512)
++	var first: Vector2i = _location(a)
++	var last: Vector2i = _location(a + Vector3i(232, 0, 0))
++	_publish_edges([_edge(first, last, [a, a + Vector3i(232, 0, 0)])])
++	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 10, 1, 3, 0, -1), &"", "fresh finite state")
++	assert_equal(_routes.request_route(_worker, last, 0), &"", "original request")
++	for tick: int in range(1, 10): assert_equal(_routes.advance_tick(tick), 1, "complete entry and first root tick")
++	var before: PackedByteArray = _routes._motion.resident_long.to_byte_array()
++	var pose: PackedByteArray = _transforms.state_bytes()
++	_binding.motion_blocked = true
++	assert_equal(_routes.advance_tick(10), 0, "actual movement observer blocks")
++	assert_equal(_routes._motion.resident_long.to_byte_array(), before, "clock/progress/fraction not reset")
++	assert_equal(_transforms.state_bytes(), pose, "root not advanced")
++	assert_true(_routes.request_route(_worker, last, 10) != &"", "held prefix is not a new admission")
++	_binding.motion_blocked = false
++	for tick: int in range(11, 21): assert_equal(_routes.advance_tick(tick), 1, "resume exact remaining prefix/recovery")
++	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, 10, 1, 3), &"", "same accepted-tick terminal")
++	_short_clock_mutants()
++
++
++func _short_clock_mutants() -> void:
++	"""Saved-column interpretation rejects reserved tags and a fourth step before publishing caller output."""
++	var row: int = _residents.directory().get_typed_row(_worker)
++	var word: int = _routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row]
++	var clock: int = _routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row]
++	var out: PackedInt64Array = PackedInt64Array([71, 72, 73, 74])
++	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] = Routes.ShortStep.word(Routes.PHASE_IDLE, Routes.SourceProgram.WALK)
++	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row] = 3 * 65536
++	assert_equal(_routes.source_state_into(_worker, NULL_REF, 10, 1, 3, out), &"ROUTE_SOURCE_TUPLE_STALE", "fourth root tick is outside the full source prefix")
++	assert_equal(out, PackedInt64Array([71, 72, 73, 74]), "refused decode leaves output unchanged")
++	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] = word
++	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row] = clock
++	assert_equal(_routes.source_state_into(_worker, NULL_REF, 10, 1, 3, out), &"", "original saved columns restore exact READY")
++
++
++func test_short_saved_fraction_and_interruption_keep_original_three_tick_prefix() -> void:
++	"""A nonzero exact inherited fraction changes integer roots, never the source duration or terminal remainder."""
++	_clock_profiles(NULL_REF, false, 6)
++	_binding.synthetic_pace = 3277
++	var first_point: Vector3i = Vector3i(-512, 0, 512)
++	var first: Vector2i = _location(first_point)
++	var last: Vector2i = _location(first_point + Vector3i(232, 0, 0))
++	_publish_edges([_edge(first, last, [first_point, first_point + Vector3i(232, 0, 0)])])
++	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 10, 1, 3, 0, -1), &"", "original admitted source")
++	var row: int = _residents.directory().get_typed_row(_worker)
++	_routes._motion.resident_long[Routes.R_REMAINDER * Routes.RESIDENT_CAPACITY + row] = Routes._encode_fraction(29, 30)
++	assert_equal(_routes.request_route(_worker, last, 0), &"", "explicit saved original fraction")
++	var actor: Routes.Actor = Routes.Actor.new()
++	for tick: int in range(1, 20):
++		assert_equal(_routes.advance_tick(tick), 1, "same19 accepted fixed ticks")
++		assert_equal(_routes.read_actor_into(_worker, actor), &"", "bounded saved source state")
++		var distance: int = 0 if tick < 9 else (110 if tick == 9 else (219 if tick == 10 else 232))
++		assert_equal(actor.point.x, first_point.x + distance, "exact original rational root law")
++	assert_equal(_routes._motion.resident_long[Routes.R_REMAINDER * Routes.RESIDENT_CAPACITY + row], 0, "terminal consumes exactly endpoint time")
++	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, 10, 1, 3), &"", "full recovered source")
++
++
++func test_short_saved_progress_rejects_fraction_and_source_clock_disagreement() -> void:
++	"""Bounded direct saved-state leaves reject malformed rationals and impossible counted prefixes before outputs."""
++	var word: int = Routes.ShortStep.word(Routes.PHASE_TRAVELLING, Routes.SourceProgram.WALK)
++	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 109, Routes._encode_fraction(7, 30), true), &"", "actual first tick from zero")
++	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 110, Routes._encode_fraction(1, 5), true), &"", "actual first tick from29/30")
++	for fraction: int in [int(2) << 32 | 4, int(1) << 32, int(1) << 32 | 2147483648, -1]:
++		assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 109, fraction, true), &"ROUTE_SOURCE_STEP_PROGRESS", "malformed saved fraction")
++	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 108, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "clock cannot precede earned root distance")
++	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 111, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "clock cannot borrow extra distance")
++	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 109, Routes._encode_fraction(7, 30), false), &"ROUTE_SOURCE_STEP_PROGRESS", "positive prefix retains its actual occupied edge")
++	assert_equal(Routes.ShortStep.progress_refusal(word, 0, 0, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "zero prefix has not entered an edge")
++
++
++func test_legacy_actor_cannot_claim_canonical_ground_or_ready_from_an_unknown_visual_phase() -> void:
++	"""Policy0 request ticks remain ordinary; identical all-yaw geometry cannot supply missing source history."""
++	_clock_profiles(NULL_REF, false, 6)
++	var first: Vector2i = _location(Vector3i(-512, 0, 512))
++	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "legacy admission remains policy0")
++	var original: PackedByteArray = _short_route_image()
++	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no renderer-derived takeover")
++	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 12, 1, 3, 0, -1), &"ROUTE_ACTOR_ALREADY_REGISTERED", "no unadmit/readmit shortcut")
++	assert_equal(_short_route_image(), original, "unknown phase refusal preserves all legacy state")
++
++
+ func test_headless_source_approach_work_recovery_and_backward_retreat() -> void:
+ 	"""No Driver or render frames exist; actual route ticks alone close each source handoff and reverse root travel."""
+ 	_clock_profiles()
+diff --git a/godot/test/test_underground_world_routes.gd b/godot/test/test_underground_world_routes.gd
+index 6ceccdca..2cc06f40 100644
+--- a/godot/test/test_underground_world_routes.gd
++++ b/godot/test/test_underground_world_routes.gd
+@@ -38,6 +38,9 @@ const X: int = 60 * 2048
+ const Z: int = 50 * 2048
+ const TEMP: String = "user://world-routes-catalog.bin"
+ const PROFILE_TEMP: String = "user://world-routes-profiles.bin"
++const STEP_PROFILE_SHA: String = "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
++const STEP_GROUND_PATH: String = "res://data/underground/mole-worker/work-step-v1/diagnostic-ground-v1/ground-pace.ugconn"
++const STEP_GROUND_SHA: String = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+ 
+ 
+ class RefusingLocations extends Locations:
+@@ -119,6 +122,8 @@ var _first: Vector2i = NULL_REF
+ var _last: Vector2i = NULL_REF
+ var _lease: int = 0
+ var _turn_source_case: int = 0
++var _source_tool: Vector2i = NULL_REF
++var _source_job: Vector2i = NULL_REF
+ 
+ 
+ func _image(boxes: Array[PackedInt32Array], roles: PackedInt32Array) -> Space.Snapshot:
+@@ -280,7 +285,7 @@ func _actual_fixture(obstruction: int = 0) -> void:
+ 	assert_true(_items.load_default(_inventory).ok, "actual item definitions")
+ 	assert_true(_world.generate(World.bound_request(_items).request).ok, "actual terrain generated")
+ 	_world_ref = _residents.directory().create(Directory.KIND_WORLD)
+-	_worker = _residents.ref_of(_residents.spawn(&"mouse").value)
++	_worker = _residents.ref_of(_residents.spawn(&"mole" if _turn_source_case == 3 else &"mouse").value)
+ 	_transforms = Transforms.new(_residents.directory())
+ 	assert_true(_transforms.place(_worker, X + 512, 512, Z + 512, 49152), "actual actor pose")
+ 	_buildings = Buildings.new(_residents.directory())
+@@ -306,6 +311,9 @@ func _actual_profiles() -> void:
+ 	_work = Work.new(_jobs)
+ 	assert_true(_work.bind_gear(_gear).ok, "actual Work")
+ 	_profiles = Profiles.new()
++	if _turn_source_case == 3:
++		_source_profiles()
++		return
+ 	assert_equal(_profiles.configure(8, 64, 2, Profiles.ARENA_BYTES), &"", "finite synthetic profile arena")
+ 	assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source readers")
+ 	var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+@@ -315,6 +323,20 @@ func _actual_profiles() -> void:
+ 	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 1), &"", "synthetic certificate wire")
+ 
+ 
++func _source_profiles() -> void:
++	"""Exact accepted source boxes use a labelled diagnostic wire; no production consumer renewal is implied."""
++	assert_equal(_profiles.configure(29, 271, 1, Profiles.ARENA_BYTES), &"", "finite prospective source pack")
++	assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source readers")
++	var path: String = ProjectSettings.globalize_path("res://").path_join("../docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof")
++	assert_equal(_profiles.load_file(path, STEP_PROFILE_SHA, 3), &"", "whole unchanged source and short-step geometry")
++	var store: Vector2i = _inventory.create_container(_world_ref, 1000000, -1, 0, true).ref
++	_source_tool = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
++	assert_true(_gear.create_gear(_inventory, _items, _source_tool, Gear.MANUFACTURE_BASIC).ok, "actual source pick")
++	assert_true(_gear.equip(_source_tool, _worker).ok, "actual equipped pick")
++	_source_job = _turn_job()
++	assert_true(_work.claim_tool_for_work(_residents.directory().get_typed_row(_worker), _source_tool).ok, "actual retained BUILD claim")
++
++
+ func _actual_space(obstruction: int) -> void:
+ 	"""Publish explicit test geometry in production-size sparse columns, without asserting paid excavation."""
+ 	_routes = Routes.new(_residents, _transforms)
+@@ -325,14 +347,16 @@ func _actual_space(obstruction: int) -> void:
+ 	_owner = Owner.new(_sources)
+ 	assert_equal(_owner.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "actual sparse owner")
+ 	var token: int = _owner.begin_stage(_owner.revision()).token
+-	_floor = _region(token, PackedInt32Array([X, 512, Z, X + 2048, 513, Z + 2048]), Space.FLOOR_DATUM)
++	var extra: int = 2048 if _turn_source_case == 3 else 0
++	_floor = _region(token, PackedInt32Array([X - extra, 512, Z - extra, X + 2048 + extra, 513, Z + 2048 + extra]), Space.FLOOR_DATUM)
+ 	_fixture_void(token, obstruction)
+-	_region(token, PackedInt32Array([X, 256, Z, X + 2048, 512, Z + 2048]), Space.SUPPORT)
++	_region(token, PackedInt32Array([X - extra, 256, Z - extra, X + 2048 + extra, 512, Z + 2048 + extra]), Space.SUPPORT)
+ 	assert_equal(_owner.seal(token), &"", "synthetic extents sealed by actual owner")
+ 	_owner.publish(token)
+ 	_locations = RefusingLocations.new()
++	var capacity: int = 1024 if _turn_source_case == 3 else 8
+ 	assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+-		_owner, _sources, _budget, 8, 228 * 8 + 256), &"", "actual endpoints")
++		_owner, _sources, _budget, capacity, 228 * capacity + 256), &"", "actual endpoints")
+ 	_terrain = ReenteringTerrain.new()
+ 	assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual local exclusions")
+ 	_actual_catalog(domain)
+@@ -340,6 +364,9 @@ func _actual_space(obstruction: int) -> void:
+ 
+ func _fixture_void(token: int, obstruction: int) -> void:
+ 	"""Independent central slit/blocker fixtures leave both complete endpoint envelopes unchanged."""
++	if _turn_source_case == 3:
++		_void = _region(token, PackedInt32Array([X - 2048, 512, Z - 2048, X + 4096, 2560, Z + 4096]), Space.SUPPORTED_VOID)
++		return
+ 	if obstruction == 1:
+ 		_void = _region(token, PackedInt32Array([X, 512, Z, X + 1024, 2560, Z + 2048]), Space.SUPPORTED_VOID)
+ 		_region(token, PackedInt32Array([X + 1025, 512, Z, X + 2048, 2560, Z + 2048]), Space.SUPPORTED_VOID)
+@@ -387,7 +414,7 @@ func _actual_binding() -> void:
+ 	config.budget = _budget
+ 	assert_equal(_binding.configure(config), &"", "real typed route provider")
+ 	assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
+-		8, 16, 64, 64, Routes.ARENA_BYTES), &"", "actual graph bound back to same provider")
++		1024 if _turn_source_case == 3 else 8, 16, 64, 64, Routes.ARENA_BYTES), &"", "actual graph bound back to same provider")
+ 	assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual actor selection")
+ 	assert_equal(_binding.binding_refusal(), &"", "complete actual composition")
+ 
+@@ -405,6 +432,8 @@ func _write(path: String, bytes: PackedByteArray) -> String:
+ 
+ func _load_catalog(revision: int) -> StringName:
+ 	"""A changed immutable content revision must force all retained derived certificates to requalify."""
++	if _turn_source_case == 3:
++		return _catalog.load_file(STEP_GROUND_PATH, STEP_GROUND_SHA, revision)
+ 	var bytes: PackedByteArray = ContentFixture.synthetic_image(revision)
+ 	return _catalog.load_file(TEMP, _write(TEMP, bytes), revision)
+ 
+@@ -430,6 +459,9 @@ func _location(point: Vector3i) -> Vector2i:
+ 	row.role = Locations.ROLE_TRANSIT
+ 	row.envelope = PackedInt32Array([point.x - 256, point.y, point.z - 256, point.x + 256, point.y + 1024, point.z + 256])
+ 	row.support = PackedInt32Array([point.x - 256, point.y - 128, point.z - 256, point.x + 256, point.y, point.z + 256])
++	if _turn_source_case == 3:
++		row.envelope = PackedInt32Array([point.x - 1256, point.y, point.z - 1256, point.x + 1256, point.y + 1036, point.z + 1256])
++		row.support = PackedInt32Array([point.x - 406, point.y - 1, point.z - 406, point.x + 406, point.y, point.z + 406])
+ 	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+ 	var token: int = _locations.begin_prepare(cold).token
+ 	var added: Locations.Result = _locations.stage_add(token, row)
+@@ -493,6 +525,8 @@ func _admit_actor() -> void:
+ func after_each() -> void:
+ 	"""The actual composition is acyclic; source fixtures never survive in production or another test."""
+ 	_turn_source_case = 0
++	_source_tool = NULL_REF
++	_source_job = NULL_REF
+ 	if _budget != null:
+ 		assert_true(_budget.is_quiescent(), "exact shared lease returned")
+ 	_binding = null
+@@ -852,6 +886,120 @@ func _turn_fixture(profile_case: int = 0) -> void:
+ 	_admit_actor()
+ 
+ 
++func test_canonical_source_ground_turn_requires_ready_and_actual_ground_only_catalog() -> void:
++	"""Actual whole source geometry, ground catalog, World stores and stationary turn share one canonical owner."""
++	_turn_source_case = 3
++	_actual_fixture()
++	var edge: Vector2i = _publish_route()
++	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 12, 1, 3, 0, -1, _source_tool), &"", "fresh canonical ground source")
++	assert_equal(_binding.static_profile_edge_refusal(edge, 12, 1, 3), &"", "zero variants do not erase actual ground pace identity")
++	var root_before: Vector3i = Vector3i(X + 512, 512, Z + 512)
++	assert_equal(_turn(16384, Space.MAX_CHECKS, _source_job), &"", "READY permits actual all-yaw whole-body turn")
++	assert_equal(_turn(49152, Space.MAX_CHECKS, _source_job), &"", "same source turns back through complete ground coverage")
++	var actor: Routes.Actor = Routes.Actor.new()
++	assert_equal(_routes.read_actor_into(_worker, actor), &"", "same full resident")
++	assert_equal(actor.point, root_before, "turn keeps actual integer root")
++	assert_equal(_routes.request_route(_worker, _last, 0), &"", "canonical source ground route")
++	for tick: int in range(1, 19): assert_equal(_routes.advance_tick(tick), 1, "actual source fade and inherited3277 pace")
++	var before: PackedByteArray = _transforms.state_bytes()
++	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "arrived geometry still owes source recovery")
++	assert_equal(_transforms.state_bytes(), before, "refused mid-recovery turn is atomic")
++	for tick: int in range(19, 27): assert_equal(_routes.advance_tick(tick), 1, "full actual recovery")
++	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"", "same exact current source is READY now")
++
++
++func test_ground_only_final_source_leaf_refuses_mixed_tables_missing_paces_and_source_drift() -> void:
++	"""Zero variants are an explicit finite format; malformed mixed storage and changed source still refuse."""
++	_turn_source_case = 3
++	_actual_fixture()
++	_publish_route()
++	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 12, 1, 3, 0, -1, _source_tool), &"", "exact current source")
++	var before: PackedByteArray = _transforms.state_bytes()
++	for field: int in range(2, 7):
++		_catalog._live.header[field] = 1
++		assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"WORLD_ROUTE_CERTIFICATE_STALE", "mixed table cannot borrow ground-only proof")
++		_catalog._live.header[field] = 0
++	var paces: int = _catalog._live.header[7]
++	_catalog._live.header[7] = 0
++	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"WORLD_ROUTE_CERTIFICATE_STALE", "empty source supplies no ground pace")
++	_catalog._live.header[7] = paces
++	_catalog._live.header[8] = 2
++	assert_true(_turn(0, Space.MAX_CHECKS, _source_job) != &"", "foreign profile revision is not current source")
++	_catalog._live.header[8] = 3
++	_catalog._live.digests[32] ^= 1
++	assert_true(_turn(0, Space.MAX_CHECKS, _source_job) != &"", "exact original Actor source is required")
++	_catalog._live.digests[32] ^= 1
++	assert_equal(_transforms.state_bytes(), before, "all refused source attempts preserve actual pose")
++	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"", "actual unchanged source retries")
++
++
++func _canonical_short_edges() -> PackedInt32Array:
++	"""Publish real source masks for the finite forward/back step and a different ordinary ground span."""
++	var first: Vector3i = Vector3i(X + 512, 512, Z + 512)
++	var last: Vector3i = first + Vector3i(232, 0, 0)
++	var short_end: Vector2i = _location(last)
++	var token: int = _begin()
++	var result: PackedInt32Array = PackedInt32Array([short_end.x, short_end.y])
++	for direction: int in 3:
++		var edge: Routes.Edge = _edge()
++		if direction < 2:
++			edge.from_location = _first if direction == 0 else short_end
++			edge.to_location = short_end if direction == 0 else _first
++			var a: Vector3i = first if direction == 0 else last
++			var b: Vector3i = last if direction == 0 else first
++			edge.points = PackedInt32Array([a.x, a.y, a.z, b.x, b.y, b.z])
++			edge.length_u = 232
++		var added: Routes.Result = _routes.stage_add(token, edge)
++		assert_equal(added.error, &"", "complete source proof before mask publication")
++		result.append_array(PackedInt32Array([added.ref.x, added.ref.y]))
++	assert_equal(_binding.seal(token), &"", "same actual candidate")
++	assert_equal(_binding.publish(token), &"", "real graph/masks atomic publication")
++	_end(token)
++	return result
++
++
++func test_actual_short_masks_preserve_direction_distance_and_complete_source() -> void:
++	"""The actual World compiler certifies232u only for its matching finite policy, not any connected span."""
++	_turn_source_case = 3
++	_actual_fixture()
++	var refs: PackedInt32Array = _canonical_short_edges()
++	var forward: Vector2i = Vector2i(refs[2], refs[3])
++	var backward: Vector2i = Vector2i(refs[4], refs[5])
++	var long_edge: Vector2i = Vector2i(refs[6], refs[7])
++	assert_equal(_binding.static_profile_edge_refusal(forward, 10, 1, 3), &"", "real forward source mask")
++	assert_equal(_binding.static_profile_edge_refusal(backward, 11, 1, 3), &"", "same body heading with reversed root direction")
++	assert_true(_binding.static_profile_edge_refusal(forward, 11, 1, 3) != &"", "backward source cannot move toward the face")
++	assert_true(_binding.static_profile_edge_refusal(backward, 10, 1, 3) != &"", "forward source cannot moonwalk")
++	for profile: int in [10, 11]:
++		assert_true(_binding.static_profile_edge_refusal(long_edge, profile, 1, 3) != &"", "narrow source cannot spill beyond232u")
++	assert_equal(_binding.static_profile_edge_refusal(long_edge, 12, 1, 3), &"", "complete canonical ground still fits")
++	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 10, 1, 3, 0, -1, _source_tool), &"", "actual finite source admission")
++	assert_equal(_routes.request_route(_worker, Vector2i(refs[0], refs[1]), 0), &"", "same full endpoint")
++	for tick: int in range(1, 20): assert_equal(_routes.advance_tick(tick), 1, "actual whole finite programme")
++	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, _source_job, 10, 1, 3), &"", "actual recovered terminal")
++
++
++func test_actual_short_source_reload_holds_original_progress_and_pose() -> void:
++	"""An actual immutable reload between accepted root ticks cannot restart the source or publish one more move."""
++	_turn_source_case = 3
++	_actual_fixture()
++	var refs: PackedInt32Array = _canonical_short_edges()
++	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 10, 1, 3, 0, -1, _source_tool), &"", "exact original source")
++	assert_equal(_routes.request_route(_worker, Vector2i(refs[0], refs[1]), 0), &"", "original path")
++	for tick: int in range(1, 10): assert_equal(_routes.advance_tick(tick), 1, "entry then first root tick")
++	var longs: PackedByteArray = _routes._motion.resident_long.to_byte_array()
++	var pose: PackedByteArray = _transforms.state_bytes()
++	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(ProjectSettings.globalize_path("res://../docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof"))
++	bytes.encode_s64(12, 4)
++	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 4), &"", "real loader publishes a new immutable content revision")
++	assert_equal(_routes.advance_tick(10), 0, "old source/pace certificates cannot advance")
++	assert_equal(_routes._motion.resident_long.to_byte_array(), longs, "original clock and rational prefix preserved")
++	assert_equal(_transforms.state_bytes(), pose, "actual root and interpolation unchanged")
++	var state: PackedInt64Array = PackedInt64Array([21, 22, 23, 24])
++	assert_true(_routes.source_state_into(_worker, _source_job, 10, 1, 3, state) != &"", "old repeated tuple is not current authority")
++	assert_equal(state, PackedInt64Array([21, 22, 23, 24]), "refused caller output unchanged")
++
++
+ func _turn_route_image() -> PackedByteArray:
+ 	"""Test-only exact authority capture; scratch/cache controls are not save or movement state."""
+ 	var image: PackedByteArray = _routes._motion.resident.to_byte_array()

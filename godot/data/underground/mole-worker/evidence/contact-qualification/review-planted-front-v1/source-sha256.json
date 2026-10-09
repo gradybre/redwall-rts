@@ -1,0 +1,9 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_planted_front.gd": "74fd07f26f8288f83fea0f3c77889d2bc5a8ced4bb6c0d46e754b7ae42d3b779",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_planted_front.py": "5dc9374602f1fe6f607a4e40121ecb6209a8af92793b24632df8204d8fae77c0",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/run_planted_capture.py": "7c48f870ecff96ff43370f8afd84f194678f8223ff50c61aee2e573a5ba5570b",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_planted_front.py": "1931a3865da89088130845d731f0ce7faa94c28701030586e54055057db840f1",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_planted_native.py": "7d5515ccb3d7b5c1fd0d3d9da4f71b0991a1c030a7bb9a2702a28426d86e3f88",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/verify_planted_native.py": "e6dd510dcebdce834ea83fa6224f1f55b39093a11cc35824227be1d4e68d2ae0"
+}

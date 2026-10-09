@@ -1,0 +1,93 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.027,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "211/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/candidate-4"
+      ],
+      "exit_code": 0,
+      "seconds": 3.701,
+      "log": "test_underground_motion_catalog.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "127/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/candidate-4"
+      ],
+      "exit_code": 0,
+      "seconds": 3.499,
+      "log": "test_underground_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "246/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/candidate-4"
+      ],
+      "exit_code": 0,
+      "seconds": 2.924,
+      "log": "test_underground_level_catalog.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "250/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/candidate-4"
+      ],
+      "exit_code": 0,
+      "seconds": 3.703,
+      "log": "test_mole_qualified_profiles.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6315",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/candidate-4/analyzer.json",
+        "godot/scripts/core/underground_motion_catalog.gd",
+        "godot/test/test_underground_motion_catalog.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.411,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-motion-catalog",
+  "project_test_sha256": "ef0afabecf7b558f546667e3c770ee5b0927410111f834f5996611f2792ec363",
+  "assets_present_before": false,
+  "registry_sha256_before": "24166a914a5ae05a333a4f5d40e140b525e97c7451ea6b14276b438b56143379",
+  "registry_diagnostic_append_sha256": "ea0958f618948cd1b621c007abd1c95a7f84f4c1b365bfaa4aa59eb0e49bb348",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

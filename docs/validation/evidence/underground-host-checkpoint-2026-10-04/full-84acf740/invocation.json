@@ -1,0 +1,50 @@
+{
+  "head": "84acf74036484bd8ec4930895b7d0a96f8567937",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-host-20261004",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.23,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1809.017,
+      "log": "full-suite.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6199",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-host-20261004/docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-84acf740/analyzer.json"
+      ],
+      "exit_code": 0,
+      "seconds": 278.736,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "isolated_project_sha256": "0a22cb5eaa8d4f96b97e4f02cbe17799a12fd3665d14341a6b07151e44815883",
+  "assets_present_before": false,
+  "assets_restored": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

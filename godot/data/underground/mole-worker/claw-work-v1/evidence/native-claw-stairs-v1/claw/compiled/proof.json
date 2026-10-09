@@ -1,0 +1,31 @@
+{
+  "production_qualified": false,
+  "schema": 1,
+  "scope": "approved exact source proofs (claw dig, paw seat, corrected stand/walk); native replay separate",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-stairs-v1/ascent.npz": "522ae319fb559ab8101d82c4a9d1de650cd0073ada9cd955c378b5ad0c9e16bf",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-stairs-v1/descent.npz": "5ffa3714bc10f6002cdb8e9f898832a6964a8bddc1d813dc9ed5a7971543e2c6",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-turn-v1/turn.npz": "6fe92a20f7f45f9930bb280f302b562693b868d4e19ee8852aba86c83808ae9a",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/tap_entry.npz": "8f454d01c2fd4a3cf1071e074d89a257b507e4c0d1cbbb20a144918035c44340",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/tap_recovery.npz": "ccdbf97db54df600c0ffbcbee9cd276423a4aebbc29dd8eb100718bcf2dff61e",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/paw-seat-v1/candidate-a/tap_work.npz": "cf711f65415f7f098158d3041c7a1c8ddd8bba28dc6d81b8483fc0c99a8b0b92",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-fit-v1/candidate-b/tread/seat_entry.npz": "4f364b7c6eab713dfdcc1a393be377419067f9c74dde903d8b0a29d2e1248889",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-fit-v1/candidate-b/tread/seat_recovery.npz": "e5c0bdd1e494ab68d8fb4179254bbfe6372d595b20558bbeb55c9dc301a89328",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-fit-v1/candidate-b/tread/seat_work.npz": "1685274ae698a679f5ee737bd7b306b48ee7b8e5b78651e83fa142bcb9ab2018",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-fit-v1/candidate-b/tread/tap_entry.npz": "3a874fecdba9f7beb960cb93d72e305582ef7cd7c76de57367f6eef831ee9f59",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-fit-v1/candidate-b/tread/tap_recovery.npz": "376f68b4385425469bbd9a6d835a824df8143d811cfdd936029e728413bc7c6f",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-fit-v1/candidate-b/tread/tap_work.npz": "e23c4fefb89e15ba98e9081feda6f3c49707a2e4407cb62e3ced2ca7e5baf302",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-step-back-v1/step_back.npz": "295f011e4ee27d27a9b0613cf87a66acf89c0e2cfe03100e209f8a17830253ed",
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/tread-step-forward-v1/step_forward.npz": "4414cf906ea0b9e3afab45220e6db7f05b38b3bf9344e1c1a3d5c00e6a1f5fcf",
+    "godot/data/underground/mole-worker/claw-work-v1/native_claw.py": "f1b664c6431b1c037b635fbe262399c6248e1bc783d4efc3e4125abf003ba8a3",
+    "godot/data/underground/mole-worker/claw-work-v1/native_claw_stairs.py": "ba07363ce258860b3a259eef2203a7bcbfd14ef9ebe4da2d9696c1167242d290",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/dig-pa/entry.npz": "98417bce65211104e41dcbe9d162d02cc5086377acf32f6e4d5461025e6e6925",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/dig-pa/recovery.npz": "618d8b486512ab37038ab91efaa908c1410ea594c40ffce047b92ff03118944b",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/dig-pa/stroke.npz": "5debac257e5dc9e838b80c26cfe7611b1c0438fdd108e77a09830265db73d42a",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/stand.npz": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+    "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/walk.npz": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179"
+  },
+  "world_basis": {
+    "sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1"
+  }
+}

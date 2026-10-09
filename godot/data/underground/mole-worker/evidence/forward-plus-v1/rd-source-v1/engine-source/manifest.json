@@ -1,0 +1,35 @@
+{
+  "engine_hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+  "records": [
+    {
+      "path": "servers/rendering/rendering_shader_container.h",
+      "sha256": "9d04168966f3b5b4703b0f81a00c6bf4b43dfe9223a2ed1045670b7d2f2f2ee3",
+      "bytes": 12022,
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_shader_container.h"
+    },
+    {
+      "path": "servers/rendering/rendering_shader_container.cpp",
+      "sha256": "9015e1f85c0fe86be133e6223b33faba243dfb67d0636652b864fe824ed645b7",
+      "bytes": 45140,
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_shader_container.cpp"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/shader_rd.cpp",
+      "sha256": "4f0264598233380f1f5809afb0b461c5a81f6c4bb68dcc3510675c8713d15de1",
+      "bytes": 42711,
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/renderer_rd/shader_rd.cpp"
+    },
+    {
+      "path": "drivers/metal/metal_device_profile.h",
+      "sha256": "4861e5c0f2956e0fc971fdfe4991350d24873c3b8d487e647fd57be7c78d5a54",
+      "bytes": 5895,
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/metal/metal_device_profile.h"
+    },
+    {
+      "path": "drivers/metal/sha256_digest.h",
+      "sha256": "08a603e196e9dfa391c65788ca5ff08a8a163f9cea088c9008134dc3504d4cf4",
+      "bytes": 3534,
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/metal/sha256_digest.h"
+    }
+  ]
+}

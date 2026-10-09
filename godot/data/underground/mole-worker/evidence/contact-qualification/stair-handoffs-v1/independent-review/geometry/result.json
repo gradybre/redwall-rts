@@ -1,0 +1,94 @@
+{
+  "steps": [
+    {
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+      "elapsed_seconds": 0.11827291687950492,
+      "exit_code": 0,
+      "log_sha256": "8511476ade8de90f5517cc722fe4e78a712af4c32884f34c51335fc83e873772"
+    },
+    {
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+      "elapsed_seconds": 0.1774637089110911,
+      "exit_code": 0,
+      "log_sha256": "be23c52c198958daaec4e79b26f3a0fc87c2184160a52a034e6040b00a3d2d97"
+    },
+    {
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-stair-handoff-review-2026-10-04/turn-terrain",
+        "--name",
+        "turn",
+        "--kind",
+        "terrain"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+      "elapsed_seconds": 14.445586082991213,
+      "exit_code": 0,
+      "log_sha256": "a25516929d5c51caa5e89c506ffa5e5c627f6ad6271d66b85c23e684c5597942"
+    },
+    {
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-stair-handoff-review-2026-10-04/turn-tool-body",
+        "--name",
+        "turn",
+        "--kind",
+        "tool-body"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+      "elapsed_seconds": 14.949265209026635,
+      "exit_code": 0,
+      "log_sha256": "0d43accb044eea42f5117987b09219c9ada72555f04b7de5316578efaf775541"
+    },
+    {
+      "argv": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/summarize_program.py",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/proof-v1",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-stair-handoff-review-2026-10-04/column-proposal"
+      ],
+      "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+      "elapsed_seconds": 3.008636790793389,
+      "exit_code": 0,
+      "log_sha256": "97277d2de5e63aa193aa1925b20939feba38996851b54e6c614ed5c3e9861efd"
+    }
+  ],
+  "comparisons": {
+    "terrain": {
+      "original_sha256": "6603ca9bc3f7b2755ac8fc299622155dd073973e5fa0f376e2964b403163578e",
+      "replayed_sha256": "6603ca9bc3f7b2755ac8fc299622155dd073973e5fa0f376e2964b403163578e",
+      "byte_equal": true
+    },
+    "tool-body": {
+      "original_sha256": "edf869a55ec967d6dc0af5c727d8ec488a41b962179ad52e5cd24cd88cd83d15",
+      "replayed_sha256": "edf869a55ec967d6dc0af5c727d8ec488a41b962179ad52e5cd24cd88cd83d15",
+      "byte_equal": true
+    },
+    "columns": {
+      "original_sha256": "34a62009ebefa9055444353a900abb24b5a225f10ee91dd81899292fe597177f",
+      "replayed_sha256": "34a62009ebefa9055444353a900abb24b5a225f10ee91dd81899292fe597177f",
+      "byte_equal": true
+    }
+  },
+  "manifests_unchanged": true,
+  "engine_or_native_run": false,
+  "runtime_qualification": false
+}

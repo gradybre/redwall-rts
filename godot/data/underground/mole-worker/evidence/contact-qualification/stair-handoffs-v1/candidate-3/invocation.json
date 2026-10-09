@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-3/result"
+  ],
+  "exit_code": 0,
+  "seconds": 14.373323334380984,
+  "source_sha256": {
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "c2a7fee0e8de20000dad1c5f623f40ed2d0556437df90731300159c8cf045d06",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py": "d493e4bfbed76ee21a1f29a73827ec757ce8f418702bd2f1cabf8a5b3401e9db"
+  },
+  "source_unchanged": true,
+  "production_qualified": false
+}

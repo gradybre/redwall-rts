@@ -1,0 +1,18 @@
+{
+  "tools/underground_memory_budget.py": "6f724e328b0ec83b67da2ada7c4bacd8e9d411d5984580df9cbc380c0925181a",
+  "tools/underground_motion_memory.py": "b12e238855d7faf09cf7bba1202f0694d185d8f4e70835440ceb4e36c186c381",
+  "tools/underground_motion_clock_memory.py": "6e50b6aa0c8518821c6a233639ff217e72a950f7a1e76c131f73c6479a619cb4",
+  "tools/underground_session_memory.py": "9f10067df850374fbd4c02d3a19551c850841c8a82ac346d9e94b65de42faace",
+  "tools/underground_retirement_memory.py": "f06437b9ef11cd346e83000d99b3498b37807f871ea7e1ee33bb19566483426c",
+  "tools/underground_approach_memory.py": "d24aedac40a0f0b0c137db3c7b469f6268572950b25f57e52ccee1c468a676b3",
+  "tools/test_underground_memory_budget.py": "9c8295e699c948d50d20e38ca968985158e7437afe6ba58fe5f7c3692952492a",
+  "docs/persistence_state_registry.md": "22fa9be7026e3b76b1ab22002550b94a50e425f376095f335d967f947ec3aed0",
+  "docs/systems_architecture.md": "45c0103d224c99e392d54b1322c27fac0abe12359d81a64b350420d661e257a2",
+  "docs/validation/ready07_arithmetic.py": "be09d07b68973d03d15e2f8f9acb79c5f1bc81ede900c957d64106d35f089c74",
+  "docs/decisions/1162-current-underground-profile-integration.md": "6118ece9e297280e6ecd6b0319cdbd1e29d42ed2a7aa2c48d6546db92ee66862",
+  "docs/planning/registry_capacity_audit.json": "776615f6695620df35e4235f87c120a46aa452a858644fe23be2e505ada8abca",
+  "docs/planning/underground_memory_pack.json": "f0bf8a11c354dc171ccac8156384eddb2007cacfd6cb343f71771a94ec95ec1a",
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/census.py": "fcf045d97239a993cde1dede85b4bfcaca33fbe5816b4acb5d09a64784a1630b",
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/manifest.json": "014906c67cd78fd556b101050421e6eccc2a0ba90957f00654f62a4ed99e9d52",
+  "docs/validation/evidence/underground-world-retirement-2026-10-04/census.py": "440777a6d5762b3a4945d3b8563b1579f6db10c24e1bdfd371b59e489d7f035c"
+}

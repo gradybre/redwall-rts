@@ -376,6 +376,9 @@ var _scratch: IntMath.IntResult = IntMath.IntResult.new()
 var _pose: Transforms.Pose = Transforms.Pose.new()
 var _travelling_count: int = 0
 var _last_refusal: StringName = REFUSE_NONE
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from `_last_refusal`, never saved or hashed (ADR 1222 step 2).
+var _last_column_refusal: StringName = REFUSE_NONE
 
 # --- per-tick scalar scratch, so the hot path constructs nothing ---------------------------------
 #
@@ -405,6 +408,14 @@ func _init(
 	_allocate_cursors()
 	_allocate_profiles()
 	_build_starter_profiles()
+
+
+func is_bound_owners(directory_owner: EntityDirectory, residents_owner: ResidentsScript,
+		transforms_owner: Transforms) -> bool:
+	"""Read exact pace-source identity; equal species tables never substitute for actual World owners."""
+	return directory_owner != null and residents_owner != null and transforms_owner != null \
+		and _directory == directory_owner and _residents == residents_owner and _transforms == transforms_owner \
+		and residents_owner.directory() == directory_owner and transforms_owner.is_bound_directory(directory_owner)
 
 
 func _allocate_motion() -> void:
@@ -1260,6 +1271,119 @@ class Columns:
 			and grid_cell.size() == MOTION_CAPACITY and speed_u_per_s.size() == MOTION_CAPACITY \
 			and movement_phase.size() == MOTION_CAPACITY and blocked_ticks.size() == MOTION_CAPACITY
 
+	func equals(other: Columns) -> bool:
+		"""True when all sixteen columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and vx == other.vx and vz == other.vz \
+			and remainder_x == other.remainder_x and remainder_z == other.remainder_z \
+			and next_x == other.next_x and next_z == other.next_z \
+			and correction_x == other.correction_x and correction_z == other.correction_z \
+			and radius_u == other.radius_u and desired_yaw == other.desired_yaw \
+			and next_yaw == other.next_yaw and grid_next == other.grid_next \
+			and grid_cell == other.grid_cell and speed_u_per_s == other.speed_u_per_s \
+			and movement_phase == other.movement_phase and blocked_ticks == other.blocked_ticks
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 8's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is
+# an exact snapshot of the sixteen motion columns over ALL 512 physical rows, free rows included.
+# `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline bridge
+# uses, writes nothing on refusal, then installs the sixteen columns and REBUILDS
+# `_travelling_count` from the installed `movement_phase` column. No member belonging to another
+# section is touched: this store holds no profile table, cursor, admission term or collaborator
+# WeakRef. `_last_column_refusal` is the only other member either call writes.
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from `_last_refusal`, so a load can never overwrite the reason an earlier
+	`begin_travel()` or `stop()` was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the sixteen motion columns into a caller-owned image. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's bytes. The copies are snapshots: mutating `out` afterwards
+	cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if out == null or not out.is_sized():
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_i32(out.vx, _vx)
+	_refill_i32(out.vz, _vz)
+	_refill_i32(out.remainder_x, _remainder_x)
+	_refill_i32(out.remainder_z, _remainder_z)
+	_refill_i32(out.next_x, _next_x)
+	_refill_i32(out.next_z, _next_z)
+	_refill_i32(out.correction_x, _correction_x)
+	_refill_i32(out.correction_z, _correction_z)
+	_refill_i32(out.radius_u, _radius_u)
+	_refill_i32(out.desired_yaw, _desired_yaw)
+	_refill_i32(out.next_yaw, _next_yaw)
+	_refill_i32(out.grid_next, _grid_next)
+	_refill_i32(out.grid_cell, _grid_cell)
+	_refill_i32(out.speed_u_per_s, _speed_u_per_s)
+	_refill_i32(out.movement_phase, _movement_phase)
+	_refill_i32(out.blocked_ticks, _blocked_ticks)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all sixteen columns and recount `_travelling_count`. False refuses; nothing writes.
+
+	Allocate before consume: `columns_refusal()` runs in full, over its own null and shape guard,
+	before the first write, so a refusal leaves every column and the count byte-identical. The
+	recount is from the INSTALLED `movement_phase` bytes, never a caller value. No cursor,
+	admission term or collaborator WeakRef is touched here.
+	"""
+	var refusal: StringName = columns_refusal(columns)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_travelling_count = _count_travelling(_movement_phase)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Install private copies of all sixteen columns of an already accepted image."""
+	_vx = columns.vx.duplicate()
+	_vz = columns.vz.duplicate()
+	_remainder_x = columns.remainder_x.duplicate()
+	_remainder_z = columns.remainder_z.duplicate()
+	_next_x = columns.next_x.duplicate()
+	_next_z = columns.next_z.duplicate()
+	_correction_x = columns.correction_x.duplicate()
+	_correction_z = columns.correction_z.duplicate()
+	_radius_u = columns.radius_u.duplicate()
+	_desired_yaw = columns.desired_yaw.duplicate()
+	_next_yaw = columns.next_yaw.duplicate()
+	_grid_next = columns.grid_next.duplicate()
+	_grid_cell = columns.grid_cell.duplicate()
+	_speed_u_per_s = columns.speed_u_per_s.duplicate()
+	_movement_phase = columns.movement_phase.duplicate()
+	_blocked_ticks = columns.blocked_ticks.duplicate()
+
+
+static func _count_travelling(phases: PackedInt32Array) -> int:
+	"""The number of rows currently reading MOTION_TRAVELLING, over every physical row."""
+	var count: int = 0
+	for row: int in MOTION_CAPACITY:
+		if phases[row] == MOTION_TRAVELLING:
+			count += 1
+	return count
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's i32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
 
 static func columns_refusal(image: Columns) -> StringName:
 	"""The first owner-8 domain violation in a cold column image, or REFUSE_NONE.
@@ -1416,4 +1540,93 @@ static func _columns_target_is_centre(image: Columns, row: int, cell: int) -> St
 		return REFUSE_COLUMN_STATE
 	if image.next_z[row] != SpatialWorld.cell_centre_z_units(cell):
 		return REFUSE_COLUMN_STATE
+	return REFUSE_NONE
+
+
+# --- ARCH-SAVE-002 section 9 cursor columns and the section 2 profile revisions (ADR 1222) -------
+#
+# Section 9's `movement` block is the nine route-cursor columns, `MOTION_CAPACITY` rows each, in
+# the registry's ordinal order (owner id, request, route generation, index, profile id, profile
+# revision, mode, load, destination revision) -- `save_section_navigation.gd`'s MOV_* layout, so a
+# block here is exactly that Record's `movement` array. A DETACHED row is the exact value
+# `_detach_cursor()` writes. An ATTACHED row names a navigation request, so it restores only into a
+# store bound to a Navigation whose descriptor carries the same route generation; production binds
+# none, so an attached row refuses COLUMN_CURSOR (DEC-055 Q9) rather than restoring a dangling one.
+# `movement._profile_revision` is section 2 state with no carrier yet (ADR 1222's table): a save
+# refuses once any profile has been revised past PROFILE_FIRST_REVISION.
+
+const CURSOR_COLUMN_COUNT: int = 9
+const REFUSE_COLUMN_CURSOR: StringName = &"COLUMN_CURSOR"
+const REFUSE_UNSUPPORTED_PROFILE: StringName = &"SAVE_UNSUPPORTED_STATE"
+
+
+func copy_cursor_columns_into(out: PackedInt32Array) -> bool:
+	"""Snapshot the nine cursor columns column-major into a CURSOR_COLUMN_COUNT x 512 buffer."""
+	if out.size() != CURSOR_COLUMN_COUNT * MOTION_CAPACITY:
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	out.clear()
+	for column: PackedInt32Array in _cursor_columns():
+		out.append_array(column)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _cursor_columns() -> Array[PackedInt32Array]:
+	"""The nine live cursor columns in ordinal order (shared, never handed out)."""
+	return [_cursor_owner_id, _cursor_request, _cursor_route_generation, _cursor_index,
+		_cursor_profile_id, _cursor_profile_revision, _cursor_mode, _cursor_load_g,
+		_cursor_destination_revision]
+
+
+func restore_cursor_columns(block: PackedInt32Array) -> bool:
+	"""Install the nine cursor columns once every row proves detached or bound. False: no write."""
+	var code: StringName = _cursor_block_refusal(block)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_cursor_owner_id = block.slice(0, MOTION_CAPACITY)
+	_cursor_request = block.slice(MOTION_CAPACITY, 2 * MOTION_CAPACITY)
+	_cursor_route_generation = block.slice(2 * MOTION_CAPACITY, 3 * MOTION_CAPACITY)
+	_cursor_index = block.slice(3 * MOTION_CAPACITY, 4 * MOTION_CAPACITY)
+	_cursor_profile_id = block.slice(4 * MOTION_CAPACITY, 5 * MOTION_CAPACITY)
+	_cursor_profile_revision = block.slice(5 * MOTION_CAPACITY, 6 * MOTION_CAPACITY)
+	_cursor_mode = block.slice(6 * MOTION_CAPACITY, 7 * MOTION_CAPACITY)
+	_cursor_load_g = block.slice(7 * MOTION_CAPACITY, 8 * MOTION_CAPACITY)
+	_cursor_destination_revision = block.slice(8 * MOTION_CAPACITY, 9 * MOTION_CAPACITY)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _cursor_block_refusal(block: PackedInt32Array) -> StringName:
+	"""Shape, then each row the exact detached value or bound to this store's navigation."""
+	if block.size() != CURSOR_COLUMN_COUNT * MOTION_CAPACITY:
+		return REFUSE_COLUMN_SHAPE
+	for row: int in MOTION_CAPACITY:
+		var request: int = block[MOTION_CAPACITY + row]
+		if request == NO_REQUEST:
+			if not _cursor_row_is_detached(block, row):
+				return REFUSE_COLUMN_CURSOR
+		elif _navigation == null or request < 0 \
+				or _navigation.route_generation_of(_navigation.request_route_id(request)) \
+					!= block[2 * MOTION_CAPACITY + row]:
+			return REFUSE_COLUMN_CURSOR
+	return REFUSE_NONE
+
+
+static func _cursor_row_is_detached(block: PackedInt32Array, row: int) -> bool:
+	"""The exact row `_detach_cursor()` leaves, read column-major out of `block`."""
+	var expected: PackedInt32Array = PackedInt32Array([NO_OWNER_ID, NO_REQUEST, 0, 0, NO_PROFILE,
+		0, NO_MODE, 0, 0])
+	for column: int in CURSOR_COLUMN_COUNT:
+		if block[column * MOTION_CAPACITY + row] != expected[column]:
+			return false
+	return true
+
+
+func profile_revision_refusal() -> StringName:
+	"""SAVE_UNSUPPORTED_STATE once any profile is revised; section 2 has no carrier for it."""
+	for profile: int in PROFILE_COUNT:
+		if _profile_revision[profile] > PROFILE_FIRST_REVISION:
+			return REFUSE_UNSUPPORTED_PROFILE
 	return REFUSE_NONE

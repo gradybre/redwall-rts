@@ -1,0 +1,10 @@
+--- 9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0/godot/test/test_underground_room_frontier_publication.gd
++++ godot/test/test_underground_room_frontier_publication.gd
+@@ -300 +300 @@
+-	assert_equal(Published.runtime_sources_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "unreviewed changed consumers cannot activate mounted publication")
++	assert_equal(Published.runtime_sources_refusal(), &"", "reviewed1170 renewal pins the current complete source consumers")
+@@ -345,2 +345,2 @@
+-	"""Actual wire geometry may prove metadata here; source handoff and changed-consumer activation remain refused."""
+-	assert_equal(Published.runtime_sources_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "labelled geometry diagnostic only")
++	"""Current source-qualified geometry proves metadata; source handoff and whole-World activation remain separate."""
++	assert_equal(Published.runtime_sources_refusal(), &"", "reviewed1170 source renewal grants no physical or movement permission")

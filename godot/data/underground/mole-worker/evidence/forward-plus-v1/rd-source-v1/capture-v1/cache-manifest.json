@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "caches": [
+    {
+      "file": "raw/00-7413f6fc3dd00059b58f41ae137e404ae9408e125b57746bc08a1b76465d0499.cache",
+      "sha256": "7413f6fc3dd00059b58f41ae137e404ae9408e125b57746bc08a1b76465d0499",
+      "bytes": 5528,
+      "original_relative_path": "shader_cache/SkeletonShaderRD/e6bc641e2a094416c99b1294ac5e453c55d24e0b62c1da47c8f7f93ae7877bfa/8305c75c1294a9f00656f0f14344bb8bedcfe4e7.metal.cache"
+    },
+    {
+      "file": "raw/01-8930d8d62760a44b93d5ca26e316402986fb06e2296dbf1375e0e8a7210fdbab.cache",
+      "sha256": "8930d8d62760a44b93d5ca26e316402986fb06e2296dbf1375e0e8a7210fdbab",
+      "bytes": 144628,
+      "original_relative_path": "shader_cache/SceneForwardClusteredShaderRD/cdfe2a8d86deff48154b1cd0d6e857301f5e37f0d8930754f63ff9c2c85045a6/347259af253e6bbec7ad5c69332af5ca731015aa.metal.cache"
+    },
+    {
+      "file": "raw/02-349997b0ca9be05878e11d1fff55efc3a573a92fb6cd541547b35ba054d1aa7c.cache",
+      "sha256": "349997b0ca9be05878e11d1fff55efc3a573a92fb6cd541547b35ba054d1aa7c",
+      "bytes": 155832,
+      "original_relative_path": "shader_cache/SceneForwardClusteredShaderRD/cdfe2a8d86deff48154b1cd0d6e857301f5e37f0d8930754f63ff9c2c85045a6/78757b8d842956aa9172f80ca395b1bc085b24fc.metal.cache"
+    },
+    {
+      "file": "raw/03-18947fc4bf8954676563494ae2d8dcaf167a8e00ea712d9205db07f008d0650f.cache",
+      "sha256": "18947fc4bf8954676563494ae2d8dcaf167a8e00ea712d9205db07f008d0650f",
+      "bytes": 193132,
+      "original_relative_path": "shader_cache/SceneForwardClusteredShaderRD/cdfe2a8d86deff48154b1cd0d6e857301f5e37f0d8930754f63ff9c2c85045a6/a784797763b72ce058effad41b273eb697df9814.metal.cache"
+    },
+    {
+      "file": "raw/04-9391e1937258ba35f5d237cced0c1c5e3eae73a3ce9143dde7e05df948387943.cache",
+      "sha256": "9391e1937258ba35f5d237cced0c1c5e3eae73a3ce9143dde7e05df948387943",
+      "bytes": 196536,
+      "original_relative_path": "shader_cache/SceneForwardClusteredShaderRD/cdfe2a8d86deff48154b1cd0d6e857301f5e37f0d8930754f63ff9c2c85045a6/b600e18e20b53d8932999d48838b29553c586934.metal.cache"
+    }
+  ]
+}

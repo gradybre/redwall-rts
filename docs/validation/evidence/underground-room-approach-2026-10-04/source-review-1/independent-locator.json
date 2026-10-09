@@ -1,0 +1,31 @@
+{
+  "commit": "06f9821b",
+  "original_directory": "/Users/brendan/Developer/redwall-rts-codex-ug-room-publication/docs/validation/evidence/underground-room-publication-2026-10-04/approach-review-v1",
+  "copies": [
+    {
+      "path": "README.md",
+      "bytes": 4967,
+      "sha256": "0453363d0a2e929f1a8dc1bb325e2044a467ebd12e6bc22b7e7a4ce9833fff13"
+    },
+    {
+      "path": "census-tests.log",
+      "bytes": 104,
+      "sha256": "d1a3bdcaa925bbf92cc120237c5ab1078f911832e5f3bbdd16fd82aab85d59fa"
+    },
+    {
+      "path": "census.json",
+      "bytes": 2646,
+      "sha256": "7078df35d463a4491012f9a2ee42538ca3aa05f9f5df55dd40a5e2e927ffb16d"
+    },
+    {
+      "path": "source-sha256.json",
+      "bytes": 1631,
+      "sha256": "9fcc7505a0b0867e5b82abc35afb9b938200e97512d2649ba1cd84b63a8a4e60"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 1499,
+      "sha256": "a40e966e74af0c7ac1d664e558e56064b9551ef6162cffc04302d537bb48aeba"
+    }
+  ]
+}

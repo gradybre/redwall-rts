@@ -1,0 +1,941 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_bindings.gd
+SCRIPT ERROR: Parse Error: Too many arguments for "_spend()" call. Expected at most 0 but received 1.
+          at: GDScript::reload (res://scripts/core/underground_locations.gd:1576)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too many arguments for "_spend()" call. Expected at most 0 but received 1.
+          at: GDScript::reload (res://scripts/core/underground_locations.gd:1583)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too many arguments for "_spend()" call. Expected at most 0 but received 1.
+          at: GDScript::reload (res://scripts/core/underground_locations.gd:1631)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too many arguments for "_spend()" call. Expected at most 0 but received 1.
+          at: GDScript::reload (res://scripts/core/underground_locations.gd:1640)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://scripts/core/underground_entry_frontier.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://scripts/core/underground_locations.gd".
+          at: GDScript::reload (res://test/test_underground_world_routes.gd:43)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_underground_connector_placements.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_underground_entry_placements.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_underground_entry_bindings.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+ERROR: Failed to load script "res://test/test_underground_entry_bindings.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:155)
+       [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [2] _run_worker (res://test/run_tests.gd:121)
+       [3] _initialize (res://test/run_tests.gd:108)
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'Nil'.
+          at: test_actual_entry_admission_reserves_exact_virgin_cube_and_old_circulation (res://test/test_underground_entry_bindings.gd:288)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_entry_admission_reserves_exact_virgin_cube_and_old_circulation (res://test/test_underground_entry_bindings.gd:288)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_entry_admission_reserves_exact_virgin_cube_and_old_circulation
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'world' with value of type 'Nil' on a base object of type 'RefCounted (Request)'.
+          at: _plan (res://test/test_underground_entry_bindings.gd:249)
+          GDScript backtrace (most recent call first):
+              [0] _plan (res://test/test_underground_entry_bindings.gd:249)
+              [1] test_source_change_wrong_anchor_and_extra_cube_refuse_unchanged (res://test/test_underground_entry_bindings.gd:305)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'source_digests' on a base object of type 'Nil'.
+          at: test_source_change_wrong_anchor_and_extra_cube_refuse_unchanged (res://test/test_underground_entry_bindings.gd:306)
+          GDScript backtrace (most recent call first):
+              [0] test_source_change_wrong_anchor_and_extra_cube_refuse_unchanged (res://test/test_underground_entry_bindings.gd:306)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_source_change_wrong_anchor_and_extra_cube_refuse_unchanged
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'world' with value of type 'Nil' on a base object of type 'RefCounted (Request)'.
+          at: _plan (res://test/test_underground_entry_bindings.gd:249)
+          GDScript backtrace (most recent call first):
+              [0] _plan (res://test/test_underground_entry_bindings.gd:249)
+              [1] test_fractional_claim_keeps_exact_shape_and_whole_paid_key (res://test/test_underground_entry_bindings.gd:318)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'claims' on a base object of type 'Nil'.
+          at: test_fractional_claim_keeps_exact_shape_and_whole_paid_key (res://test/test_underground_entry_bindings.gd:319)
+          GDScript backtrace (most recent call first):
+              [0] test_fractional_claim_keeps_exact_shape_and_whole_paid_key (res://test/test_underground_entry_bindings.gd:319)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_fractional_claim_keeps_exact_shape_and_whole_paid_key
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'revision' in base 'Nil'.
+          at: test_outside_claim_paid_remainder_is_physically_checked (res://test/test_underground_entry_bindings.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] test_outside_claim_paid_remainder_is_physically_checked (res://test/test_underground_entry_bindings.gd:333)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_outside_claim_paid_remainder_is_physically_checked
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'revision' in base 'Nil'.
+          at: test_actual_retained_obstacle_and_natural_bearing_loss_refuse (res://test/test_underground_entry_bindings.gd:352)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_retained_obstacle_and_natural_bearing_loss_refuse (res://test/test_underground_entry_bindings.gd:352)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_retained_obstacle_and_natural_bearing_loss_refuse
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: @implicit_new (res://scripts/core/underground_entry_bindings.gd:124)
+          GDScript backtrace (most recent call first):
+              [0] @implicit_new (res://scripts/core/underground_entry_bindings.gd:124)
+              [1] test_unbound_cold_entry_cannot_borrow_foreign_lease (res://test/test_underground_entry_bindings.gd:364)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'acquire' in base 'Nil'.
+          at: test_unbound_cold_entry_cannot_borrow_foreign_lease (res://test/test_underground_entry_bindings.gd:365)
+          GDScript backtrace (most recent call first):
+              [0] test_unbound_cold_entry_cannot_borrow_foreign_lease (res://test/test_underground_entry_bindings.gd:365)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_unbound_cold_entry_cannot_borrow_foreign_lease
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_live' on a base object of type 'Nil'.
+          at: test_surface_contact_must_exist_with_exact_role_and_current_full_proof (res://test/test_underground_entry_bindings.gd:375)
+          GDScript backtrace (most recent call first):
+              [0] test_surface_contact_must_exist_with_exact_role_and_current_full_proof (res://test/test_underground_entry_bindings.gd:375)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_surface_contact_must_exist_with_exact_role_and_current_full_proof
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: ActualFixture._location (res://test/test_underground_entry_bindings.gd:104)
+          GDScript backtrace (most recent call first):
+              [0] _location (res://test/test_underground_entry_bindings.gd:104)
+              [1] test_duplicate_actual_surface_contact_refuses_without_arbitrary_selection (res://test/test_underground_entry_bindings.gd:391)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'world' with value of type 'Nil' on a base object of type 'RefCounted (Request)'.
+          at: _plan (res://test/test_underground_entry_bindings.gd:249)
+          GDScript backtrace (most recent call first):
+              [0] _plan (res://test/test_underground_entry_bindings.gd:249)
+              [1] test_duplicate_actual_surface_contact_refuses_without_arbitrary_selection (res://test/test_underground_entry_bindings.gd:393)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'directory' in base 'Nil'.
+          at: _image (res://test/test_underground_entry_bindings.gd:271)
+          GDScript backtrace (most recent call first):
+              [0] _image (res://test/test_underground_entry_bindings.gd:271)
+              [1] _refused (res://test/test_underground_entry_bindings.gd:278)
+              [2] test_duplicate_actual_surface_contact_refuses_without_arbitrary_selection (res://test/test_underground_entry_bindings.gd:393)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'confirm_entry' in base 'Nil'.
+          at: _refused (res://test/test_underground_entry_bindings.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _refused (res://test/test_underground_entry_bindings.gd:279)
+              [1] test_duplicate_actual_surface_contact_refuses_without_arbitrary_selection (res://test/test_underground_entry_bindings.gd:393)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_duplicate_actual_surface_contact_refuses_without_arbitrary_selection
+        actual second full endpoint (expected true, got false)
+        no arbitrary winner (expected ENTRY_EXISTING_SURFACE_CONTACT, got )
+        ABORTED: 6 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'probe' with value of type 'Callable' on a base object of type 'Nil'.
+          at: test_nested_cleanup_during_actual_local_facts_poison_refuses_unchanged (res://test/test_underground_entry_bindings.gd:408)
+          GDScript backtrace (most recent call first):
+              [0] test_nested_cleanup_during_actual_local_facts_poison_refuses_unchanged (res://test/test_underground_entry_bindings.gd:408)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_nested_cleanup_during_actual_local_facts_poison_refuses_unchanged
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'probe' with value of type 'Callable' on a base object of type 'Nil'.
+          at: test_nested_cleanup_after_actual_prepared_facts_aborts_every_companion (res://test/test_underground_entry_bindings.gd:415)
+          GDScript backtrace (most recent call first):
+              [0] test_nested_cleanup_after_actual_prepared_facts_aborts_every_companion (res://test/test_underground_entry_bindings.gd:415)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_nested_cleanup_after_actual_prepared_facts_aborts_every_companion
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'directory' in base 'Nil'.
+          at: _image (res://test/test_underground_entry_bindings.gd:271)
+          GDScript backtrace (most recent call first):
+              [0] _image (res://test/test_underground_entry_bindings.gd:271)
+              [1] test_source_observer_cannot_replace_lease_before_private_allocation (res://test/test_underground_entry_bindings.gd:437)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'gate' with value of type 'Callable' on a base object of type 'Nil'.
+          at: test_source_observer_cannot_replace_lease_before_private_allocation (res://test/test_underground_entry_bindings.gd:438)
+          GDScript backtrace (most recent call first):
+              [0] test_source_observer_cannot_replace_lease_before_private_allocation (res://test/test_underground_entry_bindings.gd:438)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_source_observer_cannot_replace_lease_before_private_allocation
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'gate' with value of type 'Callable' on a base object of type 'Nil'.
+          at: test_final_local_facts_have_no_later_binding_observer (res://test/test_underground_entry_bindings.gd:461)
+          GDScript backtrace (most recent call first):
+              [0] test_final_local_facts_have_no_later_binding_observer (res://test/test_underground_entry_bindings.gd:461)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_final_local_facts_have_no_later_binding_observer
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'gate' with value of type 'Callable' on a base object of type 'Nil'.
+          at: test_public_entry_stage_guards_do_not_reenter_cleanup (res://test/test_underground_entry_bindings.gd:471)
+          GDScript backtrace (most recent call first):
+              [0] test_public_entry_stage_guards_do_not_reenter_cleanup (res://test/test_underground_entry_bindings.gd:471)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_public_entry_stage_guards_do_not_reenter_cleanup
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_capacity' on a base object of type 'Nil'.
+          at: test_valid_foreign_surface_section_cannot_supply_source_contact (res://test/test_underground_entry_bindings.gd:481)
+          GDScript backtrace (most recent call first):
+              [0] test_valid_foreign_surface_section_cannot_supply_source_contact (res://test/test_underground_entry_bindings.gd:481)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_valid_foreign_surface_section_cannot_supply_source_contact
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'claim_quantum' in base 'Nil'.
+          at: _seed_backfilled_history (res://test/test_underground_entry_bindings.gd:492)
+          GDScript backtrace (most recent call first):
+              [0] _seed_backfilled_history (res://test/test_underground_entry_bindings.gd:492)
+              [1] test_backfilled_source_bearing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:503)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'world' with value of type 'Nil' on a base object of type 'RefCounted (Request)'.
+          at: _plan (res://test/test_underground_entry_bindings.gd:249)
+          GDScript backtrace (most recent call first):
+              [0] _plan (res://test/test_underground_entry_bindings.gd:249)
+              [1] test_backfilled_source_bearing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:504)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'directory' in base 'Nil'.
+          at: _image (res://test/test_underground_entry_bindings.gd:271)
+          GDScript backtrace (most recent call first):
+              [0] _image (res://test/test_underground_entry_bindings.gd:271)
+              [1] _refused (res://test/test_underground_entry_bindings.gd:278)
+              [2] test_backfilled_source_bearing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:504)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'confirm_entry' in base 'Nil'.
+          at: _refused (res://test/test_underground_entry_bindings.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _refused (res://test/test_underground_entry_bindings.gd:279)
+              [1] test_backfilled_source_bearing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:504)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_backfilled_source_bearing_is_not_original_natural_earth
+        source bearing checks history (expected ENTRY_NATURAL_BEARING_REMOVED, got )
+        ABORTED: 6 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'claim_quantum' in base 'Nil'.
+          at: _seed_backfilled_history (res://test/test_underground_entry_bindings.gd:492)
+          GDScript backtrace (most recent call first):
+              [0] _seed_backfilled_history (res://test/test_underground_entry_bindings.gd:492)
+              [1] test_backfilled_anchor_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:509)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'world' with value of type 'Nil' on a base object of type 'RefCounted (Request)'.
+          at: _plan (res://test/test_underground_entry_bindings.gd:249)
+          GDScript backtrace (most recent call first):
+              [0] _plan (res://test/test_underground_entry_bindings.gd:249)
+              [1] test_backfilled_anchor_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:510)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'directory' in base 'Nil'.
+          at: _image (res://test/test_underground_entry_bindings.gd:271)
+          GDScript backtrace (most recent call first):
+              [0] _image (res://test/test_underground_entry_bindings.gd:271)
+              [1] _refused (res://test/test_underground_entry_bindings.gd:278)
+              [2] test_backfilled_anchor_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:510)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'confirm_entry' in base 'Nil'.
+          at: _refused (res://test/test_underground_entry_bindings.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _refused (res://test/test_underground_entry_bindings.gd:279)
+              [1] test_backfilled_anchor_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:510)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_backfilled_anchor_footing_is_not_original_natural_earth
+        anchor checks history (expected ENTRY_NATURAL_BEARING_REMOVED, got )
+        ABORTED: 6 script error(s) above ended this method early, so the
+        assertions after that point never ran
+ERROR: Parameter "p_script->implicit_initializer" is null.
+   at: _super_implicit_constructor (modules/gdscript/gdscript.cpp:146)
+   GDScript backtrace (most recent call first):
+       [0] before_each (res://test/test_underground_entry_bindings.gd:135)
+       [1] _run_test (res://test/run_tests.gd:193)
+       [2] _run_suite (res://test/run_tests.gd:168)
+       [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+       [4] _run_worker (res://test/run_tests.gd:121)
+       [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function '_actual_fixture' in base 'RefCounted (ActualFixture)'.
+          at: before_each (res://test/test_underground_entry_bindings.gd:136)
+          GDScript backtrace (most recent call first):
+              [0] before_each (res://test/test_underground_entry_bindings.gd:136)
+              [1] _run_test (res://test/run_tests.gd:193)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'claim_quantum' in base 'Nil'.
+          at: _seed_backfilled_history (res://test/test_underground_entry_bindings.gd:492)
+          GDScript backtrace (most recent call first):
+              [0] _seed_backfilled_history (res://test/test_underground_entry_bindings.gd:492)
+              [1] test_backfilled_storage_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:515)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'world' with value of type 'Nil' on a base object of type 'RefCounted (Request)'.
+          at: _plan (res://test/test_underground_entry_bindings.gd:249)
+          GDScript backtrace (most recent call first):
+              [0] _plan (res://test/test_underground_entry_bindings.gd:249)
+              [1] test_backfilled_storage_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:516)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'directory' in base 'Nil'.
+          at: _image (res://test/test_underground_entry_bindings.gd:271)
+          GDScript backtrace (most recent call first):
+              [0] _image (res://test/test_underground_entry_bindings.gd:271)
+              [1] _refused (res://test/test_underground_entry_bindings.gd:278)
+              [2] test_backfilled_storage_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:516)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'confirm_entry' in base 'Nil'.
+          at: _refused (res://test/test_underground_entry_bindings.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _refused (res://test/test_underground_entry_bindings.gd:279)
+              [1] test_backfilled_storage_footing_is_not_original_natural_earth (res://test/test_underground_entry_bindings.gd:516)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'is_quiescent' in base 'Nil'.
+          at: after_each (res://test/test_underground_entry_bindings.gd:223)
+          GDScript backtrace (most recent call first):
+              [0] after_each (res://test/test_underground_entry_bindings.gd:223)
+              [1] _run_test (res://test/run_tests.gd:195)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_backfilled_storage_footing_is_not_original_natural_earth
+        storage checks history (expected ENTRY_NATURAL_BEARING_REMOVED, got )
+        ABORTED: 6 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":5,"failures":17,"suite":"test_underground_entry_bindings.gd","tests":17,"usec":654253}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        9 script error(s) outside any test method
+
+17 test(s), 5 assertion(s), 18 failure(s)
+diagnostics: 18 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

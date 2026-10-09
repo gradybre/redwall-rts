@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_routes.gd:770: (SHADOWED_VARIABLE): The local variable "revision" is shadowing an already-declared function at line 744 in the current class.
+scripts/core/underground_space_owner.gd:223: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_installation_context" is declared but never used in the class.
+2 GDScript warning(s) in 2 of 7 file(s)

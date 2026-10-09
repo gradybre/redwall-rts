@@ -1,0 +1,37 @@
+{
+  "head": "8003bfe155092e9a8bc8b5590228e6069b859173",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 14.053,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "204/405",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/checkpoint-1/strict"
+      ],
+      "exit_code": 1,
+      "seconds": 14.028,
+      "log": "test_underground_room_composition.gd.log"
+    }
+  ],
+  "assets_present_before": false,
+  "error": "test_underground_room_composition.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

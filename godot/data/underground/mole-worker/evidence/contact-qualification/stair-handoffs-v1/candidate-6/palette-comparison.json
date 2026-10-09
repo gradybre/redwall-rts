@@ -1,0 +1,21 @@
+{
+  "rows": [
+    {
+      "name": "approach",
+      "frames": 91,
+      "float32_palette_and_grounding_bytes_identical": true
+    },
+    {
+      "name": "turn",
+      "frames": 271,
+      "float32_palette_and_grounding_bytes_identical": true
+    },
+    {
+      "name": "retreat",
+      "frames": 91,
+      "float32_palette_and_grounding_bytes_identical": true
+    }
+  ],
+  "scope": "metadata endpoint minima now describe retained original ready pose; source geometry and palette bytes unchanged from candidate5",
+  "author_sha256": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda"
+}

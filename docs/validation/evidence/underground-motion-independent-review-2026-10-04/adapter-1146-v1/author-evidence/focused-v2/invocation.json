@@ -1,0 +1,83 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.977,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "255/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-demo-composition-2026-10-04/focused-v2"
+      ],
+      "exit_code": 0,
+      "seconds": 7.107,
+      "log": "test_modular_runtime.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "286/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-demo-composition-2026-10-04/focused-v2"
+      ],
+      "exit_code": 0,
+      "seconds": 5.15,
+      "log": "test_modular_editor.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "269/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-demo-composition-2026-10-04/focused-v2"
+      ],
+      "exit_code": 0,
+      "seconds": 9.742,
+      "log": "test_modular_world_tool.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-demo-composition-2026-10-04/focused-v2/analyzer.json",
+        "godot/demo/burrow/modular_runtime.gd",
+        "godot/demo/burrow/modular_editor.gd",
+        "godot/demo/burrow/modular_world_tool.gd",
+        "godot/test/test_modular_runtime.gd"
+      ],
+      "exit_code": 1,
+      "seconds": 11.143,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "registry_sha256_before": "6d2e672352ed7ee5674df3444d79a2ae0940a9e248519544ef2e41390ceb8668",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-demo-composition-20261004",
+  "project_test_sha256": "e0d564e1827ecd5f018f042098e1da84aa54f371be39ba64d8750113ad7f601b",
+  "assets_present_before": false,
+  "error": "analyzer.log",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

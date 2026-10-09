@@ -1,0 +1,14 @@
+{
+  "commands": [
+    "python3 -B docs/validation/evidence/underground-route-owner-composition-2026-10-04/test_census.py",
+    "python3 -B docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py --out docs/validation/evidence/underground-route-owner-composition-2026-10-04/source-review-1/census.json"
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "tests": 17,
+  "actual_source": true,
+  "native_measured": false,
+  "runtime_qualified": false
+}

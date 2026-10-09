@@ -1,0 +1,22 @@
+test_author_reproduces_every_candidate_byte (__main__.EmptyWalkTests.test_author_reproduces_every_candidate_byte) ... ok
+test_basis_and_root_pins_are_the_published_rows_own (__main__.EmptyWalkTests.test_basis_and_root_pins_are_the_published_rows_own) ... ok
+test_candidate_and_proof_pins_match_files (__main__.EmptyWalkTests.test_candidate_and_proof_pins_match_files) ... ok
+test_every_clip_is_floor_clear_and_supported (__main__.EmptyWalkTests.test_every_clip_is_floor_clear_and_supported) ... ok
+test_joins_meet_stand_ready_key_and_program_hub_exactly (__main__.EmptyWalkTests.test_joins_meet_stand_ready_key_and_program_hub_exactly) ... ok
+test_lowered_grounding_exposes_penetration (__main__.EmptyWalkTests.test_lowered_grounding_exposes_penetration) ... ok
+test_original_walk_without_transfer_keys_refuses_support (__main__.EmptyWalkTests.test_original_walk_without_transfer_keys_refuses_support) ... ok
+test_proof_reproduces_every_byte (__main__.EmptyWalkTests.test_proof_reproduces_every_byte) ... ok
+test_reviewed_program_sources_are_unchanged (__main__.EmptyWalkTests.test_reviewed_program_sources_are_unchanged) ... ok
+test_role_boxes_contain_sampled_vertices_at_every_sampled_heading (__main__.EmptyWalkTests.test_role_boxes_contain_sampled_vertices_at_every_sampled_heading) ... ok
+test_roles_follow_published_ground_row_assembly (__main__.EmptyWalkTests.test_roles_follow_published_ground_row_assembly) ... ok
+test_source_boxes_contain_every_sampled_vertex (__main__.EmptyWalkTests.test_source_boxes_contain_every_sampled_vertex) ... ok
+test_stand_keeps_every_supplied_matrix_and_closes_on_key_zero (__main__.EmptyWalkTests.test_stand_keeps_every_supplied_matrix_and_closes_on_key_zero) ... ok
+test_sweep_radius_is_the_exact_ceiling_without_invented_margin (__main__.EmptyWalkTests.test_sweep_radius_is_the_exact_ceiling_without_invented_margin) ... ok
+test_swept_boxes_contain_every_rotated_source_corner (__main__.EmptyWalkTests.test_swept_boxes_contain_every_rotated_source_corner) ... ok
+test_tool_free_scope (__main__.EmptyWalkTests.test_tool_free_scope) ... ok
+test_walk_keeps_every_supplied_matrix_between_transfer_keys (__main__.EmptyWalkTests.test_walk_keeps_every_supplied_matrix_between_transfer_keys) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 24.124s
+
+OK

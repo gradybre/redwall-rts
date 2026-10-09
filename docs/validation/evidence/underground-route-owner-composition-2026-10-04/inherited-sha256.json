@@ -1,0 +1,13 @@
+{
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/census.py": "e1fcaf97d47d4388ce2faabd1193c851678ab2097ea19bcc8010209c2dd64c61",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor_census.py": "4aab4daf4810122ada334f169c08088826d22fa225693dd0b77ac2335049d9e5",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/census.json": "22eda18d387d9ee794e07cdcea49cd4da5ba029d850023721b9830711b1933b9",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor-source-sha256.json": "4dfe119a902a11e99226fc6100e9c8bb596349efdef875af409e9b239731ff50",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/manifest.json": "1ec68c33dde42e478c9e4c38dff0599ca60063c23eb379d417773d481629de1d",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_session.gd.txt": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_memory_pack.json.txt": "3116b4ecfb33041fea2ad6b7412bfd2d3ee6a6f6b579f67b867b4b65a6b8f0bc",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_manager.gd.txt": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+  "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_world_session.gd.txt": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
+}

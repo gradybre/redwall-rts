@@ -1,0 +1,66 @@
+{
+  "base": "e2f76f5484efff2af629f1ae2283232a3c73576d",
+  "source_sha256": {
+    "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "underground_locations": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd",
+    "underground_final_facts": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a"
+  },
+  "new_retained_bytes": 0,
+  "new_banks": 0,
+  "new_packed_allocations": 0,
+  "room_context_bytes": 80,
+  "component_numeric_chains": {
+    "underground_space_owner.room_commit_preflighted": {
+      "bytes": 64,
+      "frames": {
+        "underground_space_owner.room_commit_preflighted": 24,
+        "underground_space_owner._room_issuer_leaf_matches": 16,
+        "underground_space_owner._ordinary_room_plan_matches": 24
+      }
+    },
+    "underground_space_owner._ordinary_room_plan_matches": {
+      "bytes": 24,
+      "frames": {
+        "underground_space_owner._ordinary_room_plan_matches": 24
+      }
+    },
+    "underground_locations.room_scope_leaf_refusal": {
+      "bytes": 1,
+      "frames": {
+        "underground_locations.room_scope_leaf_refusal": 1
+      },
+      "with_shared_comparison_upper_bound": 25
+    },
+    "underground_locations.room_prepared_leaf_refusal": {
+      "bytes": 32,
+      "frames": {
+        "underground_locations.room_prepared_leaf_refusal": 8,
+        "underground_locations._room_rows_leaf_refusal": 24
+      },
+      "with_shared_comparison_upper_bound": 56
+    },
+    "underground_locations.publish_room_preflighted": {
+      "bytes": 32,
+      "frames": {
+        "underground_locations.publish_room_preflighted": 0,
+        "underground_locations.room_prepared_leaf_refusal": 8,
+        "underground_locations._room_rows_leaf_refusal": 24
+      },
+      "with_shared_comparison_upper_bound": 56
+    },
+    "underground_final_facts.prepared_room_refusal": {
+      "bytes": 160,
+      "frames": {
+        "underground_final_facts.prepared_room_refusal": 32,
+        "underground_final_facts._room_source_rows": 24,
+        "underground_final_facts._resident_into": 16,
+        "underground_final_facts._resident_location_refusal": 24,
+        "underground_final_facts._transit_refusal": 64
+      }
+    }
+  },
+  "ordinary_request_checks": "2 * max(private.cells.size, original.cells.size), before comparison and source/claim scans",
+  "cold_lifetime": "No new packet, survey, copy or bank. Original plan and exact candidate remain retained under the original full Cold Budget lease. Sealed Location/Route candidates use existing banks; allocation observers finish before Sites prepares its existing claim packet.",
+  "scope": "Numeric frames only. Borrowed references and Variant/StringName/interpreter/native storage remain within existing provisional controls, not newly measured. Root and RoomBindings caller frames require combined census.",
+  "runtime_qualified": false
+}

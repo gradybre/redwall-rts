@@ -1,0 +1,381 @@
+{
+  "counts": {
+    "assertions": 95630,
+    "expected": 4,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1257,
+    "tolerated": 137,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "f32ce4e4ed6f0ec4d85afa0d22802f6e26b155c55b7e63cff3baba81db8ffa4e",
+  "shard_count": 8,
+  "shard_index": 3,
+  "suite_counts": {
+    "test_catalog_ids.gd": {
+      "assertions": 1843,
+      "failures": 0,
+      "tests": 67
+    },
+    "test_construction_paid_ledger.gd": {
+      "assertions": 315,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_demo_bore.gd": {
+      "assertions": 478,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_demo_build.gd": {
+      "assertions": 214,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_camera.gd": {
+      "assertions": 115,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_demo_care_desk.gd": {
+      "assertions": 134,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_demo_chronicle.gd": {
+      "assertions": 310,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_forage.gd": {
+      "assertions": 206,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_demo_forestry.gd": {
+      "assertions": 1634,
+      "failures": 0,
+      "tests": 60
+    },
+    "test_demo_goals.gd": {
+      "assertions": 493,
+      "failures": 0,
+      "tests": 28
+    },
+    "test_demo_harvest_plan.gd": {
+      "assertions": 97,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_demo_hud_truth.gd": {
+      "assertions": 301,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_kitchen.gd": {
+      "assertions": 453,
+      "failures": 0,
+      "tests": 64
+    },
+    "test_demo_news.gd": {
+      "assertions": 234,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_demo_notices.gd": {
+      "assertions": 918,
+      "failures": 0,
+      "tests": 37
+    },
+    "test_demo_orchard.gd": {
+      "assertions": 2711,
+      "failures": 0,
+      "tests": 49
+    },
+    "test_demo_people_live.gd": {
+      "assertions": 70,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_tunnel_ext_world.gd": {
+      "assertions": 530,
+      "failures": 0,
+      "tests": 76
+    },
+    "test_demo_ui.gd": {
+      "assertions": 212,
+      "failures": 0,
+      "tests": 43
+    },
+    "test_demo_winter.gd": {
+      "assertions": 297,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_excavation_entry_claim_batch.gd": {
+      "assertions": 529,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_haul_carry.gd": {
+      "assertions": 173,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_input_map.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_modular_editor.gd": {
+      "assertions": 116,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_modular_projects.gd": {
+      "assertions": 2339,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_modular_room_mode.gd": {
+      "assertions": 148,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_modular_spatial_outputs.gd": {
+      "assertions": 415,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_modular_world_tool.gd": {
+      "assertions": 149,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_progression_interval.gd": {
+      "assertions": 170,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_proportion_comparison.gd": {
+      "assertions": 195,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_resource_claim_lifecycle.gd": {
+      "assertions": 95,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_save_header.gd": {
+      "assertions": 279,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_save_identity_restore.gd": {
+      "assertions": 133,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_save_owner_residents.gd": {
+      "assertions": 47422,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_save_owner_world_init.gd": {
+      "assertions": 6019,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_save_section_inventories.gd": {
+      "assertions": 1366,
+      "failures": 0,
+      "tests": 70
+    },
+    "test_scale_stress.gd": {
+      "assertions": 62,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_settlement_equipment.gd": {
+      "assertions": 43,
+      "failures": 0,
+      "tests": 4
+    },
+    "test_stock_authority_lifetime.gd": {
+      "assertions": 49,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_tail_rig.gd": {
+      "assertions": 93,
+      "failures": 0,
+      "tests": 24
+    },
+    "test_ui_context_gates.gd": {
+      "assertions": 1081,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_underground_actor_content.gd": {
+      "assertions": 109,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_underground_connector_catalog.gd": {
+      "assertions": 606,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_underground_connector_delivery.gd": {
+      "assertions": 4370,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_underground_connector_recipes.gd": {
+      "assertions": 869,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_underground_connector_work.gd": {
+      "assertions": 259,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_underground_entry_frontier.gd": {
+      "assertions": 402,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_underground_motion_catalog.gd": {
+      "assertions": 13721,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_underground_room_publication.gd": {
+      "assertions": 179,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_underground_world_retirement.gd": {
+      "assertions": 1963,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_underground_world_structure_scope.gd": {
+      "assertions": 105,
+      "failures": 0,
+      "tests": 9
+    }
+  },
+  "suite_usec": {
+    "test_catalog_ids.gd": 511821,
+    "test_construction_paid_ledger.gd": 1899288,
+    "test_demo_bore.gd": 3742398,
+    "test_demo_build.gd": 8976,
+    "test_demo_camera.gd": 34093,
+    "test_demo_care_desk.gd": 3253194,
+    "test_demo_chronicle.gd": 7714813,
+    "test_demo_forage.gd": 7720459,
+    "test_demo_forestry.gd": 12595845,
+    "test_demo_goals.gd": 437618,
+    "test_demo_harvest_plan.gd": 2606274,
+    "test_demo_hud_truth.gd": 5219783,
+    "test_demo_kitchen.gd": 6980855,
+    "test_demo_news.gd": 6898664,
+    "test_demo_notices.gd": 95691,
+    "test_demo_orchard.gd": 17092793,
+    "test_demo_people_live.gd": 36146115,
+    "test_demo_tunnel_ext_world.gd": 14927773,
+    "test_demo_ui.gd": 393911,
+    "test_demo_winter.gd": 5154179,
+    "test_excavation_entry_claim_batch.gd": 4451075,
+    "test_haul_carry.gd": 1989147,
+    "test_input_map.gd": 35302,
+    "test_modular_editor.gd": 5330598,
+    "test_modular_projects.gd": 4236481,
+    "test_modular_room_mode.gd": 7837835,
+    "test_modular_spatial_outputs.gd": 1075926,
+    "test_modular_world_tool.gd": 17810766,
+    "test_progression_interval.gd": 159804,
+    "test_proportion_comparison.gd": 131782,
+    "test_resource_claim_lifecycle.gd": 412249,
+    "test_save_header.gd": 67098,
+    "test_save_identity_restore.gd": 1896623,
+    "test_save_owner_residents.gd": 21998790,
+    "test_save_owner_world_init.gd": 262247,
+    "test_save_section_inventories.gd": 52046130,
+    "test_scale_stress.gd": 38605146,
+    "test_settlement_equipment.gd": 2195171,
+    "test_stock_authority_lifetime.gd": 12383,
+    "test_tail_rig.gd": 14595,
+    "test_ui_context_gates.gd": 373327,
+    "test_underground_actor_content.gd": 22508,
+    "test_underground_connector_catalog.gd": 1742873,
+    "test_underground_connector_delivery.gd": 261115700,
+    "test_underground_connector_recipes.gd": 1308646,
+    "test_underground_connector_work.gd": 14860734,
+    "test_underground_entry_frontier.gd": 1108512,
+    "test_underground_motion_catalog.gd": 892484,
+    "test_underground_room_publication.gd": 892948,
+    "test_underground_world_retirement.gd": 12471054,
+    "test_underground_world_structure_scope.gd": 5127105
+  },
+  "suites": [
+    "test_catalog_ids.gd",
+    "test_construction_paid_ledger.gd",
+    "test_demo_bore.gd",
+    "test_demo_build.gd",
+    "test_demo_camera.gd",
+    "test_demo_care_desk.gd",
+    "test_demo_chronicle.gd",
+    "test_demo_forage.gd",
+    "test_demo_forestry.gd",
+    "test_demo_goals.gd",
+    "test_demo_harvest_plan.gd",
+    "test_demo_hud_truth.gd",
+    "test_demo_kitchen.gd",
+    "test_demo_news.gd",
+    "test_demo_notices.gd",
+    "test_demo_orchard.gd",
+    "test_demo_people_live.gd",
+    "test_demo_tunnel_ext_world.gd",
+    "test_demo_ui.gd",
+    "test_demo_winter.gd",
+    "test_excavation_entry_claim_batch.gd",
+    "test_haul_carry.gd",
+    "test_input_map.gd",
+    "test_modular_editor.gd",
+    "test_modular_projects.gd",
+    "test_modular_room_mode.gd",
+    "test_modular_spatial_outputs.gd",
+    "test_modular_world_tool.gd",
+    "test_progression_interval.gd",
+    "test_proportion_comparison.gd",
+    "test_resource_claim_lifecycle.gd",
+    "test_save_header.gd",
+    "test_save_identity_restore.gd",
+    "test_save_owner_residents.gd",
+    "test_save_owner_world_init.gd",
+    "test_save_section_inventories.gd",
+    "test_scale_stress.gd",
+    "test_settlement_equipment.gd",
+    "test_stock_authority_lifetime.gd",
+    "test_tail_rig.gd",
+    "test_ui_context_gates.gd",
+    "test_underground_actor_content.gd",
+    "test_underground_connector_catalog.gd",
+    "test_underground_connector_delivery.gd",
+    "test_underground_connector_recipes.gd",
+    "test_underground_connector_work.gd",
+    "test_underground_entry_frontier.gd",
+    "test_underground_motion_catalog.gd",
+    "test_underground_room_publication.gd",
+    "test_underground_world_retirement.gd",
+    "test_underground_world_structure_scope.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 603
+}

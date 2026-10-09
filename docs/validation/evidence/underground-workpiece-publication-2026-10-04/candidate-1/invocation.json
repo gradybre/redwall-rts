@@ -1,0 +1,91 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.607,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "286/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-workpiece-publication/docs/validation/evidence/underground-workpiece-publication-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.304,
+      "log": "test_underground_workpiece_publication.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "95/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-workpiece-publication/docs/validation/evidence/underground-workpiece-publication-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.574,
+      "log": "test_modular_projects.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "113/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-workpiece-publication/docs/validation/evidence/underground-workpiece-publication-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 9.735,
+      "log": "test_underground_connector_work.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "289/383",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-workpiece-publication/docs/validation/evidence/underground-workpiece-publication-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.88,
+      "log": "test_underground_connector_payment_guard.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6198",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-workpiece-publication/docs/validation/evidence/underground-workpiece-publication-2026-10-04/candidate-1/analyzer.json",
+        "godot/scripts/core/modular_project_contract.gd",
+        "godot/scripts/core/modular_projects.gd",
+        "godot/test/test_underground_workpiece_publication.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 9.701,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-prepared-location",
+  "project_test_sha256": "6a837a9abf1269e3b9b1ec005c763654f5ce8ea582a50fe5e2e0516d7ac3c8b4",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

@@ -1,0 +1,638 @@
+{
+  "source_sha256": {
+    "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "underground_connector_source_facts": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160",
+    "underground_final_facts": "ef369e48d40988cd8727b7ff5c3d290794ed51deb7e87e3cf12df19b8ca3c8da",
+    "underground_locations": "d116e359d902bc73acd820e9943f091f5fef591af3b78d26433ae5c6e8b08d4a",
+    "underground_routes": "f62cc21529cf4f3edabef5078c936a0e07ba9ea36e9a3ead2f434fcab3ad1a41",
+    "underground_world_routes": "438267e61eb7042cb9ccc56ae4859bf80ce77c9aca9bd10b033646469c98fe5b"
+  },
+  "base": "f6d3bdb33edcb550adb08bc15b2034e9f77c54e5",
+  "member_delta": {
+    "underground_routes": {
+      "added_fields": {
+        "_path_serial": "int"
+      },
+      "logical_bytes": 8
+    },
+    "underground_world_routes": {
+      "added_fields": {
+        "_witness_graph": "int",
+        "_witness_owner": "int",
+        "_witness_locations": "int",
+        "_witness_graph_token": "int",
+        "_witness_space_token": "int",
+        "_witness_location_token": "int",
+        "_witness_geometry": "int",
+        "_witness_serial": "int",
+        "_witness_profile": "int",
+        "_witness_profile_revision": "int",
+        "_witness_content": "int",
+        "_witness_work": "int"
+      },
+      "logical_bytes": 96
+    }
+  },
+  "retained_delta_bytes": 104,
+  "new_banks": 0,
+  "topology_fixed_components": {
+    "top_numeric": 198,
+    "two_edge_banks": 64,
+    "two_motion_banks": 16,
+    "domain_numeric": 68,
+    "region_numeric": 48,
+    "int_result": 9,
+    "pose": 64,
+    "two_location_numeric": 136,
+    "edge_numeric": 120,
+    "actor": 156,
+    "motion_step": 117,
+    "four_profile_selections": 672,
+    "two_profile_boxes": 64,
+    "fixed_packed": 216,
+    "cordic_constants": 120,
+    "later_location_controls_in_topology_reserve": 42
+  },
+  "topology_fixed_total": 2110,
+  "topology_fixed_ceiling": 2112,
+  "world_routes_fixed_components": {
+    "top_numeric": 205,
+    "domain_numeric": 68,
+    "descriptor": 184,
+    "two_profile_boxes": 64,
+    "location_numeric": 68,
+    "region_numeric": 48,
+    "edge_numeric": 120,
+    "int_result": 9,
+    "fixed_I32_packet_and_domain_payload": 192
+  },
+  "world_routes_fixed_total": 958,
+  "world_routes_control_ceiling": 4096,
+  "existing_helper_ceiling": 512,
+  "helper_numeric_peak_including_48_expression_bytes": 384,
+  "paths": {
+    "witness_chain": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_world_routes:_witness_chain_matches"
+      ],
+      "numeric_bytes": 176
+    },
+    "witness_keys": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_world_routes:_witness_key_matches"
+      ],
+      "numeric_bytes": 112
+    },
+    "fresh_search_heap": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_routes:_find_path",
+        "underground_routes:_relax_edges",
+        "underground_routes:_relax",
+        "underground_routes:_heap_insert",
+        "underground_routes:_heap_up",
+        "underground_routes:_heap_swap"
+      ],
+      "numeric_bytes": 288
+    },
+    "fresh_search_mask": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_routes:_find_path",
+        "underground_routes:_relax_edges",
+        "underground_routes:_path_profile_refusal",
+        "underground_routes:_committed_mask_refusal",
+        "underground_routes:_spend"
+      ],
+      "numeric_bytes": 256
+    },
+    "fresh_search_index": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_routes:_find_path",
+        "underground_routes:_relax_edges",
+        "underground_routes:_first_edge_index",
+        "underground_routes:_edge_pair"
+      ],
+      "numeric_bytes": 272
+    },
+    "fresh_search_take": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_routes:_find_path",
+        "underground_routes:_heap_take",
+        "underground_routes:_heap_swap"
+      ],
+      "numeric_bytes": 208
+    },
+    "fresh_path_collect": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_path",
+        "underground_routes:_find_path",
+        "underground_routes:_collect_path",
+        "underground_routes:_edge_pair"
+      ],
+      "numeric_bytes": 208
+    },
+    "final_chain": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_routes:_path_chain_refusal",
+        "underground_routes:_committed_mask_refusal",
+        "underground_routes:_spend"
+      ],
+      "numeric_bytes": 184
+    },
+    "source_row": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_sources_refusal",
+        "underground_world_routes:_reach_endpoint_refusal",
+        "underground_world_routes:_reach_section_refusal",
+        "underground_locations:_resolve_section_refusal",
+        "underground_locations:_resolve_source_row"
+      ],
+      "numeric_bytes": 280
+    },
+    "source_room": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_sources_refusal",
+        "underground_world_routes:_reach_endpoint_refusal",
+        "underground_world_routes:_reach_section_refusal",
+        "underground_locations:_resolve_section_refusal",
+        "underground_locations:_resolve_room_source_refusal",
+        "entity_directory:get_typed_row",
+        "entity_directory:is_valid",
+        "entity_directory:is_valid_of_kind"
+      ],
+      "numeric_bytes": 336
+    },
+    "scope_domain": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_stores_refusal",
+        "underground_final_facts:_stores_refusal",
+        "underground_final_facts:_same_domain"
+      ],
+      "numeric_bytes": 88
+    },
+    "descriptor": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_descriptor"
+      ],
+      "numeric_bytes": 128
+    },
+    "new_content_digest": {
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_stores_refusal",
+        "underground_world_routes:_reach_content_refusal",
+        "underground_connector_source_facts:refusal",
+        "underground_connector_source_facts:_source_digests_match"
+      ],
+      "numeric_bytes": 144
+    }
+  },
+  "frames": {
+    "underground_world_routes:profile_reachability_refusal": {
+      "numeric_bytes": 48,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "profile_id": "int",
+        "profile_revision": "int",
+        "content_revision": "int",
+        "max_checks": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "remaining_out",
+        "graph",
+        "owner",
+        "locations",
+        "sources",
+        "code"
+      ]
+    },
+    "underground_world_routes:_reach_search": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "profile_id": "int",
+        "profile_revision": "int",
+        "content_revision": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "code"
+      ]
+    },
+    "underground_world_routes:_reach_path": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "before": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "code"
+      ]
+    },
+    "underground_world_routes:_witness_chain_matches": {
+      "numeric_bytes": 64,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "cursor": "Vector2i",
+        "byte": "int",
+        "index": "int",
+        "offset": "int",
+        "row": "int",
+        "generation": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "bank",
+        "masks",
+        "descriptor"
+      ]
+    },
+    "underground_world_routes:_witness_key_matches": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "descriptor"
+      ]
+    },
+    "underground_routes:_find_path": {
+      "numeric_bytes": 48,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "mode": "int",
+        "posture": "int",
+        "node": "int",
+        "generation": "int"
+      },
+      "borrowed_or_interned": [
+        "query",
+        "certificate",
+        "code"
+      ]
+    },
+    "underground_routes:_relax_edges": {
+      "numeric_bytes": 56,
+      "numeric_fields": {
+        "origin": "Vector2i",
+        "mode": "int",
+        "posture": "int",
+        "index": "int",
+        "row": "int",
+        "next": "Vector2i",
+        "length": "int"
+      },
+      "borrowed_or_interned": [
+        "query",
+        "certificate",
+        "code"
+      ]
+    },
+    "underground_routes:_relax": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "node": "int",
+        "edge": "int",
+        "distance": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_insert": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "node": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_up": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "index": "int",
+        "parent": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_swap": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "first": "int",
+        "second": "int",
+        "old": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_path_profile_refusal": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "row": "int"
+      },
+      "borrowed_or_interned": [
+        "query",
+        "certificate"
+      ]
+    },
+    "underground_routes:_committed_mask_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "row": "int",
+        "profile": "int",
+        "byte": "int"
+      },
+      "borrowed_or_interned": [
+        "certificate",
+        "descriptor",
+        "bank"
+      ]
+    },
+    "underground_routes:_spend": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "count": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_first_edge_index": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "origin": "Vector2i",
+        "low": "int",
+        "high": "int",
+        "middle": "int",
+        "ref": "Vector2i"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_edge_pair": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "field": "int",
+        "row": "int"
+      },
+      "borrowed_or_interned": [
+        "bank"
+      ]
+    },
+    "underground_routes:_heap_take": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "node": "int",
+        "parent": "int",
+        "child": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_collect_path": {
+      "numeric_bytes": 32,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "cursor": "Vector2i",
+        "row": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_path_chain_refusal": {
+      "numeric_bytes": 64,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "last": "Vector2i",
+        "geometry": "int",
+        "content": "int",
+        "endpoint": "Vector2i",
+        "index": "int",
+        "offset": "int",
+        "edge": "Vector2i"
+      },
+      "borrowed_or_interned": [
+        "certificate"
+      ]
+    },
+    "underground_world_routes:_reach_sources_refusal": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "first": "Vector2i",
+        "section": "Vector2i",
+        "index": "int",
+        "row": "int",
+        "next": "Vector2i"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "code"
+      ]
+    },
+    "underground_world_routes:_reach_endpoint_refusal": {
+      "numeric_bytes": 60,
+      "numeric_fields": {
+        "ref": "Vector2i",
+        "checked_section": "Vector2i",
+        "stride": "int",
+        "section": "Vector2i",
+        "room": "Vector2i",
+        "level": "int",
+        "point": "Vector3i"
+      },
+      "borrowed_or_interned": [
+        "graph",
+        "owner",
+        "locations",
+        "bank"
+      ]
+    },
+    "underground_world_routes:_reach_section_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "section": "Vector2i",
+        "room": "Vector2i"
+      },
+      "borrowed_or_interned": [
+        "graph",
+        "owner",
+        "locations"
+      ]
+    },
+    "underground_locations:_resolve_section_refusal": {
+      "numeric_bytes": 52,
+      "numeric_fields": {
+        "room": "Vector2i",
+        "section": "Vector2i",
+        "level": "int",
+        "point": "Vector3i",
+        "source_ref": "Vector2i",
+        "source": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_locations:_resolve_source_row": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "ref": "Vector2i",
+        "found": "int",
+        "row": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_locations:_resolve_room_source_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "room": "Vector2i",
+        "source": "int",
+        "row": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "entity_directory:get_typed_row": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "ref": "Vector2i"
+      },
+      "borrowed_or_interned": []
+    },
+    "entity_directory:is_valid": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "ref": "Vector2i"
+      },
+      "borrowed_or_interned": []
+    },
+    "entity_directory:is_valid_of_kind": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "ref": "Vector2i",
+        "expected_kind": "int",
+        "slot": "int",
+        "kind": "int",
+        "row": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_world_routes:_reach_stores_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "catalog"
+      ]
+    },
+    "underground_final_facts:_stores_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "owner",
+        "routes",
+        "locations",
+        "sources"
+      ]
+    },
+    "underground_final_facts:_same_domain": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "first",
+        "second"
+      ]
+    },
+    "underground_world_routes:_reach_descriptor": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "row": "int",
+        "revision": "int",
+        "content": "int",
+        "capacity": "int",
+        "mode": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "profiles",
+        "bank",
+        "descriptor"
+      ]
+    },
+    "underground_world_routes:_reach_content_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "actual",
+        "catalog",
+        "code"
+      ]
+    },
+    "underground_connector_source_facts:refusal": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "row": "int",
+        "variant_revision": "int",
+        "revision": "int",
+        "digest_offset": "int",
+        "index": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "expected_digest"
+      ]
+    },
+    "underground_connector_source_facts:_source_digests_match": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "source_offset": "int",
+        "index": "int"
+      },
+      "borrowed_or_interned": [
+        "actual"
+      ]
+    }
+  },
+  "scope": "Source-counted logical numeric/packed payload only. References, Variant headers, engine frames, array/native allocations and hardware timing are unqualified. Existing cold images/clearance banks are unchanged and retain their original separately admitted lifetimes."
+}

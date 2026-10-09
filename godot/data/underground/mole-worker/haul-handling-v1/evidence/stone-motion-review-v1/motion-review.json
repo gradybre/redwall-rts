@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "adr": "1206",
+  "production_qualified": false,
+  "clips": {
+    "approach": {
+      "keys": 61,
+      "closest": {
+        "min_gap_u": 1.69,
+        "key": 60,
+        "bone": "Head",
+        "point_u": [
+          18.9,
+          143.3,
+          -430.8
+        ]
+      }
+    },
+    "lift": {
+      "keys": 61,
+      "closest": {
+        "min_gap_u": 1.69,
+        "key": 0,
+        "bone": "Head",
+        "point_u": [
+          18.9,
+          143.3,
+          -430.8
+        ]
+      }
+    },
+    "place": {
+      "keys": 61,
+      "closest": {
+        "min_gap_u": 1.69,
+        "key": 60,
+        "bone": "Head",
+        "point_u": [
+          18.9,
+          143.3,
+          -430.8
+        ]
+      }
+    },
+    "recovery": {
+      "keys": 61,
+      "closest": {
+        "min_gap_u": 1.69,
+        "key": 0,
+        "bone": "Head",
+        "point_u": [
+          18.9,
+          143.3,
+          -430.8
+        ]
+      }
+    },
+    "hold": {
+      "keys": 2,
+      "closest": {
+        "min_gap_u": 26.0,
+        "key": 0,
+        "bone": "LeftHand",
+        "point_u": [
+          -75.6,
+          683.8,
+          -271.1
+        ]
+      }
+    },
+    "enter": {
+      "keys": 65,
+      "closest": {
+        "min_gap_u": 25.95,
+        "key": 63,
+        "bone": "LeftHand",
+        "point_u": [
+          -81.3,
+          735.0,
+          -236.8
+        ]
+      }
+    },
+    "carry": {
+      "keys": 219,
+      "closest": {
+        "min_gap_u": 26.0,
+        "key": 0,
+        "bone": "LeftHand",
+        "point_u": [
+          -81.2,
+          735.1,
+          -236.7
+        ]
+      }
+    },
+    "exit": {
+      "keys": 65,
+      "closest": {
+        "min_gap_u": 25.95,
+        "key": 4,
+        "bone": "LeftHand",
+        "point_u": [
+          -81.2,
+          734.8,
+          -237.3
+        ]
+      }
+    },
+    "enter_haul_stone": {
+      "keys": 31,
+      "closest": {
+        "min_gap_u": 292.05,
+        "key": 9,
+        "bone": "RightHand",
+        "point_u": [
+          273.8,
+          318.2,
+          -269.3
+        ]
+      }
+    },
+    "leave_haul_stone": {
+      "keys": 31,
+      "closest": {
+        "min_gap_u": 292.05,
+        "key": 21,
+        "bone": "RightHand",
+        "point_u": [
+          273.8,
+          318.2,
+          -269.3
+        ]
+      }
+    }
+  },
+  "inputs_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-program-v1/approach.npz": "ad51f1e34ef77b0807966a160fc271cdd735ef1653f94bfb1c2ab49d412fe2d7",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-program-v1/lift.npz": "3b72ccd095f6ca3e045d97fb8a29964d5dd5782f7886f694c9708429e1d680d5",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-program-v1/place.npz": "cbc71f452d581dfce08a4972242772d10ce429dedaa61f1ee651a9088afc748f",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-program-v1/recovery.npz": "beefcf8f6d8c95751ae049812bbc5492f613f0607354fee1b477eaf1be7323b7",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-gait-v1/hold.npz": "a28934d9e7a1da9f7a9019360cc4fe92a9c88af2247fa159d70b527b7f848f77",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-gait-v1/enter.npz": "50cf7505ddcf2a98808890063046802b7a441e828253b82adc3998a436e301a7",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-gait-v1/carry.npz": "eddedb753d107ec625cf279e78fba809e215635a497d93e242fcfb6f496eee59",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-gait-v1/exit.npz": "5f87ba70f1d3a873331cc02595c4c89cff931c48eb4846555ed5136278ecfe63",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-joins-v1/enter_haul_stone.npz": "f3682f8a29e8c81d78fcf9ff1784109bd6f77ae8ae3315e9e1fa499f7468e358",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/stone-joins-v1/leave_haul_stone.npz": "3a3e71b314b309b66d53bbdd995590e93b2174a1554af410601db342a2c7bf1e"
+  },
+  "scope": "Float radial diagnostics at keys only; continuous exact proofs are in each clip's *-proof.json."
+}

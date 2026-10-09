@@ -1,0 +1,3 @@
+[application]
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Redwall-Codex-Published-Mole-8d324c36e795ba01"

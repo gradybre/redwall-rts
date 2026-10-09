@@ -1,0 +1,200 @@
+{
+	"assertions": 1168,
+	"content_sha256": "6e45e405cca415d9b77ec6bc4f3d6844fa55df96d7b832675b277d923964226d",
+	"failures": [],
+	"poses": 543,
+	"production_qualified": false,
+	"root_contract": "source palettes include candidate root track; no gameplay Transform, route, support or pace owner",
+	"schema": 1,
+	"screenshots": [
+		{
+			"clip": 0,
+			"half_tick": 0,
+			"path": "side-step0-000.png",
+			"sha256": "08ea6ac22187b51851d1f704aef2fe9aee783c443897a03269ac29c3fc6bd33b"
+		},
+		{
+			"clip": 0,
+			"half_tick": 20,
+			"path": "side-step0-020.png",
+			"sha256": "35cde4603e1854e12dbe14bf338bd2a3966dd0d50ec42265e83b19f6ce8dd52c"
+		},
+		{
+			"clip": 0,
+			"half_tick": 40,
+			"path": "side-step0-040.png",
+			"sha256": "f64fe9d806163addcc9e4b3f9a8f8ed3588220d00b8d0c9b06115cdfbace3c1c"
+		},
+		{
+			"clip": 0,
+			"half_tick": 60,
+			"path": "side-step0-060.png",
+			"sha256": "e4e359f57d34a74baa3ec7ae1a07bcdf4879b9bc722a8bf8fae0210cf8376d27"
+		},
+		{
+			"clip": 0,
+			"half_tick": 80,
+			"path": "side-step0-080.png",
+			"sha256": "e7bea843087903798d6502344eda9ee4df32cd41b4cf56309eb9432b9bfb22a2"
+		},
+		{
+			"clip": 0,
+			"half_tick": 100,
+			"path": "side-step0-100.png",
+			"sha256": "11da7d5f2b9edb84f635443eb21a1c5f403a78a6900c5ecb521d2abc22f7cbbd"
+		},
+		{
+			"clip": 0,
+			"half_tick": 120,
+			"path": "side-step0-120.png",
+			"sha256": "a5d82ee3cc2ab1889ec8b896f715f139ab20ce4b7e5dba243360dc467678d688"
+		},
+		{
+			"clip": 0,
+			"half_tick": 140,
+			"path": "side-step0-140.png",
+			"sha256": "68423389a1ce0e82553c0a6882c5848b26f73c1b87e39435e89e8d093a3bf4f4"
+		},
+		{
+			"clip": 0,
+			"half_tick": 160,
+			"path": "side-step0-160.png",
+			"sha256": "440d7f98b19048067971f1714462015d0fc73672202062b85f158f912d8d514d"
+		},
+		{
+			"clip": 0,
+			"half_tick": 180,
+			"path": "side-step0-180.png",
+			"sha256": "9c7929b2b9eaf47d1e85de051ff84b2c58cdcfbf74fbfbe6eef13adfe1b1f3f8"
+		},
+		{
+			"clip": 0,
+			"half_tick": 0,
+			"path": "opposite-step0-000.png",
+			"sha256": "fece89724d3a9575c0042e861886440e190541f37a8b347220647b138769cf8a"
+		},
+		{
+			"clip": 0,
+			"half_tick": 20,
+			"path": "opposite-step0-020.png",
+			"sha256": "5d7df8f0034ff3ad9ffae9f97fa856f236b37f787ac0de7a1ecb1fb785ef4dee"
+		},
+		{
+			"clip": 0,
+			"half_tick": 40,
+			"path": "opposite-step0-040.png",
+			"sha256": "167fd9f8e5623a6a176eec527dde32e5f1359c867d73564eb96648f7614ebd38"
+		},
+		{
+			"clip": 0,
+			"half_tick": 60,
+			"path": "opposite-step0-060.png",
+			"sha256": "40a32d5b1097b91913e3d9dc6190e43717db347438ef75c9fb9895738805ff92"
+		},
+		{
+			"clip": 0,
+			"half_tick": 80,
+			"path": "opposite-step0-080.png",
+			"sha256": "bae25d0a666179bb2b7bdc92b9294c90dd054ab42bc6956674188fd68f39b97a"
+		},
+		{
+			"clip": 0,
+			"half_tick": 100,
+			"path": "opposite-step0-100.png",
+			"sha256": "1e2d3925185573ae6bda825084813eeb34dc5502feaf1d19f65fd738490ab9d4"
+		},
+		{
+			"clip": 0,
+			"half_tick": 120,
+			"path": "opposite-step0-120.png",
+			"sha256": "dda12d6eb557619cb0232ecb22f013a111c07d3b286d45826648acfdc6b7da18"
+		},
+		{
+			"clip": 0,
+			"half_tick": 140,
+			"path": "opposite-step0-140.png",
+			"sha256": "7f1cfbcb5f2c9b37623a67af3d2900a5030c3eea456c1448b0bec5c9c70bed77"
+		},
+		{
+			"clip": 0,
+			"half_tick": 160,
+			"path": "opposite-step0-160.png",
+			"sha256": "1404083380af1796a1531304ac24512e946ea059e2c8f2dc600b8a79935e1465"
+		},
+		{
+			"clip": 0,
+			"half_tick": 180,
+			"path": "opposite-step0-180.png",
+			"sha256": "fe3af5d0ab8ff797eb925ef327a1dd99c8c81996cd6f7ae5786510143d14e122"
+		},
+		{
+			"clip": 0,
+			"half_tick": 0,
+			"path": "rts-step0-000.png",
+			"sha256": "8e3b2d3a12173d1383fe1cd5f978c94157e1c26291b9d16c68e55086b9b244d8"
+		},
+		{
+			"clip": 0,
+			"half_tick": 20,
+			"path": "rts-step0-020.png",
+			"sha256": "16ceb9faa2c9ce302eefe328bb8d16eea72e0123b26873dd7e5eb3d06a567d30"
+		},
+		{
+			"clip": 0,
+			"half_tick": 40,
+			"path": "rts-step0-040.png",
+			"sha256": "02e440a102c9154810a0f102fc0fd2deb32c80a6687d94b20f1277cdaa6ea0a5"
+		},
+		{
+			"clip": 0,
+			"half_tick": 60,
+			"path": "rts-step0-060.png",
+			"sha256": "2bff2265620cc0aa9c5a9e8b7b4587d72ff479d0ebbc792e6176cfbafc1acbf7"
+		},
+		{
+			"clip": 0,
+			"half_tick": 80,
+			"path": "rts-step0-080.png",
+			"sha256": "7838e8419393558bb37934135e9b282ffda6d40e75cb5c268609f7a3d10c1fc8"
+		},
+		{
+			"clip": 0,
+			"half_tick": 100,
+			"path": "rts-step0-100.png",
+			"sha256": "62b7817268ae6f116135910c062fb0cf7a1ae2d06f24101793305689ed529d95"
+		},
+		{
+			"clip": 0,
+			"half_tick": 120,
+			"path": "rts-step0-120.png",
+			"sha256": "68aaa383180bc795ba0a5c95394d290e6d108ad11d845517360ab8bd2bec5479"
+		},
+		{
+			"clip": 0,
+			"half_tick": 140,
+			"path": "rts-step0-140.png",
+			"sha256": "9d26d011b00bdb9c6b144a877c1ff399d0a28f0d62a461d105ffdcc049d6be47"
+		},
+		{
+			"clip": 0,
+			"half_tick": 160,
+			"path": "rts-step0-160.png",
+			"sha256": "c6a56dd2328b6c858478f3983610828faaee6ff816a790521f826f0e83ee88d6"
+		},
+		{
+			"clip": 0,
+			"half_tick": 180,
+			"path": "rts-step0-180.png",
+			"sha256": "15216a2fda94b29c2b7add0d142ae13bbac8ab38fb14e08165349a48eb97a430"
+		}
+	],
+	"stair_cases": [
+		{
+			"edge_z_u": -169.0,
+			"phase_frames": 30.0,
+			"rise_u": 128.0,
+			"run_u": 512.0
+		}
+	],
+	"world_identity": "unpaid64u timber deck and eight side-post engineering fixtures"
+}

@@ -1,7 +1,12 @@
 extends RefCounted
 ## Owner 1 (`construction`) column validation bridge (CONSTRUCTION-S4-VALIDATE-R01v2, ADR 0186).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
+## ADR 1222 step 3 adds the JOINT pair at the end of this file: `capture_into()` / `apply()` move
+## the section 4 record, the section 5 delivered ledger and the section 6 `construction_extension`
+## and `construction_paid_ledger` blocks through ONE `Construction.copy_columns_into()` /
+## `restore_columns()` call (DEC-055 Q7(a)), so no half-applied set exists.
+##
+## `framed_refusal()` judges one already framed section 4 owner block
 ## against the Construction store's own cold column predicate and returns a `SaveHeader.Refusal`.
 ## It constructs no live Construction, Buildings, BuildingDefinitions or EntityDirectory instance,
 ## reads no clock, takes no callback, captures nothing, restores nothing and writes no diagnostic.
@@ -51,6 +56,10 @@ const Construction := preload("res://scripts/core/construction.gd")
 const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
 const Section := preload("res://scripts/core/save_section_component_columns.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
+const ChildSection := preload("res://scripts/core/save_section_child_arenas.gd")
+const ChildSchema := preload("res://scripts/core/save_child_arenas_schema.gd")
+const AuxSection := preload("res://scripts/core/save_section_auxiliary.gd")
+const AuxSchema := preload("res://scripts/core/save_auxiliary_state_schema.gd")
 
 ## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
 const OWNER_INDEX: int = 1
@@ -241,22 +250,9 @@ const SOURCE_UPGRADE_BILLS: Dictionary = {
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 	"""Judge one framed owner 1 block against the Construction store's own cold column rules."""
-	if record == null:
-		return _refuse(Section.REFUSE_SHAPE,
-			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
-	if record.owner != OWNER_INDEX:
-		return _refuse(Section.REFUSE_OWNER,
-			"owner %d was supplied where owner %d ('%s') is required"
-				% [record.owner, OWNER_INDEX, OWNER_KEY])
-	var schema: SaveHeader.Refusal = Schema.schema_refusal()
-	if not schema.is_ok():
-		return schema
-	var metadata: SaveHeader.Refusal = _metadata_refusal()
-	if not metadata.is_ok():
-		return metadata
-	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
-	if not shape.is_ok():
-		return shape
+	var preflight: SaveHeader.Refusal = _record_preflight(record)
+	if not preflight.is_ok():
+		return preflight
 	var columns: Construction.Columns = Construction.Columns.new(false)
 	_project_columns(record, columns)
 	var code: StringName = Construction.columns_refusal(columns)
@@ -816,3 +812,184 @@ static func _refuse_metadata(detail: String) -> SaveHeader.Refusal:
 static func _accept() -> SaveHeader.Refusal:
 	"""The accepted result: an empty code and no detail."""
 	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")
+
+
+# --- ADR 1222 step 3: the joint capture/apply pair over four wire records ------------------------
+
+## A capture or apply called without a live store.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
+## A section 5 or section 6 block that is missing, another owner's, or misshaped.
+const REFUSE_BLOCK_SHAPE: StringName = &"SAVE_CONSTRUCTION_BLOCK_SHAPE"
+## Owner indexes of construction's section 5 block and its two section 6 blocks.
+const CHILD_OWNER_INDEX: int = 1
+const EXTENSION_OWNER_KEY: String = "construction_extension"
+const PAID_OWNER_KEY: String = "construction_paid_ledger"
+## Section 5 ordinal of the delivered ledger; section 6 ordinals of the paid ledger pair.
+const CHILD_DELIVERED: int = 0
+const PAID_BASE_TYPE: int = 0
+const PAID_UPGRADE_MASK: int = 1
+
+
+class Blocks extends RefCounted:
+	"""The three non-section-4 records one capture or apply moves with the section 4 record."""
+	var delivered: ChildSection.Block = null
+	var extension: AuxSection.Block = null
+	var paid: AuxSection.Block = null
+
+	func _init(p_delivered: ChildSection.Block, p_extension: AuxSection.Block,
+			p_paid: AuxSection.Block) -> void:
+		"""Bind the section 5 block and the two section 6 blocks."""
+		delivered = p_delivered
+		extension = p_extension
+		paid = p_paid
+
+
+static func blocks_refusal(record: Section.FramedOwner, blocks: Blocks) -> SaveHeader.Refusal:
+	"""Gates 1-5 for the record, then each block owned by its declared owner and well shaped."""
+	var preflight: SaveHeader.Refusal = _record_preflight(record)
+	if not preflight.is_ok():
+		return preflight
+	if blocks == null or blocks.delivered == null or blocks.delivered.owner != CHILD_OWNER_INDEX \
+			or ChildSchema.OWNER_KEYS[CHILD_OWNER_INDEX] != OWNER_KEY \
+			or blocks.delivered.shape_detail() != "":
+		return _refuse(REFUSE_BLOCK_SHAPE,
+			"a well-shaped section 5 'construction' block is required")
+	for pair: Array in [[blocks.extension, EXTENSION_OWNER_KEY], [blocks.paid, PAID_OWNER_KEY]]:
+		var block: AuxSection.Block = pair[0]
+		if block == null or not AuxSchema.owner_valid(block.owner) \
+				or AuxSchema.OWNER_KEYS[block.owner] != String(pair[1]) \
+				or block.shape_detail() != "":
+			return _refuse(REFUSE_BLOCK_SHAPE, "a well-shaped section 6 '%s' block is required"
+				% String(pair[1]))
+	return _accept()
+
+
+static func _record_preflight(record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Gates 1-5 of `framed_refusal()`, without the column predicate."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	var metadata: SaveHeader.Refusal = _metadata_refusal()
+	if not metadata.is_ok():
+		return metadata
+	return Section.owner_shape_refusal(record)
+
+
+static func capture_into(store: Construction, record: Section.FramedOwner,
+		blocks: Blocks) -> SaveHeader.Refusal:
+	"""Capture every row and both ledgers once; judge the written section 4 record last."""
+	var target: SaveHeader.Refusal = blocks_refusal(record, blocks)
+	if not target.is_ok():
+		return target
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Construction store was supplied")
+	var columns: Construction.Columns = Construction.Columns.new()
+	var extension: Construction.Columns = Construction.Columns.new()
+	var ledger: Construction.Ledger = Construction.Ledger.new()
+	if not store.copy_columns_into(columns, extension, ledger):
+		return _refuse(store.last_column_refusal(), "%scapture refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	if not _write_record(columns, record):
+		return _refuse(Section.REFUSE_SHAPE, "%scapture could not write a column"
+			% COLUMN_DETAIL_PREFIX)
+	var written: SaveHeader.Refusal = _write_blocks(extension, ledger, blocks)
+	if not written.is_ok():
+		return written
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, blocks: Blocks,
+		store: Construction) -> SaveHeader.Refusal:
+	"""Install all four records through one `restore_columns()` call. Refusal writes nothing."""
+	var target: SaveHeader.Refusal = blocks_refusal(record, blocks)
+	if not target.is_ok():
+		return target
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Construction store was supplied")
+	var columns: Construction.Columns = Construction.Columns.new(false)
+	_project_columns(record, columns)
+	var extension: Construction.Columns = Construction.Columns.new(false)
+	_read_extension(blocks.extension, extension)
+	var ledger: Construction.Ledger = Construction.Ledger.new()
+	ledger.delivered_milli = blocks.delivered.i64_column(CHILD_DELIVERED)
+	ledger.paid_base_type = blocks.paid.i32_column(PAID_BASE_TYPE)
+	ledger.paid_upgrade_mask = blocks.paid.i32_column(PAID_UPGRADE_MASK)
+	if not store.restore_columns(columns, extension, ledger):
+		return _refuse(store.last_column_refusal(), "%srestore refused with %s"
+			% [COLUMN_DETAIL_PREFIX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _write_record(c: Construction.Columns, r: Section.FramedOwner) -> bool:
+	"""Ordinals 0..15 of the section 4 record, through its checked setters."""
+	return (r.set_u8(FIELD_PRESENT, c.present)
+		and r.set_i32(FIELD_MATERIAL_CONTAINER_SLOT, c.material_container_slot)
+		and r.set_i32(FIELD_MATERIAL_CONTAINER_GENERATION, c.material_container_generation)
+		and r.set_i32(FIELD_ASSIGNED_COUNT, c.assigned_count)
+		and r.set_i32(FIELD_MAX_WORKERS, c.max_workers)
+		and r.set_i32(FIELD_REFUND_POLICY, c.refund_policy)
+		and r.set_i64(FIELD_REMAINING_MWU, c.remaining_mwu)
+		and r.set_u8(FIELD_PAUSED, c.paused) and r.set_u8(FIELD_WORK_BEGUN, c.work_begun)
+		and r.set_i32(FIELD_REF_SLOT, c.ref_slot)
+		and r.set_i32(FIELD_REF_GENERATION, c.ref_generation)
+		and r.set_i32(FIELD_SUBJECT_SLOT, c.subject_slot)
+		and r.set_i32(FIELD_SUBJECT_GENERATION, c.subject_generation)
+		and r.set_i32(FIELD_PURPOSE, c.purpose) and r.set_i32(FIELD_TYPE_ID, c.type_id)
+		and r.set_i32(FIELD_PHASE, c.phase))
+
+
+static func _write_blocks(extension: Construction.Columns, ledger: Construction.Ledger,
+		blocks: Blocks) -> SaveHeader.Refusal:
+	"""The extension image (same ordinals as section 4), the delivered ledger and the paid pair."""
+	var b: AuxSection.Block = blocks.extension
+	for refusal: SaveHeader.Refusal in [
+			b.set_u8_column(FIELD_PRESENT, extension.present),
+			b.set_i32_column(FIELD_MATERIAL_CONTAINER_SLOT, extension.material_container_slot),
+			b.set_i32_column(FIELD_MATERIAL_CONTAINER_GENERATION,
+				extension.material_container_generation),
+			b.set_i32_column(FIELD_ASSIGNED_COUNT, extension.assigned_count),
+			b.set_i32_column(FIELD_MAX_WORKERS, extension.max_workers),
+			b.set_i32_column(FIELD_REFUND_POLICY, extension.refund_policy),
+			b.set_i64_column(FIELD_REMAINING_MWU, extension.remaining_mwu),
+			b.set_u8_column(FIELD_PAUSED, extension.paused),
+			b.set_u8_column(FIELD_WORK_BEGUN, extension.work_begun),
+			b.set_i32_column(FIELD_REF_SLOT, extension.ref_slot),
+			b.set_i32_column(FIELD_REF_GENERATION, extension.ref_generation),
+			b.set_i32_column(FIELD_SUBJECT_SLOT, extension.subject_slot),
+			b.set_i32_column(FIELD_SUBJECT_GENERATION, extension.subject_generation),
+			b.set_i32_column(FIELD_PURPOSE, extension.purpose),
+			b.set_i32_column(FIELD_TYPE_ID, extension.type_id),
+			b.set_i32_column(FIELD_PHASE, extension.phase),
+			blocks.delivered.set_i64_column(CHILD_DELIVERED, ledger.delivered_milli),
+			blocks.paid.set_i32_column(PAID_BASE_TYPE, ledger.paid_base_type),
+			blocks.paid.set_i32_column(PAID_UPGRADE_MASK, ledger.paid_upgrade_mask)]:
+		if not refusal.is_ok():
+			return refusal
+	return _accept()
+
+
+static func _read_extension(b: AuxSection.Block, out: Construction.Columns) -> void:
+	"""Decode the extension block into a borrowed `Columns` view (fresh arrays per getter)."""
+	out.present = b.u8_column(FIELD_PRESENT)
+	out.material_container_slot = b.i32_column(FIELD_MATERIAL_CONTAINER_SLOT)
+	out.material_container_generation = b.i32_column(FIELD_MATERIAL_CONTAINER_GENERATION)
+	out.assigned_count = b.i32_column(FIELD_ASSIGNED_COUNT)
+	out.max_workers = b.i32_column(FIELD_MAX_WORKERS)
+	out.refund_policy = b.i32_column(FIELD_REFUND_POLICY)
+	out.remaining_mwu = b.i64_column(FIELD_REMAINING_MWU)
+	out.paused = b.u8_column(FIELD_PAUSED)
+	out.work_begun = b.u8_column(FIELD_WORK_BEGUN)
+	out.ref_slot = b.i32_column(FIELD_REF_SLOT)
+	out.ref_generation = b.i32_column(FIELD_REF_GENERATION)
+	out.subject_slot = b.i32_column(FIELD_SUBJECT_SLOT)
+	out.subject_generation = b.i32_column(FIELD_SUBJECT_GENERATION)
+	out.purpose = b.i32_column(FIELD_PURPOSE)
+	out.type_id = b.i32_column(FIELD_TYPE_ID)
+	out.phase = b.i32_column(FIELD_PHASE)

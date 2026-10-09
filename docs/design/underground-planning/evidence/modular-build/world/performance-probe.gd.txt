@@ -1,0 +1,17 @@
+extends SceneTree
+const Overlay := preload("res://demo/burrow/modular_world_overlay.gd")
+const Footprint := preload("res://scripts/core/room_footprint.gd")
+func _initialize() -> void:
+    for size: int in [64,128]:
+        var cells: PackedInt32Array = Footprint.rectangle(0,0,size,size,16384).cells
+        var times: PackedInt64Array = PackedInt64Array()
+        for run: int in range(5):
+            var overlay: Overlay = Overlay.new()
+            overlay.configure(Vector3i.ZERO,256,Rect2i(0,0,128,128),8)
+            var start: int = Time.get_ticks_usec()
+            overlay.refresh(cells,false)
+            times.append(Time.get_ticks_usec()-start)
+            overlay.free()
+        times.sort()
+        print("WORLD-PREVIEW-PERF cells=",size*size," median_usec=",times[2]," max_usec=",times[4])
+    quit()

@@ -1,0 +1,16 @@
+test_complete_own_frames_and_no_composed_admission (__main__.CensusTests) ... ok
+test_extra_method_cannot_escape_source_set (__main__.CensusTests) ... ok
+test_late_bind_retention_cannot_revert (__main__.CensusTests) ... ok
+test_literal_cannot_hide_in_numeric_initializer (__main__.CensusTests) ... ok
+test_manifest_rewrite_and_unknown_current_bytes_refuse (__main__.CensusTests) ... ok
+test_new_member_and_initializer_refuse (__main__.CensusTests) ... ok
+test_new_numeric_and_reference_locals_are_counted (__main__.CensusTests) ... ok
+test_original_once_bound_guard_cannot_disappear (__main__.CensusTests) ... ok
+test_packed_literal_in_reached_helper_refuses (__main__.CensusTests) ... ok
+test_producer_or_canonical_leaf_drift_refuses_before_import (__main__.CensusTests) ... ok
+test_source_observer_call_refuses (__main__.CensusTests) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.494s
+
+OK

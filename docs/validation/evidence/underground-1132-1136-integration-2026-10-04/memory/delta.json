@@ -1,0 +1,17 @@
+{
+  "head": "8b54eb38358474fe35831915b24e133806abdc24",
+  "before_sha256": "0c25dcdc71b0815860589acb223407c1daeae6fcc9dccdd3f2e9dc26128fc5ac",
+  "after_sha256": "594242d2fb6591d2f1f58a4d83cb41e6e07e2dfbbec65bb2c71fa67ac25f7d9b",
+  "changes": [
+    {
+      "path": "/source_sha256/godot/scripts/core/modular_project_contract.gd",
+      "old": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
+      "new": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849"
+    },
+    {
+      "path": "/source_sha256/godot/scripts/core/modular_projects.gd",
+      "old": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
+      "new": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8"
+    }
+  ]
+}

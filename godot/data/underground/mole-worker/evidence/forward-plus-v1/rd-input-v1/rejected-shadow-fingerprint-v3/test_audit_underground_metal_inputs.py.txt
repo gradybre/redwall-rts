@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Adversarial input transcripts are parser fixtures, never native/profile qualification."""
+import copy
+from fractions import Fraction
+import hashlib
+import io
+import json
+from pathlib import Path
+import struct
+import tempfile
+import unittest
+
+import audit_underground_metal_inputs as A
+
+SPEC = "12" * 32
+BOX = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+
+
+def surface(part=0, eight=False, compressed=False):
+    binds = 24 if part == 0 else 0
+    fmt = A.VERSION | 1 | 4096 | (3072 if binds else 0) | (A.EIGHT if eight else 0) | (A.COMPRESSED if compressed else 0)
+    layout = A.layout(fmt, 3, 3, binds)
+    meta = {"part": part, "surface": 0, "binds": binds, "format": fmt, "vertices": 3, "indices": 3,
+            "primitive": 3, "aabb": BOX, "lods": [], **{k: v for k, v in layout.items() if k != "influences"}}
+    points = struct.pack("<9f", 0, 0, 0, 1, 0, 0, 0, 1, 0)
+    vertices = points if not compressed else b"".join(struct.pack("<4H", *p, 0) for p in ((0, 0, 0), (65535, 0, 0), (0, 65535, 0)))
+    count = layout["influences"]
+    words = ([21845, 43690] + [0] * (count-2)) if count else []
+    skin = (struct.pack("<" + "H" * count * 2, *range(count), *words) * 3) if count else b""
+    bones = (struct.pack("<" + "i" * count, *range(count)) * 3) if count else b""
+    weights = (struct.pack("<" + "f" * count, *(v / 65535 for v in words)) * 3) if count else b""
+    return meta, [vertices, b"", skin, struct.pack("<3H", 0, 1, 2), points, bones, weights, struct.pack("<3i", 0, 1, 2)]
+
+
+def blob(data):
+    return struct.pack("<I", len(data)) + data
+
+
+def record(data):
+    return blob(json.dumps(data).encode())
+
+
+def image(shadow=False, lod=False, omit_shadow=False):
+    mesh_count = 3 if shadow and not omit_shadow else 2
+    result = b"UGMIN001" + struct.pack("<I", 1) + bytes.fromhex(SPEC + A.CONTENT_SHA) + struct.pack("<I", mesh_count)
+    parts, topology = [], []
+    for index in range(mesh_count):
+        meta, buffers = surface(0 if index == 0 else 1, compressed=index != 0)
+        meta["part"] = index
+        h = hashlib.sha256(b"UGMESH01" + struct.pack("<2I6f", meta["binds"], 1, *BOX))
+        # Independent transcript: exactly three fixture vertices, fixed explicit lanes.
+        h.update(struct.pack("<Q2I", meta["format"], 3, 4 if index == 0 else 0))
+        for vertex in range(3):
+            h.update(buffers[4][12*vertex:12*vertex+12])
+            for lane in range(4 if index == 0 else 0):
+                at = (vertex * 4 + lane) * 4
+                h.update(buffers[5][at:at+4] + buffers[6][at:at+4])
+        if index < 2:
+            parts.append({"binds": meta["binds"], "vertices": 3, "surfaces": 1, "sha256": h.hexdigest()})
+            topology.append({"mesh_sha256": h.hexdigest(), "surfaces": [{"indices": [0, 1, 2]}]})
+        result += record({"part": index, "binds": meta["binds"], "surfaces": 1, "aabb": BOX,
+                          "vertices": 3, "mesh_sha256": h.hexdigest(), "shadow_of": 1 if index == 2 else -1,
+                          "has_shadow": bool(shadow and index == 1)})
+        extra = []
+        if lod:
+            meta["lods"] = [{"edge_length": 0.25, "index_bytes": 6}]
+            extra = [struct.pack("<3H", 2, 1, 0)]
+        result += record(meta) + b"".join(map(blob, buffers + extra))
+    return result + b"UMINEND1" + struct.pack("<2I", mesh_count, mesh_count*3), parts, topology
+
+
+def audit(raw, parts, topology, expected=None):
+    return A.audit(io.BytesIO(raw), expected or A.digest(raw), SPEC, parts, topology)
+
+
+class InputTests(unittest.TestCase):
+    def test_complete_fixture_accounts_for_every_lane_triangle_and_exact_mesh(self):
+        raw, parts, topology = image()
+        result = audit(raw, parts, topology)
+        self.assertEqual((result["surfaces"], result["vertices"]), (2, 6))
+        self.assertEqual(result["rows"][0]["positive_influences"], 6)
+        self.assertEqual(result["rows"][0]["zero_influences"], 6)
+        self.assertEqual(result["rows"][0]["integer_weight_sum_range"], [65535, 65535])
+        self.assertEqual(result["qualified_profiles"], 0)
+        self.assertFalse(result["gpu_arithmetic_qualified"])
+
+    def test_eight_influences_are_all_preserved_including_unused_bone_lanes(self):
+        meta, buffers = surface(eight=True)
+        row = A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+        self.assertEqual(row["influence_lanes"], 24)
+        broken = list(buffers)
+        broken[2] = bytes([24, 0]) + broken[2][2:]
+        with self.assertRaisesRegex(A.Refused, "BONE_WORD"):
+            A.audit_surface(meta, broken, 0, 0, 24, [0, 1, 2])
+
+    def test_all_supported_integer_weights_have_exact_cpu_float_transcript(self):
+        # The source reference is F32 of a double division, never an independently normalized sum.
+        for word in range(65536):
+            actual = A.f32(word / 65535.0)
+            self.assertEqual(actual, A.nearest_f32(Fraction(word, 65535)))
+
+    def test_weight_and_bone_changes_cannot_hide_behind_a_new_outer_hash(self):
+        for field, code in ((2, "BONE_WORD"), (5, "BONE_WORD"), (6, "WEIGHT_WORD")):
+            meta, buffers = surface()
+            changed = bytearray(buffers[field]); changed[0] ^= 1; buffers[field] = bytes(changed)
+            with self.subTest(field=field), self.assertRaisesRegex(A.Refused, code):
+                A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+
+    def test_wrong_layout_missing_bytes_and_custom_future_version_refuse(self):
+        for change in (lambda m: m.update(skin_stride=32), lambda m: m["offsets"].__setitem__(11, 0),
+                       lambda m: m.update(format=m["format"] | (1 << 6)),
+                       lambda m: m.update(format=(m["format"] ^ A.VERSION) | (1 << 36))):
+            meta, buffers = surface(); change(meta)
+            with self.assertRaises(A.Refused):
+                A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+        meta, buffers = surface(); buffers[1] = b"x"
+        with self.assertRaisesRegex(A.Refused, "BUFFER_LENGTH"):
+            A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+
+    def test_topology_omission_reorder_and_stale_part_identity_refuse(self):
+        raw, parts, topology = image()
+        for broken in ([0, 1], [0, 2, 1], [0, 1, 3]):
+            data = copy.deepcopy(topology); data[0]["surfaces"][0]["indices"] = broken
+            with self.assertRaises(A.Refused): audit(raw, parts, data)
+        for key, value in (("sha256", "00" * 32), ("vertices", 4), ("surfaces", 2)):
+            data = copy.deepcopy(parts); data[0][key] = value
+            with self.assertRaises(A.Refused): audit(raw, data, topology)
+
+    def test_compressed_static_vertices_are_not_treated_as_float_positions(self):
+        meta, buffers = surface(1, compressed=True)
+        A.audit_surface(meta, buffers, 1, 0, 0, [0, 1, 2])
+        bad = list(buffers); bad[4] = struct.pack("<f", 0.5) + bad[4][4:]
+        with self.assertRaisesRegex(A.Refused, "POSITION_DECODE"):
+            A.audit_surface(meta, bad, 1, 0, 0, [0, 1, 2])
+        meta["format"] |= 3072
+        with self.assertRaisesRegex(A.Refused, "SKIN_FORMAT"):
+            A.audit_surface(meta, buffers, 1, 0, 0, [0, 1, 2])
+
+    def test_nonfinite_geometry_and_zero_total_weight_refuse(self):
+        meta, buffers = surface(); buffers[4] = struct.pack("<f", float("nan")) + buffers[4][4:]
+        with self.assertRaisesRegex(A.Refused, "POSITION_FINITE"):
+            A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+        meta, buffers = surface(); buffers[2] = buffers[2][:8] + bytes(8) + buffers[2][16:]
+        with self.assertRaisesRegex(A.Refused, "WEIGHT_SUM"):
+            A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+
+    def test_truncation_trailing_bad_footer_and_hash_refuse(self):
+        raw, parts, topology = image()
+        for end in range(len(raw)):
+            with self.subTest(end=end), self.assertRaises(A.Refused): audit(raw[:end], parts, topology)
+        for broken in (raw+b"x", raw[:-4]+struct.pack("<I", 7), b"NOMIN001"+raw[8:]):
+            with self.assertRaises(A.Refused): audit(broken, parts, topology)
+        with self.assertRaisesRegex(A.Refused, "INPUT_HASH"):
+            audit(raw, parts, topology, "00" * 32)
+
+    def test_blob_capacity_refuses_before_read_allocation(self):
+        reader = A.Reader(io.BytesIO(struct.pack("<I", A.MAX_SURFACE+1)))
+        with self.assertRaisesRegex(A.Refused, "BLOB_CAPACITY"): reader.blob(A.MAX_SURFACE)
+        self.assertEqual(reader.count, 4)
+        reader = A.Reader(io.BytesIO(struct.pack("<I", 20)))
+        with self.assertRaisesRegex(A.Refused, "BLOB_CAPACITY"): reader.blob(19)
+
+    def test_duplicate_metadata_and_bool_counts_refuse(self):
+        with self.assertRaises(A.Refused): A.Reader(io.BytesIO(blob(b'{"part":0,"part":1}'))).record()
+        meta, buffers = surface(); meta["vertices"] = True
+        with self.assertRaises(A.Refused): A.audit_surface(meta, buffers, 0, 0, 24, [0, 1, 2])
+
+    def test_actual_shadow_and_lods_remain_separate_complete_source_obligations(self):
+        raw, parts, topology = image(shadow=True, lod=True)
+        result = audit(raw, parts, topology)
+        self.assertEqual((result["surfaces"], result["vertices"]), (3, 9))
+        self.assertEqual(result["parts"][2]["shadow_of"], 1)
+        self.assertFalse(result["parts"][2]["matches_palette_source"])
+        self.assertFalse(result["auxiliary_geometry_enclosure_qualified"])
+        self.assertEqual([row["lods"][0]["triangles"] for row in result["rows"]], [1, 1, 1])
+        omitted, parts, topology = image(shadow=True, omit_shadow=True)
+        with self.assertRaisesRegex(A.Refused, "SHADOW_CENSUS"): audit(omitted, parts, topology)
+        changed = raw.replace(b'"shadow_of": 1', b'"shadow_of": 0')
+        with self.assertRaisesRegex(A.Refused, "SHADOW_IDENTITY"): audit(changed, parts, topology)
+
+    def test_lod_threshold_census_bounds_and_all_indices_are_checked(self):
+        meta, buffers = surface()
+        meta["lods"] = [{"edge_length": 0.25, "index_bytes": 6}]
+        good = [struct.pack("<3H", 0, 1, 2)]
+        for value, raw, code in (([], good, "CENSUS"), (meta["lods"], [], "CENSUS"),
+                                ([{"edge_length": float("nan"), "index_bytes": 6}], good, "THRESHOLD"),
+                                ([{"edge_length": 0.25, "index_bytes": A.MAX_INDICES*2+6}], good, "CAPACITY"),
+                                (meta["lods"]*9, good, "CENSUS"),
+                                (meta["lods"], [struct.pack("<3H", 0, 1, 3)], "INDEX"),
+                                (meta["lods"], [b"1234"], "LENGTH")):
+            changed = copy.deepcopy(meta); changed["lods"] = value
+            with self.subTest(code=code), self.assertRaisesRegex(A.Refused, "LOD_"+code):
+                A.audit_surface(changed, buffers, 0, 0, 24, [0, 1, 2], raw)
+        for end in range(len(image(shadow=True, lod=True)[0])-32, len(image(shadow=True, lod=True)[0])):
+            raw, parts, topology = image(shadow=True, lod=True)
+            with self.assertRaises(A.Refused): audit(raw[:end], parts, topology)
+
+    def test_source_spec_and_full_part_census_refuse(self):
+        raw, parts, topology = image()
+        for broken in (raw[:12]+bytes(32)+raw[44:], raw[:76]+struct.pack("<I", 1)+raw[80:]):
+            with self.assertRaises(A.Refused): audit(broken, parts, topology)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"actor.ugactor"; path.write_bytes(b"UGACNT01")
+            with self.assertRaisesRegex(A.Refused, "CONTENT_CAPACITY"): A.content_parts(path)
+
+
+if __name__ == "__main__":
+    unittest.main()

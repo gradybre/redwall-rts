@@ -1,0 +1,105 @@
+extends "res://test/framework/test_case.gd"
+## Decision1132. Source/table guards only; synthetic metadata cannot qualify Metal or a physical profile.
+
+const TEMP: String = "user://test-forward-basis.bin"
+const REPORT: String = "user://test-forward-basis.json"
+var _baker: GDScript = null
+
+
+func before_each() -> void:
+	"""Load the actual additive offline source without constructing its SceneTree or executing the CLI."""
+	var path: String = ProjectSettings.globalize_path("res://").path_join("../tools/bake_underground_forward_basis.gd").simplify_path()
+	_baker = load(path) as GDScript
+	assert_true(_baker != null, "actual new source loaded")
+
+
+func after_each() -> void:
+	"""Remove only fixture files created by this test; both producer scripts remain immutable."""
+	_baker = null
+	for path: String in [TEMP, REPORT]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func _metadata() -> Dictionary:
+	"""Deliberately synthetic format input, not a claim that the headless test uses a native Metal device."""
+	return {"engine": {"major": 4, "minor": 7, "patch": 2, "hash": _baker.ENGINE_HASH,
+		"build": "official", "status": "stable"}, "rendering_driver": "metal",
+		"rendering_method": "forward_plus", "display_server": "macOS", "api_version": "4.0"}
+
+
+func test_exact_source_backend_guard_rejects_headless_gl_and_other_versions() -> void:
+	"""The new table cannot arise from a GL relabel, a headless dummy device or a version-number-only match."""
+	assert_equal(_baker.backend_refusal(_metadata()), &"", "synthetic format admitted only")
+	var data: Dictionary = _metadata()
+	data.engine.hash = "0".repeat(40)
+	assert_equal(_baker.backend_refusal(data), &"FORWARD_BASIS_ENGINE", "actual official source hash required")
+	data = _metadata()
+	data.rendering_driver = "opengl3"
+	assert_equal(_baker.backend_refusal(data), &"FORWARD_BASIS_BACKEND", "old desktop GL not a Metal source")
+	data = _metadata()
+	data.display_server = "headless"
+	assert_equal(_baker.backend_refusal(data), &"FORWARD_BASIS_BACKEND", "dummy native metadata refused")
+	data = _metadata()
+	data.rendering_method = "mobile"
+	assert_equal(_baker.backend_refusal(data), &"FORWARD_BASIS_BACKEND", "other RD shader refused")
+	data = _metadata()
+	data.api_version = "4.1"
+	assert_equal(_baker.backend_refusal(data), &"FORWARD_BASIS_API", "unreviewed API is not silently accepted")
+	data.engine = "4.7.2"
+	assert_equal(_baker.backend_refusal(data), &"FORWARD_BASIS_ENGINE", "malformed engine record")
+
+
+func test_native_rows_preserve_small_cardinal_and_nonunit_coefficients() -> void:
+	"""Compare every finite row with native Basis; no normalized circle substitutes for actual source values."""
+	var row: PackedFloat32Array = PackedFloat32Array([0.0, 0.0])
+	var bad: int = -1
+	var over_unit: bool = false
+	for yaw: int in 65536:
+		var basis: Basis = Basis(Vector3.UP, float(yaw) * TAU / 65536.0)
+		if _baker.coefficients_into(yaw, row) != &"" or row[0] != basis.x.x or row[1] != basis.z.x:
+			bad = yaw
+			break
+		over_unit = over_unit or row[0] * row[0] + row[1] * row[1] > 1.0
+	assert_equal(bad, -1, "all65536 actual pairs, no interpolation or missing row")
+	assert_true(over_unit, "actual floating norm overshoot retained for the exact proof")
+	assert_equal(_baker.coefficients_into(16384, row), &"", "actual quarter")
+	assert_true(row[0] != 0.0, "native small cardinal cosine retained")
+
+
+func test_refusal_preserves_caller_scratch_and_never_wraps_heading() -> void:
+	"""The inherited source arithmetic retains the exact finite input/output boundary."""
+	var row: PackedFloat32Array = PackedFloat32Array([7.0, 8.0])
+	for yaw: int in [-1, 65536, 9223372036854775807]:
+		assert_equal(_baker.coefficients_into(yaw, row), &"WORLD_BASIS_INPUT", "invalid exact heading")
+		assert_equal(row, PackedFloat32Array([7.0, 8.0]), "no refused output mutation")
+	var short: PackedFloat32Array = PackedFloat32Array([9.0])
+	assert_equal(_baker.coefficients_into(0, short), &"WORLD_BASIS_INPUT", "exact borrowed shape")
+	assert_equal(short, PackedFloat32Array([9.0]), "refused short output retained")
+
+
+func test_create_only_guard_preserves_both_sources_and_previous_output() -> void:
+	"""Both the additive wrapper and actual borrowed coefficient producer are protected input files."""
+	assert_equal(_baker.output_refusal(_baker.resource_path, REPORT, _baker.resource_path),
+		&"WORLD_BASIS_OUTPUT_IDENTITY", "new source protected")
+	assert_equal(_baker.output_refusal(_baker.Native.resource_path, REPORT, _baker.resource_path),
+		&"WORLD_BASIS_OUTPUT_IDENTITY", "borrowed old source protected")
+	assert_equal(_baker.output_refusal(REPORT, REPORT, _baker.resource_path),
+		&"WORLD_BASIS_OUTPUT_IDENTITY", "two outputs must not alias")
+	var file: FileAccess = FileAccess.open(TEMP, FileAccess.WRITE)
+	file.store_buffer(PackedByteArray([1, 2, 3]))
+	file.close()
+	assert_equal(_baker.output_refusal(TEMP, REPORT, _baker.resource_path),
+		&"WORLD_BASIS_OUTPUT_EXISTS", "previous raw is immutable")
+	assert_equal(FileAccess.get_file_as_bytes(TEMP), PackedByteArray([1, 2, 3]), "original bytes retained")
+	assert_false(FileAccess.file_exists(REPORT), "preflight did not begin output")
+
+
+func test_new_wire_identity_uses_the_same_single_table_reservation() -> void:
+	"""A distinct backend artifact is not an extra resident image or a second simultaneous runtime bank."""
+	assert_equal(_baker.MAGIC, "UGYAW002", "new source wire is distinct")
+	assert_equal(_baker.FOOTER, "UGYEND02", "complete new source marker")
+	assert_equal(_baker.VERSION, 2, "explicit source schema")
+	assert_equal(_baker.COEFFICIENT_BYTES, 524288, "fixed complete65536x2xf32 payload")
+	assert_equal(_baker.PRESENTATION_RESERVE, 544768, "unchanged single-table presentation reservation")
+	assert_true(_baker.MAX_FILE_BYTES <= _baker.PRESENTATION_RESERVE, "bounded stream input fits existing source reserve")

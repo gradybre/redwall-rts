@@ -1,0 +1,322 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct Params
+{
+    uint has_normal;
+    uint has_tangent;
+    uint has_skeleton;
+    uint has_blend_shape;
+    uint vertex_count;
+    uint vertex_stride;
+    uint skin_stride;
+    uint skin_weight_offset;
+    uint blend_shape_count;
+    uint normalized_blend_shapes;
+    uint normal_tangent_stride;
+    uint pad1;
+    float2 skeleton_transform_x;
+    float2 skeleton_transform_y;
+    float2 skeleton_transform_offset;
+    float2 inverse_transform_x;
+    float2 inverse_transform_y;
+    float2 inverse_transform_offset;
+};
+
+struct SrcVertexData
+{
+    uint data[1];
+};
+
+struct BlendShapeWeights
+{
+    float data[1];
+};
+
+struct BlendShapeData
+{
+    uint data[1];
+};
+
+struct BoneWeightData
+{
+    uint data[1];
+};
+
+struct SkeletonData
+{
+    float4 data[1];
+};
+
+struct DstVertexData
+{
+    uint data[1];
+};
+
+struct spvDescriptorSetBuffer0
+{
+    device DstVertexData* dst_vertices [[id(0)]];
+    device BlendShapeWeights* blend_shape_weights [[id(1)]];
+};
+
+struct spvDescriptorSetBuffer1
+{
+    device SrcVertexData* src_vertices [[id(0)]];
+    device BoneWeightData* src_bone_weights [[id(1)]];
+    device BlendShapeData* src_blend_shapes [[id(2)]];
+};
+
+struct spvDescriptorSetBuffer2
+{
+    device SkeletonData* bone_transforms [[id(0)]];
+};
+
+static inline __attribute__((always_inline))
+float2 uint_to_vec2(thread const uint& base)
+{
+    uint2 decode = (uint2(base) >> uint2(0u, 16u)) & uint2(65535u);
+    return ((float2(decode) / float2(65535.0)) * 2.0) - float2(1.0);
+}
+
+static inline __attribute__((always_inline))
+float3 oct_to_vec3(thread const float2& oct)
+{
+    float3 v = float3(oct, (1.0 - abs(oct.x)) - abs(oct.y));
+    float t = fast::max(-v.z, 0.0);
+    float3 _98 = v;
+    float3 _103 = v;
+    float2 _105 = _103.xy + ((-sign(_98.xy)) * t);
+    v.x = _105.x;
+    v.y = _105.y;
+    return fast::normalize(v);
+}
+
+static inline __attribute__((always_inline))
+float3 decode_uint_oct_to_norm(thread const uint& base)
+{
+    uint param = base;
+    float2 param_1 = uint_to_vec2(param);
+    return oct_to_vec3(param_1);
+}
+
+static inline __attribute__((always_inline))
+float4 decode_uint_oct_to_tang(thread const uint& base)
+{
+    uint param = base;
+    float2 oct_sign_encoded = uint_to_vec2(param);
+    float2 oct = float2(oct_sign_encoded.x, (abs(oct_sign_encoded.y) * 2.0) - 1.0);
+    float2 param_1 = oct;
+    return float4(oct_to_vec3(param_1), sign(oct_sign_encoded.y));
+}
+
+static inline __attribute__((always_inline))
+float2 signNotZero(thread const float2& v)
+{
+    return select(float2(-1.0), float2(1.0), v >= float2(0.0));
+}
+
+static inline __attribute__((always_inline))
+float2 vec3_to_oct(thread float3& e)
+{
+    e /= float3((abs(e.x) + abs(e.y)) + abs(e.z));
+    float2 _195;
+    if (e.z >= 0.0)
+    {
+        _195 = e.xy;
+    }
+    else
+    {
+        float2 param = e.xy;
+        _195 = (float2(1.0) - abs(e.yx)) * signNotZero(param);
+    }
+    float2 oct = _195;
+    return (oct * 0.5) + float2(0.5);
+}
+
+static inline __attribute__((always_inline))
+uint vec2_to_uint(thread const float2& base)
+{
+    uint2 enc = uint2(clamp(int2(base * float2(65535.0)), int2(0), int2(65535))) << uint2(0u, 16u);
+    return enc.x | enc.y;
+}
+
+static inline __attribute__((always_inline))
+uint encode_norm_to_uint_oct(thread const float3& base)
+{
+    float3 param = base;
+    float2 _220 = vec3_to_oct(param);
+    float2 param_1 = _220;
+    return vec2_to_uint(param_1);
+}
+
+static inline __attribute__((always_inline))
+uint encode_tang_to_uint_oct(thread const float4& base)
+{
+    float3 param = base.xyz;
+    float2 _229 = vec3_to_oct(param);
+    float2 oct = _229;
+    oct.y = (oct.y * 0.5) + 0.5;
+    float _239;
+    if (base.w >= 0.0)
+    {
+        _239 = oct.y;
+    }
+    else
+    {
+        _239 = 1.0 - oct.y;
+    }
+    oct.y = _239;
+    bool _252 = oct.x == 0.0;
+    bool _258;
+    if (_252)
+    {
+        _258 = oct.y == 1.0;
+    }
+    else
+    {
+        _258 = _252;
+    }
+    if (_258)
+    {
+        oct.x = 1.0;
+    }
+    float2 param_1 = oct;
+    return vec2_to_uint(param_1);
+}
+
+kernel void main0(constant spvDescriptorSetBuffer0& spvDescriptorSet0 [[buffer(0)]], constant spvDescriptorSetBuffer1& spvDescriptorSet1 [[buffer(1)]], constant spvDescriptorSetBuffer2& spvDescriptorSet2 [[buffer(2)]], constant Params& params [[buffer(3)]], uint3 gl_GlobalInvocationID [[thread_position_in_grid]])
+{
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= params.vertex_count)
+    {
+        return;
+    }
+    uint src_offset = index * params.vertex_stride;
+    float3 vertex0 = as_type<float3>(uint3((*spvDescriptorSet1.src_vertices).data[src_offset + 0u], (*spvDescriptorSet1.src_vertices).data[src_offset + 1u], (*spvDescriptorSet1.src_vertices).data[src_offset + 2u]));
+    uint src_normal = (params.vertex_count * params.vertex_stride) + (index * params.normal_tangent_stride);
+    float3 normal;
+    if (params.has_normal != 0u)
+    {
+        uint param = (*spvDescriptorSet1.src_vertices).data[src_normal];
+        normal = decode_uint_oct_to_norm(param);
+        src_normal++;
+    }
+    float4 tangent;
+    if (params.has_tangent != 0u)
+    {
+        uint param_1 = (*spvDescriptorSet1.src_vertices).data[src_normal];
+        tangent = decode_uint_oct_to_tang(param_1);
+    }
+    if (params.has_blend_shape != 0u)
+    {
+        float blend_total = 0.0;
+        float3 blend_vertex = float3(0.0);
+        float3 blend_normal = float3(0.0);
+        float3 blend_tangent = float3(0.0);
+        for (uint i = 0u; i < params.blend_shape_count; i++)
+        {
+            float w = (*spvDescriptorSet0.blend_shape_weights).data[i];
+            if (abs(w) > 9.9999997473787516355514526367188e-05)
+            {
+                uint base_offset = ((params.vertex_count * i) * (params.vertex_stride + params.normal_tangent_stride)) + (index * params.vertex_stride);
+                blend_vertex += (as_type<float3>(uint3((*spvDescriptorSet1.src_blend_shapes).data[base_offset + 0u], (*spvDescriptorSet1.src_blend_shapes).data[base_offset + 1u], (*spvDescriptorSet1.src_blend_shapes).data[base_offset + 2u])) * w);
+                uint base_normal = (((params.vertex_count * i) * (params.vertex_stride + params.normal_tangent_stride)) + (params.vertex_count * params.vertex_stride)) + (index * params.normal_tangent_stride);
+                if (params.has_normal != 0u)
+                {
+                    uint param_2 = (*spvDescriptorSet1.src_blend_shapes).data[base_normal];
+                    blend_normal += (decode_uint_oct_to_norm(param_2) * w);
+                    base_normal++;
+                }
+                if (params.has_tangent != 0u)
+                {
+                    uint param_3 = (*spvDescriptorSet1.src_blend_shapes).data[base_normal];
+                    blend_tangent += (decode_uint_oct_to_tang(param_3).xyz * w);
+                }
+                blend_total += w;
+            }
+        }
+        if (params.normalized_blend_shapes != 0u)
+        {
+            vertex0 *= (1.0 - blend_total);
+            normal *= (1.0 - blend_total);
+            float4 _498 = tangent;
+            float3 _500 = _498.xyz * (1.0 - blend_total);
+            tangent.x = _500.x;
+            tangent.y = _500.y;
+            tangent.z = _500.z;
+        }
+        vertex0 += blend_vertex;
+        normal = fast::normalize(normal + blend_normal);
+        float4 _514 = tangent;
+        float3 _518 = fast::normalize(_514.xyz + blend_tangent);
+        tangent.x = _518.x;
+        tangent.y = _518.y;
+        tangent.z = _518.z;
+    }
+    if (params.has_skeleton != 0u)
+    {
+        uint skin_offset = params.skin_stride * index;
+        uint2 bones = uint2((*spvDescriptorSet1.src_bone_weights).data[skin_offset + 0u], (*spvDescriptorSet1.src_bone_weights).data[skin_offset + 1u]);
+        uint2 bones_01 = uint2(bones.x & 65535u, bones.x >> uint(16)) * uint2(3u);
+        uint2 bones_23 = uint2(bones.y & 65535u, bones.y >> uint(16)) * uint2(3u);
+        skin_offset += params.skin_weight_offset;
+        uint2 weights = uint2((*spvDescriptorSet1.src_bone_weights).data[skin_offset + 0u], (*spvDescriptorSet1.src_bone_weights).data[skin_offset + 1u]);
+        float2 weights_01 = unpack_unorm2x16_to_float(weights.x);
+        float2 weights_23 = unpack_unorm2x16_to_float(weights.y);
+        float4x4 m = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_01.x;
+        float4x4 _679 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_01.y;
+        m = float4x4(m[0] + _679[0], m[1] + _679[1], m[2] + _679[2], m[3] + _679[3]);
+        float4x4 _731 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_23.x;
+        m = float4x4(m[0] + _731[0], m[1] + _731[1], m[2] + _731[2], m[3] + _731[3]);
+        float4x4 _783 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_23.y;
+        m = float4x4(m[0] + _783[0], m[1] + _783[1], m[2] + _783[2], m[3] + _783[3]);
+        if (params.skin_weight_offset == 4u)
+        {
+            skin_offset = (params.skin_stride * index) + 2u;
+            bones = uint2((*spvDescriptorSet1.src_bone_weights).data[skin_offset + 0u], (*spvDescriptorSet1.src_bone_weights).data[skin_offset + 1u]);
+            bones_01 = uint2(bones.x & 65535u, bones.x >> uint(16)) * uint2(3u);
+            bones_23 = uint2(bones.y & 65535u, bones.y >> uint(16)) * uint2(3u);
+            skin_offset += params.skin_weight_offset;
+            weights = uint2((*spvDescriptorSet1.src_bone_weights).data[skin_offset + 0u], (*spvDescriptorSet1.src_bone_weights).data[skin_offset + 1u]);
+            weights_01 = unpack_unorm2x16_to_float(weights.x);
+            weights_23 = unpack_unorm2x16_to_float(weights.y);
+            float4x4 _892 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_01.x;
+            m = float4x4(m[0] + _892[0], m[1] + _892[1], m[2] + _892[2], m[3] + _892[3]);
+            float4x4 _944 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_01.y;
+            m = float4x4(m[0] + _944[0], m[1] + _944[1], m[2] + _944[2], m[3] + _944[3]);
+            float4x4 _996 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_23.x;
+            m = float4x4(m[0] + _996[0], m[1] + _996[1], m[2] + _996[2], m[3] + _996[3]);
+            float4x4 _1048 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y + 1u]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y + 2u]), float4(0.0, 0.0, 0.0, 1.0)) * weights_23.y;
+            m = float4x4(m[0] + _1048[0], m[1] + _1048[1], m[2] + _1048[2], m[3] + _1048[3]);
+        }
+        vertex0 = (float4(vertex0, 1.0) * m).xyz;
+        normal = fast::normalize((float4(normal, 0.0) * m).xyz);
+        float4 _1080 = tangent;
+        float3 _1089 = fast::normalize((float4(_1080.xyz, 0.0) * m).xyz);
+        tangent.x = _1089.x;
+        tangent.y = _1089.y;
+        tangent.z = _1089.z;
+    }
+    uint dst_offset = index * params.vertex_stride;
+    uint3 uvertex = as_type<uint3>(vertex0);
+    (*spvDescriptorSet0.dst_vertices).data[dst_offset + 0u] = uvertex.x;
+    (*spvDescriptorSet0.dst_vertices).data[dst_offset + 1u] = uvertex.y;
+    (*spvDescriptorSet0.dst_vertices).data[dst_offset + 2u] = uvertex.z;
+    uint dst_normal = (params.vertex_count * params.vertex_stride) + (index * params.normal_tangent_stride);
+    if (params.has_normal != 0u)
+    {
+        float3 param_4 = normal;
+        (*spvDescriptorSet0.dst_vertices).data[dst_normal] = encode_norm_to_uint_oct(param_4);
+        dst_normal++;
+    }
+    if (params.has_tangent != 0u)
+    {
+        float4 param_5 = tangent;
+        (*spvDescriptorSet0.dst_vertices).data[dst_normal] = encode_tang_to_uint_oct(param_5);
+    }
+}
+

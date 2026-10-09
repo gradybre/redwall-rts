@@ -1,0 +1,895 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wmissing-braces"
+
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+template<typename T, size_t Num>
+struct spvUnsafeArray
+{
+    T elements[Num ? Num : 1];
+    
+    thread T& operator [] (size_t pos) thread
+    {
+        return elements[pos];
+    }
+    constexpr const thread T& operator [] (size_t pos) const thread
+    {
+        return elements[pos];
+    }
+    
+    device T& operator [] (size_t pos) device
+    {
+        return elements[pos];
+    }
+    constexpr const device T& operator [] (size_t pos) const device
+    {
+        return elements[pos];
+    }
+    
+    constexpr const constant T& operator [] (size_t pos) const constant
+    {
+        return elements[pos];
+    }
+    
+    threadgroup T& operator [] (size_t pos) threadgroup
+    {
+        return elements[pos];
+    }
+    constexpr const threadgroup T& operator [] (size_t pos) const threadgroup
+    {
+        return elements[pos];
+    }
+};
+
+// Returns the determinant of a 2x2 matrix.
+static inline __attribute__((always_inline))
+float spvDet2x2(float a1, float a2, float b1, float b2)
+{
+    return a1 * b2 - b1 * a2;
+}
+
+// Returns the inverse of a matrix, by using the algorithm of calculating the classical
+// adjoint and dividing by the determinant. The contents of the matrix are changed.
+static inline __attribute__((always_inline))
+float3x3 spvInverse3x3(float3x3 m)
+{
+    float3x3 adj;	// The adjoint matrix (inverse after dividing by determinant)
+
+    // Create the transpose of the cofactors, as the classical adjoint of the matrix.
+    adj[0][0] =  spvDet2x2(m[1][1], m[1][2], m[2][1], m[2][2]);
+    adj[0][1] = -spvDet2x2(m[0][1], m[0][2], m[2][1], m[2][2]);
+    adj[0][2] =  spvDet2x2(m[0][1], m[0][2], m[1][1], m[1][2]);
+
+    adj[1][0] = -spvDet2x2(m[1][0], m[1][2], m[2][0], m[2][2]);
+    adj[1][1] =  spvDet2x2(m[0][0], m[0][2], m[2][0], m[2][2]);
+    adj[1][2] = -spvDet2x2(m[0][0], m[0][2], m[1][0], m[1][2]);
+
+    adj[2][0] =  spvDet2x2(m[1][0], m[1][1], m[2][0], m[2][1]);
+    adj[2][1] = -spvDet2x2(m[0][0], m[0][1], m[2][0], m[2][1]);
+    adj[2][2] =  spvDet2x2(m[0][0], m[0][1], m[1][0], m[1][1]);
+
+    // Calculate the determinant as a combination of the cofactors of the first row.
+    float det = (adj[0][0] * m[0][0]) + (adj[0][1] * m[1][0]) + (adj[0][2] * m[2][0]);
+
+    // Divide the classical adjoint matrix by the determinant.
+    // If determinant is zero, matrix is not invertable, so leave it unchanged.
+    return (det != 0.0f) ? (adj * (1.0f / det)) : m;
+}
+
+struct SceneData
+{
+    float4x4 projection_matrix;
+    float4x4 inv_projection_matrix;
+    float3x4 inv_view_matrix;
+    float3x4 view_matrix;
+    spvUnsafeArray<float4x4, 2> projection_matrix_view;
+    spvUnsafeArray<float4x4, 2> inv_projection_matrix_view;
+    spvUnsafeArray<float4, 2> eye_offset;
+    float4x4 main_cam_inv_view_matrix;
+    float2 viewport_size;
+    float2 screen_pixel_size;
+    spvUnsafeArray<float4, 32> directional_penumbra_shadow_kernel;
+    spvUnsafeArray<float4, 32> directional_soft_shadow_kernel;
+    spvUnsafeArray<float4, 32> penumbra_shadow_kernel;
+    spvUnsafeArray<float4, 32> soft_shadow_kernel;
+    float2 shadow_atlas_pixel_size;
+    float2 directional_shadow_pixel_size;
+    float radiance_pixel_size;
+    float radiance_border_size;
+    float2 reflection_atlas_border_size;
+    uint directional_light_count;
+    float dual_paraboloid_side;
+    float z_far;
+    float z_near;
+    float roughness_limiter_amount;
+    float roughness_limiter_limit;
+    float opaque_prepass_threshold;
+    uint flags;
+    float3x3 radiance_inverse_xform;
+    float4 ambient_light_color_energy;
+    float ambient_color_sky_mix;
+    float fog_density;
+    float fog_height;
+    float fog_height_density;
+    float fog_depth_curve;
+    float fog_depth_begin;
+    float fog_depth_end;
+    float fog_sun_scatter;
+    float3 fog_light_color;
+    float fog_aerial_perspective;
+    float time;
+    float taa_frame_count;
+    float2 taa_jitter;
+    float emissive_exposure_normalization;
+    float IBL_exposure_normalization;
+    uint camera_visible_layers;
+    float pass_alpha_multiplier;
+};
+
+constant uint pso_sc_packed_1_tmp [[function_constant(1)]];
+constant uint pso_sc_packed_1 = is_function_constant_defined(pso_sc_packed_1_tmp) ? pso_sc_packed_1_tmp : 0u;
+
+struct InstanceData
+{
+    float3x4 transform;
+    float4 compressed_aabb_position_pad;
+    float4 compressed_aabb_size_pad;
+    float4 uv_scale;
+    uint flags;
+    uint instance_uniforms_ofs;
+    uint gi_offset;
+    uint layer_mask;
+    float3x4 prev_transform;
+    float4 lightmap_uv_scale;
+};
+
+struct InstanceDataBuffer
+{
+    InstanceData data[1];
+};
+
+struct Transforms
+{
+    float4 data[1];
+};
+
+struct MaterialUniforms
+{
+    float4 m_albedo;
+    int2 m_albedo_texture_size;
+    float m_point_size;
+    float m_roughness;
+    float4 m_metallic_texture_channel;
+    float m_specular;
+    float m_metallic;
+    float3 m_uv1_scale;
+    float3 m_uv1_offset;
+    float3 m_uv2_scale;
+    float3 m_uv2_offset;
+};
+
+struct DrawCall
+{
+    uint instance_index;
+    uint uv_offset;
+    uint multimesh_motion_vectors_current_offset;
+    uint multimesh_motion_vectors_previous_offset;
+};
+
+struct SceneData_1
+{
+    float4x4 projection_matrix;
+    float4x4 inv_projection_matrix;
+    float3x4 inv_view_matrix;
+    float3x4 view_matrix;
+    float4x4 projection_matrix_view[2];
+    float4x4 inv_projection_matrix_view[2];
+    float4 eye_offset[2];
+    float4x4 main_cam_inv_view_matrix;
+    float2 viewport_size;
+    float2 screen_pixel_size;
+    float4 directional_penumbra_shadow_kernel[32];
+    float4 directional_soft_shadow_kernel[32];
+    float4 penumbra_shadow_kernel[32];
+    float4 soft_shadow_kernel[32];
+    float2 shadow_atlas_pixel_size;
+    float2 directional_shadow_pixel_size;
+    float radiance_pixel_size;
+    float radiance_border_size;
+    float2 reflection_atlas_border_size;
+    uint directional_light_count;
+    float dual_paraboloid_side;
+    float z_far;
+    float z_near;
+    float roughness_limiter_amount;
+    float roughness_limiter_limit;
+    float opaque_prepass_threshold;
+    uint flags;
+    float3x3 radiance_inverse_xform;
+    float4 ambient_light_color_energy;
+    float ambient_color_sky_mix;
+    float fog_density;
+    float fog_height;
+    float fog_height_density;
+    float fog_depth_curve;
+    float fog_depth_begin;
+    float fog_depth_end;
+    float fog_sun_scatter;
+    packed_float3 fog_light_color;
+    float fog_aerial_perspective;
+    float time;
+    float taa_frame_count;
+    float2 taa_jitter;
+    float emissive_exposure_normalization;
+    float IBL_exposure_normalization;
+    uint camera_visible_layers;
+    float pass_alpha_multiplier;
+};
+
+struct SceneDataBlock
+{
+    SceneData_1 data;
+    SceneData_1 prev_data;
+};
+
+constant uint pso_sc_packed_0_tmp [[function_constant(0)]];
+constant uint pso_sc_packed_0 = is_function_constant_defined(pso_sc_packed_0_tmp) ? pso_sc_packed_0_tmp : 0u;
+constant bool sc_emulate_point_size_tmp [[function_constant(2)]];
+constant bool sc_emulate_point_size = is_function_constant_defined(sc_emulate_point_size_tmp) ? sc_emulate_point_size_tmp : false;
+
+struct LightData
+{
+    packed_float3 position;
+    float inv_radius;
+    packed_float3 direction;
+    float size;
+    packed_float3 color;
+    float attenuation;
+    packed_float3 area_width;
+    float cone_attenuation;
+    packed_float3 area_height;
+    float cone_angle;
+    float specular_amount;
+    float shadow_opacity;
+    float pad[2];
+    float4 atlas_rect;
+    float4x4 shadow_matrix;
+    float shadow_bias;
+    float shadow_normal_bias;
+    float transmittance_bias;
+    float soft_shadow_size;
+    float soft_shadow_scale;
+    uint mask;
+    float volumetric_fog_energy;
+    uint bake_mode;
+    float4 projector_rect;
+};
+
+struct OmniLights
+{
+    LightData data[1];
+};
+
+struct SpotLights
+{
+    LightData data[1];
+};
+
+struct AreaLights
+{
+    LightData data[1];
+};
+
+struct ReflectionData
+{
+    packed_float3 box_extents;
+    float index;
+    packed_float3 box_offset;
+    uint mask;
+    packed_float3 ambient;
+    float intensity;
+    float blend_distance;
+    uint exterior;
+    uint box_project;
+    uint ambient_mode;
+    float exposure_normalization;
+    float pad0;
+    float pad1;
+    float pad2;
+    float4x4 local_matrix;
+};
+
+struct ReflectionProbeData
+{
+    ReflectionData data[1];
+};
+
+struct DirectionalLightData
+{
+    packed_float3 direction;
+    float energy;
+    packed_float3 color;
+    float size;
+    float specular;
+    uint mask;
+    float softshadow_angle;
+    float soft_shadow_scale;
+    uint blend_splits;
+    float shadow_opacity;
+    float fade_from;
+    float fade_to;
+    uint2 pad;
+    uint bake_mode;
+    float volumetric_fog_energy;
+    float4 shadow_bias;
+    float4 shadow_normal_bias;
+    float4 shadow_transmittance_bias;
+    float4 shadow_z_range;
+    float4 shadow_range_begin;
+    float4 shadow_split_offsets;
+    float4x4 shadow_matrix1;
+    float4x4 shadow_matrix2;
+    float4x4 shadow_matrix3;
+    float4x4 shadow_matrix4;
+    float2 uv_scale1;
+    float2 uv_scale2;
+    float2 uv_scale3;
+    float2 uv_scale4;
+};
+
+struct DirectionalLights
+{
+    DirectionalLightData data[8];
+};
+
+struct Lightmap
+{
+    float3x3 normal_xform;
+    float2 light_texture_size;
+    float exposure_normalization;
+    uint flags;
+};
+
+struct Lightmaps
+{
+    Lightmap data[1];
+};
+
+struct LightmapCapture
+{
+    float4 sh[9];
+};
+
+struct LightmapCaptures
+{
+    LightmapCapture data[1];
+};
+
+struct DecalData
+{
+    float4x4 xform;
+    packed_float3 inv_extents;
+    float albedo_mix;
+    float4 albedo_rect;
+    float4 normal_rect;
+    float4 orm_rect;
+    float4 emission_rect;
+    float4 modulate;
+    float emission_energy;
+    uint mask;
+    float upper_fade;
+    float lower_fade;
+    float3x4 normal_xform;
+    packed_float3 normal;
+    float normal_fade;
+};
+
+struct Decals
+{
+    DecalData data[1];
+};
+
+struct GlobalShaderUniformData
+{
+    float4 data[1];
+};
+
+struct SDFVoxelGICascadeData
+{
+    packed_float3 position;
+    float to_probe;
+    packed_int3 probe_world_offset;
+    float to_cell;
+    packed_float3 pad;
+    float exposure_normalization;
+};
+
+struct SDFGI
+{
+    packed_float3 grid_size;
+    uint max_cascades;
+    uint use_occlusion;
+    int probe_axis_size;
+    float probe_to_uvw;
+    float normal_bias;
+    packed_float3 lightprobe_tex_pixel_size;
+    float energy;
+    packed_float3 lightprobe_uv_offset;
+    float y_mult;
+    packed_float3 occlusion_clamp;
+    uint pad3;
+    packed_float3 occlusion_renormalize;
+    uint pad4;
+    packed_float3 cascade_probe_size;
+    uint pad5;
+    SDFVoxelGICascadeData cascades[8];
+};
+
+struct ImplementationData
+{
+    uint cluster_shift;
+    uint cluster_width;
+    uint cluster_type_size;
+    uint max_cluster_element_count_div_32;
+    uint ss_effects_flags;
+    float ssao_light_affect;
+    float ssao_ao_affect;
+    uint pad1;
+    float4x4 sdf_to_bounds;
+    packed_int3 sdf_offset;
+    uint pad2;
+    packed_int3 sdf_size;
+    uint gi_upscale_for_msaa;
+    uint volumetric_fog_enabled;
+    float volumetric_fog_inv_length;
+    float volumetric_fog_detail_spread;
+    uint volumetric_fog_pad;
+};
+
+struct ImplementationDataBlock
+{
+    ImplementationData data;
+};
+
+struct ClusterBuffer
+{
+    uint data[1];
+};
+
+struct VoxelGIData
+{
+    float4x4 xform;
+    packed_float3 bounds;
+    float dynamic_range;
+    float bias0;
+    float normal_bias;
+    uint blend_ambient;
+    uint mipmaps;
+    packed_float3 pad;
+    float exposure_normalization;
+};
+
+struct VoxelGIs
+{
+    VoxelGIData data[8];
+};
+
+struct spvDescriptorSetBuffer0
+{
+    sampler shadow_sampler [[id(0)]];
+    const device OmniLights* omni_lights [[id(1)]];
+    const device SpotLights* spot_lights [[id(2)]];
+    const device AreaLights* area_lights [[id(3)]];
+    const device ReflectionProbeData* reflections [[id(4)]];
+    constant DirectionalLights* directional_lights [[id(5)]];
+    const device Lightmaps* lightmaps [[id(6)]];
+    const device LightmapCaptures* lightmap_captures [[id(7)]];
+    texture2d<float> decal_atlas [[id(8)]];
+    texture2d<float> decal_atlas_srgb [[id(9)]];
+    const device Decals* decals [[id(10)]];
+    const device GlobalShaderUniformData* global_shader_uniforms [[id(11)]];
+    constant SDFGI* sdfgi [[id(12)]];
+    sampler DEFAULT_SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP [[id(13)]];
+    texture2d<float> best_fit_normal_texture [[id(14)]];
+    texture2d<float> dfg [[id(15)]];
+    texture2d<float> ltc_lut1 [[id(16)]];
+    sampler ltc_lut1Smplr [[id(17)]];
+    texture2d<float> ltc_lut2 [[id(18)]];
+    sampler ltc_lut2Smplr [[id(19)]];
+    texture2d<float> area_light_atlas [[id(20)]];
+};
+
+struct spvDescriptorSetBuffer1
+{
+    constant SceneDataBlock* scene_data_block [[id(0)]];
+    constant ImplementationDataBlock* implementation_data_block [[id(1)]];
+    const device InstanceDataBuffer* instances [[id(2)]];
+    texture2d_array<float> radiance_octmap [[id(3)]];
+    texture2d_array<float> reflection_atlas [[id(4)]];
+    texture2d<float> shadow_atlas [[id(5)]];
+    texture2d<float> directional_shadow_atlas [[id(6)]];
+    array<texture2d_array<float>, 16> lightmap_textures [[id(7)]];
+    array<texture3d<float>, 8> voxel_gi_textures [[id(23)]];
+    const device ClusterBuffer* cluster_buffer [[id(31)]];
+    sampler decal_sampler [[id(32)]];
+    sampler light_projector_sampler [[id(33)]];
+    sampler SAMPLER_NEAREST_CLAMP [[id(34)]];
+    sampler SAMPLER_LINEAR_CLAMP [[id(35)]];
+    sampler SAMPLER_NEAREST_WITH_MIPMAPS_CLAMP [[id(36)]];
+    sampler SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP [[id(37)]];
+    sampler SAMPLER_NEAREST_WITH_MIPMAPS_ANISOTROPIC_CLAMP [[id(38)]];
+    sampler SAMPLER_LINEAR_WITH_MIPMAPS_ANISOTROPIC_CLAMP [[id(39)]];
+    sampler SAMPLER_NEAREST_REPEAT [[id(40)]];
+    sampler SAMPLER_LINEAR_REPEAT [[id(41)]];
+    sampler SAMPLER_NEAREST_WITH_MIPMAPS_REPEAT [[id(42)]];
+    sampler SAMPLER_LINEAR_WITH_MIPMAPS_REPEAT [[id(43)]];
+    sampler SAMPLER_NEAREST_WITH_MIPMAPS_ANISOTROPIC_REPEAT [[id(44)]];
+    sampler SAMPLER_LINEAR_WITH_MIPMAPS_ANISOTROPIC_REPEAT [[id(45)]];
+    texture2d<float> depth_buffer [[id(46)]];
+    texture2d<float> color_buffer [[id(47)]];
+    texture2d<float> normal_roughness_buffer [[id(48)]];
+    texture2d<float> ao_buffer [[id(49)]];
+    texture2d<float> ambient_buffer [[id(50)]];
+    texture2d<float> reflection_buffer [[id(51)]];
+    texture2d_array<float> sdfgi_lightprobe_texture [[id(52)]];
+    texture3d<float> sdfgi_occlusion_cascades [[id(53)]];
+    constant VoxelGIs* voxel_gi_instances [[id(54)]];
+    texture3d<float> volumetric_fog_texture [[id(55)]];
+    texture2d<float> ssil_buffer [[id(56)]];
+    texture2d<float> ssr_buffer [[id(57)]];
+    texture2d<float> ssr_mip_level_buffer [[id(58)]];
+};
+
+struct spvDescriptorSetBuffer2
+{
+    const device Transforms* transforms [[id(0)]];
+};
+
+struct spvDescriptorSetBuffer3
+{
+    constant MaterialUniforms* material [[id(0)]];
+    texture2d<float> m_texture_albedo [[id(1)]];
+    texture2d<float> m_texture_metallic [[id(2)]];
+    texture2d<float> m_texture_roughness [[id(3)]];
+};
+
+struct main0_out
+{
+    float3 vertex_interp [[user(locn0)]];
+    float2 uv_interp [[user(locn3)]];
+    uint instance_index_interp [[user(locn10)]];
+    float4 gl_Position [[position, invariant]];
+};
+
+struct main0_in
+{
+    float4 vertex_angle_attrib [[attribute(0)]];
+    float2 uv_attrib [[attribute(4)]];
+};
+
+static inline __attribute__((always_inline))
+uint sc_packed_1()
+{
+    return pso_sc_packed_1;
+}
+
+static inline __attribute__((always_inline))
+bool sc_multimesh()
+{
+    return ((sc_packed_1() >> uint(0)) & 1u) != 0u;
+}
+
+static inline __attribute__((always_inline))
+void _unpack_vertex_attributes(thread const float4& p_vertex_in, thread const float3& p_compressed_aabb_position, thread const float3& p_compressed_aabb_size, thread float3& r_vertex)
+{
+    r_vertex = (p_vertex_in.xyz * p_compressed_aabb_size) + p_compressed_aabb_position;
+}
+
+static inline __attribute__((always_inline))
+bool sc_multimesh_format_2d()
+{
+    return ((sc_packed_1() >> uint(1)) & 1u) != 0u;
+}
+
+static inline __attribute__((always_inline))
+bool sc_multimesh_has_color()
+{
+    return ((sc_packed_1() >> uint(2)) & 1u) != 0u;
+}
+
+static inline __attribute__((always_inline))
+bool sc_multimesh_has_custom_data()
+{
+    return ((sc_packed_1() >> uint(3)) & 1u) != 0u;
+}
+
+static inline __attribute__((always_inline))
+uint multimesh_stride()
+{
+    uint stride = uint(sc_multimesh_format_2d() ? 2 : 3);
+    stride += uint(int(sc_multimesh_has_color()));
+    stride += uint(int(sc_multimesh_has_custom_data()));
+    return stride;
+}
+
+static inline __attribute__((always_inline))
+void vertex_shader(thread const float3& vertex_input, thread const uint& instance_index, thread const uint& multimesh_offset, thread const SceneData& scene_data, thread const float3x4& in_model_matrix, thread const float4& screen_pos, const device InstanceDataBuffer& instances, thread uint& gl_InstanceIndex, const device Transforms& transforms, thread float2& uv_interp, thread float2& uv_attrib, constant MaterialUniforms& material, thread float3& vertex_interp, thread float4& gl_Position)
+{
+    float4 instance_custom = float4(0.0);
+    float4x4 inv_view_matrix = transpose(float4x4(float4(scene_data.inv_view_matrix[0]), float4(scene_data.inv_view_matrix[1]), float4(scene_data.inv_view_matrix[2]), float4(0.0, 0.0, 0.0, 1.0)));
+    float4x4 model_matrix = transpose(float4x4(float4(in_model_matrix[0]), float4(in_model_matrix[1]), float4(in_model_matrix[2]), float4(0.0, 0.0, 0.0, 1.0)));
+    float3x3 model_normal_matrix;
+    if ((instances.data[instance_index].flags & 16u) != 0u)
+    {
+        model_normal_matrix = transpose(spvInverse3x3(float3x3(model_matrix[0].xyz, model_matrix[1].xyz, model_matrix[2].xyz)));
+    }
+    else
+    {
+        model_normal_matrix = float3x3(model_matrix[0].xyz, model_matrix[1].xyz, model_matrix[2].xyz);
+    }
+    float4x4 read_model_matrix = model_matrix;
+    if (sc_multimesh())
+    {
+        uint stride = multimesh_stride();
+        uint offset = stride * (uint(int(gl_InstanceIndex)) + multimesh_offset);
+        float4x4 matrix;
+        if (sc_multimesh_format_2d())
+        {
+            matrix = float4x4(float4(transforms.data[offset + 0u]), float4(transforms.data[offset + 1u]), float4(0.0, 0.0, 1.0, 0.0), float4(0.0, 0.0, 0.0, 1.0));
+            offset += 2u;
+        }
+        else
+        {
+            matrix = float4x4(float4(transforms.data[offset + 0u]), float4(transforms.data[offset + 1u]), float4(transforms.data[offset + 2u]), float4(0.0, 0.0, 0.0, 1.0));
+            offset += 3u;
+        }
+        if (sc_multimesh_has_color())
+        {
+            offset++;
+        }
+        if (sc_multimesh_has_custom_data())
+        {
+            instance_custom = transforms.data[offset];
+        }
+        matrix = transpose(matrix);
+        read_model_matrix = model_matrix * matrix;
+        model_matrix = read_model_matrix;
+        model_normal_matrix = model_normal_matrix * float3x3(matrix[0].xyz, matrix[1].xyz, matrix[2].xyz);
+    }
+    float3 vertex0 = vertex_input;
+    uv_interp = uv_attrib;
+    float4 uv_scale = instances.data[instance_index].uv_scale;
+    if (any(uv_scale != float4(0.0)))
+    {
+        uv_interp = (uv_interp - float2(0.5)) * uv_scale.xy;
+    }
+    float4x4 projection_matrix = scene_data.projection_matrix;
+    float4x4 inv_projection_matrix = scene_data.inv_projection_matrix;
+    float3 eye_offset = float3(0.0);
+    float roughness_highp = 1.0;
+    float4x4 read_view_matrix = transpose(float4x4(float4(scene_data.view_matrix[0]), float4(scene_data.view_matrix[1]), float4(scene_data.view_matrix[2]), float4(0.0, 0.0, 0.0, 1.0)));
+    float4x4 modelview = read_view_matrix * model_matrix;
+    float3x3 modelview_normal = float3x3(read_view_matrix[0].xyz, read_view_matrix[1].xyz, read_view_matrix[2].xyz) * model_normal_matrix;
+    float2 read_viewport_size = scene_data.viewport_size;
+    uv_interp = (uv_interp * material.m_uv1_scale.xy) + material.m_uv1_offset.xy;
+    float roughness = roughness_highp;
+    vertex0 = (modelview * float4(vertex0, 1.0)).xyz;
+    vertex_interp = vertex0;
+    float4 _448 = float4(vertex_interp, 1.0);
+    float4 _449 = projection_matrix * _448;
+    gl_Position = _449;
+    if ((scene_data.flags & 64u) != 0u)
+    {
+        if (gl_Position.z >= 0.99989998340606689453125)
+        {
+            gl_Position.z = 0.99989998340606689453125;
+        }
+    }
+}
+
+vertex main0_out main0(main0_in in [[stage_in]], constant spvDescriptorSetBuffer0& spvDescriptorSet0 [[buffer(0)]], constant spvDescriptorSetBuffer1& spvDescriptorSet1 [[buffer(1)]], constant spvDescriptorSetBuffer2& spvDescriptorSet2 [[buffer(2)]], constant spvDescriptorSetBuffer3& spvDescriptorSet3 [[buffer(3)]], constant DrawCall& draw_call [[buffer(4)]], uint gl_InstanceIndex [[instance_id]])
+{
+    main0_out out = {};
+    uint instance_index = draw_call.instance_index;
+    float global_time;
+    if (!sc_multimesh())
+    {
+        instance_index += uint(int(gl_InstanceIndex));
+    }
+    out.instance_index_interp = instance_index;
+    float4 param = in.vertex_angle_attrib;
+    float3 param_1 = (*spvDescriptorSet1.instances).data[instance_index].compressed_aabb_position_pad.xyz;
+    float3 param_2 = (*spvDescriptorSet1.instances).data[instance_index].compressed_aabb_size_pad.xyz;
+    float3 param_3;
+    _unpack_vertex_attributes(param, param_1, param_2, param_3);
+    float3 vertex0 = param_3;
+    global_time = (*spvDescriptorSet1.scene_data_block).data.time;
+    float3 param_4 = vertex0;
+    uint param_5 = instance_index;
+    uint param_6 = draw_call.multimesh_motion_vectors_current_offset;
+    SceneData _540;
+    _540.projection_matrix = (*spvDescriptorSet1.scene_data_block).data.projection_matrix;
+    _540.inv_projection_matrix = (*spvDescriptorSet1.scene_data_block).data.inv_projection_matrix;
+    _540.inv_view_matrix = (*spvDescriptorSet1.scene_data_block).data.inv_view_matrix;
+    _540.view_matrix = (*spvDescriptorSet1.scene_data_block).data.view_matrix;
+    _540.projection_matrix_view[0] = (*spvDescriptorSet1.scene_data_block).data.projection_matrix_view[0];
+    _540.projection_matrix_view[1] = (*spvDescriptorSet1.scene_data_block).data.projection_matrix_view[1];
+    _540.inv_projection_matrix_view[0] = (*spvDescriptorSet1.scene_data_block).data.inv_projection_matrix_view[0];
+    _540.inv_projection_matrix_view[1] = (*spvDescriptorSet1.scene_data_block).data.inv_projection_matrix_view[1];
+    _540.eye_offset[0] = (*spvDescriptorSet1.scene_data_block).data.eye_offset[0];
+    _540.eye_offset[1] = (*spvDescriptorSet1.scene_data_block).data.eye_offset[1];
+    _540.main_cam_inv_view_matrix = (*spvDescriptorSet1.scene_data_block).data.main_cam_inv_view_matrix;
+    _540.viewport_size = (*spvDescriptorSet1.scene_data_block).data.viewport_size;
+    _540.screen_pixel_size = (*spvDescriptorSet1.scene_data_block).data.screen_pixel_size;
+    _540.directional_penumbra_shadow_kernel[0] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[0];
+    _540.directional_penumbra_shadow_kernel[1] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[1];
+    _540.directional_penumbra_shadow_kernel[2] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[2];
+    _540.directional_penumbra_shadow_kernel[3] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[3];
+    _540.directional_penumbra_shadow_kernel[4] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[4];
+    _540.directional_penumbra_shadow_kernel[5] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[5];
+    _540.directional_penumbra_shadow_kernel[6] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[6];
+    _540.directional_penumbra_shadow_kernel[7] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[7];
+    _540.directional_penumbra_shadow_kernel[8] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[8];
+    _540.directional_penumbra_shadow_kernel[9] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[9];
+    _540.directional_penumbra_shadow_kernel[10] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[10];
+    _540.directional_penumbra_shadow_kernel[11] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[11];
+    _540.directional_penumbra_shadow_kernel[12] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[12];
+    _540.directional_penumbra_shadow_kernel[13] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[13];
+    _540.directional_penumbra_shadow_kernel[14] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[14];
+    _540.directional_penumbra_shadow_kernel[15] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[15];
+    _540.directional_penumbra_shadow_kernel[16] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[16];
+    _540.directional_penumbra_shadow_kernel[17] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[17];
+    _540.directional_penumbra_shadow_kernel[18] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[18];
+    _540.directional_penumbra_shadow_kernel[19] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[19];
+    _540.directional_penumbra_shadow_kernel[20] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[20];
+    _540.directional_penumbra_shadow_kernel[21] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[21];
+    _540.directional_penumbra_shadow_kernel[22] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[22];
+    _540.directional_penumbra_shadow_kernel[23] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[23];
+    _540.directional_penumbra_shadow_kernel[24] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[24];
+    _540.directional_penumbra_shadow_kernel[25] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[25];
+    _540.directional_penumbra_shadow_kernel[26] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[26];
+    _540.directional_penumbra_shadow_kernel[27] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[27];
+    _540.directional_penumbra_shadow_kernel[28] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[28];
+    _540.directional_penumbra_shadow_kernel[29] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[29];
+    _540.directional_penumbra_shadow_kernel[30] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[30];
+    _540.directional_penumbra_shadow_kernel[31] = (*spvDescriptorSet1.scene_data_block).data.directional_penumbra_shadow_kernel[31];
+    _540.directional_soft_shadow_kernel[0] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[0];
+    _540.directional_soft_shadow_kernel[1] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[1];
+    _540.directional_soft_shadow_kernel[2] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[2];
+    _540.directional_soft_shadow_kernel[3] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[3];
+    _540.directional_soft_shadow_kernel[4] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[4];
+    _540.directional_soft_shadow_kernel[5] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[5];
+    _540.directional_soft_shadow_kernel[6] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[6];
+    _540.directional_soft_shadow_kernel[7] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[7];
+    _540.directional_soft_shadow_kernel[8] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[8];
+    _540.directional_soft_shadow_kernel[9] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[9];
+    _540.directional_soft_shadow_kernel[10] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[10];
+    _540.directional_soft_shadow_kernel[11] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[11];
+    _540.directional_soft_shadow_kernel[12] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[12];
+    _540.directional_soft_shadow_kernel[13] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[13];
+    _540.directional_soft_shadow_kernel[14] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[14];
+    _540.directional_soft_shadow_kernel[15] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[15];
+    _540.directional_soft_shadow_kernel[16] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[16];
+    _540.directional_soft_shadow_kernel[17] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[17];
+    _540.directional_soft_shadow_kernel[18] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[18];
+    _540.directional_soft_shadow_kernel[19] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[19];
+    _540.directional_soft_shadow_kernel[20] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[20];
+    _540.directional_soft_shadow_kernel[21] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[21];
+    _540.directional_soft_shadow_kernel[22] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[22];
+    _540.directional_soft_shadow_kernel[23] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[23];
+    _540.directional_soft_shadow_kernel[24] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[24];
+    _540.directional_soft_shadow_kernel[25] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[25];
+    _540.directional_soft_shadow_kernel[26] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[26];
+    _540.directional_soft_shadow_kernel[27] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[27];
+    _540.directional_soft_shadow_kernel[28] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[28];
+    _540.directional_soft_shadow_kernel[29] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[29];
+    _540.directional_soft_shadow_kernel[30] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[30];
+    _540.directional_soft_shadow_kernel[31] = (*spvDescriptorSet1.scene_data_block).data.directional_soft_shadow_kernel[31];
+    _540.penumbra_shadow_kernel[0] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[0];
+    _540.penumbra_shadow_kernel[1] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[1];
+    _540.penumbra_shadow_kernel[2] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[2];
+    _540.penumbra_shadow_kernel[3] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[3];
+    _540.penumbra_shadow_kernel[4] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[4];
+    _540.penumbra_shadow_kernel[5] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[5];
+    _540.penumbra_shadow_kernel[6] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[6];
+    _540.penumbra_shadow_kernel[7] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[7];
+    _540.penumbra_shadow_kernel[8] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[8];
+    _540.penumbra_shadow_kernel[9] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[9];
+    _540.penumbra_shadow_kernel[10] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[10];
+    _540.penumbra_shadow_kernel[11] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[11];
+    _540.penumbra_shadow_kernel[12] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[12];
+    _540.penumbra_shadow_kernel[13] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[13];
+    _540.penumbra_shadow_kernel[14] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[14];
+    _540.penumbra_shadow_kernel[15] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[15];
+    _540.penumbra_shadow_kernel[16] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[16];
+    _540.penumbra_shadow_kernel[17] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[17];
+    _540.penumbra_shadow_kernel[18] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[18];
+    _540.penumbra_shadow_kernel[19] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[19];
+    _540.penumbra_shadow_kernel[20] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[20];
+    _540.penumbra_shadow_kernel[21] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[21];
+    _540.penumbra_shadow_kernel[22] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[22];
+    _540.penumbra_shadow_kernel[23] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[23];
+    _540.penumbra_shadow_kernel[24] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[24];
+    _540.penumbra_shadow_kernel[25] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[25];
+    _540.penumbra_shadow_kernel[26] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[26];
+    _540.penumbra_shadow_kernel[27] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[27];
+    _540.penumbra_shadow_kernel[28] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[28];
+    _540.penumbra_shadow_kernel[29] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[29];
+    _540.penumbra_shadow_kernel[30] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[30];
+    _540.penumbra_shadow_kernel[31] = (*spvDescriptorSet1.scene_data_block).data.penumbra_shadow_kernel[31];
+    _540.soft_shadow_kernel[0] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[0];
+    _540.soft_shadow_kernel[1] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[1];
+    _540.soft_shadow_kernel[2] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[2];
+    _540.soft_shadow_kernel[3] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[3];
+    _540.soft_shadow_kernel[4] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[4];
+    _540.soft_shadow_kernel[5] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[5];
+    _540.soft_shadow_kernel[6] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[6];
+    _540.soft_shadow_kernel[7] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[7];
+    _540.soft_shadow_kernel[8] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[8];
+    _540.soft_shadow_kernel[9] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[9];
+    _540.soft_shadow_kernel[10] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[10];
+    _540.soft_shadow_kernel[11] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[11];
+    _540.soft_shadow_kernel[12] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[12];
+    _540.soft_shadow_kernel[13] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[13];
+    _540.soft_shadow_kernel[14] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[14];
+    _540.soft_shadow_kernel[15] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[15];
+    _540.soft_shadow_kernel[16] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[16];
+    _540.soft_shadow_kernel[17] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[17];
+    _540.soft_shadow_kernel[18] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[18];
+    _540.soft_shadow_kernel[19] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[19];
+    _540.soft_shadow_kernel[20] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[20];
+    _540.soft_shadow_kernel[21] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[21];
+    _540.soft_shadow_kernel[22] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[22];
+    _540.soft_shadow_kernel[23] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[23];
+    _540.soft_shadow_kernel[24] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[24];
+    _540.soft_shadow_kernel[25] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[25];
+    _540.soft_shadow_kernel[26] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[26];
+    _540.soft_shadow_kernel[27] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[27];
+    _540.soft_shadow_kernel[28] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[28];
+    _540.soft_shadow_kernel[29] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[29];
+    _540.soft_shadow_kernel[30] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[30];
+    _540.soft_shadow_kernel[31] = (*spvDescriptorSet1.scene_data_block).data.soft_shadow_kernel[31];
+    _540.shadow_atlas_pixel_size = (*spvDescriptorSet1.scene_data_block).data.shadow_atlas_pixel_size;
+    _540.directional_shadow_pixel_size = (*spvDescriptorSet1.scene_data_block).data.directional_shadow_pixel_size;
+    _540.radiance_pixel_size = (*spvDescriptorSet1.scene_data_block).data.radiance_pixel_size;
+    _540.radiance_border_size = (*spvDescriptorSet1.scene_data_block).data.radiance_border_size;
+    _540.reflection_atlas_border_size = (*spvDescriptorSet1.scene_data_block).data.reflection_atlas_border_size;
+    _540.directional_light_count = (*spvDescriptorSet1.scene_data_block).data.directional_light_count;
+    _540.dual_paraboloid_side = (*spvDescriptorSet1.scene_data_block).data.dual_paraboloid_side;
+    _540.z_far = (*spvDescriptorSet1.scene_data_block).data.z_far;
+    _540.z_near = (*spvDescriptorSet1.scene_data_block).data.z_near;
+    _540.roughness_limiter_amount = (*spvDescriptorSet1.scene_data_block).data.roughness_limiter_amount;
+    _540.roughness_limiter_limit = (*spvDescriptorSet1.scene_data_block).data.roughness_limiter_limit;
+    _540.opaque_prepass_threshold = (*spvDescriptorSet1.scene_data_block).data.opaque_prepass_threshold;
+    _540.flags = (*spvDescriptorSet1.scene_data_block).data.flags;
+    _540.radiance_inverse_xform = (*spvDescriptorSet1.scene_data_block).data.radiance_inverse_xform;
+    _540.ambient_light_color_energy = (*spvDescriptorSet1.scene_data_block).data.ambient_light_color_energy;
+    _540.ambient_color_sky_mix = (*spvDescriptorSet1.scene_data_block).data.ambient_color_sky_mix;
+    _540.fog_density = (*spvDescriptorSet1.scene_data_block).data.fog_density;
+    _540.fog_height = (*spvDescriptorSet1.scene_data_block).data.fog_height;
+    _540.fog_height_density = (*spvDescriptorSet1.scene_data_block).data.fog_height_density;
+    _540.fog_depth_curve = (*spvDescriptorSet1.scene_data_block).data.fog_depth_curve;
+    _540.fog_depth_begin = (*spvDescriptorSet1.scene_data_block).data.fog_depth_begin;
+    _540.fog_depth_end = (*spvDescriptorSet1.scene_data_block).data.fog_depth_end;
+    _540.fog_sun_scatter = (*spvDescriptorSet1.scene_data_block).data.fog_sun_scatter;
+    _540.fog_light_color = float3((*spvDescriptorSet1.scene_data_block).data.fog_light_color);
+    _540.fog_aerial_perspective = (*spvDescriptorSet1.scene_data_block).data.fog_aerial_perspective;
+    _540.time = (*spvDescriptorSet1.scene_data_block).data.time;
+    _540.taa_frame_count = (*spvDescriptorSet1.scene_data_block).data.taa_frame_count;
+    _540.taa_jitter = (*spvDescriptorSet1.scene_data_block).data.taa_jitter;
+    _540.emissive_exposure_normalization = (*spvDescriptorSet1.scene_data_block).data.emissive_exposure_normalization;
+    _540.IBL_exposure_normalization = (*spvDescriptorSet1.scene_data_block).data.IBL_exposure_normalization;
+    _540.camera_visible_layers = (*spvDescriptorSet1.scene_data_block).data.camera_visible_layers;
+    _540.pass_alpha_multiplier = (*spvDescriptorSet1.scene_data_block).data.pass_alpha_multiplier;
+    SceneData param_7 = _540;
+    float3x4 param_8 = (*spvDescriptorSet1.instances).data[instance_index].transform;
+    float4 param_9;
+    vertex_shader(param_4, param_5, param_6, param_7, param_8, param_9, (*spvDescriptorSet1.instances), gl_InstanceIndex, (*spvDescriptorSet2.transforms), out.uv_interp, in.uv_attrib, (*spvDescriptorSet3.material), out.vertex_interp, out.gl_Position);
+    float4 screen_position = param_9;
+    out.gl_Position.y = -(out.gl_Position.y);    // Invert Y-axis for Metal
+    return out;
+}
+

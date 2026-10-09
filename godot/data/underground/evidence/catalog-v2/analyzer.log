@@ -1,0 +1,8 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_profiles.gd:232: (SHADOWED_GLOBAL_IDENTIFIER): The variable "hash" has the same name as a built-in function.
+scripts/core/underground_profiles.gd:248: (SHADOWED_GLOBAL_IDENTIFIER): The function parameter "hash" has the same name as a built-in function.
+scripts/core/underground_profiles.gd:255: (SHADOWED_GLOBAL_IDENTIFIER): The function parameter "hash" has the same name as a built-in function.
+scripts/core/underground_profiles.gd:280: (SHADOWED_GLOBAL_IDENTIFIER): The function parameter "hash" has the same name as a built-in function.
+scripts/core/underground_profiles.gd:509: (UNUSED_PARAMETER): The parameter "worker" is never used in the function "_read_cargo()". If this is intended, prefix it with an underscore: "_worker".
+test/test_underground_profiles.gd:148: (SHADOWED_GLOBAL_IDENTIFIER): The variable "hash" has the same name as a built-in function.
+6 GDScript warning(s) in 2 of 2 file(s)

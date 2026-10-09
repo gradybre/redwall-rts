@@ -1,0 +1,26 @@
+{
+  "godot/scripts/core/underground_session.gd": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_session.gd.txt",
+    "sha256": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e"
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt",
+    "sha256": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt",
+    "sha256": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5"
+  },
+  "docs/planning/underground_memory_pack.json": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_memory_pack.json.txt",
+    "sha256": "3116b4ecfb33041fea2ad6b7412bfd2d3ee6a6f6b579f67b867b4b65a6b8f0bc"
+  },
+  "godot/scripts/systems/ui_manager.gd": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_manager.gd.txt",
+    "sha256": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b"
+  },
+  "godot/scripts/ui/ui_world_session.gd": {
+    "locator": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_world_session.gd.txt",
+    "sha256": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
+  }
+}

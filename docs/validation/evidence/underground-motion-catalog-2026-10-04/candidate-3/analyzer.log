@@ -1,0 +1,3 @@
+error: more than the allowed 0 warning(s)
+test/test_underground_motion_catalog.gd:157: (SHADOWED_VARIABLE_BASE_CLASS): The local variable "reference" is shadowing an already-declared method in the base class "RefCounted".
+1 GDScript warning(s) in 1 of 2 file(s)

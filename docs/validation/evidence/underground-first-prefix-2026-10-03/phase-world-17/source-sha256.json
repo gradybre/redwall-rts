@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_entry_world_bindings.gd": "efa327f6b21c4fb93208b0c59d17f5364934cd86b4099781f1e922abd0f5159e",
+  "godot/test/test_underground_entry_world_bindings.gd": "b5be927c2fc4adf97bb2a18a793c14a58785a6e55761a9e41cf40c9423544d5a",
+  "godot/test/test_underground_first_prefix.gd": "d37a1ba80f6a45d10aa031cf0512544c20c535ca9902dee644e0d0cf2f75dfae",
+  "godot/scripts/core/underground_connector_contacts.gd": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d",
+  "godot/scripts/core/underground_entry_structure.gd": "182a34738f1c82a98cdda0ef64f39e2b27921baac999bdabf6fdfd72ecf8df20"
+}

@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Exact AABB subtraction for the pinned current source; no runtime or paid-state mutation."""
+from pathlib import Path
+import hashlib
+import json
+import struct
+
+HERE = Path(__file__).resolve().parent
+WIRE_SHA = "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
+ROLES = ["BODY", "STANCE", "RECOVERY", "APPROACH", "STROKE", "POINT", "PATCH"]
+CORRIDOR = (-4096, 0, -2048, 2048, 4096, 4096)
+FOOTING = (-4096, -1024, -2048, 2048, 0, 4096)
+
+
+def overlap(a, b):
+    return all(max(a[k], b[k]) < min(a[k + 3], b[k + 3]) for k in range(3))
+
+
+def subtract(box, cover):
+    if not overlap(box, cover):
+        return [tuple(box)]
+    rest = list(box)
+    result = []
+    for axis in range(3):
+        low, high = max(box[axis], cover[axis]), min(box[axis + 3], cover[axis + 3])
+        if rest[axis] < low:
+            slab = rest.copy(); slab[axis + 3] = low; result.append(tuple(slab)); rest[axis] = low
+        if rest[axis + 3] > high:
+            slab = rest.copy(); slab[axis] = high; result.append(tuple(slab)); rest[axis + 3] = high
+    return result
+
+
+def residual(box, covers):
+    pieces = [tuple(box)]
+    for cover in covers:
+        pieces = [part for piece in pieces for part in subtract(piece, cover)]
+    return pieces
+
+
+def translated(box, root):
+    return tuple(box[k] + root[k % 3] for k in range(6))
+
+
+def swept(box, a, b):
+    return tuple(box[k] + (min(a[k], b[k]) if k < 3 else max(a[k - 3], b[k - 3])) for k in range(6))
+
+
+def cube(x, y, z):
+    return (x, y, z, x + 1024, y + 1024, z + 1024)
+
+
+def read_wire():
+    data = (HERE / "current-v3.ugprof").read_bytes()
+    assert hashlib.sha256(data).hexdigest() == WIRE_SHA
+    version, content, count, boxes, sources = struct.unpack_from("<IqIII", data, 8)
+    assert (version, content, count, boxes, sources) == (2, 2, 26, 250, 1)
+    offset = 32 + sources * 32
+    profiles = [struct.unpack_from("<18i3q2B", data, offset + i * 98) for i in range(count)]
+    rows = [struct.unpack_from("<7i", data, offset + 98 * count + i * 28) for i in range(boxes)]
+    assert offset + count * 98 + boxes * 28 + 8 == len(data)
+    assert data[-8:] == b"UGPEND01"
+    return profiles, rows
+
+
+P, B = read_wire()
+
+
+def profile(profile_id):
+    row = P[profile_id]
+    return [(i, B[i]) for i in range(row[14], row[14] + row[15])]
+
+
+def checked(profile_id, root, voids, target=None, start=None, allow_future_kitchen_footing=False):
+    supports = [FOOTING]
+    if allow_future_kitchen_footing:
+        # A hypothetical completed floor strip is not a runtime publication claim.
+        supports.append((2048, -1024, 0, 4096, 0, 2048))
+    stances = [swept(b[:6], start, root) if start else translated(b[:6], root)
+               for _, b in profile(profile_id) if b[6] == 1]
+    failures = []
+    for ordinal, box in profile(profile_id):
+        role = box[6]
+        bounds = swept(box[:6], start, root) if start else translated(box[:6], root)
+        if role in (5, 6):
+            if target is None:
+                continue
+            # This report selects only the source's +X face, including the whole patch.
+            if bounds[0] != target[0] or bounds[3] != target[0] or not all(
+                    target[k] <= bounds[k] <= bounds[k + 3] <= target[k + 3] for k in (1, 2)):
+                failures.append({"box": ordinal, "role": ROLES[role], "contact": list(bounds)})
+            continue
+        covers = supports if role == 1 else list(voids)
+        if role == 4 and target is not None:
+            covers.append(target)
+        elif role != 1:
+            # Only source-authored stance intersecting real support explains below-plane matter.
+            for support in supports:
+                for stance in stances:
+                    if overlap(support, stance):
+                        covers.append(tuple([max(support[k], stance[k]) for k in range(3)] +
+                                            [min(support[k], stance[k]) for k in range(3, 6)]))
+        missing = residual(bounds, covers)
+        if missing:
+            failures.append({"box": ordinal, "role": ROLES[role], "uncovered": missing})
+    return {"profile": profile_id, "root": root, "start": start, "target": target,
+            "complete_geometry_covered": not failures, "failures": failures}
+
+
+def short_step(short, direction, a, b, voids):
+    record = short[f"first_three_{direction}_ticks_with_ready"]
+    # Retain the larger already-proved full-walk STANCE; do not invent a smaller foot row.
+    stance = next(box[:6] for _, box in profile(5) if box[6] == 1)
+    support = swept(stance, a, b)
+    missing = residual(support, [FOOTING])
+    failures = [{"role": "STANCE", "uncovered": missing}] if missing else []
+    for kind in ("body_u", "tool_u"):
+        box = swept(record[kind], a, b)
+        missing = residual(box, [*voids, support])
+        if missing:
+            failures.append({"role": kind, "uncovered": missing})
+    return {"direction": direction, "root_from": a, "root_to": b,
+            "whole_source_primitive_sweeps": {k: swept(record[k], a, b) for k in ("body_u", "tool_u")},
+            "retained_full_walk_stance_sweep": support,
+            "complete_geometry_covered": not failures, "failures": failures,
+            "current_profile_authority": False}
+
+
+def main():
+    ground0, ground1 = cube(2048, 0, 0), cube(2048, 0, 1024)
+    first = [CORRIDOR, ground0]
+    widened = [CORRIDOR, ground0, ground1]
+    raised = [*widened, cube(2048, 1024, 0), cube(2048, 1024, 1024)]
+    short = json.loads((HERE / "short-gait.json").read_text())
+    cases = {
+        "original_first_front": checked(24, (1280, 0, 512), [CORRIDOR], ground0),
+        "proposed_next_deep_front_after_one_cube": checked(24, (2304, 0, 512), first, cube(3072, 0, 0), allow_future_kitchen_footing=True),
+        "proposed_next_deep_travel_after_one_cube": checked(5, (2304, 0, 512), first, start=(1280, 0, 512), allow_future_kitchen_footing=True),
+        "lateral_front_from_old_corridor": checked(24, (1280, 0, 1536), first, ground1),
+        "lateral_forward_from_new_local_gateway": checked(5, (1280, 0, 1536), first, start=(-1024, 0, 1536)),
+        "lateral_backward_to_new_local_gateway": checked(9, (-1024, 0, 1536), first, start=(1280, 0, 1536)),
+        "high_first_after_widening": checked(23, (1512, 0, 512), widened, cube(2048, 1024, 0)),
+        "high_second_after_widening": checked(23, (1512, 0, 1024), widened, cube(2048, 1024, 1024)),
+        "current_full_walk_to_high_after_widening": checked(5, (1512, 0, 512), widened, start=(1280, 0, 512)),
+        "deeper_front_after_four_paid_cubes": checked(24, (2304, 0, 768), raised, cube(3072, 0, 0), allow_future_kitchen_footing=True),
+        "deeper_forward_after_four_paid_cubes": checked(5, (2304, 0, 768), raised, start=(1280, 0, 768), allow_future_kitchen_footing=True),
+        "deeper_backward_after_four_paid_cubes": checked(9, (1280, 0, 768), raised, start=(2304, 0, 768), allow_future_kitchen_footing=True),
+    }
+    assert cases["original_first_front"]["complete_geometry_covered"]
+    assert not cases["proposed_next_deep_front_after_one_cube"]["complete_geometry_covered"]
+    assert not cases["proposed_next_deep_travel_after_one_cube"]["complete_geometry_covered"]
+    for key in ["lateral_front_from_old_corridor", "lateral_forward_from_new_local_gateway", "lateral_backward_to_new_local_gateway", "high_first_after_widening", "high_second_after_widening", "deeper_front_after_four_paid_cubes", "deeper_forward_after_four_paid_cubes", "deeper_backward_after_four_paid_cubes"]:
+        assert cases[key]["complete_geometry_covered"], (key, cases[key])
+    assert not cases["current_full_walk_to_high_after_widening"]["complete_geometry_covered"]
+    steps = [short_step(short, direction, (1280, 0, z) if direction == "forward" else (1512, 0, z),
+                        (1512, 0, z) if direction == "forward" else (1280, 0, z), widened)
+             for z in (512, 1024) for direction in ("forward", "backward")]
+    assert all(s["complete_geometry_covered"] for s in steps)
+    displacement = 768 - 536
+    ticks = []
+    for original in range(30):
+        remainder, distance, count = original, 0, 0
+        while distance < displacement:
+            advance, remainder = divmod(remainder + 3277, 30)
+            distance += min(advance, displacement - distance); count += 1
+        ticks.append(count)
+    assert displacement == 232 and ticks == [3] * 30
+    result = {
+        "scope": "integer physical feasibility only; positive what-if cubes must first complete real BRACE/CUT/FINISH; not runtime qualification",
+        "wire_sha256": WIRE_SHA, "coordinate_frame": "relative to X=122880,FLOOR=-4608,Z=102400",
+        "profiles": {str(i): {"yaw": P[i][11], "policy": P[i][22], "boxes": [{"ordinal": j, "role": ROLES[b[6]], "bounds": b[:6]} for j, b in profile(i)]} for i in (1, 5, 9, 22, 23, 24, 25)},
+        "cases": cases, "short_step_cases": steps,
+        "root_step": {"u": displacement, "speed_u_per_s": 3277, "ticks_for_each_remainder_0_through_29": ticks,
+                      "new_speed_or_duration_adopted": False},
+        "critical_root_z_intervals_u": {
+            "front_recovery_in_single_paid_cube": [537, 430],
+            "travel5_full_box_union_in_single_paid_cube": [445, 114],
+            "high_work_wall_crossing_roles_after_one_lower_cube": [409, 352],
+            "high_upper0_after_two_lower_cubes_including_full_tip_stroke": [409, 896],
+            "high_upper1_after_two_lower_cubes_including_full_tip_stroke": [1035, 1376],
+        },
+        "limitations": ["A Location/section does not create void or support", "Current provider has one fixed retreat profile and endpoint; hypothetical local gateways are not existing certified paths", "Source prefix geometry is not an admitted short-step policy", "No new native replay, source flags, paid work or engine execution"]
+    }
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == "__main__":
+    main()

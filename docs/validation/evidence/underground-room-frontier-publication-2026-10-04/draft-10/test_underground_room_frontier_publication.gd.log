@@ -1,0 +1,47 @@
+state_registry_coverage: PASS -- 151 modules, 728 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_frontier_publication.gd
+  PASS  test_cross_section_long_spans_refuse_and_four_directed_spans_fit
+  PASS  test_unbound_publication_and_direct_tail_preserve_output
+  PASS  test_held_scope_blocks_generic_preparation_before_first_candidate
+  PASS  test_actual_prospective_rows_do_not_gain_generic_publication_permission
+  PASS  test_prospective_observation_preserves_output_for_foreign_context_stale_generation_and_lost_lease
+  PASS  test_discard_keeps_original_hold_until_coordinator_cleanup
+FRONTIER-FIRST-CUBE-REFUSAL LOCATION_COVERAGE_MISSING
+  PASS  test_actual_paid_first_cube_preserves_full_geometry_refusal_and_every_live_owner
+SCRIPT ERROR: Invalid call. Nonexistent function '_mask' in base 'RefCounted (underground_world_routes.gd)'.
+          at: _selected_edges (res://scripts/core/underground_room_frontier_publication.gd:454)
+          GDScript backtrace (most recent call first):
+              [0] _selected_edges (res://scripts/core/underground_room_frontier_publication.gd:454)
+              [1] _final_leaf (res://scripts/core/underground_room_frontier_publication.gd:437)
+              [2] _run (res://scripts/core/underground_room_frontier_publication.gd:241)
+              [3] publish_into (res://scripts/core/underground_room_frontier_publication.gd:105)
+              [4] test_actual_paid_first_cube_adds_lateral_corridor_contact_without_movement_or_free_work (res://test/test_underground_room_frontier_publication.gd:315)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-frontier-publication/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+FRONTIER-LATERAL-PUBLICATION 
+  FAIL  test_actual_paid_first_cube_adds_lateral_corridor_contact_without_movement_or_free_work
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":102,"failures":0,"suite":"test_underground_room_frontier_publication.gd","tests":8,"usec":2853044}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 102 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

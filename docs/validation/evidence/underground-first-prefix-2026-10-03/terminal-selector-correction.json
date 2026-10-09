@@ -1,0 +1,38 @@
+{
+  "scope": "Parent-approved test-owned source correction only; production owner sources and 1113 geometric JSON unchanged.",
+  "original_run": "phase-world-30",
+  "original_tests": 33,
+  "original_assertions": 10733,
+  "original_failures": 1,
+  "original_refusal": "ENTRY_INSTALLED_CONTACT_REQUIRED",
+  "reason": "Endpoint 10 requested WORK but none of the eight authored stations named it. No productive task at the T0 terminal is part of this prefix.",
+  "endpoint_ordinal": 10,
+  "selector_kind": "INSTALLED_CONTACT",
+  "assembly": 1,
+  "datum": 2,
+  "point_local_u": [
+    0,
+    -128,
+    -2304
+  ],
+  "old_role": "ROLE_WORK",
+  "new_role": "ROLE_TRANSIT",
+  "explicit_travel_profile_id": 0,
+  "explicit_travel_profile_revision": 1,
+  "source_origin": "The endpoint is encoded in the test-owned GDScript frontier builder, not in the shared immutable 1113 JSON.",
+  "old_source_sha256": {
+    "godot/test/test_underground_first_prefix.gd": "d37a1ba80f6a45d10aa031cf0512544c20c535ca9902dee644e0d0cf2f75dfae",
+    "godot/test/test_underground_entry_world_bindings.gd": "72cd7a0ac460b1bc9642b11a41f197ed067bd4be6af9bdb86f90503a9ab5c558"
+  },
+  "new_source_sha256": {
+    "godot/test/test_underground_first_prefix.gd": "fcf98547c204bf761d798c3a677976bd62f63308bba007371285d61ee6a01123",
+    "godot/test/test_underground_entry_world_bindings.gd": "8e28f378801d519fd3f22e50f63e9cd9ca54363e03b7cc412d7693fb19edb2b5"
+  },
+  "geometry_json_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+  "permission_limits": [
+    "Synthetic WALK source remains unqualified for production.",
+    "No T0 stair link is added.",
+    "No productive T0-root task or WORK station is invented.",
+    "All actual payment, prism, support, full-handle, conservation and residual assertions stay unchanged."
+  ]
+}

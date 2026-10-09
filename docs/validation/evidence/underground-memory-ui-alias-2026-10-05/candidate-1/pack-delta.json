@@ -1,0 +1,40 @@
+[
+  {
+    "path": "/room_extension_reservation/current_source_sha256/godot/scripts/systems/ui_manager.gd",
+    "old": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+    "new": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98"
+  },
+  {
+    "path": "/room_extension_reservation/current_ui_alias",
+    "old": null,
+    "new": {
+      "source_sha256": {
+        "godot/scripts/systems/ui_manager.gd": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98",
+        "godot/scripts/ui/ui_notices.gd": "e30d4b1524cd1fc5f785c7dc59311239ba021297f5b8a7e3b53ef22a38e39c1e"
+      },
+      "historical_ui_manager_sha256": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+      "reconstruction": "one exact constant alias; all other bytes identical",
+      "additional_reserved_bytes": 0
+    }
+  },
+  {
+    "path": "/room_extension_reservation/manifest_sha256",
+    "old": "9eb1a296a595e4788f52bdbc28e6f6a852dab3c905b116e3075538588a64e3bc",
+    "new": "4e87cd9bd60b16266f1b08fa2db7aa755348ab2b6c76576ac3911ea7cd02444b"
+  },
+  {
+    "path": "/room_world_reservation/extension_census",
+    "old": "docs/validation/evidence/underground-current-memory-2026-10-05/manifest.json",
+    "new": "docs/validation/evidence/underground-memory-ui-alias-2026-10-05/manifest.json"
+  },
+  {
+    "path": "/source_approach_reservation/historical_1156/portable_enforcement/reviewed_current_extensions",
+    "old": "docs/validation/evidence/underground-current-memory-2026-10-05/manifest.json",
+    "new": "docs/validation/evidence/underground-memory-ui-alias-2026-10-05/manifest.json"
+  },
+  {
+    "path": "/ui_reset_reservation/source_sha256/godot/scripts/systems/ui_manager.gd",
+    "old": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+    "new": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98"
+  }
+]

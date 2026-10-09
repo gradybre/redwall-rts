@@ -1,0 +1,25 @@
+{
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--windowed",
+    "--resolution",
+    "1280x720",
+    "--position",
+    "80,80",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-world-view/docs/validation/evidence/underground-actual-world-view-2026-10-05/native-2"
+  ],
+  "head": "b2527d79d413ad99a31459fba024103bb77bb372",
+  "user_dir": "Redwall-ug1175-native-901ad07c90837a62",
+  "world_qualified": false,
+  "native_exit": 0,
+  "seconds": 3.758571583,
+  "raw_findings": [],
+  "project_override_unchanged": true,
+  "source_unchanged": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

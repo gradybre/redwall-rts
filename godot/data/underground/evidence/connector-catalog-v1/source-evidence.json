@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "status": "independent-source-review-pending",
+  "tests": 96,
+  "assertions": 3092,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "qualified_production_connectors": 0,
+  "qualified_production_profiles": 0,
+  "files": [
+    {
+      "path": "godot/scripts/core/underground_connector_catalog.gd",
+      "sha256": "5a36aae6ac196ff560ddb339c4deed46568454890b182fc3582b4b79ae09bb06"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_catalog.gd.uid",
+      "sha256": "1dd3e44d6f45f4186f2651ab059e084e5a914b24331f05d9d64e91c94a52d512"
+    },
+    {
+      "path": "godot/test/test_underground_connector_catalog.gd",
+      "sha256": "64c7d817acce95e58d42f3659dfd02196e924ceb0401ff0d97a55bd990806ab6"
+    },
+    {
+      "path": "godot/test/test_underground_connector_catalog.gd.uid",
+      "sha256": "38e4e4c9a3568087a9182fc39dc5035e7ed69768b679596e6a01403ab34a511c"
+    },
+    {
+      "path": "godot/scripts/core/movement.gd",
+      "sha256": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69"
+    },
+    {
+      "path": "godot/test/test_movement.gd",
+      "sha256": "c65d3534bca83820df456e1d4f1ec3d4732eee580bb891c27424565de1820cf7"
+    },
+    {
+      "path": "godot/data/underground/evidence/run_connector_catalog_checks.py",
+      "sha256": "2e6a2e254feafe89e9f54b70a6b2afe7942eb9a357ae06aa398bbb12aa83187a"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v1/analyzer.log",
+      "sha256": "77771551fcde99b8d9f7f6c8a245f17e7847017408188b493b2068226c178eca"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v1/import.log",
+      "sha256": "9f483e54fc4c6d0571140a48b33d39e9c30b7b7c8474cce4eae3438ffee05984"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v1/invocation.json",
+      "sha256": "e698830c3e86ba67d3268b8c1a690502d62c5d1f78857941e62bb93f94ba169f"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v1/strict.log",
+      "sha256": "fd8c7a260310c6d644b9994eb3e27c9b64458beb3b94ea2497d27bcc372fa177"
+    }
+  ]
+}

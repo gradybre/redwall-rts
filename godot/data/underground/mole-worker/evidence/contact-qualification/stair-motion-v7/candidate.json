@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "compact_source_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+  "attempts": [
+    {
+      "rise_u": 128,
+      "status": "REFUSED",
+      "error": "STEP_LEG_REACH"
+    },
+    {
+      "rise_u": 256,
+      "status": "REFUSED",
+      "error": "STEP_LEG_REACH"
+    },
+    {
+      "rise_u": -128,
+      "status": "REFUSED",
+      "error": "STEP_SOLE_CONVERGENCE"
+    },
+    {
+      "rise_u": -256,
+      "status": "REFUSED",
+      "error": "STEP_LEG_REACH"
+    }
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "4b285d09dcff8ae691da6beb224b6ea6136c08adaa2f1fe314b4a95eb9816dc8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "c164a8d83b7af6fa38fc7362105c64264900a8ca1197442a0a3e8f74cf18f8c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "remaining": [
+    "CONTINUOUS_JOINT_BODY_TOOL_TERRAIN_CLEARANCE",
+    "REAL_PHASE_FOOT_SUPPORT",
+    "NATIVE_QUALITY",
+    "ACTUAL_ROOT_AND_PHASE_OWNER",
+    "WHOLE_ENTRY_SHAPE_AND_COST_RECONCILIATION",
+    "RENDERER_ROOT_CONTRACT"
+  ],
+  "production_qualified": false
+}

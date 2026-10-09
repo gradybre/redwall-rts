@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_world_bindings.gd": "61cab1ee63dfb7f540a1e351669b2cb4bc9cdef661c758f84bc18b7829d83330",
+  "godot/test/test_underground_world_bindings.gd": "d45e1431a78fcb0421990e8e211d0977ce7de043b3c0a880728faaaa9ccfa2d1",
+  "godot/scripts/core/underground_space_authority.gd": "b83662ce8616f6cef68428981e05ea3420aae09a458c099714d1bd6897668d43",
+  "godot/test/test_underground_space_authority.gd": "ee9e4043b8a6927c11b73add5fcb3b2a42396519d8fd25fcb43700bd33ad09ea"
+}

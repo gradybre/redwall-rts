@@ -1,0 +1,38 @@
+{
+  "cwd": "repository root of the owned worktree",
+  "base_commit": "8ea52f2e",
+  "engine_import": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "preparation": "Move own demo/assets aside if present; delete own godot/.godot; import; run unchanged strict selected singleton shards; restore assets in finally.",
+  "suites": [
+    "test_underground_space_owner.gd",
+    "test_underground_space_authority.gd",
+    "test_underground_room_bindings.gd"
+  ],
+  "selection": "./tools/run_tests.sh --shard index/discovered_count --output-dir directory; exact singleton manifests are retained per suite",
+  "analyzer": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--port",
+    "6153",
+    "--max",
+    "0",
+    "godot/scripts/core/underground_space_authority.gd",
+    "godot/scripts/core/underground_space_owner.gd",
+    "godot/test/test_underground_space_authority.gd",
+    "godot/test/test_underground_space_owner.gd"
+  ],
+  "tests": 139,
+  "assertions": 10413,
+  "failures": 0,
+  "iterations": {
+    "clean-focused": "Owner88/5024, Authority34/4605, actual RoomBindings16/573; independently reviewed source had one cold callback lifetime gap",
+    "corrected-authority": "Authority35/4816 after another clean import; production delta adds final current-source/lease check before residual banks; Owner/provider pins unchanged"
+  }
+}

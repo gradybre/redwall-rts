@@ -1,0 +1,127 @@
+[
+  {
+    "path": "godot/data/underground/initial_level_pack.uglvl",
+    "bytes": 108,
+    "sha256": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
+  },
+  {
+    "path": "godot/scripts/core/buildings.gd",
+    "bytes": 137220,
+    "sha256": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba"
+  },
+  {
+    "path": "godot/scripts/core/entity_directory.gd",
+    "bytes": 52155,
+    "sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e"
+  },
+  {
+    "path": "godot/scripts/core/excavation_sites.gd",
+    "bytes": 100804,
+    "sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74"
+  },
+  {
+    "path": "godot/scripts/core/room_footprint.gd",
+    "bytes": 26321,
+    "sha256": "253eae560594d198ee7d0ac809d92a99e7c17795ef9c191cfb1c6940a0eb4b89"
+  },
+  {
+    "path": "godot/scripts/core/room_space.gd",
+    "bytes": 28350,
+    "sha256": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624"
+  },
+  {
+    "path": "godot/scripts/core/underground_budget.gd",
+    "bytes": 3184,
+    "sha256": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779"
+  },
+  {
+    "path": "godot/scripts/core/underground_connector_catalog.gd",
+    "bytes": 31563,
+    "sha256": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180"
+  },
+  {
+    "path": "godot/scripts/core/underground_final_facts.gd",
+    "bytes": 27950,
+    "sha256": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a"
+  },
+  {
+    "path": "godot/scripts/core/underground_level_catalog.gd",
+    "bytes": 13038,
+    "sha256": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f"
+  },
+  {
+    "path": "godot/scripts/core/underground_locations.gd",
+    "bytes": 123741,
+    "sha256": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd"
+  },
+  {
+    "path": "godot/scripts/core/underground_profiles.gd",
+    "bytes": 34501,
+    "sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca"
+  },
+  {
+    "path": "godot/scripts/core/underground_room_cut_map.gd",
+    "bytes": 12040,
+    "sha256": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5"
+  },
+  {
+    "path": "godot/scripts/core/underground_room_orders.gd",
+    "bytes": 83271,
+    "sha256": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a"
+  },
+  {
+    "path": "godot/scripts/core/underground_routes.gd",
+    "bytes": 149641,
+    "sha256": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0"
+  },
+  {
+    "path": "godot/scripts/core/underground_space_owner.gd",
+    "bytes": 150920,
+    "sha256": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158"
+  },
+  {
+    "path": "godot/scripts/core/underground_terrain.gd",
+    "bytes": 28625,
+    "sha256": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d"
+  },
+  {
+    "path": "godot/scripts/core/underground_work_face.gd",
+    "bytes": 21590,
+    "sha256": "e138d653af2cd532da4d8014562cf00be19c0a5f263839521807014cae78a7cc"
+  },
+  {
+    "path": "godot/scripts/core/underground_world_bindings.gd",
+    "bytes": 35174,
+    "sha256": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7"
+  },
+  {
+    "path": "godot/scripts/core/underground_world_routes.gd",
+    "bytes": 93063,
+    "sha256": "7de9ae26375baff235c90f7d2b5703f9ca638fa1c7276ddf4c86e46c6a85434c"
+  },
+  {
+    "path": "godot/test/test_underground_furniture_work.gd",
+    "bytes": 42677,
+    "sha256": "d364168364c1151933bd787972bbdd7f92724befc12124e30dd8e9fd5c6e5a09"
+  },
+  {
+    "path": "godot/test/test_underground_room_bindings.gd",
+    "bytes": 32995,
+    "sha256": "9843b0b6659655d7828231a176deea55e87b59c1525cb262877d0a30fc47993f"
+  },
+  {
+    "path": "godot/test/test_underground_work_face.gd",
+    "bytes": 27066,
+    "sha256": "8da942eb1fdccab7408adcd8a78200856294983c867e6130e2744edc1aa86539"
+  },
+  {
+    "path": "godot/test/test_underground_world_routes.gd",
+    "bytes": 60563,
+    "sha256": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2"
+  },
+  {
+    "path": "tools/underground_memory_budget.py",
+    "bytes": 73000,
+    "sha256": "0a03d98a8622f29f77e1573e75a36900786b2b477dbabb6f848b53b10809922f"
+  }
+]

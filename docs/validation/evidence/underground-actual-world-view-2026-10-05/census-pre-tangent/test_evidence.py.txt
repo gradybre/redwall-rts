@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Focused constructor/census and native report refusal tests; never an engine or source proof substitute."""
+import copy
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+HERE=Path(__file__).resolve().parent
+
+def module(name):
+    spec=importlib.util.spec_from_file_location(name,HERE/(name+'.py'))
+    value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
+
+C=module('census');N=module('run_native')
+
+class Evidence(unittest.TestCase):
+    def setUp(self):
+        self.source=(C.ROOT/C.MODULE).read_text()
+        C.validate(self.source)
+    def test_actual_census(self):
+        result=C.build(self.source)
+        self.assertEqual(result['retained_logical_numeric_bytes_actual'],300)
+        self.assertEqual(result['capacity']['raw_mesh_source_bytes'],11495424)
+        self.assertFalse(result['native_memory_qualified'])
+    def test_retained_growth(self):
+        with self.assertRaises(AssertionError): C.build(self.source+'\nvar hidden: PackedInt32Array = []\n')
+    def test_payload_growth(self):
+        with self.assertRaises(AssertionError): C.build(self.source.replace('vertices.resize(capacity * 4)','vertices.resize(capacity * 8)'))
+    def test_staging_lifetime(self):
+        with self.assertRaises(AssertionError): C.build(self.source.replace('top = null\n',''))
+    def test_old_resource_deferred(self):
+        with self.assertRaises(AssertionError): C.build(self.source.replace('child.free()','child.queue_free()'))
+    def test_strong_world_growth(self):
+        with self.assertRaises(AssertionError): C.build(self.source.replace('_world = weakref(world)','_world = world'))
+    def test_texture_growth(self):
+        with self.assertRaises(AssertionError): C.build(self.source+'\n# Look._noise_texture(\n')
+    def test_legacy_layout(self):
+        with self.assertRaises(AssertionError): C.build(self.source.replace('parameter(&"path_count", 0)','parameter(&"path_count", 3)'))
+    def test_frame_rebuild(self):
+        with self.assertRaises(AssertionError): C.build(self.source.replace('func _process(_delta: float) -> void:', 'func _process(_delta: float) -> void:\n\t_build([], 1, 2)'))
+    def test_native_oracle_and_mutations(self):
+        original=json.loads((HERE/'native-3/report.json').read_text())
+        for key,value in [('checks',0),('failures',['bad']),('driver','opengl3'),('canonical_unchanged',False),('rebuilds',2)]:
+            report=copy.deepcopy(original);report[key]=value
+            with tempfile.TemporaryDirectory() as tmp:
+                out=Path(tmp);(out/'report.json').write_text(json.dumps(report))
+                with self.assertRaises(AssertionError):N.validate(out)
+        self.assertEqual(len(N.validate(HERE/'native-3')),4)
+    def test_image_missing(self):
+        report=json.loads((HERE/'native-3/report.json').read_text())
+        with tempfile.TemporaryDirectory() as tmp:
+            out=Path(tmp);(out/'report.json').write_text(json.dumps(report))
+            with self.assertRaises(FileNotFoundError):N.validate(out)
+    def test_native_mutated_dimensions(self):
+        report=json.loads((HERE/'native-3/report.json').read_text());report['images'][0]['width']=720
+        with tempfile.TemporaryDirectory() as tmp:
+            out=Path(tmp);(out/'report.json').write_text(json.dumps(report))
+            with self.assertRaises(AssertionError):N.validate(out)
+
+if __name__=='__main__':unittest.main()

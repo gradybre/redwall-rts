@@ -1,0 +1,12 @@
+{
+  "python_exit": 0,
+  "analyzer_exit": 0,
+  "source_count": 911,
+  "source_unchanged": true,
+  "head_before": "414ecec741fe98fdc008600f169300eb0f9ab88e",
+  "head_after": "414ecec741fe98fdc008600f169300eb0f9ab88e",
+  "original_override_absent": true,
+  "own_override_removed": true,
+  "source_functions": 19,
+  "maximum_nonblank_function_lines": 23
+}

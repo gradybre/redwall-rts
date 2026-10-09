@@ -1105,6 +1105,148 @@ func test_the_panel_names_the_room_being_placed() -> void:
 	assert_equal(tool.ext.placing_room, RoomsScript.TEMPLATE_NONE, "closing the Dig tool forgets the room")
 
 
+func test_room_blueprint_review_and_discard_never_order_work() -> void:
+	"""Holding, rotating and cancelling a blueprint leave all existing graph, worker and stock state intact."""
+	var tool := _tool(PackedInt32Array([0]))
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.room.move_to(Vector2(-10.0, -10.0))
+	var revision := tool.network.revision
+	var stock := tool.ext.works.stores.stock_line()
+	var work := tool._brain(0).dig_tunnel
+	assert_true(tool.room.stage(true), "valid room held for review")
+	assert_true(tool.room.pending, "a draft, not a project")
+	tool.room.turn(1)
+	tool.room.move_to(Vector2(10.0, 10.0))
+	assert_equal(tool.room.plan.centre_u, Vector2i(-10240, -10240), "hover cannot move a held blueprint")
+	assert_equal(tool.network.revision, revision, "no world mutation")
+	assert_equal(tool._brain(0).dig_tunnel, work, "no worker interrupted")
+	assert_equal(tool.ext.works.stores.stock_line(), stock, "no materials spent")
+	assert_true(tool.ext.panel.button(PanelScript.ACTION_ROOM_CONFIRM).visible, "explicit confirm action")
+	tool.ext.panel.action.emit(PanelScript.ACTION_ROOM_DISCARD)
+	assert_false(tool.room.pending, "discard resolves the draft")
+	assert_true(tool.room.active, "only one Escape level")
+	assert_equal(tool.network.revision, revision, "discard is also pure")
+	assert_false(tool.room.confirm(), "discarded blueprint cannot be submitted")
+	var drawn := tool.room.ghost_draws
+	tool.room.move_to(Vector2(-10.0, -10.0))
+	assert_equal(tool.room.ghost_draws, drawn + 1, "the same site redraws after discard instead of staying invisible")
+	assert_true(tool.room._fill_below.visible, "the clipped grid is visible again")
+
+
+func test_room_blueprint_confirmation_orders_once_and_completes_empty() -> void:
+	"""One explicit confirmation starts the existing excavation; repeat confirmation creates no duplicate."""
+	var tool := _tool(PackedInt32Array([0]))
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.room.move_to(Vector2(6.0, 10.0))
+	assert_false(tool.room.confirm(), "hover alone is not a held blueprint")
+	assert_true(tool.room.stage(true), "held")
+	assert_true(tool.handle_input(_key_event(KEY_ENTER)), "Enter reaches the room tool")
+	assert_true(tool.network.rooms.is_room(0), "room ordered: %s" % tool.notice())
+	assert_false(tool.room.pending, "confirmation consumed the draft")
+	assert_false(tool.room.confirm(), "a second confirmation has nothing to order")
+	assert_equal(tool.network.rooms.template.count(RoomsScript.TEMPLATE_HOME), 1, "exactly one room")
+	assert_false(tool.network.rooms.is_done(tool.network, 0), "ordering does not complete excavation")
+	assert_equal(tool._brain(0).dig_tunnel, tool.network.rooms.ramp[0], "worker assigned to the actual entrance")
+	var chain := PackedInt32Array()
+	tool.network.piece_segments_into(tool.network.rooms.piece[0], chain)
+	for slot in chain:
+		if not tool.network.is_open(slot):
+			tool.network.start_dig(slot, tool.network.generation[slot], 0)
+			tool.network.advance(slot, tool.network.generation[slot], 1000000000)
+	assert_true(tool.network.rooms.is_done(tool.network, 0), "existing work completes the shell")
+	for f in RoomsScript.fixture_count(RoomsScript.TEMPLATE_HOME):
+		assert_equal(tool.network.fit.phase_of(tool.network, 0, f), 0, "no furnishing orders inherited from the blueprint")
+
+
+func test_room_blueprint_rechecks_a_new_obstacle_and_retains_the_draft() -> void:
+	"""An intervening obstruction refuses confirmation without losing the draft or dispatching its worker."""
+	var tool := _tool(PackedInt32Array([0]))
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.room.move_to(Vector2(-10.0, -10.0))
+	assert_true(tool.room.stage(true), "initially valid")
+	_space_of(tool).set_heap(0, Vector3(-10.0, 1.0, -10.0))
+	assert_false(tool.room.confirm(), "fresh obstacle blocks the order")
+	assert_true(tool.room.pending, "draft survives a refusal")
+	assert_false(tool.network.rooms.is_room(0), "no partial room")
+	assert_equal(tool._brain(0).dig_tunnel, -1, "no worker dispatched")
+	assert_true(tool.ext.panel.button(PanelScript.ACTION_ROOM_CONFIRM).disabled, "visible refusal disables confirm")
+	tool.ext.panel.action.emit(PanelScript.ACTION_ROOM_MOVE)
+	assert_false(tool.room.pending, "Move resumes positioning")
+	assert_true(tool.room.active, "same room tool")
+	tool.room.move_to(Vector2(10.0, 10.0))
+	assert_equal(tool.room.plan.centre_u, Vector2i(10240, 10240), "position can now change")
+
+
+func test_room_blueprint_cannot_silently_change_type_or_level() -> void:
+	"""Type/view changes cannot retarget a held blueprint; explicit cancel unwinds one layer."""
+	var tool := _tool(PackedInt32Array([0]))
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.room.move_to(Vector2(-10.0, -10.0))
+	tool.room.stage(true)
+	tool.begin_room(RoomsScript.TEMPLATE_CELLAR)
+	tool.show_level(Rules.LEVEL_2)
+	assert_equal(tool.room.plan.kind, RoomsScript.TEMPLATE_HOME, "type unchanged")
+	assert_equal(tool.view.level, Rules.TOP_LEVEL, "view stays with the draft")
+	assert_equal(tool.room.plan.level, Rules.TOP_LEVEL, "draft stays on its level")
+	tool.cancel_plan()
+	assert_false(tool.room.pending, "B discards the held draft first")
+	assert_true(tool.planning and tool.room.active, "room tool remains open")
+	tool.cancel_plan()
+	assert_false(tool.planning, "next B closes it")
+	assert_false(tool.ext.panel.blueprint_shown(), "no abandoned review controls")
+
+
+func test_room_blueprint_changed_auto_passage_requires_a_second_review() -> void:
+	"""A new nearby tunnel must not silently change the connection that confirmation orders."""
+	var tool := _tool(PackedInt32Array([0]))
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.room.move_to(Vector2(6.0, 10.0))
+	tool.room.turn(2)
+	assert_true(tool.room.stage(false), "room held before any tunnel exists")
+	assert_equal(tool.room.plan.passage.count, 0, "initially standalone")
+	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
+	assert_false(tool.room.confirm(), "new passage first needs review")
+	assert_true(tool.room.pending, "updated blueprint still held")
+	assert_equal(tool.room.plan.passage.count, 2, "new passage is displayed")
+	assert_false(tool.network.rooms.is_room(0), "nothing ordered before the player reviews it")
+	assert_true(tool.room.confirm(), "the reviewed connection can now be ordered")
+	var pieces := PackedInt32Array()
+	tool.network.job_list_into(pieces)
+	assert_equal(pieces.size(), 2, "room plus passage queued together")
+
+
+func test_room_blueprint_connection_generation_is_part_of_its_review() -> void:
+	"""Reusing a connection row at the same point does not bypass the new-connection review."""
+	var tool := _tool(PackedInt32Array([0]))
+	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.room.move_to(Vector2(6.0, 10.0))
+	tool.room.turn(2)
+	assert_true(tool.room.stage(false), "held with a valid passage")
+	var ref: int = tool.room.plan.passage.snap_ref[0]
+	assert_true(ref >= 0, "a real network connection")
+	tool.network.generation[ref] += 1
+	assert_false(tool.room.confirm(), "changed generation requires another review")
+	assert_false(tool.network.rooms.is_room(0), "no room dispatched against the old reference")
+	assert_true(tool.room.pending, "draft remains reviewable")
+
+
+func test_lower_room_blueprint_is_not_retargeted_by_hiding_the_underground_view() -> void:
+	"""Even an invalid lower-level draft keeps its level until explicitly discarded."""
+	var tool := _tool(PackedInt32Array([0]))
+	tool.begin_room(RoomsScript.TEMPLATE_HOME)
+	tool.show_level(Rules.LEVEL_2)
+	tool.room.move_to(Vector2(6.0, 10.0))
+	assert_false(tool.room.stage(false), "no lower-level approach exists yet")
+	tool.toggle_view()
+	assert_true(tool.view.on, "U cannot silently turn a lower draft into a surface entrance")
+	assert_equal(tool.room.plan.level, Rules.LEVEL_2, "lower draft preserved")
+	assert_true(tool.room.pending, "draft retained")
+	tool.room.discard_blueprint()
+	tool.toggle_view()
+	assert_false(tool.view.on, "explicit discard permits returning to the surface")
+
+
 func test_the_room_tool_says_why_a_room_may_not_go() -> void:
 	"""Over a tunnel's bore the ghost is refused in words, and a click lays nothing and says why; Shift+click
 	lays a standalone room; C switches to the cellar tool and C again goes back to tunnels."""
@@ -1489,9 +1631,9 @@ func test_the_room_tool_takes_its_site_afresh_after_a_room_is_laid() -> void:
 	assert_true(found, "its door among them")
 
 
-func test_a_room_whose_passage_fails_once_laid_stands_alone_and_says_why() -> void:
+func test_a_room_whose_reviewed_passage_fails_is_not_partly_ordered() -> void:
 	"""Six node rows free: the home and its proposed passage each fit alone, but once the home takes them the
-	passage has no row for its junction -- the home is laid standalone and the notice says so."""
+	passage has no row for its junction: refuse the whole room, with no worker sent or standalone fallback."""
 	var tool := _tool(PackedInt32Array([0]))
 	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
 	tool.ext.works.step(1)
@@ -1505,8 +1647,12 @@ func test_a_room_whose_passage_fails_once_laid_stands_alone_and_says_why() -> vo
 	tool.room.move_to(Vector2(6.0, 10.0))
 	tool.room.turn(2)
 	assert_true(tool.room.plan.passage.count == 2, "a passage proposed: %s" % tool.room.words())
-	assert_true(tool.room.place(false), "laid")
-	assert_true(_notices[-1].contains("standalone: its passage may not be dug"), "said: %s" % _notices[-1])
+	assert_true(tool.room.stage(false), "the proposed passage is reviewed")
+	assert_false(tool.room.confirm(), "no capacity for the whole order")
+	assert_true(_notices[-1].contains("the room was not ordered"), "said: %s" % _notices[-1])
+	assert_false(network.rooms.is_room(0), "room allocation rolled back")
+	assert_equal(tool._brain(0).dig_tunnel, -1, "no worker sent")
+	assert_true(tool.room.pending, "blueprint retained for correction")
 
 
 func test_the_rooms_pieces_on_the_ground_are_sampled_for_the_prewarm() -> void:

@@ -1,0 +1,7 @@
+### `godot/scripts/core/underground_entry_structure.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact Placement frame | `_entry_frame` | 4 | `9` = 9 | Empty until bound; overwritten for each actual phase | 3 | -- | Decision1122. Original actual Placement position, cardinal rotation, Level, full Section and Anchor. No independent authority or saved bank. |
+| Reused immutable phase episode | `_entry_episode` | 4 | `19` = 19 | Empty until bound; selected only by the exact current Placement prefix and whole Site key | 3 | -- | Same actual Frontier source row, rechecked after observing collaborators. No installed prefix, support receipt or physical ledger is stored here. |
+| Entry structural adapter controls | -- | -- | -- | No selected entry at a public boundary; actual owners borrowed through weak references | 3 | -- | The inherited1093 packet remains counted once. Additional fixed logical packet153 bytes comprises112 packed, fourI64 controls32, one full ref8 and onebool1. A separately admitted384-byte increment includes this packet and231 logical helper-frame allowance. Existing cold ceilings stay unchanged; complete CHECK maximum1048912 fits1048960. Global budget reconciliation and independent acceptance remain required. Natural support protections publish as real Room-owned Space SUPPORT rows only after paid BRACE; no new canonical authority, native-memory qualification, roof or free walkability. |

@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""1171 lifetime, allocation and immutable producer adversarial checks; no engine."""
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import unittest
+from unittest.mock import patch
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location('ug1171_census', HERE / 'census.py')
+C = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(C)
+
+
+class CensusTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.source = {name: (C.ROOT / path).read_text() for name, path in C.FILES.items()}
+
+    def mutant(self, module, before, after, message):
+        self.assertIn(before, self.source[module])
+        with self.assertRaisesRegex(ValueError, message):
+            C.build({module: self.source[module].replace(before, after, 1)})
+
+    def test_exact_lifetimes_and_separate_anchor_reservation(self):
+        result = C.build()
+        self.assertEqual((result['accounting']['controls'], result['accounting']['helpers']), (6131, 1919))
+        self.assertEqual(result['constructor_exclusive_reuse']['simultaneous_total'], 8185)
+        self.assertEqual(result['constructor_exclusive_reuse']['remaining'], 7)
+        self.assertEqual(result['surface_constructor']['provisional_total'], 2362)
+        self.assertEqual(result['existing_surface_reservation']['fixed_numeric_and_packed_bytes'], 329)
+        self.assertEqual(result['existing_surface_reservation']['packed_buffer_count'], 4)
+        self.assertFalse(result['native_measured'])
+        self.assertFalse(result['runtime_qualified'])
+        frames = result['phases']['surface_own_prefix_and_result_tail']['frames']
+        self.assertIn('Host._finish_surface_owner_composition', frames)
+        self.assertIn('SurfaceAnchor._retirement_stores_in', frames)
+        frames = result['phases']['route_own_prefix_and_result_tail']['frames']
+        self.assertIn('Host._finish_route_owner_composition', frames)
+
+    def test_each_unbudgeted_member_is_rejected(self):
+        for name in ('Session', 'Host', 'SurfaceAnchor'):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'no new'):
+                C.build({name: self.source[name] + '\nvar surprise: RefCounted = null\n'})
+
+    def test_second_owner_alias_is_not_free(self):
+        self.mutant('Retirement', '\tvar surface_anchor: SurfaceAnchor = null',
+                    '\tvar surface_anchor: SurfaceAnchor = null\n\tvar second: SurfaceAnchor = null',
+                    'one original Anchor alias')
+
+    def test_scope_growth_is_rejected(self):
+        self.mutant('Retirement', 'class Scope extends RefCounted:',
+                    'class Scope extends RefCounted:\n\tvar extra: int = 0', 'unchanged private Scope')
+
+    def test_original_copy_and_compare_are_both_required(self):
+        for line in ('target.surface_anchor = source.surface_anchor', 'first.surface_anchor == second.surface_anchor'):
+            with self.subTest(line=line):
+                self.mutant('Retirement', line, line.replace('surface_anchor', 'world_routes'), 'copied and compared')
+
+    def test_no_second_anchor_constructor(self):
+        self.mutant('Session', 'var candidate: Retirement.SurfaceAnchor = Retirement.SurfaceAnchor.new()',
+                    'var second: Retirement.SurfaceAnchor = Retirement.SurfaceAnchor.new()\n'
+                    '\tvar candidate: Retirement.SurfaceAnchor = Retirement.SurfaceAnchor.new()', 'single original')
+
+    def test_no_second_permanent_packet(self):
+        self.mutant('Session', 'Retirement.Owners.new()', 'Retirement.Owners.new()\n\tRetirement.Owners.new()',
+                    'single original')
+
+    def test_constructor_eight_bytes_no_longer_fit(self):
+        self.mutant('Host', 'func compose_underground_route_owners() -> bool:',
+                    'func compose_underground_route_owners() -> bool:\n\tvar extra: int = 0',
+                    'constructor lifetime exceeds')
+
+    def test_result_tail_cannot_return_to_constructor_frame(self):
+        self.mutant('Host', 'return _finish_route_owner_composition(original, code, starting)',
+                    'var final_code: StringName = _mounted_underground_refusal(original)\n\treturn code == final_code',
+                    'separate frame')
+
+    def test_large_helper_growth_is_rejected(self):
+        variables = ''.join('\n\tvar extra_%d: Vector3i = Vector3i.ZERO' % i for i in range(40))
+        self.mutant('Retirement', 'static func surface_refusal(o: Owners, stopped_constructor: bool = false) -> StringName:',
+                    'static func surface_refusal(o: Owners, stopped_constructor: bool = false) -> StringName:' + variables,
+                    'retained/reset envelope exceeded')
+
+    def test_packet_resize_cannot_expand(self):
+        self.mutant('SurfaceAnchor', '_record.envelope.resize(6)', '_record.envelope.resize(7)', 'four six-I32')
+
+    def test_constructor_extra_heap_is_rejected(self):
+        self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
+                    'func _initial_binding_refusal() -> StringName:\n\tvar copy: Owner.Region = Owner.Region.new()',
+                    'unreconciled constructor allocation')
+
+    def test_constructor_variable_container_is_rejected(self):
+        self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
+                    'func _initial_binding_refusal() -> StringName:\n\tvar hidden: Array = [1, 2, 3]',
+                    'uncharged owned collection allocation')
+
+    def test_constructor_packed_literal_payload_is_not_a_reference_slot(self):
+        for kind in ('PackedInt32Array', 'PackedByteArray', 'PackedInt64Array'):
+            with self.subTest(kind=kind):
+                self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
+                            'func _initial_binding_refusal() -> StringName:\n\tvar hidden: ' + kind +
+                            ' = [' + ','.join(['0'] * 4096) + ']', 'uncharged owned collection allocation')
+
+    def test_inline_packed_constructor_is_not_omitted(self):
+        self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
+                    'func _initial_binding_refusal() -> StringName:\n\tPackedInt32Array([0, 1, 2])',
+                    'uncharged owned collection allocation')
+
+    def test_inline_array_and_dictionary_literals_are_not_omitted(self):
+        for literal in ('[0, 1, 2]', '{0: 1}'):
+            with self.subTest(literal=literal):
+                self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
+                            'func _initial_binding_refusal() -> StringName:\n\tif len(' + literal +
+                            ') > 0: return REFUSE_BINDING', 'uncharged owned collection allocation')
+
+    def test_constructor_and_host_outer_frames_also_reject_packed_payloads(self):
+        for module, method in (('Session', '_configure_surface_anchor'), ('Session', 'compose_surface_anchor'),
+                               ('Host', 'compose_underground_surface_anchor')):
+            with self.subTest(method=method):
+                returns = 'bool' if module == 'Host' else 'StringName'
+                head = 'func ' + method + '() -> ' + returns + ':'
+                self.mutant(module, head, head + '\n\tvar hidden: PackedInt32Array = [0, 1, 2]',
+                            'uncharged owned collection allocation')
+
+    def test_original_packed_member_initializer_payload_cannot_grow(self):
+        self.mutant('SurfaceAnchor', 'var _surface_box: PackedInt32Array = PackedInt32Array()',
+                    'var _surface_box: PackedInt32Array = PackedInt32Array([' + ','.join(['0'] * 4096) + '])',
+                    'member/constant initializers')
+
+    def test_multiline_member_initializer_growth_is_rejected(self):
+        self.mutant('SurfaceAnchor', 'var _surface_box: PackedInt32Array = PackedInt32Array()',
+                    'var _surface_box: PackedInt32Array = PackedInt32Array(\n\t[0, 1, 2])',
+                    'member/constant initializers')
+
+    def test_hidden_static_collection_is_rejected(self):
+        self.mutant('SurfaceAnchor', 'var _world: World = null',
+                    'static var hidden: PackedInt32Array = [0, 1, 2]\nvar _world: World = null',
+                    'member/constant initializers')
+
+    def test_final_leaf_cannot_gain_an_observer(self):
+        self.mutant('SurfaceAnchor', 'return _retirement_stores_in(actual, original)',
+                    'actual._world.is_published()\n\treturn _retirement_stores_in(actual, original)', 'must not observe')
+
+    def test_bound_failed_configuration_must_remain_retained(self):
+        self.mutant('SurfaceAnchor', '_refuse_configuration()\n\t\treturn code',
+                    '_clear_binding()\n\t\treturn code', 'cannot reconfigure')
+
+    def test_reserve_cannot_be_increased(self):
+        self.mutant('Retirement', 'const RETIREMENT_RESERVED_BYTES: int = 8192',
+                    'const RETIREMENT_RESERVED_BYTES: int = 8193', 'member/constant initializers')
+
+    def test_foreign_constructor_source_drift_precedes_import(self):
+        target = C.ROOT / 'godot/scripts/core/needs.gd'
+        read = Path.read_bytes
+        with patch.object(Path, 'read_bytes', lambda path: read(path) + b'\n# drift\n' if path == target else read(path)), \
+                patch.object(C.importlib.util, 'spec_from_file_location') as imported:
+            with self.assertRaisesRegex(ValueError, 'immutable input drift'):
+                C.build()
+            imported.assert_not_called()
+
+    def test_coordinated_old_producer_and_manifest_rewrite_precedes_import(self):
+        producer = C.OLD / 'census.py'
+        manifest = HERE / 'predecessor/manifest.json'
+        changed = producer.read_bytes() + b'\nraise RuntimeError("must not execute")\n'
+        rows = json.loads(manifest.read_bytes())
+        rows[str(producer.relative_to(C.ROOT))]['sha256'] = hashlib.sha256(changed).hexdigest()
+        altered = json.dumps(rows, indent=2).encode() + b'\n'
+        read = Path.read_bytes
+        with patch.object(Path, 'read_bytes', lambda path: changed if path == producer else altered if path == manifest else read(path)), \
+                patch.object(C.importlib.util, 'spec_from_file_location') as imported:
+            with self.assertRaisesRegex(ValueError, 'immutable manifest drift'):
+                C.build()
+            imported.assert_not_called()
+
+
+if __name__ == '__main__':
+    unittest.main()

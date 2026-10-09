@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "adr": ["1217"],
+  "dec": "DEC-052",
+  "production_qualified": false,
+  "paths": ".../ = godot/data/underground/mole-worker/claw-work-v1/",
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "staged_inputs": "godot/demo/assets/underground-matrices/all-cast-v9.ugpal copied from /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/ (sha256 5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe, checked by claw_source.read_claw_source); removed afterwards",
+  "commands": [
+    "$PY .../probe_claw_stroke.py .../evidence/claw-stroke-probe-v1.json",
+    "$PY .../author_claw_stroke.py .../evidence/claw-stroke-v1/candidate-p --x-u 128 --anchor-z-u -608 --rake-u 32 --lean-degrees 60 --drop-u 96 --tilt-degrees 60 --roll-degrees 90 --station-inset-u 0",
+    "$PY .../author_claw_stroke.py .../evidence/claw-stroke-v1/candidate-a --x-u 128 --anchor-z-u -608 --rake-u 32 --lean-degrees 60 --drop-u 96 --tilt-degrees 60 --roll-degrees 90 --station-inset-u 106",
+    "$PY .../author_claw_stroke.py .../evidence/claw-stroke-v1/candidate-b --x-u 128 --anchor-z-u -576 --rake-u 64 --lean-degrees 60 --drop-u 64 --tilt-degrees 60 --roll-degrees 90 --station-inset-u 106",
+    "$PY .../author_claw_stroke.py .../evidence/claw-stroke-v1/candidate-c --x-u 160 --anchor-z-u -608 --rake-u 64 --lean-degrees 60 --drop-u 96 --tilt-degrees 75 --roll-degrees 90 --station-inset-u 106",
+    "$PY .../prove_claw_stroke.py .../evidence/claw-stroke-v1/candidate-X   (X = p, a, b, c; exit 2 for p, the refused candidate)",
+    "$PY .../render_claw_stroke.py .../evidence/claw-stroke-v1/candidate-X .../evidence/claw-stroke-review-v1/candidate-X",
+    "$PY -B .../test_claw_stroke.py -v"
+  ],
+  "search": "probe grid: lateral 128/160, anchor -640..-480, rake 32/64, lean 40-70, drop 32-96, tilt 45-75, roll 90/180/270, station inset 0/106; 3,672 recipes on the face, 892 solvable with unchanged arm links, 137 sampled clear, all at inset 106 and roll 90. p is the inset-0 recipe with the fewest paw vertices outside the cube; a is the same recipe at inset 106; b and c are distinct clear recipes."
+}

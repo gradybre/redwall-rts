@@ -1,0 +1,1591 @@
+{
+ "adr": "1198 step 2",
+ "certificate_bits_written": 0,
+ "external_inputs_sha256": {
+  "grip_palette": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "palette": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "world_basis_v1": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
+ },
+ "input_sha256": {
+  "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+  "godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/forward.ugyaw": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/loaded-gait-review-v1/candidate/carry.npz": "c3ced322b3c67fcd287daca9b5bc91dc259d11115f18c9e60b0e503f91e37a56",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/loaded-gait-review-v1/candidate/enter.npz": "48a1f87eda9c4f8e73dd6283deb11dd7c9cbe881169b88dd6d4111c6f5a716a9",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/loaded-gait-review-v1/candidate/exit.npz": "d36a340761a9e8351c1ec7ef8a30a8ff41f5b7d228251245536db7ab0a8cbe6b",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/loaded-gait-review-v1/candidate/hold.npz": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v4/native-stock.json": "a392927be5738063a4d4f98f9289c439cab83b2e47d9946f8d10d39a87c51d7c",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v7/compiled/plan.json": "2ed4a71c7f9f6e62073f02047bf4c56a0ccd84a928347f5f8e92d0af4f2d58a8",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/program-review-v1/candidate/approach.npz": "213e4f9ca9e77b791795c0596424d05f2ebc2edd88431850588fecebe2f922f4",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/program-review-v1/candidate/lift.npz": "0a18b5f1198a2cf9c6cc9344960a3b26b59c358c1e18153adc59999aab506c7b",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/program-review-v1/candidate/place.npz": "7b628bf3960a1dcfa8797c5dd8cc9bb412f09822ed980cc0cdf449ffcbc86960",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/program-review-v1/candidate/recovery.npz": "d6add16d6f559ed8f3a1cb015aeec78e3ead24f7878169d9467bee7e7a7b9034",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate/poses.npz": "996d0b4a0666e57d01c5f3592632e4c1f36c914854aae78a61ed91f8c3750894",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/static-contact.json": "5f7839659edf811e6a71c72f0e4770d7cc4a4512be3572307b104868f4327f52",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/station-contact-packet.json": "ed572f3cc8e31c1e2c32f00df0502445a70fd42cd3dd51d45381fe9b958bd859",
+  "godot/data/underground/mole-worker/haul-handling-v1/evidence/wood-topology-v1.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+ },
+ "mesh": {
+  "body_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "body_triangles": 10209,
+  "wood_array_mesh_sha256": "cb0bf551f5439b0bea4609952c0ba43ff16d8c1bc5641743e1081e2412919cc5",
+  "wood_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80",
+  "wood_triangles": 768
+ },
+ "native_tables": [
+  {
+   "cardinal_sine_max": {
+    "denominator": 70368744177664,
+    "numerator": 6151831
+   },
+   "format": "UGYAW001",
+   "inverse_norm_max": {
+    "denominator": 281474953696313,
+    "numerator": 398065705943040
+   },
+   "norm_squared_max": {
+    "denominator": 281474976710656,
+    "numerator": 281475000105385
+   },
+   "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+   "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
+  },
+  {
+   "cardinal_sine_max": {
+    "denominator": 70368744177664,
+    "numerator": 6151831
+   },
+   "format": "UGYAW002",
+   "inverse_norm_max": {
+    "denominator": 281474953696313,
+    "numerator": 398065705943040
+   },
+   "norm_squared_max": {
+    "denominator": 281474976710656,
+    "numerator": 281475000105385
+   },
+   "producer_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+   "sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1"
+  }
+ ],
+ "phases": {
+  "all_yaw": {
+   "carry": {
+    "clip": "carry",
+    "frames": 219,
+    "loop": 1,
+    "parts": [
+     {
+      "above_u": [
+       -434,
+       0,
+       -447,
+       510,
+       932,
+       242
+      ],
+      "floor_u": [
+       -212,
+       -1,
+       -137,
+       235,
+       0,
+       57
+      ],
+      "full_u": [
+       -434,
+       -1,
+       -447,
+       510,
+       932,
+       242
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       12928,
+       1508,
+       12928
+      ]
+     },
+     {
+      "above_u": [
+       -425,
+       473,
+       -504,
+       505,
+       704,
+       -217
+      ],
+      "floor_u": null,
+      "full_u": [
+       -425,
+       473,
+       -504,
+       505,
+       704,
+       -217
+      ],
+      "name": "log",
+      "padding_q24": [
+       12679,
+       1332,
+       12679
+      ]
+     }
+    ],
+    "rendered_intervals": 218,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -261,
+      -1,
+      -222,
+      301,
+      290,
+      222
+     ],
+     "support_u": [
+      -261,
+      -1,
+      -222,
+      301,
+      0,
+      222
+     ]
+    }
+   },
+   "enter": {
+    "clip": "enter",
+    "frames": 65,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -427,
+       0,
+       -397,
+       433,
+       883,
+       234
+      ],
+      "floor_u": [
+       -251,
+       -1,
+       -82,
+       172,
+       0,
+       61
+      ],
+      "full_u": [
+       -427,
+       -1,
+       -397,
+       433,
+       883,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       12924,
+       1507,
+       12924
+      ]
+     },
+     {
+      "above_u": [
+       -421,
+       447,
+       -436,
+       412,
+       618,
+       -312
+      ],
+      "floor_u": null,
+      "full_u": [
+       -421,
+       447,
+       -436,
+       412,
+       618,
+       -312
+      ],
+      "name": "log",
+      "padding_q24": [
+       12682,
+       1334,
+       12682
+      ]
+     }
+    ],
+    "rendered_intervals": 64,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -274,
+      -1,
+      -174,
+      299,
+      261,
+      186
+     ],
+     "support_u": [
+      -274,
+      -1,
+      -174,
+      299,
+      0,
+      186
+     ]
+    }
+   },
+   "exit": {
+    "clip": "exit",
+    "frames": 65,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -427,
+       0,
+       -397,
+       433,
+       883,
+       234
+      ],
+      "floor_u": [
+       -251,
+       -1,
+       -82,
+       172,
+       0,
+       61
+      ],
+      "full_u": [
+       -427,
+       -1,
+       -397,
+       433,
+       883,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       12924,
+       1507,
+       12924
+      ]
+     },
+     {
+      "above_u": [
+       -421,
+       447,
+       -436,
+       412,
+       618,
+       -312
+      ],
+      "floor_u": null,
+      "full_u": [
+       -421,
+       447,
+       -436,
+       412,
+       618,
+       -312
+      ],
+      "name": "log",
+      "padding_q24": [
+       12682,
+       1334,
+       12682
+      ]
+     }
+    ],
+    "rendered_intervals": 64,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -274,
+      -1,
+      -174,
+      299,
+      261,
+      186
+     ],
+     "support_u": [
+      -274,
+      -1,
+      -174,
+      299,
+      0,
+      186
+     ]
+    }
+   },
+   "hold": {
+    "clip": "hold",
+    "frames": 2,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -423,
+       0,
+       -397,
+       433,
+       849,
+       234
+      ],
+      "floor_u": [
+       -134,
+       -1,
+       -8,
+       172,
+       0,
+       61
+      ],
+      "full_u": [
+       -423,
+       -1,
+       -397,
+       433,
+       849,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       12922,
+       1505,
+       12922
+      ]
+     },
+     {
+      "above_u": [
+       -412,
+       447,
+       -436,
+       412,
+       550,
+       -332
+      ],
+      "floor_u": null,
+      "full_u": [
+       -412,
+       447,
+       -436,
+       412,
+       550,
+       -332
+      ],
+      "name": "log",
+      "padding_q24": [
+       12679,
+       1332,
+       12679
+      ]
+     }
+    ],
+    "rendered_intervals": 1,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -274,
+      -1,
+      -170,
+      299,
+      223,
+      174
+     ],
+     "support_u": [
+      -274,
+      -1,
+      -170,
+      299,
+      0,
+      174
+     ]
+    }
+   }
+  },
+  "yaw_exact": {
+   "approach": {
+    "clip": "approach",
+    "frames": 61,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -430,
+       0,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "floor_u": [
+       -197,
+       -1,
+       -80,
+       171,
+       0,
+       61
+      ],
+      "full_u": [
+       -430,
+       -1,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       9143,
+       1504,
+       9143
+      ]
+     },
+     {
+      "above_u": [
+       -412,
+       0,
+       -628,
+       412,
+       102,
+       -524
+      ],
+      "floor_u": [
+       -412,
+       -1,
+       -579,
+       412,
+       0,
+       -573
+      ],
+      "full_u": [
+       -412,
+       -1,
+       -628,
+       412,
+       102,
+       -524
+      ],
+      "name": "log",
+      "padding_q24": [
+       8966,
+       1332,
+       8966
+      ]
+     }
+    ],
+    "rendered_intervals": 60,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      223,
+      175
+     ],
+     "support_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ]
+    }
+   },
+   "hold": {
+    "clip": "hold",
+    "frames": 2,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -423,
+       0,
+       -397,
+       433,
+       849,
+       234
+      ],
+      "floor_u": [
+       -134,
+       -1,
+       -8,
+       171,
+       0,
+       60
+      ],
+      "full_u": [
+       -423,
+       -1,
+       -397,
+       433,
+       849,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       9137,
+       1504,
+       9137
+      ]
+     },
+     {
+      "above_u": [
+       -412,
+       447,
+       -436,
+       412,
+       550,
+       -332
+      ],
+      "floor_u": null,
+      "full_u": [
+       -412,
+       447,
+       -436,
+       412,
+       550,
+       -332
+      ],
+      "name": "log",
+      "padding_q24": [
+       8966,
+       1332,
+       8966
+      ]
+     }
+    ],
+    "rendered_intervals": 1,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -274,
+      -1,
+      -169,
+      299,
+      223,
+      174
+     ],
+     "support_u": [
+      -274,
+      -1,
+      -169,
+      299,
+      0,
+      174
+     ]
+    }
+   },
+   "lift": {
+    "clip": "lift",
+    "frames": 61,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -430,
+       0,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "floor_u": [
+       -197,
+       -1,
+       -80,
+       171,
+       0,
+       61
+      ],
+      "full_u": [
+       -430,
+       -1,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       9143,
+       1504,
+       9143
+      ]
+     },
+     {
+      "above_u": [
+       -412,
+       0,
+       -628,
+       412,
+       550,
+       -332
+      ],
+      "floor_u": [
+       -412,
+       -1,
+       -579,
+       412,
+       0,
+       -573
+      ],
+      "full_u": [
+       -412,
+       -1,
+       -628,
+       412,
+       550,
+       -332
+      ],
+      "name": "log",
+      "padding_q24": [
+       8966,
+       1332,
+       8966
+      ]
+     }
+    ],
+    "rendered_intervals": 60,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      223,
+      175
+     ],
+     "support_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ]
+    }
+   },
+   "place": {
+    "clip": "place",
+    "frames": 61,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -430,
+       0,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "floor_u": [
+       -197,
+       -1,
+       -80,
+       171,
+       0,
+       61
+      ],
+      "full_u": [
+       -430,
+       -1,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       9143,
+       1504,
+       9143
+      ]
+     },
+     {
+      "above_u": [
+       -412,
+       0,
+       -628,
+       412,
+       550,
+       -332
+      ],
+      "floor_u": [
+       -412,
+       -1,
+       -579,
+       412,
+       0,
+       -573
+      ],
+      "full_u": [
+       -412,
+       -1,
+       -628,
+       412,
+       550,
+       -332
+      ],
+      "name": "log",
+      "padding_q24": [
+       8966,
+       1332,
+       8966
+      ]
+     }
+    ],
+    "rendered_intervals": 60,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      223,
+      175
+     ],
+     "support_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ]
+    }
+   },
+   "recovery": {
+    "clip": "recovery",
+    "frames": 61,
+    "loop": 0,
+    "parts": [
+     {
+      "above_u": [
+       -430,
+       0,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "floor_u": [
+       -197,
+       -1,
+       -80,
+       171,
+       0,
+       61
+      ],
+      "full_u": [
+       -430,
+       -1,
+       -589,
+       433,
+       849,
+       234
+      ],
+      "name": "Body/Armature/Skeleton3D/char1",
+      "padding_q24": [
+       9143,
+       1504,
+       9143
+      ]
+     },
+     {
+      "above_u": [
+       -412,
+       0,
+       -628,
+       412,
+       102,
+       -524
+      ],
+      "floor_u": [
+       -412,
+       -1,
+       -579,
+       412,
+       0,
+       -573
+      ],
+      "full_u": [
+       -412,
+       -1,
+       -628,
+       412,
+       102,
+       -524
+      ],
+      "name": "log",
+      "padding_q24": [
+       8966,
+       1332,
+       8966
+      ]
+     }
+    ],
+    "rendered_intervals": 60,
+    "stance": {
+     "foot_triangles": 1985,
+     "source_foot_bounds_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      223,
+      175
+     ],
+     "support_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ]
+    }
+   }
+  }
+ },
+ "producer_sha256": {
+  "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "613629249386906fea9ce35c4d633cfff83e481c27a08eccb938476d6d0e466f",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py": "19fe426df8373229df330666b4f0cdc453e4a202455424ae1a442a62c8ffe548",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py": "f55701948939a10706d175dabd750db741ea9550b9cbe0308928422084ae1413",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+  "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+  "godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py": "388be53c60da511d193c10763b2cef9470d60976842a13bebe0386ee1b46f148",
+  "godot/data/underground/mole-worker/haul-handling-v1/derive_haul_rows.py": "fabf831affd53a947b9fa8f6efc6dd85d591aeeabb2494a00d5e82f7c0794711",
+  "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+  "godot/data/underground/mole-worker/haul-handling-v1/prove_carried_grip.py": "05b20c42e254aa33753aabf30f3e7b3c46dad69da3a123760076c5125ec25747",
+  "godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py": "4b3702a73c7792bdbfd259cae2fba80014a753c57e837a1b08973bf90ae1f1ef",
+  "godot/data/underground/mole-worker/haul-handling-v1/prove_program.py": "66eb45433580ff495ffdd32dd9f251f875443a8d500ed2cf7b80ac4ee8efe3bb",
+  "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+  "godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py": "33315d30c82d6b65739140bb7475b63db1f50124f0757d4ef8bac99aa4c63f18",
+  "godot/data/underground/mole-worker/haul-handling-v1/reproduce_loaded_gait.py": "df8622d79660f0bfaba5301e913b31b9ee4c54381e332c7444134bab9e4b7ecc",
+  "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+  "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+ },
+ "production_qualified": false,
+ "rows": [
+  {
+   "boxes": [
+    {
+     "bounds_u": [
+      -679,
+      0,
+      -679,
+      679,
+      932,
+      679
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -286,
+      -1,
+      -286,
+      286,
+      0,
+      286
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -714,
+      447,
+      -714,
+      714,
+      704,
+      714
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -375,
+      -1,
+      -375,
+      375,
+      0,
+      375
+     ],
+     "role": "STANCE_SUPPORT",
+     "role_id": 1
+    },
+    {
+     "bounds_u": [
+      -679,
+      0,
+      -679,
+      679,
+      932,
+      679
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    },
+    {
+     "bounds_u": [
+      -286,
+      -1,
+      -286,
+      286,
+      0,
+      286
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    },
+    {
+     "bounds_u": [
+      -714,
+      447,
+      -714,
+      714,
+      704,
+      714
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    }
+   ],
+   "canonical_u": {
+    "body_above_u": [
+     -434,
+     0,
+     -447,
+     510,
+     932,
+     242
+    ],
+    "body_floor_u": [
+     -251,
+     -1,
+     -137,
+     235,
+     0,
+     61
+    ],
+    "stock_u": [
+     -425,
+     447,
+     -504,
+     505,
+     704,
+     -217
+    ],
+    "support_u": [
+     -274,
+     -1,
+     -222,
+     301,
+     0,
+     222
+    ]
+   },
+   "cargo": "wood",
+   "clips": [
+    "hold",
+    "enter",
+    "carry",
+    "exit"
+   ],
+   "coverage": [
+    {
+     "clip": "hold",
+     "part": 0,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "hold",
+     "part": 0,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "hold",
+     "part": 1,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "hold",
+     "part": 1,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "enter",
+     "part": 0,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "enter",
+     "part": 0,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "enter",
+     "part": 1,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "enter",
+     "part": 1,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "carry",
+     "part": 0,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "carry",
+     "part": 0,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "carry",
+     "part": 1,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "carry",
+     "part": 1,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "exit",
+     "part": 0,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "exit",
+     "part": 0,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "exit",
+     "part": 1,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "exit",
+     "part": 1,
+     "role": "TURN_RECOVERY"
+    }
+   ],
+   "mode": 2,
+   "mode_name": "CARRY",
+   "name": "haul_carry_wood_1000",
+   "posture": 0,
+   "quantity_milli": [
+    1000,
+    1000
+   ],
+   "states": 453,
+   "tool": -1,
+   "tool_variant": -1,
+   "work_kind": null,
+   "yaw": 0,
+   "yaw_kind": 1,
+   "yaw_kind_name": "YAW_ALL"
+  },
+  {
+   "boxes": [
+    {
+     "bounds_u": [
+      -430,
+      0,
+      -589,
+      433,
+      849,
+      234
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      61
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ],
+     "role": "STANCE_SUPPORT",
+     "role_id": 1
+    },
+    {
+     "bounds_u": [
+      -430,
+      0,
+      -589,
+      433,
+      849,
+      234
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    },
+    {
+     "bounds_u": [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      61
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    },
+    {
+     "bounds_u": [
+      -430,
+      0,
+      -589,
+      433,
+      849,
+      234
+     ],
+     "role": "WORK_APPROACH",
+     "role_id": 3
+    },
+    {
+     "bounds_u": [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      61
+     ],
+     "role": "WORK_APPROACH",
+     "role_id": 3
+    },
+    {
+     "bounds_u": [
+      -412,
+      0,
+      -628,
+      412,
+      550,
+      -332
+     ],
+     "role": "WORK_STROKE",
+     "role_id": 4
+    },
+    {
+     "bounds_u": [
+      -412,
+      -1,
+      -579,
+      412,
+      0,
+      -573
+     ],
+     "role": "WORK_STROKE",
+     "role_id": 4
+    }
+   ],
+   "cargo": null,
+   "clips": [
+    "approach",
+    "lift",
+    "recovery"
+   ],
+   "coverage": [
+    {
+     "clip": "approach",
+     "part": 0,
+     "role": "WORK_APPROACH"
+    },
+    {
+     "clip": "lift",
+     "part": 0,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "lift",
+     "part": 1,
+     "role": "WORK_STROKE"
+    },
+    {
+     "clip": "recovery",
+     "part": 0,
+     "role": "TURN_RECOVERY"
+    }
+   ],
+   "mode": 3,
+   "mode_name": "WORK",
+   "name": "haul_load_wood_1000",
+   "posture": 0,
+   "quantity_milli": [
+    0,
+    0
+   ],
+   "states": 329,
+   "tool": -1,
+   "tool_variant": -1,
+   "work_kind": "HAUL",
+   "yaw": 0,
+   "yaw_kind": 0,
+   "yaw_kind_name": "YAW_EXACT"
+  },
+  {
+   "boxes": [
+    {
+     "bounds_u": [
+      -430,
+      0,
+      -589,
+      433,
+      849,
+      234
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      61
+     ],
+     "role": "BODY_HELD_LOAD",
+     "role_id": 0
+    },
+    {
+     "bounds_u": [
+      -276,
+      -1,
+      -169,
+      299,
+      0,
+      175
+     ],
+     "role": "STANCE_SUPPORT",
+     "role_id": 1
+    },
+    {
+     "bounds_u": [
+      -430,
+      0,
+      -589,
+      433,
+      849,
+      234
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    },
+    {
+     "bounds_u": [
+      -197,
+      -1,
+      -80,
+      171,
+      0,
+      61
+     ],
+     "role": "TURN_RECOVERY",
+     "role_id": 2
+    },
+    {
+     "bounds_u": [
+      -423,
+      0,
+      -436,
+      433,
+      849,
+      234
+     ],
+     "role": "WORK_APPROACH",
+     "role_id": 3
+    },
+    {
+     "bounds_u": [
+      -134,
+      -1,
+      -8,
+      171,
+      0,
+      60
+     ],
+     "role": "WORK_APPROACH",
+     "role_id": 3
+    },
+    {
+     "bounds_u": [
+      -412,
+      0,
+      -628,
+      412,
+      550,
+      -332
+     ],
+     "role": "WORK_STROKE",
+     "role_id": 4
+    },
+    {
+     "bounds_u": [
+      -412,
+      -1,
+      -579,
+      412,
+      0,
+      -573
+     ],
+     "role": "WORK_STROKE",
+     "role_id": 4
+    }
+   ],
+   "cargo": "wood",
+   "clips": [
+    "hold",
+    "place",
+    "recovery"
+   ],
+   "coverage": [
+    {
+     "clip": "hold",
+     "part": 0,
+     "role": "WORK_APPROACH"
+    },
+    {
+     "clip": "place",
+     "part": 0,
+     "role": "BODY_HELD_LOAD"
+    },
+    {
+     "clip": "place",
+     "part": 1,
+     "role": "WORK_STROKE"
+    },
+    {
+     "clip": "recovery",
+     "part": 0,
+     "role": "TURN_RECOVERY"
+    },
+    {
+     "clip": "hold",
+     "part": 1,
+     "role": "WORK_APPROACH"
+    }
+   ],
+   "mode": 3,
+   "mode_name": "WORK",
+   "name": "haul_unload_wood_1000",
+   "posture": 0,
+   "quantity_milli": [
+    1000,
+    1000
+   ],
+   "states": 329,
+   "tool": -1,
+   "tool_variant": -1,
+   "work_kind": "HAUL",
+   "yaw": 0,
+   "yaw_kind": 0,
+   "yaw_kind_name": "YAW_EXACT"
+  }
+ ],
+ "schema": 1,
+ "scope": "Integer geometry for three tool-free rows; profile format, haul-grip certificate, catalog ids and publication are later steps.",
+ "station": {
+  "R_minus_S_u": [
+   0,
+   0,
+   576
+  ],
+  "R_u": [
+   0,
+   0,
+   0
+  ],
+  "S_definition": "stock rest transform origin projected to the floor plane Y=0 (fixed through approach, lift frame 0, place end and recovery)",
+  "S_u": [
+   0,
+   0,
+   -576
+  ],
+  "contact_poses": {
+   "load": "lift frame 0 (= static review pose)",
+   "unload": "place final frame (byte-identical)"
+  },
+  "grip_contacts": [
+   {
+    "C_minus_R_cell_u": [
+     -345,
+     101,
+     -577,
+     -344,
+     102,
+     -576
+    ],
+    "C_minus_R_u": [
+     [
+      -33437471007036066443403263068835152848059532240633441348279,
+      97003040527972304846789656032637411270451804705659027456
+     ],
+     [
+      146527659992215241165849640598688797201469994507585,
+      1445457943200652373534286857137641478634652565504
+     ],
+     [
+      -3492955276840778850175546461430267677525501431237794778213,
+      6062690032998269052924353502039838204403237794103689216
+     ]
+    ],
+    "C_minus_S_approx_u": [
+     -344.705391,
+     101.371099,
+     -0.139512
+    ],
+    "C_minus_S_cell_u": [
+     -345,
+     101,
+     -1,
+     -344,
+     102,
+     0
+    ],
+    "C_minus_S_u": [
+     [
+      -33437471007036066443403263068835152848059532240633441348279,
+      97003040527972304846789656032637411270451804705659027456
+     ],
+     [
+      146527659992215241165849640598688797201469994507585,
+      1445457943200652373534286857137641478634652565504
+     ],
+     [
+      -845817833775875691118844255320871789236461834069789797,
+      6062690032998269052924353502039838204403237794103689216
+     ]
+    ],
+    "body_edge": [
+     0,
+     1
+    ],
+    "body_triangle": 10108,
+    "edge_share": [
+     3237463520719218203428575169862849548779520,
+     71681798025545047210486332484395367516519483
+    ],
+    "hand_bone": 15,
+    "wood_triangle": 543
+   },
+   {
+    "C_minus_R_cell_u": [
+     354,
+     92,
+     -548,
+     355,
+     93,
+     -547
+    ],
+    "C_minus_R_u": [
+     [
+      61056056658011251943652330011229,
+      172389672881920452117760311296
+     ],
+     [
+      28027714976183466047910284635941,
+      301681927543360791206080544768
+     ],
+     [
+      -23615445422264078175544465189095,
+      43097418220480113029440077824
+     ]
+    ],
+    "C_minus_S_approx_u": [
+     354.174677,
+     92.904852,
+     28.045009
+    ],
+    "C_minus_S_cell_u": [
+     354,
+     92,
+     28,
+     355,
+     93,
+     29
+    ],
+    "C_minus_S_u": [
+     [
+      61056056658011251943652330011229,
+      172389672881920452117760311296
+     ],
+     [
+      28027714976183466047910284635941,
+      301681927543360791206080544768
+     ],
+     [
+      1208667472732466929413019637529,
+      43097418220480113029440077824
+     ]
+    ],
+    "body_edge": [
+     1,
+     2
+    ],
+    "body_triangle": 1,
+    "edge_share": [
+     243866886540962539,
+     274378114721331068
+    ],
+    "hand_bone": 19,
+    "wood_triangle": 43
+   }
+  ]
+ },
+ "units": "1/1024 m, root-relative source frame; yaw 0 faces -Z; +Y up",
+ "world_root_bounds_u": [
+  0,
+  -32256,
+  0,
+  262144,
+  16896,
+  262144
+ ]
+}

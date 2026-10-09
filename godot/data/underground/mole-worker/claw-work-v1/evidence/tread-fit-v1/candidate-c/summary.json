@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "recipe": {
+    "lean_degrees": 0,
+    "drop_u": 96,
+    "head_lift_degrees": 60,
+    "right_roll_degrees": 90,
+    "left_roll_degrees": 90,
+    "work_y_u": 160,
+    "contact_z_u": -300,
+    "paw_x_u": 224
+  },
+  "clear": true,
+  "sites": {
+    "tread": {
+      "clear": true,
+      "seat": {
+        "work": {
+          "self": true,
+          "world_unresolved": 0
+        },
+        "entry": {
+          "self": true,
+          "world_unresolved": 0
+        }
+      },
+      "tap": {
+        "work": {
+          "self": true,
+          "world_unresolved": 0
+        },
+        "entry": {
+          "self": true,
+          "world_unresolved": 0
+        }
+      }
+    },
+    "sill": {
+      "clear": true,
+      "seat": {
+        "work": {
+          "self": true,
+          "world_unresolved": 0
+        },
+        "entry": {
+          "self": true,
+          "world_unresolved": 0
+        }
+      },
+      "tap": {
+        "work": {
+          "self": true,
+          "world_unresolved": 0
+        },
+        "entry": {
+          "self": true,
+          "world_unresolved": 0
+        }
+      }
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/claw-work-v1/prove_tread_fit.py": "278bc4b00c826e4031648caf95287a16c455af37f0a1b0e75dc2877214c47681",
+    "godot/data/underground/mole-worker/claw-work-v1/author_paw_seat.py": "2d8146588f9ea5dc15ee698b4442ea8acda8075c8ad672a6624d845247c6b778",
+    "godot/data/underground/mole-worker/claw-work-v1/prove_paw_seat.py": "8298cbcd25ca18caeea4f55b0b07baaa9f77938c542282a70dbd737f7a110bc6",
+    "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "e3af3b7dc564d27ef09c95ac2f9ea313088b7b421940f8f2222ab9675a43bc02",
+    "godot/data/underground/mole-worker/claw-work-v1/prove_tread_seat.py": "1810e63e1974c301703dcb91c23fc89fc1d6cffc2e726ddd2ae027fc4ba14e08",
+    "godot/data/underground/mole-worker/claw-work-v1/derive_tread_side_station.py": "3a86cd75eb1cf3fa66e922e7b2fb9bf4efa8da8660c1596570a168eb5c24222e"
+  }
+}

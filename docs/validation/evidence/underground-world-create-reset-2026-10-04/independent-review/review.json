@@ -1,0 +1,48 @@
+{
+  "candidate": "1160 UI reset candidate1",
+  "source_manifest_sha256": "cf0a8d5b12234452e0e11f603ace433b897cd1109eadfadb61179a0adb4c4a48",
+  "source_pins_verified_before_after": 7,
+  "output_pins_verified": 30,
+  "source_diff_matches_actual_four_file_diff": true,
+  "findings": [],
+  "accepted_for_author_commit": true,
+  "independent_python_tests": 12,
+  "census_structured_equal": true,
+  "counted_controls_and_ceiling": [
+    5995,
+    6144
+  ],
+  "counted_helpers_and_ceiling": [
+    1882,
+    2048
+  ],
+  "observed_author_engine_evidence": {
+    "tests": 77,
+    "assertions": 548,
+    "failures": 0,
+    "expected_diagnostics": 1,
+    "unexpected_diagnostics": 0,
+    "tolerated_diagnostics": 0,
+    "leaks": 0,
+    "analyzer": [
+      0,
+      4
+    ],
+    "restoration_all_true": true
+  },
+  "independent_engine_run": false,
+  "checks": [
+    "Only a well-formed typed CLEARED packet reaches seeding/cohort/publication; incomplete/contradictory/boolean-return callbacks stay stopped.",
+    "Actual UI form validation precedes original-live abandonment, then Content borrowing and World preflight; no replacement World object.",
+    "RETAINED alone discards the new prepared request; STOPPED retains original World request/Scope after a partial clear or original-source refusal.",
+    "Actual reset cause is captured before abandonment may change last_refusal; cleanup preserves its stage error separately.",
+    "The UI guard spans preflight, reset, generation, materialization, remount, economy reconciliation, reporting and roster refresh; nested Create does not reset the outer Report.",
+    "Actual map withdrawal occurs only on confirmed cleanup clearing; the same actual World object also reports cleared publication truth through has_world().",
+    "One ResetOutcome is live across three exclusive construction sites; full accepted host/static retirement caller chain is included without adding another Session or retirement reservation."
+  ],
+  "limits": [
+    "Read-only component source/census review, not full-demo/native or whole-project runtime qualification.",
+    "Existing UI catalog/economy/presentation allocations and accepted host source/clear-store boundaries retain their prior reservations.",
+    "Native object/reference/header sizes remain explicitly provisional."
+  ]
+}

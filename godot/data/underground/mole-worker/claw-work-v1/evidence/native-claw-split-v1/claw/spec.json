@@ -1,0 +1,38 @@
+{
+  "basis": "/Users/brendan/Developer/redwall-rts/.claude/worktrees/agent-a75e5a6102667388c/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/forward.ugyaw",
+  "basis_producer_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+  "basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+  "body": "res://demo/assets/cast/mole_digger/body.glb",
+  "body_sha256": "a559a5f8590d3f483307f61c99552bbbf84dde3e91e010de9d4a1abdcb405941",
+  "content": "/Users/brendan/Developer/redwall-rts/.claude/worktrees/agent-a75e5a6102667388c/godot/data/underground/mole-worker/claw-work-v1/evidence/native-claw-split-v1/claw/compiled/claw.ugactor",
+  "content_sha256": "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b",
+  "production_qualified": false,
+  "reserve_bytes": 6906492,
+  "runtime_admitted": false,
+  "views": [
+    {
+      "root_u": [
+        16384,
+        -4608,
+        8192
+      ],
+      "yaw": 0
+    },
+    {
+      "root_u": [
+        20480,
+        -4480,
+        12288
+      ],
+      "yaw": 16384
+    },
+    {
+      "root_u": [
+        17413,
+        531,
+        9477
+      ],
+      "yaw": 12345
+    }
+  ]
+}

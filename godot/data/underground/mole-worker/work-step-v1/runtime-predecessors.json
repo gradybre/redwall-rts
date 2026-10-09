@@ -1,0 +1,11 @@
+{
+  "base_commit": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "scope": "Read-only exact predecessor of the reference equations; not a future consumer certificate",
+  "sources": {
+    "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "godot/scripts/core/residents.gd": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+    "godot/scripts/core/movement.gd": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4"
+  }
+}

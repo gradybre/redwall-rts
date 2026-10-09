@@ -1,0 +1,31 @@
+test_added_constant_payload_is_not_free (__main__.CensusTests) ... ok
+test_caller_changes_outside_dispatch_need_review (__main__.CensusTests) ... ok
+test_caller_predecessor_bytes_are_pinned (__main__.CensusTests) ... ok
+test_changed_certificate_branch_cannot_prune_dynamic_branch (__main__.CensusTests) ... ok
+test_current_exact_lifetimes (__main__.CensusTests) ... ok
+test_current_integrated_caller_cannot_become_its_own_predecessor (__main__.CensusTests) ... ok
+test_dijkstra_storage_may_not_grow (__main__.CensusTests) ... ok
+test_directory_callback_guard_is_part_of_proof (__main__.CensusTests) ... ok
+test_duplicate_scratch_resize_is_not_deduplicated (__main__.CensusTests) ... ok
+test_extra_itinerary_frame_exhausts_original_helper (__main__.CensusTests) ... ok
+test_extra_world_routes_reference_is_not_free (__main__.CensusTests) ... ok
+test_frontier_packet_field_is_counted (__main__.CensusTests) ... ok
+test_itinerary_may_not_add_retained_reference_or_bank (__main__.CensusTests) ... ok
+test_itinerary_may_not_allocate_temporary_array (__main__.CensusTests) ... ok
+test_itinerary_may_not_hide_inherited_storage (__main__.CensusTests) ... ok
+test_lost_certificate_argument_cannot_prune_dynamic_branch (__main__.CensusTests) ... ok
+test_mixed_query_must_invalidate_single_profile_witness (__main__.CensusTests) ... ok
+test_nested_route_packet_field_is_not_free (__main__.CensusTests) ... ok
+test_provider_field_is_not_a_second_packet (__main__.CensusTests) ... ok
+test_rehashed_turn_import_expansion_still_needs_review (__main__.CensusTests) ... ok
+test_removed_mutual_exclusion_refuses (__main__.CensusTests) ... ok
+test_shared_source_constant_growth_is_not_free (__main__.CensusTests) ... ok
+test_transitive_source_frame_growth_is_counted (__main__.CensusTests) ... ok
+test_turn_producer_is_pinned_before_import (__main__.CensusTests) ... ok
+test_unknown_transitive_callback_refuses (__main__.CensusTests) ... ok
+test_untyped_or_floating_helper_value_is_not_free (__main__.CensusTests) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 1.467s
+
+OK

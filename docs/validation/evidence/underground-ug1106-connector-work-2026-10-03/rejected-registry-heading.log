@@ -1,0 +1,28 @@
+FAIL line 1608: duplicate registry section for excavation_inventory.gd
+FAIL C3 excavation_inventory.gd declares `_free` with no registry row
+FAIL C3 excavation_inventory.gd declares `_project_slot` with no registry row
+FAIL C3 excavation_inventory.gd declares `_project_generation` with no registry row
+FAIL C3 excavation_inventory.gd declares `_head` with no registry row
+FAIL C3 excavation_inventory.gd declares `_output_slot` with no registry row
+FAIL C3 excavation_inventory.gd declares `_output_generation` with no registry row
+FAIL C3 excavation_inventory.gd declares `_output_mass_g` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_next` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_item` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_quality` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_provenance` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_recipe` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_quantity` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_age` with no registry row
+FAIL C3 excavation_inventory.gd declares `_r_remainder` with no registry row
+FAIL C3 excavation_inventory.gd declares `_lost_milli` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_item` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_quality` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_provenance` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_recipe` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_quantity` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_age` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_remainder` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_totals` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_returned` with no registry row
+FAIL C3 excavation_inventory.gd declares `_s_carry` with no registry row
+state_registry_coverage: 27 failure(s)

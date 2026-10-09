@@ -1,0 +1,11 @@
+test_coordinated_producer_and_manifest_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_manifest_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_original_owner_snapshot_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_transitive_producer_change_refuses_before_import (__main__.RetirementWitnessTests) ... ok
+test_ui_reset_reuses_current_host_reservation_without_an_additional_bank (__main__.JointPackTests) ... ok
+test_ui_current_text_mutation_is_not_replaced_with_disk_source (__main__.JointPackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.577s
+
+OK

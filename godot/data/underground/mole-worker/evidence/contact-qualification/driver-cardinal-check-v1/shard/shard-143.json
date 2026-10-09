@@ -1,0 +1,31 @@
+{
+  "counts": {
+    "assertions": 472,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 15,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "41472953ce8dd71aa8260052ef65d312f523972060b2962a57d12bf4f256abcc",
+  "shard_count": 331,
+  "shard_index": 143,
+  "suite_counts": {
+    "test_mole_profile_driver.gd": {
+      "assertions": 472,
+      "failures": 0,
+      "tests": 15
+    }
+  },
+  "suite_usec": {
+    "test_mole_profile_driver.gd": 540623
+  },
+  "suites": [
+    "test_mole_profile_driver.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 3
+}

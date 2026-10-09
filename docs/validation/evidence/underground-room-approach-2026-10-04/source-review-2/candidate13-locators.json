@@ -1,0 +1,42 @@
+{
+  "docs/validation/evidence/underground-room-approach-2026-10-04/census.py": {
+    "sha256": "4fcc6f2ac50e4bc1b5771bd60104df2c4a7493f3b915578b8816dd229359da7e",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/docs__validation__evidence__underground-room-approach-2026-10-04__census.py.snapshot"
+  },
+  "docs/validation/evidence/underground-room-approach-2026-10-04/reproduce.py": {
+    "sha256": "5477c685084517920f854dae82c4242a1451c345d1cafd74f62ac612c4733940",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/docs__validation__evidence__underground-room-approach-2026-10-04__reproduce.py.snapshot"
+  },
+  "docs/validation/evidence/underground-room-approach-2026-10-04/test_census.py": {
+    "sha256": "04beac8ba5cf1456515849f5f41750da1478f5a1dda945a267a079e18b6e1376",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/docs__validation__evidence__underground-room-approach-2026-10-04__test_census.py.snapshot"
+  },
+  "godot/scripts/core/underground_room_approach.gd": {
+    "sha256": "6cbb36fbdc1e799cdf021268408f6e8df357887aa585f9832d56873b270c072b",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/godot__scripts__core__underground_room_approach.gd.snapshot"
+  },
+  "godot/scripts/core/underground_room_approach.gd.uid": {
+    "sha256": "3d558ae2a2fcec4d93340bcbc87046e7feef207227baf094e6fb7ae3bf42d6bb",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/godot__scripts__core__underground_room_approach.gd.uid.snapshot"
+  },
+  "godot/scripts/core/underground_room_bindings.gd": {
+    "sha256": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/godot__scripts__core__underground_room_bindings.gd.snapshot"
+  },
+  "godot/test/test_underground_room_admission.gd": {
+    "sha256": "1735e4699f28125a9a8414fd0dffc6dd65a6381059e6fcf57d8a7aee8a3f4228",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/godot__test__test_underground_room_admission.gd.snapshot"
+  },
+  "godot/test/test_underground_room_approach.gd": {
+    "sha256": "565b8b9ee3df03eca3e143762fdc54ad590c0c6cf84ddc661bce124b354b3a91",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/godot__test__test_underground_room_approach.gd.snapshot"
+  },
+  "godot/test/test_underground_room_approach.gd.uid": {
+    "sha256": "23d1f24d7b13fb362e377e77bb776ec35310fef1389a3369933e00a57cddba8d",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-snapshots/godot__test__test_underground_room_approach.gd.uid.snapshot"
+  },
+  "godot/scripts/core/underground_terrain.gd": {
+    "sha256": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+    "locator": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-1/final-reader-repro-source/underground_terrain.gd.snapshot"
+  }
+}

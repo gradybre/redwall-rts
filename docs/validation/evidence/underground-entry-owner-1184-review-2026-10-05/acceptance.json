@@ -1,0 +1,236 @@
+{
+  "source-sha256.json": {
+    "sha256": "e316ad073264584acf5c4daa177eda5c6a7a9388739e87f054254b42d61aea2d",
+    "verified_rows": 9
+  },
+  "input-sha256.json": {
+    "sha256": "74ccae51f1fdfc45b3d9e6bedce915dd1672260e1015aa424b01ae51e67fe00a",
+    "verified_rows": 161
+  },
+  "output-sha256.json": {
+    "sha256": "9eb84c0ccfed646a6d291ac8c297aaa5b6df097f413786f0ad45199ca1f93e8d",
+    "verified_rows": 50
+  },
+  "history-sha256.json": {
+    "sha256": "b001877120302afc90e0be4d489a940f4cd8b76b6a37a53eab0d627c5b78f52a",
+    "verified_rows": 54
+  },
+  "independent_census_rebuild_identical": true,
+  "python_tests": 22,
+  "author_invocation": {
+    "head_before": "eb95c0dd418d97719a1772790265ae7d834b0291",
+    "commands": [
+      {
+        "command": [
+          "godot",
+          "--headless",
+          "--path",
+          "godot",
+          "--editor",
+          "--quit"
+        ],
+        "exit_code": 0,
+        "seconds": 12.307,
+        "log": "clean-import.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "96/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 19.835,
+        "log": "test_underground_host.gd.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "201/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 17.683,
+        "log": "test_underground_room_composition.gd.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "206/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 14.586,
+        "log": "test_underground_route_composition.gd.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "109/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 9.185,
+        "log": "test_underground_session.gd.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "209/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 10.065,
+        "log": "test_underground_world_retirement.gd.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "204/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 5.08,
+        "log": "test_store_policy.gd.log"
+      },
+      {
+        "command": [
+          "./tools/run_tests.sh",
+          "--shard",
+          "179/410",
+          "--output-dir",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4"
+        ],
+        "exit_code": 0,
+        "seconds": 5.275,
+        "log": "test_haul_planner.gd.log"
+      },
+      {
+        "command": [
+          "python3",
+          "tools/gdscript_warnings.py",
+          "--max",
+          "0",
+          "--port",
+          "6451",
+          "--json",
+          "/Users/brendan/Developer/redwall-rts-codex-ug-entry-owner-composition/docs/validation/evidence/underground-entry-owner-composition-2026-10-05/candidate-4/analyzer.json",
+          "godot/scripts/core/underground_route_composition.gd",
+          "godot/scripts/core/underground_room_composition.gd",
+          "godot/scripts/core/underground_world_retirement.gd",
+          "godot/scripts/systems/settlement_system.gd",
+          "godot/test/test_underground_room_composition.gd",
+          "godot/test/test_underground_host.gd"
+        ],
+        "exit_code": 0,
+        "seconds": 15.626,
+        "log": "analyzer.log"
+      }
+    ],
+    "custom_user_dir_name": "Redwall-ug1184-d3c6517a8c77ca00",
+    "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+    "assets_present_before": false,
+    "runtime_qualified": false,
+    "import_raw_findings": [],
+    "strict_suites": {
+      "test_underground_host.gd": {
+        "tests": 34,
+        "assertions": 511,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "test_underground_room_composition.gd": {
+        "tests": 17,
+        "assertions": 386,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "test_underground_route_composition.gd": {
+        "tests": 20,
+        "assertions": 372,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "test_underground_session.gd": {
+        "tests": 15,
+        "assertions": 225,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "test_underground_world_retirement.gd": {
+        "tests": 19,
+        "assertions": 1963,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "test_store_policy.gd": {
+        "tests": 20,
+        "assertions": 245,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "test_haul_planner.gd": {
+        "tests": 34,
+        "assertions": 185,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      }
+    },
+    "executed_source_unchanged": true,
+    "project_restored": true,
+    "registry_restored": true,
+    "assets_restored": true,
+    "import_sidecars_restored": true,
+    "original_sources_restored": true,
+    "head_unchanged": true,
+    "exit_code": 0
+  },
+  "review": "No high/medium findings in initial lifecycle increment. Actual original Host references, clearing order, first EntryBindings binding, stopped prefix retirement and complete census reviewed. Full entry composer/publication and native memory still pending."
+}

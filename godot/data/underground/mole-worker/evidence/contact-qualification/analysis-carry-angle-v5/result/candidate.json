@@ -1,0 +1,272 @@
+{
+  "schema": 1,
+  "source_case": "mole_digger.heavy_hammer_swing.plain.firm_grip_v1",
+  "source_frame_indices": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    47,
+    46,
+    45,
+    44,
+    43,
+    42,
+    41,
+    40,
+    39,
+    38,
+    37,
+    36,
+    35,
+    34,
+    33,
+    32,
+    31,
+    30
+  ],
+  "parts": [
+    {
+      "boxes_u": {
+        "floor_crossing": [
+          -161,
+          -1,
+          -517,
+          293,
+          1157,
+          434
+        ],
+        "above_floor": [
+          -306,
+          0,
+          -528,
+          367,
+          1157,
+          648
+        ]
+      },
+      "triangle_counts": {
+        "floor_crossing": 33,
+        "above_floor": 10176
+      },
+      "partition_sha256": [
+        "efa8b0674e7f67363d778264b93882cff05c2c5b9d668e13501a3a40939d9cc4"
+      ],
+      "proof": "Each whole native triangle is in exactly one endpoint hull; all positive blends and triangle interiors are enclosed.",
+      "name": "Body/Armature/Skeleton3D/char1",
+      "kind": "body",
+      "residual_m": [
+        {
+          "numerator": 329412336272239679217282986910640431782828541433906131095837506619219379070203879411959,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        },
+        {
+          "numerator": 27574670851688948760692972614566751979762365354037369533701287907777730052268654174559,
+          "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+        },
+        {
+          "numerator": 329412336272239679217282986910640431782828541433906131095837506619219379070203879411959,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        }
+      ]
+    },
+    {
+      "boxes_u": {
+        "floor_crossing": [
+          -193,
+          -60,
+          -820,
+          164,
+          1422,
+          909
+        ],
+        "above_floor": [
+          -272,
+          0,
+          -763,
+          328,
+          1364,
+          868
+        ]
+      },
+      "triangle_counts": {
+        "floor_crossing": 154,
+        "above_floor": 996
+      },
+      "partition_sha256": [
+        "5fda8537d66d60dbcf6ffd19ff2a40a56f4a1928dc6c835b1516bf16ab032d5c"
+      ],
+      "proof": "Each whole native triangle is in exactly one endpoint hull; all positive blends and triangle interiors are enclosed.",
+      "name": "mole_pick",
+      "kind": "attachment",
+      "residual_m": [
+        {
+          "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 73603857931212626274282689676674853835135091919238083489940843341763411668091422764113953146853960493490204445674712685084663,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ]
+    }
+  ],
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "yaw": 0,
+  "production_qualified": false,
+  "remaining": [
+    "SOURCE_TIP_CONTACT",
+    "NATIVE_MOTION_REVIEW",
+    "ACTUAL_MANUFACTURE_AND_STATE_DRIVER",
+    "ACTUAL_STANCE_SUPPORT",
+    "PRESENTATION_COLD_PEAK"
+  ],
+  "adjacent_primitive_proof": [
+    {
+      "kind": "body",
+      "name": "Body/Armature/Skeleton3D/char1",
+      "full_bounds_u": [
+        -306,
+        -1,
+        -528,
+        367,
+        1157,
+        648
+      ],
+      "floor_intersection_u": [
+        -121,
+        -1,
+        -305,
+        282,
+        0,
+        342
+      ],
+      "above_floor_u": [
+        -306,
+        0,
+        -528,
+        367,
+        1157,
+        648
+      ],
+      "native_triangles": 10209,
+      "intervals": 36,
+      "residual_m": [
+        {
+          "numerator": 329412336272239679217282986910640431782828541433906131095837506619219379070203879411959,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        },
+        {
+          "numerator": 27574670851688948760692972614566751979762365354037369533701287907777730052268654174559,
+          "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+        },
+        {
+          "numerator": 329412336272239679217282986910640431782828541433906131095837506619219379070203879411959,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        }
+      ],
+      "scope": "all triangle interiors in each adjacent finite interval; no arbitrary nonadjacent blend permission"
+    },
+    {
+      "kind": "attachment",
+      "name": "mole_pick",
+      "full_bounds_u": [
+        -272,
+        -60,
+        -820,
+        328,
+        1422,
+        909
+      ],
+      "floor_intersection_u": [
+        -190,
+        -60,
+        -678,
+        49,
+        0,
+        -536
+      ],
+      "above_floor_u": [
+        -272,
+        0,
+        -820,
+        328,
+        1422,
+        909
+      ],
+      "native_triangles": 1150,
+      "intervals": 36,
+      "residual_m": [
+        {
+          "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 73603857931212626274282689676674853835135091919238083489940843341763411668091422764113953146853960493490204445674712685084663,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ],
+      "scope": "all triangle interiors in each adjacent finite interval; no arbitrary nonadjacent blend permission"
+    }
+  ],
+  "source_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "topology_sha256": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+  "compact_source_sha256": "004ea5955ba8877ec3998be179945eb846ed4b8f88c82555dba2d07be4947d0a",
+  "verified_source_files": 537,
+  "world_basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "exact_native_heading": [
+    1.0,
+    0.0
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/compile_profiles.py": "a88825b949a868b88ef71231df5b15309b69531d8102182a892c04938b31004c",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "work_recipe": {
+    "id": "mole_pick_overhead_z_halfturn_v1",
+    "pivot_native_f32_m": [
+      0.6846346855163574,
+      0.1948316991329193,
+      0.0
+    ],
+    "rotation_diagonal": [
+      -1,
+      -1,
+      1
+    ],
+    "frame": "original prop-local geometry",
+    "rounding": "exact rational to nearest/even binary32",
+    "scope": "new work source only"
+  }
+}

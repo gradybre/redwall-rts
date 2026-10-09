@@ -1,0 +1,340 @@
+diff --git a/godot/scripts/core/underground_room_composition.gd b/godot/scripts/core/underground_room_composition.gd
+index 72783c0e..ef1abd9f 100644
+--- a/godot/scripts/core/underground_room_composition.gd
++++ b/godot/scripts/core/underground_room_composition.gd
+@@ -8,7 +8,7 @@ const Authority := preload("res://scripts/core/underground_space_authority.gd")
+ const Sites := preload("res://scripts/core/excavation_sites.gd")
+ const Funding := preload("res://scripts/core/excavation_inventory.gd")
+ const Router := preload("res://scripts/core/modular_projects.gd")
+-const RoomBindings := preload("res://scripts/core/underground_room_bindings.gd")
++const RoomBindings := preload("res://scripts/core/underground_entry_bindings.gd")
+ const Orders := preload("res://scripts/core/underground_room_orders.gd")
+ const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
+ const Locations := preload("res://scripts/core/underground_locations.gd")
+@@ -76,7 +76,7 @@ static func _bind_router(session: RefCounted) -> StringName:
+ 
+ 
+ static func _bind_rooms(session: RefCounted) -> StringName:
+-	"""Retain the published Buildings authority even if its subsequent reciprocal admission setup refuses."""
++	"""Retain the initial actual EntryBindings; ordinary Rooms inherit it without later authority replacement."""
+ 	var o: Retirement.Owners = session._retirement_owners
+ 	o.room_bindings = RoomBindings.new()
+ 	var code: StringName = o.room_bindings.configure(o.world_bindings, o.sites, o.budget)
+diff --git a/godot/scripts/core/underground_route_composition.gd b/godot/scripts/core/underground_route_composition.gd
+index af75bc62..51d6ac66 100644
+--- a/godot/scripts/core/underground_route_composition.gd
++++ b/godot/scripts/core/underground_route_composition.gd
+@@ -25,7 +25,20 @@ static func construct(session: RefCounted) -> StringName:
+ 	if not Retirement.constructor_session_matches(session) or not session._busy \
+ 			or session._operations_state != 1 or session._operations_prefix != 4:
+ 		return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
+-	var code: StringName = _prepare_candidate(session)
++	if session._retirement_owners.world_routes != null \
++			or session._retirement_owners.profiles._live.header[0] != PROFILE_CONTENT_REVISION:
++		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
++	var config: WorldRoutes.Configuration = _configuration(session._retirement_owners)
++	var code: StringName = _prepare_catalog(config)
++	if code == &"": code = _original_refusal(session)
++	if code != &"": return code
++	var candidate: WorldRoutes = WorldRoutes.new()
++	code = candidate.configure(config)
++	if code == &"": code = _original_refusal(session)
++	if code != &"": return code
++	session._retirement_owners.world_routes = candidate
++	session._operations_prefix = 5
++	config = null # The temporary configuration dies before any graph bank allocation.
+ 	if code == &"": code = _bind_graph(session)
+ 	if code == &"": code = _bind_profiles(session)
+ 	if code == &"": code = _bind_approach(session)
+@@ -52,24 +65,6 @@ static func unpublished_refusal(o: Retirement.Owners) -> StringName:
+ 	return &""
+ 
+ 
+-static func _prepare_candidate(session: RefCounted) -> StringName:
+-	"""The temporary configuration dies before graph allocation; only a fully configured provider is retained."""
+-	if session._retirement_owners.world_routes != null \
+-			or session._retirement_owners.profiles._live.header[0] != PROFILE_CONTENT_REVISION:
+-		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
+-	var config: WorldRoutes.Configuration = _configuration(session._retirement_owners)
+-	var code: StringName = _prepare_catalog(config, session._retirement_owners)
+-	if code == &"": code = _original_refusal(session)
+-	if code != &"": return code
+-	var candidate: WorldRoutes = WorldRoutes.new()
+-	code = candidate.configure(config)
+-	if code == &"": code = _original_refusal(session)
+-	if code != &"": return code
+-	session._retirement_owners.world_routes = candidate
+-	session._operations_prefix = 5
+-	return &""
+-
+-
+ static func _configuration(o: Retirement.Owners) -> WorldRoutes.Configuration:
+ 	"""Borrow exact actual owners; create the sole Movement source and Catalog in their existing arenas."""
+ 	var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
+@@ -89,12 +84,12 @@ static func _configuration(o: Retirement.Owners) -> WorldRoutes.Configuration:
+ 	return config
+ 
+ 
+-static func _prepare_catalog(config: WorldRoutes.Configuration, o: Retirement.Owners) -> StringName:
++static func _prepare_catalog(config: WorldRoutes.Configuration) -> StringName:
+ 	"""Load one explicit immutable pace artifact; no latest-version lookup or replacement speed exists."""
+ 	var code: StringName = config.catalog.configure(Catalog.RESERVED_BYTES)
+ 	if code == &"":
+-		code = config.catalog.bind_actual(o.profiles, o.levels, config.movement, o.residents,
+-			o.transforms, o.space._domain)
++		code = config.catalog.bind_actual(config.profiles, config.levels, config.movement, config.residents,
++			config.transforms, config.owner._domain)
+ 	return config.catalog.load_file(CATALOG_PATH, CATALOG_SHA, CATALOG_REVISION) if code == &"" else code
+ 
+ 
+diff --git a/godot/scripts/core/underground_world_retirement.gd b/godot/scripts/core/underground_world_retirement.gd
+index 1d8ac8be..034f9fc2 100644
+--- a/godot/scripts/core/underground_world_retirement.gd
++++ b/godot/scripts/core/underground_world_retirement.gd
+@@ -185,6 +185,8 @@ static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
+ 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+ 	if o.rooms != null and constructor_catalog_refusal(o) != &"":
+ 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	if prefix >= 3 and o.room_bindings.get_script() != EntryBindings:
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+ 	if prefix >= 5 and (o.routes._live.edge_count != 0 or o.routes._stage.edge_count != 0 \
+ 			or o.routes._proposed_count != 0):
+ 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+diff --git a/godot/scripts/systems/settlement_system.gd b/godot/scripts/systems/settlement_system.gd
+index eeeb0a85..82d6e285 100644
+--- a/godot/scripts/systems/settlement_system.gd
++++ b/godot/scripts/systems/settlement_system.gd
+@@ -586,6 +586,8 @@ const StockAgeScript := preload("res://scripts/core/stock_age.gd")
+ const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+ const GearScript := preload("res://scripts/core/gear.gd")
+ const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
++const HaulPlannerScript := preload("res://scripts/core/haul_planner.gd")
++const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
+ const UndergroundSession := preload("res://scripts/core/underground_session.gd")
+ const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
+ const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
+@@ -910,6 +912,9 @@ var _ground_piles: GroundPilesScript = null
+ ## ADR1148: one existing-budget Gear and Carry owner; wiring creates no stock or tool instances.
+ var _gear: GearScript = null
+ var _haul_carry: HaulCarryScript = null
++## ADR1184: original Host-lifetime haul planning and policy; existing finite banks, no seeded demand.
++var _haul_planner: HaulPlannerScript = null
++var _store_policy: StorePolicyScript = null
+ ## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
+ var _underground_session: UndergroundSession = null
+ ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
+@@ -1096,6 +1101,7 @@ func _init() -> void:
+ 	_compose_stock_layer()
+ 	_compose_ground_piles()
+ 	_compose_equipment()
++	_compose_haul_planning()
+ 	_bind_ecology_to_commands()
+ 	_size_index_and_scratch_columns()
+ 	_assert_shared_contracts()
+@@ -1174,6 +1180,30 @@ func _compose_equipment() -> void:
+ 	push_error("SettlementSystem could not bind the equipment and hauling owners")
+ 
+ 
++func _compose_haul_planning() -> void:
++	"""Retain the actual planner and policy once; later World resets clear their existing finite columns."""
++	_store_policy = StorePolicyScript.new(_buildings, _inventory)
++	_haul_planner = HaulPlannerScript.new()
++	if _haul_planner.bind(_inventory, _reservations, _residents, _buildings, _ground_piles, _store_policy) \
++			and _haul_owners_refusal() == &"":
++		return
++	_last_refusal = &"UNDERGROUND_HOST_HAUL_OWNER"
++	push_error("SettlementSystem could not bind its original haul planning and policy owners")
++
++
++func _haul_owners_refusal() -> StringName:
++	"""Concrete original Host links, with no observing getter or equal-value substitute for a collaborator."""
++	if _haul_planner == null or _haul_planner.get_script() != HaulPlannerScript \
++			or _store_policy == null or _store_policy.get_script() != StorePolicyScript \
++			or _haul_planner._inventory != _inventory or _haul_planner._reservations != _reservations \
++			or _haul_planner._residents != _residents or _haul_planner._buildings != _buildings \
++			or _haul_planner._piles != _ground_piles or _haul_planner._store_policy != _store_policy \
++			or _store_policy._inventory != _inventory or _store_policy._buildings != _buildings \
++			or _store_policy._directory != _directory:
++		return &"UNDERGROUND_HOST_HAUL_OWNER"
++	return &""
++
++
+ func _bind_seed_expiry_authority() -> void:
+ 	"""Give the lot store STOCK-SEED-R01's seed-consumer predicate. The wiring call, made once.
+ 
+@@ -1934,6 +1964,7 @@ func prepare_world_reset(allow_prepared_world: bool = false) -> bool:
+ 		if _underground_session != null and _underground_session._busy:
+ 			_underground_session._poisoned = true
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
++	if _haul_owners_refusal() != &"": return _refuse(&"UNDERGROUND_HOST_HAUL_OWNER")
+ 	if _underground_session == null:
+ 		return _underground_reset_phase == 0
+ 	var original: UndergroundSession = _underground_session
+@@ -1963,7 +1994,7 @@ func _mounted_underground_refusal(original: UndergroundSession) -> StringName:
+ 			or original._retirement_owners == null or original._content != original._retirement_owners.content \
+ 			or original._world_ref != original._retirement_owners.world_ref:
+ 		return &"UNDERGROUND_HOST_OWNER"
+-	return &""
++	return _haul_owners_refusal()
+ 
+ 
+ func abandon_world_reset() -> bool:
+@@ -2023,6 +2054,8 @@ func _clear_stores() -> void:
+ 	_ecology.clear()
+ 	_crop_weather.clear()
+ 	_clear_stock_layer()
++	_haul_planner.clear()
++	_store_policy.clear()
+ 	_planner.clear()
+ 	_presentation.clear()
+ 	_world.clear()
+diff --git a/godot/test/test_underground_host.gd b/godot/test/test_underground_host.gd
+index 5859fba6..ae3074d1 100644
+--- a/godot/test/test_underground_host.gd
++++ b/godot/test/test_underground_host.gd
+@@ -10,6 +10,8 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
+ const Residents := preload("res://scripts/core/residents.gd")
+ const Owner := preload("res://scripts/core/underground_space_owner.gd")
+ const World := preload("res://scripts/core/world_init.gd")
++const Catalog := preload("res://scripts/core/catalog.gd")
++const Economy := preload("res://scripts/systems/economy_system.gd")
+ 
+ class ObservedGear extends Gear:
+ 	var observer: Callable = Callable()
+@@ -161,6 +163,96 @@ func test_mount_borrows_actual_owners_and_duplicate_preserves_foundation() -> vo
+ 	assert_equal(_snapshot(), before, "duplicate also preserves stores")
+ 
+ 
++func test_host_retains_one_actual_haul_planner_and_policy_without_new_stock_or_jobs() -> void:
++	"""The existing finite modules bind once during Host construction, before any generated World exists."""
++	assert_equal(_host._haul_owners_refusal(), &"", "exact original actual links")
++	assert_equal(_host._haul_planner._inventory, _host.inventory(), "one Inventory")
++	assert_equal(_host._haul_planner._store_policy, _host._store_policy, "one original Policy")
++	assert_equal(_host._store_policy._directory, _host.directory(), "one full identity directory")
++	assert_equal(_host._haul_planner.record_bytes(), 196608, "unchanged finite record bank")
++	assert_equal(_host._store_policy.ledger_bytes(), 2363392, "unchanged policy columns")
++	assert_equal(_host.inventory().live_lot_count(), 0, "constructor creates no lot")
++	assert_equal(_host.jobs().job_count(), 0, "constructor admits no Job")
++	assert_equal(_host.directory().live_count(Directory.KIND_WORLD), 0, "constructor invents no World")
++	var planner: Settlement.HaulPlannerScript = _host._haul_planner
++	var policy: Settlement.StorePolicyScript = _host._store_policy
++	_generate_and_mount()
++	assert_equal(_host._haul_planner, planner, "generation reuses original planner")
++	assert_equal(_host._store_policy, policy, "generation reuses original policy")
++	assert_true(_host.reset(), "actual whole World clear")
++	assert_equal(_host._haul_planner, planner, "reset does not replace planner")
++	assert_equal(_host._store_policy, policy, "reset does not replace policy")
++	assert_equal(_host._haul_owners_refusal(), &"", "links survive canonical clearing")
++
++
++func test_wrong_haul_collaborator_refuses_reset_before_any_original_store_is_cleared() -> void:
++	"""A foreign same-script store cannot be silently adopted by either mounted or foundationless clearing."""
++	_generate_and_mount()
++	var before: Array[PackedByteArray] = _snapshot()
++	var original: Settlement.StorePolicyScript = _host._store_policy
++	_host._store_policy = Settlement.StorePolicyScript.new(_host.buildings(), _host.inventory())
++	assert_false(_host.reset(), "different original Policy field refuses")
++	assert_equal(_host.last_refusal(), &"UNDERGROUND_HOST_HAUL_OWNER", "exact link mismatch")
++	assert_equal(_snapshot(), before, "no canonical clear happened")
++	_host._store_policy = original
++	assert_true(_host.reset(), "restored original can retire")
++	_host._haul_planner._store_policy = null
++	assert_false(_host.reset(), "no Session does not bypass original haul binding")
++	_host._haul_planner._store_policy = original
++	assert_true(_host.reset(), "foundationless original reset remains supported")
++
++
++func _ordinary_haul_source() -> Vector2i:
++	"""Find actual starter wood, which can transfer between the real material stores."""
++	for row: int in _host.inventory()._l_capacity:
++		var lot: Vector2i = _host.inventory()._lot_ref_of(row)
++		if not _host.inventory().is_lot_valid(lot) or _host.inventory().is_lot_equipped(lot): continue
++		if _host.inventory().lot_item_id(lot) != _host.item_definitions().compiled_id(&"wood"): continue
++		var container: Vector2i = _host.inventory().lot_container(lot)
++		if not _host.inventory().is_satchel(container) \
++				and _host.inventory().lot_available_milli(lot) >= 1000:
++			return lot
++	return Inventory.NULL_REF
++
++
++func _seed_host_stock() -> void:
++	"""Use the real boot Economy entry point and original generated colony; release only the test-owned Node."""
++	var economy: Economy = Economy.new()
++	var binding: Settlement.StarterColonyScript.StoreBinding = Settlement.StarterColonyScript.StoreBinding.new()
++	assert_true(economy.bind_inventory(_host.inventory()), "original actual Inventory")
++	assert_true(_host.starter_store_binding_into(binding), "actual generated colony binding")
++	assert_true(economy.open_and_seed_starter_stores(binding), "actual GDD starter stock")
++	economy.free()
++
++
++func test_actual_settled_haul_and_policy_rows_clear_on_reset_without_reallocating() -> void:
++	"""Real planner admission and policy writes retire with the same canonical stocks and reservation pool."""
++	_generate_and_mount()
++	_seed_host_stock()
++	var planner: Settlement.HaulPlannerScript = _host._haul_planner
++	var policy: Settlement.StorePolicyScript = _host._store_policy
++	var lot: Vector2i = _ordinary_haul_source()
++	assert_true(lot != Inventory.NULL_REF, "actual starter stock exists")
++	var job: Settlement.JobsScript.OpResult = _host.jobs().create_job(Catalog.JOB_KIND.HAUL, 1, 0, 2000, 0)
++	assert_true(job.ok, "actual Job allocated")
++	var admitted: Inventory.OpResult = planner.admit(job.ref, _host._live_slots[0], lot, 1000, 300)
++	assert_true(admitted.ok, "real ordinary haul admission: %s" % admitted.error)
++	assert_true(planner.is_admitted(job.ref), "actual retained planning record")
++	var building: Vector2i = _host.buildings().building_ref_of_row(0)
++	var item: int = _host.inventory().lot_item_id(lot)
++	assert_equal(policy.set_allowed(building, item, policy.DISALLOWED), &"", "actual policy allow write")
++	assert_equal(policy.set_minimum(building, item, 1000), &"", "actual minimum write")
++	assert_true(_host.reset(), "canonical reset of populated planning state")
++	assert_equal(_host._haul_planner, planner, "planner object reused")
++	assert_equal(_host._store_policy, policy, "policy object reused")
++	assert_false(planner.is_admitted(job.ref), "old Job record retired")
++	assert_equal(policy._allowed.count(policy.DISALLOWED), 0, "all filters restored")
++	assert_equal(policy._minimum_milli.count(0), policy.POLICY_CELLS, "all minimums cleared")
++	assert_equal(policy._bound_persistent_id.count(0), policy.BUILDING_CAPACITY, "no stale World stamp")
++	assert_equal(planner.record_bytes(), 196608, "same record capacity")
++	assert_equal(policy.ledger_bytes(), 2363392, "same policy capacity")
++
++
+ func test_held_arena_refuses_reset_before_any_store_is_cleared() -> void:
+ 	"""A synchronous operation keeps its actual token and all gameplay state across refusal."""
+ 	var session: Session = _generate_and_mount()
+diff --git a/godot/test/test_underground_room_composition.gd b/godot/test/test_underground_room_composition.gd
+index b1f8805c..1bb0ba0e 100644
+--- a/godot/test/test_underground_room_composition.gd
++++ b/godot/test/test_underground_room_composition.gd
+@@ -160,6 +160,7 @@ func test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation
+ 	assert_equal(_session._operations_state, 2, "complete owner graph")
+ 	assert_equal(_session._operations_prefix, 4, "all four owner groups")
+ 	assert_equal(Composition.complete_refusal(o), &"", "complete exact wiring")
++	assert_equal(o.room_bindings.get_script(), Retirement.EntryBindings, "initial exact entry-capable owner")
+ 	assert_equal(_session.room_orders(), o.rooms, "actual Rooms borrowed")
+ 	assert_equal(_session.location_owner(), o.locations, "actual Locations borrowed")
+ 	assert_equal(_session.room_phase_provider(), o.world_bindings, "actual closed provider")
+@@ -177,6 +178,27 @@ func test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation
+ 	assert_equal(_snapshot(), before, "repeat changes no gameplay bytes")
+ 
+ 
++func test_initial_entry_binding_is_unbound_and_active_brackets_refuse_retirement() -> void:
++	"""Inherited ordinary wiring does not fabricate an entry; its real additional brackets still govern reset."""
++	assert_true(_host.compose_underground_room_owners(), "compose initial entry-capable authority")
++	var entry: Retirement.EntryBindings = _session._retirement_owners.room_bindings as Retirement.EntryBindings
++	assert_true(entry != null, "exact actual subtype")
++	assert_equal(entry._entry_frontier, null, "no startup source substituted")
++	assert_equal(entry._entry_placements, null, "no fabricated Placement")
++	assert_equal(entry._entry_authority, null, "entry authority has not been published")
++	var before: PackedStringArray = _snapshot()
++	entry._entry_busy = true
++	assert_false(_host.prepare_world_reset(), "active inherited entry bracket refuses")
++	assert_equal(_snapshot(), before, "refused preflight preserves actual stores")
++	assert_equal(_session._retirement_scope, null, "no Scope published")
++	entry._entry_busy = false
++	entry._timber_token = 17
++	assert_false(_host.prepare_world_reset(), "active included-timber bracket refuses")
++	assert_equal(_snapshot(), before, "second refusal remains unchanged")
++	entry._timber_token = 0
++	assert_true(_host.reset(), "quiescent original subtype retires")
++
++
+ func test_actual_reset_releases_original_graph_then_reuses_inventory_arena() -> void:
+ 	"""Canonical host clearing precedes exact owner release and a fresh same-capacity namespace."""
+ 	assert_true(_host.compose_underground_room_owners(), "compose")

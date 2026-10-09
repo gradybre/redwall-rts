@@ -1,0 +1,27 @@
+{
+  "source_commit": "256c19082a173f1dde8118c6ebf7ad36abd31598",
+  "source_run": 37226172376,
+  "suite_count": 397,
+  "prior_measured_suite_count": 240,
+  "old_assignment_actual_suite_seconds": [
+    259.609,
+    330.189,
+    318.475,
+    681.564,
+    817.081,
+    370.64,
+    353.845,
+    387.621
+  ],
+  "new_assignment_estimated_suite_seconds": [
+    439.879,
+    439.877,
+    439.877,
+    439.879,
+    439.878,
+    439.878,
+    439.877,
+    439.879
+  ],
+  "scope": "Same recorded per-suite times redistributed by existing allocator; estimates only, not a new CI runtime measurement. Exact-once plan validation unchanged."
+}

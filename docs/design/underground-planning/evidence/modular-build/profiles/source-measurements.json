@@ -1,0 +1,2704 @@
+{
+  "admission_qualified": false,
+  "envelope_contract_version": 2,
+  "manifest_sha256": "fb202b52b228d2f351e5fb6a25f3968ec1a76e7db587bdb090d5a04e450df390",
+  "missing_optional_sources": [
+    "creature/mouse_keeper/grounded/anim_heavy_hammer_swing.glb",
+    "creature/squirrel_gatherer/grounded/anim_heavy_hammer_swing.glb",
+    "creature/otter_boatwright/grounded/anim_heavy_hammer_swing.glb"
+  ],
+  "record_count": 22,
+  "records": [
+    {
+      "admission_qualified": false,
+      "bytes": 18009348,
+      "cast_key": "mouse_keeper",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2421320,
+          2421320
+        ],
+        "y": [
+          -2421320,
+          2421320
+        ],
+        "z": [
+          -2421320,
+          2421320
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2480,
+          2480
+        ],
+        "y": [
+          -2480,
+          2480
+        ],
+        "z": [
+          -2480,
+          2480
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2421320,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 13363
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -253129,
+            253365
+          ],
+          "y": [
+            -1,
+            1004723
+          ],
+          "z": [
+            -308631,
+            418918
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.13333334028720856,
+          0.2666666805744171,
+          0.4000000059604645,
+          0.5333333611488342,
+          0.6666666865348816,
+          0.800000011920929,
+          0.9333333373069763,
+          1.0666667222976685
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "1e6ee83639f6a8883cadb56833478ef9596d23ff1ad90b64f768a0ec36e91e40",
+      "source": "creature/mouse_keeper/grounded/anim_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 18062080,
+      "cast_key": "mouse_keeper",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_idle",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2414637,
+          2414637
+        ],
+        "y": [
+          -2414637,
+          2414637
+        ],
+        "z": [
+          -2414637,
+          2414637
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2473,
+          2473
+        ],
+        "y": [
+          -2473,
+          2473
+        ],
+        "z": [
+          -2473,
+          2473
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2414637,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 13363
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -290817,
+            283155
+          ],
+          "y": [
+            -91116,
+            943781
+          ],
+          "z": [
+            -254793,
+            368968
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.5333333611488342,
+          1.0333333015441895,
+          1.5333333015441895,
+          2.0333333015441895,
+          2.5333333015441895,
+          3.0333333015441895,
+          3.5333333015441895,
+          4.0333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "3a5b3b0168aee1baef6b615b2756fc60e908934200674e47d2d98c7ceb81164d",
+      "source": "creature/mouse_keeper/grounded/anim_idle.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 18008812,
+      "cast_key": "mouse_keeper",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_cautious_crouch_walk_forward",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2414638,
+          2414638
+        ],
+        "y": [
+          -2414638,
+          2414638
+        ],
+        "z": [
+          -2414638,
+          2414638
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2473,
+          2473
+        ],
+        "y": [
+          -2473,
+          2473
+        ],
+        "z": [
+          -2473,
+          2473
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2414638,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 13363
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -353347,
+            328514
+          ],
+          "y": [
+            -56094,
+            816557
+          ],
+          "z": [
+            -278349,
+            630055
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.1666666716337204,
+          0.30000001192092896,
+          0.4333333373069763,
+          0.6000000238418579,
+          0.7333333492279053,
+          0.8666666746139526,
+          1.0,
+          1.1666666269302368
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "14df834ad4aea61e32e7db65ec7bc07b23284f3bd52b931d1121b06dde4f7ed5",
+      "source": "creature/mouse_keeper/grounded/anim_cautious_crouch_walk_forward.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 18108732,
+      "cast_key": "mouse_keeper",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_carry_heavy_object_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2418684,
+          2418684
+        ],
+        "y": [
+          -2418684,
+          2418684
+        ],
+        "z": [
+          -2418684,
+          2418684
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2477,
+          2477
+        ],
+        "y": [
+          -2477,
+          2477
+        ],
+        "z": [
+          -2477,
+          2477
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2418684,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 13363
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -321950,
+            281158
+          ],
+          "y": [
+            -62779,
+            989679
+          ],
+          "z": [
+            -210045,
+            327723
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.8333333134651184,
+          1.6333333253860474,
+          2.4666666984558105,
+          3.2666666507720947,
+          4.066666603088379,
+          4.900000095367432,
+          5.699999809265137,
+          6.5333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "cfb8710b7367973694fec1eb1cdbb7c8694e089667a7151b04050d958cf5c6c5",
+      "source": "creature/mouse_keeper/grounded/anim_carry_heavy_object_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20791108,
+      "cast_key": "mole_digger",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2522698,
+          2522698
+        ],
+        "y": [
+          -2522698,
+          2522698
+        ],
+        "z": [
+          -2522698,
+          2522698
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2584,
+          2584
+        ],
+        "y": [
+          -2584,
+          2584
+        ],
+        "z": [
+          -2584,
+          2584
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2522698,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 17172
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -398866,
+            427009
+          ],
+          "y": [
+            -1,
+            903846
+          ],
+          "z": [
+            -357046,
+            461717
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.13333334028720856,
+          0.2666666805744171,
+          0.4000000059604645,
+          0.5333333611488342,
+          0.6666666865348816,
+          0.800000011920929,
+          0.9333333373069763,
+          1.0666667222976685
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "aae20e79e3dc4e52a84a3f976fb6ce0ce81f126788713549ee3a40c3545f4787",
+      "source": "creature/mole_digger/grounded/anim_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20847976,
+      "cast_key": "mole_digger",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_idle",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2495500,
+          2495500
+        ],
+        "y": [
+          -2495500,
+          2495500
+        ],
+        "z": [
+          -2495500,
+          2495500
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2556,
+          2556
+        ],
+        "y": [
+          -2556,
+          2556
+        ],
+        "z": [
+          -2556,
+          2556
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2495500,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 17172
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -353011,
+            402513
+          ],
+          "y": [
+            18,
+            835873
+          ],
+          "z": [
+            -250232,
+            320656
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.5333333611488342,
+          1.0333333015441895,
+          1.5333333015441895,
+          2.0333333015441895,
+          2.5333333015441895,
+          3.0333333015441895,
+          3.5333333015441895,
+          4.0333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "24e5e5de06f3afe0cf03d17389e6f0271f21c9f807aece1526b18071da18ea92",
+      "source": "creature/mole_digger/grounded/anim_idle.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20807780,
+      "cast_key": "mole_digger",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_cautious_crouch_walk_forward",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2495507,
+          2495507
+        ],
+        "y": [
+          -2495507,
+          2495507
+        ],
+        "z": [
+          -2495507,
+          2495507
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2556,
+          2556
+        ],
+        "y": [
+          -2556,
+          2556
+        ],
+        "z": [
+          -2556,
+          2556
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2495507,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 17172
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -447921,
+            267023
+          ],
+          "y": [
+            -1,
+            746960
+          ],
+          "z": [
+            -372570,
+            740300
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.1666666716337204,
+          0.30000001192092896,
+          0.4333333373069763,
+          0.6000000238418579,
+          0.7333333492279053,
+          0.8666666746139526,
+          1.0,
+          1.1666666269302368
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "87dc469f9cb084433875de2d63f36a9508cb79e13a6196aec8d7fa78693649c3",
+      "source": "creature/mole_digger/grounded/anim_cautious_crouch_walk_forward.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20864812,
+      "cast_key": "mole_digger",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_carry_heavy_object_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2514176,
+          2514176
+        ],
+        "y": [
+          -2514176,
+          2514176
+        ],
+        "z": [
+          -2514176,
+          2514176
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2575,
+          2575
+        ],
+        "y": [
+          -2575,
+          2575
+        ],
+        "z": [
+          -2575,
+          2575
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2514176,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 17172
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -455988,
+            420650
+          ],
+          "y": [
+            -1,
+            898727
+          ],
+          "z": [
+            -252156,
+            331468
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.8333333134651184,
+          1.6333333253860474,
+          2.4666666984558105,
+          3.2666666507720947,
+          4.066666603088379,
+          4.900000095367432,
+          5.699999809265137,
+          6.5333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "931bbec29d7f1ea707a403cda2526f82e15bb91ea398395cf814dd358c2908be",
+      "source": "creature/mole_digger/grounded/anim_carry_heavy_object_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20809304,
+      "cast_key": "mole_digger",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_heavy_hammer_swing",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -2578822,
+          2578822
+        ],
+        "y": [
+          -2578822,
+          2578822
+        ],
+        "z": [
+          -2578822,
+          2578822
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -2641,
+          2641
+        ],
+        "y": [
+          -2641,
+          2641
+        ],
+        "z": [
+          -2641,
+          2641
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 2578822,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 17172
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -564856,
+            344982
+          ],
+          "y": [
+            -174790,
+            1119249
+          ],
+          "z": [
+            -703654,
+            499506
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.23333333432674408,
+          0.46666666865348816,
+          0.699999988079071,
+          0.9333333373069763,
+          1.1666666269302368,
+          1.399999976158142,
+          1.6333333253860474,
+          1.8666666746139526
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "72286f1631c65b5f06cb10829386bcdc3806dc8bff412c7abafc331472495276",
+      "source": "creature/mole_digger/grounded/anim_heavy_hammer_swing.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 21179140,
+      "cast_key": "squirrel_gatherer",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3552012,
+          3552012
+        ],
+        "y": [
+          -3552012,
+          3552012
+        ],
+        "z": [
+          -3552012,
+          3552012
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -3638,
+          3638
+        ],
+        "y": [
+          -3638,
+          3638
+        ],
+        "z": [
+          -3638,
+          3638
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3552012,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16592
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -253809,
+            289547
+          ],
+          "y": [
+            -1,
+            1186948
+          ],
+          "z": [
+            -618727,
+            668194
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.13333334028720856,
+          0.2666666805744171,
+          0.4000000059604645,
+          0.5333333611488342,
+          0.6666666865348816,
+          0.800000011920929,
+          0.9333333373069763,
+          1.0666667222976685
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "0c56e1ead40281f3e226df85c466a3bad1c6236914b539a9bdf9d9b0f5928ffe",
+      "source": "creature/squirrel_gatherer/grounded/anim_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 21231324,
+      "cast_key": "squirrel_gatherer",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_idle",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3519093,
+          3519093
+        ],
+        "y": [
+          -3519093,
+          3519093
+        ],
+        "z": [
+          -3519093,
+          3519093
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -3604,
+          3604
+        ],
+        "y": [
+          -3604,
+          3604
+        ],
+        "z": [
+          -3604,
+          3604
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3519093,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16592
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -402243,
+            392566
+          ],
+          "y": [
+            -1,
+            1140875
+          ],
+          "z": [
+            -566427,
+            615207
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.5333333611488342,
+          1.0333333015441895,
+          1.5333333015441895,
+          2.0333333015441895,
+          2.5333333015441895,
+          3.0333333015441895,
+          3.5333333015441895,
+          4.0333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "f83643d36100541b38cecbbc6ef4b6fe2aeb410b4a7f658fa27d1bc7c715cf85",
+      "source": "creature/squirrel_gatherer/grounded/anim_idle.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 21180244,
+      "cast_key": "squirrel_gatherer",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_cautious_crouch_walk_forward",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3519094,
+          3519094
+        ],
+        "y": [
+          -3519094,
+          3519094
+        ],
+        "z": [
+          -3519094,
+          3519094
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -3604,
+          3604
+        ],
+        "y": [
+          -3604,
+          3604
+        ],
+        "z": [
+          -3604,
+          3604
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3519094,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16592
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -630222,
+            608884
+          ],
+          "y": [
+            -1,
+            1018495
+          ],
+          "z": [
+            -541311,
+            906089
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.1666666716337204,
+          0.30000001192092896,
+          0.4333333373069763,
+          0.6000000238418579,
+          0.7333333492279053,
+          0.8666666746139526,
+          1.0,
+          1.1666666269302368
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "09026db55adddcf5aa2dcec7a09bb2399a9a73c54ab20ef9b8d193d524b28a08",
+      "source": "creature/squirrel_gatherer/grounded/anim_cautious_crouch_walk_forward.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 21268064,
+      "cast_key": "squirrel_gatherer",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_carry_heavy_object_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3577801,
+          3577801
+        ],
+        "y": [
+          -3577801,
+          3577801
+        ],
+        "z": [
+          -3577801,
+          3577801
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -3664,
+          3664
+        ],
+        "y": [
+          -3664,
+          3664
+        ],
+        "z": [
+          -3664,
+          3664
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3577801,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16592
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -393383,
+            346129
+          ],
+          "y": [
+            16946,
+            1206087
+          ],
+          "z": [
+            -539558,
+            570224
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.8333333134651184,
+          1.6333333253860474,
+          2.4666666984558105,
+          3.2666666507720947,
+          4.066666603088379,
+          4.900000095367432,
+          5.699999809265137,
+          6.5333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "51f54d4ecfb534fb09e1e4ceeef276628f809a457e4cbfa2ae1c2c63b87a5fea",
+      "source": "creature/squirrel_gatherer/grounded/anim_carry_heavy_object_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20229692,
+      "cast_key": "otter_boatwright",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3980979,
+          3980979
+        ],
+        "y": [
+          -3980979,
+          3980979
+        ],
+        "z": [
+          -3980979,
+          3980979
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -4077,
+          4077
+        ],
+        "y": [
+          -4077,
+          4077
+        ],
+        "z": [
+          -4077,
+          4077
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3980979,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16285
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -364211,
+            402006
+          ],
+          "y": [
+            -1,
+            1537893
+          ],
+          "z": [
+            -576219,
+            659109
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.13333334028720856,
+          0.2666666805744171,
+          0.4000000059604645,
+          0.5333333611488342,
+          0.6666666865348816,
+          0.800000011920929,
+          0.9333333373069763,
+          1.0666667222976685
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "cbe7c625c28679518c04f786756f2a8b404183ec1b98c25f06c75b27cee3e1bb",
+      "source": "creature/otter_boatwright/grounded/anim_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20277812,
+      "cast_key": "otter_boatwright",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_idle",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3927755,
+          3927755
+        ],
+        "y": [
+          -3927755,
+          3927755
+        ],
+        "z": [
+          -3927755,
+          3927755
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -4023,
+          4023
+        ],
+        "y": [
+          -4023,
+          4023
+        ],
+        "z": [
+          -4023,
+          4023
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3927755,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16285
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -493378,
+            553359
+          ],
+          "y": [
+            -42550,
+            1434382
+          ],
+          "z": [
+            -496559,
+            614978
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.5333333611488342,
+          1.0333333015441895,
+          1.5333333015441895,
+          2.0333333015441895,
+          2.5333333015441895,
+          3.0333333015441895,
+          3.5333333015441895,
+          4.0333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "9ba89e5a74f6b46f8926720ab9829b84a35cc4870781b86bb35f2295e9f636a6",
+      "source": "creature/otter_boatwright/grounded/anim_idle.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20233260,
+      "cast_key": "otter_boatwright",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_cautious_crouch_walk_forward",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3927743,
+          3927743
+        ],
+        "y": [
+          -3927743,
+          3927743
+        ],
+        "z": [
+          -3927743,
+          3927743
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -4023,
+          4023
+        ],
+        "y": [
+          -4023,
+          4023
+        ],
+        "z": [
+          -4023,
+          4023
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3927743,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16285
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -669773,
+            584656
+          ],
+          "y": [
+            -3313,
+            1259607
+          ],
+          "z": [
+            -493001,
+            1045917
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.1666666716337204,
+          0.30000001192092896,
+          0.4333333373069763,
+          0.6000000238418579,
+          0.7333333492279053,
+          0.8666666746139526,
+          1.0,
+          1.1666666269302368
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "13bcc178d01debaa9a1cee09584a781f5bfd18a2f92ff552ccfb5b547e9e205a",
+      "source": "creature/otter_boatwright/grounded/anim_cautious_crouch_walk_forward.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20324448,
+      "cast_key": "otter_boatwright",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_carry_heavy_object_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -3979611,
+          3979611
+        ],
+        "y": [
+          -3979611,
+          3979611
+        ],
+        "z": [
+          -3979611,
+          3979611
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -4076,
+          4076
+        ],
+        "y": [
+          -4076,
+          4076
+        ],
+        "z": [
+          -4076,
+          4076
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 3979611,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16285
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -531330,
+            478924
+          ],
+          "y": [
+            -92720,
+            1503063
+          ],
+          "z": [
+            -417389,
+            503798
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.8333333134651184,
+          1.6333333253860474,
+          2.4666666984558105,
+          3.2666666507720947,
+          4.066666603088379,
+          4.900000095367432,
+          5.699999809265137,
+          6.5333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "24bbb69af48f681756c658bafc9fb8937b8cc0aefe9a239a256602aa04ae1083",
+      "source": "creature/otter_boatwright/grounded/anim_carry_heavy_object_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20499680,
+      "cast_key": "badger_quarryman",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -6685513,
+          6685513
+        ],
+        "y": [
+          -6685513,
+          6685513
+        ],
+        "z": [
+          -6685513,
+          6685513
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -6846,
+          6846
+        ],
+        "y": [
+          -6846,
+          6846
+        ],
+        "z": [
+          -6846,
+          6846
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 6685513,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16621
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -890366,
+            947603
+          ],
+          "y": [
+            -1,
+            2557253
+          ],
+          "z": [
+            -748631,
+            883008
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.13333334028720856,
+          0.2666666805744171,
+          0.4000000059604645,
+          0.5333333611488342,
+          0.6666666865348816,
+          0.800000011920929,
+          0.9333333373069763,
+          1.0666667222976685
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "0c053d902f4a83429c347e9e620d85cf868f8733e80012ced3e4ae43e1e613b7",
+      "source": "creature/badger_quarryman/grounded/anim_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20554460,
+      "cast_key": "badger_quarryman",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_idle",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -6662918,
+          6662918
+        ],
+        "y": [
+          -6662918,
+          6662918
+        ],
+        "z": [
+          -6662918,
+          6662918
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -6823,
+          6823
+        ],
+        "y": [
+          -6823,
+          6823
+        ],
+        "z": [
+          -6823,
+          6823
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 6662918,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16621
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -749292,
+            797179
+          ],
+          "y": [
+            42,
+            2382849
+          ],
+          "z": [
+            -523574,
+            584462
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.5333333611488342,
+          1.0333333015441895,
+          1.5333333015441895,
+          2.0333333015441895,
+          2.5333333015441895,
+          3.0333333015441895,
+          3.5333333015441895,
+          4.0333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "15764b187abf81a5ef77607b351b1ef97868e4d91cc981432831ab5f63fef4a2",
+      "source": "creature/badger_quarryman/grounded/anim_idle.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20505412,
+      "cast_key": "badger_quarryman",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_cautious_crouch_walk_forward",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -6662917,
+          6662917
+        ],
+        "y": [
+          -6662917,
+          6662917
+        ],
+        "z": [
+          -6662917,
+          6662917
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -6823,
+          6823
+        ],
+        "y": [
+          -6823,
+          6823
+        ],
+        "z": [
+          -6823,
+          6823
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 6662917,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16621
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -968754,
+            459335
+          ],
+          "y": [
+            3996,
+            2056576
+          ],
+          "z": [
+            -697871,
+            1751912
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.1666666716337204,
+          0.30000001192092896,
+          0.4333333373069763,
+          0.6000000238418579,
+          0.7333333492279053,
+          0.8666666746139526,
+          1.0,
+          1.1666666269302368
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "d7bd1e8f923a1626865148052401700932d14c1b90d19fe1dc6be95cc68cc639",
+      "source": "creature/badger_quarryman/grounded/anim_cautious_crouch_walk_forward.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20674180,
+      "cast_key": "badger_quarryman",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_carry_heavy_object_walk",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -6662921,
+          6662921
+        ],
+        "y": [
+          -6662921,
+          6662921
+        ],
+        "z": [
+          -6662921,
+          6662921
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -6823,
+          6823
+        ],
+        "y": [
+          -6823,
+          6823
+        ],
+        "z": [
+          -6823,
+          6823
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 6662921,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16621
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -899849,
+            855480
+          ],
+          "y": [
+            -1,
+            2441438
+          ],
+          "z": [
+            -599636,
+            575451
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.8333333134651184,
+          1.6333333253860474,
+          2.4666666984558105,
+          3.2666666507720947,
+          4.066666603088379,
+          4.900000095367432,
+          5.699999809265137,
+          6.5333333015441895
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "1d7a5cfaaa686d2d12dfd1c16c53a04af280c310711f0189f7e04964160f4af2",
+      "source": "creature/badger_quarryman/grounded/anim_carry_heavy_object_walk.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    },
+    {
+      "admission_qualified": false,
+      "bytes": 20503908,
+      "cast_key": "badger_quarryman",
+      "certificate": {
+        "arithmetic": "exact decoded values as rationals; outward integer square roots and ceilings",
+        "method": "exact_rational_hierarchy_sphere_v1",
+        "residual_error_units": 0,
+        "rotation_scope": "all unit rotations plus exact raw-key norm allowance; LINEAR/STEP translation and scale enclosure",
+        "scope": "mathematical source TRS and skinning only; not runtime deformation or GPU numeric error"
+      },
+      "clip": "anim_heavy_hammer_swing",
+      "continuous_bounds_micrometres": {
+        "x": [
+          -6905754,
+          6905754
+        ],
+        "y": [
+          -6905754,
+          6905754
+        ],
+        "z": [
+          -6905754,
+          6905754
+        ]
+      },
+      "coverage": {
+        "included_external_attachments": [],
+        "included_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "qualified_states": [],
+        "residual_error_units": 0
+      },
+      "data_class": "measurement",
+      "not_ready_reasons": [
+        "LEGAL_STATE_MAPPING_INCOMPLETE",
+        "EXTERNAL_ATTACHMENT_OMITTED",
+        "ERROR_OR_MARGIN_UNAUTHORED",
+        "SOURCE_ASSET_ACCEPTANCE_MISSING",
+        "RUNTIME_PROFILE_OWNER_BINDING_MISSING",
+        "FACING_AND_ROOT_BINDING_UNQUALIFIED",
+        "RUNTIME_DEFORMATION_AND_NUMERIC_ERROR_UNQUALIFIED"
+      ],
+      "outward_diagnostic_bounds_u_no_safety_margin": {
+        "x": [
+          -7072,
+          7072
+        ],
+        "y": [
+          -7072,
+          7072
+        ],
+        "z": [
+          -7072,
+          7072
+        ]
+      },
+      "parts": [
+        {
+          "continuous_radius_micrometres": 6905754,
+          "id": "node:24/mesh:0/primitive:0",
+          "skinned": true,
+          "vertices": 16621
+        }
+      ],
+      "requirements": {
+        "embedded_primitives": [
+          "node:24/mesh:0/primitive:0"
+        ],
+        "external_attachments": [
+          "actual_equipped_gear",
+          "actual_carried_cargo",
+          "runtime_support_attachments"
+        ],
+        "margin_units": null,
+        "source_asset_approved": false,
+        "states": [
+          "ENTRY",
+          "TRAVEL",
+          "HOLD",
+          "TURN",
+          "REVERSAL",
+          "RETREAT",
+          "EXIT"
+        ]
+      },
+      "sampled": {
+        "bounds_micrometres": {
+          "x": [
+            -1156257,
+            505990
+          ],
+          "y": [
+            3371,
+            3056544
+          ],
+          "z": [
+            -1829620,
+            829104
+          ]
+        },
+        "sample_times_seconds": [
+          0.03333333507180214,
+          0.23333333432674408,
+          0.46666666865348816,
+          0.699999988079071,
+          0.9333333373069763,
+          1.1666666269302368,
+          1.399999976158142,
+          1.6333333253860474,
+          1.8666666746139526
+        ],
+        "status": "SAMPLED_DIAGNOSTIC_NOT_CONTINUOUS"
+      },
+      "sha256": "f6a88ae1f74b551207403f719ffe55c0c8ceff2dff716653a5635fc6ac6be22f",
+      "source": "creature/badger_quarryman/grounded/anim_heavy_hammer_swing.glb",
+      "source_transform": "identity; no anatomical rescale or reorientation",
+      "space": "source model root; intended +Y up/-Z forward, facing not qualified; excludes gameplay root trajectory",
+      "status": "PARTIAL_SOURCE_GEOMETRY",
+      "target_envelope_schema": 2
+    }
+  ],
+  "schema": "redwall.underground.source_measurement/1",
+  "tool_sha256": {
+    "measure_underground_profiles.py": "10391d655964a613f88d7c5e8dae31de9f30c41c5564804bf5e67ea69f1fd0ae",
+    "repair_meshy_rig.py": "a8ed3b9aa755cb462109be6b56e23881d066284725ad507388acd2eb69359205",
+    "rig_meshy_tail.py": "4aba8539b9ea6d31b2acdf21045ac577b3ae78aa6382f1d9a6aa16163dc7f53e",
+    "validate_movement_envelopes.py": "a69bdd136dd80df0a7421b4f179f18ec8f87457c723e91589f1975b1f0c19dd6"
+  }
+}

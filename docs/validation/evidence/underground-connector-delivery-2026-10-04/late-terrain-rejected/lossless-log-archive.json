@@ -1,0 +1,18 @@
+[
+  {
+    "original": "test_underground_connector_delivery.gd.log",
+    "original_bytes": 81735451,
+    "original_sha256": "3a7abe5dd788f9cfacd3114546bc48d42c208a5c697477dfef65d59b8f94cfc0",
+    "lossless_gzip": "test_underground_connector_delivery.gd.log.gz",
+    "gzip_sha256": "0a9ba0b5fd2dde5a98966d0431c9226933816a6f553bcce0ff71b25da7c122a7",
+    "gzip_bytes": 108287
+  },
+  {
+    "original": "shard-210.log",
+    "original_bytes": 81735341,
+    "original_sha256": "94b748ac646655f5cff8ce69416d1e5ea2c96a190d6fba2ca3bc7bfad70883f2",
+    "lossless_gzip": "shard-210.log.gz",
+    "gzip_sha256": "20b55777dd59722c019143113d294f70c98c5a1bd5c69cac114757595ada1070",
+    "gzip_bytes": 108215
+  }
+]

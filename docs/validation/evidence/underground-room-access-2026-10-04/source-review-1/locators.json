@@ -1,0 +1,54 @@
+{
+  "docs/validation/evidence/underground-room-access-2026-10-04/capture_access.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/capture_access.gd.txt",
+    "sha256": "5e627a20336c62fc6277b6789881e683a7f444ae249569c31dccde4958cb16b5"
+  },
+  "docs/validation/evidence/underground-room-access-2026-10-04/census.py": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/census.py.txt",
+    "sha256": "c0e47e1d24aae28c18f717e93b24f00092960da698ab8ef9c7b36be72e07db56"
+  },
+  "docs/validation/evidence/underground-room-access-2026-10-04/reproduce.py": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/reproduce.py.txt",
+    "sha256": "a5491348ec0a6f42cc70f2b569107467144472d8c48b6824460a3f019d39d112"
+  },
+  "docs/validation/evidence/underground-room-access-2026-10-04/run_capture.py": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/run_capture.py.txt",
+    "sha256": "723bbb35460243823e216decb53a142dbe38ca8de3b6b504d43766b88201eddd"
+  },
+  "docs/validation/evidence/underground-room-access-2026-10-04/test_evidence.py": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_evidence.py.txt",
+    "sha256": "c480f1eb6867e7ed69a9200903315b571292ffbeaa1a8c9f566c8a3f591f7701"
+  },
+  "godot/demo/burrow/modular_access.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_access.gd.txt",
+    "sha256": "0a76a21eb229d7c0b93a930fc46df1a9bca09dd68799ae772556d8f800524bf9"
+  },
+  "godot/demo/burrow/modular_access.gd.uid": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_access.gd.uid.txt",
+    "sha256": "ccca107a314f172aae666174f2747bf7426154b2fa7bbd00779c8ea5507fadf3"
+  },
+  "godot/demo/burrow/modular_editor.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_editor.gd.txt",
+    "sha256": "3815bccac76ef3bf9e3b8ecb3cf311227d1428189473f2b1db357eb9389708fa"
+  },
+  "godot/demo/burrow/modular_runtime.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_runtime.gd.txt",
+    "sha256": "e8c41bc30e4896254bc58d5387ba44417e02b256e670e8a66b41079795a1e478"
+  },
+  "godot/demo/burrow/modular_world_tool.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_world_tool.gd.txt",
+    "sha256": "8ea0ce8b84cffcb37ae574762e0edd6c9b6d3f191b0ea6351b00752ac8b041df"
+  },
+  "godot/test/test_modular_access.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_modular_access.gd.txt",
+    "sha256": "59098092f6e8d5ec3b5c0b681bf0638fe9e8b1607c9d9ab9493a9855f2c3560f"
+  },
+  "godot/test/test_modular_access.gd.uid": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_modular_access.gd.uid.txt",
+    "sha256": "cb27c2ef47113fbff3b6dbb1b1ee3274dafa10e87c53171afe6e10811257e5e5"
+  },
+  "godot/test/test_modular_runtime.gd": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_modular_runtime.gd.txt",
+    "sha256": "0928ec79a37c5644ada83a72e50c803561a9e20507b012e363b478112b4b1f84"
+  }
+}

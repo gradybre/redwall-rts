@@ -1,0 +1,52 @@
+{
+  "active_tool": null,
+  "body_sha256": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+  "clips": [
+    {
+      "frames": 122,
+      "id": "claw_work_v1.stand",
+      "loop": 1
+    },
+    {
+      "frames": 45,
+      "id": "claw_work_v1.walk",
+      "loop": 1
+    },
+    {
+      "frames": 31,
+      "id": "claw_work_v1.dig_entry",
+      "loop": 0
+    },
+    {
+      "frames": 33,
+      "id": "claw_work_v1.dig_stroke",
+      "loop": 0
+    },
+    {
+      "frames": 31,
+      "id": "claw_work_v1.dig_recovery",
+      "loop": 0
+    },
+    {
+      "frames": 31,
+      "id": "claw_work_v1.tap_entry",
+      "loop": 0
+    },
+    {
+      "frames": 33,
+      "id": "claw_work_v1.tap_work",
+      "loop": 0
+    },
+    {
+      "frames": 31,
+      "id": "claw_work_v1.tap_recovery",
+      "loop": 0
+    }
+  ],
+  "parts": [
+    "body (open paw)"
+  ],
+  "production_qualified": false,
+  "schema": 1,
+  "source_clock": "presentation sampling only; no dig or work rate"
+}

@@ -1,0 +1,26 @@
+state_registry_coverage: PASS -- 148 modules, 725 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+  PASS  test_initial_actual_binding_uses_one_context_without_phase_permission
+  FAIL  test_published_ground_profile_reaches_actual_front_work_station
+        source-qualified current path: ["complete continuous route proof: WORLD_ROUTE_NO_FITTING_PROFILE (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual graph plus certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "same-stack actual graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        actual fixture: ["complete continuous route proof: WORLD_ROUTE_NO_FITTING_PROFILE (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual graph plus certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "same-stack actual graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":11,"failures":1,"suite":"test_underground_room_world_phases.gd","tests":2,"usec":747420}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+2 test(s), 11 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

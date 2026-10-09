@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/native_compare.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/native-v5/bake-spec.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/native-v5/bake-report.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v5.ugpal"
+  ],
+  "cases": 42,
+  "frames": 3566,
+  "native_matrix_checks": 102144,
+  "content_path": "godot/demo/assets/underground-matrices/all-cast-v5.ugpal",
+  "content_bytes": 39303299,
+  "content_sha256": "a8a16d1111ac1583fcc4d9dd83b6382395b9158c5d69b5af7981e2c780fd7457",
+  "spec_sha256": "940dd35dfb3ed787ec827569a188a29f4fb2b5e8383517235e3197187f410360",
+  "report_sha256": "174a5a3f753e7b25b1b5cef58f2e69df8a8cf23f0d96b44e2acb2130de0e59e0",
+  "qualified_profiles": 0,
+  "meaning": "finite matrix presentation source, pending enclosure and visual gates",
+  "unexpected_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0
+}

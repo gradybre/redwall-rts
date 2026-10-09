@@ -1,0 +1,186 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_approach.gd
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe (res://test/test_underground_room_approach.gd:298)
+              [4] test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:323)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_path_and_work_face_are_observed_before_any_candidate
+        exact full edge retained (expected 1, got 0)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_disconnected_profile_path_refuses_a_genuine_available_work_face
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe (res://test/test_underground_room_approach.gd:298)
+              [4] test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:343)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_zero_edge_path_still_proves_the_whole_selected_travel_pose
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe (res://test/test_underground_room_approach.gd:298)
+              [4] test_full_source_contact_rejects_an_interior_approach_hole (res://test/test_underground_room_approach.gd:350)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_full_source_contact_rejects_an_interior_approach_hole
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_target_must_belong_to_exact_room_cut_union
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe (res://test/test_underground_room_approach.gd:298)
+              [4] test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:369)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_every_added_request_field_is_pinned_against_late_mutation
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe (res://test/test_underground_room_approach.gd:298)
+              [4] test_same_revision_refuses_and_new_epochs_expire_original_source (res://test/test_underground_room_approach.gd:384)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_same_revision_refuses_and_new_epochs_expire_original_source
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_endpoint_callbacks_close_original_request_and_lease
+  PASS  test_wrong_profile_and_preexisting_candidate_refuse_without_output
+  PASS  test_current_cold_admission_and_plain_plan_remain_explicit
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe_approach (res://scripts/core/underground_room_bindings.gd:161)
+              [4] begin_room_cold (res://scripts/core/underground_room_bindings.gd:196)
+              [5] _begin_room_cold (res://scripts/core/underground_room_orders.gd:955)
+              [6] _prepared_room (res://test/test_underground_room_approach.gd:456)
+              [7] test_real_room_preparation_retains_witness_without_large_surveys_after_sites (res://test/test_underground_room_approach.gd:476)
+              [8] _run_test (res://test/run_tests.gd:194)
+              [9] _run_suite (res://test/run_tests.gd:168)
+              [10] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [11] _run_worker (res://test/run_tests.gd:121)
+              [12] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_real_room_preparation_retains_witness_without_large_surveys_after_sites
+        actual Room/Location/WorldRoutes preparation (expected , got ROOM_APPROACH_CHANGED)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe_approach (res://scripts/core/underground_room_bindings.gd:161)
+              [4] begin_room_cold (res://scripts/core/underground_room_bindings.gd:196)
+              [5] _begin_room_cold (res://scripts/core/underground_room_orders.gd:955)
+              [6] confirm_room (res://scripts/core/underground_room_orders.gd:857)
+              [7] test_real_confirm_kitchen_preserves_fine_cells_and_refreshes_exact_existing_approach (res://test/test_underground_room_approach.gd:495)
+              [8] _run_test (res://test/run_tests.gd:194)
+              [9] _run_suite (res://test/run_tests.gd:168)
+              [10] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [11] _run_worker (res://test/run_tests.gd:121)
+              [12] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_real_confirm_kitchen_preserves_fine_cells_and_refreshes_exact_existing_approach
+        actual complete Room confirmation: ROOM_APPROACH_CHANGED (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe_approach (res://scripts/core/underground_room_bindings.gd:161)
+              [4] begin_room_cold (res://scripts/core/underground_room_bindings.gd:196)
+              [5] _begin_room_cold (res://scripts/core/underground_room_orders.gd:955)
+              [6] _prepared_room (res://test/test_underground_room_approach.gd:456)
+              [7] test_prepared_final_rejects_every_extra_request_field_and_foreign_candidate (res://test/test_underground_room_approach.gd:512)
+              [8] _run_test (res://test/run_tests.gd:194)
+              [9] _run_suite (res://test/run_tests.gd:168)
+              [10] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [11] _run_worker (res://test/run_tests.gd:121)
+              [12] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_prepared_final_rejects_every_extra_request_field_and_foreign_candidate
+        actual Room/Location/WorldRoutes preparation (expected , got ROOM_APPROACH_CHANGED)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'value' on a base object of type 'RefCounted (Result)'.
+          at: Witness._path_refusal (res://scripts/core/underground_room_approach.gd:142)
+          GDScript backtrace (most recent call first):
+              [0] _path_refusal (res://scripts/core/underground_room_approach.gd:142)
+              [1] observe (res://scripts/core/underground_room_approach.gd:125)
+              [2] begin (res://scripts/core/underground_room_approach.gd:576)
+              [3] _observe_approach (res://scripts/core/underground_room_bindings.gd:161)
+              [4] begin_room_cold (res://scripts/core/underground_room_bindings.gd:196)
+              [5] _begin_room_cold (res://scripts/core/underground_room_orders.gd:955)
+              [6] _prepared_room (res://test/test_underground_room_approach.gd:456)
+              [7] test_final_observer_reentry_cannot_close_or_reuse_the_original_room_scope (res://test/test_underground_room_approach.gd:537)
+              [8] _run_test (res://test/run_tests.gd:194)
+              [9] _run_suite (res://test/run_tests.gd:168)
+              [10] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [11] _run_worker (res://test/run_tests.gd:121)
+              [12] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_final_observer_reentry_cannot_close_or_reuse_the_original_room_scope
+        actual Room/Location/WorldRoutes preparation (expected , got ROOM_APPROACH_CHANGED)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":103,"failures":5,"suite":"test_underground_room_approach.gd","tests":14,"usec":4353223}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 103 assertion(s), 9 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -32,12 +32,10 @@ extends RefCounted
 ## generation column and retirement rule FIRST -- see "named next increments" below. Nothing here
 ## may be read as permission to add one.
 ##
-## The cost of that choice is honest: `_resolve_row()` is a bounded ascending scan, stopping once
-## it has passed every live row, because the ruling explicitly excludes "later reverse indexes"
-## from this allocator's budget. Gear operations happen at cycle start, cycle completion, repair
-## and manufacture -- never inside a per-tick loop -- and at realistic live counts (the 24 starter
-## tools plus a handful of nets and traps) the scan ends after a couple of dozen comparisons. A
-## lot-indexed reverse column is a separate, budgeted increment.
+## Decision 1068 separately budgets a private lot-slot-to-row index after decision 1056 measured
+## the cost of repeated scans in excavation work. Every lookup still checks occupancy and the
+## complete recorded lot identity. The 65536-byte derived index is rebuilt on load; a private
+## second index exists during whole-column restore. Neither index enters the canonical wire.
 ##
 ## ---------------------------------------------------------------------------------------
 ## DELIBERATE REDUNDANCY, DO NOT "TIDY". `_write_new_row()` initialises every column of a fresh
@@ -183,7 +181,7 @@ extends RefCounted
 ##
 ##  3. A PERSISTENT `GearRef`. Needs budgeted generations and a retirement rule; see above.
 ##
-##  4. A LOT-INDEXED REVERSE COLUMN, if a profile ever shows the bounded scan mattering.
+##  4. A LOT-INDEXED REVERSE COLUMN: implemented and separately budgeted by decision 1068.
 ##
 ## ---------------------------------------------------------------------------------------
 ## RESOLVED, NOT SPECIFIED -- recorded as resolutions in decision 0038 rather than presented as
@@ -284,7 +282,8 @@ const REPAIR_FISHING_SECONDARY_MILLI: int = 250
 const REPAIR_FISHING_SECONDARY_KEY: StringName = &"rope"
 const REPAIR_WOOD_KEY: StringName = &"wood"
 
-## Ruling §4's ledger, in bytes at full capacity. `allocator_bytes()` and `claim_bytes()`
+## Original ruling §4's ledger (excluding decision 1068), in bytes at full capacity.
+## `allocator_bytes()` and `claim_bytes()`
 ## re-derive these from the columns actually allocated, so a layout change cannot drift.
 const BUDGET_ALLOCATOR_BYTES: int = 81924
 const BUDGET_CLAIM_BYTES: int = 131072
@@ -332,6 +331,7 @@ const REFUSE_RESTORE_NOT_OPEN: StringName = &"RESTORE_NOT_OPEN"
 const REFUSE_AUDIT_OCCUPANCY: StringName = &"AUDIT_OCCUPANCY_MISMATCH"
 const REFUSE_AUDIT_HEAP: StringName = &"AUDIT_HEAP_MISMATCH"
 const REFUSE_AUDIT_DUPLICATE_LOT: StringName = &"AUDIT_DUPLICATE_LOT"
+const REFUSE_AUDIT_LOT_INDEX: StringName = &"AUDIT_LOT_INDEX_MISMATCH"
 const REFUSE_AUDIT_DURABILITY: StringName = &"AUDIT_DURABILITY_RANGE"
 const REFUSE_AUDIT_CLAIM: StringName = &"AUDIT_CLAIM_MALFORMED"
 const REFUSE_NO_RESIDENTS: StringName = &"NO_RESIDENTS"
@@ -447,6 +447,8 @@ var _row_capacity: int = 0
 var _active_count: int = 0
 ## True between `begin_restore()` and `finish_restore()`, while the free heap is not yet derived.
 var _restoring: bool = false
+## Derived exact lot-to-row relation; no raw Gear row escapes a public reader.
+var _lot_row: PackedInt32Array = PackedInt32Array()
 
 ## Arithmetic scratch for the wear debit, allocated once. `accrue_general_wear_into()` is called
 ## from a productive-tick settlement, so the `IntResult` the checked add needs cannot be built per
@@ -483,6 +485,7 @@ func _allocate_columns() -> void:
 	_seed_lot_generation.resize(STARTER_TOOL_TOTAL)
 	_claim_job_slot.resize(_row_capacity)
 	_claim_job_generation.resize(_row_capacity)
+	_lot_row.resize(LOT_CAPACITY)
 
 
 func clear() -> void:
@@ -504,6 +507,7 @@ func clear() -> void:
 	_occupied.fill(0)
 	_claim_job_slot.fill(NULL_SLOT)
 	_claim_job_generation.fill(NULL_GENERATION)
+	_lot_row.fill(NULL_ROW)
 	_refill_heap_ascending()
 	_active_count = 0
 	_equipped_count = 0
@@ -769,6 +773,7 @@ func _publish_row(row: int) -> bool:
 	if _item_id[row] < 0 or _lot_slot[row] == NULL_SLOT or _lot_generation[row] <= NULL_GENERATION:
 		return false
 	_occupied[row] = 1
+	_lot_row[_lot_slot[row]] = row
 	_active_count += 1
 	return true
 
@@ -908,6 +913,13 @@ func bind_equipment(inventory: Inventory, directory: EntityDirectory,
 func is_equipment_bound() -> bool:
 	"""True when all three equip collaborators are wired."""
 	return _inventory != null and _directory_binding != null and _residents != null
+
+
+func equipment_binding_matches(inventory: Inventory, directory: EntityDirectory,
+		residents: Residents) -> bool:
+	"""Compare actual world owners; equal numeric lot/resident references do not prove composition."""
+	return inventory != null and directory != null and residents != null \
+		and _inventory == inventory and _directory_binding == directory and _residents == residents
 
 
 func equipped_count() -> int:
@@ -1677,6 +1689,22 @@ func is_equipped(lot_ref: Vector2i) -> bool:
 	return row != NULL_ROW and _equipped[row] == 1
 
 
+func equipped_work_claim_refusal(lot_ref: Vector2i, owner_ref: Vector2i,
+		job_ref: Vector2i) -> StringName:
+	"""Resolve once, checking full lot/owner/Job generations, equipment and positive durability.
+
+	The caller separately validates Job liveness. No raw Gear row, cached clearance, allocation
+	or mutation escapes; this combines the same four reads required by the excavation gate.
+	"""
+	var row: int = _resolve_row(lot_ref)
+	if row == NULL_ROW or _equipped[row] != 1:
+		return REFUSE_GEAR_CLAIM_MISMATCH
+	if _owner_slot[row] != owner_ref.x or _owner_generation[row] != owner_ref.y \
+			or _claim_job_slot[row] != job_ref.x or _claim_job_generation[row] != job_ref.y:
+		return REFUSE_GEAR_CLAIM_MISMATCH
+	return REFUSE_INSUFFICIENT_DURABILITY if _durability[row] <= 0 else REFUSE_NONE
+
+
 func _wear_model_of_row(row: int) -> int:
 	"""Wear model of a live row, keyed on its stored compiled item id.
 
@@ -1720,22 +1748,13 @@ func _cycle_wear_of_row(row: int) -> int:
 func _resolve_row(lot_ref: Vector2i) -> int:
 	"""The live row whose RECORDED identity is exactly `lot_ref`, or NULL_ROW.
 
-	Both halves of the reference are compared, so a stale lot handle -- right slot, superseded
-	generation -- resolves to nothing and every operation keyed on it refuses. Bounded ascending
-	scan: see the header on why no reverse index is allocated here.
+	The derived lookup never substitutes for the row's recorded full identity. A stale lot
+	handle, wrong index target or unoccupied row resolves to nothing without allocating.
 	"""
 	if lot_ref.x < 0 or lot_ref.x >= LOT_CAPACITY or lot_ref.y <= NULL_GENERATION:
 		return NULL_ROW
-	var seen: int = 0
-	for row: int in range(_row_capacity):
-		if _occupied[row] == 0:
-			continue
-		seen += 1
-		if _lot_slot[row] == lot_ref.x and _lot_generation[row] == lot_ref.y:
-			return row
-		if seen >= _active_count:
-			return NULL_ROW
-	return NULL_ROW
+	var row: int = _resolve_row_by_lot_slot(lot_ref.x)
+	return row if row != NULL_ROW and _lot_generation[row] == lot_ref.y else NULL_ROW
 
 
 func _resolve_row_by_lot_slot(lot_slot: int) -> int:
@@ -1746,16 +1765,10 @@ func _resolve_row_by_lot_slot(lot_slot: int) -> int:
 	"""
 	if lot_slot < 0 or lot_slot >= LOT_CAPACITY:
 		return NULL_ROW
-	var seen: int = 0
-	for row: int in range(_row_capacity):
-		if _occupied[row] == 0:
-			continue
-		seen += 1
-		if _lot_slot[row] == lot_slot:
-			return row
-		if seen >= _active_count:
-			return NULL_ROW
-	return NULL_ROW
+	var row: int = _lot_row[lot_slot]
+	if row < 0 or row >= _row_capacity or _occupied[row] != 1 or _lot_slot[row] != lot_slot:
+		return NULL_ROW
+	return row
 
 
 func recorded_lot_ref_at_lot_slot(lot_slot: int) -> Vector2i:
@@ -1795,6 +1808,9 @@ func _free_row(row: int) -> void:
 
 func _blank_row(row: int) -> void:
 	"""Reset every payload and claim column of one row to its empty value."""
+	var lot_slot: int = _lot_slot[row]
+	if lot_slot >= 0 and lot_slot < LOT_CAPACITY and _lot_row[lot_slot] == row:
+		_lot_row[lot_slot] = NULL_ROW
 	_lot_slot[row] = NULL_SLOT
 	_lot_generation[row] = NULL_GENERATION
 	_item_id[row] = -1
@@ -2008,7 +2024,28 @@ func _audit_rows() -> StringName:
 		var generation_null: bool = _claim_job_generation[row] == NULL_GENERATION
 		if claim_null != generation_null:
 			return REFUSE_AUDIT_CLAIM
+	if not _lot_index_matches():
+		return REFUSE_AUDIT_LOT_INDEX
 	return REFUSE_NONE
+
+
+func _lot_index_matches() -> bool:
+	"""Cold two-way proof: every occupied row and every nonempty index entry agree exactly."""
+	if _lot_row.size() != LOT_CAPACITY:
+		return false
+	for row: int in _row_capacity:
+		if _occupied[row] != 1:
+			continue
+		var lot: int = _lot_slot[row]
+		if lot < 0 or lot >= LOT_CAPACITY or _lot_row[lot] != row:
+			return false
+	for lot: int in LOT_CAPACITY:
+		var row: int = _lot_row[lot]
+		if row == NULL_ROW:
+			continue
+		if row < 0 or row >= _row_capacity or _occupied[row] != 1 or _lot_slot[row] != lot:
+			return false
+	return true
 
 
 # --- Serialization ----------------------------------------------------------------------------
@@ -2339,9 +2376,13 @@ func _publish_gear_restore(columns: GearColumns, tally: GearColumnTally, staged_
 	var heap: PackedInt32Array = PackedInt32Array()
 	heap.resize(_row_capacity)
 	heap.fill(NULL_ROW)
+	var lot_rows: PackedInt32Array = PackedInt32Array()
+	lot_rows.resize(LOT_CAPACITY)
+	lot_rows.fill(NULL_ROW)
 	var free_count: int = 0
 	for row: int in _row_capacity:
 		if columns.occupied[row] == 1:
+			lot_rows[columns.lot_slot[row]] = row
 			continue
 		heap[free_count] = row
 		free_count += 1
@@ -2370,6 +2411,7 @@ func _publish_gear_restore(columns: GearColumns, tally: GearColumnTally, staged_
 	_claim_job_slot = claim_job_slot
 	_claim_job_generation = claim_job_generation
 	_free_heap = heap
+	_lot_row = lot_rows
 	_active_count = tally.active_rows
 	_free_count = free_count
 	_equipped_count = tally.equipped_rows
@@ -2417,6 +2459,8 @@ func _gear_live_shape_refusal() -> StringName:
 	out of range by a corrupted free count before the count gate could report anything useful.
 	"""
 	if _row_capacity < 1 or _row_capacity > ROW_CAPACITY:
+		return REFUSE_COLUMN_GEAR_SHAPE
+	if _lot_row.size() != LOT_CAPACITY:
 		return REFUSE_COLUMN_GEAR_SHAPE
 	var rows: int = _row_capacity
 	if _occupied.size() != rows or _equipped.size() != rows or _free_heap.size() != rows:
@@ -2603,6 +2647,8 @@ func _gear_source_derived_refusal(tally: GearColumnTally) -> StringName:
 		var right: int = left + 1
 		if right < _free_count and _free_heap[index] > _free_heap[right]:
 			return REFUSE_COLUMN_GEAR_SOURCE_DERIVED
+	if not _lot_index_matches():
+		return REFUSE_COLUMN_GEAR_SOURCE_DERIVED
 	return REFUSE_NONE
 
 

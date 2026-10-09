@@ -1,0 +1,19 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-s68utb26
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 1
+SCRIPT ERROR: Assertion failed: only a preflighted transaction may publish
+SCRIPT ERROR: Out of bounds get index '1' (on base: 'PackedInt32Array')
+SCRIPT ERROR: Out of bounds get index '2' (on base: 'PackedInt32Array')
+  FAIL  test_traversal_snapshot_omits_only_typed_room_owned_obstacle_markers
+        assertions after that point never ran
+SCRIPT ERROR: Out of bounds set index '0' (on base: 'PackedInt32Array')
+  FAIL  test_prepared_traversal_snapshot_keeps_physical_rows_and_exact_token
+        assertions after that point never ran
+SCRIPT ERROR: Assertion failed: only a preflighted transaction may publish
+  FAIL  test_traversal_source_and_claim_lifetime_are_not_exempted
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":3273,"failures":3,"suite":"test_underground_space_owner.gd","tests":75,"usec":3821787}
+75 test(s), 3273 assertion(s), 3 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 3 failing test(s).
+assets restored True

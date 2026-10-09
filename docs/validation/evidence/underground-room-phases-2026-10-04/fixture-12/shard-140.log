@@ -1,0 +1,69 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+  PASS  test_initial_actual_binding_uses_one_context_without_phase_permission
+  PASS  test_published_ground_profile_still_refuses_the_front_work_station_wall
+  PASS  test_actual_published_front_motion_fits_the_current_solid_face
+  PASS  test_location_restore_invalidates_qualification_until_a_fresh_publication
+  PASS  test_actual_profile_publication_or_replacement_invalidates_the_qualification
+  PASS  test_overflow_refuses_before_any_qualification_cache_mutation
+  PASS  test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping
+  PASS  test_independent_catalog_change_and_coincident_foreign_revision_refuse_old_cache
+  PASS  test_work_endpoint_publication_without_space_change_invalidates_the_old_epoch
+  PASS  test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context
+  PASS  test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry
+  PASS  test_missing_original_weak_bindings_refuse_cleanly_at_current_and_final_boundaries
+  PASS  test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits
+  PASS  test_even_a_remote_living_resident_requires_actual_physical_registration
+SCRIPT ERROR: Trying to assign value of type 'underground_locations.gd' to a variable of type ''.
+          at: ExactEntryWorld._actual_space (res://test/test_underground_room_world_phases.gd:39)
+          GDScript backtrace (most recent call first):
+              [0] _actual_space (res://test/test_underground_room_world_phases.gd:39)
+              [1] _actual_fixture (res://test/test_underground_world_routes.gd:290)
+              [2] before_each (res://test/test_underground_first_prefix.gd:207)
+              [3] test_actual_entry_corridor_without_contacts_cannot_use_the_ordinary_branch (res://test/test_underground_room_world_phases.gd:534)
+              [4] _run_test (res://test/run_tests.gd:194)
+              [5] _run_suite (res://test/run_tests.gd:168)
+              [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [7] _run_worker (res://test/run_tests.gd:121)
+              [8] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_entry_corridor_without_contacts_cannot_use_the_ordinary_branch
+        actual ordinary readers only (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Trying to assign value of type 'underground_locations.gd' to a variable of type ''.
+          at: ExactEntryWorld._actual_space (res://test/test_underground_room_world_phases.gd:39)
+          GDScript backtrace (most recent call first):
+              [0] _actual_space (res://test/test_underground_room_world_phases.gd:39)
+              [1] _actual_fixture (res://test/test_underground_world_routes.gd:290)
+              [2] before_each (res://test/test_underground_first_prefix.gd:207)
+              [3] before_each (res://test/test_underground_entry_world_bindings.gd:65)
+              [4] test_shared_composite_preserves_real_entry_start_work_and_settlement (res://test/test_underground_room_world_phases.gd:556)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_shared_composite_preserves_real_entry_start_work_and_settlement
+        actual mixed initialization: ["shared composite binding (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+        original Entry paid lifecycle: ["shared composite binding (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+        inherited actual Entry fixture: ["shared composite binding (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":125,"failures":2,"suite":"test_underground_room_world_phases.gd","tests":16,"usec":4795434}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+16 test(s), 125 assertion(s), 2 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

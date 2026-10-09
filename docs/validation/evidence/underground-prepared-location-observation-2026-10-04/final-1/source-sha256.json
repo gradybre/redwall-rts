@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/underground_locations.gd": "024e9cca9ffbf72c87f9bf31581f3cee09e5fd9b8344dbc66ea293c26d8f38a1",
+  "godot/scripts/core/underground_routes.gd": "959c6b10b653913fe0c589dda7d2a15c99e49619b286664b02ad88042c2fb713",
+  "godot/test/test_underground_prepared_location_observation.gd": "6c7cfa3543f2860428e71d0944b500f6cf03bd3f57c5926d62e5f5ac7d66b316"
+}

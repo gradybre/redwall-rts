@@ -99,6 +99,27 @@ func _cell(x: int, z: int) -> int:
 	return z * SpatialWorldScript.CELLS_X + x
 
 
+func test_pace_source_binding_requires_the_actual_directory_residents_and_transforms() -> void:
+	"""The read-only underground pace bridge cannot borrow coincident source IDs from another World."""
+	var production: MovementScript = MovementScript.new(
+		_directory, _world, _navigation, _transforms, _residents)
+	assert_true(production.is_bound_owners(_directory, _residents, _transforms), "actual constructor owners")
+	var foreign_directory: EntityDirectoryScript = EntityDirectoryScript.new()
+	var foreign_residents: ResidentsScript = ResidentsScript.new(foreign_directory, null)
+	var foreign_transforms: TransformsScript = TransformsScript.new(foreign_directory)
+	assert_false(production.is_bound_owners(foreign_directory, _residents, _transforms), "foreign Directory")
+	assert_false(production.is_bound_owners(_directory, foreign_residents, _transforms), "foreign Residents")
+	assert_false(production.is_bound_owners(_directory, _residents, foreign_transforms), "foreign Transforms")
+	assert_false(production.is_bound_owners(null, _residents, _transforms), "missing identity")
+	assert_false(production.is_bound_owners(_directory, null, _transforms), "missing Residents")
+	assert_false(production.is_bound_owners(_directory, _residents, null), "missing Transforms")
+	var result: IntMathScript.IntResult = IntMathScript.IntResult.new()
+	assert_true(production.profile_for_species_into(&"mouse", result), "same actual pace profile remains readable")
+	assert_true(production.profile_speed_into(result.value, result), "no profile policy changed")
+	assert_equal(result.value, SMALL_CAP_U_PER_S, "inherited GDD speed retained")
+	production = null
+
+
 func _spawn_at(species: StringName, cell: int) -> Vector2i:
 	"""Spawn one resident and place it on a cell centre; returns its reference."""
 	var spawned: Variant = _residents.spawn(species)

@@ -1,0 +1,258 @@
+{
+ "schema": 1,
+ "decision": "1217",
+ "source": 4,
+ "body": "open paw (original import, a938d479\u2026)",
+ "rows": [
+  {
+   "row": "claw STAND",
+   "mode": 0,
+   "mode_name": "STAND",
+   "posture": 0,
+   "yaw_kind": "YAW_ALL",
+   "yaw": 0,
+   "tool": -1,
+   "tool_variant": -1,
+   "cargo": -1,
+   "cargo_variant": -1,
+   "quantity_milli": [
+    0,
+    0
+   ],
+   "families": 0,
+   "states": 257,
+   "work_kind": -1,
+   "contact_kind": 0,
+   "box_count": 5,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -712,
+      0,
+      -712,
+      712,
+      930,
+      712
+     ],
+     [
+      -402,
+      -1,
+      -402,
+      402,
+      0,
+      402
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -712,
+      0,
+      -712,
+      712,
+      930,
+      712
+     ],
+     [
+      -402,
+      -1,
+      -402,
+      402,
+      0,
+      402
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -406,
+      -1,
+      -406,
+      406,
+      0,
+      406
+     ]
+    ]
+   }
+  },
+  {
+   "row": "claw WALK",
+   "mode": 1,
+   "mode_name": "WALK",
+   "posture": 0,
+   "yaw_kind": "YAW_ALL",
+   "yaw": 0,
+   "tool": -1,
+   "tool_variant": -1,
+   "cargo": -1,
+   "cargo_variant": -1,
+   "quantity_milli": [
+    0,
+    0
+   ],
+   "families": 0,
+   "states": 451,
+   "work_kind": -1,
+   "contact_kind": 0,
+   "box_count": 5,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -712,
+      0,
+      -712,
+      712,
+      930,
+      712
+     ],
+     [
+      -402,
+      -1,
+      -402,
+      402,
+      0,
+      402
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -712,
+      0,
+      -712,
+      712,
+      930,
+      712
+     ],
+     [
+      -402,
+      -1,
+      -402,
+      402,
+      0,
+      402
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -406,
+      -1,
+      -406,
+      406,
+      0,
+      406
+     ]
+    ]
+   }
+  }
+ ],
+ "ground_enclosure": {
+  "kind": "body",
+  "source_full_u": [
+   -485,
+   -1,
+   -521,
+   480,
+   930,
+   413
+  ],
+  "source_floor_u": [
+   -271,
+   -1,
+   -274,
+   293,
+   0,
+   250
+  ],
+  "full_u": [
+   -712,
+   -1,
+   -712,
+   712,
+   930,
+   712
+  ],
+  "floor_u": [
+   -402,
+   -1,
+   -402,
+   402,
+   0,
+   402
+  ],
+  "stance": {
+   "support_u": [
+    -275,
+    -1,
+    -274,
+    299,
+    0,
+    250
+   ],
+   "source_foot_bounds_u": [
+    -275,
+    -1,
+    -274,
+    299,
+    320,
+    250
+   ],
+   "triangles": 1985,
+   "binds": [
+    3,
+    4,
+    7,
+    8
+   ],
+   "left_palm_brace": false,
+   "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"
+  },
+  "support_u": [
+   -406,
+   -1,
+   -406,
+   406,
+   0,
+   406
+  ],
+  "native_residual_m": [
+   {
+    "numerator": 2472767814382341422795789717321363801178608991445830072801978445421758776337596752459,
+    "denominator": 4538048024223992386432181656600020531605267198188311810830533323011075635304057939165184
+   },
+   {
+    "numerator": 203765369901242361347772940130331467595092996746689463056168242049154295923963761043,
+    "denominator": 2269024012111996193216090828300010265802633599094155905415266661505537817652028969582592
+   },
+   {
+    "numerator": 2472767814382341422795789717321363801178608991445830072801978445421758776337596752459,
+    "denominator": 4538048024223992386432181656600020531605267198188311810830533323011075635304057939165184
+   }
+  ],
+  "source_padding_q24": [
+   12931,
+   1508,
+   12931
+  ]
+ },
+ "clip_sha256": {
+  "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/stand.npz": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+  "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/walk.npz": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179"
+ },
+ "claw_image_sha256": "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b",
+ "world_root_bounds_u": [
+  0,
+  -32256,
+  0,
+  262144,
+  16896,
+  262144
+ ],
+ "world_basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+ "derivation": "compile_state_program.carry_bounds over stand+walk keys; prove_empty_walk.ground_roles",
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/derive_claw_stand_rows.py": "ca7b32f6f5e029852419377f59533a76a21d249259d557ae509557a27d77c836",
+  "godot/data/underground/mole-worker/claw-work-v1/native_claw.py": "f1b664c6431b1c037b635fbe262399c6248e1bc783d4efc3e4125abf003ba8a3",
+  "godot/data/underground/mole-worker/haul-handling-v1/prove_empty_walk.py": "bd73dffae02f77170b062d7af371c75607f2cfe51bf773b93583549151384641",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+  "godot/data/underground/mole-worker/claw-work-v1/claw_source.py": "e0311359eaa5d485b34c1e14f41a1cf982fabd48b9d0fe396e2f57d119a22718"
+ }
+}

@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 146 modules, 721 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_host.gd
+  PASS  test_mount_requires_actual_world_and_refused_attempt_can_retry
+  PASS  test_mount_borrows_actual_owners_and_duplicate_preserves_foundation
+  PASS  test_held_arena_refuses_reset_before_any_store_is_cleared
+  PASS  test_prepared_space_refuses_reset_and_keeps_original_candidate
+  PASS  test_reset_retires_borrowers_and_regeneration_gets_fresh_full_identity
+  PASS  test_reentrant_reset_during_mount_preserves_stores_and_refuses_outer_attempt
+  PASS  test_prepared_world_remains_unavailable_except_for_explicit_retirement
+  PASS  test_retirement_allowance_still_checks_original_live_seed
+CI_SUITE_TIME {"assertions":82,"failures":0,"suite":"test_underground_host.gd","tests":8,"usec":3068005}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 82 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 82 assertions, 0 failures.

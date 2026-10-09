@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Integer reference for a finite source step; not a runtime owner or permission provider."""
+from __future__ import annotations
+
+from fractions import Fraction
+from math import gcd
+import struct
+
+ONE = 65536
+READY_TIME = 8 * ONE
+FADE_TIME = 15 * 32768
+WALK_DURATION = 32 * ONE + 1
+DISTANCE = 232
+PACE = 3277
+HZ = 30
+MAX_MOVES = 3
+I32_MAX = (1 << 31) - 1
+ACTOR_SHA = "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
+PARENT_PROGRAM_SHA = "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e"
+READY, FADE_WALK, WALK, FADE_READY = range(4)
+FORWARD, BACKWARD = 1, -1
+STATE_BYTES = 32  # Reference view of existing phase, clock, progress and remainder columns.
+
+
+def require(condition, code):
+    if not condition:
+        raise ValueError(code)
+
+
+def integer(value, low, high):
+    return type(value) is int and low <= value <= high
+
+
+def fraction(encoded):
+    """Decode exactly the current Routes nonnegative31-bit reduced-fraction format."""
+    require(integer(encoded, 0, (1 << 63) - 1), "STEP_FRACTION_FORMAT")
+    numerator, denominator = encoded >> 32, encoded & 0xffffffff
+    if encoded == 0:
+        return 0, 1
+    require(1 <= denominator <= I32_MAX and 0 < numerator < denominator and
+            gcd(numerator, denominator) == 1, "STEP_FRACTION_FORMAT")
+    return numerator, denominator
+
+
+def encode_fraction(numerator, denominator):
+    """Keep the complete exact remainder; capacity failure never rounds or silently resets it."""
+    require(integer(numerator, 0, (1 << 63) - 1) and integer(denominator, 1, (1 << 63) - 1),
+            "STEP_FRACTION_FORMAT")
+    if numerator == 0:
+        return 0
+    common = gcd(numerator, denominator)
+    numerator, denominator = numerator // common, denominator // common
+    require(numerator < denominator and denominator <= I32_MAX, "STEP_FRACTION_CAPACITY")
+    return (numerator << 32) | denominator
+
+
+def distance_tick(progress, remainder):
+    """The current _tick_distance/_advance_motion_segment law for one terminal232u straight span."""
+    require(integer(progress, 0, DISTANCE - 1), "STEP_PROGRESS")
+    numerator, denominator = fraction(remainder)
+    common = gcd(denominator, HZ)
+    numerator = numerator * (HZ // common) + PACE * (denominator // common)
+    denominator *= HZ // common
+    common = gcd(numerator, denominator)
+    numerator, denominator = numerator // common, denominator // common
+    require(denominator <= I32_MAX, "STEP_FRACTION_CAPACITY")
+    used = min(numerator // denominator, DISTANCE - progress)
+    progress += used
+    numerator -= used * denominator
+    # Actual Routes discards all unused time at a final endpoint without a successor.
+    return progress, 0 if progress == DISTANCE else encode_fraction(numerator % denominator, denominator)
+
+
+def request_refusal(start, end, direction, *, pace=PACE, actor=ACTOR_SHA,
+                    parent_program=PARENT_PROGRAM_SHA, body_yaw=49152, queued_successors=0):
+    """Validate the finite source shape only; actual full owner/source/contact binding is still required."""
+    require(type(start) is tuple and type(end) is tuple and len(start) == len(end) == 3 and
+            all(integer(v, -(1 << 31), I32_MAX) for v in start + end), "STEP_ROOT_FORMAT")
+    require(direction in (FORWARD, BACKWARD) and type(direction) is int and
+            pace == PACE and type(pace) is int and body_yaw == 49152 and type(body_yaw) is int and
+            queued_successors == 0 and type(queued_successors) is int,
+            "STEP_REQUEST_SCOPE")
+    require(end[0] - start[0] == direction * DISTANCE and end[1:] == start[1:], "STEP_ROOT_SPAN")
+    require(actor == ACTOR_SHA and parent_program == PARENT_PROGRAM_SHA, "STEP_SOURCE_IDENTITY")
+
+
+def state_refusal(state):
+    """Reject impossible phase/time/root combinations before any caller output changes."""
+    require(type(state) is tuple and len(state) == 4 and
+            all(integer(v, 0, (1 << 63) - 1) for v in state), "STEP_STATE_FORMAT")
+    phase, clock, progress, remainder = state
+    numerator, denominator = fraction(remainder)
+    require((clock & (1 << 31)) == 0, "STEP_CLOCK_FORMAT")
+    time, old = clock & I32_MAX, clock >> 32
+    require(progress <= DISTANCE and old <= MAX_MOVES * ONE, "STEP_CLOCK_FORMAT")
+    if phase == READY:
+        require(clock == 0 and progress in (0, DISTANCE) and
+                (progress == 0 or remainder == 0), "STEP_READY_FORMAT")
+    elif phase == FADE_WALK:
+        require(progress == 0 and old == 0 and time < FADE_TIME, "STEP_FADE_FORMAT")
+    elif phase == WALK:
+        require(old == 0 and time in (0, ONE, 2 * ONE), "STEP_PREFIX_EXHAUSTED")
+        initial = Fraction(progress * denominator + numerator, denominator) - Fraction(time * PACE, ONE * HZ)
+        require(0 <= initial < 1, "STEP_DISTANCE_CLOCK_DRIFT")
+    elif phase == FADE_READY:
+        require(progress == DISTANCE and remainder == 0 and time < FADE_TIME and
+                old == MAX_MOVES * ONE, "STEP_FADE_FORMAT")
+    else:
+        raise ValueError("STEP_PHASE_RESERVED")
+
+
+def begin(remainder=0):
+    """An actual future owner must prove READY first; this pure model starts that already-proved transaction."""
+    fraction(remainder)
+    return FADE_WALK, 0, 0, remainder
+
+
+def tick(state, *, advance=True):
+    """One30Hz accepted tick. Pause or external refusal keeps every byte, including source time."""
+    state_refusal(state)
+    require(type(advance) is bool, "STEP_TICK_ARGUMENT")
+    if not advance or state[0] == READY:
+        return state
+    phase, clock, progress, remainder = state
+    time, old = clock & I32_MAX, clock >> 32
+    if phase == WALK:
+        progress, remainder = distance_tick(progress, remainder)
+        time += ONE
+        result = ((FADE_READY, time << 32, progress, remainder) if progress == DISTANCE else
+                  (WALK, time, progress, remainder))
+    elif time + ONE >= FADE_TIME:
+        result = (WALK if phase == FADE_WALK else READY, 0, progress, remainder)
+    else:
+        result = phase, (old << 32) | (time + ONE), progress, remainder
+    state_refusal(result)
+    return result
+
+
+def source_interval(q, direction):
+    """Exact Content loop resolver including the1-Q16-unit32→0 seam, never uniform reverse indices."""
+    require(integer(q, 0, MAX_MOVES * ONE) and type(direction) is int and
+            direction in (FORWARD, BACKWARD), "STEP_SOURCE_PHASE")
+    time = q if direction == FORWARD else (WALK_DURATION - q) % WALK_DURATION
+    if time >= 32 * ONE:
+        return 32, 0, (time - 32 * ONE) * ONE
+    return time // ONE, time // ONE + 1, time % ONE
+
+
+def pose(state, direction):
+    """Borrowed Content frame triples plus blendQ16; independent of renderer availability or frame count."""
+    state_refusal(state)
+    require(type(direction) is int and direction in (FORWARD, BACKWARD), "STEP_DIRECTION")
+    phase, clock, _, _ = state
+    time, old = clock & I32_MAX, clock >> 32
+    ready = (0, 8, 8, 0)
+    if phase == READY:
+        return ready, ready, ONE
+    if phase == WALK:
+        walk = (1, *source_interval(time, direction))
+        return walk, walk, ONE
+    if phase == FADE_WALK:
+        return (1, *source_interval(0, direction)), ready, time * ONE // FADE_TIME
+    return ready, (1, *source_interval(old, direction)), time * ONE // FADE_TIME
+
+
+def save(state):
+    """Reference replay image, not a newly adopted game save schema or allocation."""
+    state_refusal(state)
+    return struct.pack("<4q", *state)
+
+
+def restore(raw):
+    require(type(raw) is bytes and len(raw) == STATE_BYTES, "STEP_STATE_BYTES")
+    result = struct.unpack("<4q", raw)
+    state_refusal(result)
+    return result

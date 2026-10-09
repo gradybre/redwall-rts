@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+"""1152 logical source census; no native allocation or whole-tick qualification.
+
+The new 1024-byte contribution INCLUDES its 256-byte provisional reference/native
+allowance. Existing Entry, WorkFace cold, PhaseStructure cold and Placement
+reserves are named separately, with the simultaneous caller frames shown.
+"""
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import re
+import sys
+import textwrap
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT / 'tools'))
+import underground_memory_budget as memory
+
+WIDTH = {'int': 8, 'bool': 1, 'Vector2i': 8, 'Vector3i': 12}
+P = 'underground_room_world_bindings'
+E = 'underground_entry_world_bindings'
+F = 'underground_work_face'
+L = 'underground_locations'
+A = 'underground_space_authority'
+C = 'underground_connector_placements'
+T = 'underground_terrain'
+R = 'underground_routes'
+W = 'underground_world_routes'
+S = 'room_space'
+
+
+def source(module):
+    return (ROOT / 'godot/scripts/core' / (module + '.gd')).read_text()
+
+
+def class_source(module, name):
+    text = source(module)
+    matches = re.findall(r'^class ' + re.escape(name) + r' extends ([^:\n]+):', text, re.M)
+    assert len(matches) == 1, (module, name)
+    return textwrap.dedent(memory.class_body(text, name, matches[0]))
+
+
+def executable(text):
+    return re.sub(r'#.*', '', re.sub(r'""".*?"""', '', text, flags=re.S))
+
+
+def functions(module, nested=None):
+    lines = (class_source(module, nested) if nested else source(module)).splitlines()
+    found = {}
+    for start, line in enumerate(lines):
+        hit = re.match(r'^(?:static )?func (\w+)\(', line)
+        if not hit:
+            continue
+        end = start + 1
+        while end < len(lines) and (not lines[end].strip() or lines[end].startswith(('\t', ' '))):
+            end += 1
+        body = '\n'.join(lines[start:end]).rstrip()
+        if module in (P, F):
+            assert len(body.splitlines()) <= 30, (module, nested, hit[1], 'physical lines')
+        body = executable(body)
+        size = sum(WIDTH[k] for k in re.findall(r'\b\w+\s*:\s*(int|bool|Vector2i|Vector3i)\b', body))
+        assert hit[1] not in found
+        found[hit[1]] = (size, body)
+    return found
+
+
+def own_chain(module, entry, nested=None):
+    found = functions(module, nested)
+
+    def walk(name, stack):
+        size, body = found[name]
+        calls = re.findall(r'(?<![\w.])(?:(?:self|actual)\.)?(\w+)\s*\(', body)
+        children = {n for n in calls if n in found and n not in stack and n != name}
+        below = [walk(child, stack | {name}) for child in children]
+        best = max(below, key=lambda row: (row[0], row[1])) if below else (0, [])
+        return size + best[0], [name] + best[1]
+
+    size, names = walk(entry, set())
+    prefix = module + ('.' + nested if nested else '')
+    return {'bytes': size, 'frames': {prefix + '.' + n: found[n][0] for n in names}}
+
+
+def joined(entries, *tails):
+    frames = {module + '.' + name: functions(module)[name][0] for module, name in entries}
+    for tail in tails:
+        for name, size in tail['frames'].items():
+            assert name not in frames, ('duplicate active frame', name)
+            frames[name] = size
+    return {'bytes': sum(frames.values()), 'frames': frames}
+
+
+def scalar_class(module, name):
+    return sum(WIDTH.get(kind, 0) for kind in memory.explicit_members(class_source(module, name)).values())
+
+
+def finish_chain():
+    """Virtual Check calls resolve to concrete FinishCheck overrides; its explicit super call remains counted."""
+    base, derived = functions(F, 'Check'), functions(F, 'FinishCheck')
+    graph = {('Check', n): row for n, row in base.items()} | {('FinishCheck', n): row for n, row in derived.items()}
+
+    def walk(node, stack):
+        size, body = graph[node]
+        children = set()
+        for name in re.findall(r'(?<!\.)\b(\w+)\s*\(', body):
+            target = ('FinishCheck', name) if name in derived else ('Check', name)
+            if target in graph and target not in stack and target != node:
+                children.add(target)
+        if 'super.current_refusal(' in body:
+            children.add(('Check', 'current_refusal'))
+        below = [walk(child, stack | {node}) for child in children if child not in stack]
+        best = max(below, key=lambda row: (row[0], row[1])) if below else (0, [])
+        return size + best[0], [node] + best[1]
+
+    size, nodes = walk(('Check', 'run'), set())
+    return {'bytes': size, 'frames': {F + '.' + cls + '.' + name: graph[(cls, name)][0] for cls, name in nodes}}
+
+
+def build():
+    provider = source(P)
+    members = memory.explicit_members(provider)
+    refs = {n: k for n, k in members.items() if k not in WIDTH and not k.startswith('Packed')}
+    assert refs == {'_ordinary_routes': 'WeakRef', '_ordinary_placements': 'WeakRef', '_ordinary_face': 'WeakRef',
+                    '_ordinary_config': 'RoomWorldRoutes.Configuration', '_ordinary_query': 'RoomFace.Request'}
+    assert {n: k for n, k in members.items() if k.startswith('Packed')} == {'_ordinary_checks': 'PackedInt32Array'}
+    numeric = sum(WIDTH.get(kind, 0) for kind in members.values())
+    request = scalar_class(F, 'Request')
+    config = memory.explicit_members(class_source(W, 'Configuration'))
+    assert len(config) == 13 and all(kind not in WIDTH and not kind.startswith('Packed') for kind in config.values())
+    assert (numeric, request) == (146, 68)
+    assert provider.count('_ordinary_checks.resize(1)') == 1
+    allocation = functions(P)['_ordinary_allocate'][1]
+    assert allocation.count('.new()') == 2
+    assert re.findall(r'(\w+)\.resize\((\d+)\)', allocation) == [('_ordinary_checks', '1'),
+        ('_entry_box', '6'), ('_entry_air', '6'), ('_entry_reach', '6')]
+    bind = functions(P)['bind_room_phase_contacts'][1]
+    assert bind.index('controls < ROOM_CONTROL_BYTES') < bind.index('_ordinary_bind_refusal(') \
+        < bind.index('actual.binding_refusal()') < bind.index('placements.bind_phase_authority(') \
+        < bind.index('_ordinary_allocate(actual)')
+    assert provider.count('_ordinary_allocate(actual)') == 1
+    assert not re.search(r'(?:PhaseContext|Selection|Descriptor|Snapshot|Record|Bank)\.new\(', provider)
+    fixed = {'own_numeric': numeric, 'one_original_request': request, 'remaining_checks_i32': 4}
+    assert sum(fixed.values()) == 218
+    helpers = {name: own_chain(P, name) for name in functions(P)}
+    maximum = max(helpers.values(), key=lambda row: row['bytes'])
+    assert maximum['bytes'] == 272
+    direct = {
+        'worker_final_terrain': joined([(P, 'worker_refusal'), (P, '_ordinary_live_leaf'),
+            (P, '_ordinary_terrain_leaf'), (P, '_ordinary_local_leaf')], own_chain(T, 'prepared_local_leaf_refusal')),
+        'worker_final_snapshot': joined([(P, 'worker_refusal'), (P, '_ordinary_live_leaf')],
+            own_chain('underground_final_facts', 'snapshot_refusal')),
+        'worker_actual_body': joined([(P, 'worker_refusal'), (P, '_ordinary_live_leaf'),
+            (P, '_ordinary_worker_leaf')], own_chain(R, 'physical_selection_into')),
+        'own_selection_and_location_reader': joined([], maximum, own_chain(L, '_get32')),
+        'worker_box_and_overlap': joined([(P, 'worker_refusal'), (P, '_ordinary_live_leaf'),
+            (P, '_ordinary_occupants_leaf'), (P, '_ordinary_occupant_boxes'), (P, '_ordinary_box'),
+            (P, '_ordinary_location'), (L, '_get32')]),
+    }
+    # 64 covers simultaneous numeric return/expression temporaries. The additional
+    # 40 covers the largest fixed inherited/direct helper (Site key or final pose)
+    # conservatively even on paths whose declared deepest frame does not call it.
+    actual_helper = max(row['bytes'] for row in direct.values()) + 64 + 40
+    assert actual_helper == 429 and actual_helper <= 512
+    controls = sum(fixed.values()) + 512 + 256
+    assert controls == 986 and controls <= 1024
+
+    # Shared 1153 refresh: all original outer Authority frames plus the actual
+    # concrete provider frame replace, rather than add to, the old 40B allowance.
+    refresh = joined([(A, 'operation_refusal'), (A, '_run_cold_operation'), (A, '_prepare'),
+        (P, 'prepare_companions'), (C, 'prepare_room_phase_refresh'), (C, '_phase_prepare_banks'),
+        (C, '_phase_prepare_locations')], own_chain(L, 'stage_refresh'))
+    assert refresh['bytes'] == 572 and refresh['bytes'] <= 576
+    prepared = joined([(A, 'final_settlement_leaf_refusal'), (A, '_final_phase_leaf'),
+        (P, 'phase_final_leaf_refusal'), (A, 'room_phase_leaf_refusal'), (C, 'prepared_phase_leaf_refusal')],
+        own_chain(L, '_installed_witnesses_refusal'))
+    assert prepared['bytes'] <= 576
+    context = scalar_class(L, 'PhaseContext')
+    assert context == 128
+
+    # Full WorkFace packet, including the existing Clearance fixed scratch that
+    # lives beside its two separately counted fragment arrays. Caller Request68
+    # is the one persistent packet already counted above, not a second object.
+    descriptor = scalar_class('underground_profiles', 'Descriptor')
+    box = scalar_class('underground_profiles', 'Box')
+    record = scalar_class(L, 'Record') + 48
+    region = scalar_class('underground_space_owner', 'Region') + 24
+    domain = scalar_class(S, 'Domain') + 24
+    check = scalar_class(F, 'Check') + request + descriptor + 2 * box + 2 * record + region + domain + 96
+    finish = scalar_class(F, 'FinishCheck')
+    clearance = scalar_class(W, 'Clearance') + 96
+    snapshot = scalar_class(S, 'Snapshot')
+    work_face_chain = finish_chain()
+    face_controls = check + finish + clearance + snapshot + work_face_chain['bytes'] + functions(F)['finish_face_refusal'][0] + 512 + 128
+    assert (check, finish, clearance, snapshot, work_face_chain['bytes'], face_controls) == (839, 32, 120, 24, 148, 1843)
+    assert face_controls <= 2048
+    # The512 foreign slice includes complete original Location/source readers,
+    # existing exact-union numeric helpers, and observed Profile/Terrain frames.
+    # Their persistent packets remain in their own original owner allocations.
+    foreign = {name: own_chain(module, entry, nested) for name, module, entry, nested in (
+        ('locations_read', L, 'read_location_into', None),
+        ('locations_installed', L, '_installed_witnesses_refusal', None),
+        ('terrain_local', T, 'prepared_local_leaf_refusal', None),
+        ('clearance_union', W, 'covered', 'Clearance'),
+        ('final_snapshot', 'underground_final_facts', 'snapshot_refusal', None))}
+    assert all(row['bytes'] <= 512 for row in foreign.values())
+    r, v, o, plans = 6144, 8192, 2048, 144 * 1013
+    cold = {
+        'work_face_before_plans': 48*r + 16*o + 48*1024 + 2048,
+        'ordinary_structure_check': 2*(48*v + 16*o) + plans + 8*r + 1536,
+        'ordinary_structure_stage': 48*v + 16*o + plans + 56*r + 1536,
+        'ordinary_structure_prepared': 56*r + 16*o + plans + 1536,
+        'mixed_entry_structure_check': 2*(48*v + 16*o) + plans + 8*r + 1536 + 384,
+        'locations_with_two_original_plans': 88*r + 384 + plans + 4096,
+        'world_routes_with_two_original_plans': 48*r + 16*o + 48*1024 + plans + 4096,
+    }
+    assert 'const ENTRY_CONTROL_BYTES: int = 384' in source('underground_entry_structure')
+    assert max(cold.values()) == 1048912 and max(cold.values()) <= 1048960
+    pack = json.loads((ROOT / 'docs/planning/underground_memory_pack.json').read_text())
+    assert pack['live_with_reserve_bytes'] == 99998782 and pack['headroom_bytes'] == 1218
+    tracked = (P, F, E, A, C, L, R, W, T, 'underground_final_facts', 'underground_phase_structure',
+               'underground_profiles', 'underground_space_owner', 'underground_entry_structure', S)
+    return {
+        'scope': __doc__.strip(), 'source_sha256': {name: hashlib.sha256(source(name).encode()).hexdigest() for name in tracked},
+        'new_fixed': fixed, 'new_reference_fields': refs, 'configuration_borrowed_references': config,
+        'own_declared_frames': {n: row[0] for n, row in functions(P).items()},
+        'maximum_own_chain': maximum, 'transitive_direct_chains': direct,
+        'expression_return_allowance': 64, 'additional_inherited_numeric_allowance': 40,
+        'source_counted_helper_maximum': actual_helper, 'helper_reservation': 512,
+        'included_provisional_native_reference_allowance': 256, 'control_accounted': controls,
+        'new_global_reservation': 1024, 'new_reservation_slack': 1024-controls,
+        'native_lifetime': 'Three new WeakRefs, one configuration of thirteen borrowed references, and one Request object. '
+            'Their reference/Variant/object headers and allocator behavior are provisionally included within256, not measured. '
+            'No new Selection, Descriptor, Location record, snapshot, bank or PhaseContext is allocated by this provider.',
+        'inherited_state': 'Entry202/2048 remains one original provider base allocation. Its three I32[6] boxes '
+            'are reused sequentially; no ordinary duplicate. Shared Placement PhaseContext128 remains counted there once.',
+        'shared_phase_context_bytes': context, 'ordinary_companion_active_chain': refresh,
+        'ordinary_companion_final_chain': prepared, 'existing_placement_helper_reserve': 576,
+        'work_face_private_fixed': check, 'finish_extra_fixed': finish, 'clearance_fixed_beside_fragments': clearance,
+        'snapshot_numeric_beside_images': snapshot,
+        'work_face_inherited_dynamic_chain': work_face_chain, 'work_face_foreign_helper_chains': foreign,
+        'work_face_foreign_helper_allowance': 512, 'work_face_expression_allowance': 128,
+        'work_face_control_counted': face_controls, 'work_face_existing_cold_control_reserve': 2048,
+        'sequential_cold_peaks': cold, 'cold_lease': 1048960,
+        'cold_lifetime': 'Full WorkFace/FinishCheck image and fragment arrays die before ordinary Structure CHECK and '
+            'before output Plan growth. Existing structural stages and two Authority Plans use their unchanged lease. '
+            'Locations survey/fragments die before WorldRoutes preparation. Candidate banks are already reserved. '
+            'The new provider fixed/helper contribution is global, not borrowed again from a near-full cold phase.',
+        'foreign_callbacks': 'Existing observed Profiles, Terrain, static path search and inherited Entry dispatch retain '
+            'their already charged owner helper packets. New provider active frames are counted here; the shared '
+            'companion chain substitutes its actual48B callback for the old40B allowance rather than counting both.',
+        'current_shared_total': pack['live_with_reserve_bytes'], 'prospective_shared_total': pack['live_with_reserve_bytes'] + 1024,
+        'prospective_global_headroom': pack['headroom_bytes']-1024,
+        'native_measured': False, 'runtime_qualified': False,
+    }
+
+
+if __name__ == '__main__':
+    print(json.dumps(build(), indent=2))

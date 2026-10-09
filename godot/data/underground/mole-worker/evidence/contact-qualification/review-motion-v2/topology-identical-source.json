@@ -1,0 +1,13 @@
+{
+  "fields_identical": {
+    "content_sha256": true,
+    "derived_body_sha256": true,
+    "original_body_sha256": true,
+    "parts": true,
+    "pick_binding": true,
+    "production_qualified": true,
+    "rig_binding": true,
+    "schema": true
+  },
+  "all_identical": true
+}

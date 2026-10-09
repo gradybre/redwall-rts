@@ -1,0 +1,5944 @@
+{
+  "source_manifest_sha256": "ce5f1bb26031675a18b87a901f56dc34232c5d27114490cc9dfc673b58cd5f7f",
+  "all_11_pins_match": true,
+  "baseline": {
+    "source_sha256": {
+      "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
+      "godot/scripts/core/underground_world_retirement.gd": "81ecd6795d7394e6d98f6fadcc1301053af0a5252bf7894a41b52d455098aa33",
+      "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50",
+      "godot/scripts/core/underground_surface_anchor.gd": "c53bc83249e7b808616b972a96ad92722838e5b7451994cd21e40249a6eb6d1e",
+      "godot/scripts/core/underground_route_composition.gd": "f47e5fd013bd106c5efa7368c7c7192985687d2b72d0c7750cebb5225532c227",
+      "godot/scripts/core/underground_room_composition.gd": "d30a41cb7f688cbfb2a450eb903ef7a3285804ac8ac4c8a171574334e3bbab63"
+    },
+    "predecessor_manifest_sha256": "36450885299daa6948158177bc0042bd0f633e76eef67807f2a75aa952d9e75c",
+    "constructor_source_manifest_sha256": "6aafb8a74519ab22ab7013256b199c538ef2362678189ee7c7a2191feb3cc200",
+    "retained_numeric_delta": 0,
+    "retained_reference_delta": 2,
+    "additional_packed_bytes": 0,
+    "phases": {
+      "reset_with_ui": {
+        "numeric_bytes": 223,
+        "reference_values": 45,
+        "numeric_chain": [
+          "UI.create_world",
+          "UI._create_world_after_abandon",
+          "UI._materialize_after_create",
+          "UI._cleanup_failed_create",
+          "UI._reset_for_create_into",
+          "Host.reset",
+          "Host.prepare_world_reset",
+          "Session.prepare_retirement",
+          "Session._prepare_retirement_scope",
+          "Retirement.prepare_constructor_prefix_into",
+          "Retirement._prepared_refusal",
+          "Retirement._scope_owners_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement.route_constructor_refusal",
+          "Retirement._route_aliases_refusal",
+          "Retirement._pristine_graph_refusal"
+        ],
+        "reference_chain": [
+          "UI.create_world",
+          "UI._create_world_after_abandon",
+          "Form.create_with_cohort_into",
+          "UI._reset_for_create_into",
+          "Host.reset",
+          "Host._release_underground_after_clear",
+          "Session.release_retirement",
+          "Retirement.release_preflighted",
+          "Retirement.cleared_refusal",
+          "Retirement._scope_owners_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement._route_refusal",
+          "Retirement._catalog_refusal"
+        ],
+        "provisional_bytes": 1919,
+        "frames": {
+          "Buildings.whole_world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 25,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Buildings.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 3,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Buildings.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 3,
+            "calls": [
+              "Buildings.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Composition._installed_links_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Composition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition._installed_links_refusal",
+              "Retirement._owners_refusal",
+              "Retirement._weak_matches",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Construction._retirement_authority_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool",
+            "allocations": 0
+          },
+          "Construction.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 4,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in",
+              "Construction._retirement_authority_matches"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Construction.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 4,
+            "calls": [
+              "Construction.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Form._preflight_cohort_world": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 5,
+            "calls": [
+              "Form._report_refusal"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Form._publish_cohort_world": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 5,
+            "calls": [
+              "Form._report_refusal"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Form._report_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Form.create_with_cohort_into": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 15,
+            "calls": [
+              "Form._preflight_cohort_world",
+              "Form._publish_cohort_world",
+              "Form._report_refusal",
+              "Form.record_reset_outcome",
+              "UI._reset_for_create_into"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 1
+          },
+          "Form.record_reset_outcome": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Form.refuse_create": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 3,
+            "calls": [
+              "Form._report_refusal"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Form.refuse_published_world": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 3,
+            "calls": [
+              "Form._report_refusal"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Host._clear_counters": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [
+              "Host._clear_stock_integrity_fault"
+            ],
+            "returns": "void"
+          },
+          "Host._clear_stock_integrity_fault": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Host._clear_stock_layer": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Host._clear_stores": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [
+              "Host._clear_stock_layer"
+            ],
+            "returns": "void"
+          },
+          "Host._mounted_underground_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Host._refuse": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Host._release_critical_pause": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Host._release_underground_after_clear": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Session.release_retirement"
+            ],
+            "returns": "bool"
+          },
+          "Host.abandon_world_reset": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Session.abandon_retirement"
+            ],
+            "returns": "bool"
+          },
+          "Host.prepare_world_reset": {
+            "numeric_and_name_bytes": 10,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Session.prepare_retirement",
+              "Session.retirement_observation_refusal"
+            ],
+            "returns": "bool"
+          },
+          "Host.reset": {
+            "numeric_and_name_bytes": 2,
+            "reference_values": 1,
+            "calls": [
+              "Host._clear_counters",
+              "Host._clear_stores",
+              "Host._release_critical_pause",
+              "Host._release_underground_after_clear",
+              "Host.prepare_world_reset"
+            ],
+            "returns": "bool"
+          },
+          "Host.underground_content": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "UndergroundContent"
+          },
+          "Inventory._retirement_empty_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Inventory.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 4,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in",
+              "Inventory._retirement_empty_refusal"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Inventory.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 4,
+            "calls": [
+              "Inventory.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Retirement._base_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._capture_scope": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 4,
+            "calls": [
+              "Retirement._capture_sources",
+              "Retirement._copy_owners"
+            ],
+            "returns": "void"
+          },
+          "Retirement._capture_sources": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 4,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._connector_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._constructor_shape_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._owners_refusal",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._copy_owners": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._copy_owners_0",
+              "Retirement._copy_owners_1",
+              "Retirement._copy_owners_2",
+              "Retirement._copy_owners_3"
+            ],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_0": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_1": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_2": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_3": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._entry_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._entry_world_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._profile_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._handling_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._leaves": {
+            "numeric_and_name_bytes": 25,
+            "reference_values": 2,
+            "calls": [
+              "Buildings.world_retirement_refusal_in",
+              "Construction.world_retirement_refusal_in",
+              "Inventory.world_retirement_refusal_in",
+              "Work.world_retirement_refusal_in"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._live_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._leaves"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._location_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._original_sources_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._owners_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._base_refusal",
+              "Retirement._connector_refusal",
+              "Retirement._foundation_refusal",
+              "Retirement._handling_refusal",
+              "Retirement._location_refusal",
+              "Retirement._phase_refusal",
+              "Retirement._placement_refusal",
+              "Retirement._project_refusal",
+              "Retirement._room_refusal",
+              "Retirement._route_refusal",
+              "Retirement.route_constructor_refusal",
+              "Retirement.surface_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._phase_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches",
+              "Retirement._world_binding_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._placement_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._prepared_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._live_refusal",
+              "Retirement._original_sources_refusal",
+              "Retirement._scope_owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._pristine_graph_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._project_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._room_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._entry_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_aliases_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._pristine_graph_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_profiles_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._catalog_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._same_owners": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._same_owners_0",
+              "Retirement._same_owners_1",
+              "Retirement._same_owners_2",
+              "Retirement._same_owners_3"
+            ],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_0": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_1": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_2": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_3": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._scope_owners_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._owners_refusal",
+              "Retirement._same_owners",
+              "Retirement.constructor_original_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._weak_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._world_binding_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._entry_world_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.cleared_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [
+              "Retirement._leaves",
+              "Retirement._original_sources_refusal",
+              "Retirement._scope_owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_original_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._constructor_shape_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_session_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement.prepare_constructor_prefix_into": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 4,
+            "calls": [
+              "Retirement._capture_scope",
+              "Retirement._live_refusal",
+              "Retirement._prepared_refusal",
+              "Retirement._same_owners",
+              "Retirement.constructor_original_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.prepare_into": {
+            "numeric_and_name_bytes": 25,
+            "reference_values": 4,
+            "calls": [
+              "Retirement._capture_scope",
+              "Retirement._live_refusal",
+              "Retirement._owners_refusal",
+              "Retirement._prepared_refusal",
+              "Retirement._same_owners"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.release_preflighted": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 4,
+            "calls": [
+              "Buildings.world_retirement_release_preflighted_in",
+              "Construction.world_retirement_release_preflighted_in",
+              "Inventory.world_retirement_release_preflighted_in",
+              "Retirement.cleared_refusal",
+              "Work.world_retirement_release_preflighted_in"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.route_constructor_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._route_aliases_refusal",
+              "Retirement._route_profiles_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.surface_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "SurfaceAnchor.retirement_refusal_in"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._source_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "RouteComposition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement.route_constructor_refusal",
+              "RouteComposition._source_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._content_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._current_refusal": {
+            "numeric_and_name_bytes": 18,
+            "reference_values": 1,
+            "calls": [
+              "Session._observe_current",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._drop_borrowed": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Session._drop_foundations": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Session._equipment_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._profile_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._initial_authority_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._observe_current": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._content_refusal",
+              "Session._foundation_refusal",
+              "Session._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._operational_retirement_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 2,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement._pristine_graph_refusal",
+              "Retirement.constructor_original_refusal",
+              "Retirement.surface_refusal",
+              "RouteComposition._source_refusal",
+              "RouteComposition.complete_refusal",
+              "Session._initial_authority_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._original_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._owners_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._equipment_refusal",
+              "Session._world_identity_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._prepare_retirement_scope": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Retirement.prepare_constructor_prefix_into",
+              "Retirement.prepare_into"
+            ],
+            "returns": "StringName"
+          },
+          "Session._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._retirement_packet_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Session._operational_retirement_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._world_identity_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session.abandon_retirement": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Session._prepare_retirement_scope",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.prepare_retirement": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 2,
+            "calls": [
+              "Session._foundation_refusal",
+              "Session._original_refusal",
+              "Session._prepare_retirement_scope",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.release_retirement": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement.release_preflighted",
+              "Session._drop_borrowed",
+              "Session._drop_foundations",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.retirement_observation_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._current_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor._retirement_stores_in": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor.retirement_refusal_in": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "SurfaceAnchor._retirement_stores_in"
+            ],
+            "returns": "StringName"
+          },
+          "UI._cleanup_failed_create": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 4,
+            "calls": [
+              "Form.record_reset_outcome",
+              "Form.refuse_create",
+              "Form.refuse_published_world",
+              "UI._reset_for_create_into"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 1
+          },
+          "UI._create_world_after_abandon": {
+            "numeric_and_name_bytes": 2,
+            "reference_values": 3,
+            "calls": [
+              "Form.create_with_cohort_into",
+              "Host.underground_content",
+              "UI._materialize_after_create",
+              "UI._restore_underground_after_create"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI._materialize_after_create": {
+            "numeric_and_name_bytes": 2,
+            "reference_values": 2,
+            "calls": [
+              "UI._cleanup_failed_create"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI._prepare_world_create": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 3,
+            "calls": [
+              "Form.record_reset_outcome",
+              "Form.refuse_create",
+              "Host.abandon_world_reset"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 1
+          },
+          "UI._report_generation": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 3,
+            "calls": [
+              "UI._report_generation_failure"
+            ],
+            "returns": "void",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI._report_generation_failure": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 5,
+            "calls": [
+              "UI._reset_outcome_text"
+            ],
+            "returns": "void",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI._reset_for_create_into": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [
+              "Host.abandon_world_reset",
+              "Host.reset"
+            ],
+            "returns": "void",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI._reset_outcome_text": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "String",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI._restore_underground_after_create": {
+            "numeric_and_name_bytes": 2,
+            "reference_values": 3,
+            "calls": [
+              "UI._cleanup_failed_create"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "UI.create_world": {
+            "numeric_and_name_bytes": 2,
+            "reference_values": 2,
+            "calls": [
+              "UI._create_world_after_abandon",
+              "UI._prepare_world_create",
+              "UI._report_generation"
+            ],
+            "returns": "bool",
+            "implicit_self_counted": true,
+            "allocations": 0
+          },
+          "Work._retirement_authority_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool",
+            "allocations": 0
+          },
+          "Work._retirement_empty_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Work._retirement_participant_refusal"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Work._retirement_participant_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Work.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 6,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in",
+              "Work._retirement_authority_matches",
+              "Work._retirement_empty_refusal"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Work.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 6,
+            "calls": [
+              "Work.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          }
+        }
+      },
+      "direct_reset": {
+        "numeric_bytes": 207,
+        "reference_values": 23,
+        "numeric_chain": [
+          "Host.reset",
+          "Host.prepare_world_reset",
+          "Session.prepare_retirement",
+          "Session._prepare_retirement_scope",
+          "Retirement.prepare_constructor_prefix_into",
+          "Retirement._prepared_refusal",
+          "Retirement._scope_owners_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement.route_constructor_refusal",
+          "Retirement._route_aliases_refusal",
+          "Retirement._pristine_graph_refusal"
+        ],
+        "reference_chain": [
+          "Host.reset",
+          "Host._release_underground_after_clear",
+          "Session.release_retirement",
+          "Retirement.release_preflighted",
+          "Retirement.cleared_refusal",
+          "Retirement._scope_owners_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement._route_refusal",
+          "Retirement._catalog_refusal"
+        ],
+        "provisional_bytes": 1199,
+        "frames": {
+          "Buildings.whole_world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 25,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Buildings.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 3,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Buildings.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 3,
+            "calls": [
+              "Buildings.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Composition._installed_links_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Composition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition._installed_links_refusal",
+              "Retirement._owners_refusal",
+              "Retirement._weak_matches",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Construction._retirement_authority_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool",
+            "allocations": 0
+          },
+          "Construction.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 4,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in",
+              "Construction._retirement_authority_matches"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Construction.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 4,
+            "calls": [
+              "Construction.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Host._clear_counters": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [
+              "Host._clear_stock_integrity_fault"
+            ],
+            "returns": "void"
+          },
+          "Host._clear_stock_integrity_fault": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Host._clear_stock_layer": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Host._clear_stores": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [
+              "Host._clear_stock_layer"
+            ],
+            "returns": "void"
+          },
+          "Host._mounted_underground_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Host._notification": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._discard_retirement_on_host_free"
+            ],
+            "returns": "void"
+          },
+          "Host._refuse": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Host._release_critical_pause": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Host._release_underground_after_clear": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Session.release_retirement"
+            ],
+            "returns": "bool"
+          },
+          "Host.abandon_world_reset": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Session.abandon_retirement"
+            ],
+            "returns": "bool"
+          },
+          "Host.prepare_world_reset": {
+            "numeric_and_name_bytes": 10,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Session.prepare_retirement",
+              "Session.retirement_observation_refusal"
+            ],
+            "returns": "bool"
+          },
+          "Host.reset": {
+            "numeric_and_name_bytes": 2,
+            "reference_values": 1,
+            "calls": [
+              "Host._clear_counters",
+              "Host._clear_stores",
+              "Host._release_critical_pause",
+              "Host._release_underground_after_clear",
+              "Host.prepare_world_reset"
+            ],
+            "returns": "bool"
+          },
+          "Inventory._retirement_empty_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Inventory.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 4,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in",
+              "Inventory._retirement_empty_refusal"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Inventory.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 4,
+            "calls": [
+              "Inventory.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Retirement._base_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._capture_scope": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 4,
+            "calls": [
+              "Retirement._capture_sources",
+              "Retirement._copy_owners"
+            ],
+            "returns": "void"
+          },
+          "Retirement._capture_sources": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 4,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._connector_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._constructor_shape_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._owners_refusal",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._copy_owners": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._copy_owners_0",
+              "Retirement._copy_owners_1",
+              "Retirement._copy_owners_2",
+              "Retirement._copy_owners_3"
+            ],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_0": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_1": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_2": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._copy_owners_3": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Retirement._entry_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._entry_world_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._profile_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._handling_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._leaves": {
+            "numeric_and_name_bytes": 25,
+            "reference_values": 2,
+            "calls": [
+              "Buildings.world_retirement_refusal_in",
+              "Construction.world_retirement_refusal_in",
+              "Inventory.world_retirement_refusal_in",
+              "Work.world_retirement_refusal_in"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._live_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._leaves"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._location_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._original_sources_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._owners_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._base_refusal",
+              "Retirement._connector_refusal",
+              "Retirement._foundation_refusal",
+              "Retirement._handling_refusal",
+              "Retirement._location_refusal",
+              "Retirement._phase_refusal",
+              "Retirement._placement_refusal",
+              "Retirement._project_refusal",
+              "Retirement._room_refusal",
+              "Retirement._route_refusal",
+              "Retirement.route_constructor_refusal",
+              "Retirement.surface_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._phase_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches",
+              "Retirement._world_binding_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._placement_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._prepared_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._live_refusal",
+              "Retirement._original_sources_refusal",
+              "Retirement._scope_owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._pristine_graph_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._project_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._room_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._entry_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_aliases_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._pristine_graph_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_profiles_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._catalog_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._same_owners": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._same_owners_0",
+              "Retirement._same_owners_1",
+              "Retirement._same_owners_2",
+              "Retirement._same_owners_3"
+            ],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_0": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_1": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_2": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._same_owners_3": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._scope_owners_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._owners_refusal",
+              "Retirement._same_owners",
+              "Retirement.constructor_original_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._weak_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._world_binding_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._entry_world_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.cleared_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [
+              "Retirement._leaves",
+              "Retirement._original_sources_refusal",
+              "Retirement._scope_owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_original_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._constructor_shape_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_session_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement.prepare_constructor_prefix_into": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 4,
+            "calls": [
+              "Retirement._capture_scope",
+              "Retirement._live_refusal",
+              "Retirement._prepared_refusal",
+              "Retirement._same_owners",
+              "Retirement.constructor_original_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.prepare_into": {
+            "numeric_and_name_bytes": 25,
+            "reference_values": 4,
+            "calls": [
+              "Retirement._capture_scope",
+              "Retirement._live_refusal",
+              "Retirement._owners_refusal",
+              "Retirement._prepared_refusal",
+              "Retirement._same_owners"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.release_preflighted": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 4,
+            "calls": [
+              "Buildings.world_retirement_release_preflighted_in",
+              "Construction.world_retirement_release_preflighted_in",
+              "Inventory.world_retirement_release_preflighted_in",
+              "Retirement.cleared_refusal",
+              "Work.world_retirement_release_preflighted_in"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.route_constructor_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._route_aliases_refusal",
+              "Retirement._route_profiles_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.surface_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "SurfaceAnchor.retirement_refusal_in"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._source_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "RouteComposition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement.route_constructor_refusal",
+              "RouteComposition._source_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._content_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._current_refusal": {
+            "numeric_and_name_bytes": 18,
+            "reference_values": 1,
+            "calls": [
+              "Session._observe_current",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._discard_retirement_on_host_free": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "Session._drop_borrowed": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Session._drop_foundations": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "Session._equipment_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._profile_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._initial_authority_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._observe_current": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._content_refusal",
+              "Session._foundation_refusal",
+              "Session._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._operational_retirement_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 2,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement._pristine_graph_refusal",
+              "Retirement.constructor_original_refusal",
+              "Retirement.surface_refusal",
+              "RouteComposition._source_refusal",
+              "RouteComposition.complete_refusal",
+              "Session._initial_authority_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._original_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._owners_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._equipment_refusal",
+              "Session._world_identity_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._prepare_retirement_scope": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Retirement.prepare_constructor_prefix_into",
+              "Retirement.prepare_into"
+            ],
+            "returns": "StringName"
+          },
+          "Session._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._retirement_packet_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Session._operational_retirement_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._world_identity_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session.abandon_retirement": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Session._prepare_retirement_scope",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.prepare_retirement": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 2,
+            "calls": [
+              "Session._foundation_refusal",
+              "Session._original_refusal",
+              "Session._prepare_retirement_scope",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.release_retirement": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement.release_preflighted",
+              "Session._drop_borrowed",
+              "Session._drop_foundations",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.retirement_observation_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._current_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor._retirement_stores_in": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor.retirement_refusal_in": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "SurfaceAnchor._retirement_stores_in"
+            ],
+            "returns": "StringName"
+          },
+          "Work._retirement_authority_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool",
+            "allocations": 0
+          },
+          "Work._retirement_empty_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Work._retirement_participant_refusal"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Work._retirement_participant_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Work.world_retirement_refusal_in": {
+            "numeric_and_name_bytes": 33,
+            "reference_values": 6,
+            "calls": [
+              "Buildings.whole_world_retirement_refusal_in",
+              "Work._retirement_authority_matches",
+              "Work._retirement_empty_refusal"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          },
+          "Work.world_retirement_release_preflighted_in": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 6,
+            "calls": [
+              "Work.world_retirement_refusal_in"
+            ],
+            "returns": "StringName",
+            "allocations": 0
+          }
+        }
+      },
+      "route_own_prefix_and_result_tail": {
+        "numeric_bytes": 196,
+        "reference_values": 19,
+        "numeric_chain": [
+          "Host.compose_underground_route_owners",
+          "Session.compose_route_owners",
+          "Session.current_refusal",
+          "Session._current_refusal",
+          "Session._retirement_packet_refusal",
+          "Session._operational_retirement_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement.route_constructor_refusal",
+          "Retirement._route_aliases_refusal",
+          "Retirement._pristine_graph_refusal"
+        ],
+        "reference_chain": [
+          "Host.compose_underground_route_owners",
+          "Session.compose_route_owners",
+          "Session.current_refusal",
+          "Session._current_refusal",
+          "Session._retirement_packet_refusal",
+          "Session._operational_retirement_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement._route_refusal",
+          "Retirement._catalog_refusal"
+        ],
+        "provisional_bytes": 1060,
+        "frames": {
+          "Composition._installed_links_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Composition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition._installed_links_refusal",
+              "Retirement._owners_refusal",
+              "Retirement._weak_matches",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Host._finish_route_owner_composition": {
+            "numeric_and_name_bytes": 18,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse"
+            ],
+            "returns": "bool"
+          },
+          "Host._mounted_underground_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Host._refuse": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Host._underground_mutations_stopped": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Host.compose_underground_route_owners": {
+            "numeric_and_name_bytes": 10,
+            "reference_values": 2,
+            "calls": [
+              "Host._finish_route_owner_composition",
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Host._underground_mutations_stopped",
+              "Session.compose_route_owners"
+            ],
+            "returns": "bool"
+          },
+          "Retirement._base_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 4,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._connector_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._constructor_shape_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._owners_refusal",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._entry_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._entry_world_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._profile_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._handling_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._location_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._owners_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._base_refusal",
+              "Retirement._connector_refusal",
+              "Retirement._foundation_refusal",
+              "Retirement._handling_refusal",
+              "Retirement._location_refusal",
+              "Retirement._phase_refusal",
+              "Retirement._placement_refusal",
+              "Retirement._project_refusal",
+              "Retirement._room_refusal",
+              "Retirement._route_refusal",
+              "Retirement.route_constructor_refusal",
+              "Retirement.surface_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._phase_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches",
+              "Retirement._world_binding_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._placement_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._pristine_graph_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._project_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._room_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._entry_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_aliases_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._pristine_graph_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_profiles_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._catalog_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._weak_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._world_binding_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._entry_world_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_original_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._constructor_shape_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_session_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement.route_constructor_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._route_aliases_refusal",
+              "Retirement._route_profiles_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.surface_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "SurfaceAnchor.retirement_refusal_in"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._bind_approach": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "RouteComposition._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._bind_graph": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "RouteComposition._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._bind_profiles": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "RouteComposition._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._configuration": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "WorldRoutes.Configuration"
+          },
+          "RouteComposition._original_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement.route_constructor_refusal",
+              "RouteComposition.unpublished_refusal",
+              "Session._foundation_refusal",
+              "Session._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._prepare_candidate": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [
+              "RouteComposition._configuration",
+              "RouteComposition._original_refusal",
+              "RouteComposition._prepare_catalog"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._prepare_catalog": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "RouteComposition._source_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "RouteComposition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement.route_constructor_refusal",
+              "RouteComposition._source_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition.construct": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement.constructor_session_matches",
+              "RouteComposition._bind_approach",
+              "RouteComposition._bind_graph",
+              "RouteComposition._bind_profiles",
+              "RouteComposition._prepare_candidate"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition.unpublished_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._content_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._current_refusal": {
+            "numeric_and_name_bytes": 18,
+            "reference_values": 1,
+            "calls": [
+              "Session._observe_current",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._equipment_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._finish_route_composition": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._content_refusal",
+              "Session._foundation_refusal",
+              "Session._owners_refusal",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "void"
+          },
+          "Session._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._profile_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._initial_authority_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._observe_current": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._content_refusal",
+              "Session._foundation_refusal",
+              "Session._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._operational_retirement_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 2,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement._pristine_graph_refusal",
+              "Retirement.constructor_original_refusal",
+              "Retirement.surface_refusal",
+              "RouteComposition._source_refusal",
+              "RouteComposition.complete_refusal",
+              "Session._initial_authority_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._original_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._owners_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._equipment_refusal",
+              "Session._world_identity_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._retirement_packet_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Session._operational_retirement_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._route_start_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._world_identity_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session.compose_route_owners": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "RouteComposition.complete_refusal",
+              "RouteComposition.construct",
+              "RouteComposition.unpublished_refusal",
+              "Session._content_refusal",
+              "Session._finish_route_composition",
+              "Session._foundation_refusal",
+              "Session._original_refusal",
+              "Session._route_start_refusal",
+              "Session.current_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.current_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._current_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor._retirement_stores_in": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor.retirement_refusal_in": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "SurfaceAnchor._retirement_stores_in"
+            ],
+            "returns": "StringName"
+          }
+        }
+      },
+      "surface_own_prefix_and_result_tail": {
+        "numeric_bytes": 196,
+        "reference_values": 19,
+        "numeric_chain": [
+          "Host.compose_underground_surface_anchor",
+          "Session.compose_surface_anchor",
+          "Session.current_refusal",
+          "Session._current_refusal",
+          "Session._retirement_packet_refusal",
+          "Session._operational_retirement_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement.route_constructor_refusal",
+          "Retirement._route_aliases_refusal",
+          "Retirement._pristine_graph_refusal"
+        ],
+        "reference_chain": [
+          "Host.compose_underground_surface_anchor",
+          "Session.compose_surface_anchor",
+          "Session.current_refusal",
+          "Session._current_refusal",
+          "Session._retirement_packet_refusal",
+          "Session._operational_retirement_refusal",
+          "Retirement.constructor_original_refusal",
+          "Retirement._constructor_shape_refusal",
+          "Retirement._owners_refusal",
+          "Retirement._route_refusal",
+          "Retirement._catalog_refusal"
+        ],
+        "provisional_bytes": 1060,
+        "frames": {
+          "Composition._installed_links_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Composition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition._installed_links_refusal",
+              "Retirement._owners_refusal",
+              "Retirement._weak_matches",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Host._finish_surface_owner_composition": {
+            "numeric_and_name_bytes": 18,
+            "reference_values": 2,
+            "calls": [
+              "Host._mounted_underground_refusal",
+              "Host._refuse"
+            ],
+            "returns": "bool"
+          },
+          "Host._mounted_underground_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Host._refuse": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Host._underground_mutations_stopped": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Host.compose_underground_surface_anchor": {
+            "numeric_and_name_bytes": 10,
+            "reference_values": 2,
+            "calls": [
+              "Host._finish_surface_owner_composition",
+              "Host._mounted_underground_refusal",
+              "Host._refuse",
+              "Host._underground_mutations_stopped",
+              "Session.compose_surface_anchor"
+            ],
+            "returns": "bool"
+          },
+          "Retirement._base_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 4,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._connector_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._constructor_shape_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._owners_refusal",
+              "Retirement.constructor_catalog_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._entry_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._entry_world_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._profile_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._handling_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._location_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._owners_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._base_refusal",
+              "Retirement._connector_refusal",
+              "Retirement._foundation_refusal",
+              "Retirement._handling_refusal",
+              "Retirement._location_refusal",
+              "Retirement._phase_refusal",
+              "Retirement._placement_refusal",
+              "Retirement._project_refusal",
+              "Retirement._room_refusal",
+              "Retirement._route_refusal",
+              "Retirement.route_constructor_refusal",
+              "Retirement.surface_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._phase_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches",
+              "Retirement._world_binding_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._placement_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._pristine_graph_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement._project_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._room_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._entry_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_aliases_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._pristine_graph_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_profiles_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._route_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._catalog_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement._weak_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement._world_binding_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._entry_world_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_catalog_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_original_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Retirement._constructor_shape_refusal",
+              "Retirement.constructor_session_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.constructor_session_matches": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Retirement.route_constructor_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Retirement._route_aliases_refusal",
+              "Retirement._route_profiles_refusal",
+              "Retirement._weak_matches"
+            ],
+            "returns": "StringName"
+          },
+          "Retirement.surface_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "SurfaceAnchor.retirement_refusal_in"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition._source_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "RouteComposition.complete_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement.route_constructor_refusal",
+              "RouteComposition._source_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "RouteComposition.unpublished_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._configure_surface_anchor": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._content_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._current_refusal": {
+            "numeric_and_name_bytes": 18,
+            "reference_values": 1,
+            "calls": [
+              "Session._observe_current",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._equipment_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._finish_surface_composition": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._content_refusal",
+              "Session._foundation_refusal",
+              "Session._owners_refusal",
+              "Session._retirement_packet_refusal"
+            ],
+            "returns": "void"
+          },
+          "Session._foundation_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._profile_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._initial_authority_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._observe_current": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._content_refusal",
+              "Session._foundation_refusal",
+              "Session._original_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._operational_retirement_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 2,
+            "calls": [
+              "Composition.complete_refusal",
+              "Retirement._pristine_graph_refusal",
+              "Retirement.constructor_original_refusal",
+              "Retirement.surface_refusal",
+              "RouteComposition._source_refusal",
+              "RouteComposition.complete_refusal",
+              "Session._initial_authority_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._original_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [
+              "Session._owners_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._owners_refusal": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Session._equipment_refusal",
+              "Session._world_identity_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._profile_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session._retirement_packet_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [
+              "Session._operational_retirement_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session._world_identity_refusal": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Session.compose_surface_anchor": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Retirement.surface_refusal",
+              "RouteComposition.complete_refusal",
+              "RouteComposition.unpublished_refusal",
+              "Session._configure_surface_anchor",
+              "Session._content_refusal",
+              "Session._finish_surface_composition",
+              "Session._foundation_refusal",
+              "Session._original_refusal",
+              "Session.current_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Session.current_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Session._current_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor._retirement_stores_in": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor.retirement_refusal_in": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "SurfaceAnchor._retirement_stores_in"
+            ],
+            "returns": "StringName"
+          }
+        }
+      }
+    },
+    "route_constructor": {
+      "source_manifest_sha256": "a371e4ebc09b3f4f6efe3967eca236d77c8e665a53d997ff5d274680c99256d1",
+      "configuration_bytes": 672,
+      "domain_heap": {
+        "descriptor_entries": 512,
+        "dictionary_header": 256,
+        "descriptor_bounds_copy": 280,
+        "configure_bounds_temporary": 280,
+        "six_value_constructor_array": 448,
+        "domain_fields_and_bounds": 92,
+        "domain_header": 256,
+        "domain_bounds_header": 256
+      },
+      "level_identity_heap": {
+        "descriptor_bytes": 1048,
+        "initial_constructor_peak": 1956,
+        "append_constructor_peak": 2344,
+        "peak": 2344
+      },
+      "cases": {
+        "catalog_bind_level_identity": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._prepare_candidate",
+            "RouteComposition._prepare_catalog",
+            "Catalog.bind_actual",
+            "Levels.binding_matches",
+            "Levels._identity_of"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_candidate": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 3,
+              "provisional_frame_bytes": 112,
+              "body_sha256": "f4e16db1d0147be363595b3a3a21f3e21c3bf365ccff1c37b56b35df489dea9f",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ],
+                [
+                  "candidate",
+                  "WorldRoutes"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_catalog": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "bdc6db514adedc2da4fcf51b882765b4ceb045fa86611ece2142cf65779c3e41",
+              "values": [
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Catalog.bind_actual": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 7,
+              "provisional_frame_bytes": 232,
+              "body_sha256": "0778a71a355103d0f81981fdbf095717693c172e05db835b95254a67d4bee548",
+              "values": [
+                [
+                  "profiles",
+                  "Profiles"
+                ],
+                [
+                  "levels",
+                  "Levels"
+                ],
+                [
+                  "movement",
+                  "Movement"
+                ],
+                [
+                  "residents",
+                  "Residents"
+                ],
+                [
+                  "transforms",
+                  "Transforms"
+                ],
+                [
+                  "domain",
+                  "Space.Domain"
+                ]
+              ]
+            },
+            "Levels.binding_matches": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 4,
+              "provisional_frame_bytes": 137,
+              "body_sha256": "d25840da46000a0f85994c8622ede631083ba3b04a82d138e05f6ac76de4b053",
+              "values": [
+                [
+                  "domain",
+                  "Space.Domain"
+                ],
+                [
+                  "directory",
+                  "Directory"
+                ],
+                [
+                  "version",
+                  "int"
+                ],
+                [
+                  "actual",
+                  "Dictionary"
+                ]
+              ]
+            },
+            "Levels._identity_of": {
+              "numeric_and_name_bytes": 52,
+              "reference_values": 3,
+              "provisional_frame_bytes": 148,
+              "body_sha256": "eeebd02c193f56022d2d124825b33bafb987e6a52ffe5d0fb402042f437c566a",
+              "values": [
+                [
+                  "value",
+                  "Dictionary"
+                ],
+                [
+                  "version",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "datum",
+                  "Vector3i"
+                ],
+                [
+                  "minimum",
+                  "Vector3i"
+                ],
+                [
+                  "size",
+                  "Vector3i"
+                ],
+                [
+                  "out",
+                  "PackedInt32Array"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 879,
+          "transient_heap_bytes": 3016,
+          "expression_bytes": 256,
+          "total": 4151,
+          "note": "Exact eight-entry descriptor plus one sequential literal/packed append phase; no list survives its constructor statement."
+        },
+        "provider_level_identity": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._prepare_candidate",
+            "WorldRoutes.configure",
+            "Catalog.binding_matches",
+            "Levels.binding_matches",
+            "Levels._identity_of"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_candidate": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 3,
+              "provisional_frame_bytes": 112,
+              "body_sha256": "f4e16db1d0147be363595b3a3a21f3e21c3bf365ccff1c37b56b35df489dea9f",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ],
+                [
+                  "candidate",
+                  "WorldRoutes"
+                ]
+              ]
+            },
+            "WorldRoutes.configure": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 2,
+              "provisional_frame_bytes": 72,
+              "body_sha256": "2d3951226680ad25d04f4115388f098ef7736c96711e5de164d4c5c3fd7fa880",
+              "values": [
+                [
+                  "config",
+                  "Configuration"
+                ]
+              ]
+            },
+            "Catalog.binding_matches": {
+              "numeric_and_name_bytes": 1,
+              "reference_values": 7,
+              "provisional_frame_bytes": 225,
+              "body_sha256": "f2f8b7287d5714bce09511076e5d9e75b9789ff12311b21709b95139d9bdd01c",
+              "values": [
+                [
+                  "profiles",
+                  "Profiles"
+                ],
+                [
+                  "levels",
+                  "Levels"
+                ],
+                [
+                  "movement",
+                  "Movement"
+                ],
+                [
+                  "residents",
+                  "Residents"
+                ],
+                [
+                  "transforms",
+                  "Transforms"
+                ],
+                [
+                  "domain",
+                  "Space.Domain"
+                ]
+              ]
+            },
+            "Levels.binding_matches": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 4,
+              "provisional_frame_bytes": 137,
+              "body_sha256": "d25840da46000a0f85994c8622ede631083ba3b04a82d138e05f6ac76de4b053",
+              "values": [
+                [
+                  "domain",
+                  "Space.Domain"
+                ],
+                [
+                  "directory",
+                  "Directory"
+                ],
+                [
+                  "version",
+                  "int"
+                ],
+                [
+                  "actual",
+                  "Dictionary"
+                ]
+              ]
+            },
+            "Levels._identity_of": {
+              "numeric_and_name_bytes": 52,
+              "reference_values": 3,
+              "provisional_frame_bytes": 148,
+              "body_sha256": "eeebd02c193f56022d2d124825b33bafb987e6a52ffe5d0fb402042f437c566a",
+              "values": [
+                [
+                  "value",
+                  "Dictionary"
+                ],
+                [
+                  "version",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "datum",
+                  "Vector3i"
+                ],
+                [
+                  "minimum",
+                  "Vector3i"
+                ],
+                [
+                  "size",
+                  "Vector3i"
+                ],
+                [
+                  "out",
+                  "PackedInt32Array"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 864,
+          "transient_heap_bytes": 3016,
+          "expression_bytes": 256,
+          "total": 4136,
+          "note": ""
+        },
+        "approach_level_identity": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._bind_approach",
+            "RoomBindings.configure_room_approach",
+            "WorldRoutes.binding_refusal",
+            "Catalog.binding_matches",
+            "Levels.binding_matches",
+            "Levels._identity_of"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._bind_approach": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "9704b3285c928d1947d96c4d0c0a225b4baac4cda40e16d4310275dfaf0aef8b",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RoomBindings.configure_room_approach": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 3,
+              "provisional_frame_bytes": 112,
+              "body_sha256": "33311901a3bf2de64bbbd9fbef3d2261e538e5d2c150b29438a3e12e87e34098",
+              "values": [
+                [
+                  "routes",
+                  "WorldRoutes"
+                ],
+                [
+                  "provider",
+                  "WorldBindings"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "WorldRoutes.binding_refusal": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 2,
+              "provisional_frame_bytes": 72,
+              "body_sha256": "eb81f9979fe714528c092aa6b100a38f13e7f7fad3839d6448a5e5f163448c43",
+              "values": [
+                [
+                  "graph",
+                  "Routes"
+                ]
+              ]
+            },
+            "Catalog.binding_matches": {
+              "numeric_and_name_bytes": 1,
+              "reference_values": 7,
+              "provisional_frame_bytes": 225,
+              "body_sha256": "f2f8b7287d5714bce09511076e5d9e75b9789ff12311b21709b95139d9bdd01c",
+              "values": [
+                [
+                  "profiles",
+                  "Profiles"
+                ],
+                [
+                  "levels",
+                  "Levels"
+                ],
+                [
+                  "movement",
+                  "Movement"
+                ],
+                [
+                  "residents",
+                  "Residents"
+                ],
+                [
+                  "transforms",
+                  "Transforms"
+                ],
+                [
+                  "domain",
+                  "Space.Domain"
+                ]
+              ]
+            },
+            "Levels.binding_matches": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 4,
+              "provisional_frame_bytes": 137,
+              "body_sha256": "d25840da46000a0f85994c8622ede631083ba3b04a82d138e05f6ac76de4b053",
+              "values": [
+                [
+                  "domain",
+                  "Space.Domain"
+                ],
+                [
+                  "directory",
+                  "Directory"
+                ],
+                [
+                  "version",
+                  "int"
+                ],
+                [
+                  "actual",
+                  "Dictionary"
+                ]
+              ]
+            },
+            "Levels._identity_of": {
+              "numeric_and_name_bytes": 52,
+              "reference_values": 3,
+              "provisional_frame_bytes": 148,
+              "body_sha256": "eeebd02c193f56022d2d124825b33bafb987e6a52ffe5d0fb402042f437c566a",
+              "values": [
+                [
+                  "value",
+                  "Dictionary"
+                ],
+                [
+                  "version",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "datum",
+                  "Vector3i"
+                ],
+                [
+                  "minimum",
+                  "Vector3i"
+                ],
+                [
+                  "size",
+                  "Vector3i"
+                ],
+                [
+                  "out",
+                  "PackedInt32Array"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 944,
+          "transient_heap_bytes": 2344,
+          "expression_bytes": 256,
+          "total": 3544,
+          "note": ""
+        },
+        "world_route_domain": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._prepare_candidate",
+            "WorldRoutes.configure",
+            "Owner.domain_copy",
+            "Owner._copy_domain",
+            "Domain.configure",
+            "Value.int32"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_candidate": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 3,
+              "provisional_frame_bytes": 112,
+              "body_sha256": "f4e16db1d0147be363595b3a3a21f3e21c3bf365ccff1c37b56b35df489dea9f",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ],
+                [
+                  "candidate",
+                  "WorldRoutes"
+                ]
+              ]
+            },
+            "WorldRoutes.configure": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 2,
+              "provisional_frame_bytes": 72,
+              "body_sha256": "2d3951226680ad25d04f4115388f098ef7736c96711e5de164d4c5c3fd7fa880",
+              "values": [
+                [
+                  "config",
+                  "Configuration"
+                ]
+              ]
+            },
+            "Owner.domain_copy": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 2,
+              "provisional_frame_bytes": 64,
+              "body_sha256": "ec1aa734e14376b5d6d945b297da02c6117bd5d050295b60972f39d58bd97d76",
+              "values": []
+            },
+            "Owner._copy_domain": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 3,
+              "provisional_frame_bytes": 104,
+              "body_sha256": "56a7f88848b8504521ad1e8d243717b19e3e7437e8a5eecb60e2dd7d32ed2e31",
+              "values": [
+                [
+                  "binding",
+                  "Dictionary"
+                ],
+                [
+                  "out",
+                  "Space.Domain"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Domain.configure": {
+              "numeric_and_name_bytes": 100,
+              "reference_values": 2,
+              "provisional_frame_bytes": 164,
+              "body_sha256": "d52f187037b34ea484cc9dc4e32d7d1566f1a903dd70e1cf67e6ae562d2469a1",
+              "values": [
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "datum",
+                  "Vector3i"
+                ],
+                [
+                  "minimum",
+                  "Vector3i"
+                ],
+                [
+                  "size",
+                  "Vector3i"
+                ],
+                [
+                  "cells",
+                  "int"
+                ],
+                [
+                  "regions",
+                  "int"
+                ],
+                [
+                  "checks",
+                  "int"
+                ],
+                [
+                  "bounds",
+                  "PackedInt32Array"
+                ],
+                [
+                  "low",
+                  "int"
+                ],
+                [
+                  "high",
+                  "int"
+                ],
+                [
+                  "axis",
+                  "int"
+                ]
+              ]
+            },
+            "Value.int32": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 0,
+              "provisional_frame_bytes": 9,
+              "body_sha256": "394636811c5ea8925bbaf5211900fb4232395acc19087104ccfdb097ade9221f",
+              "values": [
+                [
+                  "value",
+                  "int"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 695,
+          "transient_heap_bytes": 3052,
+          "expression_bytes": 256,
+          "total": 4003,
+          "note": "Only the temporary configuration and constructor chain coexist with the new Domain."
+        },
+        "route_domain": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._bind_graph",
+            "Routes.configure",
+            "Routes._bind_stores",
+            "Owner.domain_copy",
+            "Owner._copy_domain",
+            "Domain.configure",
+            "Value.int32"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._bind_graph": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "e857a884da277fdc19b43e1c71e592dc3b3f1f443a811e5c19c82b356c364483",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes.configure": {
+              "numeric_and_name_bytes": 64,
+              "reference_values": 7,
+              "provisional_frame_bytes": 288,
+              "body_sha256": "b906533d7aea21eed1b51f45847ad95336c3d0c547151ee31fdfa52d3acfa6b7",
+              "values": [
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "owner",
+                  "Owner"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "cold",
+                  "Budget"
+                ],
+                [
+                  "bindings",
+                  "Bindings"
+                ],
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "arena_bytes",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "bytes",
+                  "int"
+                ]
+              ]
+            },
+            "Routes._bind_stores": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 7,
+              "provisional_frame_bytes": 224,
+              "body_sha256": "6d940669b0d4407002b68ef0fac1a1902e17340bdee247598c70f43af5af1b6b",
+              "values": [
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "owner",
+                  "Owner"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "cold",
+                  "Budget"
+                ],
+                [
+                  "bindings",
+                  "Bindings"
+                ]
+              ]
+            },
+            "Owner.domain_copy": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 2,
+              "provisional_frame_bytes": 64,
+              "body_sha256": "ec1aa734e14376b5d6d945b297da02c6117bd5d050295b60972f39d58bd97d76",
+              "values": []
+            },
+            "Owner._copy_domain": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 3,
+              "provisional_frame_bytes": 104,
+              "body_sha256": "56a7f88848b8504521ad1e8d243717b19e3e7437e8a5eecb60e2dd7d32ed2e31",
+              "values": [
+                [
+                  "binding",
+                  "Dictionary"
+                ],
+                [
+                  "out",
+                  "Space.Domain"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Domain.configure": {
+              "numeric_and_name_bytes": 100,
+              "reference_values": 2,
+              "provisional_frame_bytes": 164,
+              "body_sha256": "d52f187037b34ea484cc9dc4e32d7d1566f1a903dd70e1cf67e6ae562d2469a1",
+              "values": [
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "datum",
+                  "Vector3i"
+                ],
+                [
+                  "minimum",
+                  "Vector3i"
+                ],
+                [
+                  "size",
+                  "Vector3i"
+                ],
+                [
+                  "cells",
+                  "int"
+                ],
+                [
+                  "regions",
+                  "int"
+                ],
+                [
+                  "checks",
+                  "int"
+                ],
+                [
+                  "bounds",
+                  "PackedInt32Array"
+                ],
+                [
+                  "low",
+                  "int"
+                ],
+                [
+                  "high",
+                  "int"
+                ],
+                [
+                  "axis",
+                  "int"
+                ]
+              ]
+            },
+            "Value.int32": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 0,
+              "provisional_frame_bytes": 9,
+              "body_sha256": "394636811c5ea8925bbaf5211900fb4232395acc19087104ccfdb097ade9221f",
+              "values": [
+                [
+                  "value",
+                  "int"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 1103,
+          "transient_heap_bytes": 2380,
+          "expression_bytes": 256,
+          "total": 3739,
+          "note": "The Configuration frame and candidate local have ended before Routes.configure."
+        },
+        "movement_profiles": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._prepare_candidate",
+            "RouteComposition._configuration",
+            "Movement._init",
+            "Movement._build_starter_profiles",
+            "Residents.size_carry_g",
+            "IntResult._init"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_candidate": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 3,
+              "provisional_frame_bytes": 112,
+              "body_sha256": "f4e16db1d0147be363595b3a3a21f3e21c3bf365ccff1c37b56b35df489dea9f",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ],
+                [
+                  "candidate",
+                  "WorldRoutes"
+                ]
+              ]
+            },
+            "RouteComposition._configuration": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 3,
+              "provisional_frame_bytes": 96,
+              "body_sha256": "f6cb3377a62c87571ff4a68a6a2d2fccf13ad1570266b0ff08c43837324275b0",
+              "values": [
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ]
+              ]
+            },
+            "Movement._init": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 6,
+              "provisional_frame_bytes": 192,
+              "body_sha256": "a0a4f15c22d44eff7e5076a2b0281886531511f12ce181e1f865e9873938dffa",
+              "values": [
+                [
+                  "directory",
+                  "EntityDirectory"
+                ],
+                [
+                  "world",
+                  "SpatialWorld"
+                ],
+                [
+                  "navigation",
+                  "Navigation"
+                ],
+                [
+                  "transforms",
+                  "Transforms"
+                ],
+                [
+                  "residents",
+                  "ResidentsScript"
+                ]
+              ]
+            },
+            "Movement._build_starter_profiles": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 5,
+              "provisional_frame_bytes": 168,
+              "body_sha256": "bf65be5adf6b9e9cea581aec06d43a6c4c61b6ba2b958b573a774c8891b8a9ed",
+              "values": [
+                [
+                  "species",
+                  "IntMath.IntResult"
+                ],
+                [
+                  "size",
+                  "IntMath.IntResult"
+                ],
+                [
+                  "speed",
+                  "IntMath.IntResult"
+                ],
+                [
+                  "carry",
+                  "IntMath.IntResult"
+                ],
+                [
+                  "profile",
+                  "int"
+                ]
+              ]
+            },
+            "Residents.size_carry_g": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 2,
+              "provisional_frame_bytes": 72,
+              "body_sha256": "0523cc6bea807d292782112c2f8bfa0a180f7722fb86424f8047053cb6f100bd",
+              "values": [
+                [
+                  "size_class",
+                  "int"
+                ]
+              ]
+            },
+            "IntResult._init": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 2,
+              "provisional_frame_bytes": 73,
+              "body_sha256": "dffba35102fcf50a3596500ed090a28eca2579d978a94689e21dabbb495bd3ce",
+              "values": [
+                [
+                  "p_ok",
+                  "bool"
+                ],
+                [
+                  "p_value",
+                  "int"
+                ],
+                [
+                  "p_error",
+                  "String"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 883,
+          "transient_heap_bytes": 1732,
+          "expression_bytes": 256,
+          "total": 2871,
+          "note": "Four simultaneous actual IntResults; original Movement arrays use their existing baseline reservation."
+        },
+        "catalog_load": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._prepare_candidate",
+            "RouteComposition._prepare_catalog"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_candidate": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 3,
+              "provisional_frame_bytes": 112,
+              "body_sha256": "f4e16db1d0147be363595b3a3a21f3e21c3bf365ccff1c37b56b35df489dea9f",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ],
+                [
+                  "candidate",
+                  "WorldRoutes"
+                ]
+              ]
+            },
+            "RouteComposition._prepare_catalog": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "bdc6db514adedc2da4fcf51b882765b4ceb045fa86611ece2142cf65779c3e41",
+              "values": [
+                [
+                  "config",
+                  "WorldRoutes.Configuration"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 362,
+          "transient_heap_bytes": 2720,
+          "expression_bytes": 256,
+          "total": 3338,
+          "note": "Complete existing Catalog control/decode slice conservatively repeated beside caller Configuration."
+        },
+        "graph_motion_allocate": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._bind_graph",
+            "Routes.configure",
+            "Routes._configure_arenas",
+            "Routes._allocate",
+            "MotionBank.allocate"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._bind_graph": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "e857a884da277fdc19b43e1c71e592dc3b3f1f443a811e5c19c82b356c364483",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes.configure": {
+              "numeric_and_name_bytes": 64,
+              "reference_values": 7,
+              "provisional_frame_bytes": 288,
+              "body_sha256": "b906533d7aea21eed1b51f45847ad95336c3d0c547151ee31fdfa52d3acfa6b7",
+              "values": [
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "owner",
+                  "Owner"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "cold",
+                  "Budget"
+                ],
+                [
+                  "bindings",
+                  "Bindings"
+                ],
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "arena_bytes",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "bytes",
+                  "int"
+                ]
+              ]
+            },
+            "Routes._configure_arenas": {
+              "numeric_and_name_bytes": 48,
+              "reference_values": 1,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "1e078d94ae1369b7484f02584d1ffd523013d75fc5238073bb1428b9ffee9448",
+              "values": [
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes._allocate": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 1,
+              "provisional_frame_bytes": 32,
+              "body_sha256": "a5f70d1e9c0f09061bbdc22f580f34678af7890a21a9861c72f07a18e3d9500f",
+              "values": []
+            },
+            "MotionBank.allocate": {
+              "numeric_and_name_bytes": 32,
+              "reference_values": 1,
+              "provisional_frame_bytes": 64,
+              "body_sha256": "b1b3991f425be11f3e29f3f2b0fcc03907c690163039ce0817dad765f470632e",
+              "values": [
+                [
+                  "capacity",
+                  "int"
+                ],
+                [
+                  "row",
+                  "int"
+                ],
+                [
+                  "row",
+                  "int"
+                ],
+                [
+                  "field",
+                  "int"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 714,
+          "transient_heap_bytes": 768,
+          "expression_bytes": 256,
+          "total": 1738,
+          "note": "All sixteen explicit actor-null field literals remain in one temporary Array; packed outputs use existing arenas."
+        },
+        "graph_edge_allocate": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._bind_graph",
+            "Routes.configure",
+            "Routes._configure_arenas",
+            "Routes._allocate",
+            "EdgeBank.allocate"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._bind_graph": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "e857a884da277fdc19b43e1c71e592dc3b3f1f443a811e5c19c82b356c364483",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes.configure": {
+              "numeric_and_name_bytes": 64,
+              "reference_values": 7,
+              "provisional_frame_bytes": 288,
+              "body_sha256": "b906533d7aea21eed1b51f45847ad95336c3d0c547151ee31fdfa52d3acfa6b7",
+              "values": [
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "owner",
+                  "Owner"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "cold",
+                  "Budget"
+                ],
+                [
+                  "bindings",
+                  "Bindings"
+                ],
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "arena_bytes",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "bytes",
+                  "int"
+                ]
+              ]
+            },
+            "Routes._configure_arenas": {
+              "numeric_and_name_bytes": 48,
+              "reference_values": 1,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "1e078d94ae1369b7484f02584d1ffd523013d75fc5238073bb1428b9ffee9448",
+              "values": [
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes._allocate": {
+              "numeric_and_name_bytes": 0,
+              "reference_values": 1,
+              "provisional_frame_bytes": 32,
+              "body_sha256": "a5f70d1e9c0f09061bbdc22f580f34678af7890a21a9861c72f07a18e3d9500f",
+              "values": []
+            },
+            "EdgeBank.allocate": {
+              "numeric_and_name_bytes": 24,
+              "reference_values": 1,
+              "provisional_frame_bytes": 56,
+              "body_sha256": "293aaff4a002991e5cf274a81ef1a72c14a880b386b58bd3c522984d81f054f0",
+              "values": [
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "points",
+                  "int"
+                ],
+                [
+                  "row",
+                  "int"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 706,
+          "transient_heap_bytes": 0,
+          "expression_bytes": 256,
+          "total": 962,
+          "note": ""
+        },
+        "graph_retention": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._bind_graph",
+            "Routes.configure",
+            "Routes._configure_arenas",
+            "Locations.bind_retention",
+            "EndpointRetention.exact_binding",
+            "Routes.retention_binding_matches"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._bind_graph": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "e857a884da277fdc19b43e1c71e592dc3b3f1f443a811e5c19c82b356c364483",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes.configure": {
+              "numeric_and_name_bytes": 64,
+              "reference_values": 7,
+              "provisional_frame_bytes": 288,
+              "body_sha256": "b906533d7aea21eed1b51f45847ad95336c3d0c547151ee31fdfa52d3acfa6b7",
+              "values": [
+                [
+                  "locations",
+                  "Locations"
+                ],
+                [
+                  "owner",
+                  "Owner"
+                ],
+                [
+                  "sources",
+                  "Owner.CoreSources"
+                ],
+                [
+                  "buildings",
+                  "Buildings"
+                ],
+                [
+                  "cold",
+                  "Budget"
+                ],
+                [
+                  "bindings",
+                  "Bindings"
+                ],
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "arena_bytes",
+                  "int"
+                ],
+                [
+                  "world",
+                  "Vector2i"
+                ],
+                [
+                  "bytes",
+                  "int"
+                ]
+              ]
+            },
+            "Routes._configure_arenas": {
+              "numeric_and_name_bytes": 48,
+              "reference_values": 1,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "1e078d94ae1369b7484f02584d1ffd523013d75fc5238073bb1428b9ffee9448",
+              "values": [
+                [
+                  "nodes",
+                  "int"
+                ],
+                [
+                  "edges",
+                  "int"
+                ],
+                [
+                  "vertices",
+                  "int"
+                ],
+                [
+                  "links",
+                  "int"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Locations.bind_retention": {
+              "numeric_and_name_bytes": 9,
+              "reference_values": 2,
+              "provisional_frame_bytes": 73,
+              "body_sha256": "ed1c8561fa752fac3f3ce627fadc1b715dc0a0ed627619594064a1261338fff9",
+              "values": [
+                [
+                  "retention",
+                  "Retention"
+                ],
+                [
+                  "matches",
+                  "bool"
+                ]
+              ]
+            },
+            "EndpointRetention.exact_binding": {
+              "numeric_and_name_bytes": 1,
+              "reference_values": 3,
+              "provisional_frame_bytes": 97,
+              "body_sha256": "f5d0fd4766428c77ff39b14048732aa06921d8e26d935a95dbbc7946d7d89993",
+              "values": [
+                [
+                  "locations",
+                  "RefCounted"
+                ],
+                [
+                  "actual",
+                  "RefCounted"
+                ]
+              ]
+            },
+            "Routes.retention_binding_matches": {
+              "numeric_and_name_bytes": 1,
+              "reference_values": 2,
+              "provisional_frame_bytes": 65,
+              "body_sha256": "1cb5c934c3e477b3f759ba18252791c2dc4a1d08e7f39099d3dbd3f6c9b24a73",
+              "values": [
+                [
+                  "locations",
+                  "RefCounted"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 853,
+          "transient_heap_bytes": 288,
+          "expression_bytes": 256,
+          "total": 1397,
+          "note": "The once-retained weak adapter is conservatively counted again here; no second graph is created."
+        },
+        "profile_extent": {
+          "chain": [
+            "Host.compose_underground_route_owners",
+            "Session.compose_route_owners",
+            "RouteComposition.construct",
+            "RouteComposition._bind_profiles",
+            "Routes.bind_profiles",
+            "Routes.refresh_profile_extent",
+            "Profiles.body_extent_into"
+          ],
+          "frames": {
+            "Host.compose_underground_route_owners": {
+              "numeric_and_name_bytes": 10,
+              "reference_values": 2,
+              "provisional_frame_bytes": 74,
+              "body_sha256": "0f786c2df8e95a664df957ae6475a4775463e5a5568e8fc86e5b6d11ccecb799",
+              "values": [
+                [
+                  "original",
+                  "UndergroundSession"
+                ],
+                [
+                  "starting",
+                  "bool"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Session.compose_route_owners": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "b8c5fbb21b5b3069e4d05f1c84ff0a8ac51e1ff3f3625e580162ee1bbe98b738",
+              "values": [
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition.construct": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 1,
+              "provisional_frame_bytes": 48,
+              "body_sha256": "e27d034435a56151913b05c0ca4bcf52680bbb60c5121a5acd88eb738cbee736",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "RouteComposition._bind_profiles": {
+              "numeric_and_name_bytes": 16,
+              "reference_values": 2,
+              "provisional_frame_bytes": 80,
+              "body_sha256": "f965adf9b5784101fecc67df2dc836c596f4e372ede778cf133490dffbf703d8",
+              "values": [
+                [
+                  "session",
+                  "RefCounted"
+                ],
+                [
+                  "o",
+                  "Retirement.Owners"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Routes.bind_profiles": {
+              "numeric_and_name_bytes": 8,
+              "reference_values": 8,
+              "provisional_frame_bytes": 264,
+              "body_sha256": "083dc499012b6e0ad52308ae1b0d480c7cc73944642ad55e663e127724a74de1",
+              "values": [
+                [
+                  "profiles",
+                  "Profiles"
+                ],
+                [
+                  "inventory",
+                  "Inventory"
+                ],
+                [
+                  "gear",
+                  "Gear"
+                ],
+                [
+                  "carry",
+                  "Carry"
+                ],
+                [
+                  "work",
+                  "Work"
+                ],
+                [
+                  "reservations",
+                  "Reservations"
+                ],
+                [
+                  "piles",
+                  "Piles"
+                ]
+              ]
+            },
+            "Routes.refresh_profile_extent": {
+              "numeric_and_name_bytes": 24,
+              "reference_values": 1,
+              "provisional_frame_bytes": 56,
+              "body_sha256": "84bb49c09d5b41dec0ddbb1af019371595322b8695946f1b91cda77350ddd171",
+              "values": [
+                [
+                  "revision_now",
+                  "int"
+                ],
+                [
+                  "code",
+                  "StringName"
+                ]
+              ]
+            },
+            "Profiles.body_extent_into": {
+              "numeric_and_name_bytes": 73,
+              "reference_values": 2,
+              "provisional_frame_bytes": 137,
+              "body_sha256": "01edd5225781ff0f30ade2e697a8637266df823cf231daf1b890771c37c2c856",
+              "values": [
+                [
+                  "revision",
+                  "int"
+                ],
+                [
+                  "out",
+                  "PackedInt32Array"
+                ],
+                [
+                  "low",
+                  "Vector3i"
+                ],
+                [
+                  "high",
+                  "Vector3i"
+                ],
+                [
+                  "found",
+                  "bool"
+                ],
+                [
+                  "row",
+                  "int"
+                ],
+                [
+                  "role",
+                  "int"
+                ],
+                [
+                  "axis",
+                  "int"
+                ],
+                [
+                  "axis",
+                  "int"
+                ]
+              ]
+            }
+          },
+          "declared_provisional_bytes": 707,
+          "transient_heap_bytes": 0,
+          "expression_bytes": 256,
+          "total": 963,
+          "note": ""
+        }
+      },
+      "maximum_case": "catalog_bind_level_identity",
+      "maximum_provisional_bytes": 4151,
+      "native_measured": false
+    },
+    "surface_constructor": {
+      "graph": {
+        "numeric_bytes": 384,
+        "reference_values": 27,
+        "numeric_chain": [
+          "Session._configure_surface_anchor",
+          "SurfaceAnchor.configure",
+          "SurfaceAnchor._initial_binding_refusal",
+          "FinalFacts.snapshot_refusal",
+          "FinalFacts._sources_refusal",
+          "FinalFacts._resident_into",
+          "FinalFacts._resident_location_refusal",
+          "FinalFacts._transit_refusal",
+          "Routes._segment_length",
+          "Routes._ceil_root"
+        ],
+        "reference_chain": [
+          "Session._configure_surface_anchor",
+          "SurfaceAnchor.configure",
+          "SurfaceAnchor._initial_binding_refusal",
+          "FinalFacts.snapshot_refusal",
+          "FinalFacts._sources_refusal",
+          "FinalFacts._resident_into",
+          "FinalFacts._resident_location_refusal",
+          "Buildings.is_live_room",
+          "Buildings._room_row_of",
+          "Directory.get_typed_row",
+          "Directory.is_valid",
+          "Directory.is_valid_of_kind"
+        ],
+        "provisional_bytes": 1504,
+        "frames": {
+          "Budget.is_quiescent": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Buildings._room_row_of": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Directory.get_typed_row",
+              "Directory.is_valid_of_kind"
+            ],
+            "returns": "int"
+          },
+          "Buildings.is_live_room": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Buildings._room_row_of"
+            ],
+            "returns": "bool"
+          },
+          "Construction.buildings": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "Buildings"
+          },
+          "CoreSources._final_building": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "CoreSources._final_furniture": {
+            "numeric_and_name_bytes": 48,
+            "reference_values": 2,
+            "calls": [
+              "CoreSources._final_row"
+            ],
+            "returns": "StringName"
+          },
+          "CoreSources._final_project": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 3,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "CoreSources._final_room": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "CoreSources._final_row": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "int"
+          },
+          "CoreSources.construction_owner": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "Construction"
+          },
+          "CoreSources.directory": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "Directory"
+          },
+          "CoreSources.read_final_into": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 3,
+            "calls": [
+              "CoreSources._final_building",
+              "CoreSources._final_furniture",
+              "CoreSources._final_project",
+              "CoreSources._final_room",
+              "CoreSources._final_row",
+              "Facts.clear"
+            ],
+            "returns": "StringName"
+          },
+          "CoreSources.read_into": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "CoreSources.read_leaf_into",
+              "Directory.is_valid_of_kind",
+              "Facts.clear"
+            ],
+            "returns": "StringName"
+          },
+          "CoreSources.read_leaf_into": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Facts.clear",
+              "Directory.is_valid",
+              "Directory.get_kind"
+            ],
+            "returns": "StringName"
+          },
+          "CoreSources.resident_locations_owner": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "ResidentLocations"
+          },
+          "Directory.get_kind": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Directory.is_valid"
+            ],
+            "returns": "int"
+          },
+          "Directory.get_typed_row": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "Directory.is_valid"
+            ],
+            "returns": "int"
+          },
+          "Directory.is_valid": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Directory.is_valid_of_kind"
+            ],
+            "returns": "bool"
+          },
+          "Directory.is_valid_of_kind": {
+            "numeric_and_name_bytes": 41,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Facts.clear": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "FinalFacts._binding_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 3,
+            "calls": [
+              "FinalFacts._stores_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._claims_refusal": {
+            "numeric_and_name_bytes": 48,
+            "reference_values": 2,
+            "calls": [
+              "CoreSources.read_final_into",
+              "Directory.is_valid_of_kind",
+              "FinalFacts._facts_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._copy_pose": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "void"
+          },
+          "FinalFacts._facts_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "Directory.get_kind",
+              "Directory.is_valid_of_kind",
+              "Owner._nullable_ref",
+              "Space.int32"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._location_binding": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [
+              "Directory.is_valid_of_kind"
+            ],
+            "returns": "bool"
+          },
+          "FinalFacts._required_checks": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "int"
+          },
+          "FinalFacts._resident_into": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 3,
+            "calls": [
+              "FinalFacts._resident_location_refusal",
+              "FinalFacts._resident_pose_into",
+              "Residents.is_alive",
+              "Routes._resident_pair",
+              "Routes._resident_ref",
+              "Work.jobs"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._resident_location_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 2,
+            "calls": [
+              "Buildings.is_live_room",
+              "FinalFacts._transit_refusal",
+              "Locations._get32",
+              "Locations._live_ref",
+              "Locations._ref_at",
+              "Owner._region_live",
+              "Routes._resident_pair"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._resident_pose_into": {
+            "numeric_and_name_bytes": 40,
+            "reference_values": 3,
+            "calls": [
+              "FinalFacts._copy_pose"
+            ],
+            "returns": "int"
+          },
+          "FinalFacts._same_domain": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "FinalFacts._sources_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 4,
+            "calls": [
+              "CoreSources.read_final_into",
+              "Directory.is_valid_of_kind",
+              "FinalFacts._facts_refusal",
+              "FinalFacts._resident_into",
+              "Owner._facts_match"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._stores_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 4,
+            "calls": [
+              "FinalFacts._location_binding",
+              "FinalFacts._same_domain"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts._transit_refusal": {
+            "numeric_and_name_bytes": 72,
+            "reference_values": 1,
+            "calls": [
+              "Routes._edge_i32",
+              "Routes._edge_pair",
+              "Routes._interpolate",
+              "Routes._live_edge",
+              "Routes._resident_pair",
+              "Routes._segment_length",
+              "Routes._vertex"
+            ],
+            "returns": "StringName"
+          },
+          "FinalFacts.snapshot_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 3,
+            "calls": [
+              "FinalFacts._binding_refusal",
+              "FinalFacts._claims_refusal",
+              "FinalFacts._required_checks",
+              "FinalFacts._sources_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "Locations._get32": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "int"
+          },
+          "Locations._live_ref": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Locations._ref_at": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "Vector2i"
+          },
+          "Locations._reject_retention_callback": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Locations.bind_world_scope": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [
+              "Budget.is_quiescent",
+              "Locations._reject_retention_callback",
+              "Locations.world_ref",
+              "Owner.has_prepared",
+              "SurfaceAnchor.exact_binding"
+            ],
+            "returns": "StringName"
+          },
+          "Locations.cold_peak_bytes": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "int"
+          },
+          "Locations.world_ref": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [
+              "Directory.is_valid"
+            ],
+            "returns": "Vector2i"
+          },
+          "Needs._check_live_slot": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Needs._check_present_slot"
+            ],
+            "returns": "StringName"
+          },
+          "Needs._check_present_slot": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "StringName"
+          },
+          "Needs.is_alive": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Needs._check_live_slot"
+            ],
+            "returns": "bool"
+          },
+          "Owner._facts_match": {
+            "numeric_and_name_bytes": 10,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Owner._find_source": {
+            "numeric_and_name_bytes": 26,
+            "reference_values": 1,
+            "calls": [
+              "Owner._spend"
+            ],
+            "returns": "int"
+          },
+          "Owner._nullable_ref": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 0,
+            "calls": [
+              "Space.valid_ref"
+            ],
+            "returns": "bool"
+          },
+          "Owner._read_source": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "CoreSources.directory",
+              "CoreSources.read_into",
+              "Directory.get_kind",
+              "Directory.is_valid",
+              "Directory.is_valid_of_kind",
+              "Owner._nullable_ref",
+              "Space.int32"
+            ],
+            "returns": "StringName"
+          },
+          "Owner._region_live": {
+            "numeric_and_name_bytes": 10,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Owner._spend": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Owner.allocation_within": {
+            "numeric_and_name_bytes": 17,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Owner.has_prepared": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Owner.is_bound_sources": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Owner.revision": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "int"
+          },
+          "Owner.source_refusal": {
+            "numeric_and_name_bytes": 32,
+            "reference_values": 1,
+            "calls": [
+              "Owner._facts_match",
+              "Owner._find_source",
+              "Owner._read_source"
+            ],
+            "returns": "StringName"
+          },
+          "Owner.source_revision": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [
+              "Owner._find_source"
+            ],
+            "returns": "int"
+          },
+          "Residents.is_alive": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [
+              "Needs.is_alive",
+              "Residents.is_present"
+            ],
+            "returns": "bool"
+          },
+          "Residents.is_present": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Routes._ceil_root": {
+            "numeric_and_name_bytes": 56,
+            "reference_values": 0,
+            "calls": [],
+            "returns": "int"
+          },
+          "Routes._edge_i32": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "int"
+          },
+          "Routes._edge_pair": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "Vector2i"
+          },
+          "Routes._interpolate": {
+            "numeric_and_name_bytes": 88,
+            "reference_values": 0,
+            "calls": [],
+            "returns": "Vector3i"
+          },
+          "Routes._live_edge": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Routes._resident_pair": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "Vector2i"
+          },
+          "Routes._resident_ref": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "Vector2i"
+          },
+          "Routes._segment_length": {
+            "numeric_and_name_bytes": 72,
+            "reference_values": 0,
+            "calls": [
+              "Routes._ceil_root"
+            ],
+            "returns": "int"
+          },
+          "Routes._vertex": {
+            "numeric_and_name_bytes": 36,
+            "reference_values": 1,
+            "calls": [
+              "Routes._edge_i32"
+            ],
+            "returns": "Vector3i"
+          },
+          "Session._configure_surface_anchor": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 2,
+            "calls": [
+              "SurfaceAnchor.configure"
+            ],
+            "returns": "StringName"
+          },
+          "Space.int32": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 0,
+            "calls": [
+              "Value.int32"
+            ],
+            "returns": "bool"
+          },
+          "Space.valid_ref": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 0,
+            "calls": [
+              "Value.valid_ref"
+            ],
+            "returns": "bool"
+          },
+          "SurfaceAnchor._bind_owners": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 7,
+            "calls": [
+              "CoreSources.resident_locations_owner",
+              "Locations.world_ref",
+              "SurfaceAnchor._pin_stores",
+              "World.section_1_published_seed"
+            ],
+            "returns": "void"
+          },
+          "SurfaceAnchor._clear_binding": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [
+              "SurfaceAnchor._clear_stores"
+            ],
+            "returns": "void"
+          },
+          "SurfaceAnchor._clear_stores": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "SurfaceAnchor._initial_binding_refusal": {
+            "numeric_and_name_bytes": 16,
+            "reference_values": 1,
+            "calls": [
+              "FinalFacts.snapshot_refusal",
+              "Locations.cold_peak_bytes",
+              "Owner.allocation_within",
+              "Owner.has_prepared",
+              "Owner.revision",
+              "SurfaceAnchor.exact_binding",
+              "Terrain.binding_refusal"
+            ],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor._pin_stores": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "void"
+          },
+          "SurfaceAnchor._refuse_configuration": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 1,
+            "calls": [
+              "SurfaceAnchor._clear_binding"
+            ],
+            "returns": "void"
+          },
+          "SurfaceAnchor._store_tuple_current": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "SurfaceAnchor.configure": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 7,
+            "calls": [
+              "Budget.is_quiescent",
+              "Locations.bind_world_scope",
+              "SurfaceAnchor._bind_owners",
+              "SurfaceAnchor._initial_binding_refusal",
+              "SurfaceAnchor._refuse_configuration"
+            ],
+            "returns": "StringName"
+          },
+          "SurfaceAnchor.exact_binding": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 4,
+            "calls": [
+              "Directory.is_valid_of_kind",
+              "FinalFacts._same_domain",
+              "SurfaceAnchor._store_tuple_current",
+              "World.directory",
+              "World.is_published",
+              "World.section_1_published_seed"
+            ],
+            "returns": "bool"
+          },
+          "Terrain._world_source_refusal": {
+            "numeric_and_name_bytes": 24,
+            "reference_values": 3,
+            "calls": [
+              "CoreSources.directory",
+              "Directory.is_valid_of_kind",
+              "Owner.revision",
+              "Owner.source_refusal",
+              "Owner.source_revision"
+            ],
+            "returns": "StringName"
+          },
+          "Terrain.binding_refusal": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 3,
+            "calls": [
+              "Construction.buildings",
+              "CoreSources.construction_owner",
+              "CoreSources.directory",
+              "Owner.is_bound_sources",
+              "Terrain._world_source_refusal",
+              "World.directory",
+              "World.is_published",
+              "World.resource_nodes",
+              "World.section_1_published_seed"
+            ],
+            "returns": "StringName"
+          },
+          "Value.int32": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 0,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Value.valid_ref": {
+            "numeric_and_name_bytes": 9,
+            "reference_values": 0,
+            "calls": [],
+            "returns": "bool"
+          },
+          "Work.jobs": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "JobsScript"
+          },
+          "World.directory": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "EntityDirectory"
+          },
+          "World.is_published": {
+            "numeric_and_name_bytes": 1,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "bool"
+          },
+          "World.resource_nodes": {
+            "numeric_and_name_bytes": 0,
+            "reference_values": 2,
+            "calls": [],
+            "returns": "ResourceNodesScript"
+          },
+          "World.section_1_published_seed": {
+            "numeric_and_name_bytes": 8,
+            "reference_values": 1,
+            "calls": [],
+            "returns": "int"
+          }
+        }
+      },
+      "caller_chain": [
+        "Host.compose_underground_surface_anchor",
+        "Session.compose_surface_anchor"
+      ],
+      "caller_frame_bytes": 122,
+      "world_source_six_kind_literal_bytes": 448,
+      "retained_weak_scope_charged_again_bytes": 288,
+      "provisional_total": 2362,
+      "new_cold_lease_or_snapshot_bytes": 0,
+      "native_measured": false
+    },
+    "existing_surface_reservation": {
+      "reserved_bytes": 2048,
+      "own_numeric_bytes": 93,
+      "record_region_result_numeric_bytes": 140,
+      "packed_bytes": 96,
+      "fixed_numeric_and_packed_bytes": 329,
+      "logical_helper_allowance": 1024,
+      "borrowed_owner_references": {
+        "_world": "World",
+        "_terrain": "Terrain",
+        "_space": "Owner",
+        "_sources": "Owner.CoreSources",
+        "_locations": "Locations",
+        "_routes": "Routes",
+        "_budget": "Budget",
+        "_ids": "Directory",
+        "_buildings": "Routes.Buildings",
+        "_construction": "Owner.Construction",
+        "_inventory": "Routes.Inventory",
+        "_transforms": "Routes.Transforms",
+        "_residents": "Routes.Residents",
+        "_jobs": "Routes.Jobs",
+        "_work": "Routes.Work",
+        "_profiles": "Routes.Profiles",
+        "_bindings": "Routes.Bindings",
+        "_gear": "Routes.Gear",
+        "_carry": "Routes.Carry",
+        "_reservations": "Routes.Reservations",
+        "_piles": "Routes.Piles"
+      },
+      "retained_packet_objects": 2,
+      "packed_buffer_count": 4,
+      "native_measured": false,
+      "scope": "Existing separately charged logical SurfaceAnchor reservation, not a new retirement allocation. Native object/ref/header costs are source-enumerated but unmeasured; the 2048-byte logical reservation is not a whole-native-allocation certificate. No second anchor is copied into Scope."
+    },
+    "constructor_exclusive_reuse": {
+      "absent_original_scope_and_copy_bytes": 2097,
+      "remaining_controls": 4034,
+      "constructor_stack_and_heap": 4151,
+      "simultaneous_total": 8185,
+      "ceiling": 8192,
+      "remaining": 7
+    },
+    "accounting": {
+      "controls": 6131,
+      "control_ceiling": 6144,
+      "helpers": 1919,
+      "helper_ceiling": 2048,
+      "retirement_reserved_bytes": 8192,
+      "existing_session_reserved_bytes": 1536,
+      "profile_joint": 246868,
+      "profile_ceiling": 262144
+    },
+    "native_measured": false,
+    "runtime_qualified": false
+  },
+  "original_4096_i32_mutation": {
+    "refused": true,
+    "reason": "uncharged owned collection allocation: SurfaceAnchor._initial_binding_refusal"
+  }
+}

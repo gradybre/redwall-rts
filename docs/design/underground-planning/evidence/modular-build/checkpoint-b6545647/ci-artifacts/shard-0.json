@@ -1,0 +1,332 @@
+{
+  "counts": {
+    "assertions": 83456,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1062,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "59aa55b4b6baf5342d0b832141f27612831a64af527bff9ef49b5d0ef4e99a31",
+  "shard_count": 8,
+  "shard_index": 0,
+  "suite_counts": {
+    "test_construction_retired_histories.gd": {
+      "assertions": 1276,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_demo_dishes.gd": {
+      "assertions": 694,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_demo_harvest_plan.gd": {
+      "assertions": 97,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_demo_integration.gd": {
+      "assertions": 274,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_lifetimes.gd": {
+      "assertions": 12,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_demo_people_pairs.gd": {
+      "assertions": 4919,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_playtest_log.gd": {
+      "assertions": 186,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_demo_resume.gd": {
+      "assertions": 33,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_tunnel.gd": {
+      "assertions": 929,
+      "failures": 0,
+      "tests": 119
+    },
+    "test_economic_sequence_format.gd": {
+      "assertions": 216,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_entity_directory_candidate.gd": {
+      "assertions": 358,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_family_rules.gd": {
+      "assertions": 451,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_game_manager.gd": {
+      "assertions": 267,
+      "failures": 0,
+      "tests": 73
+    },
+    "test_ground_piles.gd": {
+      "assertions": 547,
+      "failures": 0,
+      "tests": 42
+    },
+    "test_inventory_capacity_reduction.gd": {
+      "assertions": 34,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_inventory_stock_counts.gd": {
+      "assertions": 1400,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_legacy_battle_combat_system.gd": {
+      "assertions": 26,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_mole_grip_source.gd": {
+      "assertions": 50,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_movement.gd": {
+      "assertions": 2302,
+      "failures": 0,
+      "tests": 55
+    },
+    "test_priorities.gd": {
+      "assertions": 276,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_proportion_comparison.gd": {
+      "assertions": 195,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_resident_crowd.gd": {
+      "assertions": 78,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_resource_catalog_binding.gd": {
+      "assertions": 400,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_resource_claim_lifecycle.gd": {
+      "assertions": 95,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_room_connectors.gd": {
+      "assertions": 179,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_save_owner_construction.gd": {
+      "assertions": 146,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_save_owner_movement.gd": {
+      "assertions": 24406,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_save_owner_work.gd": {
+      "assertions": 12786,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_save_replay_checkpoint.gd": {
+      "assertions": 279,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_settlement_demolition_work.gd": {
+      "assertions": 586,
+      "failures": 0,
+      "tests": 42
+    },
+    "test_settlement_starter_colony.gd": {
+      "assertions": 288,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_spatial_world.gd": {
+      "assertions": 16755,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_ui_notices.gd": {
+      "assertions": 1210,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_ui_world_session.gd": {
+      "assertions": 78,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_underground_actor.gd": {
+      "assertions": 225,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_underground_entry_cut_map.gd": {
+      "assertions": 2085,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_underground_entry_orders.gd": {
+      "assertions": 797,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_underground_entry_placements.gd": {
+      "assertions": 466,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_underground_furniture_batches.gd": {
+      "assertions": 1364,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_underground_space_owner.gd": {
+      "assertions": 5461,
+      "failures": 0,
+      "tests": 113
+    },
+    "test_underground_surface_anchor.gd": {
+      "assertions": 251,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_underground_world_bindings.gd": {
+      "assertions": 828,
+      "failures": 0,
+      "tests": 37
+    },
+    "test_underground_world_room_bindings.gd": {
+      "assertions": 83,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_world_material_targets.gd": {
+      "assertions": 68,
+      "failures": 0,
+      "tests": 5
+    }
+  },
+  "suite_usec": {
+    "test_construction_retired_histories.gd": 7235485,
+    "test_demo_dishes.gd": 2109855,
+    "test_demo_harvest_plan.gd": 5088543,
+    "test_demo_integration.gd": 19340358,
+    "test_demo_lifetimes.gd": 44081,
+    "test_demo_people_pairs.gd": 248797,
+    "test_demo_playtest_log.gd": 2434902,
+    "test_demo_resume.gd": 53555,
+    "test_demo_tunnel.gd": 15215683,
+    "test_economic_sequence_format.gd": 943490,
+    "test_entity_directory_candidate.gd": 1190933,
+    "test_family_rules.gd": 37652,
+    "test_game_manager.gd": 370195,
+    "test_ground_piles.gd": 5621064,
+    "test_inventory_capacity_reduction.gd": 36419,
+    "test_inventory_stock_counts.gd": 228657,
+    "test_legacy_battle_combat_system.gd": 17264,
+    "test_mole_grip_source.gd": 221565,
+    "test_movement.gd": 2793148,
+    "test_priorities.gd": 18340,
+    "test_proportion_comparison.gd": 148704,
+    "test_resident_crowd.gd": 1980345,
+    "test_resource_catalog_binding.gd": 1458007,
+    "test_resource_claim_lifecycle.gd": 496314,
+    "test_room_connectors.gd": 42581,
+    "test_save_owner_construction.gd": 2145094,
+    "test_save_owner_movement.gd": 8281948,
+    "test_save_owner_work.gd": 3948607,
+    "test_save_replay_checkpoint.gd": 106393,
+    "test_settlement_demolition_work.gd": 11427913,
+    "test_settlement_starter_colony.gd": 129046312,
+    "test_spatial_world.gd": 1009518,
+    "test_ui_notices.gd": 247037,
+    "test_ui_world_session.gd": 4230906,
+    "test_underground_actor.gd": 406052,
+    "test_underground_entry_cut_map.gd": 51213,
+    "test_underground_entry_orders.gd": 11190030,
+    "test_underground_entry_placements.gd": 10259635,
+    "test_underground_furniture_batches.gd": 4161922,
+    "test_underground_space_owner.gd": 12931124,
+    "test_underground_surface_anchor.gd": 15054201,
+    "test_underground_world_bindings.gd": 21148665,
+    "test_underground_world_room_bindings.gd": 4683429,
+    "test_world_material_targets.gd": 1252749
+  },
+  "suites": [
+    "test_construction_retired_histories.gd",
+    "test_demo_dishes.gd",
+    "test_demo_harvest_plan.gd",
+    "test_demo_integration.gd",
+    "test_demo_lifetimes.gd",
+    "test_demo_people_pairs.gd",
+    "test_demo_playtest_log.gd",
+    "test_demo_resume.gd",
+    "test_demo_tunnel.gd",
+    "test_economic_sequence_format.gd",
+    "test_entity_directory_candidate.gd",
+    "test_family_rules.gd",
+    "test_game_manager.gd",
+    "test_ground_piles.gd",
+    "test_inventory_capacity_reduction.gd",
+    "test_inventory_stock_counts.gd",
+    "test_legacy_battle_combat_system.gd",
+    "test_mole_grip_source.gd",
+    "test_movement.gd",
+    "test_priorities.gd",
+    "test_proportion_comparison.gd",
+    "test_resident_crowd.gd",
+    "test_resource_catalog_binding.gd",
+    "test_resource_claim_lifecycle.gd",
+    "test_room_connectors.gd",
+    "test_save_owner_construction.gd",
+    "test_save_owner_movement.gd",
+    "test_save_owner_work.gd",
+    "test_save_replay_checkpoint.gd",
+    "test_settlement_demolition_work.gd",
+    "test_settlement_starter_colony.gd",
+    "test_spatial_world.gd",
+    "test_ui_notices.gd",
+    "test_ui_world_session.gd",
+    "test_underground_actor.gd",
+    "test_underground_entry_cut_map.gd",
+    "test_underground_entry_orders.gd",
+    "test_underground_entry_placements.gd",
+    "test_underground_furniture_batches.gd",
+    "test_underground_space_owner.gd",
+    "test_underground_surface_anchor.gd",
+    "test_underground_world_bindings.gd",
+    "test_underground_world_room_bindings.gd",
+    "test_world_material_targets.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 315
+}

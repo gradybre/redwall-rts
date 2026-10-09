@@ -1,0 +1,16 @@
+{
+  "source_and_current_prose_whitespace_exit": 0,
+  "all_staged_whitespace_exit": 2,
+  "historical_raw_bytes_preserved": true,
+  "raw_evidence_paths_with_whitespace": [
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/independent-review/clock-delta.diff",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/independent-review/initializer-missing-old-contract.log",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-1/engine-import.log",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-2/engine-import.log",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-3/engine-import.log",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4/engine-import.log",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/source-review-1/source.diff",
+    "docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/source-review-2/candidate1-to-candidate2.diff"
+  ],
+  "note": "Unified diff context lines and exact raw engine/rejected logs preserve original bytes; no production or current source/prose whitespace finding."
+}

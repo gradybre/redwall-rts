@@ -1,0 +1,195 @@
+{
+  "schema": 1,
+  "scope": "actual Actor heading correction with sampled native proof and synthetic route/identity fixtures; zero qualified profiles",
+  "review_status": "accepted independent source and evidence review",
+  "tests": {
+    "strict_tests": 198,
+    "assertions": 4591,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "python_tests": 13,
+    "analyzer_warnings": 0,
+    "analyzer_files": 3
+  },
+  "native": {
+    "cases": 10,
+    "sampled_poses": 1894,
+    "matrix_checks": 54816,
+    "qualified_profile_count": 0
+  },
+  "evidence": [
+    {
+      "path": "docs/decisions/1077-underground-rendered-heading.md",
+      "sha256": "3bc3c7cf1f7dcc7b4f450ce2f624341b69ec8f8786f92a4684239b26e8242fa1",
+      "bytes": 4861
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/README.md",
+      "sha256": "d4be00754833313d856ed1de5565e42834edc16ca80bf6f1756645686dcb3def",
+      "bytes": 2373
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/analyzer.json",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "bytes": 2
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+      "bytes": 40
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/authority-comparison.json",
+      "sha256": "cde1ad5f9ae1dd286c101f9bee6a5cac51fafe0abfc27749a046107e694fd8dc",
+      "bytes": 3349
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/capture-analyzer-invocation.json",
+      "sha256": "8439b58644b3ee273df8b6ab4530fc800f3501fa81f1c6ab6c921c1726e1a821",
+      "bytes": 1438
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/capture-analyzer.json",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "bytes": 2
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/capture-analyzer.log",
+      "sha256": "4149412bf2bc9a0c789283f8568f060c85bc89a8abcac221bba1a021b522df15",
+      "bytes": 40
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/headless-invocation.json",
+      "sha256": "09aa14fa869f425ecadc84f1617f42406e80da221bd6a016badbc704ab8c0f8c",
+      "bytes": 627
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/history/headless-invocation.json",
+      "sha256": "ac539b916948e00ba39b1bf7f107e05e63b2b6c2ed94d7e000fdfda0af9b3496",
+      "bytes": 628
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/history/import.log",
+      "sha256": "8c1cd022298d83c134bf6d55e6fe2c9851e4a15575c9cbe6d2dcd3169f13a36f",
+      "bytes": 84576
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/history/strict-tests.log",
+      "sha256": "9e1357ea8011c763ef647e1291d4df064e49bd499d42c14ad6982f0d64e92178",
+      "bytes": 17963
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/import.log",
+      "sha256": "8c1cd022298d83c134bf6d55e6fe2c9851e4a15575c9cbe6d2dcd3169f13a36f",
+      "bytes": 84576
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-native.json",
+      "sha256": "3f77304a72a65e76ae0faca8b0ef0157c66a9ad5f0cdbbff275df0082f83545c",
+      "bytes": 3080041
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-native.log",
+      "sha256": "5b0e6f877db059b651b6b10f6348fdfd5e43e77566bdadf2dba137772a59f8fc",
+      "bytes": 1129
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-spec.json",
+      "sha256": "f63992b22026c23c1c8ab865c07c9d935b917b74eb15ab3f0d674af91e6cdc4a",
+      "bytes": 124576
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/verification.json",
+      "sha256": "765a6c74d4797d379cc28f7969852626cfd390121f221fbff33af014347c8189",
+      "bytes": 2013
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native-verification.log",
+      "sha256": "82faeedec8d860b72a6c1c3c241593f5418bbdbb0c95bc35f874031392a64982",
+      "bytes": 159
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/python-tests.log",
+      "sha256": "db2a5f01fffe8738fb73f1d4462cbd0401b6fe7e6bf36042d570e826e744a54a",
+      "bytes": 112
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/reproduce.py",
+      "sha256": "56d2273190e8af6d80a5630099f2ae36fc00fb0e2ddfc53a6c38e29c7624c31b",
+      "bytes": 5248
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/strict-tests.log",
+      "sha256": "04b935d101410acdf19697bd2682098e4fc85e3e1fa853d00569787f5836f743",
+      "bytes": 18090
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/test_reproduce.py",
+      "sha256": "af63874dcfb0f8db42fb18921325660b773e2547c8d8592742b82179c2680e11",
+      "bytes": 5390
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/native-v2/capture-native.json",
+      "sha256": "e731e4a97025af1a75e673216d0dded7e36a39f56e29768ecffc75a79e1c09da",
+      "bytes": 14719263
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/native-v2/capture-spec.json",
+      "sha256": "81ecc3e897f84b31c45284ba531969d52aa142ff365c22ebb349efbf544b7318",
+      "bytes": 129386
+    },
+    {
+      "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py",
+      "sha256": "35411a55f46be8df6c6a100513d2c32d6b70c4ac2aae8941c105f1d5c48ac12b",
+      "bytes": 14689
+    },
+    {
+      "path": "godot/demo/cast/demo_actor.gd",
+      "sha256": "1dd127464e7a9853b307af20d8f34bdd2606e7dad64910b685a810eaa93b5fb0",
+      "bytes": 40709
+    },
+    {
+      "path": "godot/demo/cast/resident_brain.gd",
+      "sha256": "ce85423ce7aed09b3985630e09a9cbc181c7a4b48ecc3f6b2e67821c05b8075a",
+      "bytes": 109958
+    },
+    {
+      "path": "godot/test/test_demo_actor_underground_heading.gd",
+      "sha256": "3edb9e811dcbcfe00011a6a13fecd5910c0139f5d9bc753aeb690cc2edb9e7c2",
+      "bytes": 10934
+    },
+    {
+      "path": "godot/test/test_demo_actor_underground_heading.gd.uid",
+      "sha256": "37c45a5457552da9bec0634c64de105cc79d620227f5495da9c612b93a5c2361",
+      "bytes": 20
+    },
+    {
+      "path": "tools/capture_underground_heading.gd",
+      "sha256": "f1c52b5a0b3f6060ff4cb098a1f0e928553c661d4f8a9545fc7f7bc7e4d8fe05",
+      "bytes": 1848
+    },
+    {
+      "path": "tools/capture_underground_heading.gd.uid",
+      "sha256": "24059fa838f2b3b120020bfb57a2e9119c3f58981d075d3f3f0fd25abb21edea",
+      "bytes": 20
+    },
+    {
+      "path": "tools/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c",
+      "bytes": 36809
+    },
+    {
+      "path": "tools/capture_underground_transitions.gd",
+      "sha256": "9df0694b5db617d46ae1beb65d671af7648247b230f08cce3d5d7eaa9f81d84d",
+      "bytes": 24354
+    }
+  ],
+  "independent_review": {
+    "reviewer": "root (not author)",
+    "scope": "frozen Actor/test/capture/wrapper sources and sampled evidence; independently replayed 13 adversarial Python tests; no high/medium source blocker",
+    "production_profile_qualification": false
+  }
+}

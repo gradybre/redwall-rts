@@ -1,0 +1,15 @@
+test_search_brackets_the_chosen_degree (__main__.StandWalkV2Derivation.test_search_brackets_the_chosen_degree)
+Each side's degree clears, one degree less fails, 0 fails and 30 clears, all recorded. ... ok
+test_turn_is_a_proper_rotation (__main__.StandWalkV2Derivation.test_turn_is_a_proper_rotation)
+Rodrigues turns are orthonormal with determinant one. ... ok
+test_dig_needs_no_release (__main__.StandWalkV2Evidence.test_dig_needs_no_release)
+The dig entry's left arm separates with the exception switched off. ... ok
+test_everything_clears (__main__.StandWalkV2Evidence.test_everything_clears)
+Support, per-arm separation, stock separation, and the dig from the corrected ready key. ... ok
+test_stand_and_walk_rebuild (__main__.StandWalkV2Rebuild.test_stand_and_walk_rebuild)
+The stored stand and walk are the published clips swung by the recorded degrees. ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.170s
+
+OK

@@ -1,0 +1,13 @@
+test_current_commit_must_match_review (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_each_changed_historical_consumer_is_checked (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_each_current_consumer_is_checked (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_each_native_proof_byte_is_checked (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_exact_geometry_and_only_reviewed_source_constants_change (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_old_proof_and_new_review_cannot_be_rewritten (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_reader_rejects_escape_alias_and_symlink (test_renew_work_approach_profiles.RenewalTests) ... ok
+test_rejects_output_overwrite_and_escape (test_renew_work_approach_profiles.RenewalTests) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 1.295s
+
+OK

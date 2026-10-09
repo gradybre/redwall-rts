@@ -1,0 +1,64 @@
+state_registry_coverage: PASS -- 153 modules, 730 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_world_routes.gd
+  PASS  test_union_coverage_requires_every_interior_point_not_corners
+  PASS  test_adjacent_half_open_volumes_cover_without_gaps_or_double_faces
+  PASS  test_support_residual_needs_both_authored_stance_and_actual_support
+  PASS  test_unfinished_walls_access_and_foreign_claim_observations_remain_blocking
+  PASS  test_floor_metadata_and_dry_matter_do_not_create_support_or_air
+  PASS  test_subtraction_preserves_six_disjoint_outside_slabs
+  PASS  test_finite_comparison_and_fragment_exhaustion_fail_closed
+  PASS  test_certificate_mask_has_independent_profile_bits_and_private_copy
+  PASS  test_unbound_adapter_cannot_admit_or_publish_actual_routes
+  PASS  test_actual_world_ground_route_moves_actual_actor_at_inherited_pace
+  PASS  test_actual_clear_endpoints_do_not_allow_middle_holes_or_unfinished_volume
+  PASS  test_actual_support_excuses_only_authored_below_floor_contact
+  PASS  test_actual_structural_support_inside_void_blocks_body_and_recovery_sweeps
+  PASS  test_fixed_connector_data_cannot_authorize_an_unbuilt_stair
+  PASS  test_aborted_route_row_cannot_inherit_a_previous_candidates_mask
+  PASS  test_catalog_replacement_requires_every_retained_route_to_requalify
+  PASS  test_live_resource_change_blocks_motion_without_a_geometry_revision_change
+  PASS  test_exact_cold_lease_loss_refuses_before_certificate_publication
+  PASS  test_late_actual_endpoint_refusal_never_promotes_private_certificates
+  PASS  test_concrete_provider_requires_the_exact_successful_geometry_companion
+  PASS  test_geometry_change_invalidates_whole_cached_route_before_new_movement
+  PASS  test_reentrant_local_source_read_cannot_replace_current_actor_scratch
+  PASS  test_static_profile_edge_reads_actual_certificate_without_admitting_actor_or_job
+  PASS  test_static_profile_edge_refuses_wrong_identity_content_or_unpublished_candidate
+  PASS  test_static_profile_edge_refuses_pending_or_replaced_geometry_and_catalog
+  PASS  test_static_profile_edge_rechecks_actual_sources_after_final_binding_callback
+  PASS  test_canonical_source_ground_turn_requires_ready_and_actual_ground_only_catalog
+  PASS  test_ground_only_final_source_leaf_refuses_mixed_tables_missing_paces_and_source_drift
+  PASS  test_stationary_turn_requires_all_yaw_source_even_at_an_exact_valid_heading
+  PASS  test_stationary_turn_keeps_position_route_and_economy_then_repeats_shortest_arc
+  PASS  test_stationary_turn_refuses_queued_actor_bad_yaw_job_and_insufficient_work
+  PASS  test_stationary_turn_refuses_prepared_geometry_and_profile_source_replacement
+  PASS  test_stationary_turn_final_geometry_includes_new_actual_resource
+  PASS  test_stationary_turn_closes_late_pose_copy_and_reentry_before_write
+  PASS  test_stationary_turn_rejects_late_endpoint_packet_change
+  PASS  test_stationary_turn_final_actor_proof_rejects_late_actual_job_and_tool_changes
+  PASS  test_stationary_turn_preserves_real_equipped_tool_and_work_claim_without_doing_work
+  PASS  test_stationary_turn_refuses_actual_unregistered_living_occupant_then_retries
+  PASS  test_stationary_turn_uses_complete_recovery_union_against_another_actual_actor
+  PASS  test_stationary_turn_budget_exhaustion_at_final_scan_is_atomic
+  PASS  test_stationary_turn_closes_last_catalog_and_profile_observers
+CI_SUITE_TIME {"assertions":2586,"failures":0,"suite":"test_underground_world_routes.gd","tests":41,"usec":9793937}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+41 test(s), 2586 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 41 tests, 2586 assertions, 0 failures.

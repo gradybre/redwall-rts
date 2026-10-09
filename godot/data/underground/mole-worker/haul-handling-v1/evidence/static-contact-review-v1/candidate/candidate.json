@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "status": "UNQUALIFIED_SOURCE_CANDIDATE",
+  "production_qualified": false,
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "body_mesh_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "wood_mesh_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80",
+  "actual_log_overhang_m": 0.10799993604173319,
+  "recipe": {
+    "maximum_arm_link_error_m": 4.163336342344337e-17,
+    "lean_degrees": 95,
+    "hip_drop_u": 96,
+    "grip_raise_u": 64,
+    "grip_back_u": [
+      192,
+      160
+    ],
+    "station_R_minus_S_u": [
+      0,
+      0,
+      576
+    ],
+    "stock_mesh_bounds_u": [
+      -411.1478898549925,
+      0.001953125,
+      -626.6879997253418,
+      411.1478898549925,
+      101.3779525756836,
+      -525.3120002746582
+    ],
+    "sole_contact": {
+      "ankle_y_correction_u": [
+        -1.426887687673939,
+        -3.4076906657691124
+      ],
+      "iterations": 2,
+      "contact_vertices": [
+        16125,
+        3622
+      ],
+      "source_gap_u": [
+        0.0019748655653752945,
+        0.0020049018961025844
+      ],
+      "complete_foot_vertices": [
+        1666,
+        1559
+      ],
+      "complete_foot_bounds_u": [
+        [
+          -273.0460837170829,
+          0.0019748655653752945,
+          -168.3016950881437,
+          -80.94507214919767,
+          101.88869586638613,
+          94.46180098922306
+        ],
+        [
+          70.10195331156534,
+          0.0020049018961025844,
+          -63.67122843346161,
+          297.67120785832344,
+          106.54794869666645,
+          169.6627491188031
+        ]
+      ],
+      "source_solve_lift_u": [
+        1,
+        512
+      ],
+      "source_solve_tolerance_u": [
+        1,
+        1024
+      ]
+    }
+  },
+  "poses": [
+    {
+      "sampled_body_u": [
+        -421.68660486632655,
+        0.0001731457980502782,
+        -329.8747044284869,
+        431.5721351576632,
+        872.3889362180531,
+        230.25208557379125
+      ],
+      "sampled_wood_u": [
+        -415.1608157621869,
+        448.1792173455283,
+        -177.50716589740227,
+        412.2616234289655,
+        606.4166078497842,
+        -63.449544918027414
+      ],
+      "nearest_vertex_diagnostics": [
+        {
+          "hand_bone": 15,
+          "body_vertex": 13133,
+          "wood_vertex": 331,
+          "body_point_u": [
+            -413.11807252404594,
+            524.7388599920223,
+            -167.5925196985172
+          ],
+          "wood_point_u": [
+            -412.85898257916006,
+            526.8375926563231,
+            -168.99598272965542
+          ],
+          "sampled_vertex_distance_u": 2.538013962829134
+        },
+        {
+          "hand_bone": 19,
+          "body_vertex": 91,
+          "wood_vertex": 4,
+          "body_point_u": [
+            408.3748014619714,
+            578.1928482301034,
+            -162.55737613474594
+          ],
+          "wood_point_u": [
+            408.0342325656149,
+            575.2016114355197,
+            -160.9763178990482
+          ],
+          "sampled_vertex_distance_u": 3.400474949048264
+        }
+      ],
+      "scope": "Nearest vertices do not establish triangle contact, separation, support or native residual."
+    },
+    {
+      "sampled_body_u": [
+        -429.3020353631709,
+        0.0019748655653752945,
+        -588.1317864676862,
+        428.8743707838376,
+        458.84601966044016,
+        207.90545953068218
+      ],
+      "sampled_wood_u": [
+        -411.14788818359375,
+        0.001953125,
+        -626.6879997253418,
+        411.14788818359375,
+        101.3779525756836,
+        -525.3120002746582
+      ],
+      "nearest_vertex_diagnostics": [
+        {
+          "hand_bone": 15,
+          "body_vertex": 14075,
+          "wood_vertex": 356,
+          "body_point_u": [
+            -379.4498170397163,
+            55.12086988574663,
+            -526.6432633288259
+          ],
+          "wood_point_u": [
+            -411.14788818359375,
+            55.65824556350708,
+            -525.5560760498047
+          ],
+          "sampled_vertex_distance_u": 31.721262002654136
+        },
+        {
+          "hand_bone": 19,
+          "body_vertex": 14102,
+          "wood_vertex": 30,
+          "body_point_u": [
+            395.57105989720935,
+            63.66522627288941,
+            -518.2217661008037
+          ],
+          "wood_point_u": [
+            411.14788818359375,
+            60.578691482543945,
+            -526.2859573364258
+          ],
+          "sampled_vertex_distance_u": 17.80998194160234
+        }
+      ],
+      "scope": "Nearest vertices do not establish triangle contact, separation, support or native residual."
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e"
+  },
+  "missing": [
+    "complete entry/lift/recovery and interruption program",
+    "all triangle contact and separation",
+    "continuous/native/world basis proof",
+    "quantity/presentation mapping",
+    "runtime station seam and joint admission"
+  ]
+}

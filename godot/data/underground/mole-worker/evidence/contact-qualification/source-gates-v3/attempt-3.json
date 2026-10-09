@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/candidate-3",
+    "--consumer-revision",
+    "1e71c67879240fc293b0e41a6e04c34f64ecf42b"
+  ],
+  "source_head": "1e71c67879240fc293b0e41a6e04c34f64ecf42b",
+  "adapter_sha256": "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272",
+  "scope": "Developmental exact-input reconstruction/current-consumer snapshot; no compatibility or publication qualification",
+  "exit_code": 0,
+  "seconds": 6.499
+}

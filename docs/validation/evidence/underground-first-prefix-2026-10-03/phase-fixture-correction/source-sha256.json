@@ -1,0 +1,7 @@
+{
+  "godot/test/test_underground_connector_contacts.gd": "899c91b9002f999fc469f1203fd7a855bb5d94ed6506cc545a8c105619cc6081",
+  "godot/scripts/core/underground_connector_contacts.gd": "a6454ab756cdc242aeb2078916b2a89a1da4968ecdff7eeeb6427854235856aa",
+  "godot/scripts/core/excavation_sites.gd": "71548ca75917cf3aaca90469f2e23b15354b87744e1feb640b8f3655de1e55a0",
+  "godot/scripts/core/excavation_contract.gd": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e",
+  "godot/test/test_excavation_physical.gd": "5d4444391ef3c4fb8f90522115d807cdb34596e42cbee936bbcbdd5ea6226cb8"
+}

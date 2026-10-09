@@ -1,0 +1,82 @@
+{
+  "godot/scripts/core/underground_profiles.gd": {
+    "snapshot": "source-review-1/sources/underground_profiles.gd.txt",
+    "sha256": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e"
+  },
+  "godot/scripts/core/underground_routes.gd": {
+    "snapshot": "source-review-1/sources/underground_routes.gd.txt",
+    "sha256": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4"
+  },
+  "godot/scripts/core/underground_world_routes.gd": {
+    "snapshot": "source-review-1/sources/underground_world_routes.gd.txt",
+    "sha256": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f"
+  },
+  "godot/data/underground/mole-worker/mole_profile_driver.gd": {
+    "snapshot": "source-review-1/sources/mole_profile_driver.gd.txt",
+    "sha256": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": {
+    "snapshot": "source-review-1/sources/source_program.gd.txt",
+    "sha256": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4"
+  },
+  "godot/test/test_underground_profiles.gd": {
+    "snapshot": "source-review-1/sources/test_underground_profiles.gd.txt",
+    "sha256": "11ae21295a399ce73254f5c7254d22a80e1d7e75cd069c3fbd9a6382a0c80b69"
+  },
+  "godot/test/test_underground_routes.gd": {
+    "snapshot": "source-review-1/sources/test_underground_routes.gd.txt",
+    "sha256": "dd996205d07b9b8458b9fa1957f8842cafed04090ade112f2d3cd8ec86b231af"
+  },
+  "godot/test/test_underground_world_routes.gd": {
+    "snapshot": "source-review-1/sources/test_underground_world_routes.gd.txt",
+    "sha256": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2"
+  },
+  "godot/test/test_mole_profile_driver.gd": {
+    "snapshot": "source-review-1/sources/test_mole_profile_driver.gd.txt",
+    "sha256": "80110673489a4f46e78d44ffb29391de1195efb3f93e0c387f03f0126d98282c"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd": {
+    "snapshot": "source-review-1/sources/capture_canonical.gd.txt",
+    "sha256": "b521ca36ec4c379c1ff9f48f88a6e3fe679510ffb3103766712fa150b23d677a"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/source_program.gd.uid": {
+    "snapshot": "source-review-1/sources/source_program.gd.uid.txt",
+    "sha256": "f5957ee9b0286e3e96ef9e2e037da44a0a87dd2fcbc6437ae80c0d3f7a36bcd0"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd.uid": {
+    "snapshot": "source-review-1/sources/capture_canonical.gd.uid.txt",
+    "sha256": "a3e5bcd1f1f5194d320014cf6e2fcc715df2cd27cb40789178fdf77e52834a98"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py": {
+    "snapshot": "source-review-1/sources/compile_work_approach.py.txt",
+    "sha256": "de98c0c3d7de383844bc2369300668d511d8256f7858ec95a5e2c6ca7d08ab9a"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/test_compile_work_approach.py": {
+    "snapshot": "source-review-1/sources/test_compile_work_approach.py.txt",
+    "sha256": "548167905d79c5299590d469ce027255a25d26e92fff7360b6d4e21da97f2cad"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/source-input-locators.json": {
+    "snapshot": "source-review-1/sources/source-input-locators.json.txt",
+    "sha256": "523cbfedbedc428b3763407cf44a6c689f7399a5d167bce188c5e8110e5c3b69"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/run_canonical.py": {
+    "snapshot": "source-review-1/sources/run_canonical.py.txt",
+    "sha256": "7d36f92546ce19604a0c2a59422a46675c270c4ff73da3992f2e86ccbb951281"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/test_run_canonical.py": {
+    "snapshot": "source-review-1/sources/test_run_canonical.py.txt",
+    "sha256": "ab3d10c0f48535f6c1a7c00a25f0655e677fbf194c31122cb7127e43ecda3533"
+  },
+  "docs/validation/evidence/underground-work-approach-2026-10-04/census.py": {
+    "snapshot": "source-review-1/sources/census.py.txt",
+    "sha256": "dc9ae8a01583d44391ef95ae9b0314064dd6ac6ea6a38a8164f83bba39019b75"
+  },
+  "docs/validation/evidence/underground-work-approach-2026-10-04/test_census.py": {
+    "snapshot": "source-review-1/sources/test_census.py.txt",
+    "sha256": "cc808f38fc1a7d4f76b551b054c49928e59fd433b8c7a911e9d5fa99483e5a44"
+  },
+  "docs/validation/evidence/underground-work-approach-2026-10-04/reproduce.py": {
+    "snapshot": "source-review-1/sources/reproduce.py.txt",
+    "sha256": "ca1ea426bcb7146d1feec23656020e4776ae4eae4f45a27972dfd6c97265b210"
+  }
+}

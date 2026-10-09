@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/audit_underground_metal_cache.py",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/capture-v1/cache-manifest.json",
+    "--zstd-library",
+    "/opt/homebrew/lib/libzstd.dylib",
+    "--zstd-sha256",
+    "e2847c4613b386683c234913ae3b7b04299254096caf7616e3b3cd9bb97a39ab",
+    "--out-dir",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/audit-v3"
+  ],
+  "exit": 0,
+  "source_before": {
+    "tools/audit_underground_metal_cache.py": "cd6ea5a503a1b250a094b969bfae888ea0cd0457220b90e4c567af525c004510",
+    "tools/test_audit_underground_metal_cache.py": "b06c731a232c02ce34105731746524a9ffd28e765e8dd0a4432e4b035162b9e7",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/capture_cache.py": "9238abf5bbbeda371aa4f954bd8a629f8ed101ad409d98f620765aa80ab8340a"
+  },
+  "source_after": {
+    "tools/audit_underground_metal_cache.py": "cd6ea5a503a1b250a094b969bfae888ea0cd0457220b90e4c567af525c004510",
+    "tools/test_audit_underground_metal_cache.py": "b06c731a232c02ce34105731746524a9ffd28e765e8dd0a4432e4b035162b9e7",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/capture_cache.py": "9238abf5bbbeda371aa4f954bd8a629f8ed101ad409d98f620765aa80ab8340a"
+  },
+  "source_unchanged": true
+}

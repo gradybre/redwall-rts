@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "reviewer": "/root",
+  "source_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-actor-program-images",
+  "source_manifest": "docs/validation/evidence/underground-actor-program-images-2026-10-05/review-v2/source-sha256.json",
+  "source_manifest_sha256": "65b94eebb756fe9d81d24cf63b31c730cc9e4d5c7242942e83f742db525100e6",
+  "accepted": true,
+  "scope": "1181 one original Actor / same native mesh and skeleton with finite compatible source images",
+  "resolved_finding": "Closed secondary and original-consumed mesh phase before full mesh observer; configured Actor refuses before mesh read.",
+  "directly_inspected_pngs": [
+    "docs/validation/evidence/underground-actor-program-images-2026-10-05/native-7/side-descent-060.png",
+    "docs/validation/evidence/underground-actor-program-images-2026-10-05/native-7/opposite-turn-270.png"
+  ],
+  "source_inspection": [
+    "Content initial/secondary loading",
+    "closed mesh observer and configure ordering",
+    "Actor image registration and full source joins",
+    "culling union",
+    "release and allocation schedule"
+  ],
+  "verification": {
+    "scope": "saved presentation evidence only",
+    "manifests": {
+      "source": 15,
+      "output": 87,
+      "history": 166,
+      "input": 371
+    },
+    "native": {
+      "poses": 3795,
+      "joins": 12,
+      "images": 7,
+      "native_cases": 3,
+      "assertions": 129214,
+      "identity_checks": 3795,
+      "world_qualified": false,
+      "numerical_qualified": false
+    },
+    "source_closure_count": 1923,
+    "logical_peak": 7141920,
+    "native_allocation_measured": false,
+    "production_qualified": false
+  },
+  "open_requirements": [
+    "No physical source permission from presentation playback",
+    "Continuous Metal numerical qualification remains separate",
+    "One Actor only; multi-Actor and simultaneous reload admission remains open",
+    "Paid construction and player-facing Kitchen not certified by this packet"
+  ],
+  "findings": []
+}

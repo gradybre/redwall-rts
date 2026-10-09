@@ -1,0 +1,1207 @@
+diff --git a/godot/scripts/core/room_catalog.gd b/godot/scripts/core/room_catalog.gd
+index 340b342a..10b14ef6 100644
+--- a/godot/scripts/core/room_catalog.gd
++++ b/godot/scripts/core/room_catalog.gd
+@@ -98,7 +98,12 @@ class ScopedServiceFacts extends RefCounted:
+ 	var kitchen_worker_slots: int = 0
+ 
+ 
+-var _definitions: BuildingDefinitions = BuildingDefinitions.new()
++var _definitions: BuildingDefinitions = null
++
++
++func _init(definitions: BuildingDefinitions = null) -> void:
++	"""Borrow an existing immutable fact owner when supplied; standalone queries retain their original catalog."""
++	_definitions = definitions if definitions != null else BuildingDefinitions.new()
+ 
+ 
+ static func is_room_type(type_id: int) -> bool:
+diff --git a/godot/scripts/core/underground_session.gd b/godot/scripts/core/underground_session.gd
+index 26e47785..2602c34a 100644
+--- a/godot/scripts/core/underground_session.gd
++++ b/godot/scripts/core/underground_session.gd
+@@ -2,6 +2,7 @@ extends RefCounted
+ ## One host-lifetime foundation over the actual settlement. No identity, stock, paid entry or route is created.
+ ## ADR1146: private initialization, no external authority binding, 1536B within existing PROFILE_BYTES.
+ 
++const Composition := preload("res://scripts/core/underground_room_composition.gd")
+ const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
+ const World := preload("res://scripts/core/world_init.gd")
+ const Directory := preload("res://scripts/core/entity_directory.gd")
+@@ -75,6 +76,8 @@ var _busy: bool = false
+ var _poisoned: bool = false
+ var _retirement_owners: Retirement.Owners = null
+ var _retirement_scope: Retirement.Scope = null
++var _operations_state: int = 0 # 0 foundation, 1 composing, 2 owners ready, 3 retained failed prefix.
++var _operations_prefix: int = 0 # 1 Sites, 2 Router, 3 Room authority, 4 Inventory namespace.
+ 
+ 
+ func configure(world: World, full_world: Vector2i, buildings: Buildings, construction: Construction,
+@@ -332,6 +335,8 @@ func _drop_foundations() -> void:
+ 	"""Unexposed candidates have no host authority links and can safely die on refused initialization."""
+ 	_retirement_scope = null
+ 	_retirement_owners = null
++	_operations_state = 0
++	_operations_prefix = 0
+ 	_profile_bank = null
+ 	_profiles = null
+ 	_levels = null
+@@ -370,7 +375,7 @@ func current_refusal() -> StringName:
+ 	return _current_refusal(false)
+ 
+ 
+-func _current_refusal(allow_prepared_world: bool) -> StringName:
++func _current_refusal(allow_prepared_world: bool, retiring_prefix: bool = false) -> StringName:
+ 	"""Only explicit whole-world retirement may observe an unchanged live World with a staged replacement."""
+ 	if _retirement_scope != null:
+ 		return &"UNDERGROUND_SESSION_RETIRING"
+@@ -379,13 +384,57 @@ func _current_refusal(allow_prepared_world: bool) -> StringName:
+ 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
+ 	if not _ready:
+ 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
++	if _operations_state == 3 and not retiring_prefix:
++		return &"UNDERGROUND_COMPOSITION_STOPPED"
+ 	_busy = true
+ 	_poisoned = false
+ 	var code: StringName = _observe_current(allow_prepared_world)
+ 	_busy = false
++	if code == &"": code = _retirement_packet_refusal()
+ 	return &"UNDERGROUND_SESSION_REENTRANT" if _poisoned else code
+ 
+ 
++func compose_room_owners() -> StringName:
++	"""Fill our permanent original packet once; no caller can supply an owner, endpoint or permission."""
++	var code: StringName = current_refusal()
++	if code != &"": return code
++	if _operations_state == 2: return Composition.complete_refusal(_retirement_owners)
++	if _operations_state != 0 or _operations_prefix != 0: return &"UNDERGROUND_COMPOSITION_STOPPED"
++	if not _budget.is_quiescent() or _space.has_prepared() or _routes._edge_capacity != 0:
++		return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
++	_busy = true
++	_poisoned = false
++	_operations_state = 1
++	code = Composition.construct(self)
++	if code == &"": code = _content_refusal()
++	if code == &"": code = _original_refusal()
++	if code == &"": code = _foundation_refusal()
++	if code == &"": code = Composition.complete_refusal(_retirement_owners)
++	if code != &"" and _operations_prefix == 0:
++		Composition.drop_unbound(self)
++		_operations_state = 0
++	else:
++		_operations_state = 2 if code == &"" else 3
++	_busy = false
++	return code
++
++
++func room_orders() -> Retirement.Orders:
++	"""Borrow only the source-owned complete Room receiver; its physical admission remains independent."""
++	return _retirement_owners.rooms if current_refusal() == &"" and _operations_state == 2 else null
++
++
++func location_owner() -> Retirement.Locations:
++	"""Borrow the actual empty-or-published Location namespace, never manufacture an access endpoint."""
++	return _retirement_owners.locations if current_refusal() == &"" and _operations_state == 2 else null
++
++
++func room_phase_provider() -> Composition.Provider:
++	"""The actual provider stays closed until its separate source/contact/structural contracts are satisfied."""
++	return _retirement_owners.world_bindings as Composition.Provider \
++		if current_refusal() == &"" and _operations_state == 2 else null
++
++
+ func _build_retirement_owners() -> void:
+ 	"""One permanent private packet; future operational constructors must fill only their own exact slots."""
+ 	_retirement_owners = Retirement.Owners.new()
+@@ -429,7 +478,12 @@ func _retirement_packet_refusal() -> StringName:
+ 
+ 
+ func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
+-	"""Operational constructors are not part of this foundation; no arbitrary external authority is adopted."""
++	"""Our source-owned constructor output is distinct from arbitrary external packet registration."""
++	if _operations_state == 2 and _operations_prefix == 4:
++		return Composition.complete_refusal(o)
++	if _operations_state == 3:
++		return Retirement.constructor_original_refusal(self, o, _operations_prefix)
++	if _operations_state != 0 or _operations_prefix != 0: return &"UNDERGROUND_COMPOSITION_SCOPE"
+ 	if o.rooms != null or o.room_bindings != null or o.world_bindings != null or o.sites != null \
+ 			or o.router != null or o.authority != null or o.locations != null or o.inventory_locations != null \
+ 			or o.world_routes != null or o.connector != null or o.contacts != null or o.placements != null \
+@@ -440,7 +494,7 @@ func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
+ 
+ func retirement_observation_refusal(allow_prepared_world: bool = false) -> StringName:
+ 	"""First host preflight only; host repeats its exact mount leaf after these cold observations."""
+-	return _current_refusal(allow_prepared_world)
++	return _current_refusal(allow_prepared_world, true)
+ 
+ 
+ func prepare_retirement(original_host: Object, allow_prepared_world: bool = false) -> StringName:
+@@ -453,12 +507,20 @@ func prepare_retirement(original_host: Object, allow_prepared_world: bool = fals
+ 	if code != &"": return code
+ 	if _retirement_scope == null:
+ 		_retirement_scope = Retirement.Scope.new()
+-	code = Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope, allow_prepared_world)
++	code = _prepare_retirement_scope(original_host, allow_prepared_world)
+ 	if code != &"" and _retirement_scope._stage == 0:
+ 		_retirement_scope = null
+ 	return &"UNDERGROUND_SESSION_NOT_QUIESCENT" if code == &"WORLD_RETIREMENT_BUSY" else code
+ 
+ 
++func _prepare_retirement_scope(original_host: Object, allow_prepared_world: bool) -> StringName:
++	"""Only a failed source-owned construction uses the explicit prefix path; completed owners keep1155."""
++	if _operations_state == 3:
++		return Retirement.prepare_constructor_prefix_into(original_host, self, _retirement_owners,
++			_retirement_scope, allow_prepared_world)
++	return Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope, allow_prepared_world)
++
++
+ func release_retirement(original_host: Object) -> StringName:
+ 	"""Only after actual host clear: release original owner links, then break Scope's strong self-retention."""
+ 	if _busy or not _ready or _retirement_scope == null:
+@@ -486,8 +548,7 @@ func abandon_retirement(original_host: Object) -> StringName:
+ 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
+ 	var code: StringName = _retirement_packet_refusal()
+ 	if code == &"":
+-		code = Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope,
+-			_retirement_scope._allow_prepared_world)
++		code = _prepare_retirement_scope(original_host, _retirement_scope._allow_prepared_world)
+ 	if code == &"": _retirement_scope = null
+ 	return code
+ 
+diff --git a/godot/scripts/core/underground_world_retirement.gd b/godot/scripts/core/underground_world_retirement.gd
+index 06008495..786ca336 100644
+--- a/godot/scripts/core/underground_world_retirement.gd
++++ b/godot/scripts/core/underground_world_retirement.gd
+@@ -106,6 +106,7 @@ class Scope extends RefCounted:
+ 	var _prepared_request: World.Request = null
+ 	var _prepared_seed: int = 0
+ 	var _prepared_attempts: int = 0
++	var _constructor_prefix: int = -1 # -1 ordinary; otherwise exact stopped Session construction prefix.
+ 
+ 
+ static func prepare_into(original_host: Object, original_session: RefCounted, original: Owners,
+@@ -113,6 +114,7 @@ static func prepare_into(original_host: Object, original_session: RefCounted, or
+ 	"""Pin an idle original tuple after host observations; identity tokens do not prove actual host mounting."""
+ 	if not is_instance_valid(original_host) or original_session == null or original == null or out == null:
+ 		return &"WORLD_RETIREMENT_INPUT"
++	if out._constructor_prefix != -1: return &"WORLD_RETIREMENT_SCOPE"
+ 	if out._stage != 0:
+ 		if out._stage != 1 or not is_instance_valid(out._host) or out._host != original_host or out._session != original_session \
+ 				or out._allow_prepared_world != allow_prepared_world or not _same_owners(original, out._owners):
+@@ -123,23 +125,113 @@ static func prepare_into(original_host: Object, original_session: RefCounted, or
+ 	var persistent_id: int = original.directory._persistent_id[original.world_ref.x]
+ 	code = _live_refusal(original, persistent_id, allow_prepared_world)
+ 	if code != &"": return code
++	_capture_scope(original_host, original_session, original, out, persistent_id, allow_prepared_world)
++	return &""
++
++
++static func _capture_scope(host: Object, session: RefCounted, original: Owners, out: Scope,
++		persistent_id: int, allow_prepared_world: bool) -> void:
++	"""Copy one exact original tuple only after all preflights; no constructor or source replacement occurs."""
+ 	_copy_owners(original, out._owners)
+-	out._host = original_host
+-	out._session = original_session
++	out._host = host
++	out._session = session
+ 	out._persistent_id = persistent_id
+ 	out._allow_prepared_world = allow_prepared_world
+ 	out._delivery_script = original.work._delivery_script
+ 	_capture_sources(original, out)
+ 	out._stage = 1
++
++
++static func constructor_session_matches(session: RefCounted) -> bool:
++	"""Actual cached Session identity without a Session-to-Retirement preload cycle or caller Script argument."""
++	var actual: Script = ResourceLoader.get_cached_ref("res://scripts/core/underground_session.gd") as Script
++	return session != null and actual != null and session.get_script() == actual and session._ready \
++		and session._retirement_owners != null
++
++
++static func constructor_original_refusal(session: RefCounted, o: Owners, prefix: int) -> StringName:
++	"""The incomplete tuple is the stopped actual Session's own constructor output, never a supplied registration."""
++	if not constructor_session_matches(session) or session._operations_state != 3 or session._busy \
++			or prefix < 1 or prefix > 4 or session._operations_prefix != prefix or session._retirement_owners != o:
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	if o.world != session._world or o.world_ref != session._world_ref or o.directory != session._directory \
++			or o.buildings != session._buildings or o.construction != session._construction \
++			or o.inventory != session._inventory or o.items != session._items or o.jobs != session._jobs \
++			or o.work != session._work or o.residents != session._residents or o.reservations != session._reservations \
++			or o.transforms != session._transforms or o.gear != session._gear or o.carry != session._carry \
++			or o.piles != session._piles or o.content != session._content or o.space != session._space \
++			or o.sources != session._sources or o.routes != session._routes or o.budget != session._budget \
++			or o.terrain != session._terrain or o.profiles != session._profiles or o.levels != session._levels:
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	return _constructor_shape_refusal(o, prefix)
++
++
++static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
++	"""Only the four finite installed prefixes exist; constructor-only allowances require empty new owners."""
++	if o.world_bindings == null or o.authority == null or o.sites == null \
++			or (o.router != null) != (prefix >= 2) or (o.rooms != null) != (prefix >= 3) \
++			or (o.room_bindings != null) != (prefix >= 3) or (o.inventory_locations != null) != (prefix == 4) \
++			or (prefix < 3 and o.locations != null) or (prefix == 4 and o.locations == null):
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	if o.world_routes != null or o.connector != null or o.contacts != null or o.placements != null \
++			or o.workpieces != null or o.delivery != null or o.furniture != null or o.tips != null:
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	if o.sites._count != 0 or o.sites._funding == null \
++			or o.sites._funding._free_count != o.sites._funding._capacity \
++			or (o.locations != null and (o.locations._live.count != 0 or o.locations._stage.count != 0)):
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	if o.rooms != null and constructor_catalog_refusal(o) != &"":
++		return &"WORLD_RETIREMENT_CONSTRUCTOR"
++	return _owners_refusal(o, prefix)
++
++
++static func constructor_catalog_refusal(o: Owners) -> StringName:
++	"""The Session constructor borrows the actual Buildings' fact owner, never another equal-valued catalog."""
++	if o == null or o.rooms == null or o.buildings == null or o.rooms._catalog == null \
++			or o.rooms._catalog.get_script() != Orders.RoomCatalog \
++			or o.buildings._definitions == null or o.rooms._catalog._definitions != o.buildings._definitions:
++		return &"UNDERGROUND_COMPOSITION_CATALOG"
+ 	return &""
+ 
+ 
++static func prepare_constructor_prefix_into(host: Object, session: RefCounted, original: Owners,
++		out: Scope, allow_prepared_world: bool = false) -> StringName:
++	"""Capture a stopped private constructor prefix; normal complete retirement remains a separate path."""
++	if not is_instance_valid(host) or out == null or not constructor_session_matches(session):
++		return &"WORLD_RETIREMENT_INPUT"
++	var prefix: int = session._operations_prefix
++	var code: StringName = constructor_original_refusal(session, original, prefix)
++	if code != &"": return code
++	if out._stage != 0:
++		if out._stage != 1 or out._host != host or out._session != session or out._constructor_prefix != prefix \
++				or out._allow_prepared_world != allow_prepared_world or not _same_owners(original, out._owners):
++			return &"WORLD_RETIREMENT_SCOPE"
++		return _prepared_refusal(out)
++	var persistent_id: int = original.directory._persistent_id[original.world_ref.x]
++	code = _live_refusal(original, persistent_id, allow_prepared_world)
++	if code != &"": return code
++	_capture_scope(host, session, original, out, persistent_id, allow_prepared_world)
++	out._constructor_prefix = prefix
++	return &""
++
++
++static func _scope_owners_refusal(scope: Scope) -> StringName:
++	"""A captured constructor prefix cannot become another prefix or be relabelled as normal retirement."""
++	if scope._constructor_prefix == -1: return _owners_refusal(scope._owners)
++	var code: StringName = constructor_original_refusal(scope._session,
++		scope._session._retirement_owners if constructor_session_matches(scope._session) else null,
++		scope._constructor_prefix)
++	if code != &"": return code
++	if not _same_owners(scope._owners, scope._session._retirement_owners): return &"WORLD_RETIREMENT_SCOPE"
++	return _owners_refusal(scope._owners, scope._constructor_prefix)
++
++
+ static func cleared_refusal(scope: Scope, original_host: Object, original_session: RefCounted) -> StringName:
+ 	"""Require original identity and all emptied owners without observing collaborators or changing a binding."""
+ 	if scope == null or scope._stage != 1 or not is_instance_valid(original_host) or not is_instance_valid(scope._host) \
+ 			or scope._host != original_host or scope._session != original_session or original_session == null:
+ 		return &"WORLD_RETIREMENT_SCOPE"
+-	var code: StringName = _owners_refusal(scope._owners)
++	var code: StringName = _scope_owners_refusal(scope)
+ 	if code != &"": return code
+ 	code = _original_sources_refusal(scope)
+ 	if code != &"": return code
+@@ -171,7 +263,7 @@ static func release_preflighted(scope: Scope, original_host: Object, original_se
+ 
+ static func _prepared_refusal(scope: Scope) -> StringName:
+ 	"""Repeated pre-clear preparation keeps the same optional-null pattern and derived delivery Script."""
+-	var code: StringName = _owners_refusal(scope._owners)
++	var code: StringName = _scope_owners_refusal(scope)
+ 	if code != &"": return code
+ 	code = _original_sources_refusal(scope)
+ 	if code != &"": return code
+@@ -227,12 +319,12 @@ static func _leaves(o: Owners, persistent_id: int, delivery_script: Script, clea
+ 	return code
+ 
+ 
+-static func _owners_refusal(o: Owners) -> StringName:
++static func _owners_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+ 	"""Only direct fields/static helpers are used, including every transitive original receiver."""
+ 	var code: StringName = _base_refusal(o)
+ 	if code == &"": code = _foundation_refusal(o)
+-	if code == &"": code = _room_refusal(o)
+-	if code == &"": code = _phase_refusal(o)
++	if code == &"": code = _room_refusal(o, constructor_prefix)
++	if code == &"": code = _phase_refusal(o, constructor_prefix)
+ 	if code == &"": code = _location_refusal(o)
+ 	if code == &"": code = _route_refusal(o)
+ 	if code == &"": code = _project_refusal(o)
+@@ -299,7 +391,7 @@ static func _profile_refusal(o: Owners) -> StringName:
+ 	return &""
+ 
+ 
+-static func _room_refusal(o: Owners) -> StringName:
++static func _room_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+ 	"""Original Room and early/final admission packets must have ended before the host clears anything."""
+ 	if o.rooms == null:
+ 		return &"" if o.room_bindings == null else &"WORLD_RETIREMENT_ROOM"
+@@ -311,7 +403,8 @@ static func _room_refusal(o: Owners) -> StringName:
+ 			or o.rooms._room_request != null or o.rooms._room_cold_token != 0 or o.rooms._room_claim_batch != null \
+ 			or o.rooms._layout_token != 0 or o.rooms._layout_callback or o.rooms._layout_batch != null:
+ 		return &"WORLD_RETIREMENT_BUSY"
+-	if o.room_bindings == null or not _weak_matches(o.room_bindings._orders, o.rooms) \
++	if o.room_bindings == null or (not _weak_matches(o.room_bindings._orders, o.rooms) \
++			and not (constructor_prefix == 3 and o.room_bindings._orders == null)) \
+ 			or not _weak_matches(o.room_bindings._provider, o.world_bindings) \
+ 			or not _weak_matches(o.room_bindings._sites, o.sites) or o.room_bindings._budget != o.budget:
+ 		return &"WORLD_RETIREMENT_ROOM"
+@@ -330,7 +423,7 @@ static func _entry_refusal(actual: RoomBindings) -> StringName:
+ 	return &""
+ 
+ 
+-static func _phase_refusal(o: Owners) -> StringName:
++static func _phase_refusal(o: Owners, constructor_prefix: int = -1) -> StringName:
+ 	"""Read real Sites/SpaceAuthority/WorldBindings fields; no virtual phase/provider callback is a release leaf."""
+ 	if o.sites != null:
+ 		if o.sites._construction != o.construction or o.sites._inventory != o.inventory \
+@@ -342,7 +435,8 @@ static func _phase_refusal(o: Owners) -> StringName:
+ 	if o.authority != null:
+ 		if o.authority._owner != o.space or o.authority._sources != o.sources \
+ 				or o.authority._construction != o.construction or o.authority._buildings != o.buildings \
+-				or o.authority._bindings != o.world_bindings or not _weak_matches(o.authority._sites, o.sites):
++				or o.authority._bindings != o.world_bindings or (not _weak_matches(o.authority._sites, o.sites) \
++			and not (constructor_prefix == 1 and o.authority._sites == null)):
+ 			return &"WORLD_RETIREMENT_PHASE"
+ 		if o.authority._stage != -1 or o.authority._owner_token != 0 or o.authority._companion_token != 0 \
+ 				or o.authority._cold_token != 0: return &"WORLD_RETIREMENT_BUSY"
+diff --git a/godot/scripts/systems/settlement_system.gd b/godot/scripts/systems/settlement_system.gd
+index 44fb918e..117143e5 100644
+--- a/godot/scripts/systems/settlement_system.gd
++++ b/godot/scripts/systems/settlement_system.gd
+@@ -1336,7 +1336,7 @@ func create_generated_settlement(items: ItemDefinitionsScript,
+ 	world" is honoured: the only world this can overwrite is one with nobody in it. See
+ 	`_abandon_transaction()` for what an in-transaction failure can and cannot restore.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	if _residents.population() != 0:
+ 		return _refuse(ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY)
+@@ -1443,7 +1443,7 @@ func create_initial_settlement() -> bool:
+ 	in cohort order, so Warden Rowan is id 1. Called on its own, as the cohort-only path the suite
+ 	uses, it does the same thing over an empty directory.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	var spawned: ResidentsScript.OpResult = _residents.spawn_initial_settlement()
+ 	if not spawned.ok:
+@@ -1469,7 +1469,7 @@ func materialize_starter_colony() -> bool:
+ 	holds, because every later door is deterministic over an empty hall -- empties the settlement
+ 	with its code kept, exactly as a cohort refusal does, rather than leave a partial colony.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	var code: StringName = _materialize_refusal()
+ 	if code == REFUSE_NONE:
+@@ -1547,7 +1547,7 @@ func create_placed_cohort_on(target_world: WorldInitScript) -> bool:
+ 
+ 	A placement refusal empties the settlement, as a cohort refusal does, with its code kept.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	if not create_initial_settlement():
+ 		return false
+@@ -1826,7 +1826,7 @@ func _attach_resident(slot: int) -> bool:
+ 
+ func mount_underground(content: UndergroundContent) -> bool:
+ 	"""Compose the one actual foundation without seeding stock, duplicating a World or opening work."""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	if _underground_session != null:
+ 		return _refuse(&"UNDERGROUND_SESSION_ALREADY_BOUND")
+@@ -1841,6 +1841,30 @@ func mount_underground(content: UndergroundContent) -> bool:
+ 	return true
+ 
+ 
++func compose_underground_room_owners() -> bool:
++	"""Build only the mounted original Session's real owner graph; no caller registers authorities."""
++	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
++	var original: UndergroundSession = _underground_session
++	var starting: bool = original != null and original._operations_state == 0
++	var code: StringName = _mounted_underground_refusal(original)
++	if code == &"": code = original.compose_room_owners()
++	if code == &"": code = _mounted_underground_refusal(original)
++	if code != &"" and starting and original._operations_prefix > 0:
++		original._operations_state = 3
++	if code != &"": return _refuse(code)
++	_last_refusal = REFUSE_NONE
++	return true
++
++
++func _underground_mutations_stopped() -> bool:
++	"""A failed constructor prefix remains stopped even if an original-live reset is abandoned."""
++	if _underground_session != null and _underground_session._operations_state == 1:
++		_underground_session._poisoned = true
++		return true
++	return _underground_reset_phase != 0 or (_underground_session != null \
++		and _underground_session._operations_state == 3)
++
++
+ func underground_session() -> UndergroundSession:
+ 	"""Borrow the one foundation; its own current checks reject retired or partially configured state."""
+ 	return _underground_session if _underground_reset_phase == 0 else null
+@@ -2033,7 +2057,7 @@ func run_tick(tick_index: int) -> bool:
+ 	GameManager. No elapsed time, no delta and no speed reaches this function: at 2x and 4x it is
+ 	called more often and does exactly the same work (REQ-SET-003, REQ-SET-011).
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	if tick_index < 0:
+ 		return _refuse(REFUSE_INVALID_TICK)
+@@ -2516,7 +2540,7 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
+ 	it, in that order, because they have no owner (header). Nothing is reordered and no unowned
+ 	leg is faked: `daily_leg_at()` reports what actually ran.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+ 	_daily_leg_count = 0
+ 	if absolute_day <= 0:
+@@ -3137,7 +3161,7 @@ func preview_demolition(building_ref: Vector2i) -> DemolitionReport:
+ 	rule (decision 0535), a read-only fact *admit* would refuse on, so a preview that passes is
+ 	one *admit* can act on. `report.ok` here means only that *admit* may run.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _retirement_project_refusal()
+ 	_demolition.reset()
+ 	var code: StringName = _refuse_demolition_subject(building_ref)
+@@ -3667,7 +3691,7 @@ func cancel_demolition(building_ref: Vector2i) -> StringName:
+ 	H1); `close_refund()` refuses a demolition by name (0536). Every check runs before the first
+ 	write; the building returns to ACTIVE, the record is cleared and the revision advances.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return &"UNDERGROUND_HOST_RESETTING"
+ 	var project: Vector2i = _construction.project_of_building(building_ref)
+ 	var code: StringName = _cancel_refusal(building_ref, project,
+@@ -3728,7 +3752,7 @@ func release_stranded_reservation(building_ref: Vector2i) -> StringName:
+ 	The latter's project is retired first (nothing is returned: its piece is gone). The claim is
+ 	released from the recorded store and the record cleared. Refuses NOT_STRANDED otherwise.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return &"UNDERGROUND_HOST_RESETTING"
+ 	var project: Vector2i = _admissions.project_of(building_ref)
+ 	var orphaned: bool = _is_orphaned_removal(project)
+@@ -3780,7 +3804,7 @@ func complete_demolition(building_ref: Vector2i) -> DemolitionReport:
+ 	inventory-only block writes nothing and leaves the project PHASE_WORK_DONE: commit-pending,
+ 	and a retry costs nothing (ECON-003). Later refusals are unreachable guards (decision 0535).
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _retirement_project_refusal()
+ 	_demolition.reset()
+ 	var project: Vector2i = _construction.project_of_building(building_ref)
+@@ -4111,7 +4135,7 @@ func preview_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
+ 	it is a shelf in a pantry room, the building's pantry store still fits its contents and
+ 	reservations at the capacity left without it (DEMO-CONTAIN-R01 #3b). CHANGES NOTHING.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _retirement_project_refusal()
+ 	_demolition.reset()
+ 	var code: StringName = _removal_subject_refusal(piece_ref)
+@@ -4150,7 +4174,7 @@ func complete_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
+ 	the claim and the record, lowers the pantry capacity it carried (#3b), removes the piece,
+ 	places its 50% and retires the project. Refusals write nothing and stay commit-pending.
+ 	"""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return _retirement_project_refusal()
+ 	_demolition.reset()
+ 	var building: Vector2i = _building_of_piece(piece_ref)
+@@ -4167,7 +4191,7 @@ func complete_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
+ 
+ func cancel_furniture_removal(piece_ref: Vector2i) -> StringName:
+ 	"""Cancel an admitted piece removal: release its claim, retire it, clear the record. Free (R5)."""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return &"UNDERGROUND_HOST_RESETTING"
+ 	if not _buildings.is_live_furniture(piece_ref):
+ 		return REFUSE_REMOVAL_STALE_PIECE
+@@ -4362,7 +4386,7 @@ static func is_evacuable_refusal(code: StringName) -> bool:
+ 
+ func cancel_evacuation(building_ref: Vector2i) -> StringName:
+ 	"""Withdraw a building's "evacuate, then demolish" order. Nothing else changes."""
+-	if _underground_reset_phase != 0:
++	if _underground_mutations_stopped():
+ 		return &"UNDERGROUND_HOST_RESETTING"
+ 	return _demolition_work.cancel_intent(building_ref)
+ 
+--- /dev/null
++++ b/godot/scripts/core/underground_room_composition.gd
+@@ -0,0 +1,169 @@
++extends RefCounted
++## Stateless constructor for the actual mounted Session's existing private owner packet. ADR1163.
++## No endpoint, Room, route, physical phase or paid input is created here.
++
++const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
++const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
++const Authority := preload("res://scripts/core/underground_space_authority.gd")
++const Sites := preload("res://scripts/core/excavation_sites.gd")
++const Funding := preload("res://scripts/core/excavation_inventory.gd")
++const Router := preload("res://scripts/core/modular_projects.gd")
++const RoomBindings := preload("res://scripts/core/underground_room_bindings.gd")
++const Orders := preload("res://scripts/core/underground_room_orders.gd")
++const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
++const Locations := preload("res://scripts/core/underground_locations.gd")
++const Inventory := preload("res://scripts/core/inventory.gd")
++const Budget := preload("res://scripts/core/underground_budget.gd")
++
++
++static func construct(session: RefCounted) -> StringName:
++	"""The exact Session opens this synchronous bracket; no supplied owner tuple can register authorities."""
++	if not Retirement.constructor_session_matches(session) or session._operations_state != 1 \
++			or not session._busy or session._operations_prefix != 0:
++		return &"UNDERGROUND_COMPOSITION_SCOPE"
++	var code: StringName = _prepare_phase(session)
++	if code == &"": code = _bind_excavation(session)
++	if code == &"": code = _bind_router(session)
++	if code == &"": code = _bind_rooms(session)
++	if code == &"": code = _bind_locations(session)
++	return code
++
++
++static func _original_refusal(session: RefCounted) -> StringName:
++	"""Every observed constructor result is followed by the original private direct-source leaf."""
++	var code: StringName = session._original_refusal()
++	if code == &"": code = session._foundation_refusal()
++	return code
++
++
++static func _prepare_phase(session: RefCounted) -> StringName:
++	"""Prepare only private candidates before the first once-bound authority is installed."""
++	var o: Retirement.Owners = session._retirement_owners
++	o.world_bindings = Provider.new()
++	var code: StringName = o.world_bindings.configure(o.world, o.terrain, o.space, o.sources, o.budget)
++	if code == &"": code = _original_refusal(session)
++	if code != &"": return code
++	o.authority = Authority.new()
++	code = o.authority.configure(o.space, o.world_bindings, Budget.PROOF_CAPACITY)
++	return _original_refusal(session) if code == &"" else code
++
++
++static func _bind_excavation(session: RefCounted) -> StringName:
++	"""Retain the real Sites immediately; its owner writes cannot be undone by dropping a local."""
++	var o: Retirement.Owners = session._retirement_owners
++	o.sites = Sites.new(o.construction, o.inventory, o.reservations, o.items, o.jobs, o.work,
++		o.authority, Funding.MAX_RECEIPT_CAPACITY, Sites.MAX_SITE_CAPACITY)
++	var code: StringName = o.sites.initialization_refusal()
++	if code != &"":
++		o.sites = null # Refused initializer publishes no owner links.
++		return code
++	session._operations_prefix = 1
++	code = _original_refusal(session)
++	if code == &"": code = o.authority.bind_sites(o.sites)
++	return _original_refusal(session) if code == &"" else code
++
++
++static func _bind_router(session: RefCounted) -> StringName:
++	"""The Router shares Sites' one Funding arena and installs the second pair of exact owner links."""
++	var o: Retirement.Owners = session._retirement_owners
++	o.router = Router.new(o.construction, o.inventory, o.reservations, o.items, o.jobs, o.work, o.sites)
++	var code: StringName = o.router.initialization_refusal()
++	if code != &"":
++		o.router = null # This initializer preflights both links before either write.
++		return code
++	session._operations_prefix = 2
++	return _original_refusal(session)
++
++
++static func _bind_rooms(session: RefCounted) -> StringName:
++	"""Retain the published Buildings authority even if its subsequent reciprocal admission setup refuses."""
++	var o: Retirement.Owners = session._retirement_owners
++	o.room_bindings = RoomBindings.new()
++	var code: StringName = o.room_bindings.configure(o.world_bindings, o.sites, o.budget)
++	if code == &"": code = _original_refusal(session)
++	if code == &"" and o.buildings._definitions == null: code = &"UNDERGROUND_COMPOSITION_CATALOG"
++	if code != &"":
++		o.room_bindings = null
++		return code
++	o.rooms = Orders.new()
++	code = o.rooms.configure(o.router, o.space, o.sources, RoomCatalog.new(o.buildings._definitions), o.room_bindings)
++	if code != &"":
++		o.rooms = null
++		o.room_bindings = null
++		return code
++	session._operations_prefix = 3
++	code = _original_refusal(session)
++	if code == &"": code = o.room_bindings.configure_room_admission(o.rooms, o.levels)
++	if code == &"": code = _original_refusal(session)
++	if code == &"": code = o.world_bindings.bind_room_bindings(o.room_bindings)
++	return _original_refusal(session) if code == &"" else code
++
++
++static func _bind_locations(session: RefCounted) -> StringName:
++	"""Allocate the already admitted empty namespace, then bind its exact Inventory adapter once."""
++	var o: Retirement.Owners = session._retirement_owners
++	o.locations = Locations.new()
++	var code: StringName = o.locations.configure(o.directory, o.buildings, o.transforms, o.inventory,
++		o.space, o.sources, o.budget, Budget.LOCATION_CAPACITY, 228 * Budget.LOCATION_CAPACITY + 256)
++	if code != &"":
++		o.locations = null
++		return code
++	code = _original_refusal(session)
++	if code == &"": code = o.locations.bind_sites(o.sites)
++	if code == &"": code = _original_refusal(session)
++	if code == &"": code = o.locations.bind_room_orders(o.rooms)
++	if code == &"": code = _original_refusal(session)
++	return _bind_inventory(session) if code == &"" else code
++
++
++static func _bind_inventory(session: RefCounted) -> StringName:
++	"""Keep the original adapter after successful binding; identical finite arenas are reused on remount."""
++	var o: Retirement.Owners = session._retirement_owners
++	o.inventory_locations = Locations.InventoryLocations.new(o.locations)
++	var result: Inventory.OpResult = o.inventory.bind_spatial_locations(o.inventory_locations,
++		Budget.INVENTORY_ENDPOINT_CAPACITY)
++	if not result.ok:
++		o.inventory_locations = null
++		return result.error
++	session._operations_prefix = 4
++	return _original_refusal(session)
++
++
++static func drop_unbound(session: RefCounted) -> void:
++	"""Only before the first owner write: drop this Session's private constructor references."""
++	if session._operations_prefix != 0: return
++	var o: Retirement.Owners = session._retirement_owners
++	o.authority = null
++	o.world_bindings = null
++
++
++static func complete_refusal(o: Retirement.Owners) -> StringName:
++	"""Direct reciprocal object proof; no completed endpoint, geometry or work permission is inferred."""
++	if o.world_bindings == null or o.world_bindings.get_script() != Provider or o.authority == null \
++			or o.authority.get_script() != Authority or o.sites == null or o.sites.get_script() != Sites \
++			or o.router == null or o.router.get_script() != Router or o.rooms == null or o.rooms.get_script() != Orders \
++			or o.room_bindings == null or o.room_bindings.get_script() != RoomBindings \
++			or o.locations == null or o.locations.get_script() != Locations or o.inventory_locations == null \
++			or o.inventory_locations.get_script() != Locations.InventoryLocations:
++		return &"UNDERGROUND_COMPOSITION_OWNER"
++	if not Retirement._weak_matches(o.world_bindings._room_bindings, o.room_bindings) \
++			or not Retirement._weak_matches(o.room_bindings._levels, o.levels) \
++			or not Retirement._weak_matches(o.locations._sites, o.sites) \
++			or not Retirement._weak_matches(o.locations._room_orders, o.rooms):
++		return &"UNDERGROUND_COMPOSITION_OWNER"
++	var code: StringName = Retirement.constructor_catalog_refusal(o)
++	if code == &"": code = Retirement._owners_refusal(o)
++	return _installed_links_refusal(o) if code == &"" else code
++
++
++static func _installed_links_refusal(o: Retirement.Owners) -> StringName:
++	"""Original once-bound receivers survive canonical clearing until the explicit release tail."""
++	if not Retirement._weak_matches(o.buildings._spatial_authority, o.rooms) \
++			or not Retirement._weak_matches(o.construction._excavation_authority, o.sites) \
++			or not Retirement._weak_matches(o.construction._modular_authority, o.router) \
++			or not Retirement._weak_matches(o.work._excavation_authority, o.sites) \
++			or not Retirement._weak_matches(o.work._modular_authority, o.router) \
++			or not Retirement._weak_matches(o.inventory._spatial_authority, o.inventory_locations) \
++			or o.inventory._spatial_world != o.world_ref:
++		return &"UNDERGROUND_COMPOSITION_OWNER"
++	return &""
+--- /dev/null
++++ b/godot/scripts/core/underground_room_composition.gd.uid
+@@ -0,0 +1 @@
++uid://1x4htdtn4urrl
+--- /dev/null
++++ b/godot/test/test_underground_room_composition.gd
+@@ -0,0 +1,484 @@
++extends "res://test/framework/test_case.gd"
++## Real generated/populated Host and shipped Content; no synthetic source, geometry or phase permission.
++
++const Host := preload("res://scripts/systems/settlement_system.gd")
++const Session := preload("res://scripts/core/underground_session.gd")
++const Content := preload("res://demo/cast/underground_actor_content.gd")
++const Composition := preload("res://scripts/core/underground_room_composition.gd")
++const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
++const Budget := preload("res://scripts/core/underground_budget.gd")
++const Orders := preload("res://scripts/core/underground_room_orders.gd")
++const World := preload("res://scripts/core/world_init.gd")
++const Buildings := preload("res://scripts/core/buildings.gd")
++const Construction := preload("res://scripts/core/construction.gd")
++const Inventory := preload("res://scripts/core/inventory.gd")
++const Gear := preload("res://scripts/core/gear.gd")
++
++
++class ObservedBuildings extends Buildings:
++	var deny_installed_once: bool = false
++
++	func spatial_authority() -> SpatialAuthority:
++		"""A negative observation may refuse the installed authority, never supply a success override."""
++		var actual: SpatialAuthority = super.spatial_authority()
++		if actual != null and deny_installed_once:
++			deny_installed_once = false
++			return null
++		return actual
++
++
++class ObservedConstruction extends Construction:
++	var deny_installed_once: bool = false
++
++	func excavation_authority() -> ExcavationContract:
++		"""Refuse only the first real installed backlink observation after Sites completed its genuine binding."""
++		var actual: ExcavationContract = super.excavation_authority()
++		if actual != null and deny_installed_once:
++			deny_installed_once = false
++			return null
++		return actual
++
++
++class ObservedWorld extends World:
++	var session: WeakRef = null
++	var prefix: int = -1
++	var observer: Callable = Callable()
++
++	func is_published() -> bool:
++		"""A selected real constructor observation runs one adverse action after reading its true result."""
++		var actual: bool = super.is_published()
++		var owner: Session = session.get_ref() as Session if session != null else null
++		if owner != null and owner._operations_state == 1 and owner._operations_prefix == prefix and observer.is_valid():
++			var action: Callable = observer
++			observer = Callable()
++			action.call()
++		return actual
++
++
++class ObservedHost extends Host:
++	func _compose_stock_layer() -> void:
++		"""Create the real stock graph with one test-only negative bind observer before any other owner borrows it."""
++		_inventory = ObservedInventory.new()
++		_item_definitions = ItemDefinitionsScript.new()
++		_item_definitions.load_default(_inventory)
++		_stock_age = StockAgeScript.new(_inventory, _item_definitions)
++		_bind_seed_expiry_authority()
++
++
++	func _compose_ground_piles() -> void:
++		"""Replace only unbound constructor candidates before the real host builds its original ground-pile graph."""
++		_buildings = ObservedBuildings.new(_directory)
++		_construction = ObservedConstruction.new(_buildings)
++		_demolition_work = DemolitionWorkScript.new(_jobs, _construction)
++		var previous: World = _world
++		_world = ObservedWorld.new(previous._directory, previous._nodes, previous._forage, previous._fishing,
++			previous._rng, previous._farming, previous._orchards, previous._jobs, previous._commands)
++		super._compose_ground_piles()
++
++
++class ObservedInventory extends Inventory:
++	var observer: Callable = Callable()
++
++	func bind_spatial_locations(authority: SpatialLocations, capacity: int) -> OpResult:
++		"""Run the actual allocator/binder, then one adverse observation at the final installed boundary."""
++		var result: OpResult = super.bind_spatial_locations(authority, capacity)
++		if result.ok and observer.is_valid():
++			var action: Callable = observer
++			observer = Callable()
++			action.call()
++		return result
++
++var _host: Host = null
++var _content: Content = null
++var _session: Session = null
++var _nested_reset: bool = true
++var _nested_tick: bool = true
++var _original_gear: Gear = null
++var _source_script: Script = null
++var _source_text: String = ""
++var _original_definitions: Composition.RoomCatalog.BuildingDefinitions = null
++
++
++func before_each() -> void:
++	"""Use actual current source/content and the same public World/foundation mount used by boot."""
++	_host = Host.new()
++	_content = Content.new()
++	assert_equal(_content.load_file(Session.ACTOR_PATH, Session.Catalog.Pins.ACTOR_SHA,
++		Session.PRESENTATION_BYTES), &"", "current actual image")
++	assert_true(_host.create_generated_settlement(_host.item_definitions()), "actual populated World")
++	assert_true(_host.mount_underground(_content), "source foundation: %s" % _host.last_refusal())
++	_session = _host.underground_session()
++
++
++func after_each() -> void:
++	"""Drop this test's original owners; no private external weak link is cleared by the fixture."""
++	if _host != null and _host.world() is ObservedWorld:
++		(_host.world() as ObservedWorld).observer = Callable()
++	if _host != null and _host.inventory() is ObservedInventory:
++		(_host.inventory() as ObservedInventory).observer = Callable()
++	if _source_script != null: _source_script.source_code = _source_text
++	if _original_definitions != null: _host.buildings()._definitions = _original_definitions
++	_original_definitions = null
++	_source_script = null
++	_source_text = ""
++	_original_gear = null
++	_session = null
++	_content = null
++	if _host != null: _host.free()
++	_host = null
++
++
++func _snapshot() -> PackedStringArray:
++	"""Canonical gameplay bytes exclude newly allocated empty derived namespaces and owner references."""
++	var out: PackedStringArray = PackedStringArray()
++	var images: Array[PackedByteArray] = [_host.directory().state_bytes(), _inventory_base_bytes(),
++		_host.jobs().state_bytes(), _host.residents().state_bytes(), _host.transforms().state_bytes(),
++		_host.construction().state_bytes(), _host.reservations().state_bytes(), _host.buildings().spatial_state_bytes()]
++	for data: PackedByteArray in images:
++		var hash_state: HashingContext = HashingContext.new()
++		hash_state.start(HashingContext.HASH_SHA256)
++		hash_state.update(data)
++		out.append(hash_state.finish().hex_encode())
++	return out
++
++
++func _inventory_base_bytes() -> PackedByteArray:
++	"""Compare all original serialized stock fields; the separate empty spatial appendix is new and checked below."""
++	var data: PackedByteArray = _host.inventory().state_bytes()
++	var spatial: PackedByteArray = PackedByteArray()
++	_host.inventory()._append_spatial_state(spatial)
++	data.resize(data.size() - spatial.size())
++	return data
++
++
++func test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation() -> void:
++	"""Every receiver comes from the mounted host; source-qualified geometry creates no endpoint or Room."""
++	var before: PackedStringArray = _snapshot()
++	assert_true(_host.compose_underground_room_owners(), "actual composition: %s" % _host.last_refusal())
++	assert_equal(_snapshot(), before, "stock, Jobs, identities, buildings and World unchanged")
++	var o: Retirement.Owners = _session._retirement_owners
++	assert_equal(_session._operations_state, 2, "complete owner graph")
++	assert_equal(_session._operations_prefix, 4, "all four owner groups")
++	assert_equal(Composition.complete_refusal(o), &"", "complete exact wiring")
++	assert_equal(_session.room_orders(), o.rooms, "actual Rooms borrowed")
++	assert_equal(_session.location_owner(), o.locations, "actual Locations borrowed")
++	assert_equal(_session.room_phase_provider(), o.world_bindings, "actual closed provider")
++	assert_equal(o.sites._capacity, Composition.Sites.MAX_SITE_CAPACITY, "real Site budget")
++	assert_equal(o.sites._funding._capacity, Composition.Funding.MAX_RECEIPT_CAPACITY, "one real Funding arena")
++	assert_equal(o.router._funding, o.sites._funding, "shared funding, not duplicated")
++	assert_equal(o.rooms._catalog._definitions, _host.buildings()._definitions, "original immutable facts borrowed")
++	assert_equal(o.sites._count, 0, "no Site introduced")
++	assert_equal(o.locations._live.count, 0, "no endpoint invented")
++	assert_equal(o.routes._edge_capacity, 0, "route remains an unconfigured source shell")
++	assert_equal(o.world_routes, null, "no synthetic route provider")
++	assert_equal(o.contacts, null, "no work permission")
++	assert_true(_host.compose_underground_room_owners(), "idempotent current recheck")
++	assert_equal(_session._retirement_owners, o, "no second owner packet")
++	assert_equal(_snapshot(), before, "repeat changes no gameplay bytes")
++
++
++func test_actual_reset_releases_original_graph_then_reuses_inventory_arena() -> void:
++	"""Canonical host clearing precedes exact owner release and a fresh same-capacity namespace."""
++	assert_true(_host.compose_underground_room_owners(), "compose")
++	var original: Retirement.Owners = _session._retirement_owners
++	var world_ref: Vector2i = _host.world_ref()
++	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "finite arena")
++	assert_true(_host.prepare_world_reset(), "actual complete tuple preflight")
++	assert_true(_host.prepare_world_reset(), "same Scope repeated")
++	assert_true(_host.reset(), "actual clear/release: %s" % _host.last_refusal())
++	assert_equal(_host.construction()._excavation_authority, null, "owner-owned excavation release")
++	assert_equal(_host.work()._modular_authority, null, "owner-owned modular release")
++	assert_equal(_host.buildings()._spatial_authority, null, "owner-owned Room release")
++	assert_equal(_host.inventory()._spatial_authority, null, "owner-owned namespace release")
++	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "same arena retained")
++	assert_true(_host.create_generated_settlement(_host.item_definitions()), "new full World")
++	assert_true(_host.mount_underground(_content), "remount current source")
++	_session = _host.underground_session()
++	assert_true(_host.compose_underground_room_owners(), "new actual owner graph")
++	assert_true(_session._retirement_owners.locations != original.locations, "fresh namespace owner")
++	assert_false(_host.directory().is_valid(world_ref), "old full World generation refuses")
++	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "no growth")
++
++
++func _observed_host() -> ObservedWorld:
++	"""Mount an actual generated host whose source readers can only inject failures or adverse observations."""
++	_session = null
++	_host.free()
++	_host = ObservedHost.new()
++	assert_true(_host.create_generated_settlement(_host.item_definitions()), "observed actual World")
++	assert_true(_host.mount_underground(_content), "observed source foundation: %s" % _host.last_refusal())
++	_session = _host.underground_session()
++	var world: ObservedWorld = _host.world() as ObservedWorld
++	world.session = weakref(_session)
++	return world
++
++
++func _assert_stopped_prefix(prefix: int, before: PackedStringArray) -> void:
++	"""A real bound prefix survives refusal and cannot expose getters, dispatch work or restart composition."""
++	assert_equal(_session._operations_state, 3, "retained failed state")
++	assert_equal(_session._operations_prefix, prefix, "exact installed prefix")
++	assert_equal(_snapshot(), before, "original gameplay fields unchanged")
++	assert_equal(_session.current_refusal(), &"UNDERGROUND_COMPOSITION_STOPPED", "ordinary source access stopped")
++	assert_equal(_session.room_orders(), null, "no fresh Room borrow")
++	assert_equal(_session.location_owner(), null, "no fresh Location borrow")
++	assert_equal(_session.room_phase_provider(), null, "no fresh provider borrow")
++	assert_false(_host.run_tick(1), "tick stopped")
++	assert_false(_host.create_initial_settlement(), "admission stopped")
++	assert_false(_host.compose_underground_room_owners(), "no replacement constructor")
++	assert_equal(_snapshot(), before, "stopped operations change no gameplay state")
++
++
++func _assert_prefix_reset(prefix: int) -> void:
++	"""Only whole-World canonical clearing can release the retained exact incomplete owner graph."""
++	assert_true(_host.prepare_world_reset(), "prefix preflight: %s" % _host.last_refusal())
++	var scope: Retirement.Scope = _session._retirement_scope
++	assert_equal(scope._constructor_prefix, prefix, "Scope derives original private prefix")
++	assert_true(_host.prepare_world_reset(), "same prefix repeat")
++	assert_equal(_session._retirement_scope, scope, "no second Scope")
++	assert_true(_host.abandon_world_reset(), "unchanged live abandonment")
++	assert_false(_host.run_tick(1), "failed constructor cannot resume through abandonment")
++	assert_true(_host.reset(), "actual full prefix retirement: %s" % _host.last_refusal())
++	assert_equal(_host.construction()._excavation_authority, null, "Site receiver released")
++	assert_equal(_host.construction()._modular_authority, null, "Router receiver released")
++	assert_equal(_host.buildings()._spatial_authority, null, "Room receiver released")
++	assert_equal(_host.inventory()._spatial_authority, null, "Inventory receiver released")
++	assert_equal(_session._retirement_scope, null, "private Scope cycle broken")
++
++
++func test_constructor_missing_authority_backlink_keeps_prefix_then_retires() -> void:
++	"""The genuine Sites constructor can finish before its separately observed Authority backlink refuses."""
++	_observed_host()
++	(_host.construction() as ObservedConstruction).deny_installed_once = true
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "actual backlink refusal")
++	assert_equal(_host.last_refusal(), &"SPACE_SITE_OWNER_MISMATCH", "real Authority refused")
++	_assert_stopped_prefix(1, before)
++	var o: Retirement.Owners = _session._retirement_owners
++	assert_equal(o.authority._sites, null, "backlink was never installed")
++	assert_equal(o.construction._excavation_authority.get_ref(), o.sites, "original Sites retained")
++	assert_true(Retirement.prepare_into(_host, _session, o, Retirement.Scope.new()) != &"", "normal retirement not weakened")
++	_assert_prefix_reset(1)
++
++
++func test_constructor_missing_room_backlink_keeps_prefix_then_retires() -> void:
++	"""Buildings publishes its real RoomOrders before reciprocal RoomAdmission can return a refusal."""
++	_observed_host()
++	(_host.buildings() as ObservedBuildings).deny_installed_once = true
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "real Room admission refused")
++	_assert_stopped_prefix(3, before)
++	var o: Retirement.Owners = _session._retirement_owners
++	assert_equal(o.room_bindings._orders, null, "admission backlink absent")
++	assert_equal(o.buildings._spatial_authority.get_ref(), o.rooms, "original Room authority retained")
++	assert_true(Retirement.prepare_into(_host, _session, o, Retirement.Scope.new()) != &"", "complete retirement still rejects missing link")
++	_assert_prefix_reset(3)
++
++
++func _reenter_reset_and_tick() -> void:
++	"""Attempt ordinary host operations from an actual constructor reader; both must poison and refuse."""
++	_nested_reset = _host.reset()
++	_nested_tick = _host.run_tick(1)
++
++
++func test_reentrant_constructor_after_router_retains_both_original_bindings() -> void:
++	"""Later observer refusal cannot drop the already once-bound Sites and Router or allow a gameplay tick."""
++	var world: ObservedWorld = _observed_host()
++	world.prefix = 2
++	world.observer = _reenter_reset_and_tick
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "late constructor observes reentry")
++	assert_false(world.observer.is_valid(), "actual selected reader executed")
++	assert_false(_nested_reset, "recursive reset refuses")
++	assert_false(_nested_tick, "recursive tick refuses")
++	_assert_stopped_prefix(2, before)
++	assert_equal(_session._retirement_owners.rooms, null, "unbound Room candidate not retained")
++	_assert_prefix_reset(2)
++
++
++func test_refusal_before_first_binding_keeps_foundation_and_can_retry() -> void:
++	"""The only safely dropped candidates have never published a borrowed owner's one-way link."""
++	var world: ObservedWorld = _observed_host()
++	world.prefix = 0
++	world.observer = _reenter_reset_and_tick
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "private prepare poisoned")
++	assert_false(world.observer.is_valid(), "real source reader executed")
++	assert_equal(_session._operations_state, 0, "foundation retained")
++	assert_equal(_session._operations_prefix, 0, "no installed prefix")
++	assert_equal(_host.construction()._excavation_authority, null, "no owner mutated")
++	assert_equal(_session._retirement_owners.world_bindings, null, "private provider dropped")
++	assert_equal(_snapshot(), before, "no gameplay mutation")
++	assert_true(_host.compose_underground_room_owners(), "clean real retry")
++
++
++func _change_profile_revision() -> void:
++	"""Mutate the actual published bank only as an adverse source fixture; no replacement permission is supplied."""
++	_session._profiles._live.header[0] += 1
++
++
++func test_late_source_drift_retains_bound_prefix_and_refuses_reset_until_restored() -> void:
++	"""Source revision equality is part of original lifetime, including a failed constructor's retirement."""
++	var world: ObservedWorld = _observed_host()
++	world.prefix = 2
++	world.observer = _change_profile_revision
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "late current profile drift")
++	assert_false(world.observer.is_valid(), "actual late observation executed")
++	_assert_stopped_prefix(2, before)
++	assert_false(_host.reset(), "changed original source cannot attest retirement")
++	assert_equal(_snapshot(), before, "no store clear on stale source")
++	_session._profiles._live.header[0] -= 1 # Restore only this test's exact tamper.
++	_assert_prefix_reset(2)
++
++
++func test_busy_foundation_refuses_before_allocating_any_operational_owner() -> void:
++	"""A real active lease refuses composition without changing its original token or private owner packet."""
++	var before: PackedStringArray = _snapshot()
++	var token: int = _session._budget.acquire(64)
++	assert_true(token > 0, "real held token")
++	assert_false(_host.compose_underground_room_owners(), "busy foundation")
++	assert_equal(_session._operations_state, 0, "no constructor started")
++	assert_equal(_session._retirement_owners.sites, null, "no bank/owner admitted")
++	assert_true(_session._budget.covers(token, 64), "original lease untouched")
++	assert_equal(_snapshot(), before, "no stores mutated")
++	assert_equal(_session._budget.release(token), &"", "release original token")
++	assert_true(_host.compose_underground_room_owners(), "quiescent actual retry")
++
++
++func test_captured_prefix_rejects_tuple_and_prefix_replacement() -> void:
++	"""Same-number foreign objects and changed private phase cannot replace the Scope's original tuple."""
++	_observed_host()
++	(_host.construction() as ObservedConstruction).deny_installed_once = true
++	assert_false(_host.compose_underground_room_owners(), "prefix one")
++	assert_true(_host.prepare_world_reset(), "capture original")
++	var before: PackedStringArray = _snapshot()
++	_session._operations_prefix = 2
++	assert_false(_host.reset(), "different prefix")
++	assert_equal(_snapshot(), before, "no clear after scope mutation")
++	_session._operations_prefix = 1
++	var original: Composition.Authority = _session._retirement_owners.authority
++	_session._retirement_owners.authority = Composition.Authority.new()
++	assert_false(_host.reset(), "foreign Authority object")
++	assert_equal(_snapshot(), before, "foreign object clears nothing")
++	_session._retirement_owners.authority = original
++	assert_true(_host.reset(), "original exact scope survives refusal")
++
++
++func test_constructor_prefix_entry_refuses_arbitrary_supplied_session() -> void:
++	"""The special path derives from the actual cached private Session and never accepts caller-declared incompleteness."""
++	var scope: Retirement.Scope = Retirement.Scope.new()
++	assert_equal(Retirement.prepare_constructor_prefix_into(_host, RefCounted.new(),
++		_session._retirement_owners, scope), &"WORLD_RETIREMENT_INPUT", "foreign Session")
++	assert_equal(Retirement.prepare_constructor_prefix_into(_host, _session,
++		_session._retirement_owners, scope), &"WORLD_RETIREMENT_CONSTRUCTOR", "ordinary foundation is not a stopped prefix")
++	assert_equal(scope._stage, 0, "no output Scope publication")
++	assert_equal(scope._constructor_prefix, -1, "ordinary default unchanged")
++
++
++func test_final_inventory_boundary_retains_complete_failed_prefix_for_reset() -> void:
++	"""A real final bind may succeed before the original source leaf detects a change; its adapter must stay alive."""
++	_observed_host()
++	(_host.inventory() as ObservedInventory).observer = _change_profile_revision
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "actual final bind then source refusal")
++	_assert_stopped_prefix(4, before)
++	var o: Retirement.Owners = _session._retirement_owners
++	assert_equal(_host.inventory()._spatial_authority.get_ref(), o.inventory_locations, "original bound adapter retained")
++	assert_false(_host.reset(), "changed original source refuses")
++	_session._profiles._live.header[0] -= 1
++	_assert_prefix_reset(4)
++
++
++func _change_host_gear_alias() -> void:
++	"""The original Session remains internally coherent while a callback changes only the mounted host alias."""
++	_original_gear = _host._gear
++	_host._gear = Gear.new()
++
++
++func test_final_host_tuple_mismatch_stops_newly_bound_composition() -> void:
++	"""The host's post-observer mount leaf must stop a completed constructor before reporting its mismatch."""
++	_observed_host()
++	(_host.inventory() as ObservedInventory).observer = _change_host_gear_alias
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "late mounted host alias changed")
++	assert_equal(_host.last_refusal(), &"UNDERGROUND_HOST_OWNER", "host original tuple leaf")
++	_assert_stopped_prefix(4, before)
++	assert_false(_host.reset(), "foreign host alias cannot authorize release")
++	assert_equal(_snapshot(), before, "no clear with wrong mounted tuple")
++	_host._gear = _original_gear
++	_original_gear = null
++	_assert_prefix_reset(4)
++
++
++func _change_cached_consumer_source() -> void:
++	"""Change cached text without reloading or altering the on-disk consumer, as an explicit negative proof."""
++	_source_script = ResourceLoader.get_cached_ref(Session.Catalog.Pins.PATHS[0]) as Script
++	_source_text = _source_script.source_code
++	_source_script.source_code = _source_text + "\n# test-only late constructor source drift\n"
++
++
++func test_final_cached_consumer_drift_cannot_publish_ready_owner_state() -> void:
++	"""All real constructors can finish, but actual current cached-source proof still precedes readiness."""
++	_observed_host()
++	(_host.inventory() as ObservedInventory).observer = _change_cached_consumer_source
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "late exact cached source changed")
++	assert_equal(_host.last_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "source guard remains strict")
++	_assert_stopped_prefix(4, before)
++	assert_false(_host.reset(), "changed runtime proof cannot release original source")
++	_source_script.source_code = _source_text
++	_source_script = null
++	_source_text = ""
++	_assert_prefix_reset(4)
++
++
++func test_complete_composition_refuses_equal_value_foreign_catalog_owner() -> void:
++	"""Standalone catalog construction stays compatible, but its separate facts cannot replace mounted identity."""
++	assert_true(_host.compose_underground_room_owners(), "compose with borrowed facts")
++	var o: Retirement.Owners = _session._retirement_owners
++	var standalone: Composition.RoomCatalog = Composition.RoomCatalog.new()
++	assert_true(standalone._definitions != o.buildings._definitions, "no-argument behavior still owns facts")
++	assert_equal(standalone.allowed_types_mask(2), o.rooms._catalog.allowed_types_mask(2), "unchanged purpose semantics")
++	o.rooms._catalog._definitions = standalone._definitions
++	assert_equal(Composition.complete_refusal(o), &"UNDERGROUND_COMPOSITION_CATALOG", "equal data is a foreign owner")
++	assert_false(_host.compose_underground_room_owners(), "idempotent observation refuses changed facts")
++	o.rooms._catalog._definitions = o.buildings._definitions
++	assert_true(_host.compose_underground_room_owners(), "restore this test's original identity")
++
++
++func test_failed_room_prefix_refuses_foreign_fact_owner_before_clear() -> void:
++	"""A partial Room mount must preserve the same immutable catalog during capture and final release."""
++	_observed_host()
++	(_host.buildings() as ObservedBuildings).deny_installed_once = true
++	assert_false(_host.compose_underground_room_owners(), "retain real prefix three")
++	var o: Retirement.Owners = _session._retirement_owners
++	var standalone: Composition.RoomCatalog = Composition.RoomCatalog.new()
++	var before: PackedStringArray = _snapshot()
++	o.rooms._catalog._definitions = standalone._definitions
++	assert_false(_host.prepare_world_reset(), "foreign definitions refuse before Scope")
++	assert_equal(_session._retirement_scope, null, "no Scope published")
++	assert_equal(_snapshot(), before, "no canonical owner cleared")
++	o.rooms._catalog._definitions = o.buildings._definitions
++	_assert_prefix_reset(3)
++
++
++func _remove_original_definitions() -> void:
++	"""A negative final pre-constructor observation cannot trigger the standalone catalog allocation fallback."""
++	_original_definitions = _host.buildings()._definitions
++	_host.buildings()._definitions = null
++
++
++func test_null_original_facts_refuse_before_default_catalog_allocation() -> void:
++	"""The current argument is rechecked after observers, so null never selects the optional standalone allocator."""
++	var world: ObservedWorld = _observed_host()
++	world.prefix = 2
++	world.observer = _remove_original_definitions
++	var before: PackedStringArray = _snapshot()
++	assert_false(_host.compose_underground_room_owners(), "late original catalog missing")
++	assert_false(world.observer.is_valid(), "actual pre-room observer executed")
++	assert_equal(_host.last_refusal(), &"UNDERGROUND_COMPOSITION_CATALOG", "no default constructor fallback")
++	_assert_stopped_prefix(2, before)
++	assert_equal(_session._retirement_owners.rooms, null, "no RoomOrders/catalog retained")
++	_host.buildings()._definitions = _original_definitions
++	_original_definitions = null
++	_assert_prefix_reset(2)
+--- /dev/null
++++ b/godot/test/test_underground_room_composition.gd.uid
+@@ -0,0 +1 @@
++uid://1lmw0phrzz19e

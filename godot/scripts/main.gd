@@ -5,8 +5,11 @@ extends Node
 const HudScript := preload("res://scripts/ui/hud.gd")
 const ResidentStageScript := preload("res://scripts/presentation/resident_stage.gd")
 const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+const UiSaveControls := preload("res://scripts/ui/ui_save_controls.gd")
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
+## ADR 1222 step 11's save controls; null in a host that instances this scene (`_enable_saves`).
+var _save_controls: UiSaveControls = null
 @onready var _resident_stage: ResidentStageScript = \
 	$World/Entities/ResidentStage as ResidentStageScript
 
@@ -20,9 +23,14 @@ func _ready() -> void:
 	EconomySystem is reset BEFORE SettlementSystem: its reset drops the borrowed residents
 	binding, so the old settlement is unbound before it is cleared, never after.
 	"""
+	if not SettlementSystem.prepare_world_reset():
+		push_error("Settlement restart refused: %s" % SettlementSystem.last_refusal())
+		return
 	EntityManager.clear()
 	EconomySystem.reset()
-	SettlementSystem.reset()
+	if not SettlementSystem.reset():
+		push_error("Settlement reset refused: %s" % SettlementSystem.last_refusal())
+		return
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)
@@ -31,12 +39,27 @@ func _ready() -> void:
 	_attach_resident_stage()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
+	_enable_saves()
 	print("[Main] boot complete: %s  food-days %s  ready %d NP  fuel-days %s" % [
 		GameManager.get_state_name(),
 		EconomySystem.food_days_text(),
 		EconomySystem.ready_nutrition_points(),
 		EconomySystem.fuel_days_text(),
 	])
+
+
+func _enable_saves() -> void:
+	"""Turn the save controls on and run launch recovery (ADR 1222 step 11), only when this scene IS
+	the game. A host that instances it (the live demo, decision 0196) draws its own world, cast and
+	services, none of which the settlement save carries, so a save there would not restore what the
+	player sees; the controls stay off and no autosave runs."""
+	if get_parent() != get_tree().root:
+		return
+	_save_controls = UiSaveControls.new()
+	_save_controls.name = "SaveControls"
+	add_child(_save_controls)
+	_save_controls.bind(SettlementSystem, GameManager, _hud)
+	_save_controls.enable()
 
 
 func _generate_initial_world() -> bool:
@@ -107,16 +130,37 @@ func _exit_tree() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""Toggle the player pause reason on UI §5's `time_pause` action.
+	"""Toggle the player pause reason on UI §5's `time_pause` action, and quicksave on `save_quick`.
 
 	UI §5 puts pause on Space with world focus (and Ctrl+Space outside text/rebind contexts).
 	Escape is NOT pause: it is `ui_cancel`, which dismisses exactly one layer, falling through
 	to `open_menu` once the dismissal stack is empty. The prototype bound pause to a `cancel`
 	action on Escape; that was a wrong behaviour, not merely a wrong name.
+
+	`save_quick` (F5) queues the quicksave for the next quiescent boundary, paused or not
+	(UI §5; ADR 1222 step 11). While the game menu or the save browser is open, they own the keys.
 	"""
+	if _save_controls != null and _save_controls.modal_open():
+		return
 	if event.is_action_pressed(&"time_pause"):
 		GameManager.toggle_pause()
 		get_viewport().set_input_as_handled()
+	elif _save_controls != null and _save_action(event):
+		get_viewport().set_input_as_handled()
+
+
+func _save_action(event: InputEvent) -> bool:
+	"""UI §5's save keys: F5 quicksaves at the next boundary, F9 opens the save browser on the
+	quicksave (its Load names the save and date and is the confirmation), and Escape -- reaching
+	here only when no panel took it -- opens the game menu (UI-SET-078). True when one acted."""
+	if event.is_action_pressed(&"save_quick"):
+		_save_controls.request_quicksave()
+		return true
+	if event.is_action_pressed(&"load_quick"):
+		return _save_controls.open_quickload()
+	if event.is_action_pressed(&"open_menu") and _hud != null and not _hud.shell().workspace_owns_input():
+		return _save_controls.open_game_menu()
+	return false
 
 
 func _seed_stores() -> void:

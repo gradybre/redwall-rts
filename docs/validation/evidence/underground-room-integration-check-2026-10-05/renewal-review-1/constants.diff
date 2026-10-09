@@ -1,0 +1,16 @@
+--- immutable-v3/catalog_source.gd
++++ renewed/catalog_source.gd
+@@ -2 +2 @@
+-## Generated exact source pins; regenerate with publish_work_approach_profiles.py.
++## Generated exact source pins; regenerate with renew_work_approach_profiles.py.
+@@ -8 +8 @@
+-const CONSUMER_COMMIT: String = "721038a4198df17d9bfab6c9994cc9916f875447"
++const CONSUMER_COMMIT: String = "8003bfe155092e9a8bc8b5590228e6069b859173"
+@@ -22 +22 @@
+-	"fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
++	"2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+@@ -24,2 +24,2 @@
+-	"c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+-	"7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
++	"e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
++	"3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e",

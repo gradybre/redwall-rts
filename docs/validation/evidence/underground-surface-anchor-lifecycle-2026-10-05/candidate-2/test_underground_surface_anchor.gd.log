@@ -1,0 +1,55 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_surface_anchor.gd
+  PASS  test_shared_surface_metadata_keeps_the_future_cut_unprotected
+  PASS  test_surface_section_shape_refusals_leave_actual_owners_unchanged
+  PASS  test_shared_section_requires_the_exact_live_datum_and_extent
+  PASS  test_shared_section_still_requires_local_natural_footing
+  PASS  test_caller_metadata_mutation_cannot_change_prepared_surface
+  PASS  test_nested_shared_section_request_poison_preserves_existing_contacts
+  PASS  test_real_natural_ground_publishes_complete_endpoint_without_construction_or_room
+  PASS  test_anchor_cannot_create_air_in_dirt_or_footing_above_ground
+  PASS  test_support_excluding_root_and_root_plane_mismatch_refuse
+  PASS  test_actual_building_and_resource_footprints_refuse_without_sparse_registration
+  PASS  test_removed_matter_cannot_be_republished_as_natural_footing
+  PASS  test_late_building_after_final_locations_observer_refuses_before_both_swaps
+  PASS  test_expired_original_lease_never_consumes_a_replacement_or_publishes_either_bank
+  PASS  test_reentrant_creation_poisons_outer_observation_and_allows_clean_retry
+  PASS  test_existing_endpoint_keeps_full_identity_and_payload_after_new_anchor
+  PASS  test_location_capacity_refusal_leaves_existing_space_and_endpoint_unchanged
+  PASS  test_binding_is_once_only_and_foreign_budget_does_not_alias_owner
+  PASS  test_busy_cold_owner_refuses_before_any_geometry_transaction
+  PASS  test_late_endpoint_inventory_replacement_refuses_both_swaps
+  PASS  test_late_endpoint_transforms_replacement_refuses_both_swaps
+  PASS  test_late_routes_residents_replacement_refuses_both_swaps
+  PASS  test_late_routes_jobs_replacement_refuses_both_swaps
+  PASS  test_late_profile_inventory_replacement_refuses_both_swaps
+  PASS  test_late_construction_owner_replacement_refuses_both_swaps
+  PASS  test_initial_binding_observer_cannot_enter_uninitialized_create
+  PASS  test_low_operation_budget_refuses_before_terrain_observer
+  PASS  test_repeated_scope_checks_share_one_budget_across_existing_endpoints
+  PASS  test_last_locations_observer_abort_refuses_before_space_publication
+  PASS  test_aborted_world_endpoint_cannot_rebegin_in_original_scope
+  PASS  test_last_observer_independent_candidates_and_lease_survive_outer_cleanup
+  PASS  test_last_observer_changed_new_payload_refuses_before_both_swaps
+  PASS  test_late_configure_poison_retains_the_original_bound_scope_and_cannot_rebind
+CI_SUITE_TIME {"assertions":344,"failures":0,"suite":"test_underground_surface_anchor.gd","tests":32,"usec":8525932}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+32 test(s), 344 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 32 tests, 344 assertions, 0 failures.

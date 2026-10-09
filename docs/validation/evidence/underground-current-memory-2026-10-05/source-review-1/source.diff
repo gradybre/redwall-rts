@@ -1,0 +1,713 @@
+diff --git a/tools/test_underground_memory_budget.py b/tools/test_underground_memory_budget.py
+index 160b9fae..8d2e8169 100644
+--- a/tools/test_underground_memory_budget.py
++++ b/tools/test_underground_memory_budget.py
+@@ -11,6 +11,8 @@ from pathlib import Path
+ import underground_memory_budget as budget
+ import underground_retirement_memory as retirement_memory
+ from test_underground_room_memory import RoomMemoryWitnessTests
++from test_underground_motion_memory import CurrentMotionTests
++from test_underground_motion_clock_memory import CurrentClockTests
+ 
+ 
+ class RetirementWitnessTests(unittest.TestCase):
+@@ -73,7 +75,7 @@ class JointPackTests(unittest.TestCase):
+     def test_motion_profiles_levels_share_the_existing_reservation(self) -> None:
+         result = budget.build(self.index)
+         joint = result["profile_motion_reservation"]["joint"]
+-        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (237140, 262144, 25004))
++        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (238904, 262144, 23240))
+         self.assertEqual(joint["independent_maxima_total_refuses"], 444284)
+         self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+         self.assertFalse(result["runtime_qualified"])
+@@ -84,7 +86,7 @@ class JointPackTests(unittest.TestCase):
+         self.assertEqual(session["source_counted_motion_joint_before_session_bytes"],
+                          result["profile_motion_reservation"]["joint"]["total"])
+         self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (43, 24))
+-        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (238676, 23468))
++        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (240440, 21704))
+         self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+         self.assertFalse(session["native_memory_qualified"])
+ 
+@@ -95,7 +97,7 @@ class JointPackTests(unittest.TestCase):
+         result = budget.build(self.index)
+         row = result["host_retirement_reservation"]["accounting"]
+         self.assertEqual((row["retirement_reserved_bytes"], row["joint_with_retirement"],
+-                          row["joint_remaining_bytes"]), (8192, 246868, 15276))
++                          row["joint_remaining_bytes"]), (8192, 248632, 13512))
+         self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
+         self.assertEqual(result["session_reservation"]["additional_retirement_reference_slots_charged_separately"], 2)
+ 
+@@ -107,19 +109,19 @@ class JointPackTests(unittest.TestCase):
+         result = budget.build(self.index)
+         ui = result["ui_reset_reservation"]
+         self.assertEqual(ui["additional_reserved_bytes"], 0)
+-        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (6067, 1919))
++        self.assertEqual((ui["accounting"]["controls"], ui["accounting"]["helpers"]), (6131, 1919))
+         self.assertEqual(ui["accounting"]["profile_joint_unchanged"],
+                          result["host_retirement_reservation"]["accounting"]["joint_with_retirement"])
+ 
+     def test_route_constructor_is_current_and_uses_the_same_retirement_reserve(self) -> None:
+         result = budget.build(self.index)
+         route = result["room_extension_reservation"]["route_composition"]
+-        self.assertEqual(route["constructor_exclusive_reuse"]["simultaneous_total"], 8161)
+-        self.assertEqual(result["host_retirement_reservation"]["accounting"]["control_provisional_bytes"], 5745)
+-        self.assertEqual(result["host_retirement_reservation"]["accounting"]["helper_provisional_bytes"], 1199)
++        self.assertEqual(route["constructor_exclusive_reuse"]["simultaneous_total"], 8185)
++        self.assertEqual(result["host_retirement_reservation"]["accounting"]["control_provisional_bytes"], 6131)
++        self.assertEqual(result["host_retirement_reservation"]["accounting"]["helper_provisional_bytes"], 1919)
+         self.assertEqual(result["ui_reset_reservation"]["current_constructor_exclusive_reuse"],
+                          route["constructor_exclusive_reuse"])
+-        self.assertEqual(route["retained_reference_delta"], 0)
++        self.assertEqual(route["retained_reference_delta"], 2)
+         self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
+         self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+ 
+@@ -420,9 +422,13 @@ class JointPackTests(unittest.TestCase):
+         source = self.index["underground_surface_anchor"].text
+         index = self.changed("underground_surface_anchor", source, source +
+                              "\nfunc unrelated() -> int:\n\tvar example: int = 7\n\treturn example\n")
+-        anchor = budget.build(index)["connector_recipe_reservation"]["surface_anchor_reservation"]
++        # Exercise the packet parser directly. The current1171 full owner is
++        # now source-pinned, so an added method cannot qualify as current code.
++        anchor = budget.surface_anchor_reservation(index)
+         self.assertEqual(anchor["packet_bytes"], 204)
+         self.assertEqual(anchor["numeric_control_bytes"], 93)
++        with self.assertRaisesRegex(AssertionError, "current reviewed source changed: underground_surface_anchor"):
++            budget.build(index)
+ 
+     def test_negative_binding_reserve_cannot_omit_existing_consumers(self) -> None:
+         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
+diff --git a/tools/test_underground_room_memory.py b/tools/test_underground_room_memory.py
+index 8779645a..ae431816 100644
+--- a/tools/test_underground_room_memory.py
++++ b/tools/test_underground_room_memory.py
+@@ -6,6 +6,7 @@ from pathlib import Path
+ import subprocess
+ import sys
+ import unittest
++from contextlib import ExitStack
+ from unittest import mock
+ 
+ import audit_registry_capacities as audit
+@@ -37,8 +38,8 @@ class RoomMemoryWitnessTests(unittest.TestCase):
+         path = room.ROOT / room.I / "predecessors/turn-census.py.txt"
+         self.refuses_before_replay({path: path.read_bytes() + b"\nimport os\n"})
+ 
+-    def test_all_five_census_producers_are_checked_before_execution(self):
+-        for folder in (room.P, room.I, room.C, room.G, room.R):
++    def test_all_current_and_historical_producers_are_checked_before_execution(self):
++        for folder in (room.P, room.I, room.C, room.G, room.R, room.S, room.T, room.A, room.Q):
+             path = room.ROOT / folder / "census.py"
+             with self.subTest(producer=folder):
+                 self.refuses_before_replay({path: path.read_bytes() + b"\n# unreviewed\n"})
+@@ -135,8 +136,8 @@ class RoomMemoryWitnessTests(unittest.TestCase):
+         self.assertEqual(result["publication"]["cold_controls_accounted"], 8050)
+         self.assertEqual(result["composition"]["constructor_exclusive_reuse"]["simultaneous_total"], 7493)
+         route = result["route_composition"]
+-        self.assertEqual(route["constructor_exclusive_reuse"]["simultaneous_total"], 8161)
+-        self.assertEqual(route["accounting"]["controls"], 6067)
++        self.assertEqual(route["constructor_exclusive_reuse"]["simultaneous_total"], 8185)
++        self.assertEqual(route["accounting"]["controls"], 6131)
+         self.assertEqual(route["accounting"]["helpers"], 1919)
+         self.assertEqual(route["source_sha256"][self.index["underground_session"].relative_path],
+                          hashlib.sha256(self.index["underground_session"].text.encode()).hexdigest())
+@@ -146,6 +147,101 @@ class RoomMemoryWitnessTests(unittest.TestCase):
+         self.assertNotEqual(historical["underground_session"].text, self.index["underground_session"].text)
+         self.assertFalse(result["native_measured"])
+ 
++    def test_both_programs_keep_exact_distinct_identity_and_text(self):
++        for name, other in (("source_program", "short_program"), ("short_program", "source_program")):
++            row, foreign = self.manifest["sources"][name], self.manifest["sources"][other]
++            source = audit.parse_module(name, foreign["path"], (room.ROOT / foreign["path"]).read_text())
++            with self.subTest(alias=name), mock.patch.object(room, "producer") as execute:
++                with self.assertRaisesRegex(ValueError, "module identity: " + name):
++                    room.build(dict(self.index, **{name: source}))
++                execute.assert_not_called()
++            source = audit.parse_module(name, row["path"], (room.ROOT / foreign["path"]).read_text())
++            with self.subTest(text=name), mock.patch.object(room, "producer") as execute:
++                with self.assertRaisesRegex(ValueError, "current reviewed source changed: " + name):
++                    room.build(dict(self.index, **{name: source}))
++                execute.assert_not_called()
++
++    def test_new_current_text_changes_cannot_hide_behind_cached_hashes(self):
++        for name in ("short_program", "mole_profile_driver", "mole_profile_catalog",
++                     "underground_motion_catalog", "underground_motion_clock", "underground_profiles",
++                     "underground_routes", "underground_world_routes", "underground_room_itinerary",
++                     "underground_connector_contacts", "underground_surface_anchor"):
++            row = self.manifest["sources"][name]
++            source = audit.parse_module(name, row["path"], (room.ROOT / row["path"]).read_text())
++            changed = source._replace(text=source.text + "\nstatic var retained: Array = [1, 2, 3]\n")
++            with self.subTest(owner=name), mock.patch.object(room, "producer") as execute:
++                with self.assertRaisesRegex(ValueError, "current reviewed source changed: " + name):
++                    room.build(dict(self.index, **{name: changed}))
++                execute.assert_not_called()
++
++    def test_metadata_projection_cannot_hide_current_constructor_or_body_edits(self):
++        source = self.index["underground_route_composition"]
++        for before, after in (("PROFILE_CONTENT_REVISION: int = 3", "PROFILE_CONTENT_REVISION: int = 2"),
++                              ("catalog._live.header[7] != 12", "catalog._live.header[7] != 13"),
++                              ("var o: Retirement.Owners", "var scratch: Array = [1, 2]\n\tvar o: Retirement.Owners")):
++            self.assertIn(before, source.text)
++            changed = source._replace(text=source.text.replace(before, after, 1))
++            with self.subTest(change=before), mock.patch.object(room, "producer") as execute:
++                with self.assertRaisesRegex(ValueError, "current reviewed source changed: underground_route_composition"):
++                    room.build(dict(self.index, underground_route_composition=changed))
++                execute.assert_not_called()
++
++    def test_transitive_short_step_contract_and_original_constructor_sources_are_immutable(self):
++        paths = (room.S / "supporting/call-contract.json", room.S / "supporting/predecessors.json",
++                 room.S / "profile-diagnostic-1/mole-worker.ugprof",
++                 room.A / "constructor-source-sha256.json", room.A / "predecessor/manifest.json",
++                 room.Q / "baseline.json", room.Q / "baseline/underground_route_composition.gd.txt",
++                 room.E / "predecessors/underground_motion_memory.py.txt")
++        for relative in paths:
++            path = room.ROOT / relative
++            with self.subTest(input=relative):
++                self.refuses_before_replay({path: path.read_bytes() + b"\n# unreviewed\n"})
++
++    def test_lower_historical_total_cannot_replace_current_constructor_report(self):
++        path = room.ROOT / room.A / "source-review-3/census.json"
++        data = json.loads(path.read_bytes())
++        data["constructor_exclusive_reuse"]["simultaneous_total"] = 8161
++        self.refuses_before_replay({path: json.dumps(data).encode()})
++
++    def test_all_replays_use_captured_bytes_after_complete_verification(self):
++        original = room.producer
++        with ExitStack() as stack:
++            started = False
++
++            def replay(*args, **kwargs):
++                nonlocal started
++                if not started:
++                    started = True
++                    stack.enter_context(mock.patch.object(Path, "read_bytes", side_effect=AssertionError("late disk bytes")))
++                    stack.enter_context(mock.patch.object(Path, "read_text", side_effect=AssertionError("late disk text")))
++                return original(*args, **kwargs)
++
++            stack.enter_context(mock.patch.object(room, "producer", side_effect=replay))
++            result, _ = room.build(self.index)
++        self.assertTrue(started)
++        self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
++
++    def test_input_facade_does_not_fall_back_to_unverified_real_files(self):
++        view = room.FrozenInputs({}, {})
++        path = view.path(room.ROOT / "godot/scripts/core/underground_routes.gd")
++        self.assertFalse(path.exists())
++        with self.assertRaisesRegex(ValueError, "uncaptured census input"):
++            path.read_text()
++        with self.assertRaisesRegex(ValueError, "unreviewed census directory scan"):
++            view.path(room.ROOT).glob("**/*")
++
++    def test_current_runtime_helpers_and_original_reports_remain_separate(self):
++        result, _ = room.build(self.index)
++        self.assertEqual(result["current_source_runtime"]["profile_control"]["counted_logical"], 3571)
++        self.assertEqual(result["current_source_runtime"]["paired_profiles"]["delta"], 1764)
++        self.assertEqual(result["itinerary"]["itinerary"]["inclusive_peak"], 432)
++        self.assertEqual(result["itinerary"]["provider_source_bound"], 509)
++        self.assertEqual(result["itinerary"]["contacts_foreign_source_bound"], 344)
++        self.assertEqual(result["historical_route_composition"]["constructor_exclusive_reuse"]["simultaneous_total"], 8161)
++        self.assertEqual(result["route_composition"]["constructor_exclusive_reuse"]["simultaneous_total"], 8185)
++        self.assertEqual(result["historical_motion"]["joint"]["total"], 237140)
++        self.assertEqual(result["current_publication_metadata"]["joint"], 248632)
++
+ 
+ if __name__ == "__main__":
+     unittest.main(verbosity=2)
+diff --git a/tools/underground_memory_budget.py b/tools/underground_memory_budget.py
+index 933405af..5ea6a962 100644
+--- a/tools/underground_memory_budget.py
++++ b/tools/underground_memory_budget.py
+@@ -925,6 +925,7 @@ def build(index: dict | None = None) -> dict:
+         "mole_profile_catalog": "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+         "mole_profile_driver": "godot/data/underground/mole-worker/mole_profile_driver.gd",
+         "source_program": "godot/data/underground/mole-worker/work-approach-v1/source_program.gd",
++        "short_program": "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
+         "settlement_system": "godot/scripts/systems/settlement_system.gd",
+         "ui_manager": "godot/scripts/systems/ui_manager.gd",
+         "ui_world_session": "godot/scripts/ui/ui_world_session.gd",
+@@ -988,18 +989,24 @@ def build(index: dict | None = None) -> dict:
+     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
+     try:
+         motion = motion_memory.build(index)
+-        approach = approach_memory.build(historical, motion["joint"])
++        old_motion = room_extensions["historical_motion"]
++        approach = approach_memory.build(historical, old_motion["joint"])
+         approach["historical_source_sha256"] = approach.pop("source_sha256")
+         approach["current_source_sha256"] = {path: hashlib.sha256(index[Path(path).stem].text.encode()).hexdigest()
+                                              for path in approach["historical_source_sha256"]}
+         approach["portable_enforcement"]["historical_joint_source_sha256"] = approach["portable_enforcement"].pop("current_joint_source_sha256")
+         approach["portable_enforcement"]["reviewed_current_extensions"] = str(room_memory.MANIFEST)
+-        approach["portable_enforcement"]["scope"] += " Historical1156 frames are projected only after current1161/1163/1165/1166/1167 recensus."
++        approach["portable_enforcement"]["scope"] += " Historical1156 frames are projected only after current1168/1172/1173 source closure, actual1171 constructors, and unchanged1161/1163/1165/1166/1167 slices."
++        approach = {"historical_1156": approach,
++                    "current_profile_control": room_extensions["current_source_runtime"]["profile_control"],
++                    "current_joint": room_extensions["current_source_runtime"]["joint"],
++                    "current_itinerary_and_callers": room_extensions["itinerary"],
++                    "additional_reserved_bytes": 0, "native_measured": False}
+         clock = clock_memory.build(index, motion)
+-        session = session_memory.build(historical, motion, reserves["PROFILE_BYTES"])
++        session = session_memory.build(historical, old_motion, reserves["PROFILE_BYTES"])
+         retirement = retirement_memory.build(historical, session, reserves["PROFILE_BYTES"])
+         ui_reset = ui_reset_memory.build(historical, retirement, reserves["PROFILE_BYTES"])
+-        room_memory.reconcile(room_extensions, index, session, retirement, ui_reset)
++        room_memory.reconcile(room_extensions, index, session, retirement, ui_reset, motion)
+     except ValueError as error:
+         raise AssertionError(str(error)) from error
+     assert motion["joint"]["total"] <= reserves["PROFILE_BYTES"], "Motion/Profile/Level joint overbooking"
+@@ -1046,7 +1053,7 @@ def build(index: dict | None = None) -> dict:
+                     "underground_session", "underground_terrain", "underground_routes", "room_space", "underground_motion_clock",
+                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings",
+                     "underground_room_world_bindings", "underground_work_face", "underground_world_retirement",
+-                    "source_program", "mole_profile_driver", "settlement_system", "underground_route_composition"))
++                    "source_program", "short_program", "mole_profile_driver", "settlement_system", "underground_route_composition"))
+     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
+             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
+             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
+diff --git a/tools/underground_motion_clock_memory.py b/tools/underground_motion_clock_memory.py
+index b14dbf45..afd69917 100644
+--- a/tools/underground_motion_clock_memory.py
++++ b/tools/underground_motion_clock_memory.py
+@@ -21,7 +21,7 @@ def build(index, baseline):
+     executable = re.sub(r'""".*?"""', '', source, flags=re.S)
+     executable = re.sub(r'#[^\n]*', '', executable)
+     executable = '\n'.join(line.rstrip() for line in executable.splitlines() if line.strip())
+-    require(hashlib.sha256(executable.encode()).hexdigest() == 'c31c963c91806c8f440635ec494e23e65b5f5af894cf17ffcf2ec419d3ae5f5d',
++    require(hashlib.sha256(executable.encode()).hexdigest() == '6a2cd35c7521a37634b59ef046188cb09ec02a66b478519174c29970ce736cb6',
+             'complete Clock executable changed; independently recount every allocation and frame')
+ 
+     require(not re.search(r'^(?:static )?var |^class ', source, re.M), 'no retained fields or classes')
+diff --git a/tools/underground_motion_memory.py b/tools/underground_motion_memory.py
+index 1d6aa0ca..ac9034c9 100644
+--- a/tools/underground_motion_memory.py
++++ b/tools/underground_motion_memory.py
+@@ -139,7 +139,7 @@ def build(index):
+     joint = profile + level + 2*one_bank + 4096 + 176 + 4096 + 32768
+     maximum_profiles = derived['maximum_profile_bytes']
+     maximum_joint = joint - profile + maximum_profiles
+-    require((profile, one_bank, joint, maximum_joint) == (51992, 70860, 237140, 444284), 'exact joint formula')
++    require((profile, one_bank, joint, maximum_joint) == (53756, 70860, 238904, 444284), 'exact joint formula')
+     require(joint <= 262144 < maximum_joint, 'configured coexistence, no independent maxima')
+     return {
+         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
+@@ -161,7 +161,7 @@ def build(index):
+                              'one FileAccess and one HashingContext during load',
+                              'bounded header/slice/string/digest temporaries and interpreter frames'],
+         'native_measured': False,
+-        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in51992, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
++        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in53756, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
+         'profile_configuration': derived['configuration'],
+         'joint': {'profiles': profile, 'levels': level, 'paired_motion': 2*one_bank, 'decode': 4096, 'caller': 176,
+                   'logical_helper': 4096, 'native': 32768, 'total': joint, 'reservation': 262144, 'headroom': 262144-joint,
+@@ -196,7 +196,7 @@ def joint_sources(index, memory):
+     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
+     catalog = index['mole_profile_catalog']
+     counts = (resolve(catalog.name, 'PROFILE_COUNT'), resolve(catalog.name, 'BOX_COUNT'), 1)
+-    require(counts == (26, 250, 1), 'current accepted publication configuration')
++    require(counts == (29, 271, 1), 'current accepted publication configuration')
+     control = resolve('underground_profiles', 'CONTROL_RESERVE')
+     require(control == 32768, 'Profile helper/native envelope unchanged')
+     level = resolve('underground_level_catalog', 'RESERVED_BYTES')
+diff --git a/tools/underground_room_memory.py b/tools/underground_room_memory.py
+index db24b0f3..fdad350e 100644
+--- a/tools/underground_room_memory.py
++++ b/tools/underground_room_memory.py
+@@ -13,19 +13,23 @@ import hashlib
+ import json
+ from pathlib import Path
+ import re
+-from types import SimpleNamespace
++from types import ModuleType, SimpleNamespace
+ 
+ import audit_registry_capacities as audit
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+-E = Path("docs/validation/evidence/underground-room-memory-integration-2026-10-05")
+-MANIFEST = E / "route-owner-manifest.json"
+-MANIFEST_SHA = "f396686d73684ce19c8d133d2c72aed782de43c99c4aaf3c63f7389c8bea3def"
++E = Path("docs/validation/evidence/underground-current-memory-2026-10-05")
++MANIFEST = E / "manifest.json"
++MANIFEST_SHA = "9eb1a296a595e4788f52bdbc28e6f6a852dab3c905b116e3075538588a64e3bc"
+ P = Path("docs/validation/evidence/underground-room-frontier-publication-2026-10-04")
+ I = Path("docs/validation/evidence/underground-room-itinerary-census-2026-10-05")
+ C = Path("docs/validation/evidence/underground-room-owner-composition-2026-10-04")
+ G = Path("docs/validation/evidence/underground-ground-pace-2026-10-04")
+ R = Path("docs/validation/evidence/underground-route-owner-composition-2026-10-04")
++S = Path("docs/validation/evidence/underground-short-work-step-runtime-2026-10-05")
++T = Path("docs/validation/evidence/underground-short-step-itinerary-2026-10-05")
++A = Path("docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05")
++Q = Path("docs/validation/evidence/underground-short-step-publication-2026-10-05")
+ 
+ 
+ def require(condition, message):
+@@ -61,19 +65,23 @@ def verified_inputs(index):
+         # Do not trust cached hashes or parsed constants when text was injected.
+         require(digest(module.text.encode()) == row["sha256"], "current reviewed source changed: " + name)
+         current[name] = audit.parse_module(name, module.relative_path, module.text)
+-    return manifest, blobs, current
++    return manifest, blobs, {name: current[name] for name in manifest["sources"]}
+ 
+ 
+-def producer(relative, blobs, imports=None):
++def producer(relative, blobs, imports=None, view=None):
+     """Execute only a previously verified producer, preserving assertions under -O."""
+     require(str(relative) in blobs, "unverified producer: " + str(relative))
+     namespace = {"__file__": str(ROOT / relative), "__name__": "_reviewed_room_census"}
+-    if imports:
++    if imports or view is not None:
++        imports = dict(imports or {})
++        if view is not None:
++            imports.update(view.imports())
+         original = builtins.__import__
+ 
+         def import_module(name, globals=None, locals=None, fromlist=(), level=0):
+             if name in imports and level == 0:
+-                return imports[name]
++                replacement = imports[name]
++                return replacement if fromlist or "." not in name else imports[name.split(".")[0]]
+             return original(name, globals, locals, fromlist, level)
+ 
+         namespace["__builtins__"] = dict(vars(builtins), __import__=import_module)
+@@ -85,6 +93,136 @@ def normalized(result):
+     return json.loads(json.dumps(result))
+ 
+ 
++class FrozenInputs:
++    """Read only the captured files used by these exact reviewed producers.
++
++    Nested imports also execute the captured bytes with optimize=0. This is a
++    census input facade, not a runtime filesystem or a general import loader.
++    No disk reads, Git commands or source writes occur during replay.
++    """
++
++    def __init__(self, blobs, modules):
++        self.blobs = blobs
++        self.files = dict(blobs)
++        self.files.update({module.relative_path: module.text.encode() for module in modules.values()})
++
++    def path(self, value):
++        return FrozenPath(self, Path(str(value)))
++
++    def imports(self):
++        view = self
++
++        class Loader:
++            def __init__(self, name, path):
++                self.name, self.path = name, path
++
++            def exec_module(self, module):
++                relative = Path(str(self.path)).relative_to(ROOT)
++                module.__dict__.update(producer(relative, view.blobs, view=view))
++
++        def spec_from_file_location(name, path):
++            return SimpleNamespace(name=name, loader=Loader(name, path))
++
++        util = SimpleNamespace(spec_from_file_location=spec_from_file_location,
++            spec_from_loader=lambda name, loader: SimpleNamespace(name=name, loader=loader),
++            module_from_spec=lambda spec: ModuleType(spec.name))
++        machinery = SimpleNamespace(SourceFileLoader=Loader)
++        package = SimpleNamespace(util=util, machinery=machinery)
++        return {"pathlib": SimpleNamespace(Path=self.path), "importlib": package,
++                "importlib.util": util, "importlib.machinery": machinery}
++
++
++class FrozenPath:
++    """Only path operations actually used by the immutable census closure."""
++
++    def __init__(self, view, path):
++        self.view, self.path = view, path
++
++    def __str__(self):
++        return str(self.path)
++
++    def __truediv__(self, part):
++        return FrozenPath(self.view, self.path / str(part))
++
++    def __eq__(self, other):
++        return str(self) == str(other)
++
++    def __hash__(self):
++        return hash(str(self))
++
++    @property
++    def parent(self):
++        return FrozenPath(self.view, self.path.parent)
++
++    @property
++    def parents(self):
++        return tuple(FrozenPath(self.view, p) for p in self.path.parents)
++
++    @property
++    def stem(self):
++        return self.path.stem
++
++    def resolve(self):
++        return self
++
++    def relative_to(self, other):
++        return self.path.relative_to(str(other))
++
++    def exists(self):
++        return str(self.path.relative_to(ROOT)) in self.view.files
++
++    def glob(self, pattern):
++        require(self.path == ROOT / "godot/scripts/core" and pattern == "*.gd", "unreviewed census directory scan")
++        return [self.view.path(ROOT / name) for name in sorted(self.view.files)
++                if Path(name).parent == Path("godot/scripts/core") and name.endswith(".gd")]
++
++    def read_bytes(self):
++        key = str(self.path.relative_to(ROOT))
++        require(key in self.view.files, "uncaptured census input: " + key)
++        return self.view.files[key]
++
++    def read_text(self):
++        return self.read_bytes().decode()
++
++
++def projected(current, rows, blobs, versions=None):
++    """Select named, already verified historical bytes; never alter live source."""
++    result = dict(current)
++    for name, row in rows.items():
++        module = result[name]
++        if digest(module.text.encode()) == row["sha256"]:
++            continue
++        original = row if "locator" in row else versions[row["sha256"]]
++        require(original.get("path", module.relative_path) == module.relative_path,
++                "historical module identity: " + name)
++        raw = blobs[original["locator"]]
++        require(digest(raw) == row["sha256"], "historical module bytes: " + name)
++        result[name] = audit.parse_module(name, module.relative_path, raw.decode())
++    return result
++
++
++def original_rows(path, expected, manifest, blobs):
++    """Verify a historical manifest against its exact archived source versions.
++
++    Current constructor reads stay in the separate current input view. This
++    function neither substitutes current code nor skips the predecessor proof.
++    """
++    key = str(Path(str(path)).relative_to(ROOT))
++    raw = blobs[key]
++    require(digest(raw) == expected, "historical constructor manifest changed")
++    rows = json.loads(raw)
++    for name, row in rows.items():
++        locator = row.get("locator", name) if isinstance(row, dict) else name
++        wanted = row["sha256"] if isinstance(row, dict) else row
++        data = blobs.get(locator)
++        if data is None or digest(data) != wanted:
++            version = manifest["historical_versions"][wanted]
++            require(version["path"] == name, "historical constructor source identity")
++            data = blobs[version["locator"]]
++        require(digest(data) == wanted, "historical constructor input changed: " + name)
++    return rows
++
++
+ def same_accounting(actual, expected, label):
+     actual, expected = dict(normalized(actual)), dict(expected)
+     actual.pop("source_sha256", None)
+@@ -92,8 +230,8 @@ def same_accounting(actual, expected, label):
+     require(actual == expected, label + " reviewed allocation/lifetime result changed")
+ 
+ 
+-def publication(current, manifest, blobs):
+-    census = producer(P / "census.py", blobs)
++def publication(current, manifest, blobs, view):
++    census = producer(P / "census.py", blobs, view=view)
+ 
+     def source(name):
+         require(name in manifest["sources"], "unreviewed publication dependency: " + name)
+@@ -117,8 +255,8 @@ def publication(current, manifest, blobs):
+     return result
+ 
+ 
+-def itinerary(current, blobs):
+-    census = producer(I / "census.py", blobs)
++def itinerary(current, blobs, view):
++    census = producer(I / "census.py", blobs, view=view)
+     result = census["build"]({name: module.text for name, module in current.items()})
+     same_accounting(result, json.loads(blobs[str(I / "census.json")]), "itinerary")
+     return result
+@@ -159,9 +297,9 @@ def location_constructors(before, after):
+     return sorted(seen)
+ 
+ 
+-def composition(current, historical, blobs):
+-    constructor = producer(C / "constructor_census.py", blobs)
+-    census = producer(C / "census.py", blobs, {"constructor_census": SimpleNamespace(**constructor)})
++def composition(current, historical, blobs, view):
++    constructor = producer(C / "constructor_census.py", blobs, view=view)
++    census = producer(C / "census.py", blobs, {"constructor_census": SimpleNamespace(**constructor)}, view=view)
+     closure = location_constructors(historical["underground_locations"].text, current["underground_locations"].text)
+     # 1165 already checks every Provider body/member except the sole path
+     # dispatch. That operation is absent from the inherited constructor closure.
+@@ -197,9 +335,9 @@ def ground_catalog(current, historical, blobs):
+     return result
+ 
+ 
+-def route_composition(current, blobs):
++def route_composition(current, blobs, view):
+     """Recount the actual route constructor and its complete original owner reset."""
+-    census = producer(R / "census.py", blobs)
++    census = producer(R / "census.py", blobs, view=view)
+     result = census["build"]({role: current[Path(path).stem].text
+                               for role, path in census["FILES"].items()})
+     same_accounting(result, json.loads(blobs[str(R / "source-review-1/census.json")]),
+@@ -207,43 +345,86 @@ def route_composition(current, blobs):
+     return result
+ 
+ 
++def source_extensions(current, manifest, blobs, view):
++    """Current runtime and source identities close before any old projection."""
++    step = producer(S / "census.py", blobs, view=view)
++    runtime = step["build"]({name: module.text for name, module in current.items()})
++    same_accounting(runtime, json.loads(blobs[str(S / "census.json")]), "current short-step runtime")
++    paths = producer(T / "census.py", blobs, view=view)
++    # Reuse the already recounted current step result. Its verified parser and
++    # complete current source view remain the actual itinerary dependencies.
++    paths["dependency"] = lambda: SimpleNamespace(**(step | {"build": lambda: runtime}))
++    itinerary_result = paths["build"]()
++    same_accounting(itinerary_result, json.loads(blobs[str(T / "census.json")]), "current itinerary")
++    metadata = producer(Q / "census.py", blobs, view=view)["build"]()
++    same_accounting(metadata, json.loads(blobs[str(Q / "census.json")]), "current publication metadata")
++    require(metadata["retained_owner_fields_delta"] == metadata["runtime_bank_count_delta"] == 0,
++            "metadata publication added storage")
++    return runtime, itinerary_result, metadata
++
++
++def surface_composition(current, manifest, blobs, view, previous_routes):
++    """Recount actual current constructors; verify original manifests separately.
++
++    The 1171 predecessor has already reproduced byte-for-byte in its original
++    view. Its current constructor parser reads the actual current owners here,
++    including 1168, after the exact 1173 metadata equivalence proof.
++    """
++    base = producer(R / "census.py", blobs, view=view)
++    base["verified_rows"] = lambda path, expected: original_rows(path, expected, manifest, blobs)
++    census = producer(A / "census.py", blobs, view=view)
++    census["verified"] = lambda path, expected: original_rows(path, expected, manifest, blobs)
++    rows = original_rows(ROOT / A / "predecessor/manifest.json", census["PREDECESSOR_SHA"], manifest, blobs)
++    old = {key: blobs[rows[path]["locator"]].decode() for key, path in census["FILES"].items()
++           if path in rows and "locator" in rows[path]}
++    census["predecessor"] = lambda: (SimpleNamespace(**base), old, previous_routes)
++    result = census["build"]()
++    same_accounting(result, json.loads(blobs[str(A / "source-review-3/census.json")]),
++                    "current SurfaceAnchor constructor/reset")
++    return result
++
++
+ def build(index):
+-    """Return a current recount and separately labelled historical owner inputs."""
++    """Return current recounts and explicitly separate unchanged older slices."""
+     manifest, blobs, current = verified_inputs(index)
+-    historical = dict(current)
+-    for name, row in manifest["baseline"].items():
+-        module = current[name]
+-        historical[name] = audit.parse_module(name, module.relative_path, blobs[row["locator"]].decode())
+-    # Establish the newer allocation/lifetime closure before decomposing the
+-    # older Room constructor. Only these three reviewed predecessors differ.
+-    routes = route_composition(current, blobs)
+-    room_inputs = dict(current)
+-    for name, row in manifest["route_predecessors"].items():
+-        module = current[name]
+-        room_inputs[name] = audit.parse_module(name, module.relative_path, blobs[row["locator"]].decode())
+-    published = publication(current, manifest, blobs)
+-    paths = itinerary(current, blobs)
+-    owners, closure = composition(room_inputs, historical, blobs)
++    view = FrozenInputs(blobs, current)
++    runtime, paths, metadata = source_extensions(current, manifest, blobs, view)
++    # Only after all current changed-call/source proofs, select the exact old
++    # source versions needed by immutable predecessor constructors and1156.
++    previous = projected(current, manifest["previous_current"], blobs, manifest["historical_versions"])
++    metadata_rows = json.loads(blobs[str(Q / "baseline.json")])["sources"]
++    previous = projected(previous, {Path(path).stem: row for path, row in metadata_rows.items()}, blobs)
++    old_view = FrozenInputs(blobs, previous)
++    historical = projected(previous, manifest["baseline"], blobs)
++    routes = route_composition(previous, blobs, old_view)
++    surface = surface_composition(current, manifest, blobs, view, routes)
++    room_inputs = projected(previous, manifest["route_predecessors"], blobs)
++    published = publication(current, manifest, blobs, view)
++    old_paths = itinerary(previous, blobs, old_view)
++    owners, closure = composition(room_inputs, historical, blobs, old_view)
+     ground = ground_catalog(current, historical, blobs)
+     require(published["new_global_reservation"] == 0 and owners["additional_packed_bytes"] == 0
+-            and routes["additional_packed_bytes"] == 0
+-            and routes["retained_numeric_delta"] == 0 and routes["retained_reference_delta"] == 0,
+-            "new room reservation is not admitted")
++            and surface["additional_packed_bytes"] == 0 and surface["retained_reference_delta"] == 2
++            and surface["retained_numeric_delta"] == 0, "new room reservation is not admitted")
+     result = {
+         "scope": __doc__, "manifest_sha256": MANIFEST_SHA,
+         "current_source_sha256": {row["path"]: row["sha256"] for row in manifest["sources"].values()},
+         "historical_projection": manifest["baseline"],
++        "historical_current_projection": manifest["previous_current"],
+         "publication": published, "itinerary": paths, "composition": owners,
+-        "route_composition": routes,
+-        "room_composition_projection": manifest["route_predecessors"],
+-        "ground_catalog": ground,
++        "current_source_runtime": runtime, "current_publication_metadata": metadata,
++        "historical_itinerary": old_paths, "historical_route_composition": routes,
++        "route_composition": surface,
++        "room_composition_projection": manifest["route_predecessors"], "ground_catalog": ground,
+         "unchanged_locations_constructor_closure": closure,
+         "additional_global_reserved_bytes": 0, "runtime_qualified": False, "native_measured": False,
+     }
++    legacy = E / "predecessors/underground_motion_memory.py.txt"
++    result["historical_motion"] = producer(legacy, blobs)["build"](historical)
+     return result, historical
+ 
+ 
+-def reconcile(result, index, session, retirement, ui_reset):
++def reconcile(result, index, session, retirement, ui_reset, motion):
+     """Replace historical lifecycle figures with the reviewed current coexistence."""
+     current = result["route_composition"]
+     accounting = current["accounting"]
+@@ -256,7 +437,7 @@ def reconcile(result, index, session, retirement, ui_reset):
+     session["retained_numeric_bytes"] += 16
+     session["additional_composition_numeric_bytes_charged_to_retirement"] = 16
+     session["historical_foundation_frames"] = session.pop("frames")
+-    session["current_composition_frames"] = current["phases"]["route_composition_own_prefix"]["frames"]
++    session["current_composition_frames"] = current["phases"]["route_own_prefix_and_result_tail"]["frames"]
+     session["historical_room_composition_frames"] = result["composition"]["phases"]["composition_own_prefix"]["frames"]
+     for report in (retirement, ui_reset):
+         report["historical_accounting"] = dict(report["accounting"])
+@@ -267,11 +448,37 @@ def reconcile(result, index, session, retirement, ui_reset):
+         report["current_composition_source_sha256"] = current["source_sha256"]
+         report["current_constructor_exclusive_reuse"] = current["constructor_exclusive_reuse"]
+     direct = current["phases"]["direct_reset"]["provisional_bytes"]
+-    controls = (5673 + result["composition"]["retained_numeric_delta"]
+-                + current["immutable_numeric_constants_bytes"])
++    controls = accounting["controls"]
++    require(controls == 6131 and current["constructor_exclusive_reuse"]["simultaneous_total"] == 8185,
++            "current lifecycle coexistence differs")
+     retirement["accounting"].update(control_provisional_bytes=controls,
+         control_remaining=6144 - controls,
+-        helper_provisional_bytes=direct, helper_remaining=2048 - direct)
++        direct_reset_helper_bytes=direct,
++        helper_provisional_bytes=accounting["helpers"], helper_remaining=2048 - accounting["helpers"])
+     retirement["current_frames"] = current["phases"]["direct_reset"]["frames"]
+     ui_reset["accounting"].update(controls=accounting["controls"], helpers=accounting["helpers"])
+     ui_reset["current_frames"] = current["phases"]["reset_with_ui"]["frames"]
++
++    # Old constructors and caller frames were checked with their original
++    # configuration above. Replace only derived dimensions after exact1173
++    # source equivalence and current1168/1172 arithmetic have closed.
++    joint = result["current_publication_metadata"]["joint"]
++    terms = result["current_publication_metadata"]["terms"]
++    require(joint == result["current_source_runtime"]["joint"]["total"] == 248632
++            and motion["joint"]["total"] + 1536 + 8192 == joint, "current complete joint disagrees")
++    session["historical_profile_accounting"] = {
++        key: session[key] for key in ("existing_profile_paired_plus_control_bytes",
++            "foundation_profile_level_session_bytes", "source_counted_motion_joint_before_session_bytes",
++            "profile_level_motion_session_joint_bytes", "joint_remaining_bytes")}
++    session.update(existing_profile_paired_plus_control_bytes=terms["paired_profiles"] + terms["profile_controls"],
++        foundation_profile_level_session_bytes=terms["paired_profiles"] + terms["profile_controls"] + terms["levels"] + 1536,
++        source_counted_motion_joint_before_session_bytes=motion["joint"]["total"],
++        profile_level_motion_session_joint_bytes=motion["joint"]["total"] + 1536,
++        joint_remaining_bytes=262144 - motion["joint"]["total"] - 1536)
++    retirement["accounting"].update(parent_1156_joint_bytes=session["profile_level_motion_session_joint_bytes"],
++        joint_with_retirement=joint, joint_remaining_bytes=262144-joint)
++    # Preserve the old report's label exactly in historical_accounting only.
++    retirement["accounting"]["current_source_joint_bytes"] = retirement["accounting"].pop("parent_1156_joint_bytes")
++    ui_reset["accounting"].update(profile_joint_unchanged=joint)
++    current["historical_profile_joint_bytes"] = accounting["profile_joint"]
++    accounting["profile_joint"] = joint

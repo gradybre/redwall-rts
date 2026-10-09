@@ -1,0 +1,12 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "accepted": true,
+  "source_sha256": {
+    "tools/godot/verify_demo_pack.gd": "81bd7201f035d3b4aaf0d683072cbe3008d70c9a31f4689b42af9a84fb8812cd",
+    "godot/test/test_demo_profile_pack.gd": "1ecccd606f421fb6cd7953d55ff3d10bc05d0d409f89fc43184015070ab3c33d"
+  },
+  "independent_preload_census": "Exact ordered10/10 equality with qualified-step-v4 Pins",
+  "findings": [],
+  "engine_result": "Root candidate-1:12tests249assertions0failures; all strict/raw diagnostic and leak counters0; analyzer0/1",
+  "limitations": "Source/focused checks only; not a fresh exported Windows pack or full integration qualification."
+}

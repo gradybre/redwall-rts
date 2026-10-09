@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/ready07_arithmetic.py", line 313, in <module>
+    assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==4968921
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

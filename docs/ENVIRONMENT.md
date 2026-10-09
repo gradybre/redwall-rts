@@ -22,7 +22,13 @@ Run these from the repository root unless stated.
 
 ```bash
 # Test suite — prefer the script: it asserts the runner actually ran (see below)
-./tools/run_tests.sh
+./tools/run_tests.sh                       # complete: both tiers (milestones; CI always runs this)
+./tools/run_tests.sh --fast                # every suite except the slow tier (per commit; see "Test tiers")
+./tools/run_tests.sh --slow                # the slow tier alone
+./tools/run_tests.sh --suite test_x.gd     # focused; repeat --suite for more
+
+# Rebuild the committed test checkpoints after a source change makes them stale
+./tools/regenerate_test_checkpoints.sh [name ...]
 
 # The same thing without the guard
 godot --headless --path godot --script test/run_tests.gd
@@ -56,6 +62,34 @@ script (`.github/workflows/tests.yml`), so a run that executes nothing fails
 rather than reporting success. Prefer the script over the bare command; a count
 is deliberately not quoted here, because a hardcoded one goes stale the next
 time a test is added.
+
+## Test tiers and checkpoint starts (decision 1240)
+
+The complete suite took **3,881 s (65 min)** on this Mac at `6cc169f9`; nine suites over 60 s took 2,269 s of
+it. They form the **slow tier**, declared in `godot/test/slow_suites.json` with their measured seconds.
+
+- **Per commit:** `./tools/run_tests.sh --fast` plus `--suite` runs of the suites your change touches (slow ones
+  included when you touched them). `--fast` took 1,580 s (26 min) at `cda8d64f`; a focused run is minutes.
+- **At a milestone, before a merge, and in CI:** the complete run. CI's ten shards always run both tiers;
+  `--fast` is never a full-suite claim.
+- **A suite crosses 60 s either way:** re-measure (`--suite` prints `CI_SUITE_TIME`) and edit the list. A slow
+  entry naming a suite that no longer exists fails `--fast` and CI's shard plan.
+- `tools/ci_test_shard_weights.json` (shard balancing) was re-measured from the same full run.
+
+**Checkpoint starts.** A long live-chain test can start from a committed save instead of replaying from tick 0:
+`godot/test/fixtures/checkpoints/<name>-<point>.rwlsave.gz` (the exact save bytes, gzip; about 0.33 MB each) and
+`<name>.json` (a fingerprint over the engine version and every `res://` file the recipe reaches through quoted
+literals). Load one with `checkpoint_store.gd`'s `load_into(settlement, GameManager, name, point, content)`.
+Recipes live in `godot/test/fixtures/checkpoint_recipes.gd`.
+
+- **A stale checkpoint is refused, never used.** Any change to a fingerprinted source (scripts/core, the
+  settlement, the underground data...) fails `test_checkpoint_store.gd` (fast tier) and every suite that loads
+  it, with the changed files and the fix: `./tools/regenerate_test_checkpoints.sh <name>` (about 30 s). Commit
+  the regenerated files with the change. When the simulation did not move, only the manifest changes.
+- `test_checkpoint_equivalence.gd` (slow tier) replays each recipe from tick 0 and requires the committed files
+  to be byte-identical; it covers what the literal walk cannot see.
+- Only a chain that costs much more than a load (1-2 s) earns a recipe; a test that asserts a property of the
+  whole run from tick 0 (a finishing tick, "never" over every tick) keeps its replay.
 
 ## Reading the test log
 
@@ -99,9 +133,9 @@ zero**, even with 0 failures.
   `@warning_ignore_start`/`@warning_ignore_restore` around it.
 - **The analyzer's language-server port is shared by every checkout.** `tools/gdscript_warnings.py` uses `--port 6018`
   unless told otherwise. When another session's editor already listens there, the analyzer reads that project's scripts,
-  not yours. It then reports hundreds of false warnings ("Cannot find member …", "Preload file … does not exist",
-  "… is a constant but does not contain a type"). Check with `lsof -iTCP:6018 -sTCP:LISTEN`, and pass a free
-  `--port` (decision 1738).
+  not yours, resolving `res://` in the other checkout. It then reports hundreds of false warnings ("Cannot find member …",
+  "Preload file … does not exist", "… is a constant but does not contain a type"). Check with
+  `lsof -nP -iTCP:6018 -sTCP:LISTEN`, and pass a free port, for example `--port 6347` (decision 1738).
 
 ## The Windows demo build
 
@@ -204,3 +238,11 @@ Rotating the key means updating all three.
 
 Prompts live in `chatgpt-prompts/`. Outputs go **into `docs/` in this
 repository** — see decision 0007 for what happened when they did not.
+
+## Test runs use a private `user://` (ADR 1204)
+
+`./tools/run_tests.sh` points Godot's `user://` at a fresh temporary directory
+for each run. It does this by setting `HOME` (macOS) or `XDG_DATA_HOME` (Linux)
+for the Godot process only, and deletes the directory on exit. Do not run the
+suite with a bare `godot --script`: every checkout shares one `user://`, so
+concurrent runs overwrite each other's fixture files and fail at random.

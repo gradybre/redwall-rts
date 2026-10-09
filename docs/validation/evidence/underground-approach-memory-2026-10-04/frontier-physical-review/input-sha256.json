@@ -1,0 +1,21 @@
+{
+  "root_commit": "ebdd5daa2b723a63dd71e2018d2bed9b279cf894",
+  "files": {
+    "godot/test/test_underground_session.gd": "a737e9ae1e414c96fbc62fff9663015640b7cd34be76bbac5b11e2b9634313f5",
+    "godot/test/test_underground_room_world_phases.gd": "b12b36cb27be112dd1a6482690651ee73745ca6abef8dc0627df208071a4e1f6",
+    "godot/test/test_underground_room_frontier.gd": "07feecec99f0fa8dac4547a29b0ee4d419aa0b01f4fee7be3fb473b33728c7ce",
+    "godot/test/test_underground_world_routes.gd": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2",
+    "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "godot/scripts/core/underground_world_routes.gd": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+    "godot/scripts/core/underground_work_face.gd": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+    "godot/scripts/core/underground_room_frontier.gd": "554fbf053c377c0305ac9d2e5890dee90b7b511d056ee2a8b9388b1b3f06f52d",
+    "godot/scripts/core/underground_room_world_bindings.gd": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+    "godot/scripts/core/underground_locations.gd": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+    "godot/scripts/core/residents.gd": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+    "godot/scripts/core/movement.gd": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/profile-publication-v3/manifest.json": "8f210e11768131779e6c825d7a3d2509cb32076aedd6891e6573489d1b6814c1",
+    "godot/data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
+  }
+}

@@ -1,0 +1,18 @@
+test_a_stone_lifted_off_the_floor_loses_its_floor_contact (__main__.StoneGripTests.test_a_stone_lifted_off_the_floor_loses_its_floor_contact) ... ok
+test_an_unplanted_pose_has_no_sole_contacts (__main__.StoneGripTests.test_an_unplanted_pose_has_no_sole_contacts) ... ok
+test_every_committed_candidate_passes_the_exact_static_rules (__main__.StoneGripTests.test_every_committed_candidate_passes_the_exact_static_rules) ... ok
+test_every_committed_candidate_rebuilds_byte_identically (__main__.StoneGripTests.test_every_committed_candidate_rebuilds_byte_identically) ... ok
+test_hands_driven_through_the_stone_lose_solid_separation (__main__.StoneGripTests.test_hands_driven_through_the_stone_lose_solid_separation) ... ok
+test_hands_held_short_of_the_stone_have_no_witness (__main__.StoneGripTests.test_hands_held_short_of_the_stone_have_no_witness) ... ok
+test_inward_shift_beyond_the_authoring_bound_is_refused (__main__.StoneGripTests.test_inward_shift_beyond_the_authoring_bound_is_refused) ... ok
+test_stone_scale_and_capture_are_the_adopted_ones (__main__.StoneGripTests.test_stone_scale_and_capture_are_the_adopted_ones) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.705s
+
+OK
+..s...
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK (skipped=1)

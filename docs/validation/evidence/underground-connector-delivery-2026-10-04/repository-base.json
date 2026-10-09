@@ -1,0 +1,11 @@
+{
+  "head": "f1602e0fbe1320e9020492cb80e047b311a6ac59",
+  "accepted1141": "064f0c0d1b5e71059215b23755a249ea3a066c65",
+  "accepted1141_local": "f1602e0f",
+  "prerequisite_sha256": {
+    "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
+    "godot/scripts/core/haul_transfer_contract.gd.uid": "b79efd797853588ab0377d8750465123bed968c6a15c20dacefabb8f5bbc4df4",
+    "godot/scripts/core/inventory.gd": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55",
+    "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534"
+  }
+}

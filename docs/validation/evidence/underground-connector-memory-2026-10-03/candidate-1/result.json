@@ -1,0 +1,23 @@
+{
+  "external_contacts_path": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/godot/scripts/core/underground_connector_contacts.gd",
+  "source_sha256": "680114461ecaf8d96bea6ed45b1edba60f057d89f76fc59aa3e0e2fd03233c39",
+  "source_unchanged": true,
+  "tools": {
+    "underground_memory_budget.py": "8b45b2493a185c01a69a913e3522aef2813ff33a6f1ebf43d12c04b7630adbd1",
+    "test_underground_memory_budget.py": "5bedf401021b5d637e1247dbe46ef9fbdecbb88b5b7e9269acbece886662e618"
+  },
+  "tests": 90,
+  "failures": 0,
+  "errors": 0,
+  "contacts": {
+    "numeric_controls": 148,
+    "packed_rows": 376,
+    "fragment_banks_and_controls": 1633,
+    "owned_packet_bytes": 753,
+    "fixed_numeric_and_packed_bytes": 2910,
+    "logical_helper_allowance_bytes": 1024,
+    "reserved_bytes": 4096,
+    "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."
+  },
+  "scope": "Read-only source census and adversarial mutations; not an engine run, integrated checkpoint or native memory qualification."
+}

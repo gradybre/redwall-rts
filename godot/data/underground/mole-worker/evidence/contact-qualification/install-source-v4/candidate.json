@@ -1,0 +1,473 @@
+{
+  "schema": 1,
+  "compact_source_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+  "prefix_source_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+  "targets": [
+    {
+      "assembly": 0,
+      "existing_target_kind": "retained_natural",
+      "station_root_u": [
+        -832,
+        0,
+        512
+      ],
+      "source_part_id": 1,
+      "source_part_name": "L0_left_bearer",
+      "source_part_bounds_u": [
+        -896,
+        -192,
+        -2048,
+        -768,
+        -64,
+        0
+      ],
+      "source_quarter_turn": 1,
+      "source_translation_u": [
+        1024,
+        192,
+        -768
+      ],
+      "target_bounds_u": [
+        -1024,
+        0,
+        0,
+        1024,
+        128,
+        128
+      ],
+      "local_target_box_u": [
+        -192,
+        0,
+        -512,
+        1856,
+        128,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -192,
+        128,
+        -512,
+        1856,
+        128,
+        -384
+      ],
+      "target_kind": "paid_wip_bearer_candidate",
+      "worker_support": false,
+      "scope": "authored workpiece pose only; requires actual paid WIP and source-part binding"
+    },
+    {
+      "assembly": 1,
+      "existing_target_kind": "installed_part",
+      "station_root_u": [
+        0,
+        0,
+        -1536
+      ],
+      "source_part_id": 8,
+      "source_part_name": "T0_left_bearer",
+      "source_part_bounds_u": [
+        -896,
+        -320,
+        -2560,
+        -768,
+        -192,
+        -2048
+      ],
+      "source_quarter_turn": 1,
+      "source_translation_u": [
+        2304,
+        320,
+        -2816
+      ],
+      "target_bounds_u": [
+        -256,
+        0,
+        -2048,
+        256,
+        128,
+        -1920
+      ],
+      "local_target_box_u": [
+        -256,
+        0,
+        -512,
+        256,
+        128,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -256,
+        128,
+        -512,
+        256,
+        128,
+        -384
+      ],
+      "target_kind": "paid_wip_bearer_candidate",
+      "worker_support": false,
+      "scope": "authored workpiece pose only; requires actual paid WIP and source-part binding"
+    }
+  ],
+  "poll_source_vertex": 478,
+  "contact_source_kind": "actual broad adze end; INSTALL meaning remains under native/source review",
+  "contact_source_point_m": [
+    -0.5544813275337219,
+    0.126980260014534,
+    0.7396608591079712
+  ],
+  "source_recipe": {
+    "lean_degrees": 35,
+    "azimuth_degrees": 30,
+    "poll_xz_u": [
+      128,
+      -448
+    ],
+    "contact_plane_y_u": 128,
+    "poll_y_u": [
+      208,
+      126,
+      208
+    ],
+    "productive_frames": 33,
+    "entry_frames": 31,
+    "unchanged_lower_binds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "unmodified_arm_lengths": true,
+    "hand_fit": "exact actual compact-ready fit; no socket regrip or tool substitution"
+  },
+  "pose_solver_diagnostics": [
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        611.0253881343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        208.00000718456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        610.1044896968489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        207.07910874706783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        607.5019506343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        204.47656968456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        603.4580053218489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        200.43262437206783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        598.2128881343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        195.18750718456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        592.0068334468489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        188.98145249706783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        585.0800756343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        182.05469468456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        577.6728490718489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        174.64746812206783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        570.0253881343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        167.00000718456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        562.3779271968489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        159.35254624706783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        554.9707006343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        151.94531968456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        548.0439428218489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        145.01856187206783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        541.8378881343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        138.81250718456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        536.5927709468489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        133.56738999706783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        532.5488256343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        129.52344468456783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        529.9462865718489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        126.92090562206783,
+        -447.9999998546739
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        237.98199637890576,
+        529.0253881343489,
+        -207.31885788567405
+      ],
+      "poll_u": [
+        127.9999967341796,
+        126.00000718456783,
+        -447.9999998546739
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "frames": 33,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -348.6046895226757,
+        319.7274187730457,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -29.299221996610413,
+        126.00000718456783,
+        -672.7969488105023,
+        257.5617340211645,
+        668.7351070360788,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -393.29677403887547,
+        384.8123453114688,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -128.04572539670335,
+        208.00000718456783,
+        -731.4007356499042,
+        546.8456958434563,
+        841.1963531465485,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -393.29677403887547,
+        384.8123453114688,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -128.04572539670335,
+        208.00000718456783,
+        -731.4007356499042,
+        546.8456958434563,
+        841.1963531465485,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    }
+  ],
+  "source_triangle_census": [
+    10209,
+    1150
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/first-entry-prefix-v1.source.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
+  },
+  "remaining": [
+    "CONTINUOUS_BODY_TOOL_SELF_CLEARANCE",
+    "SOURCE_POLL_PATCH_AND_FULL_TARGET_CLEARANCE",
+    "FULL_ENTRY_RECOVERY_SUPPORT",
+    "NATIVE_MATERIAL_GRIP_AND_FASTENING_REVIEW",
+    "ACTUAL_BUILD_JOB_GEAR_PROFILE_AND_PAID_TARGET_BINDING"
+  ],
+  "production_qualified": false
+}

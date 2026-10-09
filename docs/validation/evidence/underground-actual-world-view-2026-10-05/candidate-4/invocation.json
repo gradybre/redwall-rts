@@ -1,0 +1,74 @@
+{
+  "head_before": "b2527d79d413ad99a31459fba024103bb77bb372",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.351,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "254/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-view/docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4"
+      ],
+      "exit_code": 0,
+      "seconds": 8.192,
+      "log": "test_modular_world_view.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6443",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-view/docs/validation/evidence/underground-actual-world-view-2026-10-05/candidate-4/analyzer.json",
+        "godot/demo/burrow/modular_world_view.gd",
+        "godot/test/test_modular_world_view.gd",
+        "godot/demo/burrow/modular_world_view_live.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.474,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1175-8bee9627e861edcc",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "import_raw_findings": [],
+  "strict_suites": {
+    "test_modular_world_view.gd": {
+      "tests": 10,
+      "assertions": 44352,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "executed_source_unchanged": true,
+  "project_restored": true,
+  "registry_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "original_sources_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

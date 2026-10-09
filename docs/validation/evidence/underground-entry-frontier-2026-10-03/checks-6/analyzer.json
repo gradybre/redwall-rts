@@ -1,0 +1,20 @@
+{
+ "test/test_underground_entry_frontier.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"bytes\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 11,
+     "line": 388
+    },
+    "start": {
+     "character": 6,
+     "line": 388
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

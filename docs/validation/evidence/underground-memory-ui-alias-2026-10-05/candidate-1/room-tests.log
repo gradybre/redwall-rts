@@ -1,0 +1,35 @@
+test_actual_movement_reader_cannot_add_uncounted_scratch (__main__.RoomMemoryWitnessTests) ... ok
+test_alias_equivalence_refuses_any_other_ui_source_byte (__main__.RoomMemoryWitnessTests) ... ok
+test_alias_literal_proof_refuses_changed_computed_or_duplicate_values (__main__.RoomMemoryWitnessTests) ... ok
+test_all_current_and_historical_producers_are_checked_before_execution (__main__.RoomMemoryWitnessTests) ... ok
+test_all_replays_use_captured_bytes_after_complete_verification (__main__.RoomMemoryWitnessTests) ... ok
+test_both_programs_keep_exact_distinct_identity_and_text (__main__.RoomMemoryWitnessTests) ... ok
+test_coordinated_producer_and_manifest_change_has_no_new_authority (__main__.RoomMemoryWitnessTests) ... ok
+test_current_owner_text_overrides_cannot_be_replaced_with_disk_or_cached_hash (__main__.RoomMemoryWitnessTests) ... ok
+test_current_recount_requires_no_git_history_or_subprocess (__main__.RoomMemoryWitnessTests) ... ok
+test_current_runtime_helpers_and_original_reports_remain_separate (__main__.RoomMemoryWitnessTests) ... ok
+test_current_transitive_body_changes_are_not_hidden_by_frame_counts (__main__.RoomMemoryWitnessTests) ... ok
+test_current_ui_alias_keeps_original_accounting_bytes_separate (__main__.RoomMemoryWitnessTests) ... ok
+test_historical_sources_cannot_become_current_mutable_baselines (__main__.RoomMemoryWitnessTests) ... ok
+test_injected_module_path_must_identify_original_owner (__main__.RoomMemoryWitnessTests) ... ok
+test_injected_ui_alias_text_cannot_use_the_current_disk_or_cached_hash (__main__.RoomMemoryWitnessTests) ... ok
+test_input_facade_does_not_fall_back_to_unverified_real_files (__main__.RoomMemoryWitnessTests) ... ok
+test_lower_historical_total_cannot_replace_current_constructor_report (__main__.RoomMemoryWitnessTests) ... ok
+test_metadata_projection_cannot_hide_current_constructor_or_body_edits (__main__.RoomMemoryWitnessTests) ... ok
+test_new_current_text_changes_cannot_hide_behind_cached_hashes (__main__.RoomMemoryWitnessTests) ... ok
+test_notice_dependency_value_or_body_changes_refuse_before_import (__main__.RoomMemoryWitnessTests) ... ok
+test_old_ui_bytes_and_original_manifest_remain_immutable (__main__.RoomMemoryWitnessTests) ... ok
+test_producer_assertions_survive_optimized_python (__main__.RoomMemoryWitnessTests) ... ok
+test_route_census_result_cannot_be_changed_to_create_headroom (__main__.RoomMemoryWitnessTests) ... ok
+test_route_constructor_dependency_cannot_hide_same_frame_size_mutation (__main__.RoomMemoryWitnessTests) ... ok
+test_route_engine_lifetime_evidence_is_checked_before_any_producer (__main__.RoomMemoryWitnessTests) ... ok
+test_route_predecessors_are_not_mutable_accounting_inputs (__main__.RoomMemoryWitnessTests) ... ok
+test_transitive_constructor_census_is_checked_before_import (__main__.RoomMemoryWitnessTests) ... ok
+test_transitive_short_step_contract_and_original_constructor_sources_are_immutable (__main__.RoomMemoryWitnessTests) ... ok
+test_transitive_turn_census_is_checked_before_import (__main__.RoomMemoryWitnessTests) ... ok
+test_ui_successor_changes_only_reviewed_alias_and_dependency_closure (__main__.RoomMemoryWitnessTests) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 7.022s
+
+OK

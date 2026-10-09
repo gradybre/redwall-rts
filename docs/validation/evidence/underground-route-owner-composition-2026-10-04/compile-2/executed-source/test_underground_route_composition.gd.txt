@@ -1,0 +1,259 @@
+extends "res://test/framework/test_case.gd"
+## Actual current Profile image, real generated host and shipped ground pace. No positive provider stubs.
+
+const Host := preload("res://scripts/systems/settlement_system.gd")
+const Session := preload("res://scripts/core/underground_session.gd")
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Composition := preload("res://scripts/core/underground_route_composition.gd")
+const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const RoomTests := preload("res://test/test_underground_room_composition.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+
+var _host: Host = null
+var _content: Content = null
+var _session: Session = null
+var _source_script: Script = null
+var _source_text: String = ""
+var _nested_reset: bool = true
+var _nested_tick: bool = true
+var _original_gear: Gear = null
+
+
+func before_each() -> void:
+	"""Compose real current Room owners before any route mutation; observed subclass only injects negatives."""
+	_host = RoomTests.ObservedHost.new()
+	_content = Content.new()
+	assert_equal(_content.load_file(Session.ACTOR_PATH, Session.Catalog.Pins.ACTOR_SHA,
+		Session.PRESENTATION_BYTES), &"", "actual current image")
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "actual populated World")
+	assert_true(_host.mount_underground(_content), "current source mount: %s" % _host.last_refusal())
+	_session = _host.underground_session()
+	if _session == null: return
+	assert_true(_host.compose_underground_room_owners(), "actual Room composition: %s" % _host.last_refusal())
+	(_host.world() as RoomTests.ObservedWorld).session = weakref(_session)
+
+
+func after_each() -> void:
+	"""Restore negative callback/source probes, then release only this test's retained references."""
+	if _source_script != null: _source_script.source_code = _source_text
+	if _host != null:
+		(_host.world() as RoomTests.ObservedWorld).observer = Callable()
+		if _original_gear != null: _host._gear = _original_gear
+	_source_script = null
+	_source_text = ""
+	_original_gear = null
+	_session = null
+	_content = null
+	if _host != null: _host.free()
+	_host = null
+
+
+func _arm(prefix: int, action: Callable) -> void:
+	"""Observe a genuine World reader only while the private Session occupies the selected constructor stage."""
+	var world: RoomTests.ObservedWorld = _host.world() as RoomTests.ObservedWorld
+	world.prefix = prefix
+	world.observer = action
+
+
+func _snapshot() -> PackedStringArray:
+	"""Canonical gameplay bytes exclude newly allocated empty derived namespaces and owner references."""
+	var out: PackedStringArray = PackedStringArray()
+	var images: Array[PackedByteArray] = [_host.directory().state_bytes(), _inventory_base_bytes(),
+		_host.jobs().state_bytes(), _host.residents().state_bytes(), _host.transforms().state_bytes(),
+		_host.construction().state_bytes(), _host.reservations().state_bytes(), _host.buildings().spatial_state_bytes()]
+	for data: PackedByteArray in images:
+		var hash_state: HashingContext = HashingContext.new()
+		hash_state.start(HashingContext.HASH_SHA256)
+		hash_state.update(data)
+		out.append(hash_state.finish().hex_encode())
+	return out
+
+
+func _inventory_base_bytes() -> PackedByteArray:
+	"""Compare all original serialized stock fields; the separate empty spatial appendix is new and checked below."""
+	var data: PackedByteArray = _host.inventory().state_bytes()
+	var spatial: PackedByteArray = PackedByteArray()
+	_host.inventory()._append_spatial_state(spatial)
+	data.resize(data.size() - spatial.size())
+	return data
+
+
+func test_actual_graph_uses_one_original_owner_tuple_and_real_pace_without_permissions() -> void:
+	"""Maximum admitted derived banks remain empty, and repeated composition never allocates replacements."""
+	var before: PackedStringArray = _snapshot()
+	assert_true(_host.compose_underground_route_owners(), "actual routes: %s" % _host.last_refusal())
+	var o: Retirement.Owners = _session._retirement_owners
+	assert_equal(_session._operations_prefix, 8, "all source-owned stages complete")
+	assert_equal(Composition.complete_refusal(o), &"", "exact reciprocal bindings")
+	assert_equal(_session.world_route_provider(), o.world_routes, "checked borrow")
+	assert_equal(o.routes._edge_capacity, Routes.MAX_EDGES, "existing declared edge maximum")
+	assert_equal(o.routes._link_capacity, Routes.MAX_LINKS, "existing declared links")
+	assert_equal(o.routes._live.edge_count, 0, "no fake graph")
+	assert_equal(o.locations._live.count, 0, "no fake endpoint")
+	assert_equal(o.sites._count, 0, "no phase or paid claim")
+	assert_equal(o.world_routes._catalog.content_revision(), 1, "actual immutable ground catalog")
+	assert_equal(o.world_routes._catalog._movement, o.world_routes._movement, "sole actual Movement")
+	var original: WorldRoutes = o.world_routes
+	assert_true(_host.compose_underground_route_owners(), "idempotent exact observation")
+	assert_equal(_session._retirement_owners, o, "same permanent packet")
+	assert_equal(o.world_routes, original, "same configured provider and sources")
+	assert_equal(_snapshot(), before, "all gameplay stores unchanged")
+	assert_equal(o.routes._required_bytes(o.locations.packed_memory_bytes(), Routes.MAX_LOCATIONS,
+		Routes.MAX_EDGES, Routes.MAX_VERTICES, Routes.MAX_LINKS) <= Budget.LOCATION_AND_TOPOLOGY_BYTES,
+		true, "actual combined Location/graph capacity")
+
+
+func test_complete_reset_releases_original_bindings_and_remounts_current_source() -> void:
+	"""Actual canonical reset captures the completed route graph, then remounts fresh owners in existing capacities."""
+	assert_true(_host.compose_underground_route_owners(), "compose")
+	var original: Retirement.Owners = _session._retirement_owners
+	assert_true(_host.prepare_world_reset(), "complete original preflight: %s" % _host.last_refusal())
+	assert_equal(_session._retirement_scope._catalog, original.world_routes._catalog, "original catalog retained")
+	assert_true(_host.reset(), "actual reset: %s" % _host.last_refusal())
+	assert_equal(_session._retirement_scope, null, "Scope cycle broken")
+	assert_equal(_host.inventory()._spatial_authority, null, "owner-owned release")
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "new World")
+	assert_true(_host.mount_underground(_content), "current source remount")
+	_session = _host.underground_session()
+	assert_true(_host.compose_underground_room_owners(), "new Room group")
+	assert_true(_host.compose_underground_route_owners(), "new route group")
+	assert_true(_session._retirement_owners.world_routes != original.world_routes, "fresh exact lifetime")
+	assert_equal(_host.inventory()._spatial_container_slot.size(), Budget.INVENTORY_ENDPOINT_CAPACITY, "same arena")
+
+
+func _reenter() -> void:
+	"""A genuine observer tries actual host operations during synchronous construction."""
+	_nested_reset = _host.prepare_world_reset()
+	_nested_tick = _host.run_tick(1)
+
+
+func _assert_stopped(prefix: int, before: PackedStringArray) -> void:
+	"""No partially composed original graph can resume work or expose a provider."""
+	assert_equal(_session._operations_state, 3, "retained stopped state")
+	assert_equal(_session._operations_prefix, prefix, "exact failed prefix")
+	assert_equal(_snapshot(), before, "no economic mutation")
+	assert_equal(_session.world_route_provider(), null, "no borrowed partial graph")
+	assert_false(_host.run_tick(1), "fixed tick stopped")
+	assert_false(_host.compose_underground_route_owners(), "cannot replace retained graph")
+	assert_false(_host.create_initial_settlement(), "no new admission")
+
+
+func _assert_prefix_reset(prefix: int) -> void:
+	"""Only the exact whole-World reset can retire a failed graph stage without privately undoing links."""
+	assert_true(_host.prepare_world_reset(), "prefix preflight: %s" % _host.last_refusal())
+	var scope: Retirement.Scope = _session._retirement_scope
+	assert_equal(scope._constructor_prefix, prefix, "private Session supplies prefix")
+	assert_true(_host.prepare_world_reset(), "same original Scope")
+	assert_equal(_session._retirement_scope, scope, "one Scope")
+	assert_true(_host.abandon_world_reset(), "original-live abandonment")
+	assert_false(_host.run_tick(1), "abandonment does not restart failed composition")
+	assert_true(_host.reset(), "actual original prefix reset: %s" % _host.last_refusal())
+	assert_equal(_host.buildings()._spatial_authority, null, "owner-owned Room release")
+	assert_equal(_host.inventory()._spatial_authority, null, "owner-owned Inventory release")
+	assert_equal(_session._retirement_scope, null, "private cycle broken")
+
+
+func test_reentry_before_graph_exposure_preserves_room_ready_and_can_retry() -> void:
+	"""A private provider/source candidate can be dropped before it touches the permanent graph receiver."""
+	_arm(4, _reenter)
+	var before: PackedStringArray = _snapshot()
+	assert_false(_host.compose_underground_route_owners(), "actual source observer reentered")
+	assert_false(_nested_reset, "reset refused during construction")
+	assert_false(_nested_tick, "tick refused during construction")
+	assert_equal(_session._operations_prefix, 4, "original Room-ready prefix")
+	assert_equal(_session._operations_state, 2, "no new exposed binding")
+	assert_equal(_session._retirement_owners.world_routes, null, "private candidate dropped")
+	assert_equal(_session._routes._edge_capacity, 0, "graph untouched")
+	assert_equal(_snapshot(), before, "original gameplay unchanged")
+	assert_true(_host.compose_underground_route_owners(), "clean retry: %s" % _host.last_refusal())
+
+
+func test_reentry_during_actual_graph_observation_retains_configured_prefix() -> void:
+	"""A real graph callback can complete binding before the Session rejects the poisoned outer attempt."""
+	_arm(5, _reenter)
+	var before: PackedStringArray = _snapshot()
+	assert_false(_host.compose_underground_route_owners(), "actual graph observer reentered")
+	assert_false(_nested_reset, "reset did not clear owners")
+	assert_false(_nested_tick, "no nested work")
+	_assert_stopped(6, before)
+	_assert_prefix_reset(6)
+
+
+func _busy_retention() -> void:
+	"""Simulate a late negative owner bracket before the real Routes retention preflight."""
+	_session._retirement_owners.locations._in_retention = true
+
+
+func test_actual_retention_refusal_keeps_partial_graph_aliases_until_reset() -> void:
+	"""Routes writes its exact aliases before bind_retention can refuse; the composer must not drop them."""
+	_arm(5, _busy_retention)
+	var before: PackedStringArray = _snapshot()
+	assert_false(_host.compose_underground_route_owners(), "actual retention refuses")
+	var o: Retirement.Owners = _session._retirement_owners
+	_assert_stopped(5, before)
+	assert_equal(o.routes._edge_capacity, 0, "refused allocation")
+	assert_true(o.routes._owner_ref != null, "permanent graph aliases retained")
+	assert_equal(o.routes._owner_ref.get_ref(), o.space, "same actual Owner")
+	assert_false(_host.prepare_world_reset(), "active original observer still refuses")
+	o.locations._in_retention = false # End this test's negative original observation; no link is undone.
+	_assert_prefix_reset(5)
+
+
+func _change_cached_source() -> void:
+	"""Mutate cached text only as a negative source observation; never install replacement positive pins."""
+	_source_script = ResourceLoader.get_cached_ref(Session.Catalog.Pins.PATHS[0]) as Script
+	_source_text = _source_script.source_code
+	_source_script.source_code = _source_text + "\n# 1167 negative cached source drift\n"
+
+
+func test_late_current_source_drift_retains_complete_failed_graph_until_restored() -> void:
+	"""A late real approach observer cannot publish readiness under stale cached consumer source."""
+	_arm(7, _change_cached_source)
+	var before: PackedStringArray = _snapshot()
+	assert_false(_host.compose_underground_route_owners(), "actual cached source changed")
+	assert_equal(_host.last_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "no source waiver")
+	_assert_stopped(8, before)
+	assert_false(_host.reset(), "source cannot be silently renewed during reset")
+	_source_script.source_code = _source_text
+	_source_script = null
+	_assert_prefix_reset(8)
+
+
+func test_complete_foreign_or_null_backlinks_refuse_without_replacing_original_sources() -> void:
+	"""Equal geometry or numeric revisions cannot replace exact retained graph/source/endpoint identity."""
+	assert_true(_host.compose_underground_route_owners(), "compose")
+	var o: Retirement.Owners = _session._retirement_owners
+	var original: WeakRef = o.room_bindings._room_routes
+	o.room_bindings._room_routes = null
+	assert_false(_host.compose_underground_route_owners(), "missing approach backlink refuses")
+	o.room_bindings._room_routes = weakref(WorldRoutes.new())
+	assert_false(_host.prepare_world_reset(), "expired foreign backlink refuses")
+	o.room_bindings._room_routes = original
+	assert_true(_host.compose_underground_route_owners(), "same original restored")
+	var retention: WeakRef = o.locations._retention
+	o.locations._retention = null
+	assert_false(_host.prepare_world_reset(), "missing exact retention refuses")
+	o.locations._retention = retention
+	assert_true(_host.prepare_world_reset(), "full original restored")
+
+
+func test_wrong_immutable_catalog_revision_refuses_current_and_reset() -> void:
+	"""Source revision is explicit, not a latest-version negotiation."""
+	assert_true(_host.compose_underground_route_owners(), "compose")
+	var o: Retirement.Owners = _session._retirement_owners
+	o.world_routes._catalog._live.header[0] = 2
+	assert_equal(_session.current_refusal(), &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE", "wrong current source")
+	assert_false(_host.prepare_world_reset(), "cannot capture changed source as original")
+	o.world_routes._catalog._live.header[0] = 1
+	assert_true(_host.prepare_world_reset(), "original explicit source restored")
+
+
+func test_composer_rejects_external_session_and_host_requires_original_room_group() -> void:
+	"""The stateless helper cannot register any external packet as an actual Session output."""
+	assert_equal(Composition.construct(RefCounted.new()), &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE", "foreign Session")
+	assert_equal(Composition.construct(_session), &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE", "no private constructor bracket")
+	assert_equal(_session.world_route_provider(), null, "Room-ready exposes no graph provider")
+	assert_equal(_session._operations_prefix, 4, "no partial writes")

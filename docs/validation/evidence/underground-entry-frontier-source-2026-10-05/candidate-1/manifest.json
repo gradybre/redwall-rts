@@ -1,0 +1,413 @@
+{
+  "schema": 1,
+  "scope": "Actual source-bound first-prefix work selectors and static reach",
+  "current_world_qualified": false,
+  "entry_workflow_qualified": false,
+  "paid_handling_qualified": false,
+  "traversal_qualified": false,
+  "profile_content_revision": 3,
+  "frontier_revision": 1,
+  "table_counts": [
+    2,
+    8,
+    2,
+    10,
+    10,
+    6
+  ],
+  "source_packet_bytes": 2212,
+  "reader_bank_bytes": 4032,
+  "inputs": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+    "godot/data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24",
+    "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "5eaf2cf19cfcb1e1ac32dbcec53f04df7ca3832daa56a0c2c00382a5beeb94ba",
+    "godot/scripts/core/underground_connector_catalog.gd": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+    "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
+    "godot/scripts/core/connector_geometry.gd": "0ad18857dd936f9f6df235a8ec4130955df2c3106c15229ef53fb554ce0e5c35",
+    "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/structure.ugconn": "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/assemblies.ugasmb": "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/recipes.ugrecp": "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2",
+    "godot/data/underground/first-entry-prefix-v1/structural-v1/manifest.json": "ca5e0e5819a5acf08e2d1d6ab42797defdee49b0da9982f5d9055634b6a914ed",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py": "e0f9cc8ba20c34f75c47f208ad085affcc33d027033b51e7ee4ebe06284f8428",
+    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c"
+  },
+  "outputs": {
+    "frontier.ugfront": {
+      "sha256": "0a58b0c79a9912e63e29f0b750f7771a19d6cbbf4228184a54ca3b6e030fa85e",
+      "bytes": 2212
+    }
+  },
+  "static_reach": [
+    {
+      "cube": [
+        -1024,
+        -1024,
+        -1024,
+        0,
+        0,
+        0
+      ],
+      "station": [
+        -1408,
+        0,
+        -512
+      ],
+      "profile": 25,
+      "yaw": 49152,
+      "negative_body_and_footing": [
+        [
+          -1750,
+          -1,
+          -633,
+          -1103,
+          0,
+          -230,
+          0
+        ],
+        [
+          -1862,
+          -1,
+          -786,
+          -1103,
+          0,
+          -184,
+          1
+        ],
+        [
+          -1746,
+          -1,
+          -760,
+          -1263,
+          0,
+          -309,
+          2
+        ],
+        [
+          -1468,
+          -1,
+          -646,
+          -1452,
+          0,
+          -638,
+          3
+        ]
+      ],
+      "directional_travel_profiles": [
+        5,
+        9
+      ],
+      "all_phase_source_roles": "unchanged downward BUILD"
+    },
+    {
+      "cube": [
+        0,
+        -1024,
+        -1024,
+        1024,
+        0,
+        0
+      ],
+      "station": [
+        1408,
+        0,
+        -512
+      ],
+      "profile": 17,
+      "yaw": 16384,
+      "negative_body_and_footing": [
+        [
+          1103,
+          -1,
+          -794,
+          1750,
+          0,
+          -391,
+          0
+        ],
+        [
+          1103,
+          -1,
+          -840,
+          1862,
+          0,
+          -238,
+          1
+        ],
+        [
+          1263,
+          -1,
+          -715,
+          1746,
+          0,
+          -264,
+          2
+        ],
+        [
+          1452,
+          -1,
+          -386,
+          1468,
+          0,
+          -378,
+          3
+        ]
+      ],
+      "directional_travel_profiles": [
+        3,
+        7
+      ],
+      "all_phase_source_roles": "unchanged downward BUILD"
+    },
+    {
+      "cube": [
+        -1024,
+        -1024,
+        -2048,
+        0,
+        0,
+        -1024
+      ],
+      "station": [
+        -1408,
+        0,
+        -1536
+      ],
+      "profile": 25,
+      "yaw": 49152,
+      "negative_body_and_footing": [
+        [
+          -1750,
+          -1,
+          -1657,
+          -1103,
+          0,
+          -1254,
+          0
+        ],
+        [
+          -1862,
+          -1,
+          -1810,
+          -1103,
+          0,
+          -1208,
+          1
+        ],
+        [
+          -1746,
+          -1,
+          -1784,
+          -1263,
+          0,
+          -1333,
+          2
+        ],
+        [
+          -1468,
+          -1,
+          -1670,
+          -1452,
+          0,
+          -1662,
+          3
+        ]
+      ],
+      "directional_travel_profiles": [
+        5,
+        9
+      ],
+      "all_phase_source_roles": "unchanged downward BUILD"
+    },
+    {
+      "cube": [
+        0,
+        -1024,
+        -2048,
+        1024,
+        0,
+        -1024
+      ],
+      "station": [
+        1408,
+        0,
+        -1536
+      ],
+      "profile": 17,
+      "yaw": 16384,
+      "negative_body_and_footing": [
+        [
+          1103,
+          -1,
+          -1818,
+          1750,
+          0,
+          -1415,
+          0
+        ],
+        [
+          1103,
+          -1,
+          -1864,
+          1862,
+          0,
+          -1262,
+          1
+        ],
+        [
+          1263,
+          -1,
+          -1739,
+          1746,
+          0,
+          -1288,
+          2
+        ],
+        [
+          1452,
+          -1,
+          -1410,
+          1468,
+          0,
+          -1402,
+          3
+        ]
+      ],
+      "directional_travel_profiles": [
+        3,
+        7
+      ],
+      "all_phase_source_roles": "unchanged downward BUILD"
+    },
+    {
+      "cube": [
+        -1024,
+        -1024,
+        -3072,
+        0,
+        0,
+        -2048
+      ],
+      "station": [
+        -1408,
+        0,
+        -2560
+      ],
+      "profile": 25,
+      "yaw": 49152,
+      "negative_body_and_footing": [
+        [
+          -1750,
+          -1,
+          -2681,
+          -1103,
+          0,
+          -2278,
+          0
+        ],
+        [
+          -1862,
+          -1,
+          -2834,
+          -1103,
+          0,
+          -2232,
+          1
+        ],
+        [
+          -1746,
+          -1,
+          -2808,
+          -1263,
+          0,
+          -2357,
+          2
+        ],
+        [
+          -1468,
+          -1,
+          -2694,
+          -1452,
+          0,
+          -2686,
+          3
+        ]
+      ],
+      "directional_travel_profiles": [
+        5,
+        9
+      ],
+      "all_phase_source_roles": "unchanged downward BUILD"
+    },
+    {
+      "cube": [
+        0,
+        -1024,
+        -3072,
+        1024,
+        0,
+        -2048
+      ],
+      "station": [
+        1408,
+        0,
+        -2560
+      ],
+      "profile": 17,
+      "yaw": 16384,
+      "negative_body_and_footing": [
+        [
+          1103,
+          -1,
+          -2842,
+          1750,
+          0,
+          -2439,
+          0
+        ],
+        [
+          1103,
+          -1,
+          -2888,
+          1862,
+          0,
+          -2286,
+          1
+        ],
+        [
+          1263,
+          -1,
+          -2763,
+          1746,
+          0,
+          -2312,
+          2
+        ],
+        [
+          1452,
+          -1,
+          -2434,
+          1468,
+          0,
+          -2426,
+          3
+        ]
+      ],
+      "directional_travel_profiles": [
+        3,
+        7
+      ],
+      "all_phase_source_roles": "unchanged downward BUILD"
+    }
+  ],
+  "remaining": [
+    "current full physical phase admission and productive execution",
+    "paid handling/fastening and native quality",
+    "real entry worker dispatch",
+    "current consumer/source publication renewal",
+    "complete descent and empty Kitchen"
+  ]
+}

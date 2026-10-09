@@ -1,0 +1,39 @@
+state_registry_coverage: PASS -- 147 modules, 723 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_runtime.gd
+  PASS  test_real_editor_confirmation_reaches_actual_physical_refusal_and_retains_draft
+  PASS  test_changed_or_forged_request_cannot_submit_different_paint_purpose_or_level
+  PASS  test_floor_switch_modal_or_inactive_tool_refuses_same_frame_confirmation
+  PASS  test_late_binding_observer_cannot_confirm_a_hidden_or_inactive_drawing
+  PASS  test_level_owner_release_during_observation_survives_only_the_synchronous_command
+  PASS  test_replacement_host_during_editor_submission_refuses_without_pinning
+  PASS  test_provider_expiry_between_check_and_confirm_is_a_safe_refusal
+  PASS  test_final_modal_observer_cannot_change_the_drawing_after_snapshot_validation
+  PASS  test_replaced_same_revision_draft_cannot_use_old_world_tool
+  PASS  test_reconfigured_empty_session_cannot_move_its_existing_world_binding
+  PASS  test_foreign_unbound_level_catalog_cannot_replace_current_binding
+  PASS  test_wrong_floor_height_refuses_before_replacing_editor_callbacks
+  PASS  test_expired_owner_cannot_authorize_or_recreate_a_room_coordinator
+  PASS  test_nested_provider_command_cannot_reenter_or_disconnect_view_during_admission
+  PASS  test_receipt_keeps_full_actual_identity_and_never_implies_furniture_or_service
+  PASS  test_old_host_disconnect_does_not_disconnect_new_editor_owner
+CI_SUITE_TIME {"assertions":227,"failures":0,"suite":"test_modular_runtime.gd","tests":16,"usec":4649118}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+16 test(s), 227 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 16 tests, 227 assertions, 0 failures.

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/host_live.gd",
+    "--",
+    "--size",
+    "1280x720"
+  ],
+  "seconds": 115.67,
+  "exit_code": -15,
+  "project_restored": true,
+  "project_sha256": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc"
+}

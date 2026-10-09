@@ -1,0 +1,33 @@
+state_registry_coverage: PASS -- 126 modules, 640 rows, 990 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_spoil_work.gd
+  PASS  test_actual_admission_has_separate_purpose_and_no_payment_or_direct_publication
+  PASS  test_contact_refusal_precedes_project_and_tip_generation_allocation
+  PASS  test_quotes_read_adopted_price_and_actual_catalog_without_extra_accounts
+  PASS  test_expired_contacts_fail_closed_without_source_or_accounting_changes
+  PASS  test_paid_preparation_requires_real_work_and_releases_worker_for_next_operation
+  PASS  test_actual_compaction_and_reclamation_conserve_source_and_normalize_only_earth
+  PASS  test_blocked_productive_contact_preserves_xp_wear_wip_and_source
+  PASS  test_blocked_reclamation_commit_keeps_source_and_reserved_output_for_retry
+  PASS  test_cancelled_compaction_keeps_work_and_requires_same_full_input_on_resume
+  PASS  test_actual_empty_closure_retires_footprint_and_stale_generation_refuses
+CI_SUITE_TIME {"assertions":874,"failures":0,"suite":"test_spoil_work.gd","tests":10,"usec":825793}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 874 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 874 assertions, 0 failures.

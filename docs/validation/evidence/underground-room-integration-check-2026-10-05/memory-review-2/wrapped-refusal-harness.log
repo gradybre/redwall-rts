@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_memory_budget.py", line 936, in build
+    room_extensions, historical = room_memory.build(index)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_room_memory.py", line 201, in build
+    manifest, blobs, current = verified_inputs(index)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_room_memory.py", line 61, in verified_inputs
+    require(digest(module.text.encode()) == row["sha256"], "current reviewed source changed: " + name)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_room_memory.py", line 32, in require
+    raise ValueError("room memory: " + message)
+ValueError: room memory: current reviewed source changed: movement
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/memory-review-2/recheck.py", line 99, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/memory-review-2/recheck.py", line 52, in main
+    budget.build(dict(index, movement=changed))
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_memory_budget.py", line 938, in build
+    raise AssertionError(str(error)) from error
+AssertionError: room memory: current reviewed source changed: movement

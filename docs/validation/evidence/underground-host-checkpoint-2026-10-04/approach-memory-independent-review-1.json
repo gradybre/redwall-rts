@@ -1,0 +1,33 @@
+{
+  "candidate": "portable approach-memory source-review-1",
+  "reviewer": "root integration owner, independent of author",
+  "source_pins": {
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/README.md": "f4ea36e8aba419a01c6a3a5d7607b786b95ec1aef92811bc8ec97defcf034096",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/fixtures/catalog-v3.gd.txt": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/foreign-frames.json": "b200d2d822504669582df54e1b481b8e3c9592d70045534102a2a65a36a78dec",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/predecessors.json": "9ec7f83583ba3a6f7e474145c037db5ca91e56f618e937d7ab4db60ac2d46660",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/reproduce.py": "35e7083c5b4b216b7be092c8ca85047fc6294f1c046125e111ca1ba67162963a",
+    "docs/validation/evidence/underground-approach-memory-2026-10-04/test_wrapper.py": "93a52d2beec30303cc4c3a2a324c33083765561fd07a8d82a0a3754e23450386",
+    "docs/validation/evidence/underground-work-approach-2026-10-04/census.json": "4a85ab69a8cc002416990b4e720840149e5e69ce90daca8341ad629109fd47e2",
+    "docs/validation/evidence/underground-work-approach-2026-10-04/census.py": "dc9ae8a01583d44391ef95ae9b0314064dd6ac6ea6a38a8164f83bba39019b75",
+    "docs/validation/evidence/underground-work-approach-2026-10-04/supporting/retirement-source.gd.txt": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+    "tools/underground_approach_memory.py": "d24aedac40a0f0b0c137db3c7b469f6268572950b25f57e52ccee1c468a676b3"
+  },
+  "pins_verified": 10,
+  "findings": [],
+  "accepted_for_author_commit": true,
+  "independent_tests": {
+    "tests": 22,
+    "failures": 0,
+    "log": "approach-memory-independent-tests.log"
+  },
+  "checks": [
+    "Caller Module.text is reparsed and used for current observations, including stale cached hash/constant metadata mutations.",
+    "Pinned portable predecessor witnesses replace all historical git reads; current implementations never fall back to old source.",
+    "Complete five consumer bodies and eight foreign frame bodies close enumerated-call and transient-allocation gaps.",
+    "Immutable reviewed census executes with optimize=0 so python -O cannot disable its assertions.",
+    "Current exact Profile,Level,Motion,Session and retirement constants reconcile237140 then246868; additional_reserved_bytes is0, no double-charge or larger reserve.",
+    "All22 tests independently executed successfully, including no-Git/no-subprocess and changed-call/source regressions."
+  ],
+  "scope": "Logical portable memory enforcement only; integrated checker and native/256-resident qualification remain separate."
+}

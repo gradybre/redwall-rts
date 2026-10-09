@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/underground_motion_catalog.gd": "2aecafcaad907284ed65ba8a44e89f6b9656e594775d70e314f1f95933030325",
+  "godot/scripts/core/underground_motion_catalog.gd.uid": "10c8b511db795a0e4baed2a2824587c081dd6b3aad8d74348e11d14b7d48f1f6",
+  "godot/test/test_underground_motion_catalog.gd": "8c836e098c08cc706cd29ba80b2ab11fa6ec494f7b1e6eddb94de8bd8ef5bf1a",
+  "godot/test/test_underground_motion_catalog.gd.uid": "50f0bbc4a96f4236134632413c5e2934d39e8fb95102769e973d70bf2743bdc6",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/pack_catalog.py": "035f5e58a5e2b2f689cd5de14f7fc184526c292fcdef7516faf6a00f1ff873ec",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/test_pack_catalog.py": "5ed24f2d322b7b62f455c53c5bb480f054ef5250eade28c2d0b4569ccf594437",
+  "docs/validation/evidence/underground-motion-catalog-2026-10-04/census.py": "6696394ffd34287e63de9a2872feeeb863fdbc7291ecc59833d44f0ee63c63b5",
+  "docs/validation/evidence/underground-motion-catalog-2026-10-04/reproduce.py": "92b7fac6fe4d4bbedd2d92b7f83ffc4df94f5bc551b3dc0ae106339474b30509"
+}

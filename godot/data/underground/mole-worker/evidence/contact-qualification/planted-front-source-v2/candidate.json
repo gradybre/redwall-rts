@@ -1,0 +1,892 @@
+{
+  "schema": 1,
+  "parent_image_sha256": "f5f7c985b08df561956f6e057ff4acaee18948393125a9c41c6bce9c2e8e3433",
+  "recipe": {
+    "ready_frame": 8,
+    "unchanged_skin_bones": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "authored_local_bases": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "translations": "actual ready local translations",
+    "tool_fit": "actual corrected source work hand fit each frame",
+    "grounding": "exact ready value",
+    "right_upper_arm_depression_degrees": 20,
+    "pitch_axis": "actor +X around actual RightArm origin; proper connected joint and held-tool transform"
+  },
+  "plane_z_u": -768,
+  "requested_target_y_u": [
+    -256,
+    768
+  ],
+  "source_triangles_unchanged": true,
+  "contact_candidates": [
+    {
+      "vertex": 148,
+      "frame_pair": [
+        14,
+        15
+      ],
+      "anchor_u": [
+        1,
+        791,
+        -768
+      ],
+      "patch_u": [
+        -1,
+        789,
+        -768,
+        2,
+        792,
+        -768
+      ],
+      "residual_m": [
+        {
+          "numerator": 383334864300572152130649844824107039195411609633723466552579584891052308859342759187002476036611984751808289936595012425351159,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 67971239695232975270512234371729287006124591508069370620005292436607307283225957108767111908669018892338451232725833662070775,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 383334864300572152130649844824107039195411609633723466552579584891052308859342759187002476036611984751808289936595012425351159,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ],
+      "share_range": [
+        {
+          "numerator": 171211429094863,
+          "denominator": 235424941435829
+        },
+        {
+          "numerator": 176193054287311,
+          "denominator": 235424941435829
+        }
+      ]
+    }
+  ],
+  "parts": {
+    "work": [
+      {
+        "kind": "body",
+        "name": "Body/Armature/Skeleton3D/char1",
+        "full_bounds_u": [
+          -396,
+          -1,
+          -646,
+          433,
+          933,
+          234
+        ],
+        "floor_intersection_u": [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ],
+        "above_floor_u": [
+          -396,
+          0,
+          -646,
+          433,
+          933,
+          234
+        ],
+        "native_triangles": 10209,
+        "intervals": 36,
+        "rendered_edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            15
+          ],
+          [
+            15,
+            16
+          ],
+          [
+            16,
+            17
+          ],
+          [
+            17,
+            18
+          ],
+          [
+            18,
+            19
+          ],
+          [
+            19,
+            20
+          ],
+          [
+            20,
+            21
+          ],
+          [
+            21,
+            22
+          ],
+          [
+            22,
+            23
+          ],
+          [
+            23,
+            24
+          ],
+          [
+            24,
+            25
+          ],
+          [
+            25,
+            26
+          ],
+          [
+            26,
+            27
+          ],
+          [
+            27,
+            28
+          ],
+          [
+            28,
+            29
+          ],
+          [
+            29,
+            30
+          ],
+          [
+            30,
+            31
+          ],
+          [
+            31,
+            32
+          ],
+          [
+            32,
+            33
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            35
+          ],
+          [
+            35,
+            0
+          ]
+        ],
+        "loop_mode": 1,
+        "duration_q16": 2359296,
+        "exact_yaw": 0,
+        "residual_m": [
+          {
+            "numerator": 46992399921809082599424239807833214900287656381757097012021646301531231129733722114961,
+            "denominator": 86222912460255855342211451475400390100500076765577924405780133137210437070777100844138496
+          },
+          {
+            "numerator": 3870552506148528449063385540322763081841336461648949583771701100440052532066178878953,
+            "denominator": 43111456230127927671105725737700195050250038382788962202890066568605218535388550422069248
+          },
+          {
+            "numerator": 46992399921809082599424239807833214900287656381757097012021646301531231129733722114961,
+            "denominator": 86222912460255855342211451475400390100500076765577924405780133137210437070777100844138496
+          }
+        ],
+        "scope": "all triangle interiors on exact Content-rendered edges including loop closure; source-local/yaw zero only, no arbitrary handoff or other-yaw permission"
+      },
+      {
+        "kind": "attachment",
+        "name": "mole_pick",
+        "full_bounds_u": [
+          -359,
+          199,
+          -850,
+          594,
+          1221,
+          -52
+        ],
+        "floor_intersection_u": null,
+        "above_floor_u": [
+          -359,
+          199,
+          -850,
+          594,
+          1221,
+          -52
+        ],
+        "native_triangles": 1150,
+        "intervals": 36,
+        "rendered_edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            15
+          ],
+          [
+            15,
+            16
+          ],
+          [
+            16,
+            17
+          ],
+          [
+            17,
+            18
+          ],
+          [
+            18,
+            19
+          ],
+          [
+            19,
+            20
+          ],
+          [
+            20,
+            21
+          ],
+          [
+            21,
+            22
+          ],
+          [
+            22,
+            23
+          ],
+          [
+            23,
+            24
+          ],
+          [
+            24,
+            25
+          ],
+          [
+            25,
+            26
+          ],
+          [
+            26,
+            27
+          ],
+          [
+            27,
+            28
+          ],
+          [
+            28,
+            29
+          ],
+          [
+            29,
+            30
+          ],
+          [
+            30,
+            31
+          ],
+          [
+            31,
+            32
+          ],
+          [
+            32,
+            33
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            35
+          ],
+          [
+            35,
+            0
+          ]
+        ],
+        "loop_mode": 1,
+        "duration_q16": 2359296,
+        "exact_yaw": 0,
+        "residual_m": [
+          {
+            "numerator": 383334864300572152130649844824107039195411609633723466552579584891052308859342759187002476036611984751808289936595012425351159,
+            "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+          },
+          {
+            "numerator": 67971239695232975270512234371729287006124591508069370620005292436607307283225957108767111908669018892338451232725833662070775,
+            "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+          },
+          {
+            "numerator": 383334864300572152130649844824107039195411609633723466552579584891052308859342759187002476036611984751808289936595012425351159,
+            "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+          }
+        ],
+        "scope": "all triangle interiors on exact Content-rendered edges including loop closure; source-local/yaw zero only, no arbitrary handoff or other-yaw permission"
+      }
+    ],
+    "entry": [
+      {
+        "kind": "body",
+        "name": "Body/Armature/Skeleton3D/char1",
+        "full_bounds_u": [
+          -537,
+          -1,
+          -543,
+          433,
+          933,
+          234
+        ],
+        "floor_intersection_u": [
+          -134,
+          -1,
+          44,
+          -126,
+          0,
+          60
+        ],
+        "above_floor_u": [
+          -537,
+          0,
+          -543,
+          433,
+          933,
+          234
+        ],
+        "native_triangles": 10209,
+        "intervals": 30,
+        "rendered_edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            15
+          ],
+          [
+            15,
+            16
+          ],
+          [
+            16,
+            17
+          ],
+          [
+            17,
+            18
+          ],
+          [
+            18,
+            19
+          ],
+          [
+            19,
+            20
+          ],
+          [
+            20,
+            21
+          ],
+          [
+            21,
+            22
+          ],
+          [
+            22,
+            23
+          ],
+          [
+            23,
+            24
+          ],
+          [
+            24,
+            25
+          ],
+          [
+            25,
+            26
+          ],
+          [
+            26,
+            27
+          ],
+          [
+            27,
+            28
+          ],
+          [
+            28,
+            29
+          ],
+          [
+            29,
+            30
+          ]
+        ],
+        "loop_mode": 0,
+        "duration_q16": 1966080,
+        "exact_yaw": 0,
+        "residual_m": [
+          {
+            "numerator": 328947142391200259074021519180751471128592981328292504828880751611480894236429913608439,
+            "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+          },
+          {
+            "numerator": 27093612797795931113992569834197156251161172626669864062158524385076415229933639278943,
+            "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+          },
+          {
+            "numerator": 328947142391200259074021519180751471128592981328292504828880751611480894236429913608439,
+            "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+          }
+        ],
+        "scope": "all triangle interiors on exact Content-rendered edges including loop closure; source-local/yaw zero only, no arbitrary handoff or other-yaw permission"
+      },
+      {
+        "kind": "attachment",
+        "name": "mole_pick",
+        "full_bounds_u": [
+          -242,
+          379,
+          -910,
+          594,
+          1045,
+          -52
+        ],
+        "floor_intersection_u": null,
+        "above_floor_u": [
+          -242,
+          379,
+          -910,
+          594,
+          1045,
+          -52
+        ],
+        "native_triangles": 1150,
+        "intervals": 30,
+        "rendered_edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            11,
+            12
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            15
+          ],
+          [
+            15,
+            16
+          ],
+          [
+            16,
+            17
+          ],
+          [
+            17,
+            18
+          ],
+          [
+            18,
+            19
+          ],
+          [
+            19,
+            20
+          ],
+          [
+            20,
+            21
+          ],
+          [
+            21,
+            22
+          ],
+          [
+            22,
+            23
+          ],
+          [
+            23,
+            24
+          ],
+          [
+            24,
+            25
+          ],
+          [
+            25,
+            26
+          ],
+          [
+            26,
+            27
+          ],
+          [
+            27,
+            28
+          ],
+          [
+            28,
+            29
+          ],
+          [
+            29,
+            30
+          ]
+        ],
+        "loop_mode": 0,
+        "duration_q16": 1966080,
+        "exact_yaw": 0,
+        "residual_m": [
+          {
+            "numerator": 2851337493069332405653015467506321078467274503582574263126609158844794059720046294058450404905963262801747931427055521252683,
+            "denominator": 5211752210841010354698304367184060296482548544421003691841581061178833923609829534850028551563058357065122482296846891565973504
+          },
+          {
+            "numerator": 480182420848737090915138697187691362758349555269385571904246057683553446365784624297282253568046226264380723127287259874635,
+            "denominator": 5211752210841010354698304367184060296482548544421003691841581061178833923609829534850028551563058357065122482296846891565973504
+          },
+          {
+            "numerator": 2851337493069332405653015467506321078467274503582574263126609158844794059720046294058450404905963262801747931427055521252683,
+            "denominator": 5211752210841010354698304367184060296482548544421003691841581061178833923609829534850028551563058357065122482296846891565973504
+          }
+        ],
+        "scope": "all triangle interiors on exact Content-rendered edges including loop closure; source-local/yaw zero only, no arbitrary handoff or other-yaw permission"
+      }
+    ]
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "production_qualified": false,
+  "remaining": [
+    "NATIVE_VISUAL_REVIEW",
+    "FULL_SELF_CLEARANCE",
+    "SOURCE_CONTACT_PATCH_REVIEW",
+    "COMPLETE_STATE_UNION",
+    "REAL_STANCE_AND_PAID_APPROACH",
+    "PROFILE_DRIVER_BINDING"
+  ],
+  "foot_support": {
+    "work": {
+      "support_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        0,
+        174
+      ],
+      "source_foot_bounds_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        223,
+        174
+      ],
+      "triangles": 1985,
+      "binds": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "rule": "all triangle vertices if any vertex has positive actual foot/toe weight; full flat projection"
+    },
+    "entry": {
+      "support_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        0,
+        174
+      ],
+      "source_foot_bounds_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        223,
+        174
+      ],
+      "triangles": 1985,
+      "binds": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "rule": "all triangle vertices if any vertex has positive actual foot/toe weight; full flat projection"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "21b21f6e21ac484c9a62857c3d2a71e25665edbfc1b678c0d469e0c74ad94824",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "d82c913d8a8eed5afb14321b93a02a6b53a44a016164ca5524663f7441db64ba",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  }
+}

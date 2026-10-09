@@ -1,0 +1,11 @@
+starting clean-import.log
+starting test_underground_room_itinerary.gd.log
+13 test(s), 114 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 114 assertions, 0 failures.
+starting test_underground_short_room_itinerary.gd.log
+8 test(s), 94 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 1 failing test(s).
+refused: test_underground_short_room_itinerary.gd.log

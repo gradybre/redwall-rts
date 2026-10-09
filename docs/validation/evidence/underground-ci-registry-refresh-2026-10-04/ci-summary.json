@@ -1,0 +1,138 @@
+{
+  "ci_head": "3e36e7c4fe9c43f487952511a58d3d8d91dd4cd2",
+  "accepted": false,
+  "totals": {
+    "tests": 10823,
+    "assertions": 995744,
+    "failures": 11,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "per_shard": [
+    {
+      "tests": 1192,
+      "assertions": 119376,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 6,
+      "tolerated": 8,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-0/shard-0.log",
+      "raw_guard_line_present": true
+    },
+    {
+      "tests": 1438,
+      "assertions": 130560,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 219,
+      "tolerated": 2,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-1/shard-1.log",
+      "raw_guard_line_present": true
+    },
+    {
+      "tests": 1374,
+      "assertions": 95554,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 3,
+      "tolerated": 48,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-2/shard-2.log",
+      "raw_guard_line_present": true
+    },
+    {
+      "tests": 1565,
+      "assertions": 105023,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 23,
+      "tolerated": 248,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-3/shard-3.log",
+      "raw_guard_line_present": true
+    },
+    {
+      "tests": 1231,
+      "assertions": 66840,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 1,
+      "tolerated": 1,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-4/shard-4.log",
+      "raw_guard_line_present": true
+    },
+    {
+      "tests": 1131,
+      "assertions": 73188,
+      "failures": 8,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 14,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-5/shard-5.log",
+      "raw_guard_line_present": false
+    },
+    {
+      "tests": 1452,
+      "assertions": 177046,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 5,
+      "tolerated": 43,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-6/shard-6.log",
+      "raw_guard_line_present": true
+    },
+    {
+      "tests": 1440,
+      "assertions": 228157,
+      "failures": 3,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 1,
+      "tolerated": 3,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "log": "shards/godot-shard-7/shard-7.log",
+      "raw_guard_line_present": false
+    }
+  ],
+  "unique_observed_suite_files": 382,
+  "failed_suites": [
+    {
+      "assertions": 227,
+      "failures": 8,
+      "suite": "test_mole_qualified_profiles.gd",
+      "tests": 8,
+      "usec": 1106017
+    },
+    {
+      "assertions": 21,
+      "failures": 3,
+      "suite": "test_demo_profile_pack.gd",
+      "tests": 5,
+      "usec": 1507017
+    }
+  ]
+}

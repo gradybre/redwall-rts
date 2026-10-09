@@ -1,0 +1,173 @@
+--- adapter-1146-v1/modular_editor.gd.txt
++++ adapter-1146-v2/modular_editor.gd.txt
+@@ -45 +45 @@
+-func bind_confirmation(checker: Callable, submitter: Callable) -> void:
++func bind_confirmation(checker: Callable, submitter: Callable) -> bool:
+@@ -48 +48 @@
+-		return
++		return false
+@@ -51,0 +52 @@
++	return _checker == checker and _submitter == submitter
+--- adapter-1146-v1/modular_runtime.gd.txt
++++ adapter-1146-v2/modular_runtime.gd.txt
+@@ -43,0 +44 @@
++	var draft: Draft = editor.draft
+@@ -46 +47 @@
+-	var grid: Dictionary = editor.draft.grid_domain()
++	var grid: Dictionary = draft.grid_domain()
+@@ -48,0 +50,3 @@
++	if not is_instance_valid(editor) or not is_instance_valid(tool) or editor.draft != draft \
++			or not tool.matches_editor(editor):
++		code = REFUSE_BINDING
+@@ -53,0 +58,3 @@
++		if not editor.bind_confirmation(check_request, submit_request):
++			_clear_handles()
++			code = REFUSE_BINDING
+@@ -55,2 +61,0 @@
+-	if code == &"":
+-		editor.bind_confirmation(check_request, submit_request)
+@@ -98 +103,4 @@
+-	var code: StringName = _request_refusal(request)
++	var orders: Orders = _actual_orders()
++	var bindings: RoomBindings = _actual_bindings()
++	var levels: Levels = _actual_levels()
++	var code: StringName = _request_refusal(request, orders, bindings, levels)
+@@ -103 +111 @@
+-func _request_refusal(request: Dictionary) -> StringName:
++func _view_refusal(request: Dictionary) -> StringName:
+@@ -115,3 +123,8 @@
+-	var orders: Orders = _actual_orders()
+-	var bindings: RoomBindings = _actual_bindings()
+-	var levels: Levels = _actual_levels()
++	return &""
++
++
++func _request_refusal(request: Dictionary, orders: Orders, bindings: RoomBindings, levels: Levels) -> StringName:
++	"""Hold one original owner set in the caller and reobserve the current view after all owner callbacks."""
++	var view_code: StringName = _view_refusal(request)
++	if view_code != &"":
++		return view_code
+@@ -121,3 +134,3 @@
+-	return &"" if is_instance_valid(_editor) and is_instance_valid(_tool) \
+-		and _editor.draft == _draft.get_ref() and _tool.matches_editor(_editor) \
+-		and _tool.datum_u() == _datum and request == _editor.draft.snapshot() else REFUSE_DRAFT
++	if orders != _actual_orders() or bindings != _actual_bindings() or levels != _actual_levels():
++		return REFUSE_BINDING
++	return _view_refusal(request)
+@@ -139 +152,4 @@
+-	var code: StringName = _request_refusal(request)
++	var orders: Orders = _actual_orders()
++	var bindings: RoomBindings = _actual_bindings()
++	var levels: Levels = _actual_levels()
++	var code: StringName = _request_refusal(request, orders, bindings, levels)
+@@ -143,3 +158,0 @@
+-	var orders: Orders = _actual_orders()
+-	var bindings: RoomBindings = _actual_bindings()
+-	var levels: Levels = _actual_levels()
+@@ -193,0 +207,6 @@
++	_clear_handles()
++	return &""
++
++
++func _clear_handles() -> void:
++	"""Discard only this adapter's handles after refusal or quiescent detach, never a replacement host's."""
+@@ -201 +219,0 @@
+-	return &""
+--- adapter-1146-v1/test_modular_runtime.gd.txt
++++ adapter-1146-v2/test_modular_runtime.gd.txt
+@@ -13,0 +14,20 @@
++class BindingObserver extends Fixture.ObservedWorld:
++	var observer: Callable = Callable()
++
++	func binding_refusal() -> StringName:
++		"""Run the genuine binding observation, then one externally owned lifetime/view change."""
++		var code: StringName = super.binding_refusal()
++		if observer.is_valid():
++			var callback: Callable = observer
++			observer = Callable()
++			callback.call()
++		return code
++
++class ObservedFixture extends Fixture:
++	func _bind_space() -> void:
++		"""Use the exact actual fixture owners with an observer at their real binding boundary."""
++		super._bind_space()
++		_provider = BindingObserver.new()
++		_provider.arena = _budget
++		assert_equal(_provider.configure(_world, _terrain, _space, _sources, _budget), &"", "observed actual provider")
++
+@@ -34,0 +55,4 @@
++var _late_action: int = 0
++var _released_level: WeakRef = null
++var _replacement: Runtime = null
++var _replacement_result: StringName = &""
+@@ -39 +63 @@
+-	_f = Fixture.new()
++	_f = ObservedFixture.new()
+@@ -46,0 +71,3 @@
++	_late_action = 0
++	_released_level = null
++	_replacement = null
+@@ -93,0 +121,19 @@
++
++
++func _change_view_late() -> void:
++	"""Change real presentation state only after the adapter's initial view predicate."""
++	match _late_action:
++		0: _view_level = 2
++		1: _modal = true
++		2: _tool.set_active(false)
++
++
++func _release_level_late() -> void:
++	"""Release the host's last strong catalog handle during the actual binding callback."""
++	_released_level = weakref(_f._levels)
++	_f._levels = null
++
++
++func _configure_replacement_late() -> void:
++	"""A competing host must truthfully refuse while the inspector is submitting its original plan."""
++	_replacement_result = _replacement.configure(_editor, _tool, _f._orders, _f._rooms, _f._levels, 0)
+@@ -148,0 +195,42 @@
++func test_late_binding_observer_cannot_confirm_a_hidden_or_inactive_drawing() -> void:
++	"""Post-owner view validation closes the real callback window before Room preflight or state mutation."""
++	var request: Dictionary = _draw()
++	var before: PackedByteArray = _f._state()
++	for action: int in 3:
++		_late_action = action
++		(_f._provider as BindingObserver).observer = _change_view_late
++		assert_equal(_runtime.submit_request(request).error_code, Runtime.REFUSE_LEVEL, "late view change refuses")
++		assert_equal(_f._rooms.preflights, 0, "late change never reaches Room preflight")
++		assert_equal(_f._state(), before, "actual stores conserved")
++		_view_level = 1
++		_modal = false
++		_tool.set_active(true)
++	assert_equal(_runtime.check_request(request), "", "view returns without a stuck busy flag")
++
++
++func test_level_owner_release_during_observation_survives_only_the_synchronous_command() -> void:
++	"""The complete submission owns its original borrowed tuple until the actual physical refusal returns."""
++	var request: Dictionary = _draw()
++	var before: PackedByteArray = _f._state()
++	(_f._provider as BindingObserver).observer = _release_level_late
++	assert_equal(_runtime.submit_request(request).error_code, Bindings.REFUSE_ENTRY, "original catalog survives command")
++	assert_equal(_f._rooms.preflights, 1, "one real physical preflight")
++	assert_equal(_f._state(), before, "refused command conserved actual state")
++	assert_null(_released_level.get_ref(), "temporary strong borrower released on return")
++	assert_equal(_runtime.submit_request(request).error_code, Runtime.REFUSE_BINDING, "next command refuses expired owner")
++	assert_false(_runtime._busy, "no null dereference leaves the view stuck")
++
++
++func test_replacement_host_during_editor_submission_refuses_without_pinning() -> void:
++	"""An in-flight confirmation cannot silently accept a host whose callbacks were never connected."""
++	_draw()
++	_replacement = Runtime.new()
++	(_f._provider as BindingObserver).observer = _configure_replacement_late
++	assert_false(_editor.request_confirmation(), "original physical refusal")
++	assert_equal(_replacement_result, Runtime.REFUSE_BINDING, "busy editor refuses replacement")
++	assert_equal(_f._rooms.preflights, 1, "original owner remains connected")
++	assert_equal(_replacement.configure(_editor, _tool, _f._orders, _f._rooms, _f._levels, 0), &"", "refused host can retry later")
++	assert_equal(_replacement.disconnect_view(), &"", "replacement releases its real callback lease")
++	_replacement = null
++
++

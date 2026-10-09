@@ -1,0 +1,145 @@
+state_registry_coverage: PASS -- 138 modules, 692 rows, 1032 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_phase_companions.gd
+  PASS  test_actual_brace_start_and_commit_refresh_each_bank_once
+  PASS  test_actual_cut_finish_advances_sources_without_new_endpoints_or_prefix
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] test_wrong_final_phase_tuple_refuses_real_input_payment_then_retries (res://test/test_underground_phase_companions.gd:365)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] _unchanged (res://test/test_underground_phase_companions.gd:342)
+              [2] test_wrong_final_phase_tuple_refuses_real_input_payment_then_retries (res://test/test_underground_phase_companions.gd:369)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_wrong_final_phase_tuple_refuses_real_input_payment_then_retries
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] test_final_observer_replacement_arena_survives_failed_payment (res://test/test_underground_phase_companions.gd:378)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] _unchanged (res://test/test_underground_phase_companions.gd:342)
+              [2] test_final_observer_replacement_arena_survives_failed_payment (res://test/test_underground_phase_companions.gd:384)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_final_observer_replacement_arena_survives_failed_payment
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] test_discard_after_final_provider_leaf_cannot_fall_back_to_ordinary_publish (res://test/test_underground_phase_companions.gd:393)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] _unchanged (res://test/test_underground_phase_companions.gd:342)
+              [2] test_discard_after_final_provider_leaf_cannot_fall_back_to_ordinary_publish (res://test/test_underground_phase_companions.gd:396)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_discard_after_final_provider_leaf_cannot_fall_back_to_ordinary_publish
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] test_actual_terminal_failure_retries_after_worker_release_without_new_labor (res://test/test_underground_phase_companions.gd:405)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] _unchanged (res://test/test_underground_phase_companions.gd:342)
+              [2] test_actual_terminal_failure_retries_after_worker_release_without_new_labor (res://test/test_underground_phase_companions.gd:409)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_terminal_failure_retries_after_worker_release_without_new_labor
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] test_actual_paid_cancel_failure_preserves_refund_then_worker_free_retry (res://test/test_underground_phase_companions.gd:419)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'header' on a base object of type 'RefCounted (EdgeBank)'.
+          at: _live_state (res://test/test_underground_phase_companions.gd:333)
+          GDScript backtrace (most recent call first):
+              [0] _live_state (res://test/test_underground_phase_companions.gd:333)
+              [1] _unchanged (res://test/test_underground_phase_companions.gd:342)
+              [2] test_actual_paid_cancel_failure_preserves_refund_then_worker_free_retry (res://test/test_underground_phase_companions.gd:423)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-placements/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_paid_cancel_failure_preserves_refund_then_worker_free_retry
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_prepaid_generic_and_static_publication_attempts_cannot_swap_candidates
+CI_SUITE_TIME {"assertions":83,"failures":0,"suite":"test_underground_phase_companions.gd","tests":8,"usec":3362324}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 83 assertion(s), 5 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 5 failing test(s).

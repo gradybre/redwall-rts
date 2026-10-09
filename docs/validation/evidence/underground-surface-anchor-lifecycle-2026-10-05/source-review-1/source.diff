@@ -1,0 +1,600 @@
+diff --git a/godot/scripts/core/underground_session.gd b/godot/scripts/core/underground_session.gd
+index 73763758..bab647b9 100644
+--- a/godot/scripts/core/underground_session.gd
++++ b/godot/scripts/core/underground_session.gd
+@@ -424,7 +424,7 @@ func compose_route_owners() -> StringName:
+ 	"""Extend the same actual Room-ready tuple; any exposed constructor prefix remains retained on refusal."""
+ 	var code: StringName = current_refusal()
+ 	if code != &"": return code
+-	if _operations_state == 2 and _operations_prefix == 8:
++	if _operations_state == 2 and _operations_prefix >= 8 and _operations_prefix <= 9:
+ 		return RouteComposition.complete_refusal(_retirement_owners)
+ 	if _operations_state != 2 or _operations_prefix != 4: return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
+ 	code = _route_start_refusal()
+@@ -467,7 +467,60 @@ func _finish_route_composition(code: StringName) -> void:
+ 
+ func world_route_provider() -> WorldRoutes:
+ 	"""Borrow only the complete original graph observer; actual supported travel remains separately proved."""
+-	return _retirement_owners.world_routes if current_refusal() == &"" and _operations_prefix == 8 else null
++	return _retirement_owners.world_routes if current_refusal() == &"" and _operations_prefix >= 8 else null
++
++
++func compose_surface_anchor() -> StringName:
++	"""Retain the actual natural publisher once; this constructs no endpoint or physical permission."""
++	var code: StringName = current_refusal()
++	if code != &"": return code
++	if _operations_state == 2 and _operations_prefix == 9: return Retirement.surface_refusal(_retirement_owners)
++	if _operations_state != 2 or _operations_prefix != 8: return &"UNDERGROUND_SURFACE_SCOPE"
++	if not _budget.is_quiescent() or _space.has_prepared(): return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
++	code = RouteComposition.unpublished_refusal(_retirement_owners)
++	if code != &"": return code
++	_busy = true
++	_poisoned = false
++	_operations_state = 1
++	code = _configure_surface_anchor()
++	if code == &"": code = _content_refusal()
++	if code == &"": code = _original_refusal()
++	if code == &"": code = _foundation_refusal()
++	if code == &"": code = RouteComposition.complete_refusal(_retirement_owners)
++	if code == &"": code = Retirement.surface_refusal(_retirement_owners)
++	if code == &"": code = RouteComposition.unpublished_refusal(_retirement_owners)
++	_finish_surface_composition(code)
++	_busy = false
++	return code
++
++
++func _configure_surface_anchor() -> StringName:
++	"""Capture a newly installed one-way scope even when a final callback poisons configuration."""
++	var candidate: Retirement.SurfaceAnchor = Retirement.SurfaceAnchor.new()
++	var code: StringName = candidate.configure(_world, _terrain, _space, _sources,
++		_retirement_owners.locations, _budget, Retirement.SurfaceAnchor.RESERVED_BYTES)
++	if _retirement_owners.locations._world_scope != null \
++			and _retirement_owners.locations._world_scope.get_ref() == candidate:
++		_retirement_owners.surface_anchor = candidate
++		_operations_prefix = 9
++	elif code == &"":
++		code = &"UNDERGROUND_SURFACE_SCOPE"
++	return code
++
++
++func _finish_surface_composition(code: StringName) -> void:
++	"""Only an unpublished private failure may restore the unchanged route-ready group."""
++	var restored: bool = code != &"" and _operations_prefix == 8 and _content_refusal() == &""
++	_operations_state = 2 if code == &"" or restored else 3
++	if not restored: return
++	if _owners_refusal() != &"" or _foundation_refusal() != &"" or _retirement_packet_refusal() != &"" \
++			or _directory._persistent_id[_world_ref.x] != _world_pid or _world._published_seed != _seed:
++		_operations_state = 3
++
++
++func surface_anchor() -> Retirement.SurfaceAnchor:
++	"""Borrow the original publisher only while this exact Session and its current source remain usable."""
++	return _retirement_owners.surface_anchor if current_refusal() == &"" and _operations_prefix == 9 else null
+ 
+ 
+ func room_orders() -> Retirement.Orders:
+@@ -530,10 +583,13 @@ func _retirement_packet_refusal() -> StringName:
+ 
+ func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
+ 	"""Our source-owned constructor output is distinct from arbitrary external packet registration."""
+-	if _operations_state == 2 and _operations_prefix == 8:
+-		return RouteComposition.complete_refusal(o)
++	if _operations_state == 2 and _operations_prefix >= 8 and _operations_prefix <= 9:
++		if (o.surface_anchor != null) != (_operations_prefix == 9): return &"UNDERGROUND_SURFACE_SCOPE"
++		var code: StringName = RouteComposition.complete_refusal(o)
++		return Retirement.surface_refusal(o) if code == &"" else code
+ 	if _operations_state == 2 and _operations_prefix == 4:
+-		if o.world_routes != null or o.room_bindings._room_routes != null:
++		if o.world_routes != null or o.surface_anchor != null or o.locations._world_scope != null \
++				or o.room_bindings._room_routes != null:
+ 			return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
+ 		var code: StringName = Retirement._pristine_graph_refusal(o)
+ 		return Composition.complete_refusal(o) if code == &"" else code
+@@ -544,7 +600,7 @@ func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
+ 	if _operations_state != 0 or _operations_prefix != 0: return &"UNDERGROUND_COMPOSITION_SCOPE"
+ 	if o.rooms != null or o.room_bindings != null or o.world_bindings != null or o.sites != null \
+ 			or o.router != null or o.authority != null or o.locations != null or o.inventory_locations != null \
+-			or o.world_routes != null or o.connector != null or o.contacts != null or o.placements != null \
++			or o.world_routes != null or o.surface_anchor != null or o.connector != null or o.contacts != null or o.placements != null \
+ 			or o.workpieces != null or o.delivery != null or o.furniture != null or o.tips != null:
+ 		return &"UNDERGROUND_SESSION_AUTHORITY_LIFETIME"
+ 	return _initial_authority_refusal()
+diff --git a/godot/scripts/core/underground_surface_anchor.gd b/godot/scripts/core/underground_surface_anchor.gd
+index f0619ca0..e680b94d 100644
+--- a/godot/scripts/core/underground_surface_anchor.gd
++++ b/godot/scripts/core/underground_surface_anchor.gd
+@@ -80,7 +80,7 @@ func configure(world: World, terrain: Terrain, space: Owner, sources: Owner.Core
+ 	if _busy:
+ 		_poisoned = true
+ 		return REFUSE_BINDING
+-	if _ready or admitted_bytes < RESERVED_BYTES or world == null or terrain == null \
++	if _ready or _locations != null or admitted_bytes < RESERVED_BYTES or world == null or terrain == null \
+ 			or space == null or sources == null or locations == null or budget == null or not budget.is_quiescent():
+ 		return REFUSE_BINDING
+ 	_busy = true
+@@ -90,7 +90,7 @@ func configure(world: World, terrain: Terrain, space: Owner, sources: Owner.Core
+ 	if code == &"" and not _poisoned:
+ 		code = locations.bind_world_scope(self)
+ 	if code != &"" or _poisoned:
+-		_clear_binding()
++		_refuse_configuration()
+ 		return code if code != &"" else REFUSE_BINDING
+ 	_record.envelope.resize(6)
+ 	_record.support.resize(6)
+@@ -100,6 +100,42 @@ func configure(world: World, terrain: Terrain, space: Owner, sources: Owner.Core
+ 	return &""
+ 
+ 
++func _refuse_configuration() -> void:
++	"""Keep original pins if a late observer already installed this one-way weak scope; only full retirement may forget it."""
++	if _locations != null and _locations._world_scope != null and _locations._world_scope.get_ref() == self:
++		_ready = false
++		_busy = false
++		return
++	_clear_binding()
++
++
++static func retirement_refusal_in(actual: RefCounted, original: RefCounted, stopped_constructor: bool = false) -> StringName:
++	"""Owner-owned concrete stored facts only; the caller has already proved its complete original owner packet."""
++	if actual._busy or actual._publishing or actual._cold_token != 0 \
++			or actual._space_token != 0 or actual._location_token != 0:
++		return REFUSE_BUSY
++	if (not actual._ready and not stopped_constructor) or original.locations._world_scope == null \
++			or original.locations._world_scope.get_ref() != actual or actual._world_ref != original.world_ref \
++			or actual._seed != original.terrain._seed or actual._world != original.world \
++			or actual._terrain != original.terrain or actual._space != original.space \
++			or actual._sources != original.sources or actual._locations != original.locations \
++			or actual._routes != original.routes or actual._budget != original.budget:
++		return REFUSE_BINDING
++	return _retirement_stores_in(actual, original)
++
++
++static func _retirement_stores_in(actual: RefCounted, original: RefCounted) -> StringName:
++	"""All retained store pins belong to the exact captured composition, including actual tool and stock owners."""
++	if actual._ids != original.directory or actual._buildings != original.buildings \
++			or actual._construction != original.construction or actual._inventory != original.inventory \
++			or actual._transforms != original.transforms or actual._residents != original.residents \
++			or actual._jobs != original.jobs or actual._work != original.work or actual._profiles != original.profiles \
++			or actual._bindings != original.world_routes or actual._gear != original.gear \
++			or actual._carry != original.carry or actual._reservations != original.reservations or actual._piles != original.piles:
++		return REFUSE_BINDING
++	return &""
++
++
+ func _bind_owners(world: World, terrain: Terrain, space: Owner, sources: Owner.CoreSources,
+ 		locations: Locations, budget: Budget) -> void:
+ 	"""Capture exact original instances once; numerical World/Directory aliases cannot replace them later."""
+diff --git a/godot/scripts/core/underground_world_retirement.gd b/godot/scripts/core/underground_world_retirement.gd
+index 579374cf..c2f16359 100644
+--- a/godot/scripts/core/underground_world_retirement.gd
++++ b/godot/scripts/core/underground_world_retirement.gd
+@@ -31,6 +31,7 @@ const EntryBindings := preload("res://scripts/core/underground_entry_bindings.gd
+ const WorldBindings := preload("res://scripts/core/underground_world_bindings.gd")
+ const EntryWorldBindings := preload("res://scripts/core/underground_entry_world_bindings.gd")
+ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
++const SurfaceAnchor := preload("res://scripts/core/underground_surface_anchor.gd")
+ const Sites := preload("res://scripts/core/excavation_sites.gd")
+ const Router := preload("res://scripts/core/modular_projects.gd")
+ const Authority := preload("res://scripts/core/underground_space_authority.gd")
+@@ -81,6 +82,7 @@ class Owners extends RefCounted:
+ 	var locations: Locations = null
+ 	var inventory_locations: Locations.InventoryLocations = null
+ 	var world_routes: WorldRoutes = null
++	var surface_anchor: SurfaceAnchor = null
+ 	var connector: ConnectorWork = null
+ 	var contacts: Contacts = null
+ 	var placements: Placements = null
+@@ -152,7 +154,7 @@ static func constructor_session_matches(session: RefCounted) -> bool:
+ static func constructor_original_refusal(session: RefCounted, o: Owners, prefix: int) -> StringName:
+ 	"""The incomplete tuple is the stopped actual Session's own constructor output, never a supplied registration."""
+ 	if not constructor_session_matches(session) or session._operations_state != 3 or session._busy \
+-			or prefix < 1 or prefix > 8 or session._operations_prefix != prefix or session._retirement_owners != o:
++			or prefix < 1 or prefix > 9 or session._operations_prefix != prefix or session._retirement_owners != o:
+ 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+ 	if o.world != session._world or o.world_ref != session._world_ref or o.directory != session._directory \
+ 			or o.buildings != session._buildings or o.construction != session._construction \
+@@ -167,13 +169,14 @@ static func constructor_original_refusal(session: RefCounted, o: Owners, prefix:
+ 
+ 
+ static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
+-	"""Only the eight finite installed prefixes exist; constructor-only allowances require empty new owners."""
++	"""Only the nine finite installed prefixes exist; constructor-only allowances require empty new owners."""
+ 	if o.world_bindings == null or o.authority == null or o.sites == null \
+ 			or (o.router != null) != (prefix >= 2) or (o.rooms != null) != (prefix >= 3) \
+ 			or (o.room_bindings != null) != (prefix >= 3) or (o.inventory_locations != null) != (prefix >= 4) \
+ 			or (prefix < 3 and o.locations != null) or (prefix >= 4 and o.locations == null):
+ 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+-	if (o.world_routes != null) != (prefix >= 5) or o.connector != null or o.contacts != null or o.placements != null \
++	if (o.world_routes != null) != (prefix >= 5) or (o.surface_anchor != null) != (prefix == 9) \
++			or o.connector != null or o.contacts != null or o.placements != null \
+ 			or o.workpieces != null or o.delivery != null or o.furniture != null or o.tips != null:
+ 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
+ 	if o.sites._count != 0 or o.sites._funding == null \
+@@ -330,7 +333,8 @@ static func _owners_refusal(o: Owners, constructor_prefix: int = -1) -> StringNa
+ 	if code == &"": code = _phase_refusal(o, constructor_prefix)
+ 	if code == &"": code = _location_refusal(o)
+ 	if code == &"": code = _route_refusal(o)
+-	if code == &"" and constructor_prefix >= 5: code = route_constructor_refusal(o, constructor_prefix)
++	if code == &"" and constructor_prefix >= 5: code = route_constructor_refusal(o, mini(constructor_prefix, 8))
++	if code == &"": code = surface_refusal(o, constructor_prefix == 9)
+ 	if code == &"": code = _project_refusal(o)
+ 	if code == &"": code = _connector_refusal(o)
+ 	if code == &"": code = _placement_refusal(o)
+@@ -487,6 +491,17 @@ static func _location_refusal(o: Owners) -> StringName:
+ 	return &""
+ 
+ 
++static func surface_refusal(o: Owners, stopped_constructor: bool = false) -> StringName:
++	"""The one-way WorldScope is absent or is our exact strongly retained natural publisher, never an expired alias."""
++	if o.surface_anchor == null:
++		return &"" if o.locations == null or o.locations._world_scope == null else &"WORLD_RETIREMENT_SURFACE"
++	if o.surface_anchor.get_script() != SurfaceAnchor or o.locations == null or o.world_routes == null:
++		return &"WORLD_RETIREMENT_SURFACE"
++	var code: StringName = SurfaceAnchor.retirement_refusal_in(o.surface_anchor, o, stopped_constructor)
++	if code == SurfaceAnchor.REFUSE_BUSY: return &"WORLD_RETIREMENT_BUSY"
++	return &"" if code == &"" else &"WORLD_RETIREMENT_SURFACE"
++
++
+ static func _route_refusal(o: Owners) -> StringName:
+ 	"""Actual motion/search and graph-publication callbacks cannot overlap a whole-World reset."""
+ 	if o.routes._ids != o.directory or o.routes._residents != o.residents or o.routes._transforms != o.transforms:
+@@ -726,6 +741,7 @@ static func _copy_owners_2(source: Owners, target: Owners) -> void:
+ 	target.locations = source.locations
+ 	target.inventory_locations = source.inventory_locations
+ 	target.world_routes = source.world_routes
++	target.surface_anchor = source.surface_anchor
+ 	target.connector = source.connector
+ 	target.contacts = source.contacts
+ 	target.placements = source.placements
+@@ -789,6 +805,7 @@ static func _same_owners_2(first: Owners, second: Owners) -> bool:
+ 		and first.locations == second.locations \
+ 		and first.inventory_locations == second.inventory_locations \
+ 		and first.world_routes == second.world_routes \
++		and first.surface_anchor == second.surface_anchor \
+ 		and first.connector == second.connector \
+ 		and first.contacts == second.contacts \
+ 		and first.placements == second.placements \
+diff --git a/godot/scripts/systems/settlement_system.gd b/godot/scripts/systems/settlement_system.gd
+index 221fce70..eeeb0a85 100644
+--- a/godot/scripts/systems/settlement_system.gd
++++ b/godot/scripts/systems/settlement_system.gd
+@@ -1863,6 +1863,11 @@ func compose_underground_route_owners() -> bool:
+ 	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 4
+ 	var code: StringName = _mounted_underground_refusal(original)
+ 	if code == &"": code = original.compose_route_owners()
++	return _finish_route_owner_composition(original, code, starting)
++
++
++func _finish_route_owner_composition(original: UndergroundSession, code: StringName, starting: bool) -> bool:
++	"""The pure result tail has a separate frame after every route-constructor temporary has returned."""
+ 	var final_code: StringName = _mounted_underground_refusal(original)
+ 	if code == &"": code = final_code
+ 	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 5)):
+@@ -1877,10 +1882,35 @@ func _underground_mutations_stopped() -> bool:
+ 	if _underground_session != null and _underground_session._operations_state == 1:
+ 		_underground_session._poisoned = true
+ 		return true
++	if _underground_session != null and _underground_session._retirement_owners != null \
++			and _underground_session._retirement_owners.surface_anchor != null \
++			and _underground_session._retirement_owners.surface_anchor._busy:
++		return true
+ 	return _underground_reset_phase != 0 or (_underground_session != null \
+ 		and _underground_session._operations_state == 3)
+ 
+ 
++func compose_underground_surface_anchor() -> bool:
++	"""Install the original natural-surface publisher in the actual mounted route-ready Session."""
++	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
++	var original: UndergroundSession = _underground_session
++	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 8
++	var code: StringName = _mounted_underground_refusal(original)
++	if code == &"": code = original.compose_surface_anchor()
++	return _finish_surface_owner_composition(original, code, starting)
++
++
++func _finish_surface_owner_composition(original: UndergroundSession, code: StringName, starting: bool) -> bool:
++	"""Preserve the first refusal, then stop an exposed original scope on any late mounted-owner change."""
++	var final_code: StringName = _mounted_underground_refusal(original)
++	if code == &"": code = final_code
++	if starting and (final_code != &"" or (code != &"" and original._operations_prefix == 9)):
++		original._operations_state = 3
++	if code != &"": return _refuse(code)
++	_last_refusal = REFUSE_NONE
++	return true
++
++
+ func underground_session() -> UndergroundSession:
+ 	"""Borrow the one foundation; its own current checks reject retired or partially configured state."""
+ 	return _underground_session if _underground_reset_phase == 0 else null
+diff --git a/godot/test/test_underground_host.gd b/godot/test/test_underground_host.gd
+index e7a7e581..facbdb66 100644
+--- a/godot/test/test_underground_host.gd
++++ b/godot/test/test_underground_host.gd
+@@ -55,10 +55,44 @@ class ClearingHost extends Settlement:
+ 			super._clear_stores()
+ 
+ 
++class SurfaceWorld extends World:
++	var session: WeakRef = null
++	var observer: Callable = Callable()
++	var during_retention: bool = false
++	var during_create: bool = false
++
++	func is_published() -> bool:
++		"""Observe the real result only at the selected actual anchor constructor or active publication boundary."""
++		var answer: bool = super.is_published()
++		var owner: Session = session.get_ref() as Session if session != null else null
++		if owner == null or not observer.is_valid(): return answer
++		var selected: bool = owner._operations_state == 1 and owner._operations_prefix == 8
++		if during_retention: selected = selected and owner._retirement_owners.locations._in_retention
++		if during_create:
++			selected = owner._retirement_owners.surface_anchor != null and owner._retirement_owners.surface_anchor._busy
++		if selected:
++			var action: Callable = observer
++			observer = Callable()
++			action.call()
++		return answer
++
++
++class SurfaceHost extends Settlement:
++	func _compose_ground_piles() -> void:
++		"""Install a real negative-only observed World before its original host/stock owners bind it."""
++		var original: World = _world
++		_world = SurfaceWorld.new(original._directory, original._nodes, original._forage, original._fishing,
++			original._rng, original._farming, original._orchards, original._jobs, original._commands)
++		super._compose_ground_piles()
++
++
+ var _host: Settlement = null
+ var _content: Content = null
+ var _nested_reset: bool = true
+ var _saved_gear: Gear = null
++var _surface_tick: bool = true
++var _surface_script: Script = null
++var _surface_source_text: String = ""
+ 
+ 
+ func before_each() -> void:
+@@ -77,7 +111,12 @@ func after_each() -> void:
+ 	if _host != null:
+ 		if _host.world() is ObservedWorld:
+ 			(_host.world() as ObservedWorld).observer = Callable()
++		if _host.world() is SurfaceWorld:
++			(_host.world() as SurfaceWorld).observer = Callable()
+ 		_host.free()
++	if _surface_script != null: _surface_script.source_code = _surface_source_text
++	_surface_script = null
++	_surface_source_text = ""
+ 	_host = null
+ 	_content = null
+ 	_saved_gear = null
+@@ -449,3 +488,186 @@ func test_pending_scope_rejects_replaced_profile_bank_before_clear() -> void:
+ 	session._profiles._live = original
+ 	assert_true(_host.abandon_world_reset(), "restored exact source can resume")
+ 	assert_true(_host.reset(), "restored actual source retires")
++
++
++func _surface_session() -> Session:
++	"""Compose the actual current source and maximum real graph before any natural endpoint is requested."""
++	_host.free()
++	_host = SurfaceHost.new()
++	var session: Session = _generate_and_mount()
++	assert_true(_host.compose_underground_room_owners(), "actual Room owners")
++	assert_true(_host.compose_underground_route_owners(), "actual route owners: %s" % _host.last_refusal())
++	(_host.world() as SurfaceWorld).session = weakref(session)
++	return session
++
++
++func _surface_create(anchor: Session.Retirement.SurfaceAnchor) -> Session.Retirement.SurfaceAnchor.Result:
++	"""Find genuine unobstructed generated ground with a bounded physical fixture; no actor/profile permit is inferred."""
++	var result: Session.Retirement.SurfaceAnchor.Result = null
++	for offset: int in 16:
++		var x: int = (60 + offset) * 2048 + 512
++		var z: int = 50 * 2048 + 512
++		result = anchor.create(Vector3i(x, 512, z),
++			PackedInt32Array([x - 256, 512, z - 256, x + 256, 2048, z + 256]),
++			PackedInt32Array([x - 256, 384, z - 256, x + 256, 512, z + 256]))
++		if result.error == &"": return result
++	return result
++
++
++func test_actual_surface_owner_is_strong_original_idempotent_and_does_not_publish_on_bind() -> void:
++	"""One actual WorldScope survives local borrows without allocating an endpoint or changing gameplay stores."""
++	var session: Session = _surface_session()
++	var before: Array[PackedByteArray] = _snapshot()
++	assert_true(_host.compose_underground_surface_anchor(), "actual anchor: %s" % _host.last_refusal())
++	var anchor: Session.Retirement.SurfaceAnchor = session.surface_anchor()
++	assert_true(anchor != null, "checked actual publisher")
++	if anchor == null: return
++	assert_equal(session._operations_prefix, 9, "exact anchor stage")
++	assert_equal(session.location_owner()._world_scope.get_ref(), anchor, "original one-way weak backlink")
++	assert_equal(session.location_owner()._live.count, 0, "binding does not fabricate access")
++	assert_equal(session._space._r_present.count(1), 0, "no fabricated void or footing")
++	var weak: WeakRef = weakref(anchor)
++	anchor = null
++	assert_true(weak.get_ref() != null, "permanent Owners retains anchor")
++	assert_true(_host.compose_underground_surface_anchor(), "same exact scope is idempotent")
++	assert_equal(session.surface_anchor(), weak.get_ref(), "no replacement")
++	assert_true(session.world_route_provider() != null, "existing route borrow preserved")
++	assert_equal(_snapshot(), before, "all gameplay bytes unchanged")
++
++
++func test_actual_surface_publication_retires_and_remounts_without_old_scope_or_endpoint_alias() -> void:
++	"""The actual publisher creates natural facts; complete host clear releases its lifetime before the next World."""
++	var session: Session = _surface_session()
++	assert_true(_host.compose_underground_surface_anchor(), "compose")
++	var anchor: Session.Retirement.SurfaceAnchor = session.surface_anchor()
++	var result: Session.Retirement.SurfaceAnchor.Result = _surface_create(anchor)
++	assert_equal(result.error, &"", "real generated natural endpoint")
++	assert_equal(session.location_owner()._live.count, 1, "one actual endpoint")
++	assert_equal(session._retirement_owners.sites._count, 0, "no cut or phase permission")
++	assert_true(_host.prepare_world_reset(), "populated original preflight: %s" % _host.last_refusal())
++	assert_equal(session._retirement_scope._owners.surface_anchor, anchor, "private Scope retains the exact anchor")
++	assert_true(_host.reset(), "actual clear/release: %s" % _host.last_refusal())
++	assert_equal(session._retirement_scope, null, "strong Scope cycle broken")
++	assert_equal(_surface_create(anchor).error, Session.Retirement.SurfaceAnchor.REFUSE_BINDING, "retired anchor refuses")
++	assert_true(_host.create_generated_settlement(_host.item_definitions()), "replacement actual World")
++	assert_true(_host.mount_underground(_content), "current source remount")
++	assert_true(_host.compose_underground_room_owners(), "replacement Room owners")
++	assert_true(_host.compose_underground_route_owners(), "replacement routes")
++	assert_true(_host.compose_underground_surface_anchor(), "replacement natural publisher")
++	var replacement: Session = _host.underground_session()
++	assert_true(replacement.surface_anchor() != anchor, "new actual scope identity")
++	assert_true(replacement.location_owner()._live.count == 0, "old endpoint is not copied")
++	assert_true(replacement._world_ref != anchor._world_ref, "old full World is not reused")
++
++
++func _surface_reenter() -> void:
++	"""Try actual reset and fixed-tick entry during a selected real constructor observation."""
++	_nested_reset = _host.prepare_world_reset()
++	_surface_tick = _host.run_tick(1)
++
++
++func test_surface_binding_reentry_retains_exact_exposed_prefix_and_can_only_reset() -> void:
++	"""A late real WorldScope observer cannot lose its original one-way binding on failed Session construction."""
++	var session: Session = _surface_session()
++	var before: Array[PackedByteArray] = _snapshot()
++	var world: SurfaceWorld = _host.world() as SurfaceWorld
++	world.during_retention = true
++	world.observer = _surface_reenter
++	assert_false(_host.compose_underground_surface_anchor(), "late reentry refuses")
++	assert_false(_nested_reset, "nested reset refused")
++	assert_false(_surface_tick, "nested tick refused")
++	assert_equal(session._operations_state, 3, "stopped original group")
++	assert_equal(session._operations_prefix, 9, "bound candidate retained")
++	assert_equal(session._retirement_owners.locations._world_scope.get_ref(),
++		session._retirement_owners.surface_anchor, "same strong original")
++	assert_equal(session.surface_anchor(), null, "no stopped getter")
++	assert_false(_host.compose_underground_surface_anchor(), "no replacement attempt")
++	assert_equal(_snapshot(), before, "gameplay unchanged")
++	assert_true(_host.prepare_world_reset(), "exact failed-prefix preflight: %s" % _host.last_refusal())
++	assert_equal(session._retirement_scope._constructor_prefix, 9, "private original constructor proof")
++	assert_true(_host.abandon_world_reset(), "original-live abandonment")
++	assert_false(_host.run_tick(1), "abandon cannot restart a failed prefix")
++	assert_true(_host.reset(), "actual prefix retirement")
++
++
++func _surface_replace_gear() -> void:
++	"""Mutate only the host's mounted tuple after a genuine old-owner result, never return success for foreign owners."""
++	_saved_gear = _host._gear
++	_host._gear = Gear.new()
++
++
++func test_surface_late_host_identity_change_preserves_original_binding_and_refuses_reset_until_restored() -> void:
++	"""The Host final leaf still runs after a successful inner configure and retains the original stopped Session."""
++	var session: Session = _surface_session()
++	(_host.world() as SurfaceWorld).observer = _surface_replace_gear
++	assert_false(_host.compose_underground_surface_anchor(), "late host mismatch")
++	assert_equal(_host.last_refusal(), &"UNDERGROUND_HOST_OWNER", "exact mount refusal")
++	assert_equal(session._operations_state, 3, "stopped")
++	assert_equal(session._operations_prefix, 9, "original one-way scope retained")
++	assert_false(_host.prepare_world_reset(), "foreign host cannot retire original tuple")
++	assert_equal(session._retirement_scope, null, "no fake captured Scope")
++	_host._gear = _saved_gear
++	_saved_gear = null
++	assert_true(_host.reset(), "restored original can retire")
++
++
++func _surface_source_drift() -> void:
++	"""Change only an actual cached immutable consumer after the genuine source observation."""
++	_surface_script = Session.Contacts
++	_surface_source_text = _surface_script.source_code
++	_surface_script.source_code = _surface_source_text + "\n# 1171 late source mutation\n"
++
++
++func test_surface_late_source_drift_keeps_bound_scope_until_exact_source_is_restored() -> void:
++	"""No same-revision source substitution may be hidden by completing the actual one-way scope binding."""
++	var session: Session = _surface_session()
++	var world: SurfaceWorld = _host.world() as SurfaceWorld
++	world.during_retention = true
++	world.observer = _surface_source_drift
++	assert_false(_host.compose_underground_surface_anchor(), "actual cached-source drift")
++	assert_equal(_host.last_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "original source guard")
++	assert_equal(session._operations_prefix, 9, "late bound scope retained")
++	assert_equal(session._operations_state, 3, "stopped original group")
++	assert_false(_host.prepare_world_reset(), "source remains mandatory during original capture")
++	_surface_script.source_code = _surface_source_text
++	_surface_script = null
++	assert_true(_host.reset(), "exact restored source retires original")
++
++
++func test_surface_captured_scope_rejects_packet_and_weak_backlink_replacement_without_clearing() -> void:
++	"""Repeat preflight consumes the private original anchor; equal-shaped replacements never become its lifetime proof."""
++	var session: Session = _surface_session()
++	assert_true(_host.compose_underground_surface_anchor(), "compose")
++	var anchor: Session.Retirement.SurfaceAnchor = session.surface_anchor()
++	assert_true(_host.prepare_world_reset(), "capture")
++	var scope: Session.Retirement.Scope = session._retirement_scope
++	var before: Array[PackedByteArray] = _snapshot()
++	session._retirement_owners.surface_anchor = Session.Retirement.SurfaceAnchor.new()
++	assert_false(_host.prepare_world_reset(), "foreign packet anchor refused")
++	assert_equal(scope._owners.surface_anchor, anchor, "captured original retained")
++	session._retirement_owners.surface_anchor = anchor
++	var weak: WeakRef = session._retirement_owners.locations._world_scope
++	session._retirement_owners.locations._world_scope = null
++	assert_false(_host.prepare_world_reset(), "missing original weak scope refused")
++	session._retirement_owners.locations._world_scope = weak
++	assert_equal(_snapshot(), before, "no canonical clear on refusal")
++	assert_true(_host.prepare_world_reset(), "same original Scope can retry")
++	assert_equal(session._retirement_scope, scope, "one private Scope")
++	assert_true(_host.reset(), "restored tuple retires")
++
++
++func test_surface_active_publication_rejects_whole_world_reset_and_keeps_its_original_lease() -> void:
++	"""An actual create observation cannot let host clearing run through an active SurfaceAnchor publication."""
++	var session: Session = _surface_session()
++	assert_true(_host.compose_underground_surface_anchor(), "compose")
++	var world: SurfaceWorld = _host.world() as SurfaceWorld
++	world.during_create = true
++	world.observer = _surface_reenter
++	var result: Session.Retirement.SurfaceAnchor.Result = _surface_create(session.surface_anchor())
++	assert_false(_nested_reset, "real active operation blocks reset")
++	assert_false(_surface_tick, "real active operation blocks fixed tick")
++	assert_equal(session._retirement_scope, null, "no partial retirement scope")
++	assert_equal(result.error, &"", "original physical publisher completes or refuses independently")
++	assert_equal(session.location_owner()._live.count, 1, "one genuine endpoint")
++	assert_true(session._budget.is_quiescent(), "original cold lease released")
++	assert_true(_host.reset(), "subsequent quiescent reset")
+diff --git a/godot/test/test_underground_surface_anchor.gd b/godot/test/test_underground_surface_anchor.gd
+index 964c21f0..46741a6f 100644
+--- a/godot/test/test_underground_surface_anchor.gd
++++ b/godot/test/test_underground_surface_anchor.gd
+@@ -19,6 +19,15 @@ class WatchedLocations extends Fixture.RefusingLocations:
+ 	## A negative-only late observation changes actual owners after the normal final preflight.
+ 	var probe: Callable = Callable()
+ 	var fired: int = 0
++	var poison_bound_once: bool = false
++
++	func bind_world_scope(scope: WorldScope) -> StringName:
++		"""Exercise a late refusal only after the real one-way binding succeeds; never forge a positive provider result."""
++		var code: StringName = super.bind_world_scope(scope)
++		if code == &"" and poison_bound_once:
++			poison_bound_once = false
++			scope._poisoned = true
++		return code
+ 
+ 	func prepared_refusal(token: int) -> StringName:
+ 		"""Run at the coordinator's last external observer, never fabricate a permissive source result."""
+@@ -614,3 +623,22 @@ func _change_endpoint_payload() -> void:
+ 	var locations: Locations = _actual._locations
+ 	var row: int = _anchor._endpoint.x
+ 	locations._set32(locations._stage, Locations.X, row, locations._get32(locations._stage, Locations.X, row) + 1)
++
++
++func test_late_configure_poison_retains_the_original_bound_scope_and_cannot_rebind() -> void:
++	"""A failed configure after actual weak publication preserves its original owner pins for whole-World retirement."""
++	_ground_fixture()
++	_anchor = Anchor.new()
++	(_actual._locations as WatchedLocations).poison_bound_once = true
++	assert_equal(_configure(_anchor), Anchor.REFUSE_BINDING, "actual late poison refuses")
++	assert_equal(_actual._locations._world_scope.get_ref(), _anchor, "one-way original remains bound")
++	assert_equal(_anchor._world, _actual._world, "original World is retained")
++	assert_equal(_anchor._sources, _actual._sources, "original source owner is retained")
++	assert_equal(_anchor._locations, _actual._locations, "original weak receiver retained")
++	assert_false(_anchor._ready, "failed configure never becomes usable")
++	assert_false(_anchor._busy, "observation bracket closes")
++	assert_equal(_anchor._record.envelope.size(), 0, "no premature packed allocation")
++	assert_equal(_configure(_anchor), Anchor.REFUSE_BINDING, "same object cannot retry over its bound lifetime")
++	assert_equal(_create().error, Anchor.REFUSE_BINDING, "no failed candidate publication")
++	assert_equal(_actual._owner._r_present.count(1), 0, "no source geometry invented")
++	assert_equal(_actual._locations._live.count, 0, "no endpoint invented")

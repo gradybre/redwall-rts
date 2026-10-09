@@ -1,0 +1,75 @@
+{
+  "decision": "1171",
+  "reviewer": "root, independent of ug_furnishing implementation",
+  "outcome": "accepted component; playable/native/global closure remain open",
+  "source_manifest_sha256": "555f1d19ebce0b5c8df662689e307969cf2cb863dbd4830e4a8fe51afb83269a",
+  "verified_manifests": {
+    "source-sha256.json": {
+      "sha256": "555f1d19ebce0b5c8df662689e307969cf2cb863dbd4830e4a8fe51afb83269a",
+      "rows": 11
+    },
+    "input-sha256.json": {
+      "sha256": "ea367d2c37c7d286b1307ad1c3d607d4d56a7bb3ced54370af9494a41f53e795",
+      "rows": 6
+    },
+    "output-sha256.json": {
+      "sha256": "8d41654ba3cf8ae252c32d36178613b21cfa9509e304c9b77200d1e7e7f5a076",
+      "rows": 45
+    },
+    "history-sha256.json": {
+      "sha256": "5171a324b9525fa89c77457e7fba73f3027804381260767a229b5c0959746c77",
+      "rows": 145
+    }
+  },
+  "historical_locator_rows": 140,
+  "source_pins": {
+    "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py": "d1aeaf209dd9c400fc3cb6a8dc6adc46ad52a6a44f2d136a044ab3705a4d7a17",
+    "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/reproduce.py": "a510005a80e7f9bd04b191eb4b7e41d8dc73666c93275c284768e1a262512672",
+    "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py": "d9fb12fe4b24fcc8fa90e95d6a04bfb218871be89967124a5ea7bdf8e2a4b6cb",
+    "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
+    "godot/scripts/core/underground_surface_anchor.gd": "ac38160fbfd6f64adfda8d4ea7fcde61df635af560774e4f60cb4d2505b27b12",
+    "godot/scripts/core/underground_world_retirement.gd": "d44232dfaa9581d82e5887bafc36664602ed830716a92d069a87dfd6aa2da889",
+    "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50",
+    "godot/test/test_underground_host.gd": "4516f9a3235c9e5d4cb76557985197be183811745b3819a54b59376695502820",
+    "godot/test/test_underground_session.gd": "a737e9ae1e414c96fbc62fff9663015640b7cd34be76bbac5b11e2b9634313f5",
+    "godot/test/test_underground_surface_anchor.gd": "ec51b3036955d34bbb4725bed9f64c5b47e3375bd48c08ba5c09a79317aa1ac7",
+    "godot/test/test_underground_world_retirement.gd": "98d3343f679b980ceb1778c1fe99e6fa71f4358173b27365fed68cfe05e35dcc"
+  },
+  "findings": {
+    "R1": {
+      "severity": "medium",
+      "status": "closed",
+      "evidence": "R1-corrected-review.json; original 4096-I32 allocation mutant now rejected; candidate3 retains guard"
+    },
+    "R2": {
+      "severity": "high",
+      "status": "closed",
+      "evidence": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/retained-handle-repro-v1/old-run",
+      "before": "Actual reset with retained Anchor left 14 of 20 weakly observed old owners/banks alive. 30 tests/451 assertions/1 failure; strict/raw/leaks zero.",
+      "after": "Actual reset plus remount releases all 21 own pins/four buffers and all 20 observed private owners/banks; old full-World tombstone refuses rebind. Live and partially cleared worlds refuse release without changing pins."
+    }
+  },
+  "reviewed_contracts": [
+    "Complete original owner identity and quiescence checked before release; original four owner release leaves preserved.",
+    "New tail only releases own aliases and buffers. Scope still holds every original referenced owner, so no last-owner destructor is introduced in the tail.",
+    "Static whole-world empty proof and unpublished original World required before writes. No collaborator observation or gameplay release path.",
+    "Constructor reentry preserves one-way exposed prefix until whole-world retirement; source drift/Host replacement keeps admission stopped.",
+    "No new authoritative packed field, work rate, actor, geometry, source permission, or reserve increase."
+  ],
+  "verification": {
+    "strict_suites": "97 tests, 2995 assertions, 0 failures",
+    "diagnostics": "0 unexpected errors, 0 unexpected warnings, 0 expected, 0 tolerated; 0 leaked objects/resources; raw all zero",
+    "analyzer": "0 warnings / 8 files",
+    "restoration": "source, HEAD, project, registry, assets and import-sidecars match",
+    "census_tests": "30 passed (independently rerun by root)",
+    "retirement_controls": 6131,
+    "retirement_helpers": 1919,
+    "constructor_simultaneous_bytes": 8185,
+    "constructor_ceiling": 8192
+  },
+  "limitations": [
+    "Logical/provisional census is not native memory qualification.",
+    "Shared current-ledger reconciliation with 1168/1172/1173 remains required.",
+    "Actual demo access, worker movement, paid construction and first playable empty Kitchen remain open."
+  ]
+}

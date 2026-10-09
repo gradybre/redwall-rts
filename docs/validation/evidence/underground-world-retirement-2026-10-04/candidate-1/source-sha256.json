@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/underground_world_retirement.gd": "52043d5c207523e5da093fc4fe9be40d968b6ee5c3bfd56ccfcda6dbacdd792d",
+  "godot/scripts/core/buildings.gd": "0fe7b5f474922dbf4e0199e81ea46a3e7320562463fd6500d4ee26eac0cf471a",
+  "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+  "godot/scripts/core/work.gd": "e0a5e8af23d4da3fb0f07c9b38b1953c361acd309057e633df1630cbd85a7d95",
+  "godot/scripts/core/inventory.gd": "3ae5f9c1109a239656da2a95cb3a1277e2715bb17ff438fe41a0b9df2960e455",
+  "godot/test/test_underground_world_retirement.gd": "87c4ee29732beeaf5a4eb6628afcd4f893fee35dab5162807893ead80091b7b3"
+}

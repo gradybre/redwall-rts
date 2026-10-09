@@ -1,0 +1,341 @@
+{
+  "schema": 1,
+  "status": "independently-reviewed-component",
+  "qualified_profiles": 0,
+  "scope": "Exact finite source and pre-view world-model envelope; no production contact or policy qualification",
+  "files": [
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.carry_heavy_object_walk.plain.png",
+      "sha256": "97804de83060e4af3187c89a4ef005b5654d13c6869340047cef23314f4205b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3e578b436042c8b3fef31311567ad8af09e2afa3e97394269a2ce23da697e676"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.plain.held_pick.png",
+      "sha256": "1f1f198c321a44dc00ae52906eff6291659b1a8b025e9cc053c0677b55139bec"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.plain.png",
+      "sha256": "a6b1c843c3bb596dc2b19c0832a086609c94feab637c0574eade5b3a01b17b82"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.standard_bore.held_pick.png",
+      "sha256": "609430fc545268232e54fbea9c1a207ad80e101e5308e1be57e176b6bb7b2005"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "b02ff82dff5981ba00778d66fe66cbee0ab6f2d721fc631017e4c4f056dbb2e8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.heavy_hammer_swing.plain.png",
+      "sha256": "5cff394a8846a7b342a336ac1bebb693d5c041857bf08d3b21634183252f892b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.idle.plain.held_pick.png",
+      "sha256": "cc8521165c11284c812716215e012c6599cabf1f74dbdde8785986114036e374"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.idle.plain.png",
+      "sha256": "e9e910a2d607e5bc24cbe77a3ada57c31b709e0ff43a146b0d0f83af4b5251d9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.plain.held_pick.png",
+      "sha256": "195a9cd81dcefef3c603cc79e51c6cfed06ced1e598e0a1e563dae30a21607e1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.plain.png",
+      "sha256": "86c643d09c60ef2743f359b2c4a093f08505a3205ca2fb3c7520cd6711679993"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_down.held_pick.png",
+      "sha256": "d3de2fa9b819695dc8538d58b01399173b13effac6daa01fa4fa42663bd01c08"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_down.png",
+      "sha256": "a6afcbe251387559dafec2c558a06b9ae1a7d43e37338890e11741a63d55f519"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_up.held_pick.png",
+      "sha256": "7596bb93fa988881158476b4df6be9868b2f63f8a4f05f9bca3e5ccae71774d5"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_up.png",
+      "sha256": "3ab77687e705f940f18ff9df8be2557c8b6d194724357afa63447d7179d51f42"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/bake-report.json",
+      "sha256": "8bad69882302066690c6431d70ceb7adf13414804b196ab982e143d6d9d22792"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/bake-spec.json",
+      "sha256": "f2e9b44387ecac0bee8e4d15f19bdae1e4c501ad2abe219b186faebc7fe40876"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/import.log",
+      "sha256": "07157ebf97c65773d96de75294c7ffbf9961a21866bbe403ea37ff9abc75049c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.carry_heavy_object_walk.plain.png",
+      "sha256": "b60e985f70ccab25483af4e740540179408f98ba688cad64e4d628f136dab4bb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "4f03f3c186bb96a0ffadc87523b7cc5577ed26bfd52883e30b2c875f4df9bf85"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.plain.held_pick.png",
+      "sha256": "a5f0253daa20683ebc5145d381c06a3f73ff95618300e72b373de490e51fb455"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.plain.png",
+      "sha256": "6d6cfb6624ff3c58223337b719363dd742d42a4c1b513bb7fe35c546c6ad1b2c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.png",
+      "sha256": "08b44d8c7a1b97b803f01a09299d3e0316d51473ab9ff77cef4b2601b958bb34"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "264bdc71791812a0e75a9aabae0b23d3bc3cd68cf22fb830a82986ff40d81582"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.heavy_hammer_swing.plain.png",
+      "sha256": "a5010ddfb7b37cb83c3b20d1eb424f5492a592fe8db4045e09557c50f4c1470e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.idle.plain.held_pick.png",
+      "sha256": "927f4e0824395dbe37d991486e7eb4ad74ce6d28fbbae77a7a1bae4efc86e3c9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.idle.plain.png",
+      "sha256": "af0699b27d6e5f5ea61234ba32ed628e0a1acc25bf73e5d9abe728732d486c69"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.plain.held_pick.png",
+      "sha256": "f871f9bd67d7c6a82b7c1eb24f0284c47243b5cf80195e330e61ca5f5c79296a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.plain.png",
+      "sha256": "4d84d66994a2bfdcb1271b82d285df2642cb7f63fbb92688ed6d4e15ccdebaa4"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_down.held_pick.png",
+      "sha256": "10b79a8e033db83b60b1f158852e776d6be0912c6e3b519f75443e4bd20f3683"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_down.png",
+      "sha256": "de618a58f654f7997d3560b2caa0e6f497d571e366986635f6c50eef60fb6bda"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_up.held_pick.png",
+      "sha256": "ac6125c0b00530c64b3f92fddd589ab963fb2d89a0d6891dc6fe35847c45bae9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_up.png",
+      "sha256": "deb5878cbd895a4621beee14f579ddfc2ebb3f7156dbdd402c63c6f7beb0291e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "574fc48f1a70e5d975d3b27fb39f7884809c7bc66a48cbe3d89c1b7fb4915080"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "a1fab55fb596eabfd574f0f23d3938fbeecde860b10d728be759f851c426d5a8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.cautious_crouch_walk_forward.plain.png",
+      "sha256": "916d8bd9f39ea4513b0979c50b8ff3fd9775c8faac8d7e4de5bc5b168fc2f3ca"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "9d8b7cac9b4126fcfaa9d7444639bca73725a3c3912e7437ffbd9fcf783cf29f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.idle.plain.png",
+      "sha256": "9568963b0405bbe7d83a577d5988f5fb7e7cba2c7502d8bb91ead934a34f0484"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.walk.plain.png",
+      "sha256": "79271fd816ba07dc527b71231ca3bd67b3a905193a743fec61290c20c25d8ac9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.walk.ramp_down.png",
+      "sha256": "eea190ce5c79f4b73528eadba93c05ac7acc41e20c491397feaaefb8bf6f13c2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.walk.ramp_up.png",
+      "sha256": "a8ce11ce133b808c760377fa9dc917a5a875cecaac07aca7efac9e3dda6b0bd8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/native-adapter.log",
+      "sha256": "ce15a6ccf2d71afcd24076446321961fc30fefe66c4889e6dbd850600456edd9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/native-bake.log",
+      "sha256": "95d2cd11ac3e9bd05d3f28e9ab4777339b48399d1b7d279d24eaf3d052eeb11f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/native-grounding.log",
+      "sha256": "7cb8a2a81b68931a8e45e1a517b9a570de4aaefed0c4fd604481818248780988"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.carry_heavy_object_walk.plain.png",
+      "sha256": "1a8f1cc85d19ce6a952f0b1fb0d2b4cba0892e272719de117ca7b1ef2220115f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "1f73ee9963d3a911cf609e3e4f22467fb7e9593d184d5e58e48358192b8326d7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.cautious_crouch_walk_forward.plain.png",
+      "sha256": "27edf006c8fd970575bbbdaac62e2638b0a719dea720e967b7727eb714a5eaae"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "90973a6fe720df26672ee5a529ea92fe2db3eccf6b5e8ea4373926df691c5029"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.idle.plain.png",
+      "sha256": "f3bde132fa8b61e9d613468efda9dfd8c815e0973a4887205f699a099d576862"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.walk.plain.png",
+      "sha256": "b4d6b086197a1b03b9a65355363c0a461e882db2ab009591f76396421cf280b6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.walk.ramp_down.png",
+      "sha256": "56799ce861efd730ae68e1ffd8456b2dcfb3c4615c5529b3b8233080de85869a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.walk.ramp_up.png",
+      "sha256": "f3a5899aa0618cc0d2953f43560f3ee29e1dfa5f7de8491d41b4a624156d7c14"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.carry_heavy_object_walk.plain.png",
+      "sha256": "a28fd4f9c1ddae43e33ece0cb9c4563c610caed3b56d6144431de8beb50ce562"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "e4d75d2778d7115d6a4fb8352b9b8e773a0902713debe9db17aaa28154567932"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.cautious_crouch_walk_forward.plain.png",
+      "sha256": "e600583842e506bb02894f9bf553f9f7491efc0d0ad1888c66958f658f55c6a3"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "1d65dc6d4bb27857e727f287630b6388ca53f3140a172e93a5f5fbaf5a599f68"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.idle.plain.png",
+      "sha256": "666efddfca56bde4f23b82eae48ec85523f417b4e4f79c2822fcf98e67c5a48b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.walk.plain.png",
+      "sha256": "1e395b85cc40cb2e57a2ea905ff2c7b87b2df957d187a4421e17ed067a0a9ae1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.walk.ramp_down.png",
+      "sha256": "46e8e8ed2e8f0064b4aeb07a7e5629b829c340656246a10cfd1e2cca6df27f8b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.walk.ramp_up.png",
+      "sha256": "d3af384b43d56d662aed85252b0d403441923cf522384b28e83a590439c0511a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/verification.json",
+      "sha256": "3b92e41bb9f077bffeb96f8892913fb52af177df069819a980ebb9f76ba0009c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native_compare.gd",
+      "sha256": "93aa1b5e5fc5c09c235a0ea8ca57db280ae01fa21a1e91d78b5043427bbc0fff"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/reproduce.py",
+      "sha256": "460af20d367438aa0b238037cd27349988e4cdd7f7ef35487e92de678da7bc39"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/test_reproduce.py",
+      "sha256": "fadc4f358ee82f2c2dd3a505072faeda5809ef130bf11a7a416489fac16c0dee"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-checks-v1/analyzer.log",
+      "sha256": "60af82434e99d38c9258e04dff9e0600b2ea7d7bc84384f78603004c071a1d92"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-checks-v1/import.log",
+      "sha256": "fc9bd3295768aae84648d7acb04441cbf2979ff6e25f139989a3684ed5359a76"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-checks-v1/invocation.json",
+      "sha256": "fd73674a824bf212e598c50dd4894bec285139a1addda15e79c185e75a3acf0f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-checks-v1/strict.log",
+      "sha256": "a3f6f625963595599042cf45ad23ea906cafb84d29644ee26130f0355402f988"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-math-v1/envelope-tests.log",
+      "sha256": "3235b3a12b08134ca6efc7512633bbc29debda6f0942af38080081aa5c795741"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-math-v1/invocation.json",
+      "sha256": "b86844d0ca6f24b24caebf0cd0e214d8748c998fa05700565b2b27d6a4e5aaa2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/finite-math-v1/reproducer-tests.log",
+      "sha256": "8f155f0a65a4ebbb4742b58be8174cfcb713fb4c5b19232a187a45123fa0c63b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/run_finite_checks.py",
+      "sha256": "2c5a0773209f31576d7651ce85305460fe6a48863e9f78958256a2faaa464b83"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/README.md",
+      "sha256": "d9a6d3387376924c0162ecb1a708fb9a6faf57f146a0f12064828cbcc0de8b25"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/envelopes.json",
+      "sha256": "1591622423b580c5c44889f580f8bb1f8f171b2cc19cad69042451d0fd9b52e3"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/invocation.json",
+      "sha256": "b0289c140f72a40bcb5f6de6dd438351267637ecbac188d1bfaa97a8cb4658e9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/proof.log",
+      "sha256": "ccccc8bd8409a0fbc8f58da3a9701edfde5e979714bbefd2e618f9e608b33e2c"
+    },
+    {
+      "path": "godot/demo/cast/underground_actor.gd",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6"
+    },
+    {
+      "path": "godot/test/test_underground_actor.gd",
+      "sha256": "ecda2a7434a1acc3d1f319f7115f29c8fb11f43bec0a5af8c610bca7e8f4baf3"
+    },
+    {
+      "path": "tools/bake_underground_matrices.gd",
+      "sha256": "d38ff6fd787294b48636840a4df18342d14519213884380d44e9240b999e8066"
+    },
+    {
+      "path": "tools/bake_underground_world_basis.gd",
+      "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+    },
+    {
+      "path": "tools/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    },
+    {
+      "path": "tools/export_underground_envelopes.py",
+      "sha256": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+    },
+    {
+      "path": "tools/test_export_underground_envelopes.py",
+      "sha256": "9e5e5199221169509b3df4caa6ed96fd708366dde23ba8c72607827276263041"
+    }
+  ],
+  "review": "Root accepted the six frozen source/test hashes and verified all83 recorded pins; no critical/high/medium finding and no duplicate engine run."
+}

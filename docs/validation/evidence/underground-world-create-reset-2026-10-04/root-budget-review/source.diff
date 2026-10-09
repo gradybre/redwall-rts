@@ -1,0 +1,445 @@
+diff --git a/docs/persistence_state_registry.md b/docs/persistence_state_registry.md
+index ff4970d6..f5831e6c 100644
+--- a/docs/persistence_state_registry.md
++++ b/docs/persistence_state_registry.md
+@@ -1953,13 +1953,13 @@ reference/header costs and whole-client peak qualification remain open.
+ | Original Level configuration | `_level_config` | 4 | `13` = 13 | Empty before configure | 3 | -- | Exact authored source configuration. |
+ | Original Level digest and published wire | `_level_digest`, `_digest` | 1 | `32` = 32 | Empty before configure | 3 | -- | Original source digests; no wire image retained. |
+ | Source-only paired banks | -- | -- | -- | Empty before admission | 2 | §1 WORLD | Two banks, each17421I32+67I64+640B =70860B. Source catalog only; no actor progress or travel permission. |
+-| Source admission and read controls | -- | -- | -- | Quiescent outside load/read | 3 | -- | Fixed250B includes numeric controls and the packed rows above. Shared constants432B, maximum own numeric chain144B and temporary/expression264B fit4096B logical/helper reserve. One4096B decoder window,176B caller and32768B provisional native reserve. Joint Profiles18/194/1+Levels+Motion232436B fits existing262144B PROFILE_BYTES; single composed owner only. Native qualification and composed persistence remain open. |
++| Source admission and read controls | -- | -- | -- | Quiescent outside load/read | 3 | -- | Fixed250B includes numeric controls and the packed rows above. Shared constants432B, maximum own numeric chain144B and temporary/expression264B fit4096B logical/helper reserve. One4096B decoder window,176B caller and32768B provisional native reserve. Joint Profiles26/250/1+Levels+Motion237140B fits existing262144B PROFILE_BYTES; single composed owner only. Native qualification and composed persistence remain open. |
+ 
+ ### `godot/scripts/core/underground_session.gd`
+ 
+ | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+ |---|---|---:|---|---|:-:|---|---|
+-| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived joint233972/262144B. Native allocation and composed persistence remain open. |
++| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived Profile/Level/Motion/Session joint238676/262144B; the separately counted8192B retirement slice makes246868/262144B. Two additional retirement references belong to that slice, not the original24 aliases. Native allocation and composed persistence remain open. |
+ 
+ ### `godot/scripts/core/underground_motion_clock.gd`
+ 
+@@ -1978,3 +1978,32 @@ reference/header costs and whole-client peak qualification remain open.
+ | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+ |---|---|---:|---|---|:-:|---|---|
+ | Original approach lifetime | -- | -- | -- | No witness outside synchronous cold operation | 3 | -- | One additional reentry bool:227 logical retained bytes within existing512. Two handles: weak WorldRoutes and cold Witness, plus existing borrowed owners/native headers remain in existing bindings/control reservation, not measured native memory. Every cold packed/source/path and four-image Sites overlap is charged separately in1150 census. |
++
++
++### `godot/scripts/core/underground_room_world_bindings.gd`
++
++| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
++|---|---|---:|---|---|:-:|---|---|
++| Bounded route-query remaining counter | `_ordinary_checks` | 4 | `1` = 1 | Empty before bind; overwritten after successful query | 3 | -- | ADR1152. One4B result shared sequentially by the directed path queries; included in the1024B contribution. |
++| Original ordinary Room provider wiring and synchronous phase request | -- | -- | -- | No pending phase outside original cold lease | 3 | -- | ADR1152. Inherits the existing Entry provider without duplicating its packed columns. Adds three weak references, one borrowed13-owner Configuration and one68B Request. Full reviewed fixed/helper/provisional-native contribution986 fits a separately counted1024B global contribution, including256B native allowance. Paid Site/Project state remains in its original canonical owners. Final full source/Room/Site/worker checks precede payment or publication; no saved callback permission. |
++
++### `godot/scripts/core/underground_world_retirement.gd`
++
++| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
++| Exact original host owner tuple and bounded retirement Scope | -- | -- | -- | No active retirement at a save boundary | 3 | -- | ADR1155/1158. Stateless module with nested fixed Owners and Scope packets; no new bank or per-entity state. Session retains the exact original owners and at most one pending Scope. Host stops gameplay while preparing/clearing; a partial clear remains stopped. Original-live abandonment is distinct from successful clearing. Preparation/request references are transient and must not be serialized or treated as persistent authority. The8192B slice within PROFILE_BYTES includes5673/6144 provisional controls and1162/2048 helpers; native allocation is unmeasured. Canonical rows remain in their actual owners until the reviewed release boundary. |
++
++### `godot/scripts/core/underground_room_frontier.gd`
++
++| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
++| Derived canonical frontier and existing-contact observation | -- | -- | -- | Caller packets expire with the original cold lease | 3 | -- | ADR1157. Stateless module; caller Candidate99B and Request68B, private Query263B,1024B helper and512B provisional-native allowance total1966/2048B. This slice coexists with WorkFace only inside the existing1048960B cold arena; all packets die before the near-full paid-phase preparation. A returned Site/key is an observation, not paid progress or permission. Missing contact, ambiguity and exhausted scan do not mark a Room complete. No new canonical owner or global reservation. |
++
++### `godot/scripts/core/underground_routes.gd` — source approach clock
++
++ADR1156 reuses the existing authoritative MotionBank slots: the physical actor
++phase is the low two bits of the tagged source phase, and R_REQUEST_TICK contains
++two checked31-bit Q16 source-clock values while that tag is active. Route ticks
++alone advance it; the presentation Driver only reads it. This is future-affecting
++state in the already classified actor bank, not a presentation cache. Any future
++composed restore must validate the tag, exact content2 profile/source identity,
++clock range and actor mode together; legacy untagged state cannot be relabeled
++as source-qualified motion. No composed save adapter is claimed here.
+diff --git a/docs/systems_architecture.md b/docs/systems_architecture.md
+index 8138c777..c8ae0c49 100644
+--- a/docs/systems_architecture.md
++++ b/docs/systems_architecture.md
+@@ -262,6 +262,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
+ | Spatial Room/Furniture flag image | 98304 | 1 | 98304 | mutable cold peak allowance | [decision1071] One complete mandatory flag image; versioned restore remains UG16. Conservatively reserved alongside live flags rather than treated as free. |
+ | Sites spatial publication guard | 1 | 1 | 1 | mutable synchronous control | [decisions1069/1071] One bool attesting the exact post-payment spatial callback; never a persistent permission. |
+ | Joint underground pack and remaining envelopes | 1 | 4960341 | 4960341 | mutable and cold peak allowances | [decision1072](decisions/1072-joint-underground-state-and-memory.md). Source-derived6144-region/2048-source/256-proof pack, one shared serialized1048960-byte cold arena, Tips256, Layout256/1024, three Quotes, Router state and reserved actual locations/topology, Inventory endpoints, profiles, terrain, layout cold work and bindings/native growth. Decision1102 baseline4966485 minus6144 live loss bytes already in Auxiliary payload; decisions1117/1120/1122 add388 separately below, yielding the pre-1131 subtotal4966873. Decision1131 adds2048 separately for the Entry World composer, yielding the pre-1134 joint total4968921. Decision1134 adds29928 separately below, yielding pre-1141 joint total4998849. Decision1141 adds3072 separately, yielding pre-1140 joint total5001921. Decision1140 adds4096 separately, yielding current joint total5006017. Exact source inputs and limitations: `planning/underground_memory_pack.json`. Joint runtime admission and measured RAM remain required; no independent component maximum may be composed. |
++| Ordinary Room phase provider | 1 | 1024 | 1024 | mutable fixed/helper/native allowance | [decision1152] Complete original Entry subclass delta;986 counted bytes includes256 provisional native bytes. No packed bank duplication. |
+ | Sites START transaction guards | 2 | 1 | 2 | mutable synchronous controls | [decision1117](decisions/1117-final-excavation-start-payment-guard.md). Exact START and nested-entry poison; no saved state. |
+ | Sites settlement transaction guards | 2 | 1 | 2 | mutable synchronous controls | [decision1120](decisions/1120-final-excavation-settlement-guard.md). Exact COMMIT/CANCEL and nested-entry poison; no saved state. |
+ | Entry structure controls and helper allowance | 1 | 384 | 384 | mutable packet and helper peak allowance | [decision1122](decisions/1122-source-bound-entry-structure.md).153 logical fixed bytes plus231 helper bytes, separately charged outside the fully assigned binding reserve. Native measurement remains open. |
+@@ -272,13 +273,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
+ 
+ | Metric | Bytes | Arithmetic / meaning |
+ |---|---|---|
+-| Planned allocated payload | 91610174 | Mechanical sum of printed allocation rows; +4096 decision1140 for fixed Delivery/Work/helper/native allowances; +3072 decision1141 for fixed guarded hauling control/helper/native allowances; +29928 decision1134 for paid workpieces and their complete source/fixed allowances; +2048 decision1131 for the additional1119 Entry World composer; +388 decisions1117/1120/1122 (four synchronous guards plus384 Entry packet/helper bytes); +4096 decision1102 (2048 live loss bytes and2048 conservative cold-image bytes); +4964777 decision1072 (4962389 joint mutable pack/reservations and2388 shared declaration bytes); +196691 decision1071 (98304 live flags,98304 conservative cold image,one transient guard and82 shared declaration bytes); +131072 decision 1068 (65536 live Gear index and 65536 cold restore index staging); +13604694 decision1066 (12286065 auxiliary state/controls,1316955 transaction scratch and1674 shared declaration growth); +1707360 decision 1062 (1707008 RoomProjects mutable columns from decision 1053 folded into Auxiliary payload, 352 additional shared declaration bytes from decision 1060); +231564 decisions 1022/1023 (196608 haul admission record folded into the Auxiliary payload row, 34956 haul destination and carry scratch); +2048 decision 0996 (the household owner's i32[512] bound directory slot, review R04; folded into the Auxiliary payload row); +4096 decision 1031 (store-policy binding stamp folded into the Auxiliary payload row; §3's BuildingItemAllow 262144 and BuildingItemMinimum 2097152 were already in it and are now implemented, not added); +16384 decision 0537 (8192 evacuate-then-demolish orders and 8192 removal work Job links, both folded into the Auxiliary payload row); +8400 decision 0536 (8192 admitted return charge folded into the Auxiliary payload row, 208 wider return scratch); +63808 decision 0534 (28672 demolition admission record folded into the Auxiliary payload row, 35136 admit scratch); +46352 decision0521 household/care owner (FAMILY-STATE-R01, allocated once per world although not yet composed into the settlement; folded into the Auxiliary payload row); +167940 decision 0532 (65536 ground-pile tile map, 16384 reclaim candidates, 81920 spill scratch, 4100 refund ring keys and single seed); +405533 decision 0531 (405504 container anchor column, 29 declaration metadata); +10536 decision0169 immutable schema; +2271 decision0167 (2048 claim slot,179 prior declaration drift,44 new declaration metadata); decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054, **−3151872 decision 0138** (the presentation-private pose scaffold row is deleted, not moved: §2.2's `Transform` 2801664 and §3's `TransformBinding` 350208 already budget the one directory-bound store `settlement_system.gd` now composes, and 2801664+350208=3151872 exactly) |
++| Planned allocated payload | 91611198 | +1024 decision1152 for the ordinary Room provider;  Mechanical sum of printed allocation rows; +4096 decision1140 for fixed Delivery/Work/helper/native allowances; +3072 decision1141 for fixed guarded hauling control/helper/native allowances; +29928 decision1134 for paid workpieces and their complete source/fixed allowances; +2048 decision1131 for the additional1119 Entry World composer; +388 decisions1117/1120/1122 (four synchronous guards plus384 Entry packet/helper bytes); +4096 decision1102 (2048 live loss bytes and2048 conservative cold-image bytes); +4964777 decision1072 (4962389 joint mutable pack/reservations and2388 shared declaration bytes); +196691 decision1071 (98304 live flags,98304 conservative cold image,one transient guard and82 shared declaration bytes); +131072 decision 1068 (65536 live Gear index and 65536 cold restore index staging); +13604694 decision1066 (12286065 auxiliary state/controls,1316955 transaction scratch and1674 shared declaration growth); +1707360 decision 1062 (1707008 RoomProjects mutable columns from decision 1053 folded into Auxiliary payload, 352 additional shared declaration bytes from decision 1060); +231564 decisions 1022/1023 (196608 haul admission record folded into the Auxiliary payload row, 34956 haul destination and carry scratch); +2048 decision 0996 (the household owner's i32[512] bound directory slot, review R04; folded into the Auxiliary payload row); +4096 decision 1031 (store-policy binding stamp folded into the Auxiliary payload row; §3's BuildingItemAllow 262144 and BuildingItemMinimum 2097152 were already in it and are now implemented, not added); +16384 decision 0537 (8192 evacuate-then-demolish orders and 8192 removal work Job links, both folded into the Auxiliary payload row); +8400 decision 0536 (8192 admitted return charge folded into the Auxiliary payload row, 208 wider return scratch); +63808 decision 0534 (28672 demolition admission record folded into the Auxiliary payload row, 35136 admit scratch); +46352 decision0521 household/care owner (FAMILY-STATE-R01, allocated once per world although not yet composed into the settlement; folded into the Auxiliary payload row); +167940 decision 0532 (65536 ground-pile tile map, 16384 reclaim candidates, 81920 spill scratch, 4100 refund ring keys and single seed); +405533 decision 0531 (405504 container anchor column, 29 declaration metadata); +10536 decision0169 immutable schema; +2271 decision0167 (2048 claim slot,179 prior declaration drift,44 new declaration metadata); decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054, **−3151872 decision 0138** (the presentation-private pose scaffold row is deleted, not moved: §2.2's `Transform` 2801664 and §3's `TransformBinding` 350208 already budget the one directory-bound store `settlement_system.gd` now composes, and 2801664+350208=3151872 exactly) |
+ | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
+-| One live world plus reserve | 99998782 | Payload + reserve |
+-| Headroom below decimal 100 MB | 1218 | 100000000 − live total |
+-| Additional candidate mutable state | 85360481 | Decision1140 adds4096 fixed/helper/native bytes per world. Decision1141 adds3072 control/helper/native bytes per world. Decision1134 conservatively adds29928 bytes per world, including its private immutable template and all cold/native allowances. Decision1131 adds2048 mutable/reserved bytes per world. Decisions1117/1120/1122 add388 mutable/reserved bytes per world. Decision1102 adds4096 mutable bytes per world. Second mutable world: payload −3670016 navigation map −2097152 catalog arenas −262144 I/O −131072 UI snapshots −55200 timing −23573 shared immutable declaration −10536 shared immutable component schema. Decision0167 corrects the prior duplicate charge of the whole declaration row, not just its growth. Decision 0531's anchor column is mutable world state, so a second resident world carries it too (+405504 here as well as in the live total). Decision 0532's four rows are mutable too and are not subtracted (+167940 here as well). Decision 0521's household/care owner is mutable world state too (+46352 in both worlds). Decision 0534's record and scratch are not subtracted either (+63808 in both worlds), nor are decision 0536's (+8400 in both) or decision 0537's (+16384 in both). Decision 1031's stamp is mutable world state too (+4096 in both worlds). Decision 0996's bound-slot column is household-owner state too (+2048 in both worlds), nor decisions 1022/1023's haul record and scratch (+231564 in both). Decision 1053's RoomProjects columns add 1707008 in both worlds; decision 1060's 352 declaration bytes are shared once. Decision1066 adds13603020 mutable bytes in each world and1674 shared declaration bytes once. Decision 1068 adds 131072 mutable index/live-staging bytes per world. Decision1071 adds196609 mutable bytes per world;82 declaration bytes are shared once. Decision1072 adds4962389 mutable/reserved bytes per world;2388 declaration bytes are shared once. |
+-| Transactional peak plus same reserve | 185359263 | Live total + candidate mutable state |
+-| Transactional headroom | -85359263 | Decision1140 adds8192 bytes across both worlds. Decision1141 adds6144 bytes across both worlds. Decision1134 adds59856 bytes across both worlds; the two-world design remains rejected. Decision1131 adds4096 bytes across the two worlds. 100000000 − transactional peak. Decisions1117/1120/1122 add776 (388 mutable/reserved bytes twice). Decision1102 adds8192 (4096 mutable bytes twice). Decision1072 adds9927166 (4962389 mutable/reserved bytes twice plus2388 declaration bytes once). Decision1071 adds393300 (196609 mutable bytes twice plus82 declaration bytes once). Decision 1068 adds262144 for both worlds, including their conservative cold-index allowances. **Decision1066 adds27207714** (13603020 mutable bytes twice,1674 declaration bytes once); the two-world design remains rejected. **Decision 1062 adds a further 3414368** (1707008 RoomProjects bytes in each world plus 352 shared declaration bytes once); nothing offsets it. **Decisions 1022/1023 add a further 463128** (231564 in each world); nothing offsets it. **Decision 0996 adds a further 4096** (2048 in each world) for the same rejected two-world design; nothing offsets it. **Decision 1031 adds a further 8192** (4096 in each world); nothing offsets it. **Decision 0537 adds a further 32768** (16384 in each world); nothing offsets it. **Decision 0536 adds a further 16800** (8400 in each world); nothing offsets it. **Decision 0534 adds a further 127616** (63808 in each world) for the same rejected two-world design; nothing offsets it. **Decision 0521 adds a further 92704** (46352 in each world) for the same rejected two-world design; nothing offsets it. **Decision 0532 made this a further 335880 bytes worse** (167940 in each world); nothing offsets it either. **Decision 0531 made it 811037 bytes worse** (405533 in the live world, 405504 in the candidate): the two-resident-world design was already 42175094 over the gate and is rejected under ARCH-MEM-006; the anchor column does not change that conclusion, and it is not offset anywhere |
++| One live world plus reserve | 99999806 | Payload + reserve |
++| Headroom below decimal 100 MB | 194 | 100000000 − live total |
++| Additional candidate mutable state | 85361505 | Decision1152 adds1024B per world.  Decision1140 adds4096 fixed/helper/native bytes per world. Decision1141 adds3072 control/helper/native bytes per world. Decision1134 conservatively adds29928 bytes per world, including its private immutable template and all cold/native allowances. Decision1131 adds2048 mutable/reserved bytes per world. Decisions1117/1120/1122 add388 mutable/reserved bytes per world. Decision1102 adds4096 mutable bytes per world. Second mutable world: payload −3670016 navigation map −2097152 catalog arenas −262144 I/O −131072 UI snapshots −55200 timing −23573 shared immutable declaration −10536 shared immutable component schema. Decision0167 corrects the prior duplicate charge of the whole declaration row, not just its growth. Decision 0531's anchor column is mutable world state, so a second resident world carries it too (+405504 here as well as in the live total). Decision 0532's four rows are mutable too and are not subtracted (+167940 here as well). Decision 0521's household/care owner is mutable world state too (+46352 in both worlds). Decision 0534's record and scratch are not subtracted either (+63808 in both worlds), nor are decision 0536's (+8400 in both) or decision 0537's (+16384 in both). Decision 1031's stamp is mutable world state too (+4096 in both worlds). Decision 0996's bound-slot column is household-owner state too (+2048 in both worlds), nor decisions 1022/1023's haul record and scratch (+231564 in both). Decision 1053's RoomProjects columns add 1707008 in both worlds; decision 1060's 352 declaration bytes are shared once. Decision1066 adds13603020 mutable bytes in each world and1674 shared declaration bytes once. Decision 1068 adds 131072 mutable index/live-staging bytes per world. Decision1071 adds196609 mutable bytes per world;82 declaration bytes are shared once. Decision1072 adds4962389 mutable/reserved bytes per world;2388 declaration bytes are shared once. |
++| Transactional peak plus same reserve | 185361311 | Live total + candidate mutable state |
++| Transactional headroom | -85361311 | Decision1152 adds2048B across both worlds.  Decision1140 adds8192 bytes across both worlds. Decision1141 adds6144 bytes across both worlds. Decision1134 adds59856 bytes across both worlds; the two-world design remains rejected. Decision1131 adds4096 bytes across the two worlds. 100000000 − transactional peak. Decisions1117/1120/1122 add776 (388 mutable/reserved bytes twice). Decision1102 adds8192 (4096 mutable bytes twice). Decision1072 adds9927166 (4962389 mutable/reserved bytes twice plus2388 declaration bytes once). Decision1071 adds393300 (196609 mutable bytes twice plus82 declaration bytes once). Decision 1068 adds262144 for both worlds, including their conservative cold-index allowances. **Decision1066 adds27207714** (13603020 mutable bytes twice,1674 declaration bytes once); the two-world design remains rejected. **Decision 1062 adds a further 3414368** (1707008 RoomProjects bytes in each world plus 352 shared declaration bytes once); nothing offsets it. **Decisions 1022/1023 add a further 463128** (231564 in each world); nothing offsets it. **Decision 0996 adds a further 4096** (2048 in each world) for the same rejected two-world design; nothing offsets it. **Decision 1031 adds a further 8192** (4096 in each world); nothing offsets it. **Decision 0537 adds a further 32768** (16384 in each world); nothing offsets it. **Decision 0536 adds a further 16800** (8400 in each world); nothing offsets it. **Decision 0534 adds a further 127616** (63808 in each world) for the same rejected two-world design; nothing offsets it. **Decision 0521 adds a further 92704** (46352 in each world) for the same rejected two-world design; nothing offsets it. **Decision 0532 made this a further 335880 bytes worse** (167940 in each world); nothing offsets it either. **Decision 0531 made it 811037 bytes worse** (405533 in the live world, 405504 in the candidate): the two-resident-world design was already 42175094 over the gate and is rejected under ARCH-MEM-006; the anchor column does not change that conclusion, and it is not offset anywhere |
+ 
+ **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
+ 0054 and 0066).** Historical decision0066 snapshot (current totals are in §2.3): payload was
+@@ -387,6 +388,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
+ | Paid connector workpiece banks, immutable source and fixed allowances | decision1134 | +29928 | 91603006 | 99991614 |
+ | Guarded hauling controls and fixed allowances | decision1141 | +3072 | 91606078 | 99994686 |
+ | Connector delivery controls and fixed allowances | decision1140 | +4096 | 91610174 | 99998782 |
++| Ordinary Room phase provider | decision1152 | +1024 | 91611198 | 99999806 |
+ 
+ The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
+ 
+@@ -1209,3 +1211,13 @@ are adopted targets for atomic implementation, not evidence that the current
+ registry or codecs already implement them. Existing allocation ledger rows stay
+ in force until the allocations are actually removed. Neither ruling closes
+ movement gates, save completeness, performance qualification or visual acceptance.
++
++
++The current integrated source census (decisions1152,1156,1158) retains the
++262144B Profile envelope. Profiles26/250/1 use19224B paired banks plus32768B
++controls; Levels/Motion bring the joint to237140B, Session adds1536B and host
++retirement adds8192B, for246868B total and15276B remaining inside that envelope.
++The source approach helper and retirement native allowances are provisional,
++not measured resident memory. The separately counted1152 provider raises the
++one-world reservation to99999806B; only194B remains outside reserved envelopes.
++New retained allocations must receive explicit joint accounting before use.
+diff --git a/docs/validation/ready07_arithmetic.py b/docs/validation/ready07_arithmetic.py
+index 362c86a3..87a642db 100644
+--- a/docs/validation/ready07_arithmetic.py
++++ b/docs/validation/ready07_arithmetic.py
+@@ -310,7 +310,7 @@ underground_pack=underground_memory_budget.build()
+ CURRENT_UNDERGROUND_MUTABLE=underground_pack['new_mutable_and_reserved_bytes']
+ # Preserve1072's trail;1102 adds256 I64 cells in both live and conservative cold state.
+ DECISION_1102_MUTABLE=2*(fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-3*256*8)
+-assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==5006017
++assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==5007041
+ # Decisions1117/1120 add two synchronous guard bytes each. Decision1122's
+ # full fixed/helper reservation is additional to the already assigned binding
+ # reserve. Decision1131 adds the distinct2048-byte Entry World composer allowance.
+@@ -329,6 +329,9 @@ DECISION_1141_MUTABLE=underground_pack['contributions']['guarded_haul_transfers'
+ assert DECISION_1141_MUTABLE==3072
+ DECISION_1140_MUTABLE=underground_pack['contributions']['connector_delivery']
+ assert DECISION_1140_MUTABLE==4096
++DECISION_1152_MUTABLE=underground_pack['contributions']['room_world_bindings']
++assert DECISION_1152_MUTABLE==1024
++assert '| Ordinary Room phase provider | 1 | 1024 | 1024 |' in s
+ assert underground_pack['contributions']['excavation_start_controls']==DECISION_1117_MUTABLE+DECISION_1120_MUTABLE
+ assert '| Sites START transaction guards | 2 | 1 | 2 |' in s
+ assert '| Sites settlement transaction guards | 2 | 1 | 2 |' in s
+@@ -337,7 +340,7 @@ assert '| Entry World composer controls and helper allowance | 1 | 2048 | 2048 |
+ assert '| Paid connector workpiece banks, source and fixed allowances | 1 | 29928 | 29928 |' in s
+ assert '| Guarded hauling controls and fixed allowances | 1 | 3072 | 3072 |' in s
+ assert '| Connector delivery controls and fixed allowances | 1 | 4096 | 4096 |' in s
+-LATER_UNDERGROUND_MUTABLE=DECISION_1117_MUTABLE+DECISION_1120_MUTABLE+DECISION_1122_MUTABLE+DECISION_1131_MUTABLE+DECISION_1134_MUTABLE+DECISION_1141_MUTABLE+DECISION_1140_MUTABLE
++LATER_UNDERGROUND_MUTABLE=DECISION_1117_MUTABLE+DECISION_1120_MUTABLE+DECISION_1122_MUTABLE+DECISION_1131_MUTABLE+DECISION_1134_MUTABLE+DECISION_1141_MUTABLE+DECISION_1140_MUTABLE+DECISION_1152_MUTABLE
+ DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE-LATER_UNDERGROUND_MUTABLE
+ assert DECISION_1072_MUTABLE==4962389
+ assert underground_pack['declaration_bytes']==DECISION_0127_ADDED
+@@ -455,10 +458,10 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
+ # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
+ # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
+ # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
+-assert len(allocations)==52 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
++assert len(allocations)==53 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
+ payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
+-assert payload==91610174
+-assert live==99998782 and candidate==85360481 and live+candidate==185359263
++assert payload==91611198
++assert live==99999806 and candidate==85361505 and live+candidate==185361311
+ assert live==underground_pack['live_with_reserve_bytes']
+ assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
+ # A valid internal trail can still omit its final step. Require its endpoint to reach the
+diff --git a/tools/test_underground_memory_budget.py b/tools/test_underground_memory_budget.py
+index 1888af0c..a65373c2 100644
+--- a/tools/test_underground_memory_budget.py
++++ b/tools/test_underground_memory_budget.py
+@@ -27,9 +27,9 @@ class JointPackTests(unittest.TestCase):
+     def test_motion_profiles_levels_share_the_existing_reservation(self) -> None:
+         result = budget.build(self.index)
+         joint = result["profile_motion_reservation"]["joint"]
+-        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (232436, 262144, 29708))
++        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (237140, 262144, 25004))
+         self.assertEqual(joint["independent_maxima_total_refuses"], 444284)
+-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
++        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+         self.assertFalse(result["runtime_qualified"])
+ 
+     def test_session_fits_current_source_counted_joint_without_global_increase(self) -> None:
+@@ -38,13 +38,35 @@ class JointPackTests(unittest.TestCase):
+         self.assertEqual(session["source_counted_motion_joint_before_session_bytes"],
+                          result["profile_motion_reservation"]["joint"]["total"])
+         self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (27, 24))
+-        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (233972, 28172))
+-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
++        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (238676, 23468))
++        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+         self.assertFalse(session["native_memory_qualified"])
+ 
+     def test_session_unaccounted_owner_is_rejected(self) -> None:
+         self.refuses("underground_session", "var _ready: bool", "var _extra: Content = null\nvar _ready: bool")
+ 
++    def test_retirement_is_charged_once_inside_the_existing_profile_reserve(self) -> None:
++        result = budget.build(self.index)
++        row = result["host_retirement_reservation"]["accounting"]
++        self.assertEqual((row["retirement_reserved_bytes"], row["joint_with_retirement"],
++                          row["joint_remaining_bytes"]), (8192, 246868, 15276))
++        self.assertEqual(result["contributions"]["PROFILE_BYTES"], 262144)
++        self.assertEqual(result["session_reservation"]["additional_retirement_reference_slots_charged_separately"], 2)
++
++    def test_retirement_extra_retained_packet_cannot_hide_in_shared_reserve(self) -> None:
++        self.refuses("underground_world_retirement", "extends RefCounted\n",
++                     "extends RefCounted\nvar _extra: PackedInt32Array = PackedInt32Array()\n")
++
++    def test_ordinary_provider_is_additional_to_existing_entry_and_cold_charges(self) -> None:
++        result = budget.build(self.index)
++        self.assertEqual(result["contributions"]["room_world_bindings"], 1024)
++        self.assertEqual(result["room_world_reservation"]["logical_helper_and_included_native_bytes"], 986)
++        self.assertEqual(result["room_world_reservation"]["maximum_shared_phase_bytes"], 1048912)
++        self.assertEqual(result["headroom_bytes"], 194)
++
++    def test_ordinary_provider_extra_allocation_requires_a_new_census(self) -> None:
++        self.refuses("underground_room_world_bindings", "_ordinary_checks.resize(1)", "_ordinary_checks.resize(2)")
++
+     def test_session_unaccounted_bank_is_rejected(self) -> None:
+         self.refuses("underground_session", "var _ready: bool", "var _bank: PackedByteArray = PackedByteArray()\nvar _ready: bool")
+ 
+@@ -78,7 +100,7 @@ class JointPackTests(unittest.TestCase):
+         self.assertEqual((clock["additional_logical_counted"], clock["combined_logical_counted"]), (208, 1298))
+         self.assertEqual((clock["clock_caller_bytes"], clock["shared_caller_reservation"]), (44, 176))
+         self.assertEqual(clock["joint"], result["profile_motion_reservation"]["joint"])
+-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
++        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
+ 
+     def test_clock_cannot_retain_per_actor_ticks(self) -> None:
+         self.refuses("underground_motion_clock", "const TREAD_TICKS", "var _ticks: int = 0\nconst TREAD_TICKS")
+@@ -434,10 +456,10 @@ class JointPackTests(unittest.TestCase):
+ 
+     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
+         result = budget.build(self.index)
+-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5006017)
++        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5007041)
+         self.assertEqual(result["declaration_bytes"], 23573)
+-        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+-        self.assertEqual(result["headroom_bytes"], 1218)
++        self.assertEqual(result["live_with_reserve_bytes"], 99999806)
++        self.assertEqual(result["headroom_bytes"], 194)
+         self.assertFalse(result["runtime_qualified"])
+         workpieces = result["connector_workpieces_reservation"]
+         self.assertEqual(workpieces["two_bank_bytes"], 10752)
+diff --git a/tools/underground_memory_budget.py b/tools/underground_memory_budget.py
+index 728b1a7d..a32115b3 100644
+--- a/tools/underground_memory_budget.py
++++ b/tools/underground_memory_budget.py
+@@ -12,6 +12,8 @@ import audit_registry_capacities as audit
+ import underground_motion_memory as motion_memory
+ import underground_session_memory as session_memory
+ import underground_motion_clock_memory as clock_memory
++import underground_retirement_memory as retirement_memory
++import underground_approach_memory as approach_memory
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
+@@ -896,13 +898,36 @@ def structure_peak_statements(source: str) -> None:
+     assert statements == expected, "inherited structure peak statement drift"
+ 
+ 
++def room_world_reservation(index: dict) -> dict:
++    """Admit only the complete independently reviewed provider census and its unchanged source closure."""
++    path = ROOT / "docs/validation/evidence/underground-room-phases-2026-10-04/census.json"
++    raw = path.read_bytes()
++    assert hashlib.sha256(raw).hexdigest() == "74ece6f13efd76842751f8153faf912eba0b26c78c40497a5abaaa3a5478bea9", \
++        "reviewed ordinary Room provider census changed"
++    result = json.loads(raw)
++    for name, expected in result["source_sha256"].items():
++        assert name in index and hashlib.sha256(index[name].text.encode()).hexdigest() == expected, \
++            ("ordinary Room provider source changed; independent census required", name)
++    assert result["new_global_reservation"] == 1024 and result["control_accounted"] == 986
++    assert result["prospective_shared_total"] == 99999806
++    return {"reserved_bytes": 1024, "logical_helper_and_included_native_bytes": 986,
++            "census_path": str(path.relative_to(ROOT)), "census_sha256": hashlib.sha256(raw).hexdigest(),
++            "current_source_sha256": result["source_sha256"], "native_measured": False,
++            "maximum_shared_phase_bytes": max(result["sequential_cold_peaks"].values())}
++
++
+ def build(index: dict | None = None) -> dict:
+     index = audit.load_source_index() if index is None else index
+     index = dict(index)
+-    catalog_path = "godot/data/underground/mole-worker/mole_profile_catalog.gd"
+-    if "mole_profile_catalog" not in index:
+-        index["mole_profile_catalog"] = audit.parse_module("mole_profile_catalog", catalog_path,
+-                                                          (ROOT / catalog_path).read_text())
++    extra_sources = {
++        "mole_profile_catalog": "godot/data/underground/mole-worker/mole_profile_catalog.gd",
++        "mole_profile_driver": "godot/data/underground/mole-worker/mole_profile_driver.gd",
++        "source_program": "godot/data/underground/mole-worker/work-approach-v1/source_program.gd",
++        "settlement_system": "godot/scripts/systems/settlement_system.gd",
++    }
++    for name, path in extra_sources.items():
++        if name not in index:
++            index[name] = audit.parse_module(name, path, (ROOT / path).read_text())
+     budget = index["underground_budget"]
+     keys = ("REGION_CAPACITY", "SOURCE_CAPACITY", "PROOF_CAPACITY", "PHASE_VOLUME_CAPACITY",
+             "TIP_CAPACITY", "LAYOUT_ROOM_CAPACITY", "LAYOUT_PLACEMENT_CAPACITY",
+@@ -943,6 +968,7 @@ def build(index: dict | None = None) -> dict:
+     start = excavation_start_controls(index)
+     entry_structure = entry_structure_reservation(index)
+     entry_world = entry_world_reservation(index)
++    room_world = room_world_reservation(index)
+     workpieces = connector_workpieces_reservation(index)
+     haul_transfer = haul_transfer_reservation(index)
+     delivery = connector_delivery_reservation(index)
+@@ -951,8 +977,10 @@ def build(index: dict | None = None) -> dict:
+     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
+     try:
+         motion = motion_memory.build(index)
++        approach = approach_memory.build(index, motion["joint"])
+         clock = clock_memory.build(index, motion)
+         session = session_memory.build(index, motion, reserves["PROFILE_BYTES"])
++        retirement = retirement_memory.build(index, session, reserves["PROFILE_BYTES"])
+     except ValueError as error:
+         raise AssertionError(str(error)) from error
+     assert motion["joint"]["total"] <= reserves["PROFILE_BYTES"], "Motion/Profile/Level joint overbooking"
+@@ -963,6 +991,7 @@ def build(index: dict | None = None) -> dict:
+         "excavation_start_controls": start["numeric_bytes"],
+         "entry_structure_bindings": entry_structure["reserved_bytes"],
+         "entry_world_bindings": entry_world["reserved_bytes"],
++        "room_world_bindings": room_world["reserved_bytes"],
+         "connector_workpieces": workpieces["reserved_bytes"],
+         "guarded_haul_transfers": haul_transfer["reserved_bytes"],
+         "connector_delivery": delivery["reserved_bytes"],
+@@ -996,19 +1025,24 @@ def build(index: dict | None = None) -> dict:
+                     "underground_connector_delivery", "work", "haul_planner",
+                     "underground_motion_catalog", "underground_level_catalog", "mole_profile_catalog",
+                     "underground_session", "underground_terrain", "underground_routes", "room_space", "underground_motion_clock",
+-                    "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
++                    "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings",
++                    "underground_room_world_bindings", "underground_work_face", "underground_world_retirement",
++                    "source_program", "mole_profile_driver", "settlement_system"))
+     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
+             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
+             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
+             "excavation_start_controls": start,
+             "entry_structure_reservation": entry_structure,
+             "entry_world_reservation": entry_world,
++            "room_world_reservation": room_world,
+             "connector_workpieces_reservation": workpieces,
+             "haul_transfer_reservation": haul_transfer,
+             "connector_delivery_reservation": delivery,
+             "profile_motion_reservation": motion,
++            "source_approach_reservation": approach,
+             "motion_clock_reservation": clock,
+             "session_reservation": session,
++            "host_retirement_reservation": retirement,
+             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
+             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
+             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,
+diff --git a/tools/underground_motion_clock_memory.py b/tools/underground_motion_clock_memory.py
+index 74e11549..b14dbf45 100644
+--- a/tools/underground_motion_clock_memory.py
++++ b/tools/underground_motion_clock_memory.py
+@@ -21,7 +21,7 @@ def build(index, baseline):
+     executable = re.sub(r'""".*?"""', '', source, flags=re.S)
+     executable = re.sub(r'#[^\n]*', '', executable)
+     executable = '\n'.join(line.rstrip() for line in executable.splitlines() if line.strip())
+-    require(hashlib.sha256(executable.encode()).hexdigest() == 'ee137604200ba9854a7c11d70314c72486a2b1ff377e677ee1eca8319ef49c0d',
++    require(hashlib.sha256(executable.encode()).hexdigest() == 'c31c963c91806c8f440635ec494e23e65b5f5af894cf17ffcf2ec419d3ae5f5d',
+             'complete Clock executable changed; independently recount every allocation and frame')
+ 
+     require(not re.search(r'^(?:static )?var |^class ', source, re.M), 'no retained fields or classes')
+diff --git a/tools/underground_motion_memory.py b/tools/underground_motion_memory.py
+index 8526e814..1d6aa0ca 100644
+--- a/tools/underground_motion_memory.py
++++ b/tools/underground_motion_memory.py
+@@ -139,7 +139,7 @@ def build(index):
+     joint = profile + level + 2*one_bank + 4096 + 176 + 4096 + 32768
+     maximum_profiles = derived['maximum_profile_bytes']
+     maximum_joint = joint - profile + maximum_profiles
+-    require((profile, one_bank, joint, maximum_joint) == (47288, 70860, 232436, 444284), 'exact joint formula')
++    require((profile, one_bank, joint, maximum_joint) == (51992, 70860, 237140, 444284), 'exact joint formula')
+     require(joint <= 262144 < maximum_joint, 'configured coexistence, no independent maxima')
+     return {
+         'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
+@@ -161,7 +161,7 @@ def build(index):
+                              'one FileAccess and one HashingContext during load',
+                              'bounded header/slice/string/digest temporaries and interpreter frames'],
+         'native_measured': False,
+-        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in47288, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
++        'foreign_call_lifetime': 'MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in51992, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.',
+         'profile_configuration': derived['configuration'],
+         'joint': {'profiles': profile, 'levels': level, 'paired_motion': 2*one_bank, 'decode': 4096, 'caller': 176,
+                   'logical_helper': 4096, 'native': 32768, 'total': joint, 'reservation': 262144, 'headroom': 262144-joint,
+@@ -196,7 +196,7 @@ def joint_sources(index, memory):
+     require(per_profile == resolve('underground_profiles', 'PROFILE_WIRE_BYTES') == 98, 'Profile row width')
+     catalog = index['mole_profile_catalog']
+     counts = (resolve(catalog.name, 'PROFILE_COUNT'), resolve(catalog.name, 'BOX_COUNT'), 1)
+-    require(counts == (18, 194, 1), 'current accepted publication configuration')
++    require(counts == (26, 250, 1), 'current accepted publication configuration')
+     control = resolve('underground_profiles', 'CONTROL_RESERVE')
+     require(control == 32768, 'Profile helper/native envelope unchanged')
+     level = resolve('underground_level_catalog', 'RESERVED_BYTES')
+diff --git a/tools/underground_session_memory.py b/tools/underground_session_memory.py
+index ca94d946..b23d6237 100644
+--- a/tools/underground_session_memory.py
++++ b/tools/underground_session_memory.py
+@@ -13,6 +13,7 @@ REFS = {
+     "_space": "Owner", "_terrain": "Terrain", "_levels": "Levels", "_profiles": "Profiles",
+     "_domain": "Space.Domain", "_profile_bank": "Profiles.Bank",
+ }
++RETIREMENT_REFS = {"_retirement_owners": "Retirement.Owners", "_retirement_scope": "Retirement.Scope"}
+ SCALARS = {"_world_ref": "Vector2i", "_world_pid": "int", "_seed": "int",
+            "_ready": "bool", "_busy": "bool", "_poisoned": "bool"}
+ WIDTHS = {"int": 8, "bool": 1, "Vector2i": 8, "Vector3i": 12, "StringName": 8}
+@@ -35,7 +36,7 @@ def functions(source):
+         require(len(args) == parameters.count(":"), f"untyped argument in {name}")
+         require(len(locals_) == len(re.findall(r"^\t+var ", body, re.M)), f"untyped local in {name}")
+         values = args + locals_
+-        require(all(kind in WIDTHS or kind in REFS.values() for _, kind in values),
++        require(all(kind in WIDTHS or kind in (*REFS.values(), *RETIREMENT_REFS.values(), "Object") for _, kind in values),
+                 f"unaccounted caller/local shape in {name}")
+         result[name] = {
+             "numeric_and_name_bytes": sum(WIDTHS.get(kind, 0) for _, kind in values),
+@@ -63,13 +64,13 @@ def census(source, motion_joint, envelope):
+     members = re.findall(r"^var (\w+):\s*([\w.]+)\s*=", source, re.M)
+     require(len(members) == len(re.findall(r"^var ", source, re.M)), "untyped retained field")
+     require(len(dict(members)) == len(members), "duplicate retained member")
+-    require(dict(members) == REFS | SCALARS, "Session retained member census changed")
++    require(dict(members) == REFS | RETIREMENT_REFS | SCALARS, "Session retained member census changed")
+     require(not re.search(r"\b(?:Packed\w+Array|Array|Dictionary)\s*\(|\.resize\(|\.duplicate\(", source),
+             "Session cannot allocate another retained or temporary bank")
+     allocations = {}
+     for kind in re.findall(r"\b([A-Z][\w.]*)\.new\(", source):
+         allocations[kind] = allocations.get(kind, 0) + 1
+-    require(allocations == ALLOCATIONS, "foundation allocation topology changed")
++    require(allocations == ALLOCATIONS | {"Retirement.Owners": 1, "Retirement.Scope": 1}, "foundation allocation topology changed")
+     for name, value in (("CONTROL_BYTES", 1024), ("HELPER_BYTES", 512), ("PROFILE_SOURCE_COUNT", 1)):
+         require(re.search(rf"^const {name}: int = {value}$", source, re.M), f"{name} reservation changed")
+     require("_domain = _space._domain #" in source, "second retained Domain copy")
+@@ -91,6 +92,7 @@ def census(source, motion_joint, envelope):
+         "source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+         "retained_numeric_bytes": fixed,
+         "strong_reference_or_alias_members": len(REFS),
++        "additional_retirement_reference_slots_charged_separately": len(RETIREMENT_REFS),
+         "own_packed_columns": 0,
+         "own_variable_bank_bytes": 0,
+         "control_reservation_bytes": 1024,
+@@ -103,14 +105,15 @@ def census(source, motion_joint, envelope):
+         "references_are_not_measured_native_bytes": True,
+         "own_total_slice_bytes": 1536,
+         "slice_source": "existing PROFILE_BYTES; no global reserve increase",
+-        "existing_profile_paired_plus_control_bytes": 14520 + 32768,
++        "existing_profile_paired_plus_control_bytes": 19224 + 32768,
+         "existing_level_bytes": 2292,
+-        "foundation_profile_level_session_bytes": 14520 + 32768 + 2292 + 1536,
++        "foundation_profile_level_session_bytes": 19224 + 32768 + 2292 + 1536,
+         "source_counted_motion_joint_before_session_bytes": motion_joint,
+         "profile_level_motion_session_joint_bytes": motion_joint + 1536,
+         "profile_envelope_bytes": envelope,
+         "joint_remaining_bytes": envelope - motion_joint - 1536,
+-        "sequential_foundation_allocations": allocations,
++        "sequential_foundation_allocations": ALLOCATIONS,
++        "retirement_allocations_charged_separately": {"Retirement.Owners": 1, "Retirement.Scope": 1},
+         "frames": frames,
+         "native_memory_qualified": False,
+         "runtime_activation_qualified": False,

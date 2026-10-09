@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "scope": "Cold authored contact descriptor only; no worker or Job permission, synthetic geometric fixture certificates. Corrected exact CI import isolation supersedes v1/v2 import-condition claims.",
+  "independent_review": "Root accepted the corrected wrapper and v3 evidence; source/test hashes unchanged.",
+  "asset_aside_path": ".profile-clean-assets-aside (outside godot/)",
+  "tests": 17,
+  "assertions": 348,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "expected_diagnostics": 0,
+  "tolerated_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 2,
+  "qualified_production_profiles": 0,
+  "files": [
+    {
+      "path": "docs/decisions/1080-source-bound-underground-profile-catalog.md",
+      "sha256": "09c35392527a378ee5485688e12c0985efdb22cc6af024413f7922d3894f8f01"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v3/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v3/import.log",
+      "sha256": "98777c1141191893dbacfa23f4092c464649d09549b83d8b69e96819a53bfc6b"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v3/invocation.json",
+      "sha256": "9365519c3dcf5bd375f3fcaaa88c16b695850da9a90a6fcb290c78da5d1d5189"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v3/strict.log",
+      "sha256": "e9d26c610b8dea3e3519dcfec41f3a00796a5756269fe1eb209764990d43fd95"
+    },
+    {
+      "path": "godot/data/underground/evidence/run_profile_checks.py",
+      "sha256": "0b78466862d8a5689d0fd9d17a4598c06688c4de9628a2c50caeae0e927a25bc"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "sha256": "b9fd366f9cbb53951feeae6236d57b49766300949107736c1067c78724c95044"
+    },
+    {
+      "path": "godot/test/test_underground_profiles.gd",
+      "sha256": "db8a078a8640c238140e6e3abb3da3d112a0d139b5d0a22541cfab09135a318b"
+    }
+  ]
+}

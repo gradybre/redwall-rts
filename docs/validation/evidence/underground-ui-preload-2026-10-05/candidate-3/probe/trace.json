@@ -1,0 +1,100 @@
+[
+  {
+    "seconds": 10.036753,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/demo_village.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 12.967614,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/demo_village.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 12.967953,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/ui/demo_stall_banner.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 14.929697,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/ui/demo_stall_banner.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 14.930401,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/systems/ui_manager.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.341462,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/systems/ui_manager.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.341838,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_card.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.41045,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_card.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.41084,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_snapshot.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.455953,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_resident_snapshot.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.456437,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_shell.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.787765,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_shell.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.788181,
+    "method": "textDocument/didOpen",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_specimen.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  },
+  {
+    "seconds": 15.808052,
+    "method": "textDocument/didClose",
+    "uri": "file:///Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/ui/ui_specimen.gd",
+    "raw_editor_bytes": 1017,
+    "raw_diagnostics_so_far": []
+  }
+]

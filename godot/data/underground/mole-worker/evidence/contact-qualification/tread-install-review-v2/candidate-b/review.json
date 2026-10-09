@@ -1,0 +1,19 @@
+{
+  "body_above_sole_to_prism_min_u": {
+    "support deck T_{k-1}": 1.4,
+    "T_{k-1} left bearer and posts (superset)": 425.8,
+    "T_{k-1} right bearer and posts (superset)": 476.9,
+    "deck behind (L0, or T_{k-2})": 13.6,
+    "behind left bearer and posts (superset)": 410.5,
+    "behind right bearer and posts (superset)": 505.7,
+    "paid WIP candidate: T_k left bearer, quarter-turned": 13.7
+  },
+  "tool_to_non_grip_body_min_u": 7.8,
+  "scope": "float vertex diagnostics over every key of entry/work/recovery; not a clearance proof",
+  "images_sha256": {
+    "overview.png": "e4e90f1b7d6c53fb42c7139f7e044f30707528afde45705047770ec731c4e1d3",
+    "hands.png": "1323817b52fc49621cafca21aee2733a5e5dc0cdd0fa61595337e661cb2d0f35",
+    "motion.png": "9df1a4cd81ab2ebcd38b4fa0b73eaeb1a16b7798b97ba69c198437133069f675"
+  },
+  "renderer_sha256": "6bb6d74c27309268fe418b185416b02762a0af6362f468d92c483d3473ce6d9e"
+}

@@ -1,0 +1,27 @@
+{
+  "revision": 106,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "clips": [
+    "mole_worker.firm_compact_v2.idle",
+    "mole_worker.firm_compact_v2.ground_walk",
+    "mole_worker.firm_compact_v2.down_work",
+    "mole_worker.firm_compact_v2.down_entry",
+    "mole_worker.firm_compact_v2.down_recovery",
+    "mole_worker.firm_compact_v2.high_work",
+    "mole_worker.firm_compact_v2.high_entry",
+    "mole_worker.firm_compact_v2.high_recovery",
+    "mole_worker.firm_compact_v2.front_work",
+    "mole_worker.firm_compact_v2.front_entry",
+    "mole_worker.firm_compact_v2.front_recovery",
+    "mole_worker.install_adze.tap_v4",
+    "mole_worker.install_adze.entry_v4",
+    "mole_worker.install_adze.recovery_v4"
+  ]
+}

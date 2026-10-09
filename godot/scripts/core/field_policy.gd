@@ -204,12 +204,14 @@ extends RefCounted
 ## running build no cycle ever opens and no rotation ever advances. The producer is complete and
 ## driven only by its tests.
 ##
-## BLOCKER -- NO SAVE ROUND TRIP. Persistence is in-process only; there is no save module, so the
-## enrolment ledger, the two durable per-field counters and the rotation columns have no
-## serialization and no load-time revalidation. `_cycle_ordinal` is deliberately monotonic ACROSS
-## a row's whole lifetime -- `create_policy()` does not reset it -- so a row reused by a different
-## zone cannot inherit a stale enrolment; that property is what a load repair would have to
-## preserve.
+## BLOCKER -- NO SAVE ROUND TRIP, NARROWED BY ADR 1222 STEP 2. `copy_columns_into()` and
+## `restore_columns()` now exist and `save_owner_field_policy.gd` gains `capture_into()` and
+## `apply()` over them, but there is still no save module calling either one: the enrolment
+## ledger, the two durable per-field counters and the rotation columns have no file serialization
+## and no orchestrated load. `_cycle_ordinal` is deliberately monotonic ACROSS a row's whole
+## lifetime -- `create_policy()` does not reset it -- so a row reused by a different zone cannot
+## inherit a stale enrolment; `restore_columns()` installs that invariant from the saved columns
+## unchanged, rather than recomputing it.
 ##
 ## ---------------------------------------------------------------------------------------
 ## ALLOCATION. Every column is sized once in `_init()`; `clear()` refills the existing buffers and
@@ -474,6 +476,10 @@ var _resolved_plot_count: int = 0
 var _withdrawn_plot_count: int = 0
 var _retained_request_count: int = 0
 var _missed_request_count: int = 0
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3
+## (docs/persistence_state_registry.md): a diagnostic channel separate from every mutator's
+## OpResult, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 # --- scratch (not simulation state) --------------------------------------------------------------
 
@@ -1521,6 +1527,8 @@ class Columns extends RefCounted:
 		plot_cycle.resize(PLOT_CAPACITY)
 		plot_outcome.resize(PLOT_CAPACITY)
 
+	## field_present, participants, resolved, withdrawn, completed_cycles and cancelled_cycles
+	## are zero in clear(), which resize() has already written, so they are not refilled here.
 	func _fill_clear_defaults() -> void:
 		"""Fill every sized column exactly as clear() refills the live store's buffers."""
 		zone_slot.fill(EntityDirectory.NULL_SLOT)
@@ -1537,8 +1545,125 @@ class Columns extends RefCounted:
 		plot_field_slot.fill(NO_FIELD)
 		plot_cycle.fill(NO_CYCLE)
 		plot_outcome.fill(OUTCOME_UNRESOLVED)
-		# field_present, participants, resolved, withdrawn, completed_cycles and cancelled_cycles
-		# are zero in clear(), which resize() has already written.
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 3's capture and apply steps, mirroring `needs.gd`'s and `priorities.gd`'s pairs.
+# `copy_columns_into()` is an exact snapshot of the twenty category-1 columns over ALL rows, free
+# rows and stale ledger entries included; `restore_columns()` judges a candidate with the SAME
+# `columns_refusal()` the offline bridge uses, writes nothing on refusal, then installs all
+# twenty columns. The ten `_*_count` diagnostics, `_math` and `_calendar` are category 3
+# (docs/persistence_state_registry.md: "Ten `_*_count` diagnostics plus `_math` and `_calendar`")
+# and neither call touches them: none is reconstructible from one column snapshot, and `_math`
+# and `_calendar` are scratch, not state. `_last_column_refusal` is category 3 too and is the
+# only other member either call writes.
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, so a load can never overwrite the
+	reason a `create_policy()` or similar call was refused before its caller read it. Every code
+	reachable here is `COLUMN_`-prefixed.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the twenty category-1 columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	Section 4's capture step and the only reader of a free row's or stale ledger entry's retained
+	bytes. The copies are snapshots: mutating `out` afterwards cannot reach a column and a later
+	write here cannot reach `out`.
+	"""
+	if _columns_shape_refusal(out) != REFUSE_NONE:
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_copy_field_columns_into(out)
+	_copy_ledger_columns_into(out)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_field_columns_into(out: Columns) -> void:
+	"""Refill ordinals 0..16: the 128-row policy image, including the 384-entry rotation list."""
+	_refill_bytes(out.field_present, _field_present)
+	_refill_i32(out.zone_slot, _zone_slot)
+	_refill_i32(out.zone_generation, _zone_generation)
+	_refill_i32(out.rotation_ids, _rotation_ids)
+	_refill_i32(out.rotation_cursor, _rotation_cursor)
+	_refill_bytes(out.auto_rotation, _auto_rotation)
+	_refill_bytes(out.seed_reserve, _seed_reserve)
+	_refill_i32(out.cycle_ordinal, _cycle_ordinal)
+	_refill_i32(out.participants, _participants)
+	_refill_i32(out.resolved, _resolved)
+	_refill_i32(out.withdrawn, _withdrawn)
+	_refill_i32(out.completed_cycles, _completed_cycles)
+	_refill_i32(out.cancelled_cycles, _cancelled_cycles)
+	_refill_i32(out.requested_crop, _requested_crop)
+	_refill_bytes(out.cycle_state, _cycle_state)
+	_refill_bytes(out.close_reason, _close_reason)
+	_refill_bytes(out.request_state, _request_state)
+
+
+func _copy_ledger_columns_into(out: Columns) -> void:
+	"""Refill ordinals 17..19: the 4096-row enrolment ledger."""
+	_refill_i32(out.plot_field_slot, _plot_field_slot)
+	_refill_i32(out.plot_cycle, _plot_cycle)
+	_refill_bytes(out.plot_outcome, _plot_outcome)
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all twenty columns. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): `columns_refusal()` -- the SAME predicate the offline
+	bridge judges a saved image with -- runs in full before the first write, so a refusal leaves
+	every column byte-identical. The ten `_*_count` diagnostics, `_math` and `_calendar` are
+	category 3 and are deliberately NOT touched here; see the section comment above.
+	"""
+	var refusal: StringName = columns_refusal(columns)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_field_present = columns.field_present.duplicate()
+	_zone_slot = columns.zone_slot.duplicate()
+	_zone_generation = columns.zone_generation.duplicate()
+	_rotation_ids = columns.rotation_ids.duplicate()
+	_rotation_cursor = columns.rotation_cursor.duplicate()
+	_auto_rotation = columns.auto_rotation.duplicate()
+	_seed_reserve = columns.seed_reserve.duplicate()
+	_cycle_ordinal = columns.cycle_ordinal.duplicate()
+	_participants = columns.participants.duplicate()
+	_resolved = columns.resolved.duplicate()
+	_withdrawn = columns.withdrawn.duplicate()
+	_completed_cycles = columns.completed_cycles.duplicate()
+	_cancelled_cycles = columns.cancelled_cycles.duplicate()
+	_requested_crop = columns.requested_crop.duplicate()
+	_cycle_state = columns.cycle_state.duplicate()
+	_close_reason = columns.close_reason.duplicate()
+	_request_state = columns.request_state.duplicate()
+	_plot_field_slot = columns.plot_field_slot.duplicate()
+	_plot_cycle = columns.plot_cycle.duplicate()
+	_plot_outcome = columns.plot_outcome.duplicate()
+
+
+static func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
 
 
 static func columns_refusal(columns: Columns) -> StringName:

@@ -1,0 +1,46 @@
+{
+	"backend": "forward_plus",
+	"banks": 465,
+	"build_usec": 73962,
+	"canonical_unchanged": true,
+	"checks": 25,
+	"datum_u": [
+		0,
+		512,
+		0
+	],
+	"driver": "metal",
+	"failures": [],
+	"floor_u": -4608,
+	"images": [
+		{
+			"height": 720,
+			"path": "surface-overview.png",
+			"width": 1280
+		},
+		{
+			"height": 720,
+			"path": "surface-shore.png",
+			"width": 1280
+		},
+		{
+			"height": 720,
+			"path": "section-overview.png",
+			"width": 1280
+		},
+		{
+			"height": 720,
+			"path": "section-drawing.png",
+			"width": 1280
+		}
+	],
+	"lines": 1445,
+	"rebuilds": 1,
+	"runs": 410,
+	"section_runs": 402,
+	"world_qualified": false,
+	"world_ref": [
+		806,
+		2
+	]
+}

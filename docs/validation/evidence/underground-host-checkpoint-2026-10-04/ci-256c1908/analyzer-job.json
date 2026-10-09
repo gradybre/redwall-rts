@@ -1,0 +1,7 @@
+{
+  "job_id": 111506238034,
+  "archive": "analyzer-job.log.gz",
+  "uncompressed_sha256": "bd4b4a0c12d0c0b88ab20c20fb25ed92c045c49c6bc2471af5969e173e49d76b",
+  "uncompressed_bytes": 568533,
+  "summary": "0 GDScript warning(s) in 0 of 1231 file(s)"
+}

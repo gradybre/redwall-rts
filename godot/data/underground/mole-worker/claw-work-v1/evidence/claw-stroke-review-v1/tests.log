@@ -1,0 +1,25 @@
+test_hand_rotation_is_a_proper_left_rotation (__main__.ClawStrokeDerivation.test_hand_rotation_is_a_proper_left_rotation)
+The new hand frame differs from the old one by a proper rotation, so its Gram matrix is kept. ... ok
+test_loop_crosses_the_face_exactly_at_the_anchor_and_the_exit (__main__.ClawStrokeDerivation.test_loop_crosses_the_face_exactly_at_the_anchor_and_the_exit)
+The ellipse's descending and ascending face crossings are the anchor and anchor + rake. ... ok
+test_recipe_outside_its_domain_or_off_the_face_refuses (__main__.ClawStrokeDerivation.test_recipe_outside_its_domain_or_off_the_face_refuses)
+A station inset beyond 106 u, or an anchor behind the cube's near face, refuses before any solve. ... ok
+test_station_may_move_in_by_the_tool_free_stance_margin (__main__.ClawStrokeDerivation.test_station_may_move_in_by_the_tool_free_stance_margin)
+Rows 30/31 stance half-width 406 leaves 512 - 406 = 106 u between the station and the pocket. ... ok
+test_target_is_the_first_episode_cube_seen_from_station_4 (__main__.ClawStrokeDerivation.test_target_is_the_first_episode_cube_seen_from_station_4)
+Cube 0 from station 4 (yaw 49152, row 25), turned into the yaw-0 frame by the published convention. ... ok
+test_candidate_a_is_candidate_p_moved_in (__main__.ClawStrokeEvidence.test_candidate_a_is_candidate_p_moved_in)
+a and p share every clip byte; only the station differs, so the comparison isolates the reach. ... ok
+test_moved_in_candidates_clear_every_proof (__main__.ClawStrokeEvidence.test_moved_in_candidates_clear_every_proof)
+Candidates a, b and c (station 1430) clear contact, below-face, world and self-clearance proofs. ... ok
+test_probe_record_counts (__main__.ClawStrokeEvidence.test_probe_record_counts)
+The bounded search found no clear recipe at the published station. ... ok
+test_published_station_refuses_the_paw_breaks_into_retained_earth (__main__.ClawStrokeEvidence.test_published_station_refuses_the_paw_breaks_into_retained_earth)
+Candidate p (station 1536): the paw's below-face hull reaches past the cube's near face. ... ok
+test_rebuild_matches_every_stored_clip (__main__.ClawStrokeRebuild.test_rebuild_matches_every_stored_clip)
+Each candidate's three clips rebuild byte for byte. ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 1.390s
+
+OK

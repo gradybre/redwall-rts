@@ -1,0 +1,40 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit",
+      "--log-file",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/engine-import.log"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--audio-driver",
+      "Dummy",
+      "--fixed-fps",
+      "60",
+      "--log-file",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/engine-native.log",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/spec.json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2"
+    ]
+  ],
+  "native_exit": -15,
+  "unexpected_diagnostics": false,
+  "source_unchanged": true,
+  "pre_import_source_unchanged": true,
+  "head_before": "414ecec741fe98fdc008600f169300eb0f9ab88e",
+  "head_after": "414ecec741fe98fdc008600f169300eb0f9ab88e",
+  "override_unchanged": true,
+  "production_qualified": false
+}

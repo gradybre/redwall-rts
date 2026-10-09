@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_loaded_gait.LoaderCapacityTests"
+  ],
+  "working_directory": "godot/data/underground/mole-worker/haul-handling-v1",
+  "exit_code": 1,
+  "source_sha256": {
+    "prove_loaded_gait.py": "292afdc251cf9354ce7738a4dba56f5b9b25779b7b5505d2818d57bc9e985148",
+    "test_loaded_gait.py": "a33bb47d281f0651e76cc498c829e27fd1b8fbb145ded2c8cbc84be89d760f60"
+  }
+}

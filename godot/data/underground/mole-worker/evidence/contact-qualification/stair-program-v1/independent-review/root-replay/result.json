@@ -1,0 +1,40 @@
+{
+  "reviewer": "/root",
+  "source_pins": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py": "576481ccebff74d8c131e8c646d7ee37a0a4ae541567bede236fd63f257bb34a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py": "a2982fdf0b472a3e2563753e3adead2ef7d726a613b111e1a134cedd74da286e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/source-inputs.json": "19e70bb13c0bf6e089c504a5d8a343f9638e59a5996d20fe74fde1b9f9832aa8"
+  },
+  "manifests": {
+    "source-sha256.json": 3,
+    "output-sha256.json": 9,
+    "history-sha256.json": 23,
+    "inherited-sha256.json": 209
+  },
+  "commands": [
+    {
+      "args": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py"
+      ],
+      "exit": 0,
+      "seconds": 0.08113850001245737,
+      "log": "tests.log"
+    },
+    {
+      "args": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/codex-1139-independent-v5jlt2ql/actual"
+      ],
+      "exit": 0,
+      "seconds": 6.462366707623005,
+      "log": "compile.log"
+    }
+  ],
+  "same_wire_programs_and_memory": true,
+  "source_unchanged": true,
+  "runtime_qualified": false
+}

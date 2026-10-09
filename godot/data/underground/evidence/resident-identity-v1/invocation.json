@@ -1,0 +1,22 @@
+{
+  "clean_import": [
+    "/opt/homebrew/bin/godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "strict": [
+    "./tools/run_tests.sh"
+  ],
+  "selection": [
+    "test_residents.gd"
+  ],
+  "shim": "#!/usr/bin/env python3\nimport os,sys\na=sys.argv[1:]\nfor i in range(len(a)-1):\n if a[i]==\"--script\" and a[i+1]==\"test/run_tests.gd\": a[i+1]='/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd'\nos.execv('/opt/homebrew/bin/godot', ['/opt/homebrew/bin/godot']+a)\n",
+  "returncodes": [
+    0,
+    0,
+    0
+  ]
+}

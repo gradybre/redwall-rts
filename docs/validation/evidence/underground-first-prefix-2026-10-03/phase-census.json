@@ -1,0 +1,54 @@
+{
+  "source_sha256": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+  "fixed_bytes": 202,
+  "fixed_fields": {
+    "_entry_reading": 1,
+    "_entry_poisoned": 1,
+    "_entry_placement": 8,
+    "_entry_site": 8,
+    "_entry_room": 8,
+    "_entry_project": 8,
+    "_entry_contact_ref": 8,
+    "_entry_contact_revision": 8,
+    "_entry_operation": 8,
+    "_entry_stage": 8,
+    "_entry_episode": 8,
+    "_entry_revision": 8,
+    "_entry_payload": 8,
+    "_entry_cold_token": 8,
+    "_entry_remaining": 8,
+    "_entry_origin": 12,
+    "_entry_point": 12,
+    "_entry_box": 24,
+    "_entry_air": 24,
+    "_entry_reach": 24
+  },
+  "own_numeric_chain": {
+    "bytes": 224,
+    "path": [
+      "worker_refusal",
+      "_entry_contact_observation",
+      "_entry_pin",
+      "_entry_find",
+      "_entry_episode_matches"
+    ],
+    "frames": {
+      "worker_refusal": 68,
+      "_entry_contact_observation": 44,
+      "_entry_pin": 32,
+      "_entry_find": 16,
+      "_entry_episode_matches": 64
+    }
+  },
+  "own_helper_reserve_bytes": 1024,
+  "fixed_plus_helper_bytes": 1226,
+  "new_global_reservation_bytes": 2048,
+  "remaining_inside_reservation_bytes": 822,
+  "separately_accounted_contacts_bytes": 4083,
+  "contacts_instances": 1,
+  "borrowed_native_members": [
+    "_entry_contacts"
+  ],
+  "scope": "Logical source census only. Existing Contacts/World/Authority packets remain separately charged; native frames, headers and timing are unqualified.",
+  "runtime_qualified": false
+}

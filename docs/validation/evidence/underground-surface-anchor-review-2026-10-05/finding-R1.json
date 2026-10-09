@@ -1,0 +1,12 @@
+{
+  "severity": "medium",
+  "scope": "Logical constructor census; no original runtime defect found.",
+  "candidate_manifest_sha256": "ff7f623930dc4e7f4031943a3b4fe6955fd3fc7a9be7e4e00abbda7bb695151c",
+  "census_sha256": "30cf31b2c267e3e935cf140eac4bae87c968daff5b8a98c0f07f2fca7f86e3c2",
+  "injected_packed_elements": 4096,
+  "minimum_unaccounted_bytes": 16384,
+  "accepted_surface_constructor_total": 2394,
+  "accepted_simultaneous_total": 8185,
+  "finding": "A reached PackedInt32Array literal is counted as one borrowed reference; no payload allocation rejection.",
+  "requested_fix": "Reject new or expanded collection literals and retained initializers; preserve explicitly counted preexisting literals."
+}

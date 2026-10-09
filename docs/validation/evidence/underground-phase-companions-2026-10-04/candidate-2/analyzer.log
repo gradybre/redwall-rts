@@ -1,0 +1,5 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_connector_placements.gd:1674: (CONFUSABLE_LOCAL_DECLARATION): The variable "code" is declared below in the parent block.
+scripts/core/underground_connector_placements.gd:1692: (CONFUSABLE_LOCAL_DECLARATION): The variable "code" is declared below in the parent block.
+scripts/core/underground_space_owner.gd:224: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_phase_context" is declared but never used in the class.
+3 GDScript warning(s) in 2 of 10 file(s)

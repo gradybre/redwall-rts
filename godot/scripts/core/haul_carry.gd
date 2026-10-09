@@ -98,6 +98,14 @@ func bind(inventory: InventoryScript, reservations: ReservationsScript,
 	return true
 
 
+func binding_matches(inventory: InventoryScript, reservations: ReservationsScript,
+		residents: ResidentsScript, piles: GroundPilesScript) -> bool:
+	"""Check exact borrowed stores without changing a carried lot, claim or saved resident."""
+	return inventory != null and reservations != null and residents != null and piles != null \
+		and inventory == _inventory and reservations == _reservations \
+		and residents == _residents and piles == _piles
+
+
 # --- reads ----------------------------------------------------------------------------------
 
 func carry_limit_g_into(hauler_slot: int, out: IntMath.IntResult) -> bool:

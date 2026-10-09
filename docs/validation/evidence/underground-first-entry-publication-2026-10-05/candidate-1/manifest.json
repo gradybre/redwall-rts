@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "scope": "Exact authored L0/T0 structural source and approved wood-only bills",
+  "source_geometry_only": true,
+  "entry_workflow_qualified": false,
+  "world_activation_qualified": false,
+  "traversal_qualified": false,
+  "frontier_emitted": false,
+  "workpieces_emitted": false,
+  "profile_content_revision": 3,
+  "catalog_revision": 1,
+  "grouping_revision": 1,
+  "recipe_revision": 1,
+  "variant_revision": 1,
+  "catalog_counts": [
+    1,
+    2,
+    26,
+    14,
+    56,
+    1,
+    12
+  ],
+  "assembly_count": 2,
+  "wood_milli": 5000,
+  "build_milli_wu": 44000,
+  "cut_cube_count": 6,
+  "inputs": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+    "godot/data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24",
+    "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94",
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": "5eaf2cf19cfcb1e1ac32dbcec53f04df7ca3832daa56a0c2c00382a5beeb94ba",
+    "godot/scripts/core/underground_connector_catalog.gd": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+    "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
+    "godot/scripts/core/connector_geometry.gd": "0ad18857dd936f9f6df235a8ec4130955df2c3106c15229ef53fb554ce0e5c35",
+    "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624"
+  },
+  "outputs": {
+    "structure.ugconn": {
+      "sha256": "d945e9dd965da956868284772dfeb6316d86d288ab9fb34a20a49925197c6578",
+      "bytes": 2732
+    },
+    "assemblies.ugasmb": {
+      "sha256": "abd1bb9330f874d26447395a9a9e49707a6de84cefddabf2c60cf932555cd8e7",
+      "bytes": 128
+    },
+    "recipes.ugrecp": {
+      "sha256": "14a6a75d41f3072b55ee7db9878e8c975fa79338491fafa612a7b8c1410390e2",
+      "bytes": 284
+    }
+  },
+  "remaining": [
+    "source-positive excavation Frontier",
+    "paid handling Workpieces and execution",
+    "entry owner integration",
+    "complete descent to room depth"
+  ]
+}

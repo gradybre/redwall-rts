@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "diagnostic_only": true,
+  "production_qualified": false,
+  "native_qualified": false,
+  "world_activation_qualified": false,
+  "certificate_flags": 15,
+  "certificate_scope": "candidate execution only",
+  "predecessor_wire_sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e",
+  "handling_actor_sha256": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+  "proof_sha256": "f2f9e8e666853d046ed2bd00414302a3a34a490e4d7b4fc953c61b13551e9233",
+  "independent_receipt_sha256": "e0533949f950953f7eb52dc76b4fa6ffbabdb8fafb70202196521a2fbe1a0281",
+  "encoder_sha256": "5ab04e159759deece696d421ab796a141a964e4c665a293feafb8a0602965aa4",
+  "wire_sha256": "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9",
+  "content_revision": 4,
+  "profile_count": 30,
+  "box_count": 281,
+  "source_count": 2,
+  "wire_bytes": 10912,
+  "paired_bank_bytes": 21808,
+  "paired_delta_bytes": 820,
+  "unchanged_profile_rows": [
+    0,
+    28
+  ],
+  "handling_profile": 29,
+  "handling_policy": 7,
+  "handling_source": 1,
+  "handling_revision": 1,
+  "body": [
+    -409,
+    0,
+    -521,
+    476,
+    840,
+    234
+  ],
+  "negative_foot_residual": [
+    -274,
+    -1,
+    -169,
+    299,
+    0,
+    174
+  ],
+  "held_pick": [
+    185,
+    379,
+    -732,
+    660,
+    810,
+    -249
+  ],
+  "timing": "existing 30-tick entry and 30-tick recovery; no WU or quantity"
+}

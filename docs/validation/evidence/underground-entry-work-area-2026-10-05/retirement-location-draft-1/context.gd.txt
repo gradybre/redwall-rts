@@ -1,0 +1,30 @@
+class ContactRetirementContext extends RefCounted:
+	## One112B cold-only packet; its exact issuer privately pins all original controls and banks.
+	var issuer: RefCounted = null
+	var issuer_script: Script = null
+	var locations: RefCounted = null
+	var graph: RefCounted = null
+	var routes: RefCounted = null
+	var owner: RefCounted = null
+	var budget: Budget = null
+	var live: Bank = null
+	var candidate: Bank = null
+	var graph_live: RefCounted = null
+	var graph_candidate: RefCounted = null
+	var masks_live: RefCounted = null
+	var masks_candidate: RefCounted = null
+	var world: Vector2i = NULL_REF
+	var placement: Vector2i = NULL_REF
+	var first: Vector2i = NULL_REF
+	var second: Vector2i = NULL_REF
+	var cold: int = 0
+	var revision: int = 0
+	var profiles: int = 0
+	var catalog: int = 0
+	var graph_revision: int = 0
+	var location_revision: int = 0
+	var route_token: int = 0
+	var location_token: int = 0
+	var route_receipt: int = 0
+	var phase: int = 0
+

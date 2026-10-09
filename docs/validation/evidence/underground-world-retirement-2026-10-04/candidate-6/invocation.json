@@ -1,0 +1,79 @@
+{
+  "head_before": "dc6baa12a2c78d873a5f3673e28df177552ce8c0",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.3,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "215/400",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-retirement/docs/validation/evidence/underground-world-retirement-2026-10-04/candidate-6"
+      ],
+      "exit_code": 0,
+      "seconds": 8.391,
+      "log": "test_underground_world_retirement.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6359",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-retirement/docs/validation/evidence/underground-world-retirement-2026-10-04/candidate-6/analyzer.json",
+        "godot/scripts/core/underground_world_retirement.gd",
+        "godot/scripts/core/buildings.gd",
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/work.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_underground_world_retirement.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.167,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1155-fbbb195b0b72d74a",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "diagnostic_composition": false,
+  "import_raw_findings": [],
+  "strict_suites": {
+    "test_underground_world_retirement.gd": {
+      "tests": 16,
+      "assertions": 1751,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "executed_source_unchanged": true,
+  "project_restored": true,
+  "registry_restored": true,
+  "prerequisites_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "original_sources_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

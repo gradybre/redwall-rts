@@ -1,0 +1,440 @@
+{
+  "scope": "Exact87 ignored historical asset metadata/import inputs copied read-only into owned renewal checkout",
+  "files": [
+    {
+      "path": "godot/demo/assets/props/item_barley.made.json",
+      "sha256": "344fa799714dccbbf34e62b85addaeed6430d56be96f5ea15b13efdbf6909955",
+      "bytes": 1166
+    },
+    {
+      "path": "godot/demo/assets/props/item_beetroot.made.json",
+      "sha256": "663d9ed9a4d7c2575b428a9ddef79d5de26878a12b0ef1dd96e24b54e3b2a175",
+      "bytes": 1157
+    },
+    {
+      "path": "godot/demo/assets/props/item_carrot.made.json",
+      "sha256": "239bdf5d5cf273d230654edd575a71f608a24f186deedaf1e54b05bb6ed1b9cb",
+      "bytes": 1165
+    },
+    {
+      "path": "godot/demo/assets/props/item_celery.made.json",
+      "sha256": "0705bf99b15b1a7c1c1b796c749e1ca8850c0b1bbad061de806989476af8caeb",
+      "bytes": 1146
+    },
+    {
+      "path": "godot/demo/assets/props/item_leek.made.json",
+      "sha256": "dda90eb4e90b7f90786b96bba9c5f9f107beec0eab2102ed6f839d08da2c94bc",
+      "bytes": 1153
+    },
+    {
+      "path": "godot/demo/assets/props/item_lettuce.made.json",
+      "sha256": "7057fc245a3c777dfbe6fc276e6deeae18cd21c82223e7cba4944ca55e015e6b",
+      "bytes": 1173
+    },
+    {
+      "path": "godot/demo/assets/props/item_oats.made.json",
+      "sha256": "f830daa8a8fbda01a075b711df7d61c58b45694d685e39bf040a1929a762e5de",
+      "bytes": 1155
+    },
+    {
+      "path": "godot/demo/assets/props/item_onion.made.json",
+      "sha256": "5796d64ee2df1fcc2c892acd317625b3d4952f3c358410edb5ed2c6825a132c7",
+      "bytes": 1138
+    },
+    {
+      "path": "godot/demo/assets/props/item_peas.made.json",
+      "sha256": "b93f4645fa237c0fe5b40e36dcc0c02343a97ea124c5c08d4c144ef03d97bc7c",
+      "bytes": 1134
+    },
+    {
+      "path": "godot/demo/assets/props/item_radish.made.json",
+      "sha256": "e229cddab08a0d274043fceabb2e69f56ca703476fa755629ee0018c7a366c2c",
+      "bytes": 1146
+    },
+    {
+      "path": "godot/demo/assets/props/item_turnip.made.json",
+      "sha256": "a8ce6c81af8b4b85c1e2d40fe20d2e102f8233cf12be968522dc72dfb34639e6",
+      "bytes": 1145
+    },
+    {
+      "path": "godot/demo/assets/props/mole_pick.made.json",
+      "sha256": "963b11f1221e58e3fdfabe3868926ddb4f65d77ea7ec886ff99129445d9b222a",
+      "bytes": 949
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/body.glb.import",
+      "sha256": "ce0dfafdddca1ec24a2fde06e5174a66761b5f30872c3ef02ff7603287a1d695",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/carry_heavy_object_walk.glb.import",
+      "sha256": "0ceeb732eed016fc7e7e34c9f6d4cbbb764dffdbb4316e5efeb5636e0172a1f1",
+      "bytes": 1218
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/cautious_crouch_walk_forward.glb.import",
+      "sha256": "c57916de38f682a56d7db8f27ffdfeb6c49b6e299996ff3b6909fd0937d7a739",
+      "bytes": 1233
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/collect_object.glb.import",
+      "sha256": "32a4655ca22d423b6e97a8bc9b65a3b2b9a58bc3bde59c1245a80b3ff99aa6fc",
+      "bytes": 1191
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/heavy_hammer_swing.glb.import",
+      "sha256": "dc3b54db49ebea5bd497293e3c67aa0511c48af9b138539f7273894e03bd57e0",
+      "bytes": 1202
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/idle.glb.import",
+      "sha256": "0d65d6b6651b3d32123a0c7da306d281c7725fde4ceeb6ff291778494d77005e",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/pull_radish.glb.import",
+      "sha256": "70175d7ccfbbf9c4d65ad2ea62f46090f6ca8c4f4a819bfccedddbadeb0a4704",
+      "bytes": 1182
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/sleep_normally.glb.import",
+      "sha256": "da18a565efba5c2a9ccd736298b8ddb6ec870b3f267f16ee62b9b26406eaedf1",
+      "bytes": 1190
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/stand_and_drink.glb.import",
+      "sha256": "30a79b76a975667542db5a9e682dd391f4dc0d02b46920d1770b4a0d2b37e630",
+      "bytes": 1194
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/swim.glb.import",
+      "sha256": "ba5e1b73e3b08d73581717ceaf6d3b92bf6f53fff650520927100ef4e5a1bf77",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/tread_water.glb.import",
+      "sha256": "7987cc8fa1bfb079633c454eb2ffff7649de8287aa2b0ffea0e87edca8b37a25",
+      "bytes": 1181
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/walk.glb.import",
+      "sha256": "4f25330c4edfc97cc08eda3da45fb3ccd4408798fdde7bd5eec4c4fc294f9712",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/badger_quarryman/wave_one_hand.glb.import",
+      "sha256": "99e66e1a43d46c02c54439aa8b85fbce576d8b6e409d10836394e0e3cd7d4a58",
+      "bytes": 1187
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/body.glb.import",
+      "sha256": "a485ee3d4bb39d0a232539aeb1f5e85d8d141f197fad12d0ae44824c3b7f1e7e",
+      "bytes": 1155
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/carry_heavy_object_walk.glb.import",
+      "sha256": "cec3a4120d18abe8fcb0605a6634070c5851e731d40fc4b9f0cdecd3e6d0fefb",
+      "bytes": 1212
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/cautious_crouch_walk_forward.glb.import",
+      "sha256": "6635e92e64f6bc67284ffbeb312258bc39c29b2b99bd4b3554e2cedf061aa5eb",
+      "bytes": 1228
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/collect_object.glb.import",
+      "sha256": "45bcf7bdb012589fe1e8808e64a9b8986313d032ac1c4b07dc9a0bff306aac62",
+      "bytes": 1186
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/heavy_hammer_swing.glb.import",
+      "sha256": "8375ec6560638d0ec38dbf3492d0db4f71ba618ffd7585a67ae69d72186bf830",
+      "bytes": 1198
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/idle.glb.import",
+      "sha256": "95364dc868b991e1012bc1d18b33547d1058ff286da695dbdb6bd54f088ff10d",
+      "bytes": 1155
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/pull_radish.glb.import",
+      "sha256": "1e9eb3f5daa0488d6b9fd34a795c19f004678a5a78012e0666a8ef94324f4d71",
+      "bytes": 1177
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/sleep_normally.glb.import",
+      "sha256": "9461e6632e0cb6cbf3376d692a64978cb55b2b48342510e505d466ace7407595",
+      "bytes": 1186
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/stand_and_drink.glb.import",
+      "sha256": "181920f3d48288960a6c4d047dada0f9bf2e64e898fe987c9e71948c30cd42da",
+      "bytes": 1189
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/swim.glb.import",
+      "sha256": "ab057920c05e1b64ab3779bed023c375546ca974036d73f9b7826dbc1986299a",
+      "bytes": 1156
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/tread_water.glb.import",
+      "sha256": "5e2001a5d925ab6b3ef14ecac816a9cb37266280f5715c6ca194b30db48c37b8",
+      "bytes": 1176
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/walk.glb.import",
+      "sha256": "6053241e46479e9464932a600e12ff503c494324d890cef9e2220362fc523b7a",
+      "bytes": 1156
+    },
+    {
+      "path": "godot/demo/assets/cast/mole_digger/wave_one_hand.glb.import",
+      "sha256": "6b2a101d923749fde13f2a36089a351342cf3bc9a60989cd57945f33fc56568a",
+      "bytes": 1183
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/body.glb.import",
+      "sha256": "6ea4c6f4e364f0345498f6bdef17a77f30258b4652580a6234430a541fb7b503",
+      "bytes": 1157
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/carry_heavy_object_walk.glb.import",
+      "sha256": "e2ceee137a6ff0b7a9952f1ed2ed7a39282db922faab4590ef7ad36e7bf3668b",
+      "bytes": 1213
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/cautious_crouch_walk_forward.glb.import",
+      "sha256": "47c7aeb1a9e37f1c946bc05cd558186fefbefae3377332cbdf43e0d40638ceda",
+      "bytes": 1228
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/collect_object.glb.import",
+      "sha256": "c24117f2dd72d4a11580698dd85c96021abcca2907855d9c547b00395b4ca6f7",
+      "bytes": 1187
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/idle.glb.import",
+      "sha256": "22f0eb9087c4c53a2e0d8894c65da6e82ebe1ca9fcf94e94771db2b909097e23",
+      "bytes": 1157
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/pull_radish.glb.import",
+      "sha256": "3f143d168b95cbd48599057e6b36955f36035077fc49d7a52c0f3ce7c795f611",
+      "bytes": 1177
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/sleep_normally.glb.import",
+      "sha256": "a56e7ba0c9589af21a9ac67e8ee67e72780f578bfcdffc6b588b2d1b3cc1876c",
+      "bytes": 1187
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/stand_and_drink.glb.import",
+      "sha256": "43c6060f4e072c62cd5f014f47bdce889320f7621f1beee7612c0583b05bbe83",
+      "bytes": 1190
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/swim.glb.import",
+      "sha256": "86cb1f3ea41de9f02287495d177f2f0eb1905b9f47d382a1fb0fe49e5c84a98f",
+      "bytes": 1157
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/tread_water.glb.import",
+      "sha256": "3da4ea07d578a1b0a12872270ef6d580d59ceb9ec09d5833156d95991a705c37",
+      "bytes": 1178
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/walk.glb.import",
+      "sha256": "8a2d66b3c517a2baa444a8a13e939f9979f717aa546ac007bfb93c4895c80280",
+      "bytes": 1157
+    },
+    {
+      "path": "godot/demo/assets/cast/mouse_keeper/wave_one_hand.glb.import",
+      "sha256": "7fa205578e74c4635af231d9a1e9330fff406ac41f11f9381c8d0cfe00d29b43",
+      "bytes": 1184
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/body.glb.import",
+      "sha256": "5fa4198a4029f36ad61a538f0e3b56b12d95254b3e976cebaa2e3048bd2821f0",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/carry_heavy_object_walk.glb.import",
+      "sha256": "ddb6301fee3f012d3590f68b28deda283e4089c78be07aad6dc4c81de1f3e0d8",
+      "bytes": 1218
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/cautious_crouch_walk_forward.glb.import",
+      "sha256": "83f2ec8044649adf87a09966ac54ca7d131804ec78ed2132676ae25c460361f5",
+      "bytes": 1233
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/collect_object.glb.import",
+      "sha256": "74e243f0e18aba51be6171d8f9624f05b9c7d705237d3c96d183252755b38e7a",
+      "bytes": 1191
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/dive.glb.import",
+      "sha256": "aebcf8745025ec59a45c81629838cb84d019d5d723842faf695743105116fe55",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/idle.glb.import",
+      "sha256": "d5e7a9073b1e917819c10e89e0a1cdf9bef25366bca3321d4afef5ff92cdab8f",
+      "bytes": 1160
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/pull_radish.glb.import",
+      "sha256": "25fe45aa0e06afc1517fc14b99ca718cfeda50818b73f530833fca0cae88e51e",
+      "bytes": 1181
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/sleep_normally.glb.import",
+      "sha256": "2a36eb0093a1bf0ef35c7c65ef1ecbf143199039202b5d3070a3b08eecfd10e8",
+      "bytes": 1191
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/stand_and_drink.glb.import",
+      "sha256": "79d30cfb9c0b187eb621da6d1e1034e87beb814940bdc2d52ab08a36ce60d8f8",
+      "bytes": 1193
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/swim.glb.import",
+      "sha256": "b1cbc5a4a1e33557bba35546d5083b46ff95655c2d1b241a5d5f8b6740a3c0d5",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/tread_water.glb.import",
+      "sha256": "e2d03df3473c098fc5b1253bce5342259677bd4106857891caa5aaaf9ffdb7bd",
+      "bytes": 1182
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/walk.glb.import",
+      "sha256": "1258454975e665b9063fa88bec83ad2c8f9b6515afbac4b0b9b06a7b4e042121",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/otter_boatwright/wave_one_hand.glb.import",
+      "sha256": "cd8ee200c031352fdadf9d6d64b2d722e48ad2af72929f8a1209294f3cb9a0b5",
+      "bytes": 1187
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/body.glb.import",
+      "sha256": "5f3faf3865ed55844afd292f1d6c8279ecdc42e4b766669fc635baf417231279",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/carry_heavy_object_walk.glb.import",
+      "sha256": "040db6b0510b0c5fd7f4ab304838bbab82fdeb006ece0b6a37b66f1aba7df42a",
+      "bytes": 1219
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/cautious_crouch_walk_forward.glb.import",
+      "sha256": "2fe61c4326c85b03738bfcae0a9261acbc525074712da00f4d1184aadda913b2",
+      "bytes": 1234
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/collect_object.glb.import",
+      "sha256": "6b8c4650203866d8fa69f39cd8b6d241cd4c826bb8e748ec543500907761d5aa",
+      "bytes": 1192
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/idle.glb.import",
+      "sha256": "adffe730f21f88c1efb24f86e7c3886f2baa5a6423fa930851f2ddeea236e986",
+      "bytes": 1162
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/pull_radish.glb.import",
+      "sha256": "de630d8c3c53c64f5a05ce25c5a61be44bbd958671aea1dfae063f986688f9fc",
+      "bytes": 1183
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/sleep_normally.glb.import",
+      "sha256": "21b9094515bee11865ab8c92e2ddebe4aadf21ba123a94dec0d8f625abb066d8",
+      "bytes": 1192
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/stand_and_drink.glb.import",
+      "sha256": "fdfc52c8dd841ecfb930498bb0645013afe9834207073a747b1586113033b300",
+      "bytes": 1195
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/swim.glb.import",
+      "sha256": "cd187fb7af9361cc181463918bde8d92427a1e5a6cc3022390c27400ed23b929",
+      "bytes": 1162
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/tread_water.glb.import",
+      "sha256": "f68d6ed3d544f9fd6911ebaf7e39f1056bbd5040ea58f6ec6484028ee9d2cb38",
+      "bytes": 1183
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/walk.glb.import",
+      "sha256": "871d0ec6a468dc443abf9f962dec7a6b582d820fefc1c2c9409f2e2221e30584",
+      "bytes": 1161
+    },
+    {
+      "path": "godot/demo/assets/cast/squirrel_gatherer/wave_one_hand.glb.import",
+      "sha256": "b764f20a1f3390388ae6db896eba12b9cfba338f3003db28334130cd70333f43",
+      "bytes": 1188
+    },
+    {
+      "path": "godot/demo/assets/props/item_barley.glb.import",
+      "sha256": "9df84f1a8dce879715e835cd5a84fc0ff4a5fd5c20a343166586cabb6affe952",
+      "bytes": 1166
+    },
+    {
+      "path": "godot/demo/assets/props/item_beetroot.glb.import",
+      "sha256": "1aff3d64d8e45e05308646e77c4dc025f1dafcea4d6f3bf149084ee064870624",
+      "bytes": 1172
+    },
+    {
+      "path": "godot/demo/assets/props/item_carrot.glb.import",
+      "sha256": "034db4e4c75287e7925bf9143ec4ff3078fe0b289848155754a1674747509b86",
+      "bytes": 1166
+    },
+    {
+      "path": "godot/demo/assets/props/item_celery.glb.import",
+      "sha256": "24ca24a42ea8f0e562cf3d90782f3059502457816701794960a2ab2e025e627c",
+      "bytes": 1166
+    },
+    {
+      "path": "godot/demo/assets/props/item_leek.glb.import",
+      "sha256": "74b1f1b81d33a17c8ea3c0781c0ec549d93ac6aacee85899e1a7fa283c351a7a",
+      "bytes": 1159
+    },
+    {
+      "path": "godot/demo/assets/props/item_lettuce.glb.import",
+      "sha256": "cdf8d7a38fc477cc1abd99dcd1d5b8844ddd3a6050d1733b95a148fd1cd146bd",
+      "bytes": 1169
+    },
+    {
+      "path": "godot/demo/assets/props/item_oats.glb.import",
+      "sha256": "3e3c9ad8678f6143f28f0c45db11fa3cb074c0390e9c1136838eea4697f7b6cc",
+      "bytes": 1160
+    },
+    {
+      "path": "godot/demo/assets/props/item_onion.glb.import",
+      "sha256": "99e2a78a1f312452259e7b5fe1d8be46f1ab8f8f0f6865527c6adfbe9695cfdc",
+      "bytes": 1163
+    },
+    {
+      "path": "godot/demo/assets/props/item_peas.glb.import",
+      "sha256": "001d6d7074b6ce01e9bd78c68687d9b7ff27f1549d8f2b430cb8fd482303193e",
+      "bytes": 1160
+    },
+    {
+      "path": "godot/demo/assets/props/item_radish.glb.import",
+      "sha256": "3e7ea14764526261e55692486985f33bd6b68761b9baf54a8e887d4acf66df05",
+      "bytes": 1166
+    },
+    {
+      "path": "godot/demo/assets/props/item_turnip.glb.import",
+      "sha256": "61d59a40cd3202f5e516bc7d1566621dbf55ca671116403a0c08476ed805793c",
+      "bytes": 1166
+    },
+    {
+      "path": "godot/demo/assets/props/mole_pick.glb.import",
+      "sha256": "99cfba9faede0e23e4281d93b49c962a8823b2251a9d2dc91c7d33d47015a66d",
+      "bytes": 1159
+    }
+  ]
+}

@@ -584,6 +584,13 @@ const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+const GearScript := preload("res://scripts/core/gear.gd")
+const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
+const HaulPlannerScript := preload("res://scripts/core/haul_planner.gd")
+const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
+const UndergroundSession := preload("res://scripts/core/underground_session.gd")
+const UndergroundEntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
+const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
 const StarterStructuresScript := preload("res://scripts/core/starter_structures.gd")
@@ -705,6 +712,7 @@ const REFUSE_WORLD_ALREADY_PUBLISHED: StringName = &"SETTLEMENT_WORLD_ALREADY_PU
 ## or a live building already present means it has been, or that something else placed there.
 const REFUSE_STARTER_COLONY_PRESENT: StringName = &"STARTER_COLONY_ALREADY_PRESENT"
 const REFUSE_GROUND_PILES_BIND: StringName = &"GROUND_PILE_COMPOSER_BIND_REFUSED"
+const REFUSE_EQUIPMENT_BIND: StringName = &"SETTLEMENT_EQUIPMENT_BIND_REFUSED"
 const REFUSE_GROUND_PILE_WORLD_BIND: StringName = &"GROUND_PILE_WORLD_BIND_REFUSED"
 ## GDD §5.11: "Active new worlds start with M0=0 and both masks=1". The starter structures all
 ## carry unlock ordinal 0, so this is the mask they are placed under; no Progress store exists to
@@ -902,6 +910,17 @@ var _stock_age: StockAgeScript = null
 ## DEMO-CONTAIN-R01 #9's site and placement authority (decision 0532). Held STRONGLY here, for the
 ## node's whole life, because Inventory and Buildings hold it only weakly.
 var _ground_piles: GroundPilesScript = null
+## ADR1148: one existing-budget Gear and Carry owner; wiring creates no stock or tool instances.
+var _gear: GearScript = null
+var _haul_carry: HaulCarryScript = null
+## ADR1184: original Host-lifetime haul planning and policy; existing finite banks, no seeded demand.
+var _haul_planner: HaulPlannerScript = null
+var _store_policy: StorePolicyScript = null
+## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
+var _underground_session: UndergroundSession = null
+var _underground_entry: UndergroundEntryRuntime = null
+## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
+var _underground_reset_phase: int = 0 # 0 idle, 1 preparing, 2 prepared, 3 clearing.
 ## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
 var _starter_producer: StarterStructuresScript = StarterStructuresScript.new()
 ## ARCH-SYS-001's ONE authoritative pose store, bound to the SAME directory as the resident store.
@@ -1083,6 +1102,8 @@ func _init() -> void:
 	_transforms = TransformsScript.new(_directory)
 	_compose_stock_layer()
 	_compose_ground_piles()
+	_compose_equipment()
+	_compose_haul_planning()
 	_bind_ecology_to_commands()
 	_size_index_and_scratch_columns()
 	_assert_shared_contracts()
@@ -1147,6 +1168,42 @@ func _compose_ground_piles() -> void:
 		return
 	_last_refusal = REFUSE_GROUND_PILES_BIND
 	push_error("SettlementSystem could not bind the ground-pile composer")
+
+
+func _compose_equipment() -> void:
+	"""Bind the actual stock, residents, work and carry once; the existing boot still owns all seeding."""
+	_gear = GearScript.new()
+	_haul_carry = HaulCarryScript.new()
+	if _gear.bind_equipment(_inventory, _directory, _residents).ok \
+			and _work.bind_gear(_gear).ok \
+			and _haul_carry.bind(_inventory, _reservations, _residents, _ground_piles):
+		return
+	_last_refusal = REFUSE_EQUIPMENT_BIND
+	push_error("SettlementSystem could not bind the equipment and hauling owners")
+
+
+func _compose_haul_planning() -> void:
+	"""Retain the actual planner and policy once; later World resets clear their existing finite columns."""
+	_store_policy = StorePolicyScript.new(_buildings, _inventory)
+	_haul_planner = HaulPlannerScript.new()
+	if _haul_planner.bind(_inventory, _reservations, _residents, _buildings, _ground_piles, _store_policy) \
+			and _haul_owners_refusal() == &"":
+		return
+	_last_refusal = &"UNDERGROUND_HOST_HAUL_OWNER"
+	push_error("SettlementSystem could not bind its original haul planning and policy owners")
+
+
+func _haul_owners_refusal() -> StringName:
+	"""Concrete original Host links, with no observing getter or equal-value substitute for a collaborator."""
+	if _haul_planner == null or _haul_planner.get_script() != HaulPlannerScript \
+			or _store_policy == null or _store_policy.get_script() != StorePolicyScript \
+			or _haul_planner._inventory != _inventory or _haul_planner._reservations != _reservations \
+			or _haul_planner._residents != _residents or _haul_planner._buildings != _buildings \
+			or _haul_planner._piles != _ground_piles or _haul_planner._store_policy != _store_policy \
+			or _store_policy._inventory != _inventory or _store_policy._buildings != _buildings \
+			or _store_policy._directory != _directory:
+		return &"UNDERGROUND_HOST_HAUL_OWNER"
+	return &""
 
 
 func _bind_seed_expiry_authority() -> void:
@@ -1311,6 +1368,8 @@ func create_generated_settlement(items: ItemDefinitionsScript,
 	world" is honoured: the only world this can overwrite is one with nobody in it. See
 	`_abandon_transaction()` for what an in-transaction failure can and cannot restore.
 	"""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	if _residents.population() != 0:
 		return _refuse(ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY)
 	if _world.is_published():
@@ -1363,7 +1422,9 @@ func _run_initialization_transaction() -> bool:
 	it. Any failure inside the transaction abandons the whole thing through
 	`_abandon_transaction()`; nothing is published by halves.
 	"""
-	reset()
+	if not reset():
+		_world.discard_prepared_plan()
+		return false
 	var seeded: StringName = _world.seed_prepared_streams()
 	if seeded != REFUSE_NONE:
 		return _abandon_transaction(seeded)
@@ -1414,6 +1475,8 @@ func create_initial_settlement() -> bool:
 	in cohort order, so Warden Rowan is id 1. Called on its own, as the cohort-only path the suite
 	uses, it does the same thing over an empty directory.
 	"""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	var spawned: ResidentsScript.OpResult = _residents.spawn_initial_settlement()
 	if not spawned.ok:
 		return _refuse(spawned.error)
@@ -1438,6 +1501,8 @@ func materialize_starter_colony() -> bool:
 	holds, because every later door is deterministic over an empty hall -- empties the settlement
 	with its code kept, exactly as a cohort refusal does, rather than leave a partial colony.
 	"""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	var code: StringName = _materialize_refusal()
 	if code == REFUSE_NONE:
 		_last_refusal = REFUSE_NONE
@@ -1514,6 +1579,8 @@ func create_placed_cohort_on(target_world: WorldInitScript) -> bool:
 
 	A placement refusal empties the settlement, as a cohort refusal does, with its code kept.
 	"""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	if not create_initial_settlement():
 		return false
 	if _place_initial_cohort_on(target_world):
@@ -1789,19 +1856,241 @@ func _attach_resident(slot: int) -> bool:
 	return true
 
 
-func reset() -> void:
-	"""Empty every settlement store, index and counter, without reallocating a column.
+func mount_underground(content: UndergroundContent) -> bool:
+	"""Compose the one actual foundation without seeding stock, duplicating a World or opening work."""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	if _underground_session != null:
+		return _refuse(&"UNDERGROUND_SESSION_ALREADY_BOUND")
+	_underground_session = UndergroundSession.new()
+	_underground_entry = null
+	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
+		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
+		_transforms, _gear, _haul_carry, _ground_piles, content)
+	if code != &"":
+		_underground_session = null
+		_underground_entry = null
+		return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
 
-	`_clear_stores()`'s `residents.clear()` also clears the directory and needs rows, because this
-	system built the residents store with neither collaborator supplied and it therefore owns both.
-	"""
+
+func compose_underground_room_owners() -> bool:
+	"""Build only the mounted original Session's real owner graph; no caller registers authorities."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var original: UndergroundSession = _underground_session
+	var starting: bool = original != null and original._operations_state == 0
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.compose_room_owners()
+	if code == &"": code = _mounted_underground_refusal(original)
+	if code != &"" and starting and original._operations_prefix > 0:
+		original._operations_state = 3
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func compose_underground_route_owners() -> bool:
+	"""Configure the mounted Session's actual empty graph through its existing original owner packet."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var original: UndergroundSession = _underground_session
+	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 4
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.compose_route_owners()
+	return _finish_route_owner_composition(original, code, starting)
+
+
+func _finish_route_owner_composition(original: UndergroundSession, code: StringName, starting: bool) -> bool:
+	"""The pure result tail has a separate frame after every route-constructor temporary has returned."""
+	var final_code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = final_code
+	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 5)):
+		original._operations_state = 3
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _underground_mutations_stopped() -> bool:
+	"""A failed constructor prefix remains stopped even if an original-live reset is abandoned."""
+	if _underground_session != null and _underground_session._operations_state == 1:
+		_underground_session._poisoned = true
+		return true
+	if _underground_session != null and _underground_session._retirement_owners != null \
+			and _underground_session._retirement_owners.surface_anchor != null \
+			and _underground_session._retirement_owners.surface_anchor._busy:
+		return true
+	return _underground_reset_phase != 0 or (_underground_session != null \
+		and _underground_session._operations_state == 3)
+
+
+func compose_underground_surface_anchor() -> bool:
+	"""Install the original natural-surface publisher in the actual mounted route-ready Session."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var original: UndergroundSession = _underground_session
+	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 8
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.compose_surface_anchor()
+	return _finish_surface_owner_composition(original, code, starting)
+
+
+func _finish_surface_owner_composition(original: UndergroundSession, code: StringName, starting: bool) -> bool:
+	"""Preserve the first refusal, then stop an exposed original scope on any late mounted-owner change."""
+	var final_code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = final_code
+	if starting and (final_code != &"" or (code != &"" and original._operations_prefix == 9)):
+		original._operations_state = 3
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func begin_underground_entry(near: Vector3i) -> bool:
+	"""ADR1197: run the real first-entry chain from where it last stopped; a refusal is an explicit gap alert."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var code: StringName = _mounted_underground_refusal(_underground_session)
+	if code != &"": return _refuse(code)
+	if _underground_entry == null: _underground_entry = UndergroundEntryRuntime.new()
+	code = _underground_entry.start(_underground_session, near)
+	if code != &"":
+		_alert_underground_entry(code)
+		return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func underground_entry() -> UndergroundEntryRuntime:
+	"""Borrow the entry runtime for status and alerts; null before the first request."""
+	return _underground_entry
+
+
+func restore_underground_entry(record: PackedByteArray) -> StringName:
+	"""ADR 1228: a load's last step. Rebuild the entry runtime from its saved record against the
+	re-mounted Session (ADR 1218 proves every handle it will still read) and adopt it. Only into a
+	mounted host that has no entry runtime yet; a refusal adopts nothing."""
+	if _underground_mutations_stopped() or _underground_session == null or _underground_entry != null:
+		return &"UNDERGROUND_ENTRY_RESTORE_TARGET"
+	var runtime: UndergroundEntryRuntime = UndergroundEntryRuntime.new()
+	var code: StringName = runtime.restore(record, _underground_session)
+	if code == &"":
+		_underground_entry = runtime
+	return code
+
+
+func compose_underground_entry_owners() -> bool:
+	"""ADR1184/1195: construct the fixed first-entry owners in the mounted surface-ready Session."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var original: UndergroundSession = _underground_session
+	var starting: bool = original != null and original._operations_state == 2 and original._operations_prefix == 9
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.compose_entry_owners(self)
+	var final_code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = final_code
+	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 10)):
+		original._operations_state = 3
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func underground_session() -> UndergroundSession:
+	"""Borrow the one foundation; its own current checks reject retired or partially configured state."""
+	return _underground_session if _underground_reset_phase == 0 else null
+
+
+func underground_content() -> UndergroundContent:
+	"""Borrow the immutable loaded image for synchronous World replacement, never another palette allocation."""
+	return _underground_session._content if _underground_reset_phase == 0 \
+		and _underground_session != null and _underground_session._ready else null
+
+
+func _notification(what: int) -> void:
+	"""Destroying the host ends all possible reset continuation; release only Scope's private self-retention."""
+	if what == NOTIFICATION_PREDELETE and _underground_session != null:
+		_underground_session._discard_retirement_on_host_free(self)
+
+
+func prepare_world_reset(allow_prepared_world: bool = false) -> bool:
+	"""Observe then pin the actual mounted composition before any caller clears an external owner."""
+	if _underground_reset_phase == 1 or _underground_reset_phase == 3:
+		if _underground_session != null and _underground_session._busy:
+			_underground_session._poisoned = true
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	if _haul_owners_refusal() != &"": return _refuse(&"UNDERGROUND_HOST_HAUL_OWNER")
+	if _underground_session == null:
+		return _underground_reset_phase == 0
+	var original: UndergroundSession = _underground_session
+	if original._busy:
+		original._poisoned = true
+		return _refuse(&"UNDERGROUND_SESSION_UNAVAILABLE")
+	var code: StringName = _mounted_underground_refusal(original)
+	if code != &"": return _refuse(code)
+	_underground_reset_phase = 1
+	if original._retirement_scope == null:
+		code = original.retirement_observation_refusal(allow_prepared_world)
+	if code == &"": code = _mounted_underground_refusal(original)
+	if code == &"": code = original.prepare_retirement(self, allow_prepared_world)
+	_underground_reset_phase = 2 if original._retirement_scope != null else 0
+	return _refuse(code) if code != &"" else true
+
+
+func _mounted_underground_refusal(original: UndergroundSession) -> StringName:
+	"""Direct original mount proof before and after observers, and after clear without a fresh World lookup."""
+	if original == null or original != _underground_session or original.get_script() != UndergroundSession \
+			or not original._ready or original._world != _world or original._directory != _directory \
+			or original._buildings != _buildings or original._construction != _construction \
+			or original._inventory != _inventory or original._items != _item_definitions \
+			or original._residents != _residents or original._jobs != _jobs or original._work != _work \
+			or original._reservations != _reservations or original._transforms != _transforms \
+			or original._gear != _gear or original._carry != _haul_carry or original._piles != _ground_piles \
+			or original._retirement_owners == null or original._content != original._retirement_owners.content \
+			or original._world_ref != original._retirement_owners.world_ref:
+		return &"UNDERGROUND_HOST_OWNER"
+	return _haul_owners_refusal()
+
+
+func abandon_world_reset() -> bool:
+	"""Resume only an unchanged original live composition; never forget a scope after clearing starts."""
+	if _underground_reset_phase == 0: return true
+	if _underground_reset_phase != 2 or _underground_session == null:
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var original: UndergroundSession = _underground_session
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.abandon_retirement(self)
+	if code != &"": return _refuse(code)
+	_underground_reset_phase = 0
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func reset(allow_prepared_world: bool = false) -> bool:
+	"""Hold the original Session through actual whole-store clear and exact owner-owned release."""
+	if not prepare_world_reset(allow_prepared_world):
+		return false
+	_underground_reset_phase = 3
 	_clear_stores()
+	if not _release_underground_after_clear():
+		return false # Keep stopped: no abandonment can undo a started clear.
 	_release_critical_pause()
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_live_count = 0
 	_daily_leg_count = 0
 	_boundary_tick = 0
 	_clear_counters()
+	_underground_reset_phase = 0
+	return true
+
+
+func _release_underground_after_clear() -> bool:
+	"""Exact original mount and kernel release; private Scope dies before the host drops Session."""
+	if _underground_session == null: return true
+	var original: UndergroundSession = _underground_session
+	var code: StringName = _mounted_underground_refusal(original)
+	if code == &"": code = original.release_retirement(self)
+	if code != &"": return _refuse(code)
+	_underground_session = null
+	_underground_entry = null
+	return true
 
 
 func _clear_stores() -> void:
@@ -1811,12 +2100,15 @@ func _clear_stores() -> void:
 	_schedule.clear()
 	_jobs.clear()
 	_work.clear()
+	_gear.clear()
 	_reservations.clear()
 	_commands.clear()
 	_dispatch.clear()
 	_ecology.clear()
 	_crop_weather.clear()
 	_clear_stock_layer()
+	_haul_planner.clear()
+	_store_policy.clear()
 	_planner.clear()
 	_presentation.clear()
 	_world.clear()
@@ -1897,6 +2189,8 @@ func run_tick(tick_index: int) -> bool:
 	GameManager. No elapsed time, no delta and no speed reaches this function: at 2x and 4x it is
 	called more often and does exactly the same work (REQ-SET-003, REQ-SET-011).
 	"""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	if tick_index < 0:
 		return _refuse(REFUSE_INVALID_TICK)
 	if _stock_fault_halted:
@@ -1942,8 +2236,24 @@ func _run_stages(tick_index: int) -> bool:
 	_plan_jobs(tick_index)
 	_select_jobs(tick_index)
 	_run_productive_work()
+	_advance_underground_entry(tick_index)
 	_extract_presentation(tick_index)
 	return true
+
+
+func _advance_underground_entry(tick_index: int) -> void:
+	"""ADR1210 G7: the planned first-entry foreman takes one fixed tick after ProductiveWork. Its BUILD Jobs are
+	not ticked there (they resolve to no removal Project), so its Work is earned exactly once, here. A refusal
+	stops the chain and raises its gap alert once; it never fails the settlement tick."""
+	if _underground_entry == null or not _underground_entry.is_running(): return
+	var code: StringName = _underground_entry.advance(tick_index)
+	if code != &"": _alert_underground_entry(code)
+
+
+func _alert_underground_entry(code: StringName) -> void:
+	"""ADR1197 alert rule: the exact refusal code, then the gap row that building it clears."""
+	UIManager.push_refusal(code)
+	UIManager.push_alert(UndergroundEntryRuntime.gap_of(code))
 
 
 func _plan_jobs(tick_index: int) -> void:
@@ -2280,17 +2590,20 @@ func _select_jobs(tick_index: int) -> void:
 
 
 func _resolve_and_select(tick_index: int) -> void:
-	"""The fused resolve/select pass: one resident is resolved immediately before it is offered."""
+	"""The fused resolve/select pass: one resident is resolved immediately before it is offered.
+
+	ADR1226 (REQ-SET-034): a busy resident is resolved on its staggered tick too, so its Work rests at the next safe
+	point when its hour forbids work, and resumes when it permits; only an idle resident is offered a job.
+	"""
 	var hour: int = _hour_of(tick_index)
 	for index: int in _live_count:
 		var slot: int = _live_slots[index]
-		if not _jobs.should_evaluate(slot, tick_index):
-			continue
-		if not _residents.is_alive(slot):
+		if not _jobs.is_due(slot, tick_index) or not _residents.is_alive(slot):
 			continue
 		if not _schedule.resolve_into(slot, hour, PREPARED_MEAL_REACHABLE, _read):
 			continue
-		_offer_a_job(slot, tick_index)
+		if _jobs.should_evaluate(slot, tick_index):
+			_offer_a_job(slot, tick_index)
 
 
 func _offer_a_job(resident_slot: int, tick_index: int) -> void:
@@ -2378,6 +2691,8 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
 	it, in that order, because they have no owner (header). Nothing is reordered and no unowned
 	leg is faked: `daily_leg_at()` reports what actually ran.
 	"""
+	if _underground_mutations_stopped():
+		return _refuse(&"UNDERGROUND_HOST_RESETTING")
 	_daily_leg_count = 0
 	if absolute_day <= 0:
 		return _refuse(REFUSE_INVALID_DAY)
@@ -2866,6 +3181,16 @@ func work() -> WorkScript:
 	return _work
 
 
+func gear() -> GearScript:
+	"""The one Gear owner sharing this settlement's Inventory, Directory, Residents and Work."""
+	return _gear
+
+
+func haul_carry() -> HaulCarryScript:
+	"""The one carry service over the real stock, claims, resident satchels and finite ground piles."""
+	return _haul_carry
+
+
 func commands() -> CommandsScript:
 	"""ARCH-CMD-001's ordered next-tick queue. A UI submits here; nothing else edits the stores."""
 	return _commands
@@ -2944,6 +3269,13 @@ func construction() -> ConstructionScript:
 
 # --- REQ-SET-128: the composed demolition gate (INV-GOODS-R01) ---------------------------------
 
+func _retirement_project_refusal() -> DemolitionReport:
+	"""Caller-visible report only; a pending whole-World reset admits no ordinary project mutation."""
+	_demolition.reset()
+	_demolition.error = &"UNDERGROUND_HOST_RESETTING"
+	return _demolition
+
+
 func request_demolition(building_ref: Vector2i) -> DemolitionReport:
 	"""REQ-SET-128's composed gate, then blocker 1's *admit*, in one call with no yield.
 
@@ -2980,6 +3312,8 @@ func preview_demolition(building_ref: Vector2i) -> DemolitionReport:
 	rule (decision 0535), a read-only fact *admit* would refuse on, so a preview that passes is
 	one *admit* can act on. `report.ok` here means only that *admit* may run.
 	"""
+	if _underground_mutations_stopped():
+		return _retirement_project_refusal()
 	_demolition.reset()
 	var code: StringName = _refuse_demolition_subject(building_ref)
 	if code == REFUSE_NONE:
@@ -3508,6 +3842,8 @@ func cancel_demolition(building_ref: Vector2i) -> StringName:
 	H1); `close_refund()` refuses a demolition by name (0536). Every check runs before the first
 	write; the building returns to ACTIVE, the record is cleared and the revision advances.
 	"""
+	if _underground_mutations_stopped():
+		return &"UNDERGROUND_HOST_RESETTING"
 	var project: Vector2i = _construction.project_of_building(building_ref)
 	var code: StringName = _cancel_refusal(building_ref, project,
 		ConstructionScript.PURPOSE_DEMOLISH)
@@ -3567,6 +3903,8 @@ func release_stranded_reservation(building_ref: Vector2i) -> StringName:
 	The latter's project is retired first (nothing is returned: its piece is gone). The claim is
 	released from the recorded store and the record cleared. Refuses NOT_STRANDED otherwise.
 	"""
+	if _underground_mutations_stopped():
+		return &"UNDERGROUND_HOST_RESETTING"
 	var project: Vector2i = _admissions.project_of(building_ref)
 	var orphaned: bool = _is_orphaned_removal(project)
 	if not orphaned and (project != EntityDirectoryScript.NULL_REF
@@ -3617,6 +3955,8 @@ func complete_demolition(building_ref: Vector2i) -> DemolitionReport:
 	inventory-only block writes nothing and leaves the project PHASE_WORK_DONE: commit-pending,
 	and a retry costs nothing (ECON-003). Later refusals are unreachable guards (decision 0535).
 	"""
+	if _underground_mutations_stopped():
+		return _retirement_project_refusal()
 	_demolition.reset()
 	var project: Vector2i = _construction.project_of_building(building_ref)
 	var row: int = _demolition_work.row_of(building_ref)
@@ -3946,6 +4286,8 @@ func preview_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
 	it is a shelf in a pantry room, the building's pantry store still fits its contents and
 	reservations at the capacity left without it (DEMO-CONTAIN-R01 #3b). CHANGES NOTHING.
 	"""
+	if _underground_mutations_stopped():
+		return _retirement_project_refusal()
 	_demolition.reset()
 	var code: StringName = _removal_subject_refusal(piece_ref)
 	if code == REFUSE_NONE:
@@ -3983,6 +4325,8 @@ func complete_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
 	the claim and the record, lowers the pantry capacity it carried (#3b), removes the piece,
 	places its 50% and retires the project. Refusals write nothing and stay commit-pending.
 	"""
+	if _underground_mutations_stopped():
+		return _retirement_project_refusal()
 	_demolition.reset()
 	var building: Vector2i = _building_of_piece(piece_ref)
 	var project: Vector2i = _construction.project_of_subject(piece_ref)
@@ -3998,6 +4342,8 @@ func complete_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
 
 func cancel_furniture_removal(piece_ref: Vector2i) -> StringName:
 	"""Cancel an admitted piece removal: release its claim, retire it, clear the record. Free (R5)."""
+	if _underground_mutations_stopped():
+		return &"UNDERGROUND_HOST_RESETTING"
 	if not _buildings.is_live_furniture(piece_ref):
 		return REFUSE_REMOVAL_STALE_PIECE
 	var building: Vector2i = _building_of_piece(piece_ref)
@@ -4191,6 +4537,8 @@ static func is_evacuable_refusal(code: StringName) -> bool:
 
 func cancel_evacuation(building_ref: Vector2i) -> StringName:
 	"""Withdraw a building's "evacuate, then demolish" order. Nothing else changes."""
+	if _underground_mutations_stopped():
+		return &"UNDERGROUND_HOST_RESETTING"
 	return _demolition_work.cancel_intent(building_ref)
 
 

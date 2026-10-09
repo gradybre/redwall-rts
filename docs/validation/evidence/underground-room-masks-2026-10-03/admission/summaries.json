@@ -1,0 +1,157 @@
+[
+  {
+    "run": "rejected-1-state-image",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "11 test(s), 371 assertion(s), 10 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "error: 10 failing test(s)."
+    ]
+  },
+  {
+    "run": "rejected-2-handshake",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "11 test(s), 371 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 11 tests, 371 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "rejected-2-handshake",
+    "suite": "test_underground_room_orders.log",
+    "lines": [
+      "28 test(s), 1457 assertion(s), 1 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "error: 1 failing test(s)."
+    ]
+  },
+  {
+    "run": "rejected-3-foreign-world",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "14 test(s), 475 assertion(s), 1 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "error: 1 failing test(s)."
+    ]
+  },
+  {
+    "run": "rejected-4-refusal-expectation",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "14 test(s), 476 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 14 tests, 476 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "rejected-4-refusal-expectation",
+    "suite": "test_underground_room_bindings.log",
+    "lines": [
+      "17 test(s), 604 assertion(s), 1 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "error: 1 failing test(s)."
+    ]
+  },
+  {
+    "run": "rejected-4-refusal-expectation",
+    "suite": "test_underground_room_orders.log",
+    "lines": [
+      "28 test(s), 1457 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 28 tests, 1457 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "rejected-5-test-alias",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "14 test(s), 426 assertion(s), 15 failure(s)",
+      "diagnostics: 1 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "error: 15 failing test(s)."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_furniture_work.log",
+    "lines": [
+      "15 test(s), 4628 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 15 tests, 4628 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_layout_sources.log",
+    "lines": [
+      "8 test(s), 340 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 8 tests, 340 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "14 test(s), 476 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 14 tests, 476 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_room_bindings.log",
+    "lines": [
+      "17 test(s), 604 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 17 tests, 604 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_room_orders.log",
+    "lines": [
+      "28 test(s), 1457 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 28 tests, 1457 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_world_bindings.log",
+    "lines": [
+      "37 test(s), 828 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 37 tests, 828 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "baseline-seven-suites",
+    "suite": "test_underground_world_room_bindings.log",
+    "lines": [
+      "8 test(s), 83 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 8 tests, 83 assertions, 0 failures."
+    ]
+  },
+  {
+    "run": "final-lifetime-delta",
+    "suite": "test_underground_room_admission.log",
+    "lines": [
+      "15 test(s), 504 assertion(s), 0 failure(s)",
+      "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "ok: 15 tests, 504 assertions, 0 failures."
+    ]
+  }
+]

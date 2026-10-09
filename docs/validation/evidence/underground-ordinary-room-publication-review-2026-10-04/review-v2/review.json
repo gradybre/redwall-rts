@@ -1,0 +1,456 @@
+{
+  "verdict": "ACCEPTED_SCOPED_ROOT_ORDINARY_PUBLICATION_TAIL_AND_TYPE_PARITY_DELTA",
+  "source_manifest_matches": true,
+  "no_reviewer_Godot_run": true,
+  "reviewed_runtime_paths": [
+    "godot/scripts/core/underground_room_orders.gd",
+    "godot/scripts/core/excavation_sites.gd",
+    "godot/scripts/core/buildings.gd"
+  ],
+  "reviewed_test_paths": [
+    "godot/test/test_underground_room_orders.gd",
+    "godot/test/test_excavation_claim_batch.gd",
+    "godot/test/test_underground_furniture_work.gd"
+  ],
+  "context_pins": [
+    "godot/scripts/core/underground_final_facts.gd",
+    "godot/scripts/core/underground_locations.gd",
+    "godot/scripts/core/underground_space_owner.gd",
+    "godot/test/test_underground_final_facts.gd",
+    "godot/test/test_underground_room_publication.gd"
+  ],
+  "retained_fields": {
+    "godot/scripts/core/underground_room_orders.gd": {
+      "unchanged": true
+    },
+    "godot/scripts/core/excavation_sites.gd": {
+      "unchanged": true
+    },
+    "godot/scripts/core/buildings.gd": {
+      "unchanged": true
+    }
+  },
+  "producer_runs": [
+    {
+      "producer_path": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1",
+      "manifest": {
+        "godot/scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+        "godot/scripts/core/excavation_sites.gd": "411b9d5dad3a30c6b124591250a6c353e9b1e8978c9184049103418083de2942",
+        "godot/scripts/core/buildings.gd": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba",
+        "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+        "godot/scripts/core/underground_locations.gd": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd",
+        "godot/scripts/core/underground_final_facts.gd": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+        "godot/test/test_underground_room_orders.gd": "6f902af38169117f5bea539c03531435c291f4cf9dc8e244931f0bd960c16918",
+        "godot/test/test_excavation_claim_batch.gd": "c89417f5f7b641afc1b7c69407d6df6db7d6bb5cfdf6a540cbf9e34a09a8ead8",
+        "godot/test/test_underground_furniture_work.gd": "d364168364c1151933bd787972bbdd7f92724befc12124e30dd8e9fd5c6e5a09",
+        "godot/test/test_underground_final_facts.gd": "8195be7d9a97c62fd0f43a9903cf9526ad5d634d9429491e4b6a9ed67b7fa037",
+        "godot/test/test_underground_room_publication.gd": "0c10cb87c93e88fdb28d9dd6c3ca70be36eabdcdd39e64a37c7523bc7353a572"
+      },
+      "invocation_sha256": "14f9a6a9031e4c91860a33e8d5b3d77d5cbec82d125313d8ec989c5954f39e67",
+      "suites": [
+        {
+          "assertions": 906,
+          "failures": 0,
+          "suite": "test_buildings.gd",
+          "tests": 63,
+          "usec": 1679548
+        },
+        {
+          "assertions": 434,
+          "failures": 0,
+          "suite": "test_buildings_spatial.gd",
+          "tests": 21,
+          "usec": 1050750
+        },
+        {
+          "assertions": 331,
+          "failures": 0,
+          "suite": "test_excavation_claim_batch.gd",
+          "tests": 10,
+          "usec": 1469984
+        },
+        {
+          "assertions": 797,
+          "failures": 0,
+          "suite": "test_underground_entry_orders.gd",
+          "tests": 19,
+          "usec": 4911123
+        },
+        {
+          "assertions": 466,
+          "failures": 0,
+          "suite": "test_underground_entry_placements.gd",
+          "tests": 13,
+          "usec": 4762299
+        },
+        {
+          "assertions": 1175,
+          "failures": 0,
+          "suite": "test_underground_final_facts.gd",
+          "tests": 31,
+          "usec": 2059363
+        },
+        {
+          "assertions": 4628,
+          "failures": 0,
+          "suite": "test_underground_furniture_work.gd",
+          "tests": 15,
+          "usec": 2043798
+        },
+        {
+          "assertions": 1731,
+          "failures": 0,
+          "suite": "test_underground_locations.gd",
+          "tests": 57,
+          "usec": 2349821
+        },
+        {
+          "assertions": 1772,
+          "failures": 0,
+          "suite": "test_underground_room_orders.gd",
+          "tests": 37,
+          "usec": 3153857
+        },
+        {
+          "assertions": 179,
+          "failures": 0,
+          "suite": "test_underground_room_publication.gd",
+          "tests": 10,
+          "usec": 934187
+        },
+        {
+          "assertions": 5461,
+          "failures": 0,
+          "suite": "test_underground_space_owner.gd",
+          "tests": 113,
+          "usec": 5410987
+        }
+      ],
+      "tests": 389,
+      "assertions": 17880,
+      "failures": 0,
+      "all_strict_and_raw_diagnostic_and_leak_counts_zero": true,
+      "analyzer_log": "0 GDScript warning(s) in 0 of 11 file(s)",
+      "restoration": {
+        "commands": [
+          {
+            "command": [
+              "godot",
+              "--headless",
+              "--path",
+              "godot",
+              "--editor",
+              "--quit"
+            ],
+            "exit_code": 0,
+            "seconds": 10.808,
+            "log": "clean-import.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "95/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 5.929,
+            "log": "test_underground_room_orders.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "224/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 4.303,
+            "log": "test_excavation_claim_batch.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "227/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 3.8,
+            "log": "test_underground_room_publication.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "129/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 4.967,
+            "log": "test_underground_final_facts.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "68/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 5.167,
+            "log": "test_underground_locations.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "45/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 8.243,
+            "log": "test_underground_space_owner.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "174/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 7.792,
+            "log": "test_underground_entry_orders.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "167/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 7.589,
+            "log": "test_underground_entry_placements.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "127/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 4.88,
+            "log": "test_underground_furniture_work.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "92/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 4.501,
+            "log": "test_buildings.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "149/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1"
+            ],
+            "exit_code": 0,
+            "seconds": 3.882,
+            "log": "test_buildings_spatial.gd.log"
+          },
+          {
+            "command": [
+              "python3",
+              "tools/gdscript_warnings.py",
+              "--max",
+              "0",
+              "--port",
+              "6205",
+              "--json",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/diagnostic-1/analyzer.json",
+              "godot/scripts/core/underground_room_orders.gd",
+              "godot/scripts/core/excavation_sites.gd",
+              "godot/scripts/core/buildings.gd",
+              "godot/scripts/core/underground_space_owner.gd",
+              "godot/scripts/core/underground_locations.gd",
+              "godot/scripts/core/underground_final_facts.gd",
+              "godot/test/test_underground_room_orders.gd",
+              "godot/test/test_excavation_claim_batch.gd",
+              "godot/test/test_underground_furniture_work.gd",
+              "godot/test/test_underground_final_facts.gd",
+              "godot/test/test_underground_room_publication.gd"
+            ],
+            "exit_code": 0,
+            "seconds": 13.778,
+            "log": "analyzer.log"
+          }
+        ],
+        "source_unchanged": true,
+        "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+        "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+        "custom_user_dir_name": "Redwall-ug-room-tail-20261004",
+        "project_test_sha256": "91f634f46588775c7bd88c856ef223a0ccfb8888cdbb3b93d4408e03fa77e76b",
+        "assets_present_before": false,
+        "registry_restored": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "exit_code": 0
+      }
+    },
+    {
+      "producer_path": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/focused-2",
+      "manifest": {
+        "godot/scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+        "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+        "godot/scripts/core/buildings.gd": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba",
+        "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+        "godot/scripts/core/underground_locations.gd": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd",
+        "godot/scripts/core/underground_final_facts.gd": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+        "godot/test/test_underground_room_orders.gd": "99fc2a769bc9d5923ab0a40c313ca6829e7216d54773af846d14cf6743ad7ec5",
+        "godot/test/test_excavation_claim_batch.gd": "c89417f5f7b641afc1b7c69407d6df6db7d6bb5cfdf6a540cbf9e34a09a8ead8",
+        "godot/test/test_underground_furniture_work.gd": "d364168364c1151933bd787972bbdd7f92724befc12124e30dd8e9fd5c6e5a09",
+        "godot/test/test_underground_final_facts.gd": "8195be7d9a97c62fd0f43a9903cf9526ad5d634d9429491e4b6a9ed67b7fa037",
+        "godot/test/test_underground_room_publication.gd": "0c10cb87c93e88fdb28d9dd6c3ca70be36eabdcdd39e64a37c7523bc7353a572"
+      },
+      "invocation_sha256": "9ffef4e74f2eb5602fde572de8de8d4dd598b44a9e73aeacf43bfcb9aedd703b",
+      "suites": [
+        {
+          "assertions": 434,
+          "failures": 0,
+          "suite": "test_buildings_spatial.gd",
+          "tests": 21,
+          "usec": 1106088
+        },
+        {
+          "assertions": 331,
+          "failures": 0,
+          "suite": "test_excavation_claim_batch.gd",
+          "tests": 10,
+          "usec": 1490863
+        },
+        {
+          "assertions": 1803,
+          "failures": 0,
+          "suite": "test_underground_room_orders.gd",
+          "tests": 38,
+          "usec": 3198601
+        }
+      ],
+      "tests": 69,
+      "assertions": 2568,
+      "failures": 0,
+      "all_strict_and_raw_diagnostic_and_leak_counts_zero": true,
+      "analyzer_log": "0 GDScript warning(s) in 0 of 11 file(s)",
+      "restoration": {
+        "commands": [
+          {
+            "command": [
+              "godot",
+              "--headless",
+              "--path",
+              "godot",
+              "--editor",
+              "--quit"
+            ],
+            "exit_code": 0,
+            "seconds": 11.09,
+            "log": "clean-import.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "94/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/focused-2"
+            ],
+            "exit_code": 0,
+            "seconds": 6.035,
+            "log": "test_underground_room_orders.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "224/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/focused-2"
+            ],
+            "exit_code": 0,
+            "seconds": 4.37,
+            "log": "test_excavation_claim_batch.gd.log"
+          },
+          {
+            "command": [
+              "./tools/run_tests.sh",
+              "--shard",
+              "149/395",
+              "--output-dir",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/focused-2"
+            ],
+            "exit_code": 0,
+            "seconds": 3.88,
+            "log": "test_buildings_spatial.gd.log"
+          },
+          {
+            "command": [
+              "python3",
+              "tools/gdscript_warnings.py",
+              "--max",
+              "0",
+              "--port",
+              "6205",
+              "--json",
+              "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-tail-integration-2026-10-04/focused-2/analyzer.json",
+              "godot/scripts/core/underground_room_orders.gd",
+              "godot/scripts/core/excavation_sites.gd",
+              "godot/scripts/core/buildings.gd",
+              "godot/scripts/core/underground_space_owner.gd",
+              "godot/scripts/core/underground_locations.gd",
+              "godot/scripts/core/underground_final_facts.gd",
+              "godot/test/test_underground_room_orders.gd",
+              "godot/test/test_excavation_claim_batch.gd",
+              "godot/test/test_underground_furniture_work.gd",
+              "godot/test/test_underground_final_facts.gd",
+              "godot/test/test_underground_room_publication.gd"
+            ],
+            "exit_code": 0,
+            "seconds": 13.848,
+            "log": "analyzer.log"
+          }
+        ],
+        "source_unchanged": true,
+        "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+        "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+        "custom_user_dir_name": "Redwall-ug-room-tail-20261004",
+        "project_test_sha256": "91f634f46588775c7bd88c856ef223a0ccfb8888cdbb3b93d4408e03fa77e76b",
+        "assets_present_before": false,
+        "registry_restored": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "exit_code": 0
+      }
+    }
+  ],
+  "reviewer_scope": "Source review plus independent source-derived conservative logical frames; actual approach admission remains separate."
+}

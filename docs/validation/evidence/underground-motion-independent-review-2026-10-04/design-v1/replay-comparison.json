@@ -1,0 +1,13 @@
+{
+  "exit": 0,
+  "all_payload_and_source_pins_equal": true,
+  "historical_heads": {
+    "runtime": "fa017ba4aa8bd9620d397f5713dc6e577a4164d0",
+    "source": "414ecec741fe98fdc008600f169300eb0f9ab88e"
+  },
+  "read_only_replay_heads": {
+    "runtime": "4e0d2811bec3d19f864edae8edf3e1d7d284a135",
+    "source": "0cb7eecf88938fb5815c9974c16c5baf9a887124"
+  },
+  "engine_run": false
+}

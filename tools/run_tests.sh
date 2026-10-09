@@ -17,7 +17,13 @@
 # zero; raising one needs a decision record that names what is allowed and why.
 #
 # Usable locally as well as in CI: ./tools/run_tests.sh
-# Optional CI selection: ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
+# Optional CI selection: ./tools/run_tests.sh --shard 0/10 --output-dir artifacts/test-shards
+# Focused local run:     ./tools/run_tests.sh --suite test_a.gd [--suite test_b.gd ...]
+#   Same guards and zero allowances; only suite selection changes. A focused pass is never a full-suite claim.
+# Test tiers (decision 1240):  ./tools/run_tests.sh --fast   every suite except the slow tier
+#                              ./tools/run_tests.sh --slow   the slow tier alone
+#   The slow tier is declared in godot/test/slow_suites.json. Per-commit work runs --fast plus its focused suites;
+#   milestones run the default (complete) suite, and CI always runs every suite in both tiers.
 set -uo pipefail
 
 readonly MAX_UNEXPECTED_ERRORS=0
@@ -38,9 +44,26 @@ fi
 godot_script="test/run_tests.gd"
 shard_spec=""
 shard_output_dir=""
-if [[ "$#" -gt 0 ]]; then
+focused_suites=()
+if [[ "$#" -eq 1 && ( "$1" == --fast || "$1" == --slow ) ]]; then
+    REDWALL_TEST_SHARD_SUITES="$(python3 tools/ci_test_shards.py tier "${1#--}")" || exit 1
+    export REDWALL_TEST_SHARD_SUITES
+    godot_script="$repo_root/tools/ci_test_shard_runner.gd"
+elif [[ "$#" -gt 0 && "$1" == --suite ]]; then
+    while [[ "$#" -gt 0 ]]; do
+        if [[ "$1" != --suite || "$#" -lt 2 || -z "$2" ]]; then
+            echo "usage: $0 --suite NAME.gd [--suite NAME.gd ...]" >&2
+            exit 2
+        fi
+        focused_suites+=("$2")
+        shift 2
+    done
+    REDWALL_TEST_SHARD_SUITES="$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' "${focused_suites[@]}")"
+    export REDWALL_TEST_SHARD_SUITES
+    godot_script="$repo_root/tools/ci_test_shard_runner.gd"
+elif [[ "$#" -gt 0 ]]; then
     if [[ "$#" -ne 4 || "$1" != --shard || "$3" != --output-dir || -z "$4" ]]; then
-        echo "usage: $0 [--shard INDEX/COUNT --output-dir DIR]" >&2
+        echo "usage: $0 [--fast | --slow | --shard INDEX/COUNT --output-dir DIR | --suite NAME.gd ...]" >&2
         exit 2
     fi
     shard_spec="$2"
@@ -60,11 +83,23 @@ fi
 # failure whether or not the Godot suite is green.
 python3 "$repo_root/docs/validation/state_registry_coverage.py" || exit 1
 
+# ADR 1192: a consumer script edited without renewing the active profile publication's pins makes
+# every profile consumer refuse MOLE_CATALOG_SOURCE_DRIFT. Name the stale file instead of 150 failures.
+python3 "$repo_root/tools/renew_source_pins.py" --check || {
+    echo "error: stale source pins; run python3 tools/renew_source_pins.py --write in the same commit." >&2
+    exit 1
+}
+
+# Fixtures write fixed user:// paths. user:// is per project name, so every checkout and every
+# concurrent run shared one directory and overwrote each other's files mid-test (ADR 1204).
+# Each run gets its own empty user:// (HOME on macOS, XDG_DATA_HOME on Linux), removed on exit.
+test_home="$(mktemp -d)"
 if [[ -n "$shard_spec" ]]; then
     output_file="$shard_output_dir/shard-$shard_index.log"
+    trap 'rm -rf "$test_home"' EXIT
 else
     output_file="$(mktemp)"
-    trap 'rm -f "$output_file"' EXIT
+    trap 'rm -f "$output_file"; rm -rf "$test_home"' EXIT
 fi
 
 report_line() {
@@ -75,7 +110,8 @@ report_line() {
 }
 
 shard_started_seconds="$SECONDS"
-godot --headless --path godot --script "$godot_script" 2>&1 | tee "$output_file"
+HOME="$test_home" XDG_DATA_HOME="$test_home/.local/share" \
+    godot --headless --path godot --script "$godot_script" 2>&1 | tee "$output_file"
 godot_status="${PIPESTATUS[0]}"
 
 summary="$(grep -E '^[0-9]+ test\(s\), [0-9]+ assertion\(s\), [0-9]+ failure\(s\)$' \

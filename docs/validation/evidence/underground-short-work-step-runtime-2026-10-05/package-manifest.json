@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "base": "116f2f2e7b6c5334af7e18a34457fd3c6cc1a34d",
+  "scope": "Accepted ADR1168 component; diagnostic geometry/source publication only",
+  "accepted": true,
+  "production_publication_qualified": false,
+  "world_activation_qualified": false,
+  "native_memory_qualified": false,
+  "performance_qualified": false,
+  "manifests": {
+    "source-review-2/source-sha256.json": {
+      "sha256": "1bc01db521fcf1a3a806e1f42385d465773df46609c9eab1a5c2b6dab809cf9b",
+      "count": 21
+    },
+    "output-sha256.json": {
+      "sha256": "949102cbbcd4ec7807edf4a5b900dcb31970301966419b45d651641a069b5de4",
+      "count": 173
+    },
+    "history-sha256.json": {
+      "sha256": "baa365bd3a5281cafc48cc2c123cf1637dc5b9d0226dddd23e614481ec256007",
+      "count": 270
+    },
+    "inputs-sha256.json": {
+      "sha256": "9e087e4b645dbc9e1b967f7262468f4e25673aaa46fbaa8d22dd44c68d7126b8",
+      "count": 402
+    }
+  },
+  "independent_acceptance_sha256": "6613e4cfa8c1b3a17b779d19bff46f8fb16b6115da5f50f47fc5f8a78818a37e",
+  "independent_review_commit": "1bc81d47d84c980e4f88e070e908347df204eb25"
+}

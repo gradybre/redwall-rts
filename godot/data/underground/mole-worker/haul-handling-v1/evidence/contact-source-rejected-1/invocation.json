@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py",
+    "--palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+    "--grip-palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+    "--out",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/contact-source-v1"
+  ],
+  "exit_code": 1,
+  "source_sha256": "8d9b63927298ca963c65b3cca8dd40106bee7575bb29fd22679cd31ffa0733a2",
+  "expected_rejection": "STEP_LEG_REACH",
+  "output_created": false,
+  "status": "rejected authored fixed-link candidate; no runtime qualification"
+}

@@ -1,0 +1,65 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.844,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "321/403",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-frontier-publication/docs/validation/evidence/underground-room-frontier-publication-2026-10-04/draft-4"
+      ],
+      "exit_code": 0,
+      "seconds": 4.287,
+      "log": "test_underground_room_frontier_publication.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6361",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-frontier-publication/docs/validation/evidence/underground-room-frontier-publication-2026-10-04/draft-4/analyzer.json",
+        "godot/scripts/core/underground_room_frontier_publication.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/scripts/core/underground_work_face.gd",
+        "godot/scripts/core/underground_final_facts.gd",
+        "godot/test/test_underground_room_frontier_publication.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 13.915,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-room-frontier-publication",
+  "project_test_sha256": "39e090d12ff9debf910f80296bf6603e5fc5136df887ea47a5e479d366b0cbef",
+  "assets_present_before": false,
+  "borrowed_registry_sha256": "22fa9be7026e3b76b1ab22002550b94a50e425f376095f335d967f947ec3aed0",
+  "registry_diagnostic_sha256": "8d0f62bbbeb8f9187e31cf44cdd5b862a59cf0deaeb5204a429b38796420a10c",
+  "registry_sha256_before": "390d3a9e009d6e8eddbc034b9decf4c0f0c895c5d955f04e43ffd7a25a46fb94",
+  "registry_diagnostic_append_sha256": "61e35bcb7275713b8544b081023b3efd544f088aa6e49ff3569cfc170a657395",
+  "clean_import_raw_diagnostics": 0,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

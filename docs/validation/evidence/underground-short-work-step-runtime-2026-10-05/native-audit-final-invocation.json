@@ -1,0 +1,11 @@
+{
+  "source": "godot/data/underground/mole-worker/work-step-v1/test_run_canonical.py",
+  "source_sha256": "95b50785f9261e83d920c220eb7d5c2c450aec447175dbd06bd9cc58e35ef5d7",
+  "interpreter": "bundled Python -B with NumPy",
+  "explicit_replay_override": "module.REPLAY = module.M.ROOT / docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-4",
+  "runner": "unittest.defaultTestLoader.loadTestsFromModule(module); TextTestRunner(verbosity=2)",
+  "result_log": "native-audit-tests-final.log",
+  "tests": 15,
+  "failures": 0,
+  "source_modified": false
+}

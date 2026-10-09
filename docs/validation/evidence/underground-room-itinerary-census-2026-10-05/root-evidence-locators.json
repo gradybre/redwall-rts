@@ -1,0 +1,46 @@
+{
+  "reviewed-root-evidence/invocation.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/invocation.json",
+    "sha256": "7280d9946a47b4ba1b1ff4b73929ca3055ad18587ee74986e4a5f1451317dbd5"
+  },
+  "reviewed-root-evidence/shard-254.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/shard-254.json",
+    "sha256": "56efdd418f36c46893176864eebd8237227a68f7b638dd64e95c2227ee789384"
+  },
+  "reviewed-root-evidence/shard-133.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/shard-133.json",
+    "sha256": "e7bded5d09db0b130da9dd82e90a39740afdb34ee6313003b59d1e93c5c91ccf"
+  },
+  "reviewed-root-evidence/shard-247.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/shard-247.json",
+    "sha256": "4d093a51cf6a9d28d8a2b7fb54b622c0031d7d2ec356bfb2514e4ed24bccc624"
+  },
+  "reviewed-root-evidence/test_underground_room_itinerary.gd.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/test_underground_room_itinerary.gd.log",
+    "sha256": "8199f77b2e18030b0532ffec733b20828f01950fc5f319e851fabba8f5c625f1"
+  },
+  "reviewed-root-evidence/test_underground_room_world_phases.gd.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/test_underground_room_world_phases.gd.log",
+    "sha256": "7da2cb22e8b4676eb237201cc4af938fec50c0f436e119407cb58fe0bd9a5f5f"
+  },
+  "reviewed-root-evidence/test_underground_room_frontier.gd.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/integration-1/test_underground_room_frontier.gd.log",
+    "sha256": "77e1aca9446223fbbf25c32aece0f0b72a01c0ccab63133b541d9433479244ae"
+  },
+  "reviewed-root-evidence/analyzer-1.json": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/analyzer-1.json",
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "reviewed-root-evidence/analyzer-1.log": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-itinerary-2026-10-05/analyzer-1.log",
+    "sha256": "77771551fcde99b8d9f7f6c8a245f17e7847017408188b493b2068226c178eca"
+  },
+  "reviewed-root-evidence/test-source.gd.txt": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/test/test_underground_room_itinerary.gd",
+    "sha256": "47d3c709204743e3364baa872e128aabad2b1813eab85bd2871cbf3cee68301d"
+  },
+  "reviewed-root-evidence/1165-draft.md.txt": {
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/decisions/1165-source-compatible-room-itineraries.md",
+    "sha256": "a28a9a9435fe08f6c2d89bc25931527391db9f55da8653fbd45a77fe296d8abe"
+  }
+}

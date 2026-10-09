@@ -1,0 +1,305 @@
+--- candidate13/godot/test/test_underground_room_approach.gd
++++ corrected/godot/test/test_underground_room_approach.gd
+@@ -26,6 +26,9 @@
+ const MaskFixture := preload("res://test/test_underground_room_bindings.gd")
+ const Directory := preload("res://scripts/core/entity_directory.gd")
+ const BuildingCatalog := preload("res://scripts/core/catalog.gd")
++const World := preload("res://scripts/core/world_init.gd")
++const Nodes := preload("res://scripts/core/resource_nodes.gd")
++const IntMath := preload("res://scripts/core/int_math.gd")
+ const FLOOR: int = FaceFixture.FLOOR
+ const X: int = Fixture.X
+ const Z: int = Fixture.Z
+@@ -197,6 +200,72 @@
+ 			fired += 1
+ 			action.call()
+ 		return code
++
++
++class FinalReadProbe extends RefCounted:
++	## Count one named observation, then mutate real terrain after its copied value on the last call.
++	var kind: StringName = &""
++	var calls: int = 0
++	var remaining: int = 0
++	var fired: int = 0
++	var action: Callable = Callable()
++
++	func observe(reader: StringName) -> void:
++		"""Arming occurs only after complete preparation; the mutation never supplies a successful proof."""
++		if reader != kind: return
++		calls += 1
++		if not action.is_valid(): return
++		remaining -= 1
++		if remaining != 0: return
++		var callback: Callable = action
++		action = Callable()
++		fired += 1
++		callback.call()
++
++
++class FinalWorld extends World:
++	## Real published World with a one-shot observer only for the final-boundary regression.
++	var probe: FinalReadProbe = null
++
++	func is_published() -> bool:
++		"""Copy the actual publication fact before any armed mutation."""
++		var result: bool = super.is_published()
++		if probe != null: probe.observe(&"world")
++		return result
++
++	func terrain_into(tile: int, out: IntMath.IntResult) -> bool:
++		"""Copy actual terrain into the caller before a possible late observation action."""
++		var result: bool = super.terrain_into(tile, out)
++		if probe != null: probe.observe(&"terrain")
++		return result
++
++
++class FinalNodes extends Nodes:
++	## Real resource store, including the real empty-tile predicate copied before an observer runs.
++	var probe: FinalReadProbe = null
++
++	func ref_at_tile(tile: int) -> Vector2i:
++		"""Return the original real node reference even when the observer subsequently adds a foundation."""
++		var result: Vector2i = super.ref_at_tile(tile)
++		if probe != null: probe.observe(&"nodes")
++		return result
++
++
++class FinalBuildings extends Buildings:
++	## Real Room and Building columns; observers never substitute identity or footprint outputs.
++	var probe: FinalReadProbe = null
++
++	func is_live_room(room: Vector2i) -> bool:
++		"""Copy the actual old Room identity before the late final source-tail action."""
++		var result: bool = super.is_live_room(room)
++		if probe != null: probe.observe(&"room")
++		return result
++
++	func building_at_tile(tile: int) -> Vector2i:
++		"""Copy the real empty footprint before adding a new real well to a previously checked target."""
++		var result: Vector2i = super.building_at_tile(tile)
++		if probe != null: probe.observe(&"building")
++		return result
+ 
+ 
+ class AdmissionFixture extends ActualFixture:
+@@ -288,6 +357,47 @@
+ 		super.after_each()
+ 
+ 
++class FinalFixture extends AdmissionFixture:
++	## Only the actual World/Nodes/Buildings classes gain observers; all production composition remains identical.
++	func _actual_fixture(obstruction: int = 0) -> void:
++		"""Construct the same owner set with genuine mutable-reader hooks, before binding any provider."""
++		_residents = Residents.new()
++		_jobs = Jobs.new(_residents)
++		_nodes = FinalNodes.new(_residents.directory())
++		var forage: Forage = Forage.new(_residents.directory(), _jobs)
++		var fishing: Fishing = Fishing.new(_residents.directory(), forage, _jobs)
++		_world = FinalWorld.new(_residents.directory(), _nodes, forage, fishing, Rng.new(), null, null, _jobs)
++		_inventory = Inventory.new(32, 64)
++		_items = Items.new()
++		assert_true(_items.load_default(_inventory).ok, "actual item definitions")
++		assert_true(_world.generate(World.bound_request(_items).request).ok, "actual terrain generated")
++		_world_ref = _residents.directory().create(Directory.KIND_WORLD)
++		_worker = _residents.ref_of(_residents.spawn(&"mouse").value)
++		_transforms = Transforms.new(_residents.directory())
++		assert_true(_transforms.place(_worker, X + 512, 512, Z + 512, 49152), "actual actor pose")
++		_buildings = FinalBuildings.new(_residents.directory())
++		_construction = Construction.new(_buildings)
++		_budget = Budget.new()
++		_actual_profiles()
++		_actual_space(obstruction)
++		_actual_binding()
++		_first = _location(Vector3i(X + 512, 512, Z + 512))
++		_last = _location(Vector3i(X + 1536, 512, Z + 512))
++
++	func watch(probe: FinalReadProbe) -> void:
++		"""Only the already prepared final chain receives the shared one-shot observation probe."""
++		(_world as FinalWorld).probe = probe
++		(_nodes as FinalNodes).probe = probe
++		(_buildings as FinalBuildings).probe = probe
++
++	func after_each() -> void:
++		"""Remove bound test callables before dropping any actual store or the enclosing test case."""
++		var probe: FinalReadProbe = (_world as FinalWorld).probe
++		if probe != null: probe.action = Callable()
++		watch(null)
++		super.after_each()
++
++
+ var _actual: ActualFixture = null
+ var _request: Approach.Request = null
+ var _plan: Orders.RoomPlan = null
+@@ -297,9 +407,9 @@
+ var _original_geometry: PackedByteArray = PackedByteArray()
+ 
+ 
+-func _setup(connected: bool = true, obstruction: int = 0, admission: bool = false) -> void:
++func _setup(connected: bool = true, obstruction: int = 0, admission: bool = false, final_readers: bool = false) -> void:
+ 	"""Only completed fixture geometry is synthetic; actual endpoint/path/source state is never written privately."""
+-	_actual = AdmissionFixture.new() if admission else ActualFixture.new()
++	_actual = FinalFixture.new() if final_readers else (AdmissionFixture.new() if admission else ActualFixture.new())
+ 	_actual._actual_fixture(obstruction)
+ 	if connected: _actual.connect_path()
+ 	assert_true(_actual.failures.is_empty(), "actual setup: %s" % _actual.failures)
+@@ -474,18 +584,18 @@
+ 	assert_equal(_observe(), Budget.REFUSE_BUSY, "undersized existing token refuses before witness allocation")
+ 
+ 
+-func _orders_fixture() -> AdmissionFixture:
++func _orders_fixture(final_readers: bool = false) -> AdmissionFixture:
+ 	"""Return the actual composed fixture after releasing the standalone caller's unrelated lease."""
+-	_setup(true, 0, true)
++	_setup(true, 0, true, final_readers)
+ 	assert_equal(_actual._budget.release(_lease), &"", "standalone lease is not the coordinator's scope")
+ 	_lease = 0
+ 	_original_geometry = _actual._owner.state_bytes()
+ 	return _actual as AdmissionFixture
+ 
+ 
+-func _prepared_room() -> AdmissionFixture:
++func _prepared_room(final_readers: bool = false) -> AdmissionFixture:
+ 	"""Execute real ordinary admission/preparation and claim preparation without publishing the future identity."""
+-	var fixture: AdmissionFixture = _orders_fixture()
++	var fixture: AdmissionFixture = _orders_fixture(final_readers)
+ 	fixture.orders._stage_action = Orders.ROOM_ADMISSION_STAGE
+ 	fixture.orders._room_request = _request
+ 	var code: StringName = fixture.orders._begin_room_cold(fixture.rooms, _request)
+@@ -672,3 +782,136 @@
+ 	assert_true(_claimed_point(fixture, result.ref, _request.origin_u + Vector3i(256, 1, 768)), "drawn fine cell is claimed")
+ 	assert_false(_claimed_point(fixture, result.ref, _request.origin_u + Vector3i(768, 1, 768)), "fine centre hole stays outside Room")
+ 	assert_equal(_request.cells, original, "exact caller fine cells preserved")
++
++
++func _final_reader_case(kind: StringName) -> void:
++	"""An armed last real reader must remain completely uncalled by the entire final source/Terrain chain."""
++	var fixture: FinalFixture = _prepared_room(true) as FinalFixture
++	if fixture == null: return
++	var probe: FinalReadProbe = FinalReadProbe.new()
++	probe.kind = kind
++	fixture.watch(probe)
++	assert_equal(_final_room(fixture), &"", "complete original prepared proof")
++	probe.remaining = maxi(1, probe.calls)
++	probe.calls = 0
++	probe.action = _late_foundation
++	var before: int = fixture._buildings._b_live_count
++	assert_equal(_final_room(fixture), &"", "static final reads preserve the unchanged real facts")
++	assert_equal(probe.calls, 0, "no overridable final %s reader" % kind)
++	assert_equal(probe.fired, 0, "no side effect after copied observation")
++	assert_equal(fixture._buildings._b_live_count, before, "no actual late foundation allocated")
++	probe.action = Callable()
++	fixture.watch(null)
++	if probe.fired == 0: _late_foundation()
++	assert_equal(_final_room(fixture), Terrain.REFUSE_FOUNDATION, "same concrete well is visible to the static leaf")
++
++
++func test_final_world_publication_read_cannot_run_after_terrain_proof() -> void:
++	"""A genuine copied World publication value cannot carry a late actual foundation mutation."""
++	_final_reader_case(&"world")
++
++
++func test_final_world_tile_reader_cannot_mutate_after_copying_terrain() -> void:
++	"""Exact Terrain script identity alone does not make its transitive World reader observer-free."""
++	_final_reader_case(&"terrain")
++
++
++func test_final_resource_reader_cannot_mutate_after_copying_node_identity() -> void:
++	"""The final resource lookup consumes actual packed columns without invoking the mutable node adapter."""
++	_final_reader_case(&"nodes")
++
++
++func test_final_building_tile_reader_cannot_mutate_after_copying_empty_ref() -> void:
++	"""The final static foundation pass does not call a copied-empty footprint observer."""
++	_final_reader_case(&"building")
++
++
++func test_final_room_reader_cannot_run_after_prepared_companion_checks() -> void:
++	"""A source-tail actual Room lookup is also part of the no-observer publication boundary."""
++	_final_reader_case(&"room")
++
++
++func _leaf_box(tile: int, low: int, high: int) -> PackedInt32Array:
++	"""Use exact half-open generated tile bounds, independently of the authored test contact."""
++	var x: int = (tile % 128) * 2048
++	@warning_ignore("integer_division") var z: int = (tile / 128) * 2048
++	return PackedInt32Array([x, low, z, x + 2048, high, z + 2048])
++
++
++func _assert_leaf_parity(fixture: AdmissionFixture, bounds: PackedInt32Array) -> void:
++	"""Compare every existing purpose and conflict identity; the ordinary reader remains the observed oracle."""
++	for purpose: int in range(Terrain.DIG, Terrain.EXCLUSIONS + 1):
++		var code: StringName = fixture.exact_terrain.prepared_local_facts_refusal(bounds, purpose,
++			_request.space_revision, fixture.orders._stage_token, fixture.orders._room_cold_token)
++		var ref: Vector2i = fixture.exact_terrain.last_conflict_ref()
++		var tile: int = fixture.exact_terrain.last_conflict_tile()
++		assert_equal(Terrain.prepared_local_leaf_refusal(fixture.exact_terrain, bounds, purpose,
++			_request.space_revision, fixture.orders._stage_token, fixture.orders._room_cold_token), code, "same purpose/vertical result")
++		assert_equal(fixture.exact_terrain.last_conflict_ref(), ref, "same exact conflict generation")
++		assert_equal(fixture.exact_terrain.last_conflict_tile(), tile, "same local conflict tile")
++
++
++func test_static_terrain_preserves_water_ford_surface_and_local_boundaries() -> void:
++	"""Direct final reads preserve real world masks, role distinctions, half-open faces and the64-tile limit."""
++	var fixture: AdmissionFixture = _prepared_room()
++	if fixture == null: return
++	for tile: int in [50 * 128 + 60, 60 * 128 + 76, 49 * 128 + 77, 5 * 128 + 20, 66 * 128 + 100]:
++		for heights: Vector2i in [Vector2i(-512, 512), Vector2i(512, 513), Vector2i(-384, -128), Vector2i(-128, 0)]:
++			_assert_leaf_parity(fixture, _leaf_box(tile, heights.x, heights.y))
++	_assert_leaf_parity(fixture, PackedInt32Array())
++	_assert_leaf_parity(fixture, PackedInt32Array([-1, 0, 0, 1024, 1, 1024]))
++	_assert_leaf_parity(fixture, PackedInt32Array([0, 0, 0, 262144, 1, 262144]))
++
++
++func test_static_terrain_observes_actual_resource_lifecycle_and_full_generation() -> void:
++	"""New/depleted/regrown/retired sources never borrow old geometry or skip a stale typed mirror."""
++	var fixture: AdmissionFixture = _prepared_room()
++	if fixture == null: return
++	var node: Nodes.OpResult = fixture._nodes.create_at_tile(50 * 128 + 60, fixture._items.compiled_id(&"wood"), 1000, 4, 1)
++	assert_true(node.ok, "actual clear-tile tree")
++	if not node.ok: return
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, -512, 512))
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, 1024, 2048))
++	fixture._nodes._ref_generation[node.value] += 1
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, -512, 512))
++	fixture._nodes._ref_generation[node.value] -= 1
++	assert_true(fixture._nodes.harvest_all(node.value, 2).ok, "actual renewable stump")
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, -512, 512))
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, 1024, 2048))
++	assert_true(fixture._nodes.regrow(node.value, 6).ok, "actual regrowth")
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, 1024, 2048))
++	assert_true(fixture._nodes.destroy(node.ref).ok, "actual retirement")
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, -512, 2048))
++
++
++func test_static_terrain_preserves_actual_rotated_foundation_and_site_envelope() -> void:
++	"""Same real Building identities and rotated footprint survive lower/upper half-open query boundaries."""
++	var fixture: AdmissionFixture = _prepared_room()
++	if fixture == null: return
++	var made: Buildings.OpResult = fixture._buildings.place_building(int(BuildingCatalog.BUILDING_DEFINITION["boathouse"]),
++		50 * 128 + 60, 1, 31)
++	assert_true(made.ok, "actual rotated structure")
++	if not made.ok: return
++	for tile: int in [50 * 128 + 60, 50 * 128 + 61, 51 * 128 + 60]:
++		_assert_leaf_parity(fixture, _leaf_box(tile, -512, 512))
++		_assert_leaf_parity(fixture, _leaf_box(tile, 512, 1024))
++		_assert_leaf_parity(fixture, _leaf_box(tile, -1024, -512))
++	var row: int = fixture._buildings._directory.get_typed_row(made.ref)
++	fixture._buildings._b_ref_generation[row] += 1
++	_assert_leaf_parity(fixture, _leaf_box(50 * 128 + 60, -512, 512))
++	fixture._buildings._b_ref_generation[row] -= 1
++
++
++func test_static_terrain_requires_original_prepared_revision_and_lease() -> void:
++	"""A valid actual local box grants no final read through a different geometry operation or cold token."""
++	var fixture: AdmissionFixture = _prepared_room()
++	if fixture == null: return
++	var bounds: PackedInt32Array = _leaf_box(50 * 128 + 60, -512, 512)
++	assert_equal(Terrain.prepared_local_leaf_refusal(fixture.exact_terrain, bounds, Terrain.DIG,
++		_request.space_revision + 1, fixture.orders._stage_token, fixture.orders._room_cold_token), Terrain.REFUSE_BINDING, "wrong original revision")
++	assert_equal(Terrain.prepared_local_leaf_refusal(fixture.exact_terrain, bounds, Terrain.DIG,
++		_request.space_revision, fixture.orders._stage_token + 1, fixture.orders._room_cold_token), Terrain.REFUSE_BINDING, "foreign Space token")
++	assert_equal(Terrain.prepared_local_leaf_refusal(fixture.exact_terrain, bounds, Terrain.DIG,
++		_request.space_revision, fixture.orders._stage_token, fixture.orders._room_cold_token + 1), Terrain.REFUSE_BINDING, "foreign cold lease")
++	assert_equal(Terrain.prepared_local_leaf_refusal(fixture.exact_terrain, bounds, Terrain.EXCLUSIONS + 1,
++		_request.space_revision, fixture.orders._stage_token, fixture.orders._room_cold_token), Terrain.REFUSE_BOUNDS, "unknown purpose")

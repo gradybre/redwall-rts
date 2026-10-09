@@ -1,0 +1,10 @@
+[
+  "godot",
+  "--headless",
+  "--path",
+  "godot",
+  "--editor",
+  "--quit",
+  "--log-file",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v5/engine-import.log"
+]

@@ -1,0 +1,24 @@
+{
+  "scope": "saved presentation evidence only",
+  "manifests": {
+    "source": 15,
+    "output": 87,
+    "history": 166,
+    "input": 371
+  },
+  "native": {
+    "poses": 3795,
+    "joins": 12,
+    "images": 7,
+    "native_cases": 3,
+    "assertions": 129214,
+    "identity_checks": 3795,
+    "world_qualified": false,
+    "numerical_qualified": false
+  },
+  "source_closure_count": 1923,
+  "logical_peak": 7141920,
+  "native_allocation_measured": false,
+  "production_qualified": false
+}
+

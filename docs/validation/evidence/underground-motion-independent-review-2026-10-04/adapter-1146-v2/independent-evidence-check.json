@@ -1,0 +1,57 @@
+{
+  "scope": "Corrected candidate-5 read-only review. Original callback binding finding closed; two lifetime/freshness continuations remain.",
+  "source_recheck": [
+    {
+      "path": "godot/demo/burrow/modular_runtime.gd",
+      "expected": "5753241d2b2b6d64066c41a91cb1b6a093206a6f56370d966b52a326973f7f46",
+      "actual": "5753241d2b2b6d64066c41a91cb1b6a093206a6f56370d966b52a326973f7f46",
+      "matches": true
+    },
+    {
+      "path": "godot/demo/burrow/modular_editor.gd",
+      "expected": "2bc0749315520d729b5ede7e018657e37a4f832df02882361e0dcc873ed3fb35",
+      "actual": "2bc0749315520d729b5ede7e018657e37a4f832df02882361e0dcc873ed3fb35",
+      "matches": true
+    },
+    {
+      "path": "godot/demo/burrow/modular_world_tool.gd",
+      "expected": "56d9e87a05e0ba482ba18471ad96fce5e40321e3af87444d3fb991a36fd610bb",
+      "actual": "56d9e87a05e0ba482ba18471ad96fce5e40321e3af87444d3fb991a36fd610bb",
+      "matches": true
+    },
+    {
+      "path": "godot/test/test_modular_runtime.gd",
+      "expected": "207121b9c04bb0a4b2a727de22f3ec45fa57e4793dd75564af414e9053903a05",
+      "actual": "207121b9c04bb0a4b2a727de22f3ec45fa57e4793dd75564af414e9053903a05",
+      "matches": true
+    }
+  ],
+  "suite_results": [
+    {
+      "log": "author-evidence/focused-v5/shard-222.log",
+      "tests": 14,
+      "assertions": 200,
+      "failures": 0,
+      "diagnostics_zero": true
+    },
+    {
+      "log": "author-evidence/focused-v5/shard-270.log",
+      "tests": 9,
+      "assertions": 149,
+      "failures": 0,
+      "diagnostics_zero": true
+    },
+    {
+      "log": "author-evidence/focused-v5/shard-287.log",
+      "tests": 10,
+      "assertions": 104,
+      "failures": 0,
+      "diagnostics_zero": true
+    }
+  ],
+  "total_tests": 33,
+  "total_assertions": 453,
+  "analyzer": "0 warnings in 0 of 4 files",
+  "candidate4": "Pre-test registry refusal retained; no Runtime test result.",
+  "engine_executed_by_reviewer": false
+}

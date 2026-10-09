@@ -1,0 +1,4 @@
+FAIL P09 --check passes against the committed sidecar
+FAIL P09 --check prints no refusal
+FAIL P09 the sidecar on disk is what render() produces
+test_registry_capacity_audit: FAIL -- 190 check(s), 3 failure(s)

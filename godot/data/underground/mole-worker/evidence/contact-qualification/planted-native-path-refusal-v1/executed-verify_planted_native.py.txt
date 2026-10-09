@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Bind retained planted primitive proof to its native tip witness and explicit finite authoring target."""
+import argparse
+from fractions import Fraction
+import importlib.util
+import json
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("planted_author", HERE / "author_planted_front.py")
+A = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(A)
+P, W, S = A.P, A.W, A.S
+
+
+def in_box(inner, outer):
+    return len(inner) == len(outer) == 6 and all(type(v) is int for v in inner + outer) and \
+           all(outer[a] <= inner[a] <= inner[a+3] <= outer[a+3] for a in range(3))
+
+
+def target_refusal(candidate):
+    """Require complete body/entry exclusion and active-tool-only containment; tip success alone is insufficient."""
+    portions = candidate["plane_portions"]
+    P.require(len(portions["work"]) == len(portions["entry"]) == 2 and
+              all(rows[0]["kind"] == "body" and rows[1]["kind"] == "attachment" for rows in portions.values()),
+              "PLANTED_TARGET_CENSUS")
+    P.require(portions["work"][0]["forward"] is None and
+              all(row["forward"] is None for row in portions["entry"]), "PLANTED_TARGET_BODY_OR_ENTRY")
+    stroke = portions["work"][1]["forward"]
+    P.require(stroke is not None and in_box(stroke, [-512, -256, -1792, 512, 768, -768]), "PLANTED_TARGET_STROKE")
+    for key in ("work", "entry"):
+        P.require(in_box(candidate["foot_support"][key]["support_u"], [-512, -1, -256, 512, 0, 256]),
+                  "PLANTED_TARGET_SUPPORT")
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("preview", type=Path)
+    parser.add_argument("proof", type=Path)
+    parser.add_argument("native", type=Path)
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "PLANTED_WITNESS_OUTPUT_EXISTS")
+    paths = (__file__, A.__file__, A.C.__file__, A.C.H.__file__, W.__file__, W.H.__file__, S.__file__,
+             P.__file__, P.content.__file__, P.envelope.__file__)
+    pins = {str(Path(path).relative_to(P.ROOT)): P.content.file_hash(Path(path)) for path in paths}
+    candidate = W.read_record(args.preview / "candidate.json", 1048576)
+    produced, checked = W.read_record(args.preview / "compilation.json"), W.read_record(args.proof, 1048576)
+    for record in (candidate, checked):
+        for path, digest in record["producer_sources"].items():
+            P.require(P.content.file_hash(P.ROOT / path) == digest, "PLANTED_WITNESS_SOURCE_DRIFT")
+    P.require(checked["content_sha256"] == produced["content_sha256"] and checked.get("source_rederived") is True and
+              set(checked["clips"]) == {"0", "1", "6", "7"} and all(row["clear"] and row["unresolved"] == []
+              for row in checked["clips"].values()), "PLANTED_WITNESS_PRIMITIVES")
+    target_refusal(candidate)
+    command = W.read_record(HERE / "analysis-carry-arm-v7/invocation.json")["command"]
+    def value(key):
+        return command[command.index("--" + key) + 1]
+    proof = P.content.read_json(Path(value("proof")), value("proof-sha256"))
+    plan = P.content.read_json(Path(value("plan")), value("plan-sha256"), 65536)
+    original, sources, historical = W.extract_original(Path(value("source")), value("source-sha256"), proof, plan,
+                                                       Path(value("import-archive")))
+    parts = original[0]["geometry"]
+    cases = S.read_image(args.preview / "mole-worker.ugactor", produced["content_sha256"], parts)
+    native = W.read_record(args.native / "report.json", 1048576)
+    invocation = W.read_record(args.native / "invocation.json")
+    P.require(native.get("content_sha256") == produced["content_sha256"] and native.get("production_qualified") is False and
+              native.get("failures") == [] and invocation.get("native_exit") == 0 and
+              invocation.get("source_unchanged") is True and invocation.get("unexpected_diagnostics") is False,
+              "PLANTED_WITNESS_NATIVE_SCOPE")
+    runtime = W.read_record(args.native / "sources.json", 1048576)
+    for path, digest in runtime.items():
+        P.require(P.content.file_hash(Path(path)) == digest, "PLANTED_WITNESS_NATIVE_DRIFT")
+    source = [Fraction(float(v)) for v in parts[1]["geometry"][0]["points"][148]]
+    endpoints = []
+    for frame in (14, 15):
+        row = cases[6]["matrices"][frame, 24]
+        point = [sum(source[a] * Fraction(float(row[a*3+axis])) for a in range(3)) + Fraction(float(row[9+axis]))
+                 for axis in range(3)]
+        point[1] += Fraction(float(cases[6]["grounding"][frame]))
+        endpoints.append([P.envelope.fraction_record(v) for v in point])
+    witness = dict(candidate["contact_candidates"][0], endpoint_ideal_m=endpoints)
+    P.require(witness["frame_pair"] == [14, 15] and witness["vertex"] == 148 and
+              in_box(witness["patch_u"], [-512, -256, -768, 512, 768, -768]), "PLANTED_WITNESS_FACE_PATCH")
+    W.native_tip_refusal(native, witness)
+    pins.update({str(path.relative_to(P.ROOT)): P.content.file_hash(path) for path in
+                 (args.preview / "candidate.json", args.preview / "mole-worker.ugactor", args.proof,
+                  args.native / "report.json", args.native / "sources.json")})
+    P.require(all(P.content.file_hash(P.ROOT / path) == digest for path, digest in pins.items()), "PLANTED_WITNESS_SOURCE_DRIFT")
+    result = {"schema": 1, "content_sha256": produced["content_sha256"], "source_proof_sha256": P.content.file_hash(args.proof),
+        "native_points_enclosed": 9, "authoring_target_refusal": "", "witness": witness,
+        "verified_source_files": sources, "historical_source_snapshot": historical, "producer_and_input_sources": pins,
+        "production_qualified": False,
+        "scope": "source-local/yaw0 candidate; fixture face/tread only, no real support, descent, paid frontier or compact handoff permission"}
+    with args.out.open("x") as output:
+        json.dump(result, output, indent=2)
+        output.write("\n")
+    print(json.dumps({"native_points_enclosed": 9, "authoring_target_refusal": "", "production_qualified": False}))
+
+
+if __name__ == "__main__":
+    main()

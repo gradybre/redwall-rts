@@ -1,0 +1,26 @@
+{
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/test_evidence.py"
+      ],
+      "log": "evidence-tests.log",
+      "exit_code": 0,
+      "seconds": 0.043
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/census.py"
+      ],
+      "log": "census.json",
+      "exit_code": 0,
+      "seconds": 0.031
+    }
+  ],
+  "census_byte_identical": true,
+  "nine_pins_unchanged": true
+}

@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_room_orders.gd": "3b87ab9ee5297d1bb0e28b0e0d6b497381a3e05677b50c709c119b48e5a49eda",
+  "godot/scripts/core/excavation_sites.gd": "4805eea2cd029db4e6d24d05f7c449caab3f629e2dc8b4e56bc9c4061da9a3b0",
+  "godot/test/test_underground_room_orders.gd": "212b358d582c242b7b8af6b92b073e1ef0915f1ccb84b18e0fe1f8ad5e28a1f7",
+  "godot/test/test_excavation_claim_batch.gd": "c89417f5f7b641afc1b7c69407d6df6db7d6bb5cfdf6a540cbf9e34a09a8ead8"
+}

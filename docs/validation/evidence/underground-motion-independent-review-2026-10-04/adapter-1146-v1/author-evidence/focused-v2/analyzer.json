@@ -1,0 +1,20 @@
+{
+ "test/test_modular_runtime.gd": [
+  {
+   "code": 0,
+   "message": "(INCOMPATIBLE_TERNARY): Values of the ternary operator are not mutually compatible.",
+   "range": {
+    "end": {
+     "character": 101,
+     "line": 117
+    },
+    "start": {
+     "character": 64,
+     "line": 117
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

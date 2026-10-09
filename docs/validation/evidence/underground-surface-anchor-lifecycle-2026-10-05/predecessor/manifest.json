@@ -1,0 +1,36 @@
+{
+  "godot/scripts/core/underground_session.gd": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/predecessor/underground_session.gd.txt",
+    "sha256": "c0e67daf30de3604873b743ba95ab5c196c1baf2b96aee407bddf088cf285a77"
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/predecessor/underground_world_retirement.gd.txt",
+    "sha256": "db439ef3a968b63666154e97cbdda91921c723ee8546b4ac2a0db0f7acce3467"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/predecessor/settlement_system.gd.txt",
+    "sha256": "71baf27780c8652b39958a566fede60f42edbe494b4f3907f1ff58040c99b129"
+  },
+  "godot/scripts/core/underground_surface_anchor.gd": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/predecessor/underground_surface_anchor.gd.txt",
+    "sha256": "3632681aa3d56d680d58e220f4aae58e5894baa23422ecd34c128404da8d40d0"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py": {
+    "sha256": "8bd2efa690a3bb8df310297300a4cc54135e5d15452f993a49b56fd4d8fb6fbe"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/source-review-1/census.json": {
+    "sha256": "9e243a2439244d89970f85e21bde9b1ec219c8aa61435d017dfc8f5e01b04911"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/inherited-sha256.json": {
+    "sha256": "9a87a8218e95b8d15d5eafaa3c0e5557a66fdcad0cdc6a5ba0d8a84475466109"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/constructor-source-sha256.json": {
+    "sha256": "a371e4ebc09b3f4f6efe3967eca236d77c8e665a53d997ff5d274680c99256d1"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/source-sha256.json": {
+    "sha256": "c18f4d904942fbbbdf85ab682fca517dd5c4e7eb7079a893b8aa56aef4b0490b"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/manifest.json": {
+    "sha256": "8178eb3bcc281542055a36f53da8495810fe1971221811e1ae85fd3b9af43801"
+  }
+}

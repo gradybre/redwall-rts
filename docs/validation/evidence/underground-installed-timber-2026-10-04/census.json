@@ -1,0 +1,72 @@
+{
+  "scope": "Logical source census only; borrowed references, StringNames, packed headers and native frames unmeasured.",
+  "retained_entry": {
+    "numeric_controls": 74,
+    "packet_bytes": 300,
+    "packed_rows": 112,
+    "fixed_numeric_and_packed_bytes": 486,
+    "logical_helper_allowance_bytes": 2048,
+    "reserved_bytes": 4096,
+    "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
+  },
+  "retained_delta_bytes": 32,
+  "own_entry_numeric_chain": {
+    "bytes": 256,
+    "path": [
+      "_stage_timber",
+      "_timber_physical",
+      "_timber_parts",
+      "_stage_timber_datums",
+      "_timber_contact_air",
+      "_timber_profile_envelope",
+      "_timber_profile",
+      "_entry_spend"
+    ],
+    "frames": {
+      "_stage_timber": 40,
+      "_timber_physical": 9,
+      "_timber_parts": 33,
+      "_stage_timber_datums": 24,
+      "_timber_contact_air": 17,
+      "_timber_profile_envelope": 85,
+      "_timber_profile": 40,
+      "_entry_spend": 8
+    }
+  },
+  "own_installed_location_numeric_chain": {
+    "bytes": 248,
+    "path": [
+      "_installed_witnesses_refusal",
+      "_record_paid_site",
+      "_installed_surface_site",
+      "_installed_row_site",
+      "_installed_part_site",
+      "_installed_site_row",
+      "_floor_div"
+    ],
+    "frames": {
+      "_installed_witnesses_refusal": 16,
+      "_record_paid_site": 16,
+      "_installed_surface_site": 40,
+      "_installed_row_site": 56,
+      "_installed_part_site": 20,
+      "_installed_site_row": 76,
+      "_floor_div": 24
+    }
+  },
+  "helper_charge_bytes": 928,
+  "helper_reserve_bytes": 2048,
+  "geometry_variable_bytes": 294912,
+  "geometry_with_fixed_allowance_bytes": 299008,
+  "conservative_geometry_ceiling_bytes": 626688,
+  "placement_retained_reservation_bytes": 108800,
+  "placement_reservation_note": "Already charged in bindings; no additional copy during installation.",
+  "phase_order": [
+    "local geometry banks dropped",
+    "Locations existing survey/coverage",
+    "WorldRoutes existing certificate compiler"
+  ],
+  "entry_plan_payload_during_installation_bytes": 0,
+  "shared_cold_bytes": 1048960,
+  "runtime_qualified": false
+}

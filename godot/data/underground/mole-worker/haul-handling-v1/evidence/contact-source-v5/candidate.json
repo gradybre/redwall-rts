@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "status": "UNQUALIFIED_SOURCE_CANDIDATE",
+  "production_qualified": false,
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "body_mesh_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "wood_mesh_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80",
+  "actual_log_overhang_m": 0.10799993604173319,
+  "recipe": {
+    "maximum_arm_link_error_m": 1.3877787807814457e-17,
+    "lean_degrees": 95,
+    "hip_drop_u": 96,
+    "grip_raise_u": 64,
+    "grip_back_u": 192,
+    "station_R_minus_S_u": [
+      0,
+      0,
+      576
+    ],
+    "stock_mesh_bounds_u": [
+      -411.1478898549925,
+      0.0,
+      -626.6879997253418,
+      411.1478898549925,
+      101.3759994506836,
+      -525.3120002746582
+    ]
+  },
+  "poses": [
+    {
+      "sampled_body_u": [
+        -421.68660486632655,
+        0.0001731457980502782,
+        -329.8747044284869,
+        431.5721351576632,
+        872.3889362180531,
+        230.25208557379125
+      ],
+      "sampled_wood_u": [
+        -415.1608157621869,
+        448.1792173455283,
+        -177.50716589740227,
+        412.2616234289655,
+        606.4166078497842,
+        -63.449544918027414
+      ],
+      "nearest_vertex_diagnostics": [
+        {
+          "hand_bone": 15,
+          "body_vertex": 13133,
+          "wood_vertex": 331,
+          "body_point_u": [
+            -413.11807252404594,
+            524.7388599920223,
+            -167.5925196985172
+          ],
+          "wood_point_u": [
+            -412.85898257916006,
+            526.8375926563231,
+            -168.99598272965542
+          ],
+          "sampled_vertex_distance_u": 2.538013962829134
+        },
+        {
+          "hand_bone": 19,
+          "body_vertex": 91,
+          "wood_vertex": 4,
+          "body_point_u": [
+            408.3748014619714,
+            578.1928482301034,
+            -162.55737613474594
+          ],
+          "wood_point_u": [
+            408.0342325656149,
+            575.2016114355197,
+            -160.9763178990482
+          ],
+          "sampled_vertex_distance_u": 3.400474949048264
+        }
+      ],
+      "scope": "Nearest vertices do not establish triangle contact, separation, support or native residual."
+    },
+    {
+      "sampled_body_u": [
+        -429.3021720205228,
+        1.428840812673939,
+        -588.1317864676862,
+        428.7787835578394,
+        458.84601966044016,
+        207.7212261595153
+      ],
+      "sampled_wood_u": [
+        -411.14788818359375,
+        0.0,
+        -626.6879997253418,
+        411.14788818359375,
+        101.3759994506836,
+        -525.3120002746582
+      ],
+      "nearest_vertex_diagnostics": [
+        {
+          "hand_bone": 15,
+          "body_vertex": 14075,
+          "wood_vertex": 356,
+          "body_point_u": [
+            -379.4498170397163,
+            55.11891676074663,
+            -526.6432633288259
+          ],
+          "wood_point_u": [
+            -411.14788818359375,
+            55.65629243850708,
+            -525.5560760498047
+          ],
+          "sampled_vertex_distance_u": 31.721262002654136
+        },
+        {
+          "hand_bone": 19,
+          "body_vertex": 14102,
+          "wood_vertex": 31,
+          "body_point_u": [
+            395.57105989720935,
+            63.66327314788941,
+            -486.22176610080373
+          ],
+          "wood_point_u": [
+            411.14788818359375,
+            55.65629243850708,
+            -525.5560760498047
+          ],
+          "sampled_vertex_distance_u": 43.05737171156643
+        }
+      ],
+      "scope": "Nearest vertices do not establish triangle contact, separation, support or native residual."
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "51faedce192013fd0857d42a2c0e9a86e1b3f0693ec40905c8dc010f068ce2ce",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "f36df901095d25fadef8e38b20c449a1014e36610089ebd043be3565aac13bd5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e"
+  },
+  "missing": [
+    "complete entry/lift/recovery and interruption program",
+    "all triangle contact and separation",
+    "continuous/native/world basis proof",
+    "quantity/presentation mapping",
+    "runtime station seam and joint admission"
+  ]
+}

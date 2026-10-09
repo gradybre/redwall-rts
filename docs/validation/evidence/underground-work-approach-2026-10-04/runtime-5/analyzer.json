@@ -1,0 +1,86 @@
+{
+ "data/underground/mole-worker/work-approach-v1/source_program.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"word\" is shadowing an already-declared function at line 76 in the current class.",
+   "range": {
+    "end": {
+     "character": 30,
+     "line": 51
+    },
+    "start": {
+     "character": 26,
+     "line": 51
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"clock\" is shadowing an already-declared function at line 81 in the current class.",
+   "range": {
+    "end": {
+     "character": 42,
+     "line": 51
+    },
+    "start": {
+     "character": 37,
+     "line": 51
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "scripts/core/underground_routes.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local variable \"revision\" is shadowing an already-declared function at line 750 in the current class.",
+   "range": {
+    "end": {
+     "character": 13,
+     "line": 2172
+    },
+    "start": {
+     "character": 5,
+     "line": 2172
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"revision\" is shadowing an already-declared function at line 750 in the current class.",
+   "range": {
+    "end": {
+     "character": 61,
+     "line": 2203
+    },
+    "start": {
+     "character": 53,
+     "line": 2203
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"revision\" is shadowing an already-declared function at line 750 in the current class.",
+   "range": {
+    "end": {
+     "character": 10,
+     "line": 2216
+    },
+    "start": {
+     "character": 2,
+     "line": 2216
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

@@ -1,0 +1,742 @@
+{
+  "scope": "numerical whole-primitive bounds only; no phase admission, support proof, native replay or new source permission",
+  "source_pins": {
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py": "f55701948939a10706d175dabd750db741ea9550b9cbe0308928422084ae1413",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2"
+  },
+  "walk_keys": 34,
+  "ready_keys": [
+    34,
+    35
+  ],
+  "rows": [
+    {
+      "key": 0,
+      "body_u": [
+        -221,
+        -1,
+        -438,
+        340,
+        926,
+        476
+      ],
+      "tool_u": [
+        127,
+        490,
+        362,
+        463,
+        966,
+        797
+      ]
+    },
+    {
+      "key": 1,
+      "body_u": [
+        -221,
+        -1,
+        -438,
+        340,
+        926,
+        476
+      ],
+      "tool_u": [
+        127,
+        490,
+        362,
+        463,
+        966,
+        797
+      ]
+    },
+    {
+      "key": 2,
+      "body_u": [
+        -227,
+        -1,
+        -435,
+        336,
+        923,
+        459
+      ],
+      "tool_u": [
+        142,
+        496,
+        350,
+        493,
+        972,
+        769
+      ]
+    },
+    {
+      "key": 3,
+      "body_u": [
+        -237,
+        -1,
+        -426,
+        331,
+        909,
+        442
+      ],
+      "tool_u": [
+        157,
+        493,
+        339,
+        521,
+        967,
+        738
+      ]
+    },
+    {
+      "key": 4,
+      "body_u": [
+        -239,
+        -1,
+        -416,
+        324,
+        896,
+        426
+      ],
+      "tool_u": [
+        172,
+        491,
+        308,
+        552,
+        963,
+        702
+      ]
+    },
+    {
+      "key": 5,
+      "body_u": [
+        -279,
+        -1,
+        -402,
+        315,
+        903,
+        414
+      ],
+      "tool_u": [
+        185,
+        510,
+        267,
+        576,
+        979,
+        666
+      ]
+    },
+    {
+      "key": 6,
+      "body_u": [
+        -314,
+        -1,
+        -390,
+        325,
+        904,
+        402
+      ],
+      "tool_u": [
+        196,
+        521,
+        234,
+        594,
+        989,
+        634
+      ]
+    },
+    {
+      "key": 7,
+      "body_u": [
+        -337,
+        -1,
+        -383,
+        336,
+        904,
+        393
+      ],
+      "tool_u": [
+        205,
+        526,
+        208,
+        610,
+        992,
+        608
+      ]
+    },
+    {
+      "key": 8,
+      "body_u": [
+        -346,
+        -1,
+        -385,
+        344,
+        902,
+        385
+      ],
+      "tool_u": [
+        212,
+        527,
+        189,
+        621,
+        992,
+        590
+      ]
+    },
+    {
+      "key": 9,
+      "body_u": [
+        -338,
+        -1,
+        -394,
+        346,
+        910,
+        383
+      ],
+      "tool_u": [
+        215,
+        541,
+        182,
+        619,
+        1008,
+        584
+      ]
+    },
+    {
+      "key": 10,
+      "body_u": [
+        -319,
+        -1,
+        -406,
+        343,
+        920,
+        385
+      ],
+      "tool_u": [
+        213,
+        554,
+        189,
+        608,
+        1025,
+        591
+      ]
+    },
+    {
+      "key": 11,
+      "body_u": [
+        -287,
+        -1,
+        -419,
+        338,
+        930,
+        390
+      ],
+      "tool_u": [
+        210,
+        563,
+        201,
+        598,
+        1036,
+        604
+      ]
+    },
+    {
+      "key": 12,
+      "body_u": [
+        -246,
+        -1,
+        -432,
+        330,
+        918,
+        396
+      ],
+      "tool_u": [
+        204,
+        546,
+        222,
+        584,
+        1022,
+        623
+      ]
+    },
+    {
+      "key": 13,
+      "body_u": [
+        -218,
+        -1,
+        -442,
+        313,
+        901,
+        406
+      ],
+      "tool_u": [
+        189,
+        521,
+        253,
+        561,
+        1000,
+        653
+      ]
+    },
+    {
+      "key": 14,
+      "body_u": [
+        -220,
+        -1,
+        -445,
+        309,
+        902,
+        422
+      ],
+      "tool_u": [
+        164,
+        514,
+        295,
+        523,
+        994,
+        696
+      ]
+    },
+    {
+      "key": 15,
+      "body_u": [
+        -221,
+        -1,
+        -440,
+        312,
+        913,
+        443
+      ],
+      "tool_u": [
+        133,
+        516,
+        339,
+        476,
+        997,
+        741
+      ]
+    },
+    {
+      "key": 16,
+      "body_u": [
+        -223,
+        -1,
+        -430,
+        314,
+        919,
+        466
+      ],
+      "tool_u": [
+        103,
+        513,
+        355,
+        427,
+        996,
+        781
+      ]
+    },
+    {
+      "key": 17,
+      "body_u": [
+        -228,
+        -1,
+        -413,
+        317,
+        916,
+        485
+      ],
+      "tool_u": [
+        76,
+        499,
+        368,
+        378,
+        983,
+        815
+      ]
+    },
+    {
+      "key": 18,
+      "body_u": [
+        -231,
+        -1,
+        -386,
+        320,
+        901,
+        502
+      ],
+      "tool_u": [
+        51,
+        471,
+        379,
+        334,
+        956,
+        844
+      ]
+    },
+    {
+      "key": 19,
+      "body_u": [
+        -235,
+        -1,
+        -358,
+        331,
+        900,
+        516
+      ],
+      "tool_u": [
+        27,
+        457,
+        388,
+        299,
+        941,
+        867
+      ]
+    },
+    {
+      "key": 20,
+      "body_u": [
+        -242,
+        -1,
+        -333,
+        376,
+        900,
+        527
+      ],
+      "tool_u": [
+        1,
+        447,
+        395,
+        264,
+        930,
+        885
+      ]
+    },
+    {
+      "key": 21,
+      "body_u": [
+        -247,
+        -1,
+        -322,
+        422,
+        898,
+        535
+      ],
+      "tool_u": [
+        -24,
+        439,
+        401,
+        229,
+        922,
+        897
+      ]
+    },
+    {
+      "key": 22,
+      "body_u": [
+        -251,
+        -1,
+        -314,
+        454,
+        916,
+        540
+      ],
+      "tool_u": [
+        -46,
+        454,
+        404,
+        201,
+        936,
+        904
+      ]
+    },
+    {
+      "key": 23,
+      "body_u": [
+        -248,
+        -1,
+        -309,
+        472,
+        914,
+        543
+      ],
+      "tool_u": [
+        -60,
+        450,
+        407,
+        185,
+        931,
+        908
+      ]
+    },
+    {
+      "key": 24,
+      "body_u": [
+        -241,
+        -1,
+        -309,
+        474,
+        909,
+        545
+      ],
+      "tool_u": [
+        -64,
+        443,
+        408,
+        179,
+        924,
+        910
+      ]
+    },
+    {
+      "key": 25,
+      "body_u": [
+        -248,
+        -1,
+        -316,
+        466,
+        917,
+        546
+      ],
+      "tool_u": [
+        -60,
+        455,
+        410,
+        182,
+        938,
+        910
+      ]
+    },
+    {
+      "key": 26,
+      "body_u": [
+        -235,
+        -1,
+        -327,
+        444,
+        926,
+        544
+      ],
+      "tool_u": [
+        -51,
+        469,
+        409,
+        192,
+        953,
+        907
+      ]
+    },
+    {
+      "key": 27,
+      "body_u": [
+        -214,
+        -1,
+        -351,
+        406,
+        929,
+        541
+      ],
+      "tool_u": [
+        -34,
+        476,
+        407,
+        214,
+        961,
+        902
+      ]
+    },
+    {
+      "key": 28,
+      "body_u": [
+        -212,
+        -1,
+        -378,
+        350,
+        913,
+        536
+      ],
+      "tool_u": [
+        -8,
+        462,
+        403,
+        254,
+        945,
+        895
+      ]
+    },
+    {
+      "key": 29,
+      "body_u": [
+        -213,
+        -1,
+        -401,
+        327,
+        910,
+        527
+      ],
+      "tool_u": [
+        27,
+        458,
+        396,
+        303,
+        939,
+        881
+      ]
+    },
+    {
+      "key": 30,
+      "body_u": [
+        -215,
+        -1,
+        -420,
+        334,
+        916,
+        513
+      ],
+      "tool_u": [
+        65,
+        467,
+        387,
+        358,
+        946,
+        858
+      ]
+    },
+    {
+      "key": 31,
+      "body_u": [
+        -217,
+        -1,
+        -432,
+        338,
+        924,
+        495
+      ],
+      "tool_u": [
+        101,
+        481,
+        374,
+        416,
+        959,
+        828
+      ]
+    },
+    {
+      "key": 32,
+      "body_u": [
+        -221,
+        -1,
+        -438,
+        340,
+        926,
+        476
+      ],
+      "tool_u": [
+        127,
+        490,
+        362,
+        463,
+        966,
+        797
+      ]
+    },
+    {
+      "key": 33,
+      "body_u": [
+        -221,
+        -1,
+        -438,
+        340,
+        926,
+        476
+      ],
+      "tool_u": [
+        127,
+        490,
+        362,
+        463,
+        966,
+        797
+      ]
+    },
+    {
+      "key": 34,
+      "body_u": [
+        -234,
+        -1,
+        -409,
+        394,
+        840,
+        364
+      ],
+      "tool_u": [
+        249,
+        379,
+        185,
+        732,
+        810,
+        548
+      ]
+    },
+    {
+      "key": 35,
+      "body_u": [
+        -234,
+        -1,
+        -409,
+        394,
+        840,
+        364
+      ],
+      "tool_u": [
+        249,
+        379,
+        185,
+        732,
+        810,
+        548
+      ]
+    }
+  ],
+  "first_three_forward_ticks_with_ready": {
+    "body_u": [
+      -237,
+      -1,
+      -438,
+      394,
+      926,
+      476
+    ],
+    "tool_u": [
+      127,
+      379,
+      185,
+      732,
+      972,
+      797
+    ]
+  },
+  "first_three_backward_ticks_with_ready": {
+    "body_u": [
+      -234,
+      -1,
+      -438,
+      394,
+      926,
+      527
+    ],
+    "tool_u": [
+      27,
+      379,
+      185,
+      732,
+      966,
+      881
+    ]
+  },
+  "qualification": false
+}

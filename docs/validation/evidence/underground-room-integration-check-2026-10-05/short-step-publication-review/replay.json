@@ -1,0 +1,59 @@
+{
+  "source_manifest_sha256": "06fdd18d8a184e3c06762d79b853b52f14158076643709e7938cb5e509f11254",
+  "source_pins": 17,
+  "artifact_pins": 8,
+  "pins_unchanged": true,
+  "generated_outputs_byte_identical": {
+    "mole-worker.ugprof": {
+      "bytes": 10502,
+      "sha256": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+    },
+    "catalog_source.gd": {
+      "bytes": 1849,
+      "sha256": "b446be6719ce857c3b91595a2e6c9de82c3603adac5b7254470a7d7433a453c5"
+    },
+    "manifest.json": {
+      "bytes": 168462,
+      "sha256": "a93e6c23b706a71b4cd66e08778494eb8e4b3adcd5a610cfa0b891b71c012927"
+    },
+    "ground-pace.ugconn": {
+      "bytes": 576,
+      "sha256": "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+    },
+    "ground-manifest.json": {
+      "bytes": 3707,
+      "sha256": "471c1c2b11e987487eabd5e63986aee651e5340c50f692890c0d43c685d16ab7"
+    },
+    "motion.ugmotion": {
+      "bytes": 70936,
+      "sha256": "69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c"
+    },
+    "motion-manifest.json": {
+      "bytes": 1410,
+      "sha256": "9d62e1bbe6edf883eb4b146ecd275c526b9b2fe5fd4cf85e061bd69143a0f541"
+    }
+  },
+  "publisher_final_input_pins": 1015,
+  "census_exact": true,
+  "extra_refusal_probes": {
+    "source_count_536_after_low_level_reader": "STEP_PUBLICATION_SOURCE_PROOF",
+    "native_after_mismatch_after_low_level_reader": "STEP_PUBLICATION_NATIVE_DRIFT",
+    "wrong_current_binding:godot/scripts/core/underground_routes.gd": "STEP_PUBLICATION_CURRENT_NATIVE_CONSUMER",
+    "wrong_current_binding:godot/scripts/core/underground_work_face.gd": "STEP_PUBLICATION_UNCHANGED_NON_NATIVE_CONSUMER"
+  },
+  "author_engine_receipts": {
+    "suites": 5,
+    "tests": 71,
+    "assertions": 16732,
+    "failures": 0,
+    "all_strict_counters_zero": true,
+    "analyzer_warnings": 0,
+    "analyzer_files": 10,
+    "raw_editor_diagnostics_or_leaks": 0,
+    "raw_editor_sha256": "f15ffd4c558b01611d562c8c257508942bdc2dc542124f423ae2a592a46edfa6",
+    "restoration": true,
+    "independent_engine_rerun": false
+  },
+  "production_world_activation": false,
+  "native_memory_measured": false
+}

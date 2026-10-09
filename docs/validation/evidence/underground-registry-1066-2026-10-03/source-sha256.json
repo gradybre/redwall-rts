@@ -1,0 +1,15 @@
+{
+  "docs/planning/canonical_state_registry.json": "6417db4b79f8d78565adc06c2a163c38a2b71fe6fd806668e11326c45f07076d",
+  "docs/planning/registry_capacity_audit.json": "1efba76dc53f4cd1025a0146f9368a28f3d4f98831b499dfb642ce9810d72789",
+  "docs/persistence_state_registry.md": "0c5460754c652cec40e6fcb92d7df29192213add37641e1355d7721b2aa0fa87",
+  "docs/systems_architecture.md": "07391f091cc4c119ed3fcaba48b94c7ea13e392ba62e7958110e43883e41f59a",
+  "docs/validation/ready07_arithmetic.py": "0aeda5259e3c7cb627b2efe3208e07dd3809249d15e96041e5008b8166264e9f",
+  "docs/validation/validate_save_registry_handoff.py": "5972373c7b1f8d27763583a06a39a24f57599d8c6b0f5ebe06fecfd9aa33b999",
+  "godot/scripts/core/canonical_state_hash.gd": "97c3a399f4da1063ccc0b70234c03d821a7b2c45b73d471c75e74f5c0832c841",
+  "godot/test/test_canonical_state_hash.gd": "0481d70ba54b703499a804b05e2a1923f0b7835c0c706ab151d67fc8b552d2f6",
+  "godot/scripts/core/excavation_inventory.gd": "f64f0da1e5f975aa78dfaa82b0bc625a47a18fa3e2edfa658e41fdb24b0e6ef6",
+  "godot/scripts/core/excavation_sites.gd": "41020ce8597374f0297835d40f2c7d7ac769ff4c5e1dc3112d204b0d1bfea0b5",
+  "godot/scripts/core/excavation_contract.gd": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+  "tools/audit_registry_capacities.py": "0f29716b5ea61b6b8477a575d1db36623841b6c280c48cbf46414556fb2410e0",
+  "tools/test_registry_capacity_audit.py": "6971cfb1688a3df636be8924c1f7205c6bbc0fbe5c2525cea38e5e32434b95ba"
+}

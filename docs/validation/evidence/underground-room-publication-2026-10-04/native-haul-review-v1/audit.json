@@ -1,0 +1,38 @@
+{
+  "source_pins_match": 6,
+  "output_pins_match": 39,
+  "runtime_closure_files": 79,
+  "all_native_invocation_source_pins_match": 83,
+  "basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+  "commands": [
+    {
+      "log": "compile.log",
+      "exit_code": 0,
+      "raw_diagnostics": []
+    },
+    {
+      "log": "import.log",
+      "exit_code": 0,
+      "raw_diagnostics": []
+    },
+    {
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "raw_diagnostics": []
+    },
+    {
+      "log": "native.log",
+      "exit_code": 0,
+      "raw_diagnostics": []
+    }
+  ],
+  "additional_counterexamples": {
+    "magic": "HAUL_NATIVE_CAPTURE_HEADER",
+    "shape": "HAUL_NATIVE_CAPTURE_HEADER",
+    "nonfinite": "HAUL_NATIVE_CAPTURE_NONFINITE",
+    "changed_basis_input": "HAUL_NATIVE_COEFFICIENT"
+  },
+  "native_engine_rerun": false,
+  "foreign_writes": false,
+  "scope": "Frozen sampled native input packet only; no runtime or GPU qualification."
+}

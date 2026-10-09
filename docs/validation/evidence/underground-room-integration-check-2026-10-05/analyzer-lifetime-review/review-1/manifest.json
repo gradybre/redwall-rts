@@ -1,0 +1,13 @@
+{
+  "1180-analyzer-document-lifetime-and-raw-diagnostics.md.txt": "ffe2dbf219080d189dd7f46f5a2842436a3e218dfa0e7a80f1a2396e2dbde249",
+  "README.md": "2cfec459088a4d38b51d617a5126a14dbddb522e6955cb2543c72574b6deebf4",
+  "fixture/consumer.gd.txt": "c73d1366ec40d23336ad7ae26fe2a73a3126c6110a121774ff3c2dd068216a14",
+  "fixture/dependency.gd.txt": "c73d1366ec40d23336ad7ae26fe2a73a3126c6110a121774ff3c2dd068216a14",
+  "gdscript_warnings.py.txt": "4d47aa3c3b4a6f341492cf92d0adb5d86bf6340805ad98d9ef68cadbd2d23016",
+  "probe.json": "2f3af5b0fbda25cb891049f3026761f5135fffcd9f8dd4cbe51d539277a2fcf1",
+  "probe.log": "126d5f96b85a6f89e6db73f31632327bd55447f2c11477db71df8a8a2f1a8939",
+  "probe.py": "0177863100af5a3e76d954376be03f871bc3a3f631e0924379b86a61bc0d83e7",
+  "protocol-tests.log": "c8510cd2de940d03a31b3ba4a17ae788bf4bfef394c6df22535ef2a57d9faded",
+  "snapshot-replay.log": "126d5f96b85a6f89e6db73f31632327bd55447f2c11477db71df8a8a2f1a8939",
+  "test_gdscript_warnings.py.txt": "3b21dccd09721410d80281393a066c3c87e0fbf135bf06aa73d8f314ba724110"
+}

@@ -1,0 +1,459 @@
+﻿2026-10-04T09:54:16.4238609Z Current runner version: '2.337.0'
+2026-10-04T09:54:16.4264741Z ##[group]Runner Image Provisioner
+2026-10-04T09:54:16.4265564Z Hosted Compute Agent
+2026-10-04T09:54:16.4266346Z Version: 20260901.588
+2026-10-04T09:54:16.4266987Z Commit: f88ec8081b781fac6c440065ac7ff9e710ce3d0b
+2026-10-04T09:54:16.4267790Z Build Date: 2026-09-01T19:56:44Z
+2026-10-04T09:54:16.4268526Z Worker ID: {9ca0b755-738a-4069-ac6c-47feaa56d666}
+2026-10-04T09:54:16.4269246Z Azure Region: northcentralus
+2026-10-04T09:54:16.4269949Z ##[endgroup]
+2026-10-04T09:54:16.4271397Z ##[group]Operating System
+2026-10-04T09:54:16.4272165Z Ubuntu
+2026-10-04T09:54:16.4272937Z 24.04.5
+2026-10-04T09:54:16.4273445Z LTS
+2026-10-04T09:54:16.4274071Z ##[endgroup]
+2026-10-04T09:54:16.4274622Z ##[group]Runner Image
+2026-10-04T09:54:16.4275200Z Image: ubuntu-24.04
+2026-10-04T09:54:16.4275854Z Version: 20260927.320.1
+2026-10-04T09:54:16.4277083Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260927.320/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-04T09:54:16.4278869Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260927.320
+2026-10-04T09:54:16.4279832Z ##[endgroup]
+2026-10-04T09:54:16.4281034Z ##[group]GITHUB_TOKEN Permissions
+2026-10-04T09:54:16.4283159Z Contents: read
+2026-10-04T09:54:16.4283962Z Metadata: read
+2026-10-04T09:54:16.4284522Z ##[endgroup]
+2026-10-04T09:54:16.4287150Z Secret source: Actions
+2026-10-04T09:54:16.4288089Z Cache mode: write
+2026-10-04T09:54:16.4289301Z Prepare workflow directory
+2026-10-04T09:54:16.4639748Z Prepare all required actions
+2026-10-04T09:54:16.4688735Z Getting action download info
+2026-10-04T09:54:16.7205681Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-04T09:54:16.9271699Z Complete job name: Specification contracts
+2026-10-04T09:54:17.0291512Z ##[group]Run actions/checkout@v4
+2026-10-04T09:54:17.0292816Z with:
+2026-10-04T09:54:17.0293297Z   repository: gradybre/redwall-rts
+2026-10-04T09:54:17.0296983Z   token: ***
+2026-10-04T09:54:17.0297435Z   ssh-strict: true
+2026-10-04T09:54:17.0297869Z   ssh-user: git
+2026-10-04T09:54:17.0298318Z   persist-credentials: true
+2026-10-04T09:54:17.0298797Z   clean: true
+2026-10-04T09:54:17.0299284Z   sparse-checkout-cone-mode: true
+2026-10-04T09:54:17.0299800Z   fetch-depth: 1
+2026-10-04T09:54:17.0300217Z   fetch-tags: false
+2026-10-04T09:54:17.0300663Z   show-progress: true
+2026-10-04T09:54:17.0301103Z   lfs: false
+2026-10-04T09:54:17.0301507Z   submodules: false
+2026-10-04T09:54:17.0301948Z   set-safe-directory: true
+2026-10-04T09:54:17.0302706Z   allow-unsafe-pr-checkout: false
+2026-10-04T09:54:17.0303630Z ##[endgroup]
+2026-10-04T09:54:17.1322252Z Syncing repository: gradybre/redwall-rts
+2026-10-04T09:54:17.1324579Z ##[group]Getting Git version info
+2026-10-04T09:54:17.1325443Z Working directory is '/home/runner/work/redwall-rts/redwall-rts'
+2026-10-04T09:54:17.1326498Z [command]/usr/bin/git version
+2026-10-04T09:54:17.1404590Z git version 2.55.0
+2026-10-04T09:54:17.1435773Z ##[endgroup]
+2026-10-04T09:54:17.1458853Z Temporarily overriding HOME='/home/runner/work/_temp/17bcac01-91b8-4560-a99d-2a8a378f5fd9' before making global git config changes
+2026-10-04T09:54:17.1461102Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-04T09:54:17.1464730Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/redwall-rts/redwall-rts
+2026-10-04T09:54:17.1517989Z Deleting the contents of '/home/runner/work/redwall-rts/redwall-rts'
+2026-10-04T09:54:17.1534096Z ##[group]Initializing the repository
+2026-10-04T09:54:17.1535438Z [command]/usr/bin/git init /home/runner/work/redwall-rts/redwall-rts
+2026-10-04T09:54:17.1630052Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-04T09:54:17.1631859Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-04T09:54:17.1633728Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-04T09:54:17.1635485Z hint: call:
+2026-10-04T09:54:17.1636324Z hint:
+2026-10-04T09:54:17.1637315Z hint: 	git config --global init.defaultBranch <name>
+2026-10-04T09:54:17.1638480Z hint:
+2026-10-04T09:54:17.1639601Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-04T09:54:17.1641390Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-04T09:54:17.1643262Z hint:
+2026-10-04T09:54:17.1644036Z hint: 	git branch -m <name>
+2026-10-04T09:54:17.1644895Z hint:
+2026-10-04T09:54:17.1646052Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-04T09:54:17.1647925Z Initialized empty Git repository in /home/runner/work/redwall-rts/redwall-rts/.git/
+2026-10-04T09:54:17.1651879Z [command]/usr/bin/git remote add origin https://github.com/gradybre/redwall-rts
+2026-10-04T09:54:17.1702022Z ##[endgroup]
+2026-10-04T09:54:17.1703732Z ##[group]Disabling automatic garbage collection
+2026-10-04T09:54:17.1707236Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-04T09:54:17.1770962Z ##[endgroup]
+2026-10-04T09:54:17.1772669Z ##[group]Setting up auth
+2026-10-04T09:54:17.1780353Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-04T09:54:17.1817848Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-04T09:54:17.2205522Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-04T09:54:17.2246336Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-04T09:54:17.2478363Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-04T09:54:17.2567454Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-04T09:54:17.2775160Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-04T09:54:17.2821106Z ##[endgroup]
+2026-10-04T09:54:17.2823429Z ##[group]Fetching the repository
+2026-10-04T09:54:17.2833145Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f7fbc89fcc65b5dbcfd94b2076f0c126602e321f:refs/remotes/pull/230/merge
+2026-10-04T09:54:21.8932824Z From https://github.com/gradybre/redwall-rts
+2026-10-04T09:54:21.8934185Z  * [new ref]         f7fbc89fcc65b5dbcfd94b2076f0c126602e321f -> pull/230/merge
+2026-10-04T09:54:21.8937035Z ##[endgroup]
+2026-10-04T09:54:21.8937617Z ##[group]Determining the checkout info
+2026-10-04T09:54:21.8939633Z ##[endgroup]
+2026-10-04T09:54:21.8946730Z [command]/usr/bin/git sparse-checkout disable
+2026-10-04T09:54:21.8997663Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-04T09:54:21.9035876Z ##[group]Checking out the ref
+2026-10-04T09:54:21.9039271Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/230/merge
+2026-10-04T09:54:22.9250635Z Updating files:   3% (765/19512)
+2026-10-04T09:54:22.9648148Z Updating files:   4% (781/19512)
+2026-10-04T09:54:23.0078166Z Updating files:   5% (976/19512)
+2026-10-04T09:54:23.1272195Z Updating files:   6% (1171/19512)
+2026-10-04T09:54:23.1525747Z Updating files:   7% (1366/19512)
+2026-10-04T09:54:23.1760857Z Updating files:   8% (1561/19512)
+2026-10-04T09:54:23.2068329Z Updating files:   9% (1757/19512)
+2026-10-04T09:54:23.2478126Z Updating files:  10% (1952/19512)
+2026-10-04T09:54:23.2547341Z Updating files:  11% (2147/19512)
+2026-10-04T09:54:23.3460919Z Updating files:  12% (2342/19512)
+2026-10-04T09:54:23.3817948Z Updating files:  13% (2537/19512)
+2026-10-04T09:54:23.4084093Z Updating files:  14% (2732/19512)
+2026-10-04T09:54:23.4304193Z Updating files:  15% (2927/19512)
+2026-10-04T09:54:23.4534948Z Updating files:  16% (3122/19512)
+2026-10-04T09:54:23.4885549Z Updating files:  17% (3318/19512)
+2026-10-04T09:54:23.5051587Z Updating files:  18% (3513/19512)
+2026-10-04T09:54:23.5299016Z Updating files:  19% (3708/19512)
+2026-10-04T09:54:23.5500062Z Updating files:  20% (3903/19512)
+2026-10-04T09:54:23.5933118Z Updating files:  21% (4098/19512)
+2026-10-04T09:54:23.6913199Z Updating files:  22% (4293/19512)
+2026-10-04T09:54:23.7172733Z Updating files:  23% (4488/19512)
+2026-10-04T09:54:23.7584923Z Updating files:  24% (4683/19512)
+2026-10-04T09:54:23.7862134Z Updating files:  25% (4878/19512)
+2026-10-04T09:54:23.8290906Z Updating files:  26% (5074/19512)
+2026-10-04T09:54:23.8495948Z Updating files:  27% (5269/19512)
+2026-10-04T09:54:23.8633912Z Updating files:  28% (5464/19512)
+2026-10-04T09:54:23.8749828Z Updating files:  29% (5659/19512)
+2026-10-04T09:54:23.8870355Z Updating files:  30% (5854/19512)
+2026-10-04T09:54:23.8979944Z Updating files:  31% (6049/19512)
+2026-10-04T09:54:23.9067656Z Updating files:  32% (6244/19512)
+2026-10-04T09:54:23.9180615Z Updating files:  33% (6439/19512)
+2026-10-04T09:54:23.9220155Z Updating files:  34% (6635/19512)
+2026-10-04T09:54:23.9298014Z Updating files:  34% (6701/19512)
+2026-10-04T09:54:23.9411069Z Updating files:  35% (6830/19512)
+2026-10-04T09:54:23.9523752Z Updating files:  36% (7025/19512)
+2026-10-04T09:54:23.9906402Z Updating files:  37% (7220/19512)
+2026-10-04T09:54:23.9993196Z Updating files:  38% (7415/19512)
+2026-10-04T09:54:24.0083222Z Updating files:  39% (7610/19512)
+2026-10-04T09:54:24.0365542Z Updating files:  40% (7805/19512)
+2026-10-04T09:54:24.0470690Z Updating files:  41% (8000/19512)
+2026-10-04T09:54:24.0603117Z Updating files:  42% (8196/19512)
+2026-10-04T09:54:24.0692348Z Updating files:  43% (8391/19512)
+2026-10-04T09:54:24.0786504Z Updating files:  44% (8586/19512)
+2026-10-04T09:54:24.0852803Z Updating files:  45% (8781/19512)
+2026-10-04T09:54:24.0940276Z Updating files:  46% (8976/19512)
+2026-10-04T09:54:24.1779270Z Updating files:  47% (9171/19512)
+2026-10-04T09:54:24.1879868Z Updating files:  48% (9366/19512)
+2026-10-04T09:54:24.1979255Z Updating files:  49% (9561/19512)
+2026-10-04T09:54:24.2079403Z Updating files:  50% (9756/19512)
+2026-10-04T09:54:24.2169513Z Updating files:  51% (9952/19512)
+2026-10-04T09:54:24.2265876Z Updating files:  52% (10147/19512)
+2026-10-04T09:54:24.2355452Z Updating files:  53% (10342/19512)
+2026-10-04T09:54:24.2640496Z Updating files:  54% (10537/19512)
+2026-10-04T09:54:24.2837976Z Updating files:  55% (10732/19512)
+2026-10-04T09:54:24.3051687Z Updating files:  56% (10927/19512)
+2026-10-04T09:54:24.3259654Z Updating files:  57% (11122/19512)
+2026-10-04T09:54:24.3426067Z Updating files:  58% (11317/19512)
+2026-10-04T09:54:24.3551000Z Updating files:  59% (11513/19512)
+2026-10-04T09:54:24.3817728Z Updating files:  60% (11708/19512)
+2026-10-04T09:54:24.4155282Z Updating files:  61% (11903/19512)
+2026-10-04T09:54:24.4452584Z Updating files:  62% (12098/19512)
+2026-10-04T09:54:24.4764856Z Updating files:  63% (12293/19512)
+2026-10-04T09:54:24.5077942Z Updating files:  64% (12488/19512)
+2026-10-04T09:54:24.5403463Z Updating files:  65% (12683/19512)
+2026-10-04T09:54:24.5690913Z Updating files:  66% (12878/19512)
+2026-10-04T09:54:24.5961701Z Updating files:  67% (13074/19512)
+2026-10-04T09:54:24.6230222Z Updating files:  68% (13269/19512)
+2026-10-04T09:54:24.6492757Z Updating files:  69% (13464/19512)
+2026-10-04T09:54:24.6831954Z Updating files:  70% (13659/19512)
+2026-10-04T09:54:24.7099816Z Updating files:  71% (13854/19512)
+2026-10-04T09:54:24.7364048Z Updating files:  72% (14049/19512)
+2026-10-04T09:54:24.7647298Z Updating files:  73% (14244/19512)
+2026-10-04T09:54:24.7935585Z Updating files:  74% (14439/19512)
+2026-10-04T09:54:24.8197571Z Updating files:  75% (14634/19512)
+2026-10-04T09:54:24.8472924Z Updating files:  76% (14830/19512)
+2026-10-04T09:54:24.8779516Z Updating files:  77% (15025/19512)
+2026-10-04T09:54:24.8932545Z Updating files:  78% (15220/19512)
+2026-10-04T09:54:24.9066880Z Updating files:  79% (15415/19512)
+2026-10-04T09:54:24.9206947Z Updating files:  80% (15610/19512)
+2026-10-04T09:54:24.9220342Z Updating files:  81% (15805/19512)
+2026-10-04T09:54:24.9404989Z Updating files:  81% (15829/19512)
+2026-10-04T09:54:24.9700168Z Updating files:  82% (16000/19512)
+2026-10-04T09:54:24.9965530Z Updating files:  83% (16195/19512)
+2026-10-04T09:54:25.0180637Z Updating files:  84% (16391/19512)
+2026-10-04T09:54:25.0307439Z Updating files:  85% (16586/19512)
+2026-10-04T09:54:25.0423288Z Updating files:  86% (16781/19512)
+2026-10-04T09:54:25.0534540Z Updating files:  87% (16976/19512)
+2026-10-04T09:54:25.0653649Z Updating files:  88% (17171/19512)
+2026-10-04T09:54:25.0797907Z Updating files:  89% (17366/19512)
+2026-10-04T09:54:25.1007395Z Updating files:  90% (17561/19512)
+2026-10-04T09:54:25.1210729Z Updating files:  91% (17756/19512)
+2026-10-04T09:54:25.1332896Z Updating files:  92% (17952/19512)
+2026-10-04T09:54:25.1501420Z Updating files:  93% (18147/19512)
+2026-10-04T09:54:25.1703108Z Updating files:  94% (18342/19512)
+2026-10-04T09:54:25.1876285Z Updating files:  95% (18537/19512)
+2026-10-04T09:54:25.2148601Z Updating files:  96% (18732/19512)
+2026-10-04T09:54:25.2288441Z Updating files:  97% (18927/19512)
+2026-10-04T09:54:25.2542366Z Updating files:  98% (19122/19512)
+2026-10-04T09:54:25.2850459Z Updating files:  99% (19317/19512)
+2026-10-04T09:54:25.2851032Z Updating files: 100% (19512/19512)
+2026-10-04T09:54:25.2851495Z Updating files: 100% (19512/19512), done.
+2026-10-04T09:54:25.3041904Z Note: switching to 'refs/remotes/pull/230/merge'.
+2026-10-04T09:54:25.3043000Z 
+2026-10-04T09:54:25.3043406Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-04T09:54:25.3044030Z changes and commit them, and you can discard any commits you make in this
+2026-10-04T09:54:25.3045141Z state without impacting any branches by switching back to a branch.
+2026-10-04T09:54:25.3045700Z 
+2026-10-04T09:54:25.3046046Z If you want to create a new branch to retain commits you create, you may
+2026-10-04T09:54:25.3046825Z do so (now or later) by using -c with the switch command. Example:
+2026-10-04T09:54:25.3047272Z 
+2026-10-04T09:54:25.3047456Z   git switch -c <new-branch-name>
+2026-10-04T09:54:25.3047751Z 
+2026-10-04T09:54:25.3047917Z Or undo this operation with:
+2026-10-04T09:54:25.3048188Z 
+2026-10-04T09:54:25.3048327Z   git switch -
+2026-10-04T09:54:25.3048533Z 
+2026-10-04T09:54:25.3048884Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-04T09:54:25.3049408Z 
+2026-10-04T09:54:25.3050009Z HEAD is now at f7fbc89 Merge 3e36e7c4fe9c43f487952511a58d3d8d91dd4cd2 into 82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2
+2026-10-04T09:54:25.3906186Z ##[endgroup]
+2026-10-04T09:54:25.3958097Z [command]/usr/bin/git log -1 --format=%H
+2026-10-04T09:54:25.3984827Z f7fbc89fcc65b5dbcfd94b2076f0c126602e321f
+2026-10-04T09:54:25.4208963Z ##[group]Run python3 docs/validation/decision_numbers.py
+2026-10-04T09:54:25.4209466Z [36;1mpython3 docs/validation/decision_numbers.py[0m
+2026-10-04T09:54:25.4450595Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:54:25.4450939Z ##[endgroup]
+2026-10-04T09:54:25.4931585Z decision_numbers: PASS -- 412 records, 0 problem(s)
+2026-10-04T09:54:25.5012097Z ##[group]Run python3 docs/validation/ready07_arithmetic.py
+2026-10-04T09:54:25.5012873Z [36;1mpython3 docs/validation/ready07_arithmetic.py[0m
+2026-10-04T09:54:25.5074763Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:54:25.5075039Z ##[endgroup]
+2026-10-04T09:54:27.0964247Z {"status": "PASS", "field_rows": 145, "allocation_rows": 49, "scheduler_total_bytes": 8224, "checked_local_links": 135, "runtime_tests": "NOT_RUN", "payload_bytes": 91573078, "room_projects_packed_bytes": 1707008, "excavation_packed_bytes": 13608949, "canonical_declaration_bytes": 23573}
+2026-10-04T09:54:27.1110374Z ##[group]Run set -euo pipefail
+2026-10-04T09:54:27.1110711Z [36;1mset -euo pipefail[0m
+2026-10-04T09:54:27.1111026Z [36;1mpython3 tools/underground_memory_budget.py --check[0m
+2026-10-04T09:54:27.1111434Z [36;1mpython3 tools/test_underground_memory_budget.py[0m
+2026-10-04T09:54:27.1176379Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:54:27.1176676Z ##[endgroup]
+2026-10-04T09:54:28.1073657Z {"scope": "source-derived logical allocation pack; runtime qualification remains open", "new_mutable_and_reserved_bytes": 4968921, "declaration_bytes": 23573, "live_with_reserve_bytes": 99961686, "headroom_bytes": 38314, "runtime_qualified": false}
+2026-10-04T09:54:29.1121455Z test_anchor_packet_parser_excludes_later_function_locals (__main__.JointPackTests.test_anchor_packet_parser_excludes_later_function_locals) ... ok
+2026-10-04T09:54:29.1193801Z test_entry_world_counts_one_borrowed_contact_packet (__main__.JointPackTests.test_entry_world_counts_one_borrowed_contact_packet) ... ok
+2026-10-04T09:54:29.7399955Z test_negative_anchor_box_growth (__main__.JointPackTests.test_negative_anchor_box_growth) ... ok
+2026-10-04T09:54:30.3515683Z test_negative_anchor_commented_retained_packet (__main__.JointPackTests.test_negative_anchor_commented_retained_packet) ... ok
+2026-10-04T09:54:30.9490960Z test_negative_anchor_control_shortfall (__main__.JointPackTests.test_negative_anchor_control_shortfall) ... ok
+2026-10-04T09:54:31.5641477Z test_negative_anchor_duplicate_member (__main__.JointPackTests.test_negative_anchor_duplicate_member) ... ok
+2026-10-04T09:54:32.1800101Z test_negative_anchor_late_allocated_packet (__main__.JointPackTests.test_negative_anchor_late_allocated_packet) ... ok
+2026-10-04T09:54:32.8078619Z test_negative_anchor_nested_nonpacked_collection (__main__.JointPackTests.test_negative_anchor_nested_nonpacked_collection) ... ok
+2026-10-04T09:54:33.4398201Z test_negative_anchor_nested_width_growth (__main__.JointPackTests.test_negative_anchor_nested_width_growth) ... ok
+2026-10-04T09:54:34.1087233Z test_negative_anchor_surface_metadata_growth (__main__.JointPackTests.test_negative_anchor_surface_metadata_growth) ... ok
+2026-10-04T09:54:34.7064233Z test_negative_anchor_surface_metadata_width (__main__.JointPackTests.test_negative_anchor_surface_metadata_width) ... ok
+2026-10-04T09:54:35.3193952Z test_negative_anchor_unaccounted_nested_column (__main__.JointPackTests.test_negative_anchor_unaccounted_nested_column) ... ok
+2026-10-04T09:54:35.9159890Z test_negative_anchor_unaccounted_retained_packet (__main__.JointPackTests.test_negative_anchor_unaccounted_retained_packet) ... ok
+2026-10-04T09:54:36.5110932Z test_negative_anchor_untyped_member (__main__.JointPackTests.test_negative_anchor_untyped_member) ... ok
+2026-10-04T09:54:37.1061155Z test_negative_assembly_column_width (__main__.JointPackTests.test_negative_assembly_column_width) ... ok
+2026-10-04T09:54:37.7259038Z test_negative_assembly_fixed_frame_shortfall (__main__.JointPackTests.test_negative_assembly_fixed_frame_shortfall) ... ok
+2026-10-04T09:54:38.3627851Z test_negative_binding_reserve_cannot_omit_existing_consumers (__main__.JointPackTests.test_negative_binding_reserve_cannot_omit_existing_consumers) ... ok
+2026-10-04T09:54:39.0064000Z test_negative_compact_settlement_declaration (__main__.JointPackTests.test_negative_compact_settlement_declaration) ... ok
+2026-10-04T09:54:39.6417295Z test_negative_connector_adapter_inherited_collection (__main__.JointPackTests.test_negative_connector_adapter_inherited_collection) ... ok
+2026-10-04T09:54:40.2775324Z test_negative_connector_adapter_unaccounted_collection (__main__.JointPackTests.test_negative_connector_adapter_unaccounted_collection) ... ok
+2026-10-04T09:54:40.9109997Z test_negative_connector_adapter_unaccounted_numeric_field (__main__.JointPackTests.test_negative_connector_adapter_unaccounted_numeric_field) ... ok
+2026-10-04T09:54:41.5250750Z test_negative_connector_work_changed_top_level_parent (__main__.JointPackTests.test_negative_connector_work_changed_top_level_parent) ... ok
+2026-10-04T09:54:42.1715189Z test_negative_contacts_changed_parent (__main__.JointPackTests.test_negative_contacts_changed_parent) ... ok
+2026-10-04T09:54:42.8177208Z test_negative_contacts_duplicate_field (__main__.JointPackTests.test_negative_contacts_duplicate_field) ... ok
+2026-10-04T09:54:43.4331072Z test_negative_contacts_duplicate_scratch_allocation (__main__.JointPackTests.test_negative_contacts_duplicate_scratch_allocation) ... ok
+2026-10-04T09:54:44.0704659Z test_negative_contacts_episode_growth (__main__.JointPackTests.test_negative_contacts_episode_growth) ... ok
+2026-10-04T09:54:44.7023787Z test_negative_contacts_fragment_bank_growth (__main__.JointPackTests.test_negative_contacts_fragment_bank_growth) ... ok
+2026-10-04T09:54:45.3487227Z test_negative_contacts_fragment_width_growth (__main__.JointPackTests.test_negative_contacts_fragment_width_growth) ... ok
+2026-10-04T09:54:45.9873484Z test_negative_contacts_helper_allowance_shortfall (__main__.JointPackTests.test_negative_contacts_helper_allowance_shortfall) ... ok
+2026-10-04T09:54:46.5988812Z test_negative_contacts_inherited_numeric_result (__main__.JointPackTests.test_negative_contacts_inherited_numeric_result) ... ok
+2026-10-04T09:54:47.2077145Z test_negative_contacts_inherited_state (__main__.JointPackTests.test_negative_contacts_inherited_state) ... ok
+2026-10-04T09:54:47.8223875Z test_negative_contacts_missing_scratch_allocation (__main__.JointPackTests.test_negative_contacts_missing_scratch_allocation) ... ok
+2026-10-04T09:54:48.4413538Z test_negative_contacts_nested_location_growth (__main__.JointPackTests.test_negative_contacts_nested_location_growth) ... ok
+2026-10-04T09:54:49.0736607Z test_negative_contacts_numeric_result_width_drift (__main__.JointPackTests.test_negative_contacts_numeric_result_width_drift) ... ok
+2026-10-04T09:54:49.6961619Z test_negative_contacts_unbudgeted_descriptor_packet (__main__.JointPackTests.test_negative_contacts_unbudgeted_descriptor_packet) ... ok
+2026-10-04T09:54:50.3096634Z test_negative_contacts_unbudgeted_nested_bank (__main__.JointPackTests.test_negative_contacts_unbudgeted_nested_bank) ... ok
+2026-10-04T09:54:50.9254823Z test_negative_contacts_unbudgeted_retained_packet (__main__.JointPackTests.test_negative_contacts_unbudgeted_retained_packet) ... ok
+2026-10-04T09:54:51.5382565Z test_negative_contacts_untyped_nested_location (__main__.JointPackTests.test_negative_contacts_untyped_nested_location) ... ok
+2026-10-04T09:54:52.1538109Z test_negative_contacts_untyped_retained_field (__main__.JointPackTests.test_negative_contacts_untyped_retained_field) ... ok
+2026-10-04T09:54:52.7644821Z test_negative_contacts_wider_episode (__main__.JointPackTests.test_negative_contacts_wider_episode) ... ok
+2026-10-04T09:54:53.3788409Z test_negative_contacts_wider_scratch (__main__.JointPackTests.test_negative_contacts_wider_scratch) ... ok
+2026-10-04T09:54:53.9937477Z test_negative_corrected_binding_consumers_cannot_be_omitted (__main__.JointPackTests.test_negative_corrected_binding_consumers_cannot_be_omitted) ... ok
+2026-10-04T09:54:54.6178495Z test_negative_duplicate_settlement_declaration (__main__.JointPackTests.test_negative_duplicate_settlement_declaration) ... ok
+2026-10-04T09:54:55.2299210Z test_negative_duplicate_start_control (__main__.JointPackTests.test_negative_duplicate_start_control) ... ok
+2026-10-04T09:54:55.8833713Z test_negative_entry_binding_changed_parent (__main__.JointPackTests.test_negative_entry_binding_changed_parent) ... ok
+2026-10-04T09:54:56.5046189Z test_negative_entry_binding_duplicate_scratch_allocation (__main__.JointPackTests.test_negative_entry_binding_duplicate_scratch_allocation) ... ok
+2026-10-04T09:54:57.1152059Z test_negative_entry_binding_extra_retained_record (__main__.JointPackTests.test_negative_entry_binding_extra_retained_record) ... ok
+2026-10-04T09:54:57.7229962Z test_negative_entry_binding_helper_headroom_shortfall (__main__.JointPackTests.test_negative_entry_binding_helper_headroom_shortfall) ... ok
+2026-10-04T09:54:58.3540483Z test_negative_entry_binding_inherited_authority_growth (__main__.JointPackTests.test_negative_entry_binding_inherited_authority_growth) ... ok
+2026-10-04T09:54:58.9900523Z test_negative_entry_binding_larger_contact_envelope (__main__.JointPackTests.test_negative_entry_binding_larger_contact_envelope) ... ok
+2026-10-04T09:54:59.6289768Z test_negative_entry_binding_nonempty_transform_map (__main__.JointPackTests.test_negative_entry_binding_nonempty_transform_map) ... ok
+2026-10-04T09:55:00.2024033Z test_negative_entry_structure_base_comment_witness (__main__.JointPackTests.test_negative_entry_structure_base_comment_witness) ... ok
+2026-10-04T09:55:00.7699195Z test_negative_entry_structure_base_duplicate_function (__main__.JointPackTests.test_negative_entry_structure_base_duplicate_function) ... ok
+2026-10-04T09:55:01.3354758Z test_negative_entry_structure_base_duplicate_statement (__main__.JointPackTests.test_negative_entry_structure_base_duplicate_statement) ... ok
+2026-10-04T09:55:01.9040119Z test_negative_entry_structure_base_formula_drift (__main__.JointPackTests.test_negative_entry_structure_base_formula_drift) ... ok
+2026-10-04T09:55:02.4863747Z test_negative_entry_structure_base_growth_exceeds_original_cold_ceiling (__main__.JointPackTests.test_negative_entry_structure_base_growth_exceeds_original_cold_ceiling) ... ok
+2026-10-04T09:55:03.0525369Z test_negative_entry_structure_base_trailing_plan_growth (__main__.JointPackTests.test_negative_entry_structure_base_trailing_plan_growth) ... ok
+2026-10-04T09:55:03.6225477Z test_negative_entry_structure_base_trailing_return_charge (__main__.JointPackTests.test_negative_entry_structure_base_trailing_return_charge) ... ok
+2026-10-04T09:55:04.2064116Z test_negative_entry_structure_base_trailing_source_growth (__main__.JointPackTests.test_negative_entry_structure_base_trailing_source_growth) ... ok
+2026-10-04T09:55:04.7983345Z test_negative_entry_structure_changed_parent (__main__.JointPackTests.test_negative_entry_structure_changed_parent) ... ok
+2026-10-04T09:55:05.3631130Z test_negative_entry_structure_duplicate_resize (__main__.JointPackTests.test_negative_entry_structure_duplicate_resize) ... ok
+2026-10-04T09:55:05.9468994Z test_negative_entry_structure_extra_packet (__main__.JointPackTests.test_negative_entry_structure_extra_packet) ... ok
+2026-10-04T09:55:06.5176173Z test_negative_entry_structure_larger_episode (__main__.JointPackTests.test_negative_entry_structure_larger_episode) ... ok
+2026-10-04T09:55:07.0990593Z test_negative_entry_structure_missing_cold_coexistence (__main__.JointPackTests.test_negative_entry_structure_missing_cold_coexistence) ... ok
+2026-10-04T09:55:07.6762831Z test_negative_entry_structure_missing_resize (__main__.JointPackTests.test_negative_entry_structure_missing_resize) ... ok
+2026-10-04T09:55:08.2648721Z test_negative_entry_structure_reserve_change (__main__.JointPackTests.test_negative_entry_structure_reserve_change) ... ok
+2026-10-04T09:55:08.8263807Z test_negative_entry_structure_wider_frame (__main__.JointPackTests.test_negative_entry_structure_wider_frame) ... ok
+2026-10-04T09:55:08.8296431Z test_negative_entry_world_array_alias_growth (__main__.JointPackTests.test_negative_entry_world_array_alias_growth) ... ok
+2026-10-04T09:55:08.8310117Z test_negative_entry_world_changed_base (__main__.JointPackTests.test_negative_entry_world_changed_base) ... ok
+2026-10-04T09:55:08.8328915Z test_negative_entry_world_duplicate_control (__main__.JointPackTests.test_negative_entry_world_duplicate_control) ... ok
+2026-10-04T09:55:08.8361623Z test_negative_entry_world_duplicate_getter (__main__.JointPackTests.test_negative_entry_world_duplicate_getter) ... ok
+2026-10-04T09:55:08.8393444Z test_negative_entry_world_duplicate_resize (__main__.JointPackTests.test_negative_entry_world_duplicate_resize) ... ok
+2026-10-04T09:55:08.8411744Z test_negative_entry_world_extra_owned_packet (__main__.JointPackTests.test_negative_entry_world_extra_owned_packet) ... ok
+2026-10-04T09:55:08.8430726Z test_negative_entry_world_getter_constructs_contacts (__main__.JointPackTests.test_negative_entry_world_getter_constructs_contacts) ... ok
+2026-10-04T09:55:08.8463184Z test_negative_entry_world_getter_returns_foreign_packet (__main__.JointPackTests.test_negative_entry_world_getter_returns_foreign_packet) ... ok
+2026-10-04T09:55:08.8495106Z test_negative_entry_world_larger_box (__main__.JointPackTests.test_negative_entry_world_larger_box) ... ok
+2026-10-04T09:55:08.8527443Z test_negative_entry_world_missing_resize (__main__.JointPackTests.test_negative_entry_world_missing_resize) ... ok
+2026-10-04T09:55:08.8559909Z test_negative_entry_world_preallocated_initializer (__main__.JointPackTests.test_negative_entry_world_preallocated_initializer) ... ok
+2026-10-04T09:55:08.8584140Z test_negative_entry_world_reassigned_array (__main__.JointPackTests.test_negative_entry_world_reassigned_array) ... ok
+2026-10-04T09:55:08.8668589Z test_negative_entry_world_reserve_growth (__main__.JointPackTests.test_negative_entry_world_reserve_growth) ... ok
+2026-10-04T09:55:08.8689593Z test_negative_entry_world_strong_contact_owner (__main__.JointPackTests.test_negative_entry_world_strong_contact_owner) ... ok
+2026-10-04T09:55:08.8717286Z test_negative_entry_world_unaccounted_array_growth (__main__.JointPackTests.test_negative_entry_world_unaccounted_array_growth) ... ok
+2026-10-04T09:55:08.8745018Z test_negative_entry_world_unaccounted_local_packed_scratch (__main__.JointPackTests.test_negative_entry_world_unaccounted_local_packed_scratch) ... ok
+2026-10-04T09:55:08.8765842Z test_negative_entry_world_untyped_collection (__main__.JointPackTests.test_negative_entry_world_untyped_collection) ... ok
+2026-10-04T09:55:08.8786785Z test_negative_entry_world_wider_box (__main__.JointPackTests.test_negative_entry_world_wider_box) ... ok
+2026-10-04T09:55:08.8805187Z test_negative_entry_world_wider_origin (__main__.JointPackTests.test_negative_entry_world_wider_origin) ... ok
+2026-10-04T09:55:09.4965898Z test_negative_extra_settlement_control (__main__.JointPackTests.test_negative_extra_settlement_control) ... ok
+2026-10-04T09:55:10.0816818Z test_negative_extra_start_control (__main__.JointPackTests.test_negative_extra_start_control) ... ok
+2026-10-04T09:55:10.6796413Z test_negative_frontier_configure_undercharges_station_count (__main__.JointPackTests.test_negative_frontier_configure_undercharges_station_count) ... ok
+2026-10-04T09:55:11.2879773Z test_negative_frontier_consumes_contacts_earmark (__main__.JointPackTests.test_negative_frontier_consumes_contacts_earmark) ... ok
+2026-10-04T09:55:11.8917196Z test_negative_frontier_envelope_overbooks_all_remaining_bindings (__main__.JointPackTests.test_negative_frontier_envelope_overbooks_all_remaining_bindings) ... ok
+2026-10-04T09:55:12.4932601Z test_negative_frontier_extra_retained_column (__main__.JointPackTests.test_negative_frontier_extra_retained_column) ... ok
+2026-10-04T09:55:13.1090675Z test_negative_frontier_hidden_extra_station (__main__.JointPackTests.test_negative_frontier_hidden_extra_station) ... ok
+2026-10-04T09:55:13.7127245Z test_negative_frontier_inherits_unaccounted_state (__main__.JointPackTests.test_negative_frontier_inherits_unaccounted_state) ... ok
+2026-10-04T09:55:14.3371315Z test_negative_frontier_omits_fixed_initial_charge (__main__.JointPackTests.test_negative_frontier_omits_fixed_initial_charge) ... ok
+2026-10-04T09:55:14.9377576Z test_negative_frontier_wider_work_revision_bank (__main__.JointPackTests.test_negative_frontier_wider_work_revision_bank) ... ok
+2026-10-04T09:55:15.5563952Z test_negative_frontier_wire_width_charge_drift (__main__.JointPackTests.test_negative_frontier_wire_width_charge_drift) ... ok
+2026-10-04T09:55:15.5623545Z test_negative_furniture_bridge_changed_charge (__main__.JointPackTests.test_negative_furniture_bridge_changed_charge) ... ok
+2026-10-04T09:55:15.5681147Z test_negative_furniture_bridge_changed_width (__main__.JointPackTests.test_negative_furniture_bridge_changed_width) ... ok
+2026-10-04T09:55:15.5740031Z test_negative_furniture_bridge_extra_input_copy (__main__.JointPackTests.test_negative_furniture_bridge_extra_input_copy) ... ok
+2026-10-04T09:55:15.5799421Z test_negative_furniture_bridge_larger_tuple (__main__.JointPackTests.test_negative_furniture_bridge_larger_tuple) ... ok
+2026-10-04T09:55:15.5858834Z test_negative_furniture_bridge_unreleased_storage (__main__.JointPackTests.test_negative_furniture_bridge_unreleased_storage) ... ok
+2026-10-04T09:55:16.2245652Z test_negative_inadequate_endpoint_reserve (__main__.JointPackTests.test_negative_inadequate_endpoint_reserve) ... ok
+2026-10-04T09:55:16.8457342Z test_negative_inadequate_location_reserve (__main__.JointPackTests.test_negative_inadequate_location_reserve) ... ok
+2026-10-04T09:55:17.4669689Z test_negative_joint_limit_even_when_individual_formulas_agree (__main__.JointPackTests.test_negative_joint_limit_even_when_individual_formulas_agree) ... ok
+2026-10-04T09:55:18.0341181Z test_negative_larger_quote_dimension (__main__.JointPackTests.test_negative_larger_quote_dimension) ... ok
+2026-10-04T09:55:18.5774753Z test_negative_loss_domain_count (__main__.JointPackTests.test_negative_loss_domain_count) ... ok
+2026-10-04T09:55:19.2068085Z test_negative_missing_settlement_control (__main__.JointPackTests.test_negative_missing_settlement_control) ... ok
+2026-10-04T09:55:19.7907963Z test_negative_missing_start_control (__main__.JointPackTests.test_negative_missing_start_control) ... ok
+2026-10-04T09:55:20.3585952Z test_negative_missing_terminal_poison (__main__.JointPackTests.test_negative_missing_terminal_poison) ... ok
+2026-10-04T09:55:20.9619730Z test_negative_phase_context_duplicate_member (__main__.JointPackTests.test_negative_phase_context_duplicate_member) ... ok
+2026-10-04T09:55:21.5843303Z test_negative_phase_context_duplicate_retained_packet (__main__.JointPackTests.test_negative_phase_context_duplicate_retained_packet) ... ok
+2026-10-04T09:55:22.2113754Z test_negative_phase_context_extra_collection (__main__.JointPackTests.test_negative_phase_context_extra_collection) ... ok
+2026-10-04T09:55:22.8327533Z test_negative_phase_context_extra_scalar (__main__.JointPackTests.test_negative_phase_context_extra_scalar) ... ok
+2026-10-04T09:55:23.4660009Z test_negative_phase_context_full_ref_width (__main__.JointPackTests.test_negative_phase_context_full_ref_width) ... ok
+2026-10-04T09:55:24.0852042Z test_negative_phase_context_wrong_reference_lifetime (__main__.JointPackTests.test_negative_phase_context_wrong_reference_lifetime) ... ok
+2026-10-04T09:55:24.6858792Z test_negative_phase_mode_width (__main__.JointPackTests.test_negative_phase_mode_width) ... ok
+2026-10-04T09:55:25.2856401Z test_negative_placement_bank_width_growth (__main__.JointPackTests.test_negative_placement_bank_width_growth) ... ok
+2026-10-04T09:55:25.8844021Z test_negative_placement_changed_parent_is_not_omitted (__main__.JointPackTests.test_negative_placement_changed_parent_is_not_omitted) ... ok
+2026-10-04T09:55:26.4934914Z test_negative_placement_changed_top_level_parent (__main__.JointPackTests.test_negative_placement_changed_top_level_parent) ... ok
+2026-10-04T09:55:27.1055628Z test_negative_placement_constructor_undercharges_banks (__main__.JointPackTests.test_negative_placement_constructor_undercharges_banks) ... ok
+2026-10-04T09:55:27.7193811Z test_negative_placement_late_allocated_packet (__main__.JointPackTests.test_negative_placement_late_allocated_packet) ... ok
+2026-10-04T09:55:28.3422242Z test_negative_placement_nested_control_collection (__main__.JointPackTests.test_negative_placement_nested_control_collection) ... ok
+2026-10-04T09:55:28.9434037Z test_negative_placement_omitted_bank_column (__main__.JointPackTests.test_negative_placement_omitted_bank_column) ... ok
+2026-10-04T09:55:29.5515266Z test_negative_publication_inherited_control (__main__.JointPackTests.test_negative_publication_inherited_control) ... ok
+2026-10-04T09:55:30.0728203Z test_negative_quote_ambiguous_resize (__main__.JointPackTests.test_negative_quote_ambiguous_resize) ... ok
+2026-10-04T09:55:30.5974848Z test_negative_quote_missing_resize (__main__.JointPackTests.test_negative_quote_missing_resize) ... ok
+2026-10-04T09:55:31.1603633Z test_negative_quote_width_change (__main__.JointPackTests.test_negative_quote_width_change) ... ok
+2026-10-04T09:55:31.7515469Z test_negative_recipe_fixed_frame_shortfall (__main__.JointPackTests.test_negative_recipe_fixed_frame_shortfall) ... ok
+2026-10-04T09:55:32.3425242Z test_negative_recipe_hash_scratch_growth (__main__.JointPackTests.test_negative_recipe_hash_scratch_growth) ... ok
+2026-10-04T09:55:32.9330888Z test_negative_recipe_quantity_width (__main__.JointPackTests.test_negative_recipe_quantity_width) ... ok
+2026-10-04T09:55:33.5506972Z test_negative_route_leading_multiplier_preserves_precedence (__main__.JointPackTests.test_negative_route_leading_multiplier_preserves_precedence) ... ok
+2026-10-04T09:55:34.1669877Z test_negative_route_trailing_multiplier_preserves_precedence (__main__.JointPackTests.test_negative_route_trailing_multiplier_preserves_precedence) ... ok
+2026-10-04T09:55:34.1671714Z test_negative_runtime_input_is_not_a_source_constant (__main__.JointPackTests.test_negative_runtime_input_is_not_a_source_constant) ... ok
+2026-10-04T09:55:34.7917080Z test_negative_settlement_control_width (__main__.JointPackTests.test_negative_settlement_control_width) ... ok
+2026-10-04T09:55:35.3861429Z test_negative_start_control_width (__main__.JointPackTests.test_negative_start_control_width) ... ok
+2026-10-04T09:55:35.9774859Z test_negative_terminal_guard_width (__main__.JointPackTests.test_negative_terminal_guard_width) ... ok
+2026-10-04T09:55:36.5924786Z test_negative_unaccounted_anchor_column (__main__.JointPackTests.test_negative_unaccounted_anchor_column) ... ok
+2026-10-04T09:55:37.1823697Z test_negative_unaccounted_assembly_column (__main__.JointPackTests.test_negative_unaccounted_assembly_column) ... ok
+2026-10-04T09:55:37.6721867Z test_negative_unaccounted_endpoint_column (__main__.JointPackTests.test_negative_unaccounted_endpoint_column) ... ok
+2026-10-04T09:55:37.6785870Z test_negative_unaccounted_owner_column (__main__.JointPackTests.test_negative_unaccounted_owner_column) ... ok
+2026-10-04T09:55:38.2859533Z test_negative_unaccounted_recipe_column (__main__.JointPackTests.test_negative_unaccounted_recipe_column) ... ok
+2026-10-04T09:55:38.8767021Z test_negative_unaccounted_retained_quote (__main__.JointPackTests.test_negative_unaccounted_retained_quote) ... ok
+2026-10-04T09:55:39.4923569Z test_negative_untyped_settlement_declaration (__main__.JointPackTests.test_negative_untyped_settlement_declaration) ... ok
+2026-10-04T09:55:40.0556355Z test_negative_untyped_start_control (__main__.JointPackTests.test_negative_untyped_start_control) ... ok
+2026-10-04T09:55:40.6732798Z test_positive_current_joint_pack_is_not_runtime_qualification (__main__.JointPackTests.test_positive_current_joint_pack_is_not_runtime_qualification) ... ok
+2026-10-04T09:55:40.6734024Z 
+2026-10-04T09:55:40.6734281Z ----------------------------------------------------------------------
+2026-10-04T09:55:40.6734927Z Ran 146 tests in 72.479s
+2026-10-04T09:55:40.6735159Z 
+2026-10-04T09:55:40.6735275Z OK
+2026-10-04T09:55:40.6870451Z ##[group]Run python3 docs/validation/merge_gate.py
+2026-10-04T09:55:40.6870864Z [36;1mpython3 docs/validation/merge_gate.py[0m
+2026-10-04T09:55:40.6934600Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:40.6934899Z ##[endgroup]
+2026-10-04T09:55:40.7380438Z merge_gate: PASS -- ledger only, 0 problem(s)
+2026-10-04T09:55:40.7458022Z ##[group]Run python3 -B docs/validation/setting_contract.py --output "$RUNNER_TEMP/setting-contract.json"
+2026-10-04T09:55:40.7458830Z [36;1mpython3 -B docs/validation/setting_contract.py --output "$RUNNER_TEMP/setting-contract.json"[0m
+2026-10-04T09:55:40.7522687Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:40.7522985Z ##[endgroup]
+2026-10-04T09:55:40.7955474Z {"status": "PASS_STATIC_SPEC_AND_REFERENCE_ONLY", "catalog_counts": {"items": 61, "recipes": 24, "ancillary": 12, "buildings": 30, "furniture": 9, "crops": 5}, "resolved_dependency_edges": 183}
+2026-10-04T09:55:40.8033537Z ##[group]Run python3 tools/dispatch_plan.py --validate
+2026-10-04T09:55:40.8033952Z [36;1mpython3 tools/dispatch_plan.py --validate[0m
+2026-10-04T09:55:40.8096487Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:40.8096762Z ##[endgroup]
+2026-10-04T09:55:40.8494474Z dispatch_plan: PASS -- 137 tasks, 0 problem(s)
+2026-10-04T09:55:40.8567193Z ##[group]Run python3 tools/astra_inbox.py --check
+2026-10-04T09:55:40.8567596Z [36;1mpython3 tools/astra_inbox.py --check[0m
+2026-10-04T09:55:40.8627500Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:40.8627752Z ##[endgroup]
+2026-10-04T09:55:40.8999965Z astra_inbox: PASS -- OPEN.md matches open_items.json
+2026-10-04T09:55:40.9074172Z ##[group]Run python3 docs/validation/validate_save_registry_handoff.py --source-root .
+2026-10-04T09:55:40.9074841Z [36;1mpython3 docs/validation/validate_save_registry_handoff.py --source-root .[0m
+2026-10-04T09:55:40.9134397Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:40.9134667Z ##[endgroup]
+2026-10-04T09:55:41.6155995Z PASS 31 independent name, cursor, UTF-8 framing and name-section-bound fixtures
+2026-10-04T09:55:41.6156998Z state_registry_coverage: PASS -- 140 modules, 699 rows, 1038 packed columns checked
+2026-10-04T09:55:41.6158047Z PASS source membership/types: 671 persisted packed fields (not semantic adapter validation)
+2026-10-04T09:55:41.6158955Z PASS registry structure: 61 owners, 756 canonical records
+2026-10-04T09:55:41.6259186Z ##[group]Run python3 tools/generate_canonical_state_table.py --check
+2026-10-04T09:55:41.6259708Z [36;1mpython3 tools/generate_canonical_state_table.py --check[0m
+2026-10-04T09:55:41.6321693Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:41.6321970Z ##[endgroup]
+2026-10-04T09:55:41.6726983Z PASS generated declaration table matches canonical_state_registry.json
+2026-10-04T09:55:41.6805384Z ##[group]Run set -euo pipefail
+2026-10-04T09:55:41.6805722Z [36;1mset -euo pipefail[0m
+2026-10-04T09:55:41.6806049Z [36;1mpython3 docs/validation/validate_cycle01_handoff.py[0m
+2026-10-04T09:55:41.6806452Z [36;1mpython3 docs/validation/validate_cycle02_handoff.py[0m
+2026-10-04T09:55:41.6806907Z [36;1mpython3 docs/validation/validate_cycle03_handoff.py --source-root .[0m
+2026-10-04T09:55:41.6866499Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:41.6866773Z ##[endgroup]
+2026-10-04T09:55:41.7301458Z PASS Cycle 1: nine-owner wire arithmetic; four malformed target refusals; twelve starter-root fixtures; archived answers; queue gates; stable inbox anchors; packet evidence limits.
+2026-10-04T09:55:41.7303402Z Scope: planning consistency only; no production codec, physical clearance, art or save-continuation acceptance.
+2026-10-04T09:55:41.7660637Z PASS Cycle 2 contract fixtures: 43 checks; projection, allocator, fit, gate and handoff cases.
+2026-10-04T09:55:41.7661861Z No production codec, body measurement, movement admission, visual approval or save-continuation result is inferred.
+2026-10-04T09:55:41.8072828Z PASS Cycle3: 76 checks; design geometry/format/grammar/handoff only.
+2026-10-04T09:55:41.8074541Z Observed registry: 756 canonical fields; 587 capacity strings = 501 exact + 86 upper bounds. Source proofs still owned by REGISTRY-CAPACITY-AUDIT.
+2026-10-04T09:55:41.8152221Z ##[group]Run set -euo pipefail
+2026-10-04T09:55:41.8152752Z [36;1mset -euo pipefail[0m
+2026-10-04T09:55:41.8153069Z [36;1mpython3 tools/audit_registry_capacities.py --check[0m
+2026-10-04T09:55:41.8153458Z [36;1mpython3 tools/test_registry_capacity_audit.py[0m
+2026-10-04T09:55:41.8213977Z shell: /usr/bin/bash -e {0}
+2026-10-04T09:55:41.8214255Z ##[endgroup]
+2026-10-04T09:55:45.1694323Z REFUSED: docs/planning/registry_capacity_audit.json is not what this source produces
+2026-10-04T09:55:45.1782284Z ##[error]Process completed with exit code 1.
+2026-10-04T09:55:45.1990963Z Post job cleanup.
+2026-10-04T09:55:45.2879318Z [command]/usr/bin/git version
+2026-10-04T09:55:45.2925350Z git version 2.55.0
+2026-10-04T09:55:45.2966420Z Temporarily overriding HOME='/home/runner/work/_temp/993baa8d-4f34-4995-8d9e-c1bd56ce0639' before making global git config changes
+2026-10-04T09:55:45.2967796Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-04T09:55:45.2972872Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/redwall-rts/redwall-rts
+2026-10-04T09:55:45.3011469Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-04T09:55:45.3047056Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-04T09:55:45.3314352Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-04T09:55:45.3343142Z http.https://github.com/.extraheader
+2026-10-04T09:55:45.3364452Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-04T09:55:45.3419315Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-04T09:55:45.3707856Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-04T09:55:45.3748587Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-04T09:55:45.4175631Z Cleaning up orphan processes
+2026-10-04T09:55:45.4479140Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

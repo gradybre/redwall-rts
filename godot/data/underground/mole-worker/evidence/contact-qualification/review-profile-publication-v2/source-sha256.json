@@ -1,0 +1,10 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/run_publication_checks.py": "b6590a4d00ce7f543ff76de472f957b9c4de4a0efd6c19770d4e718aa1f09d56",
+  "godot/data/underground/mole-worker/mole_profile_catalog.gd": "e9be7e504514355e61e9b2f325e0c245e3990ee95449056daa0a2eba954c8ea4",
+  "godot/data/underground/mole-worker/profile-publication-v2/catalog_source.gd": "f82a00a095b55b385880d73ae182a06791adf8c37925d2604819289cef71be94",
+  "godot/data/underground/mole-worker/publish_mole_profiles.py": "813746cd4a989442dc77f20b985fb1d3f001bb4a935cb80ffbb939b7c76033ad",
+  "godot/data/underground/mole-worker/test_publish_mole_profiles.py": "fc66a4bd598a626716b6e35c891b681103ece15f12e35ed5697f9ea339d146f2",
+  "godot/test/test_mole_qualified_profiles.gd": "fa2757263f2aa7e6a95a982eb5474193c236e15b1a74c26a56a9a5fee3cdffb2",
+  "tools/demo_build/windows_export_preset.cfg": "7a7411b43cfad81fd2fde50c0d94ab034273c2a33aae0f75754b51746a46895e",
+  "tools/test_build_demo_windows.py": "c6fae1c396cf165028344dab8f5d874c27ed4bd9fd4c37674252aaf8f823c65d"
+}

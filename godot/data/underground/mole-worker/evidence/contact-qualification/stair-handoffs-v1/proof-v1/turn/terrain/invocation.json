@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/proof-v1/turn/terrain/result",
+    "--name",
+    "turn",
+    "--kind",
+    "terrain"
+  ],
+  "exit_code": 0,
+  "seconds": 14.05617094039917,
+  "source_before": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "72e07b93d40b6d8fe6b0738f85bce35c7a6d5fe5cc932dbcf3324547cf5caf78",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py": "d2a7a8e72a688b172c6935b5e77a99ddfeec7717d9b85d40b4c01d92df7e31e2",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py": "40b1983406da569569449281ac2371d1ea6c06bec34d7fecec69bafe20b68c80"
+  },
+  "source_after": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "d9a711690e2da698adef2eabb6354e6dbc552fc6e2454b5055d9533c636adbda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "72e07b93d40b6d8fe6b0738f85bce35c7a6d5fe5cc932dbcf3324547cf5caf78",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py": "d2a7a8e72a688b172c6935b5e77a99ddfeec7717d9b85d40b4c01d92df7e31e2",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py": "40b1983406da569569449281ac2371d1ea6c06bec34d7fecec69bafe20b68c80"
+  },
+  "source_unchanged": true
+}

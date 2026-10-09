@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "checkpoint": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "run_exit_code": 1,
+  "tests": 11226,
+  "assertions": 1028141,
+  "failures": 0,
+  "suites": 406,
+  "strict_diagnostics": {
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "raw_diagnostics": {
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "analyzer": {
+    "executed": true,
+    "exit_code": 0,
+    "warnings": 0,
+    "files_with_warnings": 0,
+    "files_checked": 1252,
+    "json": {}
+  },
+  "restoration": {
+    "source_unchanged_before_cleanup": true,
+    "source_unchanged": true,
+    "assets_restored": true,
+    "project_restored": true,
+    "sidecars_restored": true,
+    "head_unchanged": true
+  },
+  "tracked_source_pins": 10551,
+  "independent_post_run_source_mismatches": [],
+  "artifact_pins": {
+    "invocation.json": "034179539aa0c0969eeb28636d42b66259a4145814b4078b602e96665e7a405a",
+    "source-sha256.json": "7e5140e8c185265d4f11f2248f7017d290dfb0b1947b0e82a31df5d539dbb3da",
+    "executed-procedure.py.txt": "f947c8f240b6244d546cc968f3bae99e59c7c4345ec4592a16a2ea8b6c294bd8",
+    "clean-import.log": "9e90acb464dbb23b107694b8a88552630b7014089ecb69e43ee2ad97726830e0",
+    "full-suite.log": "05d6e644c5e506a5b8f160c62f069c07b4e6b2dac3404cd7bf6b8505c01f904d",
+    "analyzer.log": "7a34c87a260cd191a52f13fcb6d01c62dc314176e7debe3e084925150e46299a",
+    "analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "analyzer-editor.log": "f13f4987c1c10636867652838aef17359d524ad3cec3c83c4f685e446a902330"
+  },
+  "native_memory_qualified": false,
+  "gameplay_or_visual_qualified": false,
+  "exact_ci_run_passed": false
+}

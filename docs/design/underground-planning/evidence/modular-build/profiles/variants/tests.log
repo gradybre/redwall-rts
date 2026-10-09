@@ -1,0 +1,30 @@
+test_carried_variants_retain_all_available_crossfade_source_clips (__main__.VariantTests) ... ok
+test_changed_body_geometry_and_inverse_bind_refuse (__main__.VariantTests) ... ok
+test_changed_cargo_dimensions_change_the_measured_variant (__main__.VariantTests) ... ok
+test_changed_fit_algorithm_refuses_even_with_unchanged_constants (__main__.VariantTests) ... ok
+test_changed_rest_hierarchy_and_missing_name_refuse (__main__.VariantTests) ... ok
+test_cli_cannot_overwrite_input_manifest (__main__.VariantTests) ... ok
+test_composed_rotations_cover_continuous_non_endpoint_tool_reach (__main__.VariantTests) ... ok
+test_cross_clip_blend_can_exceed_max_of_separate_clip_bounds (__main__.VariantTests) ... ok
+test_declaration_parser_rejects_changed_expression_and_array_code (__main__.VariantTests) ... ok
+test_duplicate_attachment_clip_and_manifest_identities_refuse (__main__.VariantTests) ... ok
+test_exact_prop_fit_uses_actual_extent_not_a_height_ratio (__main__.VariantTests) ... ok
+test_fit_uses_exact_transformed_vertices_not_inflated_affine_interval_box (__main__.VariantTests) ... ok
+test_indirect_fit_and_hand_helpers_cannot_drift_with_all_direct_function_pins_unchanged (__main__.VariantTests) ... ok
+test_influence_filter_keeps_all_used_vertices_but_avoids_unrelated_joint_box (__main__.VariantTests) ... ok
+test_inter_hand_log_covers_both_hands_and_variable_full_span (__main__.VariantTests) ... ok
+test_node_indices_may_change_when_complete_named_topology_is_identical (__main__.VariantTests) ... ok
+test_omitted_or_undeclared_gear_and_cargo_refuse (__main__.VariantTests) ... ok
+test_second_influence_set_and_raw_weight_sum_are_preserved (__main__.VariantTests) ... ok
+test_seven_state_manifest_cannot_omit_retreat_or_claim_runtime_binding (__main__.VariantTests) ... ok
+test_static_affine_matrix_transforms_every_primitive (__main__.VariantTests) ... ok
+test_static_hash_tamper_and_normalized_position_refuse (__main__.VariantTests) ... ok
+test_static_overlapping_transform_forms_and_perspective_refuse (__main__.VariantTests) ... ok
+test_static_second_mesh_instance_cannot_disappear (__main__.VariantTests) ... ok
+test_static_source_capacities_and_invalid_accessor_refuse_before_scan (__main__.VariantTests) ... ok
+test_tool_tip_extends_body_and_missing_bone_refuses (__main__.VariantTests) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.048s
+
+OK

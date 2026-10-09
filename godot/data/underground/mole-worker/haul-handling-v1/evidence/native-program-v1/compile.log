@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py", line 123, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py", line 118, in main
+    result = compile_program(args.palette, args.grip_palette, args.out)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py", line 78, in compile_program
+    pins = reviewed_inputs()
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py", line 39, in reviewed_inputs
+    I.require(digest(ROOT / name) == expected, "HAUL_NATIVE_REVIEWED_SOURCE")
+              ^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py", line 25, in digest
+    return I.CONTENT.file_hash(path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/tools/compile_underground_actor_content.py", line 33, in file_hash
+    with path.open("rb") as stream:
+         ^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/author_loaded_gait.py'

@@ -1,0 +1,121 @@
+{
+  "head": "eb95c0dd418d97719a1772790265ae7d834b0291",
+  "branch": "codex/underground-integration-qualification-2026-10-05",
+  "scope": "Full no-argument suite and all-file zero-warning analyzer; no hardware qualification",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 11.692
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "log": "full-suite.log",
+      "exit_code": 0,
+      "seconds": 1936.692
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6493",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-qualification-2026-10-05/docs/validation/evidence/underground-integration-checkpoint-2026-10-05/full-eb95c0dd/analyzer.json"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 76.75
+    },
+    {
+      "command": [
+        "python3",
+        "docs/validation/decision_numbers.py"
+      ],
+      "log": "decision-numbers.log",
+      "exit_code": 0,
+      "seconds": 0.13
+    },
+    {
+      "command": [
+        "python3",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "log": "memory-check.log",
+      "exit_code": 0,
+      "seconds": 1.815
+    },
+    {
+      "command": [
+        "python3",
+        "docs/validation/validate_save_registry_handoff.py",
+        "--source-root",
+        "."
+      ],
+      "log": "registry-check.log",
+      "exit_code": 0,
+      "seconds": 0.403
+    },
+    {
+      "command": [
+        "python3",
+        "docs/validation/state_registry_coverage.py"
+      ],
+      "log": "registry-coverage.log",
+      "exit_code": 0,
+      "seconds": 0.35
+    },
+    {
+      "command": [
+        "python3",
+        "tools/underground_build_queue.py",
+        "validate"
+      ],
+      "log": "queue-check.log",
+      "exit_code": 0,
+      "seconds": 0.078
+    }
+  ],
+  "assets_present_before": false,
+  "user_dir": "Redwall-ug-checkpoint-fe4fa7d893eb",
+  "import_findings": [],
+  "counts": {
+    "tests": 11283,
+    "assertions": 1082447,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "suite_count": 410,
+  "summary_lines": [
+    "11283 test(s), 1082447 assertion(s), 0 failure(s)",
+    "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+    "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+  ],
+  "analyzer_raw_findings": [],
+  "analyzer_summary": "0 GDScript warning(s) in 0 of 1264 file(s)",
+  "override_unchanged": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "head_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

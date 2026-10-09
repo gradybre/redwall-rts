@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py", line 186, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py", line 174, in main
+    report = measure(args.palette, args.grip_palette)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py", line 126, in measure
+    require(np.array_equal(geometry["points"], original["points"]), "HANDLING_CURRENT_POSITIONS_CHANGED")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py", line 39, in require
+    raise ValueError(code)
+ValueError: HANDLING_CURRENT_POSITIONS_CHANGED

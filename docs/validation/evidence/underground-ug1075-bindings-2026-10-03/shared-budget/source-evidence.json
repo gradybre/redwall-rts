@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-03",
+  "scope": "Actual shared Budget instance used by immutable Locations; terrain/profile/traversal composition remains in progress.",
+  "source_sha256": {
+    "godot/scripts/core/underground_locations.gd": "3a88da190540d9f655be324a6780601dbcb3a09797ef21f3b4e37a654f98fb83",
+    "godot/test/test_underground_locations.gd": "20a95ba3edec9455eb5315b179f67f5e7472f4242d39992ba2d84d858e093093",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/test/test_underground_budget.gd": "fc1ac2a18428d0061d59dbbe5313a0b9d130cac09e7aebf3e4b008fe0dca1cd6"
+  },
+  "logs_sha256": {
+    "analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "clean-import.log": "19214659035ed72c40530bae5f9d671ee3e927857efce7a74440971d81652b36",
+    "historical-rejected-missing-budget-registration.log": "58119450de5123de33237be602c5bb6ca76e605a12352be4736363fecd6c87a6",
+    "test_underground_budget.log": "6e60b7c0626ee706e0e192ce0efbce760b9bdc645bfe3910397e7dc776766e26",
+    "test_underground_locations.log": "ba2af8a355674b9f4004c1ce7dfbacfe08ea320c06037be2c962b58bb2b86e5e"
+  },
+  "commands": [
+    "Move demo assets aside, delete godot/.godot, godot --headless --path godot --editor --quit, restore assets afterwards",
+    "./tools/run_tests.sh --shard INDEX/COUNT --output-dir DIR (one actual test file in each discovered shard)",
+    "python3 tools/gdscript_warnings.py --port 6153 --max 0 godot/scripts/core/underground_locations.gd godot/test/test_underground_locations.gd"
+  ],
+  "results": {
+    "locations_tests": 17,
+    "locations_assertions": 396,
+    "budget_tests": 6,
+    "budget_assertions": 58,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected_diagnostics": 0,
+    "tolerated_diagnostics": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 2
+  },
+  "historical_refusal": "The first strict invocation refused before running tests because the imported Budget module lacked its reviewed Markdown registry section. That exact c6c10f3c section was imported; no gate changed."
+}

@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_support_clearance.gd
+  PASS  test_exact_published_ground_stance_does_not_expand_to_tool_air
+  PASS  test_real_512u_tread_cannot_borrow_body_only_air
+  PASS  test_one_unit_interior_footing_gap_remains_a_real_support_failure
+  PASS  test_complete_stance_still_requires_every_unit_of_overhanging_air
+  PASS  test_obstacle_in_overhanging_tool_air_refuses_without_changing_footing
+  FAIL  test_exact_install_stance_keeps_raised_contact_and_full_air_separate
+        exact immutable INSTALL row (expected , got PROFILE_SELECTION_STALE)
+        exact source contact retained (expected 1, got 0)
+  PASS  test_actual_natural_anchor_proves_published_air_and_stance_independently
+  PASS  test_renewed_catalog_accepts_current_sources_and_rejects_historical_pins
+  PASS  test_late_actual_tree_in_tool_overhang_refuses_before_surface_publication
+CI_SUITE_TIME {"assertions":126,"failures":1,"suite":"test_underground_support_clearance.gd","tests":9,"usec":938629}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+9 test(s), 126 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,64 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_ground_piles.gd
+  PASS  test_the_tile_domain_and_cap_are_the_approved_values
+  PASS  test_bind_world_accepts_only_a_live_world_row
+  PASS  test_bind_stores_refuses_a_missing_store
+  PASS  test_out_of_bounds_tiles_refuse
+  PASS  test_open_land_is_admitted_and_water_is_impassable
+  PASS  test_a_bound_ground_map_blocks_a_tile_with_one_unwalkable_cell
+  PASS  test_a_demolishing_footprint_refuses_by_name_through_inventory_too
+  PASS  test_every_other_live_footprint_is_inaccessible
+  PASS  test_a_destroyed_footprint_refuses_while_its_mask_is_in_force
+  PASS  test_an_existing_pile_on_a_tile_that_became_illegal_is_not_topped_up
+  PASS  test_a_placement_creates_a_world_pile_declared_at_storage_class_1500
+  PASS  test_spill_is_breadth_first_north_east_south_west
+  PASS  test_spill_skips_impassable_and_footprint_tiles_but_keeps_the_order
+  PASS  test_an_existing_pile_is_topped_up_before_spilling
+  PASS  test_a_pile_is_filled_to_the_per_lot_ceiling_exactly
+  PASS  test_several_spec_rows_keep_their_attributes_and_order
+  PASS  test_no_reachable_capacity_refuses_and_changes_nothing
+  PASS  test_a_refusal_midway_rolls_every_pile_back
+  PASS  test_preflight_answers_without_changing_anything
+  PASS  test_input_refusals_are_named_and_write_nothing
+  PASS  test_reclaim_on_commit_drops_the_pile_and_its_declaration
+  PASS  test_the_spill_reaches_the_16384th_tile
+  PASS  test_the_halls_outside_door_tile_is_the_starter_layouts_exit
+  PASS  test_a_hall_elsewhere_keeps_the_same_door_offset
+  PASS  test_a_doorless_building_seeds_its_edge_ring_front_first
+  PASS  test_the_front_turns_clockwise_with_the_rotation
+  PASS  test_a_rotated_hall_has_no_authored_door_and_uses_its_ring
+  PASS  test_a_ring_clipped_by_the_grid_edge_keeps_only_in_grid_tiles
+  PASS  test_the_refund_origin_refuses_bad_inputs_without_writing
+  PASS  test_refunds_spill_from_the_door_and_never_onto_the_destroyed_footprint
+  PASS  test_a_doorless_refund_fills_the_ring_front_first_then_spills_outward
+  PASS  test_a_ring_at_the_south_east_corner_never_wraps_onto_the_next_row
+  PASS  test_a_repeated_seed_is_visited_once
+  PASS  test_seeds_skip_ineligible_tiles_and_refuse_when_none_is_left
+  PASS  test_piles_round_trip_through_section_7_and_the_map_is_rebuilt
+  PASS  test_the_composer_refuses_a_footprint_tile_that_holds_a_live_pile
+  PASS  test_bound_as_placement_authority_the_composer_stops_a_building_over_a_pile
+  PASS  test_the_in_transaction_variant_refuses_without_a_callers_transaction
+  PASS  test_the_in_transaction_variant_refuses_a_bad_seed_count_inside_the_transaction
+  PASS  test_the_in_transaction_variant_places_inside_and_the_caller_commits
+  PASS  test_the_in_transaction_variant_is_rolled_back_by_the_callers_abort
+  PASS  test_an_in_transaction_refusal_leaves_the_abort_to_the_caller
+CI_SUITE_TIME {"assertions":547,"failures":0,"suite":"test_ground_piles.gd","tests":42,"usec":2261782}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+42 test(s), 547 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 42 tests, 547 assertions, 0 failures.

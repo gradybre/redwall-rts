@@ -126,6 +126,9 @@ const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const BuildingDefinitions := preload("res://scripts/core/building_definitions.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
+const ColumnProofs := preload("res://scripts/core/column_proofs.gd")
 
 ## systems_architecture.md §2.2 and entity_directory.gd's KIND_CAPACITY, which must agree.
 const CONSTRUCTION_CAPACITY: int = 82944
@@ -230,7 +233,15 @@ const PURPOSE_COUNT: int = 4
 ## CONSTRUCTION-SAVED-BINDINGS revisits that contract. LIVE_PURPOSE_COUNT is the domain this
 ## store's own doors accept.
 const PURPOSE_REMOVE_FURNITURE: int = 4
-const LIVE_PURPOSE_COUNT: int = 5
+## Site operations append a live-only purpose. Legacy column/save domains remain frozen and
+## explicitly reject these rows until a versioned excavation codec is integrated (decision 1056).
+const PURPOSE_EXCAVATION: int = 5
+## Decision 1069: actual spatial Furniture and World-qualified local tip subjects.
+## The frozen PURPOSE_COUNT / Columns codec deliberately remains 4.
+const PURPOSE_SPATIAL_FURNITURE: int = 6
+const PURPOSE_SPOIL_TIP: int = 7
+const PURPOSE_CONNECTOR_INSTALL: int = 8
+const LIVE_PURPOSE_COUNT: int = 9
 
 ## Where a project is in REQ-SET-124-127's sequence. See the header on ECON-003's separate
 ## excavation-site phases, which these are NOT.
@@ -351,6 +362,9 @@ class OpResult:
 
 # --- collaborators ------------------------------------------------------------------------------
 
+var _excavation_authority: WeakRef = null
+var _modular_authority: WeakRef = null
+var _modular_quote: ModularContract.Quote = ModularContract.Quote.new()
 var _buildings: Buildings = null
 var _owns_buildings: bool = false
 var _directory: EntityDirectory = null
@@ -603,6 +617,10 @@ func definitions() -> BuildingDefinitions:
 
 func _bill_stride_row(purpose: int, type_id: int) -> int:
 	"""The owner-major base index of one bill, or NO_ROW when the purpose/type pair is unknown."""
+	if purpose == PURPOSE_EXCAVATION:
+		return 0 if ExcavationContract.valid_operation(type_id) else NO_ROW
+	if purpose == PURPOSE_SPOIL_TIP or purpose == PURPOSE_CONNECTOR_INSTALL:
+		return NO_ROW
 	if is_furniture_subject(purpose):
 		if not _definitions.is_furniture_id(type_id):
 			return NO_ROW
@@ -616,12 +634,14 @@ func _bill_count_of(purpose: int, type_id: int) -> int:
 	"""How many typed pairs a DELIVERY bill has; 0 for a demolition, which delivers nothing."""
 	if _bill_stride_row(purpose, type_id) == NO_ROW:
 		return 0
+	if purpose == PURPOSE_EXCAVATION:
+		return ExcavationContract.input_count(type_id)
 	match purpose:
 		PURPOSE_BUILD:
 			return _build_count[type_id]
 		PURPOSE_UPGRADE:
 			return _upgrade_count[type_id]
-		PURPOSE_FURNITURE:
+		PURPOSE_FURNITURE, PURPOSE_SPATIAL_FURNITURE:
 			return _furniture_count[type_id]
 	return 0
 
@@ -630,6 +650,8 @@ func bill_size_into(purpose: int, type_id: int, out: IntMath.IntResult) -> bool:
 	"""Write the DELIVERY bill's pair count into `out`; refuse an unknown purpose or type."""
 	if purpose < 0 or purpose >= LIVE_PURPOSE_COUNT:
 		return out.refuse(REFUSE_UNKNOWN_PURPOSE)
+	if purpose == PURPOSE_SPOIL_TIP or purpose == PURPOSE_CONNECTOR_INSTALL:
+		return out.refuse(ModularContract.REFUSE_PROJECT_CONTEXT)
 	if _bill_stride_row(purpose, type_id) == NO_ROW:
 		return out.refuse(REFUSE_UNKNOWN_FURNITURE_TYPE if is_furniture_subject(purpose)
 			else REFUSE_UNKNOWN_BUILDING_TYPE)
@@ -661,6 +683,9 @@ func material_key_index_into(purpose: int, type_id: int, index: int,
 		return false
 	if index < 0 or index >= out.value:
 		return out.refuse(REFUSE_MATERIAL_INDEX)
+	if purpose == PURPOSE_EXCAVATION:
+		var key_index: int = MATERIAL_KEYS.find(ExcavationContract.input_key(type_id, index))
+		return out.succeed(key_index) if key_index >= 0 else out.refuse(REFUSE_UNKNOWN_MATERIAL_KEY)
 	var base: int = _bill_stride_row(purpose, type_id)
 	return out.succeed(_bill_key_column(purpose)[base + index])
 
@@ -672,8 +697,7 @@ func required_milli_into(purpose: int, type_id: int, index: int,
 		return false
 	if index < 0 or index >= out.value:
 		return out.refuse(REFUSE_MATERIAL_INDEX)
-	var base: int = _bill_stride_row(purpose, type_id)
-	return out.succeed(_bill_milli_column(purpose)[base + index])
+	return out.succeed(_required_milli_at(purpose, type_id, index))
 
 
 func material_index_of_key_into(purpose: int, type_id: int, key: StringName,
@@ -683,6 +707,8 @@ func material_index_of_key_into(purpose: int, type_id: int, key: StringName,
 	A caller that has resolved a compiled item id back to its key uses this to name the slot it
 	is delivering into, so a load of wood can never be credited against the stone line.
 	"""
+	if purpose == PURPOSE_EXCAVATION:
+		return _excavation_material_index_into(type_id, key, out)
 	var key_index: int = MATERIAL_KEYS.find(key)
 	if key_index < 0:
 		return out.refuse(REFUSE_UNKNOWN_MATERIAL_KEY)
@@ -707,9 +733,11 @@ func declared_work_mwu_into(purpose: int, type_id: int, out: IntMath.IntResult) 
 	if not bill_size_into(purpose, type_id, out):
 		return false
 	match purpose:
+		PURPOSE_EXCAVATION:
+			return out.succeed(ExcavationContract.work_mwu(type_id))
 		PURPOSE_BUILD:
 			return out.succeed(_definitions.work_mwu_of(type_id))
-		PURPOSE_FURNITURE:
+		PURPOSE_FURNITURE, PURPOSE_SPATIAL_FURNITURE:
 			return out.succeed(_definitions.furniture_work_mwu_of(type_id))
 		PURPOSE_UPGRADE:
 			if _upgrade_count[type_id] == 0:
@@ -723,6 +751,378 @@ func declared_work_mwu_into(purpose: int, type_id: int, out: IntMath.IntResult) 
 
 
 # --- project lifecycle ---------------------------------------------------------------------------
+
+func modular_binding_refusal(authority: ModularContract) -> StringName:
+	"""Read-only composition preflight; a dead router binding cannot be silently replaced."""
+	if authority == null or _modular_authority != null or authority.construction_owner() != self:
+		return ModularContract.REFUSE_AUTHORITY
+	return REFUSE_NONE if _directory.is_valid_of_kind(authority.world_ref(), EntityDirectory.KIND_WORLD) \
+		else ModularContract.REFUSE_AUTHORITY
+
+
+func bind_modular_authority(authority: ModularContract) -> OpResult:
+	"""Bind the exact World-qualified router weakly after the paired Work preflight."""
+	var code: StringName = modular_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_modular_authority = weakref(authority)
+	return OpResult.new(true, REFUSE_NONE, 0, NULL_REF)
+
+
+func has_modular_binding() -> bool:
+	"""Distinguish a never-bound world from expired ownership that must not erase retained stock."""
+	return _modular_authority != null
+
+
+func modular_authority() -> ModularContract:
+	"""Return only the still-live exact owner composition, not merely a typed weak target."""
+	var authority: ModularContract = _modular_authority.get_ref() as ModularContract \
+		if _modular_authority != null else null
+	if authority == null or authority.construction_owner() != self \
+			or not _directory.is_valid_of_kind(authority.world_ref(), EntityDirectory.KIND_WORLD):
+		return null
+	return authority
+
+
+func spatial_furniture_batch_refusal(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Preflight paired actual project rows and adopted catalog work before any identity publication."""
+	var authority: ModularContract = modular_authority()
+	if authority == null or authority.furniture_batch_preparation_refusal(room, batch) != &"":
+		return ModularContract.REFUSE_AUTHORITY
+	var code: StringName = _furniture_batch_shape_refusal(batch, entries)
+	if code != REFUSE_NONE:
+		return code
+	# Every future Furniture generation is currently unallocated: no valid live project can
+	# already name it. Rechecking the actual allocator avoids an N*82944 subject-table scan.
+	return _directory.batch_candidate_refusal(batch)
+
+
+func _furniture_batch_shape_refusal(batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Exact alternating namespaces and whole adopted recipes prevent caller-priced future subjects."""
+	if batch == null or batch.directory_owner() != _directory or batch.storage_refusal() != &"" \
+			or batch.count < 2 or batch.count > batch.capacity() or batch.count % 2 != 0 \
+			or entries.size() != batch.count * 2:
+		return ModularContract.REFUSE_QUOTE
+	for index: int in range(0, batch.count, 2):
+		var row: int = batch.typed_rows[index + 1]
+		if batch.kinds[index] != EntityDirectory.KIND_FURNITURE \
+				or batch.kinds[index + 1] != EntityDirectory.KIND_CONSTRUCTION \
+				or row < 0 or row >= CONSTRUCTION_CAPACITY or _present[row] != 0:
+			return ModularContract.REFUSE_QUOTE
+		var type_id: int = entries[index * 2]
+		if not _definitions.is_furniture_id(type_id) or _definitions.is_edge_furniture(type_id) \
+				or _definitions.furniture_work_mwu_of(type_id) <= 0 \
+				or _furniture_count[type_id] < 0 or _furniture_count[type_id] > MATERIAL_SLOTS_PER_PROJECT:
+			return ModularContract.REFUSE_QUOTE
+		for line: int in _furniture_count[type_id]:
+			if material_key_at(PURPOSE_FURNITURE, type_id, line) == &"" \
+					or _required_milli_at(PURPOSE_FURNITURE, type_id, line) <= 0:
+				return ModularContract.REFUSE_QUOTE
+	return REFUSE_NONE
+
+
+func publish_spatial_furniture_batch(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Initialize only preallocated actual project rows inside the Router's exact batch window."""
+	var authority: ModularContract = modular_authority()
+	if authority == null or authority.furniture_batch_publication_refusal(room, batch) != &"":
+		return ModularContract.REFUSE_AUTHORITY
+	var code: StringName = _furniture_batch_shape_refusal(batch, entries)
+	if code != REFUSE_NONE:
+		return code
+	for index: int in batch.count:
+		var ref: Vector2i = batch.ref_at(index)
+		if not _directory.is_valid_of_kind(ref, batch.kinds[index]) \
+				or _directory.get_typed_row(ref) != batch.typed_rows[index] \
+				or _directory.get_persistent_id(ref) != batch.persistent_ids[index]:
+			return ModularContract.REFUSE_AUTHORITY
+	for index: int in range(0, batch.count, 2):
+		var row: int = batch.typed_rows[index + 1]
+		var type_id: int = entries[index * 2]
+		_write_row(row, batch.ref_at(index + 1), PURPOSE_SPATIAL_FURNITURE, batch.ref_at(index),
+			type_id, _definitions.furniture_work_mwu_of(type_id), MAX_BUILDERS, _furniture_count[type_id])
+		_paid_base_type[row] = NO_PAID_PACKAGE
+		_paid_upgrade_mask[row] = 0
+		_live_count += 1
+	return REFUSE_NONE
+
+
+func open_modular_phase(purpose: int, subject: Vector2i, operation: int) -> OpResult:
+	"""Allocate a real project only from the router's prepared immutable purpose-specific order."""
+	if not is_modular(purpose):
+		return _refuse(REFUSE_UNKNOWN_PURPOSE)
+	var authority: ModularContract = modular_authority()
+	if authority == null:
+		return _refuse(ModularContract.REFUSE_AUTHORITY)
+	_modular_quote.reset()
+	var code: StringName = authority.project_open_into(purpose, subject, operation, _modular_quote)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	code = _modular_quote_refusal(purpose, subject, operation)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if project_of_modular_subject(purpose, subject) != NULL_REF \
+			or purpose == PURPOSE_SPATIAL_FURNITURE and _project_of_subject(subject) != NO_ROW:
+		return _refuse(REFUSE_ALREADY_UNDER_CONSTRUCTION)
+	var opened: OpResult = _open_row(purpose, subject, operation, _modular_quote.remaining_mwu,
+		NO_PAID_PACKAGE, 0, _modular_quote.max_workers, _modular_quote.input_count)
+	if opened.ok:
+		authority.attach_project(purpose, subject, operation, opened.ref)
+	return opened
+
+
+func retire_modular_phase(project: Vector2i, authority: ModularContract) -> OpResult:
+	"""Retire only inside the router's post-output/refund window; owner identity alone is insufficient."""
+	if authority == null or authority != modular_authority():
+		return _refuse(REFUSE_COORDINATOR_ONLY)
+	var row: int = _row_of(project)
+	if row == NO_ROW:
+		return _refuse(REFUSE_STALE_PROJECT_REF)
+	if not is_modular(_purpose[row]):
+		return _refuse(REFUSE_UNKNOWN_PURPOSE)
+	var code: StringName = authority.mutation_refusal(project, ModularContract.ACTION_RETIRE)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
+		return _refuse(REFUSE_WRONG_PHASE)
+	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
+	_clear_retired_extension_row(row)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _clear_retired_extension_row(row: int) -> void:
+	"""A retired excavation or modular row returns to the exact never-used clear row (ADR 1228: the
+	worker capacity too, which the frozen section 4 predicate requires of a typeless row)."""
+	_purpose[row] = PURPOSE_BUILD
+	_type_id[row] = -1
+	_phase[row] = PHASE_AWAITING_MATERIALS
+	_refund_policy[row] = REFUND_FULL
+	_max_workers[row] = 0
+
+
+func project_of_modular_subject(purpose: int, subject: Vector2i) -> Vector2i:
+	"""Cold namespace-qualified lookup; local tip numbers never alias Directory subjects."""
+	if not is_modular(purpose):
+		return NULL_REF
+	for row: int in CONSTRUCTION_CAPACITY:
+		if _present[row] == 1 and _purpose[row] == purpose and _subject_slot[row] == subject.x \
+				and _subject_generation[row] == subject.y:
+			return _ref_of_row(row)
+	return NULL_REF
+
+
+func _modular_quote_refusal(purpose: int, subject: Vector2i, operation: int) -> StringName:
+	"""Validate the finite quote and, for actual furniture, its exact protected catalog recipe."""
+	var code: StringName = _modular_quote.refusal()
+	if code != REFUSE_NONE or _modular_quote.subject != subject or _modular_quote.operation != operation:
+		return ModularContract.REFUSE_QUOTE
+	if purpose != PURPOSE_SPATIAL_FURNITURE:
+		return REFUSE_NONE
+	if not _is_spatial_furniture(subject) or _buildings.is_furniture_installed(subject):
+		return REFUSE_STALE_FURNITURE_REF
+	var type_id: int = _buildings.type_id_of_furniture(subject).value
+	if type_id != operation or _modular_quote.quantity_milli != 0 \
+			or _modular_quote.total_mwu != _definitions.furniture_work_mwu_of(type_id) \
+			or _modular_quote.input_count != _furniture_count[type_id] \
+			or _modular_quote.output_count != 0 or _modular_quote.max_workers != MAX_BUILDERS:
+		return ModularContract.REFUSE_QUOTE
+	for index: int in _modular_quote.input_count:
+		if _modular_quote.input_keys[index] != material_key_at(PURPOSE_FURNITURE, type_id, index) \
+				or _modular_quote.input_milli[index] != _required_milli_at(PURPOSE_FURNITURE, type_id, index):
+			return ModularContract.REFUSE_QUOTE
+	return REFUSE_NONE
+
+
+func _is_spatial_furniture(furniture: Vector2i) -> bool:
+	"""Actual Room ownership distinguishes underground pieces; a NO_LINK origin is not proof."""
+	if not _buildings.is_live_furniture(furniture):
+		return false
+	var result: Buildings.OpResult = _buildings.spatial_kind_of_room(_buildings.room_ref_of_furniture(furniture))
+	return result.ok and result.value == Buildings.ROOM_SPACE_UNDERGROUND
+
+
+func _read_modular_facts(row: int) -> StringName:
+	"""Read one exact project's owner facts into bounded reusable cold scratch."""
+	var authority: ModularContract = modular_authority()
+	if authority == null:
+		return ModularContract.REFUSE_AUTHORITY
+	_modular_quote.reset()
+	var code: StringName = authority.project_facts_into(_ref_of_row(row), _modular_quote)
+	if code != REFUSE_NONE:
+		return code
+	return _modular_quote_refusal(_purpose[row], Vector2i(_subject_slot[row], _subject_generation[row]), _type_id[row])
+
+
+func _project_bill_count(row: int) -> int:
+	"""Project-aware bill count; missing modular ownership returns -1, never a free bill."""
+	if not is_modular(_purpose[row]):
+		return _bill_count_of(_purpose[row], _type_id[row])
+	return _modular_quote.input_count if _read_modular_facts(row) == REFUSE_NONE else -1
+
+
+func _project_required_milli(row: int, index: int) -> int:
+	"""Read an already-indexed project's immutable current operation price."""
+	if not is_modular(_purpose[row]):
+		return _required_milli_at(_purpose[row], _type_id[row], index)
+	return _modular_quote.input_milli[index] if _read_modular_facts(row) == REFUSE_NONE else -1
+
+
+func project_bill_size_into(project: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Use actual project context for quantity-dependent tip prices and ordinary recipes alike."""
+	var row: int = _row_of(project)
+	if row == NO_ROW:
+		return out.refuse(REFUSE_STALE_PROJECT_REF)
+	var count: int = _project_bill_count(row)
+	return out.succeed(count) if count >= 0 else out.refuse(ModularContract.REFUSE_QUOTE)
+
+
+func project_material_key_at(project: Vector2i, index: int) -> StringName:
+	"""Resolve an exact project's named input without extending frozen legacy key ordinals."""
+	var row: int = _row_of(project)
+	if row == NO_ROW or index < 0 or index >= _project_bill_count(row):
+		return &""
+	return _modular_quote.input_keys[index] if is_modular(_purpose[row]) \
+		else material_key_at(_purpose[row], _type_id[row], index)
+
+
+func project_required_milli_into(project: Vector2i, index: int, out: IntMath.IntResult) -> bool:
+	"""Read one exact operation bill line; stale identity or missing ownership refuses."""
+	var row: int = _row_of(project)
+	if row == NO_ROW:
+		return out.refuse(REFUSE_STALE_PROJECT_REF)
+	if index < 0 or index >= _project_bill_count(row):
+		return out.refuse(REFUSE_MATERIAL_INDEX)
+	var quantity: int = _project_required_milli(row, index)
+	return out.succeed(quantity) if quantity > 0 else out.refuse(ModularContract.REFUSE_QUOTE)
+
+
+func project_material_index_of_key_into(project: Vector2i, key: StringName,
+		out: IntMath.IntResult) -> bool:
+	"""Resolve a delivered actual Item key only against this exact project's bill."""
+	if not project_bill_size_into(project, out):
+		return false
+	var count: int = out.value
+	for index: int in count:
+		if project_material_key_at(project, index) == key:
+			return out.succeed(index)
+	return out.refuse(REFUSE_NOT_IN_BILL)
+
+
+static func is_modular(purpose: int) -> bool:
+	"""The shared paid owner serves only explicit, independently qualified purpose namespaces."""
+	return purpose == PURPOSE_SPATIAL_FURNITURE or purpose == PURPOSE_SPOIL_TIP \
+		or purpose == PURPOSE_CONNECTOR_INSTALL
+
+
+func bind_excavation_authority(authority: ExcavationContract) -> OpResult:
+	"""Bind one physical-site owner weakly; one Construction store cannot serve duplicate ledgers."""
+	var code: StringName = excavation_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_excavation_authority = weakref(authority)
+	return OpResult.new(true, REFUSE_NONE, 0, NULL_REF)
+
+
+func excavation_binding_refusal(authority: ExcavationContract) -> StringName:
+	"""Read-only preflight for atomic composition with Work; expired bindings still refuse reuse."""
+	return ExcavationContract.REFUSE_AUTHORITY if authority == null or _excavation_authority != null else REFUSE_NONE
+
+
+func excavation_authority() -> ExcavationContract:
+	"""Read the typed owner without creating a Construction-to-site reference cycle."""
+	return _excavation_authority.get_ref() as ExcavationContract if _excavation_authority != null else null
+
+
+func open_excavation_phase(site: Vector2i, operation: int) -> OpResult:
+	"""Open one adopted phase with retained physical work supplied exclusively by its site owner."""
+	var authority: ExcavationContract = excavation_authority()
+	if authority == null:
+		return _refuse(ExcavationContract.REFUSE_AUTHORITY)
+	if not ExcavationContract.valid_operation(operation):
+		return _refuse(REFUSE_UNKNOWN_PURPOSE)
+	var refusal: StringName = authority.project_open_refusal(site, operation)
+	if refusal != REFUSE_NONE:
+		return _refuse(refusal)
+	if not authority.is_live_site(site):
+		return _refuse(REFUSE_SUBJECT_LOST)
+	if project_of_excavation_site(site) != NULL_REF:
+		return _refuse(REFUSE_ALREADY_UNDER_CONSTRUCTION)
+	if not authority.remaining_work_into(site, operation, _math):
+		return _refuse(StringName(_math.error))
+	if _math.value < 0 or _math.value > ExcavationContract.work_mwu(operation):
+		return _refuse(REFUSE_INVALID_WORK)
+	var opened: OpResult = _open_row(PURPOSE_EXCAVATION, site, operation, _math.value, NO_PAID_PACKAGE, 0)
+	if opened.ok:
+		authority.attach_project(site, operation, opened.ref)
+	return opened
+
+
+func retire_excavation_phase(project: Vector2i, authority: ExcavationContract) -> OpResult:
+	"""The physical coordinator retires only after its actual output/refund transaction committed."""
+	if authority == null or authority != excavation_authority():
+		return _refuse(REFUSE_COORDINATOR_ONLY)
+	var row: int = _row_of(project)
+	if row == NO_ROW:
+		return _refuse(REFUSE_STALE_PROJECT_REF)
+	if _purpose[row] != PURPOSE_EXCAVATION:
+		return _refuse(REFUSE_UNKNOWN_PURPOSE)
+	var owner_refusal: StringName = authority.mutation_refusal(project, ExcavationContract.ACTION_RETIRE)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
+	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
+		return _refuse(REFUSE_WRONG_PHASE)
+	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
+	_clear_retired_extension_row(row)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _owned_mutation_refusal(row: int, project: Vector2i, action: int) -> StringName:
+	"""A generic accounting call cannot bypass the physical owner's actual transaction."""
+	if is_modular(_purpose[row]):
+		var modular: ModularContract = modular_authority()
+		return modular.mutation_refusal(project, action) if modular != null else ModularContract.REFUSE_AUTHORITY
+	if _purpose[row] != PURPOSE_EXCAVATION:
+		return REFUSE_NONE
+	var authority: ExcavationContract = excavation_authority()
+	return authority.mutation_refusal(project, action) if authority != null else ExcavationContract.REFUSE_AUTHORITY
+
+
+func project_of_excavation_site(site: Vector2i) -> Vector2i:
+	"""Look up the site namespace explicitly; identical Building reference numbers are unrelated."""
+	for row: int in CONSTRUCTION_CAPACITY:
+		if _present[row] == 1 and _purpose[row] == PURPOSE_EXCAVATION:
+			if _subject_slot[row] == site.x and _subject_generation[row] == site.y:
+				return _ref_of_row(row)
+	return NULL_REF
+
+
+func material_key_at(purpose: int, type_id: int, index: int) -> StringName:
+	"""Key-based bill reader covering earth without renumbering the legacy MATERIAL_KEYS domain."""
+	if not bill_size_into(purpose, type_id, _math) or index < 0 or index >= _math.value:
+		return &""
+	if purpose == PURPOSE_EXCAVATION:
+		return ExcavationContract.input_key(type_id, index)
+	return MATERIAL_KEYS[_bill_key_column(purpose)[_bill_stride_row(purpose, type_id) + index]]
+
+
+func _required_milli_at(purpose: int, type_id: int, index: int) -> int:
+	"""Read already validated bill coordinates from the appropriate immutable owner domain."""
+	if purpose == PURPOSE_EXCAVATION:
+		return ExcavationContract.input_milli(type_id, index)
+	return _bill_milli_column(purpose)[_bill_stride_row(purpose, type_id) + index]
+
+
+func _excavation_material_index_into(operation: int, key: StringName, out: IntMath.IntResult) -> bool:
+	"""Resolve a phase bill key without widening the frozen legacy material index domain."""
+	if not ExcavationContract.valid_operation(operation):
+		return out.refuse(REFUSE_UNKNOWN_PURPOSE)
+	for index: int in ExcavationContract.input_count(operation):
+		if ExcavationContract.input_key(operation, index) == key:
+			return out.succeed(index)
+	return out.refuse(REFUSE_NOT_IN_BILL)
+
 
 func open_build(building_ref: Vector2i) -> OpResult:
 	"""REQ-SET-124: publish the project behind one BLUEPRINT building, deducting nothing.
@@ -862,6 +1262,8 @@ func open_furniture(furniture_ref: Vector2i) -> OpResult:
 	"""
 	if not _buildings.is_live_furniture(furniture_ref):
 		return _refuse(REFUSE_STALE_FURNITURE_REF)
+	if _is_spatial_furniture(furniture_ref):
+		return _refuse(REFUSE_COORDINATOR_ONLY)
 	if _project_of_subject(furniture_ref) != NO_ROW:
 		return _refuse(REFUSE_ALREADY_UNDER_CONSTRUCTION)
 	return _open(PURPOSE_FURNITURE, furniture_ref,
@@ -877,6 +1279,8 @@ func furniture_removal_open_refusal(furniture_ref: Vector2i) -> StringName:
 	"""
 	if not _buildings.is_live_furniture(furniture_ref):
 		return REFUSE_STALE_FURNITURE_REF
+	if _is_spatial_furniture(furniture_ref):
+		return REFUSE_COORDINATOR_ONLY
 	if _project_of_subject(furniture_ref) != NO_ROW:
 		return REFUSE_ALREADY_UNDER_CONSTRUCTION
 	if _buildings.user_ref_of_furniture(furniture_ref) != NULL_REF:
@@ -923,28 +1327,28 @@ func _open(purpose: int, subject_ref: Vector2i, type_id: int) -> OpResult:
 
 
 func _open_row(purpose: int, subject_ref: Vector2i, type_id: int, work: int, paid_base: int,
-		paid_mask: int) -> OpResult:
+		paid_mask: int, worker_limit: int = -1, input_count: int = -1) -> OpResult:
 	"""Allocate the row, write it with its paid-ledger keys, and link the building subject."""
 	var ref: Vector2i = _directory.create(EntityDirectory.KIND_CONSTRUCTION)
 	if ref == NULL_REF:
 		return _refuse(_directory.last_refusal())
 	var row: int = _directory.get_typed_row(ref)
-	_write_row(row, ref, purpose, subject_ref, type_id, work)
+	_write_row(row, ref, purpose, subject_ref, type_id, work, worker_limit, input_count)
 	_paid_base_type[row] = paid_base
 	_paid_upgrade_mask[row] = paid_mask
-	if not is_furniture_subject(purpose):
+	if not is_furniture_subject(purpose) and purpose != PURPOSE_EXCAVATION and not is_modular(purpose):
 		_buildings.set_building_construction(subject_ref, ref)
 	_live_count += 1
 	return OpResult.new(true, REFUSE_NONE, row, ref)
 
 
 func _write_row(row: int, ref: Vector2i, purpose: int, subject_ref: Vector2i, type_id: int,
-		work: int) -> void:
+		work: int, worker_limit: int = -1, input_count: int = -1) -> void:
 	"""Initialize every Construction column of a freshly allocated row before it is published."""
 	_material_container_slot[row] = EntityDirectory.NULL_SLOT
 	_material_container_generation[row] = EntityDirectory.NULL_GENERATION
 	_assigned_count[row] = 0
-	_max_workers[row] = _max_workers_for(purpose, type_id)
+	_max_workers[row] = worker_limit if worker_limit > 0 else _max_workers_for(purpose, type_id)
 	_remaining_mwu[row] = work
 	_paused[row] = 0
 	_present[row] = 1
@@ -957,13 +1361,15 @@ func _write_row(row: int, ref: Vector2i, purpose: int, subject_ref: Vector2i, ty
 	_type_id[row] = type_id
 	for index: int in MATERIAL_SLOTS_PER_PROJECT:
 		_delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] = 0
-	_phase[row] = PHASE_AWAITING_MATERIALS if _bill_count_of(purpose, type_id) > 0 \
-		else PHASE_READY
+	var count: int = input_count if input_count >= 0 else _bill_count_of(purpose, type_id)
+	_phase[row] = PHASE_AWAITING_MATERIALS if count > 0 else PHASE_READY
 	_refund_policy[row] = _policy_for(purpose, 0)
 
 
 func _max_workers_for(purpose: int, type_id: int) -> int:
 	"""GDD §5.9's "Maximum 4 builders/project unless listed", read from the owning definition."""
+	if purpose == PURPOSE_EXCAVATION:
+		return ExcavationContract.MAX_QUANTUM_WORKERS
 	if is_furniture_subject(purpose):
 		return MAX_BUILDERS
 	return _definitions.max_builders_of(type_id)
@@ -986,6 +1392,9 @@ func deliver_material(project_ref: Vector2i, index: int, quantity_milli: int) ->
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _owned_mutation_refusal(row, project_ref, ExcavationContract.ACTION_DELIVER)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	var code: StringName = _refuse_delivery(row, index, quantity_milli)
 	if code != REFUSE_NONE:
 		return _refuse(code)
@@ -1004,24 +1413,27 @@ func _refuse_delivery(row: int, index: int, quantity_milli: int) -> StringName:
 		return REFUSE_PAUSED
 	if quantity_milli <= 0:
 		return REFUSE_QUANTITY
-	if index < 0 or index >= _bill_count_of(_purpose[row], _type_id[row]):
+	if index < 0 or index >= _project_bill_count(row):
 		return REFUSE_MATERIAL_INDEX
+	var required: int = _project_required_milli(row, index)
+	if required <= 0:
+		return ModularContract.REFUSE_QUOTE
 	var cell: int = row * MATERIAL_SLOTS_PER_PROJECT + index
 	if not IntMath.checked_add_into(_delivered_milli[cell], quantity_milli, _math):
 		return REFUSE_OVERFLOW
-	var base: int = _bill_stride_row(_purpose[row], _type_id[row])
-	if _math.value > _bill_milli_column(_purpose[row])[base + index]:
+	if _math.value > required:
 		return REFUSE_OVER_DELIVERY
 	return REFUSE_NONE
 
 
 func _all_materials_delivered(row: int) -> bool:
 	"""True when every line of this project's delivery bill has reached its required quantity."""
-	var purpose: int = _purpose[row]
-	var base: int = _bill_stride_row(purpose, _type_id[row])
-	var column: PackedInt64Array = _bill_milli_column(purpose)
-	for index: int in _bill_count_of(purpose, _type_id[row]):
-		if _delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] < column[base + index]:
+	var count: int = _project_bill_count(row)
+	if count < 0:
+		return false
+	for index: int in count:
+		var required: int = _project_required_milli(row, index)
+		if required <= 0 or _delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] < required:
 			return false
 	return true
 
@@ -1036,6 +1448,9 @@ func begin_work(project_ref: Vector2i) -> OpResult:
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _owned_mutation_refusal(row, project_ref, ExcavationContract.ACTION_BEGIN_WORK)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if _phase[row] != PHASE_READY:
 		return _refuse(REFUSE_WRONG_PHASE)
 	if _paused[row] == 1:
@@ -1046,11 +1461,377 @@ func begin_work(project_ref: Vector2i) -> OpResult:
 	if not _subject_is_live(row, subject):
 		return _refuse(REFUSE_SUBJECT_LOST)
 	_work_begun[row] = 1
-	_phase[row] = PHASE_WORKING
+	_phase[row] = PHASE_WORK_DONE if (_purpose[row] == PURPOSE_EXCAVATION or is_modular(_purpose[row])) \
+		and _remaining_mwu[row] == 0 else PHASE_WORKING
 	_refund_policy[row] = _policy_for(_purpose[row], 1)
 	if _purpose[row] == PURPOSE_BUILD:
 		_buildings.set_building_state(subject, STATE_BUILDING)
 	return OpResult.new(true, REFUSE_NONE, _remaining_mwu[row], project_ref)
+
+
+static func excavation_start_refusal(actual: RefCounted, sites: ExcavationContract,
+		project: Vector2i, job: Vector2i, paid: bool, output: Vector2i, mass: int) -> StringName:
+	"""Exact purpose5 START facts are read without bill, spatial, worker or source observers."""
+	var code: StringName = _excavation_start_context(actual, sites, project, job, paid)
+	if code != REFUSE_NONE:
+		return code
+	var row: int = actual._directory.get_typed_row(project)
+	var site: int = sites._candidate_row
+	if row < 0 or row >= CONSTRUCTION_CAPACITY or actual._present[row] != 1 \
+			or actual._ref_slot[row] != project.x or actual._ref_generation[row] != project.y \
+			or actual._purpose[row] != PURPOSE_EXCAVATION or actual._subject_slot[row] != site \
+			or actual._subject_generation[row] != sites.SITE_GENERATION \
+			or actual._type_id[row] != sites._operation[site]:
+		return REFUSE_STALE_PROJECT_REF
+	if actual._paused[row] != 0:
+		return REFUSE_PAUSED
+	if actual._phase[row] != PHASE_READY or actual._work_begun[row] != 0 \
+			or actual._remaining_mwu[row] < 0 or actual._max_workers[row] < 1:
+		return REFUSE_WRONG_PHASE
+	code = _excavation_start_job(actual, sites, row, site, project, job)
+	if code == REFUSE_NONE:
+		code = _excavation_start_bill(actual, sites, row, paid)
+	if code == REFUSE_NONE:
+		code = _excavation_start_output(sites, site, output, mass)
+	return _excavation_start_receipt(sites, row, project, job, paid, output, mass) if code == REFUSE_NONE else code
+
+
+static func _excavation_start_context(actual: RefCounted, sites: ExcavationContract,
+		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
+	"""A coincident handle or permissive base cannot enter the actual synchronous Sites window."""
+	if actual == null or sites == null or not "_starting" in sites or not sites._starting \
+			or sites._start_poisoned or sites._ready_error != REFUSE_NONE or sites._construction != actual \
+			or actual._excavation_authority == null or actual._excavation_authority.get_ref() != sites \
+			or sites._permit_project != project \
+			or sites._permit_action != (ExcavationContract.ACTION_BEGIN_WORK if paid else ExcavationContract.ACTION_WIP) \
+			or sites._candidate_stage != ExcavationContract.STAGE_START \
+			or sites._candidate_row < 0 or sites._candidate_row >= sites._count:
+		return ExcavationContract.REFUSE_AUTHORITY
+	var at: int = sites._candidate_row
+	var funding: RefCounted = sites._funding
+	if sites._present[at] != 1 or sites._project_slot[at] != project.x or sites._project_generation[at] != project.y \
+			or sites._job_slot[at] != job.x or sites._job_generation[at] != job.y \
+			or sites._jobs._directory != actual._directory or funding == null or funding._ready_error != REFUSE_NONE \
+			or funding._construction != actual or funding._inventory != sites._inventory or funding._pool != sites._pool \
+			or funding._items != sites._items or not sites._items._loaded \
+			or sites._items._registered_inventory == null or sites._items._registered_inventory.get_ref() != sites._inventory:
+		return ExcavationContract.REFUSE_AUTHORITY
+	return REFUSE_NONE if actual._directory.is_valid_of_kind(project, EntityDirectory.KIND_CONSTRUCTION) \
+		and actual._directory.is_valid_of_kind(job, EntityDirectory.KIND_JOB) \
+		and actual._directory.is_valid_of_kind(sites._domain.world_ref, EntityDirectory.KIND_WORLD) else REFUSE_STALE_PROJECT_REF
+
+
+static func _excavation_start_job(actual: RefCounted, sites: ExcavationContract,
+		row: int, site: int, project: Vector2i, job: Vector2i) -> StringName:
+	"""The sole accepted BUILD Job must still mirror exact retained physical work and worker ownership."""
+	var jobs: RefCounted = sites._jobs
+	var at: int = actual._directory.get_typed_row(job)
+	var operation: int = actual._type_id[row]
+	if at < 0 or at >= sites._job_site.size() or jobs._job_present[at] != 1 \
+			or jobs._job_ref_slot[at] != job.x or jobs._job_ref_generation[at] != job.y \
+			or sites._job_site[at] != site or jobs._requester_slot[at] != project.x \
+			or jobs._requester_generation[at] != project.y or jobs._is_coordinator[at] != 0 \
+			or jobs._coordinator_slot[at] != -1 or jobs._kind[at] != jobs.JOB_KIND_BUILD \
+			or jobs._remaining_mwu[at] != actual._remaining_mwu[row] \
+			or not ExcavationContract.valid_operation(operation):
+		return sites.REFUSE_JOB
+	var earned: int = sites._earned_mwu[site * ExcavationContract.OP_COUNT + operation]
+	if earned < 0 or actual._remaining_mwu[row] != ExcavationContract.work_mwu(operation) - earned:
+		return REFUSE_WRONG_PHASE
+	var code: StringName = _excavation_start_physical(sites, site, operation)
+	return _excavation_start_worker(sites, site, at, job) if code == REFUSE_NONE else code
+
+
+static func _excavation_start_physical(sites: ExcavationContract, row: int, operation: int) -> StringName:
+	"""The final same-operation phase must still have its real required retained support state."""
+	var phase: int = sites._phase[row]
+	var installed: int = sites._installed[row]
+	var allowed: bool = false
+	match operation:
+		ExcavationContract.OP_BRACE:
+			allowed = installed == 0 and (phase == sites.SOLID or phase == sites.BACKFILLED or phase == sites.BRACING)
+		ExcavationContract.OP_CUT:
+			allowed = installed == 1 and (phase == sites.BRACED or phase == sites.CUTTING)
+		ExcavationContract.OP_FINISH:
+			allowed = installed == 1 and (phase == sites.OPEN_UNFINISHED or phase == sites.FINISHING)
+		ExcavationContract.OP_BACKFILL_CLOSE:
+			allowed = installed == 1 and (phase == sites.OPEN_UNFINISHED or phase == sites.FINISHING \
+				or phase == sites.SUPPORTED_VOID or phase == sites.CLOSING and sites._closure_before[row] != sites.BRACED \
+				and sites._closure_before[row] != sites.CUTTING)
+		ExcavationContract.OP_UNOPENED_SUPPORT_CLOSE:
+			allowed = installed == 1 and (phase == sites.BRACED or phase == sites.CUTTING \
+				or phase == sites.CLOSING and (sites._closure_before[row] == sites.BRACED or sites._closure_before[row] == sites.CUTTING))
+	return REFUSE_NONE if allowed else sites.REFUSE_PHASE
+
+
+static func _excavation_start_worker(sites: ExcavationContract, site: int, job_row: int, job: Vector2i) -> StringName:
+	"""Read actual assignment, life stage and eligibility columns after the final spatial observer."""
+	var jobs: RefCounted = sites._jobs
+	var worker: Vector2i = Vector2i(jobs._worker_slot[job_row], jobs._worker_generation[job_row])
+	if not jobs._directory.is_valid_of_kind(worker, EntityDirectory.KIND_RESIDENT):
+		return sites.REFUSE_WORKER
+	var row: int = jobs._directory.get_typed_row(worker)
+	var residents: RefCounted = sites._work._residents
+	if residents != jobs._residents or row < 0 or row >= sites._worker_site.size() \
+			or residents._present[row] != 1 or residents._ref_slot[row] != worker.x \
+			or residents._ref_generation[row] != worker.y or residents._life_stage[row] == residents.LIFE_STAGE_CHILD \
+			or jobs._agent_present[row] != 1 or jobs._agent_job_slot[row] != job.x \
+			or jobs._agent_job_generation[row] != job.y or sites._worker_site[row] != site \
+			or sites._worker_generation[row] != worker.y \
+			or (jobs._tool_gate[job_row] != jobs.GATE_SATISFIED and jobs._tool_gate[job_row] != jobs.GATE_NOT_REQUIRED):
+		return sites.REFUSE_WORKER
+	var needs: RefCounted = jobs._needs
+	if needs == null or needs != residents._needs or needs._present[row] != 1 \
+			or needs._status[row] == needs.STATUS_DEAD or needs._status[row] == needs.STATUS_INCAPACITATED \
+			or needs._need_value[row * needs.NEED_COUNT + needs.NEED_REST] <= jobs.REST_COLLAPSE_THRESHOLD:
+		return sites.REFUSE_WORKER
+	if jobs._tool_gate[job_row] == jobs.GATE_NOT_REQUIRED: # DEC-052: claws need no tool, and none is claimed.
+		return REFUSE_NONE if sites._work._tool_lot_slot[row] == -1 else sites.REFUSE_WORKER
+	return _excavation_start_tool(sites, row, worker, job)
+
+
+static func _excavation_start_tool(sites: ExcavationContract, row: int, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Resolve Gear's full lot/owner/claim and positive durability directly, without observers."""
+	var work: RefCounted = sites._work
+	var gear: RefCounted = work._gear
+	var inventory: RefCounted = sites._inventory
+	var lot: Vector2i = Vector2i(work._tool_lot_slot[row], work._tool_lot_generation[row])
+	if gear == null or gear._inventory != inventory or lot.x < 0 or lot.x >= inventory._l_capacity \
+			or inventory._l_live[lot.x] != 1 or inventory._l_generation[lot.x] != lot.y \
+			or inventory._l_container_slot[lot.x] != -1 or work._tool_job_slot[row] != job.x \
+			or work._tool_job_generation[row] != job.y or work._tool_broken[row] != 0:
+		return sites.REFUSE_WORKER
+	var at: int = gear._lot_row[lot.x]
+	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != lot.x \
+			or gear._lot_generation[at] != lot.y or gear._equipped[at] != 1 \
+			or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
+			or gear._claim_job_slot[at] != job.x or gear._claim_job_generation[at] != job.y or gear._durability[at] <= 0 \
+			or sites._work._residents._equip_tool_item_id[row] != gear._item_id[at]:
+		return sites.REFUSE_WORKER
+	return REFUSE_NONE
+
+
+static func _excavation_start_bill(actual: RefCounted, sites: ExcavationContract, row: int, paid: bool) -> StringName:
+	"""Every delivered and staged item quantity still equals the adopted immutable operation bill."""
+	var operation: int = actual._type_id[row]
+	var funding: RefCounted = sites._funding
+	var count: int = ExcavationContract.input_count(operation)
+	if count < 0 or funding._s_count < 0 or (not paid and funding._s_count > funding._free_count):
+		return REFUSE_MATERIALS_INCOMPLETE
+	for line: int in MATERIAL_SLOTS_PER_PROJECT:
+		var amount: int = ExcavationContract.input_milli(operation, line) if line < count else 0
+		if actual._delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + line] != amount:
+			return REFUSE_MATERIALS_INCOMPLETE
+	for item: int in funding._s_totals.size():
+		var amount: int = 0
+		for line: int in count:
+			var key: StringName = ExcavationContract.input_key(operation, line)
+			if sites._items._item_ids.get(key, -1) == item:
+				amount = ExcavationContract.input_milli(operation, line)
+		if funding._s_totals[item] != amount or funding._s_returned[item] != amount:
+			return REFUSE_MATERIALS_INCOMPLETE
+	return REFUSE_NONE
+
+
+static func _excavation_start_output(sites: ExcavationContract, site: int, output: Vector2i, mass: int) -> StringName:
+	"""The original staged output must still be the Site's exact finite full-generation container."""
+	if output != Vector2i(sites._output_slot[site], sites._output_generation[site]):
+		return sites.REFUSE_OUTPUT
+	var operation: int = sites._operation[site]
+	var expected: int = 0
+	if operation == ExcavationContract.OP_CUT:
+		expected = _excavation_output_mass(sites, &"excavated_earth", ExcavationContract.EARTH_MILLI)
+	elif operation == ExcavationContract.OP_BACKFILL_CLOSE or operation == ExcavationContract.OP_UNOPENED_SUPPORT_CLOSE:
+		var wood: int = _excavation_output_mass(sites, &"wood", ExcavationContract.SALVAGE_WOOD_MILLI)
+		var stone: int = _excavation_output_mass(sites, &"stone", ExcavationContract.SALVAGE_STONE_MILLI)
+		expected = wood + stone if wood >= 0 and stone >= 0 else -1
+	if mass != expected or expected < 0:
+		return sites.REFUSE_OUTPUT
+	if mass == 0:
+		return REFUSE_NONE if output == NULL_REF else sites.REFUSE_OUTPUT
+	var inventory: RefCounted = sites._inventory
+	if output.x < 0 or output.x >= inventory._c_capacity or inventory._c_live[output.x] != 1 \
+			or inventory._c_generation[output.x] != output.y or inventory._c_reachable[output.x] != 1 \
+			or inventory._c_reserved_mass_g[output.x] < mass \
+			or inventory._c_used_mass_g[output.x] + inventory._c_reserved_mass_g[output.x] > inventory._c_max_mass_g[output.x]:
+		return sites.REFUSE_OUTPUT
+	return REFUSE_NONE
+
+
+static func _excavation_output_mass(sites: ExcavationContract, key: StringName, quantity: int) -> int:
+	"""Exact per-lot rounded output mass reads the actual registered item column without callbacks."""
+	var item: int = sites._items._item_ids.get(key, -1)
+	var inventory: RefCounted = sites._inventory
+	if item < 0 or item >= inventory._item_mass_g.size() or inventory._item_mass_g[item] <= 0:
+		return -1
+	@warning_ignore("integer_division")
+	return (quantity * inventory._item_mass_g[item] + 999) / 1000
+
+
+static func _excavation_start_receipt(sites: ExcavationContract, row: int, project: Vector2i,
+		job: Vector2i, paid: bool, output: Vector2i, mass: int) -> StringName:
+	"""Free-input phases need no receipt nodes; they still need exact funded identity and output ownership."""
+	var funding: RefCounted = sites._funding
+	var funded: bool = funding._project_slot[row] == project.x and funding._project_generation[row] == project.y
+	if paid:
+		return REFUSE_NONE if funded and funding._output_slot[row] == output.x \
+			and funding._output_generation[row] == output.y and funding._output_mass_g[row] == mass \
+			and (funding._s_count == 0 or funding._head[row] >= 0) and not sites._inventory._tx_open \
+			and funding._settling_project == NULL_REF and funding._settling_job == NULL_REF else REFUSE_WRONG_PHASE
+	return REFUSE_NONE if not funded and sites._inventory._tx_open \
+		and funding._settling_project == project and funding._settling_job == job else REFUSE_WRONG_PHASE
+
+
+static func begin_excavation_work_preflighted(actual: RefCounted, sites: ExcavationContract,
+		project: Vector2i, job: Vector2i) -> OpResult:
+	"""Publish only the exact already-paid START without calling the ordinary owner/bill observers."""
+	var scope: StringName = _excavation_start_context(actual, sites, project, job, true)
+	if scope != REFUSE_NONE:
+		return OpResult.new(false, scope, 0, NULL_REF)
+	var row: int = actual._directory.get_typed_row(project)
+	var funding: RefCounted = sites._funding
+	var output: Vector2i = Vector2i(funding._output_slot[row], funding._output_generation[row])
+	var code: StringName = excavation_start_refusal(actual, sites, project, job, true, output, funding._output_mass_g[row])
+	if code != REFUSE_NONE:
+		return OpResult.new(false, code, 0, NULL_REF)
+	actual._work_begun[row] = 1
+	actual._phase[row] = PHASE_WORK_DONE if actual._remaining_mwu[row] == 0 else PHASE_WORKING
+	actual._refund_policy[row] = REFUND_PARTIAL
+	actual._assigned_count[row] = 1
+	var job_row: int = actual._directory.get_typed_row(job)
+	sites._jobs._state[job_row] = sites._jobs.JOB_STATE_COMPLETE if actual._remaining_mwu[row] == 0 else sites._jobs.JOB_STATE_WORK
+	return OpResult.new(true, REFUSE_NONE, actual._remaining_mwu[row], project)
+
+
+static func connector_start_refusal(actual: RefCounted, router: ModularContract,
+		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
+	"""The same concrete prepayment/postpayment leaf proves exact start facts without an owner or Recipe callback."""
+	var code: StringName = _connector_start_context(actual, router, project, paid)
+	if code != REFUSE_NONE:
+		return code
+	var row: int = actual._directory.get_typed_row(project)
+	if row < 0 or row >= CONSTRUCTION_CAPACITY or actual._present[row] != 1 \
+			or actual._ref_slot[row] != project.x or actual._ref_generation[row] != project.y \
+			or actual._purpose[row] != PURPOSE_CONNECTOR_INSTALL:
+		return REFUSE_STALE_PROJECT_REF
+	if actual._paused[row] != 0:
+		return REFUSE_PAUSED
+	if actual._phase[row] != PHASE_READY or actual._work_begun[row] != 0 or actual._remaining_mwu[row] < 0:
+		return REFUSE_WRONG_PHASE
+	code = _connector_start_job(actual, router, row, project, job)
+	if code == REFUSE_NONE:
+		code = _connector_start_bill(actual, router, row)
+	return _connector_start_receipt(router, row, project, job, paid) if code == REFUSE_NONE else code
+
+
+static func _connector_start_context(actual: RefCounted, router: ModularContract,
+		project: Vector2i, paid: bool) -> StringName:
+	"""A base/foreign authority or coincident numeric handles cannot borrow an actual Router settlement window."""
+	if actual == null or router == null or not "_funding" in router or not "_connector_owner" in router \
+			or not "_quote" in router or actual._modular_authority == null \
+			or actual._modular_authority.get_ref() != router or router._construction != actual \
+			or router._ready_error != REFUSE_NONE or not router._busy or router._permit_project != project \
+			or router._permit_action != (ModularContract.ACTION_BEGIN_WORK if paid else ModularContract.ACTION_WIP) \
+			or router._connector_owner == null or router._connector_owner.get_ref() == null:
+		return ModularContract.REFUSE_AUTHORITY
+	var funding: RefCounted = router._funding
+	if funding == null or funding._ready_error != REFUSE_NONE or funding._construction != actual \
+			or funding._inventory != router._inventory or funding._pool != router._pool or funding._items != router._items \
+			or router._jobs._directory != actual._directory or not router._items._loaded \
+			or router._items._registered_inventory == null or router._items._registered_inventory.get_ref() != router._inventory:
+		return ModularContract.REFUSE_AUTHORITY
+	if not actual._directory.is_valid_of_kind(router._world, EntityDirectory.KIND_WORLD) \
+			or not actual._directory.is_valid_of_kind(project, EntityDirectory.KIND_CONSTRUCTION):
+		return REFUSE_STALE_PROJECT_REF
+	return REFUSE_NONE
+
+
+static func _connector_start_job(actual: RefCounted, router: ModularContract,
+		row: int, project: Vector2i, job: Vector2i) -> StringName:
+	"""Validate the actual accepted primary Job and unchanged remaining work from concrete mirrored rows."""
+	if not actual._directory.is_valid_of_kind(job, EntityDirectory.KIND_JOB):
+		return ModularContract.REFUSE_AUTHORITY
+	var at: int = actual._directory.get_typed_row(job)
+	var jobs: RefCounted = router._jobs
+	if at < 0 or at >= router._job_slot.size() or jobs._job_present[at] != 1 \
+			or jobs._job_ref_slot[at] != job.x or jobs._job_ref_generation[at] != job.y \
+			or router._job_slot[at] != job.x or router._job_generation[at] != job.y \
+			or router._project_slot[at] != project.x or router._project_generation[at] != project.y \
+			or jobs._requester_slot[at] != project.x or jobs._requester_generation[at] != project.y \
+			or jobs._coordinator_slot[at] != -1 or jobs._remaining_mwu[at] != actual._remaining_mwu[row] \
+			or jobs._kind[at] != router._quote.job_kind:
+		return ModularContract.REFUSE_AUTHORITY
+	return REFUSE_NONE
+
+
+static func _connector_start_bill(actual: RefCounted, router: ModularContract, row: int) -> StringName:
+	"""Retained prepared quotes and all four delivered cells must still equal the complete staged immutable bill."""
+	var quote: ModularContract.Quote = router._quote
+	var staged: ModularContract.Quote = router._funding._quote
+	if quote == null or staged == null or quote.input_count < 1 or quote.input_count > MATERIAL_SLOTS_PER_PROJECT \
+			or quote.input_keys.size() != MATERIAL_SLOTS_PER_PROJECT or quote.input_milli.size() != MATERIAL_SLOTS_PER_PROJECT \
+			or staged.input_keys.size() != MATERIAL_SLOTS_PER_PROJECT or staged.input_milli.size() != MATERIAL_SLOTS_PER_PROJECT \
+			or quote.subject != Vector2i(actual._subject_slot[row], actual._subject_generation[row]) \
+			or quote.operation != actual._type_id[row] or quote.remaining_mwu != actual._remaining_mwu[row] \
+			or quote.total_mwu <= 0 or quote.remaining_mwu > quote.total_mwu \
+			or quote.max_workers != actual._max_workers[row] or quote.quantity_milli != 0 or quote.output_count != 0:
+		return ModularContract.REFUSE_QUOTE
+	if staged.subject != quote.subject or staged.operation != quote.operation or staged.total_mwu != quote.total_mwu \
+			or staged.remaining_mwu != quote.remaining_mwu or staged.job_kind != quote.job_kind \
+			or staged.max_workers != quote.max_workers or staged.input_count != quote.input_count \
+			or staged.quantity_milli != 0 or staged.output_count != 0:
+		return ModularContract.REFUSE_QUOTE
+	for line: int in MATERIAL_SLOTS_PER_PROJECT:
+		var code: StringName = _connector_start_line(actual, router, row, line)
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+static func _connector_start_line(actual: RefCounted, router: ModularContract, row: int, line: int) -> StringName:
+	"""Item IDs come from the actual registered catalog, without an overridable lookup after payment."""
+	var quote: ModularContract.Quote = router._quote
+	var funding: RefCounted = router._funding
+	var amount: int = quote.input_milli[line]
+	if quote.input_keys[line] != funding._quote.input_keys[line] or amount != funding._quote.input_milli[line] \
+			or actual._delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + line] != amount:
+		return REFUSE_MATERIALS_INCOMPLETE
+	if line >= quote.input_count:
+		return REFUSE_NONE if amount == 0 and quote.input_keys[line] == &"" else ModularContract.REFUSE_QUOTE
+	var item: int = router._items._item_ids.get(quote.input_keys[line], -1)
+	if amount <= 0 or item < 0 or item >= funding._s_totals.size() \
+			or funding._s_totals[item] != amount or funding._s_returned[item] != amount:
+		return REFUSE_MATERIALS_INCOMPLETE
+	for previous: int in line:
+		if quote.input_keys[previous] == quote.input_keys[line]:
+			return ModularContract.REFUSE_QUOTE
+	return REFUSE_NONE
+
+
+static func _connector_start_receipt(router: ModularContract, row: int,
+		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
+	"""The pure tail requires the full actual receipt; the prepayment leaf requires its original open transaction."""
+	var funding: RefCounted = router._funding
+	var funded: bool = funding._project_slot[row] == project.x and funding._project_generation[row] == project.y
+	if paid:
+		return REFUSE_NONE if funded and funding._head[row] >= 0 and funding._output_slot[row] == -1 \
+			and funding._output_mass_g[row] == 0 and funding._settling_project == NULL_REF \
+			and funding._settling_job == NULL_REF and not router._inventory._tx_open else REFUSE_WRONG_PHASE
+	return REFUSE_NONE if not funded and funding._settling_project == project \
+		and funding._settling_job == job and router._inventory._tx_open else REFUSE_WRONG_PHASE
+
+
+static func begin_connector_work_preflighted(actual: RefCounted, router: ModularContract,
+		project: Vector2i, job: Vector2i) -> OpResult:
+	"""Publish the preflighted connector-only start after WIP commits; ordinary begin_work remains unchanged."""
+	var code: StringName = connector_start_refusal(actual, router, project, job, true)
+	if code != REFUSE_NONE:
+		return OpResult.new(false, code, 0, NULL_REF)
+	var row: int = actual._directory.get_typed_row(project)
+	actual._work_begun[row] = 1
+	actual._phase[row] = PHASE_WORK_DONE if actual._remaining_mwu[row] == 0 else PHASE_WORKING
+	actual._refund_policy[row] = REFUND_PARTIAL
+	return OpResult.new(true, REFUSE_NONE, actual._remaining_mwu[row], project)
 
 
 func add_work_mwu(project_ref: Vector2i, mwu: int) -> OpResult:
@@ -1078,6 +1859,9 @@ func add_work_mwu_into(project_ref: Vector2i, mwu: int, out: IntMath.IntResult) 
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return out.refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _owned_mutation_refusal(row, project_ref, ExcavationContract.ACTION_WORK)
+	if owner_refusal != REFUSE_NONE:
+		return out.refuse(owner_refusal)
 	if _phase[row] != PHASE_WORKING:
 		return out.refuse(REFUSE_WRONG_PHASE)
 	if _paused[row] == 1:
@@ -1101,7 +1885,7 @@ func commit_completion(project_ref: Vector2i) -> OpResult:
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
-	if is_removal(_purpose[row]):
+	if is_removal(_purpose[row]) or _purpose[row] == PURPOSE_EXCAVATION or is_modular(_purpose[row]):
 		return _refuse(REFUSE_COORDINATOR_ONLY)
 	if _phase[row] != PHASE_WORK_DONE:
 		return _refuse(REFUSE_WRONG_PHASE)
@@ -1225,7 +2009,8 @@ func close_demolition_refund(project_ref: Vector2i) -> OpResult:
 
 func _retire(row: int, project_ref: Vector2i, subject: Vector2i) -> void:
 	"""Clear the subject's back-reference, free the row and hand the directory slot back."""
-	if not is_furniture_subject(_purpose[row]) and _buildings.is_live_building(subject):
+	if not is_furniture_subject(_purpose[row]) and _purpose[row] != PURPOSE_EXCAVATION \
+			and not is_modular(_purpose[row]) and _buildings.is_live_building(subject):
 		_buildings.set_building_construction(subject, NULL_REF)
 	_present[row] = 0
 	_work_begun[row] = 0
@@ -1256,6 +2041,9 @@ func begin_refund(project_ref: Vector2i) -> OpResult:
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _owned_mutation_refusal(row, project_ref, ExcavationContract.ACTION_CANCEL)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if _phase[row] == PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_phase[row] = PHASE_REFUNDING
@@ -1275,7 +2063,7 @@ func cancellation_refund_milli_into(project_ref: Vector2i, index: int,
 		return out.refuse(REFUSE_STALE_PROJECT_REF)
 	if is_removal(_purpose[row]):
 		return out.refuse(REFUSE_IS_A_DEMOLITION)
-	if index < 0 or index >= _bill_count_of(_purpose[row], _type_id[row]):
+	if index < 0 or index >= _project_bill_count(row):
 		return out.refuse(REFUSE_MATERIAL_INDEX)
 	var delivered: int = _delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index]
 	if _refund_policy[row] == REFUND_FULL:
@@ -1520,7 +2308,7 @@ func close_refund(project_ref: Vector2i) -> OpResult:
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
-	if is_removal(_purpose[row]):
+	if is_removal(_purpose[row]) or _purpose[row] == PURPOSE_EXCAVATION or is_modular(_purpose[row]):
 		return _refuse(REFUSE_COORDINATOR_ONLY)
 	if _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
@@ -1580,6 +2368,9 @@ func set_material_container(project_ref: Vector2i, container_ref: Vector2i) -> O
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _owned_mutation_refusal(row, project_ref, ExcavationContract.ACTION_CONTAINER)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if container_ref != NULL_REF and (container_ref.x < 0 or container_ref.y <= 0
 			or container_ref.x > INT32_MAX or container_ref.y > INT32_MAX):
 		return _refuse(REFUSE_INVALID_CONTAINER_REF)
@@ -1666,7 +2457,7 @@ func delivered_milli_into(project_ref: Vector2i, index: int, out: IntMath.IntRes
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return out.refuse(REFUSE_STALE_PROJECT_REF)
-	if index < 0 or index >= _bill_count_of(_purpose[row], _type_id[row]):
+	if index < 0 or index >= _project_bill_count(row):
 		return out.refuse(REFUSE_MATERIAL_INDEX)
 	return out.succeed(_delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index])
 
@@ -1731,7 +2522,9 @@ func _project_of_subject(subject_ref: Vector2i) -> int:
 		if _present[row] != 1:
 			continue
 		seen += 1
-		if _subject_slot[row] == subject_ref.x and _subject_generation[row] == subject_ref.y:
+		if _purpose[row] != PURPOSE_EXCAVATION and _purpose[row] != PURPOSE_SPOIL_TIP \
+				and _purpose[row] != PURPOSE_CONNECTOR_INSTALL \
+				and _subject_slot[row] == subject_ref.x and _subject_generation[row] == subject_ref.y:
 			return row
 	return NO_ROW
 
@@ -1775,6 +2568,11 @@ func furniture_user_count_of_building(building_ref: Vector2i) -> int:
 
 func _subject_is_live(row: int, subject: Vector2i) -> bool:
 	"""Whether this project's subject still exists in the store that owns it."""
+	if is_modular(_purpose[row]):
+		return _read_modular_facts(row) == REFUSE_NONE
+	if _purpose[row] == PURPOSE_EXCAVATION:
+		var authority: ExcavationContract = excavation_authority()
+		return authority != null and authority.is_live_site(subject)
 	if is_furniture_subject(_purpose[row]):
 		return _buildings.is_live_furniture(subject)
 	return _buildings.is_live_building(subject)
@@ -1782,7 +2580,7 @@ func _subject_is_live(row: int, subject: Vector2i) -> bool:
 
 static func is_furniture_subject(purpose: int) -> bool:
 	"""Whether a purpose's subject is a Furniture row (FURNITURE, REMOVE_FURNITURE) not a Building."""
-	return purpose == PURPOSE_FURNITURE or purpose == PURPOSE_REMOVE_FURNITURE
+	return purpose == PURPOSE_FURNITURE or purpose == PURPOSE_REMOVE_FURNITURE or purpose == PURPOSE_SPATIAL_FURNITURE
 
 
 static func is_removal(purpose: int) -> bool:
@@ -2690,6 +3488,8 @@ static func columns_refusal(image: Columns) -> StringName:
 	var source_code: StringName = column_source_metadata_refusal()
 	if source_code != REFUSE_NONE:
 		return source_code
+	if _columns_proven(image):
+		return REFUSE_NONE
 	var flag_code: StringName = _column_flag_scan_refusal(image)
 	if flag_code != REFUSE_NONE:
 		return flag_code
@@ -2697,4 +3497,391 @@ static func columns_refusal(image: Columns) -> StringName:
 		var row_code: StringName = _row_refusal(image, row)
 		if row_code != REFUSE_NONE:
 			return row_code
+	return REFUSE_NONE
+
+
+static func _columns_proven(image: Columns) -> bool:
+	"""ADR 1235: the flag and row walks above provably accept. Every gate reads only its own row
+	of these sixteen columns, so `ColumnProofs.rows_proven()` may judge identical rows once; any
+	doubt returns false and the walks run, so each refusal is unchanged."""
+	for flags: PackedByteArray in [image.present, image.paused, image.work_begun]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	return ColumnProofs.rows_proven(_image_columns(image),
+		_image_row_ok.bind(image))
+
+
+static func _image_row_ok(row: int, image: Columns) -> bool:
+	"""One row passes gates 1-8 (bound, not a lambda: see `Buildings._building_row_ok()`)."""
+	return _row_refusal(image, row) == REFUSE_NONE
+
+
+# --- ADR1155: owner-owned release after the complete original World has been cleared. ---
+
+static func world_retirement_refusal_in(actual: RefCounted, ids: EntityDirectory,
+		world: Vector2i, persistent_id: int, excavation: ExcavationContract,
+		modular: ModularContract, cleared: bool) -> StringName:
+	"""Preserve exact optional-null/expired authority distinctions and every paid live row."""
+	if actual == null or actual._directory != ids or actual._buildings == null \
+			or actual._buildings._directory != ids:
+		return &"WORLD_RETIREMENT_CONSTRUCTION"
+	if not _retirement_authority_matches(actual._excavation_authority, excavation) \
+			or not _retirement_authority_matches(actual._modular_authority, modular):
+		return &"WORLD_RETIREMENT_CONSTRUCTION"
+	var code: StringName = Buildings.whole_world_retirement_refusal_in(ids, world, persistent_id, cleared)
+	if code != &"": return code
+	if cleared and (actual._live_count != 0 or actual._present.has(1) \
+			or actual._delivered_milli.count(0) != actual._delivered_milli.size()):
+		return &"WORLD_RETIREMENT_NOT_EMPTY"
+	return &""
+
+
+static func _retirement_authority_matches(binding: WeakRef, expected: RefCounted) -> bool:
+	"""An expired original weak binding is not the optional unbound state."""
+	return binding == null if expected == null else binding != null and binding.get_ref() == expected
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, ids: EntityDirectory,
+		world: Vector2i, persistent_id: int, excavation: ExcavationContract,
+		modular: ModularContract) -> StringName:
+	"""Release this owner's two exact lifetime links without refunding, clearing or allocating."""
+	var code: StringName = world_retirement_refusal_in(actual, ids, world, persistent_id, excavation, modular, true)
+	if code != &"": return code
+	actual._excavation_authority = null
+	actual._modular_authority = null
+	return &""
+
+
+
+# --- ARCH-SAVE-002 sections 4 + 5 + the Q7 section 6 owners bulk API (ADR 1222 build step 3) -----
+#
+# Construction's saved rows travel in THREE images restored in one call:
+#   * `columns` -- the frozen section-4 owner (ADR 0186): every row whose purpose is BUILD,
+#     UPGRADE, FURNITURE or DEMOLISH, and the exact clear row everywhere else;
+#   * `extension` -- section 6 owner `construction_extension` (DEC-055 Q7(a)): the same sixteen
+#     columns for every row whose purpose is outside the frozen enum (REMOVE_FURNITURE, EXCAVATION,
+#     SPATIAL_FURNITURE, SPOIL_TIP, CONNECTOR_INSTALL), and the exact clear row everywhere else;
+#   * `ledger` -- section 5's `_delivered_milli` plus section 6 owner `construction_paid_ledger`.
+# A row is carried by exactly one of the first two images. `restore_columns()` judges `columns`
+# with the frozen `columns_refusal()`, `extension` with `extension_refusal()`, the split, the
+# ledger shape and the Directory resolution of every present row before its first write, then
+# installs the merged rows and recounts `_live_count`. Live semantics of an extended row (its
+# Site, Router or spatial owner) are re-proved by the underground restore, not here.
+
+const REFUSE_COLUMN_SPLIT: StringName = &"COLUMN_SPLIT"
+const REFUSE_COLUMN_LEDGER: StringName = &"COLUMN_LEDGER"
+const REFUSE_COLUMN_DIRECTORY: StringName = &"COLUMN_DIRECTORY"
+
+## The code of the most recent refused bulk column call, or REFUSE_NONE. Category 3.
+var _last_column_refusal: StringName = REFUSE_NONE
+
+
+class Ledger extends RefCounted:
+	"""Caller-owned image of the delivered ledger (section 5) and the paid ledger (section 6)."""
+	var delivered_milli: PackedInt64Array = PackedInt64Array()
+	var paid_base_type: PackedInt32Array = PackedInt32Array()
+	var paid_upgrade_mask: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size all three columns and fill the clear store's values."""
+		delivered_milli.resize(DELIVERED_CELLS)
+		paid_base_type.resize(CONSTRUCTION_CAPACITY)
+		paid_upgrade_mask.resize(CONSTRUCTION_CAPACITY)
+		delivered_milli.fill(0)
+		paid_base_type.fill(NO_PAID_PACKAGE)
+		paid_upgrade_mask.fill(0)
+
+	func is_sized() -> bool:
+		"""True only at the canonical extents."""
+		return delivered_milli.size() == DELIVERED_CELLS \
+			and paid_base_type.size() == CONSTRUCTION_CAPACITY \
+			and paid_upgrade_mask.size() == CONSTRUCTION_CAPACITY
+
+	func equals(other: Ledger) -> bool:
+		"""All three columns byte-identical."""
+		return other != null and delivered_milli == other.delivered_milli \
+			and paid_base_type == other.paid_base_type \
+			and paid_upgrade_mask == other.paid_upgrade_mask
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success."""
+	return _last_column_refusal
+
+
+func copy_columns_into(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""Snapshot every row into the frozen or extension image, and both ledgers. False = SHAPE."""
+	if columns == null or extension == null or ledger == null or not columns.is_sized() \
+			or not extension.is_sized() or not ledger.is_sized():
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	columns._fill_clear_values()
+	extension._fill_clear_values()
+	for row: int in CONSTRUCTION_CAPACITY:
+		_copy_row_into(extension if _purpose[row] >= PURPOSE_COUNT else columns, row)
+	ledger.delivered_milli.clear()
+	ledger.delivered_milli.append_array(_delivered_milli)
+	ledger.paid_base_type.clear()
+	ledger.paid_base_type.append_array(_paid_base_type)
+	ledger.paid_upgrade_mask.clear()
+	ledger.paid_upgrade_mask.append_array(_paid_upgrade_mask)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_row_into(out: Columns, row: int) -> void:
+	"""One live row's sixteen values into `out` at the same physical row."""
+	out.present[row] = _present[row]
+	out.material_container_slot[row] = _material_container_slot[row]
+	out.material_container_generation[row] = _material_container_generation[row]
+	out.assigned_count[row] = _assigned_count[row]
+	out.max_workers[row] = _max_workers[row]
+	out.refund_policy[row] = _refund_policy[row]
+	out.remaining_mwu[row] = _remaining_mwu[row]
+	out.paused[row] = _paused[row]
+	out.work_begun[row] = _work_begun[row]
+	out.ref_slot[row] = _ref_slot[row]
+	out.ref_generation[row] = _ref_generation[row]
+	out.subject_slot[row] = _subject_slot[row]
+	out.subject_generation[row] = _subject_generation[row]
+	out.purpose[row] = _purpose[row]
+	out.type_id[row] = _type_id[row]
+	out.phase[row] = _phase[row]
+
+
+func restore_columns(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""Install the three images in one call, then recount. False writes nothing.
+
+	Allocate before consume (decision 0059): every predicate below and the Directory resolution
+	run before the first write. Authority WeakRefs are untouched; re-mounting re-binds them.
+	"""
+	var code: StringName = columns_refusal(columns)
+	if code == REFUSE_NONE and not _restore_proven(columns, extension, ledger):
+		code = extension_refusal(extension)
+		if code == REFUSE_NONE:
+			code = split_refusal(columns, extension)
+		if code == REFUSE_NONE:
+			code = _ledger_refusal(columns, extension, ledger)
+	if code == REFUSE_NONE:
+		code = _directory_refusal(columns, extension)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_install_merged(columns, extension)
+	_delivered_milli = ledger.delivered_milli.duplicate()
+	_paid_base_type = ledger.paid_base_type.duplicate()
+	_paid_upgrade_mask = ledger.paid_upgrade_mask.duplicate()
+	_live_count = _present.count(1)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_merged(columns: Columns, extension: Columns) -> void:
+	"""Private copies of the frozen image, then every extension-owned row written over them."""
+	_present = columns.present.duplicate()
+	_material_container_slot = columns.material_container_slot.duplicate()
+	_material_container_generation = columns.material_container_generation.duplicate()
+	_assigned_count = columns.assigned_count.duplicate()
+	_max_workers = columns.max_workers.duplicate()
+	_refund_policy = columns.refund_policy.duplicate()
+	_remaining_mwu = columns.remaining_mwu.duplicate()
+	_paused = columns.paused.duplicate()
+	_work_begun = columns.work_begun.duplicate()
+	_ref_slot = columns.ref_slot.duplicate()
+	_ref_generation = columns.ref_generation.duplicate()
+	_subject_slot = columns.subject_slot.duplicate()
+	_subject_generation = columns.subject_generation.duplicate()
+	_purpose = columns.purpose.duplicate()
+	_type_id = columns.type_id.duplicate()
+	_phase = columns.phase.duplicate()
+	for row: int in CONSTRUCTION_CAPACITY:
+		if extension.purpose[row] >= PURPOSE_COUNT:
+			_install_extension_row(extension, row)
+
+
+func _install_extension_row(extension: Columns, row: int) -> void:
+	"""Overwrite one physical row with the extension image's values."""
+	_present[row] = extension.present[row]
+	_material_container_slot[row] = extension.material_container_slot[row]
+	_material_container_generation[row] = extension.material_container_generation[row]
+	_assigned_count[row] = extension.assigned_count[row]
+	_max_workers[row] = extension.max_workers[row]
+	_refund_policy[row] = extension.refund_policy[row]
+	_remaining_mwu[row] = extension.remaining_mwu[row]
+	_paused[row] = extension.paused[row]
+	_work_begun[row] = extension.work_begun[row]
+	_ref_slot[row] = extension.ref_slot[row]
+	_ref_generation[row] = extension.ref_generation[row]
+	_subject_slot[row] = extension.subject_slot[row]
+	_subject_generation[row] = extension.subject_generation[row]
+	_purpose[row] = extension.purpose[row]
+	_type_id[row] = extension.type_id[row]
+	_phase[row] = extension.phase[row]
+
+
+func _ledger_refusal(columns: Columns, extension: Columns, ledger: Ledger) -> StringName:
+	"""Shape, no delivery past a row's own bill (a modular quote may use every line), and clear
+	paid ledgers on every never-used row."""
+	if ledger == null or not ledger.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	for row: int in CONSTRUCTION_CAPACITY:
+		if not _ledger_row_ok(columns, extension, ledger, row):
+			return REFUSE_COLUMN_LEDGER
+	for value: int in ledger.delivered_milli:
+		if value < 0:
+			return REFUSE_COLUMN_LEDGER
+	return REFUSE_NONE
+
+
+func _ledger_row_ok(columns: Columns, extension: Columns, ledger: Ledger,
+		row: int) -> bool:
+	"""One row of `_ledger_refusal()`: no delivery past the row's bill, paid ledgers in range and
+	clear on a never-used row. Reads only that row of both images and of the ledger."""
+	var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
+	var bill: int = 0
+	if is_modular(image.purpose[row]):
+		bill = MATERIAL_SLOTS_PER_PROJECT
+	elif image.type_id[row] != -1:
+		bill = _bill_count_of(image.purpose[row], image.type_id[row])
+	for index: int in range(bill, MATERIAL_SLOTS_PER_PROJECT):
+		if ledger.delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] != 0:
+			return false
+	if ledger.paid_base_type[row] < NO_PAID_PACKAGE or ledger.paid_upgrade_mask[row] < 0:
+		return false
+	return image.type_id[row] != -1 or (ledger.paid_base_type[row] == NO_PAID_PACKAGE
+		and ledger.paid_upgrade_mask[row] == 0)
+
+
+func _restore_proven(columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""ADR 1235: `extension_refusal()`, `split_refusal()` and `_ledger_refusal()` provably accept.
+	Their row gates read only that row of both images and of the ledger, so `ColumnProofs`
+	judges identical rows once; any doubt returns false and the three walks run unchanged."""
+	if extension == null or not extension.is_sized() or not columns.is_sized() \
+			or ledger == null or not ledger.is_sized():
+		return false
+	for flags: PackedByteArray in [extension.present, extension.paused, extension.work_begun]:
+		if not ColumnProofs.bytes_are_flags(flags):
+			return false
+	var extra: PackedInt32Array = PackedInt32Array()
+	if ColumnProofs.i64_minimum(ledger.delivered_milli) < 0 or not ColumnProofs.strided_deviant_rows(
+			ledger.delivered_milli, MATERIAL_SLOTS_PER_PROJECT, CONSTRUCTION_CAPACITY, extra):
+		return false
+	var inputs: Array = _image_columns(columns) + _image_columns(extension)
+	inputs.append_array([ledger.paid_base_type, ledger.paid_upgrade_mask])
+	return ColumnProofs.rows_proven(inputs, _restore_row_ok.bind(columns, extension, ledger), extra)
+
+
+func _restore_row_ok(row: int, columns: Columns, extension: Columns, ledger: Ledger) -> bool:
+	"""One row of the extension, split and ledger walks."""
+	var purpose: int = extension.purpose[row]
+	if purpose < PURPOSE_COUNT:
+		if not _is_clear_row(extension, row):
+			return false
+	elif _extension_row_refusal(extension, row, purpose) != REFUSE_NONE \
+			or not _is_clear_row(columns, row):
+		return false
+	return _ledger_row_ok(columns, extension, ledger, row)
+
+
+static func _image_columns(image: Columns) -> Array:
+	"""The sixteen columns of one image, in ordinal order."""
+	return [image.present, image.material_container_slot, image.material_container_generation,
+		image.assigned_count, image.max_workers, image.refund_policy, image.remaining_mwu,
+		image.paused, image.work_begun, image.ref_slot, image.ref_generation, image.subject_slot,
+		image.subject_generation, image.purpose, image.type_id, image.phase]
+
+
+func _directory_refusal(columns: Columns, extension: Columns) -> StringName:
+	"""Every present row's own reference resolves to a live CONSTRUCTION entry at that row. Only
+	rows present in either image can be present in the one that carries them (ADR 1235)."""
+	var rows: PackedInt32Array = ColumnProofs.rows_holding(columns.present, 1)
+	rows.append_array(ColumnProofs.rows_holding(extension.present, 1))
+	rows.sort()
+	for row: int in rows:
+		var image: Columns = extension if extension.purpose[row] >= PURPOSE_COUNT else columns
+		if image.present[row] != 1:
+			continue
+		var ref: Vector2i = Vector2i(image.ref_slot[row], image.ref_generation[row])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_CONSTRUCTION) \
+				or _directory.get_typed_row(ref) != row:
+			return REFUSE_COLUMN_DIRECTORY
+	return REFUSE_NONE
+
+
+# --- the pure extension predicates ---------------------------------------------------------------
+
+static func split_refusal(columns: Columns, extension: Columns) -> StringName:
+	"""Each row is carried by exactly one image: an extension-owned row is clear in `columns`."""
+	if columns == null or extension == null or not columns.is_sized() or not extension.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	for row: int in CONSTRUCTION_CAPACITY:
+		if extension.purpose[row] >= PURPOSE_COUNT and not _is_clear_row(columns, row):
+			return REFUSE_COLUMN_SPLIT
+	return REFUSE_NONE
+
+
+static func _is_clear_row(image: Columns, row: int) -> bool:
+	"""The exact never-used clear row of `Columns._fill_clear_values()`."""
+	return image.present[row] == 0 and image.material_container_slot[row] == NULL_REF.x \
+		and image.material_container_generation[row] == NULL_REF.y \
+		and image.assigned_count[row] == 0 and image.max_workers[row] == 0 \
+		and image.refund_policy[row] == REFUND_FULL and image.remaining_mwu[row] == 0 \
+		and image.paused[row] == 0 and image.work_begun[row] == 0 \
+		and image.ref_slot[row] == NULL_REF.x and image.ref_generation[row] == NULL_REF.y \
+		and image.subject_slot[row] == NULL_REF.x and image.subject_generation[row] == NULL_REF.y \
+		and image.purpose[row] == PURPOSE_BUILD and image.type_id[row] == -1 \
+		and image.phase[row] == PHASE_AWAITING_MATERIALS
+
+
+static func extension_refusal(image: Columns) -> StringName:
+	"""The structural predicate over the extension owner. Frozen-purpose rows must be clear.
+
+	An extended row: purpose REMOVE_FURNITURE..CONNECTOR_INSTALL, phase and refund policy in
+	domain, canonical flags, nonnegative counters with assigned <= max, well-shaped references,
+	and the free-row canon (null refs, no progress) when not present.
+	"""
+	if image == null or not image.is_sized():
+		return REFUSE_COLUMN_SHAPE
+	var flags: StringName = _column_flag_scan_refusal(image)
+	if flags != REFUSE_NONE:
+		return flags
+	for row: int in CONSTRUCTION_CAPACITY:
+		var purpose: int = image.purpose[row]
+		if purpose < PURPOSE_COUNT:
+			if not _is_clear_row(image, row):
+				return REFUSE_COLUMN_SPLIT
+			continue
+		var code: StringName = _extension_row_refusal(image, row, purpose)
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+static func _extension_row_refusal(image: Columns, row: int, purpose: int) -> StringName:
+	"""One extended row: enums, values, reference shape, then the present/free canon."""
+	if purpose >= LIVE_PURPOSE_COUNT or image.phase[row] < 0 or image.phase[row] >= PHASE_COUNT \
+			or image.refund_policy[row] < 0 or image.refund_policy[row] >= REFUND_POLICY_COUNT:
+		return REFUSE_COLUMN_ENUM
+	if image.remaining_mwu[row] < 0 or image.assigned_count[row] < 0 \
+			or image.max_workers[row] < 0 or image.assigned_count[row] > image.max_workers[row]:
+		return REFUSE_COLUMN_VALUE
+	var ref_code: StringName = _ref_gate_refusal(image, row)
+	if ref_code != REFUSE_NONE:
+		return ref_code
+	if image.present[row] == 1:
+		return _free_gate_refusal(image, row)
+	return _extension_free_refusal(image, row)
+
+
+static func _extension_free_refusal(image: Columns, row: int) -> StringName:
+	"""A retained (not present) extended row keeps its purpose/type/phase history and no more."""
+	if image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y \
+			or image.subject_slot[row] != NULL_REF.x \
+			or image.subject_generation[row] != NULL_REF.y \
+			or image.material_container_slot[row] != NULL_REF.x \
+			or image.material_container_generation[row] != NULL_REF.y:
+		return REFUSE_COLUMN_FREE
+	if image.remaining_mwu[row] != 0 or image.assigned_count[row] != 0 \
+			or image.paused[row] != 0 or image.work_begun[row] != 0:
+		return REFUSE_COLUMN_FREE
 	return REFUSE_NONE

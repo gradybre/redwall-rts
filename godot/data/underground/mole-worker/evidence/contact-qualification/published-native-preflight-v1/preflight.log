@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_published_mole_capture.py", line 124, in <module>
+    run(parser.parse_args().out)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_published_mole_capture.py", line 77, in run
+    _, parts, _, _, _, _, _, _ = M.source_program()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/compile_profile_publication.py", line 54, in source_program
+    compact, parts, rig, topology, roots, count, historical = I.M.read_actual_source()
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py", line 30, in read_actual_source
+    original, sources, historical = W.extract_original(Path(value("source")), value("source-sha256"), proof, plan,
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py", line 78, in extract_original
+    pins = P.envelope.verify_palette_sources(reader.metadata, project_root=snapshot, import_archive=archive)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1246, in verify_palette_sources
+    require(digest.hexdigest() == expected, "PALETTE_SOURCE_DRIFT")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: PALETTE_SOURCE_DRIFT

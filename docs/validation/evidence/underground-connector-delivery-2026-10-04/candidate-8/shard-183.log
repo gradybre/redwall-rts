@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_delivery.gd
+  FAIL  test_actual_capacity_limited_spatial_shipment_uses_haul_output_unload
+        actual guarded unload: CONNECTOR_DELIVERY_ENDPOINT (expected true, got false)
+        goods commit completes the Job (expected 5, got 4)
+        existing Planner receipt is cleared (expected false, got true)
+  PASS  test_wrong_owner_binding_refuses_without_allocating_and_valid_retry_binds
+  PASS  test_final_terrain_observer_cannot_move_worker_then_commit_loading
+  PASS  test_cancel_carried_goods_repost_partial_payload_without_second_load
+  PASS  test_ordinary_terrain_observation_move_refuses_loading_then_exact_retry
+  PASS  test_expiry_equal_to_clock_tick_being_committed_refuses_work_before_sweep
+CI_SUITE_TIME {"assertions":1996,"failures":1,"suite":"test_underground_connector_delivery.gd","tests":6,"usec":52166978}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 1996 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

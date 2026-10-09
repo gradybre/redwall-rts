@@ -1,0 +1,6 @@
+{
+  "godot/scripts/systems/ui_manager.gd": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+  "godot/scripts/ui/ui_world_session.gd": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6",
+  "godot/test/test_ui_manager.gd": "b6b4d2a91cc7844ff5b7654336d0aa9f8ecadf52d5b6afec844ca282b9dfb7a7",
+  "godot/test/test_ui_world_session.gd": "d5d4e4e2bb47a264d146c4076c27758a7bdb34804d738b8b14f9044292bf252a"
+}

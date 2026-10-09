@@ -1,0 +1,37 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "status": "accepted for renewed existing OpenGL source geometry only",
+  "source_review": "independent-furnishing/review.json",
+  "harness_wrapper_review": "independent-wrapper/review.json",
+  "native_review": "independent-native",
+  "component_tests": {
+    "tests": 53,
+    "assertions": 1321,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "objects_leaked": 0,
+    "resources_leaked": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 3
+  },
+  "native": {
+    "poses": 7792,
+    "assertions": 46873,
+    "failures": 0,
+    "pngs": 304,
+    "source_pins": 677,
+    "pre_import_pins": 601,
+    "source_unchanged": true,
+    "raw_logs_clean": true,
+    "override_removed": true
+  },
+  "full_integrated_suite_pending": true,
+  "world_activation_qualified": false,
+  "metal_numerical_qualified": false,
+  "stair_qualified": false,
+  "handling_qualified": false,
+  "raw_log_preservation": "Godot engine-import.log has its original extra terminal blank line; exact raw bytes retained. Source/non-log diff whitespace check passes."
+}

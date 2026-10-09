@@ -1,0 +1,19 @@
+{
+  "godot/data/underground/mole-worker/mole_profile_catalog.gd": "941b1bf32076fbec2a2d321f97852b4ec1ca608e24dfe9cd95449c3c35c25908",
+  "godot/scripts/core/underground_motion_catalog.gd": "199bb60bfc6e62ac3f5e365d6d0b4247f82393511bc0eefaeedb31a93aefe8cd",
+  "godot/scripts/core/underground_motion_clock.gd": "a76b16440bbffe3751bfdc361e3e4195f80a3cd895e17af65d8d7773be6e4141",
+  "godot/scripts/core/underground_route_composition.gd": "1f70c75b46005b6ba8f37adc4f585511dab7f9de975edfb3f3e7bac15b39bc4f",
+  "godot/test/test_mole_qualified_profiles.gd": "e25cf706a2c798a070542158259db0a58dba3e12c18c458966e3095cbb5bdadd",
+  "godot/test/test_underground_motion_catalog.gd": "950203abed61118336c2f2a2bd49f7400890885f71dd02e17365b1410f6e7464",
+  "godot/test/test_underground_motion_clock.gd": "3015765286a978b73227f9d112f71d5decc2c3ded3ccbae2cef87daba8911add",
+  "godot/test/test_underground_route_composition.gd": "b9ad81c676accc2a7ae1d0e5918132638381243b9ae32b465bb8ff776b9152aa",
+  "godot/test/test_underground_support_clearance.gd": "778b893b9566fa59474ddfa8cc7f0275ed1f6a2b7c1bef146a504f2bea97804c",
+  "godot/data/underground/mole-worker/publish_short_step_profiles.py": "dce686fdc9cdace25dc2884d7c4e74fe1d26ae3cf1697b8d5e98b1896fb9ce22",
+  "godot/data/underground/mole-worker/test_publish_short_step_profiles.py": "0ee24884bfdb9c8374b1d17097b461eac1c8a310037ed9beb4468813f8acaaf7",
+  "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd": "b446be6719ce857c3b91595a2e6c9de82c3603adac5b7254470a7d7433a453c5",
+  "godot/data/underground/mole-worker/qualified-step-v4/catalog_source.gd.uid": "c9d8217d2352cdd983a68b8bb10d9555a1ccd1a97c07edb2b2583dd7e0ce0c80",
+  "docs/validation/evidence/underground-short-step-publication-2026-10-05/census.py": "58cf20607343ae3d847b4baf5f762e215e2fde0c0cad9bf8598ab04fb2f6d8a4",
+  "docs/validation/evidence/underground-short-step-publication-2026-10-05/test_census.py": "74703a02f26d4a4a353114cd78f203b1f92bf506ee3b0ca69ae5b3a1abcc31d3",
+  "docs/validation/evidence/underground-short-step-publication-2026-10-05/reproduce.py": "5298412c3223565ea0065854bb9ece1b1affce3c63bc08b34c3aea6682926147",
+  "docs/validation/evidence/underground-short-step-publication-2026-10-05/stage_source_archive.py": "6ecc84646ef9cefa2b6f9bf4d0051a0a08ccffcb2b5001e21dc9669838c09430"
+}

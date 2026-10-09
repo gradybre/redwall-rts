@@ -138,6 +138,11 @@ var _bound_persistent_id: PackedInt32Array = PackedInt32Array()
 
 var _bound_count: int = 0
 var _last_refusal: StringName = REFUSE_NONE
+# Runtime cache freshness only; never saved, hashed or allowed to wrap into an old token.
+var _mutation_revision: int = 1
+## The code of the most recent refused bulk column call, or REFUSE_NONE. A diagnostic channel
+## separate from every mutator's `_last_refusal`, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init(directory: EntityDirectory) -> void:
@@ -153,6 +158,27 @@ func _init(directory: EntityDirectory) -> void:
 	_prev_yaw.resize(TRANSFORM_CAPACITY)
 	_bound_persistent_id.resize(TRANSFORM_CAPACITY)
 	_assert_bases_tile_the_capacity()
+
+
+func is_bound_directory(candidate: EntityDirectory) -> bool:
+	"""Prove the actual identity namespace; matching numeric entity pairs cannot prove this."""
+	return candidate != null and candidate == _directory
+
+
+func mutation_revision() -> int:
+	"""A positive runtime token changes on every successful write; zero permanently poisons caches."""
+	return _mutation_revision if _mutation_revision < IntMath.INT64_MAX else 0
+
+
+func invalidate_runtime_caches() -> void:
+	"""Invalidate observations before an owning in-place restore; no authoritative pose byte changes."""
+	_mark_mutated()
+
+
+func _mark_mutated() -> void:
+	"""Saturate forever on exhaustion so reset/load cannot recycle a token or leave a partial reset."""
+	if _mutation_revision < IntMath.INT64_MAX:
+		_mutation_revision += 1
 
 
 func reset() -> void:
@@ -172,6 +198,7 @@ func reset() -> void:
 
 	Allocates nothing: every column is filled in place at the capacity `_init()` sized it to.
 	"""
+	_mark_mutated()
 	_x.fill(0)
 	_y.fill(0)
 	_z.fill(0)
@@ -265,6 +292,7 @@ func place(ref: Vector2i, x: int, y: int, z: int, yaw: int) -> bool:
 	if not _fields_fit_int32(x, y, z, yaw):
 		_last_refusal = REFUSE_OUT_OF_INT32
 		return false
+	_mark_mutated()
 	if _bound_persistent_id[row] == 0:
 		_bound_count += 1
 	_bound_persistent_id[row] = _directory.get_persistent_id(ref)
@@ -293,6 +321,7 @@ func advance(ref: Vector2i, x: int, y: int, z: int) -> bool:
 	if not _fields_fit_int32(x, y, z, _yaw[row]):
 		_last_refusal = REFUSE_OUT_OF_INT32
 		return false
+	_mark_mutated()
 	_prev_x[row] = _x[row]
 	_prev_y[row] = _y[row]
 	_prev_z[row] = _z[row]
@@ -313,10 +342,47 @@ func set_yaw(ref: Vector2i, yaw: int) -> bool:
 	if not IntMath.fits_int32(yaw):
 		_last_refusal = REFUSE_OUT_OF_INT32
 		return false
+	_mark_mutated()
 	_prev_yaw[row] = _yaw[row]
 	_yaw[row] = yaw
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+static func turn_stationary_preflighted(actual: RefCounted, ref: Vector2i,
+		point: Vector3i, previous_yaw: int, revision: int, yaw: int) -> bool:
+	"""Commit one proved stationary tick without dispatching a mutable Transform observer."""
+	if actual == null or revision <= 0 or revision >= IntMath.INT64_MAX \
+			or actual._mutation_revision != revision or yaw < 0 or yaw >= YAW_UNITS_PER_TURN:
+		return false
+	var row: int = _stationary_row(actual, ref)
+	if row < 0 or actual._x[row] != point.x or actual._y[row] != point.y \
+			or actual._z[row] != point.z or actual._yaw[row] != previous_yaw:
+		return false
+	actual._prev_x[row] = point.x
+	actual._prev_y[row] = point.y
+	actual._prev_z[row] = point.z
+	actual._prev_yaw[row] = previous_yaw
+	actual._yaw[row] = yaw
+	actual._mutation_revision += 1
+	actual._last_refusal = REFUSE_NONE
+	return true
+
+
+static func _stationary_row(actual: RefCounted, ref: Vector2i) -> int:
+	"""Only a full live Resident and its current positive PID may receive the proved turn."""
+	var ids: EntityDirectory = actual._directory
+	if ids == null or ref.x < 0 or ref.x >= EntityDirectory.DIRECTORY_CAPACITY \
+			or ids._active[ref.x] != 1 or ids._generation[ref.x] != ref.y \
+			or ids._kind[ref.x] != EntityDirectory.KIND_RESIDENT:
+		return -1
+	var row: int = ids._typed_row[ref.x]
+	if row < 0 or row >= EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESIDENT] \
+			or ids._typed_owner_slot[ids._kind_base[EntityDirectory.KIND_RESIDENT] + row] != ref.x:
+		return -1
+	var position: int = POSITIONED_BASE[EntityDirectory.KIND_RESIDENT] + row
+	return position if ids._persistent_id[ref.x] > 0 \
+		and actual._bound_persistent_id[position] == ids._persistent_id[ref.x] else -1
 
 
 func unbind(ref: Vector2i) -> bool:
@@ -325,6 +391,7 @@ func unbind(ref: Vector2i) -> bool:
 	if row == NOT_POSITIONED:
 		_last_refusal = _bound_refusal(ref)
 		return false
+	_mark_mutated()
 	_x[row] = 0
 	_y[row] = 0
 	_z[row] = 0
@@ -546,3 +613,155 @@ static func _has_duplicate_positive_binding(bound_persistent_id: PackedInt32Arra
 		if value > 0 and value == sorted[index + 1]:
 			return true
 	return false
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (ADR 1222 build step 2) ----------------------------
+#
+# Owner 15's capture and apply steps, mirroring `priorities.gd`'s pair. `copy_columns_into()` is
+# an exact snapshot of the nine authoritative columns over ALL 87552 physical rows, free rows
+# included; `restore_columns()` judges a candidate with the SAME `columns_refusal()` the offline
+# bridge uses, writes nothing on refusal, then installs the nine columns and REBUILDS
+# `_bound_count` (the derived count) from the installed stamp column. No member belongs to
+# another section: this store holds no Directory state. `_last_column_refusal` is the only other
+# member either call writes. Saved binding IDs are carried exactly: their cross-owner identity
+# agreement with the saved Directory is a later whole-world step, not this owner's.
+
+class Columns:
+	"""Caller-owned image of the nine authoritative columns, in canonical stamp-first order.
+
+	One object per save or load, never per resident (ARCH-MEM-001). `copy_columns_into()` refills
+	the buffers in place and refuses a wrongly sized one rather than resizing it.
+	"""
+	var bound_persistent_id: PackedInt32Array = PackedInt32Array()
+	var x: PackedInt32Array = PackedInt32Array()
+	var y: PackedInt32Array = PackedInt32Array()
+	var z: PackedInt32Array = PackedInt32Array()
+	var yaw: PackedInt32Array = PackedInt32Array()
+	var prev_x: PackedInt32Array = PackedInt32Array()
+	var prev_y: PackedInt32Array = PackedInt32Array()
+	var prev_z: PackedInt32Array = PackedInt32Array()
+	var prev_yaw: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size all nine columns to their declared extent, then fill the empty-store image."""
+		bound_persistent_id.resize(TRANSFORM_CAPACITY)
+		x.resize(TRANSFORM_CAPACITY)
+		y.resize(TRANSFORM_CAPACITY)
+		z.resize(TRANSFORM_CAPACITY)
+		yaw.resize(TRANSFORM_CAPACITY)
+		prev_x.resize(TRANSFORM_CAPACITY)
+		prev_y.resize(TRANSFORM_CAPACITY)
+		prev_z.resize(TRANSFORM_CAPACITY)
+		prev_yaw.resize(TRANSFORM_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with what the store's own `reset()` leaves: all zero."""
+		bound_persistent_id.fill(0)
+		x.fill(0)
+		y.fill(0)
+		z.fill(0)
+		yaw.fill(0)
+		prev_x.fill(0)
+		prev_y.fill(0)
+		prev_z.fill(0)
+		prev_yaw.fill(0)
+
+	func equals(other: Columns) -> bool:
+		"""True when all nine columns are byte-identical. Proves a refusal changed nothing."""
+		return other != null and bound_persistent_id == other.bound_persistent_id \
+			and x == other.x and y == other.y and z == other.z and yaw == other.yaw \
+			and prev_x == other.prev_x and prev_y == other.prev_y and prev_z == other.prev_z \
+			and prev_yaw == other.prev_yaw
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from `last_refusal()`, so a load can never overwrite the reason a
+	per-entity write was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the nine authoritative columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's bytes through the bulk path. The copies are snapshots:
+	mutating `out` afterwards cannot reach a column, and a later write here cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_i32(out.bound_persistent_id, _bound_persistent_id)
+	_refill_i32(out.x, _x)
+	_refill_i32(out.y, _y)
+	_refill_i32(out.z, _z)
+	_refill_i32(out.yaw, _yaw)
+	_refill_i32(out.prev_x, _prev_x)
+	_refill_i32(out.prev_y, _prev_y)
+	_refill_i32(out.prev_z, _prev_z)
+	_refill_i32(out.prev_yaw, _prev_yaw)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all nine columns and rebuild `_bound_count`. False refuses; nothing is written.
+
+	Allocate before consume (decision 0059): the null guard and the whole `columns_refusal()` run
+	before the first write, so a refusal leaves every column and the derived count byte-identical.
+	The rebuild counts the INSTALLED stamp column's positive entries, never a caller value. No
+	cross-owner binding agreement with a saved Directory is checked here; the orchestrator's
+	whole-world check owns that -- saved binding IDs are carried exactly.
+	"""
+	var refusal: StringName = REFUSE_COLUMN_SHAPE
+	if _columns_are_capacity_sized(columns):
+		refusal = columns_refusal(columns.bound_persistent_id, columns.x, columns.y, columns.z,
+			columns.yaw, columns.prev_x, columns.prev_y, columns.prev_z, columns.prev_yaw)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_mark_mutated()
+	_bound_persistent_id = columns.bound_persistent_id.duplicate()
+	_x = columns.x.duplicate()
+	_y = columns.y.duplicate()
+	_z = columns.z.duplicate()
+	_yaw = columns.yaw.duplicate()
+	_prev_x = columns.prev_x.duplicate()
+	_prev_y = columns.prev_y.duplicate()
+	_prev_z = columns.prev_z.duplicate()
+	_prev_yaw = columns.prev_yaw.duplicate()
+	_bound_count = _count_nonzero(_bound_persistent_id)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""The shared null and extent guard of both bulk calls, before any indexed read."""
+	return columns != null and columns.bound_persistent_id.size() == TRANSFORM_CAPACITY \
+		and columns.x.size() == TRANSFORM_CAPACITY and columns.y.size() == TRANSFORM_CAPACITY \
+		and columns.z.size() == TRANSFORM_CAPACITY and columns.yaw.size() == TRANSFORM_CAPACITY \
+		and columns.prev_x.size() == TRANSFORM_CAPACITY \
+		and columns.prev_y.size() == TRANSFORM_CAPACITY \
+		and columns.prev_z.size() == TRANSFORM_CAPACITY \
+		and columns.prev_yaw.size() == TRANSFORM_CAPACITY
+
+
+static func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+static func _count_nonzero(bound_persistent_id: PackedInt32Array) -> int:
+	"""How many rows the installed stamp column marks placed; the rebuilt `_bound_count`.
+
+	Zero marks a free row and a validated column never carries a negative stamp, so this is an
+	exact positive-stamp count.
+	"""
+	var count: int = 0
+	for row: int in TRANSFORM_CAPACITY:
+		if bound_persistent_id[row] != 0:
+			count += 1
+	return count

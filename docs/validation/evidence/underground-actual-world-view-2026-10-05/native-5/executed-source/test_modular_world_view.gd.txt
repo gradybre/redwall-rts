@@ -1,0 +1,282 @@
+extends "res://test/framework/test_case.gd"
+## Real generated World and shipped LevelCatalog. Presentation never creates gameplay geometry.
+
+const View := preload("res://demo/burrow/modular_world_view.gd")
+const Host := preload("res://scripts/systems/settlement_system.gd")
+const World := preload("res://scripts/core/world_init.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const PACK: String = "res://data/underground/initial_level_pack.uglvl"
+const HASH: String = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
+var _host: Host = null
+var _domain: Space.Domain = null
+var _levels: Levels = null
+var _view: View = null
+
+
+func before_each() -> void:
+	"""Actual generated geography and finite bound heights; no synthetic profile or endpoint."""
+	_host = Host.new()
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "actual starter settlement")
+	_domain = Space.Domain.new()
+	assert_equal(_domain.configure(_host.world_ref(), Terrain.DATUM, Terrain.MIN_QUANTUM,
+		Terrain.SIZE_QUANTA, 8192, 6144, Space.MAX_CHECKS), &"", "actual integer domain")
+	_levels = Levels.new()
+	assert_equal(_levels.load_file(PACK, HASH, 1), &"", "shipped levels")
+	assert_equal(_levels.bind_domain(_domain, _host.directory(), _domain.descriptor(), Space.VERSION), &"", "full World binding")
+	_view = View.new()
+
+
+func after_each() -> void:
+	"""Owned scene nodes and borrowed canonical stores have independent teardown."""
+	if is_instance_valid(_view):
+		_view.free()
+	_view = null
+	_levels = null
+	_domain = null
+	if is_instance_valid(_host):
+		_host.free()
+	_host = null
+
+
+func _configure() -> StringName:
+	"""Use the same actual owners the live Session/controller supplies."""
+	return _view.configure(_host.world(), _host.world_ref(), _domain, _levels, 1, 2)
+
+
+func _state() -> Array[PackedByteArray]:
+	"""Actual identity, stock, jobs, terrain and resident pose snapshots must remain byte-identical."""
+	return [_host.directory().state_bytes(), _host.inventory().state_bytes(), _host.jobs().state_bytes(),
+		_host.residents().state_bytes(), _host.transforms().state_bytes(), _host.world()._terrain.duplicate()]
+
+
+func test_actual_world_rows_cover_exact_tiles_and_heights_without_store_changes() -> void:
+	"""Every rendered rectangle resolves back to actual source tiles, including all four terrain kinds."""
+	var before: Array[PackedByteArray] = _state()
+	assert_equal(_configure(), &"", "actual view")
+	assert_equal(_state(), before, "mount is read-only")
+	assert_equal(_view.get_child_count(), 4, "constant four nodes, no tile colliders")
+	assert_equal(_view._surface.mesh.get_surface_count(), 4, "all actual terrain categories")
+	var seen: PackedByteArray = PackedByteArray()
+	seen.resize(World.TILE_COUNT)
+	for kind: int in World.TERRAIN_COUNT:
+		_check_surface(_view._surface.mesh, kind, seen)
+	assert_equal(seen.count(1), World.TILE_COUNT, "every tile is covered exactly once")
+	assert_true(_view.run_count < World.TILE_COUNT, "same-kind rows coalesce")
+	assert_true(_view.build_usec > 0, "actual cold build measured")
+	print("WORLD-VIEW-BUILD usec=%d runs=%d banks=%d lines=%d" % [_view.build_usec, _view.run_count, _view.bank_count, _view.line_count])
+
+
+func _check_surface(mesh: ArrayMesh, kind: int, seen: PackedByteArray) -> void:
+	"""Reconstruct each merged rectangle's original exact tile set, not just its AABB area."""
+	var arrays: Array = mesh.surface_get_arrays(kind)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	for at: int in range(0, vertices.size(), 4):
+		var low: Vector3 = vertices[at]
+		var high: Vector3 = vertices[at + 2]
+		assert_equal(low.y, 0.5 if kind == World.TERRAIN_LAND else 0.0, "actual source height")
+		assert_equal(high.z - low.z, 2.0, "one exact source row")
+		for x: int in range(int(low.x / 2), int(high.x / 2)):
+			var tile: int = int(low.z / 2) * World.MAP_TILES_X + x
+			assert_equal(_host.world()._terrain[tile], kind, "same actual terrain kind")
+			assert_equal(seen[tile], 0, "no overlap")
+			seen[tile] = 1
+	_check_winding(arrays)
+
+
+func _check_winding(arrays: Array) -> void:
+	"""Clockwise front faces, unit normals and metre UVs are independently inspected."""
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+	for at: int in range(0, indices.size(), 3):
+		var first: int = indices[at]
+		var cross_value: Vector3 = (vertices[indices[at + 1]] - vertices[first]).cross(vertices[indices[at + 2]] - vertices[first])
+		assert_true(cross_value.dot(normals[first]) < 0, "front winding opposes outward normal in Godot")
+	for at: int in vertices.size():
+		assert_almost_equal(normals[at].length_squared(), 1.0, "unit normal")
+		var point: Vector3 = vertices[at]
+		var cardinal: Vector3 = normals[at].round()
+		assert_equal(uvs[at], Vector2(point.x if cardinal.x == 0 else point.z,
+			point.z if cardinal.y != 0 else point.y), "UV dimensions are metres")
+	_check_tangents(arrays)
+
+
+func _check_tangents(arrays: Array) -> void:
+	"""The decoded normal-map basis follows the explicit U and V directions on every face."""
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var tangents: PackedFloat32Array = arrays[Mesh.ARRAY_TANGENT]
+	assert_equal(tangents.size(), normals.size() * 4, "four tangent components per vertex")
+	for at: int in normals.size():
+		var normal: Vector3 = normals[at].round()
+		var tangent: Vector3 = Vector3(tangents[at * 4], tangents[at * 4 + 1], tangents[at * 4 + 2]).round()
+		assert_equal(tangent, Vector3.RIGHT if normal.x == 0 else Vector3.BACK, "U direction")
+		assert_equal(normal.cross(tangent) * tangents[at * 4 + 3],
+			Vector3.BACK if normal.y != 0 else Vector3.UP, "V direction and handedness")
+
+
+func test_actual_shore_steps_have_exact_positive_height_and_correct_side() -> void:
+	"""Only real land/water boundaries produce a riser; no fake ground skirt or submerged bed."""
+	assert_equal(_configure(), &"", "mounted")
+	var arrays: Array = _view._banks.mesh.surface_get_arrays(0)
+	_check_winding(arrays)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	for at: int in range(0, vertices.size(), 4):
+		assert_equal(vertices[at].y, 0.0, "water surface bottom")
+		assert_equal(vertices[at + 2].y, 0.5, "land surface top")
+		var middle: Vector3 = (vertices[at] + vertices[at + 2]) * 0.5
+		var land: Vector3 = middle - normals[at] * 0.25
+		var water: Vector3 = middle + normals[at] * 0.25
+		assert_equal(_terrain_at(land), World.TERRAIN_LAND, "normal faces out of actual land")
+		assert_true(_terrain_at(water) != World.TERRAIN_LAND, "normal faces actual water")
+
+
+func _terrain_at(point: Vector3) -> int:
+	"""Presentation coordinates map exactly back into the actual 2m source grid."""
+	return _host.world()._terrain[int(point.z / 2) * World.MAP_TILES_X + int(point.x / 2)]
+
+
+func test_catalog_floor_changes_reuse_mesh_and_leave_preview_depth_clear() -> void:
+	"""The floor is real catalog metadata, not a fabricated room or a translated village layout."""
+	assert_equal(_configure(), &"", "mounted")
+	var mesh: Mesh = _view._slice.mesh
+	var before: Array[PackedByteArray] = _state()
+	for level_id: int in range(1, 7):
+		assert_equal(_view.set_floor(level_id), &"", "actual level")
+		assert_equal(_view._floor_u, 512 - level_id * 5120, "integer floor datum")
+		assert_equal(_view._slice.position, Vector3(0, float(_view._floor_u) / 1024.0, 0), "same exact world XZ")
+		assert_false(_view._surface.visible or _view._banks.visible, "opaque surface cannot hide selected floor")
+		assert_true(_view._slice.visible and _view._context.visible, "raw earth plus original above context")
+		assert_equal(_view._slice.mesh, mesh, "no floor-switch mesh allocation")
+	var context: StandardMaterial3D = _view._context.mesh.surface_get_material(0)
+	assert_true(context.no_depth_test and context.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA, "context does not cover draft depth")
+	assert_true(context.render_priority < 2, "actual draft renders afterward")
+	assert_equal(_view.rebuilds, 1, "one mount build")
+	assert_equal(_state(), before, "floor selection changes no canonical data")
+	assert_equal(_view.set_floor(0), &"", "actual surface returns")
+	assert_true(_view._surface.visible and not _view._slice.visible, "surface restored")
+
+
+func test_refused_floor_and_bounds_reads_preserve_caller_and_selection() -> void:
+	"""Invalid section/level metadata has no fallback to a plausible-looking floor."""
+	assert_equal(_configure(), &"", "mounted")
+	assert_equal(_view.set_floor(1, 1024), &"", "adopted raised section")
+	var floor_u: int = _view._floor_u
+	for selection: Vector2i in [Vector2i(7, 0), Vector2i(0, 1024), Vector2i(1, 512), Vector2i(-1, 0)]:
+		assert_true(_view.set_floor(selection.x, selection.y) != &"", "invalid floor refused")
+		assert_equal(_view._floor_u, floor_u, "old exact floor retained")
+	var out: PackedInt32Array = PackedInt32Array([1, 2, 3, 4, 5, 6])
+	assert_true(_view.bounds_into(out), "actual bounds")
+	assert_equal(out, _domain._bounds, "original full finite domain")
+	_host.world().clear()
+	out.fill(7)
+	assert_false(_view.bounds_into(out), "stale World refused")
+	assert_equal(out, PackedInt32Array([7, 7, 7, 7, 7, 7]), "refused caller unchanged")
+	_view._process(0)
+	assert_false(_view.visible, "stale view cannot remain visible")
+
+
+func test_full_owner_source_domain_and_transform_mutations_refuse() -> void:
+	"""Equal numbers, stale source or coordinate transforms cannot silently replace the mount."""
+	assert_equal(_configure(), &"", "mounted")
+	var revision: int = _levels._revision
+	_levels._revision += 1
+	assert_equal(_view.owner_refusal(), &"WORLD_VIEW_SOURCE", "source revision drift")
+	_levels._revision = revision
+	_domain._checks -= 1
+	assert_equal(_view.owner_refusal(), &"WORLD_VIEW_DOMAIN", "full domain drift")
+	_domain._checks += 1
+	_view.position.x = 1.0
+	assert_equal(_view.owner_refusal(), &"WORLD_VIEW_DOMAIN", "no artificial World offset")
+	_view.position = Vector3.ZERO
+	var original: Directory = _levels._directory
+	_levels._directory = Directory.new()
+	assert_equal(_view.owner_refusal(), &"WORLD_VIEW_SOURCE", "equal-looking foreign owner refused")
+	_levels._directory = original
+	assert_equal(_view.owner_refusal(), &"", "actual original remains")
+
+
+func test_view_does_not_retain_heavy_world_and_clear_allows_actual_remount() -> void:
+	"""An external presentation handle cannot retain the old simulation after reset/remount."""
+	assert_equal(_configure(), &"", "mounted")
+	var weak_world: WeakRef = weakref(_host.world())
+	var weak_levels: WeakRef = weakref(_levels)
+	_host.free()
+	_host = null
+	_levels = null
+	_domain = null
+	assert_equal(weak_world.get_ref(), null, "view has no strong World chain")
+	assert_equal(weak_levels.get_ref(), null, "view has no strong Levels chain")
+	assert_equal(_view.owner_refusal(), &"WORLD_VIEW_OWNER", "expired original refused")
+	_view.clear_view()
+	assert_equal(_view.get_child_count(), 0, "all own resources detached")
+	_host = Host.new()
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "new actual World")
+	_domain = Space.Domain.new()
+	_domain.configure(_host.world_ref(), Terrain.DATUM, Terrain.MIN_QUANTUM, Terrain.SIZE_QUANTA, 8192, 6144, Space.MAX_CHECKS)
+	_levels = Levels.new()
+	_levels.load_file(PACK, HASH, 1)
+	_levels.bind_domain(_domain, _host.directory(), _domain.descriptor(), Space.VERSION)
+	assert_equal(_configure(), &"", "fresh explicit mount")
+
+
+func test_wrong_identity_domain_and_layers_never_install_partial_view() -> void:
+	"""All initial refusals precede visible resource publication; a clean retry remains possible."""
+	assert_equal(_view.configure(_host.world(), Vector2i(-1, 0), _domain, _levels, 1, 2), &"WORLD_VIEW_WORLD", "null World")
+	assert_equal(_view.configure(_host.world(), _host.world_ref(), _domain, _levels, 0, 2), &"WORLD_VIEW_FORMAT", "zero layer")
+	assert_equal(_view.get_child_count(), 0, "no partial nodes")
+	assert_equal(_configure(), &"", "valid retry")
+	assert_equal(_configure(), &"WORLD_VIEW_ALREADY_BOUND", "explicit once-only mount")
+
+
+func test_exact_capacity_bound_and_checkerboard_geometry_are_finite() -> void:
+	"""A synthetic worst-case presentation grid does not alter the real World or qualify gameplay."""
+	var kinds: PackedByteArray = PackedByteArray()
+	kinds.resize(World.TILE_COUNT)
+	for z: int in World.MAP_TILES_Z:
+		for x: int in World.MAP_TILES_X:
+			kinds[z * World.MAP_TILES_X + x] = World.TERRAIN_LAND if (x + z) % 2 == 0 else World.TERRAIN_COAST
+	assert_equal(View._count_runs(kinds, World.TERRAIN_LAND) + View._count_runs(kinds, World.TERRAIN_COAST), View.MAX_RUNS, "maximum one quad per tile")
+	assert_equal(View._edge_count(kinds, true), View.MAX_BANKS, "all finite adjacent pairs differ")
+	var started: int = Time.get_ticks_usec()
+	_view._build(kinds, 1, 2)
+	assert_equal(_view.bank_count, View.MAX_BANKS, "exact maximum staging count")
+	assert_equal(_view.section_run_count, View.MAX_RUNS, "protected coast cannot merge across land")
+	assert_true(_view.line_count <= View.MAX_LINES, "bounded context")
+	print("WORLD-VIEW-MAX usec=%d quads=%d" % [Time.get_ticks_usec() - started, 2 * View.MAX_RUNS + View.MAX_BANKS])
+
+
+func test_copied_level_columns_refuse_same_digest_payload_drift() -> void:
+	"""A same-revision catalog object cannot silently change the selected actual height or allowed offsets."""
+	assert_equal(_configure(), &"", "mounted")
+	for key: StringName in [&"_config", &"_offsets", &"_short_rises", &"_identity"]:
+		var original: PackedInt32Array = _levels.get(key)
+		var changed: PackedInt32Array = original.duplicate()
+		changed[0] += 1
+		_levels.set(key, changed)
+		assert_equal(_view.owner_refusal(), &"WORLD_VIEW_SOURCE", "original immutable payload must match")
+		_levels.set(key, original)
+	assert_equal(_view.owner_refusal(), &"", "restored source tuple current")
+	var material: ShaderMaterial = _view._surface.mesh.surface_get_material(World.TERRAIN_LAND)
+	assert_equal(material.get_shader_parameter(&"path_count"), 0, "no legacy village paths")
+	assert_equal(material.get_shader_parameter(&"clearing_wobble"), 0.0, "no legacy radial clearing mask")
+
+
+func test_ford_source_is_earth_below_its_bed_without_changing_surface_water() -> void:
+	"""The natural ford is -128u ground; other water columns remain protected to the pack bottom."""
+	assert_equal(_configure(), &"", "mounted")
+	var kinds: PackedByteArray = _host.world()._terrain
+	var x: int = World.RIVER_FIRST_X
+	var z: int = World.FORD_FIRST_Z
+	assert_equal(View._kind_at(kinds, x, z, false), World.TERRAIN_RIVER, "actual surface water remains")
+	assert_equal(View._kind_at(kinds, x, z, true), World.TERRAIN_LAND, "earth below actual shallow ford")
+	assert_equal(View._kind_at(kinds, x, z - 1, true), World.TERRAIN_RIVER, "deep river column remains protected")
+	assert_equal(_view.run_count, 410, "surface geometry unchanged")
+	assert_equal(_view.section_run_count, 402, "exact four-row ford difference")
+	for level_id: int in range(1, 7):
+		assert_equal(_view.set_floor(level_id), &"", "actual geological range")
+		assert_true(_view._floor_u < World.FORD_Y_UNITS and _view._floor_u > Terrain.BOTTOM_U, "actual floor between known bed and pack bottom")

@@ -1,0 +1,22 @@
+{
+  "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd": {
+    "path": "native-1/executed-owned-sources/capture_canonical.gd.txt",
+    "sha256": "f764ffe9218187bd7834fbd0d24aa6c370b0b8cd2ffe5074d542630a7a218853"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": {
+    "path": "native-1/executed-owned-sources/source_program.gd.txt",
+    "sha256": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4"
+  },
+  "godot/test/test_underground_routes.gd": {
+    "path": "native-1/executed-owned-sources/test_underground_routes.gd.txt",
+    "sha256": "88e605b3e2b0f524ec581da89754c4f3a96ba957cf0396696db5ebc4456f48b7"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/source-input-locators.json": {
+    "path": "native-1/executed-owned-sources/source-input-locators.json.txt",
+    "sha256": "523cbfedbedc428b3763407cf44a6c689f7399a5d167bce188c5e8110e5c3b69"
+  },
+  "godot/data/underground/mole-worker/work-approach-v1/run_canonical.py": {
+    "path": "native-1/executed-owned-sources/run_canonical.py.txt",
+    "sha256": "9eca1d798533df0cfd57ceff8ce808245418e7e95929d804911d4d5e2ea09425"
+  }
+}

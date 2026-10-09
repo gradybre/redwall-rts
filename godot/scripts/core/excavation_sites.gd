@@ -1,0 +1,2377 @@
+extends "res://scripts/core/excavation_contract.gd"
+## ECON-001/003/005: permanent physical quantum history, paid phases and actual owner bindings.
+## Sparse permanent records share one immutable lattice; no reset/retire erases physical history.
+## This owner does not authorize geometry. The bound SpatialAuthority refuses until UG08/09
+## provide actual dry/support/contact/occupancy/route/topology proofs.
+
+const Construction := preload("res://scripts/core/construction.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const Reservations := preload("res://scripts/core/reservations.gd")
+const Items := preload("res://scripts/core/item_definitions.gd")
+const Funding := preload("res://scripts/core/excavation_inventory.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
+const Residents := preload("res://scripts/core/residents.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const Work := preload("res://scripts/core/work.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Catalog := preload("res://scripts/core/catalog.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const RoomSpace := preload("res://scripts/core/room_space.gd")
+const CutMap := preload("res://scripts/core/underground_room_cut_map.gd")
+const EntryCutMap := preload("res://scripts/core/underground_entry_cut_map.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const NO_ROW: int = -1
+const SITE_GENERATION: int = 1
+## Engineering envelope only: caller chooses a qualified smaller budget; history never evicts.
+const MAX_SITE_ARENA_BYTES: int = 8388608
+const SITE_RECORD_BYTES: int = 113
+const FIXED_PACKED_BYTES: int = Jobs.JOB_CAPACITY * 4 + Work.RESIDENT_CAPACITY * 8 + 16
+## floor((8388608 - 36880) / 113), pinned against both this row and the next row in tests.
+const MAX_SITE_CAPACITY: int = 73909
+const MAX_EARNED_CAPACITY: int = MAX_SITE_CAPACITY * Contract.OP_COUNT
+## Separate ASCII-ordered physical phase domain; BuildingState is unchanged.
+const BACKFILLED: int = 0
+const BRACED: int = 1
+const BRACING: int = 2
+const CLOSING: int = 3
+const CUTTING: int = 4
+const FINISHING: int = 5
+const OPEN_UNFINISHED: int = 6
+const SOLID: int = 7
+const SUPPORTED_VOID: int = 8
+const REFUSE_SITE: StringName = &"EXCAVATION_SITE_IDENTITY"
+const REFUSE_DOMAIN: StringName = &"EXCAVATION_WORLD_DOMAIN"
+const REFUSE_SITE_CAPACITY: StringName = &"EXCAVATION_PHYSICAL_HISTORY_CAPACITY"
+const REFUSE_OVERLAP: StringName = &"EXCAVATION_SITE_ALREADY_OWNED"
+const REFUSE_PHASE: StringName = &"EXCAVATION_PHYSICAL_PHASE"
+const REFUSE_JOB: StringName = &"EXCAVATION_JOB_BINDING"
+const REFUSE_WORKER: StringName = &"EXCAVATION_WORKER_BINDING"
+const REFUSE_CHILD: StringName = &"EXCAVATION_CHILD_FORBIDDEN"
+const REFUSE_BUILDER_CAP: StringName = &"EXCAVATION_PROJECT_BUILDER_CAP"
+const REFUSE_OUTPUT: StringName = &"SPOIL_OUTPUT_BLOCKED"
+const REFUSE_DELIVERY: StringName = &"EXCAVATION_DELIVERY_OWNERSHIP"
+const REFUSE_CLAIM_BATCH: StringName = &"ROOM_CUT_BATCH_SCOPE"
+const REFUSE_CLAIM_HISTORY: StringName = &"ROOM_RETAINED_CUT_MAPPING_UNBOUND"
+const CLAIM_SEARCH_CHECKS: int = 17 # Covers the entire73909-row binary-search domain.
+
+class RoomClaimInput extends RefCounted:
+	## Caller-admitted borrowed input. The physical owner pins a separate private image.
+	var world: Vector2i = NULL_REF
+	var room_type: int = -1
+	var level: int = -1
+	var space_revision: int = 0
+	var origin_u: Vector3i = Vector3i.ZERO
+	var cell_size_u: int = 0
+	var height_u: int = 0
+	var cells: PackedInt32Array = PackedInt32Array()
+
+class EntryClaimInput extends RefCounted:
+	## Distinct non-flat input; purpose is always Corridor, never a mutable caller-selected type.
+	var world: Vector2i = NULL_REF
+	var base_level: int = -1
+	var space_revision: int = 0
+	var boxes: PackedInt32Array = PackedInt32Array()
+
+class RoomClaimBatch extends RefCounted:
+	## Synchronous cold observation only. No Site, Room, paid work or reservation exists before publish.
+	var _owner: WeakRef = null
+	var _authority: WeakRef = null
+	var _budget: Budget = null
+	var _input: RoomClaimInput = null
+	var _entry_input: EntryClaimInput = null
+	var _candidate: Directory.CreateCandidate = null
+	var _cursor: CutMap = null
+	var _entry_cursor: EntryCutMap = null
+	var _cells: PackedInt32Array = PackedInt32Array()
+	var _boxes: PackedInt32Array = PackedInt32Array()
+	var _room_facts: PackedInt32Array = PackedInt32Array()
+	var _world: Vector2i = NULL_REF
+	var _room_type: int = -1
+	var _level: int = -1
+	var _space_revision: int = 0
+	var _origin: Vector3i = Vector3i.ZERO
+	var _pitch: int = 0
+	var _height: int = 0
+	var _room: Vector2i = NULL_REF
+	var _kind: int = -1
+	var _typed_row: int = -1
+	var _persistent_id: int = 0
+	var _datum: Vector3i = Vector3i.ZERO
+	var _minimum: Vector3i = Vector3i.ZERO
+	var _size: Vector3i = Vector3i.ZERO
+	var _cold_token: int = 0
+	var _base_count: int = 0
+	var _count: int = 0
+	var _phase: int = 0 # EMPTY0, PREPARED1, PUBLISHED2, DISCARDED3; not a gameplay phase.
+
+	func _copy_input(request: RoomClaimInput, candidate: Directory.CreateCandidate) -> void:
+		"""Copy only after the actual shared World arena admits every simultaneous plan/cursor image."""
+		_input = request
+		_candidate = candidate
+		_world = request.world
+		_room_type = request.room_type
+		_level = request.level
+		_space_revision = request.space_revision
+		_origin = request.origin_u
+		_pitch = request.cell_size_u
+		_height = request.height_u
+		_cells = request.cells.duplicate()
+		_room = candidate.ref
+		_kind = candidate.kind
+		_typed_row = candidate.typed_row
+		_persistent_id = candidate.persistent_id
+		_room_facts.resize(Buildings.ROOM_IDENTITY_FIELDS)
+
+	func _unchanged() -> bool:
+		"""Every exposed scalar/tuple and cell must still match its independently retained observation."""
+		if _entry_input != null:
+			return _input == null and _entry_unchanged()
+		return _input != null and _candidate != null and _input.world == _world \
+			and _input.room_type == _room_type and _input.level == _level and _input.space_revision == _space_revision \
+			and _input.origin_u == _origin and _input.cell_size_u == _pitch and _input.height_u == _height \
+			and _input.cells == _cells and _candidate.ref == _room and _candidate.kind == _kind \
+			and _candidate.typed_row == _typed_row and _candidate.persistent_id == _persistent_id
+
+	func _copy_entry_input(request: EntryClaimInput, candidate: Directory.CreateCandidate) -> void:
+		"""The extra24B private box image is admitted with every enclosing retained image before this copy."""
+		_entry_input = request
+		_candidate = candidate
+		_world = request.world
+		_room_type = Buildings.ROOM_TYPE_CORRIDOR
+		_level = request.base_level
+		_space_revision = request.space_revision
+		_boxes = request.boxes.duplicate()
+		_room = candidate.ref
+		_kind = candidate.kind
+		_typed_row = candidate.typed_row
+		_persistent_id = candidate.persistent_id
+		_room_facts.resize(Buildings.ROOM_IDENTITY_FIELDS)
+
+	func _entry_unchanged() -> bool:
+		"""Both mutable request fields and future identity stay pinned through every external observation."""
+		return _entry_input != null and _candidate != null and _entry_input.world == _world \
+			and _room_type == Buildings.ROOM_TYPE_CORRIDOR and _entry_input.base_level == _level \
+			and _entry_input.space_revision == _space_revision and _entry_input.boxes == _boxes \
+			and _candidate.ref == _room and _candidate.kind == _kind \
+			and _candidate.typed_row == _typed_row and _candidate.persistent_id == _persistent_id
+
+	func _drop_scratch() -> void:
+		"""Drop the private image and borrowed handles before the coordinator releases its exact cold token."""
+		if _cursor != null:
+			_cursor.clear()
+		if _entry_cursor != null:
+			_entry_cursor.clear()
+		_cursor = null
+		_entry_cursor = null
+		_cells = PackedInt32Array()
+		_boxes = PackedInt32Array()
+		_room_facts = PackedInt32Array()
+		_input = null
+		_entry_input = null
+		_candidate = null
+		_budget = null
+
+	func count() -> int:
+		"""Diagnostic accepted quantum count; it is neither a construction Job nor permission to dig."""
+		return _count
+
+	func matches_input(request: RoomClaimInput, candidate: Directory.CreateCandidate) -> bool:
+		"""Compare exact borrowed objects without lending private arrays or granting publication."""
+		return request != null and request == _input and candidate != null and candidate == _candidate
+
+	func matches_entry_input(request: EntryClaimInput, candidate: Directory.CreateCandidate) -> bool:
+		"""Borrowed entry identity is separate from the unchanged ordinary flat-room input contract."""
+		return request != null and request == _entry_input and candidate != null and candidate == _candidate
+
+	static func advance_cursor(batch: RoomClaimBatch) -> bool:
+		"""Concrete internally created cursor dispatch; no caller-supplied replay interface is accepted."""
+		return batch._entry_cursor.advance() if batch._entry_cursor != null else batch._cursor.advance()
+
+	static func cursor_key(batch: RoomClaimBatch) -> int:
+		"""Both concrete derived streams use the existing exact physical Sites key rank."""
+		return batch._entry_cursor.current_key() if batch._entry_cursor != null else batch._cursor.current_key()
+
+	static func cursor_error(batch: RoomClaimBatch) -> StringName:
+		"""Ambiguous or absent internal cursor selection cannot become successful empty output."""
+		if batch._entry_cursor != null:
+			return batch._entry_cursor.refusal() if batch._cursor == null else REFUSE_CLAIM_BATCH
+		return batch._cursor.refusal() if batch._cursor != null else REFUSE_CLAIM_BATCH
+
+	static func cursor_count(batch: RoomClaimBatch) -> int:
+		"""A partial emission count remains diagnostic until the complete cursor proof succeeds."""
+		return batch._entry_cursor.emitted_count() if batch._entry_cursor != null else batch._cursor.emitted_count()
+
+	static func cursor_remaining(batch: RoomClaimBatch) -> int:
+		"""Caller observations and replay share only the original finite work envelope."""
+		return batch._entry_cursor.remaining_checks() if batch._entry_cursor != null else batch._cursor.remaining_checks()
+
+	static func cursor_charge(batch: RoomClaimBatch, checks: int) -> StringName:
+		"""Debit actual history observations and sorted merge work before the final publication proof."""
+		return batch._entry_cursor.charge_checks(checks) if batch._entry_cursor != null else batch._cursor.charge_checks(checks)
+
+	static func cursor_rewind(batch: RoomClaimBatch, checks: int) -> StringName:
+		"""Only a completed concrete stream can reserve its already-admitted no-allocation replay."""
+		return batch._entry_cursor.rewind_prepaid(checks) if batch._entry_cursor != null else batch._cursor.rewind_prepaid(checks)
+
+var _construction: Construction = null
+var _inventory: Inventory = null
+var _pool: Reservations = null
+var _items: Items = null
+var _jobs: Jobs = null
+var _work: Work = null
+var _funding: Funding = null
+var _space: WeakRef = null
+var _claim_batch: WeakRef = null # Exact synchronous cold packet; no persisted reservation or epoch.
+var _domain: Domain = Domain.new()
+var _ready_error: StringName = REFUSE_DOMAIN
+var _capacity: int = 0
+var _earned_capacity: int = 0
+var _count: int = 0
+var _domain_capacity: int = 0
+var _site_key: PackedInt64Array = PackedInt64Array()
+var _ordered_key: PackedInt64Array = PackedInt64Array()
+var _ordered_row: PackedInt32Array = PackedInt32Array()
+var _virgin_sourced_milli: int = 0
+var _initial_earth_milli: int = 0
+var _completed_braces: int = 0
+var _funded_braces: int = 0
+var _returned_brace_milli: int = 0
+var _salvaged_braces: int = 0
+var _present: PackedByteArray = PackedByteArray()
+var _phase: PackedByteArray = PackedByteArray()
+var _installed: PackedByteArray = PackedByteArray()
+var _ever_cut: PackedByteArray = PackedByteArray()
+var _closure_before: PackedByteArray = PackedByteArray()
+var _embedded_milli: PackedInt64Array = PackedInt64Array()
+var _earned_mwu: PackedInt64Array = PackedInt64Array()
+var _room_slot: PackedInt32Array = PackedInt32Array()
+var _room_generation: PackedInt32Array = PackedInt32Array()
+var _project_slot: PackedInt32Array = PackedInt32Array()
+var _project_generation: PackedInt32Array = PackedInt32Array()
+var _operation: PackedInt32Array = PackedInt32Array()
+var _job_slot: PackedInt32Array = PackedInt32Array()
+var _job_generation: PackedInt32Array = PackedInt32Array()
+var _output_slot: PackedInt32Array = PackedInt32Array()
+var _output_generation: PackedInt32Array = PackedInt32Array()
+var _promotion_tile: PackedInt32Array = PackedInt32Array()
+var _job_site: PackedInt32Array = PackedInt32Array()
+var _worker_site: PackedInt32Array = PackedInt32Array()
+var _worker_generation: PackedInt32Array = PackedInt32Array()
+## A permit exists only on the owner's synchronous call stack, never as a saved clearance flag.
+var _permit_project: Vector2i = NULL_REF
+var _permit_action: int = -1
+var _candidate_row: int = -1
+var _candidate_stage: int = -1
+## Same-call-stack attestation only; never saved or sufficient before physical commit.
+var _publishing_spatial: bool = false
+## Exclusive synchronous START scope; a nested attempt poisons the outer attempt.
+var _starting: bool = false
+var _start_poisoned: bool = false
+## Exclusive terminal scope; nested START/settlement cannot replace an original candidate.
+var _settling: bool = false
+var _settlement_poisoned: bool = false
+var _math: IntMath.IntResult = IntMath.IntResult.new()
+var _other_math: IntMath.IntResult = IntMath.IntResult.new()
+var _delivery_totals: PackedInt64Array = PackedInt64Array()
+
+
+func _init(construction: Construction, inventory: Inventory, pool: Reservations,
+		items: Items, jobs: Jobs, work: Work, spatial: SpatialAuthority,
+		receipt_capacity: int, physical_site_capacity: int) -> void:
+	"""Bind one world and its explicit sparse history budget; this is not a room-count policy."""
+	_construction = construction
+	_inventory = inventory
+	_pool = pool
+	_items = items
+	_capacity = clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)
+	var earned_request: int = _capacity * OP_COUNT
+	_earned_capacity = clampi(earned_request, 0, MAX_EARNED_CAPACITY)
+	_jobs = jobs
+	_work = work
+	_ready_error = _initialization_refusal(spatial, receipt_capacity, physical_site_capacity)
+	if _ready_error != &"":
+		return
+	_space = weakref(spatial)
+	_allocate_columns()
+	_funding = Funding.new(construction, inventory, pool, items, receipt_capacity)
+	_initial_earth_milli = inventory.total_live_milli(items.compiled_id(&"excavated_earth"))
+	_publish_owner_bindings()
+
+
+func _publish_owner_bindings() -> void:
+	"""Install preflighted world wiring only after the complete owner set and budgets qualify."""
+	var pool_bound: Inventory.OpResult = _pool.bind_inventory(_inventory)
+	assert(pool_bound.ok, "preflighted Reservations composition cannot fail synchronously")
+	var bound: Construction.OpResult = _construction.bind_excavation_authority(self)
+	assert(bound.ok, "preflighted Construction binding cannot fail synchronously")
+	var work_bound: Work.OpResult = _work.bind_excavation_authority(self)
+	assert(work_bound.ok, "preflighted Work binding cannot fail synchronously")
+
+
+func _initialization_refusal(spatial: SpatialAuthority, receipts: int, sites: int) -> StringName:
+	"""Resolve every budget/domain/binding refusal before allocating or wiring either owner."""
+	if spatial == null or _construction == null or _inventory == null or _pool == null \
+			or _items == null or _jobs == null or _work == null:
+		return REFUSE_AUTHORITY
+	if sites <= 0 or sites > MAX_SITE_CAPACITY:
+		return REFUSE_SITE_CAPACITY
+	if not Funding.valid_receipt_budget(receipts, _pool):
+		return Funding.REFUSE_RECEIPTS
+	if _composition_refusal() != &"":
+		return REFUSE_AUTHORITY
+	if _construction.excavation_binding_refusal(self) != &"" or _work.excavation_binding_refusal(self) != &"":
+		return REFUSE_AUTHORITY
+	return &"" if _read_domain(spatial) and _valid_domain() else REFUSE_DOMAIN
+
+
+func _composition_refusal() -> StringName:
+	"""Typed handles cannot prove that otherwise identical owners belong to the same world."""
+	if _construction.directory() != _jobs.directory() or _work.jobs() != _jobs:
+		return REFUSE_AUTHORITY
+	if not _items.registered_into(_inventory) or _pool.composition_refusal(_inventory) != &"":
+		return REFUSE_AUTHORITY
+	if _work.gear() == null or not _work.gear().equipment_binding_matches(
+			_inventory, _jobs.directory(), _work.residents()):
+		return REFUSE_AUTHORITY
+	return &""
+
+
+func _read_domain(spatial: SpatialAuthority) -> bool:
+	"""Copy the descriptor so even an adapter retaining its output object cannot move this datum."""
+	var described: Domain = Domain.new()
+	if not spatial.domain_into(described):
+		return false
+	_domain.world_ref = described.world_ref
+	_domain.datum_u = described.datum_u
+	_domain.minimum_quantum = described.minimum_quantum
+	_domain.size_quanta = described.size_quanta
+	return true
+
+
+func _valid_domain() -> bool:
+	"""Validate integer dimensions and every extreme world coordinate before allocation."""
+	if not _jobs.directory().is_valid_of_kind(_domain.world_ref, Directory.KIND_WORLD):
+		return false
+	var size: Vector3i = _domain.size_quanta
+	if size.x <= 0 or size.y <= 0 or size.z <= 0:
+		return false
+	if not IntMath.checked_mul_into(size.x, size.y, _math) \
+			or not IntMath.checked_mul_into(_math.value, size.z, _math):
+		return false
+	_domain_capacity = _math.value
+	if _capacity <= 0 or _capacity > _domain_capacity:
+		return false
+	if not IntMath.checked_mul_into(_capacity, OP_COUNT, _math) or not IntMath.fits_int32(_math.value):
+		return false
+	for axis: int in 3:
+		var minimum: int = int(_domain.datum_u[axis]) + int(_domain.minimum_quantum[axis]) * QUANTUM_SIDE_U
+		var maximum: int = minimum + int(size[axis]) * QUANTUM_SIDE_U
+		if not IntMath.fits_int32(minimum) or not IntMath.fits_int32(maximum):
+			return false
+	return true
+
+
+func _allocate_columns() -> void:
+	"""Allocate the finite sparse record budget; untouched world cells consume no record rows."""
+	for column: PackedByteArray in [_present, _phase, _installed, _ever_cut, _closure_before]:
+		column.resize(_capacity)
+	for column: PackedInt32Array in [_room_slot, _room_generation, _project_slot,
+			_project_generation, _operation, _job_slot, _job_generation, _output_slot,
+			_output_generation, _promotion_tile]:
+		column.resize(_capacity)
+	for column: PackedInt32Array in [_room_slot, _project_slot, _operation, _job_slot,
+			_output_slot, _promotion_tile]:
+		column.fill(-1)
+	_phase.fill(SOLID)
+	_closure_before.fill(SOLID)
+	_embedded_milli.resize(_capacity)
+	_earned_mwu.resize(_earned_capacity)
+	_job_site.resize(Jobs.JOB_CAPACITY)
+	_job_site.fill(-1)
+	_worker_site.resize(Work.RESIDENT_CAPACITY)
+	_worker_site.fill(-1)
+	_worker_generation.resize(Work.RESIDENT_CAPACITY)
+	_delivery_totals.resize(2)
+	_site_key.resize(_capacity)
+	_ordered_key.resize(_capacity)
+	_ordered_row.resize(_capacity)
+	_site_key.fill(-1)
+	_ordered_key.fill(-1)
+	_ordered_row.fill(-1)
+
+
+func initialization_refusal() -> StringName:
+	"""An invalid world binding has no permissive default and cannot open paid work."""
+	return _ready_error
+
+
+func construction_owner() -> Construction:
+	"""Return the exact successfully bound owner, never an equal-numbered foreign world."""
+	return _construction if _ready_error == &"" else null
+
+
+func jobs_owner() -> Jobs:
+	"""Borrow the exact initialized Job store; identity alone grants no worker or contact permission."""
+	return _jobs if _ready_error == &"" else null
+
+
+func remaining_history_capacity() -> int:
+	"""Read unused permanent rows in this exact live composition; retirement never replenishes history."""
+	if _ready_error != &"" or _spatial() == null or not _world_is_live() \
+			or _construction.excavation_authority() != self or _composition_refusal() != &"":
+		return -1
+	return _capacity - _count
+
+
+func domain_matches(world: Vector2i, datum: Vector3i, minimum: Vector3i, size: Vector3i) -> bool:
+	"""Compare the actual immutable physical key namespace without callbacks or a copied descriptor."""
+	return remaining_history_capacity() >= 0 and world == _domain.world_ref and datum == _domain.datum_u \
+		and minimum == _domain.minimum_quantum and size == _domain.size_quanta
+
+
+static func room_claim_cold_bytes(cell_count: int) -> int:
+	"""Four full fine images plus one interval bank; all prior companion surveys must already have dropped."""
+	return 40 * cell_count + 2048 if cell_count > 0 and cell_count <= RoomSpace.MAX_CELLS else 0
+
+
+static func entry_claim_cold_bytes(box_count: int) -> int:
+	"""Four24B protected box images plus8B intervals; prior companion surveys must already be dropped."""
+	return 104 * box_count + 2048 if box_count > 0 and box_count <= RoomSpace.MAX_REGIONS else 0
+
+
+func prepare_room_claim_batch_into(request: RoomClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, domain: RoomSpace.Domain, budget: Budget,
+		cold_token: int, out: RoomClaimBatch) -> StringName:
+	"""After companion surveys have dropped, prove every virgin key and prepaid replay without live writes."""
+	var code: StringName = _claim_prepare_refusal(request, candidate, authority, budget, cold_token, out)
+	if code != &"" or domain == null:
+		return code if code != &"" else REFUSE_DOMAIN
+	var descriptor: Dictionary = domain.descriptor()
+	if not domain_matches(request.world, descriptor.datum_u, descriptor.min_quantum, descriptor.size_quanta) \
+			or descriptor.world_ref != request.world or not budget.covers(cold_token, Budget.COLD_BYTES):
+		return REFUSE_DOMAIN
+	if not _claim_input_bounded(request) or _current_claim_batch() != null or out._phase != 0:
+		return REFUSE_CLAIM_BATCH
+	var pinned_domain: RoomSpace.Domain = _claim_domain_copy(descriptor, request.world)
+	if pinned_domain == null:
+		return REFUSE_DOMAIN
+	_pin_claim_batch(request, candidate, authority, budget, cold_token, descriptor, out)
+	return _finish_claim_preparation(out, pinned_domain, descriptor.max_checks)
+
+
+func prepare_entry_claim_batch_into(request: EntryClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, domain: RoomSpace.Domain, budget: Budget,
+		cold_token: int, out: RoomClaimBatch) -> StringName:
+	"""Reserve a distinct non-flat Corridor union using actual Sites history, never a second cut ledger."""
+	var code: StringName = _entry_prepare_refusal(request, candidate, authority, budget, cold_token, out)
+	if code != &"" or domain == null:
+		return code if code != &"" else REFUSE_DOMAIN
+	var descriptor: Dictionary = domain.descriptor()
+	if not domain_matches(request.world, descriptor.datum_u, descriptor.min_quantum, descriptor.size_quanta) \
+			or descriptor.world_ref != request.world or not budget.covers(cold_token, Budget.COLD_BYTES):
+		return REFUSE_DOMAIN
+	if not _entry_input_bounded(request) or _current_claim_batch() != null or out._phase != 0:
+		return REFUSE_CLAIM_BATCH
+	var pinned_domain: RoomSpace.Domain = _claim_domain_copy(descriptor, request.world)
+	if pinned_domain == null:
+		return REFUSE_DOMAIN
+	_pin_entry_claim_batch(request, candidate, authority, budget, cold_token, descriptor, out)
+	return _finish_claim_preparation(out, pinned_domain, descriptor.max_checks)
+
+
+static func _claim_domain_copy(facts: Dictionary, world: Vector2i) -> RoomSpace.Domain:
+	"""After the actual lease/namespace check, pin one private concrete Domain; never reobserve caller code."""
+	var pinned: RoomSpace.Domain = RoomSpace.Domain.new()
+	var code: StringName = pinned.configure(world, facts.datum_u, facts.min_quantum, facts.size_quanta,
+		facts.max_cells, facts.max_regions, facts.max_checks)
+	return pinned if code == &"" else null
+
+
+func _finish_claim_preparation(out: RoomClaimBatch, domain: RoomSpace.Domain, checks: int) -> StringName:
+	"""Share actual virgin-history preflight and final original-token guard for both concrete input forms."""
+	var code: StringName = _prepare_claim_cursor(out, domain, checks)
+	if code == CutMap.REFUSE_CAPACITY or code == EntryCutMap.REFUSE_CAPACITY:
+		code = REFUSE_SITE_CAPACITY
+	if code != &"":
+		out._drop_scratch()
+		out._phase = 3
+		return code
+	_claim_batch = weakref(out)
+	out._phase = 1
+	code = room_claim_batch_refusal(out)
+	if code != &"":
+		discard_room_claim_batch(out)
+	return code
+
+
+func _entry_prepare_refusal(request: EntryClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int, out: RoomClaimBatch) -> StringName:
+	"""The exact actual Room authority and original full lease precede every private entry image."""
+	if remaining_history_capacity() < 0 or not _entry_input_bounded(request) or candidate == null or out == null \
+			or out._phase != 0 or _current_claim_batch() != null or budget == null \
+			or not budget.covers(token, Budget.COLD_BYTES) or authority == null \
+			or authority != _construction.buildings().spatial_authority() or request.world != _domain.world_ref \
+			or candidate.kind != Directory.KIND_ROOM:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _construction.directory().candidate_refusal(candidate)
+	if code == &"":
+		code = authority.room_claim_scope_refusal(candidate, Buildings.ROOM_TYPE_CORRIDOR, budget, token)
+	if code != &"":
+		return code
+	return &"" if budget.covers(token, Budget.COLD_BYTES) and remaining_history_capacity() >= 0 \
+		and authority == _construction.buildings().spatial_authority() else REFUSE_CLAIM_BATCH
+
+
+func _entry_input_bounded(request: EntryClaimInput) -> bool:
+	"""Shape and complete image coexistence are bounded again after any preceding scope callback."""
+	if request == null or request.boxes.is_empty() or request.boxes.size() % 6 != 0 \
+			or request.base_level < 0 or request.base_level > RoomSpace.I32_MAX or request.space_revision < 1:
+		return false
+	@warning_ignore("integer_division") var bytes: int = entry_claim_cold_bytes(request.boxes.size() / 6)
+	return bytes > 0 and bytes <= Budget.COLD_BYTES
+
+
+func _claim_prepare_refusal(request: RoomClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int, out: RoomClaimBatch) -> StringName:
+	"""No candidate, input image or cursor is copied before full actual owner/token preflight."""
+	if remaining_history_capacity() < 0 or not _claim_input_bounded(request) or candidate == null or out == null \
+			or out._phase != 0 or _current_claim_batch() != null or budget == null \
+			or not budget.covers(token, Budget.COLD_BYTES) or authority == null \
+			or authority != _construction.buildings().spatial_authority() or request.world != _domain.world_ref \
+			or request.room_type < 0 or request.room_type >= Buildings.ROOM_TYPE_COUNT \
+			or candidate.kind != Directory.KIND_ROOM:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _construction.directory().candidate_refusal(candidate)
+	if code == &"":
+		code = authority.room_claim_scope_refusal(candidate, request.room_type, budget, token)
+	if code != &"":
+		return code
+	return &"" if budget.covers(token, Budget.COLD_BYTES) and remaining_history_capacity() >= 0 \
+		and authority == _construction.buildings().spatial_authority() else REFUSE_CLAIM_BATCH
+
+
+func _claim_input_bounded(request: RoomClaimInput) -> bool:
+	"""Bound the private cell copy before allocation, including changes made by a prior scope callback."""
+	return request != null and request.cells.size() >= 2 and request.cells.size() % 2 == 0 \
+		and request.cells.size() <= RoomSpace.MAX_CELLS * 2 and request.level >= 0 \
+		and request.level <= RoomSpace.I32_MAX and request.space_revision > 0 \
+		and request.cell_size_u > 0 and request.cell_size_u <= RoomSpace.I32_MAX \
+		and request.height_u > 0 and request.height_u <= RoomSpace.I32_MAX
+
+
+func _pin_claim_batch(request: RoomClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int,
+		descriptor: Dictionary, out: RoomClaimBatch) -> void:
+	"""The cold packet has one private fine input and one borrowed exact live-owner scope."""
+	out._owner = weakref(self)
+	out._authority = weakref(authority)
+	out._budget = budget
+	out._cold_token = token
+	out._base_count = _count
+	out._datum = descriptor.datum_u
+	out._minimum = descriptor.min_quantum
+	out._size = descriptor.size_quanta
+	out._copy_input(request, candidate)
+	out._cursor = CutMap.new()
+
+
+func _pin_entry_claim_batch(request: EntryClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int,
+		descriptor: Dictionary, out: RoomClaimBatch) -> void:
+	"""Only the actual owner constructs the concrete entry cursor; the caller supplies boxes, never replay code."""
+	out._owner = weakref(self)
+	out._authority = weakref(authority)
+	out._budget = budget
+	out._cold_token = token
+	out._base_count = _count
+	out._datum = descriptor.datum_u
+	out._minimum = descriptor.min_quantum
+	out._size = descriptor.size_quanta
+	out._copy_entry_input(request, candidate)
+	out._entry_cursor = EntryCutMap.new()
+
+
+func _prepare_claim_cursor(batch: RoomClaimBatch, domain: RoomSpace.Domain, checks: int) -> StringName:
+	"""Unique preflight and later replay share one finite allowance; index merge is prepaid too."""
+	var code: StringName = _configure_claim_cursor(batch, domain, checks, _capacity - _count)
+	if code != &"":
+		return code
+	while RoomClaimBatch.advance_cursor(batch):
+		code = RoomClaimBatch.cursor_charge(batch, CLAIM_SEARCH_CHECKS)
+		if code != &"":
+			return code
+		var key: int = RoomClaimBatch.cursor_key(batch)
+		var index: int = _key_lower_bound(key)
+		if index < _count and _ordered_key[index] == key:
+			return REFUSE_CLAIM_HISTORY
+	if RoomClaimBatch.cursor_error(batch) != &"":
+		return RoomClaimBatch.cursor_error(batch)
+	batch._count = RoomClaimBatch.cursor_count(batch)
+	var replay: int = checks - RoomClaimBatch.cursor_remaining(batch) - CLAIM_SEARCH_CHECKS * batch._count
+	code = RoomClaimBatch.cursor_charge(batch, _count + 2 * batch._count)
+	return code if code != &"" else RoomClaimBatch.cursor_rewind(batch, replay)
+
+
+static func _configure_claim_cursor(batch: RoomClaimBatch, domain: RoomSpace.Domain,
+		checks: int, remaining: int) -> StringName:
+	"""A batch has one concrete private input/cursor kind; no cross-kind fallback or implicit conversion."""
+	if batch._entry_input != null:
+		return batch._entry_cursor.configure(batch._boxes, domain, checks, remaining)
+	return batch._cursor.configure(batch._cells, batch._origin, batch._pitch,
+		batch._height, domain, checks, remaining)
+
+
+func room_claim_batch_refusal(batch: RoomClaimBatch) -> StringName:
+	"""Last callback-free guard: run immediately before actual Directory Room creation, after every provider."""
+	var code: StringName = _claim_batch_current_refusal(batch)
+	return code if code != &"" else _construction.directory().candidate_refusal(batch._candidate)
+
+
+func _claim_batch_current_refusal(batch: RoomClaimBatch) -> StringName:
+	"""No source/geometry/authority callback may occur in the final physical-history observation."""
+	if batch == null or _current_claim_batch() != batch or batch._owner == null \
+			or batch._owner.get_ref() != self or batch._phase != 1 or not batch._unchanged() \
+			or batch._authority == null or batch._authority.get_ref() == null \
+			or batch._authority.get_ref() != _construction.buildings().spatial_authority() \
+			or batch._candidate.directory_owner() != _construction.directory() \
+			or batch._budget == null or not batch._budget.covers(batch._cold_token, Budget.COLD_BYTES):
+		return REFUSE_CLAIM_BATCH
+	if not domain_matches(batch._world, batch._datum, batch._minimum, batch._size) \
+			or _count != batch._base_count or batch._count < 1 or batch._count > _capacity - _count:
+		return REFUSE_CLAIM_BATCH
+	return &"" if RoomClaimBatch.cursor_error(batch) == &"" \
+		and RoomClaimBatch.cursor_count(batch) == 0 else REFUSE_CLAIM_BATCH
+
+
+func publish_room_claim_batch(batch: RoomClaimBatch) -> StringName:
+	"""Publish only directly after actual Room allocation, before any spatial/source companion callback."""
+	var code: StringName = _claim_batch_current_refusal(batch)
+	if code != &"":
+		return code
+	var authority: Buildings.SpatialAuthority = batch._authority.get_ref() as Buildings.SpatialAuthority
+	if not authority.is_publishing_room_admission(batch._room, batch._room_type):
+		return REFUSE_CLAIM_BATCH
+	code = _claim_batch_current_refusal(batch)
+	if code == &"":
+		code = _claim_created_room_refusal(batch)
+	if code != &"":
+		return code
+	_publish_claim_rows(batch)
+	batch._phase = 2
+	_claim_batch = null
+	batch._drop_scratch()
+	return &""
+
+
+static func publish_entry_claim_preflighted(actual: RefCounted, batch: RoomClaimBatch,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Read the exact concrete entry bracket and receipts without invoking an authority or Buildings observer."""
+	if actual == null or batch == null or batch._entry_input == null or authority == null \
+			or batch._owner == null or batch._owner.get_ref() != actual \
+			or batch._authority == null or batch._authority.get_ref() != authority:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = actual._claim_batch_current_refusal(batch)
+	if code == &"":
+		code = _entry_claim_bracket_refusal(actual, batch, authority)
+	if code == &"":
+		code = _entry_claim_receipt_refusal(actual, batch)
+	if code != &"":
+		return code
+	actual._publish_claim_rows(batch)
+	batch._phase = 2
+	actual._claim_batch = null
+	batch._drop_scratch()
+	return &""
+
+
+static func room_claim_prepared_leaf_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Final ordinary physical-history and allocator guard bypasses the public Sites observation interface."""
+	if actual == null or batch == null or batch._entry_input != null or batch._input == null:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _room_claim_current_leaf_refusal(actual, batch)
+	return code if code != &"" else actual._construction._directory.candidate_refusal(batch._candidate)
+
+
+static func publish_room_claim_preflighted(actual: RefCounted, batch: RoomClaimBatch,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Consume only the exact ordinary Room receipt and original bracket, without authority/Buildings observers."""
+	if actual == null or batch == null or batch._entry_input != null or batch._input == null or authority == null \
+			or batch._owner == null or batch._owner.get_ref() != actual \
+			or batch._authority == null or batch._authority.get_ref() != authority:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _room_claim_current_leaf_refusal(actual, batch)
+	if code == &"":
+		code = _room_claim_bracket_refusal(actual, batch, authority)
+	if code == &"":
+		code = _entry_claim_receipt_refusal(actual, batch)
+	if code != &"":
+		return code
+	_publish_claim_rows_preflighted(actual, batch)
+	batch._phase = 2
+	actual._claim_batch = null
+	batch._drop_scratch()
+	return &""
+
+
+static func _room_claim_current_leaf_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Read ordinary original history and concrete replay state without calling public or subclass owner methods."""
+	if actual == null or batch == null or batch.get_script() != RoomClaimBatch \
+			or actual._claim_batch == null or actual._claim_batch.get_ref() != batch \
+			or batch._owner == null or batch._owner.get_ref() != actual or batch._phase != 1 \
+			or batch._entry_input != null or batch._input == null or batch._entry_cursor != null \
+			or batch._cursor == null or batch._cursor.get_script() != CutMap or not batch._unchanged() \
+			or batch._budget == null or batch._budget.get_script() != Budget \
+			or not batch._budget.covers(batch._cold_token, Budget.COLD_BYTES):
+		return REFUSE_CLAIM_BATCH
+	if _room_claim_composition_leaf_refusal(actual, batch) != &"" \
+			or batch._world != actual._domain.world_ref or batch._datum != actual._domain.datum_u \
+			or batch._minimum != actual._domain.minimum_quantum or batch._size != actual._domain.size_quanta \
+			or actual._count != batch._base_count or batch._count < 1 or batch._count > actual._capacity - actual._count:
+		return REFUSE_CLAIM_BATCH
+	return &"" if RoomClaimBatch.cursor_error(batch) == &"" \
+		and RoomClaimBatch.cursor_count(batch) == 0 else REFUSE_CLAIM_BATCH
+
+
+static func _room_claim_composition_leaf_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Preserve the ordinary composition checks through actual fields; no observation getter runs after source closure."""
+	if actual._ready_error != &"" or actual._construction == null or actual._jobs == null or actual._work == null \
+			or actual._space == null or not actual._space.get_ref() is SpatialAuthority or actual._items == null or actual._pool == null \
+			or actual._inventory == null or actual._domain == null:
+		return REFUSE_CLAIM_BATCH
+	var ids: Directory = actual._construction._directory
+	var buildings: Buildings = actual._construction._buildings
+	if ids == null or ids.get_script() != Directory or buildings == null or buildings._directory != ids \
+			or actual._jobs._directory != ids or actual._work._jobs != actual._jobs \
+			or batch._candidate == null or batch._candidate._directory == null or batch._candidate._directory.get_ref() != ids \
+			or batch._authority == null or batch._authority.get_ref() == null or buildings._spatial_authority == null \
+			or batch._authority.get_ref() != buildings._spatial_authority.get_ref() \
+			or actual._construction._excavation_authority == null or actual._construction._excavation_authority.get_ref() != actual \
+			or not ids.is_valid_of_kind(actual._domain.world_ref, Directory.KIND_WORLD):
+		return REFUSE_CLAIM_BATCH
+	if actual._items._registered_inventory == null or actual._items._registered_inventory.get_ref() != actual._inventory \
+			or (actual._pool._bound_inventory != null and actual._pool._bound_inventory.get_ref() != actual._inventory) \
+			or (actual._pool._bound_inventory == null and actual._pool._active_count > 0) \
+			or actual._work._gear == null or actual._work._residents == null:
+		return REFUSE_CLAIM_BATCH
+	return &"" if actual._work._gear._inventory == actual._inventory and actual._work._gear._directory_binding == ids \
+		and actual._work._gear._residents == actual._work._residents else REFUSE_CLAIM_BATCH
+
+
+static func _room_claim_bracket_refusal(actual: RefCounted, batch: RoomClaimBatch,
+		issuer: RefCounted) -> StringName:
+	"""An ordinary Room retains its complete original plan and exact actual claims, candidate and cold arena."""
+	if not ("_entry_mode" in issuer and "_publishing" in issuer and "_stage_action" in issuer \
+			and "ROOM_ADMISSION_STAGE" in issuer and "_room_sites" in issuer and "_room_claim_batch" in issuer \
+			and "_room_candidate" in issuer and "_stage_room" in issuer and "_room_budget" in issuer \
+			and "_room_cold_token" in issuer and "_construction" in issuer and "_buildings" in issuer \
+			and "_room_plan" in issuer and "_room_request" in issuer and "_world" in issuer and "_cold_held" in issuer):
+		return REFUSE_CLAIM_BATCH
+	if issuer._entry_mode or not issuer._publishing or issuer._stage_action != issuer.ROOM_ADMISSION_STAGE \
+			or issuer._room_sites != actual or issuer._room_claim_batch != batch \
+			or issuer._room_candidate != batch._candidate or issuer._stage_room != batch._room \
+			or not issuer._cold_held or issuer._room_budget != batch._budget or issuer._room_cold_token != batch._cold_token \
+			or issuer._construction != actual._construction or issuer._buildings != actual._construction._buildings \
+			or issuer._room_plan == null or issuer._room_request == null or issuer._world != batch._world:
+		return REFUSE_CLAIM_BATCH
+	var plan: RefCounted = issuer._room_plan
+	var request: RefCounted = issuer._room_request
+	return &"" if plan.world == batch._world and plan.room_type == batch._room_type \
+		and plan.space_revision == batch._space_revision and plan.level == batch._level \
+		and plan.origin_u == batch._origin and plan.cell_size_u == batch._pitch \
+		and plan.height_u == batch._height and plan.cells == batch._cells \
+		and request.world == plan.world and request.space_revision == plan.space_revision \
+		and request.room_type == plan.room_type and request.level == plan.level and request.origin_u == plan.origin_u \
+		and request.cell_size_u == plan.cell_size_u and request.height_u == plan.height_u \
+		and request.cells == plan.cells else REFUSE_CLAIM_BATCH
+
+
+static func _entry_claim_bracket_refusal(actual: RefCounted, batch: RoomClaimBatch,
+		issuer: RefCounted) -> StringName:
+	"""The original sole Buildings authority must retain this exact entry, candidate, batch and arena lease."""
+	if not ("_entry_mode" in issuer and "_publishing" in issuer and "_stage_action" in issuer \
+			and "ROOM_ADMISSION_STAGE" in issuer and "_room_sites" in issuer and "_room_claim_batch" in issuer \
+			and "_room_candidate" in issuer and "_stage_room" in issuer and "_room_budget" in issuer \
+			and "_room_cold_token" in issuer and "_construction" in issuer and "_buildings" in issuer \
+			and "_entry_plan" in issuer and "_world" in issuer and "_cold_held" in issuer):
+		return REFUSE_CLAIM_BATCH
+	return &"" if issuer._entry_mode and issuer._publishing and issuer._stage_action == issuer.ROOM_ADMISSION_STAGE \
+		and issuer._room_sites == actual and issuer._room_claim_batch == batch \
+		and issuer._room_candidate == batch._candidate and issuer._stage_room == batch._room \
+		and issuer._cold_held and issuer._room_budget == batch._budget and issuer._room_cold_token == batch._cold_token \
+		and issuer._construction == actual._construction and issuer._buildings == actual._construction.buildings() \
+		and issuer._entry_plan != null and issuer._entry_plan.world == batch._world \
+		and issuer._world == batch._world else REFUSE_CLAIM_BATCH
+
+
+static func _entry_claim_receipt_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Use actual mirrored Room columns; room_identity_into is an external observation interface."""
+	var ids: Directory = actual._construction._directory
+	var buildings: Buildings = actual._construction._buildings
+	var row: int = batch._typed_row
+	if not ids.is_valid_of_kind(batch._room, Directory.KIND_ROOM) or ids.get_typed_row(batch._room) != row \
+			or ids.get_persistent_id(batch._room) != batch._persistent_id or row < 0 or row >= buildings._r_present.size():
+		return REFUSE_CLAIM_BATCH
+	return &"" if buildings._directory == ids and buildings._r_present[row] == 1 \
+		and buildings._r_ref_slot[row] == batch._room.x and buildings._r_ref_generation[row] == batch._room.y \
+		and buildings._r_spatial_kind[row] == Buildings.ROOM_SPACE_UNDERGROUND and buildings._r_type[row] == batch._room_type \
+		and buildings._r_building_slot[row] == -1 and buildings._r_building_generation[row] == 0 \
+		and buildings._r_tile_count[row] == 0 and buildings._r_occupants[row] == 0 else REFUSE_CLAIM_BATCH
+
+
+func _claim_created_room_refusal(batch: RoomClaimBatch) -> StringName:
+	"""Read full real Directory/Buildings after-facts into preallocated scratch; no future-facts shortcut."""
+	var ids: Directory = _construction.directory()
+	if not ids.is_valid_of_kind(batch._room, Directory.KIND_ROOM) \
+			or ids.get_typed_row(batch._room) != batch._typed_row \
+			or ids.get_persistent_id(batch._room) != batch._persistent_id:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _construction.buildings().room_identity_into(batch._room, batch._room_facts)
+	if code != &"":
+		return code
+	return &"" if batch._room_facts[0] == Buildings.ROOM_SPACE_UNDERGROUND \
+		and batch._room_facts[1] == batch._room_type and batch._room_facts[2] == -1 \
+		and batch._room_facts[3] == 0 and batch._room_facts[5] == 0 else REFUSE_CLAIM_BATCH
+
+
+func _publish_claim_rows(batch: RoomClaimBatch) -> void:
+	"""Replay private proven input into preallocated permanent SOLID rows; no price or physical cut occurs."""
+	_publish_claim_rows_preflighted(self, batch)
+
+
+static func _publish_claim_rows_preflighted(actual: RefCounted, batch: RoomClaimBatch) -> void:
+	"""Replay only the exact already-proved internal cursor, without dispatching a Sites subclass hook."""
+	var row: int = actual._count
+	while RoomClaimBatch.advance_cursor(batch):
+		actual._site_key[row] = RoomClaimBatch.cursor_key(batch)
+		actual._present[row] = 1
+		actual._room_slot[row] = batch._room.x
+		actual._room_generation[row] = batch._room.y
+		row += 1
+	assert(RoomClaimBatch.cursor_error(batch) == &"" and row == actual._count + batch._count, "prepaid private replay cannot fail")
+	_merge_claim_rows_preflighted(actual, actual._count, row)
+	actual._count = row
+
+
+func _merge_claim_rows(first_new: int, last_new: int) -> void:
+	"""Merge sorted new physical keys backward, never inserting every key through a quadratic shift."""
+	_merge_claim_rows_preflighted(self, first_new, last_new)
+
+
+static func _merge_claim_rows_preflighted(actual: RefCounted, first_new: int, last_new: int) -> void:
+	"""Share the allocation-free stable merge without invoking an overridable Sites method."""
+	var old: int = first_new - 1
+	var added: int = last_new - 1
+	var target: int = last_new - 1
+	while added >= first_new:
+		if old >= 0 and actual._ordered_key[old] > actual._site_key[added]:
+			actual._ordered_key[target] = actual._ordered_key[old]
+			actual._ordered_row[target] = actual._ordered_row[old]
+			old -= 1
+		else:
+			actual._ordered_key[target] = actual._site_key[added]
+			actual._ordered_row[target] = added
+			added -= 1
+		target -= 1
+
+
+func discard_room_claim_batch(batch: RoomClaimBatch) -> void:
+	"""Drop only this owner's exact unpublished packet; no capacity/history/other lease is released."""
+	if batch == null or _current_claim_batch() != batch or batch._owner == null or batch._owner.get_ref() != self:
+		return
+	_claim_batch = null
+	batch._phase = 3
+	batch._drop_scratch()
+
+
+func _current_claim_batch() -> RoomClaimBatch:
+	"""Abandoning a cold packet cannot leave a phantom physical reservation or permanent owner cycle."""
+	return _claim_batch.get_ref() as RoomClaimBatch if _claim_batch != null else null
+
+
+func funding_owner(construction: Construction, inventory: Inventory, pool: Reservations,
+		items: Items, jobs: Jobs, work: Work) -> Funding:
+	"""Share this one receipt arena only with the exact still-valid composed world owners."""
+	if _ready_error != &"" or construction != _construction or inventory != _inventory \
+			or pool != _pool or items != _items or jobs != _jobs or work != _work:
+		return null
+	if _composition_refusal() != &"" or not _world_is_live() \
+			or not _funding.composition_matches(construction, inventory, pool, items):
+		return null
+	return _funding
+
+
+func bound_spatial_authority() -> Contract.SpatialAuthority:
+	"""Expose the live typed weak target for composition checks, without granting clearance."""
+	return _spatial() if _ready_error == &"" else null
+
+
+func is_bound_spatial(candidate: Contract.SpatialAuthority) -> bool:
+	"""Prove actual live owner identity; null, refused initialization and expired wiring fail closed."""
+	return candidate != null and bound_spatial_authority() == candidate
+
+
+func is_publishing_spatial_transition(origin_u: Vector3i, operation: int, stage: int,
+		room: Vector2i, candidate: Contract.SpatialAuthority) -> bool:
+	"""Attest this exact synchronous committed callback; a prepared candidate alone is insufficient."""
+	if not _publishing_spatial or not is_bound_spatial(candidate):
+		return false
+	if _candidate_row < 0 or _candidate_row >= _count or _candidate_stage != stage:
+		return false
+	return _operation[_candidate_row] == operation and _room(_candidate_row) == room \
+		and origin_of(Vector2i(_candidate_row, SITE_GENERATION)) == origin_u
+
+
+func _spatial() -> SpatialAuthority:
+	"""Read the live actual space owner; a released binding is a refusal, never clearance."""
+	return _space.get_ref() as SpatialAuthority if _space != null else null
+
+
+func claim_quantum(origin_u: Vector3i, room: Vector2i) -> Construction.OpResult:
+	"""All tools share immutable physical keys; history-capacity refusal precedes any paid work."""
+	var spatial: SpatialAuthority = _spatial()
+	if _ready_error != &"" or spatial == null or not _world_is_live():
+		return _refuse(REFUSE_AUTHORITY)
+	var key: int = _key_at(origin_u)
+	if key == NO_ROW:
+		return _refuse(REFUSE_DOMAIN)
+	var code: StringName = spatial.room_refusal(room)
+	if code != &"":
+		return _refuse(code)
+	var index: int = _key_lower_bound(key)
+	var row: int = _ordered_row[index] if index < _count and _ordered_key[index] == key else NO_ROW
+	if row != NO_ROW and _room(row) != NULL_REF and _room(row) != room:
+		return _refuse(REFUSE_OVERLAP)
+	if row == NO_ROW:
+		if _count == _capacity:
+			return _refuse(REFUSE_SITE_CAPACITY)
+		row = _claim_key(key, index)
+	_room_slot[row] = room.x
+	_room_generation[row] = room.y
+	return Construction.OpResult.new(true, &"", row, Vector2i(row, SITE_GENERATION))
+
+
+func _key_at(origin_u: Vector3i) -> int:
+	"""Rank an exact absolute world origin on the immutable lattice without rounding or allocation."""
+	var local: Vector3i = Vector3i.ZERO
+	for axis: int in 3:
+		var delta: int = int(origin_u[axis]) - int(_domain.datum_u[axis])
+		if delta % QUANTUM_SIDE_U != 0:
+			return NO_ROW
+		@warning_ignore("integer_division") var cell: int = delta / QUANTUM_SIDE_U - _domain.minimum_quantum[axis]
+		if cell < 0 or cell >= _domain.size_quanta[axis]:
+			return NO_ROW
+		local[axis] = cell
+	return (int(local.y) * _domain.size_quanta.z + local.z) * _domain.size_quanta.x + local.x
+
+
+func _key_lower_bound(key: int) -> int:
+	"""Binary search the derived sorted physical-key index; no per-tick dictionary allocations."""
+	var low: int = 0
+	var high: int = _count
+	while low < high:
+		@warning_ignore("integer_division") var middle: int = low + (high - low) / 2
+		if _ordered_key[middle] < key:
+			low = middle + 1
+		else:
+			high = middle
+	return low
+
+
+func _claim_key(key: int, index: int) -> int:
+	"""Cold admission inserts a new permanent record; no retirement or eviction recycles history."""
+	var row: int = _count
+	for cursor: int in range(_count, index, -1):
+		_ordered_key[cursor] = _ordered_key[cursor - 1]
+		_ordered_row[cursor] = _ordered_row[cursor - 1]
+	_ordered_key[index] = key
+	_ordered_row[index] = row
+	_site_key[row] = key
+	_present[row] = 1
+	_count += 1
+	return row
+
+
+func origin_of(site: Vector2i) -> Vector3i:
+	"""Read the original physical key; callers first validate the generation-qualified site."""
+	if not is_live_site(site):
+		return Vector3i.ZERO
+	var x: int = _site_key[site.x] % _domain.size_quanta.x
+	@warning_ignore("integer_division") var rest: int = _site_key[site.x] / _domain.size_quanta.x
+	var z: int = rest % _domain.size_quanta.z
+	@warning_ignore("integer_division") var y: int = rest / _domain.size_quanta.z
+	var coordinate: Vector3i = Vector3i(x, y, z)
+	for axis: int in 3:
+		coordinate[axis] = int(_domain.datum_u[axis]) \
+			+ (int(coordinate[axis]) + int(_domain.minimum_quantum[axis])) * QUANTUM_SIDE_U
+	return coordinate
+
+
+func is_live_site(site: Vector2i) -> bool:
+	"""Physical history rows never recycle into another quantum or project identity."""
+	return site.x >= 0 and site.x < _count and site.y == SITE_GENERATION and _present[site.x] == 1
+
+
+func site_at(origin_u: Vector3i) -> Vector2i:
+	"""Find an existing exact quantum without claiming or rounding new geometry."""
+	if _ready_error != &"" or not _world_is_live():
+		return NULL_REF
+	var key: int = _key_at(origin_u)
+	if key == NO_ROW:
+		return NULL_REF
+	var index: int = _key_lower_bound(key)
+	return Vector2i(_ordered_row[index], SITE_GENERATION) \
+		if index < _count and _ordered_key[index] == key else NULL_REF
+
+
+func room_of(site: Vector2i) -> Vector2i:
+	"""Read the full current room generation; retired claims or expired authority return null."""
+	if not is_live_site(site) or not _world_is_live() or _spatial() == null:
+		return NULL_REF
+	var room: Vector2i = _room(site.x)
+	return room if _spatial().room_refusal(room) == &"" else NULL_REF
+
+
+func project_of(site: Vector2i) -> Vector2i:
+	"""Read only a currently live Construction generation belonging to this physical record."""
+	if not is_live_site(site) or not _world_is_live():
+		return NULL_REF
+	var project: Vector2i = _project(site.x)
+	return project if _construction.is_live_project(project) else NULL_REF
+
+
+func operation_into(site: Vector2i, out: IntMath.IntResult) -> bool:
+	"""No active phase is an explicit refusal, never an implicit brace operation."""
+	if project_of(site) == NULL_REF or not valid_operation(_operation[site.x]):
+		return out.refuse(REFUSE_PHASE)
+	return out.succeed(_operation[site.x])
+
+
+func job_of(site: Vector2i) -> Vector2i:
+	"""Read the exact current live Job whose requester still names this site's paid project."""
+	if project_of(site) == NULL_REF:
+		return NULL_REF
+	var job: Vector2i = _job(site.x)
+	var row: int = _job_row(job)
+	return job if row != NO_ROW and _jobs.requester_of(row) == _project(site.x) else NULL_REF
+
+
+func open_phase(site: Vector2i, operation: int) -> Construction.OpResult:
+	"""Price an actual site operation through Construction, using its retained physical work."""
+	if _ready_error != &"":
+		return _refuse(REFUSE_AUTHORITY)
+	return _construction.open_excavation_phase(site, operation)
+
+
+func project_open_refusal(site: Vector2i, operation: int) -> StringName:
+	"""Check physical history and real geometry before a new phase identity is allocated."""
+	if _ready_error != &"" or not is_live_site(site):
+		return REFUSE_SITE
+	if _project(site.x) != NULL_REF:
+		return Construction.REFUSE_ALREADY_UNDER_CONSTRUCTION
+	if not valid_operation(operation) or not _operation_allowed(site.x, operation):
+		return REFUSE_PHASE
+	return _space_refusal(site.x, operation, STAGE_ADMIT)
+
+
+func _operation_allowed(row: int, operation: int) -> bool:
+	"""Only adopted physical transitions exist, including the never-opened support exception."""
+	match operation:
+		OP_BRACE:
+			return _installed[row] == 0 and (_phase[row] == SOLID or _phase[row] == BACKFILLED or _phase[row] == BRACING)
+		OP_CUT:
+			return _installed[row] == 1 and (_phase[row] == BRACED or _phase[row] == CUTTING)
+		OP_FINISH:
+			return _installed[row] == 1 and (_phase[row] == OPEN_UNFINISHED or _phase[row] == FINISHING)
+		OP_BACKFILL_CLOSE:
+			return _installed[row] == 1 and (_phase[row] == OPEN_UNFINISHED or _phase[row] == FINISHING \
+				or _phase[row] == SUPPORTED_VOID or (_phase[row] == CLOSING and _closure_before[row] != BRACED \
+				and _closure_before[row] != CUTTING))
+		OP_UNOPENED_SUPPORT_CLOSE:
+			return _installed[row] == 1 and (_phase[row] == BRACED or _phase[row] == CUTTING \
+				or (_phase[row] == CLOSING and (_closure_before[row] == BRACED or _closure_before[row] == CUTTING)))
+	return false
+
+
+func remaining_work_into(site: Vector2i, operation: int, out: IntMath.IntResult) -> bool:
+	"""Retained work belongs to the physical key and cannot be reset by a new project ID."""
+	if not is_live_site(site) or not valid_operation(operation):
+		return out.refuse(REFUSE_SITE)
+	return out.succeed(work_mwu(operation) - _earned_mwu[site.x * OP_COUNT + operation])
+
+
+func attach_project(site: Vector2i, operation: int, project: Vector2i) -> void:
+	"""Publish Construction's allocated full identity after its own preflight succeeded."""
+	_project_slot[site.x] = project.x
+	_project_generation[site.x] = project.y
+	_operation[site.x] = operation
+
+
+func mutation_refusal(project: Vector2i, action: int) -> StringName:
+	"""Generic Construction/Funding calls cannot impersonate a completed physical transaction."""
+	return &"" if project == _permit_project and action == _permit_action else Construction.REFUSE_COORDINATOR_ONLY
+
+
+func _allow(project: Vector2i, action: int) -> void:
+	"""Open a synchronous owner publication window after all failing work has succeeded."""
+	_permit_project = project
+	_permit_action = action
+
+
+func _disallow() -> void:
+	"""No mutation permission survives the current call stack or a blocked retry."""
+	_permit_project = NULL_REF
+	_permit_action = -1
+
+
+func bind_job(site: Vector2i, job: Vector2i) -> Construction.OpResult:
+	"""Bind a real BUILD Job whose requester and exact remaining work name this paid phase."""
+	var code: StringName = _context_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	var row: int = _job_row(job)
+	if row == NO_ROW or job.x >= _pool.job_capacity() or _job_slot[site.x] != -1:
+		return _refuse(REFUSE_JOB)
+	if _jobs.requester_of(row) != _project(site.x) or _jobs.is_coordinator(row) or _jobs.is_member(row):
+		return _refuse(REFUSE_JOB)
+	if not _jobs.kind_into(row, _math) or _math.value != Jobs.JOB_KIND_BUILD:
+		return _refuse(REFUSE_JOB)
+	_construction.remaining_mwu_into(_project(site.x), _math)
+	if not _jobs.remaining_mwu_into(row, _other_math) or _math.value != _other_math.value:
+		return _refuse(REFUSE_JOB)
+	if not _jobs.tool_gate_into(row, _math) or not _gate_accepted(_math.value):
+		return _refuse(Work.REFUSE_TOOL_NOT_CLAIMED)
+	_job_slot[site.x] = job.x
+	_job_generation[site.x] = job.y
+	_job_site[row] = site.x
+	return _ok(site)
+
+
+func bind_material_container(site: Vector2i, container: Vector2i) -> Construction.OpResult:
+	"""Bind actual delivered stock capacity only after the space owner validates its contact."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	if _construction.has_work_begun(_project(site.x)) or not _inventory.container_reachable(container):
+		return _refuse(REFUSE_DELIVERY)
+	code = _spatial().material_refusal(origin_of(site), _room(site.x), container, _job(site.x))
+	if code != &"":
+		return _refuse(code)
+	_allow(_project(site.x), ACTION_CONTAINER)
+	var result: Construction.OpResult = _construction.set_material_container(_project(site.x), container)
+	_disallow()
+	return result
+
+
+func bind_output(site: Vector2i, container: Vector2i, promotion_tile: int = -1) -> Construction.OpResult:
+	"""Bind finite local output or a real first-cut staging container held by the space owner."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	if _construction.has_work_begun(_project(site.x)) or not _inventory.container_reachable(container):
+		return _refuse(REFUSE_OUTPUT)
+	code = _funding.output_placement_refusal(container, promotion_tile)
+	if code != &"":
+		return _refuse(code)
+	code = _spatial().output_refusal(origin_of(site), _operation[site.x], _room(site.x),
+		container, _job(site.x), promotion_tile)
+	if code != &"":
+		return _refuse(code)
+	_output_slot[site.x] = container.x
+	_output_generation[site.x] = container.y
+	_promotion_tile[site.x] = promotion_tile
+	return _ok(site)
+
+
+func record_deliveries(site: Vector2i) -> Construction.OpResult:
+	"""Derive delivery increments from actual owned local claims, never a requested quantity."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	code = _read_deliveries(site)
+	if code != &"":
+		return _refuse(code)
+	var project: Vector2i = _project(site.x)
+	_allow(project, ACTION_DELIVER)
+	for line: int in input_count(_operation[site.x]):
+		_construction.delivered_milli_into(project, line, _math)
+		var delta: int = _delivery_totals[line] - _math.value
+		if delta > 0:
+			_construction.deliver_material(project, line, delta)
+	_disallow()
+	return _ok(site)
+
+
+func _read_deliveries(site: Vector2i) -> StringName:
+	"""Preflight every bill line before publishing any increment into Construction."""
+	var project: Vector2i = _project(site.x)
+	if _construction.is_paused(project):
+		return Construction.REFUSE_PAUSED
+	if not _construction.phase_into(project, _math) or _math.value != Construction.PHASE_AWAITING_MATERIALS:
+		return Construction.REFUSE_WRONG_PHASE
+	var container: Vector2i = _construction.material_container_ref_of(project)
+	var code: StringName = _spatial().material_refusal(origin_of(site), _room(site.x), container, _job(site.x))
+	if code != &"":
+		return code
+	_delivery_totals.fill(0)
+	code = _sum_delivery_claims(site.x, container)
+	if code != &"":
+		return code
+	for line: int in input_count(_operation[site.x]):
+		_construction.delivered_milli_into(project, line, _math)
+		if _delivery_totals[line] < _math.value or _delivery_totals[line] > input_milli(_operation[site.x], line):
+			return REFUSE_DELIVERY
+	return &""
+
+
+func _sum_delivery_claims(row: int, container: Vector2i) -> StringName:
+	"""Only this phase Job's exact input purpose at the actual bound material contact counts."""
+	var claim: int = _pool.first_job_row(_job(row))
+	while claim != Reservations.NULL_ROW:
+		var lot: Vector2i = _pool.row_lot_ref(claim)
+		if not _pool.row_purpose_into(claim, _math) or _math.value != Reservations.PURPOSE_EXCAVATION_INPUT:
+			return REFUSE_DELIVERY
+		if not _inventory.is_lot_valid(lot) or _inventory.lot_container(lot) != container:
+			return REFUSE_DELIVERY
+		var line: int = _input_line(_operation[row], _inventory.lot_item_id(lot))
+		if line == NO_ROW:
+			return REFUSE_DELIVERY
+		if not IntMath.checked_add_into(_delivery_totals[line], _pool.row_quantity_milli(claim), _math):
+			return Inventory.REFUSE_OVERFLOW
+		_delivery_totals[line] = _math.value
+		claim = _pool.next_job_row(claim)
+	return &""
+
+
+func _input_line(operation: int, item: int) -> int:
+	"""Resolve actual compiled item IDs against the authored phase keys."""
+	for line: int in input_count(operation):
+		if _items.compiled_id(input_key(operation, line)) == item:
+			return line
+	return NO_ROW
+
+
+func bind_worker(site: Vector2i) -> Construction.OpResult:
+	"""Register an actually assigned/equipped worker, with one face and four room-project workers."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	code = _worker_refusal(site.x, false)
+	if code != &"":
+		return _refuse(code)
+	var worker: Vector2i = _jobs.worker_of(_job_row(_job(site.x)))
+	var row: int = _jobs.directory().get_typed_row(worker)
+	if _worker_site[row] == site.x and _worker_generation[row] == worker.y:
+		return _ok(site)
+	if _worker_site[row] != NO_ROW or _registered_worker_row(site.x) != NO_ROW:
+		return _refuse(REFUSE_WORKER)
+	if _room_worker_count(_room(site.x)) >= MAX_PROJECT_BUILDERS:
+		return _refuse(REFUSE_BUILDER_CAP)
+	_worker_site[row] = site.x
+	_worker_generation[row] = worker.y
+	return _ok(site)
+
+
+func _room_worker_count(room: Vector2i) -> int:
+	"""Cold scan of 512 allocated resident rows; the living cap remains 256, never per tick."""
+	var count: int = 0
+	for resident: int in Work.RESIDENT_CAPACITY:
+		var site: int = _worker_site[resident]
+		if site != NO_ROW and _room(site) == room:
+			count += 1
+	return count
+
+
+func _worker_refusal(row: int, require_registered: bool) -> StringName:
+	"""Read the actual Job worker, its tool claim (or none, DEC-052) and legal dry work contact."""
+	var job_row: int = _job_row(_job(row))
+	var worker: Vector2i = _jobs.worker_of(job_row)
+	if not _jobs.directory().is_valid_of_kind(worker, Directory.KIND_RESIDENT):
+		return REFUSE_WORKER
+	var resident: int = _jobs.directory().get_typed_row(worker)
+	if _work.residents().ref_of(resident) != worker or _jobs.job_of(resident) != _job(row):
+		return REFUSE_WORKER
+	if _work.residents().life_stage_code_of(resident) == Residents.LIFE_STAGE_CHILD:
+		return REFUSE_CHILD
+	if require_registered and (_worker_site[resident] != row or _worker_generation[resident] != worker.y):
+		return REFUSE_WORKER
+	var code: StringName = _tool_claim_refusal(row, job_row, resident, worker)
+	if code != &"":
+		return code
+	return _spatial().worker_refusal(origin_of(Vector2i(row, SITE_GENERATION)),
+		_operation[row], _room(row), _job(row), worker)
+
+
+func _tool_claim_refusal(row: int, job_row: int, resident: int, worker: Vector2i) -> StringName:
+	"""A tooled Job needs the worker's live equipped claim on it; a tool-free Job (DEC-052: claws) needs none, and
+	none may be held."""
+	if not _jobs.tool_gate_into(job_row, _math) or not _gate_accepted(_math.value):
+		return Work.REFUSE_TOOL_NOT_CLAIMED
+	if _math.value == Jobs.GATE_NOT_REQUIRED:
+		return &"" if _work.tool_lot_of(resident) == NULL_REF else Work.REFUSE_TOOL_CLAIM_STALE
+	var tool: Vector2i = _work.tool_lot_of(resident)
+	if _work.tool_job_of(resident) != _job(row) or _work.gear() == null:
+		return Work.REFUSE_TOOL_NOT_CLAIMED
+	var gear_code: StringName = _work.gear().equipped_work_claim_refusal(tool, worker, _job(row))
+	if gear_code == Gear.REFUSE_GEAR_CLAIM_MISMATCH:
+		return Work.REFUSE_TOOL_CLAIM_STALE
+	return Work.REFUSE_TOOL_BROKEN if gear_code != &"" else &""
+
+
+func begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
+	"""One exclusive START owns preparation and payment; nested calls cannot replace its candidate."""
+	if _starting or _settling:
+		_start_poisoned = _starting
+		_settlement_poisoned = _settling
+		return _refuse(REFUSE_AUTHORITY)
+	if _candidate_row != NO_ROW or _permit_project != NULL_REF:
+		return _refuse(REFUSE_AUTHORITY)
+	_starting = true
+	_start_poisoned = false
+	var result: Construction.OpResult = _begin_phase_work(site, now_tick)
+	_starting = false
+	_start_poisoned = false
+	return result
+
+
+func _begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
+	"""All contact observers complete inside the abortable Inventory journal, before payment."""
+	var code: StringName = _start_refusal(site)
+	if code != &"" or _start_poisoned:
+		_discard_candidate()
+		return _refuse(code if code != &"" else REFUSE_AUTHORITY)
+	var project: Vector2i = _project(site.x)
+	_allow(project, ACTION_WIP)
+	var consumed: Inventory.OpResult = _funding.consume_to_wip(project, _job(site.x), now_tick, _output(site.x))
+	_disallow()
+	if not consumed.ok:
+		_discard_candidate()
+		return _refuse(consumed.error)
+	if _operation[site.x] == OP_BRACE:
+		_funded_braces += 1
+	_allow(project, ACTION_BEGIN_WORK)
+	var started: Construction.OpResult = Construction.begin_excavation_work_preflighted(_construction, self, project, _job(site.x))
+	_disallow()
+	assert(started.ok, "preflighted physical work start must not fail after WIP commits")
+	_publish_start(site.x)
+	return _ok(site)
+
+
+func excavation_inputs_refusal(project: Vector2i, job: Vector2i,
+		inventory: RefCounted, pool: RefCounted) -> StringName:
+	"""Original Funding settlement, exact prepared START, and actual owner identities are mandatory."""
+	if not _starting or _start_poisoned or inventory != _inventory or pool != _pool \
+			or _funding._settling_project != project or _funding._settling_job != job \
+			or _permit_project != project or _permit_action != ACTION_WIP \
+			or _candidate_stage != STAGE_START or _candidate_row < 0 or _candidate_row >= _count:
+		return REFUSE_AUTHORITY
+	return &"" if _project(_candidate_row) == project and _job(_candidate_row) == job else REFUSE_JOB
+
+
+func final_input_refusal(project: Vector2i, job: Vector2i, inventory: RefCounted,
+		pool: RefCounted, output: Vector2i, mass: int) -> StringName:
+	"""Finish every observer before pure spatial/economic leaves and the Inventory commit."""
+	var code: StringName = excavation_inputs_refusal(project, job, inventory, pool)
+	if code != &"":
+		return code
+	var row: int = _candidate_row
+	var origin: Vector3i = origin_of(Vector2i(row, SITE_GENERATION))
+	var operation: int = _operation[row]
+	var room: Vector2i = _room(row)
+	var spatial: SpatialAuthority = _spatial()
+	code = spatial.final_start_observation_refusal(origin, operation, room) if spatial != null else REFUSE_AUTHORITY
+	if code == &"":
+		code = excavation_inputs_refusal(project, job, inventory, pool)
+	if code == &"" and (_spatial() != spatial or _candidate_row != row \
+			or _operation[row] != operation or _room(row) != room):
+		code = REFUSE_AUTHORITY
+	if code == &"":
+		code = spatial.final_start_leaf_refusal(origin, operation, room)
+	return Construction.excavation_start_refusal(_construction, self, project, job, false, output, mass) \
+		if code == &"" else code
+
+
+func resume_phase_work(site: Vector2i) -> Construction.OpResult:
+	"""Resume funded work after an actual worker/tool rebind; never consume the phase inputs twice."""
+	var code: StringName = _productive_refusal(site.x) if is_live_site(site) else REFUSE_SITE
+	if code != &"":
+		return _refuse(code)
+	code = _worker_refusal(site.x, true)
+	if code != &"":
+		return _refuse(code)
+	var changed: Jobs.OpResult = _jobs.set_state(_job_row(_job(site.x)), Jobs.JOB_STATE_WORK)
+	if not changed.ok:
+		return _refuse(changed.error)
+	_construction.set_assigned_count(_project(site.x), 1)
+	return _ok(site)
+
+
+func _start_refusal(site: Vector2i) -> StringName:
+	"""Every refusal is resolved before the paid input/output transaction starts."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return code
+	var project: Vector2i = _project(site.x)
+	if _construction.is_paused(project):
+		return Construction.REFUSE_PAUSED
+	if not _construction.phase_into(project, _math) or _math.value != Construction.PHASE_READY:
+		return Construction.REFUSE_WRONG_PHASE
+	if _operation[site.x] == OP_BRACE and not IntMath.checked_mul_into(_funded_braces + 1, BRACE_WOOD_MILLI, _math):
+		return Inventory.REFUSE_OVERFLOW
+	code = _worker_refusal(site.x, true)
+	if code != &"":
+		return code
+	if not _jobs.resident_may_work_into(_jobs.directory().get_typed_row(_jobs.worker_of(_job_row(_job(site.x)))), _math):
+		return REFUSE_WORKER
+	code = _space_refusal(site.x, _operation[site.x], STAGE_START)
+	if code != &"":
+		return code
+	return _output_refusal(site.x)
+
+
+func _publish_start(row: int) -> void:
+	"""Publish support/entry state only after payment; a retained work-ready phase spends no tick."""
+	var operation: int = _operation[row]
+	if operation == OP_BACKFILL_CLOSE or operation == OP_UNOPENED_SUPPORT_CLOSE:
+		if _phase[row] != CLOSING:
+			_closure_before[row] = _phase[row]
+		_phase[row] = CLOSING
+	elif operation == OP_BRACE:
+		_phase[row] = BRACING
+	elif operation == OP_CUT:
+		_phase[row] = CUTTING
+	else:
+		_phase[row] = FINISHING
+	_publish_candidate(row, STAGE_START)
+
+
+func _output_refusal(row: int) -> StringName:
+	"""The actual local capacity/contact is rechecked at start, every work tick, and commit."""
+	var mass: int = _funding.output_mass_g(_operation[row])
+	if mass == 0:
+		return &"" if _output(row) == NULL_REF else REFUSE_OUTPUT
+	if mass < 0 or not _inventory.container_reachable(_output(row)):
+		return REFUSE_OUTPUT
+	var code: StringName = _funding.output_placement_refusal(_output(row), _promotion_tile[row])
+	if code != &"":
+		return code
+	if _promotion_tile[row] >= 0 and not _staging_is_exact(row):
+		return REFUSE_OUTPUT
+	if _funding.is_funded(_project(row)) and _inventory.container_reserved_mass_g(_output(row)) < mass:
+		return REFUSE_OUTPUT
+	return _spatial().output_refusal(origin_of(Vector2i(row, SITE_GENERATION)),
+		_operation[row], _room(row), _output(row), _job(row), _promotion_tile[row])
+
+
+func _staging_is_exact(row: int) -> bool:
+	"""A first-pile staging row is finite, empty, World-owned and held at the actual contact."""
+	var output: Vector2i = _output(row)
+	return _inventory.container_anchor_tile_into(output, _math) and _math.value == _promotion_tile[row] \
+		and _inventory.container_owner(output) == _domain.world_ref \
+		and _inventory.container_policy(output) == Inventory.UNSET_POLICY \
+		and _inventory.container_max_mass_g(output) == Inventory.GROUND_PILE_MAX_MASS_G \
+		and _inventory.container_filters(output) == Inventory.FILTERS_ACCEPT_ALL \
+		and _inventory.container_lot_count(output) == 0
+
+
+func work_tick_refusal(job: Vector2i) -> StringName:
+	"""Even direct Work calls cannot bypass paid-phase pause, tool, ownership or spatial gates."""
+	if _ready_error != &"":
+		return REFUSE_AUTHORITY
+	var job_row: int = _job_row(job)
+	if job_row == NO_ROW:
+		return &""  # Work's own stale-job gate supplies its established refusal.
+	var row: int = _job_site[job_row]
+	if row == NO_ROW:
+		if _construction.purpose_into(_jobs.requester_of(job_row), _math) and _math.value == Construction.PURPOSE_EXCAVATION:
+			return REFUSE_JOB
+		return &""
+	if _job(row) != job or _jobs.is_coordinator(job_row) or _jobs.is_member(job_row):
+		return REFUSE_JOB
+	var code: StringName = _productive_refusal(row)
+	if code != &"":
+		return code
+	return _worker_refusal(row, true)
+
+
+func _productive_refusal(row: int) -> StringName:
+	"""Compare actual owner progress before Work touches any resident carry or resource."""
+	var code: StringName = _bound_refusal(Vector2i(row, SITE_GENERATION))
+	if code != &"":
+		return code
+	var project: Vector2i = _project(row)
+	if _construction.is_paused(project):
+		return Construction.REFUSE_PAUSED
+	if not _funding.is_funded(project) or not _construction.phase_into(project, _math) \
+			or _math.value != Construction.PHASE_WORKING:
+		return Construction.REFUSE_WRONG_PHASE
+	_construction.remaining_mwu_into(project, _math)
+	_jobs.remaining_mwu_into(_job_row(_job(row)), _other_math)
+	if _math.value != _other_math.value:
+		return REFUSE_JOB
+	code = _space_refusal(row, _operation[row], STAGE_WORK)
+	return _output_refusal(row) if code == &"" else code
+
+
+func accept_work_tick(job: Vector2i) -> void:
+	"""Read actual accepted Job progress after Work's WU/XP/wear transaction succeeded."""
+	if _ready_error != &"" or not _work.is_publishing_excavation_tick(job):
+		return
+	var job_row: int = _job_row(job)
+	if job_row == NO_ROW or _job_site[job_row] == NO_ROW:
+		return
+	var row: int = _job_site[job_row]
+	var project: Vector2i = _project(row)
+	_construction.remaining_mwu_into(project, _math)
+	_jobs.remaining_mwu_into(job_row, _other_math)
+	var accepted: int = _math.value - _other_math.value
+	if accepted <= 0:
+		return
+	_allow(project, ACTION_WORK)
+	var applied: bool = _construction.add_work_mwu_into(project, accepted, _math)
+	_disallow()
+	assert(applied, "preflighted physical Work publication must not fail after Work commits")
+	_earned_mwu[row * OP_COUNT + _operation[row]] = work_mwu(_operation[row]) - _math.value
+
+
+func release_worker(site: Vector2i) -> Construction.OpResult:
+	"""Release actual Gear/Work/Job ownership without touching retained physical work or WIP."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	var job_row: int = _job_row(_job(site.x))
+	var worker: Vector2i = _jobs.worker_of(job_row)
+	if worker == NULL_REF:
+		return _ok(site) if _registered_worker_row(site.x) == NO_ROW else _refuse(REFUSE_WORKER)
+	if not _jobs.directory().is_valid_of_kind(worker, Directory.KIND_RESIDENT):
+		return _refuse(REFUSE_WORKER)
+	var resident: int = _jobs.directory().get_typed_row(worker)
+	if _worker_site[resident] != site.x or _worker_generation[resident] != worker.y:
+		return _refuse(REFUSE_WORKER)
+	if _jobs.job_of(resident) != _job(site.x) or not _tool_claim_matches(resident, job_row):
+		return _refuse(Work.REFUSE_TOOL_CLAIM_STALE)
+	if _work.tool_lot_of(resident) != NULL_REF:
+		var released: Work.OpResult = _work.release_tool_claim(resident)
+		if not released.ok:
+			return _refuse(released.error)
+	var detached: Jobs.OpResult = _jobs.release_worker(resident)
+	assert(detached.ok, "preflighted worker departure must succeed after its tool claim releases")
+	_worker_site[resident] = NO_ROW
+	_worker_generation[resident] = 0
+	_construction.set_assigned_count(_project(site.x), 0)
+	return _ok(site)
+
+
+static func _gate_accepted(gate: int) -> bool:
+	"""A paid phase's BUILD Job either needs its claimed tool (the dormant pick rows) or none: DEC-052 amends
+	SET-MOVE-ECON-001's tool condition, so claw BRACE, CUT and FINISH bind GATE_NOT_REQUIRED."""
+	return gate == Jobs.GATE_SATISFIED or gate == Jobs.GATE_NOT_REQUIRED
+
+
+func _tool_claim_matches(resident: int, job_row: int) -> bool:
+	"""A tooled Job holds the worker's claim on it; a tool-free Job (DEC-052) holds none."""
+	if not _jobs.tool_gate_into(job_row, _math): return false
+	if _math.value == Jobs.GATE_NOT_REQUIRED: return _work.tool_lot_of(resident) == NULL_REF
+	return _work.tool_job_of(resident) == _jobs.ref_of(job_row)
+
+
+func _registered_worker_row(row: int) -> int:
+	"""Cold lifecycle check: an externally detached worker is diagnosed, never silently erased."""
+	for resident: int in Work.RESIDENT_CAPACITY:
+		if _worker_site[resident] == row:
+			return resident
+	return NO_ROW
+
+
+func set_paused(site: Vector2i, paused: bool) -> Construction.OpResult:
+	"""A held Construction phase also stops Work immediately and releases its actual worker."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	var changed: Construction.OpResult = _construction.set_paused(_project(site.x), paused)
+	if not changed.ok or not paused:
+		return changed
+	return release_worker(site)
+
+
+func _enter_settlement() -> bool:
+	"""Refuse before touching another START/terminal candidate and poison its original operation."""
+	if _starting or _settling:
+		_start_poisoned = _starting
+		_settlement_poisoned = _settling
+		return false
+	if _candidate_row != NO_ROW or _permit_project != NULL_REF:
+		return false
+	_settling = true
+	_settlement_poisoned = false
+	return true
+
+
+func _leave_settlement(result: Construction.OpResult) -> Construction.OpResult:
+	"""A same-stack terminal scope never becomes saved authority or poisons a later clean retry."""
+	_settling = false
+	_settlement_poisoned = false
+	return result
+
+
+func settle_phase(site: Vector2i) -> Construction.OpResult:
+	"""One exclusive original COMMIT owns final paid output and physical publication."""
+	if not _enter_settlement():
+		return _refuse(REFUSE_AUTHORITY)
+	return _leave_settlement(_settle_phase(site))
+
+
+func _settle_phase(site: Vector2i) -> Construction.OpResult:
+	"""Commit actual output, physical history and staged topology once; retries spend no work."""
+	var code: StringName = _settlement_refusal(site)
+	if code != &"":
+		_discard_candidate()
+		return _refuse(code)
+	var released: Construction.OpResult = release_worker(site)
+	if not released.ok:
+		_discard_candidate()
+		return released
+	var project: Vector2i = _project(site.x)
+	var provenance: int = Catalog.PROVENANCE_EXCAVATION if _ever_cut[site.x] == 0 \
+		else Catalog.PROVENANCE_BACKFILL_RECLAIM
+	_allow(project, ACTION_OUTPUT)
+	var settled: Inventory.OpResult = _funding.commit_outputs(project, provenance, _promotion_tile[site.x])
+	_disallow()
+	if not settled.ok:
+		_discard_candidate()
+		return _refuse(settled.error)
+	_publish_physical_completion(site.x)
+	_publish_candidate(site.x, STAGE_COMMIT)
+	_retire_phase(site.x)
+	return _ok(site)
+
+
+func _settlement_refusal(site: Vector2i) -> StringName:
+	"""No caller boolean can stand in for real funded WIP, completed work or safe topology."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return code
+	var project: Vector2i = _project(site.x)
+	if _construction.is_paused(project):
+		return Construction.REFUSE_PAUSED
+	if not _construction.phase_into(project, _math) or _math.value != Construction.PHASE_WORK_DONE \
+			or not _funding.is_funded(project):
+		return Construction.REFUSE_WRONG_PHASE
+	if not _jobs.remaining_mwu_into(_job_row(_job(site.x)), _math) or _math.value != 0:
+		return REFUSE_JOB
+	if _pool.job_claim_count(_job(site.x)) != 0:
+		return REFUSE_DELIVERY
+	code = _retirement_jobs_refusal(site.x)
+	if code != &"":
+		return code
+	if _operation[site.x] == OP_CUT and _embedded_milli[site.x] != (EARTH_MILLI if _ever_cut[site.x] == 1 else 0):
+		return REFUSE_PHASE
+	code = _space_refusal(site.x, _operation[site.x], STAGE_COMMIT)
+	return _output_refusal(site.x) if code == &"" else code
+
+
+func final_settlement_refusal(project: Vector2i, action: int, inventory: RefCounted) -> StringName:
+	"""Finish terminal observers inside the original journal, then inspect only exact retained leaves."""
+	var code: StringName = _settlement_scope_refusal(project, action, inventory)
+	if code != &"":
+		return code
+	var row: int = _candidate_row
+	var stage: int = _candidate_stage
+	var operation: int = _operation[row]
+	var room: Vector2i = _room(row)
+	var job: Vector2i = _job(row)
+	var origin: Vector3i = origin_of(Vector2i(row, SITE_GENERATION))
+	var spatial: SpatialAuthority = _spatial()
+	code = spatial.final_settlement_observation_refusal(origin, operation, stage, room) if spatial != null else REFUSE_AUTHORITY
+	if code == &"":
+		code = _settlement_scope_refusal(project, action, inventory)
+	if code == &"" and (_spatial() != spatial or _candidate_row != row or _candidate_stage != stage \
+			or _operation[row] != operation or _room(row) != room or _job(row) != job):
+		code = REFUSE_AUTHORITY
+	if code == &"":
+		code = spatial.final_settlement_leaf_refusal(origin, operation, stage, room)
+	return _settlement_economic_leaf(project, job, row, action) if code == &"" else code
+
+
+func _settlement_scope_refusal(project: Vector2i, action: int, inventory: RefCounted) -> StringName:
+	"""A full original candidate and Inventory-owned journal are mandatory, not ambient action numbers."""
+	if not _settling or _settlement_poisoned or _starting or inventory != _inventory \
+			or _ready_error != &"" or not _inventory._tx_open or not _inventory._attesting \
+			or (action != ACTION_OUTPUT and action != ACTION_REFUND) \
+			or _permit_project != project or _permit_action != action \
+			or _candidate_stage != (STAGE_COMMIT if action == ACTION_OUTPUT else STAGE_CANCEL) \
+			or _candidate_row < 0 or _candidate_row >= _count or _present[_candidate_row] != 1:
+		return REFUSE_AUTHORITY
+	if _project(_candidate_row) != project or _funding == null or _funding._ready_error != &"" \
+			or _funding._construction != _construction or _funding._inventory != _inventory \
+			or _funding._pool != _pool or _funding._items != _items or _jobs._directory != _construction._directory \
+			or _construction._excavation_authority == null or _construction._excavation_authority.get_ref() != self:
+		return REFUSE_AUTHORITY
+	return &"" if _construction._directory.is_valid_of_kind(project, Directory.KIND_CONSTRUCTION) \
+		and _construction._directory.is_valid_of_kind(_domain.world_ref, Directory.KIND_WORLD) else REFUSE_SITE
+
+
+func _settlement_economic_leaf(project: Vector2i, job: Vector2i, site: int, action: int) -> StringName:
+	"""Read current mirrored Project and receipt columns without bill, contact or output observers."""
+	var row: int = _construction._directory.get_typed_row(project)
+	if row < 0 or row >= Construction.CONSTRUCTION_CAPACITY or _construction._present[row] != 1 \
+			or _construction._ref_slot[row] != project.x or _construction._ref_generation[row] != project.y \
+			or _construction._purpose[row] != Construction.PURPOSE_EXCAVATION \
+			or _construction._subject_slot[row] != site or _construction._subject_generation[row] != SITE_GENERATION \
+			or _construction._type_id[row] != _operation[site] or _construction._work_begun[row] != 1 \
+			or _funding._project_slot[row] != project.x or _funding._project_generation[row] != project.y \
+			or _funding._output_slot[row] != _output_slot[site] or _funding._output_generation[row] != _output_generation[site]:
+		return Construction.REFUSE_STALE_PROJECT_REF
+	if action == ACTION_OUTPUT and (_construction._phase[row] != Construction.PHASE_WORK_DONE \
+			or _construction._remaining_mwu[row] != 0 or _construction._paused[row] != 0):
+		return Construction.REFUSE_WRONG_PHASE
+	if action == ACTION_REFUND and _construction._phase[row] != Construction.PHASE_REFUNDING:
+		return Construction.REFUSE_WRONG_PHASE
+	var code: StringName = _settlement_job_leaf(project, job, site, row)
+	return _settlement_physical_leaf(site, row) if code == &"" else code
+
+
+func _settlement_job_leaf(project: Vector2i, job: Vector2i, site: int, construction_row: int) -> StringName:
+	"""No stale requester, extra live Job, unpaid claim or new worker can be retired by the pure tail."""
+	if not _jobs._directory.is_valid_of_kind(job, Directory.KIND_JOB):
+		return REFUSE_JOB
+	var row: int = _jobs._directory.get_typed_row(job)
+	if row < 0 or row >= _job_site.size() or _jobs._job_present[row] != 1 \
+			or _jobs._job_ref_slot[row] != job.x or _jobs._job_ref_generation[row] != job.y \
+			or _job_site[row] != site or _jobs._requester_slot[row] != project.x \
+			or _jobs._requester_generation[row] != project.y or _jobs._kind[row] != Jobs.JOB_KIND_BUILD \
+			or _jobs._is_coordinator[row] != 0 or _jobs._coordinator_slot[row] != -1 \
+			or _jobs._remaining_mwu[row] != _construction._remaining_mwu[construction_row] \
+			or _jobs._worker_slot[row] != -1 or _pool.job_claim_count(job) != 0:
+		return REFUSE_JOB
+	for other: int in Jobs.JOB_CAPACITY:
+		if other != row and _jobs._job_present[other] == 1 and _jobs._requester_slot[other] == project.x \
+				and _jobs._requester_generation[other] == project.y:
+			return REFUSE_JOB
+	return &""
+
+
+func _settlement_physical_leaf(site: int, construction_row: int) -> StringName:
+	"""Completed work and retained support/history remain exact after the last external observer."""
+	var operation: int = _operation[site]
+	if not valid_operation(operation):
+		return REFUSE_PHASE
+	var phase: int = BRACING if operation == OP_BRACE else CUTTING if operation == OP_CUT \
+		else FINISHING if operation == OP_FINISH else CLOSING
+	if _phase[site] != phase or _installed[site] != (0 if operation == OP_BRACE else 1):
+		return REFUSE_PHASE
+	var earned: int = _earned_mwu[site * OP_COUNT + operation]
+	if earned < 0 or earned > work_mwu(operation) \
+			or _construction._remaining_mwu[construction_row] != work_mwu(operation) - earned:
+		return Construction.REFUSE_WRONG_PHASE
+	if operation == OP_CUT and _embedded_milli[site] != (EARTH_MILLI if _ever_cut[site] == 1 else 0):
+		return REFUSE_PHASE
+	return &""
+
+
+func _publish_physical_completion(row: int) -> void:
+	"""Only this post-Inventory-commit path changes installed support or geological earth."""
+	match _operation[row]:
+		OP_BRACE:
+			_installed[row] = 1
+			_completed_braces += 1
+			_phase[row] = BRACED
+		OP_CUT:
+			if _ever_cut[row] == 0:
+				_virgin_sourced_milli += EARTH_MILLI
+				_ever_cut[row] = 1
+			else:
+				_embedded_milli[row] -= EARTH_MILLI
+			_phase[row] = OPEN_UNFINISHED
+		OP_FINISH:
+			_phase[row] = SUPPORTED_VOID
+		OP_BACKFILL_CLOSE, OP_UNOPENED_SUPPORT_CLOSE:
+			_publish_closure(row)
+	_earned_mwu[row * OP_COUNT + _operation[row]] = 0
+
+
+func _publish_closure(row: int) -> void:
+	"""Salvage exists only with paid backfill or the adopted never-opened solid exception."""
+	if _operation[row] == OP_BACKFILL_CLOSE:
+		_embedded_milli[row] = EARTH_MILLI
+		for operation: int in OP_COUNT:
+			_earned_mwu[row * OP_COUNT + operation] = 0
+	_installed[row] = 0
+	_salvaged_braces += 1
+	_phase[row] = BACKFILLED if _embedded_milli[row] == EARTH_MILLI else SOLID
+	_closure_before[row] = _phase[row]
+
+
+func cancel_phase(site: Vector2i, refund_container: Vector2i) -> Construction.OpResult:
+	"""One exclusive original CANCEL retains its paid refund and prepared spatial candidate."""
+	if not _enter_settlement():
+		return _refuse(REFUSE_AUTHORITY)
+	return _leave_settlement(_cancel_phase(site, refund_container))
+
+
+func _cancel_phase(site: Vector2i, refund_container: Vector2i) -> Construction.OpResult:
+	"""Freeze work, release actual worker ownership, then settle the scoped current-phase refund."""
+	var code: StringName = _bound_refusal(site)
+	if code != &"":
+		return _refuse(code)
+	code = _cancel_refusal(site.x)
+	if code != &"":
+		_discard_candidate()
+		return _refuse(code)
+	var released: Construction.OpResult = release_worker(site)
+	if not released.ok:
+		_discard_candidate()
+		return released
+	var project: Vector2i = _project(site.x)
+	_construction.phase_into(project, _math)
+	if _math.value != Construction.PHASE_REFUNDING:
+		_allow(project, ACTION_CANCEL)
+		_construction.begin_refund(project)
+		_disallow()
+	code = _settle_refund(site, refund_container)
+	if code != &"":
+		_discard_candidate()
+		return _refuse(code)
+	_publish_candidate(site.x, STAGE_CANCEL)
+	_retire_phase(site.x)
+	return _ok(site)
+
+
+func _cancel_refusal(row: int) -> StringName:
+	"""Prove no late requester Job will be orphaned before freezing or refunding this phase."""
+	var code: StringName = _retirement_jobs_refusal(row)
+	return _space_refusal(row, _operation[row], STAGE_CANCEL) if code == &"" else code
+
+
+func _retirement_jobs_refusal(row: int) -> StringName:
+	"""Cold transition scan catches every late-bound Job, including its worker/claim ownership."""
+	for job_row: int in Jobs.JOB_CAPACITY:
+		if _jobs.is_job_present(job_row) and _jobs.requester_of(job_row) == _project(row) \
+				and _jobs.ref_of(job_row) != _job(row):
+			return REFUSE_JOB
+	return &""
+
+
+func _settle_refund(site: Vector2i, destination: Vector2i) -> StringName:
+	"""The Inventory owner publishes either current WIP's refund or untouched unstarted goods."""
+	var project: Vector2i = _project(site.x)
+	var code: StringName = _refund_destination_refusal(site, destination)
+	if code != &"" or _settlement_poisoned:
+		return code if code != &"" else REFUSE_AUTHORITY
+	if not _funding.is_funded(project):
+		return _refund_unstarted(site.x, destination)
+	_allow(project, ACTION_REFUND)
+	var returned: Inventory.OpResult = _funding.refund_wip(project, destination, _promotion_tile[site.x])
+	_disallow()
+	if returned.ok and _operation[site.x] == OP_BRACE:
+		_construction.cancellation_refund_milli_into(project, 0, _math)
+		_returned_brace_milli += _math.value
+	return &"" if returned.ok else returned.error
+
+
+func _refund_destination_refusal(site: Vector2i, destination: Vector2i) -> StringName:
+	"""Require reachable capacity only for actual positive returned materials, never a free phase."""
+	var has_goods: bool = false
+	for line: int in input_count(_operation[site.x]):
+		if not _construction.cancellation_refund_milli_into(_project(site.x), line, _math):
+			return REFUSE_DELIVERY
+		has_goods = has_goods or _math.value > 0
+	if not has_goods:
+		return &""
+	if not _inventory.container_reachable(destination):
+		return Inventory.REFUSE_INVALID_CONTAINER
+	return _spatial().material_refusal(origin_of(site), _room(site.x), destination, _job(site.x))
+
+
+func _refund_unstarted(row: int, destination: Vector2i) -> StringName:
+	"""Already delivered unconsumed goods are released where they stand, with no reminting."""
+	var project: Vector2i = _project(row)
+	if _pool.job_claim_count(_job(row)) > 0:
+		if destination != _construction.material_container_ref_of(project):
+			return REFUSE_DELIVERY
+		_delivery_totals.fill(0)
+		var code: StringName = _sum_delivery_claims(row, destination)
+		if code != &"":
+			return code
+	var staging_code: StringName = _unstarted_staging_refusal(row)
+	if staging_code != &"":
+		return staging_code
+	var released: Inventory.OpResult = _pool.release_job_claims(_job(row), _inventory)
+	if not released.ok:
+		return released.error
+	if _unstarted_output_is_staging(row) and _inventory.container_reserved_mass_g(_output(row)) == 0:
+		var removed: Inventory.OpResult = _inventory.destroy_container(_output(row))
+		if not removed.ok:
+			return removed.error
+	return &""
+
+
+func _unstarted_staging_refusal(row: int) -> StringName:
+	"""Prove the later independent empty-row retirement before releasing any input claim."""
+	if _inventory.is_transaction_open():
+		return Inventory.REFUSE_TRANSACTION_OPEN
+	var code: StringName = _funding.output_placement_refusal(_output(row), _promotion_tile[row])
+	if code != &"":
+		return code
+	if _promotion_tile[row] >= 0 and not _staging_is_exact(row):
+		return REFUSE_OUTPUT
+	if _unstarted_output_is_staging(row) and _inventory.container_reserved_mass_g(_output(row)) == 0 \
+			and _output_generation[row] >= Inventory.MAX_INT32:
+		return Inventory.REFUSE_GENERATION_EXHAUSTED
+	return &""
+
+
+func _unstarted_output_is_staging(row: int) -> bool:
+	"""Only actual first-output staging is ours to retire; goods or another claim keep it alive."""
+	var output: Vector2i = _output(row)
+	if not _inventory.is_container_valid(output) \
+			or _inventory.container_policy(output) != Inventory.UNSET_POLICY \
+			or _inventory.container_lot_count(output) != 0:
+		return false
+	if _promotion_tile[row] >= 0:
+		return true
+	return not _inventory.container_anchor_tile_into(output, _math) \
+		and _math.error == String(Inventory.REFUSE_SPATIAL_REQUIRED)
+
+
+func _retire_phase(row: int) -> void:
+	"""Retire only after real refund/output publication; retain all physical progress/history."""
+	var project: Vector2i = _project(row)
+	var job_row: int = _job_row(_job(row))
+	_allow(project, ACTION_RETIRE)
+	var retired: Construction.OpResult = _construction.retire_excavation_phase(project, self)
+	_disallow()
+	assert(retired.ok, "settled physical phase must retire through its owning transaction")
+	var job_retired: Jobs.OpResult = _jobs.destroy_job(job_row)
+	assert(job_retired.ok, "worker/claim-free phase Job must retire after settlement")
+	_job_site[job_row] = NO_ROW
+	_project_slot[row] = -1
+	_project_generation[row] = 0
+	_job_slot[row] = -1
+	_job_generation[row] = 0
+	_operation[row] = -1
+	_output_slot[row] = -1
+	_output_generation[row] = 0
+	_promotion_tile[row] = -1
+
+
+func release_room_claim(site: Vector2i) -> Construction.OpResult:
+	"""Safe room retirement frees its claim, never the world's immutable cut/source history."""
+	if not is_live_site(site) or _spatial() == null or not _world_is_live():
+		return _refuse(REFUSE_SITE)
+	if _project(site.x) != NULL_REF or _installed[site.x] != 0 \
+			or (_phase[site.x] != SOLID and _phase[site.x] != BACKFILLED and _phase[site.x] != BRACING):
+		return _refuse(REFUSE_PHASE)
+	var code: StringName = _spatial().retirement_refusal(_room(site.x))
+	if code != &"":
+		return _refuse(code)
+	_room_slot[site.x] = -1
+	_room_generation[site.x] = 0
+	_phase[site.x] = BACKFILLED if _embedded_milli[site.x] == EARTH_MILLI else SOLID
+	return _ok(site)
+
+
+func phase_into(site: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Read physical state separately from Construction's paid-project phase."""
+	return out.succeed(_phase[site.x]) if is_live_site(site) else out.refuse(REFUSE_SITE)
+
+
+func installed_support(site: Vector2i) -> bool:
+	"""Read paid brace truth through the actual live Site, World and Room; phase names are insufficient."""
+	if _ready_error != &"" or not is_live_site(site) or not _world_is_live() or _installed[site.x] != 1:
+		return false
+	var spatial: SpatialAuthority = _spatial()
+	var room: Vector2i = _room(site.x)
+	if spatial == null or room == NULL_REF or spatial.room_refusal(room) != &"":
+		return false
+	return _spatial() == spatial and _world_is_live() and _room(site.x) == room and _installed[site.x] == 1
+
+
+func embedded_earth_milli(site: Vector2i) -> int:
+	"""Actual paid backfill retained under the original physical key."""
+	return _embedded_milli[site.x] if is_live_site(site) else 0
+
+
+func virgin_sourced_milli() -> int:
+	"""Geological source only; reclaimed backfill and refunds never increment it."""
+	return _virgin_sourced_milli
+
+
+func earth_conservation_refusal() -> StringName:
+	"""Cold whole-owner identity for the currently implemented cut/backfill/refund economy."""
+	if _ready_error != &"":
+		return REFUSE_AUTHORITY
+	var item: int = _items.compiled_id(&"excavated_earth")
+	var retained: int = _inventory.total_live_milli(item) + _funding.total_wip_milli(item)
+	var loss: int = _funding.cancellation_loss_milli(item)
+	if loss < 0:
+		return REFUSE_AUTHORITY
+	retained += loss
+	var modular: ModularContract = _construction.modular_authority()
+	if _construction.has_modular_binding() and modular == null:
+		return REFUSE_AUTHORITY
+	if modular != null:
+		var tip_earth: int = modular.embedded_earth_milli()
+		if tip_earth < 0:
+			return REFUSE_AUTHORITY
+		retained += tip_earth
+	for quantity: int in _embedded_milli:
+		retained += quantity
+	return &"" if _initial_earth_milli + _virgin_sourced_milli == retained else &"EXCAVATION_EARTH_CONSERVATION"
+
+
+func support_conservation_refusal() -> StringName:
+	"""Cold wood/stone account: funded inputs equal WIP, returns, installed support, salvage and loss."""
+	if _ready_error != &"":
+		return REFUSE_AUTHORITY
+	var installed: int = 0
+	for flag: int in _installed:
+		installed += flag
+	if installed != _completed_braces - _salvaged_braces:
+		return &"EXCAVATION_SUPPORT_CONSERVATION"
+	for key: StringName in [&"wood", &"stone"]:
+		var item: int = _items.compiled_id(key)
+		var wip: int = _funding.purpose_wip_milli(Construction.PURPOSE_EXCAVATION, item)
+		var loss: int = _funding.purpose_cancellation_loss_milli(Construction.PURPOSE_EXCAVATION, item)
+		if wip < 0 or loss < 0:
+			return &"EXCAVATION_SUPPORT_CONSERVATION"
+		var accounted: int = wip + _returned_brace_milli
+		accounted += loss + installed * BRACE_WOOD_MILLI
+		# Each settled closure returns 125 and declares the other 125 structurally unrecoverable.
+		accounted += _salvaged_braces * (SALVAGE_WOOD_MILLI + BRACE_WOOD_MILLI - SALVAGE_WOOD_MILLI)
+		if _funded_braces * BRACE_WOOD_MILLI != accounted:
+			return &"EXCAVATION_SUPPORT_CONSERVATION"
+	return &""
+
+
+func legacy_save_refusal() -> StringName:
+	"""Physical history requires the UG16 versioned codec even when every paid project retired."""
+	return &"EXCAVATION_VERSIONED_CODEC_REQUIRED"
+
+
+func state_bytes() -> PackedByteArray:
+	"""Deterministic local test image; explicitly not a production save/restore format."""
+	var out: PackedByteArray = PackedInt64Array([_capacity, _count, _domain_capacity, _initial_earth_milli,
+		_virgin_sourced_milli, _completed_braces, _salvaged_braces, _funded_braces, _returned_brace_milli,
+		_domain.world_ref.x, _domain.world_ref.y, _domain.datum_u.x, _domain.datum_u.y,
+		_domain.datum_u.z, _domain.minimum_quantum.x, _domain.minimum_quantum.y,
+		_domain.minimum_quantum.z, _domain.size_quanta.x, _domain.size_quanta.y, _domain.size_quanta.z]).to_byte_array()
+	for column: PackedByteArray in [_present, _phase, _installed, _ever_cut, _closure_before]:
+		out.append_array(column)
+	for column: PackedInt32Array in [_room_slot, _room_generation, _project_slot,
+			_project_generation, _operation, _job_slot, _job_generation, _output_slot,
+			_output_generation, _promotion_tile, _job_site, _worker_site, _worker_generation, _ordered_row]:
+		out.append_array(column.to_byte_array())
+	out.append_array(_site_key.to_byte_array())
+	out.append_array(_ordered_key.to_byte_array())
+	out.append_array(_embedded_milli.to_byte_array())
+	out.append_array(_earned_mwu.to_byte_array())
+	if _funding != null:
+		out.append_array(_funding.state_bytes())
+	return out
+
+
+# --- ADR 1228: section 6 owner `excavation_sites` -------------------------------------------------
+
+## Section 6 column count, in registry ordinal order: twenty scalars, then the row columns.
+const SAVE_COLUMN_COUNT: int = 40
+const SAVE_SCALAR_COUNT: int = 20
+## Ordinals 2-8 and 20, 26 and 27 are i64; 21-25 are u8; the rest are i32.
+const SAVE_I64_ORDINALS: Array[int] = [2, 3, 4, 5, 6, 7, 8, 20, 26, 27]
+
+
+func save_columns() -> Array:
+	"""Copies of the forty registry columns in ordinal order; the derived indexes are not saved."""
+	var columns: Array = _save_scalars()
+	columns.append_array([_site_key.duplicate(), _present.duplicate(), _phase.duplicate(),
+		_installed.duplicate(), _ever_cut.duplicate(), _closure_before.duplicate(),
+		_embedded_milli.duplicate(), _earned_mwu.duplicate(), _room_slot.duplicate(),
+		_room_generation.duplicate(), _project_slot.duplicate(), _project_generation.duplicate(),
+		_operation.duplicate(), _job_slot.duplicate(), _job_generation.duplicate(),
+		_output_slot.duplicate(), _output_generation.duplicate(), _promotion_tile.duplicate(),
+		_worker_site.duplicate(), _worker_generation.duplicate()])
+	return columns
+
+
+func _save_scalars() -> Array:
+	"""Ordinals 0-19: the counters, then the copied world domain."""
+	var columns: Array = [PackedInt32Array([_capacity]), PackedInt32Array([_count])]
+	for value: int in [_domain_capacity, _initial_earth_milli, _virgin_sourced_milli, _funded_braces,
+			_completed_braces, _salvaged_braces, _returned_brace_milli]:
+		columns.append(PackedInt64Array([value]))
+	for value: int in _domain_values():
+		columns.append(PackedInt32Array([value]))
+	return columns
+
+
+func _domain_values() -> PackedInt32Array:
+	"""Ordinals 9-19 as values: the World ref, the datum, the minimum quantum and the size."""
+	var d: Domain = _domain
+	return PackedInt32Array([d.world_ref.x, d.world_ref.y, d.datum_u.x, d.datum_u.y, d.datum_u.z,
+		d.minimum_quantum.x, d.minimum_quantum.y, d.minimum_quantum.z, d.size_quanta.x,
+		d.size_quanta.y, d.size_quanta.z])
+
+
+func restore_columns(columns: Array) -> bool:
+	"""Install the columns after `columns_valid()` and rebuild the derived key order and Job index.
+	False writes nothing: a saved Job that does not resolve in the restored Jobs refuses first."""
+	if not columns_valid(columns):
+		return false
+	var job_site: PackedInt32Array = _derived_job_site(columns)
+	if job_site.is_empty():
+		return false
+	_install_scalars(columns)
+	_install_rows(columns)
+	_job_site = job_site
+	_rebuild_key_order()
+	return true
+
+
+func _install_scalars(columns: Array) -> void:
+	"""Ordinals 1-8 (capacity and domain are proved equal, never installed)."""
+	_count = columns[1][0]
+	_initial_earth_milli = columns[3][0]
+	_virgin_sourced_milli = columns[4][0]
+	_funded_braces = columns[5][0]
+	_completed_braces = columns[6][0]
+	_salvaged_braces = columns[7][0]
+	_returned_brace_milli = columns[8][0]
+
+
+func _install_rows(columns: Array) -> void:
+	"""Private copies of ordinals 20-39."""
+	_site_key = (columns[20] as PackedInt64Array).duplicate()
+	for pair: Array in [[21, &"_present"], [22, &"_phase"], [23, &"_installed"], [24, &"_ever_cut"],
+			[25, &"_closure_before"], [26, &"_embedded_milli"], [27, &"_earned_mwu"],
+			[28, &"_room_slot"], [29, &"_room_generation"], [30, &"_project_slot"],
+			[31, &"_project_generation"], [32, &"_operation"], [33, &"_job_slot"],
+			[34, &"_job_generation"], [35, &"_output_slot"], [36, &"_output_generation"],
+			[37, &"_promotion_tile"], [38, &"_worker_site"], [39, &"_worker_generation"]]:
+		set(pair[1], columns[pair[0]].duplicate())
+
+
+func _derived_job_site(columns: Array) -> PackedInt32Array:
+	"""Each bound Job's typed row -> its site, from the restored Directory; empty on a stale Job."""
+	var out: PackedInt32Array = PackedInt32Array()
+	out.resize(Jobs.JOB_CAPACITY)
+	out.fill(NO_ROW)
+	for row: int in _capacity:
+		if columns[33][row] == -1:
+			continue
+		var job: Vector2i = Vector2i(columns[33][row], columns[34][row])
+		if not _jobs.directory().is_valid_of_kind(job, Directory.KIND_JOB):
+			return PackedInt32Array()
+		out[_jobs.directory().get_typed_row(job)] = row
+	return out
+
+
+func _rebuild_key_order() -> void:
+	"""`_ordered_key`/`_ordered_row`: the populated prefix sorted by its unique physical keys."""
+	var order: PackedInt64Array = PackedInt64Array()
+	order.resize(_count)
+	for row: int in _count:
+		order[row] = _site_key[row] * MAX_SITE_CAPACITY + row
+	order.sort()
+	_ordered_key.fill(-1)
+	_ordered_row.fill(-1)
+	for index: int in _count:
+		@warning_ignore("integer_division") var key: int = order[index] / MAX_SITE_CAPACITY
+		_ordered_key[index] = key
+		_ordered_row[index] = order[index] - key * MAX_SITE_CAPACITY
+
+
+func columns_valid(columns: Array) -> bool:
+	"""Types and extents against this composed owner, its own world domain, then every row."""
+	if _ready_error != &"" or not _save_types_ok(columns) or not _save_extents_ok(columns):
+		return false
+	if columns[0][0] != _capacity or columns[2][0] != _domain_capacity:
+		return false
+	var domain: PackedInt32Array = _domain_values()
+	for index: int in domain.size():
+		if columns[9 + index][0] != domain[index]:
+			return false
+	var count: int = columns[1][0]
+	if count < 0 or count > _capacity:
+		return false
+	for ordinal: int in range(3, 9):
+		if columns[ordinal][0] < 0:
+			return false
+	return _save_keys_ok(columns, count) and _save_rows_ok(columns, count) and _save_workers_ok(columns)
+
+
+static func _save_types_ok(columns: Array) -> bool:
+	"""Forty columns of the registry's packed types; the twenty scalars one element each."""
+	if columns.size() != SAVE_COLUMN_COUNT:
+		return false
+	for ordinal: int in SAVE_COLUMN_COUNT:
+		var expected: int = TYPE_PACKED_INT32_ARRAY
+		if SAVE_I64_ORDINALS.has(ordinal):
+			expected = TYPE_PACKED_INT64_ARRAY
+		elif ordinal >= 21 and ordinal <= 25:
+			expected = TYPE_PACKED_BYTE_ARRAY
+		if typeof(columns[ordinal]) != expected or (ordinal < SAVE_SCALAR_COUNT and columns[ordinal].size() != 1):
+			return false
+	return true
+
+
+func _save_extents_ok(columns: Array) -> bool:
+	"""Row columns at this owner's capacity, earned work at its capacity, workers per resident row."""
+	for ordinal: int in range(SAVE_SCALAR_COUNT, SAVE_COLUMN_COUNT):
+		var expected: int = _capacity
+		if ordinal == 27:
+			expected = _earned_capacity
+		elif ordinal >= 38:
+			expected = Work.RESIDENT_CAPACITY
+		if columns[ordinal].size() != expected:
+			return false
+	return true
+
+
+func _save_keys_ok(columns: Array, count: int) -> bool:
+	"""The populated prefix holds distinct keys inside the domain; every later row is unclaimed."""
+	var keys: PackedInt64Array = (columns[20] as PackedInt64Array).slice(0, count)
+	keys.sort()
+	for index: int in count:
+		if keys[index] < 0 or keys[index] >= _domain_capacity or (index > 0 and keys[index] == keys[index - 1]):
+			return false
+	for row: int in _capacity:
+		if columns[21][row] != (1 if row < count else 0) or (row >= count and columns[20][row] != -1):
+			return false
+	return true
+
+
+static func _save_rows_ok(columns: Array, count: int) -> bool:
+	"""Phase domains, flags, nonnegative earth and work, and canonical (-1, 0) null references."""
+	for row: int in columns[21].size():
+		if columns[22][row] > SUPPORTED_VOID or columns[25][row] > SUPPORTED_VOID \
+				or columns[23][row] > 1 or columns[24][row] > 1 or columns[26][row] < 0:
+			return false
+		for pair: int in [28, 30, 33, 35]:
+			if (columns[pair][row] == -1) != (columns[pair + 1][row] == 0) or columns[pair][row] < -1:
+				return false
+		if row >= count and (columns[28][row] != -1 or columns[30][row] != -1):
+			return false
+	for value: int in columns[27]:
+		if value < 0:
+			return false
+	return true
+
+
+func _save_workers_ok(columns: Array) -> bool:
+	"""A registered worker row names a populated site; an unregistered row is (-1, 0)."""
+	for row: int in Work.RESIDENT_CAPACITY:
+		var site: int = columns[38][row]
+		if site == NO_ROW:
+			if columns[39][row] != 0:
+				return false
+		elif site < 0 or site >= columns[1][0] or columns[39][row] < 1:
+			return false
+	return true
+
+
+func _context_refusal(site: Vector2i) -> StringName:
+	"""Validate world/site/room/project identities before touching a phase collaborator."""
+	if _ready_error != &"" or not is_live_site(site) or _spatial() == null or not _world_is_live():
+		return REFUSE_SITE
+	if _composition_refusal() != &"":
+		return REFUSE_AUTHORITY
+	if not _construction.is_live_project(_project(site.x)):
+		return Construction.REFUSE_STALE_PROJECT_REF
+	return _spatial().room_refusal(_room(site.x))
+
+
+func _bound_refusal(site: Vector2i) -> StringName:
+	"""The phase's actual Job must still name this exact Construction requester generation."""
+	var code: StringName = _context_refusal(site)
+	if code != &"":
+		return code
+	var job_row: int = _job_row(_job(site.x))
+	if job_row == NO_ROW or _jobs.requester_of(job_row) != _project(site.x) \
+			or _jobs.is_coordinator(job_row) or _jobs.is_member(job_row):
+		return REFUSE_JOB
+	if not _jobs.kind_into(job_row, _math) or _math.value != Jobs.JOB_KIND_BUILD:
+		return REFUSE_JOB
+	return &""
+
+
+func _world_is_live() -> bool:
+	"""A recycled World directory slot cannot inherit a prior world's physical source history."""
+	return _jobs.directory().is_valid_of_kind(_domain.world_ref, Directory.KIND_WORLD)
+
+
+func _space_refusal(row: int, operation: int, stage: int) -> StringName:
+	"""Revalidate actual space; only real lifecycle events may prepare a finite publication."""
+	var spatial: SpatialAuthority = _spatial()
+	if spatial == null:
+		return REFUSE_AUTHORITY
+	var code: StringName = spatial.room_refusal(_room(row))
+	if code != &"":
+		return code
+	var origin: Vector3i = origin_of(Vector2i(row, SITE_GENERATION))
+	code = spatial.operation_refusal(origin, operation, stage, _room(row))
+	if stage == STAGE_START or stage == STAGE_COMMIT or stage == STAGE_CANCEL:
+		_candidate_row = row
+		_candidate_stage = stage
+		if code != &"":
+			_discard_candidate()
+	return code
+
+
+func _discard_candidate() -> void:
+	"""Abandon transient space preparation after refusal without rolling back actual owner state."""
+	if _candidate_row == NO_ROW:
+		return
+	var row: int = _candidate_row
+	_spatial().discard_transition(origin_of(Vector2i(row, SITE_GENERATION)),
+		_operation[row], _candidate_stage, _room(row))
+	_candidate_row = NO_ROW
+	_candidate_stage = -1
+
+
+func _publish_candidate(row: int, stage: int) -> void:
+	"""Install only the immediately prepared candidate after physical payment/output commits."""
+	assert(_candidate_row == row and _candidate_stage == stage, "publication requires its exact prepared transition")
+	_publishing_spatial = true
+	_spatial().publish_transition(origin_of(Vector2i(row, SITE_GENERATION)), _operation[row], stage, _room(row))
+	_publishing_spatial = false
+	_candidate_row = NO_ROW
+	_candidate_stage = -1
+
+
+func _job_row(job: Vector2i) -> int:
+	"""Validate Job namespace and full generation, never reinterpret a raw global slot as a row."""
+	if not _jobs.directory().is_valid_of_kind(job, Directory.KIND_JOB):
+		return NO_ROW
+	var row: int = _jobs.directory().get_typed_row(job)
+	return row if _jobs.ref_of(row) == job else NO_ROW
+
+
+func _room(row: int) -> Vector2i:
+	"""Read a full room-owner reference from paired columns."""
+	return Vector2i(_room_slot[row], _room_generation[row])
+
+
+func _project(row: int) -> Vector2i:
+	"""Read this quantum's current paid Construction identity."""
+	return Vector2i(_project_slot[row], _project_generation[row])
+
+
+func _job(row: int) -> Vector2i:
+	"""Read this quantum's actual bound Job generation."""
+	return Vector2i(_job_slot[row], _job_generation[row])
+
+
+func _output(row: int) -> Vector2i:
+	"""Read the finite Inventory output destination, never a virtual spoil buffer."""
+	return Vector2i(_output_slot[row], _output_generation[row])
+
+
+func _ok(site: Vector2i) -> Construction.OpResult:
+	"""Return an explicit successful physical site reference."""
+	return Construction.OpResult.new(true, &"", site.x, site)
+
+
+func _refuse(code: StringName) -> Construction.OpResult:
+	"""A refusal never carries stale output state or a newly allocated reference."""
+	return Construction.OpResult.new(false, code, 0, NULL_REF)

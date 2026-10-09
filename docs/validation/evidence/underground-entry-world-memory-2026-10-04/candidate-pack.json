@@ -1,0 +1,1328 @@
+{
+  "schema": 1,
+  "scope": "source-derived logical allocation pack; runtime qualification remains open",
+  "runtime_qualified": false,
+  "pack": {
+    "REGION_CAPACITY": 6144,
+    "SOURCE_CAPACITY": 2048,
+    "PROOF_CAPACITY": 256,
+    "PHASE_VOLUME_CAPACITY": 8192,
+    "TIP_CAPACITY": 256,
+    "LAYOUT_ROOM_CAPACITY": 256,
+    "LAYOUT_PLACEMENT_CAPACITY": 1024,
+    "LOCATION_CAPACITY": 1024,
+    "INVENTORY_ENDPOINT_CAPACITY": 1024
+  },
+  "columns": {
+    "underground_space_owner": {
+      "_changed_mask": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2621
+      },
+      "_changed_rows": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2620
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 18,
+        "bytes": 144,
+        "resize_expression": "HEADER_FIELDS",
+        "line": 2618
+      },
+      "_o_a": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2686
+      },
+      "_o_b": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2687
+      },
+      "_o_c": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2688
+      },
+      "_o_d": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2689
+      },
+      "_o_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2682
+      },
+      "_o_kind": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2680
+      },
+      "_o_parent_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2685
+      },
+      "_o_parent_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2684
+      },
+      "_o_present": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2679
+      },
+      "_o_revision": {
+        "width": 8,
+        "capacity": 2048,
+        "bytes": 16384,
+        "resize_expression": "_source_capacity",
+        "line": 2683
+      },
+      "_o_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2681
+      },
+      "_r_claim_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2650
+      },
+      "_r_claim_kind": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2635
+      },
+      "_r_claim_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2649
+      },
+      "_r_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2636
+      },
+      "_r_hi_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2640
+      },
+      "_r_hi_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2641
+      },
+      "_r_hi_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2642
+      },
+      "_r_level": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2643
+      },
+      "_r_lo_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2637
+      },
+      "_r_lo_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2638
+      },
+      "_r_lo_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2639
+      },
+      "_r_owner_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2647
+      },
+      "_r_owner_revision": {
+        "width": 8,
+        "capacity": 6144,
+        "bytes": 49152,
+        "resize_expression": "_region_capacity",
+        "line": 2648
+      },
+      "_r_owner_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2646
+      },
+      "_r_present": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2632
+      },
+      "_r_retired": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2633
+      },
+      "_r_role": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2634
+      },
+      "_r_section_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2645
+      },
+      "_r_section_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2644
+      },
+      "_region_free_heap": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2622
+      },
+      "_s_header": {
+        "width": 8,
+        "capacity": 18,
+        "bytes": 144,
+        "resize_expression": "HEADER_FIELDS",
+        "line": 2619
+      },
+      "_s_o_a": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2702
+      },
+      "_s_o_b": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2703
+      },
+      "_s_o_c": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2704
+      },
+      "_s_o_d": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2705
+      },
+      "_s_o_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2698
+      },
+      "_s_o_kind": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2696
+      },
+      "_s_o_parent_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2701
+      },
+      "_s_o_parent_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2700
+      },
+      "_s_o_present": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2695
+      },
+      "_s_o_revision": {
+        "width": 8,
+        "capacity": 2048,
+        "bytes": 16384,
+        "resize_expression": "_source_capacity",
+        "line": 2699
+      },
+      "_s_o_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2697
+      },
+      "_s_r_claim_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2674
+      },
+      "_s_r_claim_kind": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2659
+      },
+      "_s_r_claim_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2673
+      },
+      "_s_r_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2660
+      },
+      "_s_r_hi_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2664
+      },
+      "_s_r_hi_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2665
+      },
+      "_s_r_hi_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2666
+      },
+      "_s_r_level": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2667
+      },
+      "_s_r_lo_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2661
+      },
+      "_s_r_lo_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2662
+      },
+      "_s_r_lo_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2663
+      },
+      "_s_r_owner_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2671
+      },
+      "_s_r_owner_revision": {
+        "width": 8,
+        "capacity": 6144,
+        "bytes": 49152,
+        "resize_expression": "_region_capacity",
+        "line": 2672
+      },
+      "_s_r_owner_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2670
+      },
+      "_s_r_present": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2656
+      },
+      "_s_r_retired": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2657
+      },
+      "_s_r_role": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2658
+      },
+      "_s_r_section_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2669
+      },
+      "_s_r_section_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2668
+      },
+      "_s_region_free_heap": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2623
+      },
+      "_s_source_free_heap": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2625
+      },
+      "_source_free_heap": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2624
+      }
+    },
+    "underground_space_authority": {
+      "_free": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 278
+      },
+      "_next_i32": {
+        "width": 4,
+        "capacity": 11,
+        "bytes": 44,
+        "resize_expression": "I32_FIELDS",
+        "line": 279
+      },
+      "_next_i64": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "I64_FIELDS",
+        "line": 280
+      },
+      "_ordered": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 277
+      },
+      "_present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 274
+      },
+      "_proof_i32": {
+        "width": 4,
+        "capacity": 2816,
+        "bytes": 11264,
+        "resize_expression": "_capacity * I32_FIELDS",
+        "line": 275
+      },
+      "_proof_i64": {
+        "width": 8,
+        "capacity": 512,
+        "bytes": 4096,
+        "resize_expression": "_capacity * I64_FIELDS",
+        "line": 276
+      }
+    },
+    "spoil_tips": {
+      "_earned_mwu": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "_capacity * OP_COUNT",
+        "line": 113
+      },
+      "_embedded_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 109
+      },
+      "_free_heap": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 115
+      },
+      "_generation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 104
+      },
+      "_incoming_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 112
+      },
+      "_locked_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 111
+      },
+      "_operation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 108
+      },
+      "_prepared": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 103
+      },
+      "_present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 101
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 107
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 106
+      },
+      "_quantity_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 110
+      },
+      "_retained_quantity": {
+        "width": 8,
+        "capacity": 512,
+        "bytes": 4096,
+        "resize_expression": "_capacity * 2",
+        "line": 114
+      },
+      "_retired": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 102
+      },
+      "_tile": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 105
+      },
+      "_tile_row": {
+        "width": 4,
+        "capacity": 16384,
+        "bytes": 65536,
+        "resize_expression": "MAX_CAPACITY",
+        "line": 116
+      }
+    },
+    "room_layout": {
+      "_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 236
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 243
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 242
+      },
+      "_room_generations": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 227
+      },
+      "_room_modes": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_room_capacity",
+        "line": 229
+      },
+      "_room_row": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 237
+      },
+      "_room_slots": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 225
+      },
+      "_room_types": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 228
+      },
+      "_rotation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 241
+      },
+      "_state": {
+        "width": 1,
+        "capacity": 1024,
+        "bytes": 1024,
+        "resize_expression": "_placement_capacity",
+        "line": 235
+      },
+      "_type": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 238
+      },
+      "_x": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 239
+      },
+      "_z": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 240
+      }
+    },
+    "modular_projects": {
+      "_delivery_totals": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "DELIVERY_CAPACITY",
+        "line": 80
+      },
+      "_job_generation": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      },
+      "_job_slot": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      }
+    },
+    "inventory_spatial": {
+      "_spatial_container_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4981
+      },
+      "_spatial_container_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4980
+      },
+      "_spatial_location_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4983
+      },
+      "_spatial_location_revision": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "capacity",
+        "line": 4984
+      },
+      "_spatial_location_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4982
+      }
+    }
+  },
+  "quote": {
+    "columns": {
+      "input_milli": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "INPUT_CAPACITY"
+      },
+      "output_item": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_milli": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_quality": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_provenance": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_recipe": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_age": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_remainder": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      }
+    },
+    "numeric_control_bytes": 72,
+    "consumers": [
+      [
+        "construction",
+        "_modular_quote"
+      ],
+      [
+        "excavation_inventory",
+        "_quote"
+      ],
+      [
+        "modular_projects",
+        "_quote"
+      ]
+    ]
+  },
+  "furniture_bridge_cold": {
+    "members": [
+      "_furniture_entries",
+      "_furniture_input_entries",
+      "_furniture_pins",
+      "_furniture_rows"
+    ],
+    "private_bytes_per_pair": 60,
+    "numeric_control_bytes": 16,
+    "borrowed_entry_bytes_per_pair": 16,
+    "scope": "Exact shared cold lease only; borrowed input is owned by the caller's separately charged packet."
+  },
+  "connector_recipe_reservation": {
+    "columns": {
+      "_digests": {
+        "width": 1,
+        "capacity": 96,
+        "bytes": 96,
+        "resize_expression": "96",
+        "line": 65
+      },
+      "_hash": {
+        "width": 1,
+        "capacity": 32,
+        "bytes": 32,
+        "resize_expression": "32",
+        "line": 71
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "4",
+        "line": 64
+      },
+      "_input_count": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 67
+      },
+      "_input_key": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_input_capacity",
+        "line": 68
+      },
+      "_part": {
+        "width": 4,
+        "capacity": 9,
+        "bytes": 36,
+        "resize_expression": "9",
+        "line": 72
+      },
+      "_part_id": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 66
+      },
+      "_quantity": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "_input_capacity",
+        "line": 70
+      },
+      "_work_mwu": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 69
+      }
+    },
+    "part_capacity": 256,
+    "bank_bytes": 16512,
+    "fixed_bytes": 512,
+    "assembly_reservation": {
+      "columns": {
+        "_digests": {
+          "width": 1,
+          "capacity": 96,
+          "bytes": 96,
+          "resize_expression": "96",
+          "line": 66
+        },
+        "_first_part": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 68
+        },
+        "_hash": {
+          "width": 1,
+          "capacity": 32,
+          "bytes": 32,
+          "resize_expression": "32",
+          "line": 71
+        },
+        "_header": {
+          "width": 8,
+          "capacity": 7,
+          "bytes": 56,
+          "resize_expression": "7",
+          "line": 65
+        },
+        "_kind": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 67
+        },
+        "_part": {
+          "width": 4,
+          "capacity": 9,
+          "bytes": 36,
+          "resize_expression": "9",
+          "line": 72
+        },
+        "_part_count": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 69
+        },
+        "_recipe_anchor": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 70
+        }
+      },
+      "group_capacity": 256,
+      "bank_bytes": 4248,
+      "fixed_bytes": 512,
+      "reserved_bytes": 4760
+    },
+    "surface_anchor_reservation": {
+      "numeric_control_bytes": 93,
+      "packet_bytes": 204,
+      "surface_metadata_bytes": 24,
+      "fixed_numeric_and_packed_bytes": 321,
+      "reserved_bytes": 2048,
+      "logical_helper_allowance_bytes": 1024,
+      "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."
+    },
+    "funding_settlement_reservation": {
+      "fields": {
+        "_settling_project": "Vector2i",
+        "_settling_job": "Vector2i"
+      },
+      "reserved_bytes": 16,
+      "scope": "Same-stack input settlement only; existing refund scratch is reused. Native references and helper frames remain unmeasured."
+    },
+    "placement_reservation": {
+      "placement_capacity": 256,
+      "opening_capacity": 512,
+      "bank_columns": {
+        "header": {
+          "width": 8,
+          "capacity": 16,
+          "bytes": 128,
+          "resize_expression": "16"
+        },
+        "digests": {
+          "width": 1,
+          "capacity": 128,
+          "bytes": 128,
+          "resize_expression": "128"
+        },
+        "i32": {
+          "width": 4,
+          "capacity": 4608,
+          "bytes": 18432,
+          "resize_expression": "I32_FIELDS * placements"
+        },
+        "i64": {
+          "width": 8,
+          "capacity": 512,
+          "bytes": 4096,
+          "resize_expression": "I64_FIELDS * placements"
+        },
+        "present": {
+          "width": 1,
+          "capacity": 256,
+          "bytes": 256,
+          "resize_expression": "placements"
+        },
+        "retired": {
+          "width": 1,
+          "capacity": 256,
+          "bytes": 256,
+          "resize_expression": "placements"
+        },
+        "openings": {
+          "width": 4,
+          "capacity": 4096,
+          "bytes": 16384,
+          "resize_expression": "OPENING_FIELDS * targets"
+        },
+        "opening_revision": {
+          "width": 8,
+          "capacity": 512,
+          "bytes": 4096,
+          "resize_expression": "targets"
+        },
+        "free_rows": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "placements"
+        },
+        "free_openings": {
+          "width": 4,
+          "capacity": 512,
+          "bytes": 2048,
+          "resize_expression": "targets"
+        }
+      },
+      "two_bank_bytes": 93696,
+      "audit_marks_bytes": 768,
+      "stream_reserved_bytes": 4096,
+      "fixed_controls": {
+        "components": {
+          "owner": 119,
+          "bank_free_counts": 32,
+          "installation_context": 112,
+          "room_context": 80,
+          "phase_context": 128,
+          "directory_candidate": 32,
+          "private_and_caller_requests": 616,
+          "shared_order_and_assembly_records": 128,
+          "returned_result": 8,
+          "final_digest": 32,
+          "helper_frames": 512
+        },
+        "total_bytes": 1799
+      },
+      "control_reserve_bytes": 2048,
+      "native_reserve_bytes": 8192,
+      "reserved_bytes": 108800
+    },
+    "connector_work_reservation": {
+      "additional_numeric_bytes": 51,
+      "aliased_record_bytes_already_charged": 128,
+      "helper_allowance_bytes": 512,
+      "isolated_numeric_and_helper_bytes": 691,
+      "reserved_bytes": 563
+    },
+    "entry_frontier_reservation": {
+      "reserved_bytes": 28597,
+      "fixed_bytes": 2048,
+      "wire_row_bytes": [
+        36,
+        80,
+        28,
+        36,
+        40,
+        76
+      ],
+      "scope": "One immutable configured reader; the whole ceiling includes its fixed header and controls. Native growth remains unqualified."
+    },
+    "entry_bindings_reservation": {
+      "numeric_controls": 74,
+      "packet_bytes": 300,
+      "packed_rows": 112,
+      "fixed_numeric_and_packed_bytes": 486,
+      "logical_helper_allowance_bytes": 2048,
+      "reserved_bytes": 4096,
+      "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
+    },
+    "connector_contacts_reservation": {
+      "numeric_controls": 221,
+      "packed_rows": 452,
+      "fragment_banks_and_controls": 1633,
+      "owned_packet_bytes": 753,
+      "fixed_numeric_and_packed_bytes": 3059,
+      "logical_helper_allowance_bytes": 1024,
+      "reserved_bytes": 4096,
+      "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."
+    },
+    "known_binding_consumers": {
+      "connector_catalog": 190448,
+      "world_routes": 163840,
+      "connector_recipes": 17024,
+      "connector_assemblies": 4760,
+      "surface_anchor": 2048,
+      "connector_settlement": 16,
+      "connector_placements": 108800,
+      "connector_work": 563,
+      "entry_frontier": 28597,
+      "entry_bindings": 4096,
+      "connector_contacts": 4096
+    },
+    "known_binding_used_bytes": 524288,
+    "remaining_binding_reserve_bytes": 0,
+    "scope": "Known logical consumers include concrete Frontier, EntryBindings and Contacts. The shared bindings reserve is fully assigned; whole native memory qualification remains open."
+  },
+  "excavation_start_controls": {
+    "fields": {
+      "_starting": "bool",
+      "_start_poisoned": "bool",
+      "_settling": "bool",
+      "_settlement_poisoned": "bool"
+    },
+    "numeric_bytes": 4,
+    "scope": "Same-stack START and settlement guards only; no packed or saved state. Existing native/frame qualification remains open."
+  },
+  "entry_structure_reservation": {
+    "columns": {
+      "_entry_episode": {
+        "width": 4,
+        "capacity": 19,
+        "bytes": 76,
+        "resize_expression": "19",
+        "line": 38
+      },
+      "_entry_frame": {
+        "width": 4,
+        "capacity": 9,
+        "bytes": 36,
+        "resize_expression": "9",
+        "line": 37
+      }
+    },
+    "numeric_control_bytes": 41,
+    "fixed_numeric_and_packed_bytes": 153,
+    "logical_helper_allowance_bytes": 231,
+    "reserved_bytes": 384,
+    "check_peak_bytes": 1048912,
+    "scope": "Additional binding reserve; inherited structure counted once. No native-memory qualification."
+  },
+  "entry_world_reservation": {
+    "columns": {
+      "_entry_air": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 53
+      },
+      "_entry_box": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 52
+      },
+      "_entry_reach": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 54
+      }
+    },
+    "numeric_control_bytes": 130,
+    "fixed_numeric_and_packed_bytes": 202,
+    "logical_helper_allowance_bytes": 1024,
+    "reserved_bytes": 2048,
+    "scope": "Additional phase composer only; one borrowed Contacts and existing World base counted once. Native headers and composed peak remain unqualified."
+  },
+  "contributions": {
+    "excavation_start_controls": 4,
+    "entry_structure_bindings": 384,
+    "entry_world_bindings": 2048,
+    "space_banks_and_indexes": 1104160,
+    "phase_proof_cache_and_candidate": 17724,
+    "shared_geometry_cold_peak": 1048960,
+    "space_known_numeric_controls": 686,
+    "tips_live_and_cold_image_peak": 123440,
+    "layout_retained_columns": 37120,
+    "shared_router_and_funding_increment": 275099,
+    "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
+    "INVENTORY_EXTENSION_BYTES": 131072,
+    "PROFILE_BYTES": 262144,
+    "TERRAIN_BYTES": 131072,
+    "LAYOUT_COLD_BYTES": 262144,
+    "BINDINGS_AND_GROWTH_BYTES": 524288
+  },
+  "new_mutable_and_reserved_bytes": 4968921,
+  "declaration_bytes": 23573,
+  "declaration_delta_bytes": 2388,
+  "live_with_reserve_bytes": 99961686,
+  "headroom_bytes": 38314,
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
+    "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
+    "godot/scripts/core/excavation_sites.gd": "71548ca75917cf3aaca90469f2e23b15354b87744e1feb640b8f3655de1e55a0",
+    "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
+    "godot/scripts/core/inventory.gd": "9f0c90374608154dd2ab65b57b6ea93b883fd627a01130a60deb1d50b2c67f34",
+    "godot/scripts/core/modular_project_contract.gd": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
+    "godot/scripts/core/modular_projects.gd": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
+    "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
+    "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
+    "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+    "godot/scripts/core/underground_connector_catalog.gd": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
+    "godot/scripts/core/underground_connector_contacts.gd": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d",
+    "godot/scripts/core/underground_connector_placements.gd": "b09b4848a9435446dbbf67decfcac4122f54113f71be8815eebd082dd7a6a098",
+    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
+    "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
+    "godot/scripts/core/underground_entry_bindings.gd": "c48c610e53878b7d14c21cf19180c1c7344b86e4d431213e172cb8fdb7d85658",
+    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+    "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
+    "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "godot/scripts/core/underground_locations.gd": "8d8214c4f93415d694bcb06e7889e8ea9e6fe4af1262fb5ad3452ce676720ffc",
+    "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
+    "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
+    "godot/scripts/core/underground_space_owner.gd": "cec0e5f6c6d31bc590ae0a946b4cdfd62b5333bf8d233e68d126cb5d3fc4c077",
+    "godot/scripts/core/underground_surface_anchor.gd": "ccf119bd999a8d05b65e7e35806b37aade88588e0a7c922185bcf86c72aa4fa3",
+    "godot/scripts/core/underground_world_routes.gd": "f42a9b4d3936483e7937f9a732f1ba315d2528f1eb7153351bfb4656db4212ba"
+  },
+  "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
+  "limitations": [
+    "Constructor limits alone are not joint runtime admission.",
+    "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",
+    "Location/topology, profile, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
+    "All native headers, Variant/Array capacity growth, restored copies and omitted future fields must fit measured reserves before activation.",
+    "Physical phase, generic three-survey validation and wire capture are mutually exclusive cold operations unless their combined actual charge fits."
+  ]
+}

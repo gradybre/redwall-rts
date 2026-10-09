@@ -1,0 +1,128 @@
+extends RefCounted
+## Protocol6 reuses the same Actor and route columns. It allocates no owner or per-actor state.
+
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Parent := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
+const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const PROGRAM_SHA: String = "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0"
+const VERSION: int = 6
+const TAG: int = 0x11680000
+const PROFILE_COUNT: int = 29
+const SHORT_FORWARD: int = 10
+const SHORT_BACKWARD: int = 11
+const GROUND: int = 12
+const WORK_FIRST: int = 13
+const DISTANCE: int = 232
+const PACE: int = 3277
+const MAX_MOVES: int = 3
+const I32_MAX: int = 2147483647
+
+
+static func uses(actual: Profiles) -> bool:
+	"""Count selects only a protocol parser; complete source and descriptor leaves still confer no World permission."""
+	return actual != null and actual._live != null and (actual._live.header[1] == PROFILE_COUNT \
+		or Assembly.uses(actual))
+
+
+static func is_short(profile: int) -> bool:
+	"""Only the two explicit finite source rows may consume the narrower complete prefix union."""
+	return profile == SHORT_FORWARD or profile == SHORT_BACKWARD
+
+
+static func mapped(profile: int) -> int:
+	"""Reuse unchanged phase equations without exchanging the actual published row or its source identity."""
+	if profile >= WORK_FIRST: return profile - 3
+	if profile == SHORT_BACKWARD: return 9
+	return 5 if profile == SHORT_FORWARD or profile == GROUND else profile
+
+
+static func profile_refusal(actual: Profiles, profile: int, revision: int, content: int) -> StringName:
+	"""Pin the original full Actor digest, new immutable policy and complete exact descriptor orientation."""
+	var policy: int = Profiles.selection_policy_leaf(actual, profile, revision, content)
+	if not uses(actual) or profile < 2 or profile >= PROFILE_COUNT or policy < 1:
+		return &"ROUTE_SOURCE_PROFILE"
+	var expected: int = Profiles.POLICY_SOURCE_WORK if profile >= WORK_FIRST else (1 if profile < 6 else 2)
+	if profile == SHORT_FORWARD: expected = Profiles.POLICY_SHORT_FORWARD
+	elif profile == SHORT_BACKWARD: expected = Profiles.POLICY_SHORT_BACKWARD
+	elif profile == GROUND: expected = Profiles.POLICY_CANONICAL_GROUND
+	@warning_ignore("integer_division") var yaw: int = ((profile - WORK_FIRST) / 4) * 16384 if profile >= WORK_FIRST else ((profile - 2) % 4) * 16384
+	if is_short(profile): yaw = 49152
+	elif profile == GROUND: yaw = 0
+	var stride: int = actual._profile_capacity
+	if policy != expected or actual._live.flags[profile] != Profiles.CERT_REQUIRED \
+			or actual._live.fields[Profiles.F_MODE * stride + profile] != (Profiles.MODE_WORK if profile >= WORK_FIRST else Profiles.MODE_WALK) \
+			or actual._live.fields[Profiles.F_YAW_KIND * stride + profile] != (Profiles.YAW_ALL if profile == GROUND else Profiles.YAW_EXACT) \
+			or actual._live.fields[Profiles.F_YAW * stride + profile] != yaw:
+		return &"ROUTE_SOURCE_PROFILE"
+	return _actor_refusal(actual, profile)
+
+
+static func _actor_refusal(actual: Profiles, profile: int) -> StringName:
+	"""Read immutable digest columns without decoding or retaining another ActorContent or hash buffer."""
+	var source: int = actual._live.fields[Profiles.F_SOURCE * actual._profile_capacity + profile]
+	if source < 0 or source >= actual._live.header[3]: return &"ROUTE_SOURCE_PROFILE"
+	for byte: int in 32:
+		var high: int = Parent.ACTOR_SHA.unicode_at(byte * 2)
+		var low: int = Parent.ACTOR_SHA.unicode_at(byte * 2 + 1)
+		high -= 48 if high <= 57 else 87
+		low -= 48 if low <= 57 else 87
+		if actual._live.sources[source * 32 + byte] != high * 16 + low: return &"ROUTE_SOURCE_PROFILE"
+	return &""
+
+
+static func word(route_phase: int, source_phase: int) -> int:
+	"""The new version remains explicit even when all physical columns have unchanged widths."""
+	return TAG | (source_phase << 2) | route_phase
+
+
+static func clock_refusal(source_word: int, source_clock: int, profile: int) -> StringName:
+	"""Validate exact new-version phases before delegating only unchanged source equations."""
+	if (source_word & ~63) != TAG or profile < 2 or profile >= PROFILE_COUNT:
+		return &"ROUTE_SOURCE_CLOCK"
+	var phase: int = (source_word >> 2) & 15
+	var code: StringName = Parent.clock_refusal(Parent.word(source_word & 3, phase), source_clock, mapped(profile))
+	if code != &"" or not is_short(profile): return code
+	var time: int = source_clock & I32_MAX
+	var old: int = source_clock >> 32
+	if phase == Parent.WALK:
+		return &"" if time % Parent.ONE == 0 and time < MAX_MOVES * Parent.ONE else &"ROUTE_SOURCE_PREFIX_EXHAUSTED"
+	if phase == Parent.FADE_WALK or phase == Parent.FADE_READY:
+		return &"" if time % Parent.ONE == 0 and old == (MAX_MOVES * Parent.ONE if phase == Parent.FADE_READY else 0) else &"ROUTE_SOURCE_CLOCK"
+	return &"" if phase == Parent.READY else &"ROUTE_SOURCE_CLOCK"
+
+
+static func span_refusal(profile: int, first: Vector3i, last: Vector3i, count: int, pace: int) -> StringName:
+	"""The full finite programme is one terminal232u +X or −X span at the unchanged actual ground rate."""
+	if not is_short(profile): return &""
+	var direction: int = -1 if profile == SHORT_BACKWARD else 1
+	if count != 2 or pace != PACE or last.x - first.x != direction * DISTANCE \
+			or last.y != first.y or last.z != first.z:
+		return &"ROUTE_SOURCE_STEP_SPAN"
+	return &""
+
+
+static func progress_refusal(source_word: int, source_clock: int, progress: int, remainder: int, occupied: bool) -> StringName:
+	"""The saved exact rational fraction and accepted source count must describe the same unchanged232u prefix."""
+	if progress < 0 or progress >= DISTANCE or remainder < 0: return &"ROUTE_SOURCE_STEP_PROGRESS"
+	var numerator: int = remainder >> 32
+	var denominator: int = remainder & 4294967295 if remainder != 0 else 1
+	if denominator < 1 or denominator > I32_MAX or numerator >= denominator \
+			or (remainder != 0 and (numerator == 0 or _gcd(numerator, denominator) != 1)):
+		return &"ROUTE_SOURCE_STEP_PROGRESS"
+	var phase: int = (source_word >> 2) & 15
+	if phase != Parent.WALK:
+		return &"" if not occupied and progress == 0 and (phase != Parent.FADE_READY or remainder == 0) else &"ROUTE_SOURCE_STEP_PROGRESS"
+	@warning_ignore("integer_division") var moves: int = (source_clock & I32_MAX) / Parent.ONE
+	var initial: int = 30 * (progress * denominator + numerator) - moves * PACE * denominator
+	if (moves == 0 and occupied) or (moves > 0 and not occupied) or initial < 0 or initial >= 30 * denominator:
+		return &"ROUTE_SOURCE_STEP_PROGRESS"
+	return &""
+
+
+static func _gcd(first: int, second: int) -> int:
+	"""Euclid on already bounded nonnegative31-bit fraction components; no rounding or temporary array."""
+	while second != 0:
+		var next: int = first % second
+		first = second
+		second = next
+	return first

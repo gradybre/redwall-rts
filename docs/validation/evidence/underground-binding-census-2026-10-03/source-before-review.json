@@ -1,0 +1,6 @@
+{
+  "tools/underground_memory_budget.py": "2f22ff49f9cd1c9d0bed8e0dc72a0fea6d7dc9c7ca13b939618a1287d33e60ec",
+  "tools/test_underground_memory_budget.py": "2b76a6d443e4f14de86b36eb9c54d334683b7f6e130616f8be15e491fd403364",
+  "docs/planning/underground_memory_pack.json": "f0f40126bd40092e1780f000084f7791f454379187818a05f5853832ddb15a5e",
+  "docs/decisions/1110-complete-connector-binding-memory-census.md": "ba0322a2a1da1bfdd91129f9c55a1447bb9502f729775fc7b22148da49876677"
+}

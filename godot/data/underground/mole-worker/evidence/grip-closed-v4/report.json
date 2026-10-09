@@ -1,0 +1,21 @@
+{
+	"changed_vertices": [
+		845,
+		845
+	],
+	"derived_mesh_sha256": [
+		"30c08ef659b88622655ebb3c3dbcbb7d7d89ad3e61b735296211ad5322c95788",
+		"29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14"
+	],
+	"hand_geometry": "authored distal palm contraction; original rig, weights and materials",
+	"original_mesh_sha256": [
+		"a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+		"a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+		"a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1"
+	],
+	"poses": 642,
+	"production_qualified": false,
+	"schema": 1,
+	"source_mesh_unchanged_checks": 3,
+	"status": "VISUAL_CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW_AND_REBAKE"
+}

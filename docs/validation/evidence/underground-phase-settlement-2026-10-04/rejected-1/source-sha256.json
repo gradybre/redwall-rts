@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/excavation_contract.gd": "b95fbaa2b9b33a4f92a5631f8a8c77d39a4af4ee774b6f5e0fdae12c3e17d599",
+  "godot/scripts/core/excavation_inventory.gd": "39bbce30c7866b0d77d091aecb53881e6eb2ded949a7b8f3935f2a8e5d17e284",
+  "godot/scripts/core/excavation_sites.gd": "5afc94f03828ba608de12dbda3da59580edea5a0f0d098fb0ae4764ab2fc6fb3",
+  "godot/scripts/core/reservations.gd": "dd30bb3ce6df57c0df9418d1def4787309fa973f6aced30f73573c66706eff54",
+  "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
+  "godot/scripts/core/inventory.gd": "bc118783fb70ca83f6eece62ab54e2b8cad3cfa5ba02b5cbc6393a88bc3d1560",
+  "godot/test/test_excavation_sites.gd": "29120aae3f7464153bc20705d91580fa078a35f093cd659c5bcb9a1165a09aac",
+  "godot/test/test_excavation_physical.gd": "a741d306af42b2ee475e67d04d230493ca5b7e43ef7f5ccb48587b05dda1cce3",
+  "godot/test/test_excavation_phase_start_guard.gd": "e870ec8ecac0e4188d21864aa710901da9d4171495ce918697d9ba1fa9c63857",
+  "godot/test/test_excavation_phase_settlement_guard.gd": "ff2d9c89746c570885d2a0faac6740f59896556d90c5ba4ad80b2290e212c875"
+}

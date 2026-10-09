@@ -1,0 +1,8 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-r2a6033v
+import exit 0 diagnostics []
+test_underground_phase_structure.gd exit 1
+FAIL C6 underground_phase_structure.gd line 1452: `_handles` has no resize() call; say 'never allocated'
+FAIL C6 underground_phase_structure.gd line 1452: `_front` has no resize() call; say 'never allocated'
+FAIL C6 underground_phase_structure.gd line 1452: `_back` has no resize() call; say 'never allocated'
+state_registry_coverage: 3 failure(s)
+assets restored True

@@ -1,0 +1,125 @@
+{
+  "scope": "Latest successful run of each focused suite after the related migrations; these are not a full suite or same-head CI equivalence. Failed attempts and raw diagnostics remain in preceding runs.",
+  "suites": {
+    "test_mole_qualified_profiles.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1/test_mole_qualified_profiles.gd.log",
+      "sha256": "979dcc646b4f2e467db97038c960744cfad702bc497370f1a9eb1db4b2e470ac",
+      "summary": "10 test(s), 353 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 10,
+      "assertions": 353
+    },
+    "test_demo_profile_pack.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1/test_demo_profile_pack.gd.log",
+      "sha256": "1ece18dbe8688e661fad406b78ac52cdf9ccffa913ab3ed7bc2628dd1f5d8a96",
+      "summary": "5 test(s), 21 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 5,
+      "assertions": 21
+    },
+    "test_underground_motion_catalog.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-1/test_underground_motion_catalog.gd.log",
+      "sha256": "2e68d95d53b75d2a25ac3b297e20293b3cc0563f550df7b11dca597bf57aad12",
+      "summary": "15 test(s), 13686 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 15,
+      "assertions": 13686
+    },
+    "test_underground_motion_clock.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-2/test_underground_motion_clock.gd.log",
+      "sha256": "8a4d096acdfa1bec41025f825686627b94aaf8c746164eb86f271f6ad95f8996",
+      "summary": "14 test(s), 2090 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 14,
+      "assertions": 2090
+    },
+    "test_underground_session.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-3/test_underground_session.gd.log",
+      "sha256": "4586d66aab567ec64ecaa1fac1a57433120892a090d3a40de49ddb92c611fb8c",
+      "summary": "15 test(s), 225 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 15,
+      "assertions": 225
+    },
+    "test_underground_host.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-3/test_underground_host.gd.log",
+      "sha256": "b8d4240e1958aab65818a5e13adacfbfbba30e330471ec45e7712ec20fb35f1b",
+      "summary": "21 test(s), 219 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 21,
+      "assertions": 219
+    },
+    "test_underground_room_world_phases.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4/test_underground_room_world_phases.gd.log",
+      "sha256": "05a3bc0ef1116bcb945788fae4becb9bd0add15ee1570f4989503149b112f801",
+      "summary": "24 test(s), 290 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 24,
+      "assertions": 290
+    },
+    "test_underground_room_frontier.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4/test_underground_room_frontier.gd.log",
+      "sha256": "34e948c4834280d256fbfd12ef6875fdd1109825d2f62ac008c9e131e07b140b",
+      "summary": "9 test(s), 112 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 9,
+      "assertions": 112
+    },
+    "test_underground_connector_contacts.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4/test_underground_connector_contacts.gd.log",
+      "sha256": "d78afbdc4f45008ae5cba15de5675fbeb8d978504bb235c6a5fa1da9db465882",
+      "summary": "30 test(s), 7423 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 30,
+      "assertions": 7423
+    },
+    "test_underground_connector_delivery.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4/test_underground_connector_delivery.gd.log",
+      "sha256": "a52c55c10c25d0392f0627dee24d66ee2fc0c8cf242b875df3cdaf3ad3f57cd4",
+      "summary": "13 test(s), 4370 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 13,
+      "assertions": 4370
+    },
+    "test_underground_profiles.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4/test_underground_profiles.gd.log",
+      "sha256": "4bf498090c0e6312ac03b8e4f17a2e515180677aeffd30b38bd6249e57e255c1",
+      "summary": "27 test(s), 643 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 27,
+      "assertions": 643
+    },
+    "test_mole_profile_driver.gd": {
+      "path": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/profile-integration-4/test_mole_profile_driver.gd.log",
+      "sha256": "754958312452badb576ab247abe3f347017597079b4e3e6fd4c5e6ceb0ec6205",
+      "summary": "16 test(s), 1472 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "tests": 16,
+      "assertions": 1472
+    }
+  },
+  "tests": 199,
+  "assertions": 30904,
+  "failures": 0,
+  "unexpected_diagnostics": 0,
+  "leaks": 0,
+  "analyzer": "0 GDScript warning(s) in 0 of 1243 file(s)",
+  "analyzer_scope": "Before1160 UI integration, whose exact current source has separate accepted0/4 evidence; full new integrated analyzer remains required.",
+  "memory_tests": "Ran235 tests in79.133s; OK",
+  "memory_tests_log": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/integrated-memory-tests-2.log",
+  "independent_review": "docs/validation/evidence/underground-world-create-reset-2026-10-04/root-budget-review/",
+  "state_registry": "PASS150 modules,727 rows,1055 packed columns",
+  "full_milestone": "pending"
+}

@@ -1,0 +1,11 @@
+{
+  "source": "godot/scripts/core/underground_motion_clock.gd",
+  "source_sha256": "fc399a6d36c36422cf9052ccf053031fb96b17e3b12bd572271662b3e7f33edf",
+  "previous_sha256": "51e9d783a79b9d74e26a64b88eb05f8927f18ca968dccabc32f9bdbfe5f74973",
+  "only_change": "SOURCE_WIRE_SHA String literal, same width",
+  "stripped_executable_sha256": "c31c963c91806c8f440635ec494e23e65b5f5af894cf17ffcf2ec419d3ae5f5d",
+  "new_motion_sha256": "2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986",
+  "retained_control_array_and_callgraph_delta": 0,
+  "numeric_timing_constants_unchanged": true,
+  "accepted": true
+}

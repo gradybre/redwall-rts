@@ -1,0 +1,6 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_connector_delivery.gd:53: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_work_tick" is declared but never used in the class.
+scripts/core/underground_connector_delivery.gd:309: (STATIC_CALLED_ON_INSTANCE): The function "_v()" is a static function but was called from an instance. Instead, it should be directly called from the type: "res://scripts/core/underground_connector_catalog.gd._v()".
+scripts/core/underground_connector_delivery.gd:311: (STATIC_CALLED_ON_INSTANCE): The function "_v()" is a static function but was called from an instance. Instead, it should be directly called from the type: "res://scripts/core/underground_connector_catalog.gd._v()".
+test/test_underground_connector_delivery.gd:252: (STATIC_CALLED_ON_INSTANCE): The function "turn_actor()" is a static function but was called from an instance. Instead, it should be directly called from the type: "res://scripts/core/underground_world_routes.gd.turn_actor()".
+4 GDScript warning(s) in 2 of 4 file(s)

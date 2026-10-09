@@ -1,0 +1,13 @@
+{
+  "scope": "Pre-integration source review only; no engine or source writes in reviewed worktrees.",
+  "root_head": "5d5cfb05a2c2d2c2ad3dd5167ef624e9140cc036",
+  "reviewed_files": {
+    "godot/scripts/core/underground_connector_contacts.gd": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
+    "godot/scripts/core/underground_connector_delivery.gd": "e1d05e0d12980322b4710fd3b2710056da0efa51f882134397204969ca7c3bee"
+  },
+  "geometry_draft_context": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/scripts/core/underground_routes.gd",
+    "sha256": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "status": "Draft API context, runtime-7 in progress; not reviewed dependency acceptance."
+  }
+}

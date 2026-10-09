@@ -1,0 +1,9 @@
+{
+  "images_sha256": {
+    "overview.png": "e535db0f79a69ab61b10b8acc25d90f1bab3dd31a2adf98e635cf1a5a7c41975",
+    "motion.png": "0a6f543090d8ec9fd24620045a1bafcad13a8349a121658b11cb17b83ba3b4c7",
+    "paws.png": "8392aa2bf4c263bd0a491db2887a78f0561063c1d90ed845fd7817d090610f1d"
+  },
+  "renderer_sha256": "653b8db1d9a296686db2db03f53c395d5a022f7747595b7b0554f540edee40e1",
+  "approach_sha256": "ad74ec3fde23a9152f9293a2df0d7f7bacc2cbd9be4ec1a7818633a0bcb6b4b6"
+}

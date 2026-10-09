@@ -1,0 +1,42 @@
+{
+  "failed-jobs.log.gz": {
+    "decoded_bytes": 873259,
+    "decoded_sha256": "8db1919cca5dfa7b0f009d54c0f5ceedf2fa8045fd5d1dd5e807b1c3fc950a37"
+  },
+  "analyzer-job.log.gz": {
+    "decoded_bytes": 572349,
+    "decoded_sha256": "9cb5d93dab08b4f1f24adf33e4b85468d84cf253391679e2e9315b1cebb455af"
+  },
+  "artifacts/godot-shard-0/shard-0.log.gz": {
+    "decoded_bytes": 272899,
+    "decoded_sha256": "4739f831e317d35b696d147bd798241b769e4b4b2bc890a03abd54d7208a6c29"
+  },
+  "artifacts/godot-shard-1/shard-1.log.gz": {
+    "decoded_bytes": 111650,
+    "decoded_sha256": "52a259077395f96ed7f618c9c8cc090da45292e017e2a5af7d7fe83690d66f70"
+  },
+  "artifacts/godot-shard-2/shard-2.log.gz": {
+    "decoded_bytes": 100474,
+    "decoded_sha256": "0736dc5cfac301cce18948e267486504dc970d72fd98b12bf9dc8834e969e731"
+  },
+  "artifacts/godot-shard-3/shard-3.log.gz": {
+    "decoded_bytes": 253788,
+    "decoded_sha256": "ce19eae210fbd2da511ccb123773156096c66b92b966d62777ec50e66092eaae"
+  },
+  "artifacts/godot-shard-4/shard-4.log.gz": {
+    "decoded_bytes": 165338,
+    "decoded_sha256": "90d600567dc8190151f9e4309e0bac97f9b5d6e685a980dbff1eb5eebb313ca2"
+  },
+  "artifacts/godot-shard-5/shard-5.log.gz": {
+    "decoded_bytes": 135835,
+    "decoded_sha256": "7f067c36ec8f3d4eaff84e8ee9edafe63aad3bc4c372f7df7ce8eb3b7b8ee37a"
+  },
+  "artifacts/godot-shard-6/shard-6.log.gz": {
+    "decoded_bytes": 172671,
+    "decoded_sha256": "105d0c0783ad60b9ba665c2e8a45121ad62538e58ae1309c1c3c75176f210b60"
+  },
+  "artifacts/godot-shard-7/shard-7.log.gz": {
+    "decoded_bytes": 602801,
+    "decoded_sha256": "d2d4c111c3eea88d05cde7ad8836f7835d67fa86e799ea97915baccf3fa81bf0"
+  }
+}

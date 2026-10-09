@@ -1,0 +1,34 @@
+{
+  "scope": "Explicit cold reservation lifecycle around actual Sites spatial validation. Synthetic fixture budget/contact qualification is not production World binding.",
+  "date": "2026-10-03",
+  "source_sha256": {
+    "godot/scripts/core/underground_space_authority.gd": "728145e37386ba252c7b25d2dc37acf8a6b297f69a92a749f2ea01dd5ca4ae41",
+    "godot/test/test_underground_space_authority.gd": "19eb4cd63e6a31f7c5569388022948f89420241218ca1e6dd853ba628cd257d8",
+    "godot/scripts/core/underground_space_owner.gd": "938522471c5fed1691ad229f4bf47a9c743890d14a7cc4502d163d3cda6380e9",
+    "godot/scripts/core/excavation_sites.gd": "97559c5e220fd2ea67996f80f209b3c32865da64409701bc253103e52a853973",
+    "godot/scripts/core/excavation_contract.gd": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f"
+  },
+  "logs_sha256": {
+    "analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "clean-import.log": "169ca5c3d87998a9b0583b4f084e0ddf5e4ea38787e7e4b8cb78c27e0e902d1f",
+    "test_underground_space_authority.log": "195d8b3c5de53b628d2962daaf3c86ef2a51248ce15a77a5395e1ed77ff42851"
+  },
+  "commands": [
+    "Move godot/demo/assets aside; delete godot/.godot; godot --headless --path godot --editor --quit; restore assets afterwards.",
+    "./tools/run_tests.sh --shard INDEX/COUNT --output-dir DIR (singleton shard resolved by ci_test_shards.py from actual test file discovery)",
+    "python3 tools/gdscript_warnings.py --port 6153 --max 0 godot/scripts/core/underground_space_authority.gd godot/test/test_underground_space_authority.gd"
+  ],
+  "results": {
+    "tests": 24,
+    "assertions": 3010,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected_diagnostics": 0,
+    "tolerated_diagnostics": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 2
+  }
+}

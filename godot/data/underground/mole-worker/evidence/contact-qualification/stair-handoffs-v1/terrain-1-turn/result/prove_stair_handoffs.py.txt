@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+"""Bound every Q16 source phase, actual finite heading and complete triangle; no traversal permission."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import importlib.util
+import json
+from pathlib import Path
+import sys
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("authored_stair_handoffs", HERE / "author_stair_handoffs.py")
+A = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(A)
+D, P, T = A.D, A.P, A.D.T
+ONE, UNIT, COEFFICIENT = 65536, P.SCALE//1024, 1 << 30
+MAX_CHECKS, MAX_DEPTH, MAX_UNRESOLVED = 2_000_000, 16, 32
+MAX_VERTICES, LIMIT = 32768, 1 << 28
+
+
+def validate_recipe(recipe, case):
+    rows = recipe.get("keys")
+    P.require(recipe.get("root_equation") == A.ROOT_EQUATION and type(rows) is list and
+              len(rows) == case["frames"] and 2 <= len(rows) <= A.MAX_FRAMES and
+              case["source_loop_mode"] == 0 and case["duration_q16"] == (len(rows)-1)*ONE,
+              "HANDOFF_PROOF_TIMING")
+    A.phase_root_heading([r["root_u"] for r in rows], [r["yaw"] for r in rows], 0)
+    expected = A.episode_controls(recipe.get("name"))
+    P.require(rows[0]["root_u"] == expected[0][0] and rows[-1]["root_u"] == expected[0][-1] and
+              rows[0]["yaw"] == expected[1][0] and rows[-1]["yaw"] == expected[1][-1] and
+              all(r["support_primitive"] == expected[2] and type(r["planted_mask"]) is int and
+                  r["planted_mask"] in (1, 2, 3) and r["root_u"][1] == rows[0]["root_u"][1] for r in rows) and
+              all(a["planted_mask"] & b["planted_mask"] for a, b in zip(rows, rows[1:])),
+              "HANDOFF_PROOF_SUPPORT_PROGRAM")
+    P.require(D.pose_digest(case, 0) == D.pose_digest(case, case["frames"]-1) == recipe["endpoint_pose_sha256"] ==
+              "393edbafa3490d93e19959d5b8e84b5022bfd475a2afdfca79754712e7fdf462", "HANDOFF_PROOF_ENDPOINT")
+    return rows
+
+
+def multiply_bounds(low, high, first, last):
+    P.require(low.dtype == high.dtype == np.int64 and np.all(np.abs(low) < LIMIT) and
+              np.all(np.abs(high) < LIMIT) and -COEFFICIENT <= first <= last <= COEFFICIENT,
+              "HANDOFF_PROOF_PRODUCT_CAPACITY")
+    products = np.stack((low*first, low*last, high*first, high*last))
+    return products.min(axis=0)//COEFFICIENT, -(-products.max(axis=0)//COEFFICIENT)
+
+
+def mix_endpoints(pair, share, upper):
+    P.require(pair.dtype == np.int64 and pair.shape[0] == 2 and type(share) is int and 0 <= share <= ONE and
+              np.all(np.abs(pair) < LIMIT), "HANDOFF_PROOF_BLEND_CAPACITY")
+    total = pair[0]*(ONE-share)+pair[1]*share
+    return -(-total//ONE) if upper else total//ONE
+
+
+def span_bounds(low, high, rows, shares, coefficients, local_padding, world_padding):
+    """Interval arithmetic encloses coupling; no linear-world-endpoint assumption during a turn."""
+    start, end = shares
+    P.require(0 <= start <= end <= ONE and low.shape == high.shape and low.ndim == 3 and
+              low.shape[0] == 2 and low.shape[2] == 3 and 0 < low.shape[1] <= MAX_VERTICES and
+              np.all(low <= high) and type(local_padding) is int and 0 <= local_padding < UNIT and
+              world_padding.shape == (3,) and np.all(world_padding >= 0), "HANDOFF_PROOF_SPAN")
+    a = np.minimum(mix_endpoints(low, start, False), mix_endpoints(low, end, False))-local_padding
+    b = np.maximum(mix_endpoints(high, start, True), mix_endpoints(high, end, True))+local_padding
+    roots = [r["root_u"] for r in rows]
+    yaws = [r["yaw"] for r in rows]
+    root_a, yaw_a = A.phase_root_heading(roots, yaws, start)
+    root_b, yaw_b = A.phase_root_heading(roots, yaws, end)
+    yaw_min, yaw_max = min(yaw_a, yaw_b), max(yaw_a, yaw_b)
+    c0, s0 = coefficients[0][yaw_min:yaw_max+1].min(axis=0)
+    c1, s1 = coefficients[1][yaw_min:yaw_max+1].max(axis=0)
+    xx = multiply_bounds(a[:, 0], b[:, 0], int(c0), int(c1))
+    xz = multiply_bounds(a[:, 2], b[:, 2], int(s0), int(s1))
+    zx = multiply_bounds(a[:, 0], b[:, 0], -int(s1), -int(s0))
+    zz = multiply_bounds(a[:, 2], b[:, 2], int(c0), int(c1))
+    lower = np.stack((xx[0]+xz[0], a[:, 1], zx[0]+zz[0]), axis=1)
+    upper = np.stack((xx[1]+xz[1], b[:, 1], zx[1]+zz[1]), axis=1)
+    lower += np.minimum(root_a, root_b)*UNIT-world_padding
+    upper += np.maximum(root_a, root_b)*UNIT+world_padding
+    P.require(np.all(np.abs(lower) < LIMIT) and np.all(np.abs(upper) < LIMIT), "HANDOFF_PROOF_WORLD_CAPACITY")
+    return lower, upper
+
+
+def spend(counter):
+    counter[0] += 1
+    P.require(counter[0] <= MAX_CHECKS, "HANDOFF_PROOF_CHECK_CAPACITY")
+
+
+def triangle_clear(low, high, rows, box, contact, coefficients, local, world, counter, start=0, end=ONE, depth=0):
+    spend(counter)
+    a, b = span_bounds(low, high, rows, (start, end), coefficients, local, world)
+    if contact and T.inside_projection(a, b, box):
+        return True
+    al, ah = np.stack([a, a]), np.stack([b, b])
+    if any(T.projected_box_separation(al, ah, box, axis) for axis in T.axes(al, ah)):
+        return True
+    if end-start <= 1 or depth >= MAX_DEPTH:
+        return False
+    middle = (start+end)//2
+    return triangle_clear(low, high, rows, box, contact, coefficients, local, world, counter, start, middle, depth+1) and \
+        triangle_clear(low, high, rows, box, contact, coefficients, local, world, counter, middle, end, depth+1)
+
+
+def support_cover(low, high, rows, box, coefficients, local, world, counter, start=0, end=ONE, depth=0):
+    spend(counter)
+    a, b = span_bounds(low, high, rows, (start, end), coefficients, local, world)
+    if T.inside_projection(a, b, box):
+        return True, a.min(axis=0), b.max(axis=0)
+    if end-start <= 1 or depth >= MAX_DEPTH:
+        return False, a.min(axis=0), b.max(axis=0)
+    middle = (start+end)//2
+    left = support_cover(low, high, rows, box, coefficients, local, world, counter, start, middle, depth+1)
+    if not left[0]:
+        return left
+    right = support_cover(low, high, rows, box, coefficients, local, world, counter, middle, end, depth+1)
+    return right[0], np.minimum(left[1], right[1]), np.maximum(left[2], right[2])
+
+
+def residuals(part, matrices, grounding, roots, hulls):
+    error = P.envelope.palette_residual(part, matrices, grounding)
+    local = -(-error.numerator*P.SCALE//error.denominator)
+    low = np.min(np.stack([r[0].min(axis=0) for r in hulls]), axis=0)-local
+    high = np.max(np.stack([r[1].max(axis=0) for r in hulls]), axis=0)+local
+    box = [P.envelope.Interval(int(low[a])*(P.envelope.FIXED//P.SCALE),
+                               int(high[a])*(P.envelope.FIXED//P.SCALE)) for a in range(3)]
+    world = P.envelope.world_residual(part, matrices, grounding, box, roots)
+    padding = np.array([-(-v.numerator*P.SCALE//v.denominator) for v in world], dtype=np.int64)
+    return local, padding, {"local_m": P.envelope.fraction_record(error),
+                           "world_m": [P.envelope.fraction_record(v) for v in world]}
+
+
+def prove(case, recipe, parts, topology, roots, fixture, table):
+    rows = validate_recipe(recipe, case)
+    P.require(len(parts) == len(topology) == 2 and len(fixture["solids_u"]) == 22 and
+              all(type(box) is list and len(box) == 6 and all(type(v) is int and abs(v) <= A.MAX_LOCAL_U for v in box)
+                  and all(box[a] < box[a+3] for a in range(3)) for box in fixture["solids_u"]), "HANDOFF_PROOF_PARTS")
+    coefficients = (np.floor(table.astype(np.float64)*COEFFICIENT).astype(np.int64),
+                    np.ceil(table.astype(np.float64)*COEFFICIENT).astype(np.int64))
+    boxes = [np.array(b, dtype=np.int64)*UNIT for b in fixture["solids_u"]]
+    deck = rows[0]["support_primitive"]
+    P.require(fixture["solids_u"][deck][4] == rows[0]["root_u"][1], "HANDOFF_PROOF_PLANE")
+    counter, unresolved, supports, reports, offset, exact_cache = [0], [], [], [], 0, {}
+    def exact(frame, vertex):
+        key = frame, vertex
+        if key not in exact_cache:
+            P.require(len(exact_cache) < 65536, "HANDOFF_EXACT_VERTEX_CAPACITY")
+            exact_cache[key] = T.exact_source_y(parts[0], case, frame, vertex)+rows[frame]["root_u"][1]
+        return exact_cache[key]
+    for part_index, part in enumerate(parts):
+        P.require(len(part["geometry"]) == len(topology[part_index]) == 1, "HANDOFF_PROOF_SURFACES")
+        triangles = topology[part_index][0]
+        P.require(0 < len(triangles) <= T.MAX_TRIANGLES, "HANDOFF_PROOF_TRIANGLE_CAPACITY")
+        count = max(1, part["binds"])
+        matrices = case["matrices"][:, offset:offset+count]
+        hulls = P._vertex_hulls(part, matrices, case["grounding"])
+        local, world, errors = residuals(part, matrices, case["grounding"], roots, hulls)
+        members = T.foot_membership(part, triangles) if part_index == 0 else []
+        foot_ids = [np.unique(triangles[mask]) for mask in members]
+        previous = P._vertex_hulls(part, matrices[:1], case["grounding"][:1])[0]
+        for frame in range(case["frames"]-1):
+            following = P._vertex_hulls(part, matrices[frame+1:frame+2], case["grounding"][frame+1:frame+2])[0]
+            low, high = np.stack([previous[0], following[0]]), np.stack([previous[1], following[1]])
+            raw_low, raw_high = low.copy(), high.copy()
+            raw_low[:, :, 1] += rows[frame]["root_u"][1]*UNIT
+            raw_high[:, :, 1] += rows[frame]["root_u"][1]*UNIT
+            pair, frames, plane = rows[frame:frame+2], (frame, frame+1), rows[frame]["root_u"][1]
+            if part_index == 0:
+                mask = pair[0]["planted_mask"] & pair[1]["planted_mask"]
+                for side, vertices in enumerate(foot_ids):
+                    if not mask & (1 << side):
+                        continue
+                    covered, a, b = support_cover(low[:, vertices], high[:, vertices], pair, boxes[deck],
+                                                  coefficients, local, world, counter)
+                    above = T.source_above_plane(raw_low, raw_high, vertices, frames, plane, exact)
+                    near = vertices[np.argsort(raw_low[0, vertices, 1])[:8]]
+                    witness, gaps = T.contact_witness(near, frames, plane, exact)
+                    support = {"interval": frame, "foot": side, "primitive": deck, "plane_u": plane,
+                               "full_foot_u": P.outward_units(a, b), "projection_inside": covered,
+                               "source_above_plane": above, "vertex": witness,
+                               "gaps_u": [[v.numerator, v.denominator] for v in gaps]}
+                    supports.append(support)
+                    if not covered or not above or witness < 0:
+                        unresolved.append({"kind": "SUPPORT", **support})
+            a, b = span_bounds(low, high, pair, (0, ONE), coefficients, local, world)
+            tri_a, tri_b = a[triangles].min(axis=1), b[triangles].max(axis=1)
+            for solid, box in enumerate(boxes):
+                possible = np.flatnonzero(np.all(tri_a <= box[3:], axis=1) & np.all(tri_b >= box[:3], axis=1))
+                for triangle in possible:
+                    vertices = triangles[triangle]
+                    contact = part_index == 0 and solid == deck and any(
+                        members[side][triangle] and (pair[0]["planted_mask"] | pair[1]["planted_mask"]) & (1 << side)
+                        for side in (0, 1)) and T.source_above_plane(raw_low, raw_high, vertices, frames, plane, exact)
+                    if not triangle_clear(low[:, vertices], high[:, vertices], pair, box, contact,
+                                          coefficients, local, world, counter):
+                        unresolved.append({"kind": "SOLID", "interval": frame, "part": part_index,
+                                           "triangle": int(triangle), "primitive": solid})
+                    if len(unresolved) >= MAX_UNRESOLVED:
+                        return {"clear": False, "unresolved": unresolved, "supports": supports, "checks": counter[0],
+                                "stopped_at_witness_limit": True, "production_qualified": False}
+            print(json.dumps({"name": recipe["name"], "part": part_index, "interval": frame,
+                              "checks": counter[0], "unresolved": len(unresolved)}), file=sys.stderr, flush=True)
+            previous = following
+        reports.append({"part": part_index, "triangles": len(triangles), "errors": errors})
+        offset += count
+    return {"clear": not unresolved, "unresolved": unresolved, "supports": supports, "checks": counter[0],
+            "parts": reports, "intervals": case["frames"]-1, "solids": len(boxes), "production_qualified": False}
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("source", type=Path)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--name", choices=("approach", "turn", "retreat"), required=True)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "HANDOFF_PROOF_OUTPUT_EXISTS")
+    records, pins = D.load_inputs()
+    _, parts, _, topology, roots, sources, _, boundary = D.actual_source(pins)
+    image = args.source/"mole-worker.ugactor"
+    with image.open("rb") as stream:
+        header = stream.read(184)
+    candidate = P.content.read_json(args.source/"candidate.json", header[120:152].hex(), 2*1048576)
+    P.content.read_json(args.source/"plan.json", header[152:184].hex(), 65536)
+    compilation = D.read_json(args.source/"compilation.json", D.sha(args.source/"compilation.json"))
+    cases = A.S.read_image(image, compilation["content_sha256"], parts)
+    recipes = [r for r in candidate["attempts"] if r["status"] == "SOURCE_CANDIDATE_ONLY"]
+    P.require(len(cases) == len(recipes) and candidate.get("production_qualified") is False, "HANDOFF_PROOF_SOURCE")
+    D.add_pins(pins, candidate["producer_sources"])
+    files = [Path(__file__), image, args.source/"candidate.json", args.source/"plan.json", args.source/"compilation.json"]
+    D.add_pins(pins, {str(path.resolve().relative_to(D.ROOT)): D.sha(path) for path in files})
+    selected = [i for i, r in enumerate(recipes) if r["name"] == args.name]
+    P.require(len(selected) == 1, "HANDOFF_PROOF_SELECTION")
+    table, basis = A.read_basis()
+    result = prove(cases[selected[0]], recipes[selected[0]], parts, topology, roots, records[1][2]["fixture"], table)
+    D.add_pins({}, pins); D.check_current_sources(boundary)
+    report = {"schema": 1, "name": args.name, "result": result, "source_sha256": D.sha(image),
+              "producer_sources": pins, "basis": basis, "source_count": sources, "production_qualified": False,
+              "scope": "complete fixture triangle/support proof only; self-clearance, native, paid parts, rate and runtime allocation remain separate"}
+    args.out.mkdir(parents=True)
+    (args.out/"proof.json").write_text(json.dumps(report, indent=2)+"\n")
+    (args.out/"prove_stair_handoffs.py.txt").write_bytes(Path(__file__).read_bytes())
+    print(json.dumps({"clear": result["clear"], "checks": result["checks"], "unresolved": len(result["unresolved"])}))
+    if not result["clear"]:
+        raise SystemExit(2)
+
+
+if __name__ == "__main__":
+    main()

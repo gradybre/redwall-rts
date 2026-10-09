@@ -1,0 +1,8 @@
+{
+  "tools/underground_memory_budget.py": "d05799d3dc3041dcbc1fdfc3c66c425047cfed064cee506c2cc48941910850dc",
+  "tools/test_underground_memory_budget.py": "a8f95f9ff1f43d39ffd9df7e31c01e4077abda44b4f3a706fd469edbddd0e0c6",
+  "docs/systems_architecture.md": "539f6ad9a7bc972481926cd083f431219ec26cf1b5cfe2d04c5a4b50dc5fcbf5",
+  "docs/validation/ready07_arithmetic.py": "d7635c033907f4ef7392bc806a454954e9e7a702d575a24202ffc96c39ea5635",
+  "docs/planning/underground_memory_pack.json": "f8d05ebc818a5cde1c566bb93ae81cf4b00e5b68b56072d90d18e7853ba82878",
+  "docs/decisions/1131-entry-world-memory-accounting.md": "463c2b68929924cd7ae0fad8730f18db318fc893bfeb8f3ff16a02245cb56cc8"
+}

@@ -1,0 +1,46 @@
+{
+  "mutants": [
+    {
+      "name": "early_init_allocation",
+      "refused": true,
+      "reason": "Delivery allocation entry gained another reference or call"
+    },
+    {
+      "name": "extra_local_packed_image",
+      "refused": true,
+      "reason": "Delivery allocator has unreviewed statements"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_underground_memory_budget.py",
+        "JointPackTests.test_negative_delivery_initializer_allocates_before_admission",
+        "JointPackTests.test_negative_delivery_local_packed_image",
+        "JointPackTests.test_negative_delivery_extra_allocation_reference",
+        "JointPackTests.test_negative_delivery_local_copy_after_admission",
+        "JointPackTests.test_negative_delivery_late_append",
+        "JointPackTests.test_negative_delivery_extra_result_packet",
+        "JointPackTests.test_negative_delivery_late_local_packed_image",
+        "JointPackTests.test_negative_delivery_local_collection_literal",
+        "JointPackTests.test_negative_delivery_reordered_admission"
+      ],
+      "exit_code": 0,
+      "log": "correction-check-1.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "correction-check-2.log"
+    }
+  ],
+  "source_unchanged": true,
+  "accepted": true
+}

@@ -1,0 +1,76 @@
+{
+  "head": "ee63d7b9ea80d34ef08fb0bed12c5de3a786e84b",
+  "source_sha256": {
+    "godot/test/test_underground_support_clearance.gd": "31ba289b73af13dd114666037990d1070fe6c8d4995e4ad9c744e3650cf77182",
+    "godot/test/test_haul_transfer_guard.gd": "898366b157268e0bd765927919ead518244274292bacc9ffecd7efe9a5b1dd6c",
+    "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
+    "godot/scripts/core/inventory.gd": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55",
+    "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534"
+  },
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "log": "clean-import.log",
+      "seconds": 11.081
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "236/388",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-haul-memory-2026-10-04/focused-v2"
+      ],
+      "exit_code": 0,
+      "log": "test_underground_support_clearance.gd.log",
+      "seconds": 4.575
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "192/388",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-haul-memory-2026-10-04/focused-v2"
+      ],
+      "exit_code": 0,
+      "log": "test_haul_transfer_guard.gd.log",
+      "seconds": 2.921
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-haul-memory-2026-10-04/focused-v2/analyzer.json",
+        "godot/test/test_underground_support_clearance.gd",
+        "godot/test/test_haul_transfer_guard.gd",
+        "godot/scripts/core/haul_transfer_contract.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/reservations.gd"
+      ],
+      "exit_code": 0,
+      "log": "analyzer.log",
+      "seconds": 12.19
+    }
+  ],
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-haul-integration",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

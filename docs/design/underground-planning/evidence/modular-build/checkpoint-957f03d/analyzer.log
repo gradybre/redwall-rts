@@ -1,0 +1,3 @@
+error: more than the allowed 0 warning(s)
+data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd:1: Could not resolve super class path "res://data/underground/mole-worker/evidence/contact-qualification/grip-authoring/native_grip_sequence.gd".
+1 GDScript warning(s) in 1 of 1178 file(s)

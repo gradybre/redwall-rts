@@ -1,0 +1,40 @@
+{
+  "head": "b2527d79d413ad99a31459fba024103bb77bb372",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 11.906
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "288/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-room-inspector-2026-10-05/candidate-1"
+      ],
+      "log": "suite.log",
+      "exit_code": 1,
+      "seconds": 6.298
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "error": "RuntimeError('suite.log failed')",
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 1
+}

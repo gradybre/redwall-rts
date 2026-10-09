@@ -1,0 +1,51 @@
+{
+  "candidate": "1157 source-review-1",
+  "reviewer": "integration owner /root, independent of author",
+  "source_pins": {
+    "godot/scripts/core/underground_room_frontier.gd": "554fbf053c377c0305ac9d2e5890dee90b7b511d056ee2a8b9388b1b3f06f52d",
+    "godot/scripts/core/underground_room_frontier.gd.uid": "5aeee4434366f70e20f983ea2739ed1189460809fbe51d36a0dbcd21ebdc94a1",
+    "godot/test/test_underground_room_frontier.gd": "07feecec99f0fa8dac4547a29b0ee4d419aa0b01f4fee7be3fb473b33728c7ce",
+    "godot/test/test_underground_room_frontier.gd.uid": "eb25ceeecdf5dd0999dce47d2ccfcd4e66d8a85c654044a2485393209f38400d",
+    "docs/decisions/1157-ordinary-room-frontier-progression.md": "1879b47288c2cbdf159b9afd20c7a52a0b669570c295f35dd21713350f6b3c0c",
+    "docs/validation/evidence/underground-room-frontier-2026-10-04/census.py": "8fd86b350896bf4321dfd9eb5446da32f20b01a27e1a16f525689db8af3aa34c",
+    "docs/validation/evidence/underground-room-frontier-2026-10-04/census.json": "4a438db471f974ef339739f1598cbb1b4337af631d69d6da34408c02e80f1b5b",
+    "docs/validation/evidence/underground-room-frontier-2026-10-04/reproduce.py": "9cad9a2dbd1d9a9517acf356ef3e3708d98f2329bd3c1b5de66c9da7d6a68230",
+    "docs/validation/evidence/underground-room-frontier-2026-10-04/with_1156_diagnostic.py": "817c9595189a08d0b1b59402cf280d5c79f7619921fea6c936fbf40317f9194e",
+    "docs/validation/evidence/underground-room-frontier-2026-10-04/README.md": "c13ffb26a36c72149e6d311ad0a8262f73cbf93af0c35902bba3be4cc162b2b1"
+  },
+  "pins_verified": 10,
+  "findings": [],
+  "accepted_for_author_commit": true,
+  "reviewed_scope": "Read-only canonical frontier and existing-contact query only; no new endpoint publication or whole-room completion claim.",
+  "checks": [
+    "Full Room/Site/generation/phase/project/history and source/cold identities checked before observation and in final closure.",
+    "All caller Candidate fields copied and compared after callbacks; output Request changes only on complete success.",
+    "Live endpoint payloads, exact WORK source contact, actual complete WorkFace and both directed paths required.",
+    "At most one full WorkFace query; monotone finite site/contact/path counter, no retained module state.",
+    "Independent census execution exactly matches retained artifact."
+  ],
+  "evidence": {
+    "tests": 9,
+    "assertions": 112,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzed_files": 6,
+    "new_global_reservation": 0,
+    "cold_controls_accounted": 1966,
+    "cold_control_reservation": 2048,
+    "complete_numeric_helper_bound": 784,
+    "frontier_peak_cold_bytes": 380928,
+    "native_measured": false
+  },
+  "remaining": [
+    "Atomic publication of newly reachable contacts and routes",
+    "Actual host whole-room progression",
+    "Production composed runtime and save/scale qualification"
+  ]
+}

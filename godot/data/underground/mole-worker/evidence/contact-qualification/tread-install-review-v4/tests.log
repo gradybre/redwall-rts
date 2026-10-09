@@ -1,0 +1,24 @@
+test_bake_binds_the_pinned_curled_derivative (__main__.CurlGripChainTests.test_bake_binds_the_pinned_curled_derivative) ... ok
+test_envelopes_topology_and_native_replay (__main__.CurlGripChainTests.test_envelopes_topology_and_native_replay) ... ok
+test_grip_proof (__main__.CurlGripChainTests.test_grip_proof) ... ok
+test_reconstruction_of_candidate_s (__main__.CurlGripChainTests.test_reconstruction_of_candidate_s) ... ok
+test_tap_candidates_are_clear_upright_and_pinned (__main__.CurlGripChainTests.test_tap_candidates_are_clear_upright_and_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 10.326s
+
+OK
+--- rerun without the staged demo assets ---
+test_bake_binds_the_pinned_curled_derivative (__main__.CurlGripChainTests.test_bake_binds_the_pinned_curled_derivative) ... ok
+test_envelopes_topology_and_native_replay (__main__.CurlGripChainTests.test_envelopes_topology_and_native_replay) ... ok
+test_grip_proof (__main__.CurlGripChainTests.test_grip_proof) ... ok
+test_reconstruction_of_candidate_s (__main__.CurlGripChainTests.test_reconstruction_of_candidate_s) ... skipped 'gitignored demo assets are not staged (ADR 1192 §2)'
+test_tap_candidates_are_clear_upright_and_pinned (__main__.CurlGripChainTests.test_tap_candidates_are_clear_upright_and_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.015s
+
+OK (skipped=1)
+--- godot suites (run_tests.sh) ---
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 98 tests, 11876 assertions, 0 failures.

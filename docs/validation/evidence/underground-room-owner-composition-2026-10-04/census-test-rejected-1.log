@@ -1,0 +1,15 @@
+......F...........
+======================================================================
+FAIL: test_constructor_capacity_growth_refuses (__main__.CensusTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-owner-composition/docs/validation/evidence/underground-room-owner-composition-2026-10-04/test_census.py", line 53, in test_constructor_capacity_growth_refuses
+    self.rejects(self.changed('Composition','Budget.PROOF_CAPACITY)',
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-room-owner-composition/docs/validation/evidence/underground-room-owner-composition-2026-10-04/test_census.py", line 25, in rejects
+    with self.assertRaisesRegex(ValueError,pattern): C.build(replacements)
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.424s
+
+FAILED (failures=1)

@@ -1,10 +1,21 @@
 extends RefCounted
 ## Owner 9 (`needs`) framed-column validation bridge (NEEDS-S4-VALIDATE-R01 v2, decision 0170).
 ##
-## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
-## against the Needs store's own restore rules and returns a `SaveHeader.Refusal`. It constructs
-## no live Needs owner, calls no store, captures nothing, applies nothing, and touches no clock,
-## barrier, signal, callback, filesystem, JSON text, reflection API or per-row object.
+## THREE PUBLIC ENTRY POINTS (ADR 1222 build step 2).
+##   * `framed_refusal()` judges one already framed section 4 owner block against the Needs
+##     store's own restore rules and returns a `SaveHeader.Refusal`. It constructs no live Needs
+##     owner, calls no store, captures nothing and applies nothing.
+##   * `capture_into(store, record)` copies the live store's twenty columns through
+##     `Needs.copy_columns_into()` and projects them into the record's typed buckets in ordinal
+##     order -- the exact inverse of `_project_values()`/`_project_bytes()` below -- then judges
+##     the written record with `framed_refusal()`, so a capture can never emit an image apply
+##     would refuse. A refused capture leaves the record's contents unspecified.
+##   * `apply(record, store)` runs `framed_refusal()` FIRST, then projects the record and calls
+##     `Needs.restore_columns()`, which re-runs `columns_refusal()`, writes nothing on refusal and
+##     rebuilds both counters. A false maps to a Refusal carrying the store's exact
+##     `last_column_refusal()` code.
+## None of the three touches a clock, barrier, signal, callback, filesystem, JSON text,
+## reflection API or per-row object; the caller owns barrier and restore-order discipline.
 ##
 ## GATE ORDER, and what each gate owns:
 ##   1. a null record                 -> SAVE_COMPONENT_SHAPE
@@ -22,9 +33,9 @@ extends RefCounted
 ##
 ## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Common-file provenance, agreement with the entity
 ## directory or the Resident store, Injury agreement, cross-owner saved consistency, complete
-## world validity, or permission to install anything into a live store. Capture/apply adapters,
-## the other seventeen owners, total nonfatal status precedence and departure production remain
-## outstanding elsewhere.
+## world validity, or permission to install anything into a live store. Bulk capture/apply are
+## the two entry points above; the other seventeen owners, total nonfatal status precedence and
+## departure production remain outstanding elsewhere.
 ##
 ## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
 ## `duplicate()` is called here, `_install_columns()` is never reached, and nothing is captured
@@ -71,6 +82,8 @@ const FIELD_CLOTHING_TIER: int = 16
 const FIELD_INFIRMARY: int = 17
 const FIELD_INJURY_STATE: int = 18
 const FIELD_AIRLESS: int = 19
+## A capture or apply called without a live store. Bridge-local: no column code applies.
+const REFUSE_NULL_STORE: StringName = &"SAVE_COMPONENT_NULL_STORE"
 
 
 static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
@@ -103,6 +116,91 @@ static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
 		return _refuse(code,
 			"Needs owner %d refuses this image with column code %s" % [OWNER_INDEX, String(code)])
 	return _accept()
+
+
+static func capture_into(store: Needs, record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Capture the live store's twenty columns into one owner 9 record, then judge the result.
+
+	Gates: a null record, a wrong owner, a null store, the schema and metadata guards, then the
+	store's own `copy_columns_into()` (its column code is forwarded), then a typed setter refusal
+	(SAVE_COMPONENT_SHAPE), and last `framed_refusal()` over what was written.
+	"""
+	var target: SaveHeader.Refusal = _target_refusal(record, store)
+	if not target.is_ok():
+		return target
+	var columns: Needs.Columns = Needs.Columns.new()
+	if not store.copy_columns_into(columns):
+		return _refuse(store.last_column_refusal(), "Needs owner %d capture refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	if not _write_values(record, columns) or not _write_bytes(record, columns):
+		return _refuse(Section.REFUSE_SHAPE,
+			"Needs owner %d capture could not write a column" % OWNER_INDEX)
+	return framed_refusal(record)
+
+
+static func apply(record: Section.FramedOwner, store: Needs) -> SaveHeader.Refusal:
+	"""Validate one owner 9 record, then install it into `store`. Refusal writes nothing.
+
+	`framed_refusal()` runs first and its refusal is returned unchanged. The projection shares the
+	record's buffers by assignment; `restore_columns()` takes its own private copies.
+	"""
+	var framed: SaveHeader.Refusal = framed_refusal(record)
+	if not framed.is_ok():
+		return framed
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Needs store was supplied for owner %d" % OWNER_INDEX)
+	var columns: Needs.Columns = Needs.Columns.new()
+	_project_values(record, columns)
+	_project_bytes(record, columns)
+	if not store.restore_columns(columns):
+		return _refuse(store.last_column_refusal(), "Needs owner %d restore refused with %s"
+			% [OWNER_INDEX, String(store.last_column_refusal())])
+	return _accept()
+
+
+static func _target_refusal(record: Section.FramedOwner, store: Needs) -> SaveHeader.Refusal:
+	"""Capture's preflight: record, owner index, store, then the schema and metadata guards."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	if store == null:
+		return _refuse(REFUSE_NULL_STORE, "no Needs store was supplied for owner %d" % OWNER_INDEX)
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	return _metadata_refusal()
+
+
+static func _write_values(record: Section.FramedOwner, columns: Needs.Columns) -> bool:
+	"""Ordinals 0-8: write the present flag and every i32/i64 value column into the record."""
+	return record.set_u8(FIELD_PRESENT, columns.present) \
+		and record.set_i32(FIELD_NEED_VALUE, columns.need_value) \
+		and record.set_i64(FIELD_NEED_REMAINDER, columns.need_remainder) \
+		and record.set_i32(FIELD_HEALTH, columns.health) \
+		and record.set_i64(FIELD_HEALTH_REMAINDER, columns.health_remainder) \
+		and record.set_i64(FIELD_COLD_MILLI_HOURS, columns.cold_milli_hours) \
+		and record.set_i64(FIELD_COLD_REMAINDER, columns.cold_remainder) \
+		and record.set_i64(FIELD_STARVING_TICKS, columns.starving_ticks) \
+		and record.set_i32(FIELD_DEPARTURE_DAYS, columns.departure_days)
+
+
+static func _write_bytes(record: Section.FramedOwner, columns: Needs.Columns) -> bool:
+	"""Ordinals 9-19: write the status enum and the ten byte input columns into the record."""
+	return record.set_u8(FIELD_STATUS, columns.status) \
+		and record.set_u8(FIELD_SIZE_CLASS, columns.size_class) \
+		and record.set_u8(FIELD_ACTIVITY, columns.activity) \
+		and record.set_u8(FIELD_COMFORT_ENVIRONMENT, columns.comfort_environment) \
+		and record.set_u8(FIELD_SOCIAL_PAIRED, columns.social_paired) \
+		and record.set_u8(FIELD_PURPOSE_SOURCE, columns.purpose_source) \
+		and record.set_u8(FIELD_COLD_ENVIRONMENT, columns.cold_environment) \
+		and record.set_u8(FIELD_CLOTHING_TIER, columns.clothing_tier) \
+		and record.set_u8(FIELD_INFIRMARY, columns.infirmary) \
+		and record.set_u8(FIELD_INJURY_STATE, columns.injury_state) \
+		and record.set_u8(FIELD_AIRLESS, columns.airless)
 
 
 static func _metadata_refusal() -> SaveHeader.Refusal:

@@ -1,0 +1,17 @@
+{
+  "producer_sha256": "044746973629c5be066fccbc10467be38cd9cf8cd46c9ff7a55da69f7323ab6d",
+  "stripped_manifest": {
+    "source_geometry_qualified": true,
+    "world_activation_qualified": false,
+    "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+    "content_revision": 2,
+    "profile_count": 26,
+    "box_count": 250,
+    "prerequisite_pins": {
+      "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
+    }
+  },
+  "foreign_writes": false,
+  "accepted": false,
+  "refusal": "MOTION_REBIND_SOURCE_HASH"
+}

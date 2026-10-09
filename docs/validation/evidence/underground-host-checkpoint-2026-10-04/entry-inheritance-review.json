@@ -1,0 +1,7 @@
+{
+  "reviewer": "/root/ug_geometry",
+  "date": "2026-10-04",
+  "outcome": "accepted",
+  "diff": "Delete only EntryBindings WorldRoutes preload; its direct RoomBindings parent already defines the identical res://scripts/core/underground_world_routes.gd script. No field, behavior, guard or type identity changes. Validation is separately recorded.",
+  "scope": "one-line source correction only"
+}

@@ -1,0 +1,28 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1095-claim-batch-br2jkydq
+import 0 []
+test_underground_room_cut_map.gd
+11 test(s), 40215 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 11 tests, 40215 assertions, 0 failures.
+test_excavation_claim_batch.gd
+10 test(s), 329 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 329 assertions, 0 failures.
+test_underground_room_orders.gd
+  FAIL  test_metadata_envelope_does_not_reserve_hole_or_grant_void_to_either_room
+        actual different Room inside unclaimed hole: ROOM_RETAINED_CUT_MAPPING_UNBOUND (expected true, got false)
+        actual metadata section exists (expected true, got false)
+        inner Room has its own actual section (expected true, got false)
+        inner exact outline alone is claimed (expected 1, got 0)
+  PASS  test_section_bounds_scan_all_rows_and_preserve_negative_painted_indices
+  PASS  test_exact_sparse_capacity_accepts_one_section_plus_all_claims
+  PASS  test_same_xz_different_actual_heights_do_not_alias_but_level_label_cannot_hide_overlap
+  PASS  test_room_cold_denial_occurs_before_any_domain_or_space_copy
+  PASS  test_successful_admission_cannot_lose_its_actual_lease_before_plan_copy
+  PASS  test_successful_cold_callback_cannot_lend_a_replaced_token_to_room_creation
+  PASS  test_sealed_room_cannot_publish_after_exact_lease_replacement
+30 test(s), 1513 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 1 failing test(s).

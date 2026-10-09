@@ -1,0 +1,64 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_settlement_demolition_work.gd
+  PASS  test_an_admission_writes_no_job_and_the_next_planner_tick_posts_one
+  PASS  test_a_piece_removal_posts_its_job_at_the_piece
+  PASS  test_a_quiet_tick_with_nothing_admitted_does_not_walk_the_rows
+  PASS  test_selection_offers_the_work_job_and_reserves_a_builder
+  PASS  test_each_productive_tick_is_credited_to_the_project_in_step
+  PASS  test_a_tick_work_gd_refuses_after_consuming_still_reaches_the_project
+  PASS  test_a_final_tick_refused_after_consuming_still_commits
+  PASS  test_a_reserved_job_produces_nothing
+  PASS  test_a_job_out_of_step_takes_no_work_and_is_replaced_on_the_hour
+  PASS  test_a_paused_project_takes_no_work_and_loses_its_job_on_the_hour
+  PASS  test_the_last_productive_tick_commits_the_demolition_in_the_same_tick
+  PASS  test_a_finished_piece_removal_commits_through_its_own_door
+  PASS  test_a_refused_commit_stays_pending_and_the_hour_retries_it
+  PASS  test_cancelling_the_demolition_retires_its_job_and_frees_the_builder
+  PASS  test_a_refused_cancellation_keeps_the_job
+  PASS  test_cancelling_a_piece_removal_retires_its_job
+  PASS  test_a_cancel_job_command_cancels_the_job_not_the_demolition
+  PASS  test_a_completion_called_directly_retires_the_job_it_leaves_behind
+  PASS  test_a_piece_removal_completed_directly_retires_its_job
+  PASS  test_work_finished_around_the_job_retires_it_on_the_hour_and_retries_the_commit
+  PASS  test_a_stranded_release_retires_the_job_of_an_orphaned_removal
+  PASS  test_a_job_whose_building_is_gone_takes_no_work_and_the_next_reconcile_retires_it
+  PASS  test_a_job_whose_admission_is_gone_takes_no_work_and_the_next_reconcile_retires_it
+  PASS  test_an_hour_that_clears_a_stale_link_retries_no_admission_without_an_order
+  PASS  test_a_readmitted_building_does_not_keep_the_old_projects_job
+  PASS  test_an_unlinked_build_job_is_never_worked_and_is_retired_on_the_hour
+  PASS  test_two_adjacent_orphans_are_both_swept_in_one_hour
+  PASS  test_a_working_job_without_a_worker_produces_nothing_and_logs_nothing
+  PASS  test_an_order_on_a_goods_refusal_records_the_intent_and_keeps_the_notice
+  PASS  test_an_order_on_a_claim_only_refusal_records_the_intent
+  PASS  test_an_order_on_an_admissible_building_just_admits
+  PASS  test_the_report_flag_is_cleared_by_the_next_request
+  PASS  test_an_order_on_any_other_refusal_records_nothing
+  PASS  test_the_evacuable_refusals_are_exactly_the_two_goods_stage_codes
+  PASS  test_the_hour_admits_once_the_sources_report_empty
+  PASS  test_a_claim_left_on_the_footprint_keeps_the_order_waiting
+  PASS  test_goods_in_a_rooms_store_on_the_footprint_are_a_source_too
+  PASS  test_a_retry_refused_for_another_reason_keeps_the_order
+  PASS  test_cancel_evacuation_withdraws_the_order
+  PASS  test_an_admission_by_the_plain_request_spends_the_order
+  PASS  test_an_order_for_a_building_gone_around_the_coordinator_is_forgotten
+  PASS  test_reset_forgets_orders_and_links
+CI_SUITE_TIME {"assertions":586,"failures":0,"suite":"test_settlement_demolition_work.gd","tests":42,"usec":4994859}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+42 test(s), 586 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 42 tests, 586 assertions, 0 failures.

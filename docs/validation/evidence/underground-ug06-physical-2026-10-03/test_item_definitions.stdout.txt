@@ -1,0 +1,36 @@
+state_registry_coverage: PASS -- 96 modules, 463 rows, 808 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_item_definitions.gd
+  PASS  test_generator_accepts_the_real_balance_document
+  PASS  test_generator_rejects_wrong_row_count
+  PASS  test_generator_rejects_duplicate_id
+  PASS  test_generator_rejects_a_retired_key
+  PASS  test_generator_rejects_non_integer_numeric_field
+  PASS  test_default_catalog_loads_exactly_61_items
+  PASS  test_wood_round_trips_material_5000g
+  PASS  test_berries_round_trips_raw_food_fields
+  PASS  test_meal_nut_roast_is_present
+  PASS  test_every_retired_key_is_rejected_explicitly
+  PASS  test_invalid_record_aborts_entire_load_and_registers_nothing
+  PASS  test_compiled_ids_are_ascending_ascii_and_order_independent
+  PASS  test_registration_binding_tracks_only_successful_inventory_registration
+CI_SUITE_TIME {"assertions":345,"failures":0,"suite":"test_item_definitions.gd","tests":13,"usec":169879}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 345 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 345 assertions, 0 failures.

@@ -1,0 +1,12 @@
+{
+  "commands": [
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "tools/stage_demo_assets.py"
+    ]
+  ],
+  "scope": "existing free staging pipeline on distinct APFS cloned library; original own presentation assets retained aside",
+  "stage_exit_code": 0,
+  "main_assets_still_absent": true,
+  "original_own_assets_retained": true
+}

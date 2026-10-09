@@ -1,0 +1,2395 @@
+{
+  "additional_reserved_bytes": 0,
+  "allocations": {
+    "mole_profile_driver": {
+      "unchanged_resize_calls": [
+        [
+          "_live",
+          "C_COUNT)"
+        ],
+        [
+          "_stage",
+          "C_COUNT)"
+        ],
+        [
+          "_durations",
+          "source.clip_count())"
+        ]
+      ]
+    },
+    "underground_profiles": {
+      "unchanged_resize_calls": [
+        [
+          "fields",
+          "profiles * I32_FIELDS)"
+        ],
+        [
+          "quantities",
+          "profiles * I64_FIELDS)"
+        ],
+        [
+          "flags",
+          "profiles * BYTE_FIELDS)"
+        ],
+        [
+          "boxes",
+          "volumes * 7)"
+        ],
+        [
+          "sources",
+          "bundles * 32)"
+        ],
+        [
+          "_identity",
+          "3)"
+        ],
+        [
+          "_query_values",
+          "5)"
+        ]
+      ]
+    },
+    "underground_routes": {
+      "unchanged_resize_calls": [
+        [
+          "fields",
+          "EDGE_FIELDS * edges)"
+        ],
+        [
+          "longs",
+          "EDGE_LONGS * edges)"
+        ],
+        [
+          "present",
+          "edges)"
+        ],
+        [
+          "retired",
+          "edges)"
+        ],
+        [
+          "free_rows",
+          "edges)"
+        ],
+        [
+          "ordered",
+          "edges)"
+        ],
+        [
+          "vertices",
+          "points * 3)"
+        ],
+        [
+          "resident",
+          "RESIDENT_FIELDS * RESIDENT_CAPACITY)"
+        ],
+        [
+          "resident_long",
+          "RESIDENT_LONGS * RESIDENT_CAPACITY)"
+        ],
+        [
+          "links",
+          "LINK_FIELDS * capacity)"
+        ],
+        [
+          "free_links",
+          "capacity)"
+        ],
+        [
+          "envelope",
+          "6)"
+        ],
+        [
+          "support",
+          "6)"
+        ],
+        [
+          "envelope",
+          "6)"
+        ],
+        [
+          "support",
+          "6)"
+        ],
+        [
+          "box",
+          "6)"
+        ],
+        [
+          "_catalog_extent",
+          "6)"
+        ],
+        [
+          "_candidate_bounds",
+          "6)"
+        ],
+        [
+          "_occupant_bounds",
+          "6)"
+        ],
+        [
+          "_distance",
+          "_location_capacity)"
+        ],
+        [
+          "_predecessor",
+          "_location_capacity)"
+        ],
+        [
+          "_heap_node",
+          "_location_capacity)"
+        ],
+        [
+          "_heap_position",
+          "_location_capacity)"
+        ],
+        [
+          "_search_state",
+          "_location_capacity)"
+        ],
+        [
+          "_proposed_edges",
+          "2 * _location_capacity)"
+        ],
+        [
+          "_occupancy_heads",
+          "_location_capacity)"
+        ],
+        [
+          "_occupancy_next",
+          "RESIDENT_CAPACITY)"
+        ],
+        [
+          "_occupancy_cell",
+          "3 * RESIDENT_CAPACITY)"
+        ],
+        [
+          "_occupancy_visit",
+          "RESIDENT_CAPACITY)"
+        ],
+        [
+          "_occupancy_bounds",
+          "6 * RESIDENT_CAPACITY)"
+        ],
+        [
+          "_occupancy_profile",
+          "RESIDENT_CAPACITY)"
+        ],
+        [
+          "points",
+          "3 * _vertex_capacity) # One explicitly charged reusable whole-edge packet; decision1075."
+        ]
+      ]
+    },
+    "underground_world_routes": {
+      "unchanged_resize_calls": [
+        [
+          "masks",
+          "EDGE_CAPACITY * MASK_BYTES)"
+        ],
+        [
+          "generations",
+          "EDGE_CAPACITY)"
+        ],
+        [
+          "geometry",
+          "EDGE_CAPACITY)"
+        ],
+        [
+          "content",
+          "EDGE_CAPACITY)"
+        ],
+        [
+          "fragments",
+          "6 * FRAGMENT_CAPACITY)"
+        ],
+        [
+          "next_fragments",
+          "6 * FRAGMENT_CAPACITY)"
+        ],
+        [
+          "box",
+          "6)"
+        ],
+        [
+          "cover",
+          "6)"
+        ],
+        [
+          "cut",
+          "6)"
+        ],
+        [
+          "core",
+          "6)"
+        ],
+        [
+          "_bounds",
+          "6)"
+        ],
+        [
+          "_support",
+          "6)"
+        ],
+        [
+          "_scratch",
+          "6)"
+        ],
+        [
+          "_first_point",
+          "3)"
+        ],
+        [
+          "_last_point",
+          "3)"
+        ],
+        [
+          "envelope",
+          "6)"
+        ],
+        [
+          "support",
+          "6)"
+        ],
+        [
+          "box",
+          "6)"
+        ]
+      ]
+    }
+  },
+  "base": "84acf74036484bd8ec4930895b7d0a96f8567937",
+  "baseline_work_admission_chain": [
+    "underground_routes:admit_work_actor",
+    "underground_routes:_admit_actor",
+    "underground_routes:_qualify_actor_at",
+    "underground_routes:_actor_profile_into",
+    "underground_profiles:query_work_profile_into",
+    "underground_profiles:_prepare_query",
+    "underground_profiles:_read_dynamic",
+    "underground_profiles:_read_cargo",
+    "haul_carry:carried_lot",
+    "haul_carry:satchel_of",
+    "haul_carry:_owns_live_satchel",
+    "inventory:is_satchel",
+    "inventory:is_container_valid"
+  ],
+  "baseline_work_admission_numeric_bytes": 624,
+  "cold_profiles": {
+    "all_buffer_generations_and_string_payloads": {
+      "box_old_new": 56,
+      "expected_lowercase_string": 256,
+      "footer": 8,
+      "footer_ascii_string": 32,
+      "hash_result": 32,
+      "header": 32,
+      "header_ascii_string": 32,
+      "header_slice": 8,
+      "hex_string": 256,
+      "key_literal": 16,
+      "profile_old_new": 196,
+      "source_old_new": 64
+    },
+    "frames": {
+      "underground_profiles:_box_shape_refusal": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 56,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "role",
+            "int"
+          ],
+          [
+            "zero_axes",
+            "int"
+          ],
+          [
+            "axis",
+            "int"
+          ],
+          [
+            "low",
+            "int"
+          ],
+          [
+            "high",
+            "int"
+          ],
+          [
+            "expected",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_compare_rows": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "a",
+            "int"
+          ],
+          [
+            "b",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ],
+          [
+            "left",
+            "int"
+          ],
+          [
+            "right",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_contact_patch_refusal": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "point",
+            "int"
+          ],
+          [
+            "patch",
+            "int"
+          ],
+          [
+            "axis",
+            "int"
+          ],
+          [
+            "value",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_decode": {
+        "borrowed_native_or_interned": [
+          [
+            "file",
+            "FileAccess"
+          ],
+          [
+            "digest_context",
+            "HashingContext"
+          ],
+          [
+            "head",
+            "PackedByteArray"
+          ],
+          [
+            "code",
+            "StringName"
+          ],
+          [
+            "end",
+            "PackedByteArray"
+          ]
+        ],
+        "numeric_bytes": 32,
+        "numeric_values": [
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "boxes",
+            "int"
+          ],
+          [
+            "sources",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_decode_rows": {
+        "borrowed_native_or_interned": [
+          [
+            "file",
+            "FileAccess"
+          ],
+          [
+            "digest_context",
+            "HashingContext"
+          ],
+          [
+            "source",
+            "PackedByteArray"
+          ],
+          [
+            "bytes",
+            "PackedByteArray"
+          ],
+          [
+            "bytes",
+            "PackedByteArray"
+          ]
+        ],
+        "numeric_bytes": 64,
+        "numeric_values": [
+          [
+            "version",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "byte",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_field": {
+        "borrowed_native_or_interned": [
+          [
+            "bank",
+            "Bank"
+          ]
+        ],
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_key_field": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 8,
+        "numeric_values": [
+          [
+            "index",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_key_refusal": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 64,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "yaw_kind",
+            "int"
+          ],
+          [
+            "yaw",
+            "int"
+          ],
+          [
+            "item_field",
+            "int"
+          ],
+          [
+            "item",
+            "int"
+          ],
+          [
+            "variant",
+            "int"
+          ],
+          [
+            "minimum",
+            "int"
+          ],
+          [
+            "maximum",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_long": {
+        "borrowed_native_or_interned": [
+          [
+            "bank",
+            "Bank"
+          ]
+        ],
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_overlap_keys": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 24,
+        "numeric_values": [
+          [
+            "a",
+            "int"
+          ],
+          [
+            "b",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_profile_refusal": {
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ],
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "next_box",
+            "int"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ],
+          [
+            "states",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_read": {
+        "borrowed_native_or_interned": [
+          [
+            "file",
+            "FileAccess"
+          ],
+          [
+            "digest_context",
+            "HashingContext"
+          ],
+          [
+            "bytes",
+            "PackedByteArray"
+          ]
+        ],
+        "numeric_bytes": 8,
+        "numeric_values": [
+          [
+            "count",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_required_states": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "main",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:_roles_refusal": {
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ],
+        "numeric_bytes": 81,
+        "numeric_values": [
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "first",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "mask",
+            "int"
+          ],
+          [
+            "points",
+            "int"
+          ],
+          [
+            "patches",
+            "int"
+          ],
+          [
+            "point_row",
+            "int"
+          ],
+          [
+            "patch_row",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "role",
+            "int"
+          ],
+          [
+            "working",
+            "bool"
+          ]
+        ]
+      },
+      "underground_profiles:_validate_stage": {
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ],
+        "numeric_bytes": 40,
+        "numeric_values": [
+          [
+            "next_box",
+            "int"
+          ],
+          [
+            "same_key_count",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "order",
+            "int"
+          ],
+          [
+            "previous",
+            "int"
+          ]
+        ]
+      },
+      "underground_profiles:content_revision": {
+        "borrowed_native_or_interned": [],
+        "numeric_bytes": 0,
+        "numeric_values": []
+      },
+      "underground_profiles:load_file": {
+        "borrowed_native_or_interned": [
+          [
+            "path",
+            "String"
+          ],
+          [
+            "expected_sha256",
+            "String"
+          ],
+          [
+            "file",
+            "FileAccess"
+          ],
+          [
+            "digest_context",
+            "HashingContext"
+          ],
+          [
+            "code",
+            "StringName"
+          ],
+          [
+            "old",
+            "Bank"
+          ]
+        ],
+        "numeric_bytes": 8,
+        "numeric_values": [
+          [
+            "revision",
+            "int"
+          ]
+        ]
+      }
+    },
+    "numeric_with_expression_allowance": 625,
+    "payload_ceiling": 1024,
+    "sequential_frames_conservatively_summed": true,
+    "total": 1649
+  },
+  "frames": {
+    "gear:_resolve_row": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "lot_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "gear:_resolve_row_by_lot_slot": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "lot_slot",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "gear:owner_of": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "lot_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "haul_carry:_owns_live_satchel": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "hauler_slot",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ]
+      ]
+    },
+    "haul_carry:carried_lot": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "hauler_slot",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ]
+      ]
+    },
+    "haul_carry:satchel_of": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "hauler_slot",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ]
+      ]
+    },
+    "inventory:is_container_valid": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "container_ref",
+          "Vector2i"
+        ],
+        [
+          "slot",
+          "int"
+        ]
+      ]
+    },
+    "inventory:is_satchel": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 8,
+      "numeric_values": [
+        [
+          "container_ref",
+          "Vector2i"
+        ]
+      ]
+    },
+    "mole_profile_driver:_source_route_frames": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 48,
+      "numeric_values": [
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "phase",
+          "int"
+        ],
+        [
+          "time",
+          "int"
+        ],
+        [
+          "clip",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ]
+      ]
+    },
+    "mole_profile_driver:read_route_into": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "Routes"
+        ],
+        [
+          "out",
+          "Frame"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 32,
+      "numeric_values": [
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ]
+      ]
+    },
+    "source_program:advance": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 40,
+      "numeric_values": [
+        [
+          "phase",
+          "int"
+        ],
+        [
+          "time",
+          "int"
+        ],
+        [
+          "old",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "end",
+          "int"
+        ]
+      ]
+    },
+    "source_program:clock": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "time",
+          "int"
+        ],
+        [
+          "old",
+          "int"
+        ]
+      ]
+    },
+    "source_program:profile_refusal": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "Profiles"
+        ]
+      ],
+      "numeric_bytes": 88,
+      "numeric_values": [
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ],
+        [
+          "wanted",
+          "int"
+        ],
+        [
+          "yaw",
+          "int"
+        ],
+        [
+          "stride",
+          "int"
+        ],
+        [
+          "source",
+          "int"
+        ],
+        [
+          "byte",
+          "int"
+        ],
+        [
+          "high",
+          "int"
+        ],
+        [
+          "low",
+          "int"
+        ]
+      ]
+    },
+    "source_program:walk_time": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "time",
+          "int"
+        ]
+      ]
+    },
+    "source_program:work_duration": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 8,
+      "numeric_values": [
+        [
+          "profile",
+          "int"
+        ]
+      ]
+    },
+    "underground_profiles:_prepare_query": {
+      "borrowed_native_or_interned": [
+        [
+          "out",
+          "Selection"
+        ]
+      ],
+      "numeric_bytes": 48,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "connector_family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ]
+      ]
+    },
+    "underground_profiles:_read_cargo": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 40,
+      "numeric_values": [
+        [
+          "_worker",
+          "Vector2i"
+        ],
+        [
+          "stored",
+          "Vector2i"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ],
+        [
+          "count",
+          "int"
+        ],
+        [
+          "lot",
+          "Vector2i"
+        ]
+      ]
+    },
+    "underground_profiles:_read_dynamic": {
+      "borrowed_native_or_interned": [
+        [
+          "ids",
+          "Directory"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 40,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_profiles:_read_tool": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 40,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "tool",
+          "Vector2i"
+        ]
+      ]
+    },
+    "underground_profiles:query_travel_profile_into": {
+      "borrowed_native_or_interned": [
+        [
+          "out",
+          "Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 72,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "connector_family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ],
+        [
+          "policy",
+          "int"
+        ]
+      ]
+    },
+    "underground_profiles:query_work_profile_into": {
+      "borrowed_native_or_interned": [
+        [
+          "out",
+          "Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 64,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "connector_family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ]
+      ]
+    },
+    "underground_profiles:selection_policy_leaf": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ],
+      "numeric_bytes": 32,
+      "numeric_values": [
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_actor_profile_into": {
+      "borrowed_native_or_interned": [
+        [
+          "out",
+          "Profiles.Selection"
+        ]
+      ],
+      "numeric_bytes": 72,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_admit_actor": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 88,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "location",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_advance_actor": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "word",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_advance_source_motion_clock": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 32,
+      "numeric_values": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "word",
+          "int"
+        ],
+        [
+          "clock",
+          "int"
+        ],
+        [
+          "time",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_advance_stationary_source": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 61,
+      "numeric_values": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "word",
+          "int"
+        ],
+        [
+          "clock",
+          "int"
+        ],
+        [
+          "phase",
+          "int"
+        ],
+        [
+          "time",
+          "int"
+        ],
+        [
+          "old",
+          "int"
+        ],
+        [
+          "queued",
+          "bool"
+        ],
+        [
+          "next",
+          "Vector3i"
+        ]
+      ]
+    },
+    "underground_routes:_commit_motion": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 26,
+      "numeric_values": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "advanced",
+          "bool"
+        ],
+        [
+          "turned",
+          "bool"
+        ],
+        [
+          "entered",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_current_profile_into": {
+      "borrowed_native_or_interned": [
+        [
+          "out",
+          "Profiles.Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 8,
+      "numeric_values": [
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_qualify_actor_at": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 80,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "location",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_refresh_actor": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 80,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_source_clock_leaf": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 48,
+      "numeric_values": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ],
+        [
+          "phase",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:_source_tuple_row": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "bank",
+          "MotionBank"
+        ]
+      ],
+      "numeric_bytes": 48,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:actor_phase_in": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ],
+      "numeric_bytes": 16,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:admit_travel_actor": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 72,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "location",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ]
+      ]
+    },
+    "underground_routes:advance_tick": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 24,
+      "numeric_values": [
+        [
+          "tick",
+          "int"
+        ],
+        [
+          "moved",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:refresh_travel_actor": {
+      "borrowed_native_or_interned": [],
+      "numeric_bytes": 64,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ]
+      ]
+    },
+    "underground_routes:source_ready_leaf_refusal": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ],
+      "numeric_bytes": 56,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "word",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:source_state_leaf_into": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "out",
+          "PackedInt64Array"
+        ]
+      ],
+      "numeric_bytes": 64,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "word",
+          "int"
+        ],
+        [
+          "clock",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:source_work_leaf_refusal": {
+      "borrowed_native_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ],
+      "numeric_bytes": 56,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "word",
+          "int"
+        ]
+      ]
+    },
+    "underground_routes:source_work_observation_refusal": {
+      "borrowed_native_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ],
+      "numeric_bytes": 48,
+      "numeric_values": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    }
+  },
+  "joint": {
+    "boxes": 250,
+    "coherent_current_catalog_motion_binding": "root-owned integration prerequisite; not inferred from this arithmetic",
+    "current_consumer_scripts": 9,
+    "profiles": 26,
+    "remaining": 15276,
+    "reservation": 262144,
+    "retirement_source_sha256": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+    "source_count": 1,
+    "terms": {
+      "decode": 4096,
+      "levels": 2292,
+      "motion_caller": 176,
+      "motion_helpers": 4096,
+      "motion_native_provisional": 32768,
+      "paired_motion": 141720,
+      "paired_profiles": 19224,
+      "profile_controls": 32768,
+      "retirement": 8192,
+      "session": 1536
+    },
+    "total": 246868
+  },
+  "limits": [
+    "Logical scalar/payload accounting only; StringName/Variant/native frames remain provisional.",
+    "The512 pure API slice does not account a foreign Contacts/provider caller; its owner adds those frames.",
+    "No new total reservation; full new Profile caller chain is counted inside existing32768 controls.",
+    "Graph/Space proof arenas and cold lifetimes are unchanged; no new snapshot or search cache."
+  ],
+  "new_actor_columns": 0,
+  "new_banks": 0,
+  "paths": {
+    "admit_cargo": {
+      "chain": [
+        "underground_routes:admit_travel_actor",
+        "underground_routes:_admit_actor",
+        "underground_routes:_qualify_actor_at",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_travel_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_cargo",
+        "haul_carry:carried_lot",
+        "haul_carry:satchel_of",
+        "haul_carry:_owns_live_satchel",
+        "inventory:is_satchel",
+        "inventory:is_container_valid"
+      ],
+      "declared_numeric_bytes": 584,
+      "expression_return_allowance": 48
+    },
+    "admit_tool": {
+      "chain": [
+        "underground_routes:admit_travel_actor",
+        "underground_routes:_admit_actor",
+        "underground_routes:_qualify_actor_at",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_travel_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_tool",
+        "gear:owner_of",
+        "gear:_resolve_row",
+        "gear:_resolve_row_by_lot_slot"
+      ],
+      "declared_numeric_bytes": 560,
+      "expression_return_allowance": 48
+    },
+    "observed_work_cargo": {
+      "chain": [
+        "underground_routes:source_work_observation_refusal",
+        "underground_routes:_current_profile_into",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_work_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_cargo",
+        "haul_carry:carried_lot",
+        "haul_carry:satchel_of",
+        "haul_carry:_owns_live_satchel",
+        "inventory:is_satchel",
+        "inventory:is_container_valid"
+      ],
+      "declared_numeric_bytes": 392,
+      "expression_return_allowance": 48
+    },
+    "pure_actor_phase": {
+      "chain": [
+        "underground_routes:actor_phase_in",
+        "underground_routes:_source_clock_leaf",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "declared_numeric_bytes": 184,
+      "expression_return_allowance": 48
+    },
+    "pure_ready": {
+      "chain": [
+        "underground_routes:source_ready_leaf_refusal",
+        "underground_routes:_source_tuple_row",
+        "underground_routes:_source_clock_leaf",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "declared_numeric_bytes": 272,
+      "expression_return_allowance": 48
+    },
+    "pure_work_ready": {
+      "chain": [
+        "underground_routes:source_work_leaf_refusal",
+        "underground_routes:_source_tuple_row",
+        "underground_routes:_source_clock_leaf",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "declared_numeric_bytes": 272,
+      "expression_return_allowance": 48
+    },
+    "refresh_cargo": {
+      "chain": [
+        "underground_routes:refresh_travel_actor",
+        "underground_routes:_refresh_actor",
+        "underground_routes:_qualify_actor_at",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_travel_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_cargo",
+        "haul_carry:carried_lot",
+        "haul_carry:satchel_of",
+        "haul_carry:_owns_live_satchel",
+        "inventory:is_satchel",
+        "inventory:is_container_valid"
+      ],
+      "declared_numeric_bytes": 568,
+      "expression_return_allowance": 48
+    },
+    "root_source_commit": {
+      "chain": [
+        "underground_routes:advance_tick",
+        "underground_routes:_advance_actor",
+        "underground_routes:_commit_motion",
+        "underground_routes:_advance_source_motion_clock",
+        "source_program:clock"
+      ],
+      "declared_numeric_bytes": 114,
+      "expression_return_allowance": 48
+    },
+    "stationary_clock_commit": {
+      "chain": [
+        "underground_routes:advance_tick",
+        "underground_routes:_advance_actor",
+        "underground_routes:_advance_stationary_source",
+        "source_program:advance",
+        "source_program:work_duration"
+      ],
+      "declared_numeric_bytes": 149,
+      "expression_return_allowance": 48
+    },
+    "stationary_tick_cargo": {
+      "chain": [
+        "underground_routes:advance_tick",
+        "underground_routes:_advance_actor",
+        "underground_routes:_advance_stationary_source",
+        "underground_routes:_qualify_actor_at",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_travel_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_cargo",
+        "haul_carry:carried_lot",
+        "haul_carry:satchel_of",
+        "haul_carry:_owns_live_satchel",
+        "inventory:is_satchel",
+        "inventory:is_container_valid"
+      ],
+      "declared_numeric_bytes": 525,
+      "expression_return_allowance": 48
+    },
+    "stationary_tick_tool": {
+      "chain": [
+        "underground_routes:advance_tick",
+        "underground_routes:_advance_actor",
+        "underground_routes:_advance_stationary_source",
+        "underground_routes:_qualify_actor_at",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_travel_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_tool",
+        "gear:owner_of",
+        "gear:_resolve_row",
+        "gear:_resolve_row_by_lot_slot"
+      ],
+      "declared_numeric_bytes": 501,
+      "expression_return_allowance": 48
+    },
+    "visual_dynamic_cargo": {
+      "chain": [
+        "mole_profile_driver:read_route_into",
+        "underground_profiles:query_travel_profile_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_cargo",
+        "haul_carry:carried_lot",
+        "haul_carry:satchel_of",
+        "haul_carry:_owns_live_satchel",
+        "inventory:is_satchel",
+        "inventory:is_container_valid"
+      ],
+      "declared_numeric_bytes": 304,
+      "expression_return_allowance": 48
+    },
+    "visual_resolver": {
+      "chain": [
+        "mole_profile_driver:read_route_into",
+        "mole_profile_driver:_source_route_frames",
+        "source_program:walk_time"
+      ],
+      "declared_numeric_bytes": 96,
+      "expression_return_allowance": 48
+    },
+    "visual_source_read": {
+      "chain": [
+        "mole_profile_driver:read_route_into",
+        "underground_routes:source_state_leaf_into",
+        "underground_routes:_source_tuple_row",
+        "underground_routes:_source_clock_leaf",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "declared_numeric_bytes": 312,
+      "expression_return_allowance": 48
+    }
+  },
+  "portable_enforcement": {
+    "current_joint_source_sha256": {
+      "godot/data/underground/mole-worker/mole_profile_catalog.gd": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+      "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+      "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+      "godot/scripts/core/underground_motion_catalog.gd": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
+      "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+      "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+      "godot/scripts/core/underground_world_retirement.gd": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9"
+    },
+    "current_text_overrides_honored": true,
+    "foreign_frame_sha256": {
+      "gear:_resolve_row": "ba6c129eef716a9e613cc7ee05de894313c69e7bf225a71b82529e5c2837447b",
+      "gear:_resolve_row_by_lot_slot": "1ead120279509fcc86585f66d48dcae8b39cea78061bdc15fa4fc914a0aaca52",
+      "gear:owner_of": "c9569705042a0c92fa97783c07637263a05b1f6f356e286923d7f149531d4dc3",
+      "haul_carry:_owns_live_satchel": "0bb4d8ff0582a1eb5079aef5f3b7c01e6fb70bb72f08153b7962d7d056c2367b",
+      "haul_carry:carried_lot": "b9728716a15f2ad21525393f92a8780b1f35fdc5db192d029bc0f07ee0f45077",
+      "haul_carry:satchel_of": "7c87e65e50970246367f20db46131ece60658bd5af7083cc0a41f04ef69815f0",
+      "inventory:is_container_valid": "4bb7297b7a386cbd5268705893549ae43fbe67c91ef1b75d2bdfc6991047fb6b",
+      "inventory:is_satchel": "3b25054f8f01a3c14cc47ea14c63aea7fa7aa7a06cbd769f689c1a576d2238f8"
+    },
+    "git_or_subprocess_required": false,
+    "motion_joint_before_session_and_retirement": {
+      "caller": 176,
+      "decode": 4096,
+      "headroom": 25004,
+      "independent_maxima_total_refuses": 444284,
+      "levels": 2292,
+      "logical_helper": 4096,
+      "native": 32768,
+      "paired_motion": 141720,
+      "profiles": 51992,
+      "reservation": 262144,
+      "total": 237140
+    },
+    "scope": "Logical existing reservation enforcement only; no native RAM, presentation, route, or World qualification.",
+    "source_policy": "Changed reviewed calls, allocations, or frames require explicit recount; foreign unrelated methods may change.",
+    "whole_reviewed_call_graph_modules": [
+      "underground_profiles",
+      "underground_routes",
+      "underground_world_routes",
+      "mole_profile_driver",
+      "source_program"
+    ],
+    "witness_sha256": {
+      "docs/validation/evidence/underground-approach-memory-2026-10-04/foreign-frames.json": "b200d2d822504669582df54e1b481b8e3c9592d70045534102a2a65a36a78dec",
+      "docs/validation/evidence/underground-approach-memory-2026-10-04/predecessors.json": "9ec7f83583ba3a6f7e474145c037db5ca91e56f618e937d7ab4db60ac2d46660",
+      "docs/validation/evidence/underground-work-approach-2026-10-04/census.json": "4a85ab69a8cc002416990b4e720840149e5e69ce90daca8341ad629109fd47e2",
+      "docs/validation/evidence/underground-work-approach-2026-10-04/census.py": "dc9ae8a01583d44391ef95ae9b0314064dd6ac6ea6a38a8164f83bba39019b75",
+      "docs/validation/evidence/underground-work-approach-2026-10-04/supporting/retirement-source.gd.txt": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9"
+    }
+  },
+  "presentation": {
+    "actor_content_delta": 0,
+    "caller_source_state_reuses_driver_stage": true,
+    "driver_duration_scalars": 14,
+    "driver_pin_scalars": 54,
+    "live_and_stage_scalars": 24,
+    "new_actor_or_content_copy": false,
+    "one_existing_actor_content_admitted_peak": 7141920,
+    "source_profile_matches_nested_descriptor": "existing184B actual ActorContent descriptor plus32B digest and64-character hex output; unchanged presentation/foreign caller lifetime",
+    "unchanged_cold_descriptor_bytes_each": 184
+  },
+  "profile_control": {
+    "bounded_logical_slice": 4096,
+    "cold_or_hot_peak": 1649,
+    "complete_numeric_stack": 632,
+    "complete_profile_integer_constants": 552,
+    "counted_subtotal": 3183,
+    "existing_fixed_packets": 326,
+    "new_driver_constant": 8,
+    "new_shared_source_payload": 640,
+    "profile_null_ref_constant": 8,
+    "remaining_provisional_native_slice": 28672,
+    "unchanged_helper_native_reserve": 32768
+  },
+  "pure_api_inclusive_bytes": {
+    "pure_actor_phase": 232,
+    "pure_ready": 320,
+    "pure_work_ready": 320
+  },
+  "retained": {
+    "mole_profile_driver": {
+      "added_members": [],
+      "member_count": 24,
+      "numeric_packed_delta": 0
+    },
+    "underground_profiles": {
+      "added_members": [],
+      "member_count": 73,
+      "numeric_packed_delta": 0
+    },
+    "underground_routes": {
+      "added_members": [],
+      "member_count": 169,
+      "numeric_packed_delta": 0
+    },
+    "underground_world_routes": {
+      "added_members": [],
+      "member_count": 87,
+      "numeric_packed_delta": 0
+    }
+  },
+  "runtime_native_qualified": false,
+  "source_program": {
+    "cached_script_reference_native_headers": "within original provisional native/reference accounting; unmeasured",
+    "integer_constants": 16,
+    "integer_payload": 128,
+    "shared_counted_once": 640,
+    "string_payload_bytes": 512,
+    "two_sha256_string_characters": 128
+  },
+  "source_sha256": {
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/scripts/core/gear.gd": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+    "godot/scripts/core/haul_carry.gd": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
+    "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+    "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "godot/scripts/core/underground_world_routes.gd": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f"
+  },
+  "whole_numeric_peak_including_expression_allowance": 632
+}

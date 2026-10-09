@@ -1,0 +1,62 @@
+extends SceneTree
+## Read-only accounting probe: all actual Locations decisions and limits forward unchanged.
+
+const PhaseTests := preload("res://test/test_underground_entry_world_bindings.gd")
+const GroundTests := preload("res://test/test_underground_surface_anchor.gd")
+
+class CountedLocations extends GroundTests.WatchedLocations:
+
+	var by_caller: Dictionary = {}
+	var first_failure: Dictionary = {}
+
+	func _spend(checks: int = 1) -> bool:
+		"""Record exact existing charges; never replace a refusal or reset the shared counter."""
+		var before: int = _remaining
+		var result: bool = super._spend(checks)
+		if not _installation_active(): return result
+		var stack: Array = get_stack()
+		var caller: String = str(stack[1]["function"]) if stack.size() > 1 else "unknown"
+		var tally: Vector2i = by_caller.get(caller, Vector2i.ZERO)
+		by_caller[caller] = tally + Vector2i(1, checks)
+		if not result and first_failure.is_empty():
+			first_failure = {"available": before, "requested": checks, "stage_count": _stage.count,
+				"live_count": _live.count, "point": _record.point, "section": _record.section,
+				"stack": stack, "charges": by_caller.duplicate()}
+		return result
+
+class CountedWorld extends PhaseTests.ActualWorld:
+
+	func _actual_space(_obstruction: int) -> void:
+		"""Initialize the same actual empty owner graph, substituting only a forwarding accounting observer."""
+		_routes = Routes.new(_residents, _transforms)
+		_sources = Owner.CoreSources.new(_residents.directory(), _buildings, _construction, _routes)
+		var domain: Space.Domain = Space.Domain.new()
+		assert_equal(domain.configure(_world_ref, Vector3i(0, 512, 0), Vector3i(0, -32, 0),
+			Vector3i(256, 48, 256), 8192, 6144, check_budget), &"", "unchanged actual finite Domain")
+		_owner = Owner.new(_sources)
+		assert_equal(_owner.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "same empty owner")
+		_locations = CountedLocations.new()
+		assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+			_owner, _sources, _budget, location_capacity, 228 * location_capacity + 256), &"", "same actual endpoint capacity")
+		_terrain = GroundTests.CountedTerrain.new()
+		assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "same actual Terrain")
+		_actual_catalog(domain)
+
+class CountedTest extends PhaseTests:
+
+	func _make_world() -> ActualWorld:
+		"""Only the unchanged-operation accounting observer differs from the frozen fixture."""
+		return CountedWorld.new()
+
+func _initialize() -> void:
+	"""Run one genuine paid L0 attempt, retain its exact failure stack, then release every actual owner."""
+	var fixture: CountedTest = CountedTest.new()
+	fixture.before_each()
+	fixture.test_four_real_l0_cubes_then_paid_l0_installation_conserve_all_adopted_goods()
+	var locations: CountedLocations = fixture._world._locations as CountedLocations
+	print("LOCATION-BUDGET-PROBE ", JSON.stringify(locations.first_failure))
+	print("FIXTURE-FAILURES ", JSON.stringify(fixture.failures))
+	fixture.after_each()
+	fixture = null
+	locations = null
+	quit(0)

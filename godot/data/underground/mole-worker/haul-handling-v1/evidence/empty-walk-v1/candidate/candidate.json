@@ -1,0 +1,376 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "tool": null,
+  "cargo": null,
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "current_mesh_palette_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "source_body_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "approach_sha256": "213e4f9ca9e77b791795c0596424d05f2ebc2edd88431850588fecebe2f922f4",
+  "recovery_sha256": "d6add16d6f559ed8f3a1cb015aeec78e3ead24f7878169d9467bee7e7a7b9034",
+  "producer_sha256": "45e0d026be10eb51b9776f3892207ef040dbd26ce3d39e64bb869324467696ef",
+  "ready_frame": 8,
+  "clips": {
+    "stand": {
+      "frames": 122,
+      "loop_mode": 1,
+      "matrix_columns": 24,
+      "stock_role": null,
+      "sha256": "7086ef2a3aab64537d7822393c04ece86d67879e59e1c7e54d333a5c7f974c7d"
+    },
+    "walk": {
+      "frames": 45,
+      "loop_mode": 1,
+      "matrix_columns": 24,
+      "stock_role": null,
+      "sha256": "046ef4a7f4855b7f5243e66066bc8d27373689471e055f628e94c357cfa1b06e"
+    },
+    "enter_haul": {
+      "frames": 31,
+      "loop_mode": 0,
+      "matrix_columns": 25,
+      "stock_role": "world_target",
+      "sha256": "739a59754a85d74b753814d400893cb3a5485f72cacfe8ca5b1fc033289111b0"
+    },
+    "leave_haul": {
+      "frames": 31,
+      "loop_mode": 0,
+      "matrix_columns": 25,
+      "stock_role": "world_target",
+      "sha256": "e02e66a32ec7e815d596cee7ed3e0ea69eae4c2b6c749740fbabc6c6f3d5109c"
+    }
+  },
+  "authoring": {
+    "stand": {
+      "source": "mole_digger.idle.plain",
+      "native_wrap_max_abs": 3.0547380447387695e-07,
+      "keys": "original frames 0..n-2, key n-1 = key 0"
+    },
+    "walk": {
+      "source": "mole_digger.walk.plain",
+      "native_wrap_max_abs": 5.662441253662109e-07,
+      "support_transfer_keys": [
+        {
+          "original_frame": 0
+        },
+        {
+          "original_frame": 1
+        },
+        {
+          "original_frame": 2
+        },
+        {
+          "original_frame": 3
+        },
+        {
+          "original_interval": [
+            3,
+            4
+          ],
+          "source_share": 0.03329719933640755,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_interval": [
+            3,
+            4
+          ],
+          "source_share": 0.5037570965522806,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 4
+        },
+        {
+          "original_interval": [
+            4,
+            5
+          ],
+          "source_share": 0.3695194375334073,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 5
+        },
+        {
+          "original_frame": 6
+        },
+        {
+          "original_frame": 7
+        },
+        {
+          "original_frame": 8
+        },
+        {
+          "original_interval": [
+            8,
+            9
+          ],
+          "source_share": 0.2532376717167762,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 9
+        },
+        {
+          "original_frame": 10
+        },
+        {
+          "original_frame": 11
+        },
+        {
+          "original_interval": [
+            11,
+            12
+          ],
+          "source_share": 0.16271441033959297,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 12
+        },
+        {
+          "original_frame": 13
+        },
+        {
+          "original_frame": 14
+        },
+        {
+          "original_frame": 15
+        },
+        {
+          "original_interval": [
+            15,
+            16
+          ],
+          "source_share": 0.7540105868086422,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 16
+        },
+        {
+          "original_frame": 17
+        },
+        {
+          "original_interval": [
+            17,
+            18
+          ],
+          "source_share": 0.9014980758061909,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 18
+        },
+        {
+          "original_frame": 19
+        },
+        {
+          "original_frame": 20
+        },
+        {
+          "original_frame": 21
+        },
+        {
+          "original_interval": [
+            21,
+            22
+          ],
+          "source_share": 0.06001179466280426,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 22
+        },
+        {
+          "original_frame": 23
+        },
+        {
+          "original_interval": [
+            23,
+            24
+          ],
+          "source_share": 0.7453349872747915,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 24
+        },
+        {
+          "original_frame": 25
+        },
+        {
+          "original_frame": 26
+        },
+        {
+          "original_interval": [
+            26,
+            27
+          ],
+          "source_share": 0.4129386216051638,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 27
+        },
+        {
+          "original_frame": 28
+        },
+        {
+          "original_frame": 29
+        },
+        {
+          "original_frame": 30
+        },
+        {
+          "original_interval": [
+            30,
+            31
+          ],
+          "source_share": 0.4985648092073522,
+          "reason": "actual sole-height lower-envelope switch"
+        },
+        {
+          "original_frame": 31
+        },
+        {
+          "original_frame": 32
+        },
+        {
+          "original_frame": 33
+        }
+      ],
+      "original_rendered_intervals": 33,
+      "authored_rendered_intervals": 44,
+      "cadence_note": "transfer keys lengthen the source cycle; playback follows the adopted ground pace cap, not this clock"
+    },
+    "enter_haul": {
+      "from": [
+        "stand",
+        8
+      ],
+      "to": [
+        "approach",
+        0
+      ],
+      "segments": 30,
+      "support_transfer_keys": [
+        {
+          "original_frame": 0
+        },
+        {
+          "original_frame": 1
+        },
+        {
+          "original_frame": 2
+        },
+        {
+          "original_frame": 3
+        },
+        {
+          "original_frame": 4
+        },
+        {
+          "original_frame": 5
+        },
+        {
+          "original_frame": 6
+        },
+        {
+          "original_frame": 7
+        },
+        {
+          "original_frame": 8
+        },
+        {
+          "original_frame": 9
+        },
+        {
+          "original_frame": 10
+        },
+        {
+          "original_frame": 11
+        },
+        {
+          "original_frame": 12
+        },
+        {
+          "original_frame": 13
+        },
+        {
+          "original_frame": 14
+        },
+        {
+          "original_frame": 15
+        },
+        {
+          "original_frame": 16
+        },
+        {
+          "original_frame": 17
+        },
+        {
+          "original_frame": 18
+        },
+        {
+          "original_frame": 19
+        },
+        {
+          "original_frame": 20
+        },
+        {
+          "original_frame": 21
+        },
+        {
+          "original_frame": 22
+        },
+        {
+          "original_frame": 23
+        },
+        {
+          "original_frame": 24
+        },
+        {
+          "original_frame": 25
+        },
+        {
+          "original_frame": 26
+        },
+        {
+          "original_frame": 27
+        },
+        {
+          "original_frame": 28
+        },
+        {
+          "original_frame": 29
+        },
+        {
+          "original_frame": 30
+        }
+      ],
+      "method": "local proper-rotation shortest blend and local translation blend (author_program.global_blend), smoothstep share"
+    },
+    "leave_haul": {
+      "from": [
+        "recovery",
+        60
+      ],
+      "to": [
+        "stand",
+        8
+      ],
+      "method": "exact reverse of enter_haul"
+    }
+  },
+  "source_timing_only": true,
+  "runtime_walk_rate_adopted": false,
+  "missing": [
+    "native replay (native-program v8)",
+    "body self-clearance",
+    "foot sliding / root advance",
+    "runtime profile rows and presentation binding",
+    "joint memory admission"
+  ]
+}

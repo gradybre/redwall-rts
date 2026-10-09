@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+demo/burrow/modular_access.gd:187: (CONFUSABLE_LOCAL_DECLARATION): The variable "code" is declared below in the parent block.
+test/test_modular_access.gd:23: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_callback_code" is declared but never used in the class.
+2 GDScript warning(s) in 2 of 6 file(s)

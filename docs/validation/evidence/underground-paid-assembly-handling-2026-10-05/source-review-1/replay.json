@@ -1,0 +1,60 @@
+{
+  "tests": 23,
+  "failures": 0,
+  "errors": 0,
+  "source_and_output_pins_unchanged": 164,
+  "compiler_outputs": {
+    "candidate.json": "d2d96197cd19875dc216518d2dcc7712e15c8961197d41246e65a89180c91627",
+    "plan.json": "214b537e111361be8881b7e62b6933e992fab2b21acd0dd4f3c3b0de44f8620f",
+    "mole-worker.ugactor": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+    "compilation.json": "bebf38d2393ff7d2cfe9ee6b8a8a52d9a79d804fb59c96bbd61859bb330f2212"
+  },
+  "native_verification": {
+    "sampled_poses": 5634,
+    "exact_native_scalars": 1825416,
+    "screenshots": 108,
+    "assemblies": 2,
+    "views": 3,
+    "directions": 2,
+    "intervals": 109,
+    "scope": "Actual source image/native palette/grounding/held-pick/complete-bearer track. Quarter-Q16 sampling is not the continuous proof, physical World admission or adopted rate.",
+    "production_qualified": false
+  },
+  "census": {
+    "schema": 1,
+    "source_image_sha256": "b94d676e999c87dd399a4dc110674620a4fbc66f0ca07e494b8bedadac683b66",
+    "image_bytes": 135328,
+    "parts": 2,
+    "palette_rows": 25,
+    "keys": 112,
+    "clips": [
+      55,
+      2,
+      55
+    ],
+    "intervals": 109,
+    "retained_palette": 134848,
+    "retained_tables": 456,
+    "incremental_retained_presentation": 135304,
+    "new_meshes": 0,
+    "second_actor": false,
+    "clock_retained_fields": 0,
+    "clock_constant_numeric_bytes": 72,
+    "clock_caller_output_bytes": 8,
+    "clock_frames": {
+      "state_valid": 16,
+      "advance": 16,
+      "interrupt": 16,
+      "source_into": 32
+    },
+    "maximum_declared_clock_chain": 48,
+    "expression_return_allowance": 32,
+    "clock_own_logical_proposal": 160,
+    "numeric_scope": "Pure clock only; foreign actual-owner caller chains must be counted at integration.",
+    "native_memory_measured": false,
+    "shared_runtime_admission": false,
+    "decode_scope": "Content1181 must admit simultaneous original palettes and decode; no duplicate mesh/native reserve is assumed."
+  },
+  "engine_rerun": false,
+  "foreign_writes": false
+}

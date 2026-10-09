@@ -1,0 +1,48 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_bindings.gd
+  PASS  test_actual_entry_admission_reserves_exact_virgin_cube_and_old_circulation
+  PASS  test_source_change_wrong_anchor_and_extra_cube_refuse_unchanged
+  PASS  test_fractional_claim_keeps_exact_shape_and_whole_paid_key
+  PASS  test_outside_claim_paid_remainder_is_physically_checked
+  PASS  test_actual_retained_obstacle_and_natural_bearing_loss_refuse
+  PASS  test_unbound_cold_entry_cannot_borrow_foreign_lease
+  PASS  test_surface_contact_must_exist_with_exact_role_and_current_full_proof
+  PASS  test_duplicate_actual_surface_contact_refuses_without_arbitrary_selection
+  PASS  test_nested_cleanup_during_actual_local_facts_poison_refuses_unchanged
+  PASS  test_nested_cleanup_after_actual_prepared_facts_aborts_every_companion
+  PASS  test_source_observer_cannot_replace_lease_before_private_allocation
+  PASS  test_final_local_facts_have_no_later_binding_observer
+  PASS  test_public_entry_stage_guards_do_not_reenter_cleanup
+  PASS  test_valid_foreign_surface_section_cannot_supply_source_contact
+  PASS  test_backfilled_source_bearing_is_not_original_natural_earth
+  PASS  test_backfilled_anchor_footing_is_not_original_natural_earth
+  PASS  test_backfilled_storage_footing_is_not_original_natural_earth
+  PASS  test_actual_paid_prism_group_publishes_supported_contact_and_exact_residual
+  PASS  test_nonrectangular_and_floating_source_groups_refuse_before_settlement
+  PASS  test_missing_finished_dependency_refuses_then_retries_same_paid_work
+  PASS  test_original_lease_replaced_in_preflight_preserves_new_scope_and_payment
+  PASS  test_late_new_well_after_companion_observation_blocks_settlement
+  PASS  test_installed_contact_refresh_and_restore_use_actual_lower_paid_site
+  PASS  test_installed_restore_refuses_missing_prefix_paid_site_and_stale_source
+  PASS  test_installed_restore_rejects_provider_domain_and_catalog_substitution
+  PASS  test_preflight_reentry_and_exhaustion_preserve_paid_state
+CI_SUITE_TIME {"assertions":1408,"failures":0,"suite":"test_underground_entry_bindings.gd","tests":26,"usec":10344404}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+26 test(s), 1408 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 26 tests, 1408 assertions, 0 failures.

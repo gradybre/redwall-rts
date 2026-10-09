@@ -1,0 +1,444 @@
+{
+  "schema": 1,
+  "actor_image_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "ground_proof_sha256": "9e1e5d1bec451588e431dff6a669052a2677111a52898bbec7c33b4ab0b5014b",
+  "all_yaw_handoff_proof_reused": true,
+  "ground_clips_source_timing_equal": true,
+  "handoff_checks": 9730636,
+  "handoff_simplices": 155,
+  "roles": {
+    "0": {
+      "BODY_HELD_LOAD": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -406,
+          -1,
+          -406,
+          406,
+          0,
+          406
+        ]
+      ]
+    },
+    "1": {
+      "BODY_HELD_LOAD": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "TURN_RECOVERY": [
+        [
+          -738,
+          0,
+          -738,
+          738,
+          930,
+          738
+        ],
+        [
+          -402,
+          -1,
+          -402,
+          402,
+          0,
+          402
+        ],
+        [
+          -1256,
+          355,
+          -1256,
+          1256,
+          1036,
+          1256
+        ]
+      ],
+      "STANCE_SUPPORT": [
+        [
+          -406,
+          -1,
+          -406,
+          406,
+          0,
+          406
+        ]
+      ]
+    }
+  },
+  "ground_enclosures": [
+    {
+      "kind": "body",
+      "source_full_u": [
+        -445,
+        -1,
+        -496,
+        546,
+        930,
+        346
+      ],
+      "source_floor_u": [
+        -239,
+        -1,
+        -274,
+        293,
+        0,
+        250
+      ],
+      "full_u": [
+        -738,
+        -1,
+        -738,
+        738,
+        930,
+        738
+      ],
+      "floor_u": [
+        -402,
+        -1,
+        -402,
+        402,
+        0,
+        402
+      ],
+      "stance": {
+        "support_u": [
+          -275,
+          -1,
+          -274,
+          299,
+          0,
+          250
+        ],
+        "source_foot_bounds_u": [
+          -275,
+          -1,
+          -274,
+          299,
+          320,
+          250
+        ],
+        "triangles": 1985,
+        "binds": [
+          3,
+          4,
+          7,
+          8
+        ],
+        "left_palm_brace": false,
+        "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"
+      },
+      "support_u": [
+        -406,
+        -1,
+        -406,
+        406,
+        0,
+        406
+      ],
+      "native_residual_m": [
+        {
+          "numerator": 2473022201813987732326552477005529947100914336910780399855792339647421851128467366475,
+          "denominator": 4538048024223992386432181656600020531605267198188311810830533323011075635304057939165184
+        },
+        {
+          "numerator": 203735474958279095875396804084896648824859566691723316774300335279087628113511354771,
+          "denominator": 2269024012111996193216090828300010265802633599094155905415266661505537817652028969582592
+        },
+        {
+          "numerator": 2473022201813987732326552477005529947100914336910780399855792339647421851128467366475,
+          "denominator": 4538048024223992386432181656600020531605267198188311810830533323011075635304057939165184
+        }
+      ],
+      "source_padding_q24": [
+        12932,
+        1508,
+        12932
+      ]
+    },
+    {
+      "kind": "attachment",
+      "source_full_u": [
+        -108,
+        355,
+        -865,
+        910,
+        1036,
+        130
+      ],
+      "source_floor_u": null,
+      "full_u": [
+        -1256,
+        355,
+        -1256,
+        1256,
+        1036,
+        1256
+      ],
+      "floor_u": null,
+      "stance": null,
+      "support_u": null,
+      "native_residual_m": [
+        {
+          "numerator": 378865120433051338951188562470193846203159248267374595554395835963021852989037520646253038508590393510130312603148178271240183,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 63501495827712162091050952017816094013872230141720499621821543508576851412920718568017674380647427650660473899278999507959799,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 378865120433051338951188562470193846203159248267374595554395835963021852989037520646253038508590393510130312603148178271240183,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ],
+      "source_padding_q24": [
+        12970,
+        1538,
+        12970
+      ]
+    }
+  ],
+  "world_basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "inverse_heading_norm": {
+    "numerator": 398065705943040,
+    "denominator": 281474953696313
+  },
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    },
+    "res://demo/cast/underground_actor.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/demo/cast/underground_actor.gd"
+    },
+    "res://scripts/core/buildings.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/buildings.gd"
+    },
+    "res://scripts/core/construction.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/construction.gd"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/entity_directory.gd"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/excavation_contract.gd"
+    },
+    "res://scripts/core/inventory.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/inventory.gd"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/modular_project_contract.gd"
+    },
+    "res://scripts/core/reservations.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/reservations.gd"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/resource_nodes.gd"
+    },
+    "res://scripts/core/transforms.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/transforms.gd"
+    },
+    "res://scripts/core/world_init.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/world_init.gd"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/compile_profile_publication.py": "e57be66923d732b5519380f95ffb31e5a683403710379b2764983b283af61b58",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "613629249386906fea9ce35c4d633cfff83e481c27a08eccb938476d6d0e466f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py": "19fe426df8373229df330666b4f0cdc453e4a202455424ae1a442a62c8ffe548",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py": "f55701948939a10706d175dabd750db741ea9550b9cbe0308928422084ae1413",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py": "746d9fe28567aab270807253b531c5e449e87f2f726da3895a8217a0f1dbd26a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py": "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272"
+  },
+  "input_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/program.json": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/roles.json": "0f2da835a381460231c1560ea116fa3aafd51d32a4f3185f25b11b782bd4fd83",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json": "4a771e103b400e967bb752fd0ce340735574fc84aa2c5373dd1a2ff7c770dc57",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json": "50fd154de80b00625c7e7cd677334aa6ecd4cd735ce1c7499ff2bf091281340c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+    "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json": "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json": "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-proof-v1.json": "9e1e5d1bec451588e431dff6a669052a2677111a52898bbec7c33b4ab0b5014b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-source-v1/mole-worker.ugactor": "92867c982add6e8ae9337f8afb1a91fc2299110f6e64ac9cad9017a9a51faf9e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/roles.json": "84cf43a446a6e5d42d9bc2c0398caea681dcaa46bdf0491320346d4c6ddf80c6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json": "46741887b362bfbc32a175b7fdeb48824d54d4b39564fd5f79fe8c439139467a"
+  },
+  "consumer_source_commit": "1e71c67879240fc293b0e41a6e04c34f64ecf42b",
+  "consumer_sources": {
+    "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "godot/scripts/core/underground_work_face.gd": "e138d653af2cd532da4d8014562cf00be19c0a5f263839521807014cae78a7cc",
+    "godot/scripts/core/underground_connector_contacts.gd": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d",
+    "godot/scripts/core/underground_routes.gd": "6e551edf8eeca22e9ff602573b961eeb4f0fd004c33c63fe477dffdce2c34cde",
+    "godot/scripts/core/underground_world_routes.gd": "438267e61eb7042cb9ccc56ae4859bf80ce77c9aca9bd10b033646469c98fe5b",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "523aaad9069747c15f9366eaa08fed73ecf54bd9868b7f328a1fd423968e83c3"
+  },
+  "consumer_compatibility_review_required": true,
+  "certificate_bits_written": 0,
+  "production_qualified": false,
+  "scope": "All-yaw ground source enclosure and exact accepted finite fades; immutable consumer bytes are review inputs only",
+  "remaining": [
+    "CURRENT_CONSUMER_COMPATIBILITY_REVIEW",
+    "NATIVE_PROTOCOL4_REPLAY",
+    "EXACT_RUNTIME_SOURCE_BINDING",
+    "IMMUTABLE_PROFILE_PUBLICATION",
+    "ACTUAL_WORLD_WIP_HANDLING_AND_MOVEMENT"
+  ],
+  "input_location_adapter": {
+    "original_invocation_sha256": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+    "original_root": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+    "local_root": "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal",
+    "same_file_inputs": {
+      "source": {
+        "path": "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda"
+      },
+      "proof": {
+        "path": "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json",
+        "sha256": "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099"
+      },
+      "plan": {
+        "path": "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json",
+        "sha256": "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5"
+      },
+      "topology": {
+        "path": "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json",
+        "sha256": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42"
+      },
+      "world-basis": {
+        "path": "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+        "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
+      }
+    },
+    "archive": "godot/demo/assets/underground-matrices/mole-grip-v3.inputs",
+    "archive_verified_by_unchanged_source_reader": true,
+    "historical_source_locators": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json",
+    "historical_source_locators_sha256": "46741887b362bfbc32a175b7fdeb48824d54d4b39564fd5f79fe8c439139467a",
+    "current_consumer_source_unchanged": true,
+    "only_locations_changed": true,
+    "certificate_bits_written": 0
+  }
+}

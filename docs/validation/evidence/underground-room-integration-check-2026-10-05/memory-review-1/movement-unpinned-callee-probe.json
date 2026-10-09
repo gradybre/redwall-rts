@@ -1,0 +1,15 @@
+{
+  "scope": "injected parsed Module only; no source/foreign disk edits, no Godot",
+  "module": "godot/scripts/core/movement.gd",
+  "base_sha256": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
+  "mutated_sha256": "89eb1c8e91633624a874a28e1202023b614b2c57c3553c75a88c6776c55b83ad",
+  "function": "profile_speed_into",
+  "new_local_packed_bytes": 4096,
+  "inserted_statements": "\tvar review_scratch: PackedByteArray = PackedByteArray()\n\treview_scratch.resize(4096)\n\tif review_scratch.size() != 4096: return false\n\treturn _profile_field_into(_profile_speed_u_per_s, profile_id, out)",
+  "caught_by_current_room_checker": false,
+  "movement_in_manifest": false,
+  "reported_ground_catalog_foreign_helper_allowance": 512,
+  "reported_ground_catalog_fixed_peak": 1468,
+  "reported_global_total": 99999806,
+  "root_source_unchanged": true
+}

@@ -1,0 +1,53 @@
+{
+  "scope": "presentation payload census; no authoritative arena or measured native acceptance",
+  "source_sha256": "5520c4f64afc9c17712dde5d06b718d0b1ea61661548c231a091846af7bad4f1",
+  "fixed_numeric_bytes": 80,
+  "metadata_bytes_actual_pack": 212,
+  "metadata_bytes_capacity": 260,
+  "retained_logical_numeric_bytes_actual": 292,
+  "retained_logical_numeric_bytes_capacity": 340,
+  "borrowed_owner_weakrefs": 4,
+  "mesh_nodes": 4,
+  "array_meshes": 4,
+  "mesh_materials": 10,
+  "noise_textures": 3,
+  "noise_sources": 3,
+  "terrain_staging_bytes": 16384,
+  "quad_input_bytes": 152,
+  "capacity": {
+    "top_quads_per_plane": 16384,
+    "shore_quads": 32512,
+    "context_lines": 65536,
+    "raw_mesh_source_bytes": 11495424,
+    "largest_one_surface_staging_bytes": 4941824,
+    "old_plus_new_mesh_source_bytes": 22990848,
+    "old_new_staging_and_one_upload_payload_bytes": 32890880
+  },
+  "noise_image_extent": {
+    "width": 512,
+    "height": 512,
+    "mip_pixels": 349525,
+    "three_rgba8_mipped_images_bytes": 4194300,
+    "two_generations_cpu_plus_gpu_image_payload_bytes": 16777200
+  },
+  "native_unmeasured": [
+    "ArrayMesh compressed storage and upload temporaries",
+    "render-thread deferred destruction and exact generation overlap",
+    "NoiseTexture2D worker, seamless/skirt and normal generation temporaries",
+    "nodes, RIDs, Array/packed headers, materials, shader compilation/cache, WeakRefs"
+  ],
+  "world_qualified": false,
+  "native_memory_qualified": false,
+  "existing_global_ceiling_changed": false,
+  "actual_native": {
+    "runs": 410,
+    "banks": 465,
+    "lines": 1445,
+    "raw_mesh_source_bytes": 230000,
+    "build_usec": 43679,
+    "old_plus_new_raw_mesh_source_bytes": 460000,
+    "staging_upper_bound_without_source_run_retention": 1572864,
+    "backend": "forward_plus",
+    "driver": "metal"
+  }
+}

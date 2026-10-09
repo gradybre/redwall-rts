@@ -1,0 +1,99 @@
+{
+  "scope": "Expected ledger only; no completed paid transition or playable qualification asserted.",
+  "units": {
+    "quantity": "milli-U",
+    "work": "mWU",
+    "mass": "g"
+  },
+  "source_sha256": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/scripts/core/excavation_contract.gd": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+    "godot/data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab"
+  },
+  "per_cube": [
+    {
+      "phase": "BRACE",
+      "work_mwu_per_cube": 2000,
+      "wood_milli_per_cube": 250,
+      "stone_milli_per_cube": 250,
+      "earth_milli_per_cube": 0
+    },
+    {
+      "phase": "CUT",
+      "work_mwu_per_cube": 4000,
+      "wood_milli_per_cube": 0,
+      "stone_milli_per_cube": 0,
+      "earth_milli_per_cube": 2000
+    },
+    {
+      "phase": "FINISH",
+      "work_mwu_per_cube": 3000,
+      "wood_milli_per_cube": 0,
+      "stone_milli_per_cube": 0,
+      "earth_milli_per_cube": 0
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "L0",
+      "unique_paid_cubes": 4,
+      "included_part_count": 7,
+      "assembly_wood_milli": 4000,
+      "assembly_build_mwu": 32000,
+      "phase_wood_milli": 1000,
+      "phase_stone_milli": 1000,
+      "phase_work_mwu": 36000,
+      "earth_milli": 8000,
+      "delta": {
+        "wood_milli": 5000,
+        "stone_milli": 1000,
+        "work_mwu": 68000,
+        "earth_milli": 8000
+      },
+      "cumulative": {
+        "wood_milli": 5000,
+        "stone_milli": 1000,
+        "work_mwu": 68000,
+        "earth_milli": 8000
+      }
+    },
+    {
+      "name": "T0",
+      "unique_paid_cubes": 2,
+      "included_part_count": 7,
+      "assembly_wood_milli": 1000,
+      "assembly_build_mwu": 12000,
+      "phase_wood_milli": 500,
+      "phase_stone_milli": 500,
+      "phase_work_mwu": 18000,
+      "earth_milli": 4000,
+      "delta": {
+        "wood_milli": 1500,
+        "stone_milli": 500,
+        "work_mwu": 30000,
+        "earth_milli": 4000
+      },
+      "cumulative": {
+        "wood_milli": 6500,
+        "stone_milli": 1500,
+        "work_mwu": 98000,
+        "earth_milli": 12000
+      }
+    }
+  ],
+  "total": {
+    "wood_milli": 6500,
+    "stone_milli": 1500,
+    "work_mwu": 98000,
+    "earth_milli": 12000
+  },
+  "expected_yield_mass_g": 12000,
+  "initial_build_stock_mass_g": 40000,
+  "tool_quantity_milli": 1000,
+  "tool_mass_g": 1000,
+  "exclusions": [
+    "No work rate, tick count, route, travel pace or automatic hauling is inferred.",
+    "No cancellation/backfill/salvage is included in the successful baseline.",
+    "No work/cut/installed-prefix state is created by this expected ledger."
+  ]
+}

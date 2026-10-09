@@ -1,0 +1,25 @@
+{
+  "base": "116f2f2e7b6c5334af7e18a34457fd3c6cc1a34d",
+  "sources": {
+    "underground_profiles": {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "snapshot": "supporting/underground_profiles.gd.txt",
+      "sha256": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e"
+    },
+    "underground_routes": {
+      "path": "godot/scripts/core/underground_routes.gd",
+      "snapshot": "supporting/underground_routes.gd.txt",
+      "sha256": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921"
+    },
+    "underground_world_routes": {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "snapshot": "supporting/underground_world_routes.gd.txt",
+      "sha256": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e"
+    },
+    "mole_profile_driver": {
+      "path": "godot/data/underground/mole-worker/mole_profile_driver.gd",
+      "snapshot": "supporting/mole_profile_driver.gd.txt",
+      "sha256": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4"
+    }
+  }
+}

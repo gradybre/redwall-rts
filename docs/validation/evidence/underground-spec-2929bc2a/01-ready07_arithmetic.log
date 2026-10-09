@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/ready07_arithmetic.py", line 296, in <module>
+    assert set(re.findall(r'^var (_\w+): bool\b',site_source,re.M))=={'_publishing_spatial'}
+AssertionError

@@ -1,0 +1,48 @@
+--- source-review-2/godot/scripts/core/underground_room_world_bindings.gd
++++ source-review-3/godot/scripts/core/underground_room_world_bindings.gd
+@@ -240,7 +240,7 @@
+ 	total = _ordinary_revision_add(total, location_token)
+ 	if route_token > 0: total = _ordinary_revision_add(total, route_token)
+ 	var entry: PhaseContacts = _entry_actual()
+-	if entry == null: return total
++	if entry == null: return total if _entry_contacts == null else 0
+ 	if _entry_binding_leaf(entry) != &"": return 0
+ 	return _ordinary_revision_add(total, entry._frontier._header[0])
+ 
+--- source-review-2/godot/test/test_underground_room_world_phases.gd
++++ source-review-3/godot/test/test_underground_room_world_phases.gd
+@@ -352,6 +352,34 @@
+ 	assert_equal(Provider._ordinary_revision_add(4, 8), 12, "valid exact sum")
+ 
+ 
++func test_expired_optional_entry_receiver_cannot_become_a_never_bound_ordinary_epoch() -> void:
++	"""A refusal-only lifetime fault must not upgrade to permission when its actual RefCounted receiver expires."""
++	_h = Fixture.new(); _h._actual_fixture()
++	var ordinary: int = _h.provider.qualification_revision()
++	assert_true(ordinary > 0 and _h.provider._entry_contacts == null, "never-bound optional Entry uses the valid ordinary epoch")
++	var receiver: Provider.PhaseContacts = Provider.PhaseContacts.new()
++	var original: WeakRef = weakref(receiver)
++	_h.provider._entry_contacts = original
++	assert_equal(_h.provider.qualification_revision(), 0, "live unconfigured foreign receiver is a refusal-only injected fault")
++	receiver = null
++	assert_equal(original.get_ref(), null, "actual receiver lifetime ended")
++	var config: WorldFixture.Binding.Configuration = _h.provider._ordinary_config
++	var query: WorkFace.Request = _h.provider._ordinary_query
++	var context: Locations.PhaseContext = _h.placements._phase_context
++	var space: PackedByteArray = _h._owner.state_bytes()
++	var state: PackedByteArray = _h.sites.state_bytes()
++	var before: PackedInt64Array = PackedInt64Array([_h._budget._next_token, _h._budget._token,
++		_h._budget._used, _h._budget._peak, _h.endpoints._last_published_token, _h._routes._last_published_token])
++	for attempt: int in 4:
++		assert_equal(_h.provider.qualification_revision(), 0, "expired original receiver remains unavailable on read %d" % attempt)
++	assert_equal(_h.provider._entry_contacts, original, "no implicit unbinding or replacement")
++	assert_true(_h.provider._ordinary_config == config and _h.provider._ordinary_query == query \
++		and _h.placements._phase_context == context, "existing packets are reused without replacement")
++	assert_true(_h._owner.state_bytes() == space and _h.sites.state_bytes() == state, "no physical or paid state changes")
++	assert_equal(PackedInt64Array([_h._budget._next_token, _h._budget._token, _h._budget._used, _h._budget._peak,
++		_h.endpoints._last_published_token, _h._routes._last_published_token]), before, "no lease, allocation admission or publication mutation")
++
++
+ func test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping() -> void:
+ 	"""An accepted maximum int64 source revision cannot silently wrap a derived phase qualifier into an old value."""
+ 	_h = Fixture.new(); _h._actual_fixture()

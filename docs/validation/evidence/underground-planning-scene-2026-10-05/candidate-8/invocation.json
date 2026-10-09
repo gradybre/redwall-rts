@@ -1,0 +1,166 @@
+{
+  "head": "c3b4eee32475fd6ca0fe8223848c79d5d8cbbb23",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.959
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "341/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-8/test_modular_demo_live"
+      ],
+      "log": "test_modular_demo_live.gd.log",
+      "exit_code": 0,
+      "seconds": 12.63
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "401/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-8/test_demo_build"
+      ],
+      "log": "test_demo_build.gd.log",
+      "exit_code": 0,
+      "seconds": 4.416
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "16/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-8/test_demo_input_live"
+      ],
+      "log": "test_demo_input_live.gd.log",
+      "exit_code": 0,
+      "seconds": 34.909
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "132/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-8/test_modular_editor"
+      ],
+      "log": "test_modular_editor.gd.log",
+      "exit_code": 0,
+      "seconds": 7.905
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "271/410",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-8/test_modular_room_mode"
+      ],
+      "log": "test_modular_room_mode.gd.log",
+      "exit_code": 0,
+      "seconds": 9.276
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6481",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-8/analyzer.json",
+        "godot/demo/demo_village.gd",
+        "godot/demo/tunnel/tunnel_panel.gd",
+        "godot/demo/burrow/modular_demo_mode.gd",
+        "godot/demo/burrow/modular_demo_live.gd",
+        "godot/test/test_modular_demo_live.gd",
+        "godot/demo/burrow/modular_editor.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 18.128
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "test_modular_demo_live.gd": {
+      "tests": 1,
+      "assertions": 85,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_demo_build.gd": {
+      "tests": 6,
+      "assertions": 224,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_demo_input_live.gd": {
+      "tests": 3,
+      "assertions": 555,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_modular_editor.gd": {
+      "tests": 10,
+      "assertions": 116,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_modular_room_mode.gd": {
+      "tests": 10,
+      "assertions": 148,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

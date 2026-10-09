@@ -1,0 +1,19 @@
+{
+  "godot/demo/burrow/modular_room_mode.gd": "6485e0cb02816bc92d6858ba2632cd9e66c2bebe4a2c3db976823301f64f3261",
+  "godot/demo/burrow/modular_runtime.gd": "7ce660f7d4ac63793480166a280af6ec6de76e7ac63712b1df218d1aef8796cf",
+  "godot/demo/burrow/modular_world_tool.gd": "8ea0ce8b84cffcb37ae574762e0edd6c9b6d3f191b0ea6351b00752ac8b041df",
+  "godot/demo/burrow/modular_world_view.gd": "0c8b01fa7ce63a801815b1cedae3055ee00302af1e0e11000e9bf5cb95f4b1ae",
+  "godot/demo/camera/demo_camera.gd": "f589e1408d00b85ecefa7b056e1c9a5559c8eb05e46a5e48fec9e54a62722d53",
+  "godot/demo/camera/camera_modes.gd": "a5b9d0a823ce5bfd621f305cafd2c6fe872179c7e706930789f3280077dac3c7",
+  "godot/demo/camera/edge_pan.gd": "ed84e0b4ca236e9c3adb7703c62436373403fe80db991232c6d7ac5dbb17a001",
+  "godot/demo/ui/demo_stall_banner.gd": "350739dc9ca18721f9eeb08efdc5a68e8bdced56ea3335c9eeceeb17f3996372",
+  "godot/demo/ui/demo_input_gate.gd": "d722c74a2ec9f25d3d54896fd93a86d957dc6a043da5093ba3aa3932cb579e74",
+  "godot/demo/tunnel/tunnel_ext.gd": "286d386c02ed4e4193965bc0fc196f5054369dd8842656e78b0f27b4594b9492",
+  "godot/demo/burrow/room_tool.gd": "a859b22d258595e0e21a16b99e3cffb41211067d8635c1608d42086f9c64264f",
+  "godot/scripts/systems/settlement_system.gd": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50",
+  "godot/scripts/systems/game_manager.gd": "ce82e75af50d738d67e92c4603dcfa2d9d30d4cdf7b749c304d1f4f29713a88d",
+  "godot/scripts/systems/ui_manager.gd": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98",
+  "godot/scripts/main.gd": "9acdb093f492a2d56520c210c7b541c4be15f6ce5bb3f8a9f7c9fe1a50cbd688",
+  "godot/scripts/ui/ui_shell.gd": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db",
+  "godot/ui/theme/woodland_theme.tres": "6e2ea785c15d10076507d3f22bfb6fc6d5e8dd759e3fa7ce655972303100b643"
+}

@@ -1,0 +1,94 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_world_bindings.gd
+  FAIL  test_initial_binding_requires_actual_quiescence_before_packet_allocation
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        quiescent retry binds the same actual packet (expected <RefCounted#-9223371672789186203>, got <null>)
+  FAIL  test_actual_phase_binding_is_once_only_and_source_revision_is_not_geometry_permission
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        same actual Contacts object (expected <RefCounted#-9223371591000258216>, got <null>)
+        exact immutable source revision (expected 31, got 0)
+        cannot bind twice (expected ENTRY_PHASE_BINDING, got PLACEMENT_BINDING)
+  FAIL  test_unknown_or_foreign_site_refuses_before_plan_allocation
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+  FAIL  test_first_real_phase_plan_preserves_all_source_motion_and_exact_face_contact
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual complete phase plan (expected , got ENTRY_PHASE_SCOPE)
+  FAIL  test_actual_phase_admission_uses_full_motion_and_creates_only_one_real_project
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual phase ADMIT: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+        one actual purpose5 Project (expected 1, got 0)
+  FAIL  test_copied_phase_plan_cannot_drop_negative_body_or_add_unobserved_rows
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        complete source plan (expected , got ENTRY_PHASE_SCOPE)
+  FAIL  test_phase_plan_refuses_malformed_empty_output_before_copy
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        mismatched caller column refuses (expected ENTRY_PHASE_PLAN, got ENTRY_PHASE_SCOPE)
+  FAIL  test_actual_source_body_inside_support_cannot_be_clipped_into_permission
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual source BODY intersects real support outside STANCE (expected CONNECTOR_CONTACT_GEOMETRY, got SPACE_QUALIFICATION_UNBOUND)
+  FAIL  test_new_provider_uses_one_fixed_packet_and_existing_contacts
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        fixed three boxes, exact phase and contact refs and scalar controls (expected 202, got 130)
+        one actual shared Contacts packet (expected <RefCounted#-9223370922981848704>, got <null>)
+  FAIL  test_phase_material_contact_cannot_substitute_another_real_storage
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_missing_stone_prevents_payment_work_skill_and_tool_wear
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_actual_existing_ground_route_moves_between_outside_stations_without_work_credit
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_actual_ready_worker_uses_prospective_contact_and_departure_refuses_without_credit
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_prospective_worker_late_pose_change_refuses_and_exact_retry_registers
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_prospective_worker_late_pause_cannot_borrow_contact_only_lifecycle
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_first_real_brace_requires_actual_start_work_settlement_and_conservation
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        actual finite phase admission: SPACE_QUALIFICATION_UNBOUND (expected true, got false)
+  FAIL  test_observer_replaces_original_lease_before_any_plan_copy
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        same-size replacement cannot authorize original copy (expected WORLD_COMPOSITION_COLD_LEASE, got ENTRY_PHASE_SCOPE)
+        cleanup preserves the foreign original owner (expected true, got false)
+        replacement remains releasable by its caller (expected , got UNDERGROUND_COLD_LEASE)
+  FAIL  test_nested_phase_query_poison_refuses_before_plan_allocation
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        outer query remembers reentry (expected ENTRY_PHASE_REENTRY, got ENTRY_PHASE_SCOPE)
+  FAIL  test_late_actual_profile_reload_cannot_escape_a_copied_phase_plan
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+        same numeric Frontier and geometry cannot preserve stale motion permission (expected ENTRY_PHASE_SOURCE, got ENTRY_PHASE_SCOPE)
+  FAIL  test_exact_two_assembly_prices_and_six_cube_phase_ledger
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+  FAIL  test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+  FAIL  test_common_metadata_grants_no_support_over_any_future_paid_cube
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+  FAIL  test_actual_surface_paths_connect_each_selected_contact_without_entering_cut_pockets
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+  FAIL  test_fine_entry_request_keeps_tail_outside_claims_and_derives_all_six_paid_keys
+        same actual phase/install contact packet (expected , got PLACEMENT_BINDING)
+CI_SUITE_TIME {"assertions":2066,"failures":24,"suite":"test_underground_entry_world_bindings.gd","tests":24,"usec":13943724}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+24 test(s), 2066 assertion(s), 24 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
+  "godot/scripts/core/inventory.gd": "d2f81295415fabec29dea3520a9ef954d56ae58fb665024a62a18b83981d7cfb",
+  "godot/scripts/core/reservations.gd": "6ceb6892021d47133ea64010114be5c54b1c6122f54e78d02536c8856ebe78e0",
+  "godot/test/test_haul_transfer_guard.gd": "9c46acf3ae3a0e88eb4070a1ddcbb335cdad840493e6185e1ae61505e0d1f6d3"
+}

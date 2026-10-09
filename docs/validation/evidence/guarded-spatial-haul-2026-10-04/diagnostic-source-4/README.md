@@ -1,0 +1,1 @@
+Final frozen diagnostic source for independent review and paired1140 composition, not accepted yet. Source-review-2 has same pins. Candidate4:68tests/1105assertions/0, strict/raw diagnostics/leaks0,LSP0/4. Adds exact Pool lot-namespace check before journal after the retained candidate3 return correction. No schema/API changes.

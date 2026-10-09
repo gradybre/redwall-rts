@@ -1,0 +1,72 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 6.156,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "261/345",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-world-identities-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 2.991,
+      "log": "test_buildings_room_identity.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "88/345",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-world-identities-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.532,
+      "log": "test_buildings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "136/345",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-world-identities-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.866,
+      "log": "test_buildings_spatial.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6198",
+        "godot/scripts/core/buildings.gd",
+        "godot/test/test_buildings_room_identity.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 9.22,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

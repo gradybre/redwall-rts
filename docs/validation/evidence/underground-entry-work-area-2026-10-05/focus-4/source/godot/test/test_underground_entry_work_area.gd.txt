@@ -1,0 +1,191 @@
+extends "res://test/framework/test_case.gd"
+## Original source-bound work area. No paid-state injection or demo dispatch is claimed here.
+
+const Previous := preload("res://test/test_underground_entry_source_phases.gd")
+const Prefix := preload("res://test/test_underground_first_prefix.gd")
+const DATA: String = "../docs/validation/evidence/underground-entry-source-phases-2026-10-05/handling-diagnostic-1/"
+const WORK_AREA: String = "../docs/validation/evidence/underground-entry-work-area-2026-10-05/source-1/"
+const WA_PROFILE_SHA: String = "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9"
+const WA_CATALOG_SHA: String = "eda41ce78d4a798e2160250e2d6760ec7507f0c651c1e7b9b8ad462ff65ab520"
+const WA_GROUP_SHA: String = "3bb788bf250f4628cc4ab6a0c1a5748478d7909753cb5d1a8056d5eb7a8f4a54"
+const WA_RECIPE_SHA: String = "3019f92d56713317550c417e732b057d238fe0b70adadca8b56289a1362391a8"
+const WA_FRONTIER_SHA: String = "1068db6b1217e6542f6489cd56add7af52db663c756e572c86c1128e8227a058"
+
+class WorkAreaImages extends RefCounted:
+	static func source(name: String) -> String:
+		"""Fixed diagnostic artifacts retain their original individual SHA guards."""
+		return ProjectSettings.globalize_path("res://").path_join(DATA + name).simplify_path()
+
+	static func frontier() -> String:
+		"""This successor has a distinct immutable Frontier revision; earlier packets remain untouched."""
+		return ProjectSettings.globalize_path("res://").path_join(WORK_AREA + "frontier.ugfront").simplify_path()
+
+
+class SourceWorld extends Previous.SourceWorld:
+	func _actual_profiles() -> void:
+		"""Admit the exact complete two-source bank before binding any actual route owner."""
+		_pool = Pool.new(64, Pool.JOB_CAPACITY, 64)
+		_piles = Piles.new()
+		assert_true(_piles.bind_stores(_inventory, _buildings, StockAge.new(_inventory)), "actual piles")
+		assert_true(_piles.bind_world(_world_ref), "actual pile World")
+		_carry = Carry.new()
+		assert_true(_carry.bind(_inventory, _pool, _residents, _piles), "actual cargo")
+		_gear = Gear.new(16)
+		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
+		_work = Work.new(_jobs)
+		assert_true(_work.bind_gear(_gear).ok, "actual Work")
+		_profiles = Profiles.new()
+		assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "full source arena")
+		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual readers")
+		_load_source()
+
+	func _load_source() -> void:
+		"""The diagnostic source adds handling; no existing full body or held-pick extent changes."""
+		assert_equal(_profiles.load_file(WorkAreaImages.source("mole-worker.ugprof"), WA_PROFILE_SHA, 4), &"", "complete diagnostic source")
+
+	func _load_catalog(revision: int) -> StringName:
+		"""Select the same unchanged real structural parts before WorldRoutes is bound."""
+		return _catalog.load_file(WorkAreaImages.source("structure.ugconn"), WA_CATALOG_SHA, revision)
+
+
+class Probe extends Previous.Probe:
+	func _make_world() -> Prefix.ActualWorld:
+		"""Select the immutable two-source bank at initial construction only."""
+		return SourceWorld.new()
+
+	func _content_revision() -> int:
+		"""All actual route, worker and clock readers name the same complete diagnostic bank."""
+		return 4
+
+	func _entry_plan() -> EntryPlan.Request:
+		"""The new selector revision is explicit in the original Room confirmation request."""
+		var plan: EntryPlan.Request = super._entry_plan()
+		plan.frontier_revision = 2
+		return plan
+
+	func _load_real_bills() -> void:
+		"""No work amount or material quantity changes when the travel selectors change."""
+		_groups._recipes = Recipes.new()
+		assert_equal(_groups._recipes.configure(Recipes.MAX_PARTS, Recipes.required_bytes(Recipes.MAX_PARTS)), &"", "recipe arena")
+		assert_equal(_groups._recipes.bind_actual(_world._catalog, _world._items, _world._inventory), &"", "recipe owners")
+		assert_equal(_groups._recipes.load_file(WorkAreaImages.source("recipes.ugrecp"), WA_RECIPE_SHA, 1, WA_GROUP_SHA, 1), &"", "real recipe")
+		_groups._reader = Assemblies.new()
+		assert_equal(_groups._reader.configure(Assemblies.MAX_GROUPS, Assemblies.required_bytes(Assemblies.MAX_GROUPS)), &"", "group arena")
+		assert_equal(_groups._reader.bind_actual(_world._catalog, _groups._recipes, _world._items, _world._inventory), &"", "group owners")
+		assert_equal(_groups._reader.load_file(WorkAreaImages.source("assemblies.ugasmb"), WA_GROUP_SHA, 1, WA_RECIPE_SHA, 1), &"", "real partition")
+
+	func _bind_frontier() -> void:
+		"""Distinct source selectors resolve to the same actual immutable M/R Location handles."""
+		_source = Frontier.new()
+		assert_equal(_source.configure(PackedInt32Array([2, 8, 2, 10, 12, 6]), 4112), &"", "exact successor arena")
+		assert_equal(_source.bind_actual(_world._catalog, _groups._reader, _groups._recipes, _world._profiles), &"", "original source chain")
+		assert_equal(_source.load_file(WorkAreaImages.frontier(), WA_FRONTIER_SHA, 2), &"", "immutable work-area Frontier")
+
+	func _natural_surface() -> void:
+		"""H keeps only the complete directional/work envelope; metadata grants no air or support."""
+		_anchor = Anchor.new()
+		assert_equal(_anchor.configure(_world._world, _world._terrain, _world._owner, _world._sources,
+			_world._locations, _world._budget, Anchor.RESERVED_BYTES), &"", "actual Anchor")
+		_endpoints.resize(9)
+		var air: PackedInt32Array = _translated(PackedInt32Array([-445, 0, -732, 910, 1036, 346]), _surface_point(0))
+		var foot: PackedInt32Array = _translated(PackedInt32Array([-274, -1, -274, 299, 0, 249]), _surface_point(0))
+		var metadata: PackedInt32Array = Source.world_box(PackedInt32Array([-4096, 0, -5120, 4096, 1, 4096]))
+		var created: Anchor.Result = _anchor.create(_surface_point(0), air, foot, Locations.ROLE_WORK, metadata)
+		assert_equal(created.error, &"", "actual complete handling contact")
+		_section = created.section
+		_endpoints[0] = created.location
+
+	func _remaining_surface_contacts() -> void:
+		"""Real terrain surveys cover the full retained-ground paths; no future cut receives footing."""
+		for index: int in range(1, 9):
+			var role: int = Locations.ROLE_STORAGE if index < 3 else Locations.ROLE_WORK
+			var added: Anchor.Result = _anchor.create_in_section(_surface_point(index),
+				_source_air(index), _source_foot(index), _section, role)
+			assert_equal(added.error, &"", "actual source work-area endpoint %d" % index)
+			_endpoints[index] = added.location
+
+	func _source_air(index: int) -> PackedInt32Array:
+		"""The first pair surveys outer corridors and is retired before the bearer; storage air clears it."""
+		if index < 3:
+			return Source.world_box(PackedInt32Array([-3816, 0, 280, 3816, 1036, 3304]))
+		if index < 5:
+			return Source.world_box(PackedInt32Array([-3816, 0, -3816, -280, 1422, 2792]) if index == 3 else
+				PackedInt32Array([280, 0, -3816, 3816, 1422, 2792]))
+		return _translated(PackedInt32Array([-1256, 0, -1256, 1256, 1422, 1256]), _surface_point(index))
+
+	func _source_foot(index: int) -> PackedInt32Array:
+		"""All complete ground contact sweeps are observed outside the six canonical cut identities."""
+		if index < 3:
+			return Source.world_box(PackedInt32Array([-2966, -1, 238, 2966, 0, 2454]))
+		return Source.world_box(PackedInt32Array([-2966, -1, -4096, -1130, 0, 2454]) if index % 2 == 1 else
+			PackedInt32Array([1130, -1, -4096, 2966, 0, 2454]))
+
+	static func _translated(box: PackedInt32Array, point: Vector3i) -> PackedInt32Array:
+		"""Only integer translation is applied to complete source extents."""
+		return PackedInt32Array([box[0] + point.x, box[1] + point.y, box[2] + point.z,
+			box[3] + point.x, box[4] + point.y, box[5] + point.z])
+
+	func _surface_point(index: int) -> Vector3i:
+		"""Immutable material/output selectors and runtime storage names share these exact points."""
+		if index == 1: return ORIGIN + Vector3i(-832, 0, 2048)
+		if index == 2: return ORIGIN + Vector3i(-832, 0, 1536)
+		return super._surface_point(index)
+
+	func _surface_edge(first: int, last: int) -> Routes.Edge:
+		"""Directional H paths and all-yaw outside perimeter paths are authored before mask compilation."""
+		var edge: Routes.Edge = Routes.Edge.new()
+		edge.from_location = _endpoints[first]; edge.to_location = _endpoints[last]
+		edge.section = _section; edge.level = 0; edge.family = -1; edge.variant = 0
+		edge.mode = Profiles.MODE_WALK; edge.posture = Profiles.POSTURE_UPRIGHT
+		edge.content_revision = _content_revision(); edge.geometry_revision = _world._owner.revision()
+		var points: Array[Vector3i] = _perimeter(first, last)
+		for point: Vector3i in points: edge.points.append_array(PackedInt32Array([point.x, point.y, point.z]))
+		edge.point_count = points.size()
+		for i: int in range(1, points.size()):
+			edge.length_u += absi(points[i].x - points[i - 1].x) + absi(points[i].z - points[i - 1].z)
+		return edge
+
+	func _perimeter(first: int, last: int) -> Array[Vector3i]:
+		"""Same-heading approach has no invented turn; every all-yaw bend stays on surveyed outer ground."""
+		if first < 3 and last < 3: return [_surface_point(first), _surface_point(last)]
+		var work: int = first if first >= 3 else last
+		var storage: int = last if first >= 3 else first
+		var root: Vector3i = _surface_point(work)
+		var start: Vector3i = _surface_point(storage)
+		var side: int = ORIGIN.x + (-2560 if work % 2 == 1 else 2560)
+		var result: Array[Vector3i] = [start]
+		var near: Vector3i = Vector3i(start.x, ORIGIN.y, ORIGIN.z + 1536)
+		if near != start: result.append(near)
+		result.append(Vector3i(side, ORIGIN.y, near.z))
+		result.append(Vector3i(side, ORIGIN.y, root.z))
+		result.append(root)
+		if first >= 3: result.reverse()
+		return result
+
+
+var _probe: Probe = null
+
+
+func after_each() -> void:
+	"""Report every nested actual-owner assertion and release this test's own original World."""
+	if _probe != null:
+		_probe.after_each()
+		assert_true(_probe.failures.is_empty(), "actual work-area fixture: %s" % _probe.failures)
+	_probe = null
+
+
+func test_actual_work_area_preserves_all_four_paid_cuts() -> void:
+	"""The complete original graph and distinct storage selectors must execute all twelve real phases."""
+	_probe = Probe.new()
+	_probe.before_each()
+	_probe.execute_l0_cubes()
+	assert_true(_probe.completed_l0, "actual L0 excavation completes in the original work area")
+
+
+func test_actual_material_aliases_do_not_create_extra_locations() -> void:
+	"""Only nine initial actual endpoints exist although twelve immutable selectors describe this source."""
+	_probe = Probe.new()
+	_probe.before_each()
+	assert_equal(_probe._world._locations._live.count, 9, "unchanged original Location count")
+	assert_equal(_probe._world._routes._live.edge_count, 28, "all exact original directed paths")
+	assert_equal(_probe._source.row_count(4, 2), 12, "explicit extra travel selectors only")

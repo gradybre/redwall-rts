@@ -1,0 +1,14 @@
+[
+  {
+    "name": "static_member",
+    "refused": false,
+    "itinerary": 432,
+    "new_retained_fields": 0
+  },
+  {
+    "name": "range_payload",
+    "refused": false,
+    "itinerary": 440,
+    "new_retained_fields": 0
+  }
+]

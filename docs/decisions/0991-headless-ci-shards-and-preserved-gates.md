@@ -99,3 +99,21 @@ Brendan's CI-sharding task; the existing runner contract and decision 0501;
 the measured hosted run above; executable fault tests in
 `tools/test_ci_test_shards.py`; validation evidence in
 `docs/validation/evidence/ci-shard-2026-10-02/`.
+
+## Timing refresh after underground integration — 2026-10-04
+
+Green run `37226172376` at `256c1908` executed all397 suite files exactly once
+with all14 gates passing. Its total wall time was16m24s. The original weight
+table measured only240 suites; the157 newer suites still ran automatically,
+using the existing source-size estimate. Actual suite time accumulated unevenly:
+259.609–817.081 seconds across the eight assignments.
+
+Refresh only `tools/ci_test_shard_weights.json` using the unchanged tool's
+`weights` command and the verified397-file reports. Redistributing those same
+measurements with the unchanged allocator estimates439.877–439.879 seconds of
+suite work per shard. This is a scheduling estimate, not a new wall-time result.
+The runner, discovery, exact-once verifier, no-argument local behavior, analyzer
+and every diagnostic/leak/metadata gate remain unchanged. The13 Python guard
+tests pass; the five optional engine fixtures were not repeated for this data
+update. Retained reports, raw logs and the comparison are under
+`docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-256c1908/`.

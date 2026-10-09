@@ -1,0 +1,67 @@
+{
+  "source_sha256": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+  "configured_max_groups": 256,
+  "columns": [
+    {
+      "member": "_header",
+      "width": 8,
+      "count": 7,
+      "category": 2
+    },
+    {
+      "member": "_digests",
+      "width": 1,
+      "count": 96,
+      "category": 2
+    },
+    {
+      "member": "_kind",
+      "width": 4,
+      "count": 256,
+      "category": 2
+    },
+    {
+      "member": "_first_part",
+      "width": 4,
+      "count": 256,
+      "category": 2
+    },
+    {
+      "member": "_part_count",
+      "width": 4,
+      "count": 256,
+      "category": 2
+    },
+    {
+      "member": "_recipe_anchor",
+      "width": 4,
+      "count": 256,
+      "category": 2
+    },
+    {
+      "member": "_hash",
+      "width": 1,
+      "count": 32,
+      "category": 3
+    },
+    {
+      "member": "_part",
+      "width": 4,
+      "count": 9,
+      "category": 3
+    }
+  ],
+  "immutable_bank_bytes": 4248,
+  "reused_packed_bytes": 68,
+  "actual_reflected_packed_bytes": 4316,
+  "numeric_controls_bytes": 11,
+  "own_stream_and_scalar_frame_allowance": 192,
+  "nested_pure_source_frame_allowance": 224,
+  "logical_fixed_reservation": 512,
+  "fixed_accounted": 495,
+  "required_max": 4760,
+  "required_candidate26": 1080,
+  "caller_record_bytes": 32,
+  "native_measured": false,
+  "production_joint_admitted": false
+}

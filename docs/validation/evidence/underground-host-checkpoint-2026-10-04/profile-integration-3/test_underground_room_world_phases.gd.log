@@ -1,0 +1,193 @@
+state_registry_coverage: PASS -- 150 modules, 727 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+  FAIL  test_initial_actual_binding_uses_one_context_without_phase_permission
+        actual initial binding: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+        all original source owners current (expected true, got false)
+        painted Corridor is ordinary without a Placement (expected false, got true)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  FAIL  test_published_ground_profile_still_refuses_the_front_work_station_wall
+        actual initial binding: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+        published 1256u held-tool radius cannot fit 768u wall contact (expected WORLD_ROUTE_NO_FITTING_PROFILE, got ROUTE_EDGE_REVISION)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  FAIL  test_actual_published_front_motion_fits_the_current_solid_face
+        actual complete source work-face proof (expected , got WORK_FACE_SOURCE_CHANGED)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  FAIL  test_location_restore_invalidates_qualification_until_a_fresh_publication
+        old qualification cannot be reused after restore (expected ROOM_PHASE_SOURCE, got ENTRY_PHASE_SOURCE)
+        next token never rewinds with saved header (expected true, got false)
+        old qualification also cannot alias the new publication (expected ROOM_PHASE_SOURCE, got ENTRY_PHASE_SOURCE)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  FAIL  test_actual_profile_publication_or_replacement_invalidates_the_qualification
+        real monotone source reload (expected , got PROFILE_CAPACITY)
+        profile alone changes qualification (expected true, got false)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  PASS  test_overflow_refuses_before_any_qualification_cache_mutation
+  FAIL  test_expired_optional_entry_receiver_cannot_become_a_never_bound_ordinary_epoch
+        never-bound optional Entry uses the valid ordinary epoch (expected true, got false)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  FAIL  test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping
+        actual source loader accepts the exact monotone maximum (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        old work qualification remains refused (expected ROOM_PHASE_SOURCE, got ENTRY_PHASE_SOURCE)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)", "actual published source (expected true, got false)"] (expected true, got false)
+  FAIL  test_independent_catalog_change_and_coincident_foreign_revision_refuse_old_cache
+        actual immutable catalog revision alone advances (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        catalog alone changes qualification (expected true, got false)
+        old catalog cannot qualify Work (expected ROOM_PHASE_SOURCE, got ENTRY_PHASE_SOURCE)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)", "actual published source (expected true, got false)"] (expected true, got false)
+  FAIL  test_work_endpoint_publication_without_space_change_invalidates_the_old_epoch
+        monotone Location receipt changes qualification (expected true, got false)
+        old selector proof refuses before Work (expected ROOM_PHASE_SOURCE, got ENTRY_PHASE_SOURCE)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+  FAIL  test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context
+        outer initialization poisoned (expected ENTRY_PHASE_REENTRY, got ROOM_PHASE_ACTUAL_BINDING)
+        nested initialization rejected (expected ENTRY_PHASE_REENTRY, got )
+        ordinary valid retry succeeds (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+  FAIL  test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry
+        same real composition may retry after correction (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+  FAIL  test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+  FAIL  test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+        real final Terrain observer executed (expected 1, got 0)
+        same actual original tuple retries after restoration (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        late original tuple fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)"] (expected true, got false)
+  FAIL  test_missing_original_weak_bindings_refuse_cleanly_at_current_and_final_boundaries
+        original exact _routes_ref restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _owner_ref restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _sources_ref restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _locations_ref restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _owner restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _source_reader restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _excavation_authority restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _sites restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _space restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _construction restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _space restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _sources restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        original exact _world restored (expected , got ROOM_PHASE_ACTUAL_BINDING)
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+SCRIPT ERROR: Invalid access to property or key 'locations' on a base object of type 'Nil'.
+          at: _ordinary_unique_contact (res://scripts/core/underground_room_world_bindings.gd:386)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_unique_contact (res://scripts/core/underground_room_world_bindings.gd:386)
+              [1] test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits (res://test/test_underground_room_world_phases.gd:835)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'routes' on a base object of type 'Nil'.
+          at: _ordinary_committed_contact (res://scripts/core/underground_room_world_bindings.gd:367)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_committed_contact (res://scripts/core/underground_room_world_bindings.gd:367)
+              [1] test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits (res://test/test_underground_room_world_phases.gd:836)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'location' on a base object of type 'Nil'.
+          at: test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits (res://test/test_underground_room_world_phases.gd:837)
+          GDScript backtrace (most recent call first):
+              [0] test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits (res://test/test_underground_room_world_phases.gd:837)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits
+        first complete actual motion fits (expected , got WORK_FACE_SOURCE_CHANGED)
+        second complete actual motion fits (expected , got WORK_FACE_SOURCE_CHANGED)
+        worker-free terminal selection is ambiguous (expected ROOM_PHASE_CONTACT, got )
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)", "current exact WORK profile (expected , got ROUTE_PROFILE_EXTENT_STALE)"] (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key 'routes' on a base object of type 'Nil'.
+          at: _ordinary_occupants_leaf (res://scripts/core/underground_room_world_bindings.gd:903)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_occupants_leaf (res://scripts/core/underground_room_world_bindings.gd:903)
+              [1] test_even_a_remote_living_resident_requires_actual_physical_registration (res://test/test_underground_room_world_phases.gd:849)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'routes' on a base object of type 'Nil'.
+          at: _ordinary_occupants_leaf (res://scripts/core/underground_room_world_bindings.gd:903)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_occupants_leaf (res://scripts/core/underground_room_world_bindings.gd:903)
+              [1] test_even_a_remote_living_resident_requires_actual_physical_registration (res://test/test_underground_room_world_phases.gd:852)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'routes' on a base object of type 'Nil'.
+          at: _ordinary_occupants_leaf (res://scripts/core/underground_room_world_bindings.gd:903)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_occupants_leaf (res://scripts/core/underground_room_world_bindings.gd:903)
+              [1] test_even_a_remote_living_resident_requires_actual_physical_registration (res://test/test_underground_room_world_phases.gd:854)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_even_a_remote_living_resident_requires_actual_physical_registration
+        remote unregistered actor also refuses (expected ROOM_PHASE_WORKER, got )
+        actual fixture: ["immutable published bytes (expected b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac, got a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204)", "unchanged physical source geometry (expected , got PROFILE_SOURCE_FORMAT)", "actual published source (expected true, got false)", "test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)", "current exact WORK profile (expected , got ROUTE_PROFILE_EXTENT_STALE)"] (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_actual_entry_corridor_without_contacts_cannot_use_the_ordinary_branch
+  PASS  test_shared_composite_preserves_real_entry_start_work_and_settlement
+  PASS  test_actual_v3_source_confirms_ordinary_kitchen_through_both_directed_paths
+  PASS  test_actual_v3_walk_brace_work_recovery_settlement_and_retreat
+  PASS  test_actual_v3_first_cube_brace_cut_finish_and_directed_retreat_conserve_every_owner
+  PASS  test_actual_v3_late_worker_departure_refuses_payment_then_original_start_retries
+  PASS  test_actual_v3_worker_free_cut_output_retry_reproves_original_context_without_more_work
+CI_SUITE_TIME {"assertions":286,"failures":16,"suite":"test_underground_room_world_phases.gd","tests":24,"usec":10695999}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+24 test(s), 286 assertion(s), 16 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 16 failing test(s).

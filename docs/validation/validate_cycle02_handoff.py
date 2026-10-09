@@ -39,7 +39,9 @@ def main():
     target=json.loads((ROOT/'docs/planning/astra_cycles/cycle_02_inventory_target.json').read_text())
     check(target['active_registry_mutated'] is False)
     registry=json.loads((ROOT/'docs/planning/canonical_state_registry.json').read_text())
-    owner=next(o for o in registry['owners'] if o['owner_key']=='inventory')
+    # Decision1072 adds a mandatory section6 extension of the SAME owner. Cycle2
+    # owns the unchanged section7 field prefix; owner keys alone are not unique.
+    owner=next(o for o in registry['owners'] if (o['section_id'],o['owner_key'])==(7,'inventory'))
     # Cycle 2's target is a SNAPSHOT of owner schema 3. Its thirty fields must survive as the exact
     # prefix; later owner schemas may only APPEND, and every append is named by its decision here.
     # Decision 0531 (DEMO-CONTAIN-R01, owner schema 4) appends `_c_anchor_tile` as ordinal 30.

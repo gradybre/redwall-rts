@@ -1,0 +1,327 @@
+{
+  "scope": "Read-only proposed1172 call graph over frozen1168 files; not integrated or engine-tested.",
+  "source_sha256": {
+    "underground_room_itinerary": "1b0a8ac711d8a3c21767f8d92883d01b08d9f3f23d71c8e2e52160a32491207a",
+    "underground_world_routes": "45fd127a49ca04133fc9fb4ddeed275fa5700fc9f41fdf7914c22206b81b2b66",
+    "underground_routes": "686fe13acf470e82d357dea4bef8938d17dc496a083a240c61a5c86dea5d010f",
+    "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "underground_locations": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+    "underground_profiles": "2dd505f98fe55b640fd96d254d155093a3f88baf42315ffe95baebcc6f0234ec",
+    "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "short_program": "f566f5caaf49e1da47f7f3f2020750a29f4ce3e858b313b5c3eb8d0c0ca59524",
+    "source_program": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "buildings": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+    "underground_final_facts": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46",
+    "underground_connector_catalog": "4b98b9dc46841ea8b140134279b6706cfeb9ec31a7abaa968e276cd504f892b8",
+    "underground_connector_source_facts": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160",
+    "underground_level_catalog": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "reservations": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+    "underground_terrain": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8"
+  },
+  "peak": {
+    "bytes": 384,
+    "chain": [
+      "underground_room_itinerary:reachability_refusal",
+      "underground_room_itinerary:_search",
+      "underground_room_itinerary:_find",
+      "underground_room_itinerary:_relax",
+      "underground_room_itinerary:_edge_profile",
+      "underground_room_itinerary:_compatible",
+      "source_program:profile_refusal",
+      "underground_profiles:selection_policy_leaf"
+    ]
+  },
+  "expression_allowance": 48,
+  "unresolved": {},
+  "call_graph": {
+    "underground_room_itinerary:reachability_refusal": [
+      "underground_room_itinerary:_implementations",
+      "underground_room_itinerary:_search",
+      "underground_world_routes:_reach_entry_refusal"
+    ],
+    "underground_room_itinerary:_implementations": [],
+    "underground_room_itinerary:_search": [
+      "underground_locations:_live_ref",
+      "underground_room_itinerary:_anchor_refusal",
+      "underground_room_itinerary:_find",
+      "underground_room_itinerary:_sources",
+      "underground_routes:_path_chain_refusal",
+      "underground_routes:_spend",
+      "underground_world_routes:_reach_descriptor",
+      "underground_world_routes:_reach_stores_refusal"
+    ],
+    "underground_locations:_live_ref": [],
+    "underground_room_itinerary:_anchor_refusal": [
+      "short_program:profile_refusal",
+      "short_program:uses",
+      "source_program:profile_refusal"
+    ],
+    "short_program:profile_refusal": [
+      "short_program:_actor_refusal",
+      "short_program:is_short",
+      "short_program:uses",
+      "underground_profiles:selection_policy_leaf"
+    ],
+    "short_program:_actor_refusal": [],
+    "short_program:is_short": [],
+    "short_program:uses": [],
+    "underground_profiles:selection_policy_leaf": [],
+    "source_program:profile_refusal": [
+      "underground_profiles:selection_policy_leaf"
+    ],
+    "underground_room_itinerary:_find": [
+      "underground_room_itinerary:_relax",
+      "underground_routes:_collect_path",
+      "underground_routes:_edge_i32",
+      "underground_routes:_heap_insert",
+      "underground_routes:_heap_take",
+      "underground_routes:_spend"
+    ],
+    "underground_room_itinerary:_relax": [
+      "underground_room_itinerary:_edge_profile",
+      "underground_routes:_edge_i64",
+      "underground_routes:_edge_pair",
+      "underground_routes:_first_edge_index",
+      "underground_routes:_path_edge_current",
+      "underground_routes:_path_location_live",
+      "underground_routes:_path_terms_match",
+      "underground_routes:_relax",
+      "underground_routes:_spend"
+    ],
+    "underground_room_itinerary:_edge_profile": [
+      "underground_room_itinerary:_compatible",
+      "underground_routes:_committed_mask_refusal",
+      "underground_routes:_spend",
+      "underground_world_routes.Certificates:admits",
+      "underground_world_routes:_reach_descriptor"
+    ],
+    "underground_room_itinerary:_compatible": [
+      "short_program:uses",
+      "source_program:profile_refusal",
+      "underground_profiles:selection_policy_leaf",
+      "underground_room_itinerary:_canonical_compatible"
+    ],
+    "underground_room_itinerary:_canonical_compatible": [
+      "short_program:profile_refusal"
+    ],
+    "underground_routes:_committed_mask_refusal": [
+      "underground_routes:_spend"
+    ],
+    "underground_routes:_spend": [],
+    "underground_world_routes.Certificates:admits": [],
+    "underground_world_routes:_reach_descriptor": [],
+    "underground_routes:_edge_i64": [],
+    "underground_routes:_edge_pair": [],
+    "underground_routes:_first_edge_index": [
+      "underground_routes:_edge_pair",
+      "underground_routes:_spend"
+    ],
+    "underground_routes:_path_edge_current": [
+      "underground_profiles:content_revision",
+      "underground_space_owner:revision"
+    ],
+    "underground_profiles:content_revision": [],
+    "underground_space_owner:revision": [],
+    "underground_routes:_path_location_live": [
+      "underground_locations:_live_ref",
+      "underground_locations:is_live_location"
+    ],
+    "underground_locations:is_live_location": [
+      "underground_locations:_live_ref",
+      "underground_locations:world_ref"
+    ],
+    "underground_locations:world_ref": [
+      "entity_directory:is_valid"
+    ],
+    "entity_directory:is_valid": [
+      "entity_directory:is_valid_of_kind"
+    ],
+    "entity_directory:is_valid_of_kind": [],
+    "underground_routes:_path_terms_match": [],
+    "underground_routes:_relax": [
+      "underground_routes:_heap_insert",
+      "underground_routes:_heap_up"
+    ],
+    "underground_routes:_heap_insert": [
+      "underground_routes:_heap_up"
+    ],
+    "underground_routes:_heap_up": [
+      "underground_routes:_heap_swap",
+      "underground_routes:_node_less",
+      "underground_routes:_spend"
+    ],
+    "underground_routes:_heap_swap": [],
+    "underground_routes:_node_less": [],
+    "underground_routes:_collect_path": [
+      "underground_routes:_edge_i32",
+      "underground_routes:_edge_pair",
+      "underground_routes:_spend"
+    ],
+    "underground_routes:_edge_i32": [],
+    "underground_routes:_heap_take": [
+      "underground_routes:_heap_swap",
+      "underground_routes:_node_less",
+      "underground_routes:_spend"
+    ],
+    "underground_room_itinerary:_sources": [
+      "underground_locations:_ref_at",
+      "underground_room_itinerary:_edge_profile",
+      "underground_routes:_edge_i32",
+      "underground_routes:_edge_pair",
+      "underground_routes:_spend",
+      "underground_world_routes:_reach_endpoint_refusal",
+      "underground_world_routes:_reach_section_refusal"
+    ],
+    "underground_locations:_ref_at": [],
+    "underground_world_routes:_reach_endpoint_refusal": [
+      "underground_locations:_live_ref",
+      "underground_locations:_ref_at",
+      "underground_routes:_spend",
+      "underground_space_owner:_region_live",
+      "underground_world_routes:_reach_section_refusal"
+    ],
+    "underground_space_owner:_region_live": [],
+    "underground_world_routes:_reach_section_refusal": [
+      "underground_locations:_resolve_section_refusal",
+      "underground_routes:_spend",
+      "underground_space_owner:_region_live"
+    ],
+    "underground_locations:_resolve_section_refusal": [
+      "underground_locations:_resolve_room_source_refusal",
+      "underground_locations:_resolve_source_row",
+      "underground_space_owner:_region_live"
+    ],
+    "underground_locations:_resolve_room_source_refusal": [
+      "entity_directory:get_typed_row",
+      "entity_directory:is_valid_of_kind"
+    ],
+    "entity_directory:get_typed_row": [
+      "entity_directory:is_valid"
+    ],
+    "underground_locations:_resolve_source_row": [],
+    "underground_routes:_path_chain_refusal": [
+      "underground_routes:_edge_i64",
+      "underground_routes:_edge_pair",
+      "underground_routes:_live_edge",
+      "underground_routes:_path_location_live",
+      "underground_routes:_spend"
+    ],
+    "underground_routes:_live_edge": [],
+    "underground_world_routes:_reach_stores_refusal": [
+      "underground_final_facts:_same_domain",
+      "underground_final_facts:_stores_refusal",
+      "underground_world_routes:_ground_catalog_shape",
+      "underground_world_routes:_reach_content_refusal",
+      "underground_world_routes:_reach_level_domain",
+      "underground_world_routes:_reach_profile_owners",
+      "underground_world_routes:_reach_world"
+    ],
+    "underground_final_facts:_same_domain": [],
+    "underground_final_facts:_stores_refusal": [
+      "underground_final_facts:_location_binding",
+      "underground_final_facts:_same_domain"
+    ],
+    "underground_final_facts:_location_binding": [
+      "entity_directory:is_valid_of_kind"
+    ],
+    "underground_world_routes:_ground_catalog_shape": [],
+    "underground_world_routes:_reach_content_refusal": [
+      "underground_connector_source_facts:_same_actual_owners",
+      "underground_connector_source_facts:_source_digests_match",
+      "underground_connector_source_facts:_source_storage_matches",
+      "underground_connector_source_facts:refusal",
+      "underground_world_routes:_ground_catalog_shape",
+      "underground_world_routes:_immutable_owners_match"
+    ],
+    "underground_connector_source_facts:_same_actual_owners": [
+      "entity_directory:is_valid_of_kind"
+    ],
+    "underground_connector_source_facts:_source_digests_match": [],
+    "underground_connector_source_facts:_source_storage_matches": [],
+    "underground_connector_source_facts:refusal": [
+      "underground_connector_source_facts:_same_actual_owners",
+      "underground_connector_source_facts:_source_digests_match",
+      "underground_connector_source_facts:_source_storage_matches"
+    ],
+    "underground_world_routes:_immutable_owners_match": [],
+    "underground_world_routes:_reach_level_domain": [],
+    "underground_world_routes:_reach_profile_owners": [],
+    "underground_world_routes:_reach_world": [
+      "entity_directory:is_valid_of_kind"
+    ],
+    "underground_world_routes:_reach_entry_refusal": [
+      "underground_routes:_reject_callback"
+    ],
+    "underground_routes:_reject_callback": []
+  },
+  "frames": {
+    "underground_room_itinerary:reachability_refusal": 48,
+    "underground_room_itinerary:_implementations": 0,
+    "underground_room_itinerary:_search": 40,
+    "underground_room_itinerary:_anchor_refusal": 24,
+    "underground_room_itinerary:_find": 40,
+    "underground_room_itinerary:_relax": 64,
+    "underground_room_itinerary:_edge_profile": 24,
+    "underground_room_itinerary:_compatible": 48,
+    "underground_room_itinerary:_canonical_compatible": 16,
+    "underground_room_itinerary:_sources": 48,
+    "underground_world_routes:_reach_entry_refusal": 8,
+    "underground_world_routes:_reach_stores_refusal": 0,
+    "underground_world_routes:_reach_content_refusal": 0,
+    "underground_world_routes:_ground_catalog_shape": 8,
+    "underground_world_routes:_immutable_owners_match": 0,
+    "underground_world_routes:_reach_profile_owners": 0,
+    "underground_world_routes:_reach_level_domain": 16,
+    "underground_world_routes:_reach_world": 0,
+    "underground_world_routes:_reach_descriptor": 40,
+    "underground_world_routes:_reach_endpoint_refusal": 60,
+    "underground_world_routes:_reach_section_refusal": 16,
+    "underground_world_routes.Certificates:admits": 24,
+    "underground_routes:_edge_i32": 16,
+    "underground_routes:_edge_i64": 16,
+    "underground_routes:_edge_pair": 16,
+    "underground_routes:_live_edge": 8,
+    "underground_routes:_reject_callback": 0,
+    "underground_routes:_spend": 8,
+    "underground_routes:_path_chain_refusal": 64,
+    "underground_routes:_first_edge_index": 40,
+    "underground_routes:_path_terms_match": 24,
+    "underground_routes:_path_location_live": 8,
+    "underground_routes:_path_edge_current": 24,
+    "underground_routes:_committed_mask_refusal": 24,
+    "underground_routes:_relax": 24,
+    "underground_routes:_collect_path": 32,
+    "underground_routes:_node_less": 16,
+    "underground_routes:_heap_insert": 8,
+    "underground_routes:_heap_up": 16,
+    "underground_routes:_heap_take": 24,
+    "underground_routes:_heap_swap": 24,
+    "underground_space_owner:revision": 0,
+    "underground_space_owner:_region_live": 9,
+    "underground_locations:world_ref": 0,
+    "underground_locations:is_live_location": 8,
+    "underground_locations:_resolve_section_refusal": 52,
+    "underground_locations:_resolve_source_row": 24,
+    "underground_locations:_resolve_room_source_refusal": 24,
+    "underground_locations:_live_ref": 8,
+    "underground_locations:_ref_at": 16,
+    "underground_profiles:content_revision": 0,
+    "underground_profiles:selection_policy_leaf": 32,
+    "entity_directory:is_valid": 8,
+    "entity_directory:is_valid_of_kind": 40,
+    "entity_directory:get_typed_row": 8,
+    "short_program:uses": 0,
+    "short_program:is_short": 8,
+    "short_program:profile_refusal": 56,
+    "short_program:_actor_refusal": 40,
+    "source_program:profile_refusal": 88,
+    "underground_final_facts:_stores_refusal": 0,
+    "underground_final_facts:_same_domain": 0,
+    "underground_final_facts:_location_binding": 0,
+    "underground_connector_source_facts:refusal": 40,
+    "underground_connector_source_facts:_same_actual_owners": 8,
+    "underground_connector_source_facts:_source_storage_matches": 8,
+    "underground_connector_source_facts:_source_digests_match": 16
+  },
+  "inclusive_peak": 432
+}

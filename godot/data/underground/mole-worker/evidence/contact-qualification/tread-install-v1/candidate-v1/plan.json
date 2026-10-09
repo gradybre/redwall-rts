@@ -1,0 +1,16 @@
+{
+  "revision": 106,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "clips": [
+    "mole_worker.install_tread.tap_v1",
+    "mole_worker.install_tread.entry_v1",
+    "mole_worker.install_tread.recovery_v1"
+  ]
+}

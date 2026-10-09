@@ -1,0 +1,246 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+[Main] resident crowd attached: mesh species_mouse_body_a_lod0.glb
+[Main] boot complete: PAUSED  food-days 5.48 days  ready 408000 NP  fuel-days --
+WARNING: demo assets are not staged (tools/stage_demo_assets.py); running on placeholders
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ready (res://demo/demo_village.gd:432)
+WARNING: sound cue chop: 5 of 5 files missing (res://demo/assets/sound/chop_01.wav, res://demo/assets/sound/chop_02.ogg, res://demo/assets/sound/chop_03.ogg, res://demo/assets/sound/chop_04.ogg, res://demo/assets/sound/chop_05.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue gnaw: 5 of 5 files missing (res://demo/assets/sound/gnaw_01.wav, res://demo/assets/sound/gnaw_02.wav, res://demo/assets/sound/gnaw_03.wav, res://demo/assets/sound/gnaw_04.wav, res://demo/assets/sound/gnaw_05.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue saw: 3 of 3 files missing (res://demo/assets/sound/saw_01.wav, res://demo/assets/sound/saw_02.wav, res://demo/assets/sound/saw_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav, res://demo/assets/sound/dig_02.wav, res://demo/assets/sound/dig_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/sound/tree_fall_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/sound/pickup_01.ogg, res://demo/assets/sound/pickup_02.ogg, res://demo/assets/sound/pickup_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/sound/drop_01.ogg, res://demo/assets/sound/drop_02.ogg, res://demo/assets/sound/drop_03.ogg, res://demo/assets/sound/drop_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/sound/step_grass_01.ogg, res://demo/assets/sound/step_grass_02.ogg, res://demo/assets/sound/step_grass_03.ogg, res://demo/assets/sound/step_grass_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/sound/step_dirt_01.ogg, res://demo/assets/sound/step_dirt_02.ogg, res://demo/assets/sound/step_dirt_03.ogg, res://demo/assets/sound/step_dirt_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/sound/step_wood_01.wav, res://demo/assets/sound/step_wood_02.wav, res://demo/assets/sound/step_wood_03.wav, res://demo/assets/sound/step_wood_04.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/sound/step_tunnel_01.ogg, res://demo/assets/sound/step_tunnel_02.ogg, res://demo/assets/sound/step_tunnel_03.ogg, res://demo/assets/sound/step_tunnel_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/sound/step_wade_01.ogg, res://demo/assets/sound/step_wade_02.ogg, res://demo/assets/sound/step_wade_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/sound/splash_01.ogg, res://demo/assets/sound/splash_02.ogg, res://demo/assets/sound/splash_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/sound/water_in_01.ogg, res://demo/assets/sound/water_in_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/sound/water_out_01.ogg, res://demo/assets/sound/water_out_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/sound/amb_stream_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/sound/amb_wind_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/sound/amb_rain_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/sound/warning_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:502)
+         [5] _ready (res://demo/demo_village.gd:473)
+LIVE world binding uses existing camera and selected floor: PASS 
+LIVE real underground dirt is visible: PASS 
+LIVE world preview is not a drawing canvas: PASS 
+LIVE drag paints a retained room at the world location: PASS  /  / true
+LIVE release ends the gesture without excavation: PASS 
+LIVE selected room purpose stays Kitchen: PASS 
+LIVE room confirm awaits the actual construction owner: PASS 
+LIVE save capture direct_dirt_room_plan: PASS 
+LIVE inspector fits1280x720: PASS 
+LIVE preview contains exactly the retained cells: PASS 
+LIVE rendered cell picks back to the same integer cell: PASS 
+LIVE same floor height for cap picking and overlay: PASS 
+LIVE grid datum includes world origin offset: PASS 
+LIVE camera movement preserves room cells: PASS 
+LIVE camera movement reuses preview geometry: PASS 
+LIVE save capture direct_dirt_camera_pan: PASS 
+LIVE GUI click does not draw a room cell: PASS 
+LIVE GUI click leaves no captured stroke: PASS 
+LIVE world press captures the gesture: PASS 
+LIVE release over GUI clears capture: PASS 
+LIVE release over GUI cannot discard the retained room: PASS 
+LIVE Escape cancels the stroke: PASS 
+LIVE Escape preserves completed strokes: PASS 
+LIVE Escape is not also the pause menu: PASS 
+LIVE actual view reaches lower level: PASS 
+LIVE level switch cancels a transient stroke: PASS 
+LIVE level switch preserves existing plan: PASS 
+LIVE other floor cannot show this room preview: PASS 
+LIVE save capture direct_dirt_other_level: PASS 
+LIVE returning shows the original room: PASS 
+LIVE floor switch never changes room identity or datum: PASS 
+LIVE Pantry modal owns input: PASS 
+LIVE modal opening cancels gesture: PASS 
+LIVE modal clicks cannot paint on dirt: PASS 
+LIVE modal closes normally: PASS 
+LIVE modal dismissal preserves room plan: PASS 
+LIVE focus loss cancels gesture: PASS 
+LIVE focus loss preserves prior strokes: PASS 
+LIVE no fake submitter is installed: PASS 
+LIVE old template graph did not allocate the arbitrary room: PASS 
+LIVE save capture direct_dirt_preserved_plan: PASS 
+LIVE all pending captures completed: PASS 
+LIVE-SUMMARY 42 0

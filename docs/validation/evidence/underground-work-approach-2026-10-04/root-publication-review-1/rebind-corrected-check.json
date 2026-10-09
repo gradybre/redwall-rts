@@ -1,0 +1,34 @@
+{
+  "producer_sha256": "044746973629c5be066fccbc10467be38cd9cf8cd46c9ff7a55da69f7323ab6d",
+  "test_sha256": "7c7495539ad4a85e305988d30ca6edae0ddabcb66821a4329ba969adc1afa032",
+  "profile_manifest_sha256": "8f210e11768131779e6c825d7a3d2509cb32076aedd6891e6573489d1b6814c1",
+  "profile_constants_sha256": "fca8e5410940b8dfa98a1e7796b4138f25464402e784de46447d020402c06e0c",
+  "motion_sha256": "2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986",
+  "motion_bytes": 70936,
+  "motion_bank_bytes": 70860,
+  "all_geometry_permission_rate_bytes_unchanged": true,
+  "unchanged_i32_count": 17421,
+  "unchanged_i64_count": 65,
+  "permitted_changed_byte_ranges": [
+    [
+      16,
+      24
+    ],
+    [
+      69748,
+      69764
+    ],
+    [
+      70448,
+      70480
+    ],
+    [
+      70672,
+      70704
+    ]
+  ],
+  "runtime_activation": false,
+  "pace_adopted": false,
+  "final_source_pins_verified": 15,
+  "generated_profile_manifest_matches_independent_computation": true
+}

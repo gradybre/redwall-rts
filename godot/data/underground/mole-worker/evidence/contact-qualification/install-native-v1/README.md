@@ -1,0 +1,3 @@
+# Rejected loop-as-poll contact candidate
+
+The native source run completed 1,131 poses, 2,581 assertions and 132 image saves with zero failures/diagnostics; that only verifies the capture. Actual side-target0-clip0-030.png shows that source vertex652 belongs to a small hanging loop behind the head, not an accepted pounding face. This candidate is rejected for INSTALL contact meaning. Its source image, geometry and native evidence remain unchanged. Source snapshots and explicit locator mapping preserve the exact executed producer bytes before the next authoring iteration. No source proof or production permission follows.

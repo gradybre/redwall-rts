@@ -1,0 +1,66 @@
+state_registry_coverage: PASS -- 101 modules, 477 rows, 823 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_world_owner_columns.gd
+  PASS  test_the_resource_tile_map_captures_and_cross_checks_against_the_live_nodes
+  PASS  test_a_tile_naming_a_row_that_is_not_present_is_refused
+  PASS  test_a_live_node_with_no_inverse_entry_is_refused
+  PASS  test_a_row_outside_the_node_capacity_is_refused_by_the_local_domain
+  PASS  test_a_present_but_exhausted_node_is_not_rejected
+  PASS  test_a_refused_restore_leaves_the_live_tile_map_untouched
+  PASS  test_a_real_rotated_footprint_cross_checks_tile_by_tile
+  PASS  test_dropping_one_footprint_tile_is_caught_and_the_origin_alone_is_not_enough
+  PASS  test_a_stray_occupied_tile_no_live_row_claims_is_caught
+  PASS  test_each_of_the_three_grids_is_bounded_by_its_own_capacity
+  PASS  test_a_room_tile_run_and_its_furniture_cross_check_together
+  PASS  test_the_farming_orchard_bound_mirrors_the_orchard_stores_own_capacity
+  PASS  test_a_tile_with_no_live_plot_keeps_its_ripe_tick_and_tending
+  PASS  test_a_family_without_its_streak_is_refused_by_the_stores_own_predicate
+  PASS  test_each_tile_history_domain_is_bounded_where_the_ruling_says
+  PASS  test_a_negative_ripe_tick_below_the_null_is_refused_but_minus_one_is_not
+  PASS  test_the_plot_inverse_and_its_mirrors_cross_check_in_both_directions
+  PASS  test_a_live_plot_with_no_tile_entry_is_caught_by_the_reverse_walk
+  PASS  test_the_head_column_captures_and_the_two_chain_directions_agree
+  PASS  test_two_tiles_of_one_zone_share_a_chain_the_walk_follows
+  PASS  test_a_head_pointing_at_a_freed_link_is_refused_not_walked
+  PASS  test_a_head_naming_a_link_never_handed_out_is_refused
+  PASS  test_a_head_outside_the_arena_is_refused_by_the_local_domain
+  PASS  test_saved_head_order_survives_a_restore_unchanged
+  PASS  test_a_legality_override_survives_the_round_trip_and_is_not_rebuilt_away
+  PASS  test_a_restore_rebuilds_the_walkable_count_and_the_clearance_column
+  PASS  test_the_spatial_domains_are_the_baselines_and_the_revision_stays_i32
+  PASS  test_every_cell_including_the_blocked_ones_is_represented
+  PASS  test_the_temperature_and_rain_bounds_are_derived_and_equal_the_rulings
+  PASS  test_every_present_event_tuple_must_be_the_compiled_one
+  PASS  test_an_absent_tuple_is_exactly_minus_one_zero_zero
+  PASS  test_a_present_event_needs_its_identity_and_that_season_must_admit_it
+  PASS  test_an_expired_event_keeps_its_scheduled_identity_and_its_forecast
+  PASS  test_a_restore_consumes_no_weather_draw
+  PASS  test_the_cleared_fixture_is_reported_and_not_promoted
+  PASS  test_the_owner_wrapper_version_is_not_the_stores_snapshot_version
+  PASS  test_an_unpublished_map_must_be_the_sources_exact_reset_state
+  PASS  test_the_two_sentinels_are_255_and_not_a_signed_minus_one
+  PASS  test_a_published_map_binds_seven_live_basins_of_the_right_kinds
+  PASS  test_two_basins_naming_one_directory_slot_are_refused
+  PASS  test_a_half_null_basin_reference_is_refused_and_not_coerced_to_null
+  PASS  test_a_published_map_may_not_leave_any_basin_unbound
+  PASS  test_the_danger_band_domain_is_zero_to_three
+CI_SUITE_TIME {"assertions":200,"failures":0,"suite":"test_world_owner_columns.gd","tests":43,"usec":4840691}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+43 test(s), 200 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 43 tests, 200 assertions, 0 failures.

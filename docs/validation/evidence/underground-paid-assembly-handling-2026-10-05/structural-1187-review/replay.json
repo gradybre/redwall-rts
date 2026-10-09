@@ -1,0 +1,29 @@
+{
+  "tests": 7,
+  "failures": 0,
+  "rebuilt_equal": {
+    "structure.ugconn": true,
+    "assemblies.ugasmb": true,
+    "recipes.ugrecp": true,
+    "manifest.json": true
+  },
+  "manifest_inputs_match": {
+    "docs/design/underground-planning/first-entry-prefix-v1.json": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": true,
+    "godot/data/underground/mole-worker/qualified-step-v4/ground-pace.ugconn": true,
+    "godot/data/underground/initial_level_pack.uglvl": true,
+    "godot/data/underground/first-entry-prefix-v1/compile_entry_prefix.py": true,
+    "godot/scripts/core/underground_connector_catalog.gd": true,
+    "godot/scripts/core/underground_connector_assemblies.gd": true,
+    "godot/scripts/core/underground_connector_recipes.gd": true,
+    "godot/scripts/core/connector_geometry.gd": true,
+    "godot/scripts/core/room_space.gd": true
+  },
+  "additional_refusals": {
+    "profile_changed_content": "ENTRY_STRUCTURE_PROFILE_HEADER",
+    "ground_profile_hash": "ENTRY_STRUCTURE_GROUND_SOURCE",
+    "levels_changed": "ENTRY_STRUCTURE_GROUND_SOURCE"
+  },
+  "protected_source_unchanged": true,
+  "engine_rerun": false
+}

@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/underground_connector_delivery.gd": "d2b33d630f3879a4c6fb36d6d01a8a0bc379fb5dcc51cefba4a743a335601756",
+  "godot/scripts/core/haul_planner.gd": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59",
+  "godot/scripts/core/work.gd": "8d061037d5b3ca7d1b195b5e19c4138fdcb8b4e7f521b3219fa14ca7cb6e3c5b",
+  "godot/test/test_underground_connector_delivery.gd": "1be0f4cc6f108f15bddb0d255b665f44dedb0f2343705a84e1dfa4f4cfeed68e",
+  "godot/test/test_haul_planner.gd": "43a236beac7b09910ac0d1af3113099f4c719efeb8e4ca17a04bbd675ac9e43d",
+  "godot/test/test_work.gd": "9fe1a15b26047b12c7c79a78aee892fc6ca537822cdae5f5097c08a6ea4cb7d5"
+}

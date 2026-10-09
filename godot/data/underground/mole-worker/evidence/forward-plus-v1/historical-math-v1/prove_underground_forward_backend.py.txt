@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+"""ADR1132: finite Metal source and arithmetic evidence, never a profile permission.
+
+The polynomial theorem covers the pinned position expression under reassociation,
+factoring and contraction with no additional arithmetic nodes. It does not assert
+that an arbitrary material/compiler rewrite has that expression. Runtime shader,
+mesh, Actor, source-program and native attachment closure remain separate gates.
+"""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import json
+import math
+from pathlib import Path
+import struct
+
+ROOT = Path(__file__).resolve().parent.parent
+EVIDENCE = ROOT / "godot/data/underground/mole-worker/evidence/forward-plus-v1"
+ENGINE_HASH = "ed1daf0bf001b61586d9930840f2f1394092c079"
+NATIVE_SOURCE_SHA = "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+MSL_URL = "https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf"
+MSL_SHA = "41538b30d2f1140a5b2a0c84ce0a9f7b67bf0c707e224cfea0bfe5a44aa26cf5"
+MAX_FILE_BYTES = 28 + 1024 + 65536 * 8
+MAX_SOURCE_BYTES = 4 * 1024 * 1024
+MAX_TERMS = 32
+MAX_DEGREE = 3
+MAX_OPERAND = 1 << 24
+UNIT = Fraction(1, 1 << 23)  # Includes round-toward-zero as well as nearest-even.
+TINY = Fraction(1, 1 << 126)  # Every possible binary32 input/output flush is bounded.
+ENGINE_SOURCES = {
+    "drivers/metal/rendering_shader_container_metal.cpp": "ba03df1a0653b9d513d8deb7869a7583e2eac2629fedf4f6222a1e112ecdb79e",
+    "drivers/metal/rendering_device_driver_metal.cpp": "3e1332160b0baacbbcb8499e13441564c71336730441aff9d22a39765c35b393",
+    "drivers/metal/rendering_shader_container_metal.h": "7895f53a502785389fca603ba29604fc61a6b09ba31b6004f70fcc1c6ddabfd5",
+    "drivers/metal/metal_device_profile.cpp": "7bbb30fdde53f9fe343b245559687c24533e147b238444df5f4a670e4877c079",
+    "servers/rendering/renderer_rd/storage_rd/mesh_storage.cpp": "d610f7f4b89ab4b10b038fabf3522bd9497add4fd9438ea5770597a6857a3bad",
+    "servers/rendering/rendering_server.cpp": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca",
+    "servers/rendering/renderer_rd/shaders/skeleton.glsl": "a36b5b2ac9141314b63f7e8b67607eb405a1664a575318e5165f71c75851fcf6",
+    "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl": "453d31b46060b907d63b8cb57fc5ee818d8b9d3c5c6e7491e677d6a95e27dab7",
+    "thirdparty/spirv-cross/spirv_msl.cpp": "f219ee63880c8681f4452ca2310659ae155025267b01b3c25c24e8ff43915dca",
+}
+
+
+class Refused(ValueError):
+    """An unsupported input cannot acquire this source/math certificate."""
+
+
+def require(value, code):
+    if not value:
+        raise Refused(code)
+
+
+def digest_format(value):
+    return type(value) is str and len(value) == 64 and all(c in "0123456789abcdef" for c in value)
+
+
+def file_hash(path, maximum=MAX_SOURCE_BYTES):
+    require(path.is_file() and 0 < path.stat().st_size <= maximum, "FORWARD_SOURCE_CAPACITY")
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def rational_record(value):
+    return {"numerator": value.numerator, "denominator": value.denominator}
+
+
+def backend_refusal(metadata):
+    """Actual native identity only; passing this predicate does not establish a shader precision bound."""
+    require(type(metadata) is dict and metadata.get("schema") == 2, "FORWARD_BASIS_METADATA")
+    engine = metadata.get("engine")
+    require(type(engine) is dict and all(type(engine.get(k)) is int for k in ("major", "minor", "patch")) and
+            tuple(engine[k] for k in ("major", "minor", "patch")) == (4, 7, 2) and
+            engine.get("hash") == ENGINE_HASH and engine.get("build") == "official" and
+            engine.get("status") == "stable", "FORWARD_BASIS_ENGINE")
+    require((metadata.get("rendering_driver"), metadata.get("rendering_method"), metadata.get("display_server"),
+             metadata.get("api_version")) == ("metal", "forward_plus", "macOS", "4.0"), "FORWARD_BASIS_BACKEND")
+    require(metadata.get("physical_qualified") is False and type(metadata.get("heading_count")) is int and
+            metadata["heading_count"] == 65536 and metadata.get("coefficient_order") == ["basis.x.x", "basis.z.x"] and
+            metadata.get("orientation") == "0=-Z,+quarter=-X; +Y up", "FORWARD_BASIS_MEANING")
+
+
+class BasisSource:
+    """Stream/hash all native rows, retaining four exact cardinals and norm extrema, never a second table."""
+
+    def __init__(self, stream, expected, producer):
+        require(digest_format(expected) and digest_format(producer), "FORWARD_BASIS_HASH_FORMAT")
+        self.stream, self.hash, self.offset = stream, hashlib.sha256(), 0
+        raw = self.read(20)
+        require(raw[:8] == b"UGYAW002", "FORWARD_BASIS_SCHEMA")
+        version, rows, size = struct.unpack("<III", raw[8:])
+        require(version == 2 and rows == 65536 and 0 < size <= 1024, "FORWARD_BASIS_CAPACITY")
+        try:
+            self.metadata = json.loads(self.read(size))
+        except (ValueError, UnicodeError) as exc:
+            raise Refused("FORWARD_BASIS_METADATA") from exc
+        backend_refusal(self.metadata)
+        source = self.metadata.get("source")
+        require(type(source) is dict and source.get("sha256") == producer and
+                self.metadata.get("coefficient_source_sha256") == NATIVE_SOURCE_SHA, "FORWARD_BASIS_PRODUCER")
+        self.norm_max, self.norm_min = Fraction(0), Fraction(3)
+        self.max_yaw, self.min_yaw, self.cardinals = -1, -1, []
+        for yaw in range(rows):
+            c, s = struct.unpack("<ff", self.read(8))
+            require(math.isfinite(c) and math.isfinite(s) and abs(c) <= 1 and abs(s) <= 1,
+                    "FORWARD_BASIS_COEFFICIENT")
+            c, s = Fraction(c), Fraction(s)
+            norm = c * c + s * s
+            require(Fraction(1, 2) <= norm <= Fraction(3, 2), "FORWARD_BASIS_DEGENERATE")
+            if norm > self.norm_max:
+                self.norm_max, self.max_yaw = norm, yaw
+            if norm < self.norm_min:
+                self.norm_min, self.min_yaw = norm, yaw
+            if yaw % 16384 == 0:
+                self.cardinals.append((c, s))
+        require(self.read(8) == b"UGYEND02" and self.stream.read(1) == b"", "FORWARD_BASIS_FOOTER")
+        require(self.hash.hexdigest() == expected, "FORWARD_BASIS_DIGEST")
+        self.digest, self.producer = expected, producer
+
+    def read(self, count):
+        require(type(count) is int and 0 <= count <= MAX_FILE_BYTES - self.offset, "FORWARD_BASIS_BYTE_CAPACITY")
+        data = self.stream.read(count)
+        require(len(data) == count, "FORWARD_BASIS_TRUNCATED")
+        self.hash.update(data)
+        self.offset += count
+        return data
+
+    def certificate(self):
+        return {"sha256": self.digest, "producer_sha256": self.producer, "bytes": self.offset,
+                "rows": 65536, "metadata": self.metadata, "norm_max": rational_record(self.norm_max),
+                "norm_min": rational_record(self.norm_min), "max_norm_yaw": self.max_yaw,
+                "min_norm_yaw": self.min_yaw, "inverse_norm_squared_max": rational_record(1 / self.norm_min),
+                "cardinals": [[rational_record(v) for v in pair] for pair in self.cardinals]}
+
+
+def source_contract(directory):
+    """A reviewed finite full-file census; a refreshed manifest cannot legitimize changed shader/packing code."""
+    manifest = directory / "manifest.json"
+    require(manifest.stat().st_size <= 16384, "FORWARD_SOURCE_MANIFEST_CAPACITY")
+    rows = json.loads(manifest.read_text())["records"]
+    require(type(rows) is list and len(rows) == len(ENGINE_SOURCES) and
+            {row.get("path") for row in rows} == set(ENGINE_SOURCES), "FORWARD_SOURCE_CENSUS")
+    result = {}
+    for row in rows:
+        name, expected = row["path"], ENGINE_SOURCES[row["path"]]
+        path = directory / name.replace("/", "__")
+        require(row.get("url") == "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/" + name and
+                row.get("sha256") == expected and row.get("bytes") == path.stat().st_size and
+                file_hash(path) == expected, "FORWARD_ENGINE_SOURCE_DRIFT")
+        result[name] = expected
+    return result
+
+
+def gamma(operations):
+    require(type(operations) is int and 0 <= operations <= 95, "FORWARD_OPERATION_CAPACITY")
+    return operations * UNIT / (1 - operations * UNIT)
+
+
+def polynomial_bound(terms):
+    """Enclose a finite sum of products under bounded reassociation/factoring/contraction.
+
+    Count the fully expanded tree: <=32 monomials, degree<=3, <=95 arithmetic
+    nodes. The absolute coefficient sum handles cancellation. Every input and
+    output flush contributes TINY; (1+largest operand)^degree bounds all later
+    amplification, including mixed perturbations, and gamma includes rounding.
+    All intermediate absolute sums/products are below2^80, so overflow cannot
+    justify fast-math undefined behavior. This is an expression theorem, not an
+    unrestricted optimizer or arbitrary ShaderMaterial theorem.
+    """
+    require(type(terms) in (list, tuple) and 0 < len(terms) <= MAX_TERMS, "FORWARD_TERM_CAPACITY")
+    magnitude, largest, leaves, degree = Fraction(0), Fraction(1), 0, 1
+    for term in terms:
+        require(type(term) in (list, tuple) and 0 < len(term) <= MAX_DEGREE, "FORWARD_DEGREE_CAPACITY")
+        product = Fraction(1)
+        for value in term:
+            require(type(value) in (int, Fraction) and abs(value) <= MAX_OPERAND, "FORWARD_OPERAND_CAPACITY")
+            product *= abs(value)
+            largest = max(largest, abs(value))
+        magnitude += product
+        leaves += len(term)
+        degree = max(degree, len(term))
+    operations = leaves - 1
+    require(magnitude < 1 << 80, "FORWARD_INTERMEDIATE_CAPACITY")
+    rounding = gamma(operations) * magnitude
+    flushing = (leaves + operations) * TINY * (1 + largest) ** degree * (1 + gamma(operations))
+    return {"operations": operations, "degree": degree, "magnitude": magnitude,
+            "rounding": rounding, "flushing": flushing, "error": rounding + flushing}
+
+
+def skin_component_terms(point, matrices, weights):
+    """The exact RD vertex component expansion; caller supplies already stored F32/UNORM-decoded operands."""
+    require(type(point) in (list, tuple) and len(point) == 3 and type(weights) in (list, tuple) and
+            len(weights) in (4, 8) and len(matrices) == len(weights), "FORWARD_SKIN_CENSUS")
+    require(all(type(w) in (int, Fraction) and 0 <= w <= 1 for w in weights) and sum(weights) > 0,
+            "FORWARD_SKIN_WEIGHT")
+    terms = []
+    for matrix, weight in zip(matrices, weights):
+        require(type(matrix) in (list, tuple) and len(matrix) == 4, "FORWARD_MATRIX_CENSUS")
+        terms.extend((weight, component, coordinate) for component, coordinate in zip(matrix, (*point, 1)))
+    polynomial_bound(terms)  # Capacity/finite guards also cover the matrix and point values.
+    return terms
+
+
+def affine_component_terms(point, row):
+    """Fixed non-displacing native world model; no camera, projection or raster-position claim."""
+    require(type(point) in (tuple, list) and len(point) == 3 and type(row) in (tuple, list) and len(row) == 4,
+            "FORWARD_AFFINE_CENSUS")
+    terms = [(a, b) for a, b in zip(row, (*point, 1))]
+    polynomial_bound(terms)
+    return terms
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("basis", type=Path)
+    parser.add_argument("basis_sha256")
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    require(not args.out.is_symlink() and not args.out.exists(), "FORWARD_OUTPUT_EXISTS")
+    require(args.out.resolve() not in (args.basis.resolve(), Path(__file__).resolve()), "FORWARD_OUTPUT_IDENTITY")
+    producer = ROOT / "tools/bake_underground_forward_basis.gd"
+    producers = {str(p.relative_to(ROOT)): file_hash(p) for p in
+                 (Path(__file__).resolve(), producer, ROOT / "tools/bake_underground_world_basis.gd")}
+    sources = source_contract(EVIDENCE / "engine-source")
+    require(file_hash(args.basis, MAX_FILE_BYTES) == args.basis_sha256, "FORWARD_BASIS_DIGEST")
+    with args.basis.open("rb") as stream:
+        basis = BasisSource(stream, args.basis_sha256, producers[str(producer.relative_to(ROOT))])
+    record = {"scope": "FINITE_NATIVE_BASIS_AND_PINNED_POSITION_EXPRESSION_ONLY", "basis": basis.certificate(),
+              "engine_sources": sources, "producer_sources": producers,
+              "precision_source": {"url": MSL_URL, "sha256": MSL_SHA, "date": "2026-06-04",
+                                   "sections": ["1.6.3", "6.3", "8.1", "8.2", "8.4", "8.5"]},
+              "expression": {"maximum_terms": 32, "maximum_degree": 3, "maximum_arithmetic_nodes": 95,
+                             "rounding_unit": rational_record(UNIT), "flush_bound": rational_record(TINY),
+                             "finite_intermediates_below": "2^80", "arbitrary_rewrite_qualified": False},
+              "qualified_profiles": 0, "renderer_binding_qualified": False, "world_qualified": False,
+              "remaining": ["COMPLETE_SOURCE_INPUT_ERRORS", "ACTUAL_COMPILED_POSITION_EXPRESSION",
+                            "ACTOR_BACKEND_AND_MATERIAL_BINDING", "CONTINUOUS_PROGRAM_REENCLOSURE",
+                            "NATIVE_RENDERED_ATTACHMENT", "CURRENT_RUNTIME_AND_WORLD_COMPOSITION"]}
+    require(all(file_hash(ROOT / name) == value for name, value in producers.items()), "FORWARD_PRODUCER_DRIFT")
+    with args.out.open("x") as stream:
+        stream.write(json.dumps(record, indent=2) + "\n")
+    print(json.dumps({"rows": 65536, "source_files": len(sources), "qualified_profiles": 0}))
+
+
+if __name__ == "__main__":
+    main()

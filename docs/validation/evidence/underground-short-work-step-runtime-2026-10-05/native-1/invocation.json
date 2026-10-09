@@ -1,0 +1,44 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit",
+        "--log-file",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-1/engine-import.log"
+      ],
+      "exit": 0,
+      "raw_diagnostic": false
+    },
+    {
+      "command": [
+        "godot",
+        "--path",
+        "godot",
+        "--rendering-method",
+        "gl_compatibility",
+        "--audio-driver",
+        "Dummy",
+        "--fixed-fps",
+        "60",
+        "--log-file",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-1/engine-native.log",
+        "--script",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/godot/data/underground/mole-worker/work-step-v1/capture_canonical.gd",
+        "--",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-1/spec.json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-short-work-step-runtime/docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/native-1"
+      ],
+      "exit": 2,
+      "raw_diagnostic": false
+    }
+  ],
+  "source_unchanged": true,
+  "override_restored": true,
+  "import_sidecars_restored": true,
+  "production_qualified": false
+}

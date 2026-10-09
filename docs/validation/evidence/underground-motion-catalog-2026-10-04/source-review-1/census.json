@@ -1,0 +1,312 @@
+{
+  "source_sha256": "2aecafcaad907284ed65ba8a44e89f6b9656e594775d70e314f1f95933030325",
+  "status": "SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification",
+  "bank_members": {
+    "ints": [
+      17421,
+      4
+    ],
+    "longs": [
+      67,
+      8
+    ],
+    "bytes": [
+      640,
+      1
+    ]
+  },
+  "one_bank_bytes": 70860,
+  "paired_bank_bytes": 141720,
+  "control_arrays": {
+    "_level_identity": 84,
+    "_level_config": 52,
+    "_level_digest": 32,
+    "_digest": 32
+  },
+  "numeric_members": {
+    "_world": 8,
+    "_world_pid": 8,
+    "_profile_revision": 8,
+    "_level_revision": 8,
+    "_admitted_bytes": 8,
+    "_revision": 8,
+    "_busy": 1,
+    "_poisoned": 1
+  },
+  "fixed_owner_payload": 250,
+  "shared_constant_elements": {
+    "GAIT_BASE": 7,
+    "GAIT_ROWS": 7,
+    "HANDOFF_BASE": 7,
+    "HANDOFF_ROWS": 7,
+    "HEADER": 20,
+    "BOUNDS": 6
+  },
+  "shared_constant_payload_conservatively_charged_per_owner": 432,
+  "own_chains": {
+    "configure": {
+      "bytes": 40,
+      "path": [
+        "configure",
+        "_pin_owners"
+      ],
+      "frames": {
+        "configure": 16,
+        "_pin_owners": 24
+      }
+    },
+    "load_file": {
+      "bytes": 136,
+      "path": [
+        "load_file",
+        "_validate_stage",
+        "_stage_supports",
+        "_support_span",
+        "_h"
+      ],
+      "frames": {
+        "load_file": 8,
+        "_validate_stage": 16,
+        "_stage_supports": 16,
+        "_support_span": 72,
+        "_h": 24
+      }
+    },
+    "packed_memory_bytes": {
+      "bytes": 0,
+      "path": [
+        "packed_memory_bytes"
+      ],
+      "frames": {
+        "packed_memory_bytes": 0
+      }
+    },
+    "admitted_bytes": {
+      "bytes": 0,
+      "path": [
+        "admitted_bytes"
+      ],
+      "frames": {
+        "admitted_bytes": 0
+      }
+    },
+    "content_revision": {
+      "bytes": 0,
+      "path": [
+        "content_revision"
+      ],
+      "frames": {
+        "content_revision": 0
+      }
+    },
+    "activation_refusal": {
+      "bytes": 0,
+      "path": [
+        "activation_refusal"
+      ],
+      "frames": {
+        "activation_refusal": 0
+      }
+    },
+    "program_into": {
+      "bytes": 48,
+      "path": [
+        "program_into",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "program_into": 32,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "identity_into": {
+      "bytes": 32,
+      "path": [
+        "identity_into",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "identity_into": 16,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "digest_into": {
+      "bytes": 40,
+      "path": [
+        "digest_into",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "digest_into": 24,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "join_into": {
+      "bytes": 40,
+      "path": [
+        "join_into",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "join_into": 24,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "clip_metadata_into": {
+      "bytes": 40,
+      "path": [
+        "clip_metadata_into",
+        "_h"
+      ],
+      "frames": {
+        "clip_metadata_into": 16,
+        "_h": 24
+      }
+    },
+    "source_into": {
+      "bytes": 48,
+      "path": [
+        "source_into",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "source_into": 32,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "phase_into": {
+      "bytes": 120,
+      "path": [
+        "phase_into",
+        "_key",
+        "_h"
+      ],
+      "frames": {
+        "phase_into": 72,
+        "_key": 24,
+        "_h": 24
+      }
+    },
+    "interval_box_into": {
+      "bytes": 128,
+      "path": [
+        "interval_box_into",
+        "_box_into",
+        "_h"
+      ],
+      "frames": {
+        "interval_box_into": 48,
+        "_box_into": 56,
+        "_h": 24
+      }
+    },
+    "interval_support_count": {
+      "bytes": 72,
+      "path": [
+        "interval_support_count",
+        "_interval_leaf",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "interval_support_count": 32,
+        "_interval_leaf": 24,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "interval_support_into": {
+      "bytes": 144,
+      "path": [
+        "interval_support_into",
+        "interval_support_count",
+        "_interval_leaf",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "interval_support_into": 72,
+        "interval_support_count": 32,
+        "_interval_leaf": 24,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    },
+    "primitive_into": {
+      "bytes": 104,
+      "path": [
+        "primitive_into",
+        "_box_into",
+        "_h"
+      ],
+      "frames": {
+        "primitive_into": 24,
+        "_box_into": 56,
+        "_h": 24
+      }
+    },
+    "primitive_mapping_into": {
+      "bytes": 56,
+      "path": [
+        "primitive_mapping_into",
+        "_read_leaf",
+        "_owner_leaf"
+      ],
+      "frames": {
+        "primitive_mapping_into": 40,
+        "_read_leaf": 16,
+        "_owner_leaf": 0
+      }
+    }
+  },
+  "maximum_own_declared_numeric_chain": 144,
+  "simultaneous_small_payload_allowance": 136,
+  "expression_result_allowance": 128,
+  "logical_and_helper_counted": 1090,
+  "logical_helper_reservation": 4096,
+  "decode": {
+    "maximum_requested_bytes": 4096,
+    "other_headers_charged_above": true,
+    "lifetime": "One loop-local stream buffer plus fixed headers; no full wire, JSON or to_byte_array copy. Hashing borrows that same buffer."
+  },
+  "caller": {
+    "maximum_bytes": 176,
+    "lifetime": "One caller packet: largest single header160 or descriptor136. A descriptor136 plus phase36 plus one4-byte counter is176. No per-actor copy."
+  },
+  "native_provisional_reservation": 32768,
+  "native_inventory": [
+    "Motion RefCounted + two Bank wrappers",
+    "ten retained packed-array handles",
+    "six retained borrowed owner/Bank references",
+    "seven shared constant Array handles with54integer+3String elements",
+    "five shared64-character digest strings plus interned code constants",
+    "one FileAccess and one HashingContext during load",
+    "bounded header/slice/string/digest temporaries and interpreter frames"
+  ],
+  "native_measured": false,
+  "foreign_call_lifetime": "MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in47288, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.",
+  "joint": {
+    "profiles": 47288,
+    "levels": 2292,
+    "paired_motion": 141720,
+    "decode": 4096,
+    "caller": 176,
+    "logical_helper": 4096,
+    "native": 32768,
+    "total": 232436,
+    "reservation": 262144,
+    "headroom": 29708,
+    "independent_maxima_total_refuses": 444284
+  },
+  "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
+}

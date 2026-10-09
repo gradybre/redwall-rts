@@ -1,0 +1,13 @@
+{
+  "README.md": "6485be51a008c9c0bafa90ffa52411decb985bc3c960a2a09beb2c9bd1feacbd",
+  "analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+  "clean-import.log": "0bfe7a4876ddb8ef12ca50bab0d841b351b4e48e085ea17074bb6d755c5480a1",
+  "invocation.json": "ea68b919f354f98d84680b944a4b964ed8036aef574ca933d85611b252a6363e",
+  "modular_room_mode.gd.txt": "6485e0cb02816bc92d6858ba2632cd9e66c2bebe4a2c3db976823301f64f3261",
+  "review.json": "9cf9d42c8bb9c17c1cf3244423213d62a86aab6759cf383d1dc6f6fc0a113169",
+  "source-sha256.json": "dfe08e80e48e66201a27c5e0da0c05940e695632876b7dd9ad14cbe08ee05f65",
+  "source.diff": "2c23ade26c75493330542f0396f10b0807cc124e4e783d2a5874c11609123ed9",
+  "suite.log": "433e098b1ba0641a6e34f9b2bc2bd850e3aaebd710b7d1918beaea9c77018dfa",
+  "test_modular_room_mode.gd.txt": "c60b0ee7e5031345476446459e057bd74ccbad807371fd61784c9fd6502a0dca"
+}

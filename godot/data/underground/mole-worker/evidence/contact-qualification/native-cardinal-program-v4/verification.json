@@ -1,0 +1,13 @@
+{
+  "driver_poses": 7648,
+  "contact_poses": 144,
+  "assertions": 46852,
+  "exact_work_profiles": 16,
+  "headings": [
+    0,
+    16384,
+    32768,
+    49152
+  ],
+  "production_qualified": false
+}

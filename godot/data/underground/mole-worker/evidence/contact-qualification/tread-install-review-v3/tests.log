@@ -1,0 +1,25 @@
+test_candidate_d_holds_the_pick_as_v4 (__main__.TreadInstallV3Tests.test_candidate_d_holds_the_pick_as_v4) ... ok
+test_reconstruction_matches_candidate_d (__main__.TreadInstallV3Tests.test_reconstruction_matches_candidate_d) ... ok
+test_review_images_match_their_records (__main__.TreadInstallV3Tests.test_review_images_match_their_records) ... ok
+test_roll_domain_refuses (__main__.TreadInstallV3Tests.test_roll_domain_refuses) ... ok
+test_roll_turns_about_the_handle_through_the_contact_point (__main__.TreadInstallV3Tests.test_roll_turns_about_the_handle_through_the_contact_point) ... ok
+test_roll_zero_is_the_accepted_orientation (__main__.TreadInstallV3Tests.test_roll_zero_is_the_accepted_orientation) ... ok
+test_stored_candidates_are_clear_and_pinned (__main__.TreadInstallV3Tests.test_stored_candidates_are_clear_and_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 7.184s
+
+OK
+--- rerun without the staged demo assets ---
+test_candidate_d_holds_the_pick_as_v4 (__main__.TreadInstallV3Tests.test_candidate_d_holds_the_pick_as_v4) ... ok
+test_reconstruction_matches_candidate_d (__main__.TreadInstallV3Tests.test_reconstruction_matches_candidate_d) ... skipped 'gitignored demo assets are not staged (ADR 1192 §2)'
+test_review_images_match_their_records (__main__.TreadInstallV3Tests.test_review_images_match_their_records) ... ok
+test_roll_domain_refuses (__main__.TreadInstallV3Tests.test_roll_domain_refuses) ... ok
+test_roll_turns_about_the_handle_through_the_contact_point (__main__.TreadInstallV3Tests.test_roll_turns_about_the_handle_through_the_contact_point) ... ok
+test_roll_zero_is_the_accepted_orientation (__main__.TreadInstallV3Tests.test_roll_zero_is_the_accepted_orientation) ... ok
+test_stored_candidates_are_clear_and_pinned (__main__.TreadInstallV3Tests.test_stored_candidates_are_clear_and_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.014s
+
+OK (skipped=1)

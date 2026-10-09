@@ -1,0 +1,33 @@
+{
+  "head": "3e9e92a8110b84640e86b6533b19ad428c3e6640",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": -11,
+      "seconds": 5.187,
+      "log": "clean-import.log"
+    }
+  ],
+  "source_unchanged": true,
+  "procedure_source_sha256": "4524934ae9ab064e4c3351831a63ba708d96c8e42390cd8bb886c3081160c177",
+  "custom_user_dir": "Redwall-ug-route-integration-lsp-order-20261005",
+  "analyzer_port": 6465,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "isolated_project_sha256": "90aa4683a63f18a0a59f311910026d72d2ca079607a59da1ca9941ec442bb64e",
+  "assets_present_before": true,
+  "error": "clean-import.log",
+  "source_unchanged_before_cleanup": true,
+  "sidecars_restored": true,
+  "assets_restored": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

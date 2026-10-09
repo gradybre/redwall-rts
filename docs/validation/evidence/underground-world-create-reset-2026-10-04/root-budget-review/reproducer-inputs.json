@@ -1,0 +1,70 @@
+{
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/census.py": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/census.py.txt",
+    "sha256": "fcf045d97239a993cde1dede85b4bfcaca33fbe5816b4acb5d09a64784a1630b"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/underground_session.gd.txt": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/underground_session.gd.txt.txt",
+    "sha256": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/settlement_system.gd.txt": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/settlement_system.gd.txt.txt",
+    "sha256": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/manifest.json": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/manifest.json.txt",
+    "sha256": "014906c67cd78fd556b101050421e6eccc2a0ba90957f00654f62a4ed99e9d52"
+  },
+  "docs/validation/evidence/underground-world-retirement-2026-10-04/census.py": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-world-retirement-2026-10-04/census.py.txt",
+    "sha256": "440777a6d5762b3a4945d3b8563b1579f6db10c24e1bdfd371b59e489d7f035c"
+  },
+  "godot/scripts/core/work.gd": {
+    "locator": "reproducer-inputs/godot/scripts/core/work.gd.txt",
+    "sha256": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
+  },
+  "godot/scripts/core/inventory.gd": {
+    "locator": "reproducer-inputs/godot/scripts/core/inventory.gd.txt",
+    "sha256": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102"
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+    "locator": "reproducer-inputs/godot/scripts/core/underground_world_retirement.gd.txt",
+    "sha256": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9"
+  },
+  "godot/scripts/core/buildings.gd": {
+    "locator": "reproducer-inputs/godot/scripts/core/buildings.gd.txt",
+    "sha256": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd"
+  },
+  "godot/scripts/core/underground_session.gd": {
+    "locator": "reproducer-inputs/godot/scripts/core/underground_session.gd.txt",
+    "sha256": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e"
+  },
+  "godot/scripts/core/construction.gd": {
+    "locator": "reproducer-inputs/godot/scripts/core/construction.gd.txt",
+    "sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "locator": "reproducer-inputs/godot/scripts/systems/settlement_system.gd.txt",
+    "sha256": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5"
+  },
+  "tools/underground_retirement_memory.py": {
+    "locator": "reproducer-inputs/tools/underground_retirement_memory.py.txt",
+    "sha256": "f06437b9ef11cd346e83000d99b3498b37807f871ea7e1ee33bb19566483426c"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/main.gd.txt": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/main.gd.txt.txt",
+    "sha256": "9acdb093f492a2d56520c210c7b541c4be15f6ce5bb3f8a9f7c9fe1a50cbd688"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/ui_world_session.gd.txt": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/ui_world_session.gd.txt.txt",
+    "sha256": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/ui_manager.gd.txt": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/ui_manager.gd.txt.txt",
+    "sha256": "bdb01f609234acc2786d9b0768e075e2ea14b5f5c7c88fe5db70a15f56a734e2"
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/census.py.txt": {
+    "locator": "reproducer-inputs/docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/census.py.txt.txt",
+    "sha256": "440777a6d5762b3a4945d3b8563b1579f6db10c24e1bdfd371b59e489d7f035c"
+  }
+}

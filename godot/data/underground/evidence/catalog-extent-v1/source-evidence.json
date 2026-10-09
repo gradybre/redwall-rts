@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "status": "independent source review accepted",
+  "scope": "cold current-catalog broadphase extent only; no movement/work permission",
+  "qualified_production_profiles": 0,
+  "sources_and_logs": [
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "sha256": "fdf45152e755720883d3beb4d89ea3a808d40968104264d96ebd18a35ea10dcd"
+    },
+    {
+      "path": "godot/test/test_underground_profiles.gd",
+      "sha256": "c720fc7d7d5ef0189275aeb7cff4bdeb09fa695787f76768e8c962284b497351"
+    },
+    {
+      "path": "godot/data/underground/evidence/run_profile_checks.py",
+      "sha256": "9e1e441aee0b19821f4159083724ecf46714495b37c5066b560515632212902f"
+    },
+    {
+      "path": "docs/decisions/1080-source-bound-underground-profile-catalog.md",
+      "sha256": "2da54bad186d33aa28e127370d01dcdc28b281eb99607c781e726795dea06ae3"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-extent-v1/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-extent-v1/import.log",
+      "sha256": "16a3805626ecc18aecb24e87469ef526accdb2874cb8f60ab49b6c44f242efe6"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-extent-v1/invocation.json",
+      "sha256": "9365519c3dcf5bd375f3fcaaa88c16b695850da9a90a6fcb290c78da5d1d5189"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-extent-v1/strict.log",
+      "sha256": "e1eaf643cc9ad32d258a95503340d293a9679677f92f9112576042ee37ddde76"
+    }
+  ]
+}

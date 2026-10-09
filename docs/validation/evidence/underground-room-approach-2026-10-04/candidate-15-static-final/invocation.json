@@ -1,0 +1,165 @@
+{
+  "head_before": "7e199b7669a5bad5613aaf2881c9a801cc1dda51",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.542,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "111/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final"
+      ],
+      "exit_code": 0,
+      "seconds": 11.099,
+      "log": "test_underground_room_approach.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "139/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final"
+      ],
+      "exit_code": 0,
+      "seconds": 12.101,
+      "log": "test_underground_room_admission.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "156/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final"
+      ],
+      "exit_code": 0,
+      "seconds": 8.204,
+      "log": "test_underground_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "135/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final"
+      ],
+      "exit_code": 0,
+      "seconds": 10.039,
+      "log": "test_underground_terrain.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/test_census.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.133,
+      "log": "census-tests.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/census.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.075,
+      "log": "census.json"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6339",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/analyzer.json",
+        "godot/scripts/core/underground_room_approach.gd",
+        "godot/test/test_underground_room_approach.gd",
+        "godot/scripts/core/underground_room_bindings.gd",
+        "godot/test/test_underground_room_admission.gd",
+        "godot/scripts/core/underground_terrain.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.77,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1150-d723b32db9a59bd9",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "import_raw_findings": [],
+  "strict_suites": {
+    "test_underground_room_approach.gd": {
+      "tests": 27,
+      "assertions": 784,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_admission.gd": {
+      "tests": 24,
+      "assertions": 821,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_bindings.gd": {
+      "tests": 17,
+      "assertions": 604,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_terrain.gd": {
+      "tests": 28,
+      "assertions": 1042,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "project_restored": true,
+  "registry_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

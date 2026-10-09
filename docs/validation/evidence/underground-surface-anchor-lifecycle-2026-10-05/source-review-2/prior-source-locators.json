@@ -1,0 +1,10 @@
+{
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-1/census.py.txt",
+    "sha256": "30cf31b2c267e3e935cf140eac4bae87c968daff5b8a98c0f07f2fca7f86e3c2"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-1/test_census.py.txt",
+    "sha256": "9c534e187c8b8bc4b859f849ee7d0a083e0e97c3b6549f577b9bdeb09bac82d3"
+  }
+}

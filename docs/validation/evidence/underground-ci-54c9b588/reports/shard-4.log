@@ -1,0 +1,2615 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_building_definitions.gd
+  PASS  test_every_catalog_key_has_a_fact_row_and_vice_versa
+  PASS  test_every_building_unlock_is_a_valid_milestone_id
+  PASS  test_no_building_unlock_uses_minus_one_or_an_unknown_ordinal
+  PASS  test_the_starting_mask_unlocks_exactly_the_start_buildings
+  PASS  test_a_sparse_mask_still_locks_the_m1_buildings
+  PASS  test_the_eleven_station_keys_bind_to_their_own_ids
+  PASS  test_a_station_id_is_never_the_building_id_that_provides_it
+  PASS  test_a_building_with_no_service_answers_minus_one_and_not_zero
+  PASS  test_the_kitchen_service_has_two_provider_kinds
+  PASS  test_no_other_furniture_provides_a_station
+  PASS  test_buildings_providing_lists_exactly_one_provider_per_service
+  PASS  test_catalog_slots_for_station_refuses_the_wrong_service
+  PASS  test_the_furniture_bit_is_one_shifted_by_the_definition_id
+  PASS  test_shelf_capacity_belongs_to_the_shelf_alone
+  PASS  test_the_footprints_and_work_match_the_owning_rows
+  PASS  test_managed_interiors_and_room_tiles_agree_with_bal_cat_007
+  PASS  test_base_store_capacities_are_the_section_4_2_values
+  PASS  test_passive_and_worker_slots_are_separate_columns
+  PASS  test_tier_two_is_restricted_to_the_four_upgradeable_keys
+  PASS  test_furniture_floor_sizes_and_user_slots_match_section_4_3
+  PASS  test_unknown_ids_answer_zero_and_never_another_row
+CI_SUITE_TIME {"assertions":420,"failures":0,"suite":"test_building_definitions.gd","tests":21,"usec":23968}
+test_construction_excavation.gd
+  PASS  test_adopted_economic_rows_and_legacy_material_domain_are_exact
+  PASS  test_brace_needs_full_delivery_and_preserves_partial_accounting
+  PASS  test_site_completion_requires_physical_coordinator_and_retry_spends_no_work
+  PASS  test_cancelled_started_brace_prices_refund_per_phase
+  PASS  test_retained_work_needs_full_new_funding_even_when_work_is_ready
+  PASS  test_site_and_building_reference_namespaces_never_alias
+  PASS  test_site_authority_liveness_and_pause_are_revalidated
+  PASS  test_base_authority_and_expired_binding_cannot_reset_physical_history
+  PASS  test_new_purpose_is_rejected_by_frozen_legacy_save_columns
+CI_SUITE_TIME {"assertions":114,"failures":0,"suite":"test_construction_excavation.gd","tests":9,"usec":1178937}
+test_construction_furniture_batches.gd
+  PASS  test_actual_mixed_pending_rows_and_protected_catalog_projects_publish_together
+  PASS  test_direct_preparation_or_publication_never_allocates_any_identity
+  PASS  test_null_and_foreign_owner_cannot_open_the_real_batch
+  PASS  test_unfinished_shell_and_late_geometry_refusal_leave_all_owner_bytes_unchanged
+  PASS  test_wrong_room_generation_and_foreign_packet_are_rejected
+  PASS  test_wrong_kind_order_or_tuple_shape_never_publishes_a_prefix
+  PASS  test_actual_surface_room_cannot_enter_underground_pair_admission
+  PASS  test_unknown_type_edge_piece_and_rotation_refuse_the_whole_layout
+  PASS  test_stale_single_allocation_and_retirement_never_roll_back_generations
+  PASS  test_duplicate_observation_cannot_allocate_again_or_invent_pending_services
+  PASS  test_publication_cleanup_cannot_erase_the_committed_scalar_receipt
+  PASS  test_bound_owner_without_batch_implementation_cleanly_refuses_the_new_operation
+  PASS  test_mutation_in_final_provider_callback_refuses_without_an_identity_prefix
+  PASS  test_callback_reentry_is_closed_before_any_provider_runs
+  PASS  test_initial_owner_purpose_callback_is_already_inside_exclusive_bracket
+  PASS  test_missing_typed_row_capacity_and_pid_capacity_refuse_before_first_write
+  PASS  test_live_typed_owner_mirror_conflict_refuses_in_either_store
+  PASS  test_reused_free_typed_rows_reset_all_paid_delivery_and_installed_flags
+CI_SUITE_TIME {"assertions":523,"failures":0,"suite":"test_construction_furniture_batches.gd","tests":18,"usec":3805151}
+test_demo_access.gd
+  PASS  test_large_readable_previews_then_applies_its_settings
+  PASS  test_large_readable_takes_125_where_150_does_not_fit
+  PASS  test_large_readable_never_shrinks_the_scale
+  PASS  test_keyboard_planner_turns_on_focus_hints_and_targets
+  PASS  test_quiet_focus_takes_the_quiet_mix_and_fewer_toasts
+  PASS  test_a_preset_leaves_other_settings_as_the_player_set_them
+  PASS  test_a_preset_already_applied_says_nothing_to_change
+  PASS  test_each_setting_toggles_on_its_own
+  PASS  test_restore_defaults_asks_with_the_change_then_restores
+  PASS  test_restore_defaults_with_nothing_to_restore_says_so
+  PASS  test_cancel_leaves_the_settings
+  PASS  test_the_menu_shows_the_section_in_settings
+  PASS  test_reduced_motion_cuts_particles_and_brings_them_back
+  PASS  test_reduced_motion_keeps_at_least_one_particle
+  PASS  test_reduced_motion_stops_the_camera_easing
+  PASS  test_reduced_motion_stills_the_pulse_and_calms_the_veil
+  PASS  test_the_effects_turn_reduced_motion_on_across_the_village
+  PASS  test_high_contrast_renders_the_panel_face_flat
+  PASS  test_fewer_toasts_shows_warnings_only_one_at_a_time
+  PASS  test_bigger_tooltips_scale
+  PASS  test_the_effects_reach_the_ledger_the_rings_and_the_hint
+  PASS  test_a_preset_is_lit_while_all_it_sets_is_in_place
+CI_SUITE_TIME {"assertions":81,"failures":0,"suite":"test_demo_access.gd","tests":22,"usec":1049443}
+test_demo_actor_underground_heading.gd
+  PASS  test_first_pose_and_explicit_replacement_initialize_without_a_turn
+  PASS  test_surface_heading_keeps_its_existing_brain_turn_behavior
+  PASS  test_bore_reversal_uses_shortest_arc_existing_rate_and_shared_pitch_progress
+  PASS  test_pause_keeps_an_in_progress_visible_turn_and_pitch_still
+  PASS  test_pending_reversal_finishes_after_leaving_the_bore_without_an_exit_snap
+  PASS  test_wrap_and_retarget_do_not_choose_the_long_arc_or_overshoot
+  PASS  test_tail_pull_follows_the_rendered_heading_during_recovery
+  PASS  test_stoop_counterlean_uses_the_same_rendered_pitch_during_the_turn
+  PASS  test_actual_reversal_does_not_change_progress_route_or_grants
+  PASS  test_actual_nearest_exit_retreat_does_not_change_progress_route_or_grants
+CI_SUITE_TIME {"assertions":2619,"failures":0,"suite":"test_demo_actor_underground_heading.gd","tests":10,"usec":284378}
+test_demo_art_wiring.gd
+  PASS  test_an_icon_only_row_is_read_by_key_and_a_missing_file_is_not
+  PASS  test_an_item_is_drawn_by_its_key_first_and_its_model_second
+  PASS  test_every_dish_has_its_icon_key_by_its_recipe_key
+  PASS  test_the_orchard_draws_the_food_art_where_it_is_staged
+  PASS  test_without_the_food_art_the_orchard_draws_its_stand_ins
+  PASS  test_a_planted_fruit_tree_grows_through_the_food_arts_shares
+  PASS  test_the_old_orchards_stand_shows_full_apple_baskets
+  PASS  test_the_forage_spots_draw_their_models_only_where_staged
+  PASS  test_the_bramble_edge_is_clear_of_the_orchards_blocks
+  PASS  test_the_herb_patch_model_stands_for_its_clumps
+  PASS  test_the_door_dressing_stands_before_the_bodys_front
+  PASS  test_the_infirmary_body_falls_back_to_its_stand_in
+  PASS  test_the_evergreens_stand_in_the_woods_the_same_every_run
+  PASS  test_the_evergreens_are_drawn_at_brendans_sizes
+  PASS  test_the_authored_bare_oak_is_used_only_when_both_load
+  PASS  test_the_brace_is_the_timber_set_when_staged_else_the_old_brace
+  PASS  test_rock_faces_stand_where_the_ground_is_rock
+CI_SUITE_TIME {"assertions":247,"failures":0,"suite":"test_demo_art_wiring.gd","tests":17,"usec":3328208}
+test_demo_bore.gd
+  PASS  test_the_profile_is_a_sixteen_point_horseshoe
+  PASS  test_the_profile_s_normals_face_inward
+  PASS  test_a_swept_bore_holds_its_rings_and_faces_in
+  PASS  test_the_rough_walls_are_rough_but_the_floor_is_flat
+  PASS  test_a_32_m_bore_builds_in_under_2_ms
+  PASS  test_the_centreline_follows_the_route_and_rounds_its_corners
+  PASS  test_a_ramp_is_never_steeper_than_one_in_two_and_a_half
+  PASS  test_a_route_too_short_for_its_ramps_is_refused_with_words
+  PASS  test_each_species_stoops_by_its_height_in_a_standard_bore
+  PASS  test_the_stoop_lowers_the_head_and_keeps_the_feet
+  PASS  test_a_lean_tilts_the_spine_alone
+  PASS  test_a_resident_on_a_ramp_leans_its_spine_back_by_half_its_pitch
+  PASS  test_a_deeper_stoop_bends_further_and_is_capped
+  PASS  test_a_resident_below_eases_into_its_stoop_on_the_demo_clock
+  PASS  test_a_ramp_is_walked_along_its_slope_and_the_body_tilts_with_it
+  PASS  test_the_void_keeps_the_nearest_bore_its_rise_and_crown
+  PASS  test_a_dug_tunnel_is_stamped_down_its_ramps_too
+  PASS  test_only_the_chunk_at_the_face_is_rebuilt
+  PASS  test_each_ring_carries_the_day_it_was_dug
+  PASS  test_stones_bed_in_the_walls_and_roots_come_only_near_trees
+  PASS  test_the_lanterns_light_the_nearest_spots_up_to_the_cap
+  PASS  test_the_lanterns_flicker_gently_and_hold_while_paused
+  PASS  test_a_lit_tunnel_hangs_its_lanterns_under_the_ground_and_lights_them
+  PASS  test_a_mouth_is_a_gateway_over_its_ramp_s_cutting
+  PASS  test_the_u_view_has_its_own_environment_and_the_surface_keeps_its
+  PASS  test_every_new_underground_material_is_registered_for_the_prewarm
+  PASS  test_each_ring_is_jittered_along_its_normals
+  PASS  test_a_fillet_never_takes_more_than_its_share_of_a_short_leg
+  PASS  test_chunks_hold_whole_bands_and_the_widened_and_flooded_rings_show
+  PASS  test_stones_bed_only_where_the_bore_is_under_the_ground
+  PASS  test_an_instanced_sample_is_drawn_with_its_override
+  PASS  test_a_right_angled_corner_folds_nothing_and_walkers_follow_the_bore
+  PASS  test_the_shared_curve_follows_its_tunnel_and_samples_back_and_forth
+  PASS  test_only_steps_whose_roots_stay_under_the_cut_are_dressed
+EXPECTED WARNING: bore_mesh: more than 160 rings in one build
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] add_ring (res://demo/tunnel/bore_mesh.gd:260)
+         [1] test_a_build_holds_at_most_max_rings (res://test/test_demo_bore.gd:983)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: bore_mesh: more than 160 rings in one build
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] add_ring (res://demo/tunnel/bore_mesh.gd:260)
+         [1] test_a_build_holds_at_most_max_rings (res://test/test_demo_bore.gd:983)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: bore_mesh: more than 160 rings in one build
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] add_ring (res://demo/tunnel/bore_mesh.gd:260)
+         [1] test_a_build_holds_at_most_max_rings (res://test/test_demo_bore.gd:983)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_build_holds_at_most_max_rings
+  PASS  test_the_u_view_s_focus_is_where_the_camera_looks_on_the_floor
+  PASS  test_the_hub_cuts_a_bore_s_floor_however_its_jitter_falls
+  PASS  test_a_branch_breaking_ground_cuts_the_bores_it_joins
+  PASS  test_a_hub_is_rebuilt_only_when_what_it_depends_on_changes
+CI_SUITE_TIME {"assertions":478,"failures":0,"suite":"test_demo_bore.gd","tests":39,"usec":2029093}
+test_demo_chronicle_live.gd
+  PASS  test_the_chronicle_on_the_real_scene_at_1280x720
+  PASS  test_the_chronicle_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":66,"failures":0,"suite":"test_demo_chronicle_live.gd","tests":2,"usec":31660585}
+test_demo_hall_live.gd
+  PASS  test_the_hall_on_the_real_scene_at_1280x720
+  PASS  test_the_hall_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":88,"failures":0,"suite":"test_demo_hall_live.gd","tests":2,"usec":50814585}
+test_demo_input_gate.gd
+  PASS  test_a_modal_swallows_world_keys_and_lets_navigation_through
+  PASS  test_a_modal_closes_on_escape_and_its_own_keys
+  PASS  test_a_modal_s_tab_and_activation
+  PASS  test_the_stall_banner_comes_first
+  PASS  test_closing_calls_the_top_modal_s_close
+  PASS  test_without_a_modal_world_keys_pass
+  PASS  test_enter_and_space_go_by_focused_context
+  PASS  test_a_click_s_focus_gives_the_arrows_back_and_f7_starts_from_the_world
+  PASS  test_the_hud_workspace_holding_input_stops_panel_routing
+  PASS  test_the_banner_takes_only_enter_and_space
+  PASS  test_a_modal_presses_only_its_own_buttons
+  PASS  test_closing_a_lower_modal_keeps_focus_in_the_top_one
+  PASS  test_the_focus_read_is_one_reused_object
+  PASS  test_tab_and_escape_in_a_region
+  PASS  test_a_watched_modal_opens_and_closes_with_its_layer
+  PASS  test_the_modal_s_ring_puts_its_close_last_and_focuses_content_first
+  PASS  test_stacked_modals_close_top_first
+  PASS  test_focusables_skip_hidden_branches_hidden_layers_and_non_buttons
+  PASS  test_step_wraps_both_ways
+  PASS  test_f7_cycles_world_regions_and_back_skipping_empty_ones
+  PASS  test_tab_in_a_region_moves_along_its_ring
+  PASS  test_press_toggles_and_emits_and_spares_a_disabled_button
+  PASS  test_every_panel_button_is_a_keyboard_focus_stop
+  PASS  test_the_player_panels_hold_no_test_trigger
+  PASS  test_the_lab_holds_its_triggers_in_order_and_fires_them
+  PASS  test_a_trigger_that_cannot_act_is_disabled_with_its_reason
+  PASS  test_firing_a_trigger_reads_every_trigger_s_availability_again
+  PASS  test_the_lab_opens_and_closes_on_its_key
+CI_SUITE_TIME {"assertions":159,"failures":0,"suite":"test_demo_input_gate.gd","tests":28,"usec":407426}
+test_demo_layout_live.gd
+  PASS  test_the_panels_stay_usable_at_1280x720
+  PASS  test_the_panels_stay_usable_at_1920x1080
+  PASS  test_the_panels_stay_usable_at_an_effective_200_percent
+CI_SUITE_TIME {"assertions":678,"failures":0,"suite":"test_demo_layout_live.gd","tests":3,"usec":55770429}
+test_demo_menu.gd
+  PASS  test_opening_holds_menu_and_closing_restores_the_speed
+  PASS  test_a_player_pause_held_before_the_menu_is_still_held_after
+  PASS  test_set_menu_pause_is_refused_before_start_and_holds_once
+EXPECTED WARNING: the clock refused to release the menu's pause (LOAD_IN_PROGRESS); the menu stays open
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] close (res://demo/ui/demo_menu.gd:275)
+         [1] test_a_refused_release_keeps_the_menu_open_and_runs_nothing (res://test/test_demo_menu.gd:102)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: the clock refused to release the menu's pause (LOAD_IN_PROGRESS); the menu stays open
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] close (res://demo/ui/demo_menu.gd:275)
+         [1] _confirmed (res://demo/ui/demo_menu.gd:372)
+         [2] test_a_refused_release_keeps_the_menu_open_and_runs_nothing (res://test/test_demo_menu.gd:106)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: the clock refused to release the menu's pause (LOAD_IN_PROGRESS); the menu stays open
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] close (res://demo/ui/demo_menu.gd:275)
+         [1] open_lab (res://demo/ui/demo_menu.gd:380)
+         [2] test_a_refused_release_keeps_the_menu_open_and_runs_nothing (res://test/test_demo_menu.gd:107)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: the clock refused to release the menu's pause (LOAD_IN_PROGRESS); the menu stays open
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] close (res://demo/ui/demo_menu.gd:275)
+         [1] _confirmed (res://demo/ui/demo_menu.gd:372)
+         [2] test_a_refused_release_keeps_the_menu_open_and_runs_nothing (res://test/test_demo_menu.gd:110)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_refused_release_keeps_the_menu_open_and_runs_nothing
+  PASS  test_opening_twice_and_closing_twice_hold_and_release_once
+  PASS  test_the_menu_page_offers_the_six_actions_and_the_no_save_line
+  PASS  test_escape_goes_back_a_page_then_closes
+  PASS  test_controls_list_the_demo_s_keys
+  PASS  test_resume_closes
+  PASS  test_restart_and_quit_ask_first_and_say_the_village_is_lost
+  PASS  test_a_confirmed_restart_or_quit_releases_the_pause_and_runs
+  PASS  test_the_demo_lab_entry_closes_the_menu_and_opens_the_lab
+  PASS  test_settings_offer_only_the_scales_that_fit_and_the_sound
+  PASS  test_choosing_a_scale_applies_it_only_where_it_fits
+  PASS  test_full_screen_says_its_state_and_toggles_through_the_host
+  PASS  test_the_demo_s_interface_scale_fits_and_applies
+  PASS  test_every_demo_layout_site_follows_the_scale
+  PASS  test_the_hud_menu_button_opens_the_host_menu_not_new_settlement
+CI_SUITE_TIME {"assertions":104,"failures":0,"suite":"test_demo_menu.gd","tests":18,"usec":295719}
+test_demo_orchard.gd
+  PASS  test_the_numbers_are_the_documents
+  PASS  test_the_early_yield_is_the_product_floored_once
+  PASS  test_berry_growth_is_the_capped_additive_form
+  PASS  test_stages_by_age
+  PASS  test_the_sites_are_tile_blocks_clear_of_the_village
+  PASS  test_the_old_orchard_is_real_rows
+  PASS  test_a_day_untended_costs_100_and_tended_restores_50
+  PASS  test_the_old_trees_bear_once_in_their_window
+  PASS  test_a_young_tree_bears_early_then_fully
+  PASS  test_an_early_year_is_not_picked_twice_when_it_matures_in_its_window
+  PASS  test_planting_refusals_and_saplings
+  PASS  test_a_plan_grows_its_sapling_and_promises_its_site
+  PASS  test_the_hedge_fruits_in_summer_and_keeps_its_floor
+  PASS  test_the_grove_record_keeps_the_newest
+  PASS  test_a_stand_is_never_a_destination
+  PASS  test_moving_food_keeps_its_age_and_the_ledger
+  PASS  test_a_move_takes_what_fits_and_merges_keeping_the_older_age
+  PASS  test_the_board_opens_one_job_a_kind_a_target
+  PASS  test_the_routine_raises_the_seasons_work
+  PASS  test_together_timing_waits_for_the_whole_group
+  PASS  test_a_cancelled_routine_job_is_not_raised_again_today
+  PASS  test_a_resident_tends_a_tree
+  PASS  test_a_harvest_goes_to_the_baskets_and_on_to_a_store
+  PASS  test_room_first_a_full_stand_waits
+  PASS  test_a_picking_fills_a_basket_of_berries
+  PASS  test_a_planting_takes_its_sapling_and_compost_when_done
+  PASS  test_a_plan_is_propagated_grown_and_planted
+  PASS  test_the_grove_is_observed_once_a_season
+  PASS  test_a_drought_tending_pays_two_units_of_water
+  PASS  test_a_carrier_called_away_sets_its_load_down_and_another_carries_it_on
+  PASS  test_pause_resume_and_reassign_a_waiting_job
+  PASS  test_the_kitchen_policy_sends_the_baskets_to_the_kitchen_and_the_keep_stays
+  PASS  test_order_refusals_say_why
+  PASS  test_the_keeping_policy_sends_the_baskets_to_the_cellar
+  PASS  test_a_year_old_tree_bears_on_the_day_it_turns_one
+  PASS  test_a_ready_plan_plants_only_its_own_species
+  PASS  test_work_completes_at_exactly_its_need
+  PASS  test_a_carrier_lost_three_times_keeps_its_load
+  PASS  test_a_held_picking_leaves_less_for_the_next
+  PASS  test_a_haul_called_away_releases_its_room
+  PASS  test_a_haul_follows_its_store_when_the_stores_move
+  PASS  test_a_worker_off_its_spot_walks_back_and_resumes_the_work
+  PASS  test_no_job_is_raised_that_cannot_start
+  PASS  test_a_partial_delivery_keeps_the_rest_in_hand
+  PASS  test_a_job_nobody_can_reach_is_given_up_after_three_tries
+  PASS  test_together_picks_a_tree_whose_window_closes
+  PASS  test_the_first_early_day_boundary
+  PASS  test_a_propagation_does_not_work_a_new_plan_on_a_reused_row
+  PASS  test_the_nursery_takes_its_fruit_from_the_stands_only
+CI_SUITE_TIME {"assertions":2711,"failures":0,"suite":"test_demo_orchard.gd","tests":49,"usec":15702001}
+test_demo_panels_fit.gd
+  PASS  test_the_selected_resident_is_pinned_and_the_roster_folded
+  PASS  test_a_roster_row_picks_its_resident
+  PASS  test_each_build_sits_under_its_kind_s_cost
+  PASS  test_water_text_and_targets_meet_the_floors
+  PASS  test_the_open_picker_follows_the_calendar_across_spring_5
+  PASS  test_the_picker_has_one_scroll_and_a_fixed_title_and_back
+  PASS  test_the_woods_and_tunnels_buttons_meet_the_floors
+  PASS  test_farm_small_text_is_at_least_14_px
+  PASS  test_a_pick_row_is_a_32_px_focusable_row_with_its_whole_text
+  PASS  test_pick_member_selects_alone_and_centres
+  PASS  test_the_picker_and_news_band_keep_clear_of_the_right_column_at_every_offered_size
+  PASS  test_the_picker_falls_back_beside_the_minimap_where_the_column_gap_is_too_narrow
+  PASS  test_the_incident_card_stays_between_the_side_columns
+  PASS  test_a_control_under_the_cover_is_no_focus_stop
+  PASS  test_the_card_tooltips_follow_the_hud_scale
+  PASS  test_a_scale_is_offered_only_where_the_bottom_band_has_room
+  PASS  test_a_reveal_works_in_the_scroll_s_own_pixels
+  PASS  test_the_party_rows_are_a_pool_re_worded_in_place
+CI_SUITE_TIME {"assertions":391,"failures":0,"suite":"test_demo_panels_fit.gd","tests":18,"usec":3312355}
+test_demo_props.gd
+  PASS  test_every_prop_has_a_positive_demo_size_and_a_rule
+EXPECTED ERROR: demo_props: 'item_trout' has a flat or inverted bound
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] scale_for (res://demo/props/demo_props.gd:191)
+       [1] test_scale_measures_height_or_the_longest_side_by_rule (res://test/test_demo_props.gd:88)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_scale_measures_height_or_the_longest_side_by_rule
+  PASS  test_an_unstaged_prop_is_a_box_of_its_size_standing_on_the_ground
+  PASS  test_a_row_whose_model_is_missing_is_not_staged
+  PASS  test_a_missing_icon_is_a_roundel_in_the_swatch_ringed_in_brass
+  PASS  test_eleven_items_have_their_own_model_and_five_a_roundel
+  PASS  test_a_held_item_is_centred_on_the_hands
+  PASS  test_eleven_crops_grow_their_own_plant_and_five_borrow
+  PASS  test_each_stage_shows_its_subset_of_the_plant_cells
+  PASS  test_withered_and_blighted_read_apart
+  PASS  test_a_bed_shows_the_stage_cells_and_a_withered_bed_slumps
+  PASS  test_plant_cards_are_sized_to_the_plant_and_planted_by_its_width
+  PASS  test_a_staged_plant_takes_its_cards
+  PASS  test_a_ripe_lettuce_bed_draws_heads_not_cards
+  PASS  test_a_harvest_is_carried_as_its_own_model_and_put_down_at_the_store
+  PASS  test_a_harvest_in_hand_is_read_from_the_job_board
+  PASS  test_a_shelf_shows_a_jar_per_started_third_and_its_goods_in_order
+  PASS  test_the_store_shelf_lists_its_goods_most_first_and_cellars_wait_for_their_room
+  PASS  test_finds_and_relics_have_their_models
+  PASS  test_finds_lie_where_they_were_cut_in_the_underground_view
+  PASS  test_the_ring_keeps_the_latest_finds
+  PASS  test_the_panel_shows_a_finds_shelf
+  PASS  test_lanterns_hang_on_alternate_walls_facing_into_the_bore
+  PASS  test_a_lit_braced_tunnel_shows_frames_lanterns_and_glows_below
+  PASS  test_boats_float_and_the_jetty_deck_stands_above_the_water
+  PASS  test_a_digger_holds_its_pick_only_while_digging
+  PASS  test_the_beaver_bridgewright_works_the_water_and_the_timber
+CI_SUITE_TIME {"assertions":404,"failures":0,"suite":"test_demo_props.gd","tests":27,"usec":2955626}
+test_demo_routes_live.gd
+  PASS  test_the_previews_work_on_the_live_village_at_1280x720
+  PASS  test_the_previews_work_on_the_live_village_at_1920x1080
+CI_SUITE_TIME {"assertions":76,"failures":0,"suite":"test_demo_routes_live.gd","tests":2,"usec":37424128}
+test_demo_sound.gd
+  PASS  test_the_shipped_table_has_every_cue_on_a_bus_with_an_equivalent
+  PASS  test_a_cue_without_an_equivalent_or_with_an_unknown_bus_is_refused
+  PASS  test_each_bad_field_refuses_its_cue
+EXPECTED WARNING: sound cue chop: 5 of 5 files missing (res://demo/assets/no_such_sound_folder/chop_01.wav, res://demo/assets/no_such_sound_folder/chop_02.ogg, res://demo/assets/no_such_sound_folder/chop_03.ogg, res://demo/assets/no_such_sound_folder/chop_04.ogg, res://demo/assets/no_such_sound_folder/chop_05.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue gnaw: 5 of 5 files missing (res://demo/assets/no_such_sound_folder/gnaw_01.wav, res://demo/assets/no_such_sound_folder/gnaw_02.wav, res://demo/assets/no_such_sound_folder/gnaw_03.wav, res://demo/assets/no_such_sound_folder/gnaw_04.wav, res://demo/assets/no_such_sound_folder/gnaw_05.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue saw: 3 of 3 files missing (res://demo/assets/no_such_sound_folder/saw_01.wav, res://demo/assets/no_such_sound_folder/saw_02.wav, res://demo/assets/no_such_sound_folder/saw_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/no_such_sound_folder/dig_01.wav, res://demo/assets/no_such_sound_folder/dig_02.wav, res://demo/assets/no_such_sound_folder/dig_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/tree_fall_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/no_such_sound_folder/pickup_01.ogg, res://demo/assets/no_such_sound_folder/pickup_02.ogg, res://demo/assets/no_such_sound_folder/pickup_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/no_such_sound_folder/drop_01.ogg, res://demo/assets/no_such_sound_folder/drop_02.ogg, res://demo/assets/no_such_sound_folder/drop_03.ogg, res://demo/assets/no_such_sound_folder/drop_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/no_such_sound_folder/step_grass_01.ogg, res://demo/assets/no_such_sound_folder/step_grass_02.ogg, res://demo/assets/no_such_sound_folder/step_grass_03.ogg, res://demo/assets/no_such_sound_folder/step_grass_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/no_such_sound_folder/step_dirt_01.ogg, res://demo/assets/no_such_sound_folder/step_dirt_02.ogg, res://demo/assets/no_such_sound_folder/step_dirt_03.ogg, res://demo/assets/no_such_sound_folder/step_dirt_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/no_such_sound_folder/step_wood_01.wav, res://demo/assets/no_such_sound_folder/step_wood_02.wav, res://demo/assets/no_such_sound_folder/step_wood_03.wav, res://demo/assets/no_such_sound_folder/step_wood_04.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/no_such_sound_folder/step_tunnel_01.ogg, res://demo/assets/no_such_sound_folder/step_tunnel_02.ogg, res://demo/assets/no_such_sound_folder/step_tunnel_03.ogg, res://demo/assets/no_such_sound_folder/step_tunnel_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/no_such_sound_folder/step_wade_01.ogg, res://demo/assets/no_such_sound_folder/step_wade_02.ogg, res://demo/assets/no_such_sound_folder/step_wade_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/no_such_sound_folder/splash_01.ogg, res://demo/assets/no_such_sound_folder/splash_02.ogg, res://demo/assets/no_such_sound_folder/splash_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/no_such_sound_folder/water_in_01.ogg, res://demo/assets/no_such_sound_folder/water_in_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/no_such_sound_folder/water_out_01.ogg, res://demo/assets/no_such_sound_folder/water_out_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/amb_stream_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/amb_wind_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/amb_rain_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/warning_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/complete_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/no_such_sound_folder/ui_click_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_missing_files_play_silent_with_one_warning_per_cue (res://test/test_demo_sound.gd:165)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_missing_files_play_silent_with_one_warning_per_cue
+TOLERATED WARNING: sound cue chop: 5 of 5 files missing (res://demo/assets/sound/chop_01.wav, res://demo/assets/sound/chop_02.ogg, res://demo/assets/sound/chop_03.ogg, res://demo/assets/sound/chop_04.ogg, res://demo/assets/sound/chop_05.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue gnaw: 5 of 5 files missing (res://demo/assets/sound/gnaw_01.wav, res://demo/assets/sound/gnaw_02.wav, res://demo/assets/sound/gnaw_03.wav, res://demo/assets/sound/gnaw_04.wav, res://demo/assets/sound/gnaw_05.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue saw: 3 of 3 files missing (res://demo/assets/sound/saw_01.wav, res://demo/assets/sound/saw_02.wav, res://demo/assets/sound/saw_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav, res://demo/assets/sound/dig_02.wav, res://demo/assets/sound/dig_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/sound/tree_fall_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/sound/pickup_01.ogg, res://demo/assets/sound/pickup_02.ogg, res://demo/assets/sound/pickup_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/sound/drop_01.ogg, res://demo/assets/sound/drop_02.ogg, res://demo/assets/sound/drop_03.ogg, res://demo/assets/sound/drop_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/sound/step_grass_01.ogg, res://demo/assets/sound/step_grass_02.ogg, res://demo/assets/sound/step_grass_03.ogg, res://demo/assets/sound/step_grass_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/sound/step_dirt_01.ogg, res://demo/assets/sound/step_dirt_02.ogg, res://demo/assets/sound/step_dirt_03.ogg, res://demo/assets/sound/step_dirt_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/sound/step_wood_01.wav, res://demo/assets/sound/step_wood_02.wav, res://demo/assets/sound/step_wood_03.wav, res://demo/assets/sound/step_wood_04.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/sound/step_tunnel_01.ogg, res://demo/assets/sound/step_tunnel_02.ogg, res://demo/assets/sound/step_tunnel_03.ogg, res://demo/assets/sound/step_tunnel_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/sound/step_wade_01.ogg, res://demo/assets/sound/step_wade_02.ogg, res://demo/assets/sound/step_wade_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/sound/splash_01.ogg, res://demo/assets/sound/splash_02.ogg, res://demo/assets/sound/splash_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/sound/water_in_01.ogg, res://demo/assets/sound/water_in_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/sound/water_out_01.ogg, res://demo/assets/sound/water_out_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/sound/amb_stream_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/sound/amb_wind_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/sound/amb_rain_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/sound/warning_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] test_a_silent_cue_still_plays_its_voice_and_its_gap (res://test/test_demo_sound.gd:178)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_silent_cue_still_plays_its_voice_and_its_gap
+TOLERATED WARNING: sound cue chop: 5 of 5 files missing (res://demo/assets/sound/chop_01.wav, res://demo/assets/sound/chop_02.ogg, res://demo/assets/sound/chop_03.ogg, res://demo/assets/sound/chop_04.ogg, res://demo/assets/sound/chop_05.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue gnaw: 5 of 5 files missing (res://demo/assets/sound/gnaw_01.wav, res://demo/assets/sound/gnaw_02.wav, res://demo/assets/sound/gnaw_03.wav, res://demo/assets/sound/gnaw_04.wav, res://demo/assets/sound/gnaw_05.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue saw: 3 of 3 files missing (res://demo/assets/sound/saw_01.wav, res://demo/assets/sound/saw_02.wav, res://demo/assets/sound/saw_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav, res://demo/assets/sound/dig_02.wav, res://demo/assets/sound/dig_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/sound/tree_fall_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/sound/pickup_01.ogg, res://demo/assets/sound/pickup_02.ogg, res://demo/assets/sound/pickup_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/sound/drop_01.ogg, res://demo/assets/sound/drop_02.ogg, res://demo/assets/sound/drop_03.ogg, res://demo/assets/sound/drop_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/sound/step_grass_01.ogg, res://demo/assets/sound/step_grass_02.ogg, res://demo/assets/sound/step_grass_03.ogg, res://demo/assets/sound/step_grass_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/sound/step_dirt_01.ogg, res://demo/assets/sound/step_dirt_02.ogg, res://demo/assets/sound/step_dirt_03.ogg, res://demo/assets/sound/step_dirt_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/sound/step_wood_01.wav, res://demo/assets/sound/step_wood_02.wav, res://demo/assets/sound/step_wood_03.wav, res://demo/assets/sound/step_wood_04.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/sound/step_tunnel_01.ogg, res://demo/assets/sound/step_tunnel_02.ogg, res://demo/assets/sound/step_tunnel_03.ogg, res://demo/assets/sound/step_tunnel_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/sound/step_wade_01.ogg, res://demo/assets/sound/step_wade_02.ogg, res://demo/assets/sound/step_wade_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/sound/splash_01.ogg, res://demo/assets/sound/splash_02.ogg, res://demo/assets/sound/splash_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/sound/water_in_01.ogg, res://demo/assets/sound/water_in_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/sound/water_out_01.ogg, res://demo/assets/sound/water_out_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/sound/amb_stream_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/sound/amb_wind_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/sound/amb_rain_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/sound/warning_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] test_the_prewarm_loads_the_streams_at_boot (res://test/test_demo_sound.gd:195)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_prewarm_loads_the_streams_at_boot
+  PASS  test_the_shipped_table_is_staged_whole_or_not_at_all
+  PASS  test_buses_are_made_once_and_route_to_master_and_work
+  PASS  test_each_cue_sounds_on_its_bus_and_work_below_goes_through_work_under
+  PASS  test_the_gap_folds_a_cue_played_again_too_soon
+  PASS  test_a_cue_never_sounds_on_more_voices_than_its_cap
+  PASS  test_a_full_bus_refuses_until_a_voice_frees
+  PASS  test_ambience_has_no_one_shot_voices
+  PASS  test_four_x_raises_more_strikes_but_never_stacks_them
+  PASS  test_a_chop_at_four_x_plays_at_pitch_one_its_range_and_its_variants
+EXPECTED WARNING: sound cue drone: 1 of 2 files missing (res://demo/assets/sound/no_such.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] test_a_staged_file_loads_without_a_warning_and_loops_as_its_cue_says (res://test/test_demo_sound.gd:447)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_staged_file_loads_without_a_warning_and_loops_as_its_cue_says
+  PASS  test_a_looping_cue_s_files_are_set_to_loop
+  PASS  test_the_listener_turns_with_the_camera
+  PASS  test_pausing_ducks_ambience_stops_work_and_keeps_cues
+  PASS  test_leaving_the_tree_silences_every_voice_and_loop
+  PASS  test_the_clock_drives_the_pause
+  PASS  test_the_u_view_switches_the_underground_filter
+  PASS  test_a_far_cue_takes_no_voice_and_zooming_out_lifts_the_listener
+  PASS  test_settings_move_the_bus_volumes_and_mute
+  PASS  test_down_is_refused_at_silence_and_up_at_full
+  PASS  test_quiet_focus_sets_the_mix_and_a_custom_volume_unlights_it
+  PASS  test_the_settings_outlast_the_menu_as_the_interface_scale_does
+  PASS  test_the_menu_settings_page_offers_sound_and_says_it_is_silent
+  PASS  test_nothing_sounds_for_what_already_stood_when_watching_began
+  PASS  test_a_carry_sounds_pickup_and_drop_once_each
+  PASS  test_a_strike_sounds_only_once_the_work_has_begun_and_a_beat_is_done
+  PASS  test_a_beaver_fells_by_gnawing
+  PASS  test_sawing_strokes_and_grubbing_digs
+  PASS  test_a_tree_sounds_its_fall_only_when_it_falls
+  PASS  test_a_tree_blown_down_falls_too
+  PASS  test_a_dig_sounds_each_cut_and_completes_on_opening
+  PASS  test_a_bridge_completes_once_when_it_opens
+  PASS  test_a_new_warning_chimes_and_a_note_or_a_folded_repeat_does_not
+  PASS  test_a_critical_incident_chimes_once_and_a_warning_or_a_merged_repeat_does_not
+  PASS  test_water_edges_and_a_splash_as_swimming_begins
+  PASS  test_footsteps_follow_the_ground_underfoot
+  PASS  test_wading_steps_splash_softly
+  PASS  test_a_work_begun_again_strikes_from_its_first_beat
+  PASS  test_a_worn_path_sounds_as_dirt
+  PASS  test_ambience_follows_the_weather_and_the_nearest_bank
+  PASS  test_the_loops_ease_towards_the_map_s_levels
+  PASS  test_ui_buttons_click_once_hooked_and_only_once
+CI_SUITE_TIME {"assertions":529,"failures":0,"suite":"test_demo_sound.gd","tests":47,"usec":1713380}
+test_demo_theatre.gd
+  PASS  test_the_warren_s_particles_fit_their_budget
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:179)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] burst_clods (res://demo/tunnel/warren_particles.gd:283)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:187)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_mound (res://demo/tunnel/warren_particles.gd:293)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:188)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] burst_clods (res://demo/tunnel/warren_particles.gd:283)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:187)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_mound (res://demo/tunnel/warren_particles.gd:293)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:188)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] burst_clods (res://demo/tunnel/warren_particles.gd:283)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:187)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_mound (res://demo/tunnel/warren_particles.gd:293)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:188)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:189)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_hazard (res://demo/tunnel/warren_particles.gd:316)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:191)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_hazard (res://demo/tunnel/warren_particles.gd:316)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:192)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_hazard (res://demo/tunnel/warren_particles.gd:316)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:191)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] set_hazard (res://demo/tunnel/warren_particles.gd:316)
+       [1] test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain (res://test/test_demo_theatre.gd:192)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain
+  PASS  test_the_pools_run_on_the_demo_clock
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] test_a_puff_takes_the_next_dust_emitter_on_its_layer (res://test/test_demo_theatre.gd:221)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] test_a_puff_takes_the_next_dust_emitter_on_its_layer (res://test/test_demo_theatre.gd:222)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] test_a_puff_takes_the_next_dust_emitter_on_its_layer (res://test/test_demo_theatre.gd:226)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_puff_takes_the_next_dust_emitter_on_its_layer
+  PASS  test_a_mouth_nobody_hauls_for_draws_all_it_has_received
+  PASS  test_haulers_locate_every_milli_of_the_spoil
+  PASS  test_a_mouth_row_freed_starts_its_heap_clean
+  PASS  test_the_farm_takes_only_what_is_tipped
+  PASS  test_a_crew_member_fills_carries_out_and_tips_a_basket
+  PASS  test_one_fills_at_a_time_and_only_a_basketful
+  PASS  test_a_hauler_whose_mouth_is_gone_goes_back_to_its_post
+  PASS  test_a_hauler_called_away_drops_its_load_on_the_heap
+  PASS  test_the_last_basket_goes_out_when_the_dig_is_done
+  PASS  test_two_sent_to_one_spot_both_reach_it
+  PASS  test_a_replan_that_finds_no_way_gives_the_trip_up
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] refresh (res://demo/tunnel/haul_view.gd:81)
+       [2] test_the_baskets_are_drawn_as_the_hauling_stands (res://test/test_demo_theatre.gd:606)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_baskets_are_drawn_as_the_hauling_stands
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] burst_clods (res://demo/tunnel/warren_particles.gd:283)
+       [1] _show (res://demo/tunnel/dig_theatre.gd:162)
+       [2] refresh (res://demo/tunnel/dig_theatre.gd:133)
+       [3] test_a_face_gets_its_lantern_light_and_clods (res://test/test_demo_theatre.gd:655)
+       [4] _run_test (res://test/run_tests.gd:194)
+       [5] _run_suite (res://test/run_tests.gd:168)
+       [6] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [7] _run_worker (res://test/run_tests.gd:121)
+       [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_face_gets_its_lantern_light_and_clods
+  PASS  test_the_dig_face_is_a_rough_concave_fresh_cut
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] _puff (res://demo/tunnel/tunnel_marks.gd:660)
+       [2] _place_frames (res://demo/tunnel/tunnel_marks.gd:572)
+       [3] _draw_slot (res://demo/tunnel/tunnel_marks.gd:446)
+       [4] refresh (res://demo/tunnel/tunnel_marks.gd:396)
+       [5] test_braces_go_up_one_at_a_time_each_with_a_puff (res://test/test_demo_theatre.gd:736)
+       [6] _run_test (res://test/run_tests.gd:194)
+       [7] _run_suite (res://test/run_tests.gd:168)
+       [8] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [9] _run_worker (res://test/run_tests.gd:121)
+       [10] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] _puff (res://demo/tunnel/tunnel_marks.gd:660)
+       [2] _place_frames (res://demo/tunnel/tunnel_marks.gd:572)
+       [3] _draw_slot (res://demo/tunnel/tunnel_marks.gd:446)
+       [4] refresh (res://demo/tunnel/tunnel_marks.gd:396)
+       [5] test_braces_go_up_one_at_a_time_each_with_a_puff (res://test/test_demo_theatre.gd:742)
+       [6] _run_test (res://test/run_tests.gd:194)
+       [7] _run_suite (res://test/run_tests.gd:168)
+       [8] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [9] _run_worker (res://test/run_tests.gd:121)
+       [10] _initialize (res://test/run_tests.gd:108)
+  PASS  test_braces_go_up_one_at_a_time_each_with_a_puff
+  PASS  test_lanterns_hang_one_at_a_time_their_glow_swelling
+  PASS  test_a_frame_rises_and_a_glow_swells_to_whole
+  PASS  test_a_light_blooms_on_and_settles
+  PASS  test_a_spot_keeps_its_age_when_handed_in_again
+  PASS  test_a_face_spot_moves_without_blooming_again
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] puff (res://demo/tunnel/warren_particles.gd:302)
+       [1] _puff_at (res://demo/burrow/fixture_view.gd:272)
+       [2] _refresh_places (res://demo/burrow/fixture_view.gd:196)
+       [3] refresh (res://demo/burrow/fixture_view.gd:172)
+       [4] test_a_fixture_rises_from_its_ring_as_it_is_put_in_then_puffs (res://test/test_demo_theatre.gd:855)
+       [5] _run_test (res://test/run_tests.gd:194)
+       [6] _run_suite (res://test/run_tests.gd:168)
+       [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [8] _run_worker (res://test/run_tests.gd:121)
+       [9] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_fixture_rises_from_its_ring_as_it_is_put_in_then_puffs
+  PASS  test_the_installer_heaves_the_big_pieces_and_hangs_the_light_ones
+  PASS  test_a_room_dries_from_the_door_outward_as_it_was_dug
+  PASS  test_a_hub_keeps_the_day_it_broke_ground
+  PASS  test_a_widening_re_cuts_the_walls_it_passes
+CI_SUITE_TIME {"assertions":177,"failures":0,"suite":"test_demo_theatre.gd","tests":29,"usec":280875}
+test_demo_work.gd
+  PASS  test_six_queued_tasks_with_nobody_selected_go_to_the_right_eligible_residents
+  PASS  test_an_idle_resident_takes_any_eligible_work_its_crew_allows
+  PASS  test_safety_rest_and_needs_come_before_work
+  PASS  test_a_rescue_interrupts_hauling_and_the_haul_resumes_exactly_once
+  PASS  test_a_harvest_reassigned_at_each_phase_is_stored_once_by_its_carrier
+  PASS  test_a_harvest_cancelled_in_hand_is_delivered_by_its_carrier_not_credited_at_the_cancel
+  PASS  test_a_haul_reassigned_paused_and_cancelled_at_each_phase_conserves_its_wood
+  PASS  test_a_bridge_reassigned_while_its_material_is_carried_is_built_once
+  PASS  test_urgent_and_priority_order_what_an_idle_resident_takes
+  PASS  test_task_priority_breaks_ties_before_distance
+  PASS  test_crews_start_by_trade_and_the_player_edits_them
+  PASS  test_presets_preview_their_changes_and_apply_whole_tables
+  PASS  test_a_members_status_reads_its_brain
+  PASS  test_the_order_list_adds_removes_and_reorders_up_to_eight
+  PASS  test_interruptions_keep_three_and_never_push_out_the_players_queue
+  PASS  test_a_queued_task_is_left_to_its_resident_and_taken_up_when_its_work_is_done
+  PASS  test_the_same_schedule_has_the_same_outcome_at_one_two_and_four_times
+  PASS  test_a_card_left_on_the_board_names_the_crew_first_then_anyone
+  PASS  test_a_mixed_group_previews_each_members_eligibility
+  PASS  test_with_the_board_claiming_the_old_routine_crews_stand_down
+  PASS  test_a_farm_job_left_for_another_order_is_promised_to_its_worker
+  PASS  test_a_paused_job_is_not_taken_back_by_its_worker_either
+  PASS  test_a_resident_looks_at_most_thirty_two_candidates_a_pass_and_goes_on_from_its_cursor
+  PASS  test_a_stale_queued_entry_does_not_take_a_new_job_in_the_same_row
+  PASS  test_a_tasks_priority_is_its_own_not_its_rows
+  PASS  test_a_tasks_state_says_finding_a_route_and_cant_reach_it
+  PASS  test_one_farm_job_a_resident_in_the_picker_and_the_command_alike
+CI_SUITE_TIME {"assertions":196,"failures":0,"suite":"test_demo_work.gd","tests":27,"usec":15709410}
+test_demo_work_index.gd
+  PASS  test_the_index_is_the_old_rebuilds_entry_for_entry
+  PASS  test_a_source_that_never_waits_is_not_read
+CI_SUITE_TIME {"assertions":4,"failures":0,"suite":"test_demo_work_index.gd","tests":2,"usec":69850}
+test_entity_directory.gd
+  PASS  test_create_returns_unique_live_references
+  PASS  test_reference_validates_from_create_until_destroy
+  PASS  test_destroy_rejects_unknown_reference
+  PASS  test_null_reference_never_validates
+  PASS  test_stale_reference_is_rejected_after_destroy
+  PASS  test_destroyed_slot_is_reused_lowest_first
+  PASS  test_reuse_increments_generation_invalidating_the_old_reference
+  PASS  test_persistent_ids_are_never_reused
+  PASS  test_living_cap_refuses_the_two_hundred_fifty_seventh_resident
+  PASS  test_living_cap_frees_room_after_a_destroy
+  PASS  test_living_cap_does_not_block_other_kinds
+  PASS  test_kind_capacity_refusal_is_explicit
+  PASS  test_directory_capacity_refusal_is_explicit
+  PASS  test_unknown_kind_is_refused
+  PASS  test_generation_exhaustion_retires_the_slot
+  PASS  test_persistent_id_exhaustion_refuses_creation
+  PASS  test_repeated_create_and_destroy_leaks_no_slots
+  PASS  test_interleaved_free_returns_slots_in_ascending_order
+  PASS  test_reverse_owner_mismatch_invalidates_the_reference
+  PASS  test_reference_is_rejected_for_the_wrong_kind
+  PASS  test_typed_rows_are_independent_per_kind
+  PASS  test_kind_capacities_sum_to_the_directory_length
+  PASS  test_spec_capacities_do_not_drift_from_the_inventory_copies
+  PASS  test_kind_ids_follow_ascending_ascii_keys
+  PASS  test_no_per_row_array_is_allocated
+  PASS  test_columns_are_allocated_once_and_never_resized
+  PASS  test_ref_of_slot_rebuilds_a_live_reference_and_refuses_a_dead_one
+  PASS  test_ref_of_slot_tracks_the_generation_across_reuse
+  PASS  test_clear_resets_the_directory
+  PASS  test_clear_does_not_let_a_pre_clear_reference_alias_a_rebuilt_row
+  PASS  test_clear_does_not_resurrect_a_generation_exhausted_slot
+  PASS  test_thousand_entity_lifecycle_within_frame_budget
+  PASS  test_copy_columns_into_reads_live_free_retired_and_never_used_slots
+  PASS  test_copy_columns_into_is_the_only_reader_of_an_inactive_slots_generation
+  PASS  test_copy_columns_into_refuses_a_buffer_that_is_not_capacity_sized
+  PASS  test_copied_columns_are_snapshots_not_aliases
+  PASS  test_restore_columns_reproduces_the_source_world_in_another_directory
+  PASS  test_restore_columns_pins_allocation_order_across_a_round_trip
+  PASS  test_restore_columns_excludes_live_slots_from_the_free_heap
+  PASS  test_restore_columns_keeps_a_retired_slot_out_of_the_pool
+  PASS  test_restore_columns_rebuilds_the_reverse_owner_map
+  PASS  test_restore_columns_rebuilds_counters_over_a_directory_that_already_held_a_world
+  PASS  test_two_restores_of_one_column_set_produce_the_same_image
+  PASS  test_restore_columns_does_not_restore_the_persistent_id_allocator
+  PASS  test_state_bytes_ignores_the_stale_heap_tail_and_the_refusal_code
+  PASS  test_restore_columns_refuses_a_duplicate_typed_row_and_changes_nothing
+  PASS  test_restore_columns_refuses_a_mis_sized_column_set
+  PASS  test_restore_columns_refuses_an_occupancy_byte_outside_zero_and_one
+  PASS  test_restore_columns_refuses_a_negative_generation_from_the_int32_sign_trap
+  PASS  test_restore_columns_refuses_each_broken_live_identity
+  PASS  test_restore_columns_refuses_a_free_slot_carrying_a_stale_identity
+  PASS  test_restore_columns_refuses_both_halves_of_a_retirement_disagreement
+  PASS  test_restore_columns_refuses_a_two_hundred_fifty_seventh_living_resident
+  PASS  test_three_creates_one_destroy_and_a_round_trip_still_issue_four
+  PASS  test_a_world_whose_every_entity_died_still_issues_four
+  PASS  test_the_final_int32_identity_survives_a_load_as_the_exhausted_cursor
+  PASS  test_the_exhausted_cursor_is_exactly_max_int32_plus_one
+  PASS  test_an_invalid_or_stale_cursor_refuses_before_anything_is_published
+  PASS  test_the_exhausted_value_can_never_enter_a_live_persistent_id_column
+  PASS  test_restore_columns_alone_still_leaves_the_cursor_to_section_one
+  PASS  test_clear_returns_the_cursor_to_one_and_is_not_a_load_step
+CI_SUITE_TIME {"assertions":638,"failures":0,"suite":"test_entity_directory.gd","tests":61,"usec":5318927}
+test_excavation_claim_batch.gd
+  PASS  test_exact_fine_plan_reserves_once_before_spatial_publication_without_payment
+  PASS  test_last_callback_free_guard_rejects_late_history_without_rolling_it_back
+  PASS  test_late_candidate_or_input_drift_refuses_all_owner_writes
+  PASS  test_replaced_actual_lease_never_allocates_room_or_releases_the_replacement
+  PASS  test_foreign_valid_budget_with_coincident_token_refuses_before_copy
+  PASS  test_retained_history_and_partial_capacity_cannot_create_room_or_virgin_claims
+  PASS  test_sorted_index_merge_keeps_earlier_and_later_existing_histories_exact
+  PASS  test_domain_comparison_requires_full_live_world_datum_and_bounds
+  PASS  test_full_painted_limit_uses_one_private_copy_and_one_replayed_interval_bank
+  PASS  test_source_counted_companion_lifetimes_fit_only_in_the_documented_order
+CI_SUITE_TIME {"assertions":329,"failures":0,"suite":"test_excavation_claim_batch.gd","tests":10,"usec":3158910}
+test_job_planner.gd
+  PASS  test_a_growing_plot_receives_one_tending_service_for_its_day
+  PASS  test_the_service_carries_the_rulings_priority_three_default
+  PASS  test_the_service_names_its_plot_as_the_source_and_no_destination
+  PASS  test_a_created_service_stays_queued_and_is_never_written_into_work
+  PASS  test_a_dry_plot_declares_the_water_input_a_wet_one_does_not
+  PASS  test_a_plot_in_any_state_but_growing_creates_no_work
+  PASS  test_an_absent_owner_creates_no_work
+  PASS  test_repeated_dirty_events_create_no_duplicate_service
+  PASS  test_a_repeated_tick_creates_no_duplicate_service
+  PASS  test_the_dirty_set_cannot_grow_past_one_entry_per_owner
+  PASS  test_a_completed_service_blocks_a_second_one_the_same_day
+  PASS  test_a_cancelled_service_is_recorded_rather_than_read_as_completed
+  PASS  test_the_service_row_is_the_owner_major_index_of_the_ruling
+  PASS  test_the_service_day_is_the_offset_calendars_absolute_day
+  PASS  test_a_reused_owner_row_does_not_inherit_a_live_service
+  PASS  test_a_worker_replacement_preserves_the_same_job_and_creates_no_second_service
+  PASS  test_two_workers_cannot_spend_the_same_service_claim
+  PASS  test_service_is_once_per_day_across_a_load_and_revalidation
+  PASS  test_completion_history_survives_a_load_when_the_pending_row_does_not
+  PASS  test_a_vanished_service_job_is_dropped_and_demand_reopens_exactly_once
+  PASS  test_midnight_settles_the_preceding_day_before_opening_the_new_one
+  PASS  test_midnight_recovery_resumes_demand_for_the_new_day
+  PASS  test_a_stale_pending_record_does_not_absorb_todays_demand
+  PASS  test_a_completed_day_does_not_block_the_next_days_service
+  PASS  test_an_owner_eligible_mid_day_receives_no_retroactive_service
+  PASS  test_a_boundary_inside_the_same_day_settles_nothing
+  PASS  test_opening_a_day_reaches_an_owner_that_no_longer_exists
+  PASS  test_midnight_releases_a_bound_worker_before_retiring_its_service
+  PASS  test_capacity_exhaustion_retains_demand_and_reports_a_blocker
+  PASS  test_retained_demand_never_becomes_an_unbounded_queue
+  PASS  test_released_capacity_retries_the_retained_demand
+  PASS  test_the_idle_sweep_alone_retries_retained_demand_within_one_period
+  PASS  test_the_idle_sweep_reaches_each_owner_on_its_own_staggered_tick
+  PASS  test_two_owners_hold_independent_service_rows
+  PASS  test_a_planner_tick_drains_dirty_owners_before_sweeping
+  PASS  test_an_externally_recorded_service_closes_the_day
+  PASS  test_retiring_a_service_cancels_its_job_and_keeps_the_history
+  PASS  test_every_reader_refuses_an_unaddressable_owner_or_operation
+  PASS  test_the_into_readers_agree_with_their_allocating_forms
+  PASS  test_clear_returns_every_row_to_the_empty_state
+  PASS  test_a_confirmed_crop_requests_the_first_sowing_cycle
+  PASS  test_creating_a_plot_alone_requests_no_sowing
+  PASS  test_only_a_confirmation_opens_a_cycle_so_a_rotation_edit_starts_no_work
+  PASS  test_confirming_refuses_a_plot_that_is_not_empty
+  PASS  test_confirming_refuses_an_unknown_crop_and_an_absent_owner
+  PASS  test_a_gated_cycle_publishes_one_four_wu_farm_sowing_job
+  PASS  test_the_sowing_job_carries_the_rulings_priority_three_default
+  PASS  test_a_published_sowing_job_is_never_written_into_work
+  PASS  test_the_planner_tick_publishes_a_confirmed_cycle_through_the_dirty_set
+  PASS  test_the_crop_soil_gate_refuses_with_its_own_code
+  PASS  test_the_planting_window_gate_refuses_with_its_own_code
+  PASS  test_the_window_gate_reads_the_offset_calendar_not_a_bare_tick_division
+  PASS  test_a_plot_that_stopped_being_empty_refuses_with_its_own_code
+  PASS  test_a_failed_gate_consumes_nothing
+  PASS  test_a_failed_plot_stays_unsown_with_its_reason_until_its_window_opens
+  PASS  test_the_storeless_seed_and_output_gates_refuse_at_selection
+  PASS  test_a_repeated_confirmation_creates_no_duplicate_sowing_request
+  PASS  test_a_confirmation_while_a_cycle_is_published_refuses
+  PASS  test_repeated_dirty_events_create_no_duplicate_sowing_job
+  PASS  test_a_reconcile_preserves_the_sowing_jobs_work_in_progress
+  PASS  test_the_sowing_identity_carries_the_field_cycle_not_a_service_day
+  PASS  test_a_sowing_cycle_is_not_settleable_as_a_daily_service
+  PASS  test_the_field_cycle_cursor_never_reuses_an_ordinal
+  PASS  test_the_field_cycle_cursor_refuses_at_the_int32_maximum
+  PASS  test_a_reused_owner_row_does_not_inherit_a_confirmed_sowing_cycle
+  PASS  test_midnight_neither_reopens_nor_settles_a_sowing_cycle
+  PASS  test_a_waiting_sowing_request_never_blocks_a_days_settlement
+  PASS  test_a_tending_service_and_a_sowing_cycle_share_an_owner_without_colliding
+  PASS  test_productive_start_commits_the_seed_exactly_once
+  PASS  test_a_window_that_closed_before_productive_start_commits_no_seed
+  PASS  test_productive_start_refuses_without_a_published_cycle
+  PASS  test_successful_completion_enters_growing_and_closes_the_cycle
+  PASS  test_completion_refuses_a_plot_that_never_reached_sown
+  PASS  test_a_completed_sowing_job_closes_the_cycle_and_leaves_the_crop_state_to_farming
+  PASS  test_a_cancelled_sowing_job_is_recorded_rather_than_read_as_complete
+  PASS  test_pre_commitment_cancellation_leaves_the_plot_empty_with_no_seed_loss
+  PASS  test_pre_commitment_cancellation_releases_a_bound_worker
+  PASS  test_post_commitment_cancellation_refuses_and_names_the_other_regime
+  PASS  test_cancelling_without_a_request_refuses_by_name
+  PASS  test_a_held_request_can_be_cancelled_before_it_ever_publishes
+  PASS  test_capacity_exhaustion_retains_the_sowing_cycle_and_reports_a_blocker
+  PASS  test_released_capacity_republishes_the_same_field_cycle
+  PASS  test_a_vanished_sowing_job_is_dropped_on_load_and_the_owner_must_confirm_again
+  PASS  test_the_sowing_readers_refuse_rather_than_answer_for_an_absent_request
+  PASS  test_the_sowing_into_readers_agree_with_their_allocating_forms
+  PASS  test_clear_returns_the_sowing_columns_to_the_empty_state
+  PASS  test_the_gate_reader_answers_every_evaluable_gate_without_side_effects
+  PASS  test_the_gate_reader_refuses_an_unaddressable_owner_or_a_negative_tick
+  PASS  test_productive_start_distinguishes_never_published_from_a_vanished_job
+  PASS  test_the_idle_sweep_reaches_a_sowing_row_whose_plot_no_longer_exists
+  PASS  test_a_retired_row_keeps_no_residue_of_the_cycle_it_carried
+  PASS  test_a_retired_tending_service_row_is_clear_as_well
+  PASS  test_enabling_a_valid_designation_activates_repeat_harvest_demand
+  PASS  test_a_generated_basin_alone_creates_no_harvest_demand
+  PASS  test_enabling_demand_on_a_basin_itself_is_refused
+  PASS  test_a_zone_of_another_type_is_refused
+  PASS  test_a_disabled_designation_is_refused
+  PASS  test_a_protected_designation_is_refused
+  PASS  test_a_designation_bound_to_no_existing_basin_is_refused
+  PASS  test_a_stale_zone_reference_is_refused
+  PASS  test_a_second_enable_on_the_same_designation_is_refused
+  PASS  test_work_is_created_against_an_explicitly_quantified_claim
+  PASS  test_the_quantified_amount_is_forages_own_admissibility_bound
+  PASS  test_the_harvest_carries_the_rulings_priority_three_default
+  PASS  test_a_created_harvest_stays_queued_and_is_never_written_into_work
+  PASS  test_the_harvest_names_its_designation_as_the_source_and_no_destination
+  PASS  test_the_output_space_gate_cannot_be_answered_and_refuses_at_selection
+  PASS  test_the_work_total_is_section_five_fives_formula_at_the_unskilled_level
+  PASS  test_the_same_available_quantity_is_not_reserved_twice
+  PASS  test_the_aggregate_quota_is_spent_once_across_the_five_kinds
+  PASS  test_a_wider_quota_publishes_one_harvest_for_each_available_kind
+  PASS  test_a_dormant_kind_creates_no_work
+  PASS  test_a_basin_without_that_patch_refuses
+  PASS  test_the_dangerous_flag_is_derived_from_the_designations_own_danger
+  PASS  test_the_dangerous_flag_reads_the_designation_not_its_basin
+  PASS  test_the_dangerous_flag_is_recomputed_when_the_zones_danger_changes
+  PASS  test_the_consent_check_itself_is_not_duplicated_here
+  PASS  test_midnight_neither_settles_nor_reopens_forage_demand
+  PASS  test_a_pending_harvest_does_not_block_the_daily_service_boundary
+  PASS  test_the_forage_operation_is_not_a_daily_service_operation
+  PASS  test_the_day_boundary_marks_designations_for_the_new_days_allowance
+  PASS  test_a_live_harvest_answers_pending_rather_than_an_empty_ecology
+  PASS  test_a_stale_claim_on_a_reused_job_row_refuses_and_publishes_nothing
+  PASS  test_repeated_enable_and_dirty_events_create_one_harvest
+  PASS  test_the_zone_dirty_set_is_idempotent_and_bounded
+  PASS  test_a_completed_harvest_settles_and_repeat_demand_publishes_again
+  PASS  test_a_cancelled_harvest_is_recorded_and_its_claim_released
+  PASS  test_a_destroyed_designation_leaves_no_job_and_no_claim_behind
+  PASS  test_a_reused_zone_row_does_not_inherit_the_previous_demand
+  PASS  test_disabling_stops_new_work_and_retains_the_outstanding_harvest
+  PASS  test_disabling_a_designation_that_carries_no_demand_is_refused
+  PASS  test_forage_capacity_exhaustion_retains_demand_and_reports_a_blocker
+  PASS  test_retained_forage_demand_never_becomes_an_unbounded_queue
+  PASS  test_released_capacity_retries_the_retained_forage_demand
+  PASS  test_a_refused_gate_leaves_quota_and_stock_byte_identical
+  PASS  test_a_capacity_refusal_leaves_quota_and_stock_byte_identical
+  PASS  test_the_demand_row_is_the_owner_major_index_of_the_patch_block
+  PASS  test_the_stored_blocker_and_the_returned_refusal_cannot_drift
+  PASS  test_publishing_clears_the_reason_a_previous_gate_left
+  PASS  test_abandoning_a_vanished_designation_clears_every_retained_reason
+  PASS  test_the_gate_question_answers_without_publishing_anything
+  PASS  test_the_gate_question_reports_every_blocker_in_its_domain
+  PASS  test_the_quantity_question_refuses_rather_than_answering_zero
+  PASS  test_a_free_demand_row_has_no_quantified_claim_to_report
+  PASS  test_no_production_order_is_created_for_repeat_harvest_demand
+  PASS  test_the_work_total_is_computed_at_level_zero_where_the_level_changes_it
+  PASS  test_two_designations_address_their_own_demand_rows
+  PASS  test_an_operational_hive_receives_one_twenty_wu_keep_service_for_its_day
+  PASS  test_the_hive_service_job_names_its_hive_as_the_work_source
+  PASS  test_exactly_one_service_is_created_per_hive_per_eligible_day
+  PASS  test_a_completed_hive_service_blocks_a_second_one_the_same_day
+  PASS  test_the_service_reopens_on_the_next_service_day
+  PASS  test_winter_creates_no_tending_labor_job
+  PASS  test_every_non_winter_day_of_the_year_creates_a_service_and_every_winter_day_none
+  PASS  test_winter_records_the_feed_delivery_demand_as_state_and_no_delivery_job
+  PASS  test_a_spring_day_records_no_feed_demand
+  PASS  test_an_abandoned_hive_creates_no_service
+  PASS  test_an_empty_hive_row_creates_no_service
+  PASS  test_a_hive_becoming_operational_mid_day_receives_no_retroactive_service
+  PASS  test_the_colonisation_day_itself_is_already_recorded_as_serviced
+  PASS  test_midnight_settles_an_unserved_hive_service_and_cancels_its_job
+  PASS  test_the_day_boundary_refuses_to_open_over_an_unsettled_hive_day
+  PASS  test_capacity_exhaustion_retains_hive_demand_and_reports_a_blocker
+  PASS  test_a_load_drops_a_hive_row_whose_job_no_longer_resolves
+  PASS  test_a_hive_service_records_both_halves_of_its_owners_entity_ref
+  PASS  test_a_reused_hive_row_with_a_matching_generation_is_still_not_inherited
+  PASS  test_retiring_a_hive_service_cancels_its_job_and_clears_its_feed_demand
+  PASS  test_record_hive_service_completed_is_the_seam_for_work_done_elsewhere
+  PASS  test_a_worker_replacement_preserves_the_same_hive_job_and_its_work
+  PASS  test_repeated_dirty_marks_on_one_hive_add_one_entry
+  PASS  test_run_tick_creates_the_hive_service_through_the_drain
+  PASS  test_the_idle_sweep_reaches_a_hive_within_one_stagger_period
+  PASS  test_the_hive_operation_is_a_daily_service_and_rotation_is_not
+  PASS  test_no_operation_outside_the_domain_reports_as_a_daily_service
+  PASS  test_the_hive_gate_composition_agrees_with_the_owning_stores_predicate
+  PASS  test_the_hive_gate_question_creates_nothing
+  PASS  test_every_hive_blocker_maps_to_exactly_one_refusal_code
+  PASS  test_the_hive_into_readers_agree_with_their_allocating_forms
+  PASS  test_every_hive_reader_refuses_an_unaddressable_slot
+  PASS  test_a_free_hive_row_refuses_its_service_day_rather_than_answering_zero
+  PASS  test_the_hive_service_row_is_the_hives_own_typed_row
+  PASS  test_the_planner_services_the_hives_of_the_store_it_was_given
+  PASS  test_a_reused_plot_row_does_not_inherit_the_previous_plots_tending_service
+  PASS  test_a_reused_plot_row_does_not_inherit_the_previous_plots_sowing_request
+  PASS  test_the_day_boundary_does_not_retire_a_service_belonging_to_the_day_it_opens
+  PASS  test_a_missed_midnight_does_not_let_yesterdays_hive_row_absorb_todays_demand
+  PASS  test_a_hive_row_holding_a_service_is_not_reported_as_clear
+  PASS  test_the_hive_sweep_reaches_every_slot_of_its_stagger_exactly_once_per_period
+CI_SUITE_TIME {"assertions":2121,"failures":0,"suite":"test_job_planner.gd","tests":188,"usec":13392933}
+test_memory_ledger_probe.gd
+  PASS  test_element_calibration_confirms_the_ledgers_byte_model
+  PASS  test_array_elements_cost_more_than_the_ledger_assumes
+  PASS  test_the_walk_builds_exactly_one_of_each_store
+  PASS  test_duplicate_instances_names_a_script_measured_twice
+  PASS  test_the_shared_directory_is_measured_once_though_many_stores_hold_it
+  PASS  test_directory_columns_are_measured_from_their_own_size
+  PASS  test_static_navigation_map_measures_its_declared_row
+  PASS  test_named_column_filter_excludes_columns_it_was_not_given
+  PASS  test_a_star_builder_and_route_arena_match_their_rows
+  PASS  test_scheduler_queue_packed_payload_is_short_of_its_declared_row
+  PASS  test_presentation_snapshot_matches_its_declared_row_exactly
+  PASS  test_lazily_loaded_catalog_allocates_nothing_at_construction
+  PASS  test_string_columns_are_reported_apart_from_the_packed_total
+  PASS  test_empty_string_slots_are_measured_not_assumed
+  PASS  test_transcribed_rows_reproduce_the_printed_payload
+  PASS  test_every_transcribed_owner_is_a_script_that_exists
+CI_SUITE_TIME {"assertions":109,"failures":0,"suite":"test_memory_ledger_probe.gd","tests":16,"usec":5835968}
+test_modular_spatial_outputs.gd
+  PASS  test_actual_router_commits_outputs_on_distinct_stacked_locations
+  PASS  test_surface_alias_and_stale_payload_refuse_before_payment
+  PASS  test_commit_time_spatial_failure_restores_all_actual_owners_then_retries
+  PASS  test_existing_spatial_pile_accepts_another_paid_output_without_repromotion
+  PASS  test_zero_input_cancel_retires_only_owned_empty_staging_and_keeps_source_claims
+  PASS  test_positive_cancel_refund_promotes_actual_spatial_destination
+  PASS  test_positive_refund_support_refusal_restores_receipts_goods_and_loss_until_retry
+  PASS  test_spatial_cancellation_retains_another_purposes_actual_input_claims
+CI_SUITE_TIME {"assertions":415,"failures":0,"suite":"test_modular_spatial_outputs.gd","tests":8,"usec":1062587}
+test_movement.gd
+  PASS  test_pace_source_binding_requires_the_actual_directory_residents_and_transforms
+  PASS  test_the_remainder_denominator_is_thirty_ticks_times_the_diagonal_cost
+  PASS  test_the_speed_cap_is_read_from_the_resident_store_not_redefined
+  PASS  test_thirty_ticks_cover_exactly_the_cap_on_a_straight_run
+  PASS  test_a_single_tick_cannot_cover_the_cap_by_itself
+  PASS  test_the_remainder_is_carried_rather_than_reset_each_tick
+  PASS  test_an_axis_that_is_not_moving_keeps_its_remainder_untouched
+  PASS  test_travel_stops_exactly_on_the_goal_cell_centre
+  PASS  test_the_body_keeps_a_previous_pose_every_tick_it_moves
+  PASS  test_the_mover_does_not_invent_a_facing
+  PASS  test_crossing_the_ford_takes_the_body_to_the_authored_ford_height
+  PASS  test_travel_refuses_a_resident_standing_off_the_route_start
+  PASS  test_travel_refuses_an_unready_request_and_an_unplaced_body
+  PASS  test_travel_refuses_a_reference_that_is_not_a_living_resident
+  PASS  test_a_cancelled_route_stops_the_body_where_it_stands
+  PASS  test_a_successor_in_a_despawned_travellers_row_does_not_inherit_the_route
+  PASS  test_the_route_cursor_records_its_owner_and_releases_it_on_stop
+  PASS  test_one_clamp_step_publishes_both_scalars_and_leaves_no_stray_budget
+  PASS  test_a_body_off_the_authored_map_is_settled_rather_than_given_a_fabricated_height
+  PASS  test_stopping_clears_the_route_and_both_remainders
+  PASS  test_an_arrived_body_is_not_advanced_again
+  PASS  test_equal_tick_counts_agree_across_speeds_one_two_and_four
+  PASS  test_a_paused_clock_runs_no_ticks_and_changes_no_state
+  PASS  test_presentation_reads_cannot_change_what_the_simulation_committed
+  PASS  test_navigation_work_is_identical_whether_or_not_anyone_is_watching
+  PASS  test_exactly_four_starter_profiles_are_published_one_per_cohort_species
+  PASS  test_every_profile_reads_its_speed_and_carry_cap_out_of_the_resident_store
+  PASS  test_the_otter_is_medium_and_the_other_three_are_small
+  PASS  test_an_unprofiled_species_refuses_rather_than_borrowing_a_size_neighbour
+  PASS  test_no_profile_publishes_a_clearance_class
+  PASS  test_only_ground_and_ford_walking_are_profiled_and_the_rest_are_enumerated
+  PASS  test_all_twelve_starters_admit_travel_under_their_own_profile
+  PASS  test_a_mouse_cannot_travel_on_the_otters_profile
+  PASS  test_travel_refuses_an_unprofiled_mode_and_a_mode_outside_the_enum
+  PASS  test_the_profiled_adult_value_is_the_resident_stores_own_encoding
+  PASS  test_every_starter_profile_covers_the_adult_stage_and_says_so_in_its_key
+  PASS  test_a_caller_cannot_assert_adult_for_a_resident_stored_as_a_child
+  PASS  test_an_honestly_declared_child_refuses_as_unprofiled_not_as_a_mismatch
+  PASS  test_an_elder_is_refused_on_the_same_channel_as_a_child
+  PASS  test_a_caller_that_asserts_the_wrong_stage_for_an_adult_disagrees
+  PASS  test_a_stage_outside_the_domain_refuses_on_its_own_channel
+  PASS  test_a_reference_the_store_will_not_answer_for_refuses_rather_than_defaulting
+  PASS  test_the_committed_load_boundary_is_the_inherited_carry_capacity_exactly
+  PASS  test_a_negative_committed_load_refuses_rather_than_reading_as_free_capacity
+  PASS  test_an_otter_carries_more_than_a_mouse_because_its_size_class_does
+  PASS  test_travel_refuses_a_route_that_does_not_end_on_the_contacts_approach_cell
+  PASS  test_travel_refuses_a_contact_whose_owner_has_been_retired
+  PASS  test_travel_refuses_an_unbound_contact
+  PASS  test_revising_a_profile_settles_a_body_already_travelling_under_the_old_one
+  PASS  test_a_changed_destination_revision_settles_the_body_contact_stale
+  PASS  test_revalidating_a_resident_that_is_not_travelling_refuses
+  PASS  test_stopping_clears_the_whole_admission_not_only_the_route
+  PASS  test_admitted_terms_of_a_body_that_is_not_a_resident_read_as_absent
+  PASS  test_the_mode_a_body_travels_in_is_the_one_it_was_admitted_in
+  PASS  test_all_twelve_starters_agree_tick_for_tick_across_speeds_one_two_and_four
+CI_SUITE_TIME {"assertions":2302,"failures":0,"suite":"test_movement.gd","tests":55,"usec":2696629}
+test_priorities.gd
+  PASS  test_spawn_writes_the_gdd_5_1_initial_priority_for_every_job_kind
+  PASS  test_initial_haul_priority_is_high_not_normal
+  PASS  test_initial_reserved_index_priority_is_zero
+  PASS  test_spawn_writes_the_gdd_5_1_initial_flags
+  PASS  test_the_priority_scale_matches_req_set_026
+  PASS  test_set_priority_accepts_every_value_zero_through_four
+  PASS  test_set_priority_refuses_five_and_negative_without_writing
+  PASS  test_set_priority_refuses_the_reserved_job_kind
+  PASS  test_set_priority_refuses_an_out_of_range_job_kind
+  PASS  test_the_stride_is_slot_times_twelve_plus_kind
+  PASS  test_writing_one_row_leaves_the_next_rows_initial_values_intact
+  PASS  test_fallback_allows_only_haul_keep_and_forage_by_default
+  PASS  test_fallback_is_refused_when_the_configured_priority_is_zero
+  PASS  test_disabling_auto_fallback_removes_every_candidate
+  PASS  test_fallback_kind_set_and_priority_match_req_set_028
+  PASS  test_dangerous_work_round_trips_and_defaults_false
+  PASS  test_readers_refuse_an_unspawned_row_instead_of_answering_zero
+  PASS  test_spawn_refuses_an_occupied_row_and_an_out_of_range_slot
+  PASS  test_despawn_clears_the_row_and_further_reads_refuse
+  PASS  test_despawn_leaves_no_residue_in_the_inactive_row
+  PASS  test_clear_empties_every_row
+  PASS  test_job_kind_constants_come_from_the_protected_catalog_table
+CI_SUITE_TIME {"assertions":276,"failures":0,"suite":"test_priorities.gd","tests":22,"usec":10563}
+test_reservations_columns.gd
+  PASS  test_exact_rows_rebuild_semantic_chains_without_compaction
+  PASS  test_all_column_shapes_and_extent_metadata_refuse_atomically
+  PASS  test_inactive_residue_and_occupancy_refuse_without_repair
+  PASS  test_live_reference_quantity_and_expiry_domains
+  PASS  test_source_derived_corruption_is_refused_without_traversal_or_repair
+  PASS  test_cross_row_conflicts_and_lot_overflow_refuse_but_job_wide_set_survives
+  PASS  test_valid_nonascending_heap_and_stale_tail_are_accepted
+  PASS  test_restore_replaces_bad_old_payload_and_preserves_scratch
+  PASS  test_exports_and_restores_separate_caller_buffer_aliases
+  PASS  test_real_coalesce_renew_expire_and_release_continue_after_restore
+  PASS  test_adapter_null_shape_barrier_and_busy_precedence
+  PASS  test_every_adapter_block_shape_refuses_without_indexing
+  PASS  test_adapter_reduced_context_and_cross_row_asymmetry
+  PASS  test_generated_owner_admission_implies_codec_admission
+  PASS  test_full_capacity_reverse_keys_and_literal_wire_hashes
+  PASS  test_corrupt_live_payload_refuses_before_export
+  PASS  test_adapter_overwrites_target_payload_and_preserves_old_buffers
+  PASS  test_live_shapes_and_forged_owner_extents_refuse_before_allocation
+  PASS  test_in_range_counts_must_match_occupancy_and_restore_recomputes_them
+  PASS  test_aliased_restore_inputs_are_installed_independently
+  PASS  test_capture_apply_recapture_payload_bytes_are_identical
+  PASS  test_foreign_idle_inventory_is_not_world_attestation
+CI_SUITE_TIME {"assertions":1384,"failures":0,"suite":"test_reservations_columns.gd","tests":22,"usec":2778280}
+test_resource_claim_columns.gd
+  PASS  test_defaults_sparse_last_row_and_independent_arrays_are_exact
+  PASS  test_all_caller_and_live_shapes_refuse_without_indexing
+  PASS  test_other_section_aggregates_scratch_and_order_keys_are_never_rebuilt
+  PASS  test_payload_domains_and_inactive_blanks_refuse_on_both_paths
+  PASS  test_source_count_and_old_payload_refusal_rules_are_distinct
+  PASS  test_table_wide_flags_precede_earlier_row_payload_errors
+  PASS  test_maximum_ref_and_quantity_fields_are_preserved_without_typed_row_clamp
+  PASS  test_null_records_and_successful_capture_clear_diagnostic
+  PASS  test_adapter_gate_precedence_preserves_owner_block_and_clock
+  PASS  test_adapter_every_group_extent_and_metadata_shape_is_total
+  PASS  test_adapter_forwards_codec_and_stronger_owner_refusals_atomically
+  PASS  test_adapter_literal_mapping_recapture_and_independent_containers
+  PASS  test_six_complete_literal_owner_wire_goldens
+  PASS  test_public_claims_continue_after_structural_slice_only_restore
+  PASS  test_real_stale_claims_survive_slice_restore_until_normal_purge
+  PASS  test_reused_expedition_identity_continues_exactly_after_slice_restore
+  PASS  test_checker_accepts_real_stale_claim_snapshots_before_exact_restore_and_normal_cleanup
+CI_SUITE_TIME {"assertions":1698,"failures":0,"suite":"test_resource_claim_columns.gd","tests":17,"usec":15454380}
+test_room_footprint.gd
+  PASS  test_canonicalization_sorts_signed_coordinates_and_deduplicates
+  PASS  test_canonicalization_handles_int32_extremes_without_key_collision
+  PASS  test_malformed_over_capacity_and_unrepresentable_corners_are_refused
+  PASS  test_empty_draft_is_editable_but_cannot_be_confirmed
+  PASS  test_validation_does_not_repair_saved_noncanonical_data
+  PASS  test_disconnected_cells_and_diagonal_only_contact_are_not_rooms
+  PASS  test_connected_concave_plan_is_accepted_without_bounding_box_fill
+  PASS  test_holes_are_explicit_policy_and_never_filled_silently
+  PASS  test_connected_diagonal_pinch_refuses_ambiguous_wall_ownership
+  PASS  test_rectangle_uses_exact_extent_and_negative_origin
+  PASS  test_shape_arguments_and_capacity_fail_without_clipping
+  PASS  test_ellipse_has_independent_axes_and_keeps_grid_boundary
+  PASS  test_narrow_ellipse_and_single_cell_are_supported
+  PASS  test_rounded_rectangle_retains_straight_usable_walls
+  PASS  test_rounded_rectangle_rejects_impossible_radius
+  PASS  test_brush_rim_zero_radius_and_negative_center
+  PASS  test_tunnel_straight_turns_and_single_point_route
+  PASS  test_diagonal_tunnel_supercover_includes_both_corner_neighbors
+  PASS  test_tunnel_reversal_and_nonuniform_slopes_preserve_identical_cells
+  PASS  test_tunnel_width_join_and_overlapping_route_do_not_duplicate_cells
+  PASS  test_tunnel_refuses_empty_malformed_huge_and_overflowing_routes
+  PASS  test_add_and_erase_are_deterministic_and_leave_inputs_unchanged
+  PASS  test_add_capacity_failure_and_erase_can_create_invalid_draft
+  PASS  test_rotation_uses_grid_vertex_pivot_and_preserves_cell_area
+  PASS  test_four_rotations_restore_original_without_drift
+  PASS  test_full_containment_rejects_concave_corner_hole_and_partial_item
+  PASS  test_boundary_edges_cancel_interior_walls_and_have_stable_order
+  PASS  test_concave_boundary_exactly_matches_floor_area
+  PASS  test_boundary_corners_retain_int32_extremes_without_wrapping_neighbors
+  PASS  test_opening_descriptor_names_whole_boundary_edges
+  PASS  test_opening_refuses_internal_edges_missing_cells_and_turning_runs
+  PASS  test_opening_runs_at_signed_coordinate_extremes
+  PASS  test_world_mapping_takes_explicit_scale_and_origin
+  PASS  test_world_mapping_refuses_overflow_and_invalid_scale_atomically
+  PASS  test_all_three_by_three_shapes_have_conserved_boundary_area
+  PASS  test_large_room_does_not_inherit_twelve_cell_template_limit
+CI_SUITE_TIME {"assertions":4038,"failures":0,"suite":"test_room_footprint.gd","tests":36,"usec":247056}
+test_save_component_columns_schema.gd
+  PASS  test_literal_protocol_totals_and_section_local_versions
+  PASS  test_every_field_matches_registry_and_explicit_source_count_layout
+  PASS  test_all_offsets_tile_the_exact_independent_framing
+  PASS  test_independent_children_remain_distinct_and_exact
+  PASS  test_fixed_strides_are_not_independent_child_extents
+  PASS  test_invalid_lookup_indices_have_separate_validity
+CI_SUITE_TIME {"assertions":2685,"failures":0,"suite":"test_save_component_columns_schema.gd","tests":6,"usec":39066}
+test_save_owner_farming.gd
+  PASS  test_layout_clear_defaults_and_conditional_packed_budget
+  PASS  test_frozen_domains_states_history_and_projection_witnesses
+  PASS  test_null_all_extents_and_physical_bucket_shapes
+  PASS  test_every_physical_row_and_every_column_at_head_and_tail
+  PASS  test_full_capacity_unique_identity_and_duplicate_priority
+  PASS  test_retained_inactive_extremes_across_all_physical_rows
+  PASS  test_present_history_and_compost_endpoints_are_accepted
+CI_SUITE_TIME {"assertions":17915,"failures":0,"suite":"test_save_owner_farming.gd","tests":7,"usec":28907143}
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  PASS  test_frozen_domains_history_relations_and_projection_witnesses
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+CI_SUITE_TIME {"assertions":16230,"failures":0,"suite":"test_save_owner_fishing.gd","tests":7,"usec":432471}
+test_save_section_event_schedule.gd
+  PASS  test_literal_empty_and_extreme_row_bytes
+  PASS  test_full_capacity_descriptor_and_variable_length_output
+  PASS  test_decode_bounds_precedence_and_atomic_output
+  PASS  test_record_validation_order_and_encode_failure_clears_stale_bytes
+  PASS  test_real_continuation_preserves_consumed_ids_and_pop_order
+  PASS  test_barrier_refusals_and_invalid_apply_are_atomic
+  PASS  test_exhausted_allocator_with_live_and_empty_rows_stays_exhausted
+  PASS  test_copy_decode_capture_and_apply_buffers_are_independent
+  PASS  test_capture_diagnostics_and_source_failures_are_explicit
+  PASS  test_semantically_invalid_wire_preserves_output_and_input_bytes
+  PASS  test_empty_high_allocator_issues_the_saved_next_identity
+  PASS  test_offset_at_exact_buffer_end_refuses_without_publication
+CI_SUITE_TIME {"assertions":229,"failures":0,"suite":"test_save_section_event_schedule.gd","tests":12,"usec":49154}
+test_schedule.gd
+  PASS  test_template_ids_are_compiled_in_ascending_ascii_order
+  PASS  test_template_id_of_refuses_an_unknown_key
+  PASS  test_default_template_id_names_the_5_3_default_schedule
+  PASS  test_default_template_matches_the_5_3_hour_table
+  PASS  test_every_default_boundary_differs_from_the_hour_before_it
+  PASS  test_default_sleep_block_wraps_midnight_for_exactly_eight_hours
+  PASS  test_default_block_lengths_sum_to_the_whole_day
+  PASS  test_night_shift_matches_the_independently_written_offset_table
+  PASS  test_night_shift_is_the_default_pattern_offset_by_twelve_hours
+  PASS  test_flexible_template_is_all_anything
+  PASS  test_template_activity_refuses_an_unknown_template_or_hour
+  PASS  test_the_5_3_segment_list_tiles_the_day_at_both_offsets
+  PASS  test_the_tiling_guard_catches_a_gap
+  PASS  test_the_tiling_guard_catches_an_overlap
+  PASS  test_the_tiling_guard_catches_malformed_segments
+  PASS  test_spawn_copies_all_twenty_four_template_hours_into_the_row
+  PASS  test_the_hourly_stride_is_slot_times_twenty_four_plus_hour
+  PASS  test_set_hour_activity_customizes_one_hour_only
+  PASS  test_set_hour_activity_refuses_a_value_outside_the_activity_enum
+  PASS  test_assign_template_replaces_every_customized_hour
+  PASS  test_assign_template_resets_the_sleep_exception_latch
+  PASS  test_despawn_leaves_no_residue_in_the_inactive_row
+  PASS  test_clear_returns_every_row_to_the_same_empty_state_as_despawn
+  PASS  test_lifecycle_refusals_and_capacity
+  PASS  test_current_activity_refuses_before_the_first_resolve
+  PASS  test_resolve_stores_the_activity_it_returns
+  PASS  test_resolution_reads_the_owners_own_hour_row_not_slot_zeros
+  PASS  test_resolution_of_one_row_does_not_disturb_another
+  PASS  test_a_contented_resident_resolves_to_the_scheduled_activity
+  PASS  test_rest_at_or_below_500_forces_sleep_over_scheduled_work
+  PASS  test_rest_of_501_does_not_force_sleep
+  PASS  test_hunger_at_or_below_3500_displaces_scheduled_work_when_a_meal_is_reachable
+  PASS  test_hunger_of_3501_does_not_displace_work
+  PASS  test_the_eat_interrupt_only_displaces_work_hours
+  PASS  test_no_reachable_meal_leaves_work_alone_above_the_urgent_threshold
+  PASS  test_no_reachable_meal_displaces_work_at_or_below_1500
+  PASS  test_meal_reachability_changes_the_threshold_at_the_same_hunger
+  PASS  test_sleep_continues_below_the_rest_threshold
+  PASS  test_rest_reaching_9000_ends_sleep_for_the_rest_of_the_window
+  PASS  test_the_sleep_exception_survives_rest_decaying_inside_the_window
+  PASS  test_the_sleep_exception_clears_when_the_window_ends
+  PASS  test_decision_0021_the_latch_holds_all_window_while_rest_decays
+  PASS  test_a_collapse_restarts_sleep_even_after_the_exception_latched
+  PASS  test_the_sleep_exception_applies_to_the_night_shift_window_too
+  PASS  test_resolve_refuses_a_dead_resident
+  PASS  test_resolve_refuses_an_incapacitated_resident
+  PASS  test_resolve_refuses_a_row_with_no_needs_and_an_invalid_hour
+  PASS  test_resolve_into_reports_failure_without_allocating_a_result
+  PASS  test_activity_constants_come_from_the_protected_catalog_table
+  PASS  test_the_rest_thresholds_are_the_specified_ones
+CI_SUITE_TIME {"assertions":836,"failures":0,"suite":"test_schedule.gd","tests":50,"usec":30623}
+test_spoil_work.gd
+  PASS  test_actual_admission_has_separate_purpose_and_no_payment_or_direct_publication
+  PASS  test_contact_refusal_precedes_project_and_tip_generation_allocation
+  PASS  test_quotes_read_adopted_price_and_actual_catalog_without_extra_accounts
+  PASS  test_expired_contacts_fail_closed_without_source_or_accounting_changes
+  PASS  test_paid_preparation_requires_real_work_and_releases_worker_for_next_operation
+  PASS  test_actual_compaction_and_reclamation_conserve_source_and_normalize_only_earth
+  PASS  test_blocked_productive_contact_preserves_xp_wear_wip_and_source
+  PASS  test_blocked_reclamation_commit_keeps_source_and_reserved_output_for_retry
+  PASS  test_cancelled_compaction_keeps_work_and_requires_same_full_input_on_resume
+  PASS  test_actual_empty_closure_retires_footprint_and_stale_generation_refuses
+CI_SUITE_TIME {"assertions":874,"failures":0,"suite":"test_spoil_work.gd","tests":10,"usec":1670565}
+test_transforms.gd
+  PASS  test_directory_binding_compares_actual_owner_not_coincident_refs
+  PASS  test_capacity_is_the_sum_of_the_four_positioned_kinds
+  PASS  test_exactly_four_kinds_are_positioned
+  PASS  test_the_row_is_the_kind_base_plus_the_typed_row
+  PASS  test_the_row_refuses_an_unpositioned_kind_and_a_dead_reference
+  PASS  test_place_sets_previous_equal_to_current
+  PASS  test_advance_rolls_current_into_previous
+  PASS  test_advance_refuses_an_entity_that_was_never_placed
+  PASS  test_a_typed_row_inherited_from_another_slot_reads_as_unbound
+  PASS  test_a_successor_placing_the_row_replaces_the_pose_without_double_counting
+  PASS  test_unbind_clears_the_row_and_the_count
+  PASS  test_place_refuses_a_field_that_does_not_fit_int32
+  PASS  test_set_yaw_rolls_the_previous_yaw
+  PASS  test_yaw_scale_is_the_contracted_65536_units_per_turn
+  PASS  test_shortest_yaw_delta_takes_the_short_way_round
+  PASS  test_interpolation_returns_metres_from_the_two_committed_ticks
+  PASS  test_interpolation_refuses_an_alpha_outside_the_tick
+  PASS  test_interpolation_cannot_change_one_authoritative_field
+  PASS  test_interpolation_refuses_an_unplaced_or_dead_entity
+  PASS  test_identical_stores_digest_identically_and_a_changed_field_does_not
+  PASS  test_an_empty_store_digests_to_zero_and_a_placement_changes_it
+  PASS  test_the_state_image_covers_every_column_not_a_sample_of_them
+  PASS  test_every_written_field_moves_the_state_image
+  PASS  test_the_reset_returns_all_nine_columns_to_a_freshly_allocated_store
+  PASS  test_a_row_reused_after_a_reset_reads_as_unplaced_until_it_is_placed_again
+  PASS  test_a_refused_place_leaves_the_whole_store_byte_identical
+  PASS  test_runtime_revision_changes_for_every_successful_write_including_same_values
+  PASS  test_refused_mutations_preserve_runtime_revision_and_authoritative_bytes
+  PASS  test_reset_reuse_and_explicit_restore_invalidation_never_recycle_runtime_token
+  PASS  test_revision_exhaustion_poison_never_prevents_pose_write_or_whole_reset
+CI_SUITE_TIME {"assertions":203,"failures":0,"suite":"test_transforms.gd","tests":30,"usec":1057069}
+test_ui_command_bridge.gd
+  PASS  test_a_zone_designation_writes_no_store_until_the_commit_stage_runs
+  PASS  test_the_pending_command_carries_the_kind_and_target_the_panel_chose
+  PASS  test_committing_the_command_designates_a_real_zone
+  PASS  test_the_committed_designation_produces_one_queued_forage_job
+  PASS  test_no_ui_action_ever_advances_a_job_to_work
+  PASS  test_cancellation_is_a_command_and_cancels_the_real_job
+  PASS  test_a_policy_toggle_is_a_command_not_a_store_flag_flip
+  PASS  test_naming_a_resident_is_a_command_and_reaches_the_resident_store
+  PASS  test_several_paused_edits_queue_in_order_and_change_nothing
+  PASS  test_an_empty_zone_stroke_is_refused_before_it_reaches_the_queue
+  PASS  test_unsorted_tiles_are_refused_against_the_owning_payload_schema
+  PASS  test_an_alias_outside_the_save_rule_is_refused
+  PASS  test_an_undefined_quota_mode_is_refused_rather_than_sent
+  PASS  test_an_unbound_interface_refuses_instead_of_pretending_to_act
+  PASS  test_a_queue_refusal_is_carried_through_with_its_own_code
+  PASS  test_an_unknown_refusal_code_is_shown_verbatim_rather_than_generically
+CI_SUITE_TIME {"assertions":120,"failures":0,"suite":"test_ui_command_bridge.gd","tests":16,"usec":1051654}
+test_ui_notices.gd
+  PASS  test_every_authored_summary_fits_the_narrow_card
+  PASS  test_the_widest_summary_is_the_one_the_fit_test_would_catch
+  PASS  test_the_generation_failure_is_the_severity_and_title_the_ruling_names
+  PASS  test_no_two_categories_share_a_title_and_none_is_generic
+  PASS  test_every_severity_carries_a_word_an_icon_and_a_colour
+  PASS  test_the_count_suffix_appears_only_when_other_notices_are_active
+  PASS  test_the_three_line_generation_refusal_is_retained_byte_for_byte
+  PASS  test_the_expanded_disclosure_carries_message_source_code_and_recovery
+  PASS  test_an_absent_recovery_is_stated_rather_than_invented
+  PASS  test_the_accessible_text_exposes_severity_the_full_message_and_the_action
+  PASS  test_twenty_notices_are_all_retained
+  PASS  test_a_repeat_of_the_same_code_and_source_counts_rather_than_adding_a_row
+  PASS  test_two_different_sources_of_one_code_stay_two_notices
+  PASS  test_two_uncoded_messages_never_overwrite_each_other
+  PASS  test_the_top_card_is_the_highest_severity_then_the_earliest
+  PASS  test_resolving_a_condition_keeps_it_in_the_history
+  PASS  test_resolved_notices_sort_below_active_ones
+  PASS  test_an_unknown_category_is_refused_by_name
+  PASS  test_an_empty_message_is_refused_rather_than_stored_as_a_blank_notice
+  PASS  test_reading_a_row_that_does_not_exist_is_refused_and_leaves_no_stale_notice
+  PASS  test_an_empty_record_refuses_a_top_card_instead_of_answering_zero
+  PASS  test_a_full_record_of_live_conditions_refuses_rather_than_evicting_by_an_unstated_rule
+  PASS  test_the_oldest_resolved_info_is_evicted_before_a_resolved_warning
+  PASS  test_every_authored_summary_fits_the_card_height_it_is_drawn_in
+  PASS  test_the_narrow_summary_padding_is_what_makes_its_forty_four_fit
+CI_SUITE_TIME {"assertions":1210,"failures":0,"suite":"test_ui_notices.gd","tests":25,"usec":222149}
+test_ui_shell.gd
+  PASS  test_every_element_the_shell_claims_to_drive_is_actually_built
+  PASS  test_every_built_control_carries_its_ui_set_id_in_its_accessible_name
+  PASS  test_the_unavailable_elements_that_are_drawn_can_never_be_operated
+  PASS  test_an_unknown_element_is_refused_rather_than_returning_a_control
+  PASS  test_an_unavailable_counter_refuses_a_value_and_keeps_its_reason
+  PASS  test_unavailable_controls_are_disabled_and_explain_themselves
+  PASS  test_wired_controls_are_enabled_and_describe_their_function
+  PASS  test_the_zones_land_on_section_one_twos_published_rectangles
+  PASS  test_the_shell_is_drawn_at_the_same_scale_the_layout_divided_by
+  PASS  test_the_narrow_profile_shows_two_counter_cells_and_hides_the_rest
+  PASS  test_an_unsupported_user_scale_is_refused_by_the_shell_too
+  PASS  test_every_built_control_meets_its_registry_minimum_size
+  PASS  test_the_name_column_carries_no_280_px_minimum
+  PASS  test_the_centre_of_the_world_is_not_consumed_by_the_hud
+  PASS  test_the_world_surface_overlay_is_registered_as_non_consuming
+  PASS  test_a_real_control_does_consume_its_own_rectangle
+  PASS  test_an_empty_alert_stack_does_not_block_the_world
+  PASS  test_the_pause_label_is_centred_in_the_alert_slot_when_no_alert_shows
+  PASS  test_the_pause_label_sits_under_a_showing_alert_card
+  PASS  test_the_pause_label_has_no_hit_rectangle_when_the_world_is_running
+  PASS  test_hidden_expansions_are_not_in_the_hit_table_until_they_open
+  PASS  test_the_status_line_and_ledger_are_printed_byte_for_byte
+  PASS  test_the_speed_toggles_show_which_speed_is_requested
+  PASS  test_the_pause_label_names_the_held_reasons
+  PASS  test_the_refusal_display_carries_the_exact_text_it_was_given
+  PASS  test_the_minimap_says_when_no_world_has_been_generated
+  PASS  test_every_focus_stop_names_an_element_this_shell_built
+  PASS  test_interactive_controls_can_take_keyboard_focus
+  PASS  test_the_detail_panel_opens_and_changes_the_command_interval
+  PASS  test_pressing_confirm_designates_a_zone_through_the_command_queue
+  PASS  test_pressing_confirm_with_nothing_selected_refuses_visibly
+  PASS  test_cancelling_a_stroke_changes_no_queue_or_store_state
+  PASS  test_the_policy_toggle_issues_a_set_policy_command
+  PASS  test_cancelling_a_job_issues_a_cancel_job_command
+  PASS  test_a_stroke_must_be_ascending_and_inside_the_map
+  PASS  test_an_unbound_shell_refuses_an_action_rather_than_appearing_to_work
+  PASS  test_clicking_the_map_picks_the_tile_under_the_pointer
+  PASS  test_a_click_outside_the_map_picks_nothing_and_says_so
+  PASS  test_a_right_click_on_the_map_does_not_pick_a_tile
+  PASS  test_the_brush_stepper_cycles_the_documented_widths
+  PASS  test_a_brush_stroke_paints_a_block_of_ascending_tiles
+  PASS  test_hiding_the_ecology_layer_changes_no_committed_value
+  PASS  test_the_layer_toggle_refuses_when_no_snapshot_is_bound
+  PASS  test_at_1920_the_seven_commands_are_one_row_of_full_cells
+  PASS  test_a_narrower_strip_shrinks_every_cell_evenly
+  PASS  test_when_even_the_smallest_cells_do_not_fit_the_excess_is_hidden
+  PASS  test_focusing_a_control_shows_its_description_and_the_gold_outline
+  PASS  test_the_description_goes_when_its_panel_closes_around_it
+  PASS  test_a_click_does_not_put_the_description_up
+  PASS  test_a_clicked_tab_draws_no_description_but_is_still_the_focused_element
+  PASS  test_the_description_goes_when_focus_leaves
+  PASS  test_focusing_an_unavailable_control_shows_the_missing_owner
+  PASS  test_the_world_surface_covers_the_viewport_without_consuming_it
+  PASS  test_a_visible_decorative_label_does_not_take_the_point_under_it
+  PASS  test_the_ornament_and_the_focus_outline_are_outside_the_hit_table
+  PASS  test_residents_opens_the_roster_and_never_the_unbuilt_world_access_panel
+  PASS  test_opening_another_page_hides_the_whole_roster_not_just_its_first_row
+  PASS  test_the_focus_order_is_written_onto_the_real_controls
+  PASS  test_the_narrow_card_shows_the_authored_summary_and_retains_the_whole_message
+  PASS  test_the_narrow_card_keeps_the_rectangle_the_ruling_fixes
+  PASS  test_the_narrow_summary_is_one_measured_line_inside_the_card
+  PASS  test_the_card_never_ellipsizes_or_crops_what_it_draws
+  PASS  test_the_standard_card_still_shows_the_whole_message_when_it_fits
+  PASS  test_the_card_carries_its_severity_icon_and_word
+  PASS  test_a_second_notice_takes_the_second_card_when_the_zone_has_room
+  PASS  test_the_second_card_shows_the_second_notice_and_not_a_copy_of_the_first
+  PASS  test_the_second_card_is_hidden_while_only_one_notice_is_active
+  PASS  test_narrow_places_one_card_however_many_notices_are_active
+  PASS  test_a_standard_card_prefers_the_complete_message_when_it_fits
+  PASS  test_every_visible_card_prints_an_authored_string_and_never_an_abbreviation
+  PASS  test_no_alert_card_is_drawn_outside_its_zone_at_any_profile
+  PASS  test_the_history_rail_states_how_many_notices_the_zone_could_not_show
+  PASS  test_the_second_card_owns_its_own_click_rectangle
+  PASS  test_the_second_card_is_a_tab_stop_between_the_first_card_and_the_rail
+  PASS  test_enter_on_the_second_card_opens_that_card_s_own_notice
+  PASS  test_closing_the_second_card_s_disclosure_returns_focus_to_that_card
+  PASS  test_a_card_instance_the_stack_does_not_build_is_refused
+  PASS  test_the_accessible_description_carries_severity_and_the_whole_message
+  PASS  test_enter_on_the_card_opens_the_expanded_view_with_that_notice_selected
+  PASS  test_space_on_the_card_opens_the_expanded_view
+  PASS  test_a_left_click_on_the_card_opens_the_expanded_view
+  PASS  test_an_unrelated_key_and_a_right_click_do_not_open_the_expanded_view
+  PASS  test_the_expanded_view_wraps_and_scrolls_its_content
+  PASS  test_closing_the_expanded_view_returns_focus_to_the_card_that_opened_it
+  PASS  test_the_expanded_view_is_reachable_from_the_card_by_tab
+  PASS  test_the_history_trigger_closes_the_expanded_view_and_acknowledges_nothing
+  PASS  test_the_history_trigger_opens_the_whole_history_with_nothing_selected
+  PASS  test_opening_the_details_does_not_pause_the_world_or_resolve_the_condition
+  PASS  test_twenty_notices_are_retained_and_reachable_from_the_expanded_view
+  PASS  test_a_repeated_condition_groups_rather_than_filling_the_history
+  PASS  test_an_empty_alert_zone_shows_the_history_trigger_and_nothing_else
+  PASS  test_hiding_the_card_retains_the_notice_and_resolves_nothing
+  PASS  test_a_repeated_state_update_announces_once_and_never_steals_focus
+  PASS  test_opening_the_details_with_no_notice_is_refused_by_name
+  PASS  test_an_unknown_notice_category_is_refused_rather_than_defaulted
+  PASS  test_a_notice_the_record_refuses_is_refused_by_the_shell_too
+  PASS  test_the_error_panel_grows_to_its_refusal_and_scrolls_past_its_maximum
+  PASS  test_the_expanded_view_replaces_the_error_panel_and_gives_it_back_on_close
+  PASS  test_the_open_expanded_view_is_drawn_above_the_permanent_hud
+  PASS  test_no_open_expansion_is_drawn_outside_the_viewport_at_narrow
+  PASS  test_every_framed_container_wears_its_own_silhouette
+  PASS  test_each_panel_wears_the_silhouette_the_table_assigns_it
+  PASS  test_every_frame_piece_lies_inside_its_own_panel
+  PASS  test_frame_art_never_takes_a_click_a_focus_stop_or_an_announcement
+  PASS  test_frame_art_is_drawn_beneath_the_panels_own_controls
+  PASS  test_relaying_out_moves_the_frame_with_its_panel
+  PASS  test_the_detail_panel_builds_five_independent_need_rows
+  PASS  test_a_need_row_is_the_amendments_52_pixel_height
+  PASS  test_the_track_fill_is_the_rows_own_value_and_nothing_else
+  PASS  test_the_track_is_eight_pixels_and_sits_inside_its_row
+  PASS  test_a_need_value_outside_the_scale_refuses_rather_than_overdrawing
+  PASS  test_selecting_something_without_needs_empties_the_need_rows
+  PASS  test_the_need_row_track_never_takes_input_or_an_announcement
+  PASS  test_the_species_medallion_loads_and_is_shown_beside_the_name
+  PASS  test_the_medallion_leads_the_card_and_never_draws_over_the_name
+  PASS  test_the_medallion_is_a_production_size_at_every_reachable_profile
+  PASS  test_a_species_with_no_medallion_leaves_the_roundel_hidden
+  PASS  test_the_medallion_is_decorative_in_the_accessibility_tree
+  PASS  test_the_journal_body_scrolls_so_five_need_rows_are_reachable
+  PASS  test_the_heading_and_the_close_control_never_scroll_away
+  PASS  test_a_long_name_grows_the_header_instead_of_overlaying_close
+  PASS  test_the_detail_ornament_never_sits_over_the_medallion_or_the_body
+  PASS  test_the_zone_harvesting_policy_never_stands_on_a_resident
+  PASS  test_the_medallion_sits_beside_the_name_at_every_profile
+  PASS  test_the_identity_row_is_the_published_column_table
+  PASS  test_the_name_column_is_never_the_old_280_px_width
+  PASS  test_close_keeps_its_44_px_target_at_the_rows_top_right
+  PASS  test_the_medallion_is_decoration_in_both_trees
+  PASS  test_a_long_name_grows_the_header_and_shrinks_the_body_not_the_footer
+  PASS  test_no_name_pushes_the_body_or_the_footer_out_of_the_panel
+  PASS  test_a_long_unbroken_name_never_widens_its_own_column
+  PASS  test_the_name_is_never_ellipsized_or_shrunk
+  PASS  test_a_combining_sequence_survives_the_heading_intact
+  PASS  test_the_species_line_sits_beneath_the_name_in_the_same_column
+  PASS  test_the_action_footer_is_64_px_with_a_44_px_center_view
+  PASS  test_center_view_is_a_labelled_action_that_names_its_missing_camera
+  PASS  test_only_the_body_scrolls
+  PASS  test_no_name_draws_outside_its_own_heading_rectangle
+  PASS  test_the_roster_workspace_no_longer_covers_the_alert_zone
+  PASS  test_a_true_modal_page_still_occludes_from_the_centred_rectangle
+  PASS  test_the_workspace_frame_carries_no_registry_minimum_to_clamp_the_compact_variant
+  PASS  test_the_compact_variant_reflows_to_the_rulings_exact_rectangle
+  PASS  test_the_ordinary_workspace_raises_no_scrim_and_the_compact_one_does
+  PASS  test_the_narrow_profile_binds_population_and_not_the_next_array_entry
+  PASS  test_a_counter_cell_draws_two_lines_at_the_rulings_own_rectangles
+  PASS  test_every_caption_measures_inside_its_own_gutter_in_the_real_font
+  PASS  test_a_value_that_fits_is_printed_whole_at_the_numeric_size
+  PASS  test_a_value_too_long_for_its_cell_becomes_an_explicit_ledger_action
+  PASS  test_the_disclosure_is_at_the_sixteen_pixel_body_size_and_fits
+  PASS  test_the_ledger_action_really_opens_the_ledger
+  PASS  test_an_unavailable_counter_reads_unavailable_and_never_a_dash_or_a_zero
+  PASS  test_a_focused_resource_cell_rings_inside_itself_not_across_its_neighbour
+  PASS  test_a_narrow_summary_card_is_padded_and_centred_the_way_the_ruling_states
+  PASS  test_a_full_standard_card_keeps_the_generic_twelve_pixel_padding
+  PASS  test_a_narrowed_workspace_narrows_its_content_column_with_it
+  PASS  test_resolving_the_overload_code_takes_its_card_down_and_keeps_its_row
+  PASS  test_resolving_a_code_leaves_every_other_notice
+  PASS  test_resolving_refreshes_an_open_history
+  PASS  test_a_withheld_code_takes_no_card_but_stays_active
+  PASS  test_withholding_the_only_notice_leaves_no_card
+  PASS  test_the_longest_overload_sentence_fits_its_card_at_both_desktop_sizes
+  PASS  test_a_focused_cards_description_box_is_as_tall_as_its_text
+  PASS  test_a_bottom_rows_description_goes_above_it
+  PASS  test_the_history_has_its_own_close_in_its_header
+  PASS  test_esc_closes_the_history_and_n_toggles_it
+  PASS  test_a_commands_key_presses_it_only_when_it_is_enabled
+  PASS  test_every_command_has_its_own_action_in_the_input_map
+  PASS  test_n_does_not_open_the_history_over_a_modal_workspace
+  PASS  test_a_description_with_an_unbroken_code_still_fits
+  PASS  test_a_summarised_card_stays_summarised_on_the_next_layout
+CI_SUITE_TIME {"assertions":1877,"failures":0,"suite":"test_ui_shell.gd","tests":170,"usec":5439443}
+test_underground_layout_sources.gd
+  PASS  test_unbound_or_expired_coordinator_cannot_manufacture_a_scope_or_success
+  PASS  test_exact_source_scope_rejects_copied_tokens_foreign_rooms_and_wrong_peak
+  PASS  test_read_uses_actual_room_type_and_generation_in_the_current_finite_scope
+  PASS  test_source_keeps_actual_coordinator_alive_only_until_synchronous_release
+  PASS  test_hover_preview_does_not_hold_the_shared_arena_after_consumption
+  PASS  test_abandoned_guide_is_diagnosed_and_released_at_the_input_boundary
+  PASS  test_layout_mode_accepts_all_real_pairs_and_individual_mode_uses_the_same_owner
+  PASS  test_late_physical_refusal_retains_drafts_and_can_retry_without_partial_world_rows
+CI_SUITE_TIME {"assertions":340,"failures":0,"suite":"test_underground_layout_sources.gd","tests":8,"usec":756998}
+test_underground_room_bindings.gd
+  PASS  test_fine_hole_and_upper_cube_use_actual_section_without_changing_any_owner
+  PASS  test_actual_binding_is_once_only_and_unqualified_gates_still_refuse
+  PASS  test_invalid_scope_and_underfunded_or_bare_tokens_refuse_before_surveys
+  PASS  test_limits_are_exact_and_metadata_output_is_unchanged_on_refusal
+  PASS  test_duplicate_claims_refuse_instead_of_double_counting_paid_usable_volume
+  PASS  test_foreign_room_and_physical_cavity_never_fill_the_exact_room_hole
+  PASS  test_ambiguous_section_and_real_geometry_revision_change_refuse
+  PASS  test_expired_or_reacquired_lease_never_reaches_a_later_copy_boundary
+  PASS  test_final_validation_expiry_clears_filled_output_and_allows_exact_retry
+  PASS  test_initial_domain_callback_reentry_is_exclusive_without_clearing_outer_scratch
+  PASS  test_changed_site_claim_project_and_world_lifetime_refuse_without_reusing_old_proof
+  PASS  test_actual_domain_wiring_cannot_follow_changed_synthetic_geometry_numbers
+  PASS  test_complete_scan_allowance_is_admitted_before_handle_or_mask_growth
+  PASS  test_nested_pair_work_exhaustion_clears_the_complete_partial_mask
+  PASS  test_numerically_equal_foreign_sites_cannot_bind_actual_construction_namespace
+  PASS  test_retired_actual_room_preserves_prior_metadata_and_clears_prior_mask
+  PASS  test_phase_composer_identity_never_substitutes_same_store_or_expired_owner
+CI_SUITE_TIME {"assertions":604,"failures":0,"suite":"test_underground_room_bindings.gd","tests":17,"usec":10763202}
+test_underground_space_authority.gd
+  PASS  test_unbound_or_foreign_owner_and_unadmitted_capacity_cannot_allocate_proofs
+  PASS  test_cold_reservation_refuses_before_snapshot_or_plan_allocation
+  PASS  test_cold_proof_only_and_qualification_refusals_release_after_last_copy
+  PASS  test_cold_refresh_reserves_before_copy_and_work_never_acquires
+  PASS  test_actual_work_cycle_changes_only_the_paid_cube_and_keeps_room_claim
+  PASS  test_direct_publication_and_failed_companion_preserve_geometry_and_payment
+  PASS  test_actual_cut_stages_floor_support_then_sealed_companions_and_rolls_back_both_failures
+  PASS  test_released_survey_still_rechecks_every_final_candidate_boundary
+  PASS  test_physical_geometry_hook_refuses_unbound_foreign_token_and_wrong_room
+  PASS  test_productive_work_uses_static_proof_and_fresh_dynamic_checks
+  PASS  test_backfill_and_recut_change_actual_space_without_duplicate_earth
+  PASS  test_unopened_support_closure_never_publishes_a_void_or_earth
+  PASS  test_material_free_cut_cancellation_preserves_geometry_and_rebinds_progress
+  PASS  test_cancelled_closure_releases_only_its_marker_and_retains_actual_void
+  PASS  test_blocked_output_does_not_publish_geometry_or_consume_work_twice
+  PASS  test_static_refresh_is_read_only_and_cannot_fund_or_publish_a_phase
+  PASS  test_failed_refresh_retains_the_prior_proof_and_earned_labor
+  PASS  test_interior_unknown_gap_cannot_be_authorized_by_corner_coverage
+  PASS  test_same_room_actual_obstacle_is_not_a_claim_exemption
+  PASS  test_retained_unfinished_approach_never_becomes_supported_for_finishing
+  PASS  test_missing_floor_generation_blocks_cut_output_until_exact_retry
+  PASS  test_full_proof_capacity_refuses_before_payment_then_retries_freed_row
+  PASS  test_wrong_identity_or_stage_cannot_discard_another_candidate
+  PASS  test_direct_start_and_commit_require_the_actual_paid_construction_phase
+UG21_SINGLE_SITE_PROOF_BATCH: 256 pairs, 17464 usec; synthetic dynamic profile; no Work ticks
+  PASS  test_repeated_productive_proofs_do_not_scan_or_mutate_the_spatial_owner
+  PASS  test_phase_plan_allowance_and_shape_are_checked_before_survey
+  PASS  test_phase_plan_lease_expiry_and_survey_refusal_release_all_scratch
+  PASS  test_fine_finish_publishes_exact_claim_union_and_retains_paid_outside_cavity
+  PASS  test_finish_rejects_missing_extra_overlapping_and_outside_masks_before_payment
+  PASS  test_finish_accepts_a_different_disjoint_partition_of_the_same_claim_union
+  PASS  test_finish_mask_unbound_and_oversized_output_preserve_real_earned_phase
+  PASS  test_finish_partition_peak_includes_actual_banks_handles_and_original_inputs
+  PASS  test_finish_late_region_exhaustion_aborts_the_entire_paid_geometry_candidate
+  PASS  test_finish_mask_callback_cannot_outlive_its_exact_lease_or_qualification
+  PASS  test_flat_finish_subtraction_preserves_negative_bounds_and_refuses_fragment_exhaustion
+  PASS  test_finish_handle_observer_cannot_allocate_banks_after_replacing_the_actual_lease
+CI_SUITE_TIME {"assertions":4991,"failures":0,"suite":"test_underground_space_authority.gd","tests":36,"usec":4334319}
+test_underground_space_owner.gd
+  PASS  test_unbound_source_identity_and_capacity_refuse_before_allocation
+  PASS  test_geometry_is_invisible_until_non_failing_publication
+  PASS  test_abort_wrong_tokens_and_stale_revisions_preserve_live_bytes
+  PASS  test_snapshot_and_region_results_do_not_alias_authority
+  PASS  test_confirmed_claims_block_but_never_supply_void_or_dry_matter
+  PASS  test_project_generation_loss_invalidates_confirmed_claims
+  PASS  test_source_facts_revalidate_even_when_entity_generation_is_unchanged
+  PASS  test_final_preflight_detects_source_change_after_seal
+  PASS  test_prepared_readers_require_current_sealed_token_and_preserve_live_state
+  PASS  test_prepared_results_are_copied_and_retain_claims_removals_and_next_generation
+  PASS  test_prepared_readers_refuse_actual_source_drift_without_overwriting_outputs
+  PASS  test_floor_section_generation_cannot_transfer_furniture_to_reused_floor
+  PASS  test_two_levels_use_actual_xyz_and_level_label_cannot_hide_overlap
+  PASS  test_capacity_budget_and_scalar_overflow_refuse_without_live_changes
+  PASS  test_saved_columns_roundtrip_and_allocator_continue_identically
+  PASS  test_corrupt_load_never_changes_live_or_partial_geometry
+  PASS  test_exhausted_generations_retire_instead_of_wrapping
+  PASS  test_finite_source_and_region_capacity_refuse_without_truncation
+  PASS  test_two_real_projects_cannot_claim_the_same_actual_volume
+  PASS  test_final_preflight_revalidates_project_claim_generation
+  PASS  test_region_query_and_source_retirement_keep_internal_namespace_exact
+  PASS  test_missing_actual_resident_location_reader_never_uses_flat_ground
+  PASS  test_resident_xyz_mode_and_generation_changes_invalidate_old_geometry
+  PASS  test_resident_floor_owner_and_actual_height_are_both_required
+  PASS  test_changed_row_validation_catches_later_row_edit_against_unchanged_earlier_row
+  PASS  test_load_removal_rechecks_retained_floor_dependents
+  PASS  test_empty_source_retirement_spends_its_real_scan_budget
+  PASS  test_room_claim_survives_actual_paid_phase_retirement
+  PASS  test_site_scoped_snapshot_keeps_actual_geometry_and_other_phase_claims
+  PASS  test_prepared_site_scope_uses_actual_phase_and_keeps_same_room_obstacles
+  PASS  test_room_claim_kind_is_typed_and_corrupt_load_refuses
+  PASS  test_foreign_sites_and_changed_domain_cannot_receive_an_exemption
+  PASS  test_actual_room_domains_and_furniture_installation_are_exact_source_facts
+  PASS  test_surface_facts_remain_actual_and_unknown_room_domain_refuses
+  PASS  test_prepared_change_query_distinguishes_noop_and_source_only_changes
+  PASS  test_furniture_future_source_requires_actual_completed_project
+  PASS  test_furniture_install_source_publishes_only_after_actual_paid_installation
+  PASS  test_refused_furniture_completion_aborts_future_source_and_retries_once
+  PASS  test_furniture_install_before_facts_reject_type_room_rotation_and_generation_drift
+  PASS  test_room_admission_keeps_exact_fine_plan_unpublished_until_real_identity
+  PASS  test_room_admission_mutable_candidate_fields_and_authority_are_rechecked
+  PASS  test_room_admission_wrong_owner_type_candidate_and_stale_allocator_refuse
+  PASS  test_room_admission_all_physical_roles_and_unclaimed_geometry_refuse
+  PASS  test_room_admission_after_facts_and_exact_publication_arguments_are_guarded
+  PASS  test_room_admission_abort_retries_identical_future_identity_and_keeps_prior_claims
+  PASS  test_room_admission_callbacks_cannot_abort_rebegin_or_publish_the_stage
+  PASS  test_room_admission_seal_and_prepared_callbacks_guard_transaction_identity
+  PASS  test_room_admission_publication_callback_cannot_destroy_the_sealed_candidate
+  PASS  test_room_admission_callbacks_cannot_rewrite_the_pinned_allocator_packet
+  PASS  test_actual_allocation_and_resident_location_readers_do_not_change_state
+SPACE-CAPACITY minimal seal checks=26632
+SPACE-CAPACITY minimal restore checks=40966
+  PASS  test_joint_capacity_minimal_stage_and_restore_fit_the_unchanged_work_limit
+SPACE-CAPACITY 256 residents seal checks=655905
+SPACE-CAPACITY 256 residents restore checks=112545
+SPACE-CAPACITY 256 residents single edit checks=32934
+  PASS  test_joint_capacity_256_actual_residents_batch_edit_and_restore
+  PASS  test_failed_seal_restores_heaps_for_edit_retry_and_source_revision_propagation
+  PASS  test_indexed_validation_preserves_mixed_remove_reuse_and_strict_loaded_revisions
+  PASS  test_validation_callbacks_cannot_mutate_borrowed_heap_indexes
+  PASS  test_true_pair_work_exhaustion_refuses_without_expanding_the_budget
+  PASS  test_same_source_forget_and_reregister_never_resets_its_revision
+  PASS  test_snapshot_revision_reader_checks_current_geometry_and_preserves_live_bytes
+  PASS  test_snapshot_revision_reader_revalidates_source_and_claim_lifetimes
+  PASS  test_reusable_region_reader_has_explicit_borrowed_output_contract
+  PASS  test_region_reader_keeps_allocating_contract_and_reused_reader_refuses_wrong_shape
+  PASS  test_future_furniture_batch_publishes_actual_pairs_and_blockers_only
+  PASS  test_future_furniture_batch_whole_refusal_keeps_geometry_allocator_and_goods
+  PASS  test_future_furniture_batch_rechecks_all_mutable_tuple_and_entry_fields
+  PASS  test_future_furniture_batch_requires_every_piece_and_forbids_physical_permissions
+  PASS  test_future_furniture_batch_refuses_foreign_binding_and_unscoped_publication
+  PASS  test_future_furniture_batch_callback_reentry_and_request_rewrite_refuse
+  PASS  test_future_furniture_batch_source_capacity_refuses_before_private_copies
+  PASS  test_future_furniture_batch_after_facts_require_real_pending_rows_and_project_pairs
+  PASS  test_future_furniture_batch_publication_callback_reentry_keeps_sealed_geometry
+  PASS  test_future_furniture_batch_callback_mutation_and_same_room_floor_generation_refuse
+UG1075_FURNITURE full_pack_checks=59668
+  PASS  test_future_furniture_batch_seals_under_real_joint_sparse_capacities
+  PASS  test_traversal_snapshot_omits_only_typed_room_owned_obstacle_markers
+  PASS  test_prepared_traversal_snapshot_keeps_physical_rows_and_exact_token
+  PASS  test_traversal_source_and_claim_lifetime_are_not_exempted
+  PASS  test_leased_snapshot_keeps_the_exact_existing_traversal_filter_and_source_truth
+  PASS  test_leased_snapshot_refuses_unfunded_copies_before_any_source_observation
+  PASS  test_leased_snapshot_source_replacement_refuses_before_copy_and_preserves_replacement
+  PASS  test_leased_snapshot_nested_resident_observation_rechecks_original_lease
+  PASS  test_leased_snapshot_refuses_prepared_geometry_and_poisoned_source_reentry
+  PASS  test_leased_snapshot_keeps_source_drift_refusal_before_copy
+  PASS  test_leased_snapshot_charges_retained_output_until_replacement_is_complete
+  PASS  test_leased_snapshot_recounts_callback_retained_output_before_allocating_image
+  PASS  test_leased_snapshot_admits_the_actual_pack_and_charges_preflight_plus_copy
+  PASS  test_prepared_region_observation_uses_no_source_scan_and_requires_full_final_preflight
+  PASS  test_prepared_region_observation_refusals_preserve_exact_caller_scratch
+  PASS  test_paid_cube_section_resolves_fine_claims_without_inventing_floor_or_void
+  PASS  test_paid_cube_section_refuses_ambiguous_or_missing_full_section_links
+  PASS  test_paid_cube_section_rechecks_revision_room_generation_and_actual_source_facts
+  PASS  test_paid_cube_section_domain_overflow_scratch_and_work_ceiling_refuse
+  PASS  test_paid_cube_section_uses_actual_immutable_datum_and_rejects_foreign_floor_owner
+  PASS  test_paid_cube_section_resolves_under_the_unchanged_actual_joint_capacities
+  PASS  test_publication_receipt_changes_only_after_swap_and_successful_load_clears_it
+  PASS  test_room_source_publication_receipt_requires_actual_after_identity
+  PASS  test_actual_paid_furniture_installation_publishes_exact_space_receipt
+  PASS  test_actual_furniture_admissions_publish_exact_space_receipt
+  PASS  test_region_capacity_reports_only_the_actual_configured_cold_bound
+  PASS  test_prepared_leased_snapshot_preserves_full_claims_and_exact_candidate
+  PASS  test_prepared_leased_snapshot_requires_seal_and_original_budget_before_observers
+  PASS  test_prepared_leased_snapshot_replacement_keeps_candidate_and_refused_output
+  PASS  test_prepared_leased_snapshot_refuses_nested_resident_lease_replacement
+  PASS  test_prepared_leased_snapshot_reentry_and_source_drift_never_allocate
+  PASS  test_prepared_leased_snapshot_recounts_existing_and_callback_added_output
+  PASS  test_prepared_traversal_leased_copy_keeps_all_physical_rows
+  PASS  test_prepared_traversal_lease_replacement_never_reaches_copy
+  PASS  test_prepared_site_leased_copy_omits_only_exact_paid_phase_markers
+  PASS  test_prepared_site_copy_refuses_replaced_lease_and_foreign_owner
+  PASS  test_static_generic_kernel_preserves_exact_token_and_ordinary_publication
+  PASS  test_static_generic_kernel_never_accepts_special_future_source_context
+  PASS  test_static_room_kernel_never_borrows_synthetic_authority_publication
+CI_SUITE_TIME {"assertions":5397,"failures":0,"suite":"test_underground_space_owner.gd","tests":110,"usec":12674436}
+test_underground_work_face.gd
+  PASS  test_exact_complete_corridor_and_authored_stroke_reach_one_solid_face
+  PASS  test_max_face_is_a_legal_exact_plane_without_reversing_already_oriented_boxes
+  PASS  test_interior_one_unit_void_hole_blocks_approach_even_when_endpoints_fit
+  PASS  test_actual_support_and_negative_body_residual_are_never_clipped
+  PASS  test_stroke_cannot_enter_a_second_solid_cube_or_floor
+  PASS  test_full_profile_endpoint_and_face_identity_are_mandatory
+  PASS  test_final_callback_drift_refuses_actual_replacement_and_mutated_input
+  PASS  test_foreign_arena_or_unbound_sources_never_allocate_geometry_permission
+  PASS  test_finite_scan_exhaustion_never_becomes_clearance
+  PASS  test_original_lease_must_cover_the_whole_packet_before_private_copies
+  PASS  test_reentry_poison_survives_final_otherwise_valid_source_read
+  PASS  test_complete_contact_patch_must_fit_one_face_with_the_matching_normal
+  PASS  test_first_endpoint_callback_replaced_lease_stops_before_later_reads
+  PASS  test_final_endpoint_callback_cannot_hide_new_actual_terrain_exclusions
+  PASS  test_final_endpoint_callback_cannot_hide_retained_actual_building_drift
+  PASS  test_region_callback_expired_lease_stops_before_target_terrain_observation
+  PASS  test_snapshot_source_callback_expired_lease_refuses_before_actual_image_allocation
+CI_SUITE_TIME {"assertions":185,"failures":0,"suite":"test_underground_work_face.gd","tests":17,"usec":10692590}
+test_weather_cover.gd
+  PASS  test_there_is_no_camera_following_sheet
+  PASS  test_the_ground_and_the_bank_take_the_cover_and_the_water_does_not
+  PASS  test_the_shaders_that_take_the_cover_declare_it
+  PASS  test_frost_is_a_thinner_cover_than_snow
+  PASS  test_buildings_and_props_wear_the_overlay_and_trees_do_not
+  PASS  test_the_cover_eases_in_on_the_demo_clock
+  PASS  test_the_prewarm_keeps_the_overlay_on_through_its_frames
+  PASS  test_configuring_again_keeps_one_set_of_falls
+CI_SUITE_TIME {"assertions":232,"failures":0,"suite":"test_weather_cover.gd","tests":8,"usec":704136}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1354 test(s), 77303 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 30 expected, 69 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 1354 tests, 77303 assertions, 0 failures.

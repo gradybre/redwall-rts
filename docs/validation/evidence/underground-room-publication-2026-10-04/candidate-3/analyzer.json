@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_space_owner.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"source_revision\" is shadowing an already-declared function at line 1663 in the current class.",
+   "range": {
+    "end": {
+     "character": 92,
+     "line": 1565
+    },
+    "start": {
+     "character": 77,
+     "line": 1565
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

@@ -1,0 +1,94 @@
+{
+  "head_before": "e5a5375bf55d9c77e19ac98cf4f40b5ebd190b23",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.028350125066936,
+      "log": "import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "247/387",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 4.031891500111669,
+      "log": "test_mole_qualified_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "126/387",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 3.5178487920202315,
+      "log": "test_underground_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "164/387",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 3.3865325418300927,
+      "log": "test_mole_profile_driver.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "304/387",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v2/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 3.4960797922685742,
+      "log": "test_demo_profile_pack.gd.log"
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/gdscript_warnings.py",
+        "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+        "godot/data/underground/mole-worker/profile-publication-v2/catalog_source.gd",
+        "godot/test/test_mole_qualified_profiles.gd",
+        "--max",
+        "0",
+        "--port",
+        "6168",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v2/analyzer.json"
+      ],
+      "exit_code": 0,
+      "seconds": 10.863365250173956,
+      "log": "analyzer.log"
+    }
+  ],
+  "component_only": true,
+  "custom_user_dir_name": "Redwall-Codex-Publication-f2bd866f9c406925",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": true,
+  "project_test_unchanged": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

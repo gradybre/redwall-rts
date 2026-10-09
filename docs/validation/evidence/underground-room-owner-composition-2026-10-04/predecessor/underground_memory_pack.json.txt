@@ -1,0 +1,6447 @@
+{
+  "schema": 1,
+  "scope": "source-derived logical allocation pack; runtime qualification remains open",
+  "runtime_qualified": false,
+  "pack": {
+    "REGION_CAPACITY": 6144,
+    "SOURCE_CAPACITY": 2048,
+    "PROOF_CAPACITY": 256,
+    "PHASE_VOLUME_CAPACITY": 8192,
+    "TIP_CAPACITY": 256,
+    "LAYOUT_ROOM_CAPACITY": 256,
+    "LAYOUT_PLACEMENT_CAPACITY": 1024,
+    "LOCATION_CAPACITY": 1024,
+    "INVENTORY_ENDPOINT_CAPACITY": 1024
+  },
+  "columns": {
+    "underground_space_owner": {
+      "_changed_mask": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2725
+      },
+      "_changed_rows": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2724
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 18,
+        "bytes": 144,
+        "resize_expression": "HEADER_FIELDS",
+        "line": 2722
+      },
+      "_o_a": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2790
+      },
+      "_o_b": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2791
+      },
+      "_o_c": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2792
+      },
+      "_o_d": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2793
+      },
+      "_o_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2786
+      },
+      "_o_kind": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2784
+      },
+      "_o_parent_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2789
+      },
+      "_o_parent_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2788
+      },
+      "_o_present": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2783
+      },
+      "_o_revision": {
+        "width": 8,
+        "capacity": 2048,
+        "bytes": 16384,
+        "resize_expression": "_source_capacity",
+        "line": 2787
+      },
+      "_o_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2785
+      },
+      "_r_claim_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2754
+      },
+      "_r_claim_kind": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2739
+      },
+      "_r_claim_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2753
+      },
+      "_r_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2740
+      },
+      "_r_hi_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2744
+      },
+      "_r_hi_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2745
+      },
+      "_r_hi_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2746
+      },
+      "_r_level": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2747
+      },
+      "_r_lo_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2741
+      },
+      "_r_lo_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2742
+      },
+      "_r_lo_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2743
+      },
+      "_r_owner_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2751
+      },
+      "_r_owner_revision": {
+        "width": 8,
+        "capacity": 6144,
+        "bytes": 49152,
+        "resize_expression": "_region_capacity",
+        "line": 2752
+      },
+      "_r_owner_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2750
+      },
+      "_r_present": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2736
+      },
+      "_r_retired": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2737
+      },
+      "_r_role": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2738
+      },
+      "_r_section_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2749
+      },
+      "_r_section_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2748
+      },
+      "_region_free_heap": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2726
+      },
+      "_s_header": {
+        "width": 8,
+        "capacity": 18,
+        "bytes": 144,
+        "resize_expression": "HEADER_FIELDS",
+        "line": 2723
+      },
+      "_s_o_a": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2806
+      },
+      "_s_o_b": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2807
+      },
+      "_s_o_c": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2808
+      },
+      "_s_o_d": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2809
+      },
+      "_s_o_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2802
+      },
+      "_s_o_kind": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2800
+      },
+      "_s_o_parent_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2805
+      },
+      "_s_o_parent_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2804
+      },
+      "_s_o_present": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 2799
+      },
+      "_s_o_revision": {
+        "width": 8,
+        "capacity": 2048,
+        "bytes": 16384,
+        "resize_expression": "_source_capacity",
+        "line": 2803
+      },
+      "_s_o_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2801
+      },
+      "_s_r_claim_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2778
+      },
+      "_s_r_claim_kind": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2763
+      },
+      "_s_r_claim_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2777
+      },
+      "_s_r_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2764
+      },
+      "_s_r_hi_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2768
+      },
+      "_s_r_hi_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2769
+      },
+      "_s_r_hi_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2770
+      },
+      "_s_r_level": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2771
+      },
+      "_s_r_lo_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2765
+      },
+      "_s_r_lo_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2766
+      },
+      "_s_r_lo_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2767
+      },
+      "_s_r_owner_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2775
+      },
+      "_s_r_owner_revision": {
+        "width": 8,
+        "capacity": 6144,
+        "bytes": 49152,
+        "resize_expression": "_region_capacity",
+        "line": 2776
+      },
+      "_s_r_owner_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2774
+      },
+      "_s_r_present": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2760
+      },
+      "_s_r_retired": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2761
+      },
+      "_s_r_role": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 2762
+      },
+      "_s_r_section_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2773
+      },
+      "_s_r_section_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2772
+      },
+      "_s_region_free_heap": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 2727
+      },
+      "_s_source_free_heap": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2729
+      },
+      "_source_free_heap": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 2728
+      }
+    },
+    "underground_space_authority": {
+      "_free": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 278
+      },
+      "_next_i32": {
+        "width": 4,
+        "capacity": 11,
+        "bytes": 44,
+        "resize_expression": "I32_FIELDS",
+        "line": 279
+      },
+      "_next_i64": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "I64_FIELDS",
+        "line": 280
+      },
+      "_ordered": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 277
+      },
+      "_present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 274
+      },
+      "_proof_i32": {
+        "width": 4,
+        "capacity": 2816,
+        "bytes": 11264,
+        "resize_expression": "_capacity * I32_FIELDS",
+        "line": 275
+      },
+      "_proof_i64": {
+        "width": 8,
+        "capacity": 512,
+        "bytes": 4096,
+        "resize_expression": "_capacity * I64_FIELDS",
+        "line": 276
+      }
+    },
+    "spoil_tips": {
+      "_earned_mwu": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "_capacity * OP_COUNT",
+        "line": 113
+      },
+      "_embedded_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 109
+      },
+      "_free_heap": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 115
+      },
+      "_generation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 104
+      },
+      "_incoming_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 112
+      },
+      "_locked_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 111
+      },
+      "_operation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 108
+      },
+      "_prepared": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 103
+      },
+      "_present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 101
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 107
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 106
+      },
+      "_quantity_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 110
+      },
+      "_retained_quantity": {
+        "width": 8,
+        "capacity": 512,
+        "bytes": 4096,
+        "resize_expression": "_capacity * 2",
+        "line": 114
+      },
+      "_retired": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 102
+      },
+      "_tile": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 105
+      },
+      "_tile_row": {
+        "width": 4,
+        "capacity": 16384,
+        "bytes": 65536,
+        "resize_expression": "MAX_CAPACITY",
+        "line": 116
+      }
+    },
+    "room_layout": {
+      "_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 236
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 243
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 242
+      },
+      "_room_generations": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 227
+      },
+      "_room_modes": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_room_capacity",
+        "line": 229
+      },
+      "_room_row": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 237
+      },
+      "_room_slots": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 225
+      },
+      "_room_types": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 228
+      },
+      "_rotation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 241
+      },
+      "_state": {
+        "width": 1,
+        "capacity": 1024,
+        "bytes": 1024,
+        "resize_expression": "_placement_capacity",
+        "line": 235
+      },
+      "_type": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 238
+      },
+      "_x": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 239
+      },
+      "_z": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 240
+      }
+    },
+    "modular_projects": {
+      "_delivery_totals": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "DELIVERY_CAPACITY",
+        "line": 80
+      },
+      "_job_generation": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      },
+      "_job_slot": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 76
+      }
+    },
+    "inventory_spatial": {
+      "_spatial_container_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 5504
+      },
+      "_spatial_container_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 5503
+      },
+      "_spatial_location_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 5506
+      },
+      "_spatial_location_revision": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "capacity",
+        "line": 5507
+      },
+      "_spatial_location_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 5505
+      }
+    }
+  },
+  "quote": {
+    "columns": {
+      "input_milli": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "INPUT_CAPACITY"
+      },
+      "output_item": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_milli": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_quality": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_provenance": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_recipe": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_age": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_remainder": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      }
+    },
+    "numeric_control_bytes": 72,
+    "consumers": [
+      [
+        "construction",
+        "_modular_quote"
+      ],
+      [
+        "excavation_inventory",
+        "_quote"
+      ],
+      [
+        "modular_projects",
+        "_quote"
+      ]
+    ]
+  },
+  "furniture_bridge_cold": {
+    "members": [
+      "_furniture_entries",
+      "_furniture_input_entries",
+      "_furniture_pins",
+      "_furniture_rows"
+    ],
+    "private_bytes_per_pair": 60,
+    "numeric_control_bytes": 16,
+    "borrowed_entry_bytes_per_pair": 16,
+    "scope": "Exact shared cold lease only; borrowed input is owned by the caller's separately charged packet."
+  },
+  "connector_recipe_reservation": {
+    "columns": {
+      "_digests": {
+        "width": 1,
+        "capacity": 96,
+        "bytes": 96,
+        "resize_expression": "96",
+        "line": 65
+      },
+      "_hash": {
+        "width": 1,
+        "capacity": 32,
+        "bytes": 32,
+        "resize_expression": "32",
+        "line": 71
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "4",
+        "line": 64
+      },
+      "_input_count": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 67
+      },
+      "_input_key": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_input_capacity",
+        "line": 68
+      },
+      "_part": {
+        "width": 4,
+        "capacity": 9,
+        "bytes": 36,
+        "resize_expression": "9",
+        "line": 72
+      },
+      "_part_id": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 66
+      },
+      "_quantity": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "_input_capacity",
+        "line": 70
+      },
+      "_work_mwu": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 69
+      }
+    },
+    "part_capacity": 256,
+    "bank_bytes": 16512,
+    "fixed_bytes": 512,
+    "assembly_reservation": {
+      "columns": {
+        "_digests": {
+          "width": 1,
+          "capacity": 96,
+          "bytes": 96,
+          "resize_expression": "96",
+          "line": 66
+        },
+        "_first_part": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 68
+        },
+        "_hash": {
+          "width": 1,
+          "capacity": 32,
+          "bytes": 32,
+          "resize_expression": "32",
+          "line": 71
+        },
+        "_header": {
+          "width": 8,
+          "capacity": 7,
+          "bytes": 56,
+          "resize_expression": "7",
+          "line": 65
+        },
+        "_kind": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 67
+        },
+        "_part": {
+          "width": 4,
+          "capacity": 9,
+          "bytes": 36,
+          "resize_expression": "9",
+          "line": 72
+        },
+        "_part_count": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 69
+        },
+        "_recipe_anchor": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "_capacity",
+          "line": 70
+        }
+      },
+      "group_capacity": 256,
+      "bank_bytes": 4248,
+      "fixed_bytes": 512,
+      "reserved_bytes": 4760
+    },
+    "surface_anchor_reservation": {
+      "numeric_control_bytes": 93,
+      "packet_bytes": 204,
+      "surface_metadata_bytes": 24,
+      "fixed_numeric_and_packed_bytes": 321,
+      "reserved_bytes": 2048,
+      "logical_helper_allowance_bytes": 1024,
+      "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."
+    },
+    "funding_settlement_reservation": {
+      "fields": {
+        "_settling_project": "Vector2i",
+        "_settling_job": "Vector2i"
+      },
+      "reserved_bytes": 16,
+      "scope": "Same-stack input settlement only; existing refund scratch is reused. Native references and helper frames remain unmeasured."
+    },
+    "placement_reservation": {
+      "placement_capacity": 256,
+      "opening_capacity": 512,
+      "bank_columns": {
+        "header": {
+          "width": 8,
+          "capacity": 16,
+          "bytes": 128,
+          "resize_expression": "16"
+        },
+        "digests": {
+          "width": 1,
+          "capacity": 128,
+          "bytes": 128,
+          "resize_expression": "128"
+        },
+        "i32": {
+          "width": 4,
+          "capacity": 4608,
+          "bytes": 18432,
+          "resize_expression": "I32_FIELDS * placements"
+        },
+        "i64": {
+          "width": 8,
+          "capacity": 512,
+          "bytes": 4096,
+          "resize_expression": "I64_FIELDS * placements"
+        },
+        "present": {
+          "width": 1,
+          "capacity": 256,
+          "bytes": 256,
+          "resize_expression": "placements"
+        },
+        "retired": {
+          "width": 1,
+          "capacity": 256,
+          "bytes": 256,
+          "resize_expression": "placements"
+        },
+        "openings": {
+          "width": 4,
+          "capacity": 4096,
+          "bytes": 16384,
+          "resize_expression": "OPENING_FIELDS * targets"
+        },
+        "opening_revision": {
+          "width": 8,
+          "capacity": 512,
+          "bytes": 4096,
+          "resize_expression": "targets"
+        },
+        "free_rows": {
+          "width": 4,
+          "capacity": 256,
+          "bytes": 1024,
+          "resize_expression": "placements"
+        },
+        "free_openings": {
+          "width": 4,
+          "capacity": 512,
+          "bytes": 2048,
+          "resize_expression": "targets"
+        }
+      },
+      "two_bank_bytes": 93696,
+      "audit_marks_bytes": 768,
+      "stream_reserved_bytes": 4096,
+      "fixed_controls": {
+        "components": {
+          "owner": 135,
+          "bank_free_counts": 32,
+          "installation_context": 128,
+          "room_context": 80,
+          "phase_context": 128,
+          "directory_candidate": 32,
+          "private_and_caller_requests": 616,
+          "shared_order_and_assembly_records": 128,
+          "returned_result": 8,
+          "final_digest": 32,
+          "helper_frames": 576
+        },
+        "total_bytes": 1895
+      },
+      "control_reserve_bytes": 2048,
+      "native_reserve_bytes": 8192,
+      "reserved_bytes": 108800
+    },
+    "connector_work_reservation": {
+      "additional_numeric_bytes": 51,
+      "aliased_record_bytes_already_charged": 128,
+      "helper_allowance_bytes": 512,
+      "isolated_numeric_and_helper_bytes": 691,
+      "reserved_bytes": 563
+    },
+    "entry_frontier_reservation": {
+      "reserved_bytes": 28597,
+      "fixed_bytes": 2048,
+      "wire_row_bytes": [
+        36,
+        80,
+        28,
+        36,
+        40,
+        76
+      ],
+      "scope": "One immutable configured reader; the whole ceiling includes its fixed header and controls. Native growth remains unqualified."
+    },
+    "entry_bindings_reservation": {
+      "numeric_controls": 74,
+      "packet_bytes": 300,
+      "packed_rows": 112,
+      "fixed_numeric_and_packed_bytes": 486,
+      "logical_helper_allowance_bytes": 2048,
+      "reserved_bytes": 4096,
+      "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
+    },
+    "connector_contacts_reservation": {
+      "numeric_controls": 221,
+      "packed_rows": 452,
+      "fragment_banks_and_controls": 1633,
+      "owned_packet_bytes": 753,
+      "fixed_numeric_and_packed_bytes": 3059,
+      "logical_helper_allowance_bytes": 1024,
+      "reserved_bytes": 4096,
+      "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."
+    },
+    "known_binding_consumers": {
+      "connector_catalog": 190448,
+      "world_routes": 163840,
+      "connector_recipes": 17024,
+      "connector_assemblies": 4760,
+      "surface_anchor": 2048,
+      "connector_settlement": 16,
+      "connector_placements": 108800,
+      "connector_work": 563,
+      "entry_frontier": 28597,
+      "entry_bindings": 4096,
+      "connector_contacts": 4096
+    },
+    "known_binding_used_bytes": 524288,
+    "remaining_binding_reserve_bytes": 0,
+    "scope": "Known logical consumers include concrete Frontier, EntryBindings and Contacts. The shared bindings reserve is fully assigned; whole native memory qualification remains open."
+  },
+  "excavation_start_controls": {
+    "fields": {
+      "_starting": "bool",
+      "_start_poisoned": "bool",
+      "_settling": "bool",
+      "_settlement_poisoned": "bool"
+    },
+    "numeric_bytes": 4,
+    "scope": "Same-stack START and settlement guards only; no packed or saved state. Existing native/frame qualification remains open."
+  },
+  "entry_structure_reservation": {
+    "columns": {
+      "_entry_episode": {
+        "width": 4,
+        "capacity": 19,
+        "bytes": 76,
+        "resize_expression": "19",
+        "line": 38
+      },
+      "_entry_frame": {
+        "width": 4,
+        "capacity": 9,
+        "bytes": 36,
+        "resize_expression": "9",
+        "line": 37
+      }
+    },
+    "numeric_control_bytes": 41,
+    "fixed_numeric_and_packed_bytes": 153,
+    "logical_helper_allowance_bytes": 231,
+    "reserved_bytes": 384,
+    "check_peak_bytes": 1048912,
+    "scope": "Additional binding reserve; inherited structure counted once. No native-memory qualification."
+  },
+  "entry_world_reservation": {
+    "columns": {
+      "_entry_air": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 53
+      },
+      "_entry_box": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 52
+      },
+      "_entry_reach": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 54
+      }
+    },
+    "numeric_control_bytes": 130,
+    "fixed_numeric_and_packed_bytes": 202,
+    "logical_helper_allowance_bytes": 1024,
+    "reserved_bytes": 2048,
+    "scope": "Additional phase composer only; one borrowed Contacts and existing World base counted once. Native headers and composed peak remain unqualified."
+  },
+  "room_world_reservation": {
+    "reserved_bytes": 1024,
+    "logical_helper_and_included_native_bytes": 986,
+    "census_path": "docs/validation/evidence/underground-room-phases-2026-10-04/census.json",
+    "census_sha256": "74ece6f13efd76842751f8153faf912eba0b26c78c40497a5abaaa3a5478bea9",
+    "current_source_sha256": {
+      "underground_room_world_bindings": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+      "underground_work_face": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+      "underground_entry_world_bindings": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+      "underground_space_authority": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+      "underground_connector_placements": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
+      "underground_locations": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+      "underground_routes": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+      "underground_world_routes": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+      "underground_terrain": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+      "underground_final_facts": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+      "underground_phase_structure": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
+      "underground_profiles": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+      "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+      "underground_entry_structure": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
+      "room_space": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+      "source_program": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4"
+    },
+    "native_measured": false,
+    "maximum_shared_phase_bytes": 1048912
+  },
+  "connector_workpieces_reservation": {
+    "placement_capacity": 256,
+    "assembly_capacity": 256,
+    "bank_columns": {
+      "fields": {
+        "width": 4,
+        "capacity": 1280,
+        "bytes": 5120,
+        "resize_expression": "5 * capacity"
+      },
+      "present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "capacity"
+      }
+    },
+    "source_and_scratch_columns": {
+      "_bounds": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 123
+      },
+      "_digests": {
+        "width": 1,
+        "capacity": 160,
+        "bytes": 160,
+        "resize_expression": "160",
+        "line": 120
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 9,
+        "bytes": 72,
+        "resize_expression": "9",
+        "line": 119
+      },
+      "_parts": {
+        "width": 4,
+        "capacity": 1536,
+        "bytes": 6144,
+        "resize_expression": "6 * assemblies",
+        "line": 121
+      },
+      "_profile_revisions": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "assemblies",
+        "line": 122
+      },
+      "_scratch": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 124
+      }
+    },
+    "two_bank_bytes": 10752,
+    "immutable_header_bytes": 232,
+    "immutable_rows_bytes": 8192,
+    "fixed_numeric_and_packed_bytes": 123,
+    "logical_helper_allowance_bytes": 1024,
+    "control_reserve_bytes": 2048,
+    "stream_reserved_bytes": 512,
+    "native_reserve_bytes": 8192,
+    "reserved_bytes": 29928,
+    "scope": "Separate explicit joint contribution; source-counted logical admission only. Native memory and composed persistence remain unqualified."
+  },
+  "haul_transfer_reservation": {
+    "packet_fields": {
+      "job": "Vector2i",
+      "worker": "Vector2i",
+      "source_lot": "Vector2i",
+      "source_container": "Vector2i",
+      "destination": "Vector2i",
+      "original_satchel": "Vector2i",
+      "arrived_lot": "Vector2i",
+      "staged_satchel": "Vector2i",
+      "action": "int",
+      "claim_row": "int",
+      "claim_count": "int",
+      "from_purpose": "int",
+      "to_purpose": "int",
+      "quantity_milli": "int",
+      "expiry_tick": "int",
+      "reserved_mass_g": "int",
+      "carry_limit_g": "int",
+      "item_id": "int",
+      "item_mass_g": "int",
+      "quality": "int",
+      "age_milli_hours": "int",
+      "age_remainder": "int",
+      "provenance": "int",
+      "recipe_id": "int",
+      "source_quantity_milli": "int",
+      "source_reserved_milli": "int",
+      "destination_reserved_g": "int"
+    },
+    "packet_bytes": 216,
+    "retained_packets": 2,
+    "pool_scope_members": {
+      "_haul_original": "HaulContract.Transfer",
+      "_haul_view": "HaulContract.Transfer",
+      "_haul_active": "bool",
+      "_haul_inventory": "Inventory",
+      "_haul_guard": "HaulContract",
+      "_haul_error": "StringName"
+    },
+    "fixed_numeric_bytes": 433,
+    "control_reserve_bytes": 512,
+    "logical_helper_allowance_bytes": 512,
+    "native_reserve_bytes": 2048,
+    "reserved_bytes": 3072,
+    "scope": "Separate ADR1141 per-world contribution; borrowed Delivery view already counted here. Source census and native allowances do not qualify runtime memory."
+  },
+  "connector_delivery_reservation": {
+    "retained_members": {
+      "_placements": "Placements",
+      "_frontier": "Frontier",
+      "_planner": "Planner",
+      "_provider": "WorldRoutes",
+      "_work": "RefCounted",
+      "_clock": "Clock",
+      "_order": "Placements.OrderRecord",
+      "_selection": "Profiles.Selection",
+      "_location": "Locations.Record",
+      "_box": "Profiles.Box",
+      "_number": "IntMath.IntResult",
+      "_decision_tick": "int",
+      "_action": "int",
+      "_quantity": "int",
+      "_grams": "int",
+      "_expiry": "int",
+      "_geometry_revision": "int",
+      "_frontier_revision": "int",
+      "_location_receipt": "int",
+      "_route_receipt": "int",
+      "_job_remaining": "int",
+      "_job_state": "int",
+      "_claim_row": "int",
+      "_checks": "int",
+      "_configured": "bool",
+      "_busy": "bool",
+      "_poisoned": "bool",
+      "_work_tick": "bool",
+      "_job": "Vector2i",
+      "_worker": "Vector2i",
+      "_project": "Vector2i",
+      "_placement": "Vector2i",
+      "_source_lot": "Vector2i",
+      "_source_container": "Vector2i",
+      "_destination": "Vector2i",
+      "_source_location": "Vector2i",
+      "_destination_location": "Vector2i",
+      "_frame": "PackedInt32Array",
+      "_install": "PackedInt32Array",
+      "_endpoint": "PackedInt32Array",
+      "_bounds": "PackedInt32Array",
+      "_support": "PackedInt32Array",
+      "_remaining": "PackedInt32Array"
+    },
+    "packed_cells": {
+      "_frame": 9,
+      "_install": 9,
+      "_endpoint": 7,
+      "_bounds": 6,
+      "_support": 6,
+      "_remaining": 1
+    },
+    "packet_bytes": {
+      "order": 96,
+      "selection": 168,
+      "location": 116,
+      "box": 32,
+      "number": 9
+    },
+    "fixed_numeric_and_packed_bytes": 753,
+    "work_new_numeric_bytes": 1,
+    "work_bindings": {
+      "_delivery_script": "Script",
+      "_spatial_delivery": "WeakRef",
+      "_handling_tick": "bool"
+    },
+    "logical_helper_allowance_bytes": 1024,
+    "native_reserve_bytes": 2048,
+    "declared_bytes": 3826,
+    "reserved_bytes": 4096,
+    "scope": "Separate ADR1140 per-world contribution. Reviewed coupled logical helper census817 fits1024; the borrowed216-byte Transfer is already charged in1141. No new gameplay bank; runtime memory remains unqualified."
+  },
+  "profile_motion_reservation": {
+    "source_sha256": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
+    "status": "SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification",
+    "bank_members": {
+      "ints": [
+        17421,
+        4
+      ],
+      "longs": [
+        67,
+        8
+      ],
+      "bytes": [
+        640,
+        1
+      ]
+    },
+    "one_bank_bytes": 70860,
+    "paired_bank_bytes": 141720,
+    "control_arrays": {
+      "_level_identity": 84,
+      "_level_config": 52,
+      "_level_digest": 32,
+      "_digest": 32
+    },
+    "numeric_members": {
+      "_world": 8,
+      "_world_pid": 8,
+      "_profile_revision": 8,
+      "_level_revision": 8,
+      "_admitted_bytes": 8,
+      "_revision": 8,
+      "_busy": 1,
+      "_poisoned": 1
+    },
+    "fixed_owner_payload": 250,
+    "shared_constant_elements": {
+      "GAIT_BASE": 7,
+      "GAIT_ROWS": 7,
+      "HANDOFF_BASE": 7,
+      "HANDOFF_ROWS": 7,
+      "HEADER": 20,
+      "BOUNDS": 6
+    },
+    "shared_constant_payload_conservatively_charged_per_owner": 432,
+    "own_chains": {
+      "configure": {
+        "bytes": 40,
+        "path": [
+          "configure",
+          "_pin_owners"
+        ],
+        "frames": {
+          "configure": 16,
+          "_pin_owners": 24
+        }
+      },
+      "load_file": {
+        "bytes": 136,
+        "path": [
+          "load_file",
+          "_validate_stage",
+          "_stage_supports",
+          "_support_span",
+          "_h"
+        ],
+        "frames": {
+          "load_file": 8,
+          "_validate_stage": 16,
+          "_stage_supports": 16,
+          "_support_span": 72,
+          "_h": 24
+        }
+      },
+      "packed_memory_bytes": {
+        "bytes": 0,
+        "path": [
+          "packed_memory_bytes"
+        ],
+        "frames": {
+          "packed_memory_bytes": 0
+        }
+      },
+      "admitted_bytes": {
+        "bytes": 0,
+        "path": [
+          "admitted_bytes"
+        ],
+        "frames": {
+          "admitted_bytes": 0
+        }
+      },
+      "content_revision": {
+        "bytes": 0,
+        "path": [
+          "content_revision"
+        ],
+        "frames": {
+          "content_revision": 0
+        }
+      },
+      "activation_refusal": {
+        "bytes": 0,
+        "path": [
+          "activation_refusal"
+        ],
+        "frames": {
+          "activation_refusal": 0
+        }
+      },
+      "program_into": {
+        "bytes": 48,
+        "path": [
+          "program_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "program_into": 32,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "identity_into": {
+        "bytes": 32,
+        "path": [
+          "identity_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "identity_into": 16,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "digest_into": {
+        "bytes": 40,
+        "path": [
+          "digest_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "digest_into": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "join_into": {
+        "bytes": 40,
+        "path": [
+          "join_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "join_into": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "clip_metadata_into": {
+        "bytes": 40,
+        "path": [
+          "clip_metadata_into",
+          "_h"
+        ],
+        "frames": {
+          "clip_metadata_into": 16,
+          "_h": 24
+        }
+      },
+      "source_into": {
+        "bytes": 48,
+        "path": [
+          "source_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "source_into": 32,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "phase_into": {
+        "bytes": 120,
+        "path": [
+          "phase_into",
+          "_key",
+          "_h"
+        ],
+        "frames": {
+          "phase_into": 72,
+          "_key": 24,
+          "_h": 24
+        }
+      },
+      "interval_box_into": {
+        "bytes": 128,
+        "path": [
+          "interval_box_into",
+          "_box_into",
+          "_h"
+        ],
+        "frames": {
+          "interval_box_into": 48,
+          "_box_into": 56,
+          "_h": 24
+        }
+      },
+      "interval_support_count": {
+        "bytes": 72,
+        "path": [
+          "interval_support_count",
+          "_interval_leaf",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "interval_support_count": 32,
+          "_interval_leaf": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "interval_support_into": {
+        "bytes": 144,
+        "path": [
+          "interval_support_into",
+          "interval_support_count",
+          "_interval_leaf",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "interval_support_into": 72,
+          "interval_support_count": 32,
+          "_interval_leaf": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "primitive_into": {
+        "bytes": 104,
+        "path": [
+          "primitive_into",
+          "_box_into",
+          "_h"
+        ],
+        "frames": {
+          "primitive_into": 24,
+          "_box_into": 56,
+          "_h": 24
+        }
+      },
+      "primitive_mapping_into": {
+        "bytes": 56,
+        "path": [
+          "primitive_mapping_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "primitive_mapping_into": 40,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      }
+    },
+    "maximum_own_declared_numeric_chain": 144,
+    "simultaneous_small_payload_allowance": 136,
+    "expression_result_allowance": 128,
+    "logical_and_helper_counted": 1090,
+    "logical_helper_reservation": 4096,
+    "decode": {
+      "maximum_requested_bytes": 4096,
+      "maximum_simultaneous_payload_windows": 1,
+      "other_headers_charged_above": true,
+      "lifetime": "Each _decode_payload frame owns every packed alias and returns only StringName; its frame ends before the next chunk call. No loop-local packed payload, full wire, JSON or to_byte_array copy. Hashing borrows the same payload."
+    },
+    "caller": {
+      "maximum_bytes": 176,
+      "lifetime": "One caller packet: largest single header160 or descriptor136. A descriptor136 plus phase36 plus one4-byte counter is176. No per-actor copy."
+    },
+    "native_provisional_reservation": 32768,
+    "native_inventory": [
+      "Motion RefCounted + two Bank wrappers",
+      "ten retained packed-array handles",
+      "six retained borrowed owner/Bank references",
+      "seven shared constant Array handles with54integer+3String elements",
+      "five shared64-character digest strings plus interned code constants",
+      "one FileAccess and one HashingContext during load",
+      "bounded header/slice/string/digest temporaries and interpreter frames"
+    ],
+    "native_measured": false,
+    "foreign_call_lifetime": "MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in51992, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.",
+    "profile_configuration": {
+      "profiles": 26,
+      "boxes": 250,
+      "sources": 1
+    },
+    "joint": {
+      "profiles": 51992,
+      "levels": 2292,
+      "paired_motion": 141720,
+      "decode": 4096,
+      "caller": 176,
+      "logical_helper": 4096,
+      "native": 32768,
+      "total": 237140,
+      "reservation": 262144,
+      "headroom": 25004,
+      "independent_maxima_total_refuses": 444284
+    },
+    "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
+  },
+  "source_approach_reservation": {
+    "base": "84acf74036484bd8ec4930895b7d0a96f8567937",
+    "retained": {
+      "underground_profiles": {
+        "member_count": 73,
+        "added_members": [],
+        "numeric_packed_delta": 0
+      },
+      "underground_routes": {
+        "member_count": 169,
+        "added_members": [],
+        "numeric_packed_delta": 0
+      },
+      "underground_world_routes": {
+        "member_count": 87,
+        "added_members": [],
+        "numeric_packed_delta": 0
+      },
+      "mole_profile_driver": {
+        "member_count": 24,
+        "added_members": [],
+        "numeric_packed_delta": 0
+      }
+    },
+    "allocations": {
+      "underground_profiles": {
+        "unchanged_resize_calls": [
+          [
+            "fields",
+            "profiles * I32_FIELDS)"
+          ],
+          [
+            "quantities",
+            "profiles * I64_FIELDS)"
+          ],
+          [
+            "flags",
+            "profiles * BYTE_FIELDS)"
+          ],
+          [
+            "boxes",
+            "volumes * 7)"
+          ],
+          [
+            "sources",
+            "bundles * 32)"
+          ],
+          [
+            "_identity",
+            "3)"
+          ],
+          [
+            "_query_values",
+            "5)"
+          ]
+        ]
+      },
+      "underground_routes": {
+        "unchanged_resize_calls": [
+          [
+            "fields",
+            "EDGE_FIELDS * edges)"
+          ],
+          [
+            "longs",
+            "EDGE_LONGS * edges)"
+          ],
+          [
+            "present",
+            "edges)"
+          ],
+          [
+            "retired",
+            "edges)"
+          ],
+          [
+            "free_rows",
+            "edges)"
+          ],
+          [
+            "ordered",
+            "edges)"
+          ],
+          [
+            "vertices",
+            "points * 3)"
+          ],
+          [
+            "resident",
+            "RESIDENT_FIELDS * RESIDENT_CAPACITY)"
+          ],
+          [
+            "resident_long",
+            "RESIDENT_LONGS * RESIDENT_CAPACITY)"
+          ],
+          [
+            "links",
+            "LINK_FIELDS * capacity)"
+          ],
+          [
+            "free_links",
+            "capacity)"
+          ],
+          [
+            "envelope",
+            "6)"
+          ],
+          [
+            "support",
+            "6)"
+          ],
+          [
+            "envelope",
+            "6)"
+          ],
+          [
+            "support",
+            "6)"
+          ],
+          [
+            "box",
+            "6)"
+          ],
+          [
+            "_catalog_extent",
+            "6)"
+          ],
+          [
+            "_candidate_bounds",
+            "6)"
+          ],
+          [
+            "_occupant_bounds",
+            "6)"
+          ],
+          [
+            "_distance",
+            "_location_capacity)"
+          ],
+          [
+            "_predecessor",
+            "_location_capacity)"
+          ],
+          [
+            "_heap_node",
+            "_location_capacity)"
+          ],
+          [
+            "_heap_position",
+            "_location_capacity)"
+          ],
+          [
+            "_search_state",
+            "_location_capacity)"
+          ],
+          [
+            "_proposed_edges",
+            "2 * _location_capacity)"
+          ],
+          [
+            "_occupancy_heads",
+            "_location_capacity)"
+          ],
+          [
+            "_occupancy_next",
+            "RESIDENT_CAPACITY)"
+          ],
+          [
+            "_occupancy_cell",
+            "3 * RESIDENT_CAPACITY)"
+          ],
+          [
+            "_occupancy_visit",
+            "RESIDENT_CAPACITY)"
+          ],
+          [
+            "_occupancy_bounds",
+            "6 * RESIDENT_CAPACITY)"
+          ],
+          [
+            "_occupancy_profile",
+            "RESIDENT_CAPACITY)"
+          ],
+          [
+            "points",
+            "3 * _vertex_capacity) # One explicitly charged reusable whole-edge packet; decision1075."
+          ]
+        ]
+      },
+      "underground_world_routes": {
+        "unchanged_resize_calls": [
+          [
+            "masks",
+            "EDGE_CAPACITY * MASK_BYTES)"
+          ],
+          [
+            "generations",
+            "EDGE_CAPACITY)"
+          ],
+          [
+            "geometry",
+            "EDGE_CAPACITY)"
+          ],
+          [
+            "content",
+            "EDGE_CAPACITY)"
+          ],
+          [
+            "fragments",
+            "6 * FRAGMENT_CAPACITY)"
+          ],
+          [
+            "next_fragments",
+            "6 * FRAGMENT_CAPACITY)"
+          ],
+          [
+            "box",
+            "6)"
+          ],
+          [
+            "cover",
+            "6)"
+          ],
+          [
+            "cut",
+            "6)"
+          ],
+          [
+            "core",
+            "6)"
+          ],
+          [
+            "_bounds",
+            "6)"
+          ],
+          [
+            "_support",
+            "6)"
+          ],
+          [
+            "_scratch",
+            "6)"
+          ],
+          [
+            "_first_point",
+            "3)"
+          ],
+          [
+            "_last_point",
+            "3)"
+          ],
+          [
+            "envelope",
+            "6)"
+          ],
+          [
+            "support",
+            "6)"
+          ],
+          [
+            "box",
+            "6)"
+          ]
+        ]
+      },
+      "mole_profile_driver": {
+        "unchanged_resize_calls": [
+          [
+            "_live",
+            "C_COUNT)"
+          ],
+          [
+            "_stage",
+            "C_COUNT)"
+          ],
+          [
+            "_durations",
+            "source.clip_count())"
+          ]
+        ]
+      }
+    },
+    "new_actor_columns": 0,
+    "new_banks": 0,
+    "runtime_native_qualified": false,
+    "source_program": {
+      "integer_constants": 16,
+      "integer_payload": 128,
+      "two_sha256_string_characters": 128,
+      "string_payload_bytes": 512,
+      "shared_counted_once": 640,
+      "cached_script_reference_native_headers": "within original provisional native/reference accounting; unmeasured"
+    },
+    "paths": {
+      "admit_cargo": {
+        "chain": [
+          "underground_routes:admit_travel_actor",
+          "underground_routes:_admit_actor",
+          "underground_routes:_qualify_actor_at",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_travel_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_cargo",
+          "haul_carry:carried_lot",
+          "haul_carry:satchel_of",
+          "haul_carry:_owns_live_satchel",
+          "inventory:is_satchel",
+          "inventory:is_container_valid"
+        ],
+        "declared_numeric_bytes": 584,
+        "expression_return_allowance": 48
+      },
+      "admit_tool": {
+        "chain": [
+          "underground_routes:admit_travel_actor",
+          "underground_routes:_admit_actor",
+          "underground_routes:_qualify_actor_at",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_travel_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_tool",
+          "gear:owner_of",
+          "gear:_resolve_row",
+          "gear:_resolve_row_by_lot_slot"
+        ],
+        "declared_numeric_bytes": 560,
+        "expression_return_allowance": 48
+      },
+      "refresh_cargo": {
+        "chain": [
+          "underground_routes:refresh_travel_actor",
+          "underground_routes:_refresh_actor",
+          "underground_routes:_qualify_actor_at",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_travel_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_cargo",
+          "haul_carry:carried_lot",
+          "haul_carry:satchel_of",
+          "haul_carry:_owns_live_satchel",
+          "inventory:is_satchel",
+          "inventory:is_container_valid"
+        ],
+        "declared_numeric_bytes": 568,
+        "expression_return_allowance": 48
+      },
+      "stationary_tick_cargo": {
+        "chain": [
+          "underground_routes:advance_tick",
+          "underground_routes:_advance_actor",
+          "underground_routes:_advance_stationary_source",
+          "underground_routes:_qualify_actor_at",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_travel_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_cargo",
+          "haul_carry:carried_lot",
+          "haul_carry:satchel_of",
+          "haul_carry:_owns_live_satchel",
+          "inventory:is_satchel",
+          "inventory:is_container_valid"
+        ],
+        "declared_numeric_bytes": 525,
+        "expression_return_allowance": 48
+      },
+      "stationary_tick_tool": {
+        "chain": [
+          "underground_routes:advance_tick",
+          "underground_routes:_advance_actor",
+          "underground_routes:_advance_stationary_source",
+          "underground_routes:_qualify_actor_at",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_travel_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_tool",
+          "gear:owner_of",
+          "gear:_resolve_row",
+          "gear:_resolve_row_by_lot_slot"
+        ],
+        "declared_numeric_bytes": 501,
+        "expression_return_allowance": 48
+      },
+      "stationary_clock_commit": {
+        "chain": [
+          "underground_routes:advance_tick",
+          "underground_routes:_advance_actor",
+          "underground_routes:_advance_stationary_source",
+          "source_program:advance",
+          "source_program:work_duration"
+        ],
+        "declared_numeric_bytes": 149,
+        "expression_return_allowance": 48
+      },
+      "root_source_commit": {
+        "chain": [
+          "underground_routes:advance_tick",
+          "underground_routes:_advance_actor",
+          "underground_routes:_commit_motion",
+          "underground_routes:_advance_source_motion_clock",
+          "source_program:clock"
+        ],
+        "declared_numeric_bytes": 114,
+        "expression_return_allowance": 48
+      },
+      "pure_work_ready": {
+        "chain": [
+          "underground_routes:source_work_leaf_refusal",
+          "underground_routes:_source_tuple_row",
+          "underground_routes:_source_clock_leaf",
+          "source_program:profile_refusal",
+          "underground_profiles:selection_policy_leaf"
+        ],
+        "declared_numeric_bytes": 272,
+        "expression_return_allowance": 48
+      },
+      "pure_ready": {
+        "chain": [
+          "underground_routes:source_ready_leaf_refusal",
+          "underground_routes:_source_tuple_row",
+          "underground_routes:_source_clock_leaf",
+          "source_program:profile_refusal",
+          "underground_profiles:selection_policy_leaf"
+        ],
+        "declared_numeric_bytes": 272,
+        "expression_return_allowance": 48
+      },
+      "pure_actor_phase": {
+        "chain": [
+          "underground_routes:actor_phase_in",
+          "underground_routes:_source_clock_leaf",
+          "source_program:profile_refusal",
+          "underground_profiles:selection_policy_leaf"
+        ],
+        "declared_numeric_bytes": 184,
+        "expression_return_allowance": 48
+      },
+      "observed_work_cargo": {
+        "chain": [
+          "underground_routes:source_work_observation_refusal",
+          "underground_routes:_current_profile_into",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_work_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_cargo",
+          "haul_carry:carried_lot",
+          "haul_carry:satchel_of",
+          "haul_carry:_owns_live_satchel",
+          "inventory:is_satchel",
+          "inventory:is_container_valid"
+        ],
+        "declared_numeric_bytes": 392,
+        "expression_return_allowance": 48
+      },
+      "visual_source_read": {
+        "chain": [
+          "mole_profile_driver:read_route_into",
+          "underground_routes:source_state_leaf_into",
+          "underground_routes:_source_tuple_row",
+          "underground_routes:_source_clock_leaf",
+          "source_program:profile_refusal",
+          "underground_profiles:selection_policy_leaf"
+        ],
+        "declared_numeric_bytes": 312,
+        "expression_return_allowance": 48
+      },
+      "visual_dynamic_cargo": {
+        "chain": [
+          "mole_profile_driver:read_route_into",
+          "underground_profiles:query_travel_profile_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_cargo",
+          "haul_carry:carried_lot",
+          "haul_carry:satchel_of",
+          "haul_carry:_owns_live_satchel",
+          "inventory:is_satchel",
+          "inventory:is_container_valid"
+        ],
+        "declared_numeric_bytes": 304,
+        "expression_return_allowance": 48
+      },
+      "visual_resolver": {
+        "chain": [
+          "mole_profile_driver:read_route_into",
+          "mole_profile_driver:_source_route_frames",
+          "source_program:walk_time"
+        ],
+        "declared_numeric_bytes": 96,
+        "expression_return_allowance": 48
+      }
+    },
+    "frames": {
+      "underground_routes:admit_travel_actor": {
+        "numeric_bytes": 72,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "location",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "family",
+            "int"
+          ],
+          [
+            "equipped_tool_hint",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_routes:_admit_actor": {
+        "numeric_bytes": 88,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "location",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "family",
+            "int"
+          ],
+          [
+            "hint",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:_qualify_actor_at": {
+        "numeric_bytes": 80,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "location",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "family",
+            "int"
+          ],
+          [
+            "hint",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:_actor_profile_into": {
+        "numeric_bytes": 72,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "family",
+            "int"
+          ],
+          [
+            "hint",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "out",
+            "Profiles.Selection"
+          ]
+        ]
+      },
+      "underground_profiles:query_travel_profile_into": {
+        "numeric_bytes": 72,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "connector_family",
+            "int"
+          ],
+          [
+            "equipped_tool_hint",
+            "Vector2i"
+          ],
+          [
+            "policy",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "out",
+            "Selection"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_profiles:_prepare_query": {
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "connector_family",
+            "int"
+          ],
+          [
+            "equipped_tool_hint",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "out",
+            "Selection"
+          ]
+        ]
+      },
+      "underground_profiles:_read_dynamic": {
+        "numeric_bytes": 40,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "hint",
+            "Vector2i"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "ids",
+            "Directory"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_profiles:_read_cargo": {
+        "numeric_bytes": 40,
+        "numeric_values": [
+          [
+            "_worker",
+            "Vector2i"
+          ],
+          [
+            "stored",
+            "Vector2i"
+          ],
+          [
+            "satchel",
+            "Vector2i"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "lot",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "haul_carry:carried_lot": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "hauler_slot",
+            "int"
+          ],
+          [
+            "satchel",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "haul_carry:satchel_of": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "hauler_slot",
+            "int"
+          ],
+          [
+            "satchel",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "haul_carry:_owns_live_satchel": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "hauler_slot",
+            "int"
+          ],
+          [
+            "satchel",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "inventory:is_satchel": {
+        "numeric_bytes": 8,
+        "numeric_values": [
+          [
+            "container_ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "inventory:is_container_valid": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "container_ref",
+            "Vector2i"
+          ],
+          [
+            "slot",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_profiles:_read_tool": {
+        "numeric_bytes": 40,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "hint",
+            "Vector2i"
+          ],
+          [
+            "tool",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "gear:owner_of": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "lot_ref",
+            "Vector2i"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "gear:_resolve_row": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "lot_ref",
+            "Vector2i"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "gear:_resolve_row_by_lot_slot": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "lot_slot",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_routes:refresh_travel_actor": {
+        "numeric_bytes": 64,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "family",
+            "int"
+          ],
+          [
+            "equipped_tool_hint",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_routes:_refresh_actor": {
+        "numeric_bytes": 80,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "family",
+            "int"
+          ],
+          [
+            "hint",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:advance_tick": {
+        "numeric_bytes": 24,
+        "numeric_values": [
+          [
+            "tick",
+            "int"
+          ],
+          [
+            "moved",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:_advance_actor": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "word",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:_advance_stationary_source": {
+        "numeric_bytes": 61,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "word",
+            "int"
+          ],
+          [
+            "clock",
+            "int"
+          ],
+          [
+            "phase",
+            "int"
+          ],
+          [
+            "time",
+            "int"
+          ],
+          [
+            "old",
+            "int"
+          ],
+          [
+            "queued",
+            "bool"
+          ],
+          [
+            "next",
+            "Vector3i"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "source_program:advance": {
+        "numeric_bytes": 40,
+        "numeric_values": [
+          [
+            "phase",
+            "int"
+          ],
+          [
+            "time",
+            "int"
+          ],
+          [
+            "old",
+            "int"
+          ],
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "end",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "source_program:work_duration": {
+        "numeric_bytes": 8,
+        "numeric_values": [
+          [
+            "profile",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_routes:_commit_motion": {
+        "numeric_bytes": 26,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "advanced",
+            "bool"
+          ],
+          [
+            "turned",
+            "bool"
+          ],
+          [
+            "entered",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_routes:_advance_source_motion_clock": {
+        "numeric_bytes": 32,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "word",
+            "int"
+          ],
+          [
+            "clock",
+            "int"
+          ],
+          [
+            "time",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "source_program:clock": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "time",
+            "int"
+          ],
+          [
+            "old",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      },
+      "underground_routes:source_work_leaf_refusal": {
+        "numeric_bytes": 56,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "word",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:_source_tuple_row": {
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "bank",
+            "MotionBank"
+          ]
+        ]
+      },
+      "underground_routes:_source_clock_leaf": {
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ],
+          [
+            "phase",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "source_program:profile_refusal": {
+        "numeric_bytes": 88,
+        "numeric_values": [
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ],
+          [
+            "wanted",
+            "int"
+          ],
+          [
+            "yaw",
+            "int"
+          ],
+          [
+            "stride",
+            "int"
+          ],
+          [
+            "source",
+            "int"
+          ],
+          [
+            "byte",
+            "int"
+          ],
+          [
+            "high",
+            "int"
+          ],
+          [
+            "low",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "Profiles"
+          ]
+        ]
+      },
+      "underground_profiles:selection_policy_leaf": {
+        "numeric_bytes": 32,
+        "numeric_values": [
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:source_ready_leaf_refusal": {
+        "numeric_bytes": 56,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "word",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:actor_phase_in": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:source_work_observation_refusal": {
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:_current_profile_into": {
+        "numeric_bytes": 8,
+        "numeric_values": [
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "out",
+            "Profiles.Selection"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_profiles:query_work_profile_into": {
+        "numeric_bytes": 64,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "connector_family",
+            "int"
+          ],
+          [
+            "equipped_tool_hint",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "out",
+            "Selection"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "mole_profile_driver:read_route_into": {
+        "numeric_bytes": 32,
+        "numeric_values": [
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "Routes"
+          ],
+          [
+            "out",
+            "Frame"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:source_state_leaf_into": {
+        "numeric_bytes": 64,
+        "numeric_values": [
+          [
+            "worker",
+            "Vector2i"
+          ],
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "content_revision",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "word",
+            "int"
+          ],
+          [
+            "clock",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "out",
+            "PackedInt64Array"
+          ]
+        ]
+      },
+      "mole_profile_driver:_source_route_frames": {
+        "numeric_bytes": 48,
+        "numeric_values": [
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "phase",
+            "int"
+          ],
+          [
+            "time",
+            "int"
+          ],
+          [
+            "clip",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": [
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "source_program:walk_time": {
+        "numeric_bytes": 16,
+        "numeric_values": [
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "time",
+            "int"
+          ]
+        ],
+        "borrowed_native_or_interned": []
+      }
+    },
+    "pure_api_inclusive_bytes": {
+      "pure_work_ready": 320,
+      "pure_ready": 320,
+      "pure_actor_phase": 232
+    },
+    "whole_numeric_peak_including_expression_allowance": 632,
+    "baseline_work_admission_numeric_bytes": 624,
+    "baseline_work_admission_chain": [
+      "underground_routes:admit_work_actor",
+      "underground_routes:_admit_actor",
+      "underground_routes:_qualify_actor_at",
+      "underground_routes:_actor_profile_into",
+      "underground_profiles:query_work_profile_into",
+      "underground_profiles:_prepare_query",
+      "underground_profiles:_read_dynamic",
+      "underground_profiles:_read_cargo",
+      "haul_carry:carried_lot",
+      "haul_carry:satchel_of",
+      "haul_carry:_owns_live_satchel",
+      "inventory:is_satchel",
+      "inventory:is_container_valid"
+    ],
+    "cold_profiles": {
+      "frames": {
+        "underground_profiles:load_file": {
+          "numeric_bytes": 8,
+          "numeric_values": [
+            [
+              "revision",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "path",
+              "String"
+            ],
+            [
+              "expected_sha256",
+              "String"
+            ],
+            [
+              "file",
+              "FileAccess"
+            ],
+            [
+              "digest_context",
+              "HashingContext"
+            ],
+            [
+              "code",
+              "StringName"
+            ],
+            [
+              "old",
+              "Bank"
+            ]
+          ]
+        },
+        "underground_profiles:_decode": {
+          "numeric_bytes": 32,
+          "numeric_values": [
+            [
+              "revision",
+              "int"
+            ],
+            [
+              "count",
+              "int"
+            ],
+            [
+              "boxes",
+              "int"
+            ],
+            [
+              "sources",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "file",
+              "FileAccess"
+            ],
+            [
+              "digest_context",
+              "HashingContext"
+            ],
+            [
+              "head",
+              "PackedByteArray"
+            ],
+            [
+              "code",
+              "StringName"
+            ],
+            [
+              "end",
+              "PackedByteArray"
+            ]
+          ]
+        },
+        "underground_profiles:_decode_rows": {
+          "numeric_bytes": 64,
+          "numeric_values": [
+            [
+              "version",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "byte",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "file",
+              "FileAccess"
+            ],
+            [
+              "digest_context",
+              "HashingContext"
+            ],
+            [
+              "source",
+              "PackedByteArray"
+            ],
+            [
+              "bytes",
+              "PackedByteArray"
+            ],
+            [
+              "bytes",
+              "PackedByteArray"
+            ]
+          ]
+        },
+        "underground_profiles:_read": {
+          "numeric_bytes": 8,
+          "numeric_values": [
+            [
+              "count",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "file",
+              "FileAccess"
+            ],
+            [
+              "digest_context",
+              "HashingContext"
+            ],
+            [
+              "bytes",
+              "PackedByteArray"
+            ]
+          ]
+        },
+        "underground_profiles:_validate_stage": {
+          "numeric_bytes": 40,
+          "numeric_values": [
+            [
+              "next_box",
+              "int"
+            ],
+            [
+              "same_key_count",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "order",
+              "int"
+            ],
+            [
+              "previous",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "underground_profiles:_profile_refusal": {
+          "numeric_bytes": 48,
+          "numeric_values": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "next_box",
+              "int"
+            ],
+            [
+              "mode",
+              "int"
+            ],
+            [
+              "policy",
+              "int"
+            ],
+            [
+              "states",
+              "int"
+            ],
+            [
+              "count",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "underground_profiles:_key_refusal": {
+          "numeric_bytes": 64,
+          "numeric_values": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "yaw_kind",
+              "int"
+            ],
+            [
+              "yaw",
+              "int"
+            ],
+            [
+              "item_field",
+              "int"
+            ],
+            [
+              "item",
+              "int"
+            ],
+            [
+              "variant",
+              "int"
+            ],
+            [
+              "minimum",
+              "int"
+            ],
+            [
+              "maximum",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:_roles_refusal": {
+          "numeric_bytes": 81,
+          "numeric_values": [
+            [
+              "profile",
+              "int"
+            ],
+            [
+              "first",
+              "int"
+            ],
+            [
+              "count",
+              "int"
+            ],
+            [
+              "mask",
+              "int"
+            ],
+            [
+              "points",
+              "int"
+            ],
+            [
+              "patches",
+              "int"
+            ],
+            [
+              "point_row",
+              "int"
+            ],
+            [
+              "patch_row",
+              "int"
+            ],
+            [
+              "row",
+              "int"
+            ],
+            [
+              "role",
+              "int"
+            ],
+            [
+              "working",
+              "bool"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "code",
+              "StringName"
+            ]
+          ]
+        },
+        "underground_profiles:_box_shape_refusal": {
+          "numeric_bytes": 56,
+          "numeric_values": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "role",
+              "int"
+            ],
+            [
+              "zero_axes",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ],
+            [
+              "low",
+              "int"
+            ],
+            [
+              "high",
+              "int"
+            ],
+            [
+              "expected",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:_contact_patch_refusal": {
+          "numeric_bytes": 48,
+          "numeric_values": [
+            [
+              "profile",
+              "int"
+            ],
+            [
+              "count",
+              "int"
+            ],
+            [
+              "point",
+              "int"
+            ],
+            [
+              "patch",
+              "int"
+            ],
+            [
+              "axis",
+              "int"
+            ],
+            [
+              "value",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:_field": {
+          "numeric_bytes": 16,
+          "numeric_values": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "bank",
+              "Bank"
+            ]
+          ]
+        },
+        "underground_profiles:_long": {
+          "numeric_bytes": 16,
+          "numeric_values": [
+            [
+              "row",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": [
+            [
+              "bank",
+              "Bank"
+            ]
+          ]
+        },
+        "underground_profiles:_compare_rows": {
+          "numeric_bytes": 48,
+          "numeric_values": [
+            [
+              "a",
+              "int"
+            ],
+            [
+              "b",
+              "int"
+            ],
+            [
+              "index",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ],
+            [
+              "left",
+              "int"
+            ],
+            [
+              "right",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:_overlap_keys": {
+          "numeric_bytes": 24,
+          "numeric_values": [
+            [
+              "a",
+              "int"
+            ],
+            [
+              "b",
+              "int"
+            ],
+            [
+              "field",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:_required_states": {
+          "numeric_bytes": 16,
+          "numeric_values": [
+            [
+              "mode",
+              "int"
+            ],
+            [
+              "main",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:content_revision": {
+          "numeric_bytes": 0,
+          "numeric_values": [],
+          "borrowed_native_or_interned": []
+        },
+        "underground_profiles:_key_field": {
+          "numeric_bytes": 8,
+          "numeric_values": [
+            [
+              "index",
+              "int"
+            ]
+          ],
+          "borrowed_native_or_interned": []
+        }
+      },
+      "sequential_frames_conservatively_summed": true,
+      "numeric_with_expression_allowance": 625,
+      "all_buffer_generations_and_string_payloads": {
+        "header": 32,
+        "header_slice": 8,
+        "header_ascii_string": 32,
+        "source_old_new": 64,
+        "profile_old_new": 196,
+        "box_old_new": 56,
+        "footer": 8,
+        "footer_ascii_string": 32,
+        "hash_result": 32,
+        "hex_string": 256,
+        "expected_lowercase_string": 256,
+        "key_literal": 16
+      },
+      "payload_ceiling": 1024,
+      "total": 1649
+    },
+    "profile_control": {
+      "existing_fixed_packets": 326,
+      "new_shared_source_payload": 640,
+      "complete_profile_integer_constants": 552,
+      "profile_null_ref_constant": 8,
+      "new_driver_constant": 8,
+      "complete_numeric_stack": 632,
+      "cold_or_hot_peak": 1649,
+      "counted_subtotal": 3183,
+      "bounded_logical_slice": 4096,
+      "unchanged_helper_native_reserve": 32768,
+      "remaining_provisional_native_slice": 28672
+    },
+    "joint": {
+      "terms": {
+        "paired_profiles": 19224,
+        "profile_controls": 32768,
+        "levels": 2292,
+        "paired_motion": 141720,
+        "decode": 4096,
+        "motion_caller": 176,
+        "motion_helpers": 4096,
+        "motion_native_provisional": 32768,
+        "session": 1536,
+        "retirement": 8192
+      },
+      "total": 246868,
+      "reservation": 262144,
+      "remaining": 15276,
+      "profiles": 26,
+      "boxes": 250,
+      "source_count": 1,
+      "current_consumer_scripts": 9,
+      "retirement_source_sha256": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+      "coherent_current_catalog_motion_binding": "root-owned integration prerequisite; not inferred from this arithmetic"
+    },
+    "presentation": {
+      "one_existing_actor_content_admitted_peak": 7141920,
+      "actor_content_delta": 0,
+      "driver_pin_scalars": 54,
+      "driver_duration_scalars": 14,
+      "live_and_stage_scalars": 24,
+      "caller_source_state_reuses_driver_stage": true,
+      "new_actor_or_content_copy": false,
+      "unchanged_cold_descriptor_bytes_each": 184,
+      "source_profile_matches_nested_descriptor": "existing184B actual ActorContent descriptor plus32B digest and64-character hex output; unchanged presentation/foreign caller lifetime"
+    },
+    "source_sha256": {
+      "godot/scripts/core/gear.gd": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "godot/scripts/core/haul_carry.gd": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
+      "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+      "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+      "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+      "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+      "godot/scripts/core/underground_world_routes.gd": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f"
+    },
+    "limits": [
+      "Logical scalar/payload accounting only; StringName/Variant/native frames remain provisional.",
+      "The512 pure API slice does not account a foreign Contacts/provider caller; its owner adds those frames.",
+      "No new total reservation; full new Profile caller chain is counted inside existing32768 controls.",
+      "Graph/Space proof arenas and cold lifetimes are unchanged; no new snapshot or search cache."
+    ],
+    "additional_reserved_bytes": 0,
+    "portable_enforcement": {
+      "witness_sha256": {
+        "docs/validation/evidence/underground-work-approach-2026-10-04/census.py": "dc9ae8a01583d44391ef95ae9b0314064dd6ac6ea6a38a8164f83bba39019b75",
+        "docs/validation/evidence/underground-work-approach-2026-10-04/census.json": "4a85ab69a8cc002416990b4e720840149e5e69ce90daca8341ad629109fd47e2",
+        "docs/validation/evidence/underground-work-approach-2026-10-04/supporting/retirement-source.gd.txt": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+        "docs/validation/evidence/underground-approach-memory-2026-10-04/predecessors.json": "9ec7f83583ba3a6f7e474145c037db5ca91e56f618e937d7ab4db60ac2d46660",
+        "docs/validation/evidence/underground-approach-memory-2026-10-04/foreign-frames.json": "b200d2d822504669582df54e1b481b8e3c9592d70045534102a2a65a36a78dec"
+      },
+      "current_text_overrides_honored": true,
+      "git_or_subprocess_required": false,
+      "whole_reviewed_call_graph_modules": [
+        "underground_profiles",
+        "underground_routes",
+        "underground_world_routes",
+        "mole_profile_driver",
+        "source_program"
+      ],
+      "foreign_frame_sha256": {
+        "gear:_resolve_row": "ba6c129eef716a9e613cc7ee05de894313c69e7bf225a71b82529e5c2837447b",
+        "gear:_resolve_row_by_lot_slot": "1ead120279509fcc86585f66d48dcae8b39cea78061bdc15fa4fc914a0aaca52",
+        "gear:owner_of": "c9569705042a0c92fa97783c07637263a05b1f6f356e286923d7f149531d4dc3",
+        "haul_carry:_owns_live_satchel": "0bb4d8ff0582a1eb5079aef5f3b7c01e6fb70bb72f08153b7962d7d056c2367b",
+        "haul_carry:carried_lot": "b9728716a15f2ad21525393f92a8780b1f35fdc5db192d029bc0f07ee0f45077",
+        "haul_carry:satchel_of": "7c87e65e50970246367f20db46131ece60658bd5af7083cc0a41f04ef69815f0",
+        "inventory:is_container_valid": "4bb7297b7a386cbd5268705893549ae43fbe67c91ef1b75d2bdfc6991047fb6b",
+        "inventory:is_satchel": "3b25054f8f01a3c14cc47ea14c63aea7fa7aa7a06cbd769f689c1a576d2238f8"
+      },
+      "current_joint_source_sha256": {
+        "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+        "godot/data/underground/mole-worker/mole_profile_catalog.gd": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+        "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+        "godot/scripts/core/underground_motion_catalog.gd": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
+        "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+        "godot/scripts/core/underground_world_retirement.gd": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+        "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779"
+      },
+      "motion_joint_before_session_and_retirement": {
+        "profiles": 51992,
+        "levels": 2292,
+        "paired_motion": 141720,
+        "decode": 4096,
+        "caller": 176,
+        "logical_helper": 4096,
+        "native": 32768,
+        "total": 237140,
+        "reservation": 262144,
+        "headroom": 25004,
+        "independent_maxima_total_refuses": 444284
+      },
+      "source_policy": "Changed reviewed calls, allocations, or frames require explicit recount; foreign unrelated methods may change.",
+      "scope": "Logical existing reservation enforcement only; no native RAM, presentation, route, or World qualification."
+    }
+  },
+  "motion_clock_reservation": {
+    "clock_source_sha256": "fc399a6d36c36422cf9052ccf053031fb96b17e3b12bd572271662b3e7f33edf",
+    "motion_source_sha256": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
+    "scope": "Logical source census only; no native allocation, route or presentation qualification",
+    "retained_fields_or_banks": 0,
+    "accepted_variant_payload_bytes": 32,
+    "own_numeric_frames": {
+      "sample_into": 56,
+      "_duration": 8
+    },
+    "maximum_own_numeric_chain": 64,
+    "existing_motion_phase_numeric_chain": 120,
+    "composed_phase_numeric_chain": 176,
+    "numeric_constant_bytes": 16,
+    "additional_expression_allowance": 128,
+    "additional_logical_counted": 208,
+    "additional_helper_ceiling": 256,
+    "existing_motion_logical_counted": 1090,
+    "combined_logical_counted": 1298,
+    "combined_with_full_helper_ceiling": 1346,
+    "shared_logical_helper_reservation": 4096,
+    "clock_caller_bytes": 44,
+    "shared_caller_reservation": 176,
+    "joint": {
+      "profiles": 51992,
+      "levels": 2292,
+      "paired_motion": 141720,
+      "decode": 4096,
+      "caller": 176,
+      "logical_helper": 4096,
+      "native": 32768,
+      "total": 237140,
+      "reservation": 262144,
+      "headroom": 25004,
+      "independent_maxima_total_refuses": 444284
+    },
+    "native_measured": false,
+    "native_additions_within_existing_provisional_32768": [
+      "One shared Script/preload and one 64-character source digest, no instantiated clock",
+      "Interned StringNames, two shared numeric constants, and bounded interpreter frames",
+      "Four transient Variant command slots (numeric payload counted above; representation overhead remains native)",
+      "Borrowed Motion and two caller packed-array handles; no retained or duplicated buffers"
+    ],
+    "lifetime": "One synchronous caller; no resident clock. Motion phase frame and clock frame coexist. The existing maximum Motion chain is conservatively retained in the total, plus the entire clock-only maximum. The clock 44-byte output replaces, rather than adds to, the existing 176-byte caller ceiling."
+  },
+  "session_reservation": {
+    "source_sha256": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+    "retained_numeric_bytes": 27,
+    "strong_reference_or_alias_members": 24,
+    "additional_retirement_reference_slots_charged_separately": 2,
+    "own_packed_columns": 0,
+    "own_variable_bank_bytes": 0,
+    "control_reservation_bytes": 1024,
+    "provisional_reference_native_header_bytes_in_control": 997,
+    "helper_reservation_bytes": 512,
+    "own_longest_numeric_and_name_chain_bytes": 55,
+    "own_longest_numeric_and_name_chain": [
+      "retire_foundation",
+      "reset_refusal",
+      "_current_refusal",
+      "_observe_current",
+      "_original_refusal",
+      "_owners_refusal",
+      "_world_identity_refusal"
+    ],
+    "own_longest_borrowed_reference_chain_values": 28,
+    "own_longest_borrowed_reference_chain": [
+      "configure",
+      "_borrow"
+    ],
+    "references_are_not_measured_native_bytes": true,
+    "own_total_slice_bytes": 1536,
+    "slice_source": "existing PROFILE_BYTES; no global reserve increase",
+    "existing_profile_paired_plus_control_bytes": 51992,
+    "existing_level_bytes": 2292,
+    "foundation_profile_level_session_bytes": 55820,
+    "source_counted_motion_joint_before_session_bytes": 237140,
+    "profile_level_motion_session_joint_bytes": 238676,
+    "profile_envelope_bytes": 262144,
+    "joint_remaining_bytes": 23468,
+    "sequential_foundation_allocations": {
+      "Space.Domain": 1,
+      "Budget": 1,
+      "Routes": 1,
+      "Owner.CoreSources": 1,
+      "Owner": 1,
+      "Terrain": 1,
+      "Levels": 1,
+      "Profiles": 1
+    },
+    "retirement_allocations_charged_separately": {
+      "Retirement.Owners": 1,
+      "Retirement.Scope": 1
+    },
+    "frames": {
+      "configure": {
+        "numeric_and_name_bytes": 16,
+        "borrowed_reference_values": 14,
+        "own_calls": [
+          "_borrow",
+          "_finish",
+          "_initial_authority_refusal",
+          "_input_refusal",
+          "_prepare"
+        ],
+        "returns": "StringName"
+      },
+      "_borrow": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 14,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "_input_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_initial_authority_refusal",
+          "_owners_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_owners_refusal": {
+        "numeric_and_name_bytes": 1,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_equipment_refusal",
+          "_world_identity_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_equipment_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_world_identity_refusal": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_initial_authority_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_prepare": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_content_refusal",
+          "_observe_current",
+          "_original_refusal",
+          "_prepare_catalogs",
+          "_prepare_space"
+        ],
+        "returns": "StringName"
+      },
+      "_prepare_space": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_original_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_prepare_catalogs": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_original_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_content_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_original_refusal": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_owners_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_observe_current": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_content_refusal",
+          "_foundation_refusal",
+          "_original_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_foundation_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_profile_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_profile_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_finish": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_build_retirement_owners",
+          "_drop_borrowed",
+          "_drop_foundations"
+        ],
+        "returns": "StringName"
+      },
+      "_drop_foundations": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "_drop_borrowed": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "current_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_current_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_current_refusal": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_observe_current"
+        ],
+        "returns": "StringName"
+      },
+      "_build_retirement_owners": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "_retirement_packet_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 1,
+        "own_calls": [
+          "_operational_retirement_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_operational_retirement_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 1,
+        "own_calls": [
+          "_initial_authority_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "retirement_observation_refusal": {
+        "numeric_and_name_bytes": 1,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_current_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "prepare_retirement": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 1,
+        "own_calls": [
+          "_foundation_refusal",
+          "_original_refusal",
+          "_retirement_packet_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "release_retirement": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 1,
+        "own_calls": [
+          "_drop_borrowed",
+          "_drop_foundations",
+          "_retirement_packet_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_discard_retirement_on_host_free": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 1,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "abandon_retirement": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 1,
+        "own_calls": [
+          "_retirement_packet_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "reset_refusal": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_current_refusal",
+          "_initial_authority_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "retire_foundation": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_drop_borrowed",
+          "_drop_foundations",
+          "reset_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "space_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Owner"
+      },
+      "source_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Owner.CoreSources"
+      },
+      "terrain_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Terrain"
+      },
+      "level_catalog": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Levels"
+      },
+      "profile_catalog": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Profiles"
+      },
+      "route_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Routes"
+      },
+      "cold_budget": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Budget"
+      }
+    },
+    "native_memory_qualified": false,
+    "runtime_activation_qualified": false,
+    "scope": "One host-lifetime Session; underlying owners charged once in their existing reservations"
+  },
+  "host_retirement_reservation": {
+    "scope": "Actual host/Session source composition; no measured native or operational Room mount claim",
+    "source_sha256": {
+      "godot/scripts/core/underground_world_retirement.gd": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+      "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+      "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+      "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+      "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+      "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+      "godot/scripts/systems/settlement_system.gd": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5"
+    },
+    "original_session_numeric_bytes": 27,
+    "original_session_reference_slots": 24,
+    "original_session_reserved_bytes": 1536,
+    "session_added_reference_slots": 2,
+    "host_added_numeric_bytes": 8,
+    "packed_bank_delta": 0,
+    "simultaneous_scope_owners_reference_slots": 85,
+    "joint_numeric_bytes": 84,
+    "joint_reference_slots": 111,
+    "frames": {
+      "Buildings.whole_world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 25,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Buildings.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 3,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in"
+        ],
+        "returns": "StringName"
+      },
+      "Buildings.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 3,
+        "calls": [
+          "Buildings.world_retirement_refusal_in"
+        ],
+        "returns": "StringName"
+      },
+      "Construction._retirement_authority_matches": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Construction.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 4,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in",
+          "Construction._retirement_authority_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Construction.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 4,
+        "calls": [
+          "Construction.world_retirement_refusal_in"
+        ],
+        "returns": "StringName"
+      },
+      "Host._clear_counters": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [
+          "Host._clear_stock_integrity_fault"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Host._clear_stock_integrity_fault": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Host._clear_stock_layer": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Host._clear_stores": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [
+          "Host._clear_stock_layer"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Host._mounted_underground_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Host._notification": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Session._discard_retirement_on_host_free"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Host._refuse": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "bool",
+        "implicit_self_counted": true
+      },
+      "Host._release_critical_pause": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Host._release_underground_after_clear": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 2,
+        "calls": [
+          "Host._mounted_underground_refusal",
+          "Host._refuse",
+          "Session.release_retirement"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true
+      },
+      "Host._retirement_project_refusal": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "DemolitionReport",
+        "implicit_self_counted": true
+      },
+      "Host.abandon_world_reset": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 2,
+        "calls": [
+          "Host._mounted_underground_refusal",
+          "Host._refuse",
+          "Session.abandon_retirement"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true
+      },
+      "Host.prepare_world_reset": {
+        "numeric_and_name_bytes": 10,
+        "reference_values": 2,
+        "calls": [
+          "Host._mounted_underground_refusal",
+          "Host._refuse",
+          "Session.prepare_retirement",
+          "Session.retirement_observation_refusal"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true
+      },
+      "Host.reset": {
+        "numeric_and_name_bytes": 2,
+        "reference_values": 1,
+        "calls": [
+          "Host._clear_counters",
+          "Host._clear_stores",
+          "Host._release_critical_pause",
+          "Host._release_underground_after_clear",
+          "Host.prepare_world_reset"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true
+      },
+      "Host.underground_content": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "UndergroundContent",
+        "implicit_self_counted": true
+      },
+      "Host.underground_session": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "UndergroundSession",
+        "implicit_self_counted": true
+      },
+      "Inventory._retirement_empty_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Inventory.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 4,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in",
+          "Inventory._retirement_empty_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Inventory.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 4,
+        "calls": [
+          "Inventory.world_retirement_refusal_in"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._base_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._capture_sources": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void"
+      },
+      "Retirement._catalog_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 4,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Retirement._connector_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._copy_owners": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._copy_owners_0",
+          "Retirement._copy_owners_1",
+          "Retirement._copy_owners_2",
+          "Retirement._copy_owners_3"
+        ],
+        "returns": "void"
+      },
+      "Retirement._copy_owners_0": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void"
+      },
+      "Retirement._copy_owners_1": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void"
+      },
+      "Retirement._copy_owners_2": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void"
+      },
+      "Retirement._copy_owners_3": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void"
+      },
+      "Retirement._entry_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Retirement._entry_world_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Retirement._foundation_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._profile_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._handling_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Retirement._leaves": {
+        "numeric_and_name_bytes": 25,
+        "reference_values": 2,
+        "calls": [
+          "Buildings.world_retirement_refusal_in",
+          "Construction.world_retirement_refusal_in",
+          "Inventory.world_retirement_refusal_in",
+          "Work.world_retirement_refusal_in"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._live_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._leaves"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._location_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._original_sources_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Retirement._owners_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._base_refusal",
+          "Retirement._connector_refusal",
+          "Retirement._foundation_refusal",
+          "Retirement._handling_refusal",
+          "Retirement._location_refusal",
+          "Retirement._phase_refusal",
+          "Retirement._placement_refusal",
+          "Retirement._project_refusal",
+          "Retirement._room_refusal",
+          "Retirement._route_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._phase_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches",
+          "Retirement._world_binding_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._placement_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._prepared_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._live_refusal",
+          "Retirement._original_sources_refusal",
+          "Retirement._owners_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._profile_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Retirement._project_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._room_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._entry_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._route_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._catalog_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement._same_owners": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._same_owners_0",
+          "Retirement._same_owners_1",
+          "Retirement._same_owners_2",
+          "Retirement._same_owners_3"
+        ],
+        "returns": "bool"
+      },
+      "Retirement._same_owners_0": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Retirement._same_owners_1": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Retirement._same_owners_2": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Retirement._same_owners_3": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Retirement._weak_matches": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Retirement._world_binding_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._entry_world_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement.cleared_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 3,
+        "calls": [
+          "Retirement._leaves",
+          "Retirement._original_sources_refusal",
+          "Retirement._owners_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement.prepare_into": {
+        "numeric_and_name_bytes": 25,
+        "reference_values": 4,
+        "calls": [
+          "Retirement._capture_sources",
+          "Retirement._copy_owners",
+          "Retirement._live_refusal",
+          "Retirement._owners_refusal",
+          "Retirement._prepared_refusal",
+          "Retirement._same_owners"
+        ],
+        "returns": "StringName"
+      },
+      "Retirement.release_preflighted": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 4,
+        "calls": [
+          "Buildings.world_retirement_release_preflighted_in",
+          "Construction.world_retirement_release_preflighted_in",
+          "Inventory.world_retirement_release_preflighted_in",
+          "Retirement.cleared_refusal",
+          "Work.world_retirement_release_preflighted_in"
+        ],
+        "returns": "StringName"
+      },
+      "Session._build_retirement_owners": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Session._content_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._current_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Session._observe_current"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._discard_retirement_on_host_free": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Session._drop_borrowed": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Session._drop_foundations": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true
+      },
+      "Session._equipment_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._foundation_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Session._profile_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._initial_authority_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._observe_current": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Session._content_refusal",
+          "Session._foundation_refusal",
+          "Session._original_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._operational_retirement_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Session._initial_authority_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._original_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Session._owners_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._owners_refusal": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 1,
+        "calls": [
+          "Session._equipment_refusal",
+          "Session._world_identity_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._profile_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._retirement_packet_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Session._operational_retirement_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session._world_identity_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session.abandon_retirement": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 2,
+        "calls": [
+          "Retirement.prepare_into",
+          "Session._retirement_packet_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session.prepare_retirement": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 2,
+        "calls": [
+          "Retirement.prepare_into",
+          "Session._foundation_refusal",
+          "Session._original_refusal",
+          "Session._retirement_packet_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session.release_retirement": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 2,
+        "calls": [
+          "Retirement.release_preflighted",
+          "Session._drop_borrowed",
+          "Session._drop_foundations",
+          "Session._retirement_packet_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Session.retirement_observation_refusal": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 1,
+        "calls": [
+          "Session._current_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true
+      },
+      "Work._retirement_authority_matches": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool"
+      },
+      "Work._retirement_empty_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Work._retirement_participant_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Work._retirement_participant_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName"
+      },
+      "Work.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 6,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in",
+          "Work._retirement_authority_matches",
+          "Work._retirement_empty_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "Work.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 6,
+        "calls": [
+          "Work.world_retirement_refusal_in"
+        ],
+        "returns": "StringName"
+      }
+    },
+    "maximum_numeric_bytes": 170,
+    "maximum_numeric_chain": [
+      "Host.reset",
+      "Host.prepare_world_reset",
+      "Session.prepare_retirement",
+      "Retirement.prepare_into",
+      "Retirement._prepared_refusal",
+      "Retirement._live_refusal",
+      "Retirement._leaves",
+      "Buildings.world_retirement_refusal_in",
+      "Buildings.whole_world_retirement_refusal_in"
+    ],
+    "maximum_reference_values": 23,
+    "maximum_reference_chain": [
+      "Host.reset",
+      "Host._release_underground_after_clear",
+      "Session.release_retirement",
+      "Retirement.release_preflighted",
+      "Work.world_retirement_release_preflighted_in",
+      "Work.world_retirement_refusal_in",
+      "Work._retirement_authority_matches"
+    ],
+    "existing_owner_boundaries": {
+      "Session._content_refusal": [
+        "Catalog.runtime_sources_refusal",
+        "Catalog.content_refusal"
+      ],
+      "Session._observe_current": [
+        "Levels.binding_matches",
+        "Terrain.binding_refusal"
+      ],
+      "Host._clear_stores": [
+        "existing concrete store clear/reset methods"
+      ],
+      "Host._clear_stock_layer": [
+        "Inventory.clear",
+        "Items.load_default",
+        "StockAge.clear"
+      ],
+      "Host._release_critical_pause": [
+        "existing SimClock critical-pause release"
+      ]
+    },
+    "accounting": {
+      "retirement_reserved_bytes": 8192,
+      "control_slice": 6144,
+      "helper_slice": 2048,
+      "control_provisional_bytes": 5673,
+      "control_remaining": 471,
+      "helper_provisional_bytes": 1162,
+      "helper_remaining": 886,
+      "reference_bytes_assumed": 32,
+      "existing_three_objects_bytes_assumed": 768,
+      "existing_native_symbol_bytes_assumed": 2048,
+      "helper_expression_bytes_assumed": 256,
+      "profile_ceiling": 262144,
+      "parent_1156_joint_bytes": 238676,
+      "joint_with_retirement": 246868,
+      "joint_remaining_bytes": 15276
+    },
+    "lifetime": "One permanent Session-owned caller Owners plus one private Scope and its fixed Owners copy; the original Session1536 is charged once, and the two new references/host integer are in retirement8192. All own selected call frames include implicit self and reference-valued returns; complete accepted1155 static owner frames are composed. Original cold source checking and store-clear internals keep their existing owner reservations, with each caller prefix included here. No new source image is decoded/copied.",
+    "native_measured": false,
+    "runtime_qualified": false,
+    "current_joint_source_derived": true
+  },
+  "ui_reset_reservation": {
+    "scope": "bounded presentation reset caller over accepted actual host; no runtime/native activation claim",
+    "source_sha256": {
+      "godot/scripts/systems/ui_manager.gd": "3cf277da410c6b45bb19800a9db8a42cb97f735342d3ab38739a143a6e52d59b",
+      "godot/scripts/ui/ui_world_session.gd": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
+    },
+    "retained_numeric_name_delta": 18,
+    "outcome_numeric_name_bytes": 16,
+    "new_numeric_name_constants": 32,
+    "maximum_simultaneous_outcome_objects": 1,
+    "object_chain": [
+      "Form.create_with_cohort_into",
+      "Form._preflight_cohort_world",
+      "Form._report_refusal"
+    ],
+    "maximum_numeric_name_bytes": 186,
+    "numeric_chain": [
+      "UI.create_world",
+      "UI._create_world_after_abandon",
+      "UI._materialize_after_create",
+      "UI._cleanup_failed_create",
+      "UI._reset_for_create_into",
+      "Host.reset",
+      "Host.prepare_world_reset",
+      "Session.prepare_retirement",
+      "Retirement.prepare_into",
+      "Retirement._prepared_refusal",
+      "Retirement._live_refusal",
+      "Retirement._leaves",
+      "Buildings.world_retirement_refusal_in",
+      "Buildings.whole_world_retirement_refusal_in"
+    ],
+    "maximum_reference_values": 45,
+    "reference_chain": [
+      "UI.create_world",
+      "UI._create_world_after_abandon",
+      "Form.create_with_cohort_into",
+      "UI._reset_for_create_into",
+      "Host.reset",
+      "Host._release_underground_after_clear",
+      "Session.release_retirement",
+      "Retirement.release_preflighted",
+      "Work.world_retirement_release_preflighted_in",
+      "Work.world_retirement_refusal_in",
+      "Work._retirement_authority_matches"
+    ],
+    "frames": {
+      "Buildings.whole_world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 25,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Buildings.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 3,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Buildings.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 3,
+        "calls": [
+          "Buildings.world_retirement_refusal_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Construction._retirement_authority_matches": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Construction.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 4,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in",
+          "Construction._retirement_authority_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Construction.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 4,
+        "calls": [
+          "Construction.world_retirement_refusal_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Form._preflight_cohort_world": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 5,
+        "calls": [
+          "Form._report_refusal"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Form._publish_cohort_world": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 5,
+        "calls": [
+          "Form._report_refusal"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Form._report_refusal": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 3,
+        "calls": [],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Form.create_with_cohort_into": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 15,
+        "calls": [
+          "Form._preflight_cohort_world",
+          "Form._publish_cohort_world",
+          "Form._report_refusal",
+          "Form.record_reset_outcome",
+          "UI._reset_for_create_into"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 1
+      },
+      "Form.record_reset_outcome": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 3,
+        "calls": [],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Form.refuse_create": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 3,
+        "calls": [
+          "Form._report_refusal"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Form.refuse_published_world": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 3,
+        "calls": [
+          "Form._report_refusal"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._clear_counters": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [
+          "Host._clear_stock_integrity_fault"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._clear_stock_integrity_fault": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._clear_stock_layer": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._clear_stores": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [
+          "Host._clear_stock_layer"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._mounted_underground_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._refuse": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._release_critical_pause": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host._release_underground_after_clear": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 2,
+        "calls": [
+          "Host._mounted_underground_refusal",
+          "Host._refuse",
+          "Session.release_retirement"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host.abandon_world_reset": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 2,
+        "calls": [
+          "Host._mounted_underground_refusal",
+          "Host._refuse",
+          "Session.abandon_retirement"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host.prepare_world_reset": {
+        "numeric_and_name_bytes": 10,
+        "reference_values": 2,
+        "calls": [
+          "Host._mounted_underground_refusal",
+          "Host._refuse",
+          "Session.prepare_retirement",
+          "Session.retirement_observation_refusal"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host.reset": {
+        "numeric_and_name_bytes": 2,
+        "reference_values": 1,
+        "calls": [
+          "Host._clear_counters",
+          "Host._clear_stores",
+          "Host._release_critical_pause",
+          "Host._release_underground_after_clear",
+          "Host.prepare_world_reset"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Host.underground_content": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "UndergroundContent",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Inventory._retirement_empty_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Inventory.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 4,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in",
+          "Inventory._retirement_empty_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Inventory.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 4,
+        "calls": [
+          "Inventory.world_retirement_refusal_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._base_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._capture_sources": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void",
+        "allocations": 0
+      },
+      "Retirement._catalog_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 4,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._connector_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._copy_owners": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._copy_owners_0",
+          "Retirement._copy_owners_1",
+          "Retirement._copy_owners_2",
+          "Retirement._copy_owners_3"
+        ],
+        "returns": "void",
+        "allocations": 0
+      },
+      "Retirement._copy_owners_0": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void",
+        "allocations": 0
+      },
+      "Retirement._copy_owners_1": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void",
+        "allocations": 0
+      },
+      "Retirement._copy_owners_2": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void",
+        "allocations": 0
+      },
+      "Retirement._copy_owners_3": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "void",
+        "allocations": 0
+      },
+      "Retirement._entry_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._entry_world_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._foundation_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._profile_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._handling_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._leaves": {
+        "numeric_and_name_bytes": 25,
+        "reference_values": 2,
+        "calls": [
+          "Buildings.world_retirement_refusal_in",
+          "Construction.world_retirement_refusal_in",
+          "Inventory.world_retirement_refusal_in",
+          "Work.world_retirement_refusal_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._live_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._leaves"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._location_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._original_sources_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._owners_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._base_refusal",
+          "Retirement._connector_refusal",
+          "Retirement._foundation_refusal",
+          "Retirement._handling_refusal",
+          "Retirement._location_refusal",
+          "Retirement._phase_refusal",
+          "Retirement._placement_refusal",
+          "Retirement._project_refusal",
+          "Retirement._room_refusal",
+          "Retirement._route_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._phase_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches",
+          "Retirement._world_binding_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._placement_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._prepared_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._live_refusal",
+          "Retirement._original_sources_refusal",
+          "Retirement._owners_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._profile_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._project_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._room_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Retirement._entry_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._route_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._catalog_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement._same_owners": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._same_owners_0",
+          "Retirement._same_owners_1",
+          "Retirement._same_owners_2",
+          "Retirement._same_owners_3"
+        ],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Retirement._same_owners_0": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Retirement._same_owners_1": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Retirement._same_owners_2": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Retirement._same_owners_3": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Retirement._weak_matches": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Retirement._world_binding_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Retirement._entry_world_refusal",
+          "Retirement._weak_matches"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement.cleared_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 3,
+        "calls": [
+          "Retirement._leaves",
+          "Retirement._original_sources_refusal",
+          "Retirement._owners_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement.prepare_into": {
+        "numeric_and_name_bytes": 25,
+        "reference_values": 4,
+        "calls": [
+          "Retirement._capture_sources",
+          "Retirement._copy_owners",
+          "Retirement._live_refusal",
+          "Retirement._owners_refusal",
+          "Retirement._prepared_refusal",
+          "Retirement._same_owners"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Retirement.release_preflighted": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 4,
+        "calls": [
+          "Buildings.world_retirement_release_preflighted_in",
+          "Construction.world_retirement_release_preflighted_in",
+          "Inventory.world_retirement_release_preflighted_in",
+          "Retirement.cleared_refusal",
+          "Work.world_retirement_release_preflighted_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Session._content_refusal": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._current_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Session._observe_current"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._drop_borrowed": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._drop_foundations": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._equipment_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._foundation_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Session._profile_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._initial_authority_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._observe_current": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Session._content_refusal",
+          "Session._foundation_refusal",
+          "Session._original_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._operational_retirement_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Session._initial_authority_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._original_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [
+          "Session._owners_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._owners_refusal": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 1,
+        "calls": [
+          "Session._equipment_refusal",
+          "Session._world_identity_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._profile_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._retirement_packet_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 2,
+        "calls": [
+          "Session._operational_retirement_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session._world_identity_refusal": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session.abandon_retirement": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 2,
+        "calls": [
+          "Retirement.prepare_into",
+          "Session._retirement_packet_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session.prepare_retirement": {
+        "numeric_and_name_bytes": 17,
+        "reference_values": 2,
+        "calls": [
+          "Retirement.prepare_into",
+          "Session._foundation_refusal",
+          "Session._original_refusal",
+          "Session._retirement_packet_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session.release_retirement": {
+        "numeric_and_name_bytes": 16,
+        "reference_values": 2,
+        "calls": [
+          "Retirement.release_preflighted",
+          "Session._drop_borrowed",
+          "Session._drop_foundations",
+          "Session._retirement_packet_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Session.retirement_observation_refusal": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 1,
+        "calls": [
+          "Session._current_refusal"
+        ],
+        "returns": "StringName",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._cleanup_failed_create": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 4,
+        "calls": [
+          "Form.record_reset_outcome",
+          "Form.refuse_create",
+          "Form.refuse_published_world",
+          "UI._reset_for_create_into"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 1
+      },
+      "UI._create_world_after_abandon": {
+        "numeric_and_name_bytes": 2,
+        "reference_values": 3,
+        "calls": [
+          "Form.create_with_cohort_into",
+          "Host.underground_content",
+          "UI._materialize_after_create",
+          "UI._restore_underground_after_create"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._materialize_after_create": {
+        "numeric_and_name_bytes": 2,
+        "reference_values": 2,
+        "calls": [
+          "UI._cleanup_failed_create"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._prepare_world_create": {
+        "numeric_and_name_bytes": 9,
+        "reference_values": 3,
+        "calls": [
+          "Form.record_reset_outcome",
+          "Form.refuse_create",
+          "Host.abandon_world_reset"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 1
+      },
+      "UI._report_generation": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 3,
+        "calls": [
+          "UI._report_generation_failure"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._report_generation_failure": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 5,
+        "calls": [
+          "UI._reset_outcome_text"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._reset_for_create_into": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [
+          "Host.abandon_world_reset",
+          "Host.reset"
+        ],
+        "returns": "void",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._reset_outcome_text": {
+        "numeric_and_name_bytes": 0,
+        "reference_values": 3,
+        "calls": [],
+        "returns": "String",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI._restore_underground_after_create": {
+        "numeric_and_name_bytes": 2,
+        "reference_values": 3,
+        "calls": [
+          "UI._cleanup_failed_create"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "UI.create_world": {
+        "numeric_and_name_bytes": 2,
+        "reference_values": 2,
+        "calls": [
+          "UI._create_world_after_abandon",
+          "UI._prepare_world_create",
+          "UI._report_generation"
+        ],
+        "returns": "bool",
+        "implicit_self_counted": true,
+        "allocations": 0
+      },
+      "Work._retirement_authority_matches": {
+        "numeric_and_name_bytes": 1,
+        "reference_values": 2,
+        "calls": [],
+        "returns": "bool",
+        "allocations": 0
+      },
+      "Work._retirement_empty_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [
+          "Work._retirement_participant_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Work._retirement_participant_refusal": {
+        "numeric_and_name_bytes": 8,
+        "reference_values": 1,
+        "calls": [],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Work.world_retirement_refusal_in": {
+        "numeric_and_name_bytes": 33,
+        "reference_values": 6,
+        "calls": [
+          "Buildings.whole_world_retirement_refusal_in",
+          "Work._retirement_authority_matches",
+          "Work._retirement_empty_refusal"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      },
+      "Work.world_retirement_release_preflighted_in": {
+        "numeric_and_name_bytes": 32,
+        "reference_values": 6,
+        "calls": [
+          "Work.world_retirement_refusal_in"
+        ],
+        "returns": "StringName",
+        "allocations": 0
+      }
+    },
+    "packed_bank_delta": 0,
+    "accounting": {
+      "retirement_reserved_bytes": 8192,
+      "controls": 5995,
+      "control_ceiling": 6144,
+      "helpers": 1882,
+      "helper_ceiling": 2048,
+      "original_session_reserved_bytes": 1536,
+      "profile_joint_unchanged": 246868,
+      "profile_ceiling": 262144,
+      "reference_bytes_assumed": 32,
+      "one_outcome_header_assumed": 256,
+      "expression_allowance": 256
+    },
+    "existing_boundaries": [
+      "Unchanged private UI item catalog and World generation allocations keep their original lifetime/budgets.",
+      "Seed/cohort/publish and starter colony/economy helpers keep their original owner reservations.",
+      "Existing bounded HUD notice storage and String formatting are presentation-native costs, not simulation arrays.",
+      "Complete accepted1158 static retirement stack is included; its existing source/clear-store boundaries are unchanged."
+    ],
+    "native_measured": false,
+    "runtime_qualified": false,
+    "additional_reserved_bytes": 0,
+    "current_joint_source_derived": true
+  },
+  "contributions": {
+    "excavation_start_controls": 4,
+    "entry_structure_bindings": 384,
+    "entry_world_bindings": 2048,
+    "room_world_bindings": 1024,
+    "connector_workpieces": 29928,
+    "guarded_haul_transfers": 3072,
+    "connector_delivery": 4096,
+    "space_banks_and_indexes": 1104160,
+    "phase_proof_cache_and_candidate": 17724,
+    "shared_geometry_cold_peak": 1048960,
+    "space_known_numeric_controls": 686,
+    "tips_live_and_cold_image_peak": 123440,
+    "layout_retained_columns": 37120,
+    "shared_router_and_funding_increment": 275099,
+    "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
+    "INVENTORY_EXTENSION_BYTES": 131072,
+    "PROFILE_BYTES": 262144,
+    "TERRAIN_BYTES": 131072,
+    "LAYOUT_COLD_BYTES": 262144,
+    "BINDINGS_AND_GROWTH_BYTES": 524288
+  },
+  "new_mutable_and_reserved_bytes": 5007041,
+  "declaration_bytes": 23573,
+  "declaration_delta_bytes": 2388,
+  "live_with_reserve_bytes": 99999806,
+  "headroom_bytes": 194,
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+    "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
+    "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+    "godot/scripts/core/haul_planner.gd": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59",
+    "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
+    "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
+    "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+    "godot/scripts/core/modular_project_contract.gd": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849",
+    "godot/scripts/core/modular_projects.gd": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "d5f28ac82d76a97ad3f11763b36e0d7e42ce286624bf2c968511662b1a3aaa9e",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+    "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+    "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
+    "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
+    "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+    "godot/scripts/systems/settlement_system.gd": "29e815445d283dc9e4e216edb7e7fa7500ef62b918a7b83b190fc24418dbc3a5",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+    "godot/scripts/core/underground_connector_catalog.gd": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
+    "godot/scripts/core/underground_connector_contacts.gd": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
+    "godot/scripts/core/underground_connector_delivery.gd": "e1d05e0d12980322b4710fd3b2710056da0efa51f882134397204969ca7c3bee",
+    "godot/scripts/core/underground_connector_placements.gd": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
+    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
+    "godot/scripts/core/underground_connector_work.gd": "53e813a3b97c601e2b8648df2bae4df8cf315e8720dbebe61d76c2320214b0de",
+    "godot/scripts/core/underground_connector_workpieces.gd": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d",
+    "godot/scripts/core/underground_entry_bindings.gd": "7d53f82aeb5ba4e3b97feaa242cf839dbcd38dc953b619d8cd2cb7b4fd1a5c55",
+    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+    "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
+    "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
+    "godot/scripts/core/underground_entry_world_bindings.gd": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "godot/scripts/core/underground_locations.gd": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+    "godot/scripts/core/underground_motion_catalog.gd": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
+    "godot/scripts/core/underground_motion_clock.gd": "fc399a6d36c36422cf9052ccf053031fb96b17e3b12bd572271662b3e7f33edf",
+    "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
+    "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "godot/scripts/core/underground_room_world_bindings.gd": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+    "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "godot/scripts/core/underground_session.gd": "a8cb243699af13b41669f41a0362742e73c8fa28b5ae7bb40f59aa8b0162b43e",
+    "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+    "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "godot/scripts/core/underground_surface_anchor.gd": "3632681aa3d56d680d58e220f4aae58e5894baa23422ecd34c128404da8d40d0",
+    "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+    "godot/scripts/core/underground_work_face.gd": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+    "godot/scripts/core/underground_world_retirement.gd": "e7e93ee1d4cb0c879b5d41e24d3a7023e9048f5dd4da2993088817007e50dbb9",
+    "godot/scripts/core/underground_world_routes.gd": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+    "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338"
+  },
+  "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
+  "limitations": [
+    "Constructor limits alone are not joint runtime admission.",
+    "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",
+    "Location/topology, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
+    "One source-only Motion/Profile/Level/Session composition is source-counted inside PROFILE_BYTES; native ceilings and actual host admission remain unqualified.",
+    "All native headers, Variant/Array capacity growth, restored copies and omitted future fields must fit measured reserves before activation.",
+    "Physical phase, generic three-survey validation and wire capture are mutually exclusive cold operations unless their combined actual charge fits."
+  ]
+}

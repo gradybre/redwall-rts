@@ -1,0 +1,387 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "static_source": {
+    "non_grip_separation": false,
+    "completed": false,
+    "unresolved": [
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 39
+      },
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 40
+      },
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 41
+      },
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 42
+      },
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 43
+      },
+      {
+        "body_triangle": 440,
+        "wood_triangle": 44
+      },
+      {
+        "body_triangle": 441,
+        "wood_triangle": 44
+      },
+      {
+        "body_triangle": 558,
+        "wood_triangle": 44
+      },
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 44
+      },
+      {
+        "body_triangle": 558,
+        "wood_triangle": 45
+      },
+      {
+        "body_triangle": 1372,
+        "wood_triangle": 45
+      },
+      {
+        "body_triangle": 556,
+        "wood_triangle": 46
+      },
+      {
+        "body_triangle": 557,
+        "wood_triangle": 46
+      },
+      {
+        "body_triangle": 558,
+        "wood_triangle": 46
+      },
+      {
+        "body_triangle": 556,
+        "wood_triangle": 47
+      },
+      {
+        "body_triangle": 1449,
+        "wood_triangle": 47
+      },
+      {
+        "body_triangle": 555,
+        "wood_triangle": 48
+      },
+      {
+        "body_triangle": 556,
+        "wood_triangle": 48
+      },
+      {
+        "body_triangle": 1449,
+        "wood_triangle": 48
+      },
+      {
+        "body_triangle": 555,
+        "wood_triangle": 49
+      },
+      {
+        "body_triangle": 1341,
+        "wood_triangle": 49
+      },
+      {
+        "body_triangle": 1449,
+        "wood_triangle": 49
+      },
+      {
+        "body_triangle": 553,
+        "wood_triangle": 50
+      },
+      {
+        "body_triangle": 554,
+        "wood_triangle": 50
+      },
+      {
+        "body_triangle": 555,
+        "wood_triangle": 50
+      },
+      {
+        "body_triangle": 735,
+        "wood_triangle": 50
+      },
+      {
+        "body_triangle": 1341,
+        "wood_triangle": 50
+      },
+      {
+        "body_triangle": 735,
+        "wood_triangle": 51
+      },
+      {
+        "body_triangle": 1341,
+        "wood_triangle": 51
+      },
+      {
+        "body_triangle": 1426,
+        "wood_triangle": 51
+      },
+      {
+        "body_triangle": 1459,
+        "wood_triangle": 51
+      },
+      {
+        "body_triangle": 552,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 667,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 668,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 670,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 672,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 721,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 735,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 775,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 808,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 827,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 829,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 1357,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 1370,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 1426,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 1453,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 1459,
+        "wood_triangle": 52
+      },
+      {
+        "body_triangle": 672,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 674,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 677,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 678,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 1276,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 1309,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 1357,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 1370,
+        "wood_triangle": 53
+      },
+      {
+        "body_triangle": 677,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 931,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 932,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 933,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 934,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 937,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 939,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 942,
+        "wood_triangle": 54
+      },
+      {
+        "body_triangle": 946,
+        "wood_triangle": 54
+      }
+    ],
+    "pairs": 233,
+    "checks": 745,
+    "body_triangles": 10209,
+    "solid_triangles": 9283,
+    "hand_triangles": [
+      478,
+      448
+    ],
+    "wood_triangles": 768,
+    "body_source_bounds_u": [
+      -422,
+      1,
+      -653,
+      430,
+      459,
+      207
+    ],
+    "wood_source_bounds_u": [
+      -412,
+      -1,
+      -499,
+      412,
+      102,
+      -397
+    ],
+    "hand_contact_witnesses": [
+      {
+        "edge": [
+          1,
+          2
+        ],
+        "share": [
+          34956617055420882869376129548813,
+          36713923203247470223660059166221
+        ],
+        "point_u": [
+          [
+            -1830684172025456045627328766323752088113984218671863891,
+            5418018762177062953912874557891411439793445785305088
+          ],
+          [
+            2142193167458402871058258679550638217749451902040900905,
+            43344150097416503631302996463131291518347566282440704
+          ],
+          [
+            -2701564205610949767225153320115887547049298011648175239,
+            5418018762177062953912874557891411439793445785305088
+          ]
+        ],
+        "hand": 15,
+        "body_triangle": 9364,
+        "wood_triangle": 639,
+        "body_vertices": [
+          16960,
+          16957,
+          12952
+        ],
+        "wood_vertices": [
+          324,
+          389,
+          388
+        ]
+      },
+      {
+        "edge": [
+          0,
+          1
+        ],
+        "share": [
+          6665694160691627471540213855,
+          20192316966361163634276566163
+        ],
+        "point_u": [
+          [
+            340019028200593510159128990669722587346157563514979,
+            993286675556500338085973780817210593095700185088
+          ],
+          [
+            201675314917751787463747401988558600469233066849331,
+            2979860026669501014257921342451631779287100555264
+          ],
+          [
+            -369272066478730035600882988883277324801893431472095,
+            744965006667375253564480335612907944821775138816
+          ]
+        ],
+        "hand": 19,
+        "body_triangle": 274,
+        "wood_triangle": 6,
+        "body_vertices": [
+          14206,
+          14208,
+          14207
+        ],
+        "wood_vertices": [
+          3,
+          4,
+          68
+        ]
+      }
+    ],
+    "self_grip_rule": "Each complete triangle has positive exact hand influence and hand-local Y > 0.025m at all three vertices; all mixed boundary triangles remain solid and all original triangles remain world geometry.",
+    "partition_sha256": "bafe5ff5d21c4e7191ac322c81d93195eca0e990077363e6da276f58f82ee93a",
+    "source_contact_exists": true
+  },
+  "scope": "Exact F32 input coefficients evaluated as source rational skin geometry; no native error or temporal qualification.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "abf94b67d02b9fb35785e54bcb782af66a7bd3b7dac2e11cbf3ad4b141d875af",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "51faedce192013fd0857d42a2c0e9a86e1b3f0693ec40905c8dc010f068ce2ce",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "f36df901095d25fadef8e38b20c449a1014e36610089ebd043be3565aac13bd5",
+    "godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py": "d73947449dac546b7139cccee441c3e9b990c1a3f9a2f50e45118aa44e102aee",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/contact-source-v3/poses.npz": "1bacd83a2d9b19bdcd366d7978e614ebdfbefb202ee48e9c0f0ae712f4fef882",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/wood-topology-v1.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+  },
+  "pending": [
+    "full supported foot contacts",
+    "native error enclosure",
+    "every transition/loop/reversal/join",
+    "runtime source/quantity/role admission"
+  ]
+}

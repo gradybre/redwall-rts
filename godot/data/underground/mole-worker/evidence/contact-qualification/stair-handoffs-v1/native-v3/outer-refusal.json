@@ -1,0 +1,8 @@
+{
+  "accepted": false,
+  "refusal": "HANDOFF_NATIVE_METADATA_CAPACITY",
+  "reason": "Engine quit-after watchdog stopped incomplete coroutine; first PNG only, no report. Extra post-screenshot process_frame did not resolve stall.",
+  "native_exit": 0,
+  "source_unchanged": true,
+  "own_override_removed": true
+}

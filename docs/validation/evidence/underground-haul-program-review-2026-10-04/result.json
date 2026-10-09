@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_handling_program.py",
+    "--palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+    "--grip-palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+    "--candidate",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/program-review-v1/candidate"
+  ],
+  "exit_code": 0,
+  "seconds": 53.941,
+  "source_pin_count": 24,
+  "saved_output_pins": 35,
+  "source_unchanged": true,
+  "scope": "Four phase source-only continuity; no native, quantity mapping, loaded locomotion, or runtime qualification"
+}

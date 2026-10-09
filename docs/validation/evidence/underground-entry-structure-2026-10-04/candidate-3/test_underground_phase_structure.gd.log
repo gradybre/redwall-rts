@@ -1,0 +1,87 @@
+state_registry_coverage: PASS -- 139 modules, 697 rows, 1035 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_phase_structure.gd
+  PASS  test_real_pack_cold_estimates_and_unbound_provider
+  FAIL  test_paid_brace_protects_exact_fine_floor_and_roof
+        actual paid support bit (expected true, got false)
+        two exact disjoint strips times floor and roof (expected 4, got 0)
+        fine missing corner stays unprotected (expected 939524096, got 0)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)"])
+  FAIL  test_paid_cut_and_fine_finish_retain_natural_protections
+        real brace still retained (expected true, got false)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "real paid work begins: SPOIL_OUTPUT_BLOCKED (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "real paid work begins: SPOIL_OUTPUT_BLOCKED (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)"])
+  PASS  test_identity_only_provider_readers_and_exact_scope
+  PASS  test_material_free_query_allocates_no_fragment_banks_and_checks_budget_before_handles
+  PASS  test_existing_paid_cavity_cannot_be_mistaken_for_original_natural_earth
+  PASS  test_another_confirmed_section_protects_its_footing_before_any_brace
+  PASS  test_unauthored_clear_height_is_not_silently_shortened_or_inferred
+  FAIL  test_same_column_braces_reuse_room_protection_and_one_close_cannot_release_it
+        other real support account retained (expected true, got false)
+        remaining actual phase still sees complete natural support (expected , got STRUCTURE_PHASE_SCOPE)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "physical face binds actual worker (expected true, got false)", "real paid work begins: EXCAVATION_WORKER_BINDING (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "physical face binds actual worker (expected true, got false)", "real paid work begins: EXCAVATION_WORKER_BINDING (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)"])
+SCRIPT ERROR: Out of bounds get index '0' (on base: 'PackedInt32Array')
+          at: test_sealed_candidate_cannot_remove_protection_or_exact_claims (res://test/test_underground_phase_structure.gd:502)
+          GDScript backtrace (most recent call first):
+              [0] test_sealed_candidate_cannot_remove_protection_or_exact_claims (res://test/test_underground_phase_structure.gd:502)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_sealed_candidate_cannot_remove_protection_or_exact_claims
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "no cold reservation escapes the operation (expected 0, got 3)", "all acquired leases release exactly once (expected 2, got 3)"])
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_original_token_replaced_after_handles_prevents_bank_allocation_and_payment
+        foreign replacement survives cleanup (expected true, got false)
+        test explicitly releases its replacement (expected , got UNDERGROUND_COLD_LEASE)
+        same paid work retries successfully (expected true, got false)
+        real brace publishes only after retry (expected true, got false)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)"])
+SCRIPT ERROR: Out of bounds get index '0' (on base: 'PackedInt32Array')
+          at: test_split_support_union_passes_but_duplicate_volume_cannot_hide_a_hole (res://test/test_underground_phase_structure.gd:539)
+          GDScript backtrace (most recent call first):
+              [0] test_split_support_union_passes_but_duplicate_volume_cannot_hide_a_hole (res://test/test_underground_phase_structure.gd:539)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_split_support_union_passes_but_duplicate_volume_cannot_hide_a_hole
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)"])
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_reentry_poison_refuses_outer_observation_and_clean_retry_remains_possible
+  FAIL  test_late_sparse_capacity_refusal_keeps_real_paid_work_and_retries_without_double_inputs
+        same completed work retries (expected true, got false)
+        one actual paid support account (expected true, got false)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)"])
+  FAIL  test_prepared_claim_removal_refuses_without_reinterpreting_floor_envelope_as_footprint
+        exact claim is required in the sealed future (expected STRUCTURE_EXACT_CLAIMS, got STRUCTURE_PHASE_SCOPE)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)", "physical output/support commits: WRONG_PHASE (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)"])
+  PASS  test_content_and_actual_world_retirement_refuse_rebinding_or_publication
+  FAIL  test_direct_start_or_commit_requires_current_actual_paid_work_phase
+        funded phase is no longer READY (expected STRUCTURE_PHASE_SCOPE, got )
+        real completed work still commits once (expected true, got false)
+        actual fixture worker and cleanup checks (expected [], got ["real paid work begins: EXCAVATION_SPATIAL_UNBOUND (expected true, got false)", "actual Work contribution: WRONG_PHASE (expected true, got false)"])
+  PASS  test_bad_token_mode_or_capacity_refuses_before_allocating_scope_identity_callback
+  PASS  test_scope_lifetime_is_borrowed_for_complete_run_then_expires_without_a_cycle
+CI_SUITE_TIME {"assertions":191,"failures":9,"suite":"test_underground_phase_structure.gd","tests":19,"usec":5596254}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+19 test(s), 191 assertion(s), 9 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 9 failing test(s).

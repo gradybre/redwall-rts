@@ -1,0 +1,35 @@
+{
+  "commit": "5ad7644c426e559511889f63504034e207ac8d23",
+  "files": [
+    {
+      "original_path": "docs/validation/evidence/underground-room-publication-2026-10-04/approach-review-v2/README.md",
+      "local_path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/independent/README.md",
+      "sha256": "3ef4487f21d526860c5c582cf9452136e0d0e2a51b316dfcb3d53de8ab637316",
+      "bytes": 3219
+    },
+    {
+      "original_path": "docs/validation/evidence/underground-room-publication-2026-10-04/approach-review-v2/census-tests.log",
+      "local_path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/independent/census-tests.log",
+      "sha256": "b0bb3f5f6aef1f11078246e82e36a4c72b255b5b9225f6f998de29a17c093429",
+      "bytes": 109
+    },
+    {
+      "original_path": "docs/validation/evidence/underground-room-publication-2026-10-04/approach-review-v2/census.json",
+      "local_path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/independent/census.json",
+      "sha256": "05f812e3d412da2243be436a33485e6acdf03989b36e41f721e4524f2d894092",
+      "bytes": 3426
+    },
+    {
+      "original_path": "docs/validation/evidence/underground-room-publication-2026-10-04/approach-review-v2/source-sha256.json",
+      "local_path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/independent/source-sha256.json",
+      "sha256": "f4b559f7046b0e8bc6807fbd5453bb29f7690e34ecdfdbe9f6d3f65c61410f2c",
+      "bytes": 1799
+    },
+    {
+      "original_path": "docs/validation/evidence/underground-room-publication-2026-10-04/approach-review-v2/verification.json",
+      "local_path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/independent/verification.json",
+      "sha256": "1805189a5635dc4ebbf06c6403d9623857f8ee6d9b097b190a23297d6ee7a01c",
+      "bytes": 2816
+    }
+  ]
+}

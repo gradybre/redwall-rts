@@ -45,6 +45,7 @@ const BuildingsScript := preload("res://scripts/core/buildings.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
 const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
 const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
+const HaulTransferContract := preload("res://scripts/core/haul_transfer_contract.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 
@@ -88,6 +89,7 @@ const REFUSE_NOT_HAULERS_SATCHEL: StringName = &"HAUL_SATCHEL_NOT_THE_HAULERS"
 ## REQ-SET-031's blocking cause: no store takes the payload and no pile fallback applies.
 const REFUSE_NO_DESTINATION: StringName = &"HAUL_NO_DESTINATION"
 const REFUSE_TRANSACTION_OPEN: StringName = &"HAUL_INVENTORY_TRANSACTION_OPEN"
+const REFUSE_SPATIAL_DESTINATION: StringName = &"HAUL_SPATIAL_DESTINATION"
 ## `audit()`: a record names a dead store, or the records hold more grams than a store reserves.
 const REFUSE_AUDIT_STORE: StringName = &"HAUL_AUDIT_DESTINATION_DEAD"
 const REFUSE_AUDIT_GRAMS: StringName = &"HAUL_AUDIT_GRAMS_EXCEED_STORE"
@@ -493,6 +495,47 @@ func _admission_refusal(job_ref: Vector2i, hauler_slot: int, source_lot: Vector2
 	return _size_refusal(hauler_slot, source_lot, requested_milli)
 
 
+func admit_spatial(job_ref: Vector2i, hauler_slot: int, source_lot: Vector2i, requested_milli: int,
+		expiry_tick: int, destination: Vector2i, guard: HaulTransferContract) -> InventoryScript.OpResult:
+	"""Reserve one capacity-limited payload and its exact spatial destination in the same guarded journal."""
+	var code: StringName = _admission_refusal(job_ref, hauler_slot, source_lot, requested_milli)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var payload: int = _math.value
+	code = _spatial_destination_refusal(destination, source_lot, payload)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var claimed: InventoryScript.OpResult = _reservations.admit_haul_guarded(job_ref,
+		_residents.ref_of(hauler_slot), source_lot, payload, expiry_tick, destination, _chosen.charge_g,
+		guard, _inventory)
+	if claimed.ok:
+		_write_spatial_record(self, job_ref)
+	return claimed
+
+
+func _spatial_destination_refusal(destination: Vector2i, source_lot: Vector2i, payload: int) -> StringName:
+	"""Select no Building or tile: the actual spatial Inventory endpoint must own this destination."""
+	if destination == NULL_REF or _inventory.spatial_location_of(destination) == NULL_REF:
+		return REFUSE_SPATIAL_DESTINATION
+	var mass: int = _inventory.item_mass_g(_inventory.lot_item_id(source_lot))
+	if not IntMath.inventory_capacity_debit_g_into(payload, mass, _math):
+		return REFUSE_OVERFLOW
+	_chosen.kind = DESTINATION_STORE
+	_chosen.container = destination
+	_chosen.tile = NO_TILE
+	_chosen.charge_g = _math.value
+	return REFUSE_NONE
+
+
+static func _write_spatial_record(actual: RefCounted, job_ref: Vector2i) -> void:
+	"""The guarded transfer has finished every observer; publish only the already-proved existing row."""
+	actual._job_generation[job_ref.x] = job_ref.y
+	actual._dest_slot[job_ref.x] = actual._chosen.container.x
+	actual._dest_generation[job_ref.x] = actual._chosen.container.y
+	actual._dest_tile[job_ref.x] = NO_TILE
+	actual._reserved_g[job_ref.x] = actual._chosen.charge_g
+
+
 func _hauler_refusal(hauler_slot: int, source_lot: Vector2i) -> StringName:
 	"""A present hauler, who must own the satchel when the source is one."""
 	if not _residents.is_present(hauler_slot):
@@ -716,3 +759,97 @@ func scratch_bytes() -> int:
 	"""Bytes of cold-path scratch: the §2.3 row decision 1023 adds."""
 	return _footprint.size() + _outside.size() + _seeds.size() * 4 + _spec.size() * 8 \
 		+ _claim.size() * 8 + _one_seed.size() * 4
+
+
+# --- ADR1221: the admitted-haul record's local wire (resolves decision 1023's UNRESOLVED row) ---------
+## Schema 1: magic, schema and JOB_CAPACITY (i32 each), then the five record columns in declared order, every
+## Job-key row, little-endian. Carried in section 6 beside the Job store it is keyed by (ADR1221); the derived
+## scratch below the record is never written.
+const ADMISSION_WIRE_MAGIC: int = 0x4C504855 # "UHPL"
+const ADMISSION_WIRE_SCHEMA: int = 1
+const ADMISSION_WIRE_BYTES: int = 12 + 24 * JOB_CAPACITY
+const REFUSE_LOAD_BUSY: StringName = &"HAUL_LOAD_BUSY"
+const REFUSE_LOAD_SHAPE: StringName = &"HAUL_LOAD_SHAPE"
+const REFUSE_LOAD_ROW: StringName = &"HAUL_LOAD_ROW"
+
+
+func capture_admissions_into(out: PackedByteArray) -> StringName:
+	"""ADR1221: every admission row at a boundary with no Inventory transaction open, into one empty image."""
+	if _inventory == null or _inventory.is_transaction_open() or not out.is_empty():
+		return REFUSE_LOAD_BUSY
+	out.resize(ADMISSION_WIRE_BYTES)
+	out.encode_s32(0, ADMISSION_WIRE_MAGIC)
+	out.encode_s32(4, ADMISSION_WIRE_SCHEMA)
+	out.encode_s32(8, JOB_CAPACITY)
+	var at: int = 12
+	for column: PackedInt32Array in [_job_generation, _dest_slot, _dest_generation, _dest_tile]:
+		for value: int in column:
+			out.encode_s32(at, value)
+			at += 4
+	for value: int in _reserved_g:
+		out.encode_s64(at, value)
+		at += 8
+	return REFUSE_NONE
+
+
+func restore_admissions(bytes: PackedByteArray) -> StringName:
+	"""ADR1221: after Inventory and the Reservation pool are restored, prove every row from the image (canonical
+	empty row; an admission names a live store or a ground tile, holds claims in the pool, and the grams recorded
+	on each store do not exceed what it reserves), then install all rows. A refusal writes nothing."""
+	if _inventory == null or _reservations == null or _inventory.is_transaction_open():
+		return REFUSE_LOAD_BUSY
+	if bytes.size() != ADMISSION_WIRE_BYTES or bytes.decode_s32(0) != ADMISSION_WIRE_MAGIC \
+			or bytes.decode_s32(4) != ADMISSION_WIRE_SCHEMA or bytes.decode_s32(8) != JOB_CAPACITY:
+		return REFUSE_LOAD_SHAPE
+	for row: int in JOB_CAPACITY:
+		var code: StringName = _image_row_refusal(bytes, row)
+		if code != REFUSE_NONE:
+			return code
+	for row: int in JOB_CAPACITY:
+		_job_generation[row] = _image_i32(bytes, 0, row)
+		_dest_slot[row] = _image_i32(bytes, 1, row)
+		_dest_generation[row] = _image_i32(bytes, 2, row)
+		_dest_tile[row] = _image_i32(bytes, 3, row)
+		_reserved_g[row] = _image_grams(bytes, row)
+	return REFUSE_NONE
+
+
+static func _image_i32(bytes: PackedByteArray, column: int, row: int) -> int:
+	"""One i32 record column value from a schema-1 image."""
+	return bytes.decode_s32(12 + 4 * (column * JOB_CAPACITY + row))
+
+
+static func _image_grams(bytes: PackedByteArray, row: int) -> int:
+	"""One row's reserved grams from a schema-1 image."""
+	return bytes.decode_s64(12 + 16 * JOB_CAPACITY + 8 * row)
+
+
+func _image_row_refusal(bytes: PackedByteArray, row: int) -> StringName:
+	"""One image row: the canonical empty row, or a live admission (see `restore_admissions`)."""
+	var generation: int = _image_i32(bytes, 0, row)
+	var store: Vector2i = Vector2i(_image_i32(bytes, 1, row), _image_i32(bytes, 2, row))
+	var tile: int = _image_i32(bytes, 3, row)
+	var grams: int = _image_grams(bytes, row)
+	if generation == 0:
+		return REFUSE_NONE if store == NULL_REF and tile == NO_TILE and grams == 0 else REFUSE_LOAD_ROW
+	if generation < 0 or grams < 0 or tile < NO_TILE or tile >= InventoryScript.ANCHOR_TILE_COUNT \
+			or _reservations._list_head(Vector2i(row, generation), true) == ReservationsScript.NULL_ROW:
+		return REFUSE_LOAD_ROW
+	if store == NULL_REF:
+		return REFUSE_NONE if tile != NO_TILE and grams == 0 else REFUSE_LOAD_ROW
+	if not _inventory.is_container_valid(store):
+		return REFUSE_LOAD_ROW
+	return _image_store_grams_refusal(bytes, store, row)
+
+
+func _image_store_grams_refusal(bytes: PackedByteArray, store: Vector2i, row: int) -> StringName:
+	"""At the first image row naming `store`: the image's grams on it fit the store's reserved mass."""
+	var total: int = 0
+	for other: int in JOB_CAPACITY:
+		if _image_i32(bytes, 0, other) == 0 or _image_i32(bytes, 1, other) != store.x \
+				or _image_i32(bytes, 2, other) != store.y:
+			continue
+		if other < row:
+			return REFUSE_NONE
+		total += _image_grams(bytes, other)
+	return REFUSE_NONE if total <= _inventory.container_reserved_mass_g(store) else REFUSE_LOAD_ROW

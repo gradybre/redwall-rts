@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py", line 221, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py", line 191, in main
+    report = compile_roles(cases, parts, topology, plan["world_root_bounds_u"], basis, tips)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py", line 129, in compile_roles
+    local = {str(clip): P.continuous_floor(cases[clip], topology, roots) for clip in (2, 3, 5, 6, 8, 9)}
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/compile_profiles.py", line 557, in continuous_floor
+    for part, surfaces in zip(case["geometry"], topology):
+                              ~~~~^^^^^^^^^^^^
+KeyError: 'geometry'

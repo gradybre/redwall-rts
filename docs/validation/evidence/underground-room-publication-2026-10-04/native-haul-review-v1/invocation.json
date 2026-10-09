@@ -1,0 +1,94 @@
+{
+  "scope": "Independent Python replay only; no engine or foreign writes.",
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_native_program.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--capture",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v7",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.2422399171628058,
+      "log": "tests.log",
+      "log_sha256": "8849b4105965a3fed08cef18f3a400b872e8e37c6712a70109baf92e262fd249"
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v7/census.py",
+        "--capture",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v7"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.13139566592872143,
+      "log": "census.log",
+      "log_sha256": "de815df0a576c4b885f8ec90dfdbf97a55b51cd5bd8b11091ff70479fde455d1"
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-publication/docs/validation/evidence/underground-room-publication-2026-10-04/native-haul-review-v1/compiled"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.039356584195048,
+      "log": "compile.log",
+      "log_sha256": "82b3aad801638145eaa622d2b9c9ae169137346c4035fb878781a9fbf219a103"
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/verify_native_program.py",
+        "--palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+        "--grip-palette",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+        "--capture",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v7",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-publication/docs/validation/evidence/underground-room-publication-2026-10-04/native-haul-review-v1/verification.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 34.21111970813945,
+      "log": "verify.log",
+      "log_sha256": "2bf7141989d5e0f74bd5354db4635af6967be5a9acd93283778c8358f80b3764"
+    }
+  ],
+  "comparisons": {
+    "compiled/haul-handling.ugactor": true,
+    "compiled/proof.json": true,
+    "compiled/compilation.json": true,
+    "compiled/program.json": true,
+    "compiled/plan.json": true,
+    "verification.json": true,
+    "census.json": true
+  },
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py": "388be53c60da511d193c10763b2cef9470d60976842a13bebe0386ee1b46f148",
+    "godot/data/underground/mole-worker/haul-handling-v1/run_native_program.py": "c74063077f7c3eca14a819954a7e8da6b923ea5126a6e0759772245409eab605",
+    "godot/data/underground/mole-worker/haul-handling-v1/verify_native_program.py": "1e341cbcd7598d566dda0a124c1f944e9ff1d534be64ad4d7ea9f61fab1d3f20",
+    "godot/data/underground/mole-worker/haul-handling-v1/test_native_program.py": "feb02be764c4409af689a74ef16969a55de0caacc428b46196818230d1d93e67",
+    "godot/data/underground/mole-worker/haul-handling-v1/native_replay/capture_native_program.gd": "baad025aeb8078bc9816bd3d9b35083f25af676954b2a53602c701c2ce48a511",
+    "godot/data/underground/mole-worker/haul-handling-v1/native_replay/project.godot": "3964032b8db025e89a0b02731816b2e02096165e7fd721de31cfb471d7dc1434"
+  },
+  "source_manifest_sha256": "f629450893792b99f07c5d1dd9e4cc58acb7417327888d4d4afb469b5699af94",
+  "output_manifest_sha256": "75d32a100f85c16193d337c017a2d77fe9961f97816393ccb02aef65a917f1a2",
+  "source_and_output_unchanged": true,
+  "production_qualified": false,
+  "runtime_admitted": false
+}

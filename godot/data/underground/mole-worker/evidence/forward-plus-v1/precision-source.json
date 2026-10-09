@@ -1,0 +1,15 @@
+{
+  "url": "https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf",
+  "sha256": "41538b30d2f1140a5b2a0c84ce0a9f7b67bf0c707e224cfea0bfe5a44aa26cf5",
+  "bytes": 14564497,
+  "document_date": "2026-06-04",
+  "pages": 383,
+  "reviewed_sections": {
+    "fast_math_options": "1.6.3, pages15\u201316",
+    "unorm_unpack": "6.15.1, page297",
+    "rounding_and_subnormals": "8.1\u20138.2, page368",
+    "fast_arithmetic_accuracy": "8.4/Table8.2, pages370\u2013372",
+    "reassociation_and_flush": "8.4\u20138.5, pages375\u2013376"
+  },
+  "storage": "Official public PDF read outside repository; retain URL/digest and paraphrased contract, no full copyrighted document copied."
+}

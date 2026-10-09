@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_room_frontier_publication.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"code\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 10,
+     "line": 315
+    },
+    "start": {
+     "character": 6,
+     "line": 315
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

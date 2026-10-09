@@ -1,0 +1,8 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "accepted": true,
+  "changed_leaf": "/audited_source/module_sha256/modular_projects",
+  "new_hash_matches_current_source": true,
+  "numeric_registry_parser_changes": false,
+  "source_delta": "docs/validation/evidence/underground-ci-cddc4412-2026-10-04/registry-delta.json"
+}

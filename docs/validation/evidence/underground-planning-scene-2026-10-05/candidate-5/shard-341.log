@@ -1,0 +1,80 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_demo_live.gd
+MODULAR-DEMO PASS: actual demo prewarm completed
+MODULAR-DEMO PASS: real demo mounts planning entry
+MODULAR-DEMO PASS: entry button visible in real Tunnels panel
+MODULAR-DEMO PASS: entry button fits1280×720
+MODULAR-DEMO PASS: real click opens actual planning
+MODULAR-DEMO PASS: opening changes no canonical gameplay state
+MODULAR-DEMO PASS: opening preserves pause reasons
+MODULAR-DEMO PASS: opening preserves requested speed
+MODULAR-DEMO PASS: planning camera is current
+MODULAR-DEMO PASS: original full World identity
+MODULAR-DEMO PASS: authored original first floor
+MODULAR-DEMO PASS: scrolling inspector fits1280×720
+MODULAR-DEMO PASS: Viewport drag paints actual dirt
+MODULAR-DEMO PASS: drawn room is a connected valid draft
+MODULAR-DEMO PASS: unconfirmed drawing changes no canonical state
+MODULAR-DEMO PASS: GUI click cannot paint through inspector
+MODULAR-INPUT before selected=1 popup=true focus=-1
+MODULAR-INPUT navigate selected=1 popup=true focus=1
+MODULAR-INPUT after selected=1 popup=false floor=1
+MODULAR-DEMO FAIL: floor dropdown selects next level
+MODULAR-DEMO FAIL: visible dirt uses exact next floor
+MODULAR-DEMO FAIL: camera focus follows actual selected floor
+MODULAR-DEMO PASS: draft keeps its own floor
+MODULAR-DEMO FAIL: another floor cannot edit retained plan
+MODULAR-INPUT before selected=1 popup=true focus=-1
+MODULAR-INPUT navigate selected=1 popup=true focus=0
+MODULAR-INPUT after selected=0 popup=false floor=0
+MODULAR-DEMO FAIL: returning restores drawing on original floor
+MODULAR-DEMO PASS: confirm reachable inside scroll panel
+MODULAR-DEMO FAIL: missing access produces a visible refusal
+MODULAR-DEMO FAIL: refusal preserves exact draft
+MODULAR-DEMO PASS: refusal spends no resources and creates no work
+MODULAR-DEMO FAIL: world press captures a stroke
+MODULAR-DEMO FAIL: first Escape cancels only active gesture
+MODULAR-DEMO FAIL: cancelled gesture leaves old draft
+MODULAR-DEMO PASS: second Escape returns to village
+MODULAR-DEMO PASS: original camera restored
+MODULAR-DEMO PASS: original camera pose retained
+MODULAR-DEMO PASS: hidden planning camera cannot consume input
+MODULAR-DEMO FAIL: close preserves pause reasons
+MODULAR-DEMO PASS: original Tunnels panel restored
+MODULAR-DEMO FAIL: same real entry reopens planning
+MODULAR-DEMO FAIL: reopen preserves exact draft
+MODULAR-DEMO PASS: complete inspection cycle is canonical read-only
+  FAIL  test_actual_demo_room_planning_input_at_1280x720
+        MODULAR-DEMO FAIL: floor dropdown selects next level (expected true, got false)
+        MODULAR-DEMO FAIL: visible dirt uses exact next floor (expected true, got false)
+        MODULAR-DEMO FAIL: camera focus follows actual selected floor (expected true, got false)
+        MODULAR-DEMO FAIL: another floor cannot edit retained plan (expected true, got false)
+        MODULAR-DEMO FAIL: returning restores drawing on original floor (expected true, got false)
+        MODULAR-DEMO FAIL: missing access produces a visible refusal (expected true, got false)
+        MODULAR-DEMO FAIL: refusal preserves exact draft (expected true, got false)
+        MODULAR-DEMO FAIL: world press captures a stroke (expected true, got false)
+        MODULAR-DEMO FAIL: first Escape cancels only active gesture (expected true, got false)
+        MODULAR-DEMO FAIL: cancelled gesture leaves old draft (expected true, got false)
+        MODULAR-DEMO FAIL: close preserves pause reasons (expected true, got false)
+        MODULAR-DEMO FAIL: same real entry reopens planning (expected true, got false)
+        MODULAR-DEMO FAIL: reopen preserves exact draft (expected true, got false)
+        actual summary: MODULAR-DEMO-SUMMARY 38 checks / 13 failures (expected true, got false)
+        child exited cleanly (expected 0, got 1)
+CI_SUITE_TIME {"assertions":63,"failures":1,"suite":"test_modular_demo_live.gd","tests":1,"usec":7917462}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 63 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

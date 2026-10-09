@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_space_authority.gd:182: (SHADOWED_GLOBAL_IDENTIFIER): The variable "floor" has the same name as a built-in function.
+scripts/core/underground_space_owner.gd:327: (SHADOWED_VARIABLE): The local function parameter "region_capacity" is shadowing an already-declared function at line 433 in the current class.
+2 GDScript warning(s) in 2 of 4 file(s)

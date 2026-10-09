@@ -1,0 +1,1 @@
+Rejected static grip candidate. Exact limb reach succeeds, but the narrowly partitioned full-body/wood proof reports 64 unresolved non-grip pairs and no hand contact witness. The complete meshes and all source coefficients remain retained; no collision exception was widened. Source stock offset was R-S=(0,0,448)u. A successor must change the actual grip pose.

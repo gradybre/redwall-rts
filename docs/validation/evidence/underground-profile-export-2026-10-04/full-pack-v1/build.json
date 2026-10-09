@@ -1,0 +1,93 @@
+{
+ "schema": "redwall-demo-windows-build-v1",
+ "decision": "0196",
+ "built": "2026-10-04 08:52 UTC",
+ "commit": "18b981fe-dirty",
+ "godot": "4.7.2.stable",
+ "export": {
+  "command": "--export-debug",
+  "mode": "debug",
+  "status": 0,
+  "warnings": []
+ },
+ "pck_mib": "924.3",
+ "preset": "Windows Desktop (demo)",
+ "export_presets": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/export_presets.cfg",
+ "pack_only": false,
+ "textures": {
+  "colour": 169,
+  "normal": 164,
+  "orm": 164,
+  "raw": 162,
+  "changed": 497
+ },
+ "verify": {
+  "after_resume_banner_shown": false,
+  "after_resume_clock": "PLAYING []",
+  "app_name": "Redwall Demo",
+  "beaver_flat_roll_bound": true,
+  "beaver_found": true,
+  "beaver_tail_refusal": "",
+  "build_info": "{\n \"schema\": \"redwall-demo-build-info-v1\",\n \"commit\": \"18b981fe-dirty\",\n \"built\": \"2026-10-04 08:52 UTC\",\n \"godot\": \"4.7.2.stable\",\n \"export\": \"debug\"\n}\n",
+  "clock_at_end": "PLAYING []",
+  "clock_at_open": "PLAYING []",
+  "demo_root": "DemoVillage",
+  "error": "",
+  "feature_demo_build": true,
+  "main_scene": "res://demo/demo_village.tscn",
+  "pack": {
+   "demo_scene": true,
+   "files": 986,
+   "glb_imports": 265,
+   "manifest": true,
+   "plain_ctex": 790,
+   "raw_png": 162,
+   "s3tc_ctex": 497,
+   "texture_imports": 497
+  },
+  "playtest_log": "playtest-2026-10-04_04-52-45-p79417.log",
+  "profile_package": {
+   "actor": {
+    "bytes": 648760,
+    "error": "",
+    "path": "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+    "sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
+   },
+   "error": "",
+   "profiles": {
+    "bytes": 7268,
+    "error": "",
+    "path": "res://data/underground/mole-worker/profile-publication-v1/mole-worker.ugprof",
+    "sha256": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac"
+   },
+   "sources": {
+    "characters": 420955,
+    "count": 8,
+    "error": ""
+   },
+   "static_memory_bytes": 319253443.0,
+   "world_activation_qualified": false
+  },
+  "renderer": "metal",
+  "stall_banner_shown": true,
+  "stall_clock": "PAUSED [\"CRITICAL\"]",
+  "tail_residual_roll_max_deg": 0.000127005942923303,
+  "tail_residual_roll_p95_deg": 6.50866397624219e-05,
+  "tail_samples": 350,
+  "tail_tilt_max_deg": 64.363121472355,
+  "tail_tilt_p50_deg": 18.7393257012693,
+  "texture_mem_mb": 1743.296875,
+  "ticks_after_resume": 49,
+  "video_mem_mb": 2087.484375,
+  "window_mode_setting": 2,
+  "log_errors": []
+ },
+ "files": {
+  "README.txt": 0.0,
+  "RedwallDemo.console.exe": 0.2,
+  "RedwallDemo.exe": 98.4,
+  "RedwallDemo.pck": 924.3
+ },
+ "zip_mib": 684.2,
+ "finished": "2026-10-04T08:53:42.094637+00:00"
+}

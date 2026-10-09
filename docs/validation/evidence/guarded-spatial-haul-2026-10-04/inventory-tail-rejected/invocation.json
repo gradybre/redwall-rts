@@ -1,0 +1,41 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.09,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "201/388",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/guarded-spatial-haul-2026-10-04/inventory-tail-rejected"
+      ],
+      "exit_code": 1,
+      "seconds": 2.966,
+      "log": "test_haul_transfer_guard.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-haul-transfer",
+  "project_test_sha256": "1106c3ad3de4ebfb69635a16cee8fbd76ca0508a7dd58a16eff9b8ce75c1533b",
+  "assets_present_before": false,
+  "registry_sha256_before": "3f7d42e8f6916f405061f32ee33fffba399f0f27bf0ed145f72ec30a0ff4b9d6",
+  "registry_diagnostic_append_sha256": "0bfae94cb32d18f47797ab0e66e90057ccc3f74bb0bf716f7243cd2a376bb92a",
+  "error": "test_haul_transfer_guard.gd.log",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

@@ -1,0 +1,562 @@
+extends "res://test/framework/test_case.gd"
+## Actual Profile/Job/Work/Gear owners with explicitly synthetic mesh, timing and geometry certificates.
+## These tests qualify the driver protocol, never the mole asset, a work face or a paid frontier.
+
+const Driver := preload("res://data/underground/mole-worker/mole_profile_driver.gd")
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const ProfileFixture := preload("res://test/test_underground_profiles.gd")
+const MeshFixture := preload("res://test/test_underground_actor_content.gd")
+const RouteFixture := preload("res://test/test_underground_routes.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const COUNTS: Array[int] = [11, 3, 4, 5, 5, 4, 5, 5]
+var _fixture: ProfileFixture = null
+var _source: Content = null
+var _driver: Driver = null
+var _job: Vector2i = NULL_REF
+var _tool: Vector2i = NULL_REF
+var _pins: PackedInt64Array = PackedInt64Array([0, 1, 1, 1, 1, 1, 2, 1, 1, 3, 1, 1])
+
+
+func test_actual_source_program_reads_the_headless_clock_without_owning_it() -> void:
+	"""Actual immutable palette/timing and real mole/tool owners; profile and World certificates stay explicitly synthetic."""
+	var actual: RouteFixture = RouteFixture.new()
+	actual.before_each()
+	assert_true(actual._residents.despawn(actual._worker).ok, "remove the old unregistered fixture actor")
+	var slot: int = actual._residents.spawn(&"mole").value
+	actual._worker = actual._residents.ref_of(slot)
+	assert_true(actual._residents.spatial_profile_identity_into(actual._worker, actual._identity), "actual mole rig identity")
+	assert_true(actual._transforms.place(actual._worker, -512, 0, 512, 49152), "actual integer root")
+	var store: Vector2i = actual._inventory.create_container(actual._world, 1000000, -1, 0, true).ref
+	var tool: Vector2i = actual._inventory.create_lot(store, actual._items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(actual._gear.create_gear(actual._inventory, actual._items, tool, actual.Gear.MANUFACTURE_BASIC).ok, "actual basic pick")
+	assert_true(actual._gear.equip(tool, actual._worker).ok, "actual carried equipment")
+	var job: Vector2i = actual._clock_job()
+	assert_true(actual._work.claim_tool_for_work(slot, tool).ok, "exact actual BUILD claim")
+	actual._clock_profiles(tool, true)
+	var source: Content = Content.new()
+	assert_equal(source.load_file("res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+		Driver.SourceProgram.ACTOR_SHA, 7141920), &"", "unchanged supplied image in its existing7141920 presentation reserve")
+	var pins: PackedInt64Array = PackedInt64Array()
+	for row: int in 18:
+		pins.append_array(PackedInt64Array([row if row < 2 else row + 8, 1, 2]))
+	var driver: Driver = Driver.new()
+	assert_equal(driver.configure(source, actual._profiles, actual._residents, actual._worker,
+		tool, pins, Driver.SourceProgram.ACTOR_SHA, Driver.PROGRAM_APPROACH), &"", "explicit canonical protocol")
+	_source_clock_replay(actual, source, driver, job, tool)
+	driver.retire()
+	assert_equal(actual._work.tool_job_of(slot), job, "presentation retirement cannot release authoritative work")
+	actual.after_each()
+	assert_true(actual.failures.is_empty(), "complete actual fixture assertion propagation: " + str(actual.failures))
+
+
+func _source_clock_replay(actual: RouteFixture, source: Content, driver: Driver, job: Vector2i, tool: Vector2i) -> void:
+	"""Render twice or not at all between ticks; both directions resolve the actual nonuniform loop."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = actual._location(a)
+	var last: Vector2i = actual._location(b)
+	actual._publish_edges([actual._edge(first, last, [a, b]), actual._edge(last, first, [b, a])])
+	assert_equal(actual._routes.admit_travel_actor(actual._worker, job, first, 5, 1, 2, 0, -1, tool), &"", "canonical ready actor")
+	assert_equal(actual._routes.request_route(actual._worker, last, 0), &"", "actual directed approach")
+	var frame: Driver.Frame = Driver.Frame.new()
+	var expected: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	for tick: int in range(1, 47):
+		assert_equal(actual._routes.advance_tick(tick), 1, "headless source/root tick")
+		assert_equal(driver.read_route_into(actual._routes, 5, job, frame), &"", "actual source consumer")
+		assert_equal(actual._routes.source_state_into(actual._worker, job, 5, 1, 2, state), &"", "canonical state")
+		var original: PackedInt64Array = state.duplicate()
+		assert_equal(driver.read_route_into(actual._routes, 5, job, frame), &"", "additional render read")
+		assert_equal(actual._routes.source_state_into(actual._worker, job, 5, 1, 2, state), &"", "state after render")
+		assert_equal(state, original, "rendering never advances canonical phase")
+		if state[0] == Driver.SourceProgram.WALK:
+			assert_equal(source.clip_into(1, state[1], expected), &"", "exact Content resolver")
+			assert_equal(frame.frames.slice(0, 3), expected, "forward source phase")
+	assert_true(frame.ready, "actual canonical ready terminal")
+	assert_equal(driver.step_profile_into(5, job, Driver.ONE, false, frame), &"MOLE_DRIVER_CANONICAL_ROUTES_REQUIRED", "legacy render clock cannot reopen programme5")
+	assert_equal(actual._routes.refresh_work_actor(actual._worker, job, 24, 1, 2, 0, -1, tool), &"", "source-ready exact FRONT entry")
+	for tick: int in range(47, 113):
+		assert_equal(actual._routes.advance_tick(tick), 1, "headless entry followed by one full work loop")
+		assert_equal(driver.read_route_into(actual._routes, 24, job, frame), &"", "real work source consumer")
+		assert_equal(actual._routes.source_state_into(actual._worker, job, 24, 1, 2, state), &"", "canonical work source state")
+		assert_equal(source.clip_into(9 if state[0] == Driver.SourceProgram.ENTRY else 8, state[1], expected), &"", "exact entry/work Content phase")
+		assert_equal(frame.frames.slice(0, 3), expected, "actual source palette phase")
+	assert_equal(actual._routes.request_source_ready(actual._worker, job), &"", "canonical productive stop")
+	for tick: int in range(113, 143):
+		assert_equal(actual._routes.advance_tick(tick), 1, "headless full recovery before retreat")
+		assert_equal(driver.read_route_into(actual._routes, 24, job, frame), &"", "actual recovery source consumer")
+	assert_true(frame.ready, "productive source recovered without rendering authority")
+	assert_equal(actual._routes.refresh_travel_actor(actual._worker, job, 9, 1, 2, 0, -1, tool), &"", "ready-only backward handoff")
+	assert_equal(actual._routes.request_route(actual._worker, first, 143), &"", "actual retreat edge")
+	for tick: int in range(143, 189):
+		assert_equal(actual._routes.advance_tick(tick), 1, "headless reverse source/root tick")
+		assert_equal(driver.read_route_into(actual._routes, 9, job, frame), &"", "backward actual source")
+		assert_equal(actual._routes.source_state_into(actual._worker, job, 9, 1, 2, state), &"", "original source state")
+		if state[0] == Driver.SourceProgram.WALK:
+			assert_equal(source.clip_into(1, (Driver.SourceProgram.WALK_DURATION - state[1]) % Driver.SourceProgram.WALK_DURATION, expected), &"", "reverse the exact source time")
+			assert_equal(frame.frames.slice(0, 3), expected, "backward source includes short final interval")
+		assert_equal(frame.yaw, 49152, "backward root does not turn body")
+	assert_equal(frame.point, a, "real backward root returns to the access")
+	assert_true(frame.ready, "source ends at shared ready")
+
+
+func before_each() -> void:
+	"""Reuse only existing real-owner fixture construction; its assertions are inspected explicitly."""
+	_fixture = ProfileFixture.new()
+	_fixture.before_each()
+	_fixture._slot = _fixture._residents.spawn(&"mole").value
+	_fixture._worker = _fixture._residents.ref_of(_fixture._slot)
+	assert_true(_fixture._residents.spatial_profile_identity_into(_fixture._worker, _fixture._identity), "actual adult mole")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 0), "actual source root")
+	_tool = _fixture._equip()
+	_job = _fixture._actual_work_job().ref
+	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual tool claim")
+	_source = _content()
+	_install_profiles()
+	assert_true(_fixture.failures.is_empty(), "real fixture assertions: " + str(_fixture.failures))
+	_driver = Driver.new()
+	assert_equal(_bind(_driver, _pins), &"", "exact source and actual profile binding")
+
+
+func after_each() -> void:
+	"""Retire only this test's presentation; never let the driver release an authoritative equipment claim."""
+	if _driver != null:
+		_driver.retire()
+	_driver = null
+	_source = null
+	if _fixture != null:
+		assert_true(_fixture.failures.is_empty(), "fixture failure propagation")
+		_fixture.after_each()
+	_fixture = null
+
+
+func _content(compact: bool = false, installation: bool = false) -> Content:
+	"""Versioned finite clips use one actual ArrayMesh; source flags remain a labelled synthetic fixture."""
+	var helper: MeshFixture = MeshFixture.new()
+	var mesh: ArrayMesh = helper._mesh()
+	var counts: Array[int] = COUNTS.duplicate()
+	if compact:
+		counts.append_array([4, 5, 5])
+	if installation:
+		assert_true(compact, "INSTALL extends the compact source, never the original program")
+		counts.append_array([4, 5, 5])
+	var frames: int = 0
+	for count: int in counts:
+		frames += count
+	var path: String = "user://mole-driver-%d.bin" % get_instance_id()
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_buffer("UGACNT01".to_ascii_buffer())
+	for value: int in [1, 1, 1, counts.size(), frames, 12]:
+		file.store_32(value)
+	for value: int in [0, -32, 0, 4096, 4096, 4096]:
+		file.store_32(value)
+	for which: int in 4:
+		file.store_buffer(MeshFixture.HASH.hex_decode())
+	helper._write_part(file, mesh, 0)
+	_write_clips(file, counts)
+	for frame: int in frames:
+		for value: float in PackedFloat32Array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]):
+			file.store_float(value)
+	for frame: int in frames:
+		file.store_float(0.0)
+	file.store_buffer("UGAEND01".to_ascii_buffer())
+	file.close()
+	var result: Content = Content.new()
+	assert_equal(result.load_file(path, FileAccess.get_sha256(path), 3 * 1024 * 1024), &"", "real immutable source loader")
+	assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(path)), OK, "owned fixture removed")
+	return result
+
+
+func _write_clips(file: FileAccess, counts: Array[int]) -> void:
+	"""Finite profile protocol order with actual loop rules and exact matching source endpoints."""
+	var first: int = 0
+	for clip: int in counts.size():
+		var loop: int = int(clip < 2 or (clip - 2) % 3 == 0)
+		for value: int in [first, counts[clip], loop, (counts[clip] - 1) * Driver.ONE]:
+			file.store_32(value)
+		file.store_buffer(MeshFixture.HASH.hex_decode())
+		first += counts[clip]
+
+
+func _install_profiles(revision: int = 1, count: int = 4, bad_heading_row: int = -1) -> void:
+	"""Actual compiled mole/tool keys plus test-only geometry and certificate bits."""
+	var rows: Array[Dictionary] = []
+	var boxes: Array[PackedInt32Array] = []
+	for index: int in count:
+		var row: Dictionary = _fixture._row(index if index < 2 else Profiles.MODE_WORK)
+		row.fields[Profiles.F_TOOL] = _fixture._items.compiled_id(&"tool")
+		row.fields[Profiles.F_TOOL_VARIANT] = _fixture.Gear.MANUFACTURE_BASIC
+		row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+		row.fields[Profiles.F_BOX_COUNT] = 3 if index < 2 else 7
+		boxes.append_array(_fixture._boxes())
+		if index >= 2:
+			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+			if count == 18:
+				@warning_ignore("integer_division") var heading: int = (index - 2) / 4
+				row.fields[Profiles.F_YAW] = heading * 16384 + int(index == bad_heading_row)
+			row.fields[Profiles.F_WORK_KIND] = _fixture.Jobs.JOB_KIND_BUILD
+			row.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ANCHOR_AND_PATCH
+			_add_work_boxes(boxes, 2 + (index - 2) % 4 if count == 18 else index)
+		rows.append(row)
+	var wire: PackedByteArray = _fixture._image(rows, boxes, revision)
+	var digest: PackedByteArray = _source.source_digest().hex_decode()
+	for byte: int in 32:
+		wire[32 + byte] = digest[byte]
+	assert_equal(_fixture._load(wire, revision), &"", "complete synthetic rows through actual immutable reader")
+
+
+func _add_work_boxes(boxes: Array[PackedInt32Array], index: int) -> void:
+	"""Two visibly different face axes exist for one actual worker and one tool manufacture."""
+	boxes.append(PackedInt32Array([-128, -20, -128, 128, 1000, 256, Profiles.WORK_APPROACH]))
+	boxes.append(PackedInt32Array([-128, 0, -256, 128, 1000, 128, Profiles.WORK_STROKE]))
+	boxes.append(PackedInt32Array([0, 512, -200, 0, 512, -200, Profiles.CONTACT_POINT]))
+	boxes.append(PackedInt32Array([-2, 512, -202, 2, 512, -198, Profiles.CONTACT_PATCH]) if index == 2 else
+		PackedInt32Array([-2, 510, -200, 2, 514, -200, Profiles.CONTACT_PATCH]))
+
+
+func _bind(driver: Driver, pins: PackedInt64Array, program: int = Driver.PROGRAM_ORIGINAL) -> StringName:
+	"""No fake mutable authority callback is inserted between this driver and actual owners."""
+	return driver.configure(_source, _fixture._profiles, _fixture._residents, _fixture._worker,
+		_tool, pins, _source.source_digest(), program)
+
+
+func test_pause_and_refusal_preserve_exact_visible_frame_and_integer_phase() -> void:
+	"""No source interpolation advances with zero time, invalid input or an uncompleted contact handoff."""
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(_driver.step_into(2, _job, 0, false, out), &"", "initial ready observation")
+	assert_true(out.ready, "zero time stays ready")
+	var initial: PackedInt32Array = out.frames.duplicate()
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, false, out), &"", "actual entry")
+	assert_equal(out.phase, Driver.ENTRY, "entry phase")
+	var before: PackedInt32Array = out.frames.duplicate()
+	var state: PackedInt64Array = _driver._live.duplicate()
+	assert_equal(_driver.step_into(2, _job, 0, true, out), &"", "paused cancellation request")
+	assert_equal(out.frames, before, "paused pose frozen")
+	assert_equal(_driver._live, state, "paused phase frozen")
+	assert_equal(_driver.step_into(1, _job, Driver.ONE, false, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "no buried-pick travel snap")
+	assert_equal(_driver.step_into(2, _job, Driver.MAX_DELTA + 1, false, out), &"MOLE_DRIVER_INPUT", "bounded update")
+	assert_equal(out.frames, before, "refused pose untouched")
+	assert_equal(_driver._live, state, "refused clock untouched")
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, true, out), &"", "retrace partial entry")
+	assert_true(out.ready, "exact initial source reached")
+	assert_equal(out.frames, initial, "exact hub pose restored")
+
+
+func test_productive_interruption_completes_retrace_before_contact_or_job_handoff() -> void:
+	"""The actual same work/tool observation survives the full visible productive recovery."""
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(_driver.step_into(2, _job, 4 * Driver.ONE, false, out), &"", "entry endpoint")
+	assert_equal(out.phase, Driver.WORK, "actual work source")
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, false, out), &"", "productive interval")
+	assert_equal(_driver.step_into(3, _job, Driver.ONE, false, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "other exact contact cannot replace buried source")
+	assert_equal(_driver.step_into(2, _job, 2 * Driver.ONE, true, out), &"", "finish current productive retrace")
+	assert_equal(out.phase, Driver.RECOVERY, "same contact recovery")
+	assert_false(out.ready, "recovery is not work credit or travel clearance")
+	assert_equal(_driver.step_into(2, _job, 4 * Driver.ONE, true, out), &"", "full clear recovery")
+	assert_true(out.ready, "source handoff point")
+	assert_equal(_driver.step_into(3, _job, 4 * Driver.ONE, false, out), &"", "now other actual contact")
+	assert_equal(out.profile_id, 3, "exact selected upper contact")
+	assert_equal(out.phase, Driver.WORK, "upper source entered")
+
+
+func test_actual_tool_assignment_content_and_pose_drift_never_become_a_successful_recovery() -> void:
+	"""Source readiness cannot recreate a released claim, stale Job or externally moved productive worker."""
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(_driver.step_into(2, _job, 4 * Driver.ONE, false, out), &"", "productive binding")
+	var before: PackedInt32Array = out.frames.duplicate()
+	var state: PackedInt64Array = _driver._live.duplicate()
+	assert_true(_fixture._work.release_tool_claim(_fixture._slot).ok, "actual claim released")
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, true, out), &"PROFILE_TOOL_CLAIM", "cannot invent retained claim")
+	assert_equal(out.frames, before, "refused frame unchanged")
+	assert_equal(_driver._live, state, "refused phase unchanged")
+	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual claim restored")
+	assert_true(_fixture._transforms.advance(_fixture._worker, 1025, 0, 2048), "external actual pose write")
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, true, out), &"MOLE_DRIVER_WORK_POSE_DRIFT", "productive root must stay pinned")
+	assert_true(_fixture._transforms.advance(_fixture._worker, 1024, 0, 2048), "restore actual pose")
+	_install_profiles(2)
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, true, out), &"PROFILE_SELECTION_STALE", "content replacement cannot carry old permission")
+
+
+func test_ground_walk_uses_complete_fade_and_safe_hub_before_switching_to_work() -> void:
+	"""Travel presentation follows actual root changes while positive fixed fades preserve the finite program."""
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(_driver.step_into(1, _job, 4 * Driver.ONE, false, out), &"", "walking fade")
+	assert_equal(out.phase, Driver.FADE_WALK, "not an instantaneous handoff")
+	assert_true(out.frames[6] > 0 and out.frames[6] < Driver.ONE, "positive intermediate blend")
+	assert_equal(_driver.step_into(1, _job, 4 * Driver.ONE, false, out), &"", "finish walking fade")
+	assert_equal(out.phase, Driver.WALK, "finite walk source")
+	assert_true(_fixture._transforms.advance(_fixture._worker, 1024, 0, 2040), "actual route pose")
+	assert_equal(_driver.step_into(1, _job, 4 * Driver.ONE, true, out), &"", "settle moving source")
+	assert_equal(out.point, Vector3i(1024, 0, 2040), "actual position, never driver movement")
+	assert_equal(_driver.step_into(2, _job, 0, false, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "profile still retained during fade")
+	assert_equal(_driver.step_into(1, _job, 4 * Driver.ONE, true, out), &"", "clear travel hub")
+	assert_true(out.ready, "host can now perform actual profile admission")
+	assert_equal(_driver.step_into(2, _job, Driver.ONE, false, out), &"", "actual work source selection")
+
+
+func test_cold_pins_are_copied_and_retirement_releases_no_actual_owner_state() -> void:
+	"""Caller scratch cannot rewrite the bound source; explicit retirement itself grants no new gameplay state."""
+	var pins: PackedInt64Array = _pins.duplicate()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins), &"", "independent presentation state")
+	pins[6] = 999
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(2, _job, Driver.ONE, false, out), &"", "copied profile tuple")
+	out.frames[0] = 999
+	assert_equal(driver.step_into(2, _job, 0, false, out), &"", "caller output does not alias state")
+	assert_true(out.frames[0] != 999, "fresh exact source frame")
+	driver.retire()
+	assert_equal(driver.step_into(2, _job, Driver.ONE, true, out), &"MOLE_DRIVER_UNBOUND", "no replay after retirement")
+	assert_equal(_fixture._work.tool_job_of(_fixture._slot), _job, "driver did not release actual Work")
+	assert_equal(_fixture._gear.owner_of(_tool), _fixture._worker, "driver did not hide or transfer tool")
+	assert_equal(_bind(driver, _pins), &"MOLE_DRIVER_ALREADY_BOUND", "retired source cannot silently reactivate")
+
+
+func test_swapped_work_tuples_cannot_pair_a_downward_clip_with_the_upper_contact() -> void:
+	"""Two otherwise valid WORK rows share one source; its authored role IDs remain non-interchangeable."""
+	var swapped: PackedInt64Array = _pins.duplicate()
+	for field: int in 3:
+		swapped[6 + field] = _pins[9 + field]
+		swapped[9 + field] = _pins[6 + field]
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, swapped), &"MOLE_DRIVER_PROFILE_ROLE", "whole valid tuples cannot swap source roles")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(2, _job, Driver.ONE, false, out), &"MOLE_DRIVER_UNBOUND", "refused binding published nothing")
+	assert_equal(_bind(driver, _pins), &"", "exact authored role order remains usable after refusal")
+	assert_equal(driver.step_into(2, _job, 4 * Driver.ONE, false, out), &"", "actual down contact")
+	assert_equal(out.profile_id, 2, "down source owns down certificate")
+	assert_equal(out.frames[0], COUNTS[0] + COUNTS[1], "the matching down productive clip")
+	driver.retire()
+
+
+func _use_compact_source() -> PackedInt64Array:
+	"""Replace only this fixture's presentation and synthetic certificate image; core identities are unchanged."""
+	_driver.retire()
+	_source = _content(true)
+	_install_profiles(2, 5)
+	return PackedInt64Array([0, 1, 2, 1, 1, 2, 2, 1, 2, 3, 1, 2, 4, 1, 2])
+
+
+func test_compact_version_requires_explicit_protocol_and_preserves_original_refusals() -> void:
+	"""Eleven source clips cannot silently enter the old eight-clip protocol or gain a missing row."""
+	var old_out: Driver.Frame = Driver.Frame.new()
+	assert_equal(_driver.step_into(4, _job, Driver.ONE, false, old_out), &"MOLE_DRIVER_INPUT", "original has no front role")
+	var pins: PackedInt64Array = _use_compact_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins), &"MOLE_DRIVER_SOURCE", "explicit version required")
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_APPROACH + 1), &"MOLE_DRIVER_PROGRAM", "no future implicit protocol")
+	assert_equal(_bind(driver, _pins, Driver.PROGRAM_COMPACT), &"MOLE_DRIVER_SOURCE", "missing exact front tuple")
+	var swapped: PackedInt64Array = pins.duplicate()
+	for field: int in 3:
+		swapped[6 + field] = pins[12 + field]
+		swapped[12 + field] = pins[6 + field]
+	assert_equal(_bind(driver, swapped, Driver.PROGRAM_COMPACT), &"MOLE_DRIVER_PROFILE_ROLE", "front/down source cannot swap")
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_COMPACT), &"", "retry exact compact binding after refusal")
+	assert_equal(driver.step_into(5, _job, 0, false, old_out), &"MOLE_DRIVER_INPUT", "exact five-role bound")
+	driver.retire()
+
+
+func _use_install_source() -> PackedInt64Array:
+	"""Only the source protocol and labelled synthetic contact rows expand; actual Work/Gear remain unchanged."""
+	_driver.retire()
+	_source = _content(true, true)
+	_install_profiles(3, 6)
+	return PackedInt64Array([0, 1, 3, 1, 1, 3, 2, 1, 3, 3, 1, 3, 4, 1, 3, 5, 1, 3])
+
+
+func test_install_requires_its_explicit_program_and_exact_source_role_tuple() -> void:
+	"""A valid BUILD descriptor is insufficient when it belongs to another productive source role."""
+	var pins: PackedInt64Array = _use_install_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_COMPACT), &"MOLE_DRIVER_SOURCE", "v2 cannot acquire INSTALL implicitly")
+	var swapped: PackedInt64Array = pins.duplicate()
+	for field: int in 3:
+		swapped[6 + field] = pins[15 + field]
+		swapped[15 + field] = pins[6 + field]
+	assert_equal(_bind(driver, swapped, Driver.PROGRAM_INSTALL), &"MOLE_DRIVER_PROFILE_ROLE", "dig/fitting tuples cannot swap")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(5, _job, 0, false, out), &"MOLE_DRIVER_UNBOUND", "refusal publishes no source")
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_INSTALL), &"", "exact fourteen-clip program")
+	assert_equal(driver.step_into(6, _job, 0, false, out), &"MOLE_DRIVER_INPUT", "six roles are a finite bound")
+	assert_equal(driver.step_into(5, _job, 4 * Driver.ONE, false, out), &"", "actual INSTALL selection")
+	assert_equal(out.profile_id, 5, "INSTALL descriptor remains exact")
+	assert_equal(out.frames[0], 56, "productive clip 11 is distinct from every dig source")
+	driver.retire()
+
+
+func test_install_partial_entry_retraces_and_pause_preserves_the_exact_source() -> void:
+	"""Cancellation cannot replace a partly entered fitting pose with a travel or digging pose."""
+	var pins: PackedInt64Array = _use_install_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_INSTALL), &"", "INSTALL source")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(5, _job, 0, false, out), &"", "fixed shared hub")
+	var hub: PackedInt32Array = out.frames.duplicate()
+	assert_equal(driver.step_into(5, _job, Driver.ONE, false, out), &"", "partial INSTALL entry")
+	assert_equal(out.phase, Driver.ENTRY, "entry stays distinct from productive work")
+	var before: PackedInt32Array = out.frames.duplicate()
+	var clock: PackedInt64Array = driver._live.duplicate()
+	assert_equal(driver.step_into(5, _job, 0, true, out), &"", "paused cancellation request")
+	assert_equal(out.frames, before, "paused visible pose unchanged")
+	assert_equal(driver._live, clock, "paused integer phase unchanged")
+	assert_equal(driver.step_into(1, _job, Driver.ONE, false, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "no instant fitting-to-travel")
+	assert_equal(driver.step_into(5, _job, Driver.ONE, true, out), &"", "exact entry retrace")
+	assert_equal(out.frames, hub, "returns to the same shared hub")
+	assert_true(out.ready, "ready is source state only")
+	driver.retire()
+
+
+func test_install_productive_interruption_retains_actual_job_tool_and_recovery() -> void:
+	"""Fitting recovery needs the original real observation and cannot manufacture Work credit or timber."""
+	var pins: PackedInt64Array = _use_install_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_INSTALL), &"", "INSTALL source")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(5, _job, 4 * Driver.ONE, false, out), &"", "finish entry")
+	assert_equal(driver.step_into(5, _job, Driver.ONE, false, out), &"", "inside productive source")
+	var before: PackedInt32Array = out.frames.duplicate()
+	assert_equal(driver.step_into(4, _job, Driver.ONE, false, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "cannot exchange fitting and digging")
+	assert_equal(driver.step_into(5, NULL_REF, Driver.ONE, true, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "actual Job remains retained")
+	assert_true(_fixture._work.release_tool_claim(_fixture._slot).ok, "actual external claim release")
+	assert_equal(driver.step_into(5, _job, Driver.ONE, true, out), &"PROFILE_TOOL_CLAIM", "no invented claim during recovery")
+	assert_equal(out.frames, before, "refused recovery leaves visible source unchanged")
+	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual claim restored")
+	assert_equal(driver.step_into(5, _job, 2 * Driver.ONE, true, out), &"", "finish exact productive loop")
+	assert_equal(out.phase, Driver.RECOVERY, "clip 13 recovery")
+	assert_equal(out.frames[0], 65, "INSTALL recovery source selected")
+	assert_equal(driver.step_into(5, _job, 4 * Driver.ONE, true, out), &"", "complete recovery")
+	assert_true(out.ready, "only now may another profile begin")
+	assert_equal(driver.step_into(2, _job, 4 * Driver.ONE, false, out), &"", "existing downward role still works")
+	assert_equal(out.frames[0], 14, "existing clip 2 unchanged")
+	assert_equal(_fixture._work.tool_job_of(_fixture._slot), _job, "driver never retires actual Work")
+	driver.retire()
+
+
+func test_compact_front_uses_its_own_clip_then_recovers_to_the_single_shared_hub() -> void:
+	"""Front/high/down use one actual Job/tool and cannot switch source until exact entry/recovery finishes."""
+	var pins: PackedInt64Array = _use_compact_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_COMPACT), &"", "compact protocol")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(4, _job, 0, false, out), &"", "front ready observation")
+	var hub: PackedInt32Array = out.frames.duplicate()
+	assert_equal(driver.step_into(4, _job, 4 * Driver.ONE, false, out), &"", "full front entry")
+	assert_equal(out.phase, Driver.WORK, "front productive source")
+	assert_equal(out.profile_id, 4, "actual selected front descriptor")
+	assert_equal(out.frames[0], 42, "front clip8, never down clip2 or high clip5")
+	assert_equal(driver.step_into(4, _job, Driver.ONE, false, out), &"", "active front stroke")
+	assert_equal(driver.step_into(2, _job, Driver.ONE, false, out), &"MOLE_DRIVER_HANDOFF_REQUIRED", "no buried front-to-down switch")
+	assert_equal(driver.step_into(4, _job, 2 * Driver.ONE, true, out), &"", "finish front loop")
+	assert_equal(out.phase, Driver.RECOVERY, "exact front recovery clip10")
+	assert_equal(driver.step_into(4, _job, 4 * Driver.ONE, true, out), &"", "complete front recovery")
+	assert_equal(out.frames, hub, "one byte-identical hub, no second STAND")
+	assert_true(out.ready, "actual source handoff point only")
+	assert_equal(driver.step_into(2, _job, Driver.ONE, false, out), &"", "down entry from shared hub")
+	assert_equal(driver.step_into(2, _job, Driver.ONE, true, out), &"", "exact partial down retrace")
+	assert_equal(out.frames, hub, "partial entry returns the same shared ready pose")
+	assert_equal(driver.step_into(3, _job, 4 * Driver.ONE, false, out), &"", "high work remains separately selected")
+	assert_equal(out.frames[0], 28, "high clip5 preserved")
+	assert_equal(_fixture._work.tool_job_of(_fixture._slot), _job, "no claim release or work credit")
+	driver.retire()
+
+
+func _use_cardinal_source(bad_heading_row: int = -1) -> PackedInt64Array:
+	"""The same fourteen clips pair with labelled synthetic certificates for all eighteen exact rows."""
+	_driver.retire()
+	_source = _content(true, true)
+	_install_profiles(4, 18, bad_heading_row)
+	var pins: PackedInt64Array = PackedInt64Array()
+	for row: int in 18:
+		pins.append_array(PackedInt64Array([row, 1, 4]))
+	return pins
+
+
+func test_cardinal_map_preserves_each_source_role_at_all_four_exact_work_headings() -> void:
+	"""All sixteen real WORK selections use their own heading and correct clip; no first-match selection."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_INSTALL), &"MOLE_DRIVER_SOURCE", "v3 cannot infer cardinal map")
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "explicit eighteen-row binding")
+	var out: Driver.Frame = Driver.Frame.new()
+	var expected: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	for row: int in range(2, 18):
+		@warning_ignore("integer_division") var heading: int = (row - 2) / 4
+		var role: int = 2 + (row - 2) % 4
+		assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, heading * 16384), "actual heading at ready")
+		assert_equal(driver.step_profile_into(row, _job, 4 * Driver.ONE, false, out), &"", "selected entry finishes")
+		assert_equal(out.profile_id, row, "exact actual catalog ID")
+		assert_equal(out.yaw, heading * 16384, "exact actual heading")
+		assert_equal(out.phase, Driver.WORK, "selected productive source")
+		assert_equal(_source.clip_into(2 + 3 * (role - 2), 0, expected), &"", "immutable source clip")
+		assert_equal(out.frames[0], expected[0], "heading does not exchange productive roles")
+		assert_equal(driver.step_profile_into(row, _job, 4 * Driver.ONE, true, out), &"", "same source recovery")
+		assert_true(out.ready, "heading may change only after this ready state")
+	assert_equal(driver._pins.size() * 8, 432, "eighteen immutable tuples")
+	driver.retire()
+
+
+func test_cardinal_heading_change_requires_recovery_with_the_original_actual_observation() -> void:
+	"""Neither an exact new row nor an external pose write can teleport a productive source through its target."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "cardinal protocol")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(2, _job, Driver.ONE, false, out), &"MOLE_DRIVER_EXACT_PROFILE_REQUIRED", "no implicit WORK heading")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"", "partial yaw0 down entry")
+	var before: PackedInt32Array = out.frames.duplicate()
+	var state: PackedInt64Array = driver._live.duplicate()
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 16384), "external actual heading mutation")
+	assert_equal(driver.step_profile_into(6, _job, Driver.ONE, true, out), &"MOLE_DRIVER_WORK_POSE_DRIFT", "same role at new heading is not recovery")
+	assert_equal(out.frames, before, "refused source preserved")
+	assert_equal(driver._live, state, "refused phase preserved")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 0), "restore original actual observation")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, true, out), &"", "exact original entry retrace")
+	assert_true(out.ready, "actual source is ready")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 16384), "new heading after ready")
+	assert_equal(driver.step_profile_into(6, _job, Driver.ONE, false, out), &"", "new heading can now start its entry")
+	driver.retire()
+
+
+func test_cardinal_binding_refuses_swapped_rows_and_wrong_descriptor_heading() -> void:
+	"""A complete tuple from another heading cannot authorize this source mapping, even with the same mesh digest."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var swapped: PackedInt64Array = pins.duplicate()
+	for field: int in 3:
+		swapped[6 + field] = pins[18 + field]
+		swapped[18 + field] = pins[6 + field]
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, swapped, Driver.PROGRAM_CARDINAL), &"MOLE_DRIVER_PROFILE_ROLE", "whole heading tuples are not interchangeable")
+	_install_profiles(5, 18, 6)
+	for row: int in 18:
+		pins[row * 3 + 2] = 5
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"MOLE_DRIVER_PROFILE_HEADING", "native heading metadata must be exact")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_profile_into(6, _job, 0, false, out), &"MOLE_DRIVER_UNBOUND", "no partial configuration")
+	_install_profiles(6, 18)
+	for row: int in 18:
+		pins[row * 3 + 2] = 6
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "exact source mapping may retry after refusal")
+	driver.retire()
+
+
+func test_cardinal_updates_keep_actual_claim_staleness_and_unsupported_heading_refusals() -> void:
+	"""Mapping never substitutes for actual Job/Gear/yaw/content identity; ordinary ground selection remains unchanged."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "cardinal protocol")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_profile_into(2, _job, 0, false, out), &"", "exact ready observation")
+	var before: PackedInt32Array = out.frames.duplicate()
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 1), "unsupported real yaw")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"PROFILE_VARIANT_UNAUTHORED", "never round yaw")
+	assert_equal(out.frames, before, "unsupported heading output untouched")
+	assert_equal(driver.step_into(1, _job, 0, false, out), &"", "ordinary all-yaw travel query still valid")
+	assert_equal(out.profile_id, 1, "same unique ground profile")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 0), "supported heading")
+	assert_true(_fixture._work.release_tool_claim(_fixture._slot).ok, "actual claim released")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"PROFILE_TOOL_CLAIM", "exact row cannot recreate claim")
+	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual claim restored")
+	_install_profiles(5, 18)
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"PROFILE_SELECTION_STALE", "old source tuples cannot survive replacement")
+	driver.retire()

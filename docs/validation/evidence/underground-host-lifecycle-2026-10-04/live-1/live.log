@@ -1,0 +1,224 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Compile Error: Identifier not found: GameManager
+          at: GDScript::reload (res://scripts/systems/settlement_system.gd:1296)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/host_live.gd:0)
+ERROR: Failed to load script "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/host_live.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+[EntityManager] ready
+[GameManager] ready
+[EconomySystem] ready
+SCRIPT ERROR: Invalid call. Nonexistent function 'commands' in base 'Node'.
+          at: _bind_settlement (res://scripts/systems/ui_manager.gd:153)
+          GDScript backtrace (most recent call first):
+              [0] _bind_settlement (res://scripts/systems/ui_manager.gd:153)
+              [1] _ready (res://scripts/systems/ui_manager.gd:141)
+[UIManager] ready
+SCRIPT ERROR: Invalid call. Nonexistent function 'prepare_world_reset' in base 'Node'.
+          at: _ready (res://scripts/main.gd:23)
+          GDScript backtrace (most recent call first):
+              [0] _ready (res://scripts/main.gd:23)
+WARNING: demo assets are not staged (tools/stage_demo_assets.py); running on placeholders
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _ready (res://demo/demo_village.gd:434)
+SCRIPT ERROR: Invalid call. Nonexistent function 'mount_underground' in base 'Node'.
+          at: _mount_modular_foundation (res://demo/demo_village.gd:519)
+          GDScript backtrace (most recent call first):
+              [0] _mount_modular_foundation (res://demo/demo_village.gd:519)
+              [1] _ready (res://demo/demo_village.gd:437)
+WARNING: sound cue chop: 5 of 5 files missing (res://demo/assets/sound/chop_01.wav, res://demo/assets/sound/chop_02.ogg, res://demo/assets/sound/chop_03.ogg, res://demo/assets/sound/chop_04.ogg, res://demo/assets/sound/chop_05.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue gnaw: 5 of 5 files missing (res://demo/assets/sound/gnaw_01.wav, res://demo/assets/sound/gnaw_02.wav, res://demo/assets/sound/gnaw_03.wav, res://demo/assets/sound/gnaw_04.wav, res://demo/assets/sound/gnaw_05.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue saw: 3 of 3 files missing (res://demo/assets/sound/saw_01.wav, res://demo/assets/sound/saw_02.wav, res://demo/assets/sound/saw_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav, res://demo/assets/sound/dig_02.wav, res://demo/assets/sound/dig_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/sound/tree_fall_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/sound/pickup_01.ogg, res://demo/assets/sound/pickup_02.ogg, res://demo/assets/sound/pickup_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/sound/drop_01.ogg, res://demo/assets/sound/drop_02.ogg, res://demo/assets/sound/drop_03.ogg, res://demo/assets/sound/drop_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/sound/step_grass_01.ogg, res://demo/assets/sound/step_grass_02.ogg, res://demo/assets/sound/step_grass_03.ogg, res://demo/assets/sound/step_grass_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/sound/step_dirt_01.ogg, res://demo/assets/sound/step_dirt_02.ogg, res://demo/assets/sound/step_dirt_03.ogg, res://demo/assets/sound/step_dirt_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/sound/step_wood_01.wav, res://demo/assets/sound/step_wood_02.wav, res://demo/assets/sound/step_wood_03.wav, res://demo/assets/sound/step_wood_04.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/sound/step_tunnel_01.ogg, res://demo/assets/sound/step_tunnel_02.ogg, res://demo/assets/sound/step_tunnel_03.ogg, res://demo/assets/sound/step_tunnel_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/sound/step_wade_01.ogg, res://demo/assets/sound/step_wade_02.ogg, res://demo/assets/sound/step_wade_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/sound/splash_01.ogg, res://demo/assets/sound/splash_02.ogg, res://demo/assets/sound/splash_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/sound/water_in_01.ogg, res://demo/assets/sound/water_in_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/sound/water_out_01.ogg, res://demo/assets/sound/water_out_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/sound/amb_stream_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/sound/amb_wind_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/sound/amb_rain_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/sound/warning_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] warm (res://demo/demo_prewarm.gd:77)
+         [4] _warm_and_open (res://demo/demo_village.gd:505)
+         [5] _ready (res://demo/demo_village.gd:476)
+SCRIPT ERROR: Invalid call. Nonexistent function 'underground_session' in base 'Nil'.
+          at: _run (/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/host_live.gd:13)
+          GDScript backtrace (most recent call first):
+              [0] _run (/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-lifecycle-2026-10-04/host_live.gd:13)
+              [1] _frames (res://test/live/demo_layout_live.gd:63)

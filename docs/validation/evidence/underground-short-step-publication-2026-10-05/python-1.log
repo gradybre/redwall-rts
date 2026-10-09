@@ -1,0 +1,83 @@
+test_actual_full_source_and_native_admission (__main__.PublicationTests.test_actual_full_source_and_native_admission) ... ok
+test_actual_ground_pace_names_twelve_exact_walk_rows (__main__.PublicationTests.test_actual_ground_pace_names_twelve_exact_walk_rows) ... ok
+test_current_consumer_manifest_cannot_omit_tenth_program (__main__.PublicationTests.test_current_consumer_manifest_cannot_omit_tenth_program) ... FAIL
+test_exact_old_geometry_and_new_row_map (__main__.PublicationTests.test_exact_old_geometry_and_new_row_map) ... ok
+test_existing_output_and_wrong_destination_refuse_before_admission (__main__.PublicationTests.test_existing_output_and_wrong_destination_refuse_before_admission) ... ok
+test_final_input_mutation_refuses_before_first_output (__main__.PublicationTests.test_final_input_mutation_refuses_before_first_output) ... FAIL
+test_fixed_review_hash_rejects_relabelled_acceptance (__main__.PublicationTests.test_fixed_review_hash_rejects_relabelled_acceptance) ... FAIL
+test_hash_paths_are_bounded_and_cannot_escape (__main__.PublicationTests.test_hash_paths_are_bounded_and_cannot_escape) ... ok
+test_motion_all_geometry_and_independent_rates_are_preserved (__main__.PublicationTests.test_motion_all_geometry_and_independent_rates_are_preserved) ... ok
+test_motion_corrupt_original_cannot_be_rehashed_by_caller (__main__.PublicationTests.test_motion_corrupt_original_cannot_be_rehashed_by_caller) ... ok
+test_motion_rebind_rejects_stripped_or_self_declared_publication (__main__.PublicationTests.test_motion_rebind_rejects_stripped_or_self_declared_publication) ... ok
+test_mutated_actual_current_script_cannot_borrow_historical_pin (__main__.PublicationTests.test_mutated_actual_current_script_cannot_borrow_historical_pin) ... FAIL
+test_successful_publication_is_create_only (__main__.PublicationTests.test_successful_publication_is_create_only) ... ERROR
+
+======================================================================
+ERROR: test_successful_publication_is_create_only (__main__.PublicationTests.test_successful_publication_is_create_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/test_publish_short_step_profiles.py", line 161, in test_successful_publication_is_create_only
+    result = M.publish(target)
+             ^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 303, in publish
+    require(out.resolve() == ROOT / OUTPUT and not out.exists() and not out.is_symlink(), "OUTPUT")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/publish_short_step_profiles.py", line 56, in require
+    raise ValueError("STEP_PUBLICATION_" + code)
+ValueError: STEP_PUBLICATION_OUTPUT
+
+======================================================================
+FAIL: test_current_consumer_manifest_cannot_omit_tenth_program (__main__.PublicationTests.test_current_consumer_manifest_cannot_omit_tenth_program)
+----------------------------------------------------------------------
+ValueError: STEP_PUBLICATION_FILE:docs/validation/evidence/underground-short-step-publication-2026-10-05/current-consumers.json
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/test_publish_short_step_profiles.py", line 115, in test_current_consumer_manifest_cannot_omit_tenth_program
+    with self.assertRaisesRegex(ValueError, 'HASH:'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "HASH:" does not match "STEP_PUBLICATION_FILE:docs/validation/evidence/underground-short-step-publication-2026-10-05/current-consumers.json"
+
+======================================================================
+FAIL: test_final_input_mutation_refuses_before_first_output (__main__.PublicationTests.test_final_input_mutation_refuses_before_first_output)
+----------------------------------------------------------------------
+ValueError: STEP_PUBLICATION_OUTPUT
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/test_publish_short_step_profiles.py", line 154, in test_final_input_mutation_refuses_before_first_output
+    with self.assertRaisesRegex(ValueError,'HASH:source'): M.publish(target)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "HASH:source" does not match "STEP_PUBLICATION_OUTPUT"
+
+======================================================================
+FAIL: test_fixed_review_hash_rejects_relabelled_acceptance (__main__.PublicationTests.test_fixed_review_hash_rejects_relabelled_acceptance)
+----------------------------------------------------------------------
+ValueError: STEP_PUBLICATION_FILE:docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/independent-review/acceptance.json
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/test_publish_short_step_profiles.py", line 106, in test_fixed_review_hash_rejects_relabelled_acceptance
+    with self.assertRaisesRegex(ValueError, 'HASH:'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "HASH:" does not match "STEP_PUBLICATION_FILE:docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/independent-review/acceptance.json"
+
+======================================================================
+FAIL: test_mutated_actual_current_script_cannot_borrow_historical_pin (__main__.PublicationTests.test_mutated_actual_current_script_cannot_borrow_historical_pin)
+----------------------------------------------------------------------
+ValueError: STEP_PUBLICATION_FILE:docs/validation/evidence/underground-short-step-publication-2026-10-05/current-consumers.json
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-short-step-publication/godot/data/underground/mole-worker/test_publish_short_step_profiles.py", line 125, in test_mutated_actual_current_script_cannot_borrow_historical_pin
+    with patch.object(M, 'ROOT', root), self.assertRaisesRegex(ValueError, 'HASH:.*underground_profiles'):
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "HASH:.*underground_profiles" does not match "STEP_PUBLICATION_FILE:docs/validation/evidence/underground-short-step-publication-2026-10-05/current-consumers.json"
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.405s
+
+FAILED (failures=4, errors=1)

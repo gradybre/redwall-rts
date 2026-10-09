@@ -561,6 +561,9 @@ var _ref_slot: PackedInt32Array = PackedInt32Array()
 var _ref_generation: PackedInt32Array = PackedInt32Array()
 var _live_slots: PackedInt32Array = PackedInt32Array()
 var _live_count: int = 0
+## The code of the most recent refused §4.2 bulk column call, or REFUSE_NONE. Category 3: a
+## diagnostic channel separate from every mutator's OpResult, never saved or hashed.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 # --- TileHistory columns (systems_architecture.md §2, ARCH-STATE-003) -------------------------------
 
@@ -2386,6 +2389,12 @@ func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
 	out.append_array(source)
 
 
+func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
 func section_1_local_refusal(state: SavedTileHistory) -> StringName:
 	"""S1-FARMING's local domains, tile by tile, before anything is published."""
 	if not state.is_sized():
@@ -2620,6 +2629,99 @@ class Columns:
 			and compost_milli.size() == FARM_PLOT_CAPACITY and sow_day.size() == FARM_PLOT_CAPACITY
 			and tile.size() == FARM_PLOT_CAPACITY and ref_slot.size() == FARM_PLOT_CAPACITY
 			and ref_generation.size() == FARM_PLOT_CAPACITY)
+
+
+func last_column_refusal() -> StringName:
+	"""The code of the most recent refused §4.2 bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, so a load can never overwrite the
+	reason a `create_plot_at_tile()` was refused before its caller read it. Every code is `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the fifteen §4.2 FarmPlot columns into caller-owned buffers. False refuses; `out` unchanged.
+
+	The ONLY reader of a free row's retained bytes. The copies are snapshots: mutating `out`
+	afterwards cannot reach a column, and a later write here cannot reach `out`. Touches no
+	TileHistory member and no directory: section 1's inverse and the WeakRef authority are read
+	by nobody here.
+	"""
+	if out == null or not out.is_sized():
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_bytes(out.present, _present)
+	_refill_i32(out.crop_id, _crop_id)
+	_refill_i32(out.state, _state)
+	_refill_i32(out.soil, _soil)
+	_refill_i32(out.fertility, _fertility)
+	_refill_i32(out.moisture, _moisture)
+	_refill_i64(out.growth_milli_hours, _growth_milli_hours)
+	_refill_i32(out.health, _health)
+	_refill_i32(out.last_family, _last_family)
+	_refill_i32(out.family_streak, _family_streak)
+	_refill_i64(out.compost_milli, _compost_milli)
+	_refill_i32(out.sow_day, _sow_day)
+	_refill_i32(out.tile, _tile)
+	_refill_i32(out.ref_slot, _ref_slot)
+	_refill_i32(out.ref_generation, _ref_generation)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all fifteen §4.2 columns and rebuild the live-row index. False refuses; no write.
+
+	Allocate before consume: `columns_refusal()` runs in full before the first write, so a refusal
+	leaves every column and the live index byte-identical. `_live_slots`/`_live_count` are
+	rebuilt from the INSTALLED presence bytes, never a caller value. Section 1's TileHistory
+	block (`_tile_active_plot_row` and the rest) is neither read nor written here, and no
+	directory entry is created, destroyed or otherwise touched: the orchestrator's whole-world
+	cross-check owns that agreement.
+	"""
+	var code: StringName = columns_refusal(columns)
+	if code != REFUSE_NONE:
+		_last_column_refusal = code
+		return false
+	_install_columns(columns)
+	_rebuild_live_slots()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take private copies of all fifteen validated columns. Called only after `columns_refusal()`."""
+	_present = columns.present.duplicate()
+	_crop_id = columns.crop_id.duplicate()
+	_state = columns.state.duplicate()
+	_soil = columns.soil.duplicate()
+	_fertility = columns.fertility.duplicate()
+	_moisture = columns.moisture.duplicate()
+	_growth_milli_hours = columns.growth_milli_hours.duplicate()
+	_health = columns.health.duplicate()
+	_last_family = columns.last_family.duplicate()
+	_family_streak = columns.family_streak.duplicate()
+	_compost_milli = columns.compost_milli.duplicate()
+	_sow_day = columns.sow_day.duplicate()
+	_tile = columns.tile.duplicate()
+	_ref_slot = columns.ref_slot.duplicate()
+	_ref_generation = columns.ref_generation.duplicate()
+
+
+func _rebuild_live_slots() -> void:
+	"""Rebuild the ascending live-row index from the just-installed `_present` column.
+
+	The index is DERIVED, never saved: ascending row order already matches `_insert_live_slot()`'s
+	invariant, so one forward pass over `_present` reproduces it exactly.
+	"""
+	_live_slots.resize(FARM_PLOT_CAPACITY)
+	_live_slots.fill(EntityDirectory.NULL_SLOT)
+	_live_count = 0
+	for row: int in FARM_PLOT_CAPACITY:
+		if _present[row] == 1:
+			_live_slots[_live_count] = row
+			_live_count += 1
 
 
 static func columns_refusal(image: Columns) -> StringName:

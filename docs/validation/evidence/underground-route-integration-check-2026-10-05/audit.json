@@ -1,0 +1,213 @@
+{
+  "checkpoint": "ca1edc3f62b09300f0e36ff0dfbcb1172a5f90ac",
+  "exact_full_gate_passed": false,
+  "full": {
+    "suites": 406,
+    "tests": 11226,
+    "assertions": 1028141,
+    "failures": 0,
+    "strict_diagnostics": {
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 272,
+      "tolerated": 353,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "raw_diagnostics": {
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "analyzer": {
+      "executed": true,
+      "exit_code": 0,
+      "warnings": 0,
+      "files_with_warnings": 0,
+      "files_checked": 1252,
+      "json": {}
+    }
+  },
+  "ci": {
+    "run": 37262123814,
+    "attempt": 2,
+    "counts": {
+      "tests": 11226,
+      "assertions": 1028131,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 272,
+      "tolerated": 353,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "comparison": {
+    "all_suite_and_pass_method_names_equal": true,
+    "suites": 406,
+    "tests": 11226,
+    "local_noarg_per_suite_assertions_available": false,
+    "exact_net_assertion_difference": 10,
+    "demonstrated_source": "test_demo_build.gd::test_f11_is_bound_to_nothing_else",
+    "unchanged_singleton_replay": {
+      "assertions": 224,
+      "failures": 0,
+      "tests": 6
+    },
+    "ci_same_suite": {
+      "tests": 6,
+      "assertions": 214,
+      "failures": 0
+    },
+    "fixed_assertions": 17,
+    "base_keyboard_events": 197,
+    "macos_keyboard_events": 207,
+    "macos_overrides": [
+      {
+        "action": "ui_close_dialog",
+        "actual": 2,
+        "base": 1,
+        "delta": 1,
+        "macos": 2
+      },
+      {
+        "action": "ui_text_backspace_all_to_left",
+        "actual": 1,
+        "base": 0,
+        "delta": 1,
+        "macos": 1
+      },
+      {
+        "action": "ui_text_delete_all_to_right",
+        "actual": 1,
+        "base": 0,
+        "delta": 1,
+        "macos": 1
+      },
+      {
+        "action": "ui_text_caret_line_start",
+        "actual": 3,
+        "base": 1,
+        "delta": 2,
+        "macos": 3
+      },
+      {
+        "action": "ui_text_caret_line_end",
+        "actual": 3,
+        "base": 1,
+        "delta": 2,
+        "macos": 3
+      },
+      {
+        "action": "ui_text_caret_document_start",
+        "actual": 2,
+        "base": 1,
+        "delta": 1,
+        "macos": 2
+      },
+      {
+        "action": "ui_text_caret_document_end",
+        "actual": 2,
+        "base": 1,
+        "delta": 1,
+        "macos": 2
+      },
+      {
+        "action": "ui_filedialog_focus_path",
+        "actual": 2,
+        "base": 1,
+        "delta": 1,
+        "macos": 2
+      }
+    ],
+    "limit": "Original no-argument log omits per-suite assertion totals; same-source singleton replay and actual platform settings account for the complete net difference. No assertion count is normalized."
+  },
+  "editor": {
+    "original_raw_error_lines": [
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiManagerScript\" constant because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/systems/ui_manager.gd\".",
+      "SCRIPT ERROR: Compile Error: Failed to compile depended scripts.",
+      "ERROR: Failed to load script \"res://demo/demo_village.gd\" with error \"Parse error\".",
+      "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_shell.gd\".",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiShell\" constant because the value doesn't have a set type.",
+      "ERROR: Failed to load script \"res://scripts/ui/ui_specimen.gd\" with error \"Parse error\"."
+    ],
+    "fresh_retry_byte_identical": true,
+    "bounded_probe_first_error_after": "textDocument/didOpen demo/ui/demo_stall_banner.gd",
+    "bounded_probe_errors": 5,
+    "remaining_specimen_error_family_reproduced_in_seven_file_subset": false,
+    "root_cause_proved": false
+  },
+  "runs": {
+    "full-ca1edc3f": {
+      "exit_code": 1,
+      "source_pins": 10551,
+      "independent_rehash_mismatches": [],
+      "restoration": {
+        "source_unchanged_before_cleanup": true,
+        "source_unchanged": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "sidecars_restored": true,
+        "head_unchanged": true
+      }
+    },
+    "analyzer-retry-1": {
+      "exit_code": 1,
+      "source_pins": 10551,
+      "independent_rehash_mismatches": [],
+      "restoration": {
+        "source_unchanged_before_cleanup": true,
+        "source_unchanged": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "sidecars_restored": true,
+        "head_unchanged": true
+      }
+    },
+    "input-map-1": {
+      "exit_code": 0,
+      "source_pins": 10551,
+      "independent_rehash_mismatches": [],
+      "restoration": {
+        "source_unchanged_before_cleanup": true,
+        "source_unchanged": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "sidecars_restored": true,
+        "head_unchanged": true
+      }
+    },
+    "input-platform-1": {
+      "exit_code": 0,
+      "source_pins": 10551,
+      "independent_rehash_mismatches": [],
+      "restoration": {
+        "source_unchanged_before_cleanup": true,
+        "source_unchanged": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "sidecars_restored": true,
+        "head_unchanged": true
+      }
+    },
+    "lsp-order-1": {
+      "exit_code": 1,
+      "source_pins": 10551,
+      "independent_rehash_mismatches": [],
+      "restoration": {
+        "source_unchanged_before_cleanup": true,
+        "source_unchanged": true,
+        "project_restored": true,
+        "assets_restored": true,
+        "sidecars_restored": true,
+        "head_unchanged": true
+      }
+    }
+  },
+  "native_memory_qualified": false,
+  "playable_or_visual_qualified": false
+}

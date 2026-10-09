@@ -1,0 +1,52 @@
+{
+ "scripts/core/underground_room_approach.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"config\" is shadowing an already-declared variable at line 63 in the current class.",
+   "range": {
+    "end": {
+     "character": 62,
+     "line": 486
+    },
+    "start": {
+     "character": 56,
+     "line": 486
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"plan\" is shadowing an already-declared variable at line 61 in the current class.",
+   "range": {
+    "end": {
+     "character": 39,
+     "line": 557
+    },
+    "start": {
+     "character": 35,
+     "line": 557
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"token\" is shadowing an already-declared variable at line 75 in the current class.",
+   "range": {
+    "end": {
+     "character": 65,
+     "line": 571
+    },
+    "start": {
+     "character": 60,
+     "line": 571
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

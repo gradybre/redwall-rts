@@ -1,0 +1,208 @@
+{
+  "head": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 12.282
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "193/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/test_ui_resident_card.gd"
+      ],
+      "log": "test_ui_resident_card.gd.log",
+      "exit_code": 0,
+      "seconds": 5.448
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "303/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/test_ui_resident_snapshot.gd"
+      ],
+      "log": "test_ui_resident_snapshot.gd.log",
+      "exit_code": 0,
+      "seconds": 4.586
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "316/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/test_ui_notices.gd"
+      ],
+      "log": "test_ui_notices.gd.log",
+      "exit_code": 0,
+      "seconds": 4.615
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "87/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/test_ui_manager.gd"
+      ],
+      "log": "test_ui_manager.gd.log",
+      "exit_code": 0,
+      "seconds": 12.77
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "310/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/test_demo_stall_banner.gd"
+      ],
+      "log": "test_demo_stall_banner.gd.log",
+      "exit_code": 0,
+      "seconds": 4.719
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "101/408",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/test_ui_shell.gd"
+      ],
+      "log": "test_ui_shell.gd.log",
+      "exit_code": 0,
+      "seconds": 7.149
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6466",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ui-preload-2026-10-05/candidate-5/analyzer.json"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 302.011
+    }
+  ],
+  "scope": "Six focused official UI suites plus entire zero-warning analyzer and raw editor gate; not a full-suite milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "suites": {
+    "test_ui_resident_card.gd": {
+      "tests": 34,
+      "assertions": 144,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_ui_resident_snapshot.gd": {
+      "tests": 20,
+      "assertions": 918,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_ui_notices.gd": {
+      "tests": 25,
+      "assertions": 1210,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_ui_manager.gd": {
+      "tests": 56,
+      "assertions": 429,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 1,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_demo_stall_banner.gd": {
+      "tests": 13,
+      "assertions": 57,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_ui_shell.gd": {
+      "tests": 170,
+      "assertions": 1877,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "analyzer_raw_findings": [
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "SCRIPT ERROR:",
+    "Parse Error:",
+    "ERROR:"
+  ],
+  "error": "RuntimeError('Analyzer editor diagnostics')",
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 1
+}

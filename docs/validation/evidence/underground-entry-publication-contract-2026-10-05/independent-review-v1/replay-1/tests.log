@@ -1,0 +1,15 @@
+test_capacities_come_from_complete_bounded_wire (__main__.ConstantsTests) ... ok
+test_coherent_install_source_substitution_cannot_supply_handling (__main__.ConstantsTests) ... ok
+test_frontier_capacity_and_full_length_refuse_before_emission (__main__.ConstantsTests) ... ok
+test_inputs_are_not_modified (__main__.ConstantsTests) ... ok
+test_linked_digest_corruption_refuses (__main__.ConstantsTests) ... ok
+test_missing_or_extra_file_refuses (__main__.ConstantsTests) ... ok
+test_revision_mismatches_refuse (__main__.ConstantsTests) ... ok
+test_scalar_only_fixed_paths_and_all_revisions (__main__.ConstantsTests) ... ok
+test_signed_words_reconstruct_exact_digest (__main__.ConstantsTests) ... ok
+test_truncation_footer_and_mutable_input_refuse (__main__.ConstantsTests) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.014s
+
+OK

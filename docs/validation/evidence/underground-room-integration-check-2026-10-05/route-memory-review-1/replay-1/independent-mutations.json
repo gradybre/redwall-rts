@@ -1,0 +1,577 @@
+[
+  {
+    "kind": "current injected text",
+    "name": "building_definitions",
+    "refusal": "room memory: current reviewed source changed: building_definitions"
+  },
+  {
+    "kind": "current injected text",
+    "name": "buildings",
+    "refusal": "room memory: current reviewed source changed: buildings"
+  },
+  {
+    "kind": "current injected text",
+    "name": "construction",
+    "refusal": "room memory: current reviewed source changed: construction"
+  },
+  {
+    "kind": "current injected text",
+    "name": "entity_directory",
+    "refusal": "room memory: current reviewed source changed: entity_directory"
+  },
+  {
+    "kind": "current injected text",
+    "name": "excavation_contract",
+    "refusal": "room memory: current reviewed source changed: excavation_contract"
+  },
+  {
+    "kind": "current injected text",
+    "name": "excavation_inventory",
+    "refusal": "room memory: current reviewed source changed: excavation_inventory"
+  },
+  {
+    "kind": "current injected text",
+    "name": "excavation_sites",
+    "refusal": "room memory: current reviewed source changed: excavation_sites"
+  },
+  {
+    "kind": "current injected text",
+    "name": "gear",
+    "refusal": "room memory: current reviewed source changed: gear"
+  },
+  {
+    "kind": "current injected text",
+    "name": "haul_carry",
+    "refusal": "room memory: current reviewed source changed: haul_carry"
+  },
+  {
+    "kind": "current injected text",
+    "name": "int_math",
+    "refusal": "room memory: current reviewed source changed: int_math"
+  },
+  {
+    "kind": "current injected text",
+    "name": "inventory",
+    "refusal": "room memory: current reviewed source changed: inventory"
+  },
+  {
+    "kind": "current injected text",
+    "name": "item_definitions",
+    "refusal": "room memory: current reviewed source changed: item_definitions"
+  },
+  {
+    "kind": "current injected text",
+    "name": "jobs",
+    "refusal": "room memory: current reviewed source changed: jobs"
+  },
+  {
+    "kind": "current injected text",
+    "name": "modular_projects",
+    "refusal": "room memory: current reviewed source changed: modular_projects"
+  },
+  {
+    "kind": "current injected text",
+    "name": "mole_profile_driver",
+    "refusal": "room memory: current reviewed source changed: mole_profile_driver"
+  },
+  {
+    "kind": "current injected text",
+    "name": "movement",
+    "refusal": "room memory: current reviewed source changed: movement"
+  },
+  {
+    "kind": "current injected text",
+    "name": "needs",
+    "refusal": "room memory: current reviewed source changed: needs"
+  },
+  {
+    "kind": "current injected text",
+    "name": "reservations",
+    "refusal": "room memory: current reviewed source changed: reservations"
+  },
+  {
+    "kind": "current injected text",
+    "name": "residents",
+    "refusal": "room memory: current reviewed source changed: residents"
+  },
+  {
+    "kind": "current injected text",
+    "name": "resource_nodes",
+    "refusal": "room memory: current reviewed source changed: resource_nodes"
+  },
+  {
+    "kind": "current injected text",
+    "name": "room_catalog",
+    "refusal": "room memory: current reviewed source changed: room_catalog"
+  },
+  {
+    "kind": "current injected text",
+    "name": "room_space",
+    "refusal": "room memory: current reviewed source changed: room_space"
+  },
+  {
+    "kind": "current injected text",
+    "name": "settlement_system",
+    "refusal": "room memory: current reviewed source changed: settlement_system"
+  },
+  {
+    "kind": "current injected text",
+    "name": "source_program",
+    "refusal": "room memory: current reviewed source changed: source_program"
+  },
+  {
+    "kind": "current injected text",
+    "name": "transforms",
+    "refusal": "room memory: current reviewed source changed: transforms"
+  },
+  {
+    "kind": "current injected text",
+    "name": "ui_manager",
+    "refusal": "room memory: current reviewed source changed: ui_manager"
+  },
+  {
+    "kind": "current injected text",
+    "name": "ui_world_session",
+    "refusal": "room memory: current reviewed source changed: ui_world_session"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_budget",
+    "refusal": "room memory: current reviewed source changed: underground_budget"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_connector_catalog",
+    "refusal": "room memory: current reviewed source changed: underground_connector_catalog"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_connector_source_facts",
+    "refusal": "room memory: current reviewed source changed: underground_connector_source_facts"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_entry_world_bindings",
+    "refusal": "room memory: current reviewed source changed: underground_entry_world_bindings"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_final_facts",
+    "refusal": "room memory: current reviewed source changed: underground_final_facts"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_level_catalog",
+    "refusal": "room memory: current reviewed source changed: underground_level_catalog"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_locations",
+    "refusal": "room memory: current reviewed source changed: underground_locations"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_profiles",
+    "refusal": "room memory: current reviewed source changed: underground_profiles"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_bindings",
+    "refusal": "room memory: current reviewed source changed: underground_room_bindings"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_composition",
+    "refusal": "room memory: current reviewed source changed: underground_room_composition"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_frontier",
+    "refusal": "room memory: current reviewed source changed: underground_room_frontier"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_frontier_publication",
+    "refusal": "room memory: current reviewed source changed: underground_room_frontier_publication"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_itinerary",
+    "refusal": "room memory: current reviewed source changed: underground_room_itinerary"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_orders",
+    "refusal": "room memory: current reviewed source changed: underground_room_orders"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_room_world_bindings",
+    "refusal": "room memory: current reviewed source changed: underground_room_world_bindings"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_route_composition",
+    "refusal": "room memory: current reviewed source changed: underground_route_composition"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_routes",
+    "refusal": "room memory: current reviewed source changed: underground_routes"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_session",
+    "refusal": "room memory: current reviewed source changed: underground_session"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_space_authority",
+    "refusal": "room memory: current reviewed source changed: underground_space_authority"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_space_owner",
+    "refusal": "room memory: current reviewed source changed: underground_space_owner"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_terrain",
+    "refusal": "room memory: current reviewed source changed: underground_terrain"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_work_face",
+    "refusal": "room memory: current reviewed source changed: underground_work_face"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_world_bindings",
+    "refusal": "room memory: current reviewed source changed: underground_world_bindings"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_world_retirement",
+    "refusal": "room memory: current reviewed source changed: underground_world_retirement"
+  },
+  {
+    "kind": "current injected text",
+    "name": "underground_world_routes",
+    "refusal": "room memory: current reviewed source changed: underground_world_routes"
+  },
+  {
+    "kind": "current injected text",
+    "name": "work",
+    "refusal": "room memory: current reviewed source changed: work"
+  },
+  {
+    "kind": "current injected text",
+    "name": "world_init",
+    "refusal": "room memory: current reviewed source changed: world_init"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-ground-pace-2026-10-04/census.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-ground-pace-2026-10-04/census.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-ground-pace-2026-10-04/census.py",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-ground-pace-2026-10-04/census.py"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/gdscript_byte_codegen.cpp.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/gdscript_byte_codegen.cpp.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/gdscript_compiler.cpp.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/gdscript_compiler.cpp.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/census.py",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-frontier-publication-2026-10-04/census.py"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/source-review-2/census.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-frontier-publication-2026-10-04/source-review-2/census.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/census.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/census.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/census.py",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/census.py"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessor-sha256.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessor-sha256.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessors/turn-census.py.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessors/turn-census.py.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessors/underground_room_frontier.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessors/underground_room_frontier.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessors/underground_room_world_bindings.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/predecessors/underground_room_world_bindings.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/source-sha256.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/source-sha256.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/storage-topology.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-itinerary-census-2026-10-05/storage-topology.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/census.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/census.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/census.py",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/census.py"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor-source-sha256.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor-source-sha256.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor_census.py",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/constructor_census.py"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/README.md",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/README.md"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/comparison.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/comparison.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/locations-after.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/locations-after.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/locations-before.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/locations-before.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/locations.diff",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/locations.diff"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/manifest.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/integration-38515845/manifest.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/manifest.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/manifest.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_manager.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_manager.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_world_session.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/ui_world_session.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_memory_pack.json.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_memory_pack.json.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_session.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_session.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-room-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/census.py"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/constructor-source-sha256.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/constructor-source-sha256.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript.cpp.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript.cpp.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript.h.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript.h.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript_analyzer.cpp.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript_analyzer.cpp.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript_function.h.txt",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript_function.h.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/source-sha256.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/source-sha256.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/inherited-sha256.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/inherited-sha256.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/manifest.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/manifest.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/source-review-1/census.json",
+    "refusal": "room memory: reviewed witness changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/source-review-1/census.json"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_routes.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_routes.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_routes.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_routes.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_work_face.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_work_face.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_final_facts.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_final_facts.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_locations.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_locations.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_room_world_bindings.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_room_world_bindings.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_room_frontier.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_room_frontier.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_session.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_session.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_retirement.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_world_retirement.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/settlement_system.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/settlement_system.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/room_catalog.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/room_catalog.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_connector_catalog.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/baseline/underground_connector_catalog.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_locations.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_locations.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_routes.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_routes.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_world_routes.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_world_routes.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_work_face.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_work_face.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_final_facts.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-room-memory-integration-2026-10-05/publisher-predecessors/underground_final_facts.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/underground_session.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/underground_session.gd.txt"
+  },
+  {
+    "kind": "immutable closure",
+    "path": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt",
+    "refusal": "room memory: reviewed predecessor changed: docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt"
+  }
+]

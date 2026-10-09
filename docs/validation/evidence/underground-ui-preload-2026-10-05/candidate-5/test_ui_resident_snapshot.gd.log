@@ -1,0 +1,43 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_ui_resident_snapshot.gd
+  PASS  test_a_valid_reference_resolves_its_resident_row_and_fills_five_rows
+  PASS  test_all_five_rows_come_from_one_snapshot_identity
+  PASS  test_a_stale_generation_refuses_rather_than_reading_the_replacement
+  PASS  test_a_refused_capture_clears_every_row_it_previously_held
+  PASS  test_a_reference_of_another_kind_refuses_by_name
+  PASS  test_a_missing_store_refuses_rather_than_printing_an_empty_card
+  PASS  test_capturing_changes_no_byte_of_the_store
+  PASS  test_hunger_negates_the_published_magnitude_exactly_once
+  PASS  test_the_hunger_row_follows_the_size_class_the_store_verified
+  PASS  test_all_five_rows_bind_a_published_rate
+  PASS  test_a_signed_net_rate_is_passed_through_and_never_negated_again
+  PASS  test_every_inherited_fixture_condition_reaches_the_row_intact
+  PASS  test_winter_reaches_the_hunger_row_through_the_published_magnitude
+  PASS  test_an_immediate_context_change_is_read_with_no_cached_lag
+  PASS  test_a_reader_that_refuses_leaves_no_zero_behind
+  PASS  test_a_capped_row_keeps_its_rate_and_is_marked
+  PASS  test_an_interior_value_is_not_marked_capped
+  PASS  test_an_inward_rate_at_the_ceiling_is_not_capped
+  PASS  test_elapsed_simulation_does_not_change_a_per_hour_rate
+  PASS  test_a_childs_hunger_row_shows_the_child_rate
+CI_SUITE_TIME {"assertions":918,"failures":0,"suite":"test_ui_resident_snapshot.gd","tests":20,"usec":250732}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+20 test(s), 918 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 20 tests, 918 assertions, 0 failures.

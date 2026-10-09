@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+native-mesh: body=29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14; stock=cb0bf551f5439b0bea4609952c0ba43ff16d8c1bc5641743e1081e2412919cc5; stock-format=34359742487; stock-aabb=[P: (-0.0495, -0.5, -0.0495), S: (0.099, 1.0, 0.099)]
+FAIL: both complete native mesh fingerprints
+native-haul: 0 samples, 8 assertions, 1 failures; qualified=0

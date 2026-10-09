@@ -1,0 +1,133 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct Params
+{
+    uint has_normal;
+    uint has_tangent;
+    uint has_skeleton;
+    uint has_blend_shape;
+    uint vertex_count;
+    uint vertex_stride;
+    uint skin_stride;
+    uint skin_weight_offset;
+    uint blend_shape_count;
+    uint normalized_blend_shapes;
+    uint normal_tangent_stride;
+    uint pad1;
+    float2 skeleton_transform_x;
+    float2 skeleton_transform_y;
+    float2 skeleton_transform_offset;
+    float2 inverse_transform_x;
+    float2 inverse_transform_y;
+    float2 inverse_transform_offset;
+};
+
+struct SrcVertexData
+{
+    uint data[1];
+};
+
+struct BlendShapeWeights
+{
+    float data[1];
+};
+
+struct BlendShapeData
+{
+    uint data[1];
+};
+
+struct BoneWeightData
+{
+    uint data[1];
+};
+
+struct SkeletonData
+{
+    float4 data[1];
+};
+
+struct DstVertexData
+{
+    uint data[1];
+};
+
+struct spvDescriptorSetBuffer0
+{
+    device DstVertexData* dst_vertices [[id(0)]];
+    device BlendShapeWeights* blend_shape_weights [[id(1)]];
+};
+
+struct spvDescriptorSetBuffer1
+{
+    device SrcVertexData* src_vertices [[id(0)]];
+    device BoneWeightData* src_bone_weights [[id(1)]];
+    device BlendShapeData* src_blend_shapes [[id(2)]];
+};
+
+struct spvDescriptorSetBuffer2
+{
+    device SkeletonData* bone_transforms [[id(0)]];
+};
+
+kernel void main0(constant spvDescriptorSetBuffer0& spvDescriptorSet0 [[buffer(0)]], constant spvDescriptorSetBuffer1& spvDescriptorSet1 [[buffer(1)]], constant spvDescriptorSetBuffer2& spvDescriptorSet2 [[buffer(2)]], constant Params& params [[buffer(3)]], uint3 gl_GlobalInvocationID [[thread_position_in_grid]])
+{
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= params.vertex_count)
+    {
+        return;
+    }
+    uint src_offset = index * params.vertex_stride;
+    float2 vertex0 = as_type<float2>(uint2((*spvDescriptorSet1.src_vertices).data[src_offset + 0u], (*spvDescriptorSet1.src_vertices).data[src_offset + 1u]));
+    if (params.has_blend_shape != 0u)
+    {
+        float blend_total = 0.0;
+        float2 blend_vertex = float2(0.0);
+        for (uint i = 0u; i < params.blend_shape_count; i++)
+        {
+            float w = (*spvDescriptorSet0.blend_shape_weights).data[i];
+            if (abs(w) > 9.9999997473787516355514526367188e-05)
+            {
+                uint base_offset = ((params.vertex_count * i) + index) * params.vertex_stride;
+                blend_vertex += (as_type<float2>(uint2((*spvDescriptorSet1.src_blend_shapes).data[base_offset + 0u], (*spvDescriptorSet1.src_blend_shapes).data[base_offset + 1u])) * w);
+                base_offset += 2u;
+                blend_total += w;
+            }
+        }
+        if (params.normalized_blend_shapes != 0u)
+        {
+            vertex0 *= (1.0 - blend_total);
+        }
+        vertex0 += blend_vertex;
+    }
+    if (params.has_skeleton != 0u)
+    {
+        uint skin_offset = params.skin_stride * index;
+        uint2 bones = uint2((*spvDescriptorSet1.src_bone_weights).data[skin_offset + 0u], (*spvDescriptorSet1.src_bone_weights).data[skin_offset + 1u]);
+        uint2 bones_01 = uint2(bones.x & 65535u, bones.x >> uint(16)) * uint2(2u);
+        uint2 bones_23 = uint2(bones.y & 65535u, bones.y >> uint(16)) * uint2(2u);
+        skin_offset += params.skin_weight_offset;
+        uint2 weights = uint2((*spvDescriptorSet1.src_bone_weights).data[skin_offset + 0u], (*spvDescriptorSet1.src_bone_weights).data[skin_offset + 1u]);
+        float2 weights_01 = unpack_unorm2x16_to_float(weights.x);
+        float2 weights_23 = unpack_unorm2x16_to_float(weights.y);
+        float4x4 m = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.x + 1u]), float4(0.0, 0.0, 1.0, 0.0), float4(0.0, 0.0, 0.0, 1.0)) * weights_01.x;
+        float4x4 _294 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y]), float4((*spvDescriptorSet2.bone_transforms).data[bones_01.y + 1u]), float4(0.0, 0.0, 1.0, 0.0), float4(0.0, 0.0, 0.0, 1.0)) * weights_01.y;
+        m = float4x4(m[0] + _294[0], m[1] + _294[1], m[2] + _294[2], m[3] + _294[3]);
+        float4x4 _341 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.x + 1u]), float4(0.0, 0.0, 1.0, 0.0), float4(0.0, 0.0, 0.0, 1.0)) * weights_23.x;
+        m = float4x4(m[0] + _341[0], m[1] + _341[1], m[2] + _341[2], m[3] + _341[3]);
+        float4x4 _388 = float4x4(float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y]), float4((*spvDescriptorSet2.bone_transforms).data[bones_23.y + 1u]), float4(0.0, 0.0, 1.0, 0.0), float4(0.0, 0.0, 0.0, 1.0)) * weights_23.y;
+        m = float4x4(m[0] + _388[0], m[1] + _388[1], m[2] + _388[2], m[3] + _388[3]);
+        float4x4 skeleton_matrix = float4x4(float4(float4(params.skeleton_transform_x, 0.0, 0.0)), float4(float4(params.skeleton_transform_y, 0.0, 0.0)), float4(0.0, 0.0, 1.0, 0.0), float4(float4(params.skeleton_transform_offset, 0.0, 1.0)));
+        float4x4 inverse_matrix = float4x4(float4(float4(params.inverse_transform_x, 0.0, 0.0)), float4(float4(params.inverse_transform_y, 0.0, 0.0)), float4(0.0, 0.0, 1.0, 0.0), float4(float4(params.inverse_transform_offset, 0.0, 1.0)));
+        m = (skeleton_matrix * transpose(m)) * inverse_matrix;
+        vertex0 = (m * float4(vertex0, 0.0, 1.0)).xy;
+    }
+    uint dst_offset = index * params.vertex_stride;
+    uint2 uvertex = as_type<uint2>(vertex0);
+    (*spvDescriptorSet0.dst_vertices).data[dst_offset + 0u] = uvertex.x;
+    (*spvDescriptorSet0.dst_vertices).data[dst_offset + 1u] = uvertex.y;
+}
+

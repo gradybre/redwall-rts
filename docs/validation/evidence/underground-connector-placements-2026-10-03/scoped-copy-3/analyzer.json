@@ -1,0 +1,68 @@
+{
+ "test/test_underground_space_owner.gd": [
+  {
+   "code": 0,
+   "message": "Identifier \"out\" not declared in the current scope.",
+   "range": {
+    "end": {
+     "character": 71,
+     "line": 1162
+    },
+    "start": {
+     "character": 68,
+     "line": 1162
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "Identifier \"probe\" not declared in the current scope.",
+   "range": {
+    "end": {
+     "character": 99,
+     "line": 1162
+    },
+    "start": {
+     "character": 94,
+     "line": 1162
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "Identifier \"probe\" not declared in the current scope.",
+   "range": {
+    "end": {
+     "character": 113,
+     "line": 1162
+    },
+    "start": {
+     "character": 108,
+     "line": 1162
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "Identifier \"counted\" not declared in the current scope.",
+   "range": {
+    "end": {
+     "character": 21,
+     "line": 1162
+    },
+    "start": {
+     "character": 14,
+     "line": 1162
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  }
+ ]
+}

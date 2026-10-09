@@ -1,0 +1,46 @@
+{
+  "head": "8003bfe155092e9a8bc8b5590228e6069b859173",
+  "base": "38515845^",
+  "scope": "Focused integrated validation, not a full milestone or playable acceptance",
+  "commands": [
+    {
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "docs/validation/evidence/underground-host-checkpoint-2026-10-04/verify_profile_integration.py",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-integration-check/docs/validation/evidence/underground-room-integration-check-2026-10-05/checkpoint-1/strict",
+        "--suite",
+        "test_underground_room_composition.gd",
+        "--suite",
+        "test_underground_session.gd",
+        "--suite",
+        "test_underground_host.gd",
+        "--suite",
+        "test_underground_world_retirement.gd",
+        "--suite",
+        "test_room_catalog.gd",
+        "--suite",
+        "test_underground_connector_catalog.gd"
+      ],
+      "exit_code": 1,
+      "seconds": 28.302,
+      "log": "strict-runner.log"
+    }
+  ],
+  "assets_present_before": false,
+  "registry_sha256_before": "a4ef89a99f6d8ea82de0ce77da71314b8fb9c3e9f1140392e04a2c51a1403a1a",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "strict_custom_user_dir": "Redwall-ug-profile-integration-20261004",
+  "analyzer_custom_user_dir": "Redwall-ug-room-integration-check-20261005",
+  "analyzer_port": 6465,
+  "error": "RuntimeError('strict-runner.log')",
+  "source_unchanged_before_restoration": true,
+  "project_restored": true,
+  "registry_unchanged": true,
+  "assets_restored": true,
+  "sidecars_restored": true,
+  "source_restored": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

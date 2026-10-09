@@ -1,0 +1,1255 @@
+extends "res://test/framework/test_case.gd"
+## Exact route geometry and publication regression cases. Synthetic extents are explicitly
+## local fixtures; source-bound production profiles, demo activation and performance are separate gates.
+
+const Binding := preload("res://scripts/core/underground_world_routes.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
+const ContentFixture := preload("res://test/test_underground_connector_catalog.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Residents := preload("res://scripts/core/residents.gd")
+const Transforms := preload("res://scripts/core/transforms.gd")
+const Movement := preload("res://scripts/core/movement.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const Construction := preload("res://scripts/core/construction.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const Items := preload("res://scripts/core/item_definitions.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Carry := preload("res://scripts/core/haul_carry.gd")
+const Work := preload("res://scripts/core/work.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const Pool := preload("res://scripts/core/reservations.gd")
+const Piles := preload("res://scripts/core/ground_piles.gd")
+const StockAge := preload("res://scripts/core/stock_age.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const World := preload("res://scripts/core/world_init.gd")
+const Nodes := preload("res://scripts/core/resource_nodes.gd")
+const Forage := preload("res://scripts/core/forage.gd")
+const Fishing := preload("res://scripts/core/fishing.gd")
+const Rng := preload("res://scripts/core/rng.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const X: int = 60 * 2048
+const Z: int = 50 * 2048
+const TEMP: String = "user://world-routes-catalog.bin"
+const PROFILE_TEMP: String = "user://world-routes-profiles.bin"
+const STEP_PROFILE_SHA: String = "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+const STEP_GROUND_PATH: String = "res://data/underground/mole-worker/work-step-v1/diagnostic-ground-v1/ground-pace.ugconn"
+const STEP_GROUND_SHA: String = "454eaab1b2a722aab2700285d31a0bcc093312dad211208da7993baa32bc2f24"
+
+
+class RefusingLocations extends Locations:
+	## A negative-only fault injector retains actual endpoint ownership and validation.
+	var refuse_live_read: bool = false
+	var turn_probe: Callable = Callable()
+
+	func read_location_into(location: Vector2i, out: Locations.Record) -> StringName:
+		"""Exercise an actual graph refusal after its provider has agreed to the same-stack publication."""
+		var code: StringName = &"TEST_FINAL_ENDPOINT_REFUSAL" if refuse_live_read else super.read_location_into(location, out)
+		if turn_probe.is_valid():
+			var probe: Callable = turn_probe
+			turn_probe = Callable()
+			probe.call()
+		return code
+
+
+class ReenteringTerrain extends Terrain:
+	## A negative-only callback probe delegates every physical decision to the real terrain implementation.
+	var target: WeakRef = null
+	var reentry_code: StringName = &""
+	var preparation_code: StringName = &""
+	var binding_countdown: int = 0
+	var binding_probe: Callable = Callable()
+	var binding_probe_count: int = 0
+
+	func binding_refusal() -> StringName:
+		"""Replace an actual source only after its normal binding check has returned."""
+		var code: StringName = super.binding_refusal()
+		if binding_countdown > 0:
+			binding_countdown -= 1
+			if binding_countdown == 0:
+				var probe: Callable = binding_probe
+				binding_probe = Callable()
+				binding_probe_count += 1
+				probe.call()
+		return code
+
+	func exclusions_refusal(bounds: PackedInt32Array) -> StringName:
+		"""Try a nested scratch read and transaction before returning the actual unchanged local exclusions."""
+		if target != null:
+			var binding: Binding = target.get_ref() as Binding
+			target = null
+			reentry_code = binding.actor_admission_refusal(Vector2i(-1, 0), Profiles.Selection.new())
+			preparation_code = binding.begin_prepare(1).error
+		return super.exclusions_refusal(bounds)
+
+
+var _residents: Residents = null
+var _transforms: Transforms = null
+var _buildings: Buildings = null
+var _construction: Construction = null
+var _inventory: Inventory = null
+var _items: Items = null
+var _gear: Gear = null
+var _carry: Carry = null
+var _work: Work = null
+var _jobs: Jobs = null
+var _pool: Pool = null
+var _piles: Piles = null
+var _profiles: Profiles = null
+var _owner: Owner = null
+var _sources: Owner.CoreSources = null
+var _locations: RefusingLocations = null
+var _budget: Budget = null
+var _routes: Routes = null
+var _binding: Binding = null
+var _world: World = null
+var _nodes: Nodes = null
+var _terrain: ReenteringTerrain = null
+var _movement: Movement = null
+var _levels: Levels = null
+var _catalog: Catalog = null
+var _world_ref: Vector2i = NULL_REF
+var _worker: Vector2i = NULL_REF
+var _floor: Vector2i = NULL_REF
+var _void: Vector2i = NULL_REF
+var _first: Vector2i = NULL_REF
+var _last: Vector2i = NULL_REF
+var _lease: int = 0
+var _turn_source_case: int = 0
+var _source_tool: Vector2i = NULL_REF
+var _source_job: Vector2i = NULL_REF
+
+
+func _image(boxes: Array[PackedInt32Array], roles: PackedInt32Array) -> Space.Snapshot:
+	"""Explicit source-labeled observation only; none of these fixtures creates a productive physical permission."""
+	var image: Space.Snapshot = Space.Snapshot.new()
+	image.world_ref = Vector2i(5, 2)
+	image.revision = 7
+	for index: int in boxes.size():
+		assert_true(image.volumes.append(boxes[index], roles[index], 1, Vector2i(6, 3), 2), "bounded synthetic geometry")
+	return image
+
+
+func _proof(boxes: Array[PackedInt32Array], roles: PackedInt32Array, checks: int = 1048576) -> Binding.Clearance:
+	"""Tests admit the declared cold pack before creating fixed fragment banks and the isolated observation."""
+	assert_true(Binding.COLD_BYTES < Budget.COLD_BYTES, "proof fits the actual shared envelope")
+	var proof: Binding.Clearance = Binding.Clearance.new()
+	proof.allocate(_image(boxes, roles), checks)
+	return proof
+
+
+func test_union_coverage_requires_every_interior_point_not_corners() -> void:
+	"""All outer corners can be covered while a central one-unit slit remains impassable."""
+	var bounds: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	var proof: Binding.Clearance = _proof([
+		PackedInt32Array([0, 0, 0, 5, 10, 10]), PackedInt32Array([6, 0, 0, 10, 10, 10])],
+		PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID]))
+	assert_false(proof.covered(bounds, Space.SUPPORTED_VOID), "interior missing plane is not free air")
+	assert_equal(proof.error, &"", "missing coverage is distinct from exhausted work allowance")
+	assert_equal(proof.count, 1, "one exact uncovered slab remains")
+	assert_equal(proof.fragments.slice(0, 6), PackedInt32Array([5, 0, 0, 6, 10, 10]), "exact missing interior")
+
+
+func test_adjacent_half_open_volumes_cover_without_gaps_or_double_faces() -> void:
+	"""Exact shared faces suffice; either order yields complete coverage without requiring overlap."""
+	var a: PackedInt32Array = PackedInt32Array([-10, -4, -8, 0, 8, 8])
+	var b: PackedInt32Array = PackedInt32Array([0, -4, -8, 10, 8, 8])
+	for reverse: bool in [false, true]:
+		var boxes: Array[PackedInt32Array] = [a, b]
+		if reverse:
+			boxes.reverse()
+		var proof: Binding.Clearance = _proof(boxes, PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORTED_VOID]))
+		assert_true(proof.covered(PackedInt32Array([-10, -4, -8, 10, 8, 8]), Space.SUPPORTED_VOID), "union spans exact face")
+		assert_equal(proof.count, 0, "nothing silently discarded")
+
+
+func test_support_residual_needs_both_authored_stance_and_actual_support() -> void:
+	"""A negative body bound is retained; stance alone cannot excuse arbitrary penetration below the floor."""
+	var body: PackedInt32Array = PackedInt32Array([-8, -1, -8, 8, 10, 8])
+	var stance: PackedInt32Array = PackedInt32Array([-8, -2, -8, 8, 0, 8])
+	var proof: Binding.Clearance = _proof([
+		PackedInt32Array([-20, 0, -20, 20, 20, 20]), PackedInt32Array([-20, -4, -20, 20, 0, 20])],
+		PackedInt32Array([Space.SUPPORTED_VOID, Space.SUPPORT]))
+	proof.start(body)
+	assert_true(proof.subtract_role(Space.SUPPORTED_VOID), "subtract actual clear body volume")
+	assert_equal(proof.count, 1, "below-floor body residual remains")
+	assert_true(proof.subtract_role(Space.SUPPORT, stance), "actual support intersected with exact stance")
+	assert_equal(proof.count, 0, "complete body now proved without clipping")
+	stance[0] += 1
+	proof.start(body)
+	assert_true(proof.subtract_role(Space.SUPPORTED_VOID), "independent narrow-stance attempt")
+	assert_true(proof.subtract_role(Space.SUPPORT, stance), "intersection remains exact")
+	assert_equal(proof.count, 1, "one-unit body outside authored stance refuses")
+
+
+func test_unfinished_walls_access_and_foreign_claim_observations_remain_blocking() -> void:
+	"""Positive void coverage cannot cancel a coincident physical blocker in a traversal image."""
+	var bounds: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	for role: int in [Space.OBSTACLE, Space.UNFINISHED, Space.PROTECTED_ACCESS, Space.OPENABLE_SHELL,
+			Space.RESOURCE, Space.WATER, Space.OCCUPANT, Space.DRY_SOLID]:
+		var proof: Binding.Clearance = _proof([bounds, PackedInt32Array([4, 4, 4, 5, 5, 5])],
+			PackedInt32Array([Space.SUPPORTED_VOID, role]))
+		assert_true(proof.covered(bounds, Space.SUPPORTED_VOID), "void observation alone covers fixture")
+		assert_true(proof.blocked(bounds), "physical negative fact remains decisive")
+		assert_false(proof.blocked(PackedInt32Array([5, 0, 0, 10, 10, 10])), "exact half-open face does not overlap")
+
+
+func test_floor_metadata_and_dry_matter_do_not_create_support_or_air() -> void:
+	"""A floor height only names a namespace; negative facts never satisfy the independent positive union."""
+	var bounds: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	var proof: Binding.Clearance = _proof([bounds], PackedInt32Array([Space.FLOOR_DATUM]))
+	assert_false(proof.blocked(bounds), "metadata is not a physical wall")
+	assert_false(proof.covered(bounds, Space.SUPPORTED_VOID), "metadata cannot make air")
+	assert_false(proof.covered(bounds, Space.SUPPORT), "metadata cannot make footing")
+	proof = _proof([bounds], PackedInt32Array([Space.DRY_SOLID]))
+	assert_false(proof.covered(bounds, Space.SUPPORT), "original dry matter still needs actual support qualification")
+
+
+func test_subtraction_preserves_six_disjoint_outside_slabs() -> void:
+	"""A central obstacle-sized cut has six outside slabs whose exact volume is the cube minus the interior."""
+	var proof: Binding.Clearance = _proof([PackedInt32Array([2, 3, 4, 8, 7, 6])], PackedInt32Array([Space.SUPPORTED_VOID]))
+	assert_false(proof.covered(PackedInt32Array([0, 0, 0, 10, 10, 10]), Space.SUPPORTED_VOID), "outer volume remains")
+	assert_equal(proof.count, 6, "one slab on every side")
+	var volume: int = 0
+	for row: int in proof.count:
+		var a: PackedInt32Array = proof.fragments.slice(row * 6, row * 6 + 6)
+		volume += (a[3] - a[0]) * (a[4] - a[1]) * (a[5] - a[2])
+		for other: int in range(row + 1, proof.count):
+			assert_false(Space.overlaps(a, proof.fragments.slice(other * 6, other * 6 + 6)), "slabs are disjoint")
+	assert_equal(volume, 952, "1000 minus6×4×2, no vanished or doubled geometry")
+
+
+func test_finite_comparison_and_fragment_exhaustion_fail_closed() -> void:
+	"""Work/space limits report explicit failure before capacity growth or truncated coverage."""
+	var bounds: PackedInt32Array = PackedInt32Array([0, 0, 0, 10, 10, 10])
+	var proof: Binding.Clearance = _proof([bounds], PackedInt32Array([Space.SUPPORTED_VOID]), 1)
+	assert_false(proof.covered(bounds, Space.SUPPORTED_VOID), "one scan is not enough to subtract the actual fragment")
+	assert_equal(proof.error, &"WORLD_ROUTE_CHECK_CAPACITY", "explicit work exhaustion")
+	assert_equal(proof.fragments.size(), 6144, "fixed admitted arena retained")
+	proof = _proof([], PackedInt32Array())
+	proof.next_count = Binding.FRAGMENT_CAPACITY
+	assert_false(proof._append(bounds), "full destination refuses before the next write")
+	assert_equal(proof.error, &"WORLD_ROUTE_FRAGMENT_CAPACITY", "explicit fragment exhaustion")
+	assert_equal(proof.next_fragments.size(), 6144, "no fallback unbounded allocation")
+
+
+func test_certificate_mask_has_independent_profile_bits_and_private_copy() -> void:
+	"""All256 finite IDs fit, including the last byte's high bit, without widening a smaller species' proof."""
+	var live: Binding.Certificates = Binding.Certificates.new()
+	var staged: Binding.Certificates = Binding.Certificates.new()
+	live.allocate()
+	staged.allocate()
+	live.generations[1535] = 7
+	live.geometry[1535] = 19
+	live.content[1535] = 23
+	for profile: int in [0, 7, 8, 255]:
+		live.admit(1535, profile)
+	staged.copy_from(live)
+	staged.clear_row(1535)
+	assert_equal(live.generations[1535], 7, "no mutable bank alias")
+	assert_equal(staged.generations[1535], 0, "staged generation fully removed")
+	for profile: int in 256:
+		assert_equal(live.admits(1535, profile), profile in [0, 7, 8, 255], "exact per-profile permission")
+		assert_false(staged.admits(1535, profile), "cleared generation has no surviving eligibility")
+	assert_equal(Binding.CERTIFICATE_BYTES, 159744, "two complete fixed banks")
+
+
+func test_unbound_adapter_cannot_admit_or_publish_actual_routes() -> void:
+	"""The real provider's defaults refuse; a named component cannot create physical permission."""
+	var binding: Binding = Binding.new()
+	assert_equal(binding.configure(Binding.Configuration.new()), Binding.REFUSE_BINDING, "missing actual collaborators")
+	assert_equal(binding.binding_refusal(), Binding.REFUSE_BINDING, "no remembered configured boolean")
+	assert_equal(binding.begin_prepare(1).error, Binding.REFUSE_BINDING, "no unbound candidate")
+	assert_equal(binding.travel_refusal(Vector2i(0, 1), Profiles.Selection.new()), Binding.REFUSE_BINDING, "no cached permission")
+	assert_equal(binding.static_profile_edge_refusal(Vector2i(0, 1), 0, 1, 1), Binding.REFUSE_BINDING, "no unbound static permission")
+	assert_equal(binding.publish(1), Binding.REFUSE_CONTEXT, "no unbound graph publication")
+	assert_false(binding.abort(1), "no foreign token cancellation")
+
+
+func _actual_fixture(obstruction: int = 0) -> void:
+	"""Actual World/Terrain/stores and adapter; only body certificates and paid surface extents are synthetic."""
+	_residents = Residents.new()
+	_jobs = Jobs.new(_residents)
+	_nodes = Nodes.new(_residents.directory())
+	var forage: Forage = Forage.new(_residents.directory(), _jobs)
+	var fishing: Fishing = Fishing.new(_residents.directory(), forage, _jobs)
+	_world = World.new(_residents.directory(), _nodes, forage, fishing, Rng.new(), null, null, _jobs)
+	_inventory = Inventory.new(32, 64)
+	_items = Items.new()
+	assert_true(_items.load_default(_inventory).ok, "actual item definitions")
+	assert_true(_world.generate(World.bound_request(_items).request).ok, "actual terrain generated")
+	_world_ref = _residents.directory().create(Directory.KIND_WORLD)
+	_worker = _residents.ref_of(_residents.spawn(&"mole" if _turn_source_case == 3 else &"mouse").value)
+	_transforms = Transforms.new(_residents.directory())
+	assert_true(_transforms.place(_worker, X + 512, 512, Z + 512, 49152), "actual actor pose")
+	_buildings = Buildings.new(_residents.directory())
+	_construction = Construction.new(_buildings)
+	_budget = Budget.new()
+	_actual_profiles()
+	_actual_space(obstruction)
+	_actual_binding()
+	_first = _location(Vector3i(X + 512, 512, Z + 512))
+	_last = _location(Vector3i(X + 1536, 512, Z + 512))
+
+
+func _actual_profiles() -> void:
+	"""Real equipment/load/work readers consume clearly labelled synthetic immutable profile content."""
+	_pool = Pool.new(64, Pool.JOB_CAPACITY, 64)
+	_piles = Piles.new()
+	assert_true(_piles.bind_stores(_inventory, _buildings, StockAge.new(_inventory)), "actual piles")
+	assert_true(_piles.bind_world(_world_ref), "actual pile World")
+	_carry = Carry.new()
+	assert_true(_carry.bind(_inventory, _pool, _residents, _piles), "actual cargo")
+	_gear = Gear.new(16)
+	assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
+	_work = Work.new(_jobs)
+	assert_true(_work.bind_gear(_gear).ok, "actual Work")
+	_profiles = Profiles.new()
+	if _turn_source_case == 3:
+		_source_profiles()
+		return
+	assert_equal(_profiles.configure(8, 64, 2, Profiles.ARENA_BYTES), &"", "finite synthetic profile arena")
+	assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source readers")
+	var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	assert_true(_residents.spatial_profile_identity_into(_worker, identity), "actual actor identity")
+	var bytes: PackedByteArray = ContentFixture.synthetic_profile_image(identity)
+	_turn_profile_wire(bytes, _turn_source_case)
+	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 1), &"", "synthetic certificate wire")
+
+
+func _source_profiles() -> void:
+	"""Exact accepted source boxes use a labelled diagnostic wire; no production consumer renewal is implied."""
+	assert_equal(_profiles.configure(29, 271, 1, Profiles.ARENA_BYTES), &"", "finite prospective source pack")
+	assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source readers")
+	var path: String = ProjectSettings.globalize_path("res://").path_join("../docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof")
+	assert_equal(_profiles.load_file(path, STEP_PROFILE_SHA, 3), &"", "whole unchanged source and short-step geometry")
+	var store: Vector2i = _inventory.create_container(_world_ref, 1000000, -1, 0, true).ref
+	_source_tool = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, _source_tool, Gear.MANUFACTURE_BASIC).ok, "actual source pick")
+	assert_true(_gear.equip(_source_tool, _worker).ok, "actual equipped pick")
+	_source_job = _turn_job()
+	assert_true(_work.claim_tool_for_work(_residents.directory().get_typed_row(_worker), _source_tool).ok, "actual retained BUILD claim")
+
+
+func _actual_space(obstruction: int) -> void:
+	"""Publish explicit test geometry in production-size sparse columns, without asserting paid excavation."""
+	_routes = Routes.new(_residents, _transforms)
+	_sources = Owner.CoreSources.new(_residents.directory(), _buildings, _construction, _routes)
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(_world_ref, Vector3i(0, 512, 0), Vector3i(0, -32, 0),
+		Vector3i(256, 48, 256), 8192, 6144, Space.MAX_CHECKS), &"", "finite production Domain")
+	_owner = Owner.new(_sources)
+	assert_equal(_owner.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "actual sparse owner")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	var extra: int = 2048 if _turn_source_case == 3 else 0
+	_floor = _region(token, PackedInt32Array([X - extra, 512, Z - extra, X + 2048 + extra, 513, Z + 2048 + extra]), Space.FLOOR_DATUM)
+	_fixture_void(token, obstruction)
+	_region(token, PackedInt32Array([X - extra, 256, Z - extra, X + 2048 + extra, 512, Z + 2048 + extra]), Space.SUPPORT)
+	assert_equal(_owner.seal(token), &"", "synthetic extents sealed by actual owner")
+	_owner.publish(token)
+	_locations = RefusingLocations.new()
+	var capacity: int = 1024 if _turn_source_case == 3 else 8
+	assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+		_owner, _sources, _budget, capacity, 228 * capacity + 256), &"", "actual endpoints")
+	_terrain = ReenteringTerrain.new()
+	assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual local exclusions")
+	_actual_catalog(domain)
+
+
+func _fixture_void(token: int, obstruction: int) -> void:
+	"""Independent central slit/blocker fixtures leave both complete endpoint envelopes unchanged."""
+	if _turn_source_case == 3:
+		_void = _region(token, PackedInt32Array([X - 2048, 512, Z - 2048, X + 4096, 2560, Z + 4096]), Space.SUPPORTED_VOID)
+		return
+	if obstruction == 1:
+		_void = _region(token, PackedInt32Array([X, 512, Z, X + 1024, 2560, Z + 2048]), Space.SUPPORTED_VOID)
+		_region(token, PackedInt32Array([X + 1025, 512, Z, X + 2048, 2560, Z + 2048]), Space.SUPPORTED_VOID)
+	else:
+		_void = _region(token, PackedInt32Array([X, 512, Z, X + 2048, 2560, Z + 2048]), Space.SUPPORTED_VOID)
+	if obstruction == 2:
+		_region(token, PackedInt32Array([X + 1024, 512, Z, X + 1025, 1536, Z + 2048]),
+			Space.UNFINISHED)
+	if obstruction == 3:
+		_region(token, PackedInt32Array([X, 256, Z, X + 2048, 512, Z + 2048]), Space.DRY_SOLID)
+	if obstruction == 4:
+		_region(token, PackedInt32Array([X + 1024, 768, Z, X + 1025, 1024, Z + 2048]), Space.SUPPORT)
+	if obstruction == 5:
+		_region(token, PackedInt32Array([X + 1024, 768, Z + 641, X + 1025, 1024, Z + 642]), Space.SUPPORT)
+
+
+func _actual_catalog(domain: Space.Domain) -> void:
+	"""An actual Movement profile supplies the pace; synthetic stair rows remain uninstalled data."""
+	_movement = Movement.new(_residents.directory(), null, null, _transforms, _residents)
+	_levels = Levels.new()
+	assert_equal(_levels.load_file(ContentFixture.LEVEL_PATH, ContentFixture.LEVEL_HASH, 1), &"", "authored finite levels")
+	assert_equal(_levels.bind_domain(domain, _residents.directory(), domain.descriptor(), Space.VERSION), &"", "exact World binding")
+	_catalog = Catalog.new()
+	assert_equal(_catalog.configure(Catalog.RESERVED_BYTES), &"", "admitted full catalog lifetime")
+	assert_equal(_catalog.bind_actual(_profiles, _levels, _movement, _residents, _transforms, domain), &"", "actual pace owners")
+	assert_equal(_load_catalog(1), &"", "test-only geometry and actual source-bound pace")
+
+
+func _actual_binding() -> void:
+	"""Configure the concrete provider before the actual graph, without a synthetic permission callback."""
+	_binding = Binding.new()
+	var config: Binding.Configuration = Binding.Configuration.new()
+	config.routes = _routes
+	config.owner = _owner
+	config.sources = _sources
+	config.locations = _locations
+	config.profiles = _profiles
+	config.catalog = _catalog
+	config.levels = _levels
+	config.movement = _movement
+	config.residents = _residents
+	config.transforms = _transforms
+	config.world = _world
+	config.terrain = _terrain
+	config.budget = _budget
+	assert_equal(_binding.configure(config), &"", "real typed route provider")
+	assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
+		1024 if _turn_source_case == 3 else 8, 16, 64, 64, Routes.ARENA_BYTES), &"", "actual graph bound back to same provider")
+	assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual actor selection")
+	assert_equal(_binding.binding_refusal(), &"", "complete actual composition")
+
+
+func _write(path: String, bytes: PackedByteArray) -> String:
+	"""Hash precisely this test-owned file, never author or overwrite a production content pack."""
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_buffer(bytes)
+	file.close()
+	var digest: HashingContext = HashingContext.new()
+	digest.start(HashingContext.HASH_SHA256)
+	digest.update(bytes)
+	return digest.finish().hex_encode()
+
+
+func _load_catalog(revision: int) -> StringName:
+	"""A changed immutable content revision must force all retained derived certificates to requalify."""
+	if _turn_source_case == 3:
+		return _catalog.load_file(STEP_GROUND_PATH, STEP_GROUND_SHA, revision)
+	var bytes: PackedByteArray = ContentFixture.synthetic_image(revision)
+	return _catalog.load_file(TEMP, _write(TEMP, bytes), revision)
+
+
+func _region(token: int, box: PackedInt32Array, role: int) -> Vector2i:
+	"""Explicit finite test fact through actual stage/seal/publish, with full live World source identity."""
+	var row: Owner.Region = Owner.Region.new()
+	row.box = box
+	row.role = role
+	row.level = 0
+	row.owner = _world_ref
+	var result: Owner.Result = _owner.stage_add(token, row)
+	assert_equal(result.error, &"", "actual geometry row: %s" % result.error)
+	return result.handle
+
+
+func _location(point: Vector3i) -> Vector2i:
+	"""Both endpoints require actual whole envelope/support coverage before any route proof exists."""
+	var row: Locations.Record = Locations.Record.new()
+	row.point = point
+	row.section = _floor
+	row.level = 0
+	row.role = Locations.ROLE_TRANSIT
+	row.envelope = PackedInt32Array([point.x - 256, point.y, point.z - 256, point.x + 256, point.y + 1024, point.z + 256])
+	row.support = PackedInt32Array([point.x - 256, point.y - 128, point.z - 256, point.x + 256, point.y, point.z + 256])
+	if _turn_source_case == 3:
+		row.envelope = PackedInt32Array([point.x - 1256, point.y, point.z - 1256, point.x + 1256, point.y + 1036, point.z + 1256])
+		row.support = PackedInt32Array([point.x - 406, point.y - 1, point.z - 406, point.x + 406, point.y, point.z + 406])
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, row)
+	assert_equal(added.error, &"", "whole endpoint geometry: %s" % added.error)
+	assert_equal(_locations.seal(token), &"", "actual endpoint sealed")
+	assert_true(_locations.publish(token), "actual endpoint published")
+	assert_equal(_budget.release(cold), &"", "no output retained")
+	return added.location
+
+
+func _edge() -> Routes.Edge:
+	"""An exact one-metre horizontal span across one actual dry World tile."""
+	var edge: Routes.Edge = Routes.Edge.new()
+	edge.from_location = _first
+	edge.to_location = _last
+	edge.section = _floor
+	edge.level = 0
+	edge.family = -1
+	edge.variant = 0
+	edge.mode = Profiles.MODE_WALK
+	edge.posture = Profiles.POSTURE_UPRIGHT
+	edge.content_revision = _profiles.content_revision()
+	edge.geometry_revision = _owner.revision()
+	edge.point_count = 2
+	edge.points = PackedInt32Array([X + 512, 512, Z + 512, X + 1536, 512, Z + 512])
+	edge.length_u = 1024
+	return edge
+
+
+func _begin() -> int:
+	"""The caller owns the whole exact shared lease until candidate proof and publication are gone."""
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var result: Routes.Result = _binding.begin_prepare(_lease)
+	assert_equal(result.error, &"", "actual route preparation: %s" % result.error)
+	return result.token
+
+
+func _end(token: int) -> void:
+	"""Abort an uncommitted candidate if present and release only this fixture's exact memory token."""
+	_binding.abort(token)
+	assert_equal(_budget.release(_lease), &"", "cold result lifetime ended")
+	_lease = 0
+
+
+func _publish_route() -> Vector2i:
+	"""All real provider checks must pass before either actual graph or its eligibility bank publishes."""
+	var token: int = _begin()
+	var added: Routes.Result = _routes.stage_add(token, _edge())
+	assert_equal(added.error, &"", "complete continuous route proof: %s" % added.error)
+	assert_equal(_binding.seal(token), &"", "actual graph plus certificate sealed")
+	assert_equal(_binding.publish(token), &"", "same-stack actual graph/certificate publication")
+	_end(token)
+	return added.ref
+
+
+func _admit_actor() -> void:
+	"""Actual pose/equipment/load and endpoint checks remain separate from static route certification."""
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, _first, Profiles.MODE_WALK, 0, -1), &"", "actual actor admitted")
+
+
+func after_each() -> void:
+	"""The actual composition is acyclic; source fixtures never survive in production or another test."""
+	_turn_source_case = 0
+	_source_tool = NULL_REF
+	_source_job = NULL_REF
+	if _budget != null:
+		assert_true(_budget.is_quiescent(), "exact shared lease returned")
+	_binding = null
+	_routes = null
+	_locations = null
+	_owner = null
+	_sources = null
+	_terrain = null
+	_catalog = null
+	_levels = null
+	_movement = null
+	_world = null
+	_nodes = null
+	_drop_actual_stores()
+	_remove_fixture_files()
+
+
+func _drop_actual_stores() -> void:
+	"""Drop actual source owners after their borrowing adapters, never while a query is active."""
+	_profiles = null
+	_work = null
+	_jobs = null
+	_carry = null
+	_gear = null
+	_piles = null
+	_pool = null
+	_inventory = null
+	_items = null
+	_transforms = null
+	_construction = null
+	_buildings = null
+	_residents = null
+	_budget = null
+
+
+func _remove_fixture_files() -> void:
+	"""Delete only this suite's two explicitly test-owned content wires."""
+	for path: String in [TEMP, PROFILE_TEMP]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func test_actual_world_ground_route_moves_actual_actor_at_inherited_pace() -> void:
+	"""No synthetic provider grants movement: concrete clearance plus real actor owners admit every tick."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	assert_true(edge != NULL_REF, "actual published full edge")
+	_admit_actor()
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "source-qualified one-metre route")
+	for tick: int in range(1, 11):
+		_routes.advance_tick(tick)
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual moving actor remains readable")
+	assert_equal(actor.point, Vector3i(X + 1536, 512, Z + 512), "3277u/s reaches1024u within10 fixed ticks")
+	assert_equal(actor.location, _last, "actual destination identity retained")
+	assert_equal(actor.section, _floor, "actual full floor section")
+
+
+func test_actual_clear_endpoints_do_not_allow_middle_holes_or_unfinished_volume() -> void:
+	"""Whole continuous coverage rejects central missing air and unfinished work between safe endpoints."""
+	for obstruction: int in [1, 2]:
+		_actual_fixture(obstruction)
+		var token: int = _begin()
+		var added: Routes.Result = _routes.stage_add(token, _edge())
+		assert_equal(added.error, &"WORLD_ROUTE_NO_FITTING_PROFILE", "endpoints alone cannot admit crossing")
+		assert_true(_binding.seal(token) != &"", "refused candidate cannot seal")
+		_end(token)
+		after_each()
+
+
+func test_actual_support_excuses_only_authored_below_floor_contact() -> void:
+	"""The real adapter keeps the full -1u body bound while proving its exact stance/support intersection."""
+	_actual_fixture(3)
+	_publish_route()
+	_admit_actor()
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "real support covers body residual")
+
+
+func test_actual_structural_support_inside_void_blocks_body_and_recovery_sweeps() -> void:
+	"""Real support between safe endpoints remains solid even where a completed void also overlaps it."""
+	for obstruction: int in [4, 5]:
+		_actual_fixture(obstruction)
+		var token: int = _begin()
+		var added: Routes.Result = _routes.stage_add(token, _edge())
+		assert_equal(added.error, &"WORLD_ROUTE_NO_FITTING_PROFILE", "support beyond authored stance is physical obstruction")
+		assert_true(_binding.seal(token) != &"", "body or recovery collision cannot qualify passage")
+		_end(token)
+		after_each()
+
+
+func test_fixed_connector_data_cannot_authorize_an_unbuilt_stair() -> void:
+	"""A valid catalog row and empty space are insufficient without the actual paid installed connector owner."""
+	_actual_fixture()
+	var token: int = _begin()
+	var edge: Routes.Edge = _edge()
+	edge.family = 0
+	var added: Routes.Result = _routes.stage_add(token, edge)
+	assert_equal(added.error, &"WORLD_ROUTE_FIXED_CONNECTOR_SOURCE_REQUIRED", "no geometry-only free stair")
+	_end(token)
+
+
+func test_aborted_route_row_cannot_inherit_a_previous_candidates_mask() -> void:
+	"""Private masks stay tied to the exact non-reused operation even when local edge identity is reused."""
+	_actual_fixture()
+	var token: int = _begin()
+	var first: Routes.Result = _routes.stage_add(token, _edge())
+	assert_equal(first.error, &"", "first private certificate")
+	assert_equal(_binding.seal(token), &"", "first sealed")
+	_end(token)
+	token = _begin()
+	var second: Routes.Result = _routes.stage_add(token, _edge())
+	assert_equal(second.error, &"", "second separately proved candidate")
+	assert_equal(second.ref, first.ref, "aborted allocation reuses same numeric generation")
+	assert_true(token != first.token, "operation itself never reused")
+	assert_equal(_binding.publish(first.token), Binding.REFUSE_CONTEXT, "old operation cannot publish new bank")
+	assert_equal(_binding.seal(token), &"", "current actual proof sealed")
+	assert_equal(_binding.publish(token), &"", "only current exact operation publishes")
+	_end(token)
+
+
+func test_catalog_replacement_requires_every_retained_route_to_requalify() -> void:
+	"""Refreshing the catalog cannot bless all old masks merely by updating one global revision pin."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	assert_equal(_load_catalog(2), &"", "actual immutable catalog replaced")
+	var token: int = _begin()
+	assert_equal(_binding.seal(token), &"WORLD_ROUTE_CERTIFICATE_STALE", "retained route lacks new proof")
+	_end(token)
+	token = _begin()
+	assert_equal(_routes.stage_refresh(token, edge), &"", "explicit complete new proof")
+	assert_equal(_binding.seal(token), &"", "all surviving masks current")
+	assert_equal(_binding.publish(token), &"", "replacement certificates published")
+	_end(token)
+	_admit_actor()
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "current pace and clearance remain usable")
+
+
+func test_live_resource_change_blocks_motion_without_a_geometry_revision_change() -> void:
+	"""A new actual surface resource is not hidden by an earlier cold geometry certificate."""
+	_actual_fixture()
+	_publish_route()
+	_admit_actor()
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "path initially clear")
+	var revision: int = _owner.revision()
+	var tree: Nodes.OpResult = _nodes.create_at_tile(50 * 128 + 60, _items.compiled_id(&"wood"), 1000, 4, 1)
+	assert_true(tree.ok, "actual resource source created")
+	assert_equal(_owner.revision(), revision, "no sparse geometry transaction")
+	_routes.advance_tick(1)
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "blocked actor remains at safe contact")
+	assert_equal(actor.point, Vector3i(X + 512, 512, Z + 512), "fresh exclusions prevent movement")
+	assert_true(_nodes.destroy(tree.ref).ok, "actual obstruction removed")
+	_routes.advance_tick(2)
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual actor still present")
+	assert_true(actor.point.x > X + 512, "fresh local truth permits next legal motion")
+
+
+func test_exact_cold_lease_loss_refuses_before_certificate_publication() -> void:
+	"""A replacement lease of the same byte count cannot authorize a prior candidate or release its owner."""
+	_actual_fixture()
+	var token: int = _begin()
+	assert_equal(_routes.stage_add(token, _edge()).error, &"", "private candidate")
+	assert_equal(_binding.seal(token), &"", "sealed masks remain private")
+	assert_equal(_budget.release(_lease), &"", "original lease expires")
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_binding.publish(token), Binding.REFUSE_BUDGET, "old exact lease is required")
+	assert_equal(_routes.last_published_token(), 0, "neither graph nor masks published")
+	_end(token)
+
+
+func test_late_actual_endpoint_refusal_never_promotes_private_certificates() -> void:
+	"""Provider agreement precedes later actual-owner checks and is not graph publication."""
+	_actual_fixture()
+	var token: int = _begin()
+	var added: Routes.Result = _routes.stage_add(token, _edge())
+	assert_equal(added.error, &"", "real complete geometry proof")
+	assert_equal(_binding.seal(token), &"", "private graph and masks sealed")
+	var revision: int = _routes.revision()
+	_locations.refuse_live_read = true
+	assert_equal(_binding.publish(token), &"TEST_FINAL_ENDPOINT_REFUSAL", "actual endpoint check vetoes final graph swap")
+	assert_equal(_routes.last_published_token(), 0, "no actual successful swap")
+	assert_equal(_routes.revision(), revision, "live graph unchanged")
+	assert_equal(_binding._live.generations[added.ref.x], 0, "private eligibility did not promote early")
+	_locations.refuse_live_read = false
+	assert_equal(_binding.publish(token), &"", "unchanged exact candidate can finish after valid final checks")
+	assert_equal(_routes.last_published_token(), token, "exact actual success receipt")
+	assert_equal(_binding._live.generations[added.ref.x], added.ref.y, "only success promotes eligibility")
+	_end(token)
+
+
+func _stage_distant_geometry(offset: int = 4096) -> int:
+	"""A real distant obstacle changes the candidate identity without changing endpoint or path clearance."""
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, PackedInt32Array([X + offset, 512, Z, X + offset + 64, 768, Z + 64]), Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "actual distinct geometry candidate")
+	return token
+
+
+func test_concrete_provider_requires_the_exact_successful_geometry_companion() -> void:
+	"""Identical target revisions after actual abort/replacement cannot promote a different candidate's proof."""
+	for replace: bool in [false, true]:
+		_actual_fixture()
+		var edge: Vector2i = _publish_route()
+		var previous: int = _routes.last_published_token()
+		var space_token: int = _stage_distant_geometry()
+		_lease = _budget.acquire(Budget.COLD_BYTES)
+		var candidate: Routes.Result = _binding.begin_prepare(_lease, space_token)
+		assert_equal(candidate.error, &"", "actual future traversal snapshot")
+		assert_equal(_routes.stage_refresh(candidate.token, edge), &"", "actual full-profile recompilation")
+		assert_equal(_binding.seal(candidate.token), &"", "private future masks sealed")
+		var published: int = space_token
+		if replace:
+			assert_true(_owner.abort(space_token), "A discarded after proof")
+			published = _stage_distant_geometry(4352)
+		_owner.publish(published)
+		assert_equal(_owner.last_published_token(), published, "actual successful companion identity")
+		var code: StringName = _binding.publish(candidate.token)
+		assert_equal(code, &"ROUTE_SPACE_PUBLICATION" if replace else &"", "exact companion, not equal revision")
+		assert_equal(_routes.last_published_token(), previous if replace else candidate.token, "only exact graph publishes")
+		_end(candidate.token)
+		after_each()
+
+
+func test_geometry_change_invalidates_whole_cached_route_before_new_movement() -> void:
+	"""Even a physically distant real publication requires the old certificate to be explicitly refreshed."""
+	_actual_fixture()
+	_publish_route()
+	_admit_actor()
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, PackedInt32Array([X, 3072, Z, X + 2048, 4096, Z + 2048]), Space.UNFINISHED)
+	assert_equal(_owner.seal(token), &"", "actual changed geometry")
+	_owner.publish(token)
+	assert_true(_routes.request_route(_worker, _last, 1) != &"", "old complete proof cannot survive another geometry revision")
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	assert_true(_transforms.read_into(_worker, pose), "actual pose still readable")
+	assert_equal(Vector3i(pose.x, pose.y, pose.z), Vector3i(X + 512, 512, Z + 512), "no hidden relocation")
+
+
+func test_reentrant_local_source_read_cannot_replace_current_actor_scratch() -> void:
+	"""The actual outer admission survives nested read/refused transaction attempts without borrowed state."""
+	_actual_fixture()
+	_publish_route()
+	_terrain.target = weakref(_binding)
+	_admit_actor()
+	assert_equal(_terrain.reentry_code, Binding.REFUSE_BUSY, "nested query refuses before shared scratch")
+	assert_equal(_terrain.preparation_code, Binding.REFUSE_BUSY, "nested preparation cannot copy banks")
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "outer real actor remains independently valid")
+	_routes.advance_tick(1)
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual actor retained")
+	assert_true(actor.point.x > X + 512, "normal next motion still works")
+
+
+func test_static_profile_edge_reads_actual_certificate_without_admitting_actor_or_job() -> void:
+	"""Room planning can observe a complete travel profile without fabricating a selected resident or work Job."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var directory: PackedByteArray = _jobs.directory().state_bytes()
+	var geometry: PackedByteArray = _owner.state_bytes()
+	var before: Transforms.Pose = Transforms.Pose.new()
+	assert_true(_transforms.read_into(_worker, before), "actual initial transform")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"", "walking profile has a real committed bit")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 1, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "climb profile cannot borrow walking eligibility")
+	assert_equal(_jobs.directory().state_bytes(), directory, "no resident, Room or Job allocated")
+	assert_equal(_owner.state_bytes(), geometry, "no void, support or geometry revision created")
+	assert_true(_routes.read_actor_into(_worker, Routes.Actor.new()) != &"", "observer never admits or relocates a resident")
+	var after: Transforms.Pose = Transforms.Pose.new()
+	assert_true(_transforms.read_into(_worker, after), "actual final transform")
+	assert_equal(Vector3i(after.x, after.y, after.z), Vector3i(before.x, before.y, before.z), "transform unchanged")
+	assert_true(_budget.is_quiescent(), "fixed-packet read acquires no cold lease")
+
+
+func test_static_profile_edge_refuses_wrong_identity_content_or_unpublished_candidate() -> void:
+	"""Full generations, exact immutable profile revisions and actual successful publication all remain mandatory."""
+	_actual_fixture()
+	var token: int = _begin()
+	var added: Routes.Result = _routes.stage_add(token, _edge())
+	assert_equal(added.error, &"", "private actual candidate")
+	assert_equal(_binding.static_profile_edge_refusal(added.ref, 0, 1, 1), Binding.REFUSE_BUSY, "prepared masks cannot admit planning")
+	_end(token)
+	assert_equal(_binding.static_profile_edge_refusal(added.ref, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "aborted candidate has no live certificate")
+	var edge: Vector2i = _publish_route()
+	assert_equal(_binding.static_profile_edge_refusal(Vector2i(edge.x, edge.y + 1), 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "numeric slot alias refuses")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 2, 1), &"WORLD_ROUTE_PROFILE_STALE", "profile revision cannot alias")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 2), &"PROFILE_SELECTION_STALE", "content revision cannot alias")
+	assert_equal(_binding.static_profile_edge_refusal(edge, -1, 1, 1), &"PROFILE_SELECTION_STALE", "absent profile")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"", "failed observations never poison actual valid content")
+
+
+func test_static_profile_edge_refuses_pending_or_replaced_geometry_and_catalog() -> void:
+	"""Completed topology alone cannot outlive the exact geometric and content qualification it was given."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var token: int = _stage_distant_geometry()
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), Binding.REFUSE_CONTEXT, "uncommitted geometry refuses")
+	assert_true(_owner.abort(token), "discard geometry candidate")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"", "discard retains earlier qualification")
+	assert_equal(_load_catalog(2), &"", "real catalog content replacement")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "old catalog mask refuses")
+	token = _begin()
+	assert_equal(_routes.stage_refresh(token, edge), &"", "current catalog gets a fresh complete proof")
+	assert_equal(_binding.seal(token), &"", "fresh proof sealed")
+	assert_equal(_binding.publish(token), &"", "fresh actual mask published")
+	_end(token)
+	token = _stage_distant_geometry()
+	_owner.publish(token)
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "unrelated geometry revision still invalidates mask")
+
+
+func _replace_catalog_during_final_binding() -> void:
+	"""Reload the real immutable catalog after the second successful terrain binding check."""
+	assert_equal(_load_catalog(2), &"", "actual catalog mutation within final callback")
+
+
+func _replace_profiles_during_final_binding() -> void:
+	"""Replace actual loaded content, retaining the same numeric profile IDs and separate catalog object."""
+	var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	assert_true(_residents.spatial_profile_identity_into(_worker, identity), "real profile identity")
+	var bytes: PackedByteArray = ContentFixture.synthetic_profile_image(identity, 2)
+	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 2), &"", "actual profiles replaced")
+
+
+func _publish_geometry_during_final_binding() -> void:
+	"""An unrelated actual geometry publication still invalidates every old edge certificate."""
+	var token: int = _stage_distant_geometry()
+	_owner.publish(token)
+	assert_equal(_owner.last_published_token(), token, "actual geometry publication in final callback")
+
+
+func test_static_profile_edge_rechecks_actual_sources_after_final_binding_callback() -> void:
+	"""Success from the last callback cannot publish a stale old catalog, profile or geometry mask."""
+	for probe: Callable in [_replace_catalog_during_final_binding, _replace_profiles_during_final_binding,
+			_publish_geometry_during_final_binding]:
+		_actual_fixture()
+		var edge: Vector2i = _publish_route()
+		var directory: PackedByteArray = _jobs.directory().state_bytes()
+		_terrain.binding_probe = probe
+		_terrain.binding_countdown = 2
+		assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "late real-source mutation refuses")
+		assert_equal(_terrain.binding_probe_count, 1, "probe fired only at the final binding callback")
+		assert_equal(_terrain.binding_countdown, 0, "the intended last callback was reached")
+		assert_equal(_jobs.directory().state_bytes(), directory, "no actor or Job was created")
+		assert_true(_routes.read_actor_into(_worker, Routes.Actor.new()) != &"", "no resident admission")
+		after_each()
+
+
+func _turn(yaw: int = 0, checks: int = Space.MAX_CHECKS, job: Vector2i = NULL_REF) -> StringName:
+	"""Exercise actual geometry/dynamic owners; only the source certificates in this fixture are synthetic."""
+	return Binding.turn_actor(_binding, _worker, job, yaw, checks)
+
+
+func _turn_fixture(profile_case: int = 0) -> void:
+	"""A real completed ground graph and registered actual actor, without a productive work grant."""
+	_turn_source_case = profile_case
+	_actual_fixture()
+	_publish_route()
+	_admit_actor()
+
+
+func test_canonical_source_ground_turn_requires_ready_and_actual_ground_only_catalog() -> void:
+	"""Actual whole source geometry, ground catalog, World stores and stationary turn share one canonical owner."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 12, 1, 3, 0, -1, _source_tool), &"", "fresh canonical ground source")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 12, 1, 3), &"", "zero variants do not erase actual ground pace identity")
+	var root_before: Vector3i = Vector3i(X + 512, 512, Z + 512)
+	assert_equal(_turn(16384, Space.MAX_CHECKS, _source_job), &"", "READY permits actual all-yaw whole-body turn")
+	assert_equal(_turn(49152, Space.MAX_CHECKS, _source_job), &"", "same source turns back through complete ground coverage")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "same full resident")
+	assert_equal(actor.point, root_before, "turn keeps actual integer root")
+	assert_equal(_routes.request_route(_worker, _last, 0), &"", "canonical source ground route")
+	for tick: int in range(1, 19): assert_equal(_routes.advance_tick(tick), 1, "actual source fade and inherited3277 pace")
+	var before: PackedByteArray = _transforms.state_bytes()
+	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "arrived geometry still owes source recovery")
+	assert_equal(_transforms.state_bytes(), before, "refused mid-recovery turn is atomic")
+	for tick: int in range(19, 27): assert_equal(_routes.advance_tick(tick), 1, "full actual recovery")
+	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"", "same exact current source is READY now")
+
+
+func test_ground_only_final_source_leaf_refuses_mixed_tables_missing_paces_and_source_drift() -> void:
+	"""Zero variants are an explicit finite format; malformed mixed storage and changed source still refuse."""
+	_turn_source_case = 3
+	_actual_fixture()
+	_publish_route()
+	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 12, 1, 3, 0, -1, _source_tool), &"", "exact current source")
+	var before: PackedByteArray = _transforms.state_bytes()
+	for field: int in range(2, 7):
+		_catalog._live.header[field] = 1
+		assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"WORLD_ROUTE_CERTIFICATE_STALE", "mixed table cannot borrow ground-only proof")
+		_catalog._live.header[field] = 0
+	var paces: int = _catalog._live.header[7]
+	_catalog._live.header[7] = 0
+	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"WORLD_ROUTE_CERTIFICATE_STALE", "empty source supplies no ground pace")
+	_catalog._live.header[7] = paces
+	_catalog._live.header[8] = 2
+	assert_true(_turn(0, Space.MAX_CHECKS, _source_job) != &"", "foreign profile revision is not current source")
+	_catalog._live.header[8] = 3
+	_catalog._live.digests[32] ^= 1
+	assert_true(_turn(0, Space.MAX_CHECKS, _source_job) != &"", "exact original Actor source is required")
+	_catalog._live.digests[32] ^= 1
+	assert_equal(_transforms.state_bytes(), before, "all refused source attempts preserve actual pose")
+	assert_equal(_turn(0, Space.MAX_CHECKS, _source_job), &"", "actual unchanged source retries")
+
+
+func _canonical_short_edges() -> PackedInt32Array:
+	"""Publish real source masks for the finite forward/back step and a different ordinary ground span."""
+	var first: Vector3i = Vector3i(X + 512, 512, Z + 512)
+	var last: Vector3i = first + Vector3i(232, 0, 0)
+	var short_end: Vector2i = _location(last)
+	var token: int = _begin()
+	var result: PackedInt32Array = PackedInt32Array([short_end.x, short_end.y])
+	for direction: int in 3:
+		var edge: Routes.Edge = _edge()
+		if direction < 2:
+			edge.from_location = _first if direction == 0 else short_end
+			edge.to_location = short_end if direction == 0 else _first
+			var a: Vector3i = first if direction == 0 else last
+			var b: Vector3i = last if direction == 0 else first
+			edge.points = PackedInt32Array([a.x, a.y, a.z, b.x, b.y, b.z])
+			edge.length_u = 232
+		var added: Routes.Result = _routes.stage_add(token, edge)
+		assert_equal(added.error, &"", "complete source proof before mask publication")
+		result.append_array(PackedInt32Array([added.ref.x, added.ref.y]))
+	assert_equal(_binding.seal(token), &"", "same actual candidate")
+	assert_equal(_binding.publish(token), &"", "real graph/masks atomic publication")
+	_end(token)
+	return result
+
+
+func test_actual_short_masks_preserve_direction_distance_and_complete_source() -> void:
+	"""The actual World compiler certifies232u only for its matching finite policy, not any connected span."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var refs: PackedInt32Array = _canonical_short_edges()
+	var forward: Vector2i = Vector2i(refs[2], refs[3])
+	var backward: Vector2i = Vector2i(refs[4], refs[5])
+	var long_edge: Vector2i = Vector2i(refs[6], refs[7])
+	assert_equal(_binding.static_profile_edge_refusal(forward, 10, 1, 3), &"", "real forward source mask")
+	assert_equal(_binding.static_profile_edge_refusal(backward, 11, 1, 3), &"", "same body heading with reversed root direction")
+	assert_true(_binding.static_profile_edge_refusal(forward, 11, 1, 3) != &"", "backward source cannot move toward the face")
+	assert_true(_binding.static_profile_edge_refusal(backward, 10, 1, 3) != &"", "forward source cannot moonwalk")
+	for profile: int in [10, 11]:
+		assert_true(_binding.static_profile_edge_refusal(long_edge, profile, 1, 3) != &"", "narrow source cannot spill beyond232u")
+	assert_equal(_binding.static_profile_edge_refusal(long_edge, 12, 1, 3), &"", "complete canonical ground still fits")
+	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 10, 1, 3, 0, -1, _source_tool), &"", "actual finite source admission")
+	assert_equal(_routes.request_route(_worker, Vector2i(refs[0], refs[1]), 0), &"", "same full endpoint")
+	for tick: int in range(1, 20): assert_equal(_routes.advance_tick(tick), 1, "actual whole finite programme")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, _source_job, 10, 1, 3), &"", "actual recovered terminal")
+
+
+func test_actual_short_source_reload_holds_original_progress_and_pose() -> void:
+	"""An actual immutable reload between accepted root ticks cannot restart the source or publish one more move."""
+	_turn_source_case = 3
+	_actual_fixture()
+	var refs: PackedInt32Array = _canonical_short_edges()
+	assert_equal(_routes.admit_travel_actor(_worker, _source_job, _first, 10, 1, 3, 0, -1, _source_tool), &"", "exact original source")
+	assert_equal(_routes.request_route(_worker, Vector2i(refs[0], refs[1]), 0), &"", "original path")
+	for tick: int in range(1, 10): assert_equal(_routes.advance_tick(tick), 1, "entry then first root tick")
+	var longs: PackedByteArray = _routes._motion.resident_long.to_byte_array()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(ProjectSettings.globalize_path("res://../docs/validation/evidence/underground-short-work-step-runtime-2026-10-05/profile-diagnostic-1/mole-worker.ugprof"))
+	bytes.encode_s64(12, 4)
+	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 4), &"", "real loader publishes a new immutable content revision")
+	assert_equal(_routes.advance_tick(10), 0, "old source/pace certificates cannot advance")
+	assert_equal(_routes._motion.resident_long.to_byte_array(), longs, "original clock and rational prefix preserved")
+	assert_equal(_transforms.state_bytes(), pose, "actual root and interpolation unchanged")
+	var state: PackedInt64Array = PackedInt64Array([21, 22, 23, 24])
+	assert_true(_routes.source_state_into(_worker, _source_job, 10, 1, 3, state) != &"", "old repeated tuple is not current authority")
+	assert_equal(state, PackedInt64Array([21, 22, 23, 24]), "refused caller output unchanged")
+
+
+func _turn_route_image() -> PackedByteArray:
+	"""Test-only exact authority capture; scratch/cache controls are not save or movement state."""
+	var image: PackedByteArray = _routes._motion.resident.to_byte_array()
+	image.append_array(_routes._motion.resident_long.to_byte_array())
+	image.append_array(_routes._motion.links.to_byte_array())
+	image.append_array(_routes._motion.free_links.to_byte_array())
+	image.append_array(_routes._live.fields.to_byte_array())
+	image.append_array(_routes._live.longs.to_byte_array())
+	image.append_array(_routes._live.present)
+	image.append_array(_routes._live.retired)
+	image.append_array(_routes._live.free_rows.to_byte_array())
+	image.append_array(_routes._live.ordered.to_byte_array())
+	image.append_array(_routes._live.vertices.to_byte_array())
+	image.append_array(PackedInt64Array([_routes._motion.free_count, _routes._live.free_count,
+		_routes._live.edge_count, _routes._live.vertex_count, _routes._live.revision]).to_byte_array())
+	return image
+
+
+func _turn_profile_wire(bytes: PackedByteArray, profile_case: int) -> void:
+	"""Change only labelled synthetic source input before actual immutable parsing, never a live profile bank."""
+	if profile_case == 1:
+		bytes.encode_s32(64 + 4 * Profiles.F_YAW_KIND, Profiles.YAW_EXACT)
+		bytes.encode_s32(64 + 4 * Profiles.F_YAW, 49152)
+	if profile_case == 2:
+		bytes.encode_s32(64 + 4 * Profiles.F_TOOL, _items.compiled_id(&"tool"))
+		bytes.encode_s32(64 + 4 * Profiles.F_TOOL_VARIANT, Gear.MANUFACTURE_BASIC)
+
+
+func test_stationary_turn_requires_all_yaw_source_even_at_an_exact_valid_heading() -> void:
+	"""An actually eligible exact-yaw walk can travel but cannot certify any intervening facing."""
+	_turn_fixture(1)
+	var image: PackedByteArray = _transforms.state_bytes()
+	assert_equal(_turn(0), &"ROUTE_TURN_UNCERTIFIED", "exact source does not grant a turn sweep")
+	assert_equal(_turn(49152), &"ROUTE_TURN_UNCERTIFIED", "same heading does not bypass the source contract")
+	assert_equal(_transforms.state_bytes(), image, "all current/previous pose fields and mutation stamp unchanged")
+
+
+func test_stationary_turn_keeps_position_route_and_economy_then_repeats_shortest_arc() -> void:
+	"""An idle actual actor can face another direction using the complete source-labelled ground union."""
+	_turn_fixture()
+	var before: PackedByteArray = _turn_route_image()
+	var inventory: PackedByteArray = _inventory.state_bytes()
+	var revision: int = _transforms.mutation_revision()
+	assert_equal(_turn(16384), &"", "actual source-qualified stationary turn")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "still actual registered actor")
+	assert_equal(actor.point, Vector3i(X + 512, 512, Z + 512), "no teleport or translation")
+	assert_equal(actor.yaw, 16384, "requested exact facing")
+	assert_equal(actor.location, _first, "same full completed endpoint")
+	assert_equal(_turn_route_image(), before, "no path/profile/phase or saved route change")
+	assert_equal(_inventory.state_bytes(), inventory, "no productive payment")
+	assert_equal(_transforms.mutation_revision(), revision + 1, "single cache invalidation")
+	assert_equal(_turn(65000), &"", "next independent tick")
+	assert_equal(_turn(1000), &"", "cross yaw wrap")
+	assert_equal(_routes._occupancy_expected_revision, _transforms.mutation_revision(), "unchanged root index stays current")
+
+
+func test_stationary_turn_refuses_queued_actor_bad_yaw_job_and_insufficient_work() -> void:
+	"""No rejected command cancels a route, substitutes a Job or consumes partial turn state."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	assert_equal(_turn(65536), &"ROUTE_TURN_YAW", "no silent yaw normalization")
+	assert_equal(_turn(0, 8192), &"ROUTE_OPERATION_BUDGET", "whole observation precharged")
+	assert_equal(_turn(0, Space.MAX_CHECKS, Vector2i(1, 1)), &"ROUTE_TURN_JOB", "exact original Job")
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "actual queued path")
+	var routes: PackedByteArray = _turn_route_image()
+	assert_equal(_turn(), &"ROUTE_ACTOR_BUSY", "turn cannot cancel queue")
+	assert_equal(_turn_route_image(), routes, "queue preserved")
+	assert_equal(_transforms.state_bytes(), pose, "all refused calls preserve Transform image")
+
+
+func test_stationary_turn_refuses_prepared_geometry_and_profile_source_replacement() -> void:
+	"""A future bank and a same-pose new source cannot borrow current geometry or old profile pins."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_turn(), Binding.REFUSE_BUSY, "no turn through prepared geometry")
+	assert_true(_owner.abort(token), "own candidate discarded")
+	assert_equal(_load_catalog(2), &"", "real immutable source replaced")
+	assert_true(_turn() != &"", "old committed source no longer qualifies")
+	assert_equal(_transforms.state_bytes(), pose, "no refused pose write")
+
+
+func test_stationary_turn_final_geometry_includes_new_actual_resource() -> void:
+	"""A newly occupied real World tile blocks turning despite unchanged endpoint and Space receipts."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var revision: int = _owner.revision()
+	var tree: Nodes.OpResult = _nodes.create_at_tile(50 * 128 + 60, _items.compiled_id(&"wood"), 1000, 4, 1)
+	assert_true(tree.ok, "actual World exclusion")
+	assert_equal(_owner.revision(), revision, "no sparse publication")
+	assert_true(_turn() != &"", "full turn body/stance checks current exclusion")
+	assert_equal(_transforms.state_bytes(), pose, "blocked turn unchanged")
+	assert_true(_nodes.destroy(tree.ref).ok, "actual blocker removed")
+	assert_equal(_turn(), &"", "valid retry proves current facts")
+
+
+func test_stationary_turn_closes_late_pose_copy_and_reentry_before_write() -> void:
+	"""A successful ordinary observation may not conceal a different current worker or nested command."""
+	_turn_fixture()
+	var before: int = _transforms.mutation_revision()
+	_arm_turn_location_probe(func() -> void: _transforms.set_yaw(_worker, 32768))
+	assert_equal(_turn(0), &"ROUTE_TURN_CONTEXT_DRIFT", "copied endpoint then actual pose changed")
+	assert_equal(_transforms.mutation_revision(), before + 1, "only the injected actual write occurred")
+	assert_equal(_transforms._yaw[Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT]], 32768, "turn did not overwrite changed yaw")
+	assert_equal(_turn(0), &"", "valid current retry")
+	assert_equal(_routes._occupancy_expected_revision, 0, "turn cannot bless stale roots of other actors")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_terrain.binding_countdown = 1
+	_terrain.binding_probe = func() -> void: assert_equal(_turn(16384), &"ROUTE_CALLBACK_REENTRY", "nested scratch command refuses")
+	assert_equal(_turn(49152), &"ROUTE_CALLBACK_REENTRY", "outer observation remains poisoned")
+	assert_equal(_transforms.state_bytes(), pose, "outer rejected turn writes nothing")
+	assert_equal(_turn(49152), &"", "clean retry")
+
+
+func test_stationary_turn_rejects_late_endpoint_packet_change() -> void:
+	"""The complete actual full endpoint must match the observation used for body and support fit."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_arm_turn_location_probe(func() -> void: _binding._endpoint.envelope[3] += 1)
+	assert_equal(_turn(), &"ROUTE_LOCATION_STALE", "caller scratch is not geometry authority")
+	assert_equal(_transforms.state_bytes(), pose, "packet refusal preserves complete pose")
+	assert_equal(_turn(), &"", "original actual endpoint remains usable")
+
+
+func _turn_job() -> Vector2i:
+	"""Create a real BUILD assignment without starting or advancing productive work."""
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_jobs.priorities().spawn(row).ok, "actual priorities")
+	assert_true(_jobs.schedule().spawn(row, _jobs.schedule().default_template_id().value).ok, "actual schedule")
+	assert_true(_jobs.schedule().resolve(row, 8, false).ok, "work hour")
+	assert_true(_jobs.spawn_agent(row).ok, "actual JobAgent")
+	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(job.ok, "actual BUILD")
+	assert_true(_jobs.assign_worker(row, job.value).ok, "actual assignment")
+	return job.ref
+
+
+func test_stationary_turn_final_actor_proof_rejects_late_actual_job_and_tool_changes() -> void:
+	"""Successful old profile selection cannot conceal a released Job or newly equipped physical tool."""
+	_turn_fixture()
+	var job: Vector2i = _turn_job()
+	assert_equal(_routes.refresh_actor(_worker, job, Profiles.MODE_WALK, 0, -1), &"", "actual Job paired with ground actor")
+	assert_equal(_turn(16384, Space.MAX_CHECKS, job), &"", "turn retains real Job without productive progress")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_arm_turn_location_probe(func() -> void: assert_true(_jobs.release_worker(0).ok, "late actual release"))
+	assert_true(_turn(0, Space.MAX_CHECKS, job) != &"", "copied old assignment does not authorize a turn")
+	assert_equal(_transforms.state_bytes(), pose, "assignment refusal preserves complete pose")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"", "explicit idle requalification")
+	var store: Vector2i = _inventory.create_container(_world_ref, 1000000, -1, 0, true).ref
+	var tool: Vector2i = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual indivisible tool")
+	_arm_turn_location_probe(func() -> void: assert_true(_gear.equip(tool, _worker).ok, "late actual equipped geometry"))
+	assert_true(_turn(0) != &"", "new held tool cannot borrow the unladen source")
+	assert_equal(_transforms.state_bytes(), pose, "tool refusal preserves complete pose")
+
+
+func test_stationary_turn_preserves_real_equipped_tool_and_work_claim_without_doing_work() -> void:
+	"""A loaded all-yaw source keeps the exact actual tool and original Job, with no WU or durability write."""
+	_turn_source_case = 2
+	_actual_fixture()
+	_publish_route()
+	var job: Vector2i = _turn_job()
+	var store: Vector2i = _inventory.create_container(_world_ref, 1000000, -1, 0, true).ref
+	var tool: Vector2i = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual tool")
+	assert_true(_gear.equip(tool, _worker).ok, "actual equipped source")
+	assert_true(_work.claim_tool_for_work(0, tool).ok, "actual exact BUILD tool claim")
+	assert_equal(_routes.admit_actor(_worker, job, _first, Profiles.MODE_WALK, 0, -1, tool), &"", "actual loaded ground admission")
+	var gear: PackedByteArray = _gear.state_bytes()
+	var work: PackedByteArray = _work.state_bytes()
+	var jobs: PackedByteArray = _jobs.state_bytes()
+	assert_equal(_turn(0, Space.MAX_CHECKS, job), &"", "loaded source proves complete stationary union")
+	assert_equal(_gear.state_bytes(), gear, "no tool wear or claim change")
+	assert_equal(_work.state_bytes(), work, "no WU, XP or Work transition")
+	assert_equal(_jobs.state_bytes(), jobs, "no Job progress or reassignment")
+
+
+func test_stationary_turn_refuses_actual_unregistered_living_occupant_then_retries() -> void:
+	"""An actual resident without a current route body proof cannot become empty space during a turn."""
+	_turn_fixture()
+	var other: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	assert_true(_transforms.place(other, X + 512, 512, Z + 512, 0), "actual unregistered occupant at the turning root")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var route: PackedByteArray = _turn_route_image()
+	assert_equal(_turn(16384), &"ROUTE_TURN_ACTOR_UNBOUND", "missing actor registration cannot grant free turn space")
+	assert_equal(_transforms.state_bytes(), pose, "refusal keeps the entire actual Transform image")
+	assert_equal(_turn_route_image(), route, "refusal creates no actor or route authority")
+	assert_true(_residents.despawn(other).ok, "remove actual unregistered resident")
+	assert_equal(_turn(16384), &"", "current actual removal permits a fresh turn proof")
+
+
+func test_stationary_turn_uses_complete_recovery_union_against_another_actual_actor() -> void:
+	"""Current admission forbids recovery overlap; a late actual relocation must also refuse a turn."""
+	_turn_fixture()
+	var other: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	var point: Vector3i = Vector3i(X + 1024, 512, Z + 512)
+	var contact: Vector2i = _location(point)
+	assert_true(_transforms.place(other, point.x, point.y, point.z, 0), "actual clear actor pose")
+	assert_equal(_routes.admit_actor(other, NULL_REF, contact, Profiles.MODE_WALK, 0, -1), &"", "actual other actor registered")
+	assert_equal(_turn(16384), &"", "disjoint current occupants qualify")
+	var route: PackedByteArray = _turn_route_image()
+	_arm_turn_location_probe(func() -> void: assert_true(_transforms.place(other, X + 812, 512, Z + 512, 0), "late actual pose change"))
+	assert_equal(_turn(0), &"ROUTE_TURN_CONTEXT_DRIFT", "last observation changed actual occupancy")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	assert_true(_turn(0) != &"", "changed other root cannot inherit its old full endpoint")
+	assert_true(_transforms.state_bytes() == pose, "no additional pose write after the injected move")
+	assert_true(_turn_route_image() == route, "neither actor is retired to clear the turn")
+	_turn_recovery_overlap_leaf()
+
+
+func _turn_recovery_overlap_leaf() -> void:
+	"""Bounded collision unit check uses the actual loaded sources and current actor poses, without granting movement."""
+	assert_equal(Routes.turn_selection_into(_routes, 0, _routes._checked_selection), &"", "current exact primary selection")
+	assert_equal(Routes.turn_selection_into(_routes, 1, _routes._occupant_selection), &"", "current exact secondary selection")
+	_routes._remaining = Space.MAX_CHECKS
+	_routes._operation_error = &""
+	assert_equal(Binding._turn_occupant_boxes(_binding, _routes), &"ROUTE_OCCUPIED",
+		"body width256 is clear but source recovery width362 overlaps at300")
+
+
+func test_stationary_turn_budget_exhaustion_at_final_scan_is_atomic() -> void:
+	"""Initialization, source and all selected box scans have deterministic finite debt, including the final scan."""
+	_turn_fixture()
+	assert_equal(_turn(0), &"", "measure exact admitted finite work")
+	var required: int = Space.MAX_CHECKS - _routes._remaining
+	assert_true(required > 8192 and required < Space.MAX_CHECKS, "bounded complete debt")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var routes: PackedByteArray = _turn_route_image()
+	assert_equal(_turn(16384, required - 1), &"ROUTE_OPERATION_BUDGET", "one missing final check refuses")
+	assert_equal(_transforms.state_bytes(), pose, "no partial tick or interpolation change")
+	assert_equal(_turn_route_image(), routes, "no partial authoritative scratch publication")
+	assert_equal(_turn(16384, required), &"", "exact budget succeeds without borrowing next tick")
+	assert_equal(_routes._remaining, 0, "every bounded check was charged")
+
+
+func test_stationary_turn_closes_last_catalog_and_profile_observers() -> void:
+	"""Real source replacement after the last normal observation cannot reuse the copied actor selection."""
+	for replace: Callable in [_replace_catalog_during_final_binding, _replace_profiles_during_final_binding]:
+		_turn_fixture()
+		var pose: PackedByteArray = _transforms.state_bytes()
+		_terrain.binding_probe = replace
+		_terrain.binding_countdown = 1
+		assert_true(_turn() != &"", "late actual immutable source is stale")
+		assert_equal(_terrain.binding_probe_count, 1, "last normal Terrain observer was reached")
+		assert_equal(_transforms.state_bytes(), pose, "old source cannot write yaw")
+		after_each()
+
+
+func _arm_turn_location_probe(probe: Callable) -> void:
+	"""Keep the negative-only subclass type explicit for suites that inherit this actual fixture."""
+	var observed: RefusingLocations = _locations as RefusingLocations
+	observed.turn_probe = probe

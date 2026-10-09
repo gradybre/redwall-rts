@@ -1,0 +1,39 @@
+{
+  "manifest_sha256": "9eb1a296a595e4788f52bdbc28e6f6a852dab3c905b116e3075538588a64e3bc",
+  "source_pin_count": 11,
+  "runtime_modules": 64,
+  "immutable_witnesses": 138,
+  "historical_versions": 16,
+  "global_bytes": 99999806,
+  "headroom": 194,
+  "profile_joint": 248632,
+  "constructor": {
+    "absent_original_scope_and_copy_bytes": 2097,
+    "remaining_controls": 4034,
+    "constructor_stack_and_heap": 4151,
+    "simultaneous_total": 8185,
+    "ceiling": 8192,
+    "remaining": 7
+  },
+  "lifecycle": {
+    "retirement_reserved_bytes": 8192,
+    "control_slice": 6144,
+    "helper_slice": 2048,
+    "control_provisional_bytes": 6131,
+    "control_remaining": 13,
+    "helper_provisional_bytes": 1919,
+    "helper_remaining": 129,
+    "reference_bytes_assumed": 32,
+    "existing_three_objects_bytes_assumed": 768,
+    "existing_native_symbol_bytes_assumed": 2048,
+    "helper_expression_bytes_assumed": 256,
+    "profile_ceiling": 262144,
+    "joint_with_retirement": 248632,
+    "joint_remaining_bytes": 13512,
+    "direct_reset_helper_bytes": 1199,
+    "current_source_joint_bytes": 240440
+  },
+  "runtime_qualified": false,
+  "source_review_pending": true,
+  "full_normal_2_pending": true
+}

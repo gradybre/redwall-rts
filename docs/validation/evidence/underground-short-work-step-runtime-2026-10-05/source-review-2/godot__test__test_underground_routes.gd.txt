@@ -1,0 +1,2555 @@
+extends "res://test/framework/test_case.gd"
+## Real generational stores and immutable endpoint geometry, with explicitly synthetic
+## World/contact/profile certificates. No production movement qualification is asserted.
+
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Construction := preload("res://scripts/core/construction.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const WorldRouteTests := preload("res://test/test_underground_world_routes.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Residents := preload("res://scripts/core/residents.gd")
+const Transforms := preload("res://scripts/core/transforms.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const Items := preload("res://scripts/core/item_definitions.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Carry := preload("res://scripts/core/haul_carry.gd")
+const Work := preload("res://scripts/core/work.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const Priorities := preload("res://scripts/core/priorities.gd")
+const Schedule := preload("res://scripts/core/schedule.gd")
+const Pool := preload("res://scripts/core/reservations.gd")
+const Piles := preload("res://scripts/core/ground_piles.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const StockAge := preload("res://scripts/core/stock_age.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const FILE_PATH: String = "user://test-underground-routes-profiles.bin"
+const COLD_BYTES: int = 1048576
+const NODES: int = 8
+const EDGES: int = 16
+const VERTICES: int = 64
+const LINKS: int = 64
+
+
+class CountedSources extends Owner.CoreSources:
+	## Preserve real source semantics while counting full owner reads in observation-only loops.
+	var reads: int = 0
+
+	func read_into(ref: Vector2i, out: Owner.Facts) -> StringName:
+		"""The counter never supplies a synthetic source fact or skips a real owner check."""
+		reads += 1
+		return super.read_into(ref, out)
+
+
+class SyntheticWorld extends Routes.Bindings:
+	var routes: Routes = null
+	var locations: Locations = null
+	var owner: Owner = null
+	var cold: Budget = null
+	var refusal: StringName = &""
+	var mutate: bool = false
+	var mutate_containment: bool = false
+	var reenter_token: int = 0
+	var transforms: Transforms = null
+	var actor_mutation: int = 0
+	var closed_edge: Vector2i = Vector2i(-1, 0)
+	var motion_blocked: bool = false
+	var synthetic_pace: int = 1024
+	var alternate_paces: PackedInt32Array = PackedInt32Array()
+	var motion_closed_edge: Vector2i = Vector2i(-1, 0)
+	var actual_occupancy: bool = false
+	var restore_on_publication: int = 0
+	var publication_cold_token: int = 0
+	var publication_restore_code: StringName = &"NOT_CALLED"
+
+	func exact_binding(candidate: RefCounted, endpoints: Locations, space: Owner, arena: Budget) -> bool:
+		"""Numeric identity coincidence in a foreign owner is never accepted."""
+		return candidate == routes and endpoints == locations and space == owner and arena == cold
+
+	func edge_refusal(edge: Routes.Edge, _route_token: int, _space_token: int, _location_token: int) -> StringName:
+		"""Synthetic certificate only: actual production sweep/content belongs to WorldBindings."""
+		if mutate:
+			edge.points[0] += 1
+		if mutate_containment:
+			edge.level += 1
+		if reenter_token != 0:
+			routes.abort(reenter_token)
+		return refusal
+
+	func actor_admission_refusal(location: Vector2i, selection: Profiles.Selection) -> StringName:
+		"""This fixture does not claim native body/source qualification."""
+		if actor_mutation == 1:
+			selection.y += 1
+		elif actor_mutation == 2:
+			transforms.place(selection.worker, selection.x, selection.y + 1, selection.z, selection.yaw)
+		elif actor_mutation == 3:
+			routes.admit_actor(selection.worker, selection.job, location, selection.mode, selection.posture, -1)
+		return refusal
+
+	func publication_refusal(_route_token: int, _space_token: int, _location_token: int) -> StringName:
+		"""Explicitly synthetic callback, never a replacement for actual paid publication."""
+		if restore_on_publication == 1:
+			publication_restore_code = owner.restore_state_bytes(owner.state_bytes())
+		elif restore_on_publication == 2:
+			var image: PackedByteArray = PackedByteArray()
+			publication_restore_code = locations.capture_state_into(publication_cold_token, image)
+			if publication_restore_code == &"":
+				publication_restore_code = locations.restore_state_bytes(publication_cold_token, image)
+		return refusal
+
+	func travel_refusal(edge: Vector2i, _selection: Profiles.Selection) -> StringName:
+		"""Synthetic complete-span proof can explicitly reject one candidate for this actual actor."""
+		return &"SYNTHETIC_SPAN_TOO_SMALL" if edge == closed_edge else refusal
+
+	func transit_region_into(section: Vector2i, _segment: int, _point: Vector3i, out: Owner.Region) -> StringName:
+		"""Synthetic support permission; actual containment identity comes from the real section owner."""
+		return owner.region_into_reused(section, out)
+
+	func motion_refusal(_worker: Vector2i, _edge: Vector2i, _segment: int, _from: Vector3i,
+			_to: Vector3i, _selection: Profiles.Selection) -> StringName:
+		"""Explicit test-only dynamic clearance, never production body or connector qualification."""
+		if actor_mutation == 4 and _segment == 1:
+			routes.cancel_route(_worker)
+		if actual_occupancy:
+			var bounds: PackedInt32Array = PackedInt32Array([mini(_from.x, _to.x) - 128,
+				mini(_from.y, _to.y) - 20, mini(_from.z, _to.z) - 128,
+				maxi(_from.x, _to.x) + 128, maxi(_from.y, _to.y) + 900, maxi(_from.z, _to.z) + 128])
+			return routes.occupancy_refusal(bounds, _worker)
+		return &"SYNTHETIC_DYNAMIC_OBSTACLE" if motion_blocked or _edge == motion_closed_edge else refusal
+
+	func pace_into(_selection: Profiles.Selection, _family: int, _variant: int, out: Routes.IntMath.IntResult) -> StringName:
+		"""This fixture value tests integer integration only and is not adopted production pace."""
+		out.value = alternate_paces[_variant] if _variant >= 0 and _variant < alternate_paces.size() else synthetic_pace
+		return &""
+
+
+var _residents: Residents = null
+var _transforms: Transforms = null
+var _buildings: Buildings = null
+var _construction: Construction = null
+var _inventory: Inventory = null
+var _items: Items = null
+var _gear: Gear = null
+var _carry: Carry = null
+var _work: Work = null
+var _jobs: Jobs = null
+var _priorities: Priorities = null
+var _schedule: Schedule = null
+var _pool: Pool = null
+var _piles: Piles = null
+var _profiles: Profiles = null
+var _owner: Owner = null
+var _sources: Owner.CoreSources = null
+var _locations: Locations = null
+var _budget: Budget = null
+var _routes: Routes = null
+var _binding: SyntheticWorld = null
+var _world: Vector2i = NULL_REF
+var _worker: Vector2i = NULL_REF
+var _floor: Vector2i = NULL_REF
+var _identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+
+
+func before_each() -> void:
+	"""Compose actual stores without borrowing any demo flat-tile or guessed underground identity."""
+	_residents = Residents.new()
+	_world = _residents.directory().create(Directory.KIND_WORLD)
+	_worker = _residents.ref_of(_residents.spawn(&"mouse").value)
+	assert_true(_residents.spatial_profile_identity_into(_worker, _identity), "actual Resident key")
+	_transforms = Transforms.new(_residents.directory())
+	assert_true(_transforms.place(_worker, -512, 0, 512, 0), "actual integer pose")
+	_buildings = Buildings.new(_residents.directory())
+	_construction = Construction.new(_buildings)
+	_inventory = Inventory.new(16, 32)
+	_items = Items.new()
+	assert_true(_items.load_default(_inventory).ok, "real item definitions")
+	_make_profiles()
+	_make_space()
+	_bind_routes(NODES, EDGES, VERTICES, LINKS)
+
+
+func _bind_routes(nodes: int, edges: int, vertices: int, links: int) -> void:
+	"""Bind the actual selected finite graph to the fixture's explicit synthetic provider."""
+	_binding = SyntheticWorld.new()
+	_binding.routes = _routes
+	_binding.locations = _locations
+	_binding.owner = _owner
+	_binding.cold = _budget
+	_binding.transforms = _transforms
+	assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
+		nodes, edges, vertices, links, Routes.ARENA_BYTES), &"", "admitted actual graph")
+	assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual profile collaborators")
+
+
+func _make_profiles() -> void:
+	"""Real dynamic readers select only explicitly labelled synthetic body/profile content."""
+	_pool = Pool.new(64, Pool.JOB_CAPACITY, 32)
+	_piles = Piles.new()
+	assert_true(_piles.bind_stores(_inventory, _buildings, StockAge.new(_inventory)), "actual pile owner")
+	assert_true(_piles.bind_world(_world), "actual World")
+	_carry = Carry.new()
+	assert_true(_carry.bind(_inventory, _pool, _residents, _piles), "actual carry")
+	_gear = Gear.new(16)
+	assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
+	_priorities = Priorities.new()
+	_schedule = Schedule.new(_residents.needs())
+	_jobs = Jobs.new(_residents, _priorities, _schedule)
+	_work = Work.new(_jobs)
+	assert_true(_work.bind_gear(_gear).ok, "actual Work")
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(32, 256, 8, Profiles.ARENA_BYTES), &"", "finite profile pack")
+	assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "real readers")
+	assert_equal(_load(_image([_row()], _boxes())), &"", "synthetic source certificate")
+
+
+func _make_space(nodes: int = NODES, regions: int = 64, sources: int = 16, surveys: int = 64) -> void:
+	"""The real sparse owner and CoreSources retain this exact movement/containment reader."""
+	_routes = Routes.new(_residents, _transforms)
+	_sources = CountedSources.new(_residents.directory(), _buildings, _construction, _routes)
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
+		Vector3i(16, 16, 16), 64, surveys, Space.MAX_CHECKS), &"", "explicit test domain")
+	_owner = Owner.new(_sources)
+	assert_equal(_owner.configure(domain, regions, sources), &"", "real sparse owner")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_floor = _region(token, [-4096, 0, -4096, 4096, 1, 4096], Space.FLOOR_DATUM)
+	_region(token, [-4096, 0, -4096, 4096, 2048, 4096], Space.SUPPORTED_VOID)
+	_region(token, [-4096, -256, -4096, 4096, 0, 4096], Space.SUPPORT)
+	assert_equal(_owner.seal(token), &"", "initial geometry")
+	_owner.publish(token)
+	_budget = Budget.new()
+	_locations = Locations.new()
+	assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+		_owner, _sources, _budget, nodes, 228 * nodes + 256), &"", "actual endpoints")
+
+
+func after_each() -> void:
+	"""Weak graph wiring does not form a CoreSources/Routes/Locations cycle."""
+	assert_true(_budget.is_quiescent(), "shared cold arena returned")
+	_binding = null
+	_locations = null
+	_owner = null
+	_sources = null
+	_routes = null
+	_profiles = null
+	_work = null
+	_jobs = null
+	_schedule = null
+	_priorities = null
+	_carry = null
+	_gear = null
+	_piles = null
+	_pool = null
+	_inventory = null
+	_items = null
+	_transforms = null
+	_construction = null
+	_buildings = null
+	_residents = null
+	_budget = null
+	if FileAccess.file_exists(FILE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(FILE_PATH))
+
+
+func _region(token: int, box: Array[int], role: int) -> Vector2i:
+	"""Fixture dimensions are explicit synthetic world geometry, not an authored production catalog."""
+	var record: Owner.Region = Owner.Region.new()
+	record.box = PackedInt32Array(box)
+	record.owner = _world
+	record.role = role
+	record.level = 0
+	var added: Owner.Result = _owner.stage_add(token, record)
+	assert_equal(added.error, &"", "actual region")
+	return added.handle
+
+
+func _location(point: Vector3i) -> Vector2i:
+	"""Publish a supported exact endpoint through the real immutable location owner."""
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, _location_record(point))
+	assert_equal(added.error, &"", "actual endpoint coverage")
+	assert_equal(_locations.seal(token), &"", "endpoint sealed")
+	assert_true(_locations.publish(token), "endpoint published")
+	_budget.release(cold)
+	return added.location
+
+
+func _location_record(point: Vector3i) -> Locations.Record:
+	"""The same explicit fixture footprint serves live and unpublished endpoint cases."""
+	var record: Locations.Record = Locations.Record.new()
+	record.point = point
+	record.section = _floor
+	record.level = 0
+	record.role = Locations.ROLE_TRANSIT
+	record.envelope = PackedInt32Array([point.x - 128, point.y, point.z - 128, point.x + 128, point.y + 1024, point.z + 128])
+	record.support = PackedInt32Array([point.x - 128, point.y - 128, point.z - 128, point.x + 128, point.y, point.z + 128])
+	return record
+
+
+func _edge(first: Vector2i, last: Vector2i, points: Array[Vector3i]) -> Routes.Edge:
+	"""An authored directed span contains every actual XYZ vertex, including negative coordinates."""
+	var edge: Routes.Edge = Routes.Edge.new()
+	edge.from_location = first
+	edge.to_location = last
+	edge.section = _floor
+	edge.level = 0
+	edge.variant = 0
+	edge.mode = Profiles.MODE_WALK
+	edge.posture = Profiles.POSTURE_UPRIGHT
+	edge.content_revision = _profiles.content_revision()
+	edge.geometry_revision = _owner.revision()
+	edge.point_count = points.size()
+	for index: int in points.size():
+		edge.points.append_array([points[index].x, points[index].y, points[index].z])
+		if index > 0:
+			edge.length_u += Routes._segment_length(points[index - 1], points[index])
+	return edge
+
+
+func _publish_edges(edges: Array[Routes.Edge]) -> Array[Vector2i]:
+	"""Only this explicitly synthetic World callback authorizes the component graph publication."""
+	var refs: Array[Vector2i] = []
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var prepared: Routes.Result = _routes.begin_prepare(cold)
+	assert_equal(prepared.error, &"", "graph preparation")
+	for edge: Routes.Edge in edges:
+		var added: Routes.Result = _routes.stage_add(prepared.token, edge)
+		assert_equal(added.error, &"", "exact span: %s" % added.error)
+		refs.append(added.ref)
+	assert_equal(_routes.seal(prepared.token), &"", "sealed graph")
+	assert_equal(_routes.publish(prepared.token), &"", "actual graph publication")
+	_budget.release(cold)
+	return refs
+
+
+func _row(mode: int = Profiles.MODE_WALK) -> Dictionary:
+	"""Explicit synthetic geometry/certificate; actual species/stage/rig remains owner-derived."""
+	var fields: PackedInt32Array = PackedInt32Array([0, _identity[0], _identity[1], _identity[2],
+		mode, Profiles.POSTURE_UPRIGHT, -1, -1, -1, -1, Profiles.YAW_ALL, 0, 31, 511, 0, 3, -1, 0])
+	return {"fields": fields, "longs": PackedInt64Array([1, 0, 0]), "flags": PackedByteArray([15, 0])}
+
+
+func _boxes() -> Array[PackedInt32Array]:
+	"""Body retains actual below-root space; explicit test-only floor contact and turn volume."""
+	return [PackedInt32Array([-100, -20, -80, 100, 900, 80, 0]),
+		PackedInt32Array([-40, -20, -40, 40, 0, 40, 1]),
+		PackedInt32Array([-128, -20, -128, 128, 900, 128, 2])]
+
+
+func _image(rows: Array[Dictionary], boxes: Array[PackedInt32Array], revision: int = 1) -> PackedByteArray:
+	"""Independent row-wire writer; loader owns column indexing, count validation and atomicity."""
+	var bytes: PackedByteArray = "UGPROF01".to_ascii_buffer()
+	bytes.resize(32)
+	bytes.encode_u32(8, 1)
+	bytes.encode_s64(12, revision)
+	bytes.encode_u32(20, rows.size())
+	bytes.encode_u32(24, boxes.size())
+	bytes.encode_u32(28, 1)
+	for index: int in 32:
+		bytes.append(7) # Synthetic digest, never a production source.
+	for row: Dictionary in rows:
+		var base: int = bytes.size()
+		bytes.resize(base + 98)
+		var fields: PackedInt32Array = row.fields
+		var longs: PackedInt64Array = row.longs
+		for index: int in 18:
+			bytes.encode_s32(base + 4 * index, fields[index])
+		for index: int in 3:
+			bytes.encode_s64(base + 72 + 8 * index, longs[index])
+		bytes[base + 96] = row.flags[0]
+		bytes[base + 97] = row.flags[1]
+	for box: PackedInt32Array in boxes:
+		var base: int = bytes.size()
+		bytes.resize(base + 28)
+		for index: int in 7:
+			bytes.encode_s32(base + 4 * index, box[index])
+	bytes.append_array("UGPEND01".to_ascii_buffer())
+	return bytes
+
+
+func _load(bytes: PackedByteArray, revision: int = 1, hash_override: String = "") -> StringName:
+	"""The trusted expected digest is external to the file being decoded."""
+	var file: FileAccess = FileAccess.open(FILE_PATH, FileAccess.WRITE)
+	file.store_buffer(bytes)
+	file.close()
+	var digest_context: HashingContext = HashingContext.new()
+	digest_context.start(HashingContext.HASH_SHA256)
+	digest_context.update(bytes)
+	var actual: String = digest_context.finish().hex_encode()
+	return _profiles.load_file(FILE_PATH, actual if hash_override == "" else hash_override, revision)
+
+
+func _clock_profiles(tool: Vector2i = NULL_REF, contact_patches: bool = false, program_version: int = 5) -> void:
+	"""Synthetic certificate geometry exercises exact clock state, never current mole source qualification."""
+	var rows: Array[Dictionary] = []
+	var boxes: Array[PackedInt32Array] = []
+	var work_first: int = 13 if program_version == 6 else 10
+	for index: int in work_first + 16:
+		var row: Dictionary = _row(Profiles.MODE_STAND if index == 0 else (Profiles.MODE_WORK if index >= work_first else Profiles.MODE_WALK))
+		if tool != NULL_REF:
+			row.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+			row.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+		row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+		if index >= 2:
+			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+			@warning_ignore("integer_division") var heading: int = (index - work_first) / 4 if index >= work_first else (index - 2) % 4
+			row.fields[Profiles.F_YAW] = heading * 16384
+			row.flags[1] = Profiles.POLICY_SOURCE_WORK if index >= work_first else (1 if index < 6 else 2)
+		if program_version == 6 and index >= 10 and index < 13:
+			row.flags[1] = index - 6
+			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_ALL if index == 12 else Profiles.YAW_EXACT
+			row.fields[Profiles.F_YAW] = 0 if index == 12 else 49152
+		boxes.append_array(_boxes())
+		if index >= work_first:
+			row.fields[Profiles.F_BOX_COUNT] = 7 if contact_patches else 6
+			row.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_BUILD
+			row.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ANCHOR_AND_PATCH if contact_patches else Profiles.CONTACT_ANCHOR_ONLY
+			boxes.append(PackedInt32Array([-128, -20, -128, 128, 1000, 256, Profiles.WORK_APPROACH]))
+			boxes.append(PackedInt32Array([-128, 300, -256, 128, 1000, 128, Profiles.WORK_STROKE]))
+			boxes.append(PackedInt32Array([0, 512, -200, 0, 512, -200, Profiles.CONTACT_POINT]))
+			if contact_patches:
+				boxes.append(PackedInt32Array([-2, 512, -202, 2, 512, -198, Profiles.CONTACT_PATCH]) if (index - work_first) % 4 == 0 \
+					else PackedInt32Array([-2, 510, -200, 2, 514, -200, Profiles.CONTACT_PATCH]))
+		rows.append(row)
+	var revision: int = 3 if program_version == 6 else 2
+	var bytes: PackedByteArray = _image(rows, boxes, revision)
+	bytes.encode_u32(8, 2)
+	var source: PackedByteArray = Routes.SourceProgram.ACTOR_SHA.hex_decode()
+	for index: int in 32:
+		bytes[32 + index] = source[index]
+	assert_equal(_load(bytes, revision), &"", "explicit test certificates bind the finite programme")
+	assert_equal(_routes.refresh_profile_extent(), &"", "updated whole catalog broadphase")
+	assert_true(_transforms.set_yaw(_worker, 49152), "actual fixed body heading")
+
+
+func _clock_job() -> Vector2i:
+	"""An actual assigned BUILD Job is required even by the synthetic geometry protocol fixture."""
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_priorities.spawn(row).ok, "actual priorities")
+	assert_true(_schedule.spawn(row, _schedule.default_template_id().value).ok, "actual schedule")
+	assert_true(_schedule.resolve(row, 8, false).ok, "actual work hour")
+	assert_true(_jobs.spawn_agent(row).ok, "actual agent")
+	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(job.ok and _jobs.assign_worker(row, job.value).ok, "actual full assigned Job")
+	return job.ref
+
+
+func _short_route_image() -> PackedByteArray:
+	"""Exact test-only canonical columns; this does not introduce or claim a production World save API."""
+	var image: PackedByteArray = _motion_image()
+	image.append_array(_transforms.state_bytes())
+	return image
+
+
+func _motion_image() -> PackedByteArray:
+	"""Keep phase, clock, rational remainder and original route links together for atomic refusal checks."""
+	var image: PackedByteArray = _routes._motion.resident.to_byte_array()
+	image.append_array(_routes._motion.resident_long.to_byte_array())
+	image.append_array(_routes._motion.links.to_byte_array())
+	image.append_array(_routes._motion.free_links.to_byte_array())
+	image.append_array(PackedInt64Array([_routes._motion.free_count]).to_byte_array())
+	return image
+
+
+func test_short_step_requires_three_root_ticks_and_complete_fades_in_both_directions() -> void:
+	"""Real Routes/Transforms consume the accepted integer law; World/source certificates here remain synthetic."""
+	_clock_profiles(NULL_REF, false, 6)
+	_binding.synthetic_pace = 3277
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = a + Vector3i(232, 0, 0)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	_publish_edges([_edge(first, last, [a, b]), _edge(last, first, [b, a])])
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 12, 1, 3, 0, -1), &"", "original canonical ground admission")
+	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 10, 1, 3, 0, -1), &"", "same actual READY switches to finite source")
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "one complete terminal span")
+	_short_replay(a, b, 10, 1)
+	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 11, 1, 3, 0, -1), &"", "only actual READY may reverse source")
+	assert_equal(_routes.request_route(_worker, first, 20), &"", "same complete reverse programme")
+	_short_replay(b, a, 11, 20)
+	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"", "complete recovery returns to canonical ground")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no silent loss of canonical source into legacy policy0")
+
+
+func _short_replay(first: Vector3i, last: Vector3i, profile: int, first_tick: int) -> void:
+	"""Eight fade ticks, exactly three accepted root ticks, then eight recovery ticks independent of drawing."""
+	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	var actor: Routes.Actor = Routes.Actor.new()
+	for elapsed: int in 19:
+		assert_equal(_routes.advance_tick(first_tick + elapsed), 1, "actual accepted fixed tick")
+		assert_equal(_routes.source_state_into(_worker, NULL_REF, profile, 1, 3, state), &"", "original current canonical tuple")
+		assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual Transform and endpoint identity")
+		var distance: int = 0 if elapsed < 8 else (109 if elapsed == 8 else (218 if elapsed == 9 else 232))
+		assert_equal(actor.point, first + Vector3i(distance if last.x > first.x else -distance, 0, 0), "exact rational root progress")
+		assert_equal(actor.yaw, 49152, "backward root never reverses the body heading")
+		if elapsed < 18:
+			var original: PackedByteArray = _short_route_image()
+			assert_equal(_routes.cancel_route(_worker), &"ROUTE_SOURCE_STEP_ACTIVE", "partial source may only hold/resume")
+			assert_equal(_short_route_image(), original, "cancel refusal is byte-exact")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, profile, 1, 3), &"", "whole programme completes at READY")
+
+
+func test_short_request_refuses_wrong_length_pace_and_successors_before_route_mutation() -> void:
+	"""Reachability alone cannot authorize a narrower prefix, a changed rate or multiple queued spans."""
+	_clock_profiles(NULL_REF, false, 6)
+	_binding.synthetic_pace = 3277
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var first: Vector2i = _location(a)
+	var wrong: Vector2i = _location(a + Vector3i(233, 0, 0))
+	var middle: Vector2i = _location(a + Vector3i(116, 0, 0))
+	var last: Vector2i = _location(a + Vector3i(232, 0, 0))
+	_publish_edges([_edge(first, wrong, [a, a + Vector3i(233, 0, 0)]),
+		_edge(first, middle, [a, a + Vector3i(116, 0, 0)]),
+		_edge(middle, last, [a + Vector3i(116, 0, 0), a + Vector3i(232, 0, 0)])])
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 10, 1, 3, 0, -1), &"", "new finite actor READY")
+	var original: PackedByteArray = _short_route_image()
+	assert_equal(_routes.request_route(_worker, wrong, 0), &"ROUTE_SOURCE_STEP_SPAN", "233u is not the source programme")
+	assert_equal(_routes.request_route(_worker, last, 0), &"ROUTE_SOURCE_STEP_SPAN", "two spans cannot spend the narrow source prefix twice")
+	_binding.synthetic_pace = 3278
+	assert_equal(_routes.request_route(_worker, wrong, 0), &"ROUTE_SOURCE_STEP_PACE", "source root rate is immutable")
+	assert_equal(_short_route_image(), original, "all refused requests preserve original canonical state")
+
+
+func test_short_interruption_and_source_corruption_cannot_restart_or_extend_the_prefix() -> void:
+	"""A refused real movement tick preserves the exact fraction/source time and resumes only the same original span."""
+	_clock_profiles(NULL_REF, false, 6)
+	_binding.synthetic_pace = 3277
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(a + Vector3i(232, 0, 0))
+	_publish_edges([_edge(first, last, [a, a + Vector3i(232, 0, 0)])])
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 10, 1, 3, 0, -1), &"", "fresh finite state")
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "original request")
+	for tick: int in range(1, 10): assert_equal(_routes.advance_tick(tick), 1, "complete entry and first root tick")
+	var before: PackedByteArray = _routes._motion.resident_long.to_byte_array()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_binding.motion_blocked = true
+	assert_equal(_routes.advance_tick(10), 0, "actual movement observer blocks")
+	assert_equal(_routes._motion.resident_long.to_byte_array(), before, "clock/progress/fraction not reset")
+	assert_equal(_transforms.state_bytes(), pose, "root not advanced")
+	assert_true(_routes.request_route(_worker, last, 10) != &"", "held prefix is not a new admission")
+	_binding.motion_blocked = false
+	for tick: int in range(11, 21): assert_equal(_routes.advance_tick(tick), 1, "resume exact remaining prefix/recovery")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, 10, 1, 3), &"", "same accepted-tick terminal")
+	_short_clock_mutants()
+
+
+func _short_clock_mutants() -> void:
+	"""Saved-column interpretation rejects reserved tags and a fourth step before publishing caller output."""
+	var row: int = _residents.directory().get_typed_row(_worker)
+	var word: int = _routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row]
+	var clock: int = _routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row]
+	var out: PackedInt64Array = PackedInt64Array([71, 72, 73, 74])
+	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] = Routes.ShortStep.word(Routes.PHASE_IDLE, Routes.SourceProgram.WALK)
+	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row] = 3 * 65536
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 10, 1, 3, out), &"ROUTE_SOURCE_TUPLE_STALE", "fourth root tick is outside the full source prefix")
+	assert_equal(out, PackedInt64Array([71, 72, 73, 74]), "refused decode leaves output unchanged")
+	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] = word
+	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row] = clock
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 10, 1, 3, out), &"", "original saved columns restore exact READY")
+
+
+func test_short_saved_fraction_and_interruption_keep_original_three_tick_prefix() -> void:
+	"""A nonzero exact inherited fraction changes integer roots, never the source duration or terminal remainder."""
+	_clock_profiles(NULL_REF, false, 6)
+	_binding.synthetic_pace = 3277
+	var first_point: Vector3i = Vector3i(-512, 0, 512)
+	var first: Vector2i = _location(first_point)
+	var last: Vector2i = _location(first_point + Vector3i(232, 0, 0))
+	_publish_edges([_edge(first, last, [first_point, first_point + Vector3i(232, 0, 0)])])
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 10, 1, 3, 0, -1), &"", "original admitted source")
+	var row: int = _residents.directory().get_typed_row(_worker)
+	_routes._motion.resident_long[Routes.R_REMAINDER * Routes.RESIDENT_CAPACITY + row] = Routes._encode_fraction(29, 30)
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "explicit saved original fraction")
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(1, 20):
+		assert_equal(_routes.advance_tick(tick), 1, "same19 accepted fixed ticks")
+		assert_equal(_routes.read_actor_into(_worker, actor), &"", "bounded saved source state")
+		var distance: int = 0 if tick < 9 else (110 if tick == 9 else (219 if tick == 10 else 232))
+		assert_equal(actor.point.x, first_point.x + distance, "exact original rational root law")
+	assert_equal(_routes._motion.resident_long[Routes.R_REMAINDER * Routes.RESIDENT_CAPACITY + row], 0, "terminal consumes exactly endpoint time")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, NULL_REF, 10, 1, 3), &"", "full recovered source")
+
+
+func test_short_saved_progress_rejects_fraction_and_source_clock_disagreement() -> void:
+	"""Bounded direct saved-state leaves reject malformed rationals and impossible counted prefixes before outputs."""
+	var word: int = Routes.ShortStep.word(Routes.PHASE_TRAVELLING, Routes.SourceProgram.WALK)
+	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 109, Routes._encode_fraction(7, 30), true), &"", "actual first tick from zero")
+	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 110, Routes._encode_fraction(1, 5), true), &"", "actual first tick from29/30")
+	for fraction: int in [int(2) << 32 | 4, int(1) << 32, int(1) << 32 | 2147483648, -1]:
+		assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 109, fraction, true), &"ROUTE_SOURCE_STEP_PROGRESS", "malformed saved fraction")
+	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 108, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "clock cannot precede earned root distance")
+	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 111, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "clock cannot borrow extra distance")
+	assert_equal(Routes.ShortStep.progress_refusal(word, 65536, 109, Routes._encode_fraction(7, 30), false), &"ROUTE_SOURCE_STEP_PROGRESS", "positive prefix retains its actual occupied edge")
+	assert_equal(Routes.ShortStep.progress_refusal(word, 0, 0, 0, true), &"ROUTE_SOURCE_STEP_PROGRESS", "zero prefix has not entered an edge")
+
+
+func test_legacy_actor_cannot_claim_canonical_ground_or_ready_from_an_unknown_visual_phase() -> void:
+	"""Policy0 request ticks remain ordinary; identical all-yaw geometry cannot supply missing source history."""
+	_clock_profiles(NULL_REF, false, 6)
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "legacy admission remains policy0")
+	var original: PackedByteArray = _short_route_image()
+	assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 12, 1, 3, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no renderer-derived takeover")
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 12, 1, 3, 0, -1), &"ROUTE_ACTOR_ALREADY_REGISTERED", "no unadmit/readmit shortcut")
+	assert_equal(_short_route_image(), original, "unknown phase refusal preserves all legacy state")
+
+
+func test_headless_source_approach_work_recovery_and_backward_retreat() -> void:
+	"""No Driver or render frames exist; actual route ticks alone close each source handoff and reverse root travel."""
+	_clock_profiles()
+	var job: Vector2i = _clock_job()
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	_publish_edges([_edge(first, last, [a, b]), _edge(last, first, [b, a])])
+	assert_equal(_routes.admit_travel_actor(_worker, job, first, 5, 1, 2, 0, -1), &"", "actual ready actor")
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "exact selected approach")
+	var actor: Routes.Actor = Routes.Actor.new()
+	var state: PackedInt64Array = PackedInt64Array([99, 99, 99, 99])
+	for tick: int in range(1, 9):
+		assert_equal(_routes.advance_tick(tick), 1, "canonical ready-to-walk transition")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual pose")
+	assert_equal(actor.point, a, "source fade never teleports root")
+	assert_equal(actor.phase, Routes.PHASE_QUEUED, "public phase has no encoded bits")
+	assert_equal(Routes.actor_phase_in(_routes, _worker), Routes.PHASE_QUEUED, "static final arrival reader decodes identically")
+	for tick: int in range(9, 39):
+		assert_equal(_routes.advance_tick(tick), 1, "existing30Hz ground pace")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual arrival")
+	assert_equal(actor.point, b, "full directed destination")
+	assert_equal(actor.yaw, 49152, "approach body heading")
+	assert_equal(_routes.refresh_work_actor(_worker, job, 24, 1, 2, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "arrival alone is not ready")
+	for tick: int in range(39, 47):
+		assert_equal(_routes.advance_tick(tick), 1, "source returns to ready")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, job, 5, 1, 2), &"", "canonical ready witness")
+	assert_equal(_routes.refresh_work_actor(_worker, job, 24, 1, 2, 0, -1), &"", "exact WORK handoff")
+	assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, job, 24, 1, 2), &"ROUTE_SOURCE_WORK_NOT_READY", "entry cannot grant productivity")
+	for tick: int in range(47, 77):
+		assert_equal(_routes.advance_tick(tick), 1, "headless actual source entry")
+	assert_equal(_routes.source_work_observation_refusal(_worker, job, 24, 1, 2), &"", "entry completed on canonical ticks")
+	assert_equal(_routes.request_source_ready(_worker, job), &"", "stop through actual recovery")
+	assert_equal(_routes.refresh_travel_actor(_worker, job, 9, 1, 2, 0, -1), &"ROUTE_SOURCE_HANDOFF_REQUIRED", "no productive-to-walk snap")
+	for tick: int in range(77, 107):
+		assert_equal(_routes.advance_tick(tick), 1, "headless recovery")
+	assert_equal(_routes.refresh_travel_actor(_worker, job, 9, 1, 2, 0, -1), &"", "ready to backward source")
+	assert_equal(_routes.request_route(_worker, first, 107), &"", "actual directed retreat")
+	for tick: int in range(107, 145):
+		assert_equal(_routes.advance_tick(tick), 1, "fade then reversed-source root motion")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual retreat endpoint")
+	assert_equal(actor.point, a, "return through actual reverse edge")
+	assert_equal(actor.yaw, 49152, "no instantaneous about-face")
+	for tick: int in range(145, 153):
+		assert_equal(_routes.advance_tick(tick), 1, "retreat ready fade")
+	assert_equal(_routes.source_state_into(_worker, job, 9, 1, 2, state), &"", "source state read")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.READY, 0, 0, Routes.PHASE_IDLE]), "exact ready terminal")
+	assert_equal(_routes.advance_tick(153), 0, "idle ready does not manufacture time or work")
+
+
+func test_source_clock_refusal_and_interruption_preserve_phase_for_exact_retry() -> void:
+	"""A blocked real-owner observation pauses source time; retry equals uninterrupted accepted-tick progression."""
+	_clock_profiles()
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	_publish_edges([_edge(first, last, [a, b])])
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, first, 5, 1, 2, 0, -1), &"", "actual source actor")
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "real queued edge")
+	for tick: int in range(1, 4): _routes.advance_tick(tick)
+	var row: int = _residents.directory().get_typed_row(_worker)
+	var clock: int = _routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row]
+	var state: PackedInt64Array = PackedInt64Array([99, 98, 97, 96])
+	_binding.refusal = &"SYNTHETIC_SOURCE_STOP"
+	assert_equal(_routes.advance_tick(4), 0, "actual provider stops before phase write")
+	assert_equal(_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row], clock, "no lost or accumulated source time")
+	assert_equal(_routes.actor_phase(_worker), Routes.PHASE_HELD, "only geometric hold changes")
+	_binding.refusal = &""
+	for tick: int in range(5, 10): assert_equal(_routes.advance_tick(tick), 1, "same original phase resumes")
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 5, 1, 2, state), &"", "current immutable source tuple")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.WALK, 0, 0, Routes.PHASE_QUEUED]), "eight accepted ticks match uninterrupted fade")
+	var word: int = _routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row]
+	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] = word | 64
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 5, 1, 2, state), &"ROUTE_SOURCE_TUPLE_STALE", "reserved tag refuses")
+	assert_equal(Routes.actor_phase_in(_routes, _worker), Routes.PHASE_ABSENT, "malformed tag cannot look stationary")
+	assert_equal(state[0], Routes.SourceProgram.WALK, "refused read leaves prior output")
+	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] = word
+	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row] = 2147483648
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 5, 1, 2, state), &"ROUTE_SOURCE_TUPLE_STALE", "reserved Q16 high bit refuses")
+	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row] = 0
+	assert_equal(_routes.source_state_into(Vector2i(_worker.x, _worker.y + 1), NULL_REF, 5, 1, 2, state), &"ROUTE_SOURCE_TUPLE_STALE", "full worker generation")
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 5, 2, 2, state), &"ROUTE_SOURCE_TUPLE_STALE", "original profile revision")
+	assert_equal(_routes.source_state_into(_worker, NULL_REF, 5, 1, 2, state), &"", "valid original tuple still works")
+
+
+
+func test_headless_entry_work_wait_and_recovery_resume_the_original_source_clock() -> void:
+	"""Refused ticks cannot erase or bank any ENTRY, loop-seam wait, recovery or partial-entry retrace phase."""
+	_clock_profiles()
+	var job: Vector2i = _clock_job()
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_work_actor(_worker, job, first, 24, 1, 2, 0, -1), &"", "actual source WORK admission")
+	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	for tick: int in range(1, 7): assert_equal(_routes.advance_tick(tick), 1, "six source entry ticks")
+	_binding.refusal = &"SYNTHETIC_SOURCE_STOP"
+	assert_equal(_routes.advance_tick(7), 0, "entry observation refuses")
+	assert_equal(_routes.source_state_into(_worker, job, 24, 1, 2, state), &"", "held entry tuple stays current")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.ENTRY, 6 * 65536, 0, Routes.PHASE_HELD]), "entry clock survives refusal")
+	_binding.refusal = &""
+	for tick: int in range(8, 32): assert_equal(_routes.advance_tick(tick), 1, "remaining24 accepted entry ticks")
+	assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, job, 24, 1, 2), &"", "exact30 accepted ticks enter WORK")
+	for tick: int in range(32, 35): assert_equal(_routes.advance_tick(tick), 1, "three productive source ticks")
+	assert_equal(_routes.request_source_ready(_worker, job), &"", "actual stop retains original loop seam")
+	_binding.refusal = &"SYNTHETIC_SOURCE_STOP"
+	assert_equal(_routes.advance_tick(35), 0, "seam wait observation refuses")
+	assert_equal(_routes.source_state_into(_worker, job, 24, 1, 2, state), &"", "held seam tuple stays current")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.RECOVERY_WAIT, 3 * 65536, 0, Routes.PHASE_HELD]), "seam phase is not erased")
+	_binding.refusal = &""
+	for tick: int in range(36, 69): assert_equal(_routes.advance_tick(tick), 1, "remaining33 source loop ticks")
+	assert_equal(_routes.source_state_into(_worker, job, 24, 1, 2, state), &"", "exact seam state")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.RECOVERY, 0, 0, Routes.PHASE_IDLE]), "recovery begins only at complete loop seam")
+	for tick: int in range(69, 79): assert_equal(_routes.advance_tick(tick), 1, "ten accepted recovery ticks")
+	_binding.refusal = &"SYNTHETIC_SOURCE_STOP"
+	assert_equal(_routes.advance_tick(79), 0, "recovery observation refuses")
+	assert_equal(_routes.source_state_into(_worker, job, 24, 1, 2, state), &"", "held recovery tuple stays current")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.RECOVERY, 10 * 65536, 0, Routes.PHASE_HELD]), "recovery time does not accumulate")
+	_binding.refusal = &""
+	for tick: int in range(80, 100): assert_equal(_routes.advance_tick(tick), 1, "remaining20 accepted recovery ticks")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, job, 24, 1, 2), &"", "exact30 accepted ticks return to ready")
+	assert_equal(_routes.refresh_work_actor(_worker, job, 24, 1, 2, 0, -1), &"", "fresh entry requires actual ready handoff")
+	for tick: int in range(100, 106): assert_equal(_routes.advance_tick(tick), 1, "partial actual entry")
+	assert_equal(_routes.request_source_ready(_worker, job), &"", "partial entry requests retrace")
+	for tick: int in range(106, 112): assert_equal(_routes.advance_tick(tick), 1, "exact partial source retrace")
+	assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, job, 24, 1, 2), &"", "retrace closes at the original shared ready")
+
+
+func test_source_clock_helper_timing_uses_real_owners_and_preserves_read_only_state() -> void:
+	"""Measure guarded source checks separately from physical world qualification; synthetic geometry is explicit."""
+	_clock_profiles()
+	var job: Vector2i = _clock_job()
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_work_actor(_worker, job, first, 24, 1, 2, 0, -1), &"", "actual actor and assigned Job")
+	for tick: int in range(1, 31): assert_equal(_routes.advance_tick(tick), 1, "headless source entry")
+	var state: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	assert_equal(_routes.source_state_into(_worker, job, 24, 1, 2, state), &"", "original source state")
+	var passed: int = 0
+	var start: int = Time.get_ticks_usec()
+	for _sample: int in 4096:
+		passed += int(Routes.SourceProgram.profile_refusal(_profiles, 24, 1, 2) == &"")
+	var digest_us: int = Time.get_ticks_usec() - start
+	start = Time.get_ticks_usec()
+	for _sample: int in 4096:
+		passed += int(Routes.actor_phase_in(_routes, _worker) == Routes.PHASE_IDLE)
+	var phase_us: int = Time.get_ticks_usec() - start
+	start = Time.get_ticks_usec()
+	for _sample: int in 4096:
+		passed += int(Routes.source_work_leaf_refusal(_routes, _worker, job, 24, 1, 2) == &"")
+	var work_us: int = Time.get_ticks_usec() - start
+	assert_equal(passed, 3 * 4096, "all timed calls used valid exact current source facts")
+	assert_equal(_routes.source_state_into(_worker, job, 24, 1, 2, state), &"", "source remains current")
+	assert_equal(state, PackedInt64Array([Routes.SourceProgram.WORK, 0, 0, Routes.PHASE_IDLE]), "reads cannot advance the source clock")
+	start = Time.get_ticks_usec()
+	passed = 0
+	for tick: int in range(31, 543): passed += _routes.advance_tick(tick)
+	var tick_us: int = Time.get_ticks_usec() - start
+	assert_equal(passed, 512, "timed headless ticks keep all existing actual-owner guards")
+	print("SOURCE-CLOCK-TIMING samples4096 digest_us=", digest_us, " phase_us=", phase_us,
+		" work_us=", work_us, " one_actor_ticks512_us=", tick_us, " synthetic_geometry=true qualification=false")
+
+
+func test_directed_integer_paths_do_not_infer_reverse_or_vertical_connections() -> void:
+	"""Matching coordinates and nearby sections do not replace an authored full directed edge."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	var refs: Array[Vector2i] = _publish_edges([_edge(first, last, [a, b])])
+	var out: PackedInt32Array = PackedInt32Array([99, 99, 99, 99])
+	var found: Routes.Result = _routes.candidate_path_into(first, last, Profiles.MODE_WALK, 0, out)
+	assert_equal(found.error, &"", "authored connection")
+	assert_equal(found.count, 1, "one span")
+	assert_equal(Vector2i(out[0], out[1]), refs[0], "full directed edge")
+	var previous: PackedInt32Array = out.duplicate()
+	assert_equal(_routes.candidate_path_into(last, first, Profiles.MODE_WALK, 0, out).error,
+		&"ROUTE_NOT_CONNECTED", "no invented reverse edge")
+	assert_equal(out, previous, "refused query preserves caller output")
+	assert_equal(_routes.candidate_path_into(first, last, Profiles.MODE_CLIMB, 0, out).error,
+		&"ROUTE_NOT_CONNECTED", "walk span is not an authored climbing span")
+
+
+func test_graph_retains_actual_locations_until_exact_live_edge_retirement() -> void:
+	"""A prepared graph removal alone cannot authorize a premature endpoint removal."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	var edge: Vector2i = _publish_edges([_edge(first, last, [a, b])])[0]
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint_token: int = _locations.begin_prepare(cold).token
+	assert_equal(_locations.stage_remove(endpoint_token, first), &"LOCATION_ROUTE_RETAINED", "live graph retains exact generation")
+	_locations.abort(endpoint_token)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.stage_remove(token, edge), &"", "empty span may be retired")
+	assert_true(_routes.retains_location(first), "staged removal is not live")
+	assert_equal(_routes.seal(token), &"", "sealed graph removal")
+	assert_equal(_routes.publish(token), &"", "actual graph removal")
+	endpoint_token = _locations.begin_prepare(cold).token
+	assert_equal(_locations.stage_remove(endpoint_token, first), &"", "no live graph reference remains")
+	_locations.abort(endpoint_token)
+	_budget.release(cold)
+
+
+func test_refused_and_mutated_callbacks_never_publish_a_partial_graph() -> void:
+	"""A failed candidate consumes no live edge generation or topology revision."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	var revision: int = _routes.revision()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	_binding.mutate = true
+	assert_equal(_routes.stage_add(token, _edge(first, last, [a, b])).error,
+		&"ROUTE_CALLBACK_CHANGED_PACKET", "callback is not an input author")
+	assert_false(_routes.is_live_edge(Vector2i(0, 1)), "no partial live edge")
+	assert_true(_routes.seal(token) != &"", "poisoned candidate refuses")
+	assert_true(_routes.abort(token), "normal caller abort")
+	_binding.mutate = false
+	assert_equal(_routes.revision(), revision, "live revision retained")
+	_budget.release(cold)
+	var edge: Vector2i = _publish_edges([_edge(first, last, [a, b])])[0]
+	assert_equal(edge, Vector2i(0, 1), "failed stage did not consume live identity")
+
+
+func test_actor_admission_reads_exact_containment_and_retains_real_endpoint() -> void:
+	"""Actual identity/pose stays distinct from the fixture's synthetic qualification certificate."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "actual actor registered")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "committed actual observation")
+	assert_equal(actor.worker, _worker, "full Resident generation")
+	assert_equal(actor.point, Vector3i(-512, 0, 512), "integer world position")
+	assert_equal(actor.section, _floor, "actual full floor handle")
+	assert_equal(actor.room, NULL_REF, "surface section is explicitly roomless")
+	assert_equal(actor.level, 0, "actual section level")
+	assert_equal(actor.phase, Routes.PHASE_IDLE, "no route was invented")
+	var facts: Owner.Facts = Owner.Facts.new()
+	assert_equal(_routes.read_into(_worker, facts), &"", "CoreSources reads same committed truth")
+	assert_equal(Vector3i(facts.a, facts.b, facts.c), actor.point, "exact source coordinates")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	assert_equal(_locations.stage_remove(token, location), &"LOCATION_ROUTE_RETAINED", "idle actor retains endpoint")
+	_locations.abort(token)
+	_budget.release(cold)
+
+
+func test_actor_admission_never_teleports_or_accepts_an_unqualified_location() -> void:
+	"""A valid local handle does not prove arrival or complete physical clearance."""
+	var wrong: Vector2i = _location(Vector3i(512, 0, 512))
+	var right: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, wrong, Profiles.MODE_WALK, 0, -1),
+		&"ROUTE_ACTOR_POSITION_DRIFT", "no teleport to a matching-purpose endpoint")
+	_binding.refusal = &"SYNTHETIC_BODY_DOES_NOT_FIT"
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, right, Profiles.MODE_WALK, 0, -1),
+		_binding.refusal, "actual provider refusal is mandatory")
+	var actor: Routes.Actor = Routes.Actor.new()
+	actor.point = Vector3i(77, 88, 99)
+	assert_equal(_routes.read_actor_into(_worker, actor), &"ROUTE_ACTOR_NOT_REGISTERED", "no partial actor publication")
+	assert_equal(actor.point, Vector3i(77, 88, 99), "refused output preserved")
+	_binding.refusal = &""
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, right, Profiles.MODE_WALK, 0, -1), &"", "retry uses original actual pose")
+
+
+func test_actor_callback_mutation_reentry_and_pose_drift_are_atomic() -> void:
+	"""A side-effecting callback cannot change the pinned packet or publish a stale source observation."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	var errors: Array[StringName] = [&"ROUTE_CALLBACK_CHANGED_PACKET", &"ROUTE_ACTOR_PROFILE_DRIFT", &"ROUTE_CALLBACK_REENTRY"]
+	for mode: int in 3:
+		_binding.actor_mutation = mode + 1
+		assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), errors[mode], "callback cannot publish")
+		assert_false(_routes.retains_location(location), "no partially committed actor")
+		assert_true(_transforms.place(_worker, -512, 0, 512, 0), "restore actual fixture pose")
+	_binding.actor_mutation = 0
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "clean retry after refused callback")
+
+
+func test_readable_actor_is_separate_from_changed_profile_permission() -> void:
+	"""A changed content pack keeps actual containment readable but needs explicit profile requalification."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "initial profile")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_load(_image([_row()], _boxes(), 2), 2), &"", "real immutable replacement")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "identity read does not recurse through entry proof")
+	assert_equal(actor.content_revision, 1, "prior committed qualification is not silently promoted")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"ROUTE_PROFILE_EXTENT_STALE", "global occupancy extent needs cold refresh")
+	assert_equal(_routes.refresh_profile_extent(), &"", "exact new catalog extent")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"", "explicit current physical proof")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "refreshed actor readable")
+	assert_equal(actor.content_revision, 2, "new proof committed only after qualification")
+
+
+func test_reused_resident_generation_cannot_inherit_old_actor_record() -> void:
+	"""Even the same typed row/endpoint does not make the old full Resident identity live."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "old actual actor")
+	assert_true(_residents.despawn(_worker).ok, "actual old Resident retired")
+	var next: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	assert_true(_transforms.place(next, -512, 0, 512, 0), "new actual pose")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"ROUTE_ACTOR_STALE", "retired generation rejected")
+	assert_equal(_routes.read_actor_into(next, actor), &"ROUTE_ACTOR_NOT_REGISTERED", "typed row is not identity")
+	assert_equal(_routes.admit_actor(next, NULL_REF, location, Profiles.MODE_WALK, 0, -1),
+		&"ROUTE_ACTOR_STALE", "stale retained record prevents a complete occupancy refresh")
+	assert_true(_routes.retains_location(location), "failed external retirement never silently releases geometry")
+
+
+func test_real_actor_queues_exact_generations_and_cancel_releases_only_future_edges() -> void:
+	"""The pooled route is authoritative retention, even before the first movement tick."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	var edge: Vector2i = _publish_edges([_edge(first, last, [a, b])])[0]
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "real actor admitted")
+	assert_equal(_routes.request_route(_worker, last, 10), &"", "actual actor-qualified path")
+	var path: PackedInt32Array = PackedInt32Array([91, 92])
+	assert_equal(_routes.queued_path_into(_worker, path).count, 1, "one pooled full edge")
+	assert_equal(Vector2i(path[0], path[1]), edge, "exact edge generation retained")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.stage_remove(token, edge), &"ROUTE_EDGE_RETAINED", "queued actor retains path")
+	_routes.abort(token)
+	_budget.release(cold)
+	assert_equal(_routes.cancel_route(_worker), &"", "future route cancelled")
+	assert_equal(_routes.queued_path_into(_worker, path).count, 0, "pool returned")
+	cold = _budget.acquire(COLD_BYTES)
+	token = _routes.begin_prepare(cold).token
+	assert_equal(_routes.stage_remove(token, edge), &"", "no queued reference remains")
+	_routes.abort(token)
+	_budget.release(cold)
+	assert_true(_routes.retains_location(first), "idle actor still retains its actual endpoint")
+
+
+func test_actor_search_uses_fitting_alternative_and_preserves_prior_route_on_refusal() -> void:
+	"""An unusable span is excluded during real search; a later failed request never destroys the prior queue."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var c: Vector3i = Vector3i(1536, 0, 512)
+	var first: Vector2i = _location(a)
+	var middle: Vector2i = _location(b)
+	var last: Vector2i = _location(c)
+	var edges: Array[Vector2i] = _publish_edges([_edge(first, middle, [a, b]), _edge(middle, last, [b, c]), _edge(first, last, [a, c])])
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "actual actor")
+	assert_equal(_routes.request_route(_worker, last, 20), &"", "equal-cost stable route")
+	var path: PackedInt32Array = PackedInt32Array([0, 0, 0, 0])
+	assert_equal(_routes.queued_path_into(_worker, path).count, 2, "lower final edge resolves tie")
+	assert_equal(Vector2i(path[0], path[1]), edges[0], "first contiguous span")
+	_binding.closed_edge = edges[0]
+	assert_equal(_routes.request_route(_worker, last, 21), &"", "fitting alternative")
+	assert_equal(_routes.queued_path_into(_worker, path).count, 1, "direct authored span")
+	assert_equal(Vector2i(path[0], path[1]), edges[2], "rejected span not chosen")
+	var previous: PackedInt32Array = path.duplicate()
+	_binding.refusal = &"SYNTHETIC_NO_FITTING_SPAN"
+	assert_equal(_routes.request_route(_worker, last, 22), &"ROUTE_NOT_CONNECTED", "no unqualified fallback")
+	assert_equal(_routes.queued_path_into(_worker, path).count, 1, "old queue remains")
+	assert_equal(path, previous, "previous full path retained byte-for-byte")
+
+
+func _moving_actor() -> Array[Vector2i]:
+	"""Actual actor, profile reader and retained span with synthetic World clearance/pace only."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	var edge: Vector2i = _publish_edges([_edge(first, last, [a, b])])[0]
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "actual actor at entry")
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "pooled actual request")
+	return [first, last, edge]
+
+
+func test_integer_motion_arrives_after_exact_thirty_ticks_and_never_advances_twice() -> void:
+	"""The synthetic1024u/s rate integrates to exactly1024u with one Transform advance per fixed tick."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(1, 31):
+		assert_equal(_routes.advance_tick(tick), 1, "one real actor advances")
+		assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual interior/arrival remains readable")
+		@warning_ignore("integer_division") var distance: int = 1024 * tick / 30
+		assert_equal(actor.point, Vector3i(-512 + distance, 0, 512), "exact integer rate and carried remainder")
+		assert_equal(_routes.advance_tick(tick), 0, "same tick cannot roll previous pose again")
+	assert_equal(actor.location, refs[1], "actual far endpoint committed")
+	assert_equal(actor.edge, NULL_REF, "occupied span released only at arrival")
+	assert_equal(actor.phase, Routes.PHASE_IDLE, "no remaining route")
+	assert_equal(actor.yaw, 49152, "+X uses adopted quarter-turn convention")
+	assert_equal(_routes.advance_tick(31), 0, "idle actor does not move again")
+
+
+func test_blocked_motion_preserves_pose_progress_and_retry() -> void:
+	"""A fresh obstacle pauses the actual retained path without earning distance or losing fractional progress."""
+	_moving_actor()
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.advance_tick(1), 1, "first stride")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "current actor")
+	var point: Vector3i = actor.point
+	_binding.motion_blocked = true
+	assert_equal(_routes.advance_tick(2), 0, "actual motion proof refuses")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "held identity remains readable")
+	assert_equal(actor.point, point, "no movement earned on refused tick")
+	assert_equal(actor.phase, Routes.PHASE_HELD, "blocked state explicit")
+	_binding.motion_blocked = false
+	assert_equal(_routes.advance_tick(3), 1, "retry on same retained span")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "resumed actor")
+	assert_equal(actor.point, Vector3i(-444, 0, 512), "only two strides, including exact prior remainder")
+
+
+func test_cancel_in_transit_retains_current_edge_and_finishes_at_safe_endpoint() -> void:
+	"""Cancellation may remove future intent, never the support occupied by a moving actor."""
+	var refs: Array[Vector2i] = _moving_actor()
+	assert_equal(_routes.advance_tick(1), 1, "entered actual span")
+	assert_equal(_routes.cancel_route(_worker), &"", "cancel future queue")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.stage_remove(token, refs[2]), &"ROUTE_EDGE_RETAINED", "occupied span remains retained")
+	_routes.abort(token)
+	_budget.release(cold)
+	for tick: int in range(2, 31):
+		assert_equal(_routes.advance_tick(tick), 1, "finish current supported span")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "safe actual arrival")
+	assert_equal(actor.location, refs[1], "no teleport or mid-air abandonment")
+	assert_equal(actor.phase, Routes.PHASE_IDLE, "cancelled intent is not restored")
+
+
+func test_authored_polyline_controls_height_and_integer_heading() -> void:
+	"""A synthetic elevated span proves XYZ integration only; no floor-height inference supplies its shape."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var raised: Vector3i = Vector3i(0, 768, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	_publish_edges([_edge(first, last, [a, raised, b])])
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "actual start")
+	assert_equal(_routes.request_route(_worker, last, 0), &"", "explicit connected polyline")
+	_binding.synthetic_pace = 924 * 30
+	assert_equal(_routes.advance_tick(1), 1, "one authored segment")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "exact current segment boundary")
+	assert_equal(actor.point, raised, "actual Y comes from polyline")
+	assert_equal(_routes.advance_tick(2), 1, "complete descent")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "far endpoint")
+	assert_equal(actor.point, b, "explicit final point")
+	for direction: Vector3i in [Vector3i.FORWARD, Vector3i.LEFT, Vector3i.BACK, Vector3i.RIGHT]:
+		assert_equal(Routes.heading_for_delta(-direction, 0), posmod(Routes.heading_for_delta(direction, 0) + 32768, 65536), "opposite heading is exact half turn")
+	assert_equal(Routes.heading_for_delta(Vector3i(-1, 0, -1), 0), 8192, "exact diagonal tie")
+	assert_equal(Routes.heading_for_delta(Vector3i(0, 10, 0), 1234), 1234, "vertical motion retains actual yaw")
+
+
+func test_subunit_motion_requires_fresh_dynamic_clearance_before_fractional_progress() -> void:
+	"""A sub-unit displacement still occupies space and cannot accumulate progress through a refusal."""
+	_moving_actor()
+	_binding.synthetic_pace = 1
+	_binding.motion_blocked = true
+	assert_equal(_routes.advance_tick(1), 0, "same-point dynamic proof refuses")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "identity still readable")
+	assert_equal(actor.point, Vector3i(-512, 0, 512), "refused pose unchanged")
+	_binding.motion_blocked = false
+	for tick: int in range(2, 31):
+		assert_equal(_routes.advance_tick(tick), 1, "accepted fractional step")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "29 admitted fractions")
+	assert_equal(actor.point.x, -512, "blocked tick earned no fraction")
+	assert_equal(_routes.advance_tick(31), 1, "thirtieth admitted fraction")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "one exact unit")
+	assert_equal(actor.point.x, -511, "integer motion begins only after all30 accepted fractions")
+
+
+func test_edge_callback_cannot_change_derived_room_or_level_packet() -> void:
+	"""Section-derived containment must remain exact across the otherwise read-only geometry callback."""
+	var a: Vector3i = Vector3i(-512, 0, 512)
+	var b: Vector3i = Vector3i(512, 0, 512)
+	var first: Vector2i = _location(a)
+	var last: Vector2i = _location(b)
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	_binding.mutate_containment = true
+	var added: Routes.Result = _routes.stage_add(token, _edge(first, last, [a, b]))
+	assert_equal(added.error, &"ROUTE_CALLBACK_CHANGED_PACKET", "derived packet mutation poisons candidate")
+	assert_false(_routes.is_live_edge(added.ref), "nothing published")
+	assert_true(_routes.abort(token), "poisoned candidate remains abortable")
+	assert_equal(_budget.release(cold), &"", "actual cold lease released")
+
+
+func _full_technical_pack() -> void:
+	"""Recompose the approved real arena sizes; no array maximum is silently reduced for testing."""
+	_binding = null
+	_make_space(Budget.LOCATION_CAPACITY, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY, Budget.PHASE_VOLUME_CAPACITY)
+	_bind_routes(Routes.MAX_LOCATIONS, Routes.MAX_EDGES, Routes.MAX_VERTICES, Routes.MAX_LINKS)
+	assert_equal(_routes.packed_memory_bytes() + _locations.packed_memory_bytes()
+		+ Routes.HEADER_RESERVE - Routes.FIXED_PACKED_BYTES, 1041728, "complete retained/load/query technical pack")
+
+
+func test_full_admitted_arenas_seal_refresh_and_preserve_full_edge_generation() -> void:
+	"""The real1072 capacities admit an ordinary operation under the unchanged bounded work ceiling."""
+	_full_technical_pack()
+	var refs: Array[Vector2i] = _moving_actor()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.stage_refresh(token, refs[2]), &"", "actual full-pack retained span refresh")
+	assert_equal(_routes.seal(token), &"", "finite full-pack seal")
+	assert_equal(_routes.publish(token), &"", "same full span publishes")
+	assert_equal(_budget.release(cold), &"", "real shared lease released")
+	assert_true(_routes.is_live_edge(refs[2]), "refresh never reuses generation")
+	assert_equal(_routes.advance_tick(1), 1, "retained exact queued route still works")
+
+
+func test_256_actual_residents_use_finite_route_and_motion_columns() -> void:
+	"""Synthetic clearance isolates finite owner/profile/Transform work; this is not crowd-flow qualification."""
+	_full_technical_pack()
+	var refs: Array[Vector2i] = _moving_actor()
+	var workers: Array[Vector2i] = [_worker]
+	for index: int in 255:
+		var worker: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+		assert_true(_transforms.place(worker, -512, 0, 512, 0), "actual pose for live resident")
+		assert_equal(_routes.admit_actor(worker, NULL_REF, refs[0], Profiles.MODE_WALK, 0, -1), &"", "actual profile/endpoint record")
+		assert_equal(_routes.request_route(worker, refs[1], 0), &"", "fixed pool accepts exact route")
+		workers.append(worker)
+	var started: int = Time.get_ticks_usec()
+	for tick: int in range(1, 31):
+		assert_equal(_routes.advance_tick(tick), 256, "all actual living rows advance exactly once")
+	var elapsed: int = Time.get_ticks_usec() - started
+	print("ROUTES-COMPONENT-PERF actors=256 ticks=30 elapsed_us=%d synthetic_clearance=true" % elapsed)
+	var actor: Routes.Actor = Routes.Actor.new()
+	for worker: Vector2i in workers:
+		assert_equal(_routes.read_actor_into(worker, actor), &"", "actual final record")
+		assert_equal(actor.location, refs[1], "exact endpoint")
+		assert_equal(actor.point, Vector3i(512, 0, 512), "integer30-tick arrival")
+		assert_equal(actor.phase, Routes.PHASE_IDLE, "route links released")
+
+
+func test_segment_lengths_remain_exact_at_negative_and_int64_product_boundaries() -> void:
+	"""The fast single-axis path and Newton integer path share the same outward geometry contract."""
+	assert_equal(Routes._segment_length(Vector3i.ZERO, Vector3i.ZERO), 0, "zero segment later refuses")
+	assert_equal(Routes._segment_length(Vector3i(-100, 0, 0), Vector3i(200, 0, 0)), 300, "negative coordinate single axis")
+	assert_equal(Routes._segment_length(Vector3i.ZERO, Vector3i(3, 4, 12)), 13, "exact three-dimensional square")
+	assert_equal(Routes._segment_length(Vector3i.ZERO, Vector3i(1, 1, 1)), 2, "outward irrational length")
+	assert_equal(Routes._segment_length(Vector3i.ZERO, Vector3i(1753413056, 1753413056, 1753413056)), 3037000500, "int64-safe three-axis maximum")
+	assert_equal(Routes._segment_length(Vector3i.ZERO, Vector3i(1753413057, 0, 0)), -1, "unchanged representability limit")
+	for value: int in range(1, 1024):
+		assert_equal(Routes._ceil_root(value * value), value, "exact square")
+		assert_equal(Routes._ceil_root(value * value + 1), value + 1, "just over square")
+
+
+func test_actual_occupancy_expands_negative_root_cells_and_validates_exact_exception() -> void:
+	"""A complete actor can overlap a query in the neighbouring hash cell, including below its root."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "actual registered root")
+	var query: PackedInt32Array = PackedInt32Array([-641, -10, 500, -639, 10, 524])
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPIED", "turn/recovery reaches beyond the body")
+	assert_equal(_routes.occupancy_refusal(query, _worker), &"", "exact caller exception only")
+	assert_equal(_routes.occupancy_refusal(query, Vector2i(_worker.x, _worker.y + 1)), &"ROUTE_ACTOR_STALE", "wrong generation cannot exempt")
+	query[3] = -640
+	assert_equal(_routes.occupancy_refusal(query), &"", "half-open touching boundary is clear")
+	assert_equal(Routes._floor_cell(-1), -1, "negative one-unit floor")
+	assert_equal(Routes._floor_cell(-1024), -1, "negative exact cell")
+	assert_equal(Routes._floor_cell(-1025), -2, "next negative cell")
+
+
+func test_foreign_transform_writes_refuse_cached_occupancy_until_exact_refresh() -> void:
+	"""Global pose freshness prevents an unobserved foreign move from becoming a broadphase false negative."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "actual root")
+	var query: PackedInt32Array = PackedInt32Array([2048, 0, 2048, 2304, 256, 2304])
+	var outsider: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	assert_true(_transforms.place(outsider, 6000, 0, 6000, 0), "foreign surface pose write")
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANCY_STALE", "cached empty answer refuses")
+	assert_equal(_routes.refresh_occupancy(), &"", "once-only actual registered-root audit")
+	assert_equal(_routes.occupancy_refusal(query), &"", "unregistered surface actor remains other provider responsibility")
+	assert_true(_transforms.place(_worker, 2176, 0, 2176, 0), "adversarial registered actor teleport")
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANCY_STALE", "moved actor cannot hide in old bucket")
+	assert_equal(_routes.refresh_occupancy(), &"ROUTE_ACTOR_POSITION_DRIFT", "handoff/location truth must be repaired explicitly")
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANCY_STALE", "failed refresh cannot qualify partial hash")
+
+
+func test_changed_profile_never_omits_an_unqualified_nearby_occupant() -> void:
+	"""A new source catalog must be acknowledged and actual nearby profile lookup remains mandatory."""
+	var location: Vector2i = _location(Vector3i(-512, 0, 512))
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "old actual body")
+	assert_equal(_load(_image([_row(Profiles.MODE_STAND)], _boxes(), 2), 2), &"", "replacement lacks current travel body")
+	var query: PackedInt32Array = PackedInt32Array([-600, 0, 450, -500, 300, 550])
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANCY_STALE", "old content extent cannot be reused")
+	assert_equal(_routes.refresh_profile_extent(), &"", "actual new global extent")
+	assert_equal(_routes.occupancy_refusal(query), &"ROUTE_OCCUPANT_PROFILE_STALE", "missing current variant is occupied uncertainty")
+
+
+func test_actual_second_actor_blocks_motion_without_clobbering_current_selection() -> void:
+	"""The actual shared index can be queried inside a read-only motion callback without aliasing its pinned actor."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var other: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	assert_true(_transforms.place(other, 512, 0, 512, 0), "actual stationary actor")
+	assert_equal(_routes.admit_actor(other, NULL_REF, refs[1], Profiles.MODE_WALK, 0, -1), &"", "actual second profile")
+	_binding.actual_occupancy = true
+	assert_equal(_routes.advance_tick(1), 1, "clear initial motion survives nested occupancy read")
+	for tick: int in range(2, 31):
+		_routes.advance_tick(tick)
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual held actor")
+	assert_equal(actor.phase, Routes.PHASE_HELD, "fresh second body blocks progress")
+	assert_true(actor.point.x + 128 <= 384, "complete bodies never overlap")
+	assert_equal(_routes.read_actor_into(other, actor), &"", "stationary actual actor")
+	assert_equal(actor.point, Vector3i(512, 0, 512), "other actor was never overwritten")
+
+
+func test_graph_publication_token_and_point_observations_pin_exact_actual_span() -> void:
+	"""Prepared companion identity survives only the actual successful bank swap, never an aborted future row."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var published: int = _routes.last_published_token()
+	assert_true(published > 0, "actual graph has a completed token")
+	var point: PackedInt32Array = PackedInt32Array([7, 8, 9])
+	assert_equal(_routes.edge_point_into(refs[2], 1, point), &"", "single exact vertex")
+	assert_equal(point, PackedInt32Array([512, 0, 512]), "exact authored point")
+	assert_equal(_routes.edge_point_into(refs[2], 2, point), &"ROUTE_OUTPUT_SHAPE", "outside actual polyline")
+	assert_equal(point, PackedInt32Array([512, 0, 512]), "refused reader preserves prior result")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.stage_refresh(token, refs[2]), &"", "exact retained candidate")
+	assert_equal(_routes.seal(token), &"", "sealed metadata")
+	var edge: Routes.Edge = Routes.Edge.new()
+	assert_equal(_routes.prepared_edge_metadata_into(token, refs[2], edge), &"", "bounded companion metadata")
+	assert_equal(edge.ref, refs[2], "full staged identity is explicit")
+	assert_true(_routes.abort(token), "prepared candidate discarded")
+	assert_equal(_routes.last_published_token(), published, "abort cannot bless staged certificates")
+	assert_equal(_budget.release(cold), &"", "actual cold lease released")
+
+
+func _chain_actor(lengths: Array[int], variants: Array[int] = []) -> Array[Vector2i]:
+	"""Build exact connected component-test spans; native clearance and pace authoring remain separate."""
+	_binding = null
+	_make_space(128)
+	_bind_routes(128, 128, 256, 128)
+	var point: Vector3i = Vector3i(-512, 0, 512)
+	var first: Vector2i = _location(point)
+	var previous: Vector2i = first
+	var edges: Array[Routes.Edge] = []
+	for index: int in lengths.size():
+		var next_point: Vector3i = point + Vector3i(lengths[index], 0, 0)
+		var endpoint: Vector2i = _location(next_point)
+		var edge: Routes.Edge = _edge(previous, endpoint, [point, next_point])
+		edge.variant = variants[index] if not variants.is_empty() else 0
+		edges.append(edge)
+		point = next_point
+		previous = endpoint
+	var refs: Array[Vector2i] = _publish_edges(edges)
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, first, Profiles.MODE_WALK, 0, -1), &"", "actual actor start")
+	assert_equal(_routes.request_route(_worker, previous, 0), &"", "all spans in exact route")
+	return refs
+
+
+func test_motion_is_invariant_to_many_short_connected_span_boundaries() -> void:
+	"""A32-span path integrates exactly like the single1024u span, including boundary-crossing ticks."""
+	var lengths: Array[int] = []
+	for index: int in 32:
+		lengths.append(32)
+	_chain_actor(lengths)
+	var actor: Routes.Actor = Routes.Actor.new()
+	for tick: int in range(1, 31):
+		assert_equal(_routes.advance_tick(tick), 1, "one actual Transform update per tick")
+		assert_equal(_routes.read_actor_into(_worker, actor), &"", "exact contained actor")
+		@warning_ignore("integer_division") var distance: int = 1024 * tick / 30
+		assert_equal(actor.point.x, -512 + distance, "same every-tick position as one long edge")
+	assert_equal(actor.phase, Routes.PHASE_IDLE, "same30-tick exact arrival")
+	assert_equal(_routes._motion.free_count, 128, "every consumed pooled link returned")
+
+
+func test_one_unit_spans_can_cross_many_edges_in_a_single_fixed_tick() -> void:
+	"""Fine graph metadata does not impose a hidden stop or one-edge-per-tick movement policy."""
+	var lengths: Array[int] = []
+	for index: int in 64:
+		lengths.append(1)
+	_chain_actor(lengths)
+	_binding.synthetic_pace = 1920
+	assert_equal(_routes.advance_tick(1), 1, "64 exact entry/sweep transitions fit one finite tick")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual arrival")
+	assert_equal(actor.point.x, -448, "all64 units accepted")
+	assert_equal(actor.phase, Routes.PHASE_IDLE, "all boundaries consumed at authored pace")
+
+
+func test_within_tick_pace_changes_preserve_exact_time_and_fractional_distance() -> void:
+	"""Two different connector rates use exact spent time, without applying one span's pace to the next."""
+	_chain_actor([7, 7, 1010], [0, 1, 2])
+	_binding.alternate_paces = PackedInt32Array([300, 600, 900])
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.advance_tick(1), 1, "7/300 seconds plus6/600 seconds is exactly one tick")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "first mixed rate")
+	assert_equal(actor.point.x, -499, "13 exact units in first tick")
+	assert_equal(_routes.advance_tick(2), 1, "remaining1/600 then28.5 units at900")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "second mixed rate")
+	assert_equal(actor.point.x, -470, "42 whole units and one-half retained")
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_equal(_routes._motion.resident_long[Routes.R_REMAINDER * Residents.RESIDENT_CAPACITY + row],
+		Routes._encode_fraction(1, 2), "exact reduced fractional distance")
+	assert_equal(_routes.advance_tick(3), 1, "another exact30 units")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "fraction survives later ticks")
+	assert_equal(actor.point.x, -440, "72.5 total units without rounding the pace ratio")
+
+
+func test_blocked_next_span_commits_clear_prefix_without_banking_wait_time() -> void:
+	"""A resident reaches the safe endpoint, keeps the blocked link and earns no distance while waiting."""
+	var refs: Array[Vector2i] = _chain_actor([10, 1014])
+	_binding.closed_edge = refs[1]
+	assert_equal(_routes.advance_tick(1), 1, "first clear prefix reaches its actual endpoint")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "safe waiting endpoint")
+	assert_equal(actor.point.x, -502, "only first10 units")
+	assert_equal(actor.edge, NULL_REF, "blocked next span was not entered")
+	assert_equal(_routes.advance_tick(2), 0, "closed next span earns nothing")
+	assert_equal(_routes.advance_tick(3), 0, "another wait earns nothing")
+	_binding.closed_edge = NULL_REF
+	assert_equal(_routes.advance_tick(4), 1, "resume at current authored pace")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "fresh connected entry")
+	assert_equal(actor.point.x, -468, "exactly one34-unit resumed tick, no banked blocked time")
+
+
+func test_next_span_dynamic_turn_refusal_keeps_the_actual_safe_endpoint() -> void:
+	"""A static span certificate never bypasses fresh entry turn/body/occupancy proof."""
+	var refs: Array[Vector2i] = _chain_actor([10, 1014])
+	_binding.motion_closed_edge = refs[1]
+	assert_equal(_routes.advance_tick(1), 1, "clear prefix accepted before new dynamic entry refusal")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "safe actual endpoint")
+	assert_equal(actor.point.x, -502, "stopped before unqualified next span")
+	assert_equal(actor.edge, NULL_REF, "closed entry not retained as occupied")
+	_binding.motion_closed_edge = NULL_REF
+	assert_equal(_routes.advance_tick(2), 1, "fresh body proof now allows entry")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual continued actor")
+	assert_equal(actor.point.x, -468, "no banked remainder from blocked next span")
+
+
+func test_reduced_motion_fraction_refuses_unrepresentable_or_corrupt_state() -> void:
+	"""The existingI64 fraction uses exact positive31-bit lanes; overflow never turns into free movement."""
+	assert_equal(_routes._tick_distance(-1, 1024), &"ROUTE_FRACTION_FORMAT", "negative/corrupt encoded state")
+	assert_equal(_routes._tick_distance(1 << 32, 1024), &"ROUTE_FRACTION_FORMAT", "missing denominator")
+	assert_equal(_routes._tick_distance(Routes._encode_fraction(2, 2), 1024), &"ROUTE_FRACTION_FORMAT", "not sub-unit")
+	assert_equal(_routes._tick_distance(0, 31), &"", "31/30 exact initial budget")
+	_routes._step.numerator = 1
+	_routes._step.denominator = 30
+	assert_equal(_routes._rescale_distance(37), &"", "unspent1/30 distance at31 becomes37/930")
+	assert_equal(_routes._step.numerator, 37, "reduced numerator")
+	assert_equal(_routes._step.denominator, 930, "reduced denominator")
+	_routes._step.numerator = 9223372036854775807
+	_routes._step.denominator = 1
+	_routes._step.pace = 1
+	assert_equal(_routes._rescale_distance(2147483647), &"ROUTE_FRACTION_CAPACITY", "checked int64 product refuses")
+
+
+func test_later_segment_callback_reentry_rejects_the_whole_uncommitted_tick() -> void:
+	"""An attempted mutation is not a normal obstacle; a previously clear prefix must not swallow the guard."""
+	var first: Vector3i = Vector3i(-512, 0, 512)
+	var bend: Vector3i = Vector3i(-502, 0, 512)
+	var last: Vector3i = Vector3i(512, 0, 512)
+	var origin: Vector2i = _location(first)
+	var destination: Vector2i = _location(last)
+	_publish_edges([_edge(origin, destination, [first, bend, last])])
+	assert_equal(_routes.admit_actor(_worker, NULL_REF, origin, Profiles.MODE_WALK, 0, -1), &"", "actual actor")
+	assert_equal(_routes.request_route(_worker, destination, 0), &"", "one exact pooled span")
+	_binding.actor_mutation = 4
+	assert_equal(_routes.advance_tick(1), 0, "later callback reentry refuses the complete tick")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "original actor remains readable")
+	assert_equal(actor.point, first, "no prefix published after callback violation")
+	assert_equal(_routes._motion.free_count, LINKS - 1, "queued edge was not consumed or cancelled")
+	_binding.actor_mutation = 0
+	assert_equal(_routes.advance_tick(2), 1, "current complete proof retries")
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "accepted exact retry")
+	assert_equal(actor.point.x, -478, "one current34-unit tick, no failed-time bank")
+
+
+func test_prepared_metadata_batch_reads_constant_rows_between_full_preflights() -> void:
+	"""A1536-edge certificate scan cannot secretly repeat the complete source census for each observation."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.seal(token), &"", "exact staged graph")
+	assert_equal(_routes.prepared_refusal(token), &"", "one full initial source/claim check")
+	var out: Routes.Edge = Routes.Edge.new()
+	out.points = PackedInt32Array([4, 5, 6])
+	var counted: CountedSources = _sources as CountedSources
+	var reads: int = counted.reads
+	for index: int in 1536:
+		assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"", "fixed exact metadata")
+	assert_equal(counted.reads, reads, "no hidden source scans or provider callbacks")
+	assert_equal(out.ref, refs[2], "full span generation retained")
+	assert_equal(out.points, PackedInt32Array([4, 5, 6]), "no polyline copy or resize")
+	assert_equal(_routes.prepared_refusal(token), &"", "one full final source/claim check")
+	assert_true(counted.reads > reads, "full bracket still performs real source validation")
+	assert_true(_routes.abort(token), "discard observation candidate")
+	assert_equal(_budget.release(cold), &"", "release real lease")
+
+
+func test_prepared_metadata_observes_sealed_space_without_repeated_source_reads() -> void:
+	"""Actual future section observations use the same sealed full handles and never grant future movement."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var space_token: int = _owner.begin_stage(_owner.revision()).token
+	_region(space_token, [3000, 0, 3000, 3100, 128, 3100], Space.OBSTACLE)
+	assert_equal(_owner.seal(space_token), &"", "actual sealed changed geometry")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold, space_token).token
+	assert_equal(_routes.stage_refresh(token, refs[2]), &"", "real future geometry revision")
+	assert_equal(_routes.seal(token), &"", "graph after exact future section proof")
+	assert_equal(_routes.prepared_refusal(token), &"", "full preflight before observation loop")
+	var counted: CountedSources = _sources as CountedSources
+	var reads: int = counted.reads
+	var out: Routes.Edge = Routes.Edge.new()
+	for index: int in 1536:
+		assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"", "future metadata")
+	assert_equal(counted.reads, reads, "staged section also copies directly")
+	assert_equal(out.geometry_revision, _owner.revision() + 1, "future revision remains explicit")
+	assert_equal(_routes.prepared_refusal(token), &"", "full final freshness proof")
+	assert_true(_owner.abort(space_token), "future geometry disappeared")
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out),
+		&"SPACE_TRANSACTION_UNSEALED", "old graph token cannot observe aborted geometry")
+	assert_true(_routes.abort(token), "discard dependent graph")
+	assert_equal(_budget.release(cold), &"", "no retained operation")
+
+
+func test_prepared_metadata_observation_requires_current_tokens_lease_and_full_ref() -> void:
+	"""A metadata read is cheap but still cannot alias another namespace or outlive its cold operation."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	var out: Routes.Edge = Routes.Edge.new()
+	out.level = 913
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"ROUTE_TRANSACTION_STALE", "unsealed")
+	assert_equal(_routes.seal(token), &"", "sealed exact candidate")
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token + 1, refs[2], out), &"ROUTE_TRANSACTION_STALE", "wrong token")
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, Vector2i(refs[2].x, refs[2].y + 1), out),
+		&"ROUTE_EDGE_STALE", "full generation")
+	assert_equal(out.level, 913, "refused result untouched")
+	assert_equal(_budget.release(cold), &"", "operation loses actual lease")
+	var replacement: int = _budget.acquire(COLD_BYTES)
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"ROUTE_TRANSACTION_STALE", "replacement lease cannot alias")
+	assert_equal(out.level, 913, "stale lease leaves metadata unchanged")
+	assert_true(_routes.abort(token), "discard original graph preparation")
+	assert_equal(_budget.release(replacement), &"", "release replacement operation")
+
+
+func _stage_receipt_geometry(x: int = 3000) -> int:
+	"""An actual distant obstacle distinguishes two candidates sharing one target geometry revision."""
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, [x, 0, 3000, x + 64, 128, 3100], Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "sealed actual space candidate")
+	return token
+
+
+func _stage_receipt_refresh(cold: int, edge: Vector2i, space_token: int) -> int:
+	"""Refresh actual retained metadata against one exact prepared Space transaction."""
+	var result: Routes.Result = _routes.begin_prepare(cold, space_token)
+	assert_equal(result.error, &"", "actual companion preparation")
+	assert_equal(_routes.stage_refresh(result.token, edge), &"", "future geometry proof")
+	assert_equal(_routes.seal(result.token), &"", "exact future graph sealed")
+	return result.token
+
+
+func test_routes_reject_replacement_space_candidate_at_the_same_numeric_revision() -> void:
+	"""Aborted A and published B may share revision/handles but cannot share A's static route proof."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var previous: int = _routes.last_published_token()
+	var first: int = _stage_receipt_geometry()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var route_token: int = _stage_receipt_refresh(cold, refs[2], first)
+	var target_revision: int = _owner.revision() + 1
+	assert_true(_owner.abort(first), "A never publishes")
+	var replacement: int = _stage_receipt_geometry(3200)
+	_owner.publish(replacement)
+	assert_equal(_owner.revision(), target_revision, "same target numeric revision")
+	assert_equal(_owner.last_published_token(), replacement, "actual B receipt")
+	assert_equal(_routes.publish(route_token), &"ROUTE_SPACE_PUBLICATION", "A proof cannot describe B")
+	assert_equal(_routes.last_published_token(), previous, "old live graph preserved")
+	assert_true(_routes.abort(route_token), "discard stale companion")
+	assert_equal(_budget.release(cold), &"", "release actual cold lease")
+
+
+func test_exact_published_space_candidate_allows_its_prepared_route() -> void:
+	"""The receipt is necessary alongside unchanged geometry, full endpoints and provider permission."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var first: int = _stage_receipt_geometry()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var route_token: int = _stage_receipt_refresh(cold, refs[2], first)
+	_owner.publish(first)
+	assert_equal(_owner.last_published_token(), first, "exact Space candidate published")
+	assert_equal(_routes.publish(route_token), &"", "matching actual companion succeeds")
+	assert_equal(_routes.last_published_token(), route_token, "new graph receipt only after swap")
+	assert_equal(_budget.release(cold), &"", "shared operation ends")
+
+
+func test_route_publication_rechecks_space_receipt_after_provider_callback() -> void:
+	"""An actual same-image restore inside the callback invalidates the earlier candidate receipt."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var previous: int = _routes.last_published_token()
+	var first: int = _stage_receipt_geometry()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var route_token: int = _stage_receipt_refresh(cold, refs[2], first)
+	_owner.publish(first)
+	_binding.restore_on_publication = 1
+	assert_equal(_routes.publish(route_token), &"ROUTE_SPACE_PUBLICATION", "final exact receipt check")
+	assert_equal(_binding.publication_restore_code, &"", "actual restore, not fake receipt mutation")
+	assert_equal(_owner.last_published_token(), 0, "restored bank has no runtime receipt")
+	assert_equal(_routes.last_published_token(), previous, "graph remains unchanged")
+	assert_true(_routes.abort(route_token), "discard stale graph proof")
+	assert_equal(_budget.release(cold), &"", "release actual cold lease")
+
+
+func _stage_receipt_location(cold: int) -> Locations.Result:
+	"""Return an actual sealed future full handle which an aborted candidate may later reuse."""
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, _location_record(Vector3i(512, 0, 512)))
+	assert_equal(added.error, &"", "exact future endpoint")
+	assert_equal(_locations.seal(token), &"", "actual endpoint candidate")
+	return added
+
+
+func _stage_receipt_location_edge(cold: int, first: Vector2i, endpoint: Locations.Result) -> Routes.Result:
+	"""Keep one future endpoint candidate identity throughout actual graph preparation."""
+	var token: int = _routes.begin_prepare(cold, 0, endpoint.token).token
+	var added: Routes.Result = _routes.stage_add(token, _edge(first, endpoint.location,
+		[Vector3i(-512, 0, 512), Vector3i(512, 0, 512)]))
+	assert_equal(added.error, &"", "future endpoint span")
+	assert_equal(_routes.seal(token), &"", "exact future endpoint graph")
+	return added
+
+
+func test_routes_reject_replacement_location_candidate_with_identical_full_handle() -> void:
+	"""An unpublished endpoint generation can be reused; its candidate receipt cannot."""
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint: Locations.Result = _stage_receipt_location(cold)
+	var route: Routes.Result = _stage_receipt_location_edge(cold, first, endpoint)
+	assert_true(_locations.abort(endpoint.token), "discard endpoint A")
+	var replacement: Locations.Result = _stage_receipt_location(cold)
+	assert_equal(replacement.location, endpoint.location, "actual unspent handle reused")
+	assert_true(_locations.publish(replacement.token), "actual endpoint B published")
+	assert_equal(_routes.publish(route.token), &"ROUTE_LOCATION_PUBLICATION", "same handle is insufficient")
+	assert_false(_routes.is_live_edge(route.ref), "no stale graph prefix")
+	assert_equal(_routes.last_published_token(), 0, "no graph swap")
+	assert_true(_routes.abort(route.token), "discard dependent proof")
+	assert_equal(_budget.release(cold), &"", "actual operation released")
+
+
+func test_exact_published_location_candidate_allows_its_prepared_route() -> void:
+	"""A matching immutable endpoint bank and graph can publish in one held operation."""
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint: Locations.Result = _stage_receipt_location(cold)
+	var route: Routes.Result = _stage_receipt_location_edge(cold, first, endpoint)
+	assert_true(_locations.publish(endpoint.token), "actual matching endpoint")
+	assert_equal(_locations.last_published_token(), endpoint.token, "exact endpoint receipt")
+	assert_equal(_routes.publish(route.token), &"", "matching endpoint graph")
+	assert_true(_routes.is_live_edge(route.ref), "only now graph is actual")
+	assert_equal(_routes.last_published_token(), route.token, "exact graph receipt")
+	assert_equal(_budget.release(cold), &"", "release held operation")
+
+
+func test_route_publication_rechecks_location_receipt_after_provider_callback() -> void:
+	"""A provider cannot replace a published bank with a restored image while retaining its old receipt."""
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint: Locations.Result = _stage_receipt_location(cold)
+	var route: Routes.Result = _stage_receipt_location_edge(cold, first, endpoint)
+	assert_true(_locations.publish(endpoint.token), "original actual endpoint publication")
+	_binding.restore_on_publication = 2
+	_binding.publication_cold_token = cold
+	assert_equal(_routes.publish(route.token), &"ROUTE_LOCATION_PUBLICATION", "final endpoint receipt check")
+	assert_equal(_binding.publication_restore_code, &"", "actual callback restores unchanged endpoint wire")
+	assert_equal(_locations.last_published_token(), 0, "restored endpoint has no runtime receipt")
+	assert_false(_routes.is_live_edge(route.ref), "restored identity does not publish an old proof")
+	assert_true(_routes.abort(route.token), "discard prepared graph")
+	assert_equal(_budget.release(cold), &"", "release operation after copies dropped")
+
+
+class ObservedStaticBinding extends WorldRoutes:
+	## Negative-only probes around actual committed certificates; no positive synthetic route permission.
+	var closed: Vector2i = NULL_REF
+	var probe: Callable = Callable()
+	var catalog_reads: int = 0
+	var edge_reads: int = 0
+
+	func static_catalog_owner() -> Catalog:
+		"""Count the admission boundary without replacing the actual immutable owner."""
+		catalog_reads += 1
+		return super.static_catalog_owner()
+
+	func static_profile_edge_refusal(edge: Vector2i, profile_id: int, profile_revision: int,
+			content_revision: int) -> StringName:
+		"""The real proof runs first; fault injection may only reject or invalidate that result."""
+		edge_reads += 1
+		var code: StringName = super.static_profile_edge_refusal(edge, profile_id, profile_revision, content_revision)
+		if probe.is_valid():
+			var once: Callable = probe
+			probe = Callable()
+			once.call()
+		return &"TEST_STATIC_SPAN_CLOSED" if edge == closed else code
+
+
+class ProfileRouteFixture extends WorldRouteTests:
+	## Actual compiled-certificate provider; inherited immutable physical/body fixtures remain test-only.
+	var reach_nodes: int = 8
+	var ring: Array[Vector2i] = []
+	var edges: Array[Vector2i] = []
+	var cold: int = 0
+	var replacement: int = 0
+	var nested_code: StringName = &""
+
+	func _actual_binding() -> void:
+		"""Use the production composition with a negative-only observation subclass."""
+		_binding = ObservedStaticBinding.new()
+		var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
+		config.routes = _routes
+		config.owner = _owner
+		config.sources = _sources
+		config.locations = _locations
+		config.profiles = _profiles
+		config.catalog = _catalog
+		config.levels = _levels
+		config.movement = _movement
+		config.residents = _residents
+		config.transforms = _transforms
+		config.world = _world
+		config.terrain = _terrain
+		config.budget = _budget
+		assert_equal(_binding.configure(config), &"", "actual static route provider")
+		assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
+			reach_nodes, 2 * reach_nodes, 8 * reach_nodes, 64, Routes.ARENA_BYTES), &"", "actual graph namespace")
+		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual profile owners")
+
+	func _actual_space(obstruction: int) -> void:
+		"""A larger diagnostic replaces only the unbound test endpoint arena before actual provider composition."""
+		super._actual_space(obstruction)
+		if reach_nodes == 8: return
+		_locations = WorldRouteTests.RefusingLocations.new()
+		assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+			_owner, _sources, _budget, reach_nodes, 228 * reach_nodes + 256), &"", "larger actual endpoint pack")
+
+	func ring_network() -> void:
+		"""Sixteen genuine endpoints and directed spans provide 256 distinct reachable ordered queries."""
+		reach_nodes = 32
+		_actual_fixture()
+		for index: int in 16:
+			ring.append(_location(ring_point(index)))
+		var token: int = _begin()
+		for index: int in 16:
+			var next: int = (index + 1) % 16
+			var edge: Routes.Edge = _span(ring[index], ring[next], ring_point(index), ring_point(next))
+			edge.length_u = 320
+			var added: Routes.Result = _routes.stage_add(token, edge)
+			assert_equal(added.error, &"", "source-qualified diagnostic ring span")
+			edges.append(added.ref)
+		assert_equal(_binding.seal(token), &"", "complete finite ring certificate bank")
+		assert_equal(_binding.publish(token), &"", "actual ring publication")
+		_end(token)
+
+	func ring_point(index: int) -> Vector3i:
+		"""Integer square perimeter stays inside the existing explicitly supported test volume."""
+		@warning_ignore("integer_division") var side: int = index / 4
+		match side:
+			0: return Vector3i(X + 384 + 320 * (index % 4), 512, Z + 384)
+			1: return Vector3i(X + 1664, 512, Z + 384 + 320 * (index % 4))
+			2: return Vector3i(X + 1664 - 320 * (index % 4), 512, Z + 1664)
+		return Vector3i(X + 384, 512, Z + 1664 - 320 * (index % 4))
+
+	func network() -> void:
+		"""Publish a short direct span and a longer three-span detour through actual complete endpoints."""
+		_actual_fixture()
+		var first_turn: Vector2i = _location(Vector3i(X + 512, 512, Z + 1536))
+		var last_turn: Vector2i = _location(Vector3i(X + 1536, 512, Z + 1536))
+		var token: int = _begin()
+		edges.append(_routes.stage_add(token, _edge()).ref)
+		edges.append(_routes.stage_add(token, _span(_first, first_turn, Vector3i(X + 512, 512, Z + 512), Vector3i(X + 512, 512, Z + 1536))).ref)
+		edges.append(_routes.stage_add(token, _span(first_turn, last_turn, Vector3i(X + 512, 512, Z + 1536), Vector3i(X + 1536, 512, Z + 1536))).ref)
+		edges.append(_routes.stage_add(token, _span(last_turn, _last, Vector3i(X + 1536, 512, Z + 1536), Vector3i(X + 1536, 512, Z + 512))).ref)
+		for ref: Vector2i in edges:
+			assert_true(ref != NULL_REF, "actual certified span allocated")
+		assert_equal(_binding.seal(token), &"", "actual network sealed")
+		assert_equal(_binding.publish(token), &"", "actual network published")
+		_end(token)
+		cold = _budget.acquire(Routes.PROFILE_PATH_COLD_BYTES)
+
+	func _span(first: Vector2i, last: Vector2i, start: Vector3i, end: Vector3i) -> Routes.Edge:
+		"""Every alternate span has exact endpoints and the same immutable compiled travel profile."""
+		var edge: Routes.Edge = _edge()
+		edge.from_location = first
+		edge.to_location = last
+		edge.points = PackedInt32Array([start.x, start.y, start.z, end.x, end.y, end.z])
+		return edge
+
+	func path(out: PackedInt32Array, profile_id: int = 0, revision: int = 1, content: int = 1) -> Routes.Result:
+		"""Read under the fixture's original exact tiny cold lease without selecting an actor."""
+		return _routes.profile_path_into(_first, _last, profile_id, revision, content, out, cold)
+
+	func live_path(out: PackedInt32Array, checks: int = Space.MAX_CHECKS, first: Vector2i = NULL_REF,
+			last: Vector2i = NULL_REF, profile: int = 0, revision: int = 1, content: int = 1) -> StringName:
+		"""Static production entry uses existing scratch and deliberately has no cold-token argument."""
+		return WorldRoutes.profile_reachability_refusal(_binding, _first if first == NULL_REF else first,
+			_last if last == NULL_REF else last, profile, revision, content, checks, out)
+
+	func finish_query_lease() -> void:
+		"""The live query is tested with the actual arena quiescent, never an accidentally retained lease."""
+		assert_equal(_budget.release(cold), &"", "drop earlier cold query lease")
+		cold = 0
+
+	func live_reenter() -> void:
+		"""Attempt the pure entry from an existing cold permission observer."""
+		var out: PackedInt32Array = PackedInt32Array([777])
+		nested_code = live_path(out)
+		assert_equal(out[0], 777, "nested entry cannot touch output")
+
+	func replace_lease() -> void:
+		"""A same-sized newly issued token cannot authorize the original cold query."""
+		assert_equal(_budget.release(cold), &"", "actual lease revoked")
+		replacement = _budget.acquire(Routes.PROFILE_PATH_COLD_BYTES)
+
+	func replace_catalog() -> void:
+		"""Replacing the actual immutable content invalidates earlier edge checks in this search."""
+		assert_equal(_load_catalog(2), &"", "actual catalog revision replaced")
+
+	func recertify() -> void:
+		"""Actual cold compilation republishes every unchanged edge against the current immutable source."""
+		var token: int = _begin()
+		for edge: Vector2i in edges:
+			assert_equal(_routes.stage_refresh(token, edge), &"", "actual current edge qualification")
+		assert_equal(_binding.seal(token), &"", "all current certificates sealed")
+		assert_equal(_binding.publish(token), &"", "actual graph and certificates published")
+		_end(token)
+
+	func foreign_catalog() -> Catalog:
+		"""A second genuine loaded Catalog has identical revision/content and actual collaborators, but a different identity."""
+		var other: Catalog = Catalog.new()
+		assert_equal(other.configure(Catalog.RESERVED_BYTES), &"", "actual second Catalog")
+		assert_equal(other.bind_actual(_profiles, _levels, _movement, _residents, _transforms, _owner._domain),
+			&"", "same actual collaborators")
+		var bytes: PackedByteArray = ContentFixture.synthetic_image(1)
+		assert_equal(other.load_file(TEMP, _write(TEMP, bytes), 1), &"", "actual equal content")
+		return other
+
+	func foreign_profiles() -> Profiles:
+		"""Load an equal immutable Profile image through the actual loader, never a fake source success flag."""
+		var other: Profiles = Profiles.new()
+		assert_equal(other.configure(8, 64, 2, Profiles.ARENA_BYTES), &"", "actual second Profiles")
+		assert_equal(other.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles),
+			&"", "same current actors/tools/cargo")
+		var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+		assert_true(_residents.spatial_profile_identity_into(_worker, identity), "real worker source")
+		var bytes: PackedByteArray = ContentFixture.synthetic_profile_image(identity)
+		assert_equal(other.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 1), &"", "actual equal Profile image")
+		return other
+
+	func foreign_levels() -> Levels:
+		"""The same immutable level bytes and Domain do not make a new object the original configured owner."""
+		var other: Levels = Levels.new()
+		assert_equal(other.load_file(ContentFixture.LEVEL_PATH, ContentFixture.LEVEL_HASH, 1), &"", "actual second Levels")
+		assert_equal(other.bind_domain(_owner._domain, _residents.directory(), _owner._domain.descriptor(), Space.VERSION),
+			&"", "same full Domain")
+		return other
+
+	func reenter() -> void:
+		"""A nested graph query cannot reuse the active operation's Dijkstra scratch."""
+		nested_code = _routes.profile_path_into(_first, _last, 0, 1, 1, PackedInt32Array(), cold).error
+
+	func retire_endpoint() -> void:
+		"""Inject an actual stale full generation without claiming a legitimate topology edit."""
+		_locations._live.i32[Locations.GENERATION * _locations._capacity + _last.x] += 1
+
+	func finish() -> void:
+		"""Only the owner of the original or deliberately substituted lease releases it."""
+		if _budget.covers(cold, 1):
+			assert_equal(_budget.release(cold), &"", "original query lease released")
+		elif replacement > 0:
+			assert_equal(_budget.release(replacement), &"", "external replacement released")
+		after_each()
+
+
+func _finish_profile_fixture(fixture: ProfileRouteFixture) -> void:
+	"""Propagate all reused fixture assertions; they are not silently discarded from the outer verdict."""
+	fixture.finish()
+	assert_true(fixture.failures.is_empty(), "actual composed fixture: %s" % str(fixture.failures))
+
+
+func test_static_profile_search_selects_longer_qualified_path_without_worker_or_job() -> void:
+	"""A short refused span must not hide a longer complete certified route for this descriptor."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	assert_true(binding.static_catalog_owner() == fixture._catalog, "exact actual Catalog identity")
+	var before: PackedByteArray = fixture._residents.directory().state_bytes()
+	var out: PackedInt32Array = PackedInt32Array()
+	out.resize(8)
+	var direct: Routes.Result = fixture.path(out)
+	assert_equal(direct.error, &"", "actual direct route")
+	assert_equal(direct.count, 1, "shorter route chosen")
+	assert_equal(Vector2i(out[0], out[1]), fixture.edges[0], "exact direct edge")
+	binding.closed = fixture.edges[0]
+	var detour: Routes.Result = fixture.path(out)
+	assert_equal(detour.error, &"", "qualified alternative found")
+	assert_equal(detour.count, 3, "three-span detour")
+	for index: int in 3:
+		assert_equal(Vector2i(out[index * 2], out[index * 2 + 1]), fixture.edges[index + 1], "deterministic full-ref route order")
+	assert_true(fixture._residents.directory().state_bytes() == before, "no Room, worker or Job allocation")
+	assert_true(fixture._routes.read_actor_into(fixture._worker, Routes.Actor.new()) != &"", "no actor admission")
+	_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_refuses_missing_stale_or_wrong_mode_without_output_writes() -> void:
+	"""A topology path cannot substitute for this exact current travel profile."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([91, 92, 93, 94, 95, 96])
+	var prior: PackedInt32Array = out.duplicate()
+	assert_true(fixture.path(out, -1).error != &"", "missing immutable profile")
+	assert_true(fixture.path(out, 0, 2).error != &"", "wrong profile revision")
+	assert_true(fixture.path(out, 0, 1, 2).error != &"", "wrong content revision")
+	assert_equal(fixture.path(out, 1).error, &"ROUTE_NOT_CONNECTED", "climb descriptor cannot borrow a walk path")
+	assert_equal(out, prior, "every refusal preserves caller output")
+	var zero: Routes.Result = fixture._routes.profile_path_into(fixture._first, fixture._first, 0, 1, 1, out, fixture.cold)
+	assert_equal(zero.error, &"", "current same-endpoint observation")
+	assert_equal(zero.count, 0, "zero spans grant no movement")
+	assert_equal(out, prior, "zero path need not overwrite any row")
+	_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_admits_memory_before_callbacks_and_rejects_replaced_token() -> void:
+	"""A foreign/expired numerical token never reaches the actual catalog or edge callback."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	var reads: int = binding.catalog_reads
+	var out: PackedInt32Array = PackedInt32Array([41, 42, 43, 44])
+	var before: PackedInt32Array = out.duplicate()
+	assert_equal(fixture._routes.profile_path_into(fixture._first, fixture._last, 0, 1, 1, out, fixture.cold + 1).error,
+		&"ROUTE_COLD_LEASE", "unissued token")
+	assert_equal(binding.catalog_reads, reads, "no callback before cold admission")
+	binding.probe = fixture.replace_lease
+	assert_equal(fixture.path(out).error, &"ROUTE_COLD_LEASE", "same-sized replacement refuses")
+	assert_true(fixture._budget.covers(fixture.replacement, Routes.PROFILE_PATH_COLD_BYTES), "replacement remains owned externally")
+	assert_equal(out, before, "no partial route output")
+	_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_rechecks_source_generation_and_reentry_after_callbacks() -> void:
+	"""The final copy cannot use a changed catalog, recycled endpoint or nested search result."""
+	for fault: int in 3:
+		var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+		fixture.network()
+		var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+		binding.probe = [fixture.replace_catalog, fixture.retire_endpoint, fixture.reenter][fault]
+		var reads: int = binding.edge_reads
+		var out: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+		var before: PackedInt32Array = out.duplicate()
+		var expected: StringName = [&"ROUTE_STATIC_PROFILE_STALE", &"ROUTE_LOCATION_STALE", &"ROUTE_CALLBACK_REENTRY"][fault]
+		assert_equal(fixture.path(out).error, expected, "first operation fault cannot become a detour")
+		assert_equal(binding.edge_reads, reads + 1, "no later permission callback after the first fault")
+		assert_equal(out, before, "full output preserved")
+		if fault == 2:
+			assert_equal(fixture.nested_code, &"ROUTE_TRANSACTION_BUSY", "nested path cannot replace scratch")
+		_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_preserves_output_for_short_storage_and_stale_endpoints() -> void:
+	"""Current source content cannot legitimize a recycled endpoint or partially writable output packet."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var short: PackedInt32Array = PackedInt32Array([19])
+	assert_equal(fixture.path(short).error, &"ROUTE_OUTPUT_SHAPE", "no partial pair write")
+	assert_equal(short, PackedInt32Array([19]), "undersized caller unchanged")
+	var out: PackedInt32Array = PackedInt32Array([51, 52, 53, 54])
+	var stale: Vector2i = Vector2i(fixture._last.x, fixture._last.y + 1)
+	assert_equal(fixture._routes.profile_path_into(fixture._first, stale, 0, 1, 1, out, fixture.cold).error,
+		&"ROUTE_LOCATION_STALE", "full target generation required")
+	assert_equal(out, PackedInt32Array([51, 52, 53, 54]), "stale observation unchanged")
+	assert_equal(fixture.path(out).error, &"", "first exact deterministic result")
+	var previous: PackedInt32Array = out.duplicate()
+	assert_equal(fixture.path(out).error, &"", "same immutable inputs remain usable")
+	assert_equal(out, previous, "deterministic repeated full-edge output")
+	_finish_profile_fixture(fixture)
+
+
+func _actual_work_fixture() -> Array[Vector2i]:
+	"""Real command-created Job, equipment and assignment select explicitly synthetic contact geometry."""
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_priorities.spawn(row).ok, "actual priorities")
+	assert_true(_schedule.spawn(row, _schedule.default_template_id().value).ok, "actual schedule")
+	assert_true(_schedule.resolve(row, 8, false).ok, "actual work hour")
+	assert_true(_jobs.spawn_agent(row).ok, "actual JobAgent")
+	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(job.ok, "actual BUILD Job")
+	assert_true(_jobs.assign_worker(row, job.value).ok, "actual assignment")
+	var store: Vector2i = _inventory.create_container(_world, 1000000, -1, 0, true).ref
+	var tool: Vector2i = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual tool")
+	assert_true(_gear.equip(tool, _worker).ok, "actual equipment")
+	assert_true(_work.claim_tool_for_work(row, tool).ok, "actual Work claim")
+	_install_two_work_contacts()
+	return [job.ref, tool, _location(Vector3i(-512, 0, 512))]
+
+
+func _synthetic_work_contact(first: int, revision: int) -> Dictionary:
+	"""Test-only immutable contact key; source enclosures/flags confer no production qualification."""
+	var record: Dictionary = _row(Profiles.MODE_WORK)
+	record.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+	record.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+	record.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+	record.fields[Profiles.F_FIRST_BOX] = first
+	record.fields[Profiles.F_BOX_COUNT] = 7
+	record.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_BUILD
+	record.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ANCHOR_AND_PATCH
+	record.longs[Profiles.L_REVISION] = revision
+	return record
+
+
+func _synthetic_work_boxes(axis: int) -> Array[PackedInt32Array]:
+	"""The two synthetic contact patches have different target-face axes and share actual owner keys."""
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append(PackedInt32Array([-128, -20, -128, 128, 1000, 256, Profiles.WORK_APPROACH]))
+	boxes.append(PackedInt32Array([-128, 0, -256, 128, 1000, 128, Profiles.WORK_STROKE]))
+	boxes.append(PackedInt32Array([0, 0, 0, 0, 0, 0, Profiles.CONTACT_POINT]))
+	var patch: PackedInt32Array = PackedInt32Array([-5, -5, -5, 5, 5, 5, Profiles.CONTACT_PATCH])
+	patch[axis] = 0
+	patch[axis + 3] = 0
+	boxes.append(patch)
+	return boxes
+
+
+func _install_two_work_contacts(revision: int = 2) -> void:
+	"""Load two WORK choices; their source flags are deliberately synthetic component evidence."""
+	var rows: Array[Dictionary] = [_synthetic_work_contact(0, 3), _synthetic_work_contact(7, 7)]
+	var boxes: Array[PackedInt32Array] = _synthetic_work_boxes(1)
+	boxes.append_array(_synthetic_work_boxes(2))
+	assert_equal(_load(_image(rows, boxes, revision), revision), &"", "two different authored contact variants")
+	assert_equal(_routes.refresh_profile_extent(), &"", "fresh actual catalog extent")
+
+
+func _work_selection(job: Vector2i, profile: int, revision: int) -> Profiles.Selection:
+	"""The caller supplies exact contact choice; real Profile/Job/Work/Gear owns all resulting facts."""
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_profiles.query_work_profile_into(_worker, job, profile, revision, 2, 0, -1, NULL_REF, out),
+		&"", "actual selected work contact")
+	return out
+
+
+func test_exact_work_actor_contact_current_and_occupancy_keep_the_selected_contact() -> void:
+	"""Two current WORK rows cannot be arbitrarily collapsed by any committed-actor reader."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	assert_equal(_routes.admit_actor(_worker, actual[0], actual[2], Profiles.MODE_WORK, 0, -1),
+		&"PROFILE_SELECTION_AMBIGUOUS", "ordinary admission cannot choose a face")
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"", "exact first work contact")
+	var selected: Profiles.Selection = _work_selection(actual[0], 0, 3)
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"", "actual first contact")
+	var current: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_routes._current_profile_into(_residents.directory().get_typed_row(_worker), current), &"", "current exact lookup")
+	assert_equal(current.profile_id, 0, "original face retained")
+	assert_equal(_routes.occupancy_refusal(PackedInt32Array([-600, 0, 450, -500, 300, 550])), &"ROUTE_OCCUPIED", "current exact work body")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"", "explicit change to other face")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"ROUTE_CONTACT_PROFILE_STALE", "old caller choice refused")
+	selected = _work_selection(actual[0], 1, 7)
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"", "second contact remains exact")
+	assert_equal(_routes.refresh_actor(_worker, actual[0], Profiles.MODE_WORK, 0, -1), &"PROFILE_SELECTION_AMBIGUOUS", "ordinary refresh cannot silently change face")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"", "refused refresh preserved selected contact")
+
+
+func test_exact_work_admission_and_refresh_preserve_state_on_stale_pins() -> void:
+	"""Explicit negative/stale identity cannot fall back to the ordinary matching contact."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	for pins: Vector3i in [Vector3i(-1, 3, 2), Vector3i(0, 4, 2), Vector3i(1, 7, 1)]:
+		assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], pins.x, pins.y, pins.z, 0, -1),
+			&"PROFILE_SELECTION_STALE", "exact immutable admission pins")
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 1, 7, 2, 0, -1), &"", "valid choice")
+	assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, actual[0], 1, 7, 2), &"", "current legacy stationary source remains eligible")
+	assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, actual[0], 1, 8, 2), &"ROUTE_SOURCE_TUPLE_STALE", "source leaf binds original profile revision")
+	var before: PackedInt32Array = _routes._motion.resident.duplicate()
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 0, 3, 1, 0, -1), &"PROFILE_SELECTION_STALE", "stale content")
+	assert_equal(_routes._motion.resident, before, "stale refresh did not alter actor")
+	_install_two_work_contacts(3)
+	assert_equal(Routes.actor_phase_in(_routes, _worker), Routes.PHASE_IDLE, "legacy identity remains readable after reload")
+	assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, actual[0], 1, 7, 2), &"ROUTE_SOURCE_TUPLE_STALE", "legacy identity is not stale source readiness")
+	var source_state: PackedInt64Array = PackedInt64Array([91, 92, 93, 94])
+	assert_equal(Routes.source_state_leaf_into(_routes, _worker, actual[0], 1, 7, 2, source_state), &"ROUTE_SOURCE_TUPLE_STALE", "state reader also requires current source")
+	assert_equal(source_state, PackedInt64Array([91, 92, 93, 94]), "stale source cannot partially copy output")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_routes._current_profile_into(_residents.directory().get_typed_row(_worker), out), &"PROFILE_SELECTION_STALE", "current lookup refuses old catalog")
+	assert_equal(_routes.occupancy_refusal(PackedInt32Array([-600, 0, 450, -500, 300, 550])), &"ROUTE_OCCUPANT_PROFILE_STALE", "old actor never hides as clear")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 3, 0, -1), &"", "explicit valid new content")
+
+
+func test_exact_work_actor_never_hides_real_tool_claim_or_assignment_loss() -> void:
+	"""Immutable contact choice does not bypass actual Gear/Work or the worker's live Job assignment."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"", "actual contact actor")
+	var selected: Profiles.Selection = _work_selection(actual[0], 0, 3)
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_work.release_tool_claim(row).ok, "actual claim released")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"PROFILE_TOOL_CLAIM", "no borrowed old claim")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1, actual[1]), &"PROFILE_TOOL_CLAIM", "hint cannot recreate claim")
+	assert_equal(_routes.occupancy_refusal(PackedInt32Array([-600, 0, 450, -500, 300, 550])), &"ROUTE_OCCUPANT_PROFILE_STALE", "uncertain occupant never becomes clear")
+	assert_true(_work.claim_tool_for_work(row, actual[1]).ok, "actual claim restored")
+	assert_true(_jobs.release_worker(row).ok, "actual Job assignment removed")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"ROUTE_CONTACT_JOB_STALE", "exact assignment mandatory")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"PROFILE_JOB_STALE", "no new contact after assignment loss")
+
+
+func test_exact_work_wrappers_reuse_actor_callback_and_pose_proofs() -> void:
+	"""Selecting an exact contact grants no bypass around the existing physical provider or poison guard."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	_binding.actor_mutation = 1
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"ROUTE_CALLBACK_CHANGED_PACKET", "mutable selection refused")
+	_binding.actor_mutation = 3
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"ROUTE_CALLBACK_REENTRY", "ordinary reentry cannot bypass explicit admission")
+	_binding.actor_mutation = 0
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"", "valid retry")
+	_binding.actor_mutation = 2
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"ROUTE_ACTOR_PROFILE_DRIFT", "real pose write refuses refresh")
+	assert_equal(_routes._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + _residents.directory().get_typed_row(_worker)], 0, "prior exact profile retained")
+
+
+func test_live_profile_reachability_uses_committed_masks_without_observers_or_cold_lease() -> void:
+	"""The actual current cache chooses a qualified detour without allocating a cold query or selecting a worker."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	binding.closed = fixture.edges[0] # The ordinary observer is intentionally irrelevant to this pure path.
+	fixture._locations.refuse_live_read = true
+	fixture._terrain.binding_countdown = 1
+	fixture._terrain.binding_probe = fixture.replace_catalog
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "actual direct committed certificate")
+	assert_equal(fixture._routes._proposed_count, 1, "shortest current path")
+	binding._live.masks[fixture.edges[0].x * 32] &= 254 # Negative cache fault: remove only profile0 eligibility.
+	assert_equal(fixture.live_path(out), &"", "remaining actual three-span certificate chain")
+	assert_equal(fixture._routes._proposed_count, 3, "longer eligible detour")
+	assert_true(out[0] > 0 and out[0] < Space.MAX_CHECKS, "one caller remaining-work cell")
+	assert_equal(binding.catalog_reads + binding.edge_reads, 0, "no ordinary provider observation")
+	assert_equal(fixture._terrain.binding_probe_count, 0, "no hidden terrain callback")
+	assert_true(fixture._budget.is_quiescent(), "no cold arena acquisition")
+	assert_false(binding._reading or fixture._routes._searching, "scratch released on success")
+	fixture._terrain.binding_probe = Callable()
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_refuses_stale_profiles_endpoints_and_zero_span_sources() -> void:
+	"""Zero spans still require the actual live immutable tuple and exact endpoint source identity."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, NULL_REF, NULL_REF, 0, 2), &"WORLD_ROUTE_PROFILE_STALE", "profile revision")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, NULL_REF, NULL_REF, 0, 1, 2), &"WORLD_ROUTE_PROFILE_STALE", "content revision")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, NULL_REF, Vector2i(fixture._last.x, fixture._last.y + 1)),
+		&"ROUTE_LOCATION_STALE", "full endpoint generation")
+	assert_equal(out[0], 777, "every refusal preserves output")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._first, fixture._first), &"", "zero spans with current exact profile")
+	assert_equal(fixture._routes._proposed_count, 0, "zero spans grant no travel or contact")
+	out[0] = 777
+	fixture.replace_catalog()
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._first, fixture._first),
+		&"WORLD_ROUTE_CERTIFICATE_STALE", "zero span cannot bypass replaced catalog")
+	assert_equal(out[0], 777, "stale same-endpoint result untouched")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_rechecks_exact_world_level_and_selected_source_facts() -> void:
+	"""An unchanged Space revision cannot hide current namespace or selected floor source drift."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	fixture._levels._identity[11] += 1
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "complete immutable level Domain")
+	fixture._levels._identity[11] -= 1
+	var source: int = fixture._owner._find_source(fixture._world_ref, false)
+	fixture._owner._o_a[source] = 1
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "selected actual World facts")
+	fixture._owner._o_a[source] = 0
+	fixture._owner._o_revision[source] += 1
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "section source revision")
+	fixture._owner._o_revision[source] -= 1
+	fixture._locations._set64(fixture._locations._live, Locations.GEOMETRY_REVISION, fixture._last.x, 1)
+	assert_equal(fixture.live_path(out), &"ROUTE_LOCATION_STALE", "selected endpoint geometry")
+	assert_equal(out[0], 777, "no output from any stale source")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_checks_finite_initialization_and_tail_budget() -> void:
+	"""Every failed finite search retains output and returns the same preallocated scratch for a retry."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out, 2047), &"ROUTE_OPERATION_BUDGET", "entry floor before scans")
+	assert_equal(out[0], 777, "initial refusal output")
+	assert_equal(fixture.live_path(out), &"", "measure exact admitted finite work")
+	var needed: int = Space.MAX_CHECKS - out[0]
+	out[0] = 777
+	assert_equal(fixture.live_path(out, needed - 1), &"ROUTE_OPERATION_BUDGET", "one missing final check refuses")
+	assert_equal(out[0], 777, "no partial remaining counter")
+	assert_false(fixture._binding._reading or fixture._routes._searching, "budget refusal releases scratch")
+	assert_equal(fixture.live_path(out, needed), &"", "exact same work budget succeeds")
+	assert_equal(out[0], 0, "all admitted work charged")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_busy_and_callback_guards_preserve_outer_scratch() -> void:
+	"""Neither a prepared companion nor a nested cold observer can repurpose the live search buffers."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	fixture._routes._searching = true
+	fixture._routes._distance[0] = 919
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BUSY, "active search")
+	assert_equal(fixture._routes._distance[0], 919, "outer search data unchanged")
+	fixture._routes._searching = false
+	var token: int = fixture._owner.begin_stage(fixture._owner.revision()).token
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BUSY, "prepared Space")
+	assert_true(fixture._owner.abort(token), "caller retains prepared owner")
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	binding.probe = fixture.live_reenter
+	var cold_out: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+	assert_equal(fixture.path(cold_out).error, &"ROUTE_CALLBACK_REENTRY", "nested live call poisons cold outer search")
+	assert_equal(fixture.nested_code, &"ROUTE_CALLBACK_REENTRY", "nested result reports exact callback context")
+	assert_equal(cold_out, PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78]), "outer result unchanged")
+	assert_equal(out[0], 777, "all busy observations preserve output")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_refuses_foreign_same_directory_profile_owner() -> void:
+	"""A lookalike pose store cannot replace the provider's originally configured actual collaborator."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var original: Transforms = fixture._profiles._transforms
+	fixture._profiles._transforms = Transforms.new(fixture._residents.directory())
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "actual profile store identity")
+	assert_equal(out[0], 777, "foreign-source output preserved")
+	fixture._profiles._transforms = original
+	assert_equal(fixture.live_path(out), &"", "original actual wiring retries")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_measures_256_queries_with_full_source_capacity() -> void:
+	"""Diagnostic CPU timing at 256 living callers; this is not a whole-tick or qualification-floor claim."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	assert_equal(fixture._residents.living_count(), 256, "actual living cap workload")
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var failures_seen: int = 0
+	var objects_before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for caller: int in 256:
+			if fixture.live_path(out) != &"":
+				failures_seen += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(failures_seen, 0, "all 5120 actual current three-span queries")
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_COUNT)), objects_before, "Object counter unchanged across the completed query loop")
+	samples.sort()
+	print("HOT-REACH 256-callers 3-spans O2048 batches20 us min=", samples[0], " median=", samples[10], " p95=", samples[18], " max=", samples[19])
+	assert_true(fixture._budget.is_quiescent(), "no cold lease during workload")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_requires_actual_recompilation_after_monotonic_replacement() -> void:
+	"""The immutable digest memo cannot turn a newer real Catalog into permission from an old edge mask."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture._binding._attested_catalog_revision, 0, "memo starts unproved")
+	assert_equal(fixture.live_path(out), &"", "first complete current proof")
+	assert_equal(fixture._binding._attested_catalog_revision, 1, "original immutable bytes attested")
+	fixture.replace_catalog()
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"WORLD_ROUTE_CERTIFICATE_STALE", "old certificates cannot follow new content")
+	assert_equal(out[0], 777, "stale output untouched")
+	assert_equal(fixture._binding._attested_catalog_revision, 1, "refused source did not refresh memo")
+	fixture.recertify()
+	assert_equal(fixture.live_path(out), &"", "actual cold compiler republished current certificates")
+	assert_equal(fixture._binding._attested_catalog_revision, 2, "new bytes independently attested")
+	assert_equal(fixture._load_catalog(1), &"CONNECTOR_CATALOG_SOURCE", "owner cannot recycle earlier immutable revision")
+	assert_equal(fixture.live_path(out), &"", "refused backwards load preserves current proof")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_rejects_same_revision_foreign_catalog_after_terrain_observer() -> void:
+	"""A late ordinary observer cannot replace the originally configured Catalog even with identical bytes/revision."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm exact owner")
+	var other: Catalog = fixture.foreign_catalog()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	fixture._terrain.binding_probe = func() -> void: binding._catalog = other
+	fixture._terrain.binding_countdown = 2
+	var path: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+	assert_true(fixture.path(path).error != &"", "cold final observer rejects foreign source")
+	assert_equal(fixture._terrain.binding_probe_count, 1, "actual underlying observer replaced source")
+	assert_equal(path, PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78]), "outer cold output preserved")
+	out[0] = 777
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "memo cannot warm a foreign equal revision")
+	assert_equal(out[0], 777, "hot foreign output preserved")
+	assert_equal(binding._attested_catalog_revision, 1, "original immutable memo remains pinned")
+	binding._catalog = fixture._catalog
+	assert_equal(fixture.live_path(out), &"", "restoring exact original owner retries")
+	_finish_profile_fixture(fixture)
+
+
+func test_cold_profile_path_rejects_outer_provider_source_replacement_before_output() -> void:
+	"""An override returning prior success cannot replace the provider's current source after its production tail."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm original immutable memo")
+	var other: Catalog = fixture.foreign_catalog()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	binding.probe = func() -> void: binding._catalog = other
+	var path: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+	var reads: int = binding.edge_reads
+	assert_equal(fixture.path(path).error, &"ROUTE_OWNER_MISMATCH", "actual caller closes outer callback source identity")
+	assert_equal(binding.edge_reads, reads + 1, "first source fault stops all further permission callbacks")
+	assert_equal(path, PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78]), "complete cold output unchanged")
+	out[0] = 777
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "warm memo also rejects equal foreign source")
+	assert_equal(out[0], 777, "hot output unchanged")
+	binding._catalog = fixture._catalog
+	assert_equal(fixture.path(path).error, &"", "original source permits valid cold retry")
+	assert_equal(fixture.live_path(out), &"", "original source permits valid hot retry")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_rejects_foreign_profile_and_level_owners_with_equal_bytes() -> void:
+	"""Replacing all visible same-kind links still cannot substitute another originally unbound immutable owner."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm original immutable tuple")
+	var profiles: Profiles = fixture.foreign_profiles()
+	fixture._binding._profiles = profiles
+	fixture._catalog._profiles = profiles
+	fixture._routes._profiles = profiles
+	out[0] = 777
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "same-byte foreign Profile owner")
+	fixture._binding._profiles = fixture._profiles
+	fixture._catalog._profiles = fixture._profiles
+	fixture._routes._profiles = fixture._profiles
+	var levels: Levels = fixture.foreign_levels()
+	fixture._binding._levels = levels
+	fixture._catalog._levels = levels
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "same-byte foreign Level owner")
+	assert_equal(out[0], 777, "both replacements preserve caller output")
+	fixture._binding._levels = fixture._levels
+	fixture._catalog._levels = fixture._levels
+	assert_equal(fixture.live_path(out), &"", "original exact tuple retries")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_never_hides_current_profile_revision_or_source_generation() -> void:
+	"""The digest shortcut retains live profile-source and full-generation obligations on every invocation."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm both source hints")
+	var source: int = fixture._owner._find_source(fixture._world_ref, false)
+	fixture._owner._o_generation[source] += 1
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "selected source generation remains current")
+	fixture._owner._o_generation[source] -= 1
+	assert_equal(fixture.live_path(out), &"", "exact live source restored")
+	fixture._replace_profiles_during_final_binding()
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"CONNECTOR_RECIPE_SOURCE", "new actual Profile revision breaks Catalog's pinned source")
+	assert_equal(out[0], 777, "stale source output preserved")
+	assert_equal(fixture._binding._attested_catalog_revision, 1, "no invented current-source attestation")
+	_finish_profile_fixture(fixture)
+
+
+func _live_profile_phase(fixture: ProfileRouteFixture, phase: int) -> StringName:
+	"""Measure the same production helpers independently after an exact full query has established the fixture."""
+	fixture._routes._remaining = Space.MAX_CHECKS
+	fixture._routes._operation_error = &""
+	match phase:
+		0:
+			var code: StringName = WorldRoutes._reach_stores_refusal(fixture._binding, fixture._routes,
+				fixture._owner, fixture._locations)
+			return code if code != &"" else WorldRoutes._reach_stores_refusal(fixture._binding,
+				fixture._routes, fixture._owner, fixture._locations)
+		1:
+			return WorldRoutes._reach_descriptor(fixture._binding, 0, 1, 1)
+		2:
+			return fixture._routes._find_path(fixture._first, fixture._last, Profiles.MODE_WALK, 0, null, fixture._binding)
+		3:
+			return fixture._routes._path_chain_refusal(fixture._first, fixture._last, fixture._owner.revision(), 1, fixture._binding)
+		4:
+			return WorldRoutes._reach_sources_refusal(fixture._binding, fixture._routes, fixture._owner,
+				fixture._locations, fixture._first)
+	return _live_profile_store_phase(fixture, phase)
+
+
+func _live_profile_store_phase(fixture: ProfileRouteFixture, phase: int) -> StringName:
+	"""Separate current source checks so tuning follows measured work rather than dropping a predicate."""
+	match phase:
+		5:
+			return WorldRoutes.FinalFacts._stores_refusal(fixture._owner, fixture._routes, fixture._locations)
+		6:
+			return &"" if WorldRoutes._reach_profile_owners(fixture._binding, fixture._routes, fixture._locations) else &"TEST_PROFILE_WIRING"
+		7:
+			return &"" if WorldRoutes._reach_level_domain(fixture._binding, fixture._owner) else &"TEST_LEVEL_DOMAIN"
+		8:
+			return &"" if WorldRoutes._reach_world(fixture._binding, fixture._owner, fixture._locations) else &"TEST_WORLD_WIRING"
+		9:
+			return WorldRoutes._reach_content_refusal(fixture._binding)
+	return &"TEST_UNKNOWN_PHASE"
+
+
+func _measure_live_profile_phase(fixture: ProfileRouteFixture, phase: int) -> void:
+	"""Twenty bounded batches retain diagnostic tails; timing never substitutes for source correctness."""
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var refused: int = 0
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for caller: int in 256:
+			if _live_profile_phase(fixture, phase) != &"":
+				refused += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(refused, 0, "all current helper observations succeeded")
+	samples.sort()
+	print("HOT-PHASE ", phase, " 256-callers batches20 us min=", samples[0], " median=", samples[10],
+		" p95=", samples[18], " max=", samples[19])
+
+
+func test_live_profile_reachability_profiles_source_search_and_endpoint_costs() -> void:
+	"""A phase breakdown locates remaining costs without weakening a production query or claiming whole-tick fitness."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "exact complete three-span query before isolated helpers")
+	fixture._binding._reading = true
+	fixture._routes._searching = true
+	for phase: int in 10:
+		_measure_live_profile_phase(fixture, phase)
+	fixture._binding._reading = false
+	fixture._routes._searching = false
+	assert_equal(fixture.live_path(out), &"", "independent phases preserved the actual complete answer")
+	assert_true(fixture._budget.is_quiescent(), "no cold phase allocation")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_spends_identical_fresh_debt_at_exact_boundary() -> void:
+	"""Reusing derived scratch cannot alter finite caller readiness or refused output after a reload-like clear."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "fresh complete query")
+	var remaining: int = out[0]
+	var serial: int = fixture._routes._path_serial
+	assert_equal(fixture.live_path(out), &"", "same query uses current witness")
+	assert_equal(fixture._routes._path_serial, serial, "no repeated Dijkstra scratch write")
+	assert_equal(out[0], remaining, "warm debt equals fresh debt")
+	fixture._binding._witness_serial = 0
+	assert_equal(fixture.live_path(out), &"", "discarded derived witness recomputes")
+	assert_equal(fixture._routes._path_serial, serial + 1, "same solver fallback")
+	assert_equal(out[0], remaining, "cleared witness cannot change next caller readiness")
+	var needed: int = Space.MAX_CHECKS - remaining
+	for fresh: bool in [false, true]:
+		if fresh: fixture._binding._witness_serial = 0
+		out[0] = 777
+		assert_equal(fixture.live_path(out, needed - 1), &"ROUTE_OPERATION_BUDGET", "one absent check refuses either mode")
+		assert_equal(out[0], 777, "no partial remaining count")
+		assert_equal(fixture.live_path(out, needed), &"", "exact complete budget succeeds")
+		assert_equal(out[0], 0, "identical complete charge")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_invalidates_after_real_cold_search_and_publication() -> void:
+	"""Other graph searches and actual recertification cannot leave an older proposed chain reusable."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "initial current witness")
+	var serial: int = fixture._routes._path_serial
+	fixture.cold = fixture._budget.acquire(Routes.PROFILE_PATH_COLD_BYTES)
+	assert_equal(fixture.path(PackedInt32Array([0, 0, 0, 0, 0, 0, 0, 0])).error, &"", "real cold search")
+	assert_equal(fixture._routes._path_serial, serial + 1, "cold path consumes same scratch namespace")
+	fixture.finish_query_lease()
+	assert_equal(fixture.live_path(out), &"", "live query recomputes after scratch replacement")
+	assert_equal(fixture._routes._path_serial, serial + 2, "cold scratch did not inherit live witness")
+	assert_equal(fixture.live_path(out), &"", "next exact repeat is reusable")
+	assert_equal(fixture._routes._path_serial, serial + 2, "repeat preserves scratch")
+	fixture.recertify()
+	assert_equal(fixture.live_path(out), &"", "actual new graph/certificate publication")
+	assert_equal(fixture._routes._path_serial, serial + 3, "publication invalidates old debt")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_distinguishes_zero_span_endpoints_and_counter_exhaustion() -> void:
+	"""Empty chains still pin their exact full endpoint; the unsaved serial never wraps to an old witness."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._first, fixture._first), &"", "first zero-span query")
+	var serial: int = fixture._routes._path_serial
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._last, fixture._last), &"", "different zero-span query")
+	assert_equal(fixture._routes._path_serial, serial + 1, "empty first witness cannot stand for another endpoint")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._last, fixture._last), &"", "exact empty query repeat")
+	assert_equal(fixture._routes._path_serial, serial + 1, "same empty chain is reusable")
+	fixture._routes._path_serial = Routes.I64_MAX
+	assert_equal(fixture.live_path(out), &"", "fresh search at final unsaved serial")
+	assert_equal(fixture._routes._path_serial, 0, "saturation disables reuse permanently")
+	var remaining: int = out[0]
+	assert_equal(fixture.live_path(out), &"", "disabled witness still runs original solver")
+	assert_equal(fixture._routes._path_serial, 0, "no new serial alias")
+	assert_equal(out[0], remaining, "saturated and fresh search debt remain equal")
+	_finish_profile_fixture(fixture)
+
+
+func _restore_witness_owner(fixture: ProfileRouteFixture, location_image: bool) -> void:
+	"""Only real owner load APIs invalidate receipts; no test sets a successful receipt value."""
+	if not location_image:
+		assert_equal(fixture._owner.restore_state_bytes(fixture._owner.state_bytes()), &"", "same live Space image restored")
+		assert_equal(fixture._owner.last_published_token(), 0, "restore invalidates runtime Space receipt")
+		return
+	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(fixture._locations.capture_state_into(cold, bytes), &"", "actual endpoint capture")
+	assert_equal(fixture._locations.restore_state_bytes(cold, bytes), &"", "same live endpoint image restored")
+	assert_equal(fixture._locations.last_published_token(), 0, "restore invalidates runtime endpoint receipt")
+	bytes.clear()
+	assert_equal(fixture._budget.release(cold), &"", "no restored image escapes its original lease")
+
+
+func test_live_route_witness_restore_preserves_readiness_but_forces_fresh_search() -> void:
+	"""Equal canonical live bytes after loading never borrow an earlier runtime publication key."""
+	for location_image: bool in [false, true]:
+		var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+		fixture.network()
+		fixture.finish_query_lease()
+		var out: PackedInt32Array = PackedInt32Array([777])
+		assert_equal(fixture.live_path(out), &"", "warm exact owner pair")
+		var remaining: int = out[0]
+		var serial: int = fixture._routes._path_serial
+		_restore_witness_owner(fixture, location_image)
+		assert_equal(fixture.live_path(out), &"", "restored same facts remain eligible")
+		assert_equal(fixture._routes._path_serial, serial + 1, "zero receipt forces original solver")
+		assert_equal(out[0], remaining, "loaded and uninterrupted readiness agree")
+		assert_equal(fixture.live_path(out), &"", "receipt-free subsequent search also succeeds")
+		assert_equal(fixture._routes._path_serial, serial + 2, "no fabricated receipt for cache eligibility")
+		assert_equal(out[0], remaining, "repeat load fallback keeps exact debt")
+		_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_rechecks_current_full_edges_and_source_facts() -> void:
+	"""A previously positive path cannot hide stale generation, selected source or lost profile eligibility."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "initial direct witness")
+	var serial: int = fixture._routes._path_serial
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	assert_equal(fixture.live_path(out), &"", "removed direct profile permission forces qualified detour")
+	assert_equal(fixture._routes._path_serial, serial + 1, "current mask invalidates the old chain")
+	assert_equal(fixture._routes._proposed_count, 3, "original solver found the actual three-span route")
+	var source: int = fixture._owner._find_source(fixture._world_ref, false)
+	fixture._owner._o_generation[source] += 1
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "warm chain retains actual selected source proof")
+	assert_equal(out[0], 777, "stale source never publishes remaining work")
+	fixture._owner._o_generation[source] -= 1
+	assert_equal(fixture.live_path(out), &"", "restored exact source permits retry")
+	fixture._routes._live.fields[Routes.E_GENERATION * fixture._routes._edge_capacity + fixture.edges[1].x] += 1
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"ROUTE_NOT_CONNECTED", "full edge generation is not cached")
+	assert_equal(out[0], 777, "stale full chain preserves output")
+	_finish_profile_fixture(fixture)
+
+
+func _measure_witness_mode(fixture: ProfileRouteFixture, force_fresh: bool) -> void:
+	"""Paired diagnostic retains the same finite query and only clears unsaved derived keys between calls."""
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var failures_seen: int = 0
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for caller: int in 256:
+			if force_fresh: fixture._binding._witness_serial = 0
+			if fixture.live_path(out) != &"": failures_seen += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(failures_seen, 0, "all complete paired queries")
+	samples.sort()
+	print("HOT-WITNESS fresh=", force_fresh, " 256-callers 3-spans O2048 batches20 us min=", samples[0],
+		" median=", samples[10], " p95=", samples[18], " max=", samples[19])
+
+
+func test_live_route_witness_measures_paired_fresh_and_repeated_workload() -> void:
+	"""Same-run warm/fresh distributions separate actual saving from unrelated machine load."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	_measure_witness_mode(fixture, true)
+	_measure_witness_mode(fixture, false)
+	_finish_profile_fixture(fixture)
+
+
+func _measure_distinct_witness_queries(fixture: ProfileRouteFixture) -> void:
+	"""Every ordered pair of sixteen actual endpoints differs from the preceding complete query."""
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var failures_seen: int = 0
+	var serial: int = fixture._routes._path_serial
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for first: Vector2i in fixture.ring:
+			for last: Vector2i in fixture.ring:
+				if fixture.live_path(out, Space.MAX_CHECKS, first, last) != &"": failures_seen += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(failures_seen, 0, "all 5120 distinct-pair queries use exact actual certificates")
+	assert_equal(fixture._routes._path_serial, serial + 5120, "every distinct query uses original search")
+	samples.sort()
+	print("HOT-WITNESS distinct-pairs256 ring16 O2048 batches20 us min=", samples[0], " median=", samples[10],
+		" p95=", samples[18], " max=", samples[19])
+
+
+func test_live_route_witness_measures_256_distinct_pairs_through_actual_ring() -> void:
+	"""A configured thirty-two-node graph exercises cold-debt fallbacks across zero through fifteen spans."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.ring_network()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	assert_equal(fixture._residents.living_count(), 256, "finite living cap retained")
+	_measure_distinct_witness_queries(fixture)
+	assert_true(fixture._budget.is_quiescent(), "all setup leases released before the diagnostic")
+	_finish_profile_fixture(fixture)

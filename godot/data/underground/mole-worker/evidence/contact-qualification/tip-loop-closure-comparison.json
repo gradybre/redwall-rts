@@ -1,0 +1,15 @@
+{
+  "fields_identical": {
+    "source_sha256": true,
+    "topology_sha256": true,
+    "mesh_sha256": true,
+    "source_triangles": true,
+    "witness": true,
+    "contact_patch_u": true,
+    "exact_yaw": true
+  },
+  "all_identical": true,
+  "earlier_content": "fa84815a4b9cb10c4126a341475122fa3e89e0ac2c53b434921424fe598321d2",
+  "corrected_content": "f5f7c985b08df561956f6e057ff4acaee18948393125a9c41c6bce9c2e8e3433",
+  "scope": "Motion remains identical; proof now follows exact rendered loop edges."
+}

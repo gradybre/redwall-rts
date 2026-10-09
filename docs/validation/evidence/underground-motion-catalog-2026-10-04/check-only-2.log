@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Assigned value for constant "GAIT_BASE" isn't a constant expression.
+          at: GDScript::reload (res://scripts/core/underground_motion_catalog.gd:31)
+SCRIPT ERROR: Parse Error: Assigned value for constant "GAIT_ROWS" isn't a constant expression.
+          at: GDScript::reload (res://scripts/core/underground_motion_catalog.gd:32)
+SCRIPT ERROR: Parse Error: Assigned value for constant "HANDOFF_BASE" isn't a constant expression.
+          at: GDScript::reload (res://scripts/core/underground_motion_catalog.gd:33)
+SCRIPT ERROR: Parse Error: Assigned value for constant "HANDOFF_ROWS" isn't a constant expression.
+          at: GDScript::reload (res://scripts/core/underground_motion_catalog.gd:34)
+SCRIPT ERROR: Parse Error: Assigned value for constant "HEADER" isn't a constant expression.
+          at: GDScript::reload (res://scripts/core/underground_motion_catalog.gd:35)
+SCRIPT ERROR: Parse Error: Assigned value for constant "BOUNDS" isn't a constant expression.
+          at: GDScript::reload (res://scripts/core/underground_motion_catalog.gd:36)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_underground_motion_catalog.gd:0)
+ERROR: Failed to load script "res://test/test_underground_motion_catalog.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

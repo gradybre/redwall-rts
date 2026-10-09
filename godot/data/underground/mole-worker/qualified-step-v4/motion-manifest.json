@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "content_revision": 3,
+  "profiles_content_revision": 3,
+  "wire_sha256": "69fd9011da9b9c1d85e206401ef287943381a24d19322946287234b2dc66850c",
+  "wire_bytes": 70936,
+  "bank_bytes": 70860,
+  "source_pins": {
+    "godot/data/underground/mole-worker/motion-catalog-v2/manifest.json": "ed484d13e7e4544b772cfee49b0e7b0c24cd3d52ba5bd3200f7726ef77ac8ab3",
+    "godot/data/underground/mole-worker/motion-catalog-v2/motion.ugmotion": "2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986",
+    "godot/data/underground/mole-worker/qualified-step-v4/manifest.json": "a93e6c23b706a71b4cd66e08778494eb8e4b3adcd5a610cfa0b891b71c012927",
+    "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+  },
+  "numerical_input_manifest_sha256": "a2f3e0367e86392f3fedcf06408368944a6940c0c4e1aa33dfe262afb89fe85e",
+  "original_wire_sha256": "2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986",
+  "permitted_changed_byte_ranges": [
+    [
+      16,
+      24
+    ],
+    [
+      69748,
+      69764
+    ],
+    [
+      70448,
+      70480
+    ],
+    [
+      70672,
+      70704
+    ]
+  ],
+  "all_original_geometry_preserved": true,
+  "all_original_permission_and_rate_values_preserved": true,
+  "runtime_activation": false,
+  "pace_adopted": false,
+  "scope": "Source-only shared Profile identity rebind."
+}

@@ -1,0 +1,5 @@
+{
+  "status": "SOURCE_CAPTURE_VALID_METADATA_SUPERSEDED",
+  "reason": "Native source and exact derivative succeeded; the Python palette helper is being added to the explicit transitive producer pins before the final packet. Preserve this first successful raw source, do not use it as final complete-provenance content.",
+  "qualified_profiles": 0
+}

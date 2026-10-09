@@ -1,0 +1,1 @@
+The prior verifier produced `planted-native-proof-v2.json`. Its producer/source hashes remain historical. The subsequent hardening binds the exact candidate and plan bytes to the immutable ugactor header as well as the complete image digest before trusting target geometry. No prior candidate geometry or native image changes.

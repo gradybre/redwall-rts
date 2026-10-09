@@ -1,0 +1,20 @@
+{
+  "unchanged_candidate_source_pins": 19,
+  "runtime_source_pins": 11,
+  "native_input_pins": 402,
+  "native_all_inputs_match_current": true,
+  "profile_wire_byte_exact": true,
+  "profile_row_mapping_exact": true,
+  "ground_wire_and_manifest_byte_exact": true,
+  "native_verification_exact": true,
+  "verification": {
+    "poses": 462,
+    "exact_native_scalar_comparisons": 144144,
+    "screenshots": 46,
+    "assertions": 2558,
+    "production_qualified": false,
+    "scope": "sampled real canonical driver, WorldRoutes and source; explicit test geometry and diagnostic flags"
+  },
+  "engine_invoked": false,
+  "author_sources_written": false
+}

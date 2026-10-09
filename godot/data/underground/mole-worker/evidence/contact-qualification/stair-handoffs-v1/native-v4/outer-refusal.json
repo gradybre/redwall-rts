@@ -1,0 +1,8 @@
+{
+  "accepted": false,
+  "refusal": "HANDOFF_NATIVE_METADATA_CAPACITY",
+  "reason": "Diagnostic print chain confirms first image rendered/saved/hashed/recorded, then waits at second frame_post_draw. Engine watchdog exits without report. Root cause of missing automatic draw signal not claimed.",
+  "native_exit": 0,
+  "source_unchanged": true,
+  "own_override_removed": true
+}

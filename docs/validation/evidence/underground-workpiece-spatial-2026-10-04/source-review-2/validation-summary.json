@@ -1,0 +1,82 @@
+{
+  "source_manifest": "source-review-2/source-sha256.json",
+  "strict_suites": [
+    {
+      "suite": "test_underground_workpiece_spatial.gd",
+      "evidence": "spatial-final-1",
+      "tests": 6,
+      "assertions": 38,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_space_owner.gd",
+      "evidence": "spatial-final-1",
+      "tests": 113,
+      "assertions": 5461,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_routes.gd",
+      "evidence": "spatial-final-1",
+      "tests": 69,
+      "assertions": 11132,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_world_routes.gd",
+      "evidence": "spatial-final-1",
+      "tests": 39,
+      "assertions": 2437,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_connector_placements.gd",
+      "evidence": "spatial-final-1",
+      "tests": 29,
+      "assertions": 4004,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_entry_bindings.gd",
+      "evidence": "spatial-final-1",
+      "tests": 41,
+      "assertions": 3245,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_locations.gd",
+      "evidence": "spatial-final-1",
+      "tests": 57,
+      "assertions": 1731,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_prepared_location_observation.gd",
+      "evidence": "spatial-final-1",
+      "tests": 13,
+      "assertions": 416,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_final_facts.gd",
+      "evidence": "spatial-final-2",
+      "tests": 31,
+      "assertions": 1175,
+      "failures": 0
+    },
+    {
+      "suite": "test_underground_workpiece_spatial_lifecycle.gd",
+      "evidence": "spatial-adversarial-3",
+      "tests": 6,
+      "assertions": 93,
+      "failures": 0
+    }
+  ],
+  "total_tests": 404,
+  "total_assertions": 29732,
+  "failures": 0,
+  "diagnostics_and_leaks": 0,
+  "analyzer": "0 warnings in 10 files, spatial-adversarial-3/analyzer.json",
+  "runtime_qualified": false,
+  "scope": "Source-frozen spatial component with explicitly unreviewed1134 immutable diagnostic dependencies; production source and native memory/performance remain unqualified."
+}

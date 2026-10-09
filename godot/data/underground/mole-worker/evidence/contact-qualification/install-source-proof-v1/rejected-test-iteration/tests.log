@@ -1,0 +1,24 @@
+..E.....
+======================================================================
+ERROR: test_exact_crossing_encloses_interpolated_point_and_preserves_uncertainty (__main__.InstallSourceTests.test_exact_crossing_encloses_interpolated_point_and_preserves_uncertainty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_install_source.py", line 109, in test_exact_crossing_encloses_interpolated_point_and_preserves_uncertainty
+    result=Q.crossing_patch(case,part,[0]*6,478)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-source-proof-v1/prove_candidate.py", line 31, in crossing_patch
+    for first,last in P.rendered_intervals(case):
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/compile_profiles.py", line 55, in rendered_intervals
+    loop, _ = rendered_timing(case)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/compile_profiles.py", line 39, in rendered_timing
+    require("source_duration_s" in case, "CONTACT_CLIP_DURATION")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: CONTACT_CLIP_DURATION
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.037s
+
+FAILED (errors=1)

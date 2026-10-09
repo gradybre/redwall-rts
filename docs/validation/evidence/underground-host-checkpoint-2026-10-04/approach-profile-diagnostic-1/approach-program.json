@@ -1,0 +1,2144 @@
+{
+  "schema": 1,
+  "source_program": 5,
+  "actor_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "source_program_sha256": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+  "ready_clip": 0,
+  "ready_time_q16": 524288,
+  "fade_time_q16": 491520,
+  "clip_timing": [
+    {
+      "loop": 1,
+      "duration_q16": 7929856,
+      "keys": 122
+    },
+    {
+      "loop": 1,
+      "duration_q16": 2097153,
+      "keys": 34
+    },
+    {
+      "loop": 1,
+      "duration_q16": 2359296,
+      "keys": 37
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 1,
+      "duration_q16": 1703936,
+      "keys": 27
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 1,
+      "duration_q16": 2359296,
+      "keys": 37
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 1,
+      "duration_q16": 2097152,
+      "keys": 33
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    },
+    {
+      "loop": 0,
+      "duration_q16": 1966080,
+      "keys": 31
+    }
+  ],
+  "walk": {
+    "clip": 1,
+    "loop": 1,
+    "keys": 34,
+    "duration_q16": 2097153,
+    "forward": [
+      {
+        "a": 0,
+        "b": 1,
+        "from_q16": 0,
+        "to_q16": 65536
+      },
+      {
+        "a": 1,
+        "b": 2,
+        "from_q16": 65536,
+        "to_q16": 131072
+      },
+      {
+        "a": 2,
+        "b": 3,
+        "from_q16": 131072,
+        "to_q16": 196608
+      },
+      {
+        "a": 3,
+        "b": 4,
+        "from_q16": 196608,
+        "to_q16": 262144
+      },
+      {
+        "a": 4,
+        "b": 5,
+        "from_q16": 262144,
+        "to_q16": 327680
+      },
+      {
+        "a": 5,
+        "b": 6,
+        "from_q16": 327680,
+        "to_q16": 393216
+      },
+      {
+        "a": 6,
+        "b": 7,
+        "from_q16": 393216,
+        "to_q16": 458752
+      },
+      {
+        "a": 7,
+        "b": 8,
+        "from_q16": 458752,
+        "to_q16": 524288
+      },
+      {
+        "a": 8,
+        "b": 9,
+        "from_q16": 524288,
+        "to_q16": 589824
+      },
+      {
+        "a": 9,
+        "b": 10,
+        "from_q16": 589824,
+        "to_q16": 655360
+      },
+      {
+        "a": 10,
+        "b": 11,
+        "from_q16": 655360,
+        "to_q16": 720896
+      },
+      {
+        "a": 11,
+        "b": 12,
+        "from_q16": 720896,
+        "to_q16": 786432
+      },
+      {
+        "a": 12,
+        "b": 13,
+        "from_q16": 786432,
+        "to_q16": 851968
+      },
+      {
+        "a": 13,
+        "b": 14,
+        "from_q16": 851968,
+        "to_q16": 917504
+      },
+      {
+        "a": 14,
+        "b": 15,
+        "from_q16": 917504,
+        "to_q16": 983040
+      },
+      {
+        "a": 15,
+        "b": 16,
+        "from_q16": 983040,
+        "to_q16": 1048576
+      },
+      {
+        "a": 16,
+        "b": 17,
+        "from_q16": 1048576,
+        "to_q16": 1114112
+      },
+      {
+        "a": 17,
+        "b": 18,
+        "from_q16": 1114112,
+        "to_q16": 1179648
+      },
+      {
+        "a": 18,
+        "b": 19,
+        "from_q16": 1179648,
+        "to_q16": 1245184
+      },
+      {
+        "a": 19,
+        "b": 20,
+        "from_q16": 1245184,
+        "to_q16": 1310720
+      },
+      {
+        "a": 20,
+        "b": 21,
+        "from_q16": 1310720,
+        "to_q16": 1376256
+      },
+      {
+        "a": 21,
+        "b": 22,
+        "from_q16": 1376256,
+        "to_q16": 1441792
+      },
+      {
+        "a": 22,
+        "b": 23,
+        "from_q16": 1441792,
+        "to_q16": 1507328
+      },
+      {
+        "a": 23,
+        "b": 24,
+        "from_q16": 1507328,
+        "to_q16": 1572864
+      },
+      {
+        "a": 24,
+        "b": 25,
+        "from_q16": 1572864,
+        "to_q16": 1638400
+      },
+      {
+        "a": 25,
+        "b": 26,
+        "from_q16": 1638400,
+        "to_q16": 1703936
+      },
+      {
+        "a": 26,
+        "b": 27,
+        "from_q16": 1703936,
+        "to_q16": 1769472
+      },
+      {
+        "a": 27,
+        "b": 28,
+        "from_q16": 1769472,
+        "to_q16": 1835008
+      },
+      {
+        "a": 28,
+        "b": 29,
+        "from_q16": 1835008,
+        "to_q16": 1900544
+      },
+      {
+        "a": 29,
+        "b": 30,
+        "from_q16": 1900544,
+        "to_q16": 1966080
+      },
+      {
+        "a": 30,
+        "b": 31,
+        "from_q16": 1966080,
+        "to_q16": 2031616
+      },
+      {
+        "a": 31,
+        "b": 32,
+        "from_q16": 2031616,
+        "to_q16": 2097152
+      },
+      {
+        "a": 32,
+        "b": 0,
+        "from_q16": 2097152,
+        "to_q16": 2097153
+      }
+    ],
+    "backward": [
+      {
+        "a": 0,
+        "b": 32,
+        "from_q16": 0,
+        "to_q16": 1
+      },
+      {
+        "a": 32,
+        "b": 31,
+        "from_q16": 1,
+        "to_q16": 65537
+      },
+      {
+        "a": 31,
+        "b": 30,
+        "from_q16": 65537,
+        "to_q16": 131073
+      },
+      {
+        "a": 30,
+        "b": 29,
+        "from_q16": 131073,
+        "to_q16": 196609
+      },
+      {
+        "a": 29,
+        "b": 28,
+        "from_q16": 196609,
+        "to_q16": 262145
+      },
+      {
+        "a": 28,
+        "b": 27,
+        "from_q16": 262145,
+        "to_q16": 327681
+      },
+      {
+        "a": 27,
+        "b": 26,
+        "from_q16": 327681,
+        "to_q16": 393217
+      },
+      {
+        "a": 26,
+        "b": 25,
+        "from_q16": 393217,
+        "to_q16": 458753
+      },
+      {
+        "a": 25,
+        "b": 24,
+        "from_q16": 458753,
+        "to_q16": 524289
+      },
+      {
+        "a": 24,
+        "b": 23,
+        "from_q16": 524289,
+        "to_q16": 589825
+      },
+      {
+        "a": 23,
+        "b": 22,
+        "from_q16": 589825,
+        "to_q16": 655361
+      },
+      {
+        "a": 22,
+        "b": 21,
+        "from_q16": 655361,
+        "to_q16": 720897
+      },
+      {
+        "a": 21,
+        "b": 20,
+        "from_q16": 720897,
+        "to_q16": 786433
+      },
+      {
+        "a": 20,
+        "b": 19,
+        "from_q16": 786433,
+        "to_q16": 851969
+      },
+      {
+        "a": 19,
+        "b": 18,
+        "from_q16": 851969,
+        "to_q16": 917505
+      },
+      {
+        "a": 18,
+        "b": 17,
+        "from_q16": 917505,
+        "to_q16": 983041
+      },
+      {
+        "a": 17,
+        "b": 16,
+        "from_q16": 983041,
+        "to_q16": 1048577
+      },
+      {
+        "a": 16,
+        "b": 15,
+        "from_q16": 1048577,
+        "to_q16": 1114113
+      },
+      {
+        "a": 15,
+        "b": 14,
+        "from_q16": 1114113,
+        "to_q16": 1179649
+      },
+      {
+        "a": 14,
+        "b": 13,
+        "from_q16": 1179649,
+        "to_q16": 1245185
+      },
+      {
+        "a": 13,
+        "b": 12,
+        "from_q16": 1245185,
+        "to_q16": 1310721
+      },
+      {
+        "a": 12,
+        "b": 11,
+        "from_q16": 1310721,
+        "to_q16": 1376257
+      },
+      {
+        "a": 11,
+        "b": 10,
+        "from_q16": 1376257,
+        "to_q16": 1441793
+      },
+      {
+        "a": 10,
+        "b": 9,
+        "from_q16": 1441793,
+        "to_q16": 1507329
+      },
+      {
+        "a": 9,
+        "b": 8,
+        "from_q16": 1507329,
+        "to_q16": 1572865
+      },
+      {
+        "a": 8,
+        "b": 7,
+        "from_q16": 1572865,
+        "to_q16": 1638401
+      },
+      {
+        "a": 7,
+        "b": 6,
+        "from_q16": 1638401,
+        "to_q16": 1703937
+      },
+      {
+        "a": 6,
+        "b": 5,
+        "from_q16": 1703937,
+        "to_q16": 1769473
+      },
+      {
+        "a": 5,
+        "b": 4,
+        "from_q16": 1769473,
+        "to_q16": 1835009
+      },
+      {
+        "a": 4,
+        "b": 3,
+        "from_q16": 1835009,
+        "to_q16": 1900545
+      },
+      {
+        "a": 3,
+        "b": 2,
+        "from_q16": 1900545,
+        "to_q16": 1966081
+      },
+      {
+        "a": 2,
+        "b": 1,
+        "from_q16": 1966081,
+        "to_q16": 2031617
+      },
+      {
+        "a": 1,
+        "b": 0,
+        "from_q16": 2031617,
+        "to_q16": 2097153
+      }
+    ],
+    "sampling": "Content.clip_into(1, q % D) or Content.clip_into(1, (D - q % D) % D)",
+    "root": "existing directed ground WALK distance; body heading fixed; backward path heading differs by32768",
+    "time_reversal": "For every source phase q, backward uses the same finite pose as forward at(-q mod D); reversing root displacement reverses each foot/body/tool world trajectory.",
+    "new_pace": false,
+    "root_y_delta": 0
+  },
+  "handoffs": [
+    {
+      "from": "ready",
+      "interval": [
+        8,
+        8
+      ],
+      "to": "walk-start",
+      "corners": [
+        8,
+        8,
+        122
+      ],
+      "checks": 188368
+    },
+    {
+      "from": "walk",
+      "interval": [
+        0,
+        1
+      ],
+      "to": "ready",
+      "corners": [
+        122,
+        123,
+        8
+      ],
+      "checks": 188368
+    },
+    {
+      "from": "walk",
+      "interval": [
+        1,
+        2
+      ],
+      "to": "ready",
+      "corners": [
+        123,
+        124,
+        8
+      ],
+      "checks": 191129
+    },
+    {
+      "from": "walk",
+      "interval": [
+        2,
+        3
+      ],
+      "to": "ready",
+      "corners": [
+        124,
+        125,
+        8
+      ],
+      "checks": 162344
+    },
+    {
+      "from": "walk",
+      "interval": [
+        3,
+        4
+      ],
+      "to": "ready",
+      "corners": [
+        125,
+        126,
+        8
+      ],
+      "checks": 131909
+    },
+    {
+      "from": "walk",
+      "interval": [
+        4,
+        5
+      ],
+      "to": "ready",
+      "corners": [
+        126,
+        127,
+        8
+      ],
+      "checks": 105824
+    },
+    {
+      "from": "walk",
+      "interval": [
+        5,
+        6
+      ],
+      "to": "ready",
+      "corners": [
+        127,
+        128,
+        8
+      ],
+      "checks": 81526
+    },
+    {
+      "from": "walk",
+      "interval": [
+        6,
+        7
+      ],
+      "to": "ready",
+      "corners": [
+        128,
+        129,
+        8
+      ],
+      "checks": 59651
+    },
+    {
+      "from": "walk",
+      "interval": [
+        7,
+        8
+      ],
+      "to": "ready",
+      "corners": [
+        129,
+        130,
+        8
+      ],
+      "checks": 42984
+    },
+    {
+      "from": "walk",
+      "interval": [
+        8,
+        9
+      ],
+      "to": "ready",
+      "corners": [
+        130,
+        131,
+        8
+      ],
+      "checks": 31902
+    },
+    {
+      "from": "walk",
+      "interval": [
+        9,
+        10
+      ],
+      "to": "ready",
+      "corners": [
+        131,
+        132,
+        8
+      ],
+      "checks": 31063
+    },
+    {
+      "from": "walk",
+      "interval": [
+        10,
+        11
+      ],
+      "to": "ready",
+      "corners": [
+        132,
+        133,
+        8
+      ],
+      "checks": 36385
+    },
+    {
+      "from": "walk",
+      "interval": [
+        11,
+        12
+      ],
+      "to": "ready",
+      "corners": [
+        133,
+        134,
+        8
+      ],
+      "checks": 46705
+    },
+    {
+      "from": "walk",
+      "interval": [
+        12,
+        13
+      ],
+      "to": "ready",
+      "corners": [
+        134,
+        135,
+        8
+      ],
+      "checks": 69965
+    },
+    {
+      "from": "walk",
+      "interval": [
+        13,
+        14
+      ],
+      "to": "ready",
+      "corners": [
+        135,
+        136,
+        8
+      ],
+      "checks": 112866
+    },
+    {
+      "from": "walk",
+      "interval": [
+        14,
+        15
+      ],
+      "to": "ready",
+      "corners": [
+        136,
+        137,
+        8
+      ],
+      "checks": 163085
+    },
+    {
+      "from": "walk",
+      "interval": [
+        15,
+        16
+      ],
+      "to": "ready",
+      "corners": [
+        137,
+        138,
+        8
+      ],
+      "checks": 206123
+    },
+    {
+      "from": "walk",
+      "interval": [
+        16,
+        17
+      ],
+      "to": "ready",
+      "corners": [
+        138,
+        139,
+        8
+      ],
+      "checks": 236947
+    },
+    {
+      "from": "walk",
+      "interval": [
+        17,
+        18
+      ],
+      "to": "ready",
+      "corners": [
+        139,
+        140,
+        8
+      ],
+      "checks": 250374
+    },
+    {
+      "from": "walk",
+      "interval": [
+        18,
+        19
+      ],
+      "to": "ready",
+      "corners": [
+        140,
+        141,
+        8
+      ],
+      "checks": 232592
+    },
+    {
+      "from": "walk",
+      "interval": [
+        19,
+        20
+      ],
+      "to": "ready",
+      "corners": [
+        141,
+        142,
+        8
+      ],
+      "checks": 218520
+    },
+    {
+      "from": "walk",
+      "interval": [
+        20,
+        21
+      ],
+      "to": "ready",
+      "corners": [
+        142,
+        143,
+        8
+      ],
+      "checks": 204083
+    },
+    {
+      "from": "walk",
+      "interval": [
+        21,
+        22
+      ],
+      "to": "ready",
+      "corners": [
+        143,
+        144,
+        8
+      ],
+      "checks": 226884
+    },
+    {
+      "from": "walk",
+      "interval": [
+        22,
+        23
+      ],
+      "to": "ready",
+      "corners": [
+        144,
+        145,
+        8
+      ],
+      "checks": 230540
+    },
+    {
+      "from": "walk",
+      "interval": [
+        23,
+        24
+      ],
+      "to": "ready",
+      "corners": [
+        145,
+        146,
+        8
+      ],
+      "checks": 223372
+    },
+    {
+      "from": "walk",
+      "interval": [
+        24,
+        25
+      ],
+      "to": "ready",
+      "corners": [
+        146,
+        147,
+        8
+      ],
+      "checks": 235674
+    },
+    {
+      "from": "walk",
+      "interval": [
+        25,
+        26
+      ],
+      "to": "ready",
+      "corners": [
+        147,
+        148,
+        8
+      ],
+      "checks": 261945
+    },
+    {
+      "from": "walk",
+      "interval": [
+        26,
+        27
+      ],
+      "to": "ready",
+      "corners": [
+        148,
+        149,
+        8
+      ],
+      "checks": 273379
+    },
+    {
+      "from": "walk",
+      "interval": [
+        27,
+        28
+      ],
+      "to": "ready",
+      "corners": [
+        149,
+        150,
+        8
+      ],
+      "checks": 270150
+    },
+    {
+      "from": "walk",
+      "interval": [
+        28,
+        29
+      ],
+      "to": "ready",
+      "corners": [
+        150,
+        151,
+        8
+      ],
+      "checks": 239265
+    },
+    {
+      "from": "walk",
+      "interval": [
+        29,
+        30
+      ],
+      "to": "ready",
+      "corners": [
+        151,
+        152,
+        8
+      ],
+      "checks": 244368
+    },
+    {
+      "from": "walk",
+      "interval": [
+        30,
+        31
+      ],
+      "to": "ready",
+      "corners": [
+        152,
+        153,
+        8
+      ],
+      "checks": 247618
+    },
+    {
+      "from": "walk",
+      "interval": [
+        31,
+        32
+      ],
+      "to": "ready",
+      "corners": [
+        153,
+        154,
+        8
+      ],
+      "checks": 224355
+    },
+    {
+      "from": "walk",
+      "interval": [
+        32,
+        0
+      ],
+      "to": "ready",
+      "corners": [
+        154,
+        122,
+        8
+      ],
+      "checks": 188368
+    }
+  ],
+  "work_joins": [
+    {
+      "work": 2,
+      "entry": 3,
+      "recovery": 4,
+      "ready_clip": 0,
+      "ready_time_q16": 524288,
+      "palette_and_grounding_identical": true
+    },
+    {
+      "work": 5,
+      "entry": 6,
+      "recovery": 7,
+      "ready_clip": 0,
+      "ready_time_q16": 524288,
+      "palette_and_grounding_identical": true
+    },
+    {
+      "work": 8,
+      "entry": 9,
+      "recovery": 10,
+      "ready_clip": 0,
+      "ready_time_q16": 524288,
+      "palette_and_grounding_identical": true
+    },
+    {
+      "work": 11,
+      "entry": 12,
+      "recovery": 13,
+      "ready_clip": 0,
+      "ready_time_q16": 524288,
+      "palette_and_grounding_identical": true
+    }
+  ],
+  "canonical_roles": {
+    "BODY_HELD_LOAD": [
+      [
+        -445,
+        0,
+        -474,
+        546,
+        930,
+        346
+      ],
+      [
+        -239,
+        -1,
+        -274,
+        284,
+        0,
+        249
+      ],
+      [
+        182,
+        379,
+        -732,
+        910,
+        1036,
+        64
+      ]
+    ],
+    "TURN_RECOVERY": [
+      [
+        -445,
+        0,
+        -474,
+        546,
+        930,
+        346
+      ],
+      [
+        -239,
+        -1,
+        -274,
+        284,
+        0,
+        249
+      ],
+      [
+        182,
+        379,
+        -732,
+        910,
+        1036,
+        64
+      ]
+    ],
+    "STANCE_SUPPORT": [
+      [
+        -274,
+        -1,
+        -274,
+        299,
+        0,
+        249
+      ]
+    ]
+  },
+  "geometry": {
+    "full_primitives_u": [
+      [
+        -445,
+        -1,
+        -474,
+        546,
+        930,
+        346
+      ],
+      [
+        182,
+        379,
+        -732,
+        910,
+        1036,
+        64
+      ]
+    ],
+    "floor_primitives_u": [
+      [
+        -239,
+        -1,
+        -274,
+        284,
+        0,
+        249
+      ],
+      null
+    ],
+    "stance": {
+      "support_u": [
+        -274,
+        -1,
+        -274,
+        299,
+        0,
+        249
+      ],
+      "source_foot_bounds_u": [
+        -274,
+        -1,
+        -274,
+        299,
+        320,
+        249
+      ],
+      "triangles": 1985,
+      "binds": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "left_palm_brace": false,
+      "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"
+    },
+    "corner_count": 36,
+    "native_residual": [
+      {
+        "canonical_error_m": [
+          {
+            "numerator": 103323979276677938348260572802998335664293177011719813458411741301758243580388449253103474322289421,
+            "denominator": 189606189661526936825500197070610239481492471272267081657541583457712490439093086940809642810688929792
+          },
+          {
+            "numerator": 3870273192995355335323611379295130894840109819696812445677031948216902486071246900713,
+            "denominator": 43111456230127927671105725737700195050250038382788962202890066568605218535388550422069248
+          },
+          {
+            "numerator": 103325143052470399223938253805761737213418402400695840272932412080872609446634989982225467903161101,
+            "denominator": 189606189661526936825500197070610239481492471272267081657541583457712490439093086940809642810688929792
+          }
+        ],
+        "local_error_m": {
+          "numerator": 13809468969007069871023724480486420639704606105758839169537019,
+          "denominator": 570575440377738063276487277638260154928548196206687805033743908864
+        },
+        "world_error_m": [
+          {
+            "numerator": 123478942107366933334092145313266170299510757192900605799008949789453218480173,
+            "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+          },
+          {
+            "numerator": 7774804428271818410079535449395630222806439645189116158304171503113453174805,
+            "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+          },
+          {
+            "numerator": 123478942107366933334092145313266170299510757192900605799008949789453218480173,
+            "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+          }
+        ],
+        "orientation_error_m": [
+          {
+            "numerator": 47654082271075,
+            "denominator": 1180591620717411303424
+          },
+          {
+            "numerator": 54900385524285,
+            "denominator": 1180591620717411303424
+          }
+        ],
+        "maximum_actual_canonical_sine": {
+          "numerator": 6151831,
+          "denominator": 70368744177664
+        }
+      },
+      {
+        "canonical_error_m": [
+          {
+            "numerator": 387993783347353914942235429669210106627585449326559749130313389497662622018785466058818475482587900647605694967804264657713934159,
+            "denominator": 709798957098858882227071468375531539898551251361785334799288607884067749724269904010295088494476043765413161108972171856153063456768
+          },
+          {
+            "numerator": 63493270438222622889609796610614407939879085594400368057476312936863402089386829160721384550676983298949293249481206563078135,
+            "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+          },
+          {
+            "numerator": 388004550338263731912702383224380359898901560494657241725868225901552088740304944811309672180338191052093614924482017252187352911,
+            "denominator": 709798957098858882227071468375531539898551251361785334799288607884067749724269904010295088494476043765413161108972171856153063456768
+          }
+        ],
+        "local_error_m": {
+          "numerator": 42189758131366924047763152470614914634812129125044741277774977930842544296320759345069424649,
+          "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+        },
+        "world_error_m": [
+          {
+            "numerator": 1393001290851592433603099974754948401874571535330878212736942192648872598819216319956102599907901293957032139781698224137,
+            "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+          },
+          {
+            "numerator": 189979945229778473817267011630326526831991652878727684465829508142915920303609181568904146666948966946698700766087741449,
+            "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+          },
+          {
+            "numerator": 1393001290851592433603099974754948401874571535330878212736942192648872598819216319956102599907901293957032139781698224137,
+            "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+          }
+        ],
+        "orientation_error_m": [
+          {
+            "numerator": 36859525933685,
+            "denominator": 590295810358705651712
+          },
+          {
+            "numerator": 91627530206681,
+            "denominator": 1180591620717411303424
+          }
+        ],
+        "maximum_actual_canonical_sine": {
+          "numerator": 6151831,
+          "denominator": 70368744177664
+        }
+      }
+    ],
+    "continuous_bound": "whole endpoint convex hull includes every triangle and every admitted matrix/ground fade"
+  },
+  "rows": [
+    {
+      "profile": 2,
+      "selection_policy": 1,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 0,
+      "path_yaw": 0,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -445,
+            0,
+            -474,
+            546,
+            930,
+            346
+          ],
+          [
+            -239,
+            -1,
+            -274,
+            284,
+            0,
+            249
+          ],
+          [
+            182,
+            379,
+            -732,
+            910,
+            1036,
+            64
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -445,
+            0,
+            -474,
+            546,
+            930,
+            346
+          ],
+          [
+            -239,
+            -1,
+            -274,
+            284,
+            0,
+            249
+          ],
+          [
+            182,
+            379,
+            -732,
+            910,
+            1036,
+            64
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -274,
+            -1,
+            -274,
+            299,
+            0,
+            249
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 3,
+      "selection_policy": 1,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 16384,
+      "path_yaw": 16384,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -474,
+            0,
+            -546,
+            346,
+            930,
+            445
+          ],
+          [
+            -274,
+            -1,
+            -284,
+            249,
+            0,
+            239
+          ],
+          [
+            -732,
+            379,
+            -910,
+            64,
+            1036,
+            -182
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -474,
+            0,
+            -546,
+            346,
+            930,
+            445
+          ],
+          [
+            -274,
+            -1,
+            -284,
+            249,
+            0,
+            239
+          ],
+          [
+            -732,
+            379,
+            -910,
+            64,
+            1036,
+            -182
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -274,
+            -1,
+            -299,
+            249,
+            0,
+            274
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 4,
+      "selection_policy": 1,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 32768,
+      "path_yaw": 32768,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -546,
+            0,
+            -346,
+            445,
+            930,
+            474
+          ],
+          [
+            -284,
+            -1,
+            -249,
+            239,
+            0,
+            274
+          ],
+          [
+            -910,
+            379,
+            -64,
+            -182,
+            1036,
+            732
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -546,
+            0,
+            -346,
+            445,
+            930,
+            474
+          ],
+          [
+            -284,
+            -1,
+            -249,
+            239,
+            0,
+            274
+          ],
+          [
+            -910,
+            379,
+            -64,
+            -182,
+            1036,
+            732
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -299,
+            -1,
+            -249,
+            274,
+            0,
+            274
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 5,
+      "selection_policy": 1,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "path_yaw": 49152,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ],
+          [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ],
+          [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ],
+          [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ],
+          [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -249,
+            -1,
+            -274,
+            274,
+            0,
+            299
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 6,
+      "selection_policy": 2,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 0,
+      "path_yaw": 32768,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -445,
+            0,
+            -474,
+            546,
+            930,
+            346
+          ],
+          [
+            -239,
+            -1,
+            -274,
+            284,
+            0,
+            249
+          ],
+          [
+            182,
+            379,
+            -732,
+            910,
+            1036,
+            64
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -445,
+            0,
+            -474,
+            546,
+            930,
+            346
+          ],
+          [
+            -239,
+            -1,
+            -274,
+            284,
+            0,
+            249
+          ],
+          [
+            182,
+            379,
+            -732,
+            910,
+            1036,
+            64
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -274,
+            -1,
+            -274,
+            299,
+            0,
+            249
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 7,
+      "selection_policy": 2,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 16384,
+      "path_yaw": 49152,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -474,
+            0,
+            -546,
+            346,
+            930,
+            445
+          ],
+          [
+            -274,
+            -1,
+            -284,
+            249,
+            0,
+            239
+          ],
+          [
+            -732,
+            379,
+            -910,
+            64,
+            1036,
+            -182
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -474,
+            0,
+            -546,
+            346,
+            930,
+            445
+          ],
+          [
+            -274,
+            -1,
+            -284,
+            249,
+            0,
+            239
+          ],
+          [
+            -732,
+            379,
+            -910,
+            64,
+            1036,
+            -182
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -274,
+            -1,
+            -299,
+            249,
+            0,
+            274
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 8,
+      "selection_policy": 2,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 32768,
+      "path_yaw": 0,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -546,
+            0,
+            -346,
+            445,
+            930,
+            474
+          ],
+          [
+            -284,
+            -1,
+            -249,
+            239,
+            0,
+            274
+          ],
+          [
+            -910,
+            379,
+            -64,
+            -182,
+            1036,
+            732
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -546,
+            0,
+            -346,
+            445,
+            930,
+            474
+          ],
+          [
+            -284,
+            -1,
+            -249,
+            239,
+            0,
+            274
+          ],
+          [
+            -910,
+            379,
+            -64,
+            -182,
+            1036,
+            732
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -299,
+            -1,
+            -249,
+            274,
+            0,
+            274
+          ]
+        ]
+      }
+    },
+    {
+      "profile": 9,
+      "selection_policy": 2,
+      "mode": 1,
+      "posture": 0,
+      "yaw_kind": 0,
+      "yaw": 49152,
+      "path_yaw": 16384,
+      "roles": {
+        "BODY_HELD_LOAD": [
+          [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ],
+          [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ],
+          [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        ],
+        "TURN_RECOVERY": [
+          [
+            -346,
+            0,
+            -445,
+            474,
+            930,
+            546
+          ],
+          [
+            -249,
+            -1,
+            -239,
+            274,
+            0,
+            284
+          ],
+          [
+            -64,
+            379,
+            182,
+            732,
+            1036,
+            910
+          ]
+        ],
+        "STANCE_SUPPORT": [
+          [
+            -249,
+            -1,
+            -274,
+            274,
+            0,
+            299
+          ]
+        ]
+      }
+    }
+  ],
+  "basis": {
+    "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "heading_count": 65536,
+    "exact_norm_squared": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "max_norm_yaw": 40791,
+    "max_component": {
+      "numerator": 1,
+      "denominator": 1
+    },
+    "metadata": {
+      "api_version": "4.1 Metal - 90.5",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "heading_count": 65536,
+      "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+      "orientation": "0=-Z,+quarter=-X; +Y remains up",
+      "rendering_driver": "opengl3",
+      "rendering_method": "gl_compatibility",
+      "schema": 1,
+      "source": {
+        "path": "res://../tools/bake_underground_world_basis.gd",
+        "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+      }
+    },
+    "backend_certificate": {
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "driver": "opengl3",
+      "api_version": "4.1 Metal - 90.5",
+      "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+      "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+      "sections": [
+        "4.5",
+        "4.5.1"
+      ],
+      "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+      "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+    },
+    "inverse_norm": {
+      "numerator": 398065705943040,
+      "denominator": 281474953696313
+    },
+    "cardinals": [
+      {
+        "yaw": 0,
+        "native_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 0,
+            "denominator": 1
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 0,
+            "denominator": 1
+          }
+        ]
+      },
+      {
+        "yaw": 16384,
+        "native_c_s": [
+          {
+            "numerator": -6151831,
+            "denominator": 140737488355328
+          },
+          {
+            "numerator": 1,
+            "denominator": 1
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 6151831,
+            "denominator": 140737488355328
+          }
+        ]
+      },
+      {
+        "yaw": 32768,
+        "native_c_s": [
+          {
+            "numerator": -1,
+            "denominator": 1
+          },
+          {
+            "numerator": -6151831,
+            "denominator": 70368744177664
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 6151831,
+            "denominator": 70368744177664
+          }
+        ]
+      },
+      {
+        "yaw": 49152,
+        "native_c_s": [
+          {
+            "numerator": 6713111,
+            "denominator": 562949953421312
+          },
+          {
+            "numerator": -1,
+            "denominator": 1
+          }
+        ],
+        "canonical_c_s": [
+          {
+            "numerator": 1,
+            "denominator": 1
+          },
+          {
+            "numerator": 6713111,
+            "denominator": 562949953421312
+          }
+        ]
+      }
+    ]
+  },
+  "root_domain_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    },
+    "res://demo/cast/underground_actor.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/demo/cast/underground_actor.gd"
+    },
+    "res://scripts/core/buildings.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/buildings.gd"
+    },
+    "res://scripts/core/construction.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/construction.gd"
+    },
+    "res://scripts/core/entity_directory.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/entity_directory.gd"
+    },
+    "res://scripts/core/excavation_contract.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/excavation_contract.gd"
+    },
+    "res://scripts/core/inventory.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/inventory.gd"
+    },
+    "res://scripts/core/modular_project_contract.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/modular_project_contract.gd"
+    },
+    "res://scripts/core/reservations.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/reservations.gd"
+    },
+    "res://scripts/core/resource_nodes.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/resource_nodes.gd"
+    },
+    "res://scripts/core/transforms.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/transforms.gd"
+    },
+    "res://scripts/core/world_init.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/world_init.gd"
+    },
+    "res://scripts/core/work.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/work.gd"
+    },
+    "res://scripts/systems/settlement_system.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/systems/settlement_system.gd"
+    },
+    "res://scripts/systems/ui_manager.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/systems/ui_manager.gd"
+    },
+    "res://scripts/ui/ui_world_session.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/ui/ui_world_session.gd"
+    }
+  },
+  "source_inputs": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/program.json": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/roles.json": "0f2da835a381460231c1560ea116fa3aafd51d32a4f3185f25b11b782bd4fd83",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/plan.json": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/candidate.json": "4a771e103b400e967bb752fd0ce340735574fc84aa2c5373dd1a2ff7c770dc57",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/plan.json": "50fd154de80b00625c7e7cd677334aa6ecd4cd735ce1c7499ff2bf091281340c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-compile-v2/result/mole-worker.ugactor": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+    "godot/demo/assets/underground-matrices/mole-grip-v3.ugpal": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-proof-v2/envelopes.json": "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/grip-source-v3/source-plan.json": "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-source-v1/mole-worker.ugactor": "92867c982add6e8ae9337f8afb1a91fc2299110f6e64ac9cad9017a9a51faf9e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compact-program-proof-v1.json": "9e1e5d1bec451588e431dff6a669052a2677111a52898bbec7c33b4ab0b5014b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json": "46741887b362bfbc32a175b7fdeb48824d54d4b39564fd5f79fe8c439139467a",
+    "godot/data/underground/mole-worker/work-approach-v1/source-input-locators.json": "523cbfedbedc428b3763407cf44a6c689f7399a5d167bce188c5e8110e5c3b69"
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/compile_profile_publication.py": "e57be66923d732b5519380f95ffb31e5a683403710379b2764983b283af61b58",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "613629249386906fea9ce35c4d633cfff83e481c27a08eccb938476d6d0e466f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "633beb0647e612b159f0257912e3321b126dbde5e49678e0c725c90bc4a7793a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_compact_program.py": "19fe426df8373229df330666b4f0cdc453e4a202455424ae1a442a62c8ffe548",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_cardinal_profiles.py": "f55701948939a10706d175dabd750db741ea9550b9cbe0308928422084ae1413",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py": "de98c0c3d7de383844bc2369300668d511d8256f7858ec95a5e2c6ca7d08ab9a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py": "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/close_profile_source_gates.py": "746d9fe28567aab270807253b531c5e449e87f2f726da3895a8217a0f1dbd26a"
+  },
+  "census": {
+    "profile_count": 26,
+    "box_count": 250,
+    "source_count": 1,
+    "terms": {
+      "paired_profiles": 19224,
+      "profile_controls": 32768,
+      "levels": 2292,
+      "paired_motion": 141720,
+      "decode": 4096,
+      "motion_caller": 176,
+      "motion_helpers": 4096,
+      "motion_native_provisional": 32768,
+      "session": 1536
+    },
+    "total": 238676,
+    "reservation": 262144,
+    "remaining": 23468,
+    "paired_delta": 4704,
+    "actor_image_delta": 0,
+    "used_pace_rows": 8,
+    "pace_bytes_within_existing_banks": 576,
+    "driver_and_routes_retained_delta_pending_census": true,
+    "native_measured": false
+  },
+  "certificate_bits_written": 0,
+  "native_replay": false,
+  "production_qualified": false,
+  "remaining": [
+    "CANONICAL_ROUTES_SOURCE_CLOCK",
+    "CURRENT_CONSUMER_CLOSURE",
+    "NATIVE_BACKWARD_ROOT_REPLAY",
+    "INDEPENDENT_REVIEW",
+    "QUALIFIED_PUBLICATION",
+    "ACTUAL_PAID_ROOM_APPROACH_AND_RETREAT"
+  ]
+}

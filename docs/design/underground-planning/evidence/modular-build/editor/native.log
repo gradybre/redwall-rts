@@ -1,0 +1,62 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+MODULAR-EDITOR rounded drag retains a connected room: PASS
+MODULAR-EDITOR release submits no construction: PASS
+MODULAR-EDITOR rounded corner is outside floor: PASS
+MODULAR-EDITOR Undo click clears the first stroke: PASS
+MODULAR-EDITOR Redo click restores the room: PASS
+MODULAR-EDITOR GUI clicks start no world stroke: PASS
+MODULAR-EDITOR release outside canvas ends stroke: PASS
+MODULAR-EDITOR outside release does not click Undo: PASS
+MODULAR-EDITOR bent tunnel joins room: PASS
+MODULAR-EDITOR route reaches end: PASS
+MODULAR-EDITOR route preserves concave exterior: PASS
+MODULAR-EDITOR native capture saved: PASS
+MODULAR-EDITOR panel fits minimum viewport: PASS
+MODULAR-EDITOR control fits inspector: VBoxContainer: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: HBoxContainer: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR control fits inspector: HBoxContainer: PASS
+MODULAR-EDITOR control fits inspector: SpinBox: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR control fits inspector: CheckButton: PASS
+MODULAR-EDITOR control fits inspector: OptionButton: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR island refuses confirmation: PASS
+MODULAR-EDITOR disabled Confirm submits nothing: PASS
+MODULAR-EDITOR native capture saved: PASS
+MODULAR-EDITOR Undo repairs disconnected paint: PASS
+MODULAR-EDITOR floor boundary matches retained snapshot: PASS
+MODULAR-EDITOR explicit button reaches coordinator once: PASS
+MODULAR-EDITOR owner refusal retains complete blueprint: PASS
+MODULAR-EDITOR native capture saved: PASS
+MODULAR-EDITOR panel fits minimum viewport: PASS
+MODULAR-EDITOR control fits inspector: VBoxContainer: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: HBoxContainer: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: Button: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR control fits inspector: HBoxContainer: PASS
+MODULAR-EDITOR control fits inspector: SpinBox: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR control fits inspector: CheckButton: PASS
+MODULAR-EDITOR control fits inspector: OptionButton: PASS
+MODULAR-EDITOR control fits inspector: Label: PASS
+MODULAR-EDITOR second explicit request reaches fixture owner: PASS
+MODULAR-EDITOR successful fixture receipt clears draft: PASS
+MODULAR-EDITOR empty draft cannot duplicate request: PASS
+MODULAR-EDITOR-SUMMARY 53 checks, 0 failures

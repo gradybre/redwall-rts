@@ -1,0 +1,23 @@
+{
+  "1180-analyzer-document-lifetime-and-raw-diagnostics.md.txt": "5eca6206a06729fb6aada3af725b4e50e5c29cb4ba9efec1741127a0618dc190",
+  "README.md": "1e42be8394b0744346bf40eb694ae06ae84a993ff4fde94dd7fc66081289f417",
+  "acceptance.json": "7e05eaf46ee6fd0cf516b1a4219b551b28fccdbc315f32938c610431e70734fa",
+  "author-final-tool-3/analyzer-editor.log": "f15ffd4c558b01611d562c8c257508942bdc2dc542124f423ae2a592a46edfa6",
+  "author-final-tool-3/analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+  "author-final-tool-3/analyzer.log": "d0c2ddaa2a34974f2e1872d744f7dc7f0e0d0dcd3406b1226ec95e9877155896",
+  "author-final-tool-3/clean-import.log": "e7d0ce627fb0d5d54526f5d7484204fabaeca8c33762c16888c69619a1e4c8ac",
+  "author-final-tool-3/invocation.json": "da851e723511d845430a9a49726e7b026eb26ca396678155648c9e3c5f01189f",
+  "author-final-tool-3/protocol-tests.log": "e8fc838ffa09ce8f7e31f1073f2c4d6ec8ae21f7182a820cce17bc1a10110601",
+  "author-final-tool-3/source-after.json": "524be8e3d4e93c4641f13a55a3e50b8b6265762945e1ef8c4ba044e2e8470cf1",
+  "author-final-tool-3/source-before.json": "524be8e3d4e93c4641f13a55a3e50b8b6265762945e1ef8c4ba044e2e8470cf1",
+  "fixture/consumer.gd.txt": "c73d1366ec40d23336ad7ae26fe2a73a3126c6110a121774ff3c2dd068216a14",
+  "fixture/dependency.gd.txt": "c73d1366ec40d23336ad7ae26fe2a73a3126c6110a121774ff3c2dd068216a14",
+  "gdscript_warnings.py.txt": "42fe7c00b08e6e054d25bb1b1fad272fca65932c1d7d2e298dfdb8fc6e7c0a02",
+  "probe.json": "ddc16be3fd4dadaf1dc8bd3b429e780abfe24e90daaa050a77c77b1c64837bd7",
+  "probe.log": "ddc16be3fd4dadaf1dc8bd3b429e780abfe24e90daaa050a77c77b1c64837bd7",
+  "probe.py": "565a196d9dc0b024dab59620a2606f14c8dacad29d9f5ac08ac5a552506df924",
+  "protocol-tests.log": "b1525cda51f80fdb1bad6813ef19ebfbc9e0d5edc25fcf036c63820077708447",
+  "snapshot-replay.log": "ddc16be3fd4dadaf1dc8bd3b429e780abfe24e90daaa050a77c77b1c64837bd7",
+  "source-sha256.json": "c382b3c8458a0ff9f6220f7e156860ae174fb2829bc78a96417e043efd29cdf3",
+  "test_gdscript_warnings.py.txt": "f0ee24439a32526b7dc7627c681beecf74368bb81338767bada14879cc766ee8"
+}

@@ -1,0 +1,101 @@
+{
+  "head": "ee63d7b9ea80d34ef08fb0bed12c5de3a786e84b",
+  "source_sha256": {
+    "tools/underground_memory_budget.py": "c60506ea456dfb261efec0762a574972076b14074331d7ca3746704b72c6b54f",
+    "tools/test_underground_memory_budget.py": "f2cd8703f473fd04f703f5baa2487d5b92816d10adec87d71611e1ffec06ffbe",
+    "docs/validation/ready07_arithmetic.py": "e22f33667be2b8c09ed93728436d1ca95141c1f3b3561ef518a3603e8465d13a",
+    "docs/systems_architecture.md": "1765be8402ca9cbdc9fbcd1409f3e35c95c799ab8a265e628794de52978ccb40",
+    "docs/persistence_state_registry.md": "ddc7d54a9c7f4538c9ba8d358aa5682b3a56f0dcc286b98120ed421608c9df82",
+    "docs/planning/underground_memory_pack.json": "0be9736b812734c76cdbf7e428cd9985d8ad9c832a634cf5f4b5eb3cce4c64fa",
+    "docs/planning/registry_capacity_audit.json": "9e8702a9a326735036034a39f7ad1f6f6d63da8cfa4a6a93b38cfa4317731384"
+  },
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_underground_memory_budget.py",
+        "-v"
+      ],
+      "log": "tests.log",
+      "exit_code": 0,
+      "seconds": 40.751
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_registry_capacity_audit.py"
+      ],
+      "log": "capacity-tests.log",
+      "exit_code": 0,
+      "seconds": 2.888
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "log": "memory-check.log",
+      "exit_code": 0,
+      "seconds": 0.469
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/audit_registry_capacities.py",
+        "--check"
+      ],
+      "log": "capacity-check.log",
+      "exit_code": 0,
+      "seconds": 1.448
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/ready07_arithmetic.py",
+        "--output",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-haul-memory-2026-10-04/normal-v2/ready07.json"
+      ],
+      "log": "ready07.log",
+      "exit_code": 0,
+      "seconds": 0.738
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/merge_gate.py"
+      ],
+      "log": "merge-gate.log",
+      "exit_code": 0,
+      "seconds": 0.021
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/state_registry_coverage.py"
+      ],
+      "log": "registry.log",
+      "exit_code": 0,
+      "seconds": 0.32
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/decision_numbers.py"
+      ],
+      "log": "decisions.log",
+      "exit_code": 0,
+      "seconds": 0.026
+    }
+  ],
+  "source_unchanged": true,
+  "exit_code": 0
+}

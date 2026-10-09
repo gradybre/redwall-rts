@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/underground_room_world_bindings.gd": {
+    "sha256": "95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68",
+    "snapshot": "underground_room_world_bindings.gd.txt",
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_room_world_bindings.gd"
+  },
+  "godot/scripts/core/underground_room_frontier.gd": {
+    "sha256": "c012d8eae1346fb1785ad71d105e79e3da747fbc9158fb3a74f749217bf233c6",
+    "snapshot": "underground_room_frontier.gd.txt",
+    "original": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/godot/scripts/core/underground_room_frontier.gd"
+  }
+}

@@ -1,0 +1,7202 @@
+{
+  "scope": "Logical declared numeric/packed payload census only; no native allocation or runtime qualification.",
+  "source_sha256": {
+    "building_definitions": "32fd452ec16012a4a0662a622999e6ee20216bb55ee1035ee8cc996e7de45ac9",
+    "buildings": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+    "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+    "haul_carry": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
+    "int_math": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
+    "inventory": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+    "needs": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190",
+    "reservations": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+    "residents": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+    "resource_nodes": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de",
+    "room_space": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+    "source_program": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "transforms": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
+    "underground_connector_catalog": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
+    "underground_connector_source_facts": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160",
+    "underground_final_facts": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+    "underground_level_catalog": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "underground_locations": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+    "underground_profiles": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "underground_room_frontier": "c012d8eae1346fb1785ad71d105e79e3da747fbc9158fb3a74f749217bf233c6",
+    "underground_room_itinerary": "e2d53bb2fab86633016f5263ec364f54bad66579032bec11f046ce0f4c80c1e0",
+    "underground_room_world_bindings": "95d13b1d36daec7d6a5993d2aa5d6d673618a25020acb6b949b6cccc51d4bb68",
+    "underground_routes": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "underground_terrain": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+    "underground_work_face": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+    "underground_world_routes": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+    "work": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+    "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
+  },
+  "itinerary": {
+    "retained_fields": {},
+    "new_banks": 0,
+    "new_array_bytes": 0,
+    "new_actor_columns": 0,
+    "reachable_functions": 61,
+    "peak": {
+      "bytes": 384,
+      "chain": [
+        "underground_room_itinerary:reachability_refusal",
+        "underground_room_itinerary:_search",
+        "underground_room_itinerary:_find",
+        "underground_room_itinerary:_relax",
+        "underground_room_itinerary:_edge_profile",
+        "underground_room_itinerary:_compatible",
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ]
+    },
+    "expression_return_allowance": 48,
+    "inclusive_peak": 432,
+    "helper_reserve": 512,
+    "call_graph": {
+      "underground_room_itinerary:reachability_refusal": [
+        "underground_room_itinerary:_implementations",
+        "underground_room_itinerary:_search",
+        "underground_world_routes:_reach_entry_refusal"
+      ],
+      "underground_room_itinerary:_implementations": [],
+      "underground_room_itinerary:_search": [
+        "underground_locations:_live_ref",
+        "underground_room_itinerary:_anchor_refusal",
+        "underground_room_itinerary:_find",
+        "underground_room_itinerary:_sources",
+        "underground_routes:_path_chain_refusal",
+        "underground_routes:_spend",
+        "underground_world_routes:_reach_descriptor",
+        "underground_world_routes:_reach_stores_refusal"
+      ],
+      "underground_locations:_live_ref": [],
+      "underground_room_itinerary:_anchor_refusal": [
+        "source_program:profile_refusal"
+      ],
+      "source_program:profile_refusal": [
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "underground_profiles:selection_policy_leaf": [],
+      "underground_room_itinerary:_find": [
+        "underground_room_itinerary:_relax",
+        "underground_routes:_collect_path",
+        "underground_routes:_edge_i32",
+        "underground_routes:_heap_insert",
+        "underground_routes:_heap_take",
+        "underground_routes:_spend"
+      ],
+      "underground_room_itinerary:_relax": [
+        "underground_room_itinerary:_edge_profile",
+        "underground_routes:_edge_i64",
+        "underground_routes:_edge_pair",
+        "underground_routes:_first_edge_index",
+        "underground_routes:_path_edge_current",
+        "underground_routes:_path_location_live",
+        "underground_routes:_path_terms_match",
+        "underground_routes:_relax",
+        "underground_routes:_spend"
+      ],
+      "underground_room_itinerary:_edge_profile": [
+        "underground_room_itinerary:_compatible",
+        "underground_routes:_committed_mask_refusal",
+        "underground_routes:_spend",
+        "underground_world_routes.Certificates:admits",
+        "underground_world_routes:_reach_descriptor"
+      ],
+      "underground_room_itinerary:_compatible": [
+        "source_program:profile_refusal",
+        "underground_profiles:selection_policy_leaf"
+      ],
+      "underground_routes:_committed_mask_refusal": [
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_spend": [],
+      "underground_world_routes.Certificates:admits": [],
+      "underground_world_routes:_reach_descriptor": [],
+      "underground_routes:_edge_i64": [],
+      "underground_routes:_edge_pair": [],
+      "underground_routes:_first_edge_index": [
+        "underground_routes:_edge_pair",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_path_edge_current": [
+        "underground_profiles:content_revision",
+        "underground_space_owner:revision"
+      ],
+      "underground_profiles:content_revision": [],
+      "underground_space_owner:revision": [],
+      "underground_routes:_path_location_live": [
+        "underground_locations:_live_ref",
+        "underground_locations:is_live_location"
+      ],
+      "underground_locations:is_live_location": [
+        "underground_locations:_live_ref",
+        "underground_locations:world_ref"
+      ],
+      "underground_locations:world_ref": [
+        "entity_directory:is_valid"
+      ],
+      "entity_directory:is_valid": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "entity_directory:is_valid_of_kind": [],
+      "underground_routes:_path_terms_match": [],
+      "underground_routes:_relax": [
+        "underground_routes:_heap_insert",
+        "underground_routes:_heap_up"
+      ],
+      "underground_routes:_heap_insert": [
+        "underground_routes:_heap_up"
+      ],
+      "underground_routes:_heap_up": [
+        "underground_routes:_heap_swap",
+        "underground_routes:_node_less",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_heap_swap": [],
+      "underground_routes:_node_less": [],
+      "underground_routes:_collect_path": [
+        "underground_routes:_edge_i32",
+        "underground_routes:_edge_pair",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_edge_i32": [],
+      "underground_routes:_heap_take": [
+        "underground_routes:_heap_swap",
+        "underground_routes:_node_less",
+        "underground_routes:_spend"
+      ],
+      "underground_room_itinerary:_sources": [
+        "underground_locations:_ref_at",
+        "underground_room_itinerary:_edge_profile",
+        "underground_routes:_edge_i32",
+        "underground_routes:_edge_pair",
+        "underground_routes:_spend",
+        "underground_world_routes:_reach_endpoint_refusal",
+        "underground_world_routes:_reach_section_refusal"
+      ],
+      "underground_locations:_ref_at": [],
+      "underground_world_routes:_reach_endpoint_refusal": [
+        "underground_locations:_live_ref",
+        "underground_locations:_ref_at",
+        "underground_routes:_spend",
+        "underground_space_owner:_region_live",
+        "underground_world_routes:_reach_section_refusal"
+      ],
+      "underground_space_owner:_region_live": [],
+      "underground_world_routes:_reach_section_refusal": [
+        "underground_locations:_resolve_section_refusal",
+        "underground_routes:_spend",
+        "underground_space_owner:_region_live"
+      ],
+      "underground_locations:_resolve_section_refusal": [
+        "underground_locations:_resolve_room_source_refusal",
+        "underground_locations:_resolve_source_row",
+        "underground_space_owner:_region_live"
+      ],
+      "underground_locations:_resolve_room_source_refusal": [
+        "entity_directory:get_typed_row",
+        "entity_directory:is_valid_of_kind"
+      ],
+      "entity_directory:get_typed_row": [
+        "entity_directory:is_valid"
+      ],
+      "underground_locations:_resolve_source_row": [],
+      "underground_routes:_path_chain_refusal": [
+        "underground_routes:_edge_i64",
+        "underground_routes:_edge_pair",
+        "underground_routes:_live_edge",
+        "underground_routes:_path_location_live",
+        "underground_routes:_spend"
+      ],
+      "underground_routes:_live_edge": [],
+      "underground_world_routes:_reach_stores_refusal": [
+        "underground_final_facts:_same_domain",
+        "underground_final_facts:_stores_refusal",
+        "underground_world_routes:_reach_content_refusal",
+        "underground_world_routes:_reach_level_domain",
+        "underground_world_routes:_reach_profile_owners",
+        "underground_world_routes:_reach_world"
+      ],
+      "underground_final_facts:_same_domain": [],
+      "underground_final_facts:_stores_refusal": [
+        "underground_final_facts:_location_binding",
+        "underground_final_facts:_same_domain"
+      ],
+      "underground_final_facts:_location_binding": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "underground_world_routes:_reach_content_refusal": [
+        "underground_connector_source_facts:_same_actual_owners",
+        "underground_connector_source_facts:_source_storage_matches",
+        "underground_connector_source_facts:refusal",
+        "underground_world_routes:_immutable_owners_match"
+      ],
+      "underground_connector_source_facts:_same_actual_owners": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "underground_connector_source_facts:_source_storage_matches": [],
+      "underground_connector_source_facts:refusal": [
+        "underground_connector_source_facts:_same_actual_owners",
+        "underground_connector_source_facts:_source_digests_match",
+        "underground_connector_source_facts:_source_storage_matches"
+      ],
+      "underground_connector_source_facts:_source_digests_match": [],
+      "underground_world_routes:_immutable_owners_match": [],
+      "underground_world_routes:_reach_level_domain": [],
+      "underground_world_routes:_reach_profile_owners": [],
+      "underground_world_routes:_reach_world": [
+        "entity_directory:is_valid_of_kind"
+      ],
+      "underground_world_routes:_reach_entry_refusal": [
+        "underground_routes:_reject_callback"
+      ],
+      "underground_routes:_reject_callback": []
+    },
+    "native_queries": {
+      "underground_room_itinerary:reachability_refusal": [
+        "actual._locations_ref.get_ref",
+        "actual._owner_ref.get_ref",
+        "actual._routes_ref.get_ref",
+        "actual._sources_ref.get_ref"
+      ],
+      "underground_room_itinerary:_implementations": [
+        "actual._profiles.get_script",
+        "actual.get_script",
+        "graph.get_script",
+        "locations._ids.get_script",
+        "locations.get_script",
+        "owner.get_script"
+      ],
+      "underground_room_itinerary:_search": [
+        "actual._locations_ref.get_ref",
+        "actual._owner_ref.get_ref",
+        "actual._routes_ref.get_ref"
+      ],
+      "underground_locations:_live_ref": [],
+      "underground_room_itinerary:_anchor_refusal": [],
+      "source_program:profile_refusal": [
+        "ACTOR_SHA.unicode_at"
+      ],
+      "underground_profiles:selection_policy_leaf": [],
+      "underground_room_itinerary:_find": [
+        "Vector2i",
+        "actual._routes_ref.get_ref",
+        "graph._distance.fill",
+        "graph._heap_position.fill",
+        "graph._predecessor.fill",
+        "graph._search_state.fill"
+      ],
+      "underground_room_itinerary:_relax": [
+        "actual._routes_ref.get_ref"
+      ],
+      "underground_room_itinerary:_edge_profile": [
+        "actual._routes_ref.get_ref"
+      ],
+      "underground_room_itinerary:_compatible": [
+        "range"
+      ],
+      "underground_routes:_committed_mask_refusal": [
+        "certificate._routes_ref.get_ref"
+      ],
+      "underground_routes:_spend": [],
+      "underground_world_routes.Certificates:admits": [],
+      "underground_world_routes:_reach_descriptor": [
+        "bank.fields.size",
+        "bank.flags.size",
+        "bank.header.size",
+        "bank.quantities.size"
+      ],
+      "underground_routes:_edge_i64": [],
+      "underground_routes:_edge_pair": [
+        "Vector2i"
+      ],
+      "underground_routes:_first_edge_index": [],
+      "underground_routes:_path_edge_current": [],
+      "underground_profiles:content_revision": [],
+      "underground_space_owner:revision": [],
+      "underground_routes:_path_location_live": [],
+      "underground_locations:is_live_location": [],
+      "underground_locations:world_ref": [],
+      "entity_directory:is_valid": [],
+      "entity_directory:is_valid_of_kind": [],
+      "underground_routes:_path_terms_match": [],
+      "underground_routes:_relax": [],
+      "underground_routes:_heap_insert": [],
+      "underground_routes:_heap_up": [],
+      "underground_routes:_heap_swap": [],
+      "underground_routes:_node_less": [],
+      "underground_routes:_collect_path": [],
+      "underground_routes:_edge_i32": [],
+      "underground_routes:_heap_take": [],
+      "underground_room_itinerary:_sources": [
+        "actual._locations_ref.get_ref",
+        "actual._owner_ref.get_ref",
+        "actual._routes_ref.get_ref"
+      ],
+      "underground_locations:_ref_at": [
+        "Vector2i"
+      ],
+      "underground_world_routes:_reach_endpoint_refusal": [
+        "Vector2i",
+        "Vector3i"
+      ],
+      "underground_space_owner:_region_live": [],
+      "underground_world_routes:_reach_section_refusal": [
+        "Vector2i",
+        "Vector3i"
+      ],
+      "underground_locations:_resolve_section_refusal": [],
+      "underground_locations:_resolve_room_source_refusal": [
+        "_buildings._r_present.size"
+      ],
+      "entity_directory:get_typed_row": [],
+      "underground_locations:_resolve_source_row": [],
+      "underground_routes:_path_chain_refusal": [
+        "Vector2i"
+      ],
+      "underground_routes:_live_edge": [],
+      "underground_world_routes:_reach_stores_refusal": [
+        "catalog._live.header.size",
+        "catalog._live.variant_revisions.size"
+      ],
+      "underground_final_facts:_same_domain": [],
+      "underground_final_facts:_stores_refusal": [],
+      "underground_final_facts:_location_binding": [],
+      "underground_world_routes:_reach_content_refusal": [
+        "catalog._live.digests.size"
+      ],
+      "underground_connector_source_facts:_same_actual_owners": [
+        "Vector2i",
+        "actual._levels._identity.size"
+      ],
+      "underground_connector_source_facts:_source_storage_matches": [
+        "actual._levels._digest.size",
+        "actual._profiles._live.header.size",
+        "actual._profiles._live.sources.size"
+      ],
+      "underground_connector_source_facts:refusal": [
+        "actual._live.digests.size",
+        "actual._live.header.size",
+        "actual._live.variant_revisions.size",
+        "expected_digest.size"
+      ],
+      "underground_connector_source_facts:_source_digests_match": [],
+      "underground_world_routes:_immutable_owners_match": [
+        "actual._catalog.get_instance_id",
+        "actual._levels.get_instance_id",
+        "actual._profiles.get_instance_id"
+      ],
+      "underground_world_routes:_reach_level_domain": [
+        "levels._identity.size"
+      ],
+      "underground_world_routes:_reach_profile_owners": [
+        "profiles._reservations._bound_inventory.get_ref"
+      ],
+      "underground_world_routes:_reach_world": [
+        "terrain._sources.get_ref",
+        "terrain._space.get_ref"
+      ],
+      "underground_world_routes:_reach_entry_refusal": [
+        "out.size"
+      ],
+      "underground_routes:_reject_callback": []
+    },
+    "frames": {
+      "entity_directory:get_typed_row": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "entity_directory:is_valid": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "entity_directory:is_valid_of_kind": {
+        "numeric_bytes": 40,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ],
+          [
+            "expected_kind",
+            "int"
+          ],
+          [
+            "slot",
+            "int"
+          ],
+          [
+            "kind",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "source_program:profile_refusal": {
+        "numeric_bytes": 88,
+        "numeric_fields": [
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ],
+          [
+            "wanted",
+            "int"
+          ],
+          [
+            "yaw",
+            "int"
+          ],
+          [
+            "stride",
+            "int"
+          ],
+          [
+            "source",
+            "int"
+          ],
+          [
+            "byte",
+            "int"
+          ],
+          [
+            "high",
+            "int"
+          ],
+          [
+            "low",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "Profiles"
+          ]
+        ]
+      },
+      "underground_connector_source_facts:_same_actual_owners": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "world",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "Catalog"
+          ],
+          [
+            "ids",
+            "Directory"
+          ]
+        ]
+      },
+      "underground_connector_source_facts:_source_digests_match": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "source_offset",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "Catalog"
+          ]
+        ]
+      },
+      "underground_connector_source_facts:_source_storage_matches": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "source_id",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "Catalog"
+          ]
+        ]
+      },
+      "underground_connector_source_facts:refusal": {
+        "numeric_bytes": 40,
+        "numeric_fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "variant_revision",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "digest_offset",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "Catalog"
+          ],
+          [
+            "expected_digest",
+            "PackedByteArray"
+          ]
+        ]
+      },
+      "underground_final_facts:_location_binding": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "Locations"
+          ],
+          [
+            "owner",
+            "Owner"
+          ]
+        ]
+      },
+      "underground_final_facts:_same_domain": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "first",
+            "Space.Domain"
+          ],
+          [
+            "second",
+            "Space.Domain"
+          ]
+        ]
+      },
+      "underground_final_facts:_stores_refusal": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "routes",
+            "Routes"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "sources",
+            "Owner.CoreSources"
+          ]
+        ]
+      },
+      "underground_locations:_live_ref": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "bank",
+            "Bank"
+          ]
+        ]
+      },
+      "underground_locations:_ref_at": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "field",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "bank",
+            "Bank"
+          ]
+        ]
+      },
+      "underground_locations:_resolve_room_source_refusal": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "room",
+            "Vector2i"
+          ],
+          [
+            "source",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_locations:_resolve_section_refusal": {
+        "numeric_bytes": 52,
+        "numeric_fields": [
+          [
+            "room",
+            "Vector2i"
+          ],
+          [
+            "section",
+            "Vector2i"
+          ],
+          [
+            "level",
+            "int"
+          ],
+          [
+            "point",
+            "Vector3i"
+          ],
+          [
+            "source_ref",
+            "Vector2i"
+          ],
+          [
+            "source",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_locations:_resolve_source_row": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ],
+          [
+            "found",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_locations:is_live_location": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "location",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_locations:world_ref": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": []
+      },
+      "underground_profiles:content_revision": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": []
+      },
+      "underground_profiles:selection_policy_leaf": {
+        "numeric_bytes": 32,
+        "numeric_fields": [
+          [
+            "profile_id",
+            "int"
+          ],
+          [
+            "profile_revision",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_anchor_refusal": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "profiles",
+            "Profiles"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_compatible": {
+        "numeric_bytes": 48,
+        "numeric_fields": [
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "stride",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ],
+          [
+            "field",
+            "int"
+          ],
+          [
+            "policy",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "profiles",
+            "Profiles"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_edge_profile": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "edge",
+            "int"
+          ],
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "profiles",
+            "Profiles"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_find": {
+        "numeric_bytes": 40,
+        "numeric_fields": [
+          [
+            "first",
+            "Vector2i"
+          ],
+          [
+            "last",
+            "Vector2i"
+          ],
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "node",
+            "int"
+          ],
+          [
+            "generation",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_implementations": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_relax": {
+        "numeric_bytes": 64,
+        "numeric_fields": [
+          [
+            "origin",
+            "Vector2i"
+          ],
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "next",
+            "Vector2i"
+          ],
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "length",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "graph",
+            "Routes"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_search": {
+        "numeric_bytes": 40,
+        "numeric_fields": [
+          [
+            "first",
+            "Vector2i"
+          ],
+          [
+            "last",
+            "Vector2i"
+          ],
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_room_itinerary:_sources": {
+        "numeric_bytes": 48,
+        "numeric_fields": [
+          [
+            "first",
+            "Vector2i"
+          ],
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "section",
+            "Vector2i"
+          ],
+          [
+            "index",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ],
+          [
+            "next",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_room_itinerary:reachability_refusal": {
+        "numeric_bytes": 48,
+        "numeric_fields": [
+          [
+            "first",
+            "Vector2i"
+          ],
+          [
+            "last",
+            "Vector2i"
+          ],
+          [
+            "anchor",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "checks",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "WorldRoutes"
+          ],
+          [
+            "out",
+            "PackedInt32Array"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "sources",
+            "Owner.CoreSources"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_routes:_collect_path": {
+        "numeric_bytes": 32,
+        "numeric_fields": [
+          [
+            "first",
+            "Vector2i"
+          ],
+          [
+            "last",
+            "Vector2i"
+          ],
+          [
+            "cursor",
+            "Vector2i"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_committed_mask_refusal": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "byte",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "certificate",
+            "RefCounted"
+          ],
+          [
+            "descriptor",
+            "Profiles.Descriptor"
+          ],
+          [
+            "bank",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:_edge_i32": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "field",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "bank",
+            "EdgeBank"
+          ]
+        ]
+      },
+      "underground_routes:_edge_i64": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "field",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "bank",
+            "EdgeBank"
+          ]
+        ]
+      },
+      "underground_routes:_edge_pair": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "field",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "bank",
+            "EdgeBank"
+          ]
+        ]
+      },
+      "underground_routes:_first_edge_index": {
+        "numeric_bytes": 40,
+        "numeric_fields": [
+          [
+            "origin",
+            "Vector2i"
+          ],
+          [
+            "low",
+            "int"
+          ],
+          [
+            "high",
+            "int"
+          ],
+          [
+            "middle",
+            "int"
+          ],
+          [
+            "ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_heap_insert": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "node",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_heap_swap": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "first",
+            "int"
+          ],
+          [
+            "second",
+            "int"
+          ],
+          [
+            "old",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_heap_take": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "node",
+            "int"
+          ],
+          [
+            "parent",
+            "int"
+          ],
+          [
+            "child",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_heap_up": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "index",
+            "int"
+          ],
+          [
+            "parent",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_live_edge": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "bank",
+            "EdgeBank"
+          ]
+        ]
+      },
+      "underground_routes:_node_less": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "first",
+            "int"
+          ],
+          [
+            "second",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_path_chain_refusal": {
+        "numeric_bytes": 64,
+        "numeric_fields": [
+          [
+            "first",
+            "Vector2i"
+          ],
+          [
+            "last",
+            "Vector2i"
+          ],
+          [
+            "geometry",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "endpoint",
+            "Vector2i"
+          ],
+          [
+            "index",
+            "int"
+          ],
+          [
+            "offset",
+            "int"
+          ],
+          [
+            "edge",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "certificate",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:_path_edge_current": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "geometry",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "certificate",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:_path_location_live": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "certificate",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_routes:_path_terms_match": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "mode",
+            "int"
+          ],
+          [
+            "posture",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_reject_callback": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_relax": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "node",
+            "int"
+          ],
+          [
+            "edge",
+            "int"
+          ],
+          [
+            "distance",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_routes:_spend": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "count",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_space_owner:_region_live": {
+        "numeric_bytes": 9,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ],
+          [
+            "staged",
+            "bool"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_space_owner:revision": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": []
+      },
+      "underground_world_routes.Certificates:admits": {
+        "numeric_bytes": 24,
+        "numeric_fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "profile",
+            "int"
+          ],
+          [
+            "byte",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": []
+      },
+      "underground_world_routes:_immutable_owners_match": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_content_refusal": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "catalog",
+            "Catalog"
+          ],
+          [
+            "code",
+            "StringName"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_descriptor": {
+        "numeric_bytes": 40,
+        "numeric_fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "revision",
+            "int"
+          ],
+          [
+            "content",
+            "int"
+          ],
+          [
+            "capacity",
+            "int"
+          ],
+          [
+            "mode",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "profiles",
+            "Profiles"
+          ],
+          [
+            "bank",
+            "Profiles.Bank"
+          ],
+          [
+            "descriptor",
+            "Profiles.Descriptor"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_endpoint_refusal": {
+        "numeric_bytes": 60,
+        "numeric_fields": [
+          [
+            "ref",
+            "Vector2i"
+          ],
+          [
+            "checked_section",
+            "Vector2i"
+          ],
+          [
+            "stride",
+            "int"
+          ],
+          [
+            "section",
+            "Vector2i"
+          ],
+          [
+            "room",
+            "Vector2i"
+          ],
+          [
+            "level",
+            "int"
+          ],
+          [
+            "point",
+            "Vector3i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "bank",
+            "Locations.Bank"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_entry_refusal": {
+        "numeric_bytes": 8,
+        "numeric_fields": [
+          [
+            "checks",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "sources",
+            "Owner.CoreSources"
+          ],
+          [
+            "out",
+            "PackedInt32Array"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_level_domain": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "axis",
+            "int"
+          ],
+          [
+            "index",
+            "int"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "levels",
+            "Levels"
+          ],
+          [
+            "domain",
+            "Space.Domain"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_profile_owners": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "profiles",
+            "Profiles"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_section_refusal": {
+        "numeric_bytes": 16,
+        "numeric_fields": [
+          [
+            "section",
+            "Vector2i"
+          ],
+          [
+            "room",
+            "Vector2i"
+          ]
+        ],
+        "borrowed_or_interned": [
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_stores_refusal": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "graph",
+            "Routes"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "catalog",
+            "Catalog"
+          ]
+        ]
+      },
+      "underground_world_routes:_reach_world": {
+        "numeric_bytes": 0,
+        "numeric_fields": [],
+        "borrowed_or_interned": [
+          [
+            "actual",
+            "RefCounted"
+          ],
+          [
+            "owner",
+            "Owner"
+          ],
+          [
+            "locations",
+            "Locations"
+          ],
+          [
+            "world",
+            "World"
+          ],
+          [
+            "terrain",
+            "Terrain"
+          ]
+        ]
+      }
+    }
+  },
+  "world_routes_controls": {
+    "fixed": {
+      "owner_numeric": 205,
+      "Domain_numeric": 68,
+      "Descriptor_numeric": 184,
+      "two_Profile_Box_numeric": 64,
+      "Location_Record_numeric": 68,
+      "Region_numeric": 48,
+      "Edge_numeric": 120,
+      "IntResult_numeric": 9,
+      "packed_scratch_and_Domain_bounds": 192
+    },
+    "fixed_sum": 958,
+    "existing_constant_payloads": {
+      "NULL_REF": 8,
+      "MASK_BYTES": 8,
+      "EDGE_CAPACITY": 8,
+      "CERTIFICATE_BYTES": 8,
+      "CONTROL_RESERVE": 8,
+      "RESERVED_BYTES": 8,
+      "FRAGMENT_CAPACITY": 8,
+      "SNAPSHOT_BYTES": 8,
+      "COLD_BYTES": 8,
+      "SOURCE_PASS_CHECKS": 8,
+      "REACH_SCOPE_CHECKS": 8,
+      "REACH_WITNESS_CHECKS": 8,
+      "REFUSE_BINDING": 80,
+      "REFUSE_CONTEXT": 80,
+      "REFUSE_BUDGET": 92,
+      "REFUSE_BUSY": 68,
+      "REFUSE_COVERAGE": 84
+    },
+    "new_itinerary_constant_payloads": {
+      "NULL_REF": 8,
+      "REFUSE_FAMILY": 116
+    },
+    "one_sequential_helper_reserve": 512,
+    "logical_subtotal": 2094,
+    "unchanged_control_reserve": 4096,
+    "remaining_provisional_native_reference_bytes": 2002,
+    "native_measured": false
+  },
+  "callers": {
+    "underground_room_world_bindings": {
+      "active_prefix": {
+        "bytes": 169,
+        "chain": [
+          "underground_room_world_bindings:worker_refusal",
+          "underground_room_world_bindings:_ordinary_live_contact",
+          "underground_room_world_bindings:_ordinary_resources",
+          "underground_room_world_bindings:_ordinary_observe_storage",
+          "underground_room_world_bindings:_ordinary_path"
+        ]
+      },
+      "maximum_own_chain": {
+        "bytes": 272,
+        "chain": [
+          "underground_room_world_bindings:worker_refusal",
+          "underground_room_world_bindings:_ordinary_live_contact",
+          "underground_room_world_bindings:_ordinary_select",
+          "underground_room_world_bindings:_ordinary_unique_contact",
+          "underground_room_world_bindings:_ordinary_contact_face",
+          "underground_room_world_bindings:_ordinary_box",
+          "underground_room_world_bindings:_ordinary_location"
+        ]
+      },
+      "complete_itinerary_declared_bytes": 553,
+      "itinerary_counted_once_in_world_routes_helper": true
+    },
+    "underground_room_frontier": {
+      "active_prefix": {
+        "bytes": 72,
+        "chain": [
+          "underground_room_frontier:contact_into",
+          "underground_room_frontier:_observe",
+          "underground_room_frontier:_path"
+        ]
+      },
+      "maximum_own_chain": {
+        "bytes": 144,
+        "chain": [
+          "underground_room_frontier:contact_into",
+          "underground_room_frontier:_observe",
+          "underground_room_frontier:_select",
+          "underground_room_frontier:_face",
+          "underground_room_frontier:_field"
+        ]
+      },
+      "complete_itinerary_declared_bytes": 456,
+      "itinerary_counted_once_in_world_routes_helper": true
+    }
+  },
+  "provider": {
+    "retained_numeric_payload": 218,
+    "existing_helper": 512,
+    "included_provisional_native": 256,
+    "accounted": 986,
+    "reserve": 1024,
+    "existing_non_itinerary_complete_helper_evidence": 485
+  },
+  "frontier": {
+    "caller_and_private_packet_payload": 430,
+    "existing_complete_helper": 1024,
+    "current_complete_helper_bound": 784,
+    "included_provisional_native": 512,
+    "accounted": 1966,
+    "cold_reserve": 2048,
+    "existing_work_face_peak": 378880,
+    "total_existing_cold_peak": 380928
+  },
+  "nonoverlapping_existing_helpers": {
+    "single_profile_search": {
+      "bytes": 336,
+      "chain": [
+        "underground_world_routes:profile_reachability_refusal",
+        "underground_world_routes:_reach_search",
+        "underground_world_routes:_reach_sources_refusal",
+        "underground_world_routes:_reach_endpoint_refusal",
+        "underground_world_routes:_reach_section_refusal",
+        "underground_locations:_resolve_section_refusal",
+        "underground_locations:_resolve_room_source_refusal",
+        "entity_directory:get_typed_row",
+        "entity_directory:is_valid",
+        "entity_directory:is_valid_of_kind"
+      ]
+    },
+    "physical_occupancy": {
+      "bytes": 104,
+      "chain": [
+        "underground_world_routes:workpiece_occupancy_refusal",
+        "underground_world_routes:_reach_stores_refusal",
+        "underground_world_routes:_reach_content_refusal",
+        "underground_connector_source_facts:refusal",
+        "underground_connector_source_facts:_same_actual_owners",
+        "entity_directory:is_valid_of_kind"
+      ]
+    },
+    "turns": {
+      "observed_tool": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_observe",
+          "underground_routes:_current_profile_into",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_tool",
+          "gear:owner_of",
+          "gear:_resolve_row",
+          "gear:_resolve_row_by_lot_slot"
+        ],
+        "bytes": 440,
+        "allowance": 48
+      },
+      "observed_cargo": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_observe",
+          "underground_routes:_current_profile_into",
+          "underground_routes:_actor_profile_into",
+          "underground_profiles:query_into",
+          "underground_profiles:_prepare_query",
+          "underground_profiles:_read_dynamic",
+          "underground_profiles:_read_cargo",
+          "haul_carry:carried_lot",
+          "haul_carry:satchel_of",
+          "haul_carry:_owns_live_satchel",
+          "inventory:is_satchel",
+          "inventory:is_container_valid"
+        ],
+        "bytes": 464,
+        "allowance": 48
+      },
+      "actual_foundation": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_body_leaf",
+          "underground_terrain:_local_tiles_refusal",
+          "underground_terrain:_local_tile",
+          "underground_terrain:_local_building",
+          "underground_terrain:_building_extent",
+          "buildings:spatial_identity_into",
+          "buildings:_building_row_of",
+          "entity_directory:get_typed_row",
+          "entity_directory:is_valid",
+          "entity_directory:is_valid_of_kind"
+        ],
+        "bytes": 420,
+        "allowance": 48
+      },
+      "retained_resident_transit": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_final_facts:snapshot_refusal",
+          "underground_final_facts:_sources_refusal",
+          "underground_final_facts:_resident_into",
+          "underground_final_facts:_resident_location_refusal",
+          "underground_final_facts:_transit_refusal",
+          "underground_routes:_interpolate"
+        ],
+        "bytes": 332,
+        "allowance": 48
+      },
+      "current_occupant_identity": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_occupants",
+          "underground_routes:turn_selection_into",
+          "underground_routes:_turn_dynamic_leaf",
+          "underground_routes:_turn_identity_leaf",
+          "underground_routes:_turn_pose_leaf"
+        ],
+        "bytes": 280,
+        "allowance": 48
+      },
+      "current_occupant_tool": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_occupants",
+          "underground_routes:turn_selection_into",
+          "underground_routes:_turn_dynamic_leaf",
+          "underground_routes:_turn_tool_leaf",
+          "gear:_resolve_row",
+          "gear:_resolve_row_by_lot_slot"
+        ],
+        "bytes": 312,
+        "allowance": 48
+      },
+      "current_occupant_cargo": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_occupants",
+          "underground_routes:turn_selection_into",
+          "underground_routes:_turn_dynamic_leaf",
+          "underground_routes:_turn_cargo_leaf"
+        ],
+        "bytes": 264,
+        "allowance": 48
+      },
+      "missing_occupant_registration": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_occupants",
+          "underground_world_routes:_turn_unregistered_refusal",
+          "underground_routes:_turn_directory_row"
+        ],
+        "bytes": 176,
+        "allowance": 48
+      },
+      "occupant_volume_pair": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_occupants",
+          "underground_world_routes:_turn_occupant_boxes",
+          "underground_world_routes:_sweep_into"
+        ],
+        "bytes": 200,
+        "allowance": 48
+      },
+      "support_stance": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_body_leaf",
+          "underground_world_routes:_turn_body_contained",
+          "underground_world_routes:_sweep_into"
+        ],
+        "bytes": 240,
+        "allowance": 48
+      },
+      "stationary_commit": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_routes:commit_stationary_turn",
+          "transforms:turn_stationary_preflighted",
+          "transforms:_stationary_row"
+        ],
+        "bytes": 189,
+        "allowance": 48
+      },
+      "complete_current_final": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_final",
+          "underground_world_routes:_turn_body_leaf",
+          "underground_terrain:_local_tiles_refusal",
+          "underground_terrain:_local_tile",
+          "underground_terrain:_local_building",
+          "underground_terrain:_building_extent",
+          "buildings:spatial_identity_into",
+          "buildings:_building_row_of",
+          "entity_directory:get_typed_row",
+          "entity_directory:is_valid",
+          "entity_directory:is_valid_of_kind"
+        ],
+        "bytes": 420,
+        "allowance": 48
+      },
+      "current_source_clock": {
+        "chain": [
+          "underground_world_routes:turn_actor",
+          "underground_world_routes:_turn_run",
+          "underground_world_routes:_turn_actor_scope",
+          "underground_routes:_source_clock_leaf",
+          "source_program:profile_refusal",
+          "underground_profiles:selection_policy_leaf"
+        ],
+        "bytes": 296,
+        "allowance": 48
+      }
+    },
+    "allowance": 48,
+    "all_resident_source_admission_and_tick_helpers": "The separate existing1156 Profile control slice owns its632B complete dynamic source chain; no copy or extra charge here."
+  },
+  "static_certificate_specialization": "Both static entries pass the actual non-null WorldRoutes certificate through _find_path and _relax_edges. The complete declared _path_profile_refusal frame is counted, but only its first committed-mask branch is reachable. Propagation and branch ordering are checked from source; the separate dynamic actor branch is not silently added or omitted from an eligible lifetime.",
+  "reused_storage": {
+    "Dijkstra_arrays": {
+      "_distance": {
+        "type": "PackedInt64Array",
+        "bytes_per_location": 8
+      },
+      "_predecessor": {
+        "type": "PackedInt32Array",
+        "bytes_per_location": 4
+      },
+      "_heap_node": {
+        "type": "PackedInt32Array",
+        "bytes_per_location": 4
+      },
+      "_heap_position": {
+        "type": "PackedInt32Array",
+        "bytes_per_location": 4
+      },
+      "_search_state": {
+        "type": "PackedByteArray",
+        "bytes_per_location": 1
+      },
+      "_proposed_edges": {
+        "type": "PackedInt32Array",
+        "bytes_per_location": 8
+      }
+    },
+    "Dijkstra_1024_locations_bytes": 29696,
+    "WorldRoutes_two_certificate_banks_bytes": 159744,
+    "new_Profile_Descriptor": false,
+    "new_Result": false,
+    "new_Path": false,
+    "new_Selection": false,
+    "caller_remaining_i32_bytes": 4,
+    "caller_remaining_counted_in_existing_packets": true,
+    "SourceProgram_constants_shared_once_under_Profile_controls": 640,
+    "inherited_entry_binding_reserve_unchanged_not_part_of_new_Provider_1024": 2048,
+    "shared_PhaseContext_bytes_already_in_Placement": 128
+  },
+  "other_current_frames": {
+    "building_definitions:footprint_x_of": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "type_id",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "building_definitions:footprint_z_of": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "type_id",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "building_definitions:is_building_id": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "type_id",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:_building_row_of": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "building_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:_room_row_of": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "room_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:building_at_tile": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:building_ref_of_row": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:definitions": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "buildings:is_live_room": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "room_ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:is_tile_index": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "buildings:spatial_identity_into": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "building_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "entity_directory:get_kind": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "entity_directory:get_typed_row": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "entity_directory:is_valid": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "entity_directory:is_valid_of_kind": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "expected_kind",
+          "int"
+        ],
+        [
+          "slot",
+          "int"
+        ],
+        [
+          "kind",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "gear:_resolve_row": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "lot_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "gear:_resolve_row_by_lot_slot": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "lot_slot",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "int_math.IntResult:refuse": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "p_error",
+          "String"
+        ]
+      ]
+    },
+    "int_math.IntResult:succeed": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "p_value",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "needs:_check_live_slot": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "needs:_check_present_slot": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "needs:is_alive": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "residents:is_alive": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "residents:is_present": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "resource_nodes:has_node_at_tile": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "resource_nodes:is_present": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "resource_nodes:is_tile_index": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "resource_nodes:ref_at_tile": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "resource_nodes:ref_of": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "resource_nodes:spatial_facts_into": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "PackedInt64Array"
+        ]
+      ]
+    },
+    "room_space.Value:int32": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "value",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "room_space.Value:valid_box": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "box",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "room_space.Value:valid_ref": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "room_space:contains_box": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "axis",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "outer",
+          "PackedInt32Array"
+        ],
+        [
+          "inner",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "room_space:int32": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "value",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "room_space:overlaps": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "axis",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "a",
+          "PackedInt32Array"
+        ],
+        [
+          "b",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "room_space:valid_box": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "box",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "room_space:valid_ref": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "source_program:clock_refusal": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "source_word",
+          "int"
+        ],
+        [
+          "source_clock",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "phase",
+          "int"
+        ],
+        [
+          "time",
+          "int"
+        ],
+        [
+          "old",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "source_program:profile_refusal": {
+      "numeric_bytes": 88,
+      "numeric_fields": [
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ],
+        [
+          "wanted",
+          "int"
+        ],
+        [
+          "yaw",
+          "int"
+        ],
+        [
+          "stride",
+          "int"
+        ],
+        [
+          "source",
+          "int"
+        ],
+        [
+          "byte",
+          "int"
+        ],
+        [
+          "high",
+          "int"
+        ],
+        [
+          "low",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Profiles"
+        ]
+      ]
+    },
+    "source_program:work_duration": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "profile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_connector_source_facts:_same_actual_owners": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "world",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Catalog"
+        ],
+        [
+          "ids",
+          "Directory"
+        ]
+      ]
+    },
+    "underground_connector_source_facts:_source_digests_match": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "source_offset",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Catalog"
+        ]
+      ]
+    },
+    "underground_connector_source_facts:_source_storage_matches": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "source_id",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Catalog"
+        ]
+      ]
+    },
+    "underground_connector_source_facts:refusal": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "variant_revision",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "digest_offset",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Catalog"
+        ],
+        [
+          "expected_digest",
+          "PackedByteArray"
+        ]
+      ]
+    },
+    "underground_final_facts:_binding_refusal": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "revision",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "routes",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_final_facts:_claims_refusal": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "kind",
+          "int"
+        ],
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "expected",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_final_facts:_copy_pose": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "transforms",
+          "Transforms"
+        ],
+        [
+          "out",
+          "Transforms.Pose"
+        ]
+      ]
+    },
+    "underground_final_facts:_facts_refusal": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "facts",
+          "Owner.Facts"
+        ]
+      ]
+    },
+    "underground_final_facts:_location_binding": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Locations"
+        ],
+        [
+          "owner",
+          "Owner"
+        ]
+      ]
+    },
+    "underground_final_facts:_required_checks": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "required",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "owner",
+          "Owner"
+        ]
+      ]
+    },
+    "underground_final_facts:_resident_into": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "out",
+          "Owner.Facts"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_final_facts:_resident_location_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "location",
+          "Vector2i"
+        ],
+        [
+          "room",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ]
+      ]
+    },
+    "underground_final_facts:_resident_pose_into": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "slot",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "position",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Routes"
+        ],
+        [
+          "ids",
+          "Directory"
+        ],
+        [
+          "transforms",
+          "Transforms"
+        ]
+      ]
+    },
+    "underground_final_facts:_same_domain": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "first",
+          "Space.Domain"
+        ],
+        [
+          "second",
+          "Space.Domain"
+        ]
+      ]
+    },
+    "underground_final_facts:_sources_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "routes",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_final_facts:_stores_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "routes",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ]
+      ]
+    },
+    "underground_final_facts:_transit_refusal": {
+      "numeric_bytes": 64,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "edge",
+          "Vector2i"
+        ],
+        [
+          "segment",
+          "int"
+        ],
+        [
+          "progress",
+          "int"
+        ],
+        [
+          "first",
+          "Vector3i"
+        ],
+        [
+          "second",
+          "Vector3i"
+        ],
+        [
+          "length",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Routes"
+        ]
+      ]
+    },
+    "underground_final_facts:record_matches": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "location",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "axis",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "Locations"
+        ],
+        [
+          "expected",
+          "Locations.Record"
+        ],
+        [
+          "owner",
+          "Owner"
+        ]
+      ]
+    },
+    "underground_final_facts:snapshot_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "expected_revision",
+          "int"
+        ],
+        [
+          "max_checks",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "routes",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_locations:_get32": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "Bank"
+        ]
+      ]
+    },
+    "underground_locations:_get64": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "Bank"
+        ]
+      ]
+    },
+    "underground_locations:_live_ref": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "Bank"
+        ]
+      ]
+    },
+    "underground_locations:_ref_at": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "Bank"
+        ]
+      ]
+    },
+    "underground_locations:_resolve_room_source_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "room",
+          "Vector2i"
+        ],
+        [
+          "source",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_locations:_resolve_section_refusal": {
+      "numeric_bytes": 52,
+      "numeric_fields": [
+        [
+          "room",
+          "Vector2i"
+        ],
+        [
+          "section",
+          "Vector2i"
+        ],
+        [
+          "level",
+          "int"
+        ],
+        [
+          "point",
+          "Vector3i"
+        ],
+        [
+          "source_ref",
+          "Vector2i"
+        ],
+        [
+          "source",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_locations:_resolve_source_row": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "found",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_locations:is_live_location": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "location",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_locations:world_ref": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_profiles:_field": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "field",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "Bank"
+        ]
+      ]
+    },
+    "underground_profiles:_long": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "field",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "Bank"
+        ]
+      ]
+    },
+    "underground_profiles:_matches": {
+      "numeric_bytes": 56,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "quantity",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_profiles:content_revision": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_profiles:selection_policy_leaf": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_anchor_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_compatible": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "stride",
+          "int"
+        ],
+        [
+          "field",
+          "int"
+        ],
+        [
+          "field",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_edge_profile": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "edge",
+          "int"
+        ],
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_find": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "node",
+          "int"
+        ],
+        [
+          "generation",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_implementations": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_relax": {
+      "numeric_bytes": 64,
+      "numeric_fields": [
+        [
+          "origin",
+          "Vector2i"
+        ],
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "next",
+          "Vector2i"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "length",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "graph",
+          "Routes"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_search": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_room_itinerary:_sources": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "section",
+          "Vector2i"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "next",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_room_itinerary:reachability_refusal": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "anchor",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "checks",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "WorldRoutes"
+        ],
+        [
+          "out",
+          "PackedInt32Array"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:_ceil_root": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "square",
+          "int"
+        ],
+        [
+          "bits",
+          "int"
+        ],
+        [
+          "remaining",
+          "int"
+        ],
+        [
+          "shift",
+          "int"
+        ],
+        [
+          "root",
+          "int"
+        ],
+        [
+          "next",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_collect_path": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "cursor",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_committed_mask_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "byte",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "certificate",
+          "RefCounted"
+        ],
+        [
+          "descriptor",
+          "Profiles.Descriptor"
+        ],
+        [
+          "bank",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_routes:_committed_selection": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "selection",
+          "Profiles.Selection"
+        ]
+      ]
+    },
+    "underground_routes:_edge_i32": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "EdgeBank"
+        ]
+      ]
+    },
+    "underground_routes:_edge_i64": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "EdgeBank"
+        ]
+      ]
+    },
+    "underground_routes:_edge_pair": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "EdgeBank"
+        ]
+      ]
+    },
+    "underground_routes:_find_path": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "node",
+          "int"
+        ],
+        [
+          "generation",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "query",
+          "ProfilePath"
+        ],
+        [
+          "certificate",
+          "RefCounted"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:_first_edge_index": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "origin",
+          "Vector2i"
+        ],
+        [
+          "low",
+          "int"
+        ],
+        [
+          "high",
+          "int"
+        ],
+        [
+          "middle",
+          "int"
+        ],
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_insert": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "node",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_swap": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "first",
+          "int"
+        ],
+        [
+          "second",
+          "int"
+        ],
+        [
+          "old",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_take": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "node",
+          "int"
+        ],
+        [
+          "parent",
+          "int"
+        ],
+        [
+          "child",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_heap_up": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "index",
+          "int"
+        ],
+        [
+          "parent",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_interpolate": {
+      "numeric_bytes": 76,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector3i"
+        ],
+        [
+          "second",
+          "Vector3i"
+        ],
+        [
+          "progress",
+          "int"
+        ],
+        [
+          "length",
+          "int"
+        ],
+        [
+          "out",
+          "Vector3i"
+        ],
+        [
+          "axis",
+          "int"
+        ],
+        [
+          "delta",
+          "int"
+        ],
+        [
+          "offset",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_live_edge": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bank",
+          "EdgeBank"
+        ]
+      ]
+    },
+    "underground_routes:_node_less": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "first",
+          "int"
+        ],
+        [
+          "second",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_path_chain_refusal": {
+      "numeric_bytes": 64,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "geometry",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "endpoint",
+          "Vector2i"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "offset",
+          "int"
+        ],
+        [
+          "edge",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "certificate",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_routes:_path_edge_current": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "geometry",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "certificate",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_routes:_path_location_live": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "certificate",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_routes:_path_profile_refusal": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "query",
+          "ProfilePath"
+        ],
+        [
+          "certificate",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_routes:_path_terms_match": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_physical_payload_matches": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "candidate",
+          "Profiles.Selection"
+        ]
+      ]
+    },
+    "underground_routes:_physical_profile_matches": {
+      "numeric_bytes": 56,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "stride",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "quantity",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_routes:_physical_tool_leaf": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "tool",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "at",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "gear",
+          "Gear"
+        ],
+        [
+          "inventory",
+          "Inventory"
+        ]
+      ]
+    },
+    "underground_routes:_reject_callback": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_relax": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "node",
+          "int"
+        ],
+        [
+          "edge",
+          "int"
+        ],
+        [
+          "distance",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_relax_edges": {
+      "numeric_bytes": 56,
+      "numeric_fields": [
+        [
+          "origin",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "next",
+          "Vector2i"
+        ],
+        [
+          "length",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "query",
+          "ProfilePath"
+        ],
+        [
+          "certificate",
+          "RefCounted"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:_resident_pair": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_resident_ref": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_same_selection": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "first",
+          "Profiles.Selection"
+        ],
+        [
+          "second",
+          "Profiles.Selection"
+        ]
+      ]
+    },
+    "underground_routes:_segment_length": {
+      "numeric_bytes": 64,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector3i"
+        ],
+        [
+          "second",
+          "Vector3i"
+        ],
+        [
+          "square",
+          "int"
+        ],
+        [
+          "nonzero",
+          "int"
+        ],
+        [
+          "largest",
+          "int"
+        ],
+        [
+          "axis",
+          "int"
+        ],
+        [
+          "delta",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_source_clock_leaf": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "policy",
+          "int"
+        ],
+        [
+          "phase",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:_spend": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "count",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:_turn_cargo_leaf": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ],
+        [
+          "count",
+          "int"
+        ],
+        [
+          "lot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "residents",
+          "Residents"
+        ],
+        [
+          "inventory",
+          "Inventory"
+        ]
+      ]
+    },
+    "underground_routes:_turn_directory_row": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "kind",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "ids",
+          "Directory"
+        ]
+      ]
+    },
+    "underground_routes:_turn_dynamic_leaf": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "code",
+          "StringName"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_routes:_turn_identity_leaf": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "species",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "residents",
+          "Residents"
+        ],
+        [
+          "key",
+          "StringName"
+        ],
+        [
+          "rig",
+          "StringName"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_routes:_turn_job_leaf": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "worker_row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "ids",
+          "Directory"
+        ],
+        [
+          "jobs",
+          "Jobs"
+        ]
+      ]
+    },
+    "underground_routes:_turn_pose_leaf": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "resident_row",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "pid",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "transforms",
+          "Transforms"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_routes:_turn_tool_leaf": {
+      "numeric_bytes": 56,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "tool",
+          "Vector2i"
+        ],
+        [
+          "at",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "work",
+          "RefCounted"
+        ],
+        [
+          "gear",
+          "Gear"
+        ],
+        [
+          "inventory",
+          "Inventory"
+        ]
+      ]
+    },
+    "underground_routes:_turn_write_selection": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "out",
+          "Profiles.Selection"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_routes:_vertex": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "ordinal",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:physical_selection_into": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "out",
+          "Profiles.Selection"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:turn_selection_into": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "out",
+          "Profiles.Selection"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_space_owner.CoreSources:_final_building": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "buildings",
+          "Buildings"
+        ],
+        [
+          "out",
+          "Facts"
+        ]
+      ]
+    },
+    "underground_space_owner.CoreSources:_final_furniture": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "parent",
+          "Vector2i"
+        ],
+        [
+          "room",
+          "int"
+        ],
+        [
+          "origin",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "buildings",
+          "Buildings"
+        ],
+        [
+          "out",
+          "Facts"
+        ]
+      ]
+    },
+    "underground_space_owner.CoreSources:_final_project": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "reader",
+          "CoreSources"
+        ],
+        [
+          "out",
+          "Facts"
+        ],
+        [
+          "construction",
+          "Construction"
+        ]
+      ]
+    },
+    "underground_space_owner.CoreSources:_final_room": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "buildings",
+          "Buildings"
+        ],
+        [
+          "out",
+          "Facts"
+        ]
+      ]
+    },
+    "underground_space_owner.CoreSources:_final_row": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "kind",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "ids",
+          "Directory"
+        ]
+      ]
+    },
+    "underground_space_owner.CoreSources:construction_owner": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner.CoreSources:directory": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner.CoreSources:read_final_into": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "kind",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "reader",
+          "CoreSources"
+        ],
+        [
+          "out",
+          "Facts"
+        ],
+        [
+          "ids",
+          "Directory"
+        ]
+      ]
+    },
+    "underground_space_owner.Facts:clear": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner:_facts_match": {
+      "numeric_bytes": 9,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "staged",
+          "bool"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner:_nullable_ref": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner:_region_live": {
+      "numeric_bytes": 9,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "staged",
+          "bool"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner:has_prepared": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_space_owner:is_bound_sources": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "candidate",
+          "Sources"
+        ]
+      ]
+    },
+    "underground_space_owner:revision": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "underground_terrain:_building_extent": {
+      "numeric_bytes": 72,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "tile",
+          "int"
+        ],
+        [
+          "type_id",
+          "int"
+        ],
+        [
+          "width",
+          "int"
+        ],
+        [
+          "depth",
+          "int"
+        ],
+        [
+          "original",
+          "int"
+        ],
+        [
+          "origin",
+          "int"
+        ],
+        [
+          "dz",
+          "int"
+        ],
+        [
+          "dx",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "code",
+          "StringName"
+        ],
+        [
+          "definitions",
+          "Definitions"
+        ]
+      ]
+    },
+    "underground_terrain:_conflict": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_terrain:_leaf_binding_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "expected_revision",
+          "int"
+        ],
+        [
+          "owner_token",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "space",
+          "Owner"
+        ],
+        [
+          "reader",
+          "Owner.CoreSources"
+        ]
+      ]
+    },
+    "underground_terrain:_leaf_geometry_context": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "token",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "space",
+          "Owner"
+        ]
+      ]
+    },
+    "underground_terrain:_local_building": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ],
+        [
+          "purpose",
+          "int"
+        ],
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bounds",
+          "PackedInt32Array"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_terrain:_local_resource": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ],
+        [
+          "ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bounds",
+          "PackedInt32Array"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_terrain:_local_tile": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ],
+        [
+          "purpose",
+          "int"
+        ],
+        [
+          "floor_y",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bounds",
+          "PackedInt32Array"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_terrain:_local_tiles_refusal": {
+      "numeric_bytes": 56,
+      "numeric_fields": [
+        [
+          "purpose",
+          "int"
+        ],
+        [
+          "first_x",
+          "int"
+        ],
+        [
+          "last_x",
+          "int"
+        ],
+        [
+          "first_z",
+          "int"
+        ],
+        [
+          "last_z",
+          "int"
+        ],
+        [
+          "z",
+          "int"
+        ],
+        [
+          "x",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bounds",
+          "PackedInt32Array"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_terrain:_natural_floor": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ],
+        [
+          "terrain",
+          "int"
+        ],
+        [
+          "z",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_terrain:_resource_extent": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "tile",
+          "int"
+        ],
+        [
+          "kind",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_terrain:_set_tile_box": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_terrain:_vertical_overlap": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "low_y",
+          "int"
+        ],
+        [
+          "high_y",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "bounds",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "underground_world_routes.Certificates:admits": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "byte",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_world_routes:_immutable_owners_match": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_content_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "catalog",
+          "Catalog"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_descriptor": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "content",
+          "int"
+        ],
+        [
+          "capacity",
+          "int"
+        ],
+        [
+          "mode",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "bank",
+          "Profiles.Bank"
+        ],
+        [
+          "descriptor",
+          "Profiles.Descriptor"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_endpoint_refusal": {
+      "numeric_bytes": 60,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "checked_section",
+          "Vector2i"
+        ],
+        [
+          "stride",
+          "int"
+        ],
+        [
+          "section",
+          "Vector2i"
+        ],
+        [
+          "room",
+          "Vector2i"
+        ],
+        [
+          "level",
+          "int"
+        ],
+        [
+          "point",
+          "Vector3i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "bank",
+          "Locations.Bank"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_entry_refusal": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "checks",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "out",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_level_domain": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "axis",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "levels",
+          "Levels"
+        ],
+        [
+          "domain",
+          "Space.Domain"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_path": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "before",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_profile_owners": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "profiles",
+          "Profiles"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_search": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_section_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "section",
+          "Vector2i"
+        ],
+        [
+          "room",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_sources_refusal": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "section",
+          "Vector2i"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "next",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_stores_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "catalog",
+          "Catalog"
+        ]
+      ]
+    },
+    "underground_world_routes:_reach_world": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "world",
+          "World"
+        ],
+        [
+          "terrain",
+          "Terrain"
+        ]
+      ]
+    },
+    "underground_world_routes:_remember_witness": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ]
+      ]
+    },
+    "underground_world_routes:_sweep_into": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector3i"
+        ],
+        [
+          "last",
+          "Vector3i"
+        ],
+        [
+          "axis",
+          "int"
+        ],
+        [
+          "low",
+          "int"
+        ],
+        [
+          "high",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "box",
+          "Profiles.Box"
+        ],
+        [
+          "out",
+          "PackedInt32Array"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_actor_leaf": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "location",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_actor_scope": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "graph",
+          "Routes"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_body_contained": {
+      "numeric_bytes": 36,
+      "numeric_fields": [
+        [
+          "point",
+          "Vector3i"
+        ],
+        [
+          "floor_y",
+          "int"
+        ],
+        [
+          "axis",
+          "int"
+        ],
+        [
+          "ordinal",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_body_leaf": {
+      "numeric_bytes": 36,
+      "numeric_fields": [
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "roles",
+          "int"
+        ],
+        [
+          "point",
+          "Vector3i"
+        ],
+        [
+          "ordinal",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "selection",
+          "Profiles.Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_box_into": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "ordinal",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "profiles",
+          "Profiles"
+        ],
+        [
+          "selection",
+          "Profiles.Selection"
+        ],
+        [
+          "out",
+          "Profiles.Box"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_final": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "checks",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_occupant_boxes": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "first",
+          "int"
+        ],
+        [
+          "second",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "mine",
+          "Profiles.Selection"
+        ],
+        [
+          "other",
+          "Profiles.Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_occupants": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "except_row",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "missing",
+          "StringName"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_unregistered_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "worker",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "residents",
+          "Residents"
+        ]
+      ]
+    },
+    "underground_world_routes:_witness_chain_matches": {
+      "numeric_bytes": 64,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "cursor",
+          "Vector2i"
+        ],
+        [
+          "byte",
+          "int"
+        ],
+        [
+          "index",
+          "int"
+        ],
+        [
+          "offset",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "generation",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "bank",
+          "Routes.EdgeBank"
+        ],
+        [
+          "masks",
+          "Certificates"
+        ],
+        [
+          "descriptor",
+          "Profiles.Descriptor"
+        ]
+      ]
+    },
+    "underground_world_routes:_witness_key_matches": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "descriptor",
+          "Profiles.Descriptor"
+        ]
+      ]
+    },
+    "underground_world_routes:_workpiece_occupant_boxes": {
+      "numeric_bytes": 44,
+      "numeric_fields": [
+        [
+          "point",
+          "Vector3i"
+        ],
+        [
+          "ordinal",
+          "int"
+        ],
+        [
+          "axis",
+          "int"
+        ],
+        [
+          "low",
+          "int"
+        ],
+        [
+          "high",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "bounds",
+          "PackedInt32Array"
+        ],
+        [
+          "selection",
+          "Profiles.Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:profile_reachability_refusal": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "first",
+          "Vector2i"
+        ],
+        [
+          "last",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ],
+        [
+          "max_checks",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "remaining_out",
+          "PackedInt32Array"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:workpiece_occupancy_checks": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "checks",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ]
+      ]
+    },
+    "underground_world_routes:workpiece_occupancy_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "checks",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "bounds",
+          "PackedInt32Array"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "work:jobs": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "world_init:directory": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "world_init:is_published": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "world_init:is_tile_index": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "world_init:resource_nodes": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "world_init:section_1_published_seed": {
+      "numeric_bytes": 0,
+      "numeric_fields": [],
+      "borrowed_or_interned": []
+    },
+    "world_init:terrain_into": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "tile",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "IntMath.IntResult"
+        ]
+      ]
+    },
+    "underground_world_routes:turn_actor": {
+      "numeric_bytes": 32,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "target_yaw",
+          "int"
+        ],
+        [
+          "max_checks",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "sources",
+          "Owner.CoreSources"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_run": {
+      "numeric_bytes": 64,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "yaw",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "space_receipt",
+          "int"
+        ],
+        [
+          "location_receipt",
+          "int"
+        ],
+        [
+          "pose_revision",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_world_routes:_turn_observe": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "graph",
+          "Routes"
+        ],
+        [
+          "owner",
+          "Owner"
+        ],
+        [
+          "locations",
+          "Locations"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:_current_profile_into": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "Profiles.Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_routes:_actor_profile_into": {
+      "numeric_bytes": 72,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "profile_id",
+          "int"
+        ],
+        [
+          "profile_revision",
+          "int"
+        ],
+        [
+          "content_revision",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "Profiles.Selection"
+        ]
+      ]
+    },
+    "underground_profiles:query_into": {
+      "numeric_bytes": 80,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "connector_family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ],
+        [
+          "first",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "end",
+          "int"
+        ],
+        [
+          "selected",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "Selection"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_profiles:_prepare_query": {
+      "numeric_bytes": 48,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "connector_family",
+          "int"
+        ],
+        [
+          "equipped_tool_hint",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "out",
+          "Selection"
+        ]
+      ]
+    },
+    "underground_profiles:_read_dynamic": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "ids",
+          "Directory"
+        ],
+        [
+          "code",
+          "StringName"
+        ]
+      ]
+    },
+    "underground_profiles:_read_tool": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ],
+        [
+          "tool",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "gear:owner_of": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "lot_ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_profiles:_read_cargo": {
+      "numeric_bytes": 40,
+      "numeric_fields": [
+        [
+          "_worker",
+          "Vector2i"
+        ],
+        [
+          "stored",
+          "Vector2i"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ],
+        [
+          "count",
+          "int"
+        ],
+        [
+          "lot",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "haul_carry:carried_lot": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "hauler_slot",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "haul_carry:satchel_of": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "hauler_slot",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "haul_carry:_owns_live_satchel": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "hauler_slot",
+          "int"
+        ],
+        [
+          "satchel",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "inventory:is_satchel": {
+      "numeric_bytes": 8,
+      "numeric_fields": [
+        [
+          "container_ref",
+          "Vector2i"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "inventory:is_container_valid": {
+      "numeric_bytes": 16,
+      "numeric_fields": [
+        [
+          "container_ref",
+          "Vector2i"
+        ],
+        [
+          "slot",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": []
+    },
+    "underground_routes:commit_stationary_turn": {
+      "numeric_bytes": 17,
+      "numeric_fields": [
+        [
+          "pose_revision",
+          "int"
+        ],
+        [
+          "target_yaw",
+          "int"
+        ],
+        [
+          "cache_current",
+          "bool"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "expected",
+          "Profiles.Selection"
+        ]
+      ]
+    },
+    "transforms:turn_stationary_preflighted": {
+      "numeric_bytes": 52,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "point",
+          "Vector3i"
+        ],
+        [
+          "previous_yaw",
+          "int"
+        ],
+        [
+          "revision",
+          "int"
+        ],
+        [
+          "yaw",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ]
+      ]
+    },
+    "transforms:_stationary_row": {
+      "numeric_bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "position",
+          "int"
+        ]
+      ],
+      "borrowed_or_interned": [
+        [
+          "actual",
+          "RefCounted"
+        ],
+        [
+          "ids",
+          "EntityDirectory"
+        ]
+      ]
+    }
+  },
+  "lifetime": "Itinerary enters only with no graph search/advance/occupancy/candidate and no WorldRoutes read/compile/publication. The complete proof is synchronous; old one-profile witness is invalidated. Provider and Frontier caller frames coexist and are partitioned to their original slices; graph and occupancy stacks are alternatives, not added. No cold snapshot/WorkFace is created by the itinerary. Existing Frontier2048 cold admission remains conservative and unchanged.",
+  "limits": [
+    "Native object/Variant/Script/StringName headers and interpreter stack are provisional, not measured.",
+    "Constants count UTF32 payload plus NUL; Script preload references borrow already loaded modules.",
+    "The two existing bank images and Dijkstra scratch are reused, never reserved a second time.",
+    "No runtime READY, movement, capacity increase or hardware performance qualification follows."
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "owned_pid": 55139,
+  "observed_process": "55085 godot --path godot --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 60 --log-file /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v2/engine-native.log --script /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_cardinal_program.gd -- /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v2/spec.json /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v2",
+  "reason": "No progress past initial image after more than 90s; first three native steps returned",
+  "signal": "SIGTERM",
+  "production_qualified": false
+}

@@ -1,0 +1,16 @@
+{
+  "shard-142.log": {
+    "uncompressed_sha256": "e452f53052de35012b8c2e0d8511258d7b2e73ade55365f40de8eb0a0a753d1a",
+    "uncompressed_bytes": 37825809,
+    "gzip_file": "shard-142.log.gz",
+    "gzip_sha256": "9543e33c1d854ae7d28edef249069ed16677585c11da7eece0c89edcc29fe9b5",
+    "gzip_bytes": 38678
+  },
+  "test_underground_final_facts.gd.log": {
+    "uncompressed_sha256": "19baac55b6321efca6036b0d2443485848c3ed3659311c1642a3808eb28344ef",
+    "uncompressed_bytes": 37825919,
+    "gzip_file": "test_underground_final_facts.gd.log.gz",
+    "gzip_sha256": "450c7c967d1c45b40738f75fa35511d4ef85ed89098f448454f7ceef2e4dc1d2",
+    "gzip_bytes": 38763
+  }
+}

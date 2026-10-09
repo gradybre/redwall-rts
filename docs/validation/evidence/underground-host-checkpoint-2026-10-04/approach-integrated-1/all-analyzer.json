@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_entry_bindings.gd": [
+  {
+   "code": 0,
+   "message": "The member \"WorldRoutes\" already exists in parent class res://scripts/core/underground_room_bindings.gd.",
+   "range": {
+    "end": {
+     "character": 78,
+     "line": 12
+    },
+    "start": {
+     "character": 0,
+     "line": 12
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  }
+ ]
+}

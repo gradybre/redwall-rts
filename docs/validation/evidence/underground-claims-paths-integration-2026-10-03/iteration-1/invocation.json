@@ -1,0 +1,197 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.662,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "138/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.866,
+      "log": "test_buildings_spatial.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "69/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.707,
+      "log": "test_excavation_physical.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "202/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.169,
+      "log": "test_excavation_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "210/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.273,
+      "log": "test_underground_room_cut_map.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "102/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.123,
+      "log": "test_underground_room_orders.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "144/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.646,
+      "log": "test_underground_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "128/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.444,
+      "log": "test_underground_room_admission.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "120/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.732,
+      "log": "test_underground_furniture_work.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "183/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.754,
+      "log": "test_underground_furniture_batches.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "79/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.455,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "117/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.625,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "92/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-claims-paths-integration-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.359,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "godot/scripts/core/buildings.gd",
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/scripts/core/underground_room_cut_map.gd",
+        "godot/scripts/core/underground_room_orders.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/test/test_buildings_spatial.gd",
+        "godot/test/test_excavation_physical.gd",
+        "godot/test/test_excavation_claim_batch.gd",
+        "godot/test/test_underground_room_cut_map.gd",
+        "godot/test/test_underground_room_orders.gd",
+        "godot/test/test_underground_room_bindings.gd",
+        "godot/test/test_underground_room_admission.gd",
+        "godot/test/test_underground_furniture_work.gd",
+        "godot/test/test_underground_furniture_batches.gd",
+        "godot/test/test_underground_routes.gd",
+        "godot/test/test_underground_world_routes.gd",
+        "godot/test/test_underground_locations.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 13.639,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

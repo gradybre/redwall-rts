@@ -1,0 +1,5481 @@
+{
+ "schema": 1,
+ "decision": "1217",
+ "source": 4,
+ "body": "open paw (original import, a938d479\u2026)",
+ "recipe": "work-approach-v1 whole_roles: fixed-heading walk keys + ready key 8; no yaw sweep",
+ "canonical_roles": {
+  "BODY_HELD_LOAD": [
+   [
+    -485,
+    0,
+    -521,
+    479,
+    930,
+    412
+   ],
+   [
+    -271,
+    -1,
+    -274,
+    284,
+    0,
+    249
+   ]
+  ],
+  "TURN_RECOVERY": [
+   [
+    -485,
+    0,
+    -521,
+    479,
+    930,
+    412
+   ],
+   [
+    -271,
+    -1,
+    -274,
+    284,
+    0,
+    249
+   ]
+  ],
+  "STANCE_SUPPORT": [
+   [
+    -274,
+    -1,
+    -274,
+    299,
+    0,
+    249
+   ]
+  ]
+ },
+ "geometry": {
+  "full_u": [
+   -485,
+   -1,
+   -521,
+   479,
+   930,
+   412
+  ],
+  "floor_u": [
+   -271,
+   -1,
+   -274,
+   284,
+   0,
+   249
+  ],
+  "support_u": [
+   -274,
+   -1,
+   -274,
+   299,
+   0,
+   249
+  ],
+  "corner_count": 46
+ },
+ "rows": [
+  {
+   "policy": "READY_FORWARD",
+   "selection_policy": 1,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 0,
+   "path_yaw": 0,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -485,
+      0,
+      -521,
+      479,
+      930,
+      412
+     ],
+     [
+      -271,
+      -1,
+      -274,
+      284,
+      0,
+      249
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -485,
+      0,
+      -521,
+      479,
+      930,
+      412
+     ],
+     [
+      -271,
+      -1,
+      -274,
+      284,
+      0,
+      249
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -274,
+      -1,
+      -274,
+      299,
+      0,
+      249
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_FORWARD",
+   "selection_policy": 1,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 16384,
+   "path_yaw": 16384,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -521,
+      0,
+      -479,
+      412,
+      930,
+      485
+     ],
+     [
+      -274,
+      -1,
+      -284,
+      249,
+      0,
+      271
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -521,
+      0,
+      -479,
+      412,
+      930,
+      485
+     ],
+     [
+      -274,
+      -1,
+      -284,
+      249,
+      0,
+      271
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -274,
+      -1,
+      -299,
+      249,
+      0,
+      274
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_FORWARD",
+   "selection_policy": 1,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 32768,
+   "path_yaw": 32768,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -479,
+      0,
+      -412,
+      485,
+      930,
+      521
+     ],
+     [
+      -284,
+      -1,
+      -249,
+      271,
+      0,
+      274
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -479,
+      0,
+      -412,
+      485,
+      930,
+      521
+     ],
+     [
+      -284,
+      -1,
+      -249,
+      271,
+      0,
+      274
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -299,
+      -1,
+      -249,
+      274,
+      0,
+      274
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_FORWARD",
+   "selection_policy": 1,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 49152,
+   "path_yaw": 49152,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -412,
+      0,
+      -485,
+      521,
+      930,
+      479
+     ],
+     [
+      -249,
+      -1,
+      -271,
+      274,
+      0,
+      284
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -412,
+      0,
+      -485,
+      521,
+      930,
+      479
+     ],
+     [
+      -249,
+      -1,
+      -271,
+      274,
+      0,
+      284
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -249,
+      -1,
+      -274,
+      274,
+      0,
+      299
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_BACKWARD",
+   "selection_policy": 2,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 0,
+   "path_yaw": 32768,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -485,
+      0,
+      -521,
+      479,
+      930,
+      412
+     ],
+     [
+      -271,
+      -1,
+      -274,
+      284,
+      0,
+      249
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -485,
+      0,
+      -521,
+      479,
+      930,
+      412
+     ],
+     [
+      -271,
+      -1,
+      -274,
+      284,
+      0,
+      249
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -274,
+      -1,
+      -274,
+      299,
+      0,
+      249
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_BACKWARD",
+   "selection_policy": 2,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 16384,
+   "path_yaw": 49152,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -521,
+      0,
+      -479,
+      412,
+      930,
+      485
+     ],
+     [
+      -274,
+      -1,
+      -284,
+      249,
+      0,
+      271
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -521,
+      0,
+      -479,
+      412,
+      930,
+      485
+     ],
+     [
+      -274,
+      -1,
+      -284,
+      249,
+      0,
+      271
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -274,
+      -1,
+      -299,
+      249,
+      0,
+      274
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_BACKWARD",
+   "selection_policy": 2,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 32768,
+   "path_yaw": 0,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -479,
+      0,
+      -412,
+      485,
+      930,
+      521
+     ],
+     [
+      -284,
+      -1,
+      -249,
+      271,
+      0,
+      274
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -479,
+      0,
+      -412,
+      485,
+      930,
+      521
+     ],
+     [
+      -284,
+      -1,
+      -249,
+      271,
+      0,
+      274
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -299,
+      -1,
+      -249,
+      274,
+      0,
+      274
+     ]
+    ]
+   }
+  },
+  {
+   "policy": "READY_BACKWARD",
+   "selection_policy": 2,
+   "mode": 1,
+   "yaw_kind": "YAW_EXACT",
+   "yaw": 49152,
+   "path_yaw": 16384,
+   "tool": -1,
+   "states": 451,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -412,
+      0,
+      -485,
+      521,
+      930,
+      479
+     ],
+     [
+      -249,
+      -1,
+      -271,
+      274,
+      0,
+      284
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -412,
+      0,
+      -485,
+      521,
+      930,
+      479
+     ],
+     [
+      -249,
+      -1,
+      -271,
+      274,
+      0,
+      284
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -249,
+      -1,
+      -274,
+      274,
+      0,
+      299
+     ]
+    ]
+   }
+  }
+ ],
+ "proofs": {
+  "self_clearance": {
+   "clear": false,
+   "unresolved": [
+    {
+     "handoff": "walk",
+     "interval": [
+      28,
+      29
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      28,
+      29
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      28,
+      29
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      29,
+      30
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      30,
+      31
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      31,
+      32
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      622,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      32,
+      33
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      622,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      33,
+      34
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1859
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      34,
+      35
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      585,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      586,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      714,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      715,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1756
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      35,
+      36
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      977,
+      1758
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      542,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      543,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      582,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      583,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      584,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      699,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      700,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      701,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      702,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1684
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2129
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      2132
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1729
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      36,
+      37
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      2125
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      37,
+      38
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      712,
+      1730
+     ]
+    },
+    {
+     "handoff": "walk",
+     "interval": [
+      37,
+      38
+     ],
+     "pairing": "right_arm_vs_rest",
+     "triangles": [
+      713,
+      1730
+     ]
+    }
+   ],
+   "handoffs": 45,
+   "checks": 285930
+  },
+  "bearers": {
+   "H (L0 bearer, assembly 0)": {
+    "clear": true,
+    "unresolved": [],
+    "prism_u": [
+     -192,
+     0,
+     -512,
+     1856,
+     128,
+     -384
+    ],
+    "swept_prism_u": [
+     -192,
+     0,
+     -4608,
+     1856,
+     128,
+     -384
+    ],
+    "candidate_pairs": 0,
+    "checks": 0
+   },
+   "L0 contact (T0 bearer, assembly 1)": {
+    "clear": true,
+    "unresolved": [],
+    "prism_u": [
+     -256,
+     0,
+     -512,
+     256,
+     128,
+     -384
+    ],
+    "swept_prism_u": [
+     -256,
+     0,
+     -4608,
+     256,
+     128,
+     -384
+    ],
+    "candidate_pairs": 0,
+    "checks": 0
+   }
+  }
+ },
+ "clear": false,
+ "proof_seconds": 113.90185091691092,
+ "clip_sha256": {
+  "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/stand.npz": "05564adf19b2b29142d99c469839b3aa18c20cdce995d055669528ce88e51b89",
+  "godot/data/underground/mole-worker/stand-walk-v2/evidence/stand-walk-v2/walk.npz": "1f8fcfb51ae4f76fb0918c4552a9cd28d4781fbdae5274668c391a200b4cf179"
+ },
+ "claw_image_sha256": "2b58852e0e39d3ae1c697ed5487081cead7ce80efc8a30662e469fd33059af5b",
+ "padding_q24": [
+  [
+   9139,
+   1505,
+   9139
+  ],
+  [
+   9143,
+   1507,
+   9143
+  ]
+ ],
+ "ready_key": 8,
+ "span_u": 4096,
+ "world_basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/claw-work-v1/author_claw_approach.py": "432967731442ef87ad8a2ad576fb22f6492079b7df1faf23c2d568e6a81622f9",
+  "godot/data/underground/mole-worker/claw-work-v1/derive_claw_rows.py": "716ff1466e4f538ed4c14e0e9b59ee26bfdd91258171e831fbac6c3f85de5ccc",
+  "godot/data/underground/mole-worker/claw-work-v1/derive_claw_stand_rows.py": "ca7b32f6f5e029852419377f59533a76a21d249259d557ae509557a27d77c836",
+  "godot/data/underground/mole-worker/claw-work-v1/prove_claw_pair.py": "e3af3b7dc564d27ef09c95ac2f9ea313088b7b421940f8f2222ab9675a43bc02",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32"
+ }
+}

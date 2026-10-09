@@ -1,0 +1,1038 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "variant": {
+    "name": "wood_one_unit_v1",
+    "quantity_milli": 1000,
+    "mass_g": 5000,
+    "mass_scope": "Existing Catalog wood mapping; no new density or balancing rule.",
+    "other_quantities": "Refuse this physical source; general Inventory and partial transfers remain unchanged."
+  },
+  "source_hub_sha256": "0a18b5f1198a2cf9c6cc9344960a3b26b59c358c1e18153adc59999aab506c7b",
+  "producer_sha256": "8f4c96d84f3b66c7f965d95ccbe8ad03617165a4faf31e71e31a5847e469ee35",
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "source_body_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "source_wood_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80",
+  "clips": {
+    "hold": {
+      "frames": 2,
+      "loop_mode": 0,
+      "sha256": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f"
+    },
+    "enter": {
+      "frames": 65,
+      "loop_mode": 0,
+      "sha256": "48a1f87eda9c4f8e73dd6283deb11dd7c9cbe881169b88dd6d4111c6f5a716a9"
+    },
+    "carry": {
+      "frames": 219,
+      "loop_mode": 1,
+      "sha256": "c3ced322b3c67fcd287daca9b5bc91dc259d11115f18c9e60b0e503f91e37a56"
+    },
+    "exit": {
+      "frames": 65,
+      "loop_mode": 0,
+      "sha256": "d36a340761a9e8351c1ec7ef8a30a8ff41f5b7d228251245536db7ab0a8cbe6b"
+    }
+  },
+  "source_timing_only": true,
+  "runtime_carry_rate_adopted": false,
+  "support_transfer_keys": {
+    "carry": [
+      {
+        "original_frame": 0
+      },
+      {
+        "original_frame": 1
+      },
+      {
+        "original_frame": 2
+      },
+      {
+        "original_frame": 3
+      },
+      {
+        "original_interval": [
+          3,
+          4
+        ],
+        "source_share": 0.16441947602100948,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 4
+      },
+      {
+        "original_frame": 5
+      },
+      {
+        "original_frame": 6
+      },
+      {
+        "original_frame": 7
+      },
+      {
+        "original_frame": 8
+      },
+      {
+        "original_frame": 9
+      },
+      {
+        "original_frame": 10
+      },
+      {
+        "original_frame": 11
+      },
+      {
+        "original_frame": 12
+      },
+      {
+        "original_frame": 13
+      },
+      {
+        "original_frame": 14
+      },
+      {
+        "original_frame": 15
+      },
+      {
+        "original_frame": 16
+      },
+      {
+        "original_frame": 17
+      },
+      {
+        "original_frame": 18
+      },
+      {
+        "original_frame": 19
+      },
+      {
+        "original_frame": 20
+      },
+      {
+        "original_interval": [
+          20,
+          21
+        ],
+        "source_share": 0.7744185884806664,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 21
+      },
+      {
+        "original_frame": 22
+      },
+      {
+        "original_frame": 23
+      },
+      {
+        "original_frame": 24
+      },
+      {
+        "original_frame": 25
+      },
+      {
+        "original_frame": 26
+      },
+      {
+        "original_frame": 27
+      },
+      {
+        "original_frame": 28
+      },
+      {
+        "original_frame": 29
+      },
+      {
+        "original_frame": 30
+      },
+      {
+        "original_frame": 31
+      },
+      {
+        "original_frame": 32
+      },
+      {
+        "original_interval": [
+          32,
+          33
+        ],
+        "source_share": 0.8070307967134082,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 33
+      },
+      {
+        "original_interval": [
+          33,
+          34
+        ],
+        "source_share": 0.4602954290782676,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 34
+      },
+      {
+        "original_frame": 35
+      },
+      {
+        "original_frame": 36
+      },
+      {
+        "original_frame": 37
+      },
+      {
+        "original_interval": [
+          37,
+          38
+        ],
+        "source_share": 0.7220241774373457,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 38
+      },
+      {
+        "original_frame": 39
+      },
+      {
+        "original_frame": 40
+      },
+      {
+        "original_frame": 41
+      },
+      {
+        "original_frame": 42
+      },
+      {
+        "original_frame": 43
+      },
+      {
+        "original_frame": 44
+      },
+      {
+        "original_frame": 45
+      },
+      {
+        "original_frame": 46
+      },
+      {
+        "original_frame": 47
+      },
+      {
+        "original_frame": 48
+      },
+      {
+        "original_frame": 49
+      },
+      {
+        "original_frame": 50
+      },
+      {
+        "original_frame": 51
+      },
+      {
+        "original_frame": 52
+      },
+      {
+        "original_frame": 53
+      },
+      {
+        "original_interval": [
+          53,
+          54
+        ],
+        "source_share": 0.7634193002557508,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 54
+      },
+      {
+        "original_frame": 55
+      },
+      {
+        "original_frame": 56
+      },
+      {
+        "original_frame": 57
+      },
+      {
+        "original_frame": 58
+      },
+      {
+        "original_frame": 59
+      },
+      {
+        "original_frame": 60
+      },
+      {
+        "original_frame": 61
+      },
+      {
+        "original_frame": 62
+      },
+      {
+        "original_frame": 63
+      },
+      {
+        "original_frame": 64
+      },
+      {
+        "original_interval": [
+          64,
+          65
+        ],
+        "source_share": 0.979985104117088,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 65
+      },
+      {
+        "original_frame": 66
+      },
+      {
+        "original_frame": 67
+      },
+      {
+        "original_frame": 68
+      },
+      {
+        "original_frame": 69
+      },
+      {
+        "original_interval": [
+          69,
+          70
+        ],
+        "source_share": 0.9847484958335132,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 70
+      },
+      {
+        "original_frame": 71
+      },
+      {
+        "original_frame": 72
+      },
+      {
+        "original_frame": 73
+      },
+      {
+        "original_frame": 74
+      },
+      {
+        "original_frame": 75
+      },
+      {
+        "original_frame": 76
+      },
+      {
+        "original_frame": 77
+      },
+      {
+        "original_frame": 78
+      },
+      {
+        "original_frame": 79
+      },
+      {
+        "original_frame": 80
+      },
+      {
+        "original_interval": [
+          80,
+          81
+        ],
+        "source_share": 0.6178289304672979,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 81
+      },
+      {
+        "original_frame": 82
+      },
+      {
+        "original_frame": 83
+      },
+      {
+        "original_frame": 84
+      },
+      {
+        "original_frame": 85
+      },
+      {
+        "original_interval": [
+          85,
+          86
+        ],
+        "source_share": 0.9339001697020474,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 86
+      },
+      {
+        "original_frame": 87
+      },
+      {
+        "original_frame": 88
+      },
+      {
+        "original_frame": 89
+      },
+      {
+        "original_interval": [
+          89,
+          90
+        ],
+        "source_share": 0.5861272128717652,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 90
+      },
+      {
+        "original_interval": [
+          90,
+          91
+        ],
+        "source_share": 0.8637832294898804,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 91
+      },
+      {
+        "original_frame": 92
+      },
+      {
+        "original_frame": 93
+      },
+      {
+        "original_frame": 94
+      },
+      {
+        "original_frame": 95
+      },
+      {
+        "original_frame": 96
+      },
+      {
+        "original_frame": 97
+      },
+      {
+        "original_frame": 98
+      },
+      {
+        "original_interval": [
+          98,
+          99
+        ],
+        "source_share": 0.5634621396407706,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 99
+      },
+      {
+        "original_frame": 100
+      },
+      {
+        "original_frame": 101
+      },
+      {
+        "original_frame": 102
+      },
+      {
+        "original_frame": 103
+      },
+      {
+        "original_frame": 104
+      },
+      {
+        "original_frame": 105
+      },
+      {
+        "original_frame": 106
+      },
+      {
+        "original_frame": 107
+      },
+      {
+        "original_frame": 108
+      },
+      {
+        "original_frame": 109
+      },
+      {
+        "original_frame": 110
+      },
+      {
+        "original_frame": 111
+      },
+      {
+        "original_frame": 112
+      },
+      {
+        "original_frame": 113
+      },
+      {
+        "original_frame": 114
+      },
+      {
+        "original_frame": 115
+      },
+      {
+        "original_frame": 116
+      },
+      {
+        "original_frame": 117
+      },
+      {
+        "original_interval": [
+          117,
+          118
+        ],
+        "source_share": 0.5025600625464891,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 118
+      },
+      {
+        "original_frame": 119
+      },
+      {
+        "original_frame": 120
+      },
+      {
+        "original_frame": 121
+      },
+      {
+        "original_frame": 122
+      },
+      {
+        "original_frame": 123
+      },
+      {
+        "original_frame": 124
+      },
+      {
+        "original_frame": 125
+      },
+      {
+        "original_frame": 126
+      },
+      {
+        "original_frame": 127
+      },
+      {
+        "original_frame": 128
+      },
+      {
+        "original_frame": 129
+      },
+      {
+        "original_frame": 130
+      },
+      {
+        "original_frame": 131
+      },
+      {
+        "original_frame": 132
+      },
+      {
+        "original_interval": [
+          132,
+          133
+        ],
+        "source_share": 0.47721346313288154,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 133
+      },
+      {
+        "original_frame": 134
+      },
+      {
+        "original_frame": 135
+      },
+      {
+        "original_frame": 136
+      },
+      {
+        "original_frame": 137
+      },
+      {
+        "original_interval": [
+          137,
+          138
+        ],
+        "source_share": 0.7244014563320657,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 138
+      },
+      {
+        "original_frame": 139
+      },
+      {
+        "original_frame": 140
+      },
+      {
+        "original_frame": 141
+      },
+      {
+        "original_frame": 142
+      },
+      {
+        "original_frame": 143
+      },
+      {
+        "original_frame": 144
+      },
+      {
+        "original_frame": 145
+      },
+      {
+        "original_frame": 146
+      },
+      {
+        "original_frame": 147
+      },
+      {
+        "original_frame": 148
+      },
+      {
+        "original_frame": 149
+      },
+      {
+        "original_frame": 150
+      },
+      {
+        "original_frame": 151
+      },
+      {
+        "original_frame": 152
+      },
+      {
+        "original_frame": 153
+      },
+      {
+        "original_interval": [
+          153,
+          154
+        ],
+        "source_share": 0.043124988854538436,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 154
+      },
+      {
+        "original_frame": 155
+      },
+      {
+        "original_interval": [
+          155,
+          156
+        ],
+        "source_share": 0.4675716564922807,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 156
+      },
+      {
+        "original_frame": 157
+      },
+      {
+        "original_frame": 158
+      },
+      {
+        "original_frame": 159
+      },
+      {
+        "original_frame": 160
+      },
+      {
+        "original_frame": 161
+      },
+      {
+        "original_frame": 162
+      },
+      {
+        "original_frame": 163
+      },
+      {
+        "original_frame": 164
+      },
+      {
+        "original_interval": [
+          164,
+          165
+        ],
+        "source_share": 0.7634785329602203,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 165
+      },
+      {
+        "original_frame": 166
+      },
+      {
+        "original_frame": 167
+      },
+      {
+        "original_interval": [
+          167,
+          168
+        ],
+        "source_share": 0.42905568890221746,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 168
+      },
+      {
+        "original_frame": 169
+      },
+      {
+        "original_frame": 170
+      },
+      {
+        "original_frame": 171
+      },
+      {
+        "original_frame": 172
+      },
+      {
+        "original_frame": 173
+      },
+      {
+        "original_frame": 174
+      },
+      {
+        "original_frame": 175
+      },
+      {
+        "original_frame": 176
+      },
+      {
+        "original_frame": 177
+      },
+      {
+        "original_frame": 178
+      },
+      {
+        "original_frame": 179
+      },
+      {
+        "original_frame": 180
+      },
+      {
+        "original_frame": 181
+      },
+      {
+        "original_interval": [
+          181,
+          182
+        ],
+        "source_share": 0.30326033861041174,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 182
+      },
+      {
+        "original_frame": 183
+      },
+      {
+        "original_frame": 184
+      },
+      {
+        "original_frame": 185
+      },
+      {
+        "original_frame": 186
+      },
+      {
+        "original_frame": 187
+      },
+      {
+        "original_frame": 188
+      },
+      {
+        "original_frame": 189
+      },
+      {
+        "original_frame": 190
+      },
+      {
+        "original_frame": 191
+      },
+      {
+        "original_frame": 192
+      },
+      {
+        "original_frame": 193
+      },
+      {
+        "original_frame": 194
+      },
+      {
+        "original_frame": 195
+      },
+      {
+        "original_interval": [
+          195,
+          196
+        ],
+        "source_share": 0.4826840476520145,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 196
+      }
+    ],
+    "enter": [
+      {
+        "original_frame": 0
+      },
+      {
+        "original_interval": [
+          0,
+          1
+        ],
+        "source_share": 0.006939899999445727,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 1
+      },
+      {
+        "original_frame": 2
+      },
+      {
+        "original_frame": 3
+      },
+      {
+        "original_frame": 4
+      },
+      {
+        "original_frame": 5
+      },
+      {
+        "original_frame": 6
+      },
+      {
+        "original_frame": 7
+      },
+      {
+        "original_frame": 8
+      },
+      {
+        "original_frame": 9
+      },
+      {
+        "original_interval": [
+          9,
+          10
+        ],
+        "source_share": 0.19472140624538173,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 10
+      },
+      {
+        "original_frame": 11
+      },
+      {
+        "original_frame": 12
+      },
+      {
+        "original_frame": 13
+      },
+      {
+        "original_frame": 14
+      },
+      {
+        "original_frame": 15
+      },
+      {
+        "original_frame": 16
+      },
+      {
+        "original_frame": 17
+      },
+      {
+        "original_frame": 18
+      },
+      {
+        "original_frame": 19
+      },
+      {
+        "original_frame": 20
+      },
+      {
+        "original_frame": 21
+      },
+      {
+        "original_frame": 22
+      },
+      {
+        "original_frame": 23
+      },
+      {
+        "original_frame": 24
+      },
+      {
+        "original_interval": [
+          24,
+          25
+        ],
+        "source_share": 0.8182456300395831,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 25
+      },
+      {
+        "original_frame": 26
+      },
+      {
+        "original_frame": 27
+      },
+      {
+        "original_frame": 28
+      },
+      {
+        "original_frame": 29
+      },
+      {
+        "original_frame": 30
+      },
+      {
+        "original_frame": 31
+      },
+      {
+        "original_frame": 32
+      },
+      {
+        "original_frame": 33
+      },
+      {
+        "original_frame": 34
+      },
+      {
+        "original_frame": 35
+      },
+      {
+        "original_frame": 36
+      },
+      {
+        "original_frame": 37
+      },
+      {
+        "original_frame": 38
+      },
+      {
+        "original_frame": 39
+      },
+      {
+        "original_frame": 40
+      },
+      {
+        "original_frame": 41
+      },
+      {
+        "original_frame": 42
+      },
+      {
+        "original_frame": 43
+      },
+      {
+        "original_interval": [
+          43,
+          44
+        ],
+        "source_share": 0.43458014747597434,
+        "reason": "actual sole-height lower-envelope switch"
+      },
+      {
+        "original_frame": 44
+      },
+      {
+        "original_frame": 45
+      },
+      {
+        "original_frame": 46
+      },
+      {
+        "original_frame": 47
+      },
+      {
+        "original_frame": 48
+      },
+      {
+        "original_frame": 49
+      },
+      {
+        "original_frame": 50
+      },
+      {
+        "original_frame": 51
+      },
+      {
+        "original_frame": 52
+      },
+      {
+        "original_frame": 53
+      },
+      {
+        "original_frame": 54
+      },
+      {
+        "original_frame": 55
+      },
+      {
+        "original_frame": 56
+      },
+      {
+        "original_frame": 57
+      },
+      {
+        "original_frame": 58
+      },
+      {
+        "original_frame": 59
+      },
+      {
+        "original_frame": 60
+      }
+    ]
+  },
+  "transfer_key_scope": "Common affine source points are split at actual foot-height switches; every full body/stock primitive is retained, then independently re-proved.",
+  "missing": [
+    "continuous body/stock/foot proof",
+    "native arithmetic",
+    "turns",
+    "empty-ground approach join",
+    "actual distance/root progression",
+    "runtime exact1U/station/contact binding",
+    "joint memory admission"
+  ]
+}

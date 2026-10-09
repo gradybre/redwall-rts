@@ -1,0 +1,110 @@
+# 1167 — Session route-owner composition
+
+Status: independently accepted owner-composition component; no playable or native-memory acceptance.
+
+Independent review `7d8edbd4795bd9a4779c1d3726a753fbf38db604` verified all
+frozen manifests, replayed 17 census tests and reproduced the complete census.
+No high or medium finding remained. Exact reviewed documentation and the bounded
+verdict are retained in the packet's `acceptance-1/` directory; executable pins
+are unchanged.
+
+## Contract and ownership
+
+The actual mounted Session composes its existing Routes shell with one actual
+Movement source, the accepted ADR1166 ground-only Catalog, and WorldRoutes. It
+then binds the same Profiles and the ordinary RoomBindings approach receiver.
+The host proves the original mounted tuple before and after this synchronous
+operation. There is no caller-supplied owner registration, second owner packet,
+second Routes graph, new capacity, endpoint, actor, Room, phase, or travel grant.
+
+The public entry points are `Session.compose_route_owners() -> StringName`,
+`SettlementSystem.compose_underground_route_owners() -> bool`, and the checked
+`Session.world_route_provider() -> WorldRoutes`. The new stateless
+`underground_route_composition.gd` wires unchanged existing consumer APIs.
+Session, Retirement, the minimal host, and their named tests are the only
+existing runtime files owned by this packet. Shared Routes, WorldRoutes,
+Movement, Profiles, Catalog, UI, main, registry and budget tools remain read-only.
+
+## Exact source and finite lifecycle
+
+The first binding is deliberately the immutable content-2 profile publication
+and `ground-pace-v1/ground-pace.ugconn`, 468 bytes, SHA-256
+`1880788c064b87424c203509a7ad65498b9d11fc18842affe909364b8a8aca4a`,
+Catalog revision 1. Its nine real WALK pace rows use actual Movement profile
+1/revision 1 and `RATE_GROUND_CAP`; no numeric travel speed or fixed connector
+geometry is authored here. A future source/publication revision needs an
+explicit reviewed composer binding; profile IDs or revision numbers are never
+guessed from the latest asset. The existing current cached-script/content guard
+remains mandatory. The starting checkpoint correctly refused three changed
+consumer hashes. Actual tests use the independently reviewed ADR1170 successor
+`profile-publication-v3-frontier`, from root commit9dad696d and its b64dbf9a
+metadata prerequisite, with unchanged v3 geometry/content2 and exact current
+consumer source. No historical consumer substitution supplied a positive result.
+
+Initial graph composition must precede any operational Site/Funding/Location
+publication. Nonempty counts refuse before a new candidate is exposed; the
+existing empty-constructor-prefix retirement contract is preserved. The expected
+startup order is Room owners, route owners, then actual surface/access publication.
+
+The existing operations state and prefix integers represent the new stages:
+
+| Prefix | Retained original state |
+|---|---|
+| 4 | Accepted complete Room-owner composition; no graph binding |
+| 5 | Actual WorldRoutes/Catalog/Movement retained before calling Routes.configure; an exact unchanged or partially configured Routes receiver may remain |
+| 6 | Graph arenas and Location retention bound; Profiles binding may be absent or partly completed |
+| 7 | Actual Profiles/Work/Jobs bound; Room approach binding may still be absent |
+| 8 | Complete original route-owner composition |
+
+Private candidate failures before prefix 5 restore the prior complete Room
+composition only after renewed current-source and direct original-owner proof.
+The host rechecks its original mount even when the constructor already refused.
+A changed original group remains stopped. From prefix 5 onward, any refusal leaves the same retained packet
+stopped. No weak link or arena is privately undone. Whole-World reset captures
+only the actual Session's precise constructor prefix, clears the canonical
+owners, and uses the existing owner-owned static release tail. Normal complete
+retirement guards remain unchanged. The prefix path admits no arbitrary partial
+tuple, graph content, or externally supplied source. Reentry poisons the attempt;
+getters and fixed-tick work stay closed during construction or a stopped prefix.
+
+## Storage and qualification
+
+No new retained scalar or reference is proposed: the existing WorldRoutes slot
+retains the original Movement and Catalog, and existing state/prefix fields are
+reused. Maximum existing Routes, Locations, Catalog and WorldRoutes capacities
+are retained. Constructor helper/configuration/Domain/decoder lifetimes and the
+complete reset/UI stack must be recounted within the existing reservations
+before independent acceptance. Native reference/header costs remain provisional.
+The frozen source census charges6,067/6,144 control bytes and1,919/2,048 helper
+bytes in the existing8,192 retirement envelope. Constructor-only reuse excludes
+the absent private Scope and its Owners copy (2,065 bytes), leaving4,002 control
+bytes; the complete maximum constructor chain/configuration/Level identity
+scratch is4,159, for8,161/8,192. The existing1,536 Session allowance is counted
+once, and the PROFILE_BYTES joint remains246,868/262,144. There is no new reserve.
+
+The exact installed-engine source establishes that the two untyped literal
+Arrays in Levels' identity construction are cleared at successive statement
+ends. A packed return temporary can survive; its initial44-byte buffer and
+provisional256-byte header are charged alongside the final array and append
+argument. Removing one redundant local Owners reference avoids32 counted stack
+bytes. Native layout, allocator/reallocation peaks and whole-client qualification
+remain unmeasured. Seventeen census regressions include source/engine drift,
+extra control/constructor references, duplicated owners/Movement and capacity
+or lifetime changes.
+
+Validation must use current real content and the real ground artifact; prove
+idempotent successful composition, unchanged gameplay stores/counts, source and
+full-owner freshness, each retained failure prefix, null/foreign backlinks,
+reentrant reset/tick refusal, actual reset/remount reuse and original source
+preservation. Success only supplies the owner graph. Physical endpoints, paid
+space, actor admission, fixed source phase, renderer, work and playable routing
+remain independently required.
+
+Final isolated candidate5 passes90 tests/3,115 assertions across RouteComposition,
+Session, Retirement, Host and RoomComposition; every strict/raw diagnostic/leak
+counter is zero, changed-file analyzer is0/8, and source/project/registry/assets
+restoration matches. The source closure is current; the temporary new-module
+registry appendix is only test scaffolding. Earlier incorrect negative callback
+locations and analyzer/runner findings remain recorded with their executed
+sources. Shared ground-only reach validation is a separate Geometry-owned fix;
+this packet creates no endpoint or positive reach certificate.

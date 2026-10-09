@@ -1,0 +1,908 @@
+{
+  "schema": 1,
+  "source_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "profiles": [
+    {
+      "id": "mole_digger.idle.plain.held_pick.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "idle",
+      "scenario": "plain",
+      "frames": 122,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -413,
+            -1,
+            -358,
+            367,
+            857,
+            259
+          ],
+          "all_yaw_bounds_u": [
+            -546,
+            -1,
+            -546,
+            546,
+            857,
+            546
+          ],
+          "residual_m": {
+            "numerator": 727067170930035321595669418119132596808711786985830444525945,
+            "denominator": 30030286335670424382973014612540008154134115589825673949144416256
+          },
+          "world_all_headings_bounds_u": [
+            -547,
+            -1,
+            -547,
+            547,
+            857,
+            547
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 123370402347154247425224354805271340181518348092724807284624835277643065589805,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            },
+            {
+              "numerator": 7759561917065210300795507768453162575189661311039329807341719758523028471829,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 123370402347154247425224354805271340181518348092724807284624835277643065589805,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            20,
+            109,
+            -334,
+            665,
+            653,
+            496
+          ],
+          "all_yaw_bounds_u": [
+            -829,
+            109,
+            -829,
+            829,
+            653,
+            829
+          ],
+          "residual_m": {
+            "numerator": 25014207872037167901046087604972142059590562526050845813206403870250578169329712181469511689,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -830,
+            109,
+            -830,
+            830,
+            653,
+            830
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 1384380767786112963636386404332785957749145104890480940159330276428431606503493241753705832165089946311569695210087383049,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 181359422164299003850553441208164082706565222438330411888217591922474927987886103366507378924137619301236256194476900361,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 1384380767786112963636386404332785957749145104890480940159330276428431606503493241753705832165089946311569695210087383049,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "set_work_tool",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    },
+    {
+      "id": "mole_digger.walk.plain.held_pick.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "plain",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -444,
+            -1,
+            -473,
+            411,
+            930,
+            345
+          ],
+          "all_yaw_bounds_u": [
+            -649,
+            -1,
+            -649,
+            649,
+            930,
+            649
+          ],
+          "residual_m": {
+            "numerator": 13808646763228804102870226685945319057300998954752290872284155,
+            "denominator": 570575440377738063276487277638260154928548196206687805033743908864
+          },
+          "world_all_headings_bounds_u": [
+            -649,
+            -1,
+            -649,
+            649,
+            930,
+            649
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 123434166340865317339463956735501568460752810814659823919795018129364400209965,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            },
+            {
+              "numerator": 7774690118604919153274250526080859648333774464433141489263799556002321268757,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 123434166340865317339463956735501568460752810814659823919795018129364400209965,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            176,
+            169,
+            -326,
+            684,
+            777,
+            324
+          ],
+          "all_yaw_bounds_u": [
+            -758,
+            169,
+            -758,
+            758,
+            777,
+            758
+          ],
+          "residual_m": {
+            "numerator": 29487906204964006558940847276937746003734515927039413531741219872091571339685160449852047369,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -758,
+            169,
+            -758,
+            758,
+            777,
+            758
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 198089169802705241863805711569338909093153190611749083176416441103869617834655532002007917329014164221234911322926930799,
+              "denominator": 377745322232442585685171005811702565520225305821628157703963257315273894586491957298690190009644006455397730107765955756032
+            },
+            {
+              "numerator": 26228977571017533322972431122964355515641778832870436280543200460161520903854512232408138294592403219758705749268290415,
+              "denominator": 377745322232442585685171005811702565520225305821628157703963257315273894586491957298690190009644006455397730107765955756032
+            },
+            {
+              "numerator": 198089169802705241863805711569338909093153190611749083176416441103869617834655532002007917329014164221234911322926930799,
+              "denominator": 377745322232442585685171005811702565520225305821628157703963257315273894586491957298690190009644006455397730107765955756032
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "set_work_tool",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    },
+    {
+      "id": "mole_digger.walk.ramp_up.held_pick.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_up",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -444,
+            -1,
+            -319,
+            411,
+            965,
+            489
+          ],
+          "all_yaw_bounds_u": [
+            -660,
+            -1,
+            -660,
+            660,
+            965,
+            660
+          ],
+          "residual_m": {
+            "numerator": 13935192499749790924939674047776014577439217780655170557236219,
+            "denominator": 570575440377738063276487277638260154928548196206687805033743908864
+          },
+          "world_all_headings_bounds_u": [
+            -661,
+            -1,
+            -661,
+            661,
+            965,
+            661
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 123467923196806485232875863653815855817264539563940632030111574355634831753261,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            },
+            {
+              "numerator": 7808578390658290624231869625560858476614165464273987146183941653872336961557,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 123467923196806485232875863653815855817264539563940632030111574355634831753261,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            176,
+            139,
+            -172,
+            684,
+            811,
+            514
+          ],
+          "all_yaw_bounds_u": [
+            -856,
+            139,
+            -856,
+            856,
+            811,
+            856
+          ],
+          "residual_m": {
+            "numerator": 30812476512717984543798803943368415946279634905244813751088124567831981158948089386556719113,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -856,
+            139,
+            -856,
+            856,
+            811,
+            856
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 1387353172802305775339535598168547934829989656274178299384946180980822143629709463506893542544202470438816873321884024841,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 184331827180491815553702635043926059787409773822027771113833496474865465114102325119695089303250143428483434306273542153,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 1387353172802305775339535598168547934829989656274178299384946180980822143629709463506893542544202470438816873321884024841,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "set_work_tool",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    },
+    {
+      "id": "mole_digger.walk.ramp_down.held_pick.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "walk",
+      "scenario": "ramp_down",
+      "frames": 34,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -444,
+            -1,
+            -613,
+            411,
+            929,
+            194
+          ],
+          "all_yaw_bounds_u": [
+            -757,
+            -1,
+            -757,
+            757,
+            929,
+            757
+          ],
+          "residual_m": {
+            "numerator": 13961135599217991613723388124782633543167218491340898416645115,
+            "denominator": 570575440377738063276487277638260154928548196206687805033743908864
+          },
+          "world_all_headings_bounds_u": [
+            -757,
+            -1,
+            -757,
+            757,
+            929,
+            757
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 123528528385798048357572682490106403327106646636662299658888998972143114911789,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            },
+            {
+              "numerator": 7806192955335374738546729527820189728522300555269056903535230075475763134485,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 123528528385798048357572682490106403327106646636662299658888998972143114911789,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            176,
+            152,
+            -526,
+            684,
+            773,
+            182
+          ],
+          "all_yaw_bounds_u": [
+            -863,
+            152,
+            -863,
+            863,
+            773,
+            863
+          ],
+          "residual_m": {
+            "numerator": 25519347778630384733807692718354719486939761885556483229815892383609424599704452300321849353,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -864,
+            152,
+            -864,
+            864,
+            773,
+            864
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 1384709276084094507533645057174736119809331474218406703001708176443517209499448603355861257513908991321265094323974438921,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 181687930462280547747812094050114244766751591766256174730595491937560530983841464968662804272956664310931655308363956233,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 1384709276084094507533645057174736119809331474218406703001708176443517209499448603355861257513908991321265094323974438921,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "set_work_tool",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    },
+    {
+      "id": "mole_digger.cautious_crouch_walk_forward.plain.held_pick.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "plain",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -274,
+            -1,
+            -760,
+            441,
+            768,
+            355
+          ],
+          "all_yaw_bounds_u": [
+            -879,
+            -1,
+            -879,
+            879,
+            768,
+            879
+          ],
+          "residual_m": {
+            "numerator": 96732351942494967408709878442880989366881473920167848801455069,
+            "denominator": 3994028082644166442935410943467821084499837373446814635236207362048
+          },
+          "world_all_headings_bounds_u": [
+            -880,
+            -1,
+            -880,
+            880,
+            768,
+            880
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 2628980374504478068161623588376560144199256943236153430000119053182013108835,
+              "denominator": 5045568471822868410201862993623328983867260399252488385751341034378239198363648
+            },
+            {
+              "numerator": 7741191987750122181046032702913016945184716604295043830459719937788345319445,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 2628980374504478068161623588376560144199256943236153430000119053182013108835,
+              "denominator": 5045568471822868410201862993623328983867260399252488385751341034378239198363648
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            56,
+            288,
+            -22,
+            458,
+            873,
+            416
+          ],
+          "all_yaw_bounds_u": [
+            -618,
+            288,
+            -618,
+            618,
+            873,
+            618
+          ],
+          "residual_m": {
+            "numerator": 33575400907128058516662763462634404786976583652685033093266496818825084638565036133359550473,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -619,
+            288,
+            -619,
+            619,
+            873,
+            619
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 1388681908289742927794129584984026796860874141476332270636067286311652569713575610805112288858351892206046967092007927817,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 185660562667928968008296621859404921818294259024181742364954601805695891197968472417913835617399565195713528076397445129,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 1388681908289742927794129584984026796860874141476332270636067286311652569713575610805112288858351892206046967092007927817,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "set_work_tool",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    },
+    {
+      "id": "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "cautious_crouch_walk_forward",
+      "scenario": "standard_bore",
+      "frames": 36,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -274,
+            -1,
+            -760,
+            441,
+            768,
+            355
+          ],
+          "all_yaw_bounds_u": [
+            -879,
+            -1,
+            -879,
+            879,
+            768,
+            879
+          ],
+          "residual_m": {
+            "numerator": 96732351942494967408709878442880989366881473920167848801455069,
+            "denominator": 3994028082644166442935410943467821084499837373446814635236207362048
+          },
+          "world_all_headings_bounds_u": [
+            -880,
+            -1,
+            -880,
+            880,
+            768,
+            880
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 2628980374504478068161623588376560144199256943236153430000119053182013108835,
+              "denominator": 5045568471822868410201862993623328983867260399252488385751341034378239198363648
+            },
+            {
+              "numerator": 7741191987750122181046032702913016945184716604295043830459719937788345319445,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 2628980374504478068161623588376560144199256943236153430000119053182013108835,
+              "denominator": 5045568471822868410201862993623328983867260399252488385751341034378239198363648
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            56,
+            288,
+            -22,
+            458,
+            873,
+            416
+          ],
+          "all_yaw_bounds_u": [
+            -618,
+            288,
+            -618,
+            618,
+            873,
+            618
+          ],
+          "residual_m": {
+            "numerator": 33575400907128058516662763462634404786976583652685033093266496818825084638565036133359550473,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -619,
+            288,
+            -619,
+            619,
+            873,
+            619
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 1388681908289742927794129584984026796860874141476332270636067286311652569713575610805112288858351892206046967092007927817,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 185660562667928968008296621859404921818294259024181742364954601805695891197968472417913835617399565195713528076397445129,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 1388681908289742927794129584984026796860874141476332270636067286311652569713575610805112288858351892206046967092007927817,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "set_work_tool",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    },
+    {
+      "id": "mole_digger.heavy_hammer_swing.plain.firm_grip_v1",
+      "cast": "mole_digger",
+      "species": "mole",
+      "life_stage": "adult_presentation_candidate",
+      "clip": "heavy_hammer_swing",
+      "scenario": "plain",
+      "frames": 58,
+      "parts": [
+        {
+          "kind": "body",
+          "name": "Body/Armature/Skeleton3D/char1",
+          "bounds_u": [
+            -354,
+            -1,
+            -528,
+            611,
+            1157,
+            727
+          ],
+          "all_yaw_bounds_u": [
+            -949,
+            -1,
+            -949,
+            949,
+            1157,
+            949
+          ],
+          "residual_m": {
+            "numerator": 99655603635123049852625691387187891116930904788676148825410525,
+            "denominator": 3994028082644166442935410943467821084499837373446814635236207362048
+          },
+          "world_all_headings_bounds_u": [
+            -950,
+            -1,
+            -950,
+            950,
+            1157,
+            950
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 123711460581986844321531294427835003395307684016750890362281410801058864693293,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            },
+            {
+              "numerator": 7913771794298847599530136271874177950559636809027256891210949414929307795477,
+              "denominator": 118570859087837407639743780350148231120880619382433477065156514307888621161545728
+            },
+            {
+              "numerator": 123711460581986844321531294427835003395307684016750890362281410801058864693293,
+              "denominator": 237141718175674815279487560700296462241761238764866954130313028615777242323091456
+            }
+          ]
+        },
+        {
+          "kind": "attachment",
+          "name": "mole_pick",
+          "bounds_u": [
+            -245,
+            -134,
+            -465,
+            672,
+            1064,
+            746
+          ],
+          "all_yaw_bounds_u": [
+            -1004,
+            -134,
+            -1004,
+            1004,
+            1064,
+            1004
+          ],
+          "residual_m": {
+            "numerator": 47909263394263226290380537949543978994660711384220952668149497874599777336152256348262760457,
+            "denominator": 2135973795208427567261760422548924731475774100831692102824194607414292224645336257513987197894656
+          },
+          "world_all_headings_bounds_u": [
+            -1005,
+            -134,
+            -1005,
+            1005,
+            1064,
+            1005
+          ],
+          "world_additional_residual_m": [
+            {
+              "numerator": 1396089587068184801284486272922479906013363943805002023575039993969884768975090654271623123721676751589749412653428375561,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 193068241446370841498653309797858030970784061352851495303927309463928090459483515884424670480724424579415973637817892873,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            },
+            {
+              "numerator": 1396089587068184801284486272922479906013363943805002023575039993969884768975090654271623123721676751589749412653428375561,
+              "denominator": 2644217255627098099796197040681917958641577140751397103927742801206917262105443701090831330067508045187784110754361690292224
+            }
+          ]
+        }
+      ],
+      "local_representation_enclosed": true,
+      "production_qualified": false,
+      "held_tool_binding": "demo_clip_specific",
+      "common_post_skin_grounding": true,
+      "remaining": [
+        "EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING",
+        "NATIVE_ANIMATED_QUALITY",
+        "COMPLETE_REQUIRED_STATE_UNIONS",
+        "STANCE_WORK_CONTACT_AND_POLICY"
+      ],
+      "world_model_representation_enclosed": true
+    }
+  ],
+  "qualified_profile_count": 0,
+  "backend_certificate": {
+    "engine": {
+      "build": "official",
+      "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+      "hex": 263938,
+      "major": 4,
+      "minor": 7,
+      "patch": 2,
+      "status": "stable",
+      "string": "4.7.2-stable (official)",
+      "timestamp": 0
+    },
+    "driver": "opengl3",
+    "api_version": "4.1 Metal - 90.5",
+    "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+    "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+    "sections": [
+      "4.5",
+      "4.5.1"
+    ],
+    "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+    "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+  },
+  "verified_source_files": 537,
+  "import_archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs",
+  "method": "finite final binary32 matrices plus common post-skin Y; outward Q24 endpoint hull; identical convex positive interpolation; explicit IEEE/UNORM/decode residual",
+  "world_basis": {
+    "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "heading_count": 65536,
+    "exact_norm_squared": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "max_norm_yaw": 40791,
+    "max_component": {
+      "numerator": 1,
+      "denominator": 1
+    },
+    "metadata": {
+      "api_version": "4.1 Metal - 90.5",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "heading_count": 65536,
+      "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+      "orientation": "0=-Z,+quarter=-X; +Y remains up",
+      "rendering_driver": "opengl3",
+      "rendering_method": "gl_compatibility",
+      "schema": 1,
+      "source": {
+        "path": "res://../tools/bake_underground_world_basis.gd",
+        "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+      }
+    },
+    "backend_certificate": {
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "driver": "opengl3",
+      "api_version": "4.1 Metal - 90.5",
+      "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+      "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+      "sections": [
+        "4.5",
+        "4.5.1"
+      ],
+      "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+      "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+    }
+  },
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "world_method": "complete native table norm; explicit top-level binary64 composition, binary32 stores and pre-view model arithmetic",
+  "binding_requirement": "actual immutable Domain descriptor and complete palette/table digests; full translated body admission remains authoritative owner work",
+  "excluded": "view/projection/rasterization error is not physical deformation; no arbitrary parent, pitch, scale or extra shader"
+}

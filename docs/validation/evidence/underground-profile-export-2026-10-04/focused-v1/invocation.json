@@ -1,0 +1,29 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "303/378",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/validation/evidence/underground-profile-export-2026-10-04/focused-v1/shards"
+    ]
+  ],
+  "codes": [
+    0,
+    1
+  ],
+  "scope": "selected CI singleton with assets aside and cache removed; actual outside-project verifier mirrored byte-exact for LSP",
+  "source_unchanged": true,
+  "project_unchanged": true,
+  "assets_restored": true,
+  "override_restored": true,
+  "analyzer_mirror_sha256": "8e8c593178fa28037b31c5570f59c66e47f32dccdd03d4fb55c271410aef4090"
+}

@@ -1,0 +1,47 @@
+state_registry_coverage: PASS -- 147 modules, 723 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_access.gd
+ACCESS_STEP_USEC fixture=2927 proofs=1
+  PASS  test_real_suggestion_is_exact_and_never_mutates_authoritative_owners
+  PASS  test_disconnected_endpoint_cannot_be_its_own_invented_access_anchor
+  PASS  test_invalid_edit_keeps_original_marker_and_drawing_without_silent_replacement
+  PASS  test_selected_request_and_render_arrays_do_not_alias_private_selection
+  PASS  test_source_reload_expires_search_and_old_choice_without_guessing_a_new_version
+  PASS  test_busy_actual_cold_arena_refuses_without_closing_foreign_operation
+  PASS  test_expired_actual_provider_never_rebinds_to_equal_numeric_world
+  PASS  test_planar_target_derivation_uses_exact_signed_datum_and_full_patch
+  PASS  test_exact_concave_boundary_and_picked_cell_filter
+  PASS  test_real_ui_suggestion_then_atomic_room_confirmation
+  PASS  test_ui_reposition_is_a_world_selection_not_a_paint_or_order_gesture
+  PASS  test_old_or_float_selection_stamp_cannot_replace_the_reviewed_access
+  PASS  test_recursive_mutation_during_actual_proof_refuses_and_releases_original_lease
+  PASS  test_late_actual_profile_reload_cannot_mix_candidate_with_new_content
+  PASS  test_malformed_and_oversize_drawing_refuses_before_copy_and_preserves_marker
+ACCESS_STEP_USEC sparse128=695 proofs=0
+  PASS  test_sparse_actual_capacity_search_yields_and_remains_view_only
+  PASS  test_access_guard_and_teardown_preserve_exact_view_binding
+ACCESS_STEP_USEC paint16384_region6144_source2048=2953 proofs=1
+  PASS  test_maximum_paint_and_actual_space_capacity_candidate_is_measured
+  PASS  test_boundary_index_matches_full_paint_scan_for_signed_edges_holes_and_seams
+  FAIL  test_full_populated_graph_and_maximum_paint_candidate_latency
+        full public composition: ["actual finite endpoint (expected , got LOCATION_PAID_SITE_MISSING)"] (expected true, got false)
+        actual source teardown (expected [], got ["actual cleanup: [\"actual finite endpoint (expected , got LOCATION_PAID_SITE_MISSING)\"] (expected true, got false)"])
+CI_SUITE_TIME {"assertions":554,"failures":1,"suite":"test_modular_access.gd","tests":20,"usec":4847470}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+20 test(s), 554 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

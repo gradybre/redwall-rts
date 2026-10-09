@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_room_world_bindings.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE_BASE_CLASS): The local variable \"sources\" is shadowing an already-declared function at line 100 in the base class \"res://scripts/core/underground_world_bindings.gd\".",
+   "range": {
+    "end": {
+     "character": 12,
+     "line": 96
+    },
+    "start": {
+     "character": 5,
+     "line": 96
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

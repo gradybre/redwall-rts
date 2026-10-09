@@ -1,0 +1,69 @@
+{
+  "all_native_current_sources_match": true,
+  "analyzer_files": 6,
+  "analyzer_warnings": 0,
+  "closed_findings": [
+    "R1: held camera and pointer modal ownership",
+    "R2: real UI World Create and explicit reopen",
+    "R3: pre-GUI keyboard/focus modal ownership"
+  ],
+  "engine_rerun": false,
+  "foreign_writes": false,
+  "limitations": [
+    "Actual access and paid worker excavation remain outside this scene acceptance",
+    "No full no-argument milestone or broad runtime memory measurement is claimed",
+    "Source findings were independently read; corrective engine evidence was run by root"
+  ],
+  "native_backend": "Metal/Forward+",
+  "native_checks": 74,
+  "native_failures": 0,
+  "native_image_sha256": {
+    "planning-drawing.png": "5b1bc532ef569271ed756ea4ea0c1d798b960b8fd4d838f78d4250b45dc21098",
+    "planning-open.png": "668dc95c8813fd61f8e332451d5e71bf92977798626e9db569efd12d8552818a",
+    "planning-other-floor.png": "35da2392131b301424a1b331383a544962f3659b884da3a53c61d656d38707a5",
+    "planning-refused.png": "3431cc8d80a4de7912fa86788a308f9b841392b07e7f8e2aff3ea857145e4f54",
+    "planning-stalled.png": "42dd994ed3232212bce80a00f06f52e9723cc5b4c5f64334a1d8905de27b74d0"
+  },
+  "native_resolution": [
+    1280,
+    720
+  ],
+  "performance_qualified": false,
+  "playable_room_complete": false,
+  "receipts": {
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/analyzer-editor.log": "f15ffd4c558b01611d562c8c257508942bdc2dc542124f423ae2a592a46edfa6",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/analyzer.log": "3012a6dc63a3280cb16ad59d3fe1b217c221d3c61d1f5d7cf7831a8b014b5e30",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/clean-import.log": "85407942210182fe11550d2ec090c705bb33f2b0b299974ef479414c35cfed0c",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/invocation.json": "9780f4d4e6f2677136e418e243e82388be406f6402ebdb66be52b61b31a4ec52",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/test_demo_build.gd.log": "25d05abe51b441becab5a85265e8d24023e25163dc008b7480b49db87b088b23",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/test_demo_input_live.gd.log": "ba96183fd051b5af46e161745e6933617788107d5a1657379b4692f6293938dc",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/test_modular_demo_live.gd.log": "27c8bb83671d17c957d8801fb7f7eae3986bfdd147de2929db108cfa3c423fd0",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/test_modular_editor.gd.log": "c15ffd29713ce9f5332dc7e226632879a46e78ccf5dcd516a077569a04a91ed1",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/candidate-9/test_modular_room_mode.gd.log": "74548226371d1b2d27f9c8da717c8c66f86f8d2f7bc51b426517b6172b476519",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/image-sha256.json": "6fe92f44d265daf3ce414e359a6aea7890a588866ae7b712460560fbd770a96f",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/invocation.json": "495cb6288b7503a8d0d87b827199ca699d1424b5ab528ffd4678954d6d17ffdf",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/native.log": "7e2f94d626b0083fd6d2d85c57141f2d7486034669496ef1d0bfa02039809e6f",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/report.json": "4fa9ebaefb35f7b2f121444a3b4ba6ff5b8e05c471c70885ca964164efea5aa5",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/source-after.json": "acd5f0a89eba374d78f724e219edbf49fc9c405579ad9122885a281d2c85e1a2",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/source-before.json": "acd5f0a89eba374d78f724e219edbf49fc9c405579ad9122885a281d2c85e1a2",
+    "docs/validation/evidence/underground-planning-scene-2026-10-05/native-4/staged-import.log": "7b43bc530ba358b041a6f22c92106a63e6eacbc7fec587b80cd063788028ac4b"
+  },
+  "remaining_high_medium_findings": [],
+  "scope": "Independent source review and verification of exact author strict/native receipts; no independent engine rerun",
+  "source_sha256": {
+    "godot/demo/burrow/modular_demo_live.gd": "c2f140ce4b2d51ce5c1d8b3b0d9111838167c16d4929cf121df5c0178994c0db",
+    "godot/demo/burrow/modular_demo_live.tscn": "ab08f5c60271488cf44d7582537e32b1aba3e4f05233d1b931bbef776914f94b",
+    "godot/demo/burrow/modular_demo_mode.gd": "63d1c7e8683f8a68445b2f9e0a00b30a105f049b346505cc3da7d58a86ffdf50",
+    "godot/demo/burrow/modular_editor.gd": "0c5d9c6e1e965bce301624903b1915854b7e7ec6053d210ea6155e19d8676e6f",
+    "godot/demo/demo_village.gd": "8231fba8d4549ee6f63db5bf3b4ae18311aa79df1822d95981b9a2958b4553d3",
+    "godot/demo/tunnel/tunnel_panel.gd": "20a5b1bb1a958ff8d845ccad8b4af15be517fd8f82cdbb9fec4e29e19a1083e1",
+    "godot/test/test_modular_demo_live.gd": "72fdf72b9a3ef5a96ce2c2e288394c59bb7076f446501059b7b8e03945205a8a"
+  },
+  "status": "accepted",
+  "strict_and_raw_diagnostics_and_leaks": 0,
+  "strict_assertions": 1132,
+  "strict_failures": 0,
+  "strict_tests": 30,
+  "verified_native_source_paths": 1285
+}

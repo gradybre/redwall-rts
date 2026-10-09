@@ -1,0 +1,9 @@
+{
+  "images_sha256": {
+    "paws.png": "89011163dff8619e0d438cf21117235ad9564d95c8c6c474a2a243074e0e3eb4",
+    "walk.png": "82916eb21d27181c87b1719cbe69899ca72d1e8c264e26a3b0e70edd16e52c80",
+    "overview.png": "5e303bf1399e4fd66e8f5cbef15a5ec48ee9fb46cfe0fadd1fad93ecb0ee8281"
+  },
+  "renderer_sha256": "248da2a3bf38f8830a41bb020f70d461b161e2519dd190ae41d38564a74c8850",
+  "candidate_sha256": "64579a455aefd4b5bc8863bd369e045cef13923ea1f0655437af6a4310fd1ecb"
+}

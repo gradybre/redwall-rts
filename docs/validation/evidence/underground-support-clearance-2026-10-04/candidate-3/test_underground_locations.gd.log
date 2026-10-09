@@ -1,0 +1,80 @@
+state_registry_coverage: PASS -- 140 modules, 699 rows, 1038 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_locations.gd
+  PASS  test_unique_surface_lookup_requires_original_lease_and_finite_work_before_reads
+  PASS  test_unique_surface_lookup_is_exact_role_point_and_world_floor_scope
+  PASS  test_unique_lookup_refuses_duplicate_live_selectors_and_preserves_retirement_generations
+  PASS  test_unique_surface_lookup_rechecks_world_source_namespace_and_output_shape
+  PASS  test_unique_lookup_refuses_preparation_and_stale_geometry_without_refreshing_it
+  PASS  test_unique_room_lookup_requires_full_actual_room_source_and_surface_is_not_wildcard
+  PASS  test_exact_real_binding_and_full_local_refs
+  PASS  test_actual_shared_budget_blocks_capture_overlap_and_foreign_tokens
+  PASS  test_prepared_endpoint_reader_requires_seal_and_preserves_bank_isolation
+  PASS  test_arena_and_cold_admission_refuse_before_allocation
+  PASS  test_reads_do_not_alias_packed_geometry
+  PASS  test_negative_cells_and_stacked_sections_do_not_alias
+  PASS  test_support_hole_refuses_despite_supported_corners
+  PASS  test_water_unfinished_obstacle_and_boundary_refuse
+  PASS  test_stale_geometry_requires_explicit_refresh_without_payload_change
+  PASS  test_actual_inventory_promotion_and_retirement_guard
+  PASS  test_abort_and_stale_seal_do_not_publish_locations
+  PASS  test_exhaustion_reuse_and_wire_round_trip
+  PASS  test_malformed_image_and_foreign_floor_preserve_live_bytes
+  PASS  test_unqualified_transit_role_never_grants_storage
+  PASS  test_load_cannot_repoint_a_live_immutable_handle
+  PASS  test_load_requires_canonical_generation_exhaustion
+  PASS  test_future_location_requires_actual_sites_binding
+  PASS  test_post_seal_inventory_retention_prevents_location_retirement
+  PASS  test_graph_retention_preserves_live_endpoints_at_all_publication_boundaries
+  PASS  test_graph_retention_refuses_load_that_removes_or_recycles_a_live_location
+  PASS  test_expired_foreign_and_reentrant_graph_observers_fail_closed
+  PASS  test_actual_endpoint_capacity_reader_never_infers_a_smaller_namespace
+  PASS  test_later_retention_callback_cannot_strand_earlier_actual_inventory_endpoint
+  PASS  test_observer_released_cold_lease_refuses_final_publication
+  PASS  test_restore_rechecks_actual_inventory_and_lease_after_observer_callbacks
+  PASS  test_transit_doorway_spans_adjacent_rooms_but_placement_keeps_whole_section_rule
+  PASS  test_transit_without_actual_site_or_with_changed_paid_domain_refuses
+  PASS  test_transit_doorway_retains_actual_walls_unfinished_and_support_holes
+  PASS  test_transit_pending_neighbour_claim_does_not_create_clear_volume
+  PASS  test_location_receipt_requires_exact_success_and_load_never_restores_it
+  PASS  test_room_confirmation_refreshes_existing_contacts_in_actual_callback_order
+  PASS  test_room_companion_requires_every_existing_endpoint_refresh_before_identity
+  PASS  test_room_companion_late_refusal_and_request_drift_preserve_live_state
+  PASS  test_room_companion_reentry_and_replaced_lease_cannot_publish
+  PASS  test_room_companion_rechecks_complete_support_in_sealed_future
+  PASS  test_room_endpoint_binding_refuses_unbound_foreign_and_active_owners
+  PASS  test_world_scope_requires_exact_once_bound_quiescent_actual_owner
+  PASS  test_world_prepare_checks_original_lease_and_seal_before_observers_or_bank_copy
+  PASS  test_world_anchor_publishes_after_exact_space_receipt_without_post_swap_observers
+  PASS  test_world_context_preserves_all_existing_payloads_and_requires_complete_refresh
+  PASS  test_world_context_requires_world_rows_and_complete_physical_coverage
+  PASS  test_world_scope_observer_replacement_and_reentry_preserve_candidate_ownership
+  PASS  test_world_publication_refuses_other_space_transaction_at_same_revision
+  PASS  test_world_publish_rechecks_original_lease_and_preserved_rows_purely
+  PASS  test_world_source_callback_replaces_lease_before_actual_snapshot_allocation
+  PASS  test_world_source_callback_cannot_abort_or_mutate_caller_record
+  PASS  test_world_transit_anchor_preserves_actual_room_claim_blockers
+  PASS  test_live_selector_needs_no_lease_and_keeps_exact_finite_source_and_uniqueness_rules
+  PASS  test_live_selector_rejects_prepared_context_and_current_room_source_drift
+  PASS  test_live_source_hint_rechecks_revision_full_identity_and_room_facts
+  PASS  test_source_hint_rejects_actual_retirement_and_reused_full_generation
+CI_SUITE_TIME {"assertions":1731,"failures":0,"suite":"test_underground_locations.gd","tests":57,"usec":2318623}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+57 test(s), 1731 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 57 tests, 1731 assertions, 0 failures.

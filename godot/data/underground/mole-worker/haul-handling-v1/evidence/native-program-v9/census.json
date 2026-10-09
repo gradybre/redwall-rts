@@ -1,0 +1,54 @@
+{
+  "borrowed_mesh_array_allowance_bytes": 4396032,
+  "capture_bytes": 10038688,
+  "capture_rows": 7794,
+  "clip_frames": {
+    "approach": 61,
+    "carry": 219,
+    "enter": 65,
+    "enter_haul_stone": 31,
+    "exit": 65,
+    "hold": 2,
+    "leave_haul_stone": 31,
+    "lift": 61,
+    "place": 61,
+    "recovery": 61
+  },
+  "clips": 10,
+  "complete_vertices": [
+    17172,
+    70
+  ],
+  "declared_offline_content_peak_bytes": 7285004,
+  "decode_staging_bytes": 791028,
+  "exclusions": [
+    "Original/derived mesh resources and textures",
+    "Renderer RIDs and framebuffers",
+    "Python objects, verifier geometry scratch and native allocator overhead"
+  ],
+  "global_simulation_state_delta_bytes": 0,
+  "max_clips": 16,
+  "native_peak_measured": false,
+  "packed_tables_bytes": 792,
+  "presentation_reservations_bytes": {
+    "HANDLING_PRESENTATION_BYTES": 6628488,
+    "HAUL_PRESENTATION_BYTES": 7486168,
+    "PRESENTATION_BYTES": 7141920,
+    "STONE_PRESENTATION_BYTES (v9, declared here)": 7285004
+  },
+  "presentation_set_with_stone_bytes": 28541580,
+  "reader_native_control_reserve_bytes": 2097152,
+  "rendered_intervals": 647,
+  "retained_palette_bytes": 791028,
+  "runtime_admitted": false,
+  "runtime_source_files": 120,
+  "scope": "Source-derived existing loader declarations. The presentation set is a declared reservation, not a measured peak and not capacity inside the 100 MB simulation-owned gate.",
+  "source_keys": 657,
+  "v8_comparison": {
+    "declared_offline_content_peak_bytes": 7486168,
+    "retained_palette_bytes": 992096,
+    "wire_bytes": 993008
+  },
+  "wire_bytes": 791844,
+  "world_basis_separate_bytes": 544768
+}

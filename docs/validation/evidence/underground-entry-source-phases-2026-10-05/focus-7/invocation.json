@@ -1,0 +1,116 @@
+{
+  "head": "b315b7c7deb32be41b006aaea3601faa486370c9",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 11.9
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "219/413",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-7/test_underground_entry_source_phases"
+      ],
+      "log": "test_underground_entry_source_phases.gd.log",
+      "exit_code": 0,
+      "seconds": 23.034
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "1/413",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-7/test_underground_entry_world_bindings"
+      ],
+      "log": "test_underground_entry_world_bindings.gd.log",
+      "exit_code": 0,
+      "seconds": 84.076
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "133/413",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-7/test_underground_room_world_phases"
+      ],
+      "log": "test_underground_room_world_phases.gd.log",
+      "exit_code": 0,
+      "seconds": 15.303
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6503",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-source-phases-2026-10-05/focus-7/analyzer.json",
+        "godot/test/test_underground_entry_source_phases.gd",
+        "godot/scripts/core/underground_entry_world_bindings.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 13.512
+    }
+  ],
+  "scope": "Focused official singleton suite plus zero-warning analyzer, not a full no-argument milestone",
+  "assets_present_before": true,
+  "runtime_qualified": false,
+  "import_findings": [],
+  "counts": {
+    "test_underground_entry_source_phases.gd": {
+      "tests": 4,
+      "assertions": 13,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_entry_world_bindings.gd": {
+      "tests": 33,
+      "assertions": 10790,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_underground_room_world_phases.gd": {
+      "tests": 24,
+      "assertions": 290,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "analyzer_raw_findings": [],
+  "project_restored": true,
+  "assets_restored": true,
+  "sources_unchanged": true,
+  "old_sidecars_restored": true,
+  "exit_code": 0
+}

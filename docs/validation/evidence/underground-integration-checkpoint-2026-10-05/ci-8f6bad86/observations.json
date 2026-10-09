@@ -1,0 +1,175 @@
+{
+  "scope": "failed-run observations, not acceptance",
+  "run_id": 37275141498,
+  "head": "8f6bad864c4833f32395e7004e8a2042e41c1460",
+  "accepted": false,
+  "total": {
+    "tests": 11282,
+    "assertions": 1082433,
+    "failures": 3,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "observed_files": 410,
+  "exactly_once_matches_current_discovery": true,
+  "analyzer": "0 GDScript warning(s) in 0 of 1264 file(s)",
+  "specification_contracts": "cancelled after five-minute timeout; later checks skipped",
+  "shards": [
+    {
+      "shard": 0,
+      "counts": {
+        "tests": 1279,
+        "assertions": 44640,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 217,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1279 test(s), 44640 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 217 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "05df7af3570de698fa20da8dd25a54b89c5e3828f827c9026439d10e946f1f5a"
+    },
+    {
+      "shard": 1,
+      "counts": {
+        "tests": 1341,
+        "assertions": 342688,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 2,
+        "tolerated": 2,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1341 test(s), 342688 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 2 expected, 2 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "8ec7449cfbff2dc6fd94b2c588fa7bd117879f621c576680571cc274bbf8ca5f"
+    },
+    {
+      "shard": 2,
+      "counts": {
+        "tests": 1494,
+        "assertions": 64164,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 22,
+        "tolerated": 51,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1494 test(s), 64164 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 22 expected, 51 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "b93767d1ee50161c6635c33ab1b6b8f826510f4cce7101dc91b2ba6bfd1cffa3"
+    },
+    {
+      "shard": 3,
+      "counts": {
+        "tests": 1178,
+        "assertions": 138744,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 1,
+        "tolerated": 137,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1178 test(s), 138744 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 137 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "036c35fdff497525a0509a1fb485aa8522976904a77c5b5c36e73bc680ec6ecf"
+    },
+    {
+      "shard": 4,
+      "counts": {
+        "tests": 1645,
+        "assertions": 55739,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 0,
+        "tolerated": 67,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1645 test(s), 55739 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 67 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "cb14817a36f755419a0551c7ca7cf2b1b7c941354420472a6d4310efecf2bf1f"
+    },
+    {
+      "shard": 5,
+      "counts": {
+        "tests": 1861,
+        "assertions": 199898,
+        "failures": 3,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 25,
+        "tolerated": 27,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1861 test(s), 199898 assertion(s), 3 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 25 expected, 27 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [
+        {
+          "assertions": 21,
+          "failures": 3,
+          "suite": "test_demo_profile_pack.gd",
+          "tests": 5,
+          "usec": 81611
+        }
+      ],
+      "log_sha256": "2ace36945c0a786db7004a77751ee70cb5d489e5fdc32ea16c28f122d1129de1"
+    },
+    {
+      "shard": 6,
+      "counts": {
+        "tests": 1329,
+        "assertions": 99417,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 1,
+        "tolerated": 69,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1329 test(s), 99417 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 69 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "32bbe98efb7967f7f9573b9e8fe2bc905aa3f56061502a39b6a71881c3ef9c24"
+    },
+    {
+      "shard": 7,
+      "counts": {
+        "tests": 1155,
+        "assertions": 137143,
+        "failures": 0,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "expected": 4,
+        "tolerated": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0
+      },
+      "runner_summary": "1155 test(s), 137143 assertion(s), 0 failure(s)",
+      "diagnostic_summary": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 4 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "failed_suites": [],
+      "log_sha256": "d71ecf759ebf275f8ef1f9c8a30a8ee11f6f81cdcfbafe03b66548e5ef93f9a0"
+    }
+  ]
+}

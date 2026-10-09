@@ -1,0 +1,202 @@
+{
+	"assertions": 484,
+	"candidate_target_u": [
+		-512,
+		-1024,
+		350,
+		512,
+		0,
+		1374
+	],
+	"content_sha256": "004ea5955ba8877ec3998be179945eb846ed4b8f88c82555dba2d07be4947d0a",
+	"failures": [],
+	"native_motion_review": "PENDING",
+	"poses": 210,
+	"production_qualified": false,
+	"schema": 1,
+	"screenshots": [
+		{
+			"clip": 6,
+			"half_tick": 0,
+			"path": "rear-000-source000.png",
+			"sha256": "123c83b7772fdf629c2f2c5a04c892472f6fc087a2caee4b8a9888fc9ceab827"
+		},
+		{
+			"clip": 6,
+			"half_tick": 12,
+			"path": "rear-006-source006.png",
+			"sha256": "0018d407bde7d829157b014ecc370ad718ea62afaaccd0c695ee9f60ba27228b"
+		},
+		{
+			"clip": 6,
+			"half_tick": 24,
+			"path": "rear-012-source012.png",
+			"sha256": "4f725e20438abf714abd79a784d644894d6e4bc4ea917b97f23d84a673c253c8"
+		},
+		{
+			"clip": 6,
+			"half_tick": 34,
+			"path": "rear-017-source017.png",
+			"sha256": "081abeadaf18276e6437604a12475dabcd4c130fe9045f28e017371a9fc0a2f6"
+		},
+		{
+			"clip": 6,
+			"half_tick": 36,
+			"path": "rear-018-source016.png",
+			"sha256": "aed140872a25ef0fc92367332d9af73e76beb1e02959cf294db7dd08a99bee97"
+		},
+		{
+			"clip": 6,
+			"half_tick": 48,
+			"path": "rear-024-source010.png",
+			"sha256": "c560f1758c43a6e9c6e60ff0306f19cf18179926b19a6ac661fe09a95951ce9f"
+		},
+		{
+			"clip": 6,
+			"half_tick": 60,
+			"path": "rear-030-source004.png",
+			"sha256": "7cfb48afa7ce6bc55fa002231c77730e8915a1f9533b44641b8ef0f917b23129"
+		},
+		{
+			"clip": 6,
+			"half_tick": 68,
+			"path": "rear-034-source000.png",
+			"sha256": "123c83b7772fdf629c2f2c5a04c892472f6fc087a2caee4b8a9888fc9ceab827"
+		},
+		{
+			"clip": 6,
+			"half_tick": 0,
+			"path": "side-000-source000.png",
+			"sha256": "3fb534f55973b49976988b196944bec06c8abaa7b11830257fb30186d9db3ece"
+		},
+		{
+			"clip": 6,
+			"half_tick": 12,
+			"path": "side-006-source006.png",
+			"sha256": "aa6a5c16298642457b0e9d207ff72a249842fd30269ad139d7aa2e641cfdb954"
+		},
+		{
+			"clip": 6,
+			"half_tick": 24,
+			"path": "side-012-source012.png",
+			"sha256": "609e148fd6b6781bf1331dcebb0edfcac3cf7e35d0308d7570f39d7852a6f4c6"
+		},
+		{
+			"clip": 6,
+			"half_tick": 34,
+			"path": "side-017-source017.png",
+			"sha256": "108a1e0570e8bbd646333fbd208d6e4ae00673d17b23bbe286a557323f184e8d"
+		},
+		{
+			"clip": 6,
+			"half_tick": 36,
+			"path": "side-018-source016.png",
+			"sha256": "17c08230657911c0461c5d83983ef2889a7604952955b43d12b1d5eb1bdefb80"
+		},
+		{
+			"clip": 6,
+			"half_tick": 48,
+			"path": "side-024-source010.png",
+			"sha256": "99ad82709b66fd91996b02d690a47e1ffc1a6f44d74ed653d9e57f3ad6d2446a"
+		},
+		{
+			"clip": 6,
+			"half_tick": 60,
+			"path": "side-030-source004.png",
+			"sha256": "8bf95971d1ee42241efe04794b0511a8e9cc6fc57181f65971e601aad78a5c71"
+		},
+		{
+			"clip": 6,
+			"half_tick": 68,
+			"path": "side-034-source000.png",
+			"sha256": "3fb534f55973b49976988b196944bec06c8abaa7b11830257fb30186d9db3ece"
+		},
+		{
+			"clip": 6,
+			"half_tick": 0,
+			"path": "overhead-000-source000.png",
+			"sha256": "86b3ce9e182f3e270b131e2dbc3232f3779283a3d55e680069ec0404b5f73820"
+		},
+		{
+			"clip": 6,
+			"half_tick": 12,
+			"path": "overhead-006-source006.png",
+			"sha256": "cc2a277687a8cf2b180ca1c777c381c3ef1713007786b4753d668dfe941849c6"
+		},
+		{
+			"clip": 6,
+			"half_tick": 24,
+			"path": "overhead-012-source012.png",
+			"sha256": "2f12f036b814cbad8fe460c6d1b035ae611fb16a726817e3327882463b61e6bb"
+		},
+		{
+			"clip": 6,
+			"half_tick": 34,
+			"path": "overhead-017-source017.png",
+			"sha256": "9ee585bff696ab5e21dd681b841b5d63f32256931dffbdfab4d3d7576fd219ea"
+		},
+		{
+			"clip": 6,
+			"half_tick": 36,
+			"path": "overhead-018-source016.png",
+			"sha256": "c52b54651eb283345e648850ed588f1d47e8438e995efe61fa7dae1d0219dd4e"
+		},
+		{
+			"clip": 6,
+			"half_tick": 48,
+			"path": "overhead-024-source010.png",
+			"sha256": "b45ecd365ce7a03abc8061cafd21e5d8d054a7188b8ec9839539731f992c9ba2"
+		},
+		{
+			"clip": 6,
+			"half_tick": 60,
+			"path": "overhead-030-source004.png",
+			"sha256": "6ee87eb6a86bedd5ce5958304d2a5e2872506a1e9be2c281a06fadb27a05fc6d"
+		},
+		{
+			"clip": 6,
+			"half_tick": 68,
+			"path": "overhead-034-source000.png",
+			"sha256": "86b3ce9e182f3e270b131e2dbc3232f3779283a3d55e680069ec0404b5f73820"
+		}
+	],
+	"source_clip": 6,
+	"source_frame_indices": [
+		0,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
+		7,
+		8,
+		9,
+		10,
+		11,
+		12,
+		13,
+		14,
+		15,
+		16,
+		17,
+		16,
+		15,
+		14,
+		13,
+		12,
+		11,
+		10,
+		9,
+		8,
+		7,
+		6,
+		5,
+		4,
+		3,
+		2,
+		1,
+		0
+	],
+	"world_identity": "synthetic target/support fixture; no paid operation, real stance or work permission"
+}

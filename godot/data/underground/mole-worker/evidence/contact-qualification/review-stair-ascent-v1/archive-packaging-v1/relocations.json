@@ -1,0 +1,19 @@
+{
+  "reason": "Archived rejected GDScript was discovered as live source and its relocated relative superclass could not resolve. Preserve original bytes as non-executable text, never repair historical source.",
+  "relocations": [
+    {
+      "old_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd",
+      "current_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd.txt",
+      "sha256": "9e0d59fc65350fa2b5df844d54e777b78b832be24f97463fbf4eb149cc668bf8",
+      "bytes_unchanged": true
+    },
+    {
+      "old_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd.uid",
+      "current_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd.uid.txt",
+      "sha256": "d6788ea494a2ffe54df995bfedac47fdbf4627ccad23d35785d03edf3af32a49",
+      "bytes_unchanged": true
+    }
+  ],
+  "historical_run_records_changed": false,
+  "current_capture_sha256": "30ba059c19b75608f3eef01c67780817c1257b4a0b490d63f0f1e1ab5adb339d"
+}

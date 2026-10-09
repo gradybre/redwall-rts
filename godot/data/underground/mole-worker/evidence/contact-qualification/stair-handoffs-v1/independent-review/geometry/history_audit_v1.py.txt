@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Read-only history, primitive coverage and exact source-palette checks for ADR1142."""
+import importlib.util
+import json
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+spec = importlib.util.spec_from_file_location('review_replay', HERE / 'replay.py')
+R = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(R)
+spec = importlib.util.spec_from_file_location('review_stair_author', R.BASE / 'author_stair_handoffs.py')
+A = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(A)
+
+
+def read(relative):
+    return json.loads((R.PACKET / relative).read_text())
+
+
+before = R.manifest_state()
+rows, pins = A.D.load_inputs()
+_, parts, _, _, _, _, _, boundary = A.D.actual_source(pins)
+cases = []
+for number in (5, 6):
+    path = R.PACKET / ('candidate-' + str(number)) / 'result'
+    compilation = json.loads((path / 'compilation.json').read_text())
+    cases.append(A.S.read_image(path / 'mole-worker.ugactor', compilation['content_sha256'], parts))
+assert len(cases[0]) == len(cases[1]) == 3
+palette_rows = []
+for name, first, last in zip(('approach', 'turn', 'retreat'), *cases):
+    assert first['frames'] == last['frames']
+    assert first['matrices'].astype('<f4').tobytes() == last['matrices'].astype('<f4').tobytes()
+    assert first['grounding'].astype('<f4').tobytes() == last['grounding'].astype('<f4').tobytes()
+    palette_rows.append({'name': name, 'frames': first['frames'], 'exact_f32_palette_grounding_equal': True})
+
+candidate1 = read('candidate-1/result/candidate.json')
+approach = [r for r in candidate1['attempts'] if r['name'] == 'approach']
+assert len(approach) == 1 and approach[0]['status'] == 'REFUSED'
+joint = read('candidate-1/joint-refusal.json')['joints'][1]
+assert joint['distance_u'] > sum(joint['lengths_u'])
+history = []
+for iteration, number in enumerate((2, 3, 4), 1):
+    stem = 'terrain-' + str(iteration) + '-turn'
+    invocation = read(stem + '/invocation.json')
+    proof = read(stem + '/result/proof.json')
+    assert invocation['exit_code'] == 2 and invocation['source_unchanged']
+    assert proof['result']['clear'] is False and proof['result']['unresolved']
+    assert proof['source_sha256'] == R.sha(R.PACKET / ('candidate-' + str(number)) / 'result/mole-worker.ugactor')
+    proof_name = str((R.BASE / 'prove_stair_handoffs.py').relative_to(R.SOURCE))
+    author_name = str((R.BASE / 'author_stair_handoffs.py').relative_to(R.SOURCE))
+    assert invocation['source_before'][proof_name] == R.sha(R.PACKET / stem / 'result/prove_stair_handoffs.py.txt')
+    assert invocation['source_before'][author_name] == R.sha(R.PACKET / ('candidate-' + str(number)) / 'result/author_stair_handoffs.py.txt')
+    history.append({'candidate': number, 'exit_code': 2, 'unresolved': len(proof['result']['unresolved']),
+                    'executed_sources_preserved': True, 'source_image_matches': True})
+
+sampled = read('terrain-3-turn/sampled-diagnosis.json')
+assert sampled['scope'] == 'sampled diagnosis only, not a continuous or exact intersection certificate'
+assert sampled['sampled_nonempty_intersections'] > 0
+solid_boxes = rows[1][2]['fixture']['solids_u']
+interior = []
+for row in sampled['rows']:
+    box = np.asarray(solid_boxes[row['primitive']], dtype=np.float64)
+    for sample in row['samples']:
+        polygon = sample['intersection_polygon']
+        if not polygon:
+            continue
+        centre = np.asarray(polygon).mean(axis=0)
+        if np.all(centre > box[:3]) and np.all(centre < box[3:]):
+            interior.append({'interval': row['interval'], 'triangle': row['triangle'],
+                             'primitive': row['primitive'], 'share': sample['share'],
+                             'sampled_polygon_mean_u': centre.tolist()})
+assert interior
+
+coverage = []
+for name, count in (('approach', 90), ('turn', 270), ('retreat', 90)):
+    terrain = read('proof-v1/' + name + '/terrain/result/proof.json')['result']
+    self_ = read('proof-v1/' + name + '/tool-body/result/proof.json')['result']
+    assert terrain['clear'] and self_['clear'] and terrain['unresolved'] == []
+    assert terrain['intervals'] == self_['intervals'] == count and terrain['solids'] == 22
+    assert [part['triangles'] for part in terrain['parts']] == [10209, 1150]
+    assert [len(part['full_interval_boxes_program_u']) for part in terrain['parts']] == [count, count]
+    assert {row['interval'] for row in terrain['supports']} == set(range(count))
+    edges = [edge for chunk in self_['chunks'] for edge in range(chunk['first'], chunk['last'])]
+    assert edges == list(range(count))
+    assert all(chunk['clear'] and chunk['unresolved'] == [] and chunk['body_triangles'] == 9761
+               and chunk['intentional_grip_triangles'] == 448 and chunk['tool_triangles'] == 1150
+               for chunk in self_['chunks'])
+    coverage.append({'name': name, 'intervals': count, 'terrain_support_checks': terrain['checks'],
+                     'tool_body_checks': self_['checks'], 'complete_primitive_and_interval_census': True})
+assert sum(row['terrain_support_checks'] for row in coverage) == 4791
+assert sum(row['tool_body_checks'] for row in coverage) == 2610
+
+memory = read('column-proposal-v2/result/program.json')['memory']
+tables = read('column-proposal-v2/result/program.json')['tables']
+widths = {'PROGRAM': 8, 'KEY': 5, 'INTERVAL': 6, 'BOX': 6, 'SUPPORT': 8, 'SUPPORT_REF': 1, 'SOLID': 6}
+assert all(len(row) == widths[name] for name, bank in tables.items() for row in bank)
+independent_bank = sum(len(row) * 4 for bank in tables.values() for row in bank) + 128
+assert independent_bank == memory['one_numeric_bank'] == 48548
+assert 2 * independent_bank + 4096 + 176 == memory['numeric_peak_proposal_before_native'] == 101368
+assert memory['runtime_allocation_bytes'] == 0 and memory['native_peak_measured'] is False
+A.D.check_current_sources(boundary)
+assert before == R.manifest_state()
+R.write('history-audit.json', {'candidate5_6': palette_rows, 'original_approach_refusal': approach[0]['error'],
+        'requested_u': joint['distance_u'], 'actual_link_sum_u': sum(joint['lengths_u']),
+        'rejected_candidates': history, 'sampled_intrusion_witnesses_not_certificates': interior,
+        'coverage': coverage, 'numeric_bank_bytes': independent_bank, 'numeric_coexistence_bytes': 101368,
+        'manifests_unchanged': True, 'engine_or_native_run': False})
+print(json.dumps({'history_and_coverage_pass': True, 'coverage': coverage, 'numeric_bank': independent_bank}))

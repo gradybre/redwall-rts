@@ -1,0 +1,15 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-9vlgas3n
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 0
+CI_SUITE_TIME {"assertions":3280,"failures":0,"suite":"test_underground_space_owner.gd","tests":75,"usec":3845012}
+75 test(s), 3280 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 75 tests, 3280 assertions, 0 failures.
+test_underground_locations.gd exit 0
+CI_SUITE_TIME {"assertions":780,"failures":0,"suite":"test_underground_locations.gd","tests":29,"usec":988427}
+29 test(s), 780 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 29 tests, 780 assertions, 0 failures.
+assets restored True

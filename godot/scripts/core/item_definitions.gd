@@ -155,6 +155,8 @@ var _seed: PackedByteArray = PackedByteArray()
 var _effect_id: PackedInt32Array = PackedInt32Array()
 var _effect_value: PackedInt32Array = PackedInt32Array()
 var _loaded: bool = false
+## Derived world wiring only; a failed registration never changes the successful target.
+var _registered_inventory: WeakRef = null
 
 
 func load_default(inventory: InventoryScript) -> LoadResult:
@@ -168,6 +170,8 @@ func load_from_file(path: String, inventory: InventoryScript) -> LoadResult:
 	All-or-nothing (GDD §4.2): either the whole catalog is registered into `inventory` and this
 	instance becomes loaded, or nothing changes anywhere and a refusal reason is returned.
 	"""
+	if inventory == null:
+		return LoadResult.new(false, "no Inventory supplied for item registration", 0)
 	var parse_result: _ParseResult = _parse_json_file(path)
 	if not parse_result.ok:
 		return LoadResult.new(false, parse_result.error, 0)
@@ -412,6 +416,7 @@ func _commit(items: Array[_ValidatedItem], item_ids: Dictionary, category_ids: D
 	_effect_ids = effect_ids
 	_item_count = count
 	_loaded = true
+	_registered_inventory = weakref(inventory)
 
 
 func _commit_one(item: _ValidatedItem, item_ids: Dictionary, category_ids: Dictionary, effect_ids: Dictionary, inventory: InventoryScript) -> void:
@@ -430,6 +435,12 @@ func _commit_one(item: _ValidatedItem, item_ids: Dictionary, category_ids: Dicti
 func is_loaded() -> bool:
 	"""True once load_from_file()/load_default() has fully succeeded on this instance."""
 	return _loaded
+
+
+func registered_into(inventory: InventoryScript) -> bool:
+	"""Whether this catalog's last successful registration targets this exact Inventory owner."""
+	return inventory != null and _registered_inventory != null \
+		and _registered_inventory.get_ref() == inventory
 
 
 func item_count() -> int:

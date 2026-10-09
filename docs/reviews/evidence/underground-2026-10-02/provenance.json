@@ -1,0 +1,43 @@
+{
+  "reviewed_source_revision": "d9941bd9fc4ebdca12ab5b34d86c943439d93ad1",
+  "inspection_date": "2026-10-02",
+  "images_copied_without_modification": true,
+  "fresh_runtime_capture": false,
+  "files": [
+    {
+      "file": "historical-furnished-home.png",
+      "original_path": "/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/revamp_p7_check/after/look/fitted_home_7m.png",
+      "sha256": "996af9c2a7ba042a5ccafb0234d8ab4e4bb1ebc12aa8601dbc156f9e3b4a4fe6",
+      "bytes": 1492766,
+      "capture_revision": "unverified; historical phase/camera evidence, not current reviewed HEAD"
+    },
+    {
+      "file": "historical-furnished-cellar.png",
+      "original_path": "/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/revamp_p7_check/after/look/fitted_cellar_6m.png",
+      "sha256": "ebd498f3bdf043df72423d48fe62fecc1ea2aa0209c16d9ec5bb6648df3c3155",
+      "bytes": 1248654,
+      "capture_revision": "unverified; historical phase/camera evidence, not current reviewed HEAD"
+    },
+    {
+      "file": "historical-dig-face.png",
+      "original_path": "/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/revamp_p7_check/after/look/dig_face_lantern_5m.png",
+      "sha256": "64fd9ac2a630e8656517d521241e0c444f8da0d32591b1c0de67586cb9069f52",
+      "bytes": 874241,
+      "capture_revision": "unverified; historical phase/camera evidence, not current reviewed HEAD"
+    },
+    {
+      "file": "historical-partial-excavation.png",
+      "original_path": "/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/revamp_p3_check/after/staged_1_of_3.png",
+      "sha256": "25129a212756bdb4e30c3fdc13401f118e8b2695e68e85a6dc8fb42da0ef6917",
+      "bytes": 916929,
+      "capture_revision": "unverified; historical phase/camera evidence, not current reviewed HEAD"
+    },
+    {
+      "file": "historical-cutaway-1280x720.png",
+      "original_path": "/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/camera_check/frames2/camera_cutaway_1280x720.png",
+      "sha256": "30ebafb6d05b055b40e3f017442b78c8e0051cfa2a3bbfbc8235582397e54309",
+      "bytes": 686079,
+      "capture_revision": "unverified; historical phase/camera evidence, not current reviewed HEAD"
+    }
+  ]
+}

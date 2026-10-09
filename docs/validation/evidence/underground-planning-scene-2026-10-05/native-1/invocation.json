@@ -1,0 +1,67 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "raw_findings": [],
+      "seconds": 4.732
+    },
+    {
+      "command": [
+        "godot",
+        "--path",
+        "godot",
+        "--windowed",
+        "--resolution",
+        "1280x720",
+        "--position",
+        "80,80",
+        "--quit-after",
+        "900",
+        "res://demo/burrow/modular_demo_live.tscn",
+        "--",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-planning-scene-2026-10-05/native-1"
+      ],
+      "exit_code": 0,
+      "raw_findings": [
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:",
+        "WARNING:"
+      ],
+      "seconds": 9.608
+    }
+  ],
+  "user_dir": "Redwall-ug1179-native-c2dcf58d1bcc",
+  "playable_room_complete": false,
+  "error": "AssertionError('native.log')",
+  "override_unchanged": true,
+  "project_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

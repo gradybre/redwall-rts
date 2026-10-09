@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_room_world_bindings.gd": "e491ce4788ccd2fe6844f327ae013cdae386ee61dcf44868fa5842514f9701fa",
+  "godot/scripts/core/underground_work_face.gd": "9df224974eba44e72b3c658549da46296f51c27889e5ddb90bc391ecc12c9595",
+  "godot/test/test_underground_room_world_phases.gd": "fc3374fbd6c36a6d94e543ef3b7495361ce21f6a38988bd135b2ac4b93d55c4c",
+  "godot/test/test_underground_work_face.gd": "8da942eb1fdccab7408adcd8a78200856294983c867e6130e2744edc1aa86539"
+}

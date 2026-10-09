@@ -1,0 +1,24 @@
+{
+  "before": {
+    "godot/scripts/core/underground_surface_anchor.gd": "ac38160fbfd6f64adfda8d4ea7fcde61df635af560774e4f60cb4d2505b27b12",
+    "godot/scripts/core/underground_world_retirement.gd": "d44232dfaa9581d82e5887bafc36664602ed830716a92d069a87dfd6aa2da889",
+    "godot/test/test_underground_host.gd": "4516f9a3235c9e5d4cb76557985197be183811745b3819a54b59376695502820"
+  },
+  "scope": "Historical retained-handle negative; real host, original candidate2 production, new lifetime regression only.",
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/reproduce.py",
+    "--out",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/retained-handle-repro-v1/old-run",
+    "--suites",
+    "test_underground_host.gd"
+  ],
+  "returncode": 1,
+  "after": {
+    "godot/scripts/core/underground_surface_anchor.gd": "ac38160fbfd6f64adfda8d4ea7fcde61df635af560774e4f60cb4d2505b27b12",
+    "godot/scripts/core/underground_world_retirement.gd": "d44232dfaa9581d82e5887bafc36664602ed830716a92d069a87dfd6aa2da889",
+    "godot/test/test_underground_host.gd": "4516f9a3235c9e5d4cb76557985197be183811745b3819a54b59376695502820"
+  },
+  "restored": true
+}

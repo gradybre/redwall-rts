@@ -1,0 +1,26 @@
+state_registry_coverage: PASS -- 138 modules, 693 rows, 1032 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_payment_guard.gd
+  PASS  test_connector_final_observer_cannot_commit_the_inventory_journal
+  PASS  test_connector_final_observer_cannot_abort_the_inventory_journal
+  PASS  test_connector_nested_equipment_audit_cannot_enable_a_commit
+CI_SUITE_TIME {"assertions":66,"failures":0,"suite":"test_underground_connector_payment_guard.gd","tests":3,"usec":1671766}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+3 test(s), 66 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 3 tests, 66 assertions, 0 failures.

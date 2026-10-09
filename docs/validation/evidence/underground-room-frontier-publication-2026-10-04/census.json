@@ -1,0 +1,313 @@
+{
+  "scope": "1161 source-counted cold packets and sequential proof lifetimes; no native/RAM qualification.",
+  "baseline": "8373d146",
+  "source_sha256": {
+    "godot/scripts/core/underground_room_frontier_publication.gd": "8fb6fba60349cf71b8df6a7a34155dca2277dd0f67b00f22477f894d1fc6869b",
+    "godot/scripts/core/underground_locations.gd": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+    "godot/scripts/core/underground_room_frontier.gd": "554fbf053c377c0305ac9d2e5890dee90b7b511d056ee2a8b9388b1b3f06f52d",
+    "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+    "godot/scripts/core/underground_routes.gd": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
+    "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+    "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+    "godot/scripts/core/underground_room_world_bindings.gd": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+    "godot/scripts/core/underground_world_routes.gd": "3341260ee11ec2008ee1ab32fa797d971d13edc7136ee6fb38e65a0b15ab338e",
+    "godot/scripts/core/underground_final_facts.gd": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46",
+    "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779"
+  },
+  "packets": {
+    "caller_request": 204,
+    "caller_output": 88,
+    "caller_candidate": 99,
+    "private_query_scalars_and_5_buffers": 864,
+    "private_request": 204,
+    "private_candidate": 99,
+    "private_context": 144,
+    "four_Location_records": 464,
+    "four_Region_records": 288,
+    "one_descriptor": 184,
+    "one_box": 32,
+    "one_reused_two_point_Edge": 144,
+    "one_WorkFace_Request": 68,
+    "two_simultaneous_Routes_results": 48
+  },
+  "fixed_numeric_packed_total": 2930,
+  "query_fields": {
+    "provider": "Provider",
+    "config": "WorldRoutes.Configuration",
+    "actual": "WorldRoutes",
+    "face_owner": "Face",
+    "locations": "Locations",
+    "graph": "Routes",
+    "input": "Request",
+    "original": "Frontier.Candidate",
+    "request": "Request",
+    "candidate": "Frontier.Candidate",
+    "context": "Locations.FrontierContext",
+    "gateway": "Locations.Record",
+    "records": "Array",
+    "sections": "Array",
+    "refs": "PackedInt32Array",
+    "edges": "PackedInt32Array",
+    "heap_patch": "PackedInt32Array",
+    "original_location_live": "Locations.Bank",
+    "original_location_stage": "Locations.Bank",
+    "original_graph_live": "Routes.EdgeBank",
+    "original_graph_stage": "Routes.EdgeBank",
+    "original_masks_live": "WorldRoutes.Certificates",
+    "original_masks_stage": "WorldRoutes.Certificates",
+    "world": "Vector2i",
+    "profile_revision": "int",
+    "catalog_revision": "int",
+    "outer_section": "Owner.Region",
+    "descriptor": "Profiles.Descriptor",
+    "box": "Profiles.Box",
+    "edge": "Routes.Edge",
+    "contact": "Face.Request",
+    "origin": "Vector3i",
+    "bounds": "PackedInt32Array",
+    "remaining_out": "PackedInt32Array",
+    "remaining": "int",
+    "cold": "int",
+    "location_token": "int",
+    "route_token": "int",
+    "retreat": "Vector2i",
+    "backward": "int",
+    "backward_revision": "int"
+  },
+  "context_fields": {
+    "locations": "RefCounted",
+    "graph": "RefCounted",
+    "routes": "RefCounted",
+    "owner": "Owner",
+    "budget": "Budget",
+    "live": "Bank",
+    "candidate": "Bank",
+    "graph_live": "RefCounted",
+    "graph_candidate": "RefCounted",
+    "masks_live": "RefCounted",
+    "masks_candidate": "RefCounted",
+    "room": "Vector2i",
+    "world": "Vector2i",
+    "count": "int",
+    "refs": "PackedInt32Array",
+    "cold": "int",
+    "revision": "int",
+    "profiles": "int",
+    "catalog": "int",
+    "location_token": "int",
+    "route_token": "int",
+    "edges": "PackedInt32Array"
+  },
+  "all_publisher_declared_frames": {
+    "publish_into": 16,
+    "_input": 8,
+    "_hold": 16,
+    "_allocate": 8,
+    "_pin_context": 0,
+    "_copy_request": 24,
+    "_same_request": 0,
+    "_spend": 8,
+    "_scope": 0,
+    "_original_context": 0,
+    "_run": 1,
+    "_existing": 8,
+    "_section_ref": 8,
+    "_point": 8,
+    "_new_ref": 8,
+    "_path": 32,
+    "_records": 8,
+    "_init_record": 16,
+    "_extend_profile": 26,
+    "_extend_box": 26,
+    "_stage_locations": 8,
+    "_face": 0,
+    "_stage_routes": 8,
+    "_edge_into": 41,
+    "section_span_refusal": 32,
+    "_observe_final": 0,
+    "_final_leaf": 16,
+    "_selected_edges": 32,
+    "_physical": 8,
+    "_terrain": 8,
+    "_source_local": 104,
+    "_new_span_facts": 40,
+    "_occupants": 16,
+    "_edge_matches": 32,
+    "_edge_section_matches": 24,
+    "_output": 16,
+    "_cleanup": 0
+  },
+  "maximum_own_chain": {
+    "bytes": 201,
+    "frames": {
+      "underground_room_frontier_publication.publish_into": 16,
+      "underground_room_frontier_publication._run": 1,
+      "underground_room_frontier_publication._final_leaf": 16,
+      "underground_room_frontier_publication._physical": 8,
+      "underground_room_frontier_publication._new_span_facts": 40,
+      "underground_room_frontier_publication._source_local": 104,
+      "underground_room_frontier_publication._terrain": 8,
+      "underground_room_frontier_publication._spend": 8
+    }
+  },
+  "foreign_direct_chains": {
+    "original_provider_binding": {
+      "bytes": 0,
+      "frames": {
+        "underground_room_world_bindings._ordinary_binding_leaf": 0,
+        "underground_room_world_bindings._ordinary_original_binding_leaf": 0,
+        "underground_room_world_bindings._ordinary_original_sites": 0
+      }
+    },
+    "original_frontier_candidate": {
+      "bytes": 56,
+      "frames": {
+        "underground_room_frontier._candidate_leaf": 24,
+        "underground_room_frontier._project_row": 32
+      }
+    },
+    "actual_source_path": {
+      "bytes": 204,
+      "frames": {
+        "underground_world_routes.profile_reachability_refusal": 48,
+        "underground_world_routes._reach_search": 40,
+        "underground_world_routes._reach_sources_refusal": 40,
+        "underground_world_routes._reach_endpoint_refusal": 60,
+        "underground_world_routes._reach_section_refusal": 16
+      }
+    },
+    "fresh_world_source_facts": {
+      "bytes": 128,
+      "frames": {
+        "underground_final_facts.frontier_refusal": 8,
+        "underground_final_facts._sources_refusal": 16,
+        "underground_final_facts._resident_into": 16,
+        "underground_final_facts._resident_location_refusal": 24,
+        "underground_final_facts._transit_refusal": 64
+      }
+    },
+    "actual_current_terrain": {
+      "bytes": 200,
+      "frames": {
+        "underground_terrain._final_local_tiles": 56,
+        "underground_terrain._final_local_tile": 32,
+        "underground_terrain._final_local_building": 40,
+        "underground_terrain._final_building_footprint": 72
+      }
+    },
+    "actual_physical_occupancy": {
+      "bytes": 76,
+      "frames": {
+        "underground_world_routes.workpiece_occupancy_refusal": 16,
+        "underground_world_routes._workpiece_occupant_boxes": 44,
+        "underground_world_routes._turn_box_into": 16
+      }
+    },
+    "actual_physical_selection": {
+      "bytes": 72,
+      "frames": {
+        "underground_routes.physical_selection_into": 16,
+        "underground_routes._turn_identity_leaf": 24,
+        "underground_routes._turn_pose_leaf": 32
+      }
+    },
+    "exact_Location_rows_and_heap": {
+      "bytes": 130,
+      "frames": {
+        "underground_locations.frontier_rows_refusal": 32,
+        "underground_locations.frontier_heap_refusal": 33,
+        "underground_locations._frontier_heap_pop": 41,
+        "underground_locations._frontier_heap_set": 24
+      }
+    },
+    "graph_rows_and_heap": {
+      "bytes": 98,
+      "frames": {
+        "underground_world_routes.frontier_leaf_refusal": 0,
+        "underground_routes.frontier_leaf_refusal": 0,
+        "underground_locations.frontier_heap_refusal": 33,
+        "underground_locations._frontier_heap_pop": 41,
+        "underground_locations._frontier_heap_set": 24
+      }
+    },
+    "Locations_prospective_final": {
+      "bytes": 40,
+      "frames": {
+        "underground_locations.frontier_record_matches": 24,
+        "underground_locations._ref_at": 16
+      }
+    }
+  },
+  "foreign_bound": 512,
+  "expression_return_allowance": 128,
+  "complete_helper_bound": 841,
+  "helper_reservation": 1024,
+  "native_and_reference_inventory": {
+    "provisional_allowance": 4096,
+    "caller_private_objects": 19,
+    "simultaneous_result_objects": 2,
+    "packed_array_headers": 28,
+    "reference_Array_headers": 2,
+    "reference_Array_elements": 6,
+    "explicit_query_context_reference_fields": 34,
+    "new_live_borrowed_Locations_reference": 1,
+    "small_temporary_literal_max_elements": 3,
+    "measured": false,
+    "maximum_chain_object_aliases": {
+      "underground_room_frontier_publication.publish_into": 5,
+      "underground_room_frontier_publication._run": 2,
+      "underground_room_frontier_publication._final_leaf": 1,
+      "underground_room_frontier_publication._physical": 1,
+      "underground_room_frontier_publication._new_span_facts": 1,
+      "underground_room_frontier_publication._source_local": 2,
+      "underground_room_frontier_publication._terrain": 2,
+      "underground_room_frontier_publication._spend": 1
+    },
+    "maximum_chain_object_alias_count": 15,
+    "prospective_Check_borrows_existing_context": 1
+  },
+  "cold_controls_accounted": 8050,
+  "cold_control_reservation": 8192,
+  "sequential_proofs": {
+    "Location_snapshot_fragments": 721280,
+    "WorkFace_complete_proof": 378880,
+    "WorldRoutes_complete_proof": 377856
+  },
+  "maximum_cold_lifetime": 729472,
+  "original_cold_ceiling": 1048960,
+  "shared_paid_phase_without_frontier_packets": 1048912,
+  "retained_delta": {
+    "underground_locations": {
+      "added_members": {
+        "_frontier": "FrontierContext"
+      },
+      "numeric_packed_delta": 0,
+      "baseline_sha256": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929"
+    },
+    "underground_routes": {
+      "added_members": {},
+      "numeric_packed_delta": 0,
+      "baseline_sha256": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4"
+    },
+    "underground_world_routes": {
+      "added_members": {},
+      "numeric_packed_delta": 0,
+      "baseline_sha256": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f"
+    },
+    "underground_work_face": {
+      "added_members": {},
+      "numeric_packed_delta": 0,
+      "baseline_sha256": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295"
+    },
+    "underground_final_facts": {
+      "added_members": {},
+      "numeric_packed_delta": 0,
+      "baseline_sha256": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a"
+    }
+  },
+  "new_global_reservation": 0,
+  "lifetime": "Caller Candidate/Request/Result and private Query exist only under the admitted cold lease. All must be dropped before the separate paid phase. Existing bank/scratch owners are borrowed. WorkFace proof is destroyed before WorldRoutes compilation; Location snapshot is released by seal. The single live Locations pointer is null at quiescence and covered by its existing native/reference envelope.",
+  "runtime_qualified": false,
+  "native_measured": false
+}

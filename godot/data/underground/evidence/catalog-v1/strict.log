@@ -1,0 +1,32 @@
+state_registry_coverage: PASS -- 110 modules, 534 rows, 927 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Parse JSON failed. Error at line 0: Expected 'true', 'false', or 'null', got 'test'
+   at: parse_string (core/io/json.cpp:629)
+   GDScript backtrace (most recent call first):
+       [0] _discover_suites (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:8)
+       [1] _run_worker (res://test/run_tests.gd:120)
+       [2] _initialize (res://test/run_tests.gd:108)
+ERROR: CI shard selection must be a non-empty JSON array
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _discover_suites (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:11)
+       [1] _run_worker (res://test/run_tests.gd:120)
+       [2] _initialize (res://test/run_tests.gd:108)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+0 test(s), 0 assertion(s), 0 failure(s)
+diagnostics: 2 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: the runner reported 0 tests. Nothing was executed.

@@ -1,0 +1,26 @@
+{
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript.h.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript.h",
+    "sha256": "ed654f6d30f7aa4e26f3b30f5421fb2fbe6254ebfe25c33786133efb0e386afb"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript.cpp",
+    "sha256": "ca67cbe6715b371c276837948edb317c7f2987d2f43ae68a0fb547f823115d6f"
+  },
+  "docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/gdscript_compiler.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_compiler.cpp",
+    "sha256": "882cf3947a4cd2b643ef268e8fa760f38993ca85e8bc27baf04b5ea4c66e26ac"
+  },
+  "docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/gdscript_byte_codegen.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_byte_codegen.cpp",
+    "sha256": "5fec4b4ac86bd749e6766f161f59ae79aef8f8eb15135d1b0c88eed8fb5f541b"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript_function.h.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_function.h",
+    "sha256": "15fc4f20e61a8b94e48d74316cf0afdf26c8df627c3b8d68d736b88323e01e16"
+  },
+  "docs/validation/evidence/underground-route-owner-composition-2026-10-04/engine-lifetime/gdscript_analyzer.cpp.txt": {
+    "url": "https://raw.githubusercontent.com/godotengine/godot/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_analyzer.cpp",
+    "sha256": "f7dc2b3c314a762c579e64d18542924b637f58b6be92a7c4009fdb5f80341f90"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "headRefOid": "2f29ffd121658a047e1887c1aff4eac9342bd8d7",
+  "isDraft": true,
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:21:41Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061741",
+      "name": "Godot suite shard 0 / 8",
+      "startedAt": "2026-10-03T18:12:17Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:20:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061712",
+      "name": "Godot suite shard 1 / 8",
+      "startedAt": "2026-10-03T18:12:17Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:18:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061692",
+      "name": "Godot suite shard 2 / 8",
+      "startedAt": "2026-10-03T18:12:17Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:19:39Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061666",
+      "name": "Godot suite shard 3 / 8",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:18:28Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061665",
+      "name": "Godot suite shard 4 / 8",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:16:55Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061609",
+      "name": "Godot suite shard 5 / 8",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:18:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061707",
+      "name": "Godot suite shard 6 / 8",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:16:34Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061730",
+      "name": "Godot suite shard 7 / 8",
+      "startedAt": "2026-10-03T18:12:17Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:20:34Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061649",
+      "name": "Godot gates (analyzer)",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:19:23Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061604",
+      "name": "Godot gates (metadata-a)",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:21:20Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061745",
+      "name": "Godot gates (metadata-b)",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:18:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061638",
+      "name": "Godot gates (metadata-c)",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:13:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111262061513",
+      "name": "Specification contracts",
+      "startedAt": "2026-10-03T18:12:16Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-03T18:21:53Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382/job/111263779315",
+      "name": "Godot headless suite",
+      "startedAt": "2026-10-03T18:21:43Z",
+      "status": "COMPLETED",
+      "workflowName": "Tests"
+    }
+  ],
+  "url": "https://github.com/gradybre/redwall-rts/pull/230"
+}

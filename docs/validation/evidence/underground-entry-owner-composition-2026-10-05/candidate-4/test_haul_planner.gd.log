@@ -1,0 +1,57 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_haul_planner.gd
+  PASS  test_the_purpose_domain_is_numbered_explicitly
+  PASS  test_a_payload_is_the_carry_limit_at_the_per_lot_ceiling
+  PASS  test_trips_follow_bal_work_003_and_departures_can_need_one_more
+  PASS  test_travel_ticks_are_the_straight_leg_lower_bound
+  PASS  test_handling_work_is_2000_each_side_and_a_tenth_less_by_a_pantry
+  PASS  test_demand_walks_lots_with_unclaimed_quantity_in_list_order
+  PASS  test_piles_and_left_satchels_are_standing_sources_but_stores_are_not
+  PASS  test_the_destination_is_the_lowest_eligible_store_by_slot
+  PASS  test_every_r1_clause_excludes_its_store
+  PASS  test_a_store_anchored_on_the_source_footprint_is_skipped
+  PASS  test_with_no_store_the_payload_falls_back_to_piles_on_the_ring
+  PASS  test_a_pile_or_satchel_source_has_no_pile_fallback
+  PASS  test_destination_selection_refuses_bad_inputs
+  PASS  test_admission_sizes_claims_and_reserves_all_at_once
+  PASS  test_a_refused_claim_releases_the_reserved_grams_exactly
+  PASS  test_admission_refuses_by_name_and_writes_nothing
+  PASS  test_nothing_left_to_haul_refuses
+  PASS  test_only_the_owner_is_admitted_to_haul_a_satchel_on
+  PASS  test_cancel_before_the_load_returns_claim_and_grams
+  PASS  test_cancel_after_the_load_leaves_the_goods_in_the_satchel_unclaimed
+  PASS  test_a_cancel_whose_grams_are_gone_refuses
+  PASS  test_admit_load_unload_conserves_every_gram
+  PASS  test_a_ground_destination_unloads_onto_its_tile
+  PASS  test_the_record_and_scratch_are_the_ledgered_sizes
+  PASS  test_the_pile_tile_is_the_first_eligible_ring_seed
+  PASS  test_a_cancel_after_the_unload_cannot_take_another_jobs_grams
+  PASS  test_the_audit_sees_grams_the_record_holds_but_the_store_does_not
+  PASS  test_a_store_that_fills_before_the_unload_refuses_and_keeps_the_record
+  PASS  test_a_ring_with_no_eligible_tile_has_no_pile_fallback
+  PASS  test_the_footprint_exclusion_does_not_outlive_its_choice
+  PASS  test_a_ring_whose_piles_are_full_has_no_pile_fallback
+  PASS  test_a_main_stores_per_item_allow_byte_excludes_it
+  PASS  test_binding_needs_every_store
+  PASS  test_spatial_admission_cannot_substitute_flat_store_or_leave_partial_claim
+CI_SUITE_TIME {"assertions":185,"failures":0,"suite":"test_haul_planner.gd","tests":34,"usec":879303}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+34 test(s), 185 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 34 tests, 185 assertions, 0 failures.

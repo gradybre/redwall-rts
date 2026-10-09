@@ -1,0 +1,3176 @@
+{
+  "schema": 1,
+  "content_sha256": "fa44692f51b648cba987b99835a221e5da4277d9e8bedd64f0c995ef359b2e54",
+  "clips": [
+    {
+      "rise_u": 128,
+      "clear": false,
+      "unresolved": [
+        {
+          "kind": "SUPPORT",
+          "interval": 30,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -133,
+            102,
+            -408,
+            299,
+            332,
+            7
+          ],
+          "exact_source_gap_u": [
+            [
+              -238270280094435586784265,
+              9444732965739290427392
+            ],
+            [
+              -20215401644129806126299,
+              1180591620717411303424
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 31,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -139,
+            110,
+            -408,
+            299,
+            328,
+            4
+          ],
+          "exact_source_gap_u": [
+            [
+              -20215401644129806126299,
+              1180591620717411303424
+            ],
+            [
+              -37861694446343660308503,
+              2361183241434822606848
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 32,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -143,
+            111,
+            -408,
+            299,
+            321,
+            -2
+          ],
+          "exact_source_gap_u": [
+            [
+              -37861694446343660308503,
+              2361183241434822606848
+            ],
+            [
+              -32065680923923850175559,
+              2361183241434822606848
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 33,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -144,
+            114,
+            -408,
+            299,
+            312,
+            -10
+          ],
+          "exact_source_gap_u": [
+            [
+              -32065680923923850175559,
+              2361183241434822606848
+            ],
+            [
+              -462831446056677916613,
+              36893488147419103232
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 34,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -144,
+            115,
+            -408,
+            299,
+            305,
+            -18
+          ],
+          "exact_source_gap_u": [
+            [
+              -462831446056677916613,
+              36893488147419103232
+            ],
+            [
+              -411481721638215154755,
+              36893488147419103232
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 35,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -145,
+            116,
+            -408,
+            299,
+            298,
+            -26
+          ],
+          "exact_source_gap_u": [
+            [
+              -411481721638215154755,
+              36893488147419103232
+            ],
+            [
+              -627290710841399423329,
+              73786976294838206464
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 36,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            119,
+            -408,
+            299,
+            289,
+            -34
+          ],
+          "exact_source_gap_u": [
+            [
+              -627290710841399423329,
+              73786976294838206464
+            ],
+            [
+              -25988538111990945443427,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 37,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            122,
+            -408,
+            299,
+            289,
+            -40
+          ],
+          "exact_source_gap_u": [
+            [
+              -25988538111990945443427,
+              4722366482869645213696
+            ],
+            [
+              -7223459930885928284051,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 38,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            126,
+            -408,
+            299,
+            293,
+            -44
+          ],
+          "exact_source_gap_u": [
+            [
+              -7223459930885928284051,
+              4722366482869645213696
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 39,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            127,
+            -408,
+            299,
+            297,
+            -49
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 40,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -146,
+            127,
+            -408,
+            299,
+            301,
+            -55
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 41,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -144,
+            127,
+            -408,
+            299,
+            306,
+            -56
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 42,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -141,
+            127,
+            -408,
+            299,
+            311,
+            -56
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 43,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -134,
+            127,
+            -408,
+            299,
+            316,
+            -57
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 44,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -126,
+            127,
+            -408,
+            299,
+            342,
+            -60
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 45,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -194,
+            127,
+            -408,
+            299,
+            364,
+            -70
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 46,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -206,
+            127,
+            -408,
+            299,
+            367,
+            -92
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 47,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -206,
+            127,
+            -415,
+            299,
+            367,
+            -122
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 48,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -194,
+            127,
+            -431,
+            299,
+            363,
+            -146
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 49,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -178,
+            127,
+            -442,
+            299,
+            354,
+            -166
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 53,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -171,
+            127,
+            -490,
+            299,
+            345,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 54,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -173,
+            127,
+            -503,
+            299,
+            345,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 55,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -173,
+            127,
+            -518,
+            299,
+            343,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 56,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -170,
+            127,
+            -531,
+            299,
+            341,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 57,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -165,
+            127,
+            -541,
+            299,
+            343,
+            -167
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 58,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -159,
+            127,
+            -545,
+            299,
+            345,
+            -167
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 58,
+          "triangle": 6295,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 58,
+          "triangle": 6635,
+          "section": 1
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 59,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -155,
+            127,
+            -546,
+            299,
+            345,
+            -167
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 59,
+          "triangle": 6295,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 59,
+          "triangle": 6635,
+          "section": 1
+        },
+        {
+          "kind": "SUPPORT",
+          "interval": 89,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            23,
+            351,
+            -371
+          ],
+          "exact_source_gap_u": [
+            [
+              274846672189094393297,
+              151115727451828646838272
+            ],
+            [
+              -134790915351093408975,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 89,
+          "triangle": 5958,
+          "section": 1
+        }
+      ],
+      "supports": [
+        {
+          "interval": 0,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            24,
+            223,
+            141
+          ],
+          "exact_source_gap_u": [
+            [
+              13082526613803141937,
+              75557863725914323419136
+            ],
+            [
+              270693950081990765985,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 1,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            24,
+            223,
+            141
+          ],
+          "exact_source_gap_u": [
+            [
+              270693950081990765985,
+              151115727451828646838272
+            ],
+            [
+              126070364459376225531,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 2,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            24,
+            222,
+            140
+          ],
+          "exact_source_gap_u": [
+            [
+              126070364459376225531,
+              75557863725914323419136
+            ],
+            [
+              98473697472362321331,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 3,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            21,
+            221,
+            138
+          ],
+          "exact_source_gap_u": [
+            [
+              98473697472362321331,
+              75557863725914323419136
+            ],
+            [
+              421302220850665593811,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 4,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            17,
+            221,
+            137
+          ],
+          "exact_source_gap_u": [
+            [
+              421302220850665593811,
+              302231454903657293676544
+            ],
+            [
+              2605755724680297290653,
+              2417851639229258349412352
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 5,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            16,
+            221,
+            136
+          ],
+          "exact_source_gap_u": [
+            [
+              2605755724680297290653,
+              2417851639229258349412352
+            ],
+            [
+              49226025817939592291,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 6,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            20,
+            219,
+            133
+          ],
+          "exact_source_gap_u": [
+            [
+              49226025817939592291,
+              18889465931478580854784
+            ],
+            [
+              197500909325398974499,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 7,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            20,
+            218,
+            131
+          ],
+          "exact_source_gap_u": [
+            [
+              197500909325398974499,
+              75557863725914323419136
+            ],
+            [
+              202069183579462217673,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 8,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            20,
+            217,
+            129
+          ],
+          "exact_source_gap_u": [
+            [
+              202069183579462217673,
+              75557863725914323419136
+            ],
+            [
+              204263028348499997441,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 9,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            19,
+            216,
+            129
+          ],
+          "exact_source_gap_u": [
+            [
+              204263028348499997441,
+              75557863725914323419136
+            ],
+            [
+              209955387008066562969,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 10,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            15,
+            215,
+            129
+          ],
+          "exact_source_gap_u": [
+            [
+              209955387008066562969,
+              75557863725914323419136
+            ],
+            [
+              214566711981411580589,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 11,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            9,
+            215,
+            134
+          ],
+          "exact_source_gap_u": [
+            [
+              214566711981411580589,
+              75557863725914323419136
+            ],
+            [
+              144761051521157212157,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 12,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            27,
+            214,
+            137
+          ],
+          "exact_source_gap_u": [
+            [
+              144761051521157212157,
+              75557863725914323419136
+            ],
+            [
+              27114999295401324229,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 13,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            27,
+            213,
+            137
+          ],
+          "exact_source_gap_u": [
+            [
+              27114999295401324229,
+              9444732965739290427392
+            ],
+            [
+              42831720637917868387,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 14,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            140,
+            212,
+            124
+          ],
+          "exact_source_gap_u": [
+            [
+              42831720637917868387,
+              18889465931478580854784
+            ],
+            [
+              41910521374911286787,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 15,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            163,
+            214,
+            129
+          ],
+          "exact_source_gap_u": [
+            [
+              41910521374911286787,
+              18889465931478580854784
+            ],
+            [
+              54105451055866760733,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 16,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            163,
+            244,
+            131
+          ],
+          "exact_source_gap_u": [
+            [
+              54105451055866760733,
+              37778931862957161709568
+            ],
+            [
+              66218035045976306897,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 17,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            150,
+            266,
+            131
+          ],
+          "exact_source_gap_u": [
+            [
+              66218035045976306897,
+              37778931862957161709568
+            ],
+            [
+              10767680413360044375,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 18,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            127,
+            277,
+            130
+          ],
+          "exact_source_gap_u": [
+            [
+              10767680413360044375,
+              4722366482869645213696
+            ],
+            [
+              654314576271971097783,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 19,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            93,
+            277,
+            127
+          ],
+          "exact_source_gap_u": [
+            [
+              654314576271971097783,
+              302231454903657293676544
+            ],
+            [
+              435153143427467807803,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 20,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            62,
+            274,
+            123
+          ],
+          "exact_source_gap_u": [
+            [
+              435153143427467807803,
+              151115727451828646838272
+            ],
+            [
+              187426195169622889135,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 21,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            41,
+            265,
+            119
+          ],
+          "exact_source_gap_u": [
+            [
+              187426195169622889135,
+              151115727451828646838272
+            ],
+            [
+              1379346640298556059563,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 22,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            32,
+            262,
+            117
+          ],
+          "exact_source_gap_u": [
+            [
+              1379346640298556059563,
+              604462909807314587353088
+            ],
+            [
+              1519098942355055412577,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 23,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            32,
+            262,
+            116
+          ],
+          "exact_source_gap_u": [
+            [
+              1519098942355055412577,
+              604462909807314587353088
+            ],
+            [
+              874533880900554934317,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 24,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            32,
+            260,
+            116
+          ],
+          "exact_source_gap_u": [
+            [
+              874533880900554934317,
+              302231454903657293676544
+            ],
+            [
+              1000809840861726400645,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 25,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            30,
+            254,
+            115
+          ],
+          "exact_source_gap_u": [
+            [
+              1000809840861726400645,
+              604462909807314587353088
+            ],
+            [
+              878471658119972471135,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 26,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            25,
+            247,
+            115
+          ],
+          "exact_source_gap_u": [
+            [
+              878471658119972471135,
+              604462909807314587353088
+            ],
+            [
+              3113960913734116993899,
+              2417851639229258349412352
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 27,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            20,
+            239,
+            115
+          ],
+          "exact_source_gap_u": [
+            [
+              3113960913734116993899,
+              2417851639229258349412352
+            ],
+            [
+              11983066726127289466373,
+              9671406556917033397649408
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 28,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            15,
+            230,
+            114
+          ],
+          "exact_source_gap_u": [
+            [
+              11983066726127289466373,
+              9671406556917033397649408
+            ],
+            [
+              4853360315372687509635,
+              4835703278458516698824704
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 29,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            11,
+            223,
+            114
+          ],
+          "exact_source_gap_u": [
+            [
+              4853360315372687509635,
+              4835703278458516698824704
+            ],
+            [
+              2445141615121078314337,
+              2417851639229258349412352
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 30,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -133,
+            102,
+            -408,
+            299,
+            332,
+            7
+          ],
+          "exact_source_gap_u": [
+            [
+              -238270280094435586784265,
+              9444732965739290427392
+            ],
+            [
+              -20215401644129806126299,
+              1180591620717411303424
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 31,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -139,
+            110,
+            -408,
+            299,
+            328,
+            4
+          ],
+          "exact_source_gap_u": [
+            [
+              -20215401644129806126299,
+              1180591620717411303424
+            ],
+            [
+              -37861694446343660308503,
+              2361183241434822606848
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 32,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -143,
+            111,
+            -408,
+            299,
+            321,
+            -2
+          ],
+          "exact_source_gap_u": [
+            [
+              -37861694446343660308503,
+              2361183241434822606848
+            ],
+            [
+              -32065680923923850175559,
+              2361183241434822606848
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 33,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -144,
+            114,
+            -408,
+            299,
+            312,
+            -10
+          ],
+          "exact_source_gap_u": [
+            [
+              -32065680923923850175559,
+              2361183241434822606848
+            ],
+            [
+              -462831446056677916613,
+              36893488147419103232
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 34,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -144,
+            115,
+            -408,
+            299,
+            305,
+            -18
+          ],
+          "exact_source_gap_u": [
+            [
+              -462831446056677916613,
+              36893488147419103232
+            ],
+            [
+              -411481721638215154755,
+              36893488147419103232
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 35,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -145,
+            116,
+            -408,
+            299,
+            298,
+            -26
+          ],
+          "exact_source_gap_u": [
+            [
+              -411481721638215154755,
+              36893488147419103232
+            ],
+            [
+              -627290710841399423329,
+              73786976294838206464
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 36,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            119,
+            -408,
+            299,
+            289,
+            -34
+          ],
+          "exact_source_gap_u": [
+            [
+              -627290710841399423329,
+              73786976294838206464
+            ],
+            [
+              -25988538111990945443427,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 37,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            122,
+            -408,
+            299,
+            289,
+            -40
+          ],
+          "exact_source_gap_u": [
+            [
+              -25988538111990945443427,
+              4722366482869645213696
+            ],
+            [
+              -7223459930885928284051,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 38,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            126,
+            -408,
+            299,
+            293,
+            -44
+          ],
+          "exact_source_gap_u": [
+            [
+              -7223459930885928284051,
+              4722366482869645213696
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        },
+        {
+          "interval": 39,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -147,
+            127,
+            -408,
+            299,
+            297,
+            -49
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 40,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -146,
+            127,
+            -408,
+            299,
+            301,
+            -55
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 41,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -144,
+            127,
+            -408,
+            299,
+            306,
+            -56
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 42,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -141,
+            127,
+            -408,
+            299,
+            311,
+            -56
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 43,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -134,
+            127,
+            -408,
+            299,
+            316,
+            -57
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 44,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -126,
+            127,
+            -408,
+            299,
+            342,
+            -60
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 45,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -194,
+            127,
+            -408,
+            299,
+            364,
+            -70
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 46,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -206,
+            127,
+            -408,
+            299,
+            367,
+            -92
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 47,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -206,
+            127,
+            -415,
+            299,
+            367,
+            -122
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 48,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -194,
+            127,
+            -431,
+            299,
+            363,
+            -146
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 49,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -178,
+            127,
+            -442,
+            299,
+            354,
+            -166
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 50,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -163,
+            127,
+            -460,
+            299,
+            345,
+            -170
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 51,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -154,
+            127,
+            -475,
+            299,
+            343,
+            -170
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 52,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -163,
+            127,
+            -480,
+            299,
+            344,
+            -169
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 53,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -171,
+            127,
+            -490,
+            299,
+            345,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 54,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -173,
+            127,
+            -503,
+            299,
+            345,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 55,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -173,
+            127,
+            -518,
+            299,
+            343,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 56,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -170,
+            127,
+            -531,
+            299,
+            341,
+            -168
+          ],
+          "exact_source_gap_u": [
+            [
+              18398131956689928051,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 57,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -165,
+            127,
+            -541,
+            299,
+            343,
+            -167
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 58,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -159,
+            127,
+            -545,
+            299,
+            345,
+            -167
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 59,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -155,
+            127,
+            -546,
+            299,
+            345,
+            -167
+          ],
+          "exact_source_gap_u": [
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ],
+            [
+              18513979372978044787,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": false,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 60,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -275,
+            127,
+            -681,
+            13,
+            381,
+            -264
+          ],
+          "exact_source_gap_u": [
+            [
+              156165467945657178421,
+              75557863725914323419136
+            ],
+            [
+              39145076161964604267,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 61,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -276,
+            127,
+            -681,
+            13,
+            381,
+            -264
+          ],
+          "exact_source_gap_u": [
+            [
+              39145076161964604267,
+              18889465931478580854784
+            ],
+            [
+              310639608151906847151,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 62,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -276,
+            127,
+            -681,
+            14,
+            382,
+            -265
+          ],
+          "exact_source_gap_u": [
+            [
+              310639608151906847151,
+              151115727451828646838272
+            ],
+            [
+              154977949988330488347,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 63,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -277,
+            127,
+            -681,
+            15,
+            383,
+            -268
+          ],
+          "exact_source_gap_u": [
+            [
+              154977949988330488347,
+              151115727451828646838272
+            ],
+            [
+              1343324076960464549,
+              1180591620717411303424
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 64,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -277,
+            127,
+            -681,
+            15,
+            384,
+            -270
+          ],
+          "exact_source_gap_u": [
+            [
+              1343324076960464549,
+              1180591620717411303424
+            ],
+            [
+              97242191684630402659,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 65,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -278,
+            127,
+            -681,
+            15,
+            385,
+            -273
+          ],
+          "exact_source_gap_u": [
+            [
+              97242191684630402659,
+              75557863725914323419136
+            ],
+            [
+              214075467702057936397,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 66,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -279,
+            127,
+            -681,
+            15,
+            386,
+            -277
+          ],
+          "exact_source_gap_u": [
+            [
+              214075467702057936397,
+              151115727451828646838272
+            ],
+            [
+              228834018357750505187,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 67,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -279,
+            127,
+            -681,
+            15,
+            387,
+            -279
+          ],
+          "exact_source_gap_u": [
+            [
+              228834018357750505187,
+              151115727451828646838272
+            ],
+            [
+              123839466341823312683,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 68,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -280,
+            127,
+            -681,
+            14,
+            388,
+            -284
+          ],
+          "exact_source_gap_u": [
+            [
+              123839466341823312683,
+              75557863725914323419136
+            ],
+            [
+              128213041752791428811,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 69,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -280,
+            127,
+            -681,
+            14,
+            388,
+            -288
+          ],
+          "exact_source_gap_u": [
+            [
+              128213041752791428811,
+              75557863725914323419136
+            ],
+            [
+              132430368229237425205,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 70,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -280,
+            127,
+            -681,
+            15,
+            388,
+            -293
+          ],
+          "exact_source_gap_u": [
+            [
+              132430368229237425205,
+              75557863725914323419136
+            ],
+            [
+              272105345149474091649,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 71,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -280,
+            127,
+            -681,
+            16,
+            388,
+            -298
+          ],
+          "exact_source_gap_u": [
+            [
+              272105345149474091649,
+              151115727451828646838272
+            ],
+            [
+              68575649585308172603,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 72,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -280,
+            127,
+            -681,
+            16,
+            388,
+            -304
+          ],
+          "exact_source_gap_u": [
+            [
+              68575649585308172603,
+              37778931862957161709568
+            ],
+            [
+              138036158323063693967,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 73,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -280,
+            127,
+            -681,
+            17,
+            387,
+            -310
+          ],
+          "exact_source_gap_u": [
+            [
+              138036158323063693967,
+              75557863725914323419136
+            ],
+            [
+              274419364606394454691,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 74,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -279,
+            127,
+            -681,
+            18,
+            386,
+            -316
+          ],
+          "exact_source_gap_u": [
+            [
+              274419364606394454691,
+              151115727451828646838272
+            ],
+            [
+              568850622591573163725,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 75,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -279,
+            127,
+            -681,
+            19,
+            384,
+            -322
+          ],
+          "exact_source_gap_u": [
+            [
+              568850622591573163725,
+              302231454903657293676544
+            ],
+            [
+              142047665484449476553,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 76,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -278,
+            127,
+            -681,
+            19,
+            382,
+            -328
+          ],
+          "exact_source_gap_u": [
+            [
+              142047665484449476553,
+              75557863725914323419136
+            ],
+            [
+              284987884474503280879,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 77,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -278,
+            127,
+            -681,
+            20,
+            380,
+            -334
+          ],
+          "exact_source_gap_u": [
+            [
+              284987884474503280879,
+              151115727451828646838272
+            ],
+            [
+              567152623746079630497,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 78,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -277,
+            127,
+            -681,
+            21,
+            377,
+            -340
+          ],
+          "exact_source_gap_u": [
+            [
+              567152623746079630497,
+              302231454903657293676544
+            ],
+            [
+              35246545573713774327,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 79,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -277,
+            127,
+            -681,
+            22,
+            374,
+            -344
+          ],
+          "exact_source_gap_u": [
+            [
+              35246545573713774327,
+              18889465931478580854784
+            ],
+            [
+              561207011388113139595,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 80,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -276,
+            127,
+            -681,
+            23,
+            371,
+            -349
+          ],
+          "exact_source_gap_u": [
+            [
+              561207011388113139595,
+              302231454903657293676544
+            ],
+            [
+              34982199156891931955,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 81,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -275,
+            127,
+            -681,
+            23,
+            368,
+            -354
+          ],
+          "exact_source_gap_u": [
+            [
+              34982199156891931955,
+              18889465931478580854784
+            ],
+            [
+              279101347997266296573,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 82,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -275,
+            127,
+            -681,
+            23,
+            365,
+            -357
+          ],
+          "exact_source_gap_u": [
+            [
+              279101347997266296573,
+              151115727451828646838272
+            ],
+            [
+              69764157643578103607,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 83,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            23,
+            362,
+            -361
+          ],
+          "exact_source_gap_u": [
+            [
+              69764157643578103607,
+              37778931862957161709568
+            ],
+            [
+              561017062641529361733,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 84,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            24,
+            360,
+            -364
+          ],
+          "exact_source_gap_u": [
+            [
+              561017062641529361733,
+              302231454903657293676544
+            ],
+            [
+              413041459557922782663,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 85,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            25,
+            357,
+            -366
+          ],
+          "exact_source_gap_u": [
+            [
+              413041459557922782663,
+              151115727451828646838272
+            ],
+            [
+              185685838279609672213,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 86,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            25,
+            355,
+            -368
+          ],
+          "exact_source_gap_u": [
+            [
+              185685838279609672213,
+              75557863725914323419136
+            ],
+            [
+              335870529806805266597,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 87,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            24,
+            353,
+            -369
+          ],
+          "exact_source_gap_u": [
+            [
+              335870529806805266597,
+              151115727451828646838272
+            ],
+            [
+              379318664449516116843,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 88,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            24,
+            352,
+            -370
+          ],
+          "exact_source_gap_u": [
+            [
+              379318664449516116843,
+              151115727451828646838272
+            ],
+            [
+              274846672189094393297,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 89,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            23,
+            351,
+            -371
+          ],
+          "exact_source_gap_u": [
+            [
+              274846672189094393297,
+              151115727451828646838272
+            ],
+            [
+              -134790915351093408975,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": false,
+          "source_contact_cell": false
+        }
+      ],
+      "checks": 119,
+      "pairs": 765,
+      "numerical_contact_pairs": 706,
+      "stopped_at_witness_limit": true,
+      "production_qualified": false
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "de25fc1f2efe9920e2767346971ca8ee3e7fc8472c4ebaff6cbf11b4f006e108",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "4f978521af31231d94dbdee1aa4146ecfb0c1d3dbd0bdce4114f2432e790158a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "c164a8d83b7af6fa38fc7362105c64264900a8ca1197442a0a3e8f74cf18f8c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v10/mole-worker.ugactor": "fa44692f51b648cba987b99835a221e5da4277d9e8bedd64f0c995ef359b2e54",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v10/candidate.json": "90c556dbc99a200a9120717e8d8a5cf03df77ba7af64889f3c653e4b0e078dcd"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "scope": "source-local yaw0 affine triangle/deck proof, explicit foot-phase support and retained native arithmetic error; not actor/tool self-clearance, actual mover, entry/retreat, paid geometry or travel permission",
+  "production_qualified": false
+}

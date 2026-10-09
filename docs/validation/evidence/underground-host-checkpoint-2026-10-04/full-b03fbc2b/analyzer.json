@@ -1,0 +1,206 @@
+{
+ "data/underground/mole-worker/haul-handling-v1/evidence/native-program-v1/source/capture_native_program.gd": [
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 46,
+     "line": 173
+    },
+    "start": {
+     "character": 33,
+     "line": 173
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 54,
+     "line": 173
+    },
+    "start": {
+     "character": 33,
+     "line": 173
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "data/underground/mole-worker/haul-handling-v1/evidence/native-program-v2/source/capture_native_program.gd": [
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 46,
+     "line": 173
+    },
+    "start": {
+     "character": 33,
+     "line": 173
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 54,
+     "line": 173
+    },
+    "start": {
+     "character": 33,
+     "line": 173
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "data/underground/mole-worker/haul-handling-v1/evidence/native-program-v3/source/capture_native_program.gd": [
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 46,
+     "line": 176
+    },
+    "start": {
+     "character": 33,
+     "line": 176
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 54,
+     "line": 176
+    },
+    "start": {
+     "character": 33,
+     "line": 176
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "data/underground/mole-worker/haul-handling-v1/evidence/native-program-v4/source/capture_native_program.gd": [
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 46,
+     "line": 193
+    },
+    "start": {
+     "character": 33,
+     "line": 193
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 54,
+     "line": 193
+    },
+    "start": {
+     "character": 33,
+     "line": 193
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "data/underground/mole-worker/haul-handling-v1/evidence/native-program-v5/source/capture_native_program.gd": [
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 46,
+     "line": 193
+    },
+    "start": {
+     "character": 33,
+     "line": 193
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 54,
+     "line": 193
+    },
+    "start": {
+     "character": 33,
+     "line": 193
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "data/underground/mole-worker/haul-handling-v1/evidence/native-program-v6/source/capture_native_program.gd": [
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 46,
+     "line": 193
+    },
+    "start": {
+     "character": 33,
+     "line": 193
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(INTEGER_DIVISION): Integer division. Decimal part will be discarded.",
+   "range": {
+    "end": {
+     "character": 54,
+     "line": 193
+    },
+    "start": {
+     "character": 33,
+     "line": 193
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

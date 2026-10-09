@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+"""1167 complete logical constructor/reset census; native terms remain provisional."""
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import re
+import sys
+
+ROOT=Path(__file__).resolve().parents[4]
+HERE=Path(__file__).resolve().parent
+OLD=ROOT/'docs/validation/evidence/underground-room-owner-composition-2026-10-04'
+WIDTH={'int':8,'bool':1,'Vector2i':8,'Vector3i':12,'StringName':8,'float':8,'void':0}
+FILES={'Session':'godot/scripts/core/underground_session.gd',
+ 'Retirement':'godot/scripts/core/underground_world_retirement.gd',
+ 'Host':'godot/scripts/systems/settlement_system.gd',
+ 'RouteComposition':'godot/scripts/core/underground_route_composition.gd',
+ 'Composition':'godot/scripts/core/underground_room_composition.gd'}
+INHERITED_SHA='9a87a8218e95b8d15d5eafaa3c0e5557a66fdcad0cdc6a5ba0d8a84475466109'
+CONSTRUCTOR_SHA='a371e4ebc09b3f4f6efe3967eca236d77c8e665a53d997ff5d274680c99256d1'
+ENGINE_SHA='c18f4d904942fbbbdf85ab682fca517dd5c4e7eb7079a893b8aa56aef4b0490b'
+PREDECESSOR_SHA='8178eb3bcc281542055a36f53da8495810fe1971221811e1ae85fd3b9af43801'
+
+
+def require(value,message):
+    if not value:raise ValueError(message)
+
+
+def sha(data):return hashlib.sha256(data).hexdigest()
+
+
+def verified_rows(path,expected):
+    data=path.read_bytes();require(sha(data)==expected,'immutable manifest drift '+str(path))
+    rows=json.loads(data)
+    for name,row in rows.items():
+        locator=row.get('locator',name) if isinstance(row,dict) else name
+        digest=row['sha256'] if isinstance(row,dict) else row
+        require(sha((ROOT/locator).read_bytes())==digest,'immutable producer/input drift '+name)
+    return rows
+
+
+def members(source):
+    pairs=re.findall(r'^var (\w+): ([\w.]+)',source,re.M)
+    require(len(pairs)==len(re.findall(r'^var ',source,re.M)),'typed module fields')
+    return dict(pairs)
+
+
+def class_members(source,name):
+    value=source.split('class '+name+' extends RefCounted:\n',1)[1]
+    value=re.split(r'^\S',value,maxsplit=1,flags=re.M)[0]
+    pairs=re.findall(r'^\tvar (\w+): ([\w.]+)',value,re.M)
+    require(len(pairs)==len(re.findall(r'^\tvar ',value,re.M)),'typed class fields')
+    return dict(pairs)
+
+
+def parse(source,module):
+    result={}
+    for match in re.finditer(r'^(static )?func (\w+)\((.*?)\) -> ([\w.]+):\n(.*?)(?=^(?:static )?func |\Z)',source,re.M|re.S):
+        static,name,parameters,returns,body=match.groups()
+        params=re.findall(r'(\w+):\s*([\w.]+)',parameters)
+        local=re.findall(r'^\s*(?:@[^\n]* )?var (\w+):\s*([\w.]+)',body,re.M)
+        require(len(params)==parameters.count(':'),'untyped arguments '+name)
+        require(len(local)==len(re.findall(r'^\s*(?:@[^\n]* )?var ',body,re.M)),'untyped locals '+name)
+        loops=re.findall(r'\bfor (\w+): ([\w.]+) in ',body)
+        values=params+local+loops
+        code=re.sub(r'""".*?"""|#[^\n]*','',body,flags=re.S)
+        calls=[module+'.'+x for x in re.findall(r'(?<![.\w])([_a-zA-Z]\w*)\(',code)]
+        calls += [('Composition' if receiver=='RoomComposition' else receiver)+'.'+method for receiver,method in re.findall(r'\b(Retirement|Composition|RouteComposition|RoomComposition|Buildings|Construction|Work|Inventory)\.([a-z_]\w*)\(',code)]
+        if module=='Host': calls += ['Session.'+x for x in re.findall(r'\b(?:original|_underground_session)\.([a-z_]\w*)\(',code)]
+        if module in ('Composition','RouteComposition'): calls += ['Session.'+x for x in re.findall(r'\bsession\.([a-z_]\w*)\(',code)]
+        result[module+'.'+name]={'numeric_and_name_bytes':sum(WIDTH.get(t,0) for _,t in values)+WIDTH.get(returns,0),
+          'reference_values':sum(t not in WIDTH for _,t in values)+int(static is None)+int(returns not in WIDTH),
+          'calls':sorted(set(calls)),'values':values,'body':body,'returns':returns}
+    return result
+
+
+def reachable(frames, roots):
+    found=set()
+    def visit(key):
+        require(key in frames,'missing call frame '+key)
+        if key in found:return
+        found.add(key)
+        for child in frames[key]['calls']:
+            if child in frames:visit(child)
+    for key in roots:visit(key)
+    return {key:dict(frames[key],calls=[c for c in frames[key]['calls'] if c in found]) for key in sorted(found)}
+
+
+def longest(frames, metric):
+    def visit(key,active):
+        require(key not in active,'recursive lifetime '+key)
+        value,chain=max((visit(child,active+[key]) for child in frames[key]['calls']),default=(0,[]),key=lambda r:r[0])
+        return frames[key][metric]+value,[key]+chain
+    return max((visit(key,[]) for key in frames),key=lambda r:r[0])
+
+
+def peak(frames,roots):
+    selected=reachable(frames,roots)
+    numeric,nchain=longest(selected,'numeric_and_name_bytes')
+    refs,rchain=longest(selected,'reference_values')
+    return {'numeric_bytes':numeric,'reference_values':refs,'numeric_chain':nchain,'reference_chain':rchain,
+            'provisional_bytes':numeric+refs*32+256,'frames':selected}
+
+
+def constructor(own):
+    rows=verified_rows(HERE/'constructor-source-sha256.json',CONSTRUCTOR_SHA)
+    # The reviewed frame parser is imported only after its producer and every baseline source pin matched.
+    spec=importlib.util.spec_from_file_location('ug1167_constructor_frames',OLD/'constructor_census.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    aliases={'WorldRoutes':'underground_world_routes','Catalog':'underground_connector_catalog',
+      'Routes':'underground_routes','Movement':'movement','Residents':'residents','IntResult':'int_math',
+      'Owner':'underground_space_owner','Domain':'room_space','Value':'room_space','Levels':'underground_level_catalog',
+      'Locations':'underground_locations','Profiles':'underground_profiles','RoomBindings':'underground_room_bindings'}
+    def get(label):
+        name,method=label.split('.',1);nested=None
+        if name in ('Domain','Value','IntResult'):nested=name
+        if name in ('EdgeBank','MotionBank','EndpointRetention'):
+            nested=name;name='Routes'
+        if name=='Certificates':nested=name;name='WorldRoutes'
+        text=own[name] if name in own else (ROOT/'godot/scripts/core'/f'{aliases[name]}.gd').read_text()
+        return module.frame(text,method,nested)
+    roots=['Host.compose_underground_route_owners','Session.compose_route_owners','RouteComposition.construct']
+    cases={}
+    def case(name,tail,heap=0,note=''):
+        labels=roots+tail;frames={key:get(key) for key in labels}
+        declared=sum(row['provisional_frame_bytes'] for row in frames.values())
+        cases[name]={'chain':labels,'frames':frames,'declared_provisional_bytes':declared,
+          'transient_heap_bytes':heap,'expression_bytes':256,'total':declared+heap+256,'note':note}
+    baseline=json.loads((OLD/'census.json').read_text())
+    domain_heap=baseline['constructor']['domain_heap']
+    domain_tail=['Owner.domain_copy','Owner._copy_domain','Domain.configure','Value.int32']
+    config_members=class_members((ROOT/'godot/scripts/core/underground_world_routes.gd').read_text(),'Configuration')
+    require(len(config_members)==13 and all(t not in WIDTH for t in config_members.values()),'exact thirteen-ref configuration')
+    config_heap=13*32+256
+    # Each literal constructor list ends with its PackedInt32Array construction. The initial
+    # eleven-value list and the later four-value append list cannot coexist. Conservatively
+    # retain the original44-byte packed payload AND its256-byte provisional header beside the final84-byte array.
+    descriptor_heap=8*2*32+256+24+256
+    identity_initial=descriptor_heap+(11*32+256)+(44+256)
+    identity_append=descriptor_heap+(84+256)+(4*32+256)+(16+256)+(44+256)
+    level_heap=max(identity_initial,identity_append)
+    level_tail=['Levels.binding_matches','Levels._identity_of']
+    case('catalog_bind_level_identity',['RouteComposition._prepare_candidate',
+      'RouteComposition._prepare_catalog','Catalog.bind_actual']+level_tail,
+      config_heap+level_heap,'Exact eight-entry descriptor plus one sequential literal/packed append phase; no list survives its constructor statement.')
+    case('provider_level_identity',['RouteComposition._prepare_candidate','WorldRoutes.configure',
+      'Catalog.binding_matches']+level_tail,config_heap+level_heap)
+    case('approach_level_identity',['RouteComposition._bind_approach','RoomBindings.configure_room_approach',
+      'WorldRoutes.binding_refusal','Catalog.binding_matches']+level_tail,level_heap)
+    case('world_route_domain',['RouteComposition._prepare_candidate','WorldRoutes.configure']+domain_tail,
+      sum(domain_heap.values())+config_heap,'Only the temporary configuration and constructor chain coexist with the new Domain.')
+    case('route_domain',['RouteComposition._bind_graph','Routes.configure','Routes._bind_stores']+domain_tail,
+      sum(domain_heap.values()),'The Configuration frame and candidate local have ended before Routes.configure.')
+    case('movement_profiles',['RouteComposition._prepare_candidate','RouteComposition._configuration',
+      'Movement._init','Movement._build_starter_profiles','Residents.size_carry_g','IntResult._init'],
+      config_heap+4*(9+256),'Four simultaneous actual IntResults; original Movement arrays use their existing baseline reservation.')
+    # Catalog 2048 already contains the entire 1468-byte parser/control proof from1166. Charge it
+    # a second time in this constructor-only envelope so no foreign decoder frame is silently omitted.
+    case('catalog_load',['RouteComposition._prepare_candidate','RouteComposition._prepare_catalog'],
+      config_heap+2048,'Complete existing Catalog control/decode slice conservatively repeated beside caller Configuration.')
+    case('graph_motion_allocate',['RouteComposition._bind_graph','Routes.configure','Routes._configure_arenas',
+      'Routes._allocate','MotionBank.allocate'],16*32+256,
+      'All sixteen explicit actor-null field literals remain in one temporary Array; packed outputs use existing arenas.')
+    case('graph_edge_allocate',['RouteComposition._bind_graph','Routes.configure','Routes._configure_arenas',
+      'Routes._allocate','EdgeBank.allocate'])
+    case('graph_retention',['RouteComposition._bind_graph','Routes.configure','Routes._configure_arenas',
+      'Locations.bind_retention','EndpointRetention.exact_binding','Routes.retention_binding_matches'],32+256,
+      'The once-retained weak adapter is conservatively counted again here; no second graph is created.')
+    case('profile_extent',['RouteComposition._bind_profiles','Routes.bind_profiles','Routes.refresh_profile_extent',
+      'Profiles.body_extent_into'])
+    maximum=max(cases,key=lambda key:cases[key]['total'])
+    return {'source_manifest_sha256':CONSTRUCTOR_SHA,'configuration_bytes':config_heap,'domain_heap':domain_heap,
+      'level_identity_heap':{'descriptor_bytes':descriptor_heap,'initial_constructor_peak':identity_initial,
+       'append_constructor_peak':identity_append,'peak':level_heap},
+      'cases':cases,'maximum_case':maximum,'maximum_provisional_bytes':cases[maximum]['total'],
+      'native_measured':False}
+
+
+def build(replacements=None):
+    verified_rows(HERE/'inherited-sha256.json',INHERITED_SHA)
+    verified_rows(HERE/'constructor-source-sha256.json',CONSTRUCTOR_SHA)
+    verified_rows(HERE/'engine-lifetime/source-sha256.json',ENGINE_SHA)
+    predecessors=verified_rows(HERE/'predecessor/manifest.json',PREDECESSOR_SHA)
+    old={name:(ROOT/row['locator']).read_text() for name,row in predecessors.items()}
+    source={name:(ROOT/path).read_text() for name,path in FILES.items()};source.update(replacements or {})
+    for name in ('Session','Host'):
+        require(members(source[name])==members(old[FILES[name]]),'no new retained host/session state')
+    for klass in ('Owners','Scope'):
+        require(class_members(source['Retirement'],klass)==class_members(old[FILES['Retirement']],klass),'same original fixed owner/scope tuple')
+    require(not members(source['RouteComposition']) and not re.search(r'^static var ',source['RouteComposition'],re.M),'stateless route composer')
+    require(source['Session'].count('Retirement.Owners.new()')==1 and source['Session'].count('Retirement.Scope.new()')==1,'no duplicated lifetime packet')
+    require(sorted(re.findall(r'\b([A-Z][\w.]*)\.new\(',source['RouteComposition']))==
+      ['Catalog','Movement','WorldRoutes','WorldRoutes.Configuration'],'one actual instance of each new source/provider')
+    for text in ('Budget.LOCATION_CAPACITY, Routes.MAX_EDGES, Routes.MAX_VERTICES,',
+      'Routes.MAX_LINKS, Budget.LOCATION_AND_TOPOLOGY_BYTES)', 'configure(Catalog.RESERVED_BYTES)',
+      'Movement.new(o.directory, null, null, o.transforms, o.residents)'):
+        require(text in source['RouteComposition'],'original finite source/capacity admission')
+    require('const PROFILE_CONTENT_REVISION: int = 2' in source['RouteComposition'] and
+      'const CATALOG_REVISION: int = 1' in source['RouteComposition'],'explicit immutable revision')
+    digest=re.findall(r'^const CATALOG_DIGEST_\d: int = (-?\d+)',source['RouteComposition'],re.M)
+    import struct
+    require(len(digest)==4 and b''.join(struct.pack('<q',int(x)) for x in digest).hex()==
+      '1880788c064b87424c203509a7ad65498b9d11fc18842affe909364b8a8aca4a','exact source digest words')
+    own_frames={}
+    for name,text in source.items():own_frames.update(parse(text,name))
+    for key,row in own_frames.items():
+        if not key.startswith('RouteComposition.'):continue
+        require(all(t not in ('Array','Dictionary','Variant') and not t.startswith('Packed') for _,t in row['values']),
+          'no hidden variable constructor scratch '+key)
+        require(not re.search(r'\.resize\(|\.duplicate\(',row['body']),'no second packed construction '+key)
+    prepare=own_frames['RouteComposition._prepare_candidate']['body']
+    require(prepare.index('candidate.configure(config)')<prepare.index('session._retirement_owners.world_routes = candidate')<
+      prepare.index('session._operations_prefix = 5'),'retain only configured original provider')
+    construct=own_frames['RouteComposition.construct']['body']
+    require(construct.index('_prepare_candidate(session)')<construct.index('_bind_graph(session)'),
+      'configuration frame ends before graph allocation')
+    require('session._operations_prefix = 6' in own_frames['RouteComposition._bind_graph']['body'] and
+      'session._operations_prefix = 7' in own_frames['RouteComposition._bind_profiles']['body'] and
+      'session._operations_prefix = 8' in own_frames['RouteComposition._bind_approach']['body'],
+      'exact post-success original stages')
+    base=json.loads((OLD/'census.json').read_text())
+    frames={}
+    for phase in base['phases'].values():frames.update(phase['frames'])
+    for name,text in source.items():frames.update(parse(text,name))
+    result={label:peak(frames,roots) for label,roots in {
+      'reset_with_ui':['UI.create_world'],
+      'direct_reset':['Host.reset','Host.prepare_world_reset','Host.abandon_world_reset','Host._notification'],
+      'route_composition_own_prefix':['Host.compose_underground_route_owners']}.items()}
+    for phase in result.values():
+        for row in phase['frames'].values():row.pop('body',None);row.pop('values',None)
+    require(len(re.findall(r'^const \w+: int = ',source['RouteComposition'],re.M))==6, 'exact six numeric source constants')
+    constants=6*8 # content/revision and four immutable digest words; String/symbol native term stays provisional.
+    controls=base['accounting']['controls']+constants
+    helper=max(x['provisional_bytes'] for x in result.values())
+    require(controls<=6144 and helper<=2048,'reset/helper envelope exceeded')
+    ctor=constructor(source)
+    absent=base['constructor_exclusive_reuse']['absent_total']
+    ctor_controls=controls-absent;total=ctor_controls+ctor['maximum_provisional_bytes']
+    require(total<=8192,'constructor coexistence exceeds unchanged8192')
+    return {'source_sha256':{FILES[k]:sha(v.encode()) for k,v in source.items()},
+      'retained_numeric_delta':0,'retained_reference_delta':0,'immutable_numeric_constants_bytes':constants,
+      'additional_packed_bytes':0,'phases':result,'constructor':ctor,
+      'constructor_exclusive_reuse':{'absent_original_scope_and_copy_bytes':absent,
+       'remaining_controls':ctor_controls,'constructor_stack_and_heap':ctor['maximum_provisional_bytes'],
+       'simultaneous_total':total,'ceiling':8192,'remaining':8192-total},
+      'accounting':{'controls':controls,'control_ceiling':6144,'helpers':helper,'helper_ceiling':2048,
+       'retirement_reserved_bytes':8192,'existing_session_reserved_bytes':1536,
+       'profile_joint':246868,'profile_ceiling':262144},'native_measured':False,'runtime_qualified':False}
+
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);a=p.parse_args()
+    require(not a.out.exists() and not a.out.is_symlink(),'create-only census')
+    a.out.write_text(json.dumps(build(),indent=2)+'\n')

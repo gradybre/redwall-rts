@@ -1,0 +1,15 @@
+{
+  "docs/persistence_state_registry.md": "2849fb1b7d605de413c3cf987c99b79a77aff75161062e94d4a85e8cc7febb44",
+  "docs/planning/canonical_state_registry.json": "0268389a0e71f6331834a1e8e68f5f11b760050dd7e0af599c8b913a7717534a",
+  "docs/planning/registry_capacity_audit.json": "ba58d45981693ae192c227de1da3208c0328f8cec8bc555d1c0181eb5a40bbcf",
+  "docs/systems_architecture.md": "53da49d297fc7c874160d1f7e23dbf246b10659458adf0b26e98e677630d3c8b",
+  "docs/validation/merge_gate.py": "8ddff34b4861fe63cae6f26ccb7103aed249d07856172b222f9ec6e7ae5ee1b5",
+  "docs/validation/ready07_arithmetic.py": "64c05a80c563f40d78c22d99616e724beef41dfe709814501abc5406ead4caed",
+  "docs/validation/test_merge_gate.py": "4b5c6f7357568072646497cc5b48ba78708fc213c2d4f264eef4adbe5a59d035",
+  "docs/validation/validate_save_registry_handoff.py": "df5392acc75d6beac82eb49d168ef578d61082d86518a495af873ff6d3e327ef",
+  "godot/scripts/core/canonical_state_hash.gd": "9063cee54be44fcebdf8927069399bc45d99b9b9218b0d1a4d059658fd2bb80e",
+  "godot/test/test_canonical_state_hash.gd": "0839a4fba9b5d61ec8cf798d4a0e2e32de0bb2aade64d64305ee6f4f86967074",
+  "tools/audit_registry_capacities.py": "6a0abe28bd61ea2c12375bd12b2a8c2849f2d5530ad8d7bfeff39d82b69badfe",
+  "tools/test_registry_capacity_audit.py": "598d31c8082d63e5ff63953fcc478b2348320b876e4a921667c9aea6ed049579",
+  "docs/decisions/1071-spatial-room-state-and-memory.md": "e3e93d182fcf57e3c50ef11909d83b55f08ca89643e25eca59983f24b81b2f15"
+}

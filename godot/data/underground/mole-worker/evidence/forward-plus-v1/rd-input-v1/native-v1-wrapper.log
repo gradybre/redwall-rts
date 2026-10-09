@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 142, in <module>
+    capture(parser.parse_args().out)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 86, in capture
+    before, project = source_pins(), sha(ROOT / "godot/project.godot")
+                      ^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 50, in source_pins
+    path = actual(name)
+           ^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 37, in actual
+    require(path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(ROOT), "INPUT_CAPTURE_SOURCE_PATH")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/capture_inputs.py", line 27, in require
+    raise ValueError(code)
+ValueError: INPUT_CAPTURE_SOURCE_PATH

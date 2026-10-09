@@ -1,0 +1,59 @@
+state_registry_coverage: PASS -- 125 modules, 629 rows, 981 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_locations.gd
+  PASS  test_exact_real_binding_and_full_local_refs
+  PASS  test_actual_shared_budget_blocks_capture_overlap_and_foreign_tokens
+  PASS  test_prepared_endpoint_reader_requires_seal_and_preserves_bank_isolation
+  PASS  test_arena_and_cold_admission_refuse_before_allocation
+  PASS  test_reads_do_not_alias_packed_geometry
+  PASS  test_negative_cells_and_stacked_sections_do_not_alias
+  PASS  test_support_hole_refuses_despite_supported_corners
+  PASS  test_water_unfinished_obstacle_and_boundary_refuse
+  PASS  test_stale_geometry_requires_explicit_refresh_without_payload_change
+  PASS  test_actual_inventory_promotion_and_retirement_guard
+  PASS  test_abort_and_stale_seal_do_not_publish_locations
+  PASS  test_exhaustion_reuse_and_wire_round_trip
+  PASS  test_malformed_image_and_foreign_floor_preserve_live_bytes
+  PASS  test_unqualified_transit_role_never_grants_storage
+  PASS  test_load_cannot_repoint_a_live_immutable_handle
+  PASS  test_load_requires_canonical_generation_exhaustion
+  PASS  test_future_location_requires_actual_sites_binding
+  PASS  test_post_seal_inventory_retention_prevents_location_retirement
+  PASS  test_graph_retention_preserves_live_endpoints_at_all_publication_boundaries
+  PASS  test_graph_retention_refuses_load_that_removes_or_recycles_a_live_location
+  PASS  test_expired_foreign_and_reentrant_graph_observers_fail_closed
+  PASS  test_actual_endpoint_capacity_reader_never_infers_a_smaller_namespace
+  PASS  test_later_retention_callback_cannot_strand_earlier_actual_inventory_endpoint
+  PASS  test_observer_released_cold_lease_refuses_final_publication
+  PASS  test_restore_rechecks_actual_inventory_and_lease_after_observer_callbacks
+  PASS  test_transit_doorway_spans_adjacent_rooms_but_placement_keeps_whole_section_rule
+  PASS  test_transit_without_actual_site_or_with_changed_paid_domain_refuses
+  PASS  test_transit_doorway_retains_actual_walls_unfinished_and_support_holes
+  PASS  test_transit_pending_neighbour_claim_does_not_create_clear_volume
+  PASS  test_location_receipt_requires_exact_success_and_load_never_restores_it
+  PASS  test_room_confirmation_refreshes_existing_contacts_in_actual_callback_order
+  PASS  test_room_companion_requires_every_existing_endpoint_refresh_before_identity
+  PASS  test_room_companion_late_refusal_and_request_drift_preserve_live_state
+  PASS  test_room_companion_reentry_and_replaced_lease_cannot_publish
+  PASS  test_room_companion_rechecks_complete_support_in_sealed_future
+  PASS  test_room_endpoint_binding_refuses_unbound_foreign_and_active_owners
+CI_SUITE_TIME {"assertions":1148,"failures":0,"suite":"test_underground_locations.gd","tests":36,"usec":1631379}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+36 test(s), 1148 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 36 tests, 1148 assertions, 0 failures.

@@ -1,0 +1,20 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "seconds": 3.227,
+    "log": "test_registry_capacity_audit.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "seconds": 2.024,
+    "log": "test_underground_memory_budget.log"
+  }
+]

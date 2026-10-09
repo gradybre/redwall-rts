@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_workpiece_spatial.gd
+  PASS  test_current_body_and_complete_recovery_block_without_mutating_pose_or_routes
+  PASS  test_unregistered_actual_living_resident_never_becomes_empty_set_down_space
+  PASS  test_finite_work_is_precharged_before_source_or_actor_scratch_reads
+  PASS  test_busy_shared_query_scratch_and_foreign_provider_binding_refuse
+  PASS  test_actual_source_replacement_and_late_transform_move_are_read_fresh
+CI_SUITE_TIME {"assertions":33,"failures":0,"suite":"test_underground_workpiece_spatial.gd","tests":5,"usec":1716036}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+5 test(s), 33 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 5 tests, 33 assertions, 0 failures.

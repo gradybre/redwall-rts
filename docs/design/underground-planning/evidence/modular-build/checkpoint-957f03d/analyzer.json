@@ -1,0 +1,20 @@
+{
+ "data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd": [
+  {
+   "code": 0,
+   "message": "Could not resolve super class path \"res://data/underground/mole-worker/evidence/contact-qualification/grip-authoring/native_grip_sequence.gd\".",
+   "range": {
+    "end": {
+     "character": 0,
+     "line": 93
+    },
+    "start": {
+     "character": 0,
+     "line": 0
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  }
+ ]
+}

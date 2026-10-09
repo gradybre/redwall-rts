@@ -1,0 +1,14 @@
+{
+  "godot/scripts/core/underground_session.gd": {
+    "locator": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/underground_session.gd.txt",
+    "sha256": "a367e3f8323ed2fa8353e6c9937e3d4af9d52f9af4424f5ec4458f452f4c6e35"
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+    "locator": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/underground_world_retirement.gd.txt",
+    "sha256": "c9e4f2ff0ab0641960bc2f4e0d1f73575942540164c19ede623ee6394222af33"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "locator": "docs/validation/evidence/underground-route-owner-composition-2026-10-04/predecessor/settlement_system.gd.txt",
+    "sha256": "d578b9757df1ffdca10933309f5d9d8ab69beb39c229e71518768aa8e51bba36"
+  }
+}

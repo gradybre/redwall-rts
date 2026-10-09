@@ -1,0 +1,41 @@
+state_registry_coverage: PASS -- 148 modules, 725 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+  PASS  test_initial_actual_binding_uses_one_context_without_phase_permission
+  PASS  test_published_ground_profile_still_refuses_the_front_work_station_wall
+  PASS  test_actual_published_front_motion_fits_the_current_solid_face
+  PASS  test_location_restore_invalidates_qualification_until_a_fresh_publication
+  PASS  test_actual_profile_publication_or_replacement_invalidates_the_qualification
+  PASS  test_overflow_refuses_before_any_qualification_cache_mutation
+  PASS  test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping
+  PASS  test_independent_catalog_change_and_coincident_foreign_revision_refuse_old_cache
+  PASS  test_work_endpoint_publication_without_space_change_invalidates_the_old_epoch
+  PASS  test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context
+  PASS  test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry
+  PASS  test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry
+  PASS  test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry
+  PASS  test_missing_original_weak_bindings_refuse_cleanly_at_current_and_final_boundaries
+  PASS  test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits
+  PASS  test_even_a_remote_living_resident_requires_actual_physical_registration
+  PASS  test_actual_entry_corridor_without_contacts_cannot_use_the_ordinary_branch
+  PASS  test_shared_composite_preserves_real_entry_start_work_and_settlement
+CI_SUITE_TIME {"assertions":223,"failures":0,"suite":"test_underground_room_world_phases.gd","tests":18,"usec":7769701}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+18 test(s), 223 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 18 tests, 223 assertions, 0 failures.

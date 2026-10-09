@@ -1,0 +1,147 @@
+{
+  "scope": "FINITE_NATIVE_BASIS_AND_PINNED_POSITION_EXPRESSION_ONLY",
+  "basis": {
+    "sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+    "producer_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+    "bytes": 524980,
+    "rows": 65536,
+    "metadata": {
+      "api_version": "4.0",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "coefficient_source_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable"
+      },
+      "heading_count": 65536,
+      "orientation": "0=-Z,+quarter=-X; +Y up",
+      "physical_qualified": false,
+      "rendering_driver": "metal",
+      "rendering_method": "forward_plus",
+      "schema": 2,
+      "source": {
+        "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_underground_forward_basis.gd",
+        "sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018"
+      }
+    },
+    "norm_max": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "norm_min": {
+      "numerator": 140737476697765,
+      "denominator": 140737488355328
+    },
+    "max_norm_yaw": 40791,
+    "min_norm_yaw": 6669,
+    "inverse_norm_squared_max": {
+      "numerator": 140737488355328,
+      "denominator": 140737476697765
+    },
+    "cardinals": [
+      [
+        {
+          "numerator": 1,
+          "denominator": 1
+        },
+        {
+          "numerator": 0,
+          "denominator": 1
+        }
+      ],
+      [
+        {
+          "numerator": -6151831,
+          "denominator": 140737488355328
+        },
+        {
+          "numerator": 1,
+          "denominator": 1
+        }
+      ],
+      [
+        {
+          "numerator": -1,
+          "denominator": 1
+        },
+        {
+          "numerator": -6151831,
+          "denominator": 70368744177664
+        }
+      ],
+      [
+        {
+          "numerator": 6713111,
+          "denominator": 562949953421312
+        },
+        {
+          "numerator": -1,
+          "denominator": 1
+        }
+      ]
+    ]
+  },
+  "engine_sources": {
+    "drivers/metal/rendering_shader_container_metal.cpp": "ba03df1a0653b9d513d8deb7869a7583e2eac2629fedf4f6222a1e112ecdb79e",
+    "drivers/metal/rendering_device_driver_metal.cpp": "3e1332160b0baacbbcb8499e13441564c71336730441aff9d22a39765c35b393",
+    "drivers/metal/rendering_shader_container_metal.h": "7895f53a502785389fca603ba29604fc61a6b09ba31b6004f70fcc1c6ddabfd5",
+    "drivers/metal/metal_device_profile.cpp": "7bbb30fdde53f9fe343b245559687c24533e147b238444df5f4a670e4877c079",
+    "servers/rendering/renderer_rd/storage_rd/mesh_storage.cpp": "d610f7f4b89ab4b10b038fabf3522bd9497add4fd9438ea5770597a6857a3bad",
+    "servers/rendering/rendering_server.cpp": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca",
+    "servers/rendering/renderer_rd/shaders/skeleton.glsl": "a36b5b2ac9141314b63f7e8b67607eb405a1664a575318e5165f71c75851fcf6",
+    "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl": "453d31b46060b907d63b8cb57fc5ee818d8b9d3c5c6e7491e677d6a95e27dab7",
+    "thirdparty/spirv-cross/spirv_msl.cpp": "f219ee63880c8681f4452ca2310659ae155025267b01b3c25c24e8ff43915dca"
+  },
+  "producer_sources": {
+    "tools/prove_underground_forward_backend.py": "832d1a5ed95801ebfdac7836f0a99fe0fa6df03b2616ee06e8a902fb7047e278",
+    "tools/bake_underground_forward_basis.gd": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+    "tools/bake_underground_world_basis.gd": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+  },
+  "precision_source": {
+    "url": "https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf",
+    "sha256": "41538b30d2f1140a5b2a0c84ce0a9f7b67bf0c707e224cfea0bfe5a44aa26cf5",
+    "date": "2026-06-04",
+    "sections": [
+      "1.6.3",
+      "6.3",
+      "8.1",
+      "8.2",
+      "8.4",
+      "8.5"
+    ]
+  },
+  "expression": {
+    "maximum_terms": 32,
+    "maximum_degree": 3,
+    "maximum_arithmetic_nodes": 95,
+    "rounding_unit": {
+      "numerator": 1,
+      "denominator": 8388608
+    },
+    "flush_bound": {
+      "numerator": 1,
+      "denominator": 85070591730234615865843651857942052864
+    },
+    "finite_intermediates_below": "2^80",
+    "arbitrary_rewrite_qualified": false
+  },
+  "qualified_profiles": 0,
+  "renderer_binding_qualified": false,
+  "world_qualified": false,
+  "remaining": [
+    "COMPLETE_SOURCE_INPUT_ERRORS",
+    "ACTUAL_COMPILED_POSITION_EXPRESSION",
+    "ACTOR_BACKEND_AND_MATERIAL_BINDING",
+    "CONTINUOUS_PROGRAM_REENCLOSURE",
+    "NATIVE_RENDERED_ATTACHMENT",
+    "CURRENT_RUNTIME_AND_WORLD_COMPOSITION"
+  ]
+}

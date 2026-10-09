@@ -47,9 +47,10 @@ const MUST_BE_UNAVAILABLE: Array = [
 	[3, UiAvailability.REASON_NO_HEATING_DEMAND],
 	[24, UiAvailability.REASON_NO_WORLD_PICKING],
 	[25, UiAvailability.REASON_NO_WORLD_PICKING],
-	[76, UiAvailability.REASON_NO_SAVE_FILES],
-	[77, UiAvailability.REASON_NO_SAVE_FILES],
-	[78, UiAvailability.REASON_NO_SETTINGS_STORE],
+	[76, UiAvailability.REASON_SAVE_CONTROLS_HOST],
+	[77, UiAvailability.REASON_SAVE_CONTROLS_HOST],
+	[78, UiAvailability.REASON_SAVE_CONTROLS_HOST],
+	[79, UiAvailability.REASON_NO_SETTINGS_STORE],
 	[30, UiAvailability.REASON_NO_RECIPE_ORDER_STORE],
 	[63, UiAvailability.REASON_NO_MILESTONE_STATE],
 	[68, UiAvailability.REASON_NO_IMMIGRATION_EVENT],
@@ -221,12 +222,13 @@ func test_no_reason_claims_a_store_that_now_exists_is_missing() -> void:
 				"compact %d does not claim '%s'" % [reason, phrase])
 
 
-func test_the_save_rows_name_the_missing_save_files_not_a_missing_codec() -> void:
-	"""UI-SET-076/077: the codec exists; nothing writes or reads a save file on disk yet."""
-	for id: int in [76, 77]:
+func test_the_save_modals_name_the_save_controls_that_draw_them() -> void:
+	"""UI-SET-076/077/078: the browser and the game menu exist (ADR 1222 step 11) and are drawn by
+	the game scene's save controls, so this shell names where they are rather than a gap."""
+	for id: int in [76, 77, 78]:
 		var label: String = _availability.unavailable_label(id)
-		assert_true(label.contains("save file on disk"), "UI-SET-%03d names the file gap" % id)
-		assert_true(label.contains("task 09"), "UI-SET-%03d names task 09" % id)
+		assert_true(label.contains("save controls"), "UI-SET-%03d names its host" % id)
+		assert_false(label.contains("not built"), "UI-SET-%03d no longer claims a missing browser" % id)
 
 
 func test_every_defined_reason_is_claimed_by_at_least_one_element() -> void:

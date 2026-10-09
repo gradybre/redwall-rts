@@ -1,0 +1,2004 @@
+self-clearance-progress {"interval": 0, "checks": 143, "pairs": 143, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 286, "pairs": 286, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 429, "pairs": 429, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 590, "pairs": 590, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 798, "pairs": 798, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 1017, "pairs": 1017, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 1235, "pairs": 1235, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 1450, "pairs": 1450, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 1663, "pairs": 1663, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 1832, "pairs": 1832, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 2001, "pairs": 2001, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 2174, "pairs": 2174, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 2338, "pairs": 2338, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 2474, "pairs": 2474, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 2616, "pairs": 2616, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 2766, "pairs": 2766, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 2967, "pairs": 2967, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 3171, "pairs": 3171, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 3366, "pairs": 3366, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 3632, "pairs": 3632, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 3950, "pairs": 3950, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 4276, "pairs": 4276, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 4671, "pairs": 4671, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 5194, "pairs": 5194, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 5767, "pairs": 5767, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 6320, "pairs": 6320, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 6941, "pairs": 6941, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 7552, "pairs": 7552, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 8101, "pairs": 8101, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 8705, "pairs": 8705, "unresolved": 0}
+self-clearance-progress {"interval": 30, "checks": 9423, "pairs": 9423, "unresolved": 0}
+self-clearance-progress {"interval": 31, "checks": 10132, "pairs": 10132, "unresolved": 0}
+self-clearance-progress {"interval": 32, "checks": 10975, "pairs": 10975, "unresolved": 0}
+self-clearance-progress {"interval": 33, "checks": 12078, "pairs": 12078, "unresolved": 0}
+self-clearance-progress {"interval": 34, "checks": 13136, "pairs": 13136, "unresolved": 0}
+self-clearance-progress {"interval": 35, "checks": 14390, "pairs": 14390, "unresolved": 0}
+self-clearance-progress {"interval": 36, "checks": 15154, "pairs": 15154, "unresolved": 0}
+self-clearance-progress {"interval": 37, "checks": 15565, "pairs": 15565, "unresolved": 0}
+self-clearance-progress {"interval": 38, "checks": 15881, "pairs": 15881, "unresolved": 0}
+self-clearance-progress {"interval": 39, "checks": 16330, "pairs": 16330, "unresolved": 0}
+self-clearance-progress {"interval": 40, "checks": 16857, "pairs": 16857, "unresolved": 0}
+self-clearance-progress {"interval": 41, "checks": 17463, "pairs": 17463, "unresolved": 0}
+self-clearance-progress {"interval": 42, "checks": 18080, "pairs": 18080, "unresolved": 0}
+self-clearance-progress {"interval": 43, "checks": 18861, "pairs": 18861, "unresolved": 0}
+self-clearance-progress {"interval": 44, "checks": 19638, "pairs": 19638, "unresolved": 0}
+self-clearance-progress {"interval": 45, "checks": 20428, "pairs": 20428, "unresolved": 0}
+self-clearance-progress {"interval": 46, "checks": 21127, "pairs": 21127, "unresolved": 0}
+self-clearance-progress {"interval": 47, "checks": 21702, "pairs": 21702, "unresolved": 0}
+self-clearance-progress {"interval": 48, "checks": 22364, "pairs": 22364, "unresolved": 0}
+self-clearance-progress {"interval": 49, "checks": 22934, "pairs": 22934, "unresolved": 0}
+self-clearance-progress {"interval": 50, "checks": 23432, "pairs": 23432, "unresolved": 0}
+self-clearance-progress {"interval": 51, "checks": 24041, "pairs": 24041, "unresolved": 0}
+self-clearance-progress {"interval": 52, "checks": 24684, "pairs": 24684, "unresolved": 0}
+self-clearance-progress {"interval": 53, "checks": 25537, "pairs": 25537, "unresolved": 0}
+self-clearance-progress {"interval": 54, "checks": 26599, "pairs": 26599, "unresolved": 0}
+self-clearance-progress {"interval": 55, "checks": 27834, "pairs": 27834, "unresolved": 0}
+self-clearance-progress {"interval": 56, "checks": 29346, "pairs": 29346, "unresolved": 0}
+self-clearance-progress {"interval": 57, "checks": 31410, "pairs": 31410, "unresolved": 0}
+self-clearance-progress {"interval": 58, "checks": 33488, "pairs": 33488, "unresolved": 0}
+self-clearance-progress {"interval": 59, "checks": 36017, "pairs": 36017, "unresolved": 0}
+self-clearance-progress {"interval": 60, "checks": 38542, "pairs": 38542, "unresolved": 0}
+self-clearance-progress {"interval": 61, "checks": 41213, "pairs": 41213, "unresolved": 0}
+self-clearance-progress {"interval": 62, "checks": 43806, "pairs": 43806, "unresolved": 0}
+self-clearance-progress {"interval": 63, "checks": 46442, "pairs": 46442, "unresolved": 0}
+self-clearance-progress {"interval": 64, "checks": 49090, "pairs": 49090, "unresolved": 0}
+self-clearance-progress {"interval": 65, "checks": 51157, "pairs": 51157, "unresolved": 0}
+self-clearance-progress {"interval": 66, "checks": 53013, "pairs": 53013, "unresolved": 0}
+self-clearance-progress {"interval": 67, "checks": 54610, "pairs": 54610, "unresolved": 0}
+self-clearance-progress {"interval": 68, "checks": 55761, "pairs": 55761, "unresolved": 0}
+self-clearance-progress {"interval": 69, "checks": 56717, "pairs": 56717, "unresolved": 0}
+self-clearance-progress {"interval": 70, "checks": 57357, "pairs": 57357, "unresolved": 0}
+self-clearance-progress {"interval": 71, "checks": 57859, "pairs": 57859, "unresolved": 0}
+self-clearance-progress {"interval": 72, "checks": 58313, "pairs": 58313, "unresolved": 0}
+self-clearance-progress {"interval": 73, "checks": 58740, "pairs": 58740, "unresolved": 0}
+self-clearance-progress {"interval": 74, "checks": 59127, "pairs": 59127, "unresolved": 0}
+self-clearance-progress {"interval": 75, "checks": 59367, "pairs": 59367, "unresolved": 0}
+self-clearance-progress {"interval": 76, "checks": 59555, "pairs": 59555, "unresolved": 0}
+self-clearance-progress {"interval": 77, "checks": 59889, "pairs": 59889, "unresolved": 0}
+self-clearance-progress {"interval": 78, "checks": 60270, "pairs": 60270, "unresolved": 0}
+self-clearance-progress {"interval": 79, "checks": 60684, "pairs": 60684, "unresolved": 0}
+self-clearance-progress {"interval": 80, "checks": 61177, "pairs": 61177, "unresolved": 0}
+self-clearance-progress {"interval": 81, "checks": 61784, "pairs": 61784, "unresolved": 0}
+self-clearance-progress {"interval": 82, "checks": 62665, "pairs": 62665, "unresolved": 0}
+self-clearance-progress {"interval": 83, "checks": 63662, "pairs": 63662, "unresolved": 0}
+self-clearance-progress {"interval": 84, "checks": 64720, "pairs": 64720, "unresolved": 0}
+self-clearance-progress {"interval": 85, "checks": 65806, "pairs": 65806, "unresolved": 0}
+self-clearance-progress {"interval": 86, "checks": 66917, "pairs": 66917, "unresolved": 0}
+self-clearance-progress {"interval": 87, "checks": 68195, "pairs": 68195, "unresolved": 0}
+self-clearance-progress {"interval": 88, "checks": 69551, "pairs": 69551, "unresolved": 0}
+self-clearance-progress {"interval": 89, "checks": 70983, "pairs": 70983, "unresolved": 0}
+self-clearance-progress {"interval": 90, "checks": 72449, "pairs": 72449, "unresolved": 0}
+self-clearance-progress {"interval": 91, "checks": 73910, "pairs": 73910, "unresolved": 0}
+self-clearance-progress {"interval": 92, "checks": 75145, "pairs": 75145, "unresolved": 0}
+self-clearance-progress {"interval": 93, "checks": 76277, "pairs": 76277, "unresolved": 0}
+self-clearance-progress {"interval": 94, "checks": 77524, "pairs": 77524, "unresolved": 0}
+self-clearance-progress {"interval": 95, "checks": 78739, "pairs": 78739, "unresolved": 0}
+self-clearance-progress {"interval": 96, "checks": 79845, "pairs": 79845, "unresolved": 0}
+self-clearance-progress {"interval": 97, "checks": 80870, "pairs": 80870, "unresolved": 0}
+self-clearance-progress {"interval": 98, "checks": 81749, "pairs": 81749, "unresolved": 0}
+self-clearance-progress {"interval": 99, "checks": 82407, "pairs": 82407, "unresolved": 0}
+self-clearance-progress {"interval": 100, "checks": 82925, "pairs": 82925, "unresolved": 0}
+self-clearance-progress {"interval": 101, "checks": 83313, "pairs": 83313, "unresolved": 0}
+self-clearance-progress {"interval": 102, "checks": 83584, "pairs": 83584, "unresolved": 0}
+self-clearance-progress {"interval": 103, "checks": 83816, "pairs": 83816, "unresolved": 0}
+self-clearance-progress {"interval": 104, "checks": 84039, "pairs": 84039, "unresolved": 0}
+self-clearance-progress {"interval": 105, "checks": 84257, "pairs": 84257, "unresolved": 0}
+self-clearance-progress {"interval": 106, "checks": 84470, "pairs": 84470, "unresolved": 0}
+self-clearance-progress {"interval": 107, "checks": 84668, "pairs": 84668, "unresolved": 0}
+self-clearance-progress {"interval": 108, "checks": 84885, "pairs": 84885, "unresolved": 0}
+self-clearance-progress {"interval": 109, "checks": 85150, "pairs": 85150, "unresolved": 0}
+self-clearance-progress {"interval": 110, "checks": 85412, "pairs": 85412, "unresolved": 0}
+self-clearance-progress {"interval": 111, "checks": 85661, "pairs": 85661, "unresolved": 0}
+self-clearance-progress {"interval": 112, "checks": 85909, "pairs": 85909, "unresolved": 0}
+self-clearance-progress {"interval": 113, "checks": 86144, "pairs": 86144, "unresolved": 0}
+self-clearance-progress {"interval": 114, "checks": 86359, "pairs": 86359, "unresolved": 0}
+self-clearance-progress {"interval": 115, "checks": 86543, "pairs": 86543, "unresolved": 0}
+self-clearance-progress {"interval": 116, "checks": 86727, "pairs": 86727, "unresolved": 0}
+self-clearance-progress {"interval": 117, "checks": 86888, "pairs": 86888, "unresolved": 0}
+self-clearance-progress {"interval": 118, "checks": 87049, "pairs": 87049, "unresolved": 0}
+self-clearance-progress {"interval": 119, "checks": 87188, "pairs": 87188, "unresolved": 0}
+self-clearance-progress {"interval": 120, "checks": 87408, "pairs": 87408, "unresolved": 0}
+self-clearance-progress {"interval": 0, "checks": 87, "pairs": 87, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 2212, "pairs": 2212, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 3881, "pairs": 3881, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 5429, "pairs": 5429, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 9483, "pairs": 9483, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 11922, "pairs": 11922, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 13134, "pairs": 13134, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 13725, "pairs": 13725, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 14471, "pairs": 14471, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 15014, "pairs": 15014, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 15543, "pairs": 15543, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 17181, "pairs": 17181, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 21474, "pairs": 21474, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 25337, "pairs": 25337, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 28870, "pairs": 28870, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 32487, "pairs": 32487, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 38483, "pairs": 38483, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 48032, "pairs": 48032, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 52961, "pairs": 52961, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 57005, "pairs": 57005, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 60040, "pairs": 60040, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 64013, "pairs": 64013, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 65093, "pairs": 65093, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 65644, "pairs": 65644, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 66345, "pairs": 66345, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 67834, "pairs": 67834, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 69501, "pairs": 69501, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 73766, "pairs": 73766, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 76527, "pairs": 76527, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 82045, "pairs": 82045, "unresolved": 0}
+self-clearance-progress {"interval": 30, "checks": 89058, "pairs": 89058, "unresolved": 0}
+self-clearance-progress {"interval": 31, "checks": 92870, "pairs": 92870, "unresolved": 0}
+self-clearance-progress {"interval": 32, "checks": 92957, "pairs": 92957, "unresolved": 0}
+self-clearance-progress {"interval": 0, "checks": 90, "pairs": 90, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 4715, "pairs": 4715, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 9122, "pairs": 9122, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 12236, "pairs": 12236, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 14540, "pairs": 14540, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 16538, "pairs": 16538, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 17706, "pairs": 17706, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 18540, "pairs": 18540, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 19495, "pairs": 19495, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 20238, "pairs": 20238, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 22361, "pairs": 22361, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 23042, "pairs": 23042, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 27464, "pairs": 27464, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 35366, "pairs": 35366, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 43310, "pairs": 43310, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 54139, "pairs": 54139, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 62849, "pairs": 62849, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 66392, "pairs": 66392, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 70485, "pairs": 70485, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 74412, "pairs": 74412, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 77617, "pairs": 77617, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 79609, "pairs": 79609, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 80694, "pairs": 80694, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 81155, "pairs": 81155, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 81953, "pairs": 81953, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 84255, "pairs": 84255, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 89583, "pairs": 89583, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 92870, "pairs": 92870, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 97993, "pairs": 97993, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 100881, "pairs": 100881, "unresolved": 0}
+self-clearance-progress {"interval": 30, "checks": 103791, "pairs": 103791, "unresolved": 0}
+self-clearance-progress {"interval": 31, "checks": 108224, "pairs": 108224, "unresolved": 0}
+self-clearance-progress {"interval": 32, "checks": 108314, "pairs": 108314, "unresolved": 0}
+self-clearance-progress {"interval": 0, "checks": 81, "pairs": 81, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 4669, "pairs": 4669, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 8136, "pairs": 8136, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 9593, "pairs": 9593, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 13233, "pairs": 13233, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 15102, "pairs": 15102, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 16426, "pairs": 16426, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 17671, "pairs": 17671, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 20447, "pairs": 20447, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 21804, "pairs": 21804, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 22818, "pairs": 22818, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 24599, "pairs": 24599, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 27772, "pairs": 27772, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 32107, "pairs": 32107, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 36757, "pairs": 36757, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 41639, "pairs": 41639, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 47221, "pairs": 47221, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 52560, "pairs": 52560, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 56195, "pairs": 56195, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 60114, "pairs": 60114, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 64842, "pairs": 64842, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 66904, "pairs": 66904, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 67909, "pairs": 67909, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 68770, "pairs": 68770, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 70021, "pairs": 70021, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 71355, "pairs": 71355, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 72765, "pairs": 72765, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 75739, "pairs": 75739, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 80585, "pairs": 80585, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 85781, "pairs": 85781, "unresolved": 0}
+self-clearance-progress {"interval": 30, "checks": 89477, "pairs": 89477, "unresolved": 0}
+self-clearance-progress {"interval": 31, "checks": 92153, "pairs": 92153, "unresolved": 0}
+self-clearance-progress {"interval": 32, "checks": 92234, "pairs": 92234, "unresolved": 0}
+self-clearance-progress {"interval": 0, "checks": 202, "pairs": 202, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 733, "pairs": 733, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 1839, "pairs": 1839, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 2869, "pairs": 2869, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 3574, "pairs": 3574, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 3937, "pairs": 3937, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 4224, "pairs": 4224, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 4764, "pairs": 4764, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 5515, "pairs": 5515, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 6134, "pairs": 6134, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 6687, "pairs": 6687, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 7254, "pairs": 7254, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 7733, "pairs": 7733, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 8172, "pairs": 8172, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 8420, "pairs": 8420, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 8630, "pairs": 8630, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 8935, "pairs": 8935, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 9333, "pairs": 9333, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 9768, "pairs": 9768, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 10256, "pairs": 10256, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 10537, "pairs": 10537, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 10922, "pairs": 10922, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 11405, "pairs": 11405, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 12012, "pairs": 12012, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 12509, "pairs": 12509, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 12892, "pairs": 12892, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 13243, "pairs": 13243, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 13676, "pairs": 13676, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 13926, "pairs": 13926, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 14255, "pairs": 14255, "unresolved": 0}
+self-clearance-progress {"interval": 30, "checks": 14567, "pairs": 14567, "unresolved": 0}
+self-clearance-progress {"interval": 31, "checks": 14805, "pairs": 14805, "unresolved": 0}
+self-clearance-progress {"interval": 32, "checks": 15185, "pairs": 15185, "unresolved": 0}
+self-clearance-progress {"interval": 33, "checks": 15932, "pairs": 15932, "unresolved": 0}
+self-clearance-progress {"interval": 34, "checks": 16681, "pairs": 16681, "unresolved": 0}
+self-clearance-progress {"interval": 0, "checks": 11486, "pairs": 11486, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 22937, "pairs": 22937, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 35617, "pairs": 35617, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 48356, "pairs": 48356, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 57852, "pairs": 57852, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 64412, "pairs": 64412, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 68920, "pairs": 68920, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 73776, "pairs": 73776, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 84128, "pairs": 84128, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 99555, "pairs": 99555, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 121400, "pairs": 121400, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 139127, "pairs": 139127, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 165953, "pairs": 165953, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 192255, "pairs": 192255, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 222493, "pairs": 222493, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 242152, "pairs": 242152, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 255629, "pairs": 255615, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 272661, "pairs": 272647, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 289693, "pairs": 289679, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 303170, "pairs": 303142, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 322829, "pairs": 322801, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 353067, "pairs": 353039, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 379369, "pairs": 379341, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 406195, "pairs": 406167, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 423922, "pairs": 423894, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 445767, "pairs": 445739, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 461194, "pairs": 461166, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 471546, "pairs": 471518, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 476402, "pairs": 476374, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 480910, "pairs": 480882, "unresolved": 0}
+self-clearance-progress {"interval": 30, "checks": 487470, "pairs": 487442, "unresolved": 0}
+self-clearance-progress {"interval": 31, "checks": 496966, "pairs": 496938, "unresolved": 0}
+self-clearance-progress {"interval": 32, "checks": 509705, "pairs": 509677, "unresolved": 0}
+self-clearance-progress {"interval": 33, "checks": 522385, "pairs": 522357, "unresolved": 0}
+self-clearance-progress {"interval": 34, "checks": 533836, "pairs": 533808, "unresolved": 0}
+self-clearance-progress {"interval": 35, "checks": 545322, "pairs": 545294, "unresolved": 0}
+self-clearance-progress {"interval": 0, "checks": 6822, "pairs": 6822, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 14340, "pairs": 14340, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 22371, "pairs": 22371, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 30692, "pairs": 30692, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 38836, "pairs": 38836, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 46857, "pairs": 46857, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 54851, "pairs": 54851, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 62765, "pairs": 62765, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 70619, "pairs": 70619, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 78283, "pairs": 78283, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 85763, "pairs": 85763, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 93008, "pairs": 93008, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 99861, "pairs": 99861, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 106213, "pairs": 106213, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 111956, "pairs": 111956, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 116957, "pairs": 116957, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 121217, "pairs": 121217, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 124716, "pairs": 124716, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 127957, "pairs": 127957, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 131377, "pairs": 131377, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 135131, "pairs": 135131, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 139161, "pairs": 139161, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 143430, "pairs": 143430, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 148252, "pairs": 148252, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 153825, "pairs": 153825, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 160270, "pairs": 160270, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 167755, "pairs": 167755, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 175593, "pairs": 175593, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 182452, "pairs": 182452, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 189935, "pairs": 189935, "unresolved": 0}
+{
+  "0": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 87408,
+    "pairs": 87408,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 121,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        33
+      ],
+      [
+        33,
+        34
+      ],
+      [
+        34,
+        35
+      ],
+      [
+        35,
+        36
+      ],
+      [
+        36,
+        37
+      ],
+      [
+        37,
+        38
+      ],
+      [
+        38,
+        39
+      ],
+      [
+        39,
+        40
+      ],
+      [
+        40,
+        41
+      ],
+      [
+        41,
+        42
+      ],
+      [
+        42,
+        43
+      ],
+      [
+        43,
+        44
+      ],
+      [
+        44,
+        45
+      ],
+      [
+        45,
+        46
+      ],
+      [
+        46,
+        47
+      ],
+      [
+        47,
+        48
+      ],
+      [
+        48,
+        49
+      ],
+      [
+        49,
+        50
+      ],
+      [
+        50,
+        51
+      ],
+      [
+        51,
+        52
+      ],
+      [
+        52,
+        53
+      ],
+      [
+        53,
+        54
+      ],
+      [
+        54,
+        55
+      ],
+      [
+        55,
+        56
+      ],
+      [
+        56,
+        57
+      ],
+      [
+        57,
+        58
+      ],
+      [
+        58,
+        59
+      ],
+      [
+        59,
+        60
+      ],
+      [
+        60,
+        61
+      ],
+      [
+        61,
+        62
+      ],
+      [
+        62,
+        63
+      ],
+      [
+        63,
+        64
+      ],
+      [
+        64,
+        65
+      ],
+      [
+        65,
+        66
+      ],
+      [
+        66,
+        67
+      ],
+      [
+        67,
+        68
+      ],
+      [
+        68,
+        69
+      ],
+      [
+        69,
+        70
+      ],
+      [
+        70,
+        71
+      ],
+      [
+        71,
+        72
+      ],
+      [
+        72,
+        73
+      ],
+      [
+        73,
+        74
+      ],
+      [
+        74,
+        75
+      ],
+      [
+        75,
+        76
+      ],
+      [
+        76,
+        77
+      ],
+      [
+        77,
+        78
+      ],
+      [
+        78,
+        79
+      ],
+      [
+        79,
+        80
+      ],
+      [
+        80,
+        81
+      ],
+      [
+        81,
+        82
+      ],
+      [
+        82,
+        83
+      ],
+      [
+        83,
+        84
+      ],
+      [
+        84,
+        85
+      ],
+      [
+        85,
+        86
+      ],
+      [
+        86,
+        87
+      ],
+      [
+        87,
+        88
+      ],
+      [
+        88,
+        89
+      ],
+      [
+        89,
+        90
+      ],
+      [
+        90,
+        91
+      ],
+      [
+        91,
+        92
+      ],
+      [
+        92,
+        93
+      ],
+      [
+        93,
+        94
+      ],
+      [
+        94,
+        95
+      ],
+      [
+        95,
+        96
+      ],
+      [
+        96,
+        97
+      ],
+      [
+        97,
+        98
+      ],
+      [
+        98,
+        99
+      ],
+      [
+        99,
+        100
+      ],
+      [
+        100,
+        101
+      ],
+      [
+        101,
+        102
+      ],
+      [
+        102,
+        103
+      ],
+      [
+        103,
+        104
+      ],
+      [
+        104,
+        105
+      ],
+      [
+        105,
+        106
+      ],
+      [
+        106,
+        107
+      ],
+      [
+        107,
+        108
+      ],
+      [
+        108,
+        109
+      ],
+      [
+        109,
+        110
+      ],
+      [
+        110,
+        111
+      ],
+      [
+        111,
+        112
+      ],
+      [
+        112,
+        113
+      ],
+      [
+        113,
+        114
+      ],
+      [
+        114,
+        115
+      ],
+      [
+        115,
+        116
+      ],
+      [
+        116,
+        117
+      ],
+      [
+        117,
+        118
+      ],
+      [
+        118,
+        119
+      ],
+      [
+        119,
+        120
+      ],
+      [
+        120,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 7929856,
+    "exact_yaw": 0
+  },
+  "1": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 92957,
+    "pairs": 92957,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 33,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 2097153,
+    "exact_yaw": 0
+  },
+  "2": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 108314,
+    "pairs": 108314,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 33,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 2097153,
+    "exact_yaw": 0
+  },
+  "3": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 92234,
+    "pairs": 92234,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 33,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 2097153,
+    "exact_yaw": 0
+  },
+  "4": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 16681,
+    "pairs": 16681,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 35,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        33
+      ],
+      [
+        33,
+        34
+      ],
+      [
+        34,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 2293760,
+    "exact_yaw": 0
+  },
+  "5": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 16681,
+    "pairs": 16681,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 35,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        33
+      ],
+      [
+        33,
+        34
+      ],
+      [
+        34,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 2293760,
+    "exact_yaw": 0,
+    "reused_exact_clip": 4
+  },
+  "6": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 545322,
+    "pairs": 545294,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 36,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        31,
+        32
+      ],
+      [
+        32,
+        33
+      ],
+      [
+        33,
+        34
+      ],
+      [
+        34,
+        35
+      ],
+      [
+        35,
+        0
+      ]
+    ],
+    "loop_mode": 1,
+    "duration_q16": 2359296,
+    "exact_yaw": 0
+  },
+  "7": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 189935,
+    "pairs": 189935,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 30,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ]
+    ],
+    "loop_mode": 0,
+    "duration_q16": 1966080,
+    "exact_yaw": 0
+  },
+  "8": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 189935,
+    "pairs": 189935,
+    "body_triangles": 9761,
+    "intentional_grip_triangles": 448,
+    "tool_triangles": 1150,
+    "intervals": 30,
+    "rendered_edges": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ]
+    ],
+    "loop_mode": 0,
+    "duration_q16": 1966080,
+    "exact_yaw": 0,
+    "reused_reverse_clip": 7
+  }
+}

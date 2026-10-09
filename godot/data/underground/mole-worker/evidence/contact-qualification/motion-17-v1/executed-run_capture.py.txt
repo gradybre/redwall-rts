@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Create-only native contact evidence with complete frozen source pins before and after execution."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[6]
+HERE = Path(__file__).resolve().parent
+DIAGNOSTIC = re.compile(r"(?m)^(?:ERROR:|WARNING:|SCRIPT ERROR:)|leaked at exit|resources still in use")
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def actual(path: str) -> Path:
+    return ROOT / "godot" / path[6:] if path.startswith("res://") else Path(path)
+
+
+def closure(script: Path, bake: Path) -> dict:
+    """The accepted bake supplies all actual assets/imports; close every new literal script dependency too."""
+    spec = json.loads(bake.read_text())
+    result = {}
+    for row in [spec["manifest"], *spec["sources"]]:
+        path = actual(row["path"])
+        if digest(path) != row["sha256"]:
+            raise ValueError("CONTACT_CAPTURE_SOURCE_DRIFT:" + row["path"])
+        result[str(path)] = row["sha256"]
+    pending = [script]
+    seen = set()
+    while pending:
+        path = pending.pop().resolve()
+        if path in seen:
+            continue
+        seen.add(path)
+        result[str(path)] = digest(path)
+        text = path.read_text()
+        for dependency in re.findall(r'(?:preload|load)\(\s*"(res://[^"\n]+\.gd)"\s*\)', text):
+            pending.append(actual(dependency))
+        for dependency in re.findall(r'^extends\s+"([^"\n]+\.gd)"', text, re.M):
+            pending.append(actual(dependency) if dependency.startswith("res://") else path.parent / dependency)
+        if len(seen) > 2048:
+            raise ValueError("CONTACT_CAPTURE_SOURCE_CAPACITY")
+    for path in (Path(__file__).resolve(), bake.resolve()):
+        result[str(path)] = digest(path)
+    return result
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--mode", choices=["topology", "motion"], required=True)
+    parser.add_argument("--last-frame", type=int, default=17)
+    args = parser.parse_args()
+    if args.out.exists() or args.out.is_symlink():
+        raise ValueError("CONTACT_CAPTURE_OUTPUT_EXISTS")
+    if not 1 <= args.last_frame <= 56:
+        raise ValueError("CONTACT_CAPTURE_FRAME")
+    out = args.out.resolve()
+    bake = HERE / "grip-source-v3/bake-spec.json"
+    script = HERE / ("capture_topology.gd" if args.mode == "topology" else "capture_motion.gd")
+    # Asset import can change import-cache identities, so it precedes the actual
+    # frozen native bundle. Its diagnostics still fail this complete run.
+    out.mkdir(parents=True)
+    command = ["godot", "--headless", "--path", "godot", "--editor", "--quit"]
+    with (out / "import.log").open("x") as log:
+        imported = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+    if imported.returncode or DIAGNOSTIC.search((out / "import.log").read_text()):
+        raise ValueError("CONTACT_CAPTURE_IMPORT")
+    pins = closure(script, bake)
+    spec = json.loads((HERE.parent / "grip-native-v2/spec.json").read_text())
+    spec.update(last_source_frame=args.last_frame, mode=args.mode)
+    for key in ("content", "basis", "manifest"):
+        pins[str(actual(spec[key]).resolve())] = digest(actual(spec[key]))
+    (out / "sources.json").write_text(json.dumps(pins, indent=2) + "\n")
+    (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
+    native = ["godot", "--path", "godot", "--rendering-method", "gl_compatibility", "--audio-driver", "Dummy",
+              "--fixed-fps", "60", "--script", str(script), "--", str(out / "spec.json"), str(out)]
+    with (out / "native.log").open("x") as log:
+        result = subprocess.run(native, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+    after = {name: digest(Path(name)) if Path(name).is_file() else None for name in pins}
+    (out / "sources-after.json").write_text(json.dumps(after, indent=2) + "\n")
+    bad = bool(DIAGNOSTIC.search((out / "native.log").read_text()))
+    invocation = {"commands": [command, native], "returncodes": [imported.returncode, result.returncode],
+                  "source_unchanged": pins == after, "unexpected_diagnostics": bad, "production_qualified": False}
+    (out / "invocation.json").write_text(json.dumps(invocation, indent=2) + "\n")
+    if result.returncode or bad or pins != after:
+        raise ValueError("CONTACT_CAPTURE_NATIVE_OR_SOURCE")
+    output = out / ("topology.json" if args.mode == "topology" else "report.json")
+    report = json.loads(output.read_text())
+    if report.get("production_qualified") is not False:
+        raise ValueError("CONTACT_CAPTURE_SCOPE")
+    (out / "output-sha256.json").write_text(json.dumps({output.name: digest(output)}, indent=2) + "\n")
+    print(json.dumps(invocation, indent=2))
+
+
+if __name__ == "__main__":
+    main()

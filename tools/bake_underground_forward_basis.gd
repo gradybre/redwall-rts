@@ -1,0 +1,144 @@
+extends SceneTree
+## Decision1132. A complete native Metal heading source, not a physical or renderer enclosure certificate.
+
+const Native := preload("./bake_underground_world_basis.gd")
+const MAGIC: String = "UGYAW002"
+const FOOTER: String = "UGYEND02"
+const VERSION: int = 2
+const HEADING_COUNT: int = 65536
+const COEFFICIENT_BYTES: int = HEADING_COUNT * 8
+const MAX_METADATA_BYTES: int = 1024
+const MAX_FILE_BYTES: int = 28 + MAX_METADATA_BYTES + COEFFICIENT_BYTES
+const PRESENTATION_RESERVE: int = 544768
+const ENGINE_HASH: String = "ed1daf0bf001b61586d9930840f2f1394092c079"
+var _rows: int = 0
+var _max_norm_squared: float = 0.0 # Diagnostic; exact norm comes from the independent integer reader.
+
+
+func _initialize() -> void:
+	"""Wait for the real native backend to initialize before observing its identity."""
+	call_deferred("_run")
+
+
+func _run() -> void:
+	"""Refuse stale outputs, unsupported native backends and source drift without relabelling the old GL image."""
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() != 2:
+		printerr("usage: bake_underground_forward_basis.gd -- output.ugyaw report.json")
+		quit(2)
+		return
+	var code: StringName = output_refusal(args[0], args[1], get_script().resource_path)
+	var metadata: Dictionary = _metadata()
+	if code == &"":
+		code = backend_refusal(metadata)
+	if code == &"":
+		code = _bake(args[0], args[1], metadata)
+	if code != &"":
+		printerr(String(code))
+		quit(2)
+	else:
+		print("forward basis: %d exact native headings; source only, 0 qualified profiles" % _rows)
+		quit(0)
+
+
+static func output_refusal(binary: String, report: String, source: String) -> StringName:
+	"""Protect both actual executable sources and all prior raw/report outputs using the accepted create-only guard."""
+	var code: StringName = Native.output_refusal(binary, report, source)
+	return Native.output_refusal(binary, report, native_source_path()) if code == &"" else code
+
+
+static func native_source_path() -> String:
+	"""Resolve the actual borrowed Script resource; a script class name is not a Resource instance in typed code."""
+	var script: GDScript = Native
+	return script.resource_path
+
+
+static func coefficients_into(yaw: int, out: PackedFloat32Array) -> StringName:
+	"""Reuse the exact accepted native coefficient equation; its source hash remains a separate mandatory pin."""
+	return Native.coefficients_into(yaw, out)
+
+
+static func backend_refusal(metadata: Dictionary) -> StringName:
+	"""A format check only: unsupported engine, renderer, display or API never inherits a source certificate."""
+	var raw: Variant = metadata.get("engine")
+	if not raw is Dictionary:
+		return &"FORWARD_BASIS_ENGINE"
+	var engine: Dictionary = raw
+	if engine.get("major") != 4 or engine.get("minor") != 7 or engine.get("patch") != 2 \
+			or engine.get("hash") != ENGINE_HASH or engine.get("build") != "official" or engine.get("status") != "stable":
+		return &"FORWARD_BASIS_ENGINE"
+	if metadata.get("rendering_driver") != "metal" or metadata.get("rendering_method") != "forward_plus" \
+			or metadata.get("display_server") != "macOS":
+		return &"FORWARD_BASIS_BACKEND"
+	return &"" if metadata.get("api_version") == "4.0" else &"FORWARD_BASIS_API"
+
+
+func _metadata() -> Dictionary:
+	"""Record the actual backend and both executed coefficient sources; there is no precision or World success flag."""
+	var engine: Dictionary = Engine.get_version_info()
+	var exact: Dictionary = {}
+	for key: String in ["major", "minor", "patch", "hash", "build", "status"]:
+		exact[key] = engine[key]
+	var source: String = get_script().resource_path
+	return {"schema": VERSION, "engine": exact, "source": {"path": source, "sha256": FileAccess.get_sha256(source)},
+		"coefficient_source_sha256": FileAccess.get_sha256(native_source_path()),
+		"rendering_driver": RenderingServer.get_current_rendering_driver_name(),
+		"rendering_method": RenderingServer.get_current_rendering_method(),
+		"display_server": DisplayServer.get_name(), "api_version": RenderingServer.get_video_adapter_api_version(),
+		"heading_count": HEADING_COUNT, "orientation": "0=-Z,+quarter=-X; +Y up",
+		"coefficient_order": ["basis.x.x", "basis.z.x"], "physical_qualified": false}
+
+
+func _bake(binary: String, report: String, metadata: Dictionary) -> StringName:
+	"""Stream a distinct v2 table; refuse source drift before writing its final report."""
+	var text: PackedByteArray = JSON.stringify(metadata).to_utf8_buffer()
+	if text.size() > MAX_METADATA_BYTES:
+		return &"FORWARD_BASIS_METADATA_CAPACITY"
+	var file: FileAccess = FileAccess.open(binary, FileAccess.WRITE)
+	if file == null:
+		return &"FORWARD_BASIS_OUTPUT"
+	file.store_buffer(MAGIC.to_ascii_buffer())
+	file.store_32(VERSION)
+	file.store_32(HEADING_COUNT)
+	file.store_32(text.size())
+	file.store_buffer(text)
+	var code: StringName = _write_rows(file)
+	if code == &"":
+		file.store_buffer(FOOTER.to_ascii_buffer())
+		code = &"" if file.get_error() == OK else &"FORWARD_BASIS_WRITE"
+	file.close()
+	if code != &"":
+		return code
+	if FileAccess.get_sha256(get_script().resource_path) != metadata.source.sha256 \
+			or FileAccess.get_sha256(native_source_path()) != metadata.coefficient_source_sha256:
+		return &"FORWARD_BASIS_SOURCE_DRIFT"
+	return _write_report(binary, report, metadata)
+
+
+func _write_rows(file: FileAccess) -> StringName:
+	"""One two-scalar caller scratch is reused for the whole finite source; no retained second table is allocated."""
+	var row: PackedFloat32Array = PackedFloat32Array([0.0, 0.0])
+	for yaw: int in HEADING_COUNT:
+		var code: StringName = coefficients_into(yaw, row)
+		if code != &"":
+			return code
+		file.store_float(row[0])
+		file.store_float(row[1])
+		_max_norm_squared = maxf(_max_norm_squared, row[0] * row[0] + row[1] * row[1])
+		_rows += 1
+	return &"" if file.get_error() == OK else &"FORWARD_BASIS_WRITE"
+
+
+func _write_report(binary: String, report: String, metadata: Dictionary) -> StringName:
+	"""A complete source census and actual native identity remain distinct from all pending precision/geometry gates."""
+	var output: FileAccess = FileAccess.open(report, FileAccess.WRITE)
+	if output == null:
+		return &"FORWARD_BASIS_REPORT"
+	var record: Dictionary = {"metadata": metadata, "sha256": FileAccess.get_sha256(binary),
+		"rows": _rows, "coefficient_bytes": COEFFICIENT_BYTES, "diagnostic_max_norm_squared": _max_norm_squared,
+		"presentation_reserve": PRESENTATION_RESERVE, "source_unchanged": true,
+		"qualified_profiles": 0, "numerical_enclosure_qualified": false, "world_activation_qualified": false}
+	output.store_string(JSON.stringify(record, "\t") + "\n")
+	var code: StringName = &"" if output.get_error() == OK else &"FORWARD_BASIS_REPORT"
+	output.close()
+	return code

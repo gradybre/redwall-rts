@@ -1,0 +1,38 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.958,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "142/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-final-facts-2026-10-03/transform-leaf-rejected"
+      ],
+      "exit_code": 1,
+      "seconds": 5.395,
+      "log": "test_underground_final_facts.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-final-transform-tests",
+  "project_test_sha256": "11a397a0ea503707b67557b40e78c7c81000082b065c1d68d258671a360d1c41",
+  "assets_present_before": false,
+  "error": "test_underground_final_facts.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

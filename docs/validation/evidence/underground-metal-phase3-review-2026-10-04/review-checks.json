@@ -1,0 +1,19 @@
+{
+  "source-sha256.json": {
+    "count": 3,
+    "all_match": true,
+    "manifest_sha256": "c8224964e886fac8c26f999b7c4b2ad0e0f6f174dfb2904a2f0495e52e5fd5fb"
+  },
+  "output-sha256.json": {
+    "count": 160,
+    "all_match": true,
+    "manifest_sha256": "2a38020caecda0c4f6615a03e52ab23ff770c436ffcca61449ae8aff38781392"
+  },
+  "inherited-sha256.json": {
+    "count": 16,
+    "all_match": true,
+    "manifest_sha256": "17a078b2683d1f057a9c5c6e588f3b4d4cf7c861cab453e24c39ebae3ce266c2"
+  },
+  "report_exactly_equal": true,
+  "all_generated_source_bytes_equal": true
+}

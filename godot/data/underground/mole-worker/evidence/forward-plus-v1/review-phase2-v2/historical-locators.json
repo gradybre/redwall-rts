@@ -1,0 +1,5 @@
+{
+  "docs/decisions/1132-default-forward-plus-profile-qualification.md": "godot/data/underground/mole-worker/evidence/forward-plus-v1/review-phase2-v2/decision-before-correction.md.txt",
+  "godot/test/test_underground_world_basis.gd": "godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v2/test_underground_world_basis.gd.txt",
+  "godot/data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd": "godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/native_forward_actor.gd.txt"
+}

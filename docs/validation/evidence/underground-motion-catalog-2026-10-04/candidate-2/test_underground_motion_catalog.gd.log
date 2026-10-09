@@ -1,0 +1,3 @@
+FAIL C6 underground_motion_catalog.gd line 1942: `_digest` has no resize() call; say 'never allocated'
+FAIL C8 underground_motion_catalog.gd line 1943: section '--' is not '§N NAME'
+state_registry_coverage: 2 failure(s)

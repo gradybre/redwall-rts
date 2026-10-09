@@ -1,0 +1,270 @@
+{
+  "rows": [
+    {
+      "frame": 25,
+      "strength": 0.0,
+      "knee_u": [
+        180.121536157055,
+        77.0417580130786,
+        -137.68729307761024
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 0,
+      "minimum_intrusion_y": null
+    },
+    {
+      "frame": 25,
+      "strength": 0.5,
+      "knee_u": [
+        194.55623255813333,
+        90.76595905995822,
+        -140.52813578073886
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 0,
+      "minimum_intrusion_y": null
+    },
+    {
+      "frame": 25,
+      "strength": 1.0,
+      "knee_u": [
+        113.75044761914363,
+        202.8508837448291,
+        -285.5015368997016
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 0,
+      "minimum_intrusion_y": null
+    },
+    {
+      "frame": 25,
+      "strength": 2.0,
+      "knee_u": [
+        92.74746737836881,
+        191.32582628556304,
+        -288.5589385264444
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 0,
+      "minimum_intrusion_y": null
+    },
+    {
+      "frame": 26,
+      "strength": 0.0,
+      "knee_u": [
+        190.76798810385765,
+        85.03354269286453,
+        -143.40399420108338
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 3,
+      "minimum_intrusion_y": -0.16549953083304558
+    },
+    {
+      "frame": 26,
+      "strength": 0.5,
+      "knee_u": [
+        214.56755835941115,
+        155.52007535979763,
+        -217.35810631875236
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 3,
+      "minimum_intrusion_y": -0.09041305783787834
+    },
+    {
+      "frame": 26,
+      "strength": 1.0,
+      "knee_u": [
+        144.15821729985169,
+        173.590266535917,
+        -285.7132110902394
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 0,
+      "minimum_intrusion_y": null
+    },
+    {
+      "frame": 26,
+      "strength": 2.0,
+      "knee_u": [
+        118.0943839284356,
+        165.80523544650646,
+        -292.67518695859826
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 0,
+      "minimum_intrusion_y": null
+    },
+    {
+      "frame": 27,
+      "strength": 0.0,
+      "knee_u": [
+        195.7804204916841,
+        86.23504659461275,
+        -164.05445107447008
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 27,
+      "minimum_intrusion_y": -15.375025273177442
+    },
+    {
+      "frame": 27,
+      "strength": 0.5,
+      "knee_u": [
+        191.17689676614265,
+        134.4851318110736,
+        -250.42065511382123
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 3,
+      "minimum_intrusion_y": -0.5041208609224697
+    },
+    {
+      "frame": 27,
+      "strength": 1.0,
+      "knee_u": [
+        150.43352133814395,
+        136.8997138220527,
+        -282.06602730959094
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 3,
+      "minimum_intrusion_y": -0.4231770722675776
+    },
+    {
+      "frame": 27,
+      "strength": 2.0,
+      "knee_u": [
+        129.69544250280182,
+        132.44100352568572,
+        -288.35844083384575
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 3,
+      "minimum_intrusion_y": -0.38362082297389577
+    },
+    {
+      "frame": 28,
+      "strength": 0.0,
+      "knee_u": [
+        188.47286832999924,
+        77.36392468090537,
+        -185.2650498273871
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 36,
+      "minimum_intrusion_y": -40.72975058526569
+    },
+    {
+      "frame": 28,
+      "strength": 0.5,
+      "knee_u": [
+        175.4543037154941,
+        104.58113803755401,
+        -252.8322213454624
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 8,
+      "minimum_intrusion_y": -15.768662221840472
+    },
+    {
+      "frame": 28,
+      "strength": 1.0,
+      "knee_u": [
+        149.12115371660266,
+        104.95740701287394,
+        -272.0160181458999
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 9,
+      "minimum_intrusion_y": -13.886920210262858
+    },
+    {
+      "frame": 28,
+      "strength": 2.0,
+      "knee_u": [
+        133.5064280857664,
+        102.21232439449022,
+        -277.0135069443987
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 6,
+      "minimum_intrusion_y": -14.143513789767127
+    },
+    {
+      "frame": 29,
+      "strength": 0.0,
+      "knee_u": [
+        177.31525113567972,
+        68.33654467289091,
+        -197.359737184408
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 36,
+      "minimum_intrusion_y": -56.28002823989067
+    },
+    {
+      "frame": 29,
+      "strength": 0.5,
+      "knee_u": [
+        164.4181556293123,
+        85.50636300573666,
+        -248.1853290625285
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 19,
+      "minimum_intrusion_y": -39.63302598760844
+    },
+    {
+      "frame": 29,
+      "strength": 1.0,
+      "knee_u": [
+        145.55392312027425,
+        85.48673675280227,
+        -261.6124721840461
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 19,
+      "minimum_intrusion_y": -38.3798326918662
+    },
+    {
+      "frame": 29,
+      "strength": 2.0,
+      "knee_u": [
+        133.66880582157506,
+        83.58578921569202,
+        -265.4948198822327
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 39,
+      "minimum_intrusion_y": -38.628061142683215
+    },
+    {
+      "frame": 30,
+      "strength": 0.0,
+      "knee_u": [
+        170.76658835926403,
+        64.32993852645421,
+        -202.14640323068804
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 46,
+      "minimum_intrusion_y": -62.082666196232864
+    },
+    {
+      "frame": 30,
+      "strength": 0.5,
+      "knee_u": [
+        158.96330517597983,
+        77.77348553191788,
+        -244.87762399953962
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 27,
+      "minimum_intrusion_y": -49.76730388783675
+    },
+    {
+      "frame": 30,
+      "strength": 1.0,
+      "knee_u": [
+        143.3042992387,
+        77.6679662521691,
+        -255.92822248100015
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 43,
+      "minimum_intrusion_y": -48.628683763450546
+    },
+    {
+      "frame": 30,
+      "strength": 2.0,
+      "knee_u": [
+        133.23722991948634,
+        76.10815027636471,
+        -259.2371074069487
+      ],
+      "source_vertex_intrusions_below_contact_only_diagnostic": 51,
+      "minimum_intrusion_y": -48.85253723234754
+    }
+  ],
+  "production_qualified": false,
+  "scope": "floating authoring study; complete triangle/native proof remains required"
+}

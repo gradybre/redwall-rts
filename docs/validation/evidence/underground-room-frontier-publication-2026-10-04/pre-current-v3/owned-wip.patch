@@ -1,0 +1,472 @@
+diff --git a/godot/scripts/core/underground_final_facts.gd b/godot/scripts/core/underground_final_facts.gd
+index cff8c99d..ec31e838 100644
+--- a/godot/scripts/core/underground_final_facts.gd
++++ b/godot/scripts/core/underground_final_facts.gd
+@@ -480,3 +480,19 @@ static func _transit_refusal(actual: Routes, row: int) -> StringName:
+ 		return &"ROUTE_PROGRESS_STALE"
+ 	return &"" if Routes._interpolate(first, second, progress, length) == Vector3i(actual._pose.x, actual._pose.y, actual._pose.z) \
+ 		else &"ROUTE_ACTOR_POSITION_DRIFT"
++
++
++static func frontier_refusal(owner: Owner, routes: Routes, locations: Locations,
++		context: Locations.FrontierContext, max_checks: int) -> StringName:
++	"""Distinct exact candidate scope reuses current source/claim facts without permitting prepared Space."""
++	var code: StringName = _stores_refusal(owner, routes, locations)
++	if code == &"": code = Locations.frontier_scope_refusal(locations, context)
++	if code != &"": return code
++	if context.owner != owner or context.graph != routes or owner._validation_sources >= 0 \
++			or owner._validation_regions >= 0 or owner._room_callback or routes._in_callback \
++			or routes._advancing or routes._searching or routes._occupancy_reading \
++			or (routes._token != 0 and routes._token != context.route_token): return REFUSE_BUSY
++	if max_checks > Space.MAX_CHECKS or max_checks > owner._domain._checks \
++			or max_checks < _required_checks(owner): return REFUSE_BUDGET
++	code = _sources_refusal(owner, routes, locations)
++	return _claims_refusal(owner) if code == &"" else code
+diff --git a/godot/scripts/core/underground_locations.gd b/godot/scripts/core/underground_locations.gd
+index 6bacf0cf..2e5d73b1 100644
+--- a/godot/scripts/core/underground_locations.gd
++++ b/godot/scripts/core/underground_locations.gd
+@@ -220,6 +220,34 @@ class PhaseContext extends RefCounted:
+ 	var placement_revision: int = 0
+ 
+ 
++class FrontierContext extends RefCounted:
++	## One cold-only actual add-only transaction. The borrowed producer pointer owns no extra bank.
++	var locations: RefCounted = null
++	var graph: RefCounted = null
++	var routes: RefCounted = null
++	var owner: Owner = null
++	var budget: Budget = null
++	var live: Bank = null
++	var candidate: Bank = null
++	var graph_live: RefCounted = null
++	var graph_candidate: RefCounted = null
++	var masks_live: RefCounted = null
++	var masks_candidate: RefCounted = null
++	var room: Vector2i = NULL_REF
++	var world: Vector2i = NULL_REF
++	var boundary: Vector2i = NULL_REF
++	var work: Vector2i = NULL_REF
++	var cold: int = 0
++	var revision: int = 0
++	var profiles: int = 0
++	var catalog: int = 0
++	var location_token: int = 0
++	var route_token: int = 0
++	var boundary_record: Record = null
++	var work_record: Record = null
++	var edges: PackedInt32Array = PackedInt32Array()
++
++
+ class InventoryLocations extends InventoryContract:
+ 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
+ 	var _locations: WeakRef = null
+@@ -263,6 +291,7 @@ var _sources: Owner.CoreSources = null
+ var _sites: WeakRef = null
+ var _domain: Space.Domain = null
+ var _cold: Budget = null
++var _frontier: FrontierContext = null # Borrowed only for one admitted synchronous cold transaction.
+ var _capacity: int = 0
+ var _live: Bank = Bank.new()
+ var _stage: Bank = Bank.new()
+@@ -909,6 +938,9 @@ func same_storage_cell(first: Vector2i, second: Vector2i) -> bool:
+ func begin_prepare(cold_token: int, owner_token: int = 0, site: Vector2i = NULL_REF,
+ 		operation: int = -1, phase_stage: int = -1) -> Result:
+ 	"""Borrow the already-reserved shared cold arena; no live endpoint changes before publication."""
++	if _frontier != null:
++		_remaining = -1
++		return Result.new(&"LOCATION_FRONTIER_CONTEXT")
+ 	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 or _next_token == 9223372036854775807:
+ 		return Result.new(&"LOCATION_PREPARATION_BUSY")
+ 	if not _cold.covers(cold_token, cold_peak_bytes()):
+@@ -1612,8 +1644,11 @@ func publish(token: int) -> bool:
+ 	"""Swap only in the prepared actual Sites or Room callback, after the exact Space publication."""
+ 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
+ 		return false
++	if _frontier != null:
++		_remaining = -1
++		return false
+ 	if _installation_active() or _phase_active():
+-		return false # The static paid kernel owns this context.
++		return false # The concrete coupled kernel owns these candidates.
+ 	if _world_preparation:
+ 		if _world_publication_refusal() != &"":
+ 			return false
+@@ -2461,6 +2496,9 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
+ 
+ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
+ 	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact."""
++	if _frontier != null:
++		_remaining = -1
++		return &"LOCATION_FRONTIER_CONTEXT"
+ 	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _owner.has_prepared() or bytes.size() != wire_bytes():
+ 		return &"LOCATION_IMAGE_SHAPE"
+ 	if not _cold.covers(cold_token, wire_bytes() + cold_peak_bytes()):
+@@ -2606,3 +2644,117 @@ func _rebuild_allocation(bank: Bank) -> void:
+ 			bank.free_rows[bank.free_count] = row
+ 			bank.free_count += 1
+ 	_rebuild_order(bank)
++
++
++func hold_frontier(context: FrontierContext) -> StringName:
++	"""Guard the whole synchronous observation window before any callback can prepare or publish a half transaction."""
++	if context == null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
++			or context.locations != self or context.owner != _owner or context.budget != _cold \
++			or context.live != _live or context.candidate != _stage or context.world != _world \
++			or context.revision != _owner._header[17] or _owner._stage_token != 0 \
++			or not _cold.covers(context.cold, Budget.COLD_BYTES): return &"LOCATION_FRONTIER_CONTEXT"
++	_frontier = context
++	_remaining = _domain._checks
++	return &""
++
++
++func begin_frontier_prepare(context: FrontierContext) -> Result:
++	"""Use the held original scope to copy exactly one inactive bank without reopening the generic mutation door."""
++	if context == null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
++			or context.locations != self or context.owner != _owner or context.budget != _cold \
++			or context.live != _live or context.candidate != _stage or context.world != _world \
++			or context.revision != _owner._header[17] or _owner._stage_token != 0 or _remaining < 0 \
++			or _next_token == 9223372036854775807 or _route_observation_world_refusal(self) != &"" \
++			or not _cold.covers(context.cold, Budget.COLD_BYTES): return Result.new(&"LOCATION_FRONTIER_CONTEXT")
++	var result: Result = _start_preparation(context.cold, 0, NULL_REF, -1, -1)
++	if result.error == &"": context.location_token = result.token
++	return result
++
++
++static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext, sealed: bool = true) -> StringName:
++	"""Only this exact original receiver, banks, token and still-live Space can expose a prospective row."""
++	if actual == null or context == null or context.get_script() != FrontierContext or actual._frontier != context \
++			or context.locations != actual or context.owner != actual._owner or context.budget != actual._cold \
++			or context.live != actual._live or context.candidate != actual._stage or context.world != actual._world \
++			or context.location_token <= 0 or context.location_token != actual._token \
++			or actual._owner_token != 0 or actual._cold_token != context.cold or actual._remaining < 0 \
++			or (sealed and not actual._sealed) or actual._in_retention or actual._retention_reentered \
++			or context.owner._stage_token != 0 or context.owner._header[17] != context.revision \
++			or actual._base_geometry_revision != context.revision or actual._target_geometry_revision != context.revision \
++			or context.budget == null or context.budget._token != context.cold or context.budget._used < Budget.COLD_BYTES:
++		return &"LOCATION_FRONTIER_CONTEXT"
++	if actual._room_admission or actual._world_preparation or actual._installation_active() or actual._phase_active() \
++			or not _route_observation_shape_matches(actual) or actual._live.header.size() != HEADER_FIELDS \
++			or actual._stage.retired.size() != actual._capacity or actual._live.present.size() != actual._capacity \
++			or actual._live.retired.size() != actual._capacity or actual._live.i32.size() != I32_FIELDS * actual._capacity \
++			or actual._live.i64.size() != I64_FIELDS * actual._capacity:
++		return &"LOCATION_FRONTIER_CONTEXT"
++	return &""
++
++
++static func frontier_location_into(actual: RefCounted, context: FrontierContext, ref: Vector2i, out: Record) -> StringName:
++	"""This bounded observation grants neither live identity nor work permission; refused output is unchanged."""
++	if out == null or out.envelope.size() != 6 or out.support.size() != 6: return &"LOCATION_OUTPUT_SHAPE"
++	var code: StringName = frontier_scope_refusal(actual, context)
++	if code != &"": return code
++	if ref != context.boundary and ref != context.work: return &"LOCATION_FRONTIER_CONTEXT"
++	if not actual._live_ref(actual._stage, ref): return &"LOCATION_STALE"
++	_copy_route_observation(actual, actual._stage, ref.x, out)
++	return &""
++
++
++static func frontier_record_matches(actual: RefCounted, context: FrontierContext, ref: Vector2i, record: Record) -> bool:
++	"""Compare the full prospective payload using current actual packed columns, with no observing reader."""
++	if frontier_scope_refusal(actual, context) != &"" or record == null or not actual._live_ref(actual._stage, ref): return false
++	var row: int = ref.x
++	if record.world != context.world or record.point != Vector3i(actual._get32(actual._stage, X, row), \
++			actual._get32(actual._stage, Y, row), actual._get32(actual._stage, Z, row)) \
++			or record.room != actual._ref_at(actual._stage, ROOM_SLOT, row) \
++			or record.section != actual._ref_at(actual._stage, SECTION_SLOT, row) \
++			or record.level != actual._get32(actual._stage, LEVEL, row) or record.role != actual._get32(actual._stage, ROLE, row) \
++			or record.geometry_revision != context.revision \
++			or record.payload_revision != actual._get64(actual._stage, PAYLOAD_REVISION, row): return false
++	for axis: int in 6:
++		if record.envelope[axis] != actual._get32(actual._stage, ENVELOPE + axis, row) \
++				or record.support[axis] != actual._get32(actual._stage, SUPPORT + axis, row): return false
++	return true
++
++
++static func frontier_rows_refusal(actual: RefCounted, context: FrontierContext) -> StringName:
++	"""Preserve every old and unused byte except the two exact new complete contact rows and allocation indexes."""
++	var code: StringName = frontier_scope_refusal(actual, context)
++	if code != &"": return code
++	if context.boundary == context.work or actual._stage.header[13] != actual._live.header[13] + 1 \
++			or actual._stage.count != actual._live.count + 2 \
++			or actual._stage.free_count != actual._live.free_count - 2 \
++			or not frontier_record_matches(actual, context, context.boundary, context.boundary_record) \
++			or not frontier_record_matches(actual, context, context.work, context.work_record): return &"LOCATION_FRONTIER_ROWS"
++	for row: int in actual._capacity:
++		if row == context.boundary.x or row == context.work.x:
++			if actual._live.present[row] != 0 or actual._stage.present[row] != 1 \
++					or actual._get32(actual._stage, GENERATION, row) != actual._get32(actual._live, GENERATION, row) + 1:
++				return &"LOCATION_FRONTIER_ROWS"
++		else:
++			if actual._live.present[row] != actual._stage.present[row]: return &"LOCATION_FRONTIER_ROWS"
++			for field: int in I32_FIELDS:
++				if actual._get32(actual._live, field, row) != actual._get32(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
++			for field: int in I64_FIELDS:
++				if actual._get64(actual._live, field, row) != actual._get64(actual._stage, field, row): return &"LOCATION_FRONTIER_ROWS"
++		if actual._live.retired[row] != actual._stage.retired[row]: return &"LOCATION_FRONTIER_ROWS"
++	return &""
++
++
++static func commit_frontier_preflighted(actual: RefCounted, context: FrontierContext) -> void:
++	"""Called only inside the actual WorldRoutes coupled window after every fallible final proof."""
++	assert(actual._frontier == context and context.routes._publishing)
++	var previous: Bank = actual._live
++	actual._live = actual._stage
++	actual._stage = previous
++	actual._last_published_token = context.location_token
++	actual._token = 0
++	actual._cold_token = 0
++	actual._sealed = false
++	actual._snapshot = null
++	actual._base_geometry_revision = 0
++	actual._target_geometry_revision = 0
++	actual._frontier = null
+diff --git a/godot/scripts/core/underground_routes.gd b/godot/scripts/core/underground_routes.gd
+index da1ed9db..d4a71c1d 100644
+--- a/godot/scripts/core/underground_routes.gd
++++ b/godot/scripts/core/underground_routes.gd
+@@ -1346,7 +1346,7 @@ func prepared_refusal(token: int) -> StringName:
+ func publish(token: int) -> StringName:
+ 	"""Only a prepared exact companion publishes after its real physical and endpoint owners have committed."""
+ 	if _reject_callback() or token <= 0 or token != _token or not _sealed or _operation_error != &"" \
+-			or not _cold.covers(_cold_token, 1):
++			or not _cold.covers(_cold_token, 1) or _frontier_publish_blocked():
+ 		return &"ROUTE_TRANSACTION_STALE"
+ 	if _locations._installation != null and _locations._installation.route_token == token:
+ 		return &"ROUTE_INSTALLATION_WINDOW"
+@@ -3607,3 +3607,58 @@ static func _turn_cargo_leaf(actual: RefCounted, worker: Vector2i) -> StringName
+ 	profiles._query_values[2] = inventory._l_item_id[lot]
+ 	profiles._query_values[3] = inventory._l_recipe_id[lot]
+ 	return &""
++
++
++static func frontier_leaf_refusal(actual: RefCounted, context: Locations.FrontierContext) -> StringName:
++	"""Add exactly four two-point spans while preserving every original full path and its live actors."""
++	if actual == null or context == null or actual != context.graph or actual._locations != context.locations \
++			or actual._owner != context.owner or actual._cold != context.budget or actual._bindings != context.routes \
++			or actual._live != context.graph_live or actual._stage != context.graph_candidate \
++			or actual._token <= 0 or actual._token != context.route_token or not actual._sealed \
++			or actual._cold_token != context.cold or actual._space_token != 0 \
++			or actual._location_token != context.location_token or actual._operation_error != &"" \
++			or actual._remaining < 0 or actual._in_callback or actual._callback_reentered \
++			or actual._searching or actual._advancing or actual._occupancy_reading \
++			or actual._base_geometry_revision != context.revision or actual._target_geometry_revision != context.revision:
++		return &"ROUTE_FRONTIER_CONTEXT"
++	if actual._stage.revision != actual._live.revision + 1 \
++			or actual._stage.edge_count != actual._live.edge_count + 4 \
++			or actual._stage.vertex_count != actual._live.vertex_count + 8 \
++			or actual._stage.free_count != actual._live.free_count - 4 or context.edges.size() != 8:
++		return &"ROUTE_FRONTIER_ROWS"
++	var code: StringName = _retained_paths_refusal(actual, context.revision, context.profiles)
++	return _frontier_new_rows(actual, context) if code == &"" else code
++
++
++static func _frontier_new_rows(actual: RefCounted, context: Locations.FrontierContext) -> StringName:
++	"""Every previously absent slot is unchanged unless it is one of the four exact declared allocations."""
++	for row: int in actual._edge_capacity:
++		if actual._stage.retired[row] != actual._live.retired[row]: return &"ROUTE_FRONTIER_ROWS"
++		if actual._live.present[row] != 0: continue
++		var ordinal: int = -1
++		for index: int in 4:
++			if context.edges[2 * index] == row:
++				if ordinal >= 0: return &"ROUTE_FRONTIER_ROWS"
++				ordinal = index
++		if ordinal >= 0:
++			if actual._stage.present[row] != 1 or context.edges[2 * ordinal + 1] \
++					!= actual._stage.fields[E_GENERATION * actual._edge_capacity + row] \
++					or actual._stage.fields[E_GENERATION * actual._edge_capacity + row] \
++					!= actual._live.fields[E_GENERATION * actual._edge_capacity + row] + 1 \
++					or actual._stage.fields[E_PATH_COUNT * actual._edge_capacity + row] != 2: return &"ROUTE_FRONTIER_ROWS"
++		else:
++			if actual._stage.present[row] != 0: return &"ROUTE_FRONTIER_ROWS"
++			for field: int in EDGE_FIELDS:
++				if actual._live.fields[field * actual._edge_capacity + row] \
++						!= actual._stage.fields[field * actual._edge_capacity + row]: return &"ROUTE_FRONTIER_ROWS"
++			for field: int in EDGE_LONGS:
++				if actual._live.longs[field * actual._edge_capacity + row] \
++						!= actual._stage.longs[field * actual._edge_capacity + row]: return &"ROUTE_FRONTIER_ROWS"
++	return &""
++
++
++func _frontier_publish_blocked() -> bool:
++	"""Generic graph publication cannot expose one half of a synchronous add-only contact transaction."""
++	if _locations._frontier == null: return false
++	_locations._remaining = -1
++	return true
+diff --git a/godot/scripts/core/underground_work_face.gd b/godot/scripts/core/underground_work_face.gd
+index 24f2b997..d24e7ed5 100644
+--- a/godot/scripts/core/underground_work_face.gd
++++ b/godot/scripts/core/underground_work_face.gd
+@@ -143,6 +143,10 @@ class Check extends RefCounted:
+ 		if domain != null and (not actual.sources.directory().is_valid_of_kind(domain._world, Directory.KIND_WORLD) \
+ 				or not actual.locations.is_bound_world(actual.sources.directory(), domain._world, actual.owner)):
+ 			return REFUSE_STALE
++		return endpoint_current_refusal()
++
++	func endpoint_current_refusal() -> StringName:
++		"""The ordinary API keeps its existing exact live endpoint and full Room generation boundary."""
+ 		if endpoint.payload_revision > 0 and (not actual.locations.is_live_location(request.location) \
+ 				or actual.locations.location_revision(request.location) != endpoint.payload_revision \
+ 				or not actual.owner.is_live_region(endpoint.section) \
+@@ -150,6 +154,18 @@ class Check extends RefCounted:
+ 			return REFUSE_STALE
+ 		return &""
+ 
++	func read_endpoint_into(out: Locations.Record) -> StringName:
++		"""The public live protocol continues using its normal actual observation authority."""
++		return actual.locations.read_location_into(request.location, out)
++
++	func facts_refusal() -> StringName:
++		"""Ordinary live snapshots still refuse every pending producer candidate."""
++		return FinalFacts.snapshot_refusal(actual.owner, actual.routes, actual.locations, request.geometry_revision, proof.remaining)
++
++	func endpoint_matches() -> bool:
++		"""The last payload proof is separate from any earlier copying observation."""
++		return FinalFacts.record_matches(actual.locations, request.location, endpoint, actual.owner)
++
+ 	func same_request() -> bool:
+ 		"""Late request mutation is refused, even when a previous private snapshot still happens to fit."""
+ 		return request.location == original_request.location and request.target_origin == original_request.target_origin \
+@@ -192,7 +208,7 @@ class Check extends RefCounted:
+ 				or descriptor.yaw_kind != Profiles.YAW_EXACT or descriptor.yaw != request.yaw \
+ 				or descriptor.contact_kind != Profiles.CONTACT_ANCHOR_AND_PATCH:
+ 			return REFUSE_PROFILE
+-		code = actual.locations.read_location_into(request.location, endpoint)
++		code = read_endpoint_into(endpoint)
+ 		if code == &"":
+ 			code = current_refusal()
+ 		if code == &"":
+@@ -436,17 +452,16 @@ class Check extends RefCounted:
+ 		if code == &"":
+ 			code = actual.terrain.binding_refusal()
+ 		if code == &"":
+-			code = actual.locations.read_location_into(request.location, endpoint_after)
++			code = read_endpoint_into(endpoint_after)
+ 		if code == &"":
+ 			code = current_refusal()
+ 		if code == &"":
+ 			code = final_local_refusal()
+ 		if code == &"":
+-			code = FinalFacts.snapshot_refusal(actual.owner, actual.routes, actual.locations,
+-				request.geometry_revision, proof.remaining)
++			code = facts_refusal()
+ 		if code != &"":
+ 			return code
+-		if not FinalFacts.record_matches(actual.locations, request.location, endpoint, actual.owner):
++		if not endpoint_matches():
+ 			return REFUSE_STALE
+ 		return current_refusal()
+ 
+@@ -472,6 +487,29 @@ class Check extends RefCounted:
+ 		return current_refusal()
+ 
+ 
++class ProspectiveCheck extends Check:
++	## One borrowed cold context; all normal source/target/body/stance checks remain inherited unchanged.
++	var context: Locations.FrontierContext = null
++
++	func endpoint_current_refusal() -> StringName:
++		"""Candidate visibility requires original ownership, and never makes this contact publicly live."""
++		var code: StringName = Locations.frontier_scope_refusal(actual.locations, context)
++		if code == &"" and endpoint.payload_revision > 0 and not endpoint_matches(): return REFUSE_STALE
++		return code
++
++	func read_endpoint_into(out: Locations.Record) -> StringName:
++		"""Read only one declared full candidate handle into the same bounded caller scratch."""
++		return Locations.frontier_location_into(actual.locations, context, request.location, out)
++
++	func facts_refusal() -> StringName:
++		"""The new exact-context source leaf leaves the old live-only FinalFacts door strict."""
++		return FinalFacts.frontier_refusal(actual.owner, actual.routes, actual.locations, context, proof.remaining)
++
++	func endpoint_matches() -> bool:
++		"""Direct packed comparisons follow every ordinary source/geometry observer."""
++		return Locations.frontier_record_matches(actual.locations, context, request.location, endpoint)
++
++
+ class FinishCheck extends Check:
+ 	## Thirty-two numeric bytes added only to this synchronous cold check; no persisted permission.
+ 	var sites: Sites = null
+@@ -656,3 +694,19 @@ func finish_face_refusal(config: Routes.Configuration, request: Request, sites:
+ 		code = check.run()
+ 	_reading = false
+ 	return REFUSE_BUSY if _reentered else code
++
++
++func prospective_solid_face_refusal(config: Routes.Configuration, request: Request, cold: int,
++		context: Locations.FrontierContext) -> StringName:
++	"""Observe the complete solid-target source against one exact sealed, prospective work contact."""
++	if _reading: return REFUSE_BUSY
++	var code: StringName = Check.input_refusal(config, request, cold)
++	if code == &"": code = Locations.frontier_scope_refusal(config.locations, context)
++	if code != &"": return code
++	_reading = true
++	var check: ProspectiveCheck = ProspectiveCheck.new()
++	check.context = context
++	check.hold(config, request, cold)
++	code = check.run()
++	_reading = false
++	return code
+diff --git a/godot/scripts/core/underground_world_routes.gd b/godot/scripts/core/underground_world_routes.gd
+index ba618a89..07bc85d2 100644
+--- a/godot/scripts/core/underground_world_routes.gd
++++ b/godot/scripts/core/underground_world_routes.gd
+@@ -989,6 +989,9 @@ func publish(token: int) -> StringName:
+ 	"""Actual Routes success is the final mutation boundary; later owner checks cannot publish a private mask early."""
+ 	if _opening or _compiling or _publishing or _reading or not _sealed or token <= 0 or token != _route_token:
+ 		return REFUSE_CONTEXT
++	if _locations()._frontier != null:
++		_locations()._remaining = -1
++		return &"WORLD_ROUTE_FRONTIER_WINDOW"
+ 	if _installation != null and _installation.route_token == token:
+ 		return REFUSE_CONTEXT
+ 	if _locations()._phase_context != null and _locations()._phase_context.route_token == token:
+@@ -1884,3 +1887,49 @@ static func _turn_occupant_boxes(actual: RefCounted, graph: Routes) -> StringNam
+ 			if code != &"": return code
+ 			if Space.overlaps(actual._bounds, actual._support): return &"ROUTE_OCCUPIED"
+ 	return &""
++
++
++static func frontier_leaf_refusal(actual: RefCounted, context: Locations.FrontierContext) -> StringName:
++	"""One exact sealed add-only Location/graph/mask tuple preserves the same paid Space and all old exits."""
++	if actual == null or context == null or context.routes != actual or actual._budget != context.budget \
++			or actual._route_token <= 0 or actual._route_token != context.route_token \
++			or actual._location_token != context.location_token or actual._space_token != 0 \
++			or actual._cold_token != context.cold or actual._base_revision != context.revision \
++			or actual._target_revision != context.revision or actual._content_revision != context.profiles \
++			or actual._catalog_revision != context.catalog or actual._live != context.masks_live \
++			or actual._stage != context.masks_candidate or not actual._sealed or actual._proof != null \
++			or actual._opening or actual._compiling or actual._publishing or actual._reading: return REFUSE_CONTEXT
++	var graph: Routes = context.graph as Routes
++	if graph == null or actual._routes_ref == null or actual._routes_ref.get_ref() != graph: return REFUSE_BINDING
++	var code: StringName = _reach_stores_refusal(actual, graph, context.owner, context.locations)
++	if code == &"": code = _reach_content_refusal(actual)
++	if code == &"": code = Locations.frontier_rows_refusal(context.locations, context)
++	if code == &"": code = Routes.frontier_leaf_refusal(graph, context)
++	if code == &"": code = _prepared_masks_refusal(actual, graph, context.revision, context.profiles)
++	if code == &"": code = _frontier_old_masks(actual, graph)
++	return code
++
++
++static func _frontier_old_masks(actual: RefCounted, graph: Routes) -> StringName:
++	"""Unchanged Space and sources must preserve every complete old certificate byte, not merely one useful bit."""
++	for row: int in graph._edge_capacity:
++		if graph._live.present[row] == 0: continue
++		if actual._live.generations[row] != actual._stage.generations[row] \
++				or actual._live.geometry[row] != actual._stage.geometry[row] \
++				or actual._live.content[row] != actual._stage.content[row]: return &"WORLD_ROUTE_FRONTIER_OLD_MASK"
++		for index: int in MASK_BYTES:
++			if actual._live.masks[row * MASK_BYTES + index] != actual._stage.masks[row * MASK_BYTES + index]:
++				return &"WORLD_ROUTE_FRONTIER_OLD_MASK"
++	return &""
++
++
++static func commit_frontier_preflighted(actual: RefCounted, context: Locations.FrontierContext) -> bool:
++	"""Only the coordinator's callback-free final window can execute all three already validated bank swaps."""
++	if actual == null or context == null or not actual._publishing or actual._opening or actual._compiling \
++			or actual._reading or actual != context.routes or context.locations._frontier != context \
++			or actual._route_token != context.route_token or context.graph._token != context.route_token \
++			or context.locations._token != context.location_token: return false
++	Locations.commit_frontier_preflighted(context.locations, context)
++	Routes._commit_preflighted_bank(context.graph, context.route_token)
++	_commit_preflighted_certificates(actual, context.catalog)
++	return true

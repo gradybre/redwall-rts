@@ -1,0 +1,86 @@
+{
+  "format": "gzip",
+  "lossless_roundtrip_verified": true,
+  "files": [
+    {
+      "original": "analyzer-job.log",
+      "compressed": "analyzer-job.log.gz",
+      "original_bytes": 567045,
+      "compressed_bytes": 35592,
+      "original_sha256": "6a978f93634203596241177527b7cf2e9c4b9c6822d39fbe4287e1d13b404639",
+      "compressed_sha256": "e59fdd0d90933bb48fc6536d75d337e6ec55b08b023fb948e1c76846811539fc"
+    },
+    {
+      "original": "failed.log",
+      "compressed": "failed.log.gz",
+      "original_bytes": 1319510,
+      "compressed_bytes": 109626,
+      "original_sha256": "ea1bbddb1816cbde178cb0bee985ec1808d83681107c850acbb26c14a67fb5ed",
+      "compressed_sha256": "c04be2b7e01e63598671b95c394b3319b6c382af6d677fc6ebb5a5ad2519fae7"
+    },
+    {
+      "original": "shards/godot-shard-0/shard-0.log",
+      "compressed": "shards/godot-shard-0/shard-0.log.gz",
+      "original_bytes": 116569,
+      "compressed_bytes": 28198,
+      "original_sha256": "91cadfb20e51f4647f1b0cb34772b35492b601ee0c688e3a38b02a111bfad025",
+      "compressed_sha256": "de0b42b199c14a052d90b6b77fb6e47f3fbd373cca0799a9d6112d302b61ccd1"
+    },
+    {
+      "original": "shards/godot-shard-1/shard-1.log",
+      "compressed": "shards/godot-shard-1/shard-1.log.gz",
+      "original_bytes": 266409,
+      "compressed_bytes": 30631,
+      "original_sha256": "cb91a9f79f44c9429f35d96398db25e87d8fd6eb7006b9072c1278f8a609805c",
+      "compressed_sha256": "98112c0e302a677ba65a4ddc5a6b73bb5ee4607c44828f87e42b14f319f21eec"
+    },
+    {
+      "original": "shards/godot-shard-2/shard-2.log",
+      "compressed": "shards/godot-shard-2/shard-2.log.gz",
+      "original_bytes": 131347,
+      "compressed_bytes": 31686,
+      "original_sha256": "5a3c4539be99dedc596d1fa55995e41ed5c23fe2e7ea6a56060ada96ec6e3c28",
+      "compressed_sha256": "38850c8b12c673bd204f5286548cda13a529ee836363d75daed6a4f03335ed79"
+    },
+    {
+      "original": "shards/godot-shard-3/shard-3.log",
+      "compressed": "shards/godot-shard-3/shard-3.log.gz",
+      "original_bytes": 836164,
+      "compressed_bytes": 47250,
+      "original_sha256": "6086d34bb36ae73ccfea52d7330fa6893825fca9b4ddd323a52d6b1c684554cd",
+      "compressed_sha256": "2877814f29d14023d2b385355f9a7215b97f91e2b6b4892aed84ba7c0c94d7a2"
+    },
+    {
+      "original": "shards/godot-shard-4/shard-4.log",
+      "compressed": "shards/godot-shard-4/shard-4.log.gz",
+      "original_bytes": 92795,
+      "compressed_bytes": 26093,
+      "original_sha256": "0b814adfd970458b6bbf70694ab7a241d0dd77969d26b83a352bb2263af702c8",
+      "compressed_sha256": "28bfe8f4e290fc083e215523fc3ba515292bb7d71dca35aafed3e57353332e30"
+    },
+    {
+      "original": "shards/godot-shard-5/shard-5.log",
+      "compressed": "shards/godot-shard-5/shard-5.log.gz",
+      "original_bytes": 106952,
+      "compressed_bytes": 26221,
+      "original_sha256": "c3264fecb9eafed3b39a24b25781c99a5f47444330e181a295141405607ed439",
+      "compressed_sha256": "25af6ea4d715ebbfc8ee95b170b224865082bd73c9d2df19559274c24f863d9c"
+    },
+    {
+      "original": "shards/godot-shard-6/shard-6.log",
+      "compressed": "shards/godot-shard-6/shard-6.log.gz",
+      "original_bytes": 133771,
+      "compressed_bytes": 30992,
+      "original_sha256": "bc17087d3c656b9ad0da1cc7be2e1c014e533b6fb893b1e7291fd006650d952f",
+      "compressed_sha256": "0a2b73a69aba927c340f3a2819ead187171742dff430ea6e70674cecfd6a1269"
+    },
+    {
+      "original": "shards/godot-shard-7/shard-7.log",
+      "compressed": "shards/godot-shard-7/shard-7.log.gz",
+      "original_bytes": 104316,
+      "compressed_bytes": 28532,
+      "original_sha256": "9f787d716b8f88eb10c918ada56e195f806a47a0405ffa29a5396c0b284037fd",
+      "compressed_sha256": "47b16c4b6a7ae9e4595625125a987015ba7baef7ee043aa3999cfc6a93d590a3"
+    }
+  ]
+}

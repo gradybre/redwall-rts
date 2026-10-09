@@ -1306,6 +1306,192 @@ Engineering record, the full table, the wording rules and the phase-2 plan: deci
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.
 
+### DEC-050 — Initial timber stair movement pace
+
+On 2026-10-04, Brendan selected **“Natural (recommended): 1 second per step;
+1.5 seconds for a half-turn.”** This answers the initial timber stair timing
+question left open by underground planning D04.
+
+At normal game speed, the first unloaded adult mole carrying its existing pick
+takes 30 fixed ticks per tread, ascending or descending, and 45 fixed ticks per
+supported half-turn. Pause and the existing 1×/2×/4× clock control progression.
+This is an initial tuning choice for that measured source and timber sequence;
+it assigns no timing to laden workers, other residents or other connector types.
+
+The choice does not approve unverified body/tool contact, clearance, support,
+paid construction or presentation. Those engineering obligations still precede
+runtime activation. Stair material and work costs are unchanged. The original
+alternatives and implementation constraints are retained in
+[decision1145](decisions/1145-proposed-initial-timber-stair-timing.md).
+
+
+### DEC-051 — Simulation-owned memory gate raised to 100.1 MB
+
+**Superseded by [DEC-053](#dec-053--simulation-owned-memory-gate-150-mb) the same day.**
+
+On 2026-10-07, Brendan chose to **raise the limit**: REQ-SET-163's simulation-owned memory budget is
+**100,100,000 bytes (100.1 MB, decimal)**, up from 100,000,000. He first chose to shrink the geometry
+journals; the joint census then showed that even with no journal at all the first-entry runtime and
+Location controls exceeded the 194 bytes that remained.
+
+The figure is the smallest 0.1 MB step above the recounted joint pack (100,007,631 B with the journals
+shrunk to 64 sides each) that leaves real room for the Kitchen and descent work still coming: 92,369 B of
+headroom. Every other REQ-SET-163 budget is unchanged, including the 4 GB process budget, and the gate
+remains a source-derived logical figure until native measurement on the qualification floor.
+Engineering record: [decision1212](decisions/1212-memory-census-and-budget-tool.md).
+
+### DEC-052 — Moles dig with their claws and fit timber by paw; no tools for now
+
+On 2026-10-07, Brendan decided three things for underground work:
+
+1. **Scrap the pickaxe for now.** All digging uses the mole's claws.
+2. **Paws for fitting too.** No tools at all for now. Moles dig with their claws and seat and fasten timber
+   (the paid L0, T0 and tread installations) by hand.
+3. **Keep the pick work, inactive.** The accepted pick-based content (profile rows 2–29, the curled pick paw of
+   [decision1216](decisions/1216-pick-grip-refit.md), the tread-tap candidates of
+   [decision1209](decisions/1209-descent-past-t0.md)) stays in the repository as dormant published content. The
+   runtime switches to claw and paw rows once they are authored.
+
+What does not change: every work amount and every bill. Brace, cut and finish keep 2,000, 4,000 and 3,000 milli-WU
+and wood 250 + stone 250 per quantum; L0, T0 and each tread keep their bills (DEC-050's pace and ADR 1209's D3
+included).
+
+**What this supersedes.** [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) lists brace, cut and finish
+as "BUILD, tool", with inherited tool wear of 1 durability per 10 completed WU. For claw digging and paw fitting, no
+tool is required and no tool wear accrues. The 2026-10-06 G11 ruling
+(moles take tools from stores, [decision1197](decisions/1197-entry-work-in-the-live-demo.md)) is parked: with no
+tools, the first entry no longer waits on tool equipping.
+
+Engineering record, impact map and the motion plan: [decision1217](decisions/1217-claw-digging.md).
+
+**Follow-up rulings (2026-10-07), after reviewing the first claw stroke:**
+
+1. **The cut stations move in by 106 u**, from 1,536 u to 1,430 u from the entry centre. 106 is the most the
+   tool-free stance allows (512 − 406). The workers' feet then stand at the dig area's edge. This is published as a
+   Frontier successor; the published Frontier is kept.
+2. **Both paws dig, alternately**, instead of a one-paw rake: more mole-like.
+3. **The paw may change shape** between hauling (the closed paw) and digging (the open paw).
+4. **Claws for all earth work.** Backfill, spoil-tip preparation, compaction, reclaim and tip closure use the claws
+   too, so every row of SET-MOVE-ECON-001's table needs no tool and accrues no wear. Inputs and work are unchanged.
+
+
+### DEC-053 — Simulation-owned memory gate 150 MB
+
+On 2026-10-07, Brendan raised REQ-SET-163's simulation-owned memory budget to **150,000,000 bytes
+(150 MB, decimal)**, superseding DEC-051's 100.1 MB. His reasoning:
+
+- 100 MB was an unmeasured figure from the original specification.
+- The full-process budget is 4 GB on a 16 GB qualification floor.
+- Per-tick performance is governed by the separate CPU budgets, not by this figure.
+
+**Unchanged:** the source-derived joint census, every declared store and reserve, and the rule against
+unbounded growth. The headroom (49,992,369 B at the 100,007,631 B joint pack) is not an allowance. Every
+new store is still declared, counted and admitted, and the geometry journals stay at 64 entries.
+Engineering record: [decision1212](decisions/1212-memory-census-and-budget-tool.md) §7.
+
+
+### DEC-054 — A Room is excavated only as high as the dig strokes reach
+
+On 2026-10-07, Brendan decided against earth benches for the Kitchen's upper cubes: **"Skip benches, build to needed
+height and if claw strokes don't match that height that is Ok."**
+
+- A Room is dug to the height it needs. When the published dig strokes cannot reach that height from the Room
+  floor, the Room is built to the height they can reach, and that is acceptable.
+- The reachable height is derived from the published dig rows, never authored as a constant. It is the top of the
+  highest whole-metre band that a WORK row's contact anchor reaches from a floor station. It follows the claw rows
+  of DEC-052 when they replace the pick rows. Today (content 6) it is 2 m: anchors at 707 u and 1,039 u.
+- Volume above that band is **not claimed**. It stays natural earth under the level roof and is protected as the
+  Room's own roof.
+- No earth benches, steps or climbing are built for excavation.
+
+**What this amends.** No `REQ-SET-*` requirement in the GDD sets a Room's clear height. The GDD's "Connected-movement
+policy confirmation — DEC-040" section keeps "Four underground levels at 4m spacing" as a candidate, and
+SET-MOVE-ECON-001's 2 m × 2 m × 3 m example says its "Geometry clear height is an example only". This ruling
+amends neither. Level spacing and the level catalog's roof
+are unchanged; only the excavated part below the roof is capped.
+
+Engineering record: [decision1220](decisions/1220-kitchen-earth-benches.md).
+
+
+### DEC-055 — Settlement save and load policy
+
+On 2026-10-07, Brendan answered the ten open questions of [decision1222](decisions/1222-settlement-save-load.md),
+taking the recommended option each time. The coordinator session relayed the answers.
+
+1. **Compatibility.** Until 1.0, a save from another content revision (a different rules or catalog hash) is
+   refused. From 1.0 on, each release ships a tested migration.
+2. **Location and browser data.** Saves live at `user://saves/<kind>/<name>.rwlsave`. The save browser's row
+   data is kept in a sidecar file, outside the canonical hash.
+3. **Compression.** There is none for now.
+4. **Slots.**
+   - Manual saves are unbounded, and there is one quicksave slot.
+   - The daily autosave is taken at the first safe boundary after midnight.
+   - The prewinter save is taken at the first midnight of autumn's last week. It stays on when autosave is Off.
+   - **Confirmed 2026-10-08 (Brendan, in chat):** seasons are 12 days and the calendar has no week, so
+     "autumn's last week" is its last seven days. The prewinter save fires at the first midnight of those
+     days: the midnight that begins autumn day 6 of 12.
+5. **A busy save.** A save requested while some state cannot yet be saved waits up to a bounded number of
+   ticks, then reports an error.
+6. **Pre-demolition quicksave.** It is taken when the order is placed. It applies to any building, but not to a
+   single piece of furniture.
+7. **The seventeen UNRESOLVED registry rows.** Each kind of state gets a new owner of its own: the paid ledger,
+   demolition admission and work, households and store policy. The frozen buildings and construction owners stay
+   frozen.
+8. **Chronicle.** It ships with an empty event list. Saves stay development-only until events are authored.
+9. **First deliverable.** A development save that refuses, with `SAVE_UNSUPPORTED_STATE`, any world holding state
+   that has no codec yet.
+10. **Launch recovery.**
+    - Delete a `.tmp` file whose target verifies.
+    - Keep a `.rollback` file and offer it as "recovered".
+    - Rename an unverifiable save to `.corrupt` and report it.
+    - Never delete a save.
+
+**2026-10-08 (Brendan, in chat): make saves fast first.** Before the save browser, a save (33 s) and a load (66 s)
+had to become fast enough to autosave in play, keeping every save test, the goal tests and ARCH-SAVE-006 parity
+byte-identical, the format canonical and versioned, and Q3's "no compression". The engineering target set for it is a
+save under 1 s and a load under 2 s on the development Mac at the generated settlement; ADR 1235 records how and
+the numbers reached.
+
+**2026-10-08 (Brendan, in chat): the save browser and the game menu.** For the choices UI §4 left open:
+
+- The quicksave and the pre-demolition quicksave live in the **Autosave** tab (UI-SET-076's Manual / Autosave /
+  Prewinter), beside the five daily autosaves.
+- Manual saves are **auto-named, with an optional rename**: a new manual save is `save_NNN`; renaming changes the
+  name the browser shows, not the file.
+- A recovered rollback file (Q10) is a row **marked "Recovered" in its tab**.
+- The **development-only note sits in the browser header**, under the title, on every tab.
+- The game menu (UI-SET-078) shows **Settings and Main menu as unavailable, each with its reason**.
+- **F9 confirms through the browser's Load**: F9 opens the browser on the quicksave with Load focused, and Load
+  names the save and its in-game date.
+
+Engineering record: [decision1222](decisions/1222-settlement-save-load.md); speed:
+[decision1235](decisions/1235-fast-settlement-saves.md).
+
+
+### DEC-056 — A lost entry crew is replaced; every resident follows its schedule
+
+On 2026-10-07 Brendan answered the two questions ADR 1223 left open:
+
+- **Crew loss: pick a replacement.** When the entry's crew mole dies or leaves, another eligible mole walks in by
+  the surface arrival path (ADR 1219) and the entry resumes where it stopped. The lost mole is removed from the
+  underground movement system. That needs a Routes unregister, limited to residents that are dead or have left; it
+  amends ADR 1168's no-unregister rule. The Jobs reserved to the old crew pass to the replacement.
+- **Follow the schedule (REQ-SET-034).** This applies to every resident. A resident whose schedule says rest pauses
+  its Job at a safe point and resumes it later. The entry crew pauses at a resting point and resumes: an endpoint,
+  at rest, under ADR 1210's switch-at-rest rule.
+
+Engineering records: [decision1225](decisions/1225-entry-crew-replacement.md) (replacement) and
+[decision1226](decisions/1226-schedule-rest-at-safe-points.md) (schedule).
+
+
+### DEC-057 — A crew lost mid-installation is replaced and re-handles the piece in place
+
+On 2026-10-07 Brendan settled the case ADR 1225 left open: a crew lost while an installation is under way, including
+while it is holding a piece. **Re-handle in place.** The piece stays where it was being fitted, the replacement takes
+up handling it there and finishes the installation, and nothing is paid twice.
+
+Engineering record: [decision1225](decisions/1225-entry-crew-replacement.md) ("Amendment: installations").
+
 
 ### DEC-058 — Every feast is served at the 17:00 supper
 
@@ -1327,3 +1513,60 @@ specification to match.
 
 Scope: the settlement GDD and the live demo (`godot/demo/feast/`, `godot/demo/regatta/`). Engineering record:
 decision 1701.
+
+
+### DEC-059 — The descent is built in one work period; the crew changes shift when tired or hungry
+
+On 2026-10-08, after ADR 1229 increment 6b's first full run, Brendan decided **"Reduce time to build them greatly."**
+He then chose from the measured proposal in [decision1229](decisions/1229-stair-travel-runtime.md) (§ Build time),
+as relayed by the coordinator session:
+
+- **P1 — chain the treads.** T1's haul brings all six treads' wood to M at once. After each tread is fitted, the
+  fitter steps forward, makes one descent and steps back onto the next tread's station. It no longer climbs back to
+  M between treads. This amends the approved per-tread episode order of ADR 1209 and ADR 1229 increment 5 ("…install,
+  step forward, turn, ascend" for every tread) and ADR 1202's material leg for treads.
+- **P2 — one claw entry and recovery per cube.** Brace, cut and finish at one station run without the entry and
+  recovery clips between them. This applies to the first-entry prefix too. The hand-over between phases must be
+  proved with the accepted provers; a new joining motion would come back for review.
+- **P3 — work amounts × 0.47.**
+  - Brace, cut and finish become 940, 1,880 and 1,410 milli-WU (were 2,000, 4,000 and 3,000: DEC-052,
+    SET-MOVE-ECON-001).
+  - Each tread's fastening becomes 5,640 milli-WU (was 12,000: ADR 1209 D3).
+  - Bills of material are unchanged.
+- **Not P4.** The cut-station order and the station paths stay as they are.
+- **Shift change for crew needs.** When the crew's hunger or rest reaches its GDD §5.2 seek threshold (hunger
+  ≤ 3,500, rest ≤ 2,500), the crew hands the entry over at a safe point by ADR 1225's replacement path. It then goes
+  to eat or sleep. An idle mole carries on, and the tired mole can be picked again later.
+
+Goal: on the default schedule the live chain finishes the whole entry, prefix and descent to T6, inside the first
+work block. The settlement's double tick of the entry's haul Jobs stays as it is for now (ADR 1226 addendum).
+
+Engineering records: [decision1229](decisions/1229-stair-travel-runtime.md) and
+[decision1225](decisions/1225-entry-crew-replacement.md).
+
+
+### DEC-060 — Treads are fitted with a general paw working motion; exact contact not required
+
+*Renumbered 2026-10-09: this entry was DEC-058 on branch `claude/ug-paid-start` until master was merged into it; master had already published DEC-058 (the feast supper), so its number stands and this one moved to the next free number. Records written before the merge that cite "DEC-058" for tread fitting mean DEC-060 ([decision 1241](decisions/1241-master-merge-renumbers-dec-058-to-dec-060.md)).*
+
+On 2026-10-08 Brendan answered the tread question of [decision1217](decisions/1217-claw-digging.md) step 2c (the
+side-on station does not fit a 512 u tread): **"General digging motion, does not need to line up perfectly."**
+
+As interpreted and relayed by the coordinator session:
+
+- The treads below T0 (T1…T5 and the T6 sill) are fitted with a general paw/claw working motion from ADR 1209's
+  planned tread station: 310 u behind T_{k−1}'s far edge, facing down the stair.
+- The paws need **not** make an exact, certified contact with the bearer. The exact paw-on-bearer contact and patch
+  requirement is dropped for tread fitting.
+- The work is accounted as fitting by the Job/Work model as usual.
+- The physical safety proofs stay:
+  - the feet are supported on the tread;
+  - no body or limb penetrates the deck, the riser, the bearer or the trench walls;
+  - arm-against-body and arm-against-leg self-clearance holds.
+
+Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact contact still required at L0 and T0.
+
+**Brendan's review (2026-10-08): candidate b approved**, and "the same motion is fine at the sill": there is no separate, lower sill program. The work height stays 131 u at the sill (about 65 u above its bearer).
+
+Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
+[decision1209](decisions/1209-descent-past-t0.md).

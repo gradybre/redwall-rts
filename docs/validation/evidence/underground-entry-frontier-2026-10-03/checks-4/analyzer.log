@@ -1,0 +1,5 @@
+error: more than the allowed 0 warning(s)
+test/test_underground_entry_frontier.gd:131: (SHADOWED_GLOBAL_IDENTIFIER): The variable "hash" has the same name as a built-in function.
+test/test_underground_entry_frontier.gd:180: (SHADOWED_GLOBAL_IDENTIFIER): The variable "hash" has the same name as a built-in function.
+test/test_underground_entry_frontier.gd:323: (SHADOWED_GLOBAL_IDENTIFIER): The variable "hash" has the same name as a built-in function.
+3 GDScript warning(s) in 1 of 2 file(s)

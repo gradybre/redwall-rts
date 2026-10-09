@@ -4,6 +4,10 @@
     ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
     python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 8
     python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 8 --baseline-log full.log
+    python3 tools/ci_test_shards.py tier fast    # JSON list of the fast tier (every suite not declared slow)
+
+Test tiers (decision 1240): godot/test/slow_suites.json declares the slow tier. `./tools/run_tests.sh
+--fast` runs the rest, `--slow` runs it alone; the default run and CI shards always run every suite.
 
 Only direct test/test_*.gd files are suites, exactly as run_tests.gd discovers them.
 Every shard uses the existing supervisor/worker and the unchanged zero allowances.
@@ -22,6 +26,8 @@ import sys
 
 REPO = Path(__file__).resolve().parent.parent
 WEIGHTS = REPO / "tools/ci_test_shard_weights.json"
+SLOW_SUITES = "godot/test/slow_suites.json"
+TIERS = ("fast", "slow")
 COUNTS = ("tests", "assertions", "failures", "unexpected_errors", "unexpected_warnings",
           "expected", "tolerated", "leaked_objects", "leaked_resources")
 # The engine's exit report of leaked objects, singular ("1 ObjectDB instance was leaked") or plural (decision 0998).
@@ -55,6 +61,29 @@ def discover(repo: Path = REPO) -> list[str]:
     """Mirror the runner's non-recursive discovery; no hand-maintained file list."""
     return sorted(p.name for p in (repo / "godot/test").iterdir()
                   if p.is_file() and p.name.startswith("test_") and p.name.endswith(".gd"))
+
+
+def slow_suites(repo: Path = REPO) -> dict[str, int]:
+    """The declared slow tier, suite -> measured seconds; refused if it names a suite that does not exist."""
+    path = repo / SLOW_SUITES
+    if not path.exists():
+        return {}
+    declared = json.loads(path.read_text(encoding="utf-8"))
+    suites = declared.get("slow") if isinstance(declared, dict) else None
+    require(isinstance(suites, dict) and all(isinstance(k, str) and integer(v, 1) for k, v in suites.items()),
+            f"{SLOW_SUITES}: 'slow' must map suite names to measured whole seconds")
+    missing = sorted(set(suites) - set(discover(repo)))
+    require(not missing, f"{SLOW_SUITES} names suites that do not exist: {missing}")
+    return suites
+
+
+def tier(name: str, repo: Path = REPO) -> list[str]:
+    """The suites of one tier, sorted: `slow` as declared, `fast` every other discovered suite."""
+    require(name in TIERS, f"tier must be one of {TIERS}")
+    slow = slow_suites(repo)
+    selected = [suite for suite in discover(repo) if (suite in slow) == (name == "slow")]
+    require(bool(selected), f"the {name} tier is empty")
+    return selected
 
 
 def fingerprint(value: object) -> str:
@@ -93,6 +122,7 @@ def coverage_difference(corpus: list[str], actual: Counter) -> str:
 def make_plan(count: int, repo: Path = REPO, weights_path: Path = WEIGHTS) -> dict:
     corpus = discover(repo)
     require(integer(count, 1) and count <= len(corpus), "shard count must be between 1 and the suite count")
+    slow_suites(repo)  # CI runs both tiers; a slow entry naming a missing suite still fails the plan.
     known = json.loads(weights_path.read_text(encoding="utf-8"))["suite_usec"] if weights_path.exists() else {}
     require(isinstance(known, dict) and all(isinstance(k, str) and integer(v, 1) for k, v in known.items()),
             "timing weights must be positive integer microseconds")
@@ -226,6 +256,8 @@ def aggregate(reports_dir: Path, count: int, repo: Path = REPO, baseline_log: Pa
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
+    tier_parser = sub.add_parser("tier", help="print one test tier's suites as JSON (see slow_suites.json)")
+    tier_parser.add_argument("name", choices=TIERS)
     prepare = sub.add_parser("prepare", help="write a complete plan and print this shard's selected suites as JSON")
     prepare.add_argument("--shard", required=True)
     prepare.add_argument("--output-dir", type=Path, required=True)
@@ -244,7 +276,9 @@ def main() -> int:
     weights.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
-        if args.command == "prepare":
+        if args.command == "tier":
+            print(json.dumps(tier(args.name)))
+        elif args.command == "prepare":
             index, count = shard_spec(args.shard)
             plan = make_plan(count)
             write_json(args.output_dir / f"manifest-{index}.json", plan)

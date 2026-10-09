@@ -20,6 +20,10 @@
 # Optional CI selection: ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
 # Focused local run:     ./tools/run_tests.sh --suite test_a.gd [--suite test_b.gd ...]
 #   Same guards and zero allowances; only suite selection changes. A focused pass is never a full-suite claim.
+# Test tiers (decision 1240):  ./tools/run_tests.sh --fast   every suite except the slow tier
+#                              ./tools/run_tests.sh --slow   the slow tier alone
+#   The slow tier is declared in godot/test/slow_suites.json. Per-commit work runs --fast plus its focused suites;
+#   milestones run the default (complete) suite, and CI always runs every suite in both tiers.
 set -uo pipefail
 
 readonly MAX_UNEXPECTED_ERRORS=0
@@ -41,7 +45,11 @@ godot_script="test/run_tests.gd"
 shard_spec=""
 shard_output_dir=""
 focused_suites=()
-if [[ "$#" -gt 0 && "$1" == --suite ]]; then
+if [[ "$#" -eq 1 && ( "$1" == --fast || "$1" == --slow ) ]]; then
+    REDWALL_TEST_SHARD_SUITES="$(python3 tools/ci_test_shards.py tier "${1#--}")" || exit 1
+    export REDWALL_TEST_SHARD_SUITES
+    godot_script="$repo_root/tools/ci_test_shard_runner.gd"
+elif [[ "$#" -gt 0 && "$1" == --suite ]]; then
     while [[ "$#" -gt 0 ]]; do
         if [[ "$1" != --suite || "$#" -lt 2 || -z "$2" ]]; then
             echo "usage: $0 --suite NAME.gd [--suite NAME.gd ...]" >&2
@@ -55,7 +63,7 @@ if [[ "$#" -gt 0 && "$1" == --suite ]]; then
     godot_script="$repo_root/tools/ci_test_shard_runner.gd"
 elif [[ "$#" -gt 0 ]]; then
     if [[ "$#" -ne 4 || "$1" != --shard || "$3" != --output-dir || -z "$4" ]]; then
-        echo "usage: $0 [--shard INDEX/COUNT --output-dir DIR | --suite NAME.gd ...]" >&2
+        echo "usage: $0 [--fast | --slow | --shard INDEX/COUNT --output-dir DIR | --suite NAME.gd ...]" >&2
         exit 2
     fi
     shard_spec="$2"

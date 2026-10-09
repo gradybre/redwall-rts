@@ -29,11 +29,6 @@ const DRIVER_WORDS: Dictionary = {
 }
 
 
-static func units(milli: int) -> String:
-	"""A quantity as the panels print it ('9.6 U', '<0.1 U', '0 U')."""
-	return FarmText.units_text(milli)
-
-
 static func species_label(key: StringName) -> String:
 	"""A species key as a word ('trout')."""
 	return String(key).replace("_", " ")

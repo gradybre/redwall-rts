@@ -224,15 +224,6 @@ static func cost_words(planks: int, wood: int, stone: int) -> String:
 	return ", ".join(parts) if not parts.is_empty() else "nothing"
 
 
-static func amounts_text(planks: int, wood: int, stone: int) -> String:
-	"""Whole units of planks, wood and stone in words, the ones that are not nothing ("8 planks, 2 wood")."""
-	var parts := PackedStringArray()
-	for pair: Array in [[planks, "planks"], [wood, "wood"], [stone, "stone"]]:
-		if int(pair[0]) > 0:
-			@warning_ignore("integer_division") parts.append("%d %s" % [int(pair[0]) / 1000, pair[1]])
-	return ", ".join(parts) if not parts.is_empty() else "nothing"
-
-
 static func refusal_text(code: int, words: Array) -> String:
 	"""A refusal (REFUSE_*) in words, filled with `words` (see REASONS)."""
 	return REASONS[code] % words

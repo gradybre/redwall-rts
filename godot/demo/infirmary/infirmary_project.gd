@@ -286,14 +286,6 @@ func is_admitted(i: int) -> bool:
 
 # --- words and places -----------------------------------------------------------------------------
 
-static func units_text(milli: int) -> String:
-	"""Milli-U as tenths, floored ('8.0')."""
-	@warning_ignore("integer_division")  # floored tenths by intent
-	var tenths: int = milli / 100
-	@warning_ignore("integer_division")  # whole units by intent
-	var whole: int = tenths / 10
-	return "%d.%d" % [whole, tenths % 10]
-
 
 func percent() -> int:
 	"""How far it has got, 0-100: the delivery is the first half, the work the second."""

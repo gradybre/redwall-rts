@@ -155,8 +155,3 @@ static func retention_allows(mature_after: int, total: int, percent: int) -> boo
 static func deadfall_wu(milli: int) -> int:
 	"""WU to gather a deadfall pile of `milli`: DEADFALL_WU_PER_U a U, rounded up."""
 	@warning_ignore("integer_division") return (milli * DEADFALL_WU_PER_U + 999) / 1000
-
-
-static func units_text(milli: int) -> String:
-	"""Milli-U as whole units and one decimal, floored ("12.5 U")."""
-	@warning_ignore("integer_division") return "%d.%d U" % [milli / 1000, (milli % 1000) / 100]

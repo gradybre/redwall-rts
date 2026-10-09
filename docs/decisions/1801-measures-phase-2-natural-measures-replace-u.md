@@ -1,5 +1,5 @@
 # 1801 — Measures phase 2: natural measures replace "U" in the demo and the settlement UI
-Date: 2026-10-09 · Status: In progress (MEAS-2; BACKLOG.md's printed range 1181–1190 is replaced by 1801–1819, as
+Date: 2026-10-09 · Status: Accepted (built; Brendan's rulings on P-M1–P-M8 pending) (MEAS-2; BACKLOG.md's printed range 1181–1190 is replaced by 1801–1819, as
 `docs/handoff/README.md` §3.6 directs)
 
 ## Decision
@@ -298,28 +298,91 @@ SEND_BELOW, `control/demo_party_panel.gd` HINT, `sound/sound_table.json` "(U vie
 - [x] Slice 1: the module, `test_demo_measures.gd` (19 tests), and the lint `test_demo_no_u_text.gd` switched on with
   an exact, shrinking allowlist (44 files, 84 strings).
 - [x] Slice 2: the HUD (demo and settlement) and the stores (and every `add_cost` caller).
-- [ ] Slice 3: farm and pantry (with orchard and hives).
-- [ ] Slice 4: kitchen and winter (with preserving, brewing and feasts).
-- [ ] Slice 5: the woods: forestry, forage, ferry, regatta, waterplay, bridges.
-- [ ] Slice 6: fishery and water.
-- [ ] Slice 7: infirmary, hall, cellars, burrow (and the digging revamp), tunnel, spoil.
-- [ ] Slice 8: guide, goals, orders, chronicle, practice stories, and the Underground rename.
-- [ ] Slice 9: the lint's allowlist empty, `godot/demo/README.md`, and the old helpers deleted.
+- [x] Slice 3: farm and pantry, with the orchard and the hives (built in its own worktree, cherry-picked).
+- [x] Slice 4: kitchen and winter, with preserving, brewing and feasts.
+- [x] Slice 5: the woods: forestry, forage, ferry, regatta, waterplay, bridges.
+- [x] Slice 6: fishery and water.
+- [x] Slice 7: infirmary, hall, cellars, burrow (and the digging revamp), tunnel, spoil; tunnel_control's VIEW_ON and
+  LEVEL_SHOWN renamed.
+- [x] Slice 8: guide, goals, orders, chronicle, practice stories, and the Underground rename.
+- [x] Slice 9: the lint's allowlist empty, `godot/demo/README.md` (a "Natural measures" section; 16 "U view" mentions
+  renamed; 13 quoted amounts updated), and the 23 old helpers deleted.
+- [ ] Gates: the CI-style full suite, the analyzer, the contracts, the review, the frames (see Gates).
 
-## PROPOSALS — for Brendan's ruling
+## How slices 3–8 were built
 
-- **P-M1 — The measures for goods added since 1011** (the PROVISIONAL rows above). (a) As built. (b) Different
+Slices 3–8 touch disjoint directories, so each was built in parallel by a subagent in its own worktree branched from
+slice 2 (`b34a1153`), on the house style above, then cherry-picked here in the order 6, 7, 8, 4, 5, 3. The only
+conflicts were the lint's ALLOWLIST (each slice removed its own entries: resolved to the entries both sides kept) and
+two test files where two slices changed one assertion line (`test_demo_kitchen_ui.gd`'s stock rows, slice 3's stock
+and slice 4's reserved part; `test_demo_orchard_ui.gd`'s raw-NP check, slice 8's berries and slice 3's apples).
+
+## Readings the slices made (recorded; none changes a rule)
+
+- **Rounding by role, everywhere.** Stock, catches, harvests, what is carried or held: `amount`. Costs, rates, room
+  needed, refusals' shortfalls: `need`. Recipe inputs and outputs of one batch, doses, hearth rates, the reserve
+  target, standing-order targets: `exact` (a tier-2 hall's hearth rate reads "6 quarter logs", where `need` would round
+  it to the tier-1 hearth's "2 logs" and hide the saving).
+- **"NP a unit"** became NP for the good's smallest whole measure: "1200 NP a jar" (honey), "900 NP an apple", "700 NP
+  for a bowl of berries", "1400 NP for a bag of dried fruit", "2400 NP for a ration". The figure does not change where
+  the measure is 1 U; for goods whose smallest whole measure is not 1 U (the guide's crops) the NP is scaled to that
+  measure ("800 NP for a bunch of carrots").
+- **Loads and limits are weights** ("a mouse carries 12 kg, an otter 16 kg, the badger 24 kg"; the orchard's cart "10
+  kg a haul"; a forager "at most 8 handfuls each"). A forager's 4 U basket was no longer called a basket, so it does
+  not clash with the table's 5 U basket.
+- **Sentences reshaped, not padded.** A count with its own article cannot follow "the other" or start a capitalised
+  sentence, so: "the rest (3 bunches of carrots)"; "The village brought %s into store: ..."; "Stock: about 720 perch
+  (80% of 900 perch) · quota 52 fish a day, 25 fish left".
+- **Quotas are fish.** A water's quota is every species', so it counts "fish"; a stock is its species ("about 720
+  perch"). The forage basin's shared quota is worded in the chosen kind's measure (all forage is 250 g a U).
+- **A food store's fill** reads "Holds 4 baskets of food (up to 10 baskets)", not `have_need` (which would say
+  "enough" for a full store). Capacities carry no weight (P5); the Cellar building's 500 g/U capacity (decision 0612,
+  Q-D6) is left alone and shown in baskets.
+- **Bare numbers** the lint could not see were converted too (the hall's and infirmary's costs, "Holds %d of %d",
+  the cellar bar, the hall tapestry).
+- **The prewarm step name "underground view"** (`demo_village.gd`) is never shown to a player, so it was left.
+- **farm_text.gd's "Needs:" line** (`need_text`, a bed's need) is not an amount helper and stays.
+
+## Deviations from the packet, declared
+
+- **`test_demo_conservation.gd` was edited, text-only.** The packet says conservation tests pass unedited. That suite
+  also asserts player text (the farm's refusal "no store has room for ...", the Pantry's stock cells and header, and
+  F28's units-form test of the deleted `units_text`/`food_text`). Those assertions were rewritten by hand to the new
+  words; every milli-U, conservation and arithmetic assertion is unchanged. F28's test now checks the same rule through
+  the module ("12 g" of carrot is never "none"; 5.1 U is "5 bunches", floored).
+- **Slices 3–8 were built in parallel**, not one after another (see above); each was tested on its own and the
+  integration run here.
+## PROPOSALS — for Brendan
+
+- **P-M1 — The measures for goods added since 1011** (the PROVISIONAL rows above: ale and cider in casks and jugs;
+  cordial and vinegar in jugs and cups; jam and pickles in jars; nut cheese in rounds). (a) As built. (b) Different
   measures for any of them. **Recommendation: (a).**
 - **P-M2 — The settlement HUD's Wood level before §5.8 has heating demand.** (a) As built: "none" with no wood,
-  otherwise no level until fuel-days and the winter projection exist. (b) "enough" whenever there is wood. **Recommendation:
-  (a)**: (b) would be a reading nobody derived.
+  otherwise no level until fuel-days and the winter projection exist. (b) "enough" whenever there is wood.
+  **Recommendation: (a)**: (b) would be a reading nobody derived.
+- **P-M3 — The cask.** (a) Keep it whole-only, as approved: 2.99 casks reads "2 casks". (b) Give it halves, so every
+  "from 2" measure keeps 1011's 20% bound ("2½ casks of mead"). **Recommendation: (b)**; a one-flag change.
 - **P-M4 — The settlement Wood and Stone cells.** UI-SET-004/005's amended readout ("180 logs available; none
   reserved") is far wider than the 104–144 px cell, so the cell draws the shell's "See ledger" and the ledger line
-  carries the readout (the shell's own rule, UI-C3-R01 §2). (a) Keep it. (b) Let a counter carry a short cell value
-  ("180 logs", or the level) beside its full ledger readout, a change to hud.gd's one-string contract. **Recommendation:
-  (b)**, in a settlement UI lane; the demo's top bar (which Brendan plays) already shows the short form.
-- **P-M3 — The cask.** (a) Keep it whole-only, as approved: 2.99 casks reads "2 casks". (b) Give it halves, so every
-  "from 2" measure keeps 1011's 20% bound ("2½ casks of mead"). **Recommendation: (b)**; it is a one-flag change.
+  carries the readout (UI-C3-R01 §2's own rule). (a) Keep it. (b) Let a counter carry a short cell value ("180 logs",
+  or the level) beside its full ledger readout, a change to hud.gd's one-string contract. **Recommendation: (b)**, in
+  a settlement UI lane; the demo's top bar already shows the short form.
+- **P-M5 — Logs have no halves.** A 1.5 U deadfall pile reads "a log", 2.75 U "2 logs". (a) Keep it, as approved.
+  (b) Give the log halves. **Recommendation: (a)**: the tooltips and ledger keep the weight.
+- **P-M6 — The crossing story's load** (`guide/practice_stories.gd`): each carrier takes "6 logs" a trip, 30 kg,
+  while a mouse carries 12 kg. "6 U" hid this. (a) Keep the story's fixture. (b) Make it 2 logs (10 kg) a trip and
+  recompute the rounds (a story fixture, not a balance figure). **Recommendation: (b)**, in a follow-up.
+- **P-M7 — The orchard's Keep button** reads "Keep: 4 apples, 4 pears" (the keep is per fruit). (a) As built. (b)
+  "Keep: 4 of each". **Recommendation: (a)** unless the frames show it clipping.
+- **P-M8 — The feast preview's free food** reads "beans 4 scoops — enough" / "mead 0 of 2 jugs free". (a) As built
+  (`have_need`). (b) The old "need (free X)" layout, each in its own measure, which can mix measures ("2½ sacks (free
+  39 scoops)"). **Recommendation: (a).**
+- **Found, not fixed (UI behaviour, outside this lane):** the Cellar bar's Build tooltip is set in `configure()` and
+  cleared at once by `refresh()` (`FarmUi.set_enabled(_build, true, "")`), so a player never sees it. A small
+  follow-up.
+- **For the UI art owner (1011 §4a):** the reference renders still say "180 U" / "100 U"
+  (`docs/design/ui_refinement/render_targets.py`, `woodland_art_prompt.txt`); they are re-rendered under the art
+  process, not hand-edited here.
 
 ## Consequences
 

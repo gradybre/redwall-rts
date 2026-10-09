@@ -324,8 +324,3 @@ func cold_exposure_permille(now_tick: int) -> int:
 func mood_bonus(now_tick: int) -> int:
 	"""Shared Warmth's mood, +400 while it lasts (else 0)."""
 	return Rules.BUFF_MOOD if warmth_active(now_tick) else 0
-
-
-static func _units(milli: int) -> String:
-	"""'6.0 U'."""
-	return ForestRules.units_text(milli)

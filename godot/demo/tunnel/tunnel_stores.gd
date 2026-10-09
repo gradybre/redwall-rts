@@ -268,11 +268,6 @@ func add_find(kind: int) -> void:
 	revision += 1
 
 
-static func units_text(milli_u: int) -> String:
-	"""Milli-U as the panel shows it: whole units and one decimal, floored ("12.5 U")."""
-	@warning_ignore("integer_division") return "%d.%d U" % [milli_u / 1000, (milli_u % 1000) / 100]
-
-
 func stock_line() -> String:
 	"""The panels' stores line -- the same figures, in the same measures, as the top bar's Wood, Stone and Planks -- and
 	the earth kept by the stockpile, which the top bar does not show (see EARTH): "Village stores: 40 logs · 20 blocks

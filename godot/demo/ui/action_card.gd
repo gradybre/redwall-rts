@@ -297,19 +297,6 @@ static func _apply_tip_scale() -> void:
 	_tip_theme.set_font_size(&"font_size", &"TooltipLabel", tip_px())
 
 
-static func amount_text(milli: int) -> String:
-	"""A quantity as the HUD and the stores' panels print it ("4.7 U")."""
-	return StoresScript.units_text(milli)
-
-
-static func need_text(milli: int) -> String:
-	"""A requirement, stated exactly: the HUD's tenths, or hundredths when it has them ("0.25 U" -- the floored tenth
-	would understate what is needed)."""
-	if milli % 100 == 0:
-		return amount_text(milli)
-	@warning_ignore("integer_division") return "%d.%02d U" % [milli / 1000, (milli % 1000) / 10]
-
-
 static func hours_text(usec: int) -> String:
 	"""Demo microseconds as game time on the demo calendar, rounded up (a sliver of work is never nothing): under an
 	hour in whole game minutes ("about 20 game minutes", "about 1 game minute"), from an hour in hours to the tenth

@@ -214,7 +214,6 @@ func test_where_the_apiary_stands() -> void:
 	assert_equal(HiveRules.keeper_spot(0), Vector2(-11.0, 19.9), "its keeper's spot")
 	assert_equal(HiveRules.tile_of_m(Vector2(-12.6, 16.4)), Vector2i(57, 72), "64 + floor(x / 2)")
 	assert_equal(HiveRules.tile_of_m(Vector2(0.0, -0.1)), Vector2i(64, 63), "the floor below zero")
-	assert_equal(HiveRules.units(6000), "6.0 U", "its units")
 
 
 func test_the_seasons_rules() -> void:

@@ -317,8 +317,3 @@ static func log_words() -> String:
 	"""A log bridge's one log, in a sentence: "a trunk of 6 logs" (LOG_WOOD_MILLI of wood, worded exactly by
 	goods_measures.gd; decision 1801)."""
 	return "a trunk of %s" % Measures.exact(&"wood", LOG_WOOD_MILLI)
-
-
-static func units_text(milli: int) -> String:
-	"""Milli-U as the panels show it ("4.7 U")."""
-	return ForestRules.units_text(milli)

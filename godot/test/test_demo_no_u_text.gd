@@ -6,8 +6,8 @@ extends "res://test/framework/test_case.gd"
 ## scripts/ui/goods_measures.gd. Key hints ("U to return", "U: back to the surface", ["U", "Underground"]) are not
 ## amounts and pass.
 ##
-## ALLOWLIST: the files still being converted, each with the most findings it may hold; it shrinks slice by slice
-## (decision 1801's progress section) and is empty from slice 9, when the old U helpers are deleted.
+## ALLOWLIST: the files still being converted, each with the exact findings it may hold. It shrank slice by slice
+## (decision 1801) and has been EMPTY since slice 9, when the old U helpers were deleted; it stays empty.
 
 const ROOTS: Array[String] = ["res://demo", "res://scripts/ui"]
 const EXTRA_FILES: Array[String] = ["res://scripts/systems/ui_manager.gd"]
@@ -22,13 +22,6 @@ const UNITS: String = "(?i)\\b(a|per|each|every) unit\\b|(\\d|%[-+ #0-9.]*[dis])
 
 ## path -> the most findings the file may still hold (see ALLOWLIST).
 const ALLOWLIST: Dictionary = {
-	"res://demo/farm/farm_plan_rows.gd": 2,
-	"res://demo/farm/farm_tending.gd": 1,
-	"res://demo/farm/farm_text.gd": 3,
-	"res://demo/feast/feast_menu.gd": 1,
-	"res://demo/forestry/forest_rules.gd": 1,
-	"res://demo/tunnel/tunnel_stores.gd": 1,
-	"res://demo/ui/action_card.gd": 1,
 }
 
 var _patterns: Array[RegEx] = []
@@ -62,7 +55,7 @@ func test_no_player_facing_u_amounts_outside_the_allowlist() -> void:
 func test_the_allowlist_names_only_files_that_still_need_it() -> void:
 	"""An allowlist entry is exact: a file converted below its count must have its entry lowered or removed, so the
 	list only ever shrinks."""
-	assert_true(ALLOWLIST.size() <= 44, "the allowlist only shrinks from slice 1's 44 files (%d)" % ALLOWLIST.size())
+	assert_equal(ALLOWLIST.size(), 0, "slice 9: the allowlist is empty and every old U helper deleted")
 	for path: String in ALLOWLIST:
 		assert_true(FileAccess.file_exists(path), "%s exists" % path)
 		assert_true(allowance_exact(findings(path).size(), int(ALLOWLIST[path])), "%s's allowlist count is exact (%d)"

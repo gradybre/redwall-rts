@@ -2,9 +2,9 @@ extends RefCounted
 ## Where the farm meets the game's HUD, through the UI layer only. Decision 0196.
 ##
 ## THE FOOD FIGURE. The top bar's Ready food cell shows the pantry's total, painted -- with every other cell --
-## by the demo's HUD read model (demo/ui/demo_hud_model.gd, demo_hud_counters.gd; decision 0251). This file
-## keeps the one thing both the cell and the Pantry's headline must agree on: `food_text`, the figure's words,
-## which are the farm's one units form (farm_text.gd UNITS; decision 0222, F28) of a total summed in milli-U.
+## by the demo's HUD read model (demo/ui/demo_hud_model.gd, demo_hud_counters.gd; decision 0251). The cell and the
+## Pantry's headline word the same total, summed in milli-U, in baskets of food through goods_measures.gd (decisions
+## 1011 and 1801; decision 0222's rounding kept).
 ##
 ## THE FOOD COMMAND. UI-SET-030 ("Manage recipes and food orders", K) has no page built in the game
 ## yet, so the shell draws it locked. The demo unlocks the button, gives it its own painted food
@@ -15,7 +15,6 @@ extends RefCounted
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
-const Text := preload("res://demo/farm/farm_text.gd")
 
 const FOOD_ICON: String = "res://ui/painted/res_food_ready.svg"
 ## What the unlocked Food command does. Its tooltip is "Food (K) — " and this, in the command strip's
@@ -28,12 +27,6 @@ var _shell: UiShell = null
 func bind(shell: UiShell) -> void:
 	"""Work on this HUD shell (null: nothing to do)."""
 	_shell = shell
-
-
-static func food_text(milli: int) -> String:
-	"""The pantry total (milli-U) in the top bar's words ("34.2 U", the farm's one units form, F28): the Ready
-	food cell and its ledger line print this."""
-	return Text.units_text(milli)
 
 
 func unlock_food_command(open_pantry: Callable) -> bool:

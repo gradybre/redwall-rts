@@ -167,7 +167,9 @@ func test_the_field_guide_has_exactly_the_demo_s_crops_and_dishes() -> void:
 	for dish: int in Rules.DISH_COUNT:
 		var dish_entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[dish]))
 		assert_equal(dish_entry.title, Rules.DISH_NAMES[dish], "the dish's name")
-		assert_true(dish_entry.requires.contains(FarmText.units_text(Rules.INPUT_MILLI[dish])), "its input")
+		assert_false(dish_entry.requires.contains(" U "), "%s: no U in its input" % dish_entry.title)
+	var porridge: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[0]))
+	assert_true(porridge.requires.contains("2 scoops of grain"), "porridge's grain, exact: " + porridge.requires)
 
 
 func test_the_field_guide_has_the_catch_dried_fish_flour_and_gear() -> void:
@@ -184,8 +186,7 @@ func test_the_field_guide_has_the_catch_dried_fish_flour_and_gear() -> void:
 			"%s keeps the catalog's hours" % entry.title)
 	var stew: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[Rules.DISH_FISH_STEW]))
 	assert_equal(stew.summary, "Cooked for supper", "the stew is supper's")
-	assert_true(stew.requires.contains(FarmText.units_text(Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]) + " of roots"),
-		stew.requires)
+	assert_true(stew.requires.contains("2 bowls of roots"), stew.requires)
 	var gear: String = guide.entry(guide.index_of(&"material_gear")).requires
 	assert_equal(GearLocker.MAKE_WOOD_MILLI[GearLocker.KIND_TRAP], 4000, "the trap's wood")
 	assert_true(gear.contains("a trap (4 logs, 2 coils of rope, "), gear)

@@ -138,8 +138,3 @@ static func row_seconds(length_u: int) -> float:
 static func ticks_seconds(ticks: int) -> float:
 	"""Demo seconds `ticks` calendar ticks take at 1x."""
 	return float(CalendarScript.usec_for_ticks(ticks)) / 1000000.0
-
-
-static func units_text(milli: int) -> String:
-	"""'4.5 U' (tenths)."""
-	return ForestRules.units_text(milli)

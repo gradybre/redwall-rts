@@ -257,15 +257,6 @@ func refund_text(c: int) -> String:
 		" (80%: the work has begun)" if begun else ""]
 
 
-static func units_text(milli: int) -> String:
-	"""Milli-U as tenths, floored ('8.0')."""
-	@warning_ignore("integer_division")  # floored tenths by intent
-	var tenths: int = milli / 100
-	@warning_ignore("integer_division")  # whole units by intent
-	var whole: int = tenths / 10
-	return "%d.%d" % [whole, tenths % 10]
-
-
 func percent(c: int) -> int:
 	"""How far cellar `c` has got, 0-100: the delivery is the first half, the work the second."""
 	if state[c] == STATE_DONE:

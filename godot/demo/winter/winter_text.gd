@@ -48,11 +48,6 @@ static func is_warning(hundredths: int) -> bool:
 	return hundredths != Rules.NO_DEMAND and hundredths < Rules.WARN_FUEL_HUNDREDTHS
 
 
-static func units(milli: int) -> String:
-	"""Milli-U in the stores' words: "12.5 U"."""
-	return StoresScript.units_text(maxi(milli, 0))
-
-
 static func wood(milli: int) -> String:
 	"""Wood in store, in logs (goods_measures.gd, rounded down): "40 logs", "no wood"."""
 	return Measures.amount(&"wood", milli)

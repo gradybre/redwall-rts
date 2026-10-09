@@ -59,11 +59,6 @@ static func a_species(species: int) -> String:
 	return ("an %s" if species == Rules.APPLE else "a %s") % Rules.SPECIES_NAMES[species]
 
 
-static func units(milli: int) -> String:
-	"""A quantity in the Pantry's one form ("5.1 U")."""
-	return FarmText.units_text(milli)
-
-
 static func fruit_good(species: int) -> StringName:
 	"""The good an orchard species is picked as ("apple", "pear"; mixed fruit for no species)."""
 	var item: int = Catalog.item_of_orchard_species(species)

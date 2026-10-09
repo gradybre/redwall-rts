@@ -1064,7 +1064,6 @@ func test_a_cards_edges() -> void:
 	card.add_cost("Planks", &"planks", 1000, 4700)
 	assert_equal(card.cost_line(2), "Planks: 1 of 5 planks", "4.7 planks needed: 5, never understated")
 	assert_equal(card.short_text(2), "4 planks", "3.7 short: 4 planks")
-	assert_equal(CardScript.need_text(4700), "4.7 U", "tenths as the HUD prints them")
 	card.work_usec = 0
 	assert_true(card.text().contains("Work: about 0 game minutes"), "no work is still work said")
 	var words := PackedStringArray()

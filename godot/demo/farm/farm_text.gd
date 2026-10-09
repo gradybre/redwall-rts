@@ -8,12 +8,11 @@ extends RefCounted
 ## growing bed, water a parched one, cover one before a frost. Nothing pressing, no line. Every need
 ## is a warning but a ripe crop still in its grace (need_is_warning; the alerts call that a NOTE).
 ##
-## UNITS (decision 0222, the review's F28). A farm quantity is milli-U; the player reads it through ONE
-## formatter, `units_text`, wherever it appears -- stock, totals, capacity, yield and a carried load:
-## tenths of a unit, floored, so a figure never claims food that is not there; and never "0 U" for
-## something -- below a tenth reads "<0.1 U". Totals are summed in milli-U first. SUPERSEDED for the player by
-## decision 1801 (natural measures, decision 1011): every farm amount is now worded by scripts/ui/goods_measures.gd in
-## its good's own measure ("5 bunches of carrots"), and `units_text` stays only until its last caller is converted.
+## AMOUNTS (decision 0222, the review's F28; worded since decision 1801 in natural measures, decision 1011 and
+## DEC-049). A farm quantity is milli-U; the player reads it through ONE formatter, scripts/ui/goods_measures.gd, in
+## its good's own measure ("5 bunches of carrots") wherever it appears -- stock, totals, capacity, yield and a carried
+## load: rounded down, so a figure never claims food that is not there, and never "none" for something (below the
+## smallest measure it is its weight). Totals are summed in milli-U first.
 ##
 ## PLAYER TERMS (decision 0251, review finding F34). The sim keeps moisture, fertility and health on 0..10000 and
 ## its factors per 1000; the panel says them as a player reads them: percentages of the whole scale, "points" of
@@ -42,18 +41,6 @@ const NEED_DRAIN: int = 4
 const NEED_WATER: int = 5
 const NEED_COVER: int = 6
 const REFUSE_NOTHING_PRESSING: String = "NOTHING_PRESSING"
-const MILLI_PER_U: int = 1000
-const MILLI_PER_TENTH: int = 100
-
-
-static func units_text(milli: int) -> String:
-	"""A quantity (milli-U, never negative) as the player reads it (see UNITS): '5.1 U', '400.0 U',
-	'<0.1 U', '0 U'."""
-	if milli == 0:
-		return "0 U"
-	if milli < MILLI_PER_TENTH:
-		return "<0.1 U"
-	@warning_ignore("integer_division") return "%d.%d U" % [milli / MILLI_PER_U, (milli % MILLI_PER_U) / MILLI_PER_TENTH]
 
 
 static func clock_line(sim: SimScript) -> String:

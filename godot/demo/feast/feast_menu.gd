@@ -327,12 +327,3 @@ func extras_words(theme: int, eligible: int) -> String:
 		parts.append("%s %s%s" % [EXTRA_NAMES[k], Measures.have_need(Catalog.ITEM_KEYS[EXTRA_DRINKS[k]], free, need),
 			"" if free >= need else " free — not poured: the brewery has not made enough"])
 	return "Also poured, if there: %s; no one is made drunk" % ", ".join(parts)
-
-
-static func units(milli: int) -> String:
-	"""'6.0 U', or to the hundredth when a tenth would hide a part ('0.25 U': the infusion's herb)."""
-	if milli % 100 == 0:
-		return StoresScript.units_text(milli)
-	@warning_ignore("integer_division") var whole: int = milli / 1000
-	@warning_ignore("integer_division") var hundredths: int = (milli % 1000) / 10
-	return "%d.%02d U" % [whole, hundredths]

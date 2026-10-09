@@ -172,11 +172,6 @@ static func harvest_cell(item: int, milli: int) -> String:
 	return Measures.amount_cell(good, milli).replace(" ", "\u00a0")
 
 
-static func units(milli: int) -> String:
-	"""farm_text.gd's one quantity form (decision 0222) with its number and unit kept on one line: '5.1 U' (a no-break space)."""
-	return Text.units_text(milli).replace(" U", "\u00a0U")
-
-
 static func ripe_tick_of(sim: SimScript, bed: int) -> int:
 	"""The tick a ripe bed ripened at (farming.gd's TileHistory.ripe_tick), -1 when it is not ripe."""
 	if sim.stage_of(bed) != SimScript.STAGE_RIPE:

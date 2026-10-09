@@ -58,11 +58,6 @@ static func tab_note() -> String:
 		Rules.COOK_FROM_HOUR[Rules.MEAL_SUPPER]]
 
 
-static func units(milli: int) -> String:
-	"""A quantity in the HUD's form ("2.0 U")."""
-	return StoresScript.units_text(milli)
-
-
 static func meal_words(key: int) -> String:
 	"""A meal by its key: "breakfast", "supper"."""
 	return Rules.MEAL_NAMES[posmod(key, 2)] if key >= 0 else "the next meal"

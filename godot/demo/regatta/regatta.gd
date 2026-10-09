@@ -467,11 +467,6 @@ func _feast_refusal(with_override: bool, day: int = NONE) -> String:
 	return ""
 
 
-static func _units(milli: int) -> String:
-	"""'6.0 U' (the woods' own words)."""
-	return ForestRules.units_text(milli)
-
-
 static func _days(milli: int) -> String:
 	"""'4.2' days (tenths, floored)."""
 	@warning_ignore("integer_division") var tenths: int = milli / 100

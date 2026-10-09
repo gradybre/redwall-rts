@@ -350,7 +350,6 @@ func test_the_card_and_news_words() -> void:
 		"recovering")
 	assert_equal(Text.short_word(true, Injury.KIND_CUT, 80), "hurt (cut)", "group: hurt")
 	assert_equal(Text.short_word(false, 0, 100), "", "group: well")
-	assert_equal(Text.units(11500), "11.5", "units")
 	assert_true(Text.hurt_notice("Corra", Injury.KIND_BITE, 1, 20, "in the water").begins_with(
 		"Corra is hurt in the water: a bite (minor) and lost 20 health."), "notice")
 	assert_equal(Text.treated_notice("Linnet", "Corra", Injury.KIND_BITE, 90),

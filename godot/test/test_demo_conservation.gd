@@ -18,6 +18,7 @@ const FarmCrewScript := preload("res://demo/farm/farm_crew.gd")
 const FarmJobs := preload("res://demo/farm/farm_jobs.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const HudScript := preload("res://demo/farm/farm_hud.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
@@ -657,16 +658,16 @@ func test_the_pantry_row_names_the_next_lot_to_spoil() -> void:
 
 # --- F28: figures sum milli-units, and read the same everywhere ----------------------------------------
 
-func test_units_read_with_one_decimal_and_never_hide_a_little() -> void:
-	"""The one formatter: tenths, floored; nothing is '0 U'; below a tenth is '<0.1 U'."""
-	assert_equal(Text.units_text(0), "0 U", "none")
-	assert_equal(Text.units_text(50), "<0.1 U", "a little")
-	assert_equal(Text.units_text(100), "0.1 U", "a tenth")
-	assert_equal(Text.units_text(900), "0.9 U", "under one")
-	assert_equal(Text.units_text(5100), "5.1 U", "a harvest")
-	assert_equal(Text.units_text(400000), "400.0 U", "a capacity")
-	assert_equal(HudScript.food_text(14400), "14.4 U", "the HUD's Food cell")
-	assert_equal(HudScript.food_text(400), "0.4 U", "a nearly empty pantry is not 0")
+func test_amounts_read_down_and_never_hide_a_little() -> void:
+	"""The one formatter (F28's rule, decision 0222, kept by goods_measures.gd; decisions 1011 and 1801): amounts round
+	down and nothing present reads none -- below the smallest measure an amount is its weight."""
+	assert_equal(Measures.amount_cell(&"carrot", 0), "none", "none")
+	assert_equal(Measures.amount_cell(&"carrot", 50), "12 g", "a little: its weight, never none")
+	assert_equal(Measures.amount_cell(&"carrot", 900), "225 g", "under a bunch")
+	assert_equal(Measures.amount_cell(&"carrot", 5100), "5 bunches", "a harvest, floored")
+	assert_equal(Measures.amount_cell(&"food", 400000), "80 baskets", "a capacity")
+	assert_equal(Measures.amount_cell(&"food", 14400), "2½ baskets", "the HUD's Food cell")
+	assert_equal(Measures.amount_cell(&"food", 400), "100 g", "a nearly empty pantry is not none")
 
 
 func test_fractional_stock_sums_before_it_is_rounded() -> void:

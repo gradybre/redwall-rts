@@ -440,7 +440,7 @@ same object its panel reads, and writes nothing into the settlement simulation:
 | Beds | count | beds installed in dug burrow homes (the Tunnels panel's housing line) |
 
 Fuel's slot showed Planks while the village burned no fuel (decision 0251); the hearths burn wood now, so it is
-UI-SET-003's Heating fuel again and the planks are on the ledger's Wood line ("Wood: 40.0 U · planks 2.5 U in store",
+UI-SET-003's Heating fuel again and the planks are on the ledger's Wood line ("Wood: 40 logs · 2 planks in store",
 short enough that the ledger keeps its eight lines) and in Wood's tooltip (decision 0571). Clicking any cell opens the ledger, which lists
 the same six figures and where each is. A figure whose owner is missing reads **Unavailable**, never 0.
 UIManager still repaints the cells with the settlement's figures when the simulation's stock changes;
@@ -462,6 +462,31 @@ the tunnels, bridges or woods change; the frame and the dots are drawn each fram
 suitable range, fertility and crop health as percentages, fertility's effect on the yield as a change
 ("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
 day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
+
+## Natural measures: no "U" on screen (decisions 1011 and 1801; DEC-049)
+
+Every amount a player reads is in its good's own measure, never the catalogue unit "U": "40 logs", "12 sacks of
+barley", "9 perch", "a bunch of herbs", "half a jar of honey", "6½ baskets of food". The simulation still keeps
+integer milli-U everywhere; only the words change.
+
+- **One module** words every amount: `godot/scripts/ui/goods_measures.gd` (it serves the settlement UI too). Its
+  table is decision 1011 §1/§1a plus 1801's PROVISIONAL rows for the goods added since (ale, cider, cordial, vinegar,
+  jam, pickles, nut cheese). Call it with the good's key and the milli-U:
+  - `amount` (stock, a harvest, a catch: rounded down), `need` (a cost or a rate: rounded up), `exact` (a rule
+    constant or a player's target), `have_need` ("4 of 5 planks", "2 logs — enough"), `weight` and `tooltip`;
+  - each with a `_cell` form for a labelled cell ("12 sacks", "none") beside the sentence form ("12 sacks of
+    barley", "no barley").
+  - A pantry item's key is `farm_catalog.gd ITEM_KEYS[item]`; a recipe category's is `meal_rules.gd selector_good`.
+- **Below the smallest measure** an amount is its weight ("40 g of herbs"), never zero; a carry limit is a weight
+  ("a mouse carries 12 kg"). A store's capacity is in baskets of food with no weight (decision 1011 P5).
+- **The top bar**: Wood is a level -- none / very low / running low / enough / plenty -- from the winter's own
+  Firewood readings (drawn as words, like Heating fuel's "No demand"); Stone is "20 blocks"; Ready food and Heating
+  fuel stay in days. The tooltips carry the weight, the ledger the counts.
+- **Action cards** name each cost's good: `add_cost(what, good, have, need)`.
+- **A new good needs its row first**: an unknown key errors and prints "?", and the suite's log gate fails.
+- **The lint** `test/test_demo_no_u_text.gd` fails on any player-facing "N U", "%d U", "%.1f U", " U", "U view" or
+  goods counted in "units", in `demo/**/*.gd`, its JSON tables and `scripts/ui/`. Its allowlist is empty.
+- **"Underground"** is the U key's view in every player string ("U switches to Underground"); the U key is unchanged.
 
 ## People (decision 0491)
 
@@ -555,7 +580,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
 | Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, by ferry (decision 0437), the posts (waiting, blocked); public ways never swim (decision 0461) |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry (brass) and conservation (sage) zones; mature (leaf green), young (spring green), stump (dark umber), cleared (clay) -- the six pass the colour-blind check (decision 1044) |
-| Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
+| Underground: Tunnels | What lies under the village? | Underground's cut (U switches it too) |
 
 - **The Map layer picker** (`ui/demo_lens_picker.gd`) names the shown layer on its header button ("Getting
   there: Water range ▾", or "Map layer: off ▾"); the button unfolds the list of layers, one button each, its
@@ -633,7 +658,7 @@ Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.
   The panels say "calculating…" until it is done; a change to the network, the crossings, the weather, or a bridge
   planned or opened starts it again (a bridge's work in progress does not).
 - **The Water panel's site**: Build shows only for a kind that can be built now. A kind the stores cannot pay for says
-  what is missing ("Plank footbridge: missing 4.7 U planks") with **Saw planks ▸** (the Work screen's saw task when one is
+  what is missing ("Plank footbridge: missing 5 planks") with **Saw planks ▸** (the Work screen's saw task when one is
   queued, else the Woods panel -- nothing is ordered) or **Woods: fell or haul logs ▸**. Under it the **benefit**: up to
   three work trips that cross the water near the site, now and after ("the hall to the far bank by the mill: now about
   3.8 game hours, after about 3.3 game hours (14% quicker)"), who can use it, its cost from the Build card. A planned
@@ -800,7 +825,7 @@ centre under the alerts), each completed **only by what really happens in the vi
 | 4 | Ready the village for the frost | the first of: someone over the middle of an open bridge; someone walking through a tunnel and up 6 m or more from where they went down (not the digger, a dig crew or a tunnel job's worker); a bed with a crop covered, raised, banked, ditched or tunnel-drained |
 
 - **The card** teaches (what and why), says the current cause or blocker and the next legal action, and confirms the
-  real outcome ("5.1 U of carrot came into store") for 10 s of unpaused time or until Next; one already done before its
+  real outcome ("5 bunches of carrots came into store.") for 10 s of unpaused time or until Next; one already done before its
   card came up says "Already done:". A brass ring and a bobbing brass point mark its target in the world (a resident, a
   bed, the cauldron, a bridge, a tunnel mouth). **Show me** eases the camera over it (the target below the card) and
   opens a bed's, tunnel's or bridge's panel; a resident is only centred. **Help** opens this step's how-to. **Hide
@@ -845,7 +870,7 @@ the second tab; the Objectives tab's *Goals for after the guide* opens it). No n
 its completion are unchanged; once it completes, one Village news note (at the next game hour, after the guide's own
 line) points at the tab.
 
-- **Each goal** has a title, a short *why*, its parts' progress ("Harvested into store: 12.0 U of 40.0 U") and, reached,
+- **Each goal** has a title, a short *why*, its parts' progress ("Harvested into store: 2 of 8 baskets") and, reached,
   the date ("✓ Wood for the cold -- reached Y1 Spring 5, 03:00"). Its reward is **a Village news note** ("Goal reached:
   ...") -- the news strip shows it while fresh and the history keeps it. Nothing else is granted: no resource, unlock or
   mood. A reached goal stays reached.
@@ -877,7 +902,7 @@ book.bind_measure(&"m4_hearth_charter", &"fuel", warmth.fuel_winter_days_milli) 
 book.keep(warmth)   # if nothing else holds the measuring object (a Callable does not keep it alive)
 ```
 
-Units: `UNIT_COUNT`, `UNIT_MILLI` (thousandths, "12.0 U"), `UNIT_DAYS` (thousandths of a day) and `UNIT_FLAG` (1 or more
+Units: `UNIT_COUNT`, `UNIT_MILLI` (thousandths of a good, worded in its natural measure, "60 logs"), `UNIT_DAYS` (thousandths of a day) and `UNIT_FLAG` (1 or more
 is "yes"). A "none of X" goal measures a latch the feature keeps (1 once a winter ended with nobody chilled), since every
 part is read as at-least. Register before the first hour or after; a goal is first measured at the next hour.
 
@@ -902,7 +927,7 @@ part is read as at-least. Register before the first hour or after; a goal is fir
 | B (or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
-| PgUp / PgDn in the U view | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
+| PgUp / PgDn in Underground | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
 | L in the Dig tool | Lay a link down to level 2: once a ramp, again stairs, again back to tunnels (see The second level) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Left click a dug home or cellar | Select it for its fit-out in the same panel (see Fit-out and living) |
@@ -914,7 +939,7 @@ part is read as at-least. Register before the first hour or after; a goal is fir
 | End | Follow the selected resident; End again, or any pan, stops (see The camera's modes) |
 | Ctrl+Shift+1..4 / Shift+1..4 | Save the view as bookmark 1-4 / go back to it |
 | Shift+O | Orbit the building in the middle of the view, slowly; Esc or Shift+O stops |
-| Shift+U | The U view at its cutaway angle, framing the tunnels; Shift+U again gives your angle back |
+| Shift+U | The Underground at its cutaway angle, framing the tunnels; Shift+U again gives your angle back |
 | (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much earth it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul its earth to the village stores (Clear; see Spoil heaps) |
@@ -950,7 +975,7 @@ first name and first warning, else what it is doing: click centres the view on i
 it from the selection; the tiles are colour marks, not portraits -- the demo has no portrait art); **Crews** -- one
 press puts them all on Field, Woods, Diggers, Haulers or Builders (a crew they are all on already is disabled; the
 tooltip says who joins); **Send to…** -- the next left click on the world orders them there, as a right-click would
-(Esc cancels; in the U view right-click instead); and their control group's line. **Statuses come by data**
+(Esc cancels; in Underground right-click instead); and their control group's line. **Statuses come by data**
 (`control/group_status.gd`): a status is one row -- id, word, WARN or NOTE, and its owner's existing query -- added
 with `village.group_select().statuses.add(...)` where the owner is wired; the section shows it with no code of its own
 (built in: Can't get there, Hungry, Peckish, No bed, Idle). The single-resident inspector is unchanged.
@@ -1008,7 +1033,7 @@ rig stays the player's, and none of it reaches the simulation.
 | Ctrl+Shift+1..4 | **Save** the view (where the camera is going: centre, heading, pitch, distance) as bookmark 1-4 |
 | Shift+1..4 | **Go back** to a bookmark (eased; at once with reduced motion). An empty one says how to fill it. Bookmarks last the session and through Restart; nothing is saved to disk |
 | Shift+O | **Orbit** the village building nearest the middle of the view (within 12 m; else the middle itself): 35 degrees down, from a distance fitted to its size, turning six degrees a second -- paused too. Zoom and tilt still work; Esc, Shift+O, a pan, a turn, a bookmark or End stop it. Esc keeps its ladder: an open pop-up or panel, then the Dig tool's piece and the tool, come first; the orbit's stop before clearing the selection |
-| Shift+U | **The cutaway angle**: the U view (turned on if it is off) from 65 degrees down, over the middle of the network on the level shown, far enough to see all of it (18 m at the least). Shift+U again, or leaving the U view, gives back the pitch and distance you had. The camera only; the U view's lights are the tunnels' |
+| Shift+U | **The cutaway angle**: Underground (turned on if it is off) from 65 degrees down, over the middle of the network on the level shown, far enough to see all of it (18 m at the least). Shift+U again, or leaving Underground, gives back the pitch and distance you had. The camera only; Underground's lights are the tunnels' |
 
 A dark **strip** in its own row just above the command strip -- the village news stands on top of it while it shows, so
 neither covers the other -- says which mode is on ("Following Wenna Tallowby · End or a pan stops", "Orbiting the hall ·
@@ -1101,7 +1126,7 @@ Digging runs at the adopted excavation rate (113 ticks and 2 U of spoil per cubi
 `docs/underground_economy_hazard_amendment.md`); the bore size, the stoop that lets a squirrel
 through, the depth and the drawn size of a heap are demo values (`tunnel/tunnel_rules.gd`).
 
-## The underground view
+## Underground (the U key)
 
 U shows the village cut through at the tunnels' level, seen from above (decisions 0206 and 0207; the
 design is `docs/design/underground_revamp.md`, whose P0 and P1 these are). It is a **layer cutaway**: everything the demo
@@ -1122,9 +1147,9 @@ Mac with a lit tunnel, from 278 ms).
   where you are looking, flickering gently (`tunnel/tunnel_lanterns.gd`). Finds, the rooms with their
   furniture and the cellar's shelf, and anyone walking in a bore. A resident up on the surface shows as a
   small cream marker.
-- **Its own light**: the U view sets its own environment on the camera -- dark earth, a low cool-brown
+- **Its own light**: Underground sets its own environment on the camera -- dark earth, a low cool-brown
   ambient, SSAO, glow for the lanterns and a faint haze -- and the surface keeps the world's.
-- **Clicks land on the tunnels' floor** in the U view -- where the cap shows it -- so a route, a room or
+- **Clicks land on the tunnels' floor** in Underground -- where the cap shows it -- so a route, a room or
   an order goes where you point. Only the tunnel tool and the residents answer there; the farm, the
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
@@ -1149,12 +1174,12 @@ settled. Nothing opens onto it from the surface: it is reached only by a **link*
   slope, quanta, hours, spoil and its risers or grade (`tunnel/dig_readout.gd`); refusals say why (its head off
   level 1's network, a bend, too short or too long, a tunnel joining its slope, earth to keep from the tunnels it
   passes while it is near their height).
-- **Level 2** (PgDn in the U view): the Dig tool lays tunnels on the level shown. A piece there starts on its
+- **Level 2** (PgDn in Underground): the Dig tool lays tunnels on the level shown. A piece there starts on its
   network (a link's foot, a junction, a bore) and may end blind; it keeps its pillar from level 2's voids and
   crosses only level 2's bores. **Rooms** too (H, C): a level-2 room has no mound, no door or hatch on the
   surface, no ramp -- its door is a socket its passage joins, and it is placed only with that passage (dug first;
   call the digger away before either is begun and both are dropped, or the room alone and its door is left as the
-  passage's blind end). With the U view off the tool lays on level 1; U or PgUp/PgDn with the tool open re-lays on the
+  passage's blind end). With Underground off the tool lays on level 1; U or PgUp/PgDn with the tool open re-lays on the
   level now shown.
   Voids on different levels never meet: the spacing keeps 1 m of earth or more between them; a link keeps its pillar
   from each level only where its slope comes near that level's height.
@@ -1172,7 +1197,7 @@ settled. Nothing opens onto it from the surface: it is reached only by a **link*
   own section with its own void mask and strata, and draws the **other level as a faint outline** only. A link is
   drawn on both levels, each copy cut at its level's section; from level 1 its head is seen going down under the
   cut, from level 2 its foot coming up through it. Clicks land on the shown level's floor. A strip under the alerts
-  says which level is shown; holding PgUp/PgDn never zooms in the U view. The camera's pivot stays at the ground. Residents on the other level, or on a link's hidden middle, are cream markers. The
+  says which level is shown; holding PgUp/PgDn never zooms in Underground. The camera's pivot stays at the ground. Residents on the other level, or on a link's hidden middle, are cream markers. The
   surface's seams and vents, and a digger's mound, are level 1's only. Particles share P5's 200-particle budget and
   face slots; lights go to the level shown.
 
@@ -1231,7 +1256,7 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
 
 ## Fit-out and living (decision 0210)
 
-**Fixtures.** Click a dug burrow home or root cellar (in the U view, or its mound on the surface) and the
+**Fixtures.** Click a dug burrow home or root cellar (in Underground, or its mound on the surface) and the
 "Tunnels & burrows (demo)" panel shows it: its words, a palette row a kind with **+** and **−**, and the
 **Suggested layout** -- a whole cozy fit-out in one click, then edit it. A fixture goes on its template's
 place for it (`burrow/underground_rooms.gd FIXTURES`), paid from the demo stores all or nothing (refused in
@@ -1314,7 +1339,7 @@ where the covered store ages it at 1000 -- it keeps 2.8 times as long. Nothing a
 - **The Pantry says why** (`farm/farm_pantry_rows.gd` `why_text`): under the stores, "Why food keeps longer in some
   stores:", a line a store in its own words -- "Root cellar 1 — cool: deep, racked and away from any hearth: food keeps
   2.8× as long as in the covered store", a warm one "warm: a hearth within 3 m of it warms it" -- and a row with food in
-  hand says "· 5.0 U being moved to a cooler store". The Stocks rows already give each lot's store and its days to spoil.
+  hand says "· 5 bunches being moved to a cooler store". The Stocks rows already give each lot's store and its days to spoil.
 - **For later stores** (`farm/farm_storage.gd` STORAGE CLASS): a store declares its §5.8 class (`storage_class`, open
   pile 1500 / covered 1000 / pantry 750 / cellar 350) and its `why`; a ground pile or a stockpile zone that says OPEN_PILE
   is hauled from by the same rule. A cool cellar is the CELLAR class, a warm one keeps like a PANTRY.
@@ -1370,7 +1395,7 @@ their chalk rings as they are put in, with a puff when in; beds, the hearth, the
 the warning's pressure (250 per mille), growing to the strike: a seep darkens and wets its stretch of bore, glossy, a
 puddle spreading, drips from the crown; a strain cracks the walls over its weak section, sand stains and a spill
 on the floor, sand trickling from a sagging crown. Past the warning the news says so and the tunnel's ends are ringed
-in clay, above and in the U view. Braced, the signs go. The two worst seeps drip and the two worst strains trickle.
+in clay, above and in Underground. Braced, the signs go. The two worst seeps drip and the two worst strains trickle.
 
 **On the surface** (`tunnel/warren_signs.gd`, `tunnel/tunnel_mouth.gd`). A young tunnel's turf seam -- cut and relaid
 over its dug stretch, growing behind a dig's face -- heals over three game days; a tunnel at least 6 m long has an air
@@ -1433,15 +1458,15 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 
 - **Stocks** (first, and what it opens on): a table, one row per ingredient per store -- **In store**,
   **Incoming** (a harvest on its way there, its room reserved), the **Store**, and **Next to spoil** there ("all
-  in 10d", or "1.2 U in 1d 10h" when it is the first of several lots; GDD §5.8 spoilage by where it is kept).
+  in 10d", or "a bunch in 1d 10h" when it is the first of several lots; GDD §5.8 spoilage by where it is kept).
   Food that spoils within two game days goes first, soonest first, marked "Soon" in clay. The order is set
   when the Pantry opens (or Stocks is chosen) and **kept while it is open**: figures change in place, a new
-  row goes at the end, a row whose stock has gone stays reading "0 U", and a row whose store is taken away
+  row goes at the end, a row whose stock has gone stays reading "none", and a row whose store is taken away
   (a cellar's racks out) reads "(store gone)". Under it each store is a row: stored,
   reserved for harvests, free, capacity and how fast it ages food; then spoiled food and its compost button.
   An empty pantry says so and names a real source from the beds -- a ripe bed to harvest, else the bed that
   ripens soonest, else an empty bed to plant -- with an **Open bed N** button.
-  A row with food reserved for the kitchen says so ("· 2.0 U for the kitchen"); the table ends with each dish's
+  A row with food reserved for the kitchen says so ("· 2 baskets for the kitchen"); the table ends with each dish's
   portions, as ready food, and the water in the butt.
 - **Recipes**: every pantry item in catalog order with its stock -- the crops, then the catch, dried fish and flour
   (decision 0602) -- and the content library's dishes the picked one feeds. Every recipe-book dish the kitchen cooks
@@ -1540,7 +1565,7 @@ Harvest plan, Kitchen garden and Tending: decisions 0881-0885, above):
   who has it (or queued, paused, blocked), the next sowing. **Needs attention** (a warning Needs line, a harvest waiting
   for store room, a job nobody can reach) and **Harvest soon** (ripe, or within 24 game hours at today's rate) filter
   it, counted on their buttons. A growing crop's date is the bed panel's own "ripe in about N h" dated on the one
-  calendar -- "≈ Spring 9, 14:00 · about 5.1 U", an estimate at this hour's growth rate; a ripe crop's dates are the
+  calendar -- "≈ Spring 9, 14:00 · about 5 bunches", an estimate at this hour's growth rate; a ripe crop's dates are the
   rules' (full yield until 48 h after it ripened, withers at 120). A row (click or Enter) closes the planner, opens that
   bed and centres the camera on it -- the news' "Go to".
 - **Season calendar** (`farm/farm_season.gd`, `farm/farm_timeline.gd`): this season or the next, as a timeline of lanes
@@ -1670,7 +1695,7 @@ Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement si
   winter day, 1.5 U a cold spring or autumn day; GDD §5.9, REQ-SET-136) and its room holds **20 °C** (REQ-SET-130).
   The winter reads the hall's tier each game hour (`demo_winter.gd bind_hall_tier`). Today's demand, the fuel-days on
   the top bar, the last heated hour, the twelve-day projection, the Firewood order's target and M4's fuel goal all sum
-  each hearth at its own rate, and the breakdown names it ("1 hearth at 4.0 U, the hall at 3.0 U").
+  each hearth at its own rate, and the breakdown names it ("1 hearth at 4 logs, the hall at 3 logs").
 - **The day's mean** is the mean of its 24 hours' air, so a demo frost night's spring or autumn day (9.5 °C, 7.8 °C)
   demands heat and the hearths burn through the frost.
 - **Fuel-days** = the wood over today's heating demand plus the last three days' mean cooking wood; with no heating
@@ -2441,7 +2466,7 @@ one that gives up, puts its basket back on the heap -- nothing is delivered from
 **Spoil is earth, not compost** (decision 0401, Brendan's ruling of 2026-09-30, the adopted
 `excavated_earth` rule: dug earth is never fertiliser). What a tunnel digs out is earth. It is heaped at the mouth,
 carried, and then either built into a bed by **Raise** or **Bank** or kept -- on its heap, or in the stores, where
-the Tunnels and Water panels' stores line shows it ("earth 4.0 U"; it is not a top-bar figure). Raise and Bank fetch
+the Tunnels and Water panels' stores line shows it ("2 baskets of earth"; it is not a top-bar figure). Raise and Bank fetch
 it from whichever holds 2 U nearest the resident: a spoil heap, or the stores. Every milli-U goes through the farm's
 earth books (`farm/farm_tunnels.gd` EARTH): dug = on the heaps + in baskets + in hand + in the stores + built in, at
 every moment. A raise or bank cancelled (or refused at its bed, or unable to reach it) with earth in hand becomes
@@ -2515,7 +2540,7 @@ the curves, allocating nothing.
   (`set_home_lit`); without one, every home is lit at night. While the lamps are lit, the surface
   environment's glow is on, so the lanterns' emissive glass blooms. The lamps flicker gently in real time while the
   village runs, stand still while paused, and hold steady with reduced motion. The underground keeps its own pool of 32 (decision 0207).
-- **The underground is not touched.** The U view wears its own environment (decision 0206), which the cycle never
+- **The underground is not touched.** The Underground wears its own environment (decision 0206), which the cycle never
   writes. The light and the night lights reach only the surface layers.
 - **How often.** The light is written:
   - when the calendar has moved about a game minute (13 ticks);
@@ -2573,7 +2598,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 - **The listener** stands over the camera's focus, 0.4 of the zoom up, turned with the view: close in you hear the work at the focus;
   zoomed out the village settles to its ambience. A placed cue beyond its range takes no voice.
 - **Paused** (any pause: yours, the menu's, the stall banner's): wind, rain and water duck 12 dB, work and
-  water one-shots stop and none start; warnings and clicks still sound. **The U view** low-passes the world
+  water one-shots stop and none start; warnings and clicks still sound. **The Underground** low-passes the world
   above (ambience, water, surface work); with it off, digging below is the muffled one.
 - **The event map** (`sound/sound_taps.gd`) sounds only what the models have already committed: a carry
   beginning or ending (pickup, drop), entering or leaving the water, starting to swim or dive (splash), each
@@ -2777,7 +2802,7 @@ suppers (today's before 15:00), with a keeper who does not cook it (`feast/`).
   REQ-SET-103 amended by DEC-058); the kitchen seats the guests in turns at the hall's seats.
 - **Refused truthfully**, with the fix: a keeper who cooks, too few hands (2 cooks + 1 keeper), another feast planned
   (the regatta's included: one at a time) or begun within 72 game hours, any course's or the beverage's input short
-  ("needs mead: 2.0 U (0.0 U free) — the brewery's mead"), the service wood, the seats (ceil(E/3)), and REQ-SET-101's
+  ("needs mead: 0 of 2 jugs free — the brewery's mead"), the service wood, the seats (ceil(E/3)), and REQ-SET-101's
   reserves after it -- ready food without the feast's reservation and §5.8's fuel-days over the hearths and the
   kitchen -- unless **Override reserves** is on for this feast.
 - **Its own supper's food counts**: a feast called (or a regatta planned) for a supper the kitchen has already planned

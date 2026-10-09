@@ -101,7 +101,6 @@ func test_the_costs_are_the_table_s() -> void:
 		words.append(FixturesScript.cost_text(kind))
 	assert_equal(words, ["2 planks", "6 blocks of stone", "2 planks", "2 planks", "a log", "2 planks", "2 planks", "a log",
 		"a log", "4 planks"] as Array[String], "bed, hearth, table, shelf, rug, rack, bin, hanging stores, lantern, large bed")
-	assert_equal(FixturesScript.amounts_text(0, 0, 0), "nothing", "a free thing")
 	assert_equal(FixturesScript.cost_words(0, 0, 0), "nothing", "a free thing, in measures")
 	assert_equal(FixturesScript.cost_words(10000, 3000, 6000), "10 planks, 3 logs, 6 blocks of stone", "a layout's price")
 	assert_equal(FixturesScript.cost_words(0, 500, 0), "2 quarter logs", "below a log")

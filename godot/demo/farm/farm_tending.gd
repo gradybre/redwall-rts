@@ -383,8 +383,3 @@ static func beds_words(beds: PackedInt32Array) -> String:
 	if names.size() <= 1:
 		return "".join(names)
 	return "%s and %s" % [", ".join(names.slice(0, names.size() - 1)), names[names.size() - 1]]
-
-
-static func _units(milli: int) -> String:
-	"""Tenths of a unit: '1.0 U'."""
-	@warning_ignore("integer_division") return "%d.%d U" % [milli / 1000, (milli % 1000) / 100]

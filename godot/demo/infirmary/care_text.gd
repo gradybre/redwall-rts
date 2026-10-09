@@ -119,8 +119,3 @@ static func patch_line(patch_milli: int, floor_milli: int) -> String:
 	"""The herb patch: "Herb patch by the south road: 128 bunches (gathered down to 32 bunches)"."""
 	return "Herb patch by the south road: %s (gathered down to %s)" % [Measures.amount_cell(&"herb", patch_milli),
 		Measures.exact_cell(&"herb", floor_milli)]
-
-
-static func units(milli: int) -> String:
-	"""Milli-U as U with one decimal, floored: "11.5"."""
-	return "%d.%d" % [milli / 1000, (milli % 1000) / 100]

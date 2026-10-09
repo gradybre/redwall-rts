@@ -214,6 +214,9 @@ var _stack_at: PackedVector2Array = PackedVector2Array()
 var _wait_at: PackedVector2Array = PackedVector2Array()
 var _log_drop: Vector2 = Vector2.ZERO
 var _closed_said: int = Rules.OPEN
+## The row's and the ride's calendar ticks, worked out on first use (-1: not yet; the route and stages are fixed).
+var _row_t: int = -1
+var _ride_t: int = -1
 
 
 func configure(p_cast: DemoCastScript, p_fleet: FleetScript, p_skills: SkillsScript, p_ice: IceScript,
@@ -1266,13 +1269,22 @@ func seat_free() -> bool:
 func wait_ticks(from: int) -> int:
 	"""Calendar ticks a passenger at stage `from` waits to board (NONE: no boarding in sight -- closed, unstaffed, or the
 	boat held): a crossing posted and waiting for its crew, the crew's walk to the ferry stage (plus the row out, for the
-	far stage); at once where this crossing's boat is (or is rowing to: its row); else its next call there -- the next
-	scheduled departure from home, plus its row out for the far stage."""
-	if not is_open() or not staffed() or x_state == X_HELD:
-		return NONE
+	far stage); at once where this crossing's boat loads (the far stage: or is rowing to, its row; at home it loads only
+	setting out -- rowing home it only unloads); else its next call there -- the next scheduled departure from home, plus
+	its row out for the far stage."""
+	return _wait_when_boardable(from) if boardable() else NONE
+
+
+func boardable() -> bool:
+	"""Whether anyone may be offered a boarding: open, staffed and not held at the far stage."""
+	return is_open() and staffed() and x_state != X_HELD
+
+
+func _wait_when_boardable(from: int) -> int:
+	"""`wait_ticks` once `boardable` holds."""
 	if x_serial != 0 and x_state == X_WAITING:
 		return _crew_walk_ticks() + (_row_ticks() if from == FAR else 0)
-	if x_serial != 0 and x_stage == from:
+	if x_serial != 0 and x_stage == from and (from == FAR or x_state == X_LOADING):
 		return _row_ticks() if x_state == X_ROWING else 0
 	var depart: int = maxi(next_departure - now_tick(), 0)
 	if x_serial != 0:
@@ -1283,8 +1295,10 @@ func wait_ticks(from: int) -> int:
 
 
 func _row_ticks() -> int:
-	"""Calendar ticks the ferry's row takes, one way (rounded up)."""
-	return BoatRows.ticks_to_cover(Routes.route_length_u(Routes.FERRY_BOAT), FleetScript.ROW_SPEED_U_S)
+	"""Calendar ticks the ferry's row takes, one way (rounded up; its route is fixed, so worked out once)."""
+	if _row_t < 0:
+		_row_t = BoatRows.ticks_to_cover(Routes.route_length_u(Routes.FERRY_BOAT), FleetScript.ROW_SPEED_U_S)
+	return _row_t
 
 
 func _crew_walk_ticks() -> int:
@@ -1300,19 +1314,22 @@ func _crew_walk_ticks() -> int:
 
 func ride_ticks() -> int:
 	"""A passenger's ride, stage to stage, in calendar ticks: down one stage's deck and up the other's at
-	Rules.DECK_WALK_MM_S, and the row between them (each rounded up)."""
+	Rules.DECK_WALK_MM_S, and the row between them (each rounded up; worked out once)."""
+	if _ride_t >= 0:
+		return _ride_t
 	var decks_u: int = 0
 	for stage: int in 2:
 		var jetty: int = STAGE_JETTY[stage]
 		decks_u += Routes.leg_length_u(Routes.JETTY_LANDS_U[jetty], Routes.JETTY_ENDS_U[jetty])
 	@warning_ignore("integer_division") var decks_mm: int = decks_u * BoatRows.MM_PER_M / WaterRules.UNITS_PER_M
-	return BoatRows.ticks_to_cover(decks_mm, Rules.DECK_WALK_MM_S) + _row_ticks()
+	_ride_t = BoatRows.ticks_to_cover(decks_mm, Rules.DECK_WALK_MM_S) + _row_ticks()
+	return _ride_t
 
 
 func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _carrying: bool) -> void:
 	"""The ferry's boat row for `walker` (see PASSENGERS): open between the two stages with its ride and its longest
 	wait, and at each stage its boardings with the seat free -- none while closed, unstaffed or held."""
-	if walker < 0 or walker >= p_state.size() or fleet == null:
+	if walker < 0 or walker >= p_state.size() or fleet == null or not boardable():
 		return
 	rows.open_row(r, stage_land(NEAR), stage_land(FAR), ride_ticks(), Rules.MAX_WAIT_TICKS)
 	for stage: int in 2:
@@ -1320,20 +1337,26 @@ func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _carryin
 
 
 func _list_boardings(rows: BoatRows, r: int, stage: int, walker: int) -> void:
-	"""Stage `stage`'s boardings, in ticks from now: the one in sight (`wait_ticks`; skipped when another passenger has
-	booked its seat), then each later scheduled departure from home (the far stage a row later), MAX_BOARDINGS at most."""
-	var first: int = wait_ticks(stage)
-	if first == NONE:
-		return
-	if not _booked(stage, walker):
-		rows.add_boarding(r, stage, first)
+	"""Stage `stage`'s boardings, in ticks from now (see boat_rows.gd A ROW): the one in sight (`wait_ticks`; skipped
+	when another passenger has booked its seat), then each later scheduled departure from home (the far stage a row
+	later, and none due before the crossing under way is home again), MAX_BOARDINGS at most. A crossing under way comes
+	whenever the walker gets there (ready by its boarding); a scheduled one is posted only for a passenger already waiting
+	when it leaves home (ready by its departure)."""
+	var first: int = _wait_when_boardable(stage)
 	var offset: int = _row_ticks() if stage == FAR else 0
 	var now: int = now_tick()
-	var depart: int = now + first - offset
-	while rows.board_count[r * 2 + stage] < BoatRows.MAX_BOARDINGS:
+	if not _booked(stage, walker):
+		rows.add_boarding(r, stage, first if x_serial != 0 else maxi(first - offset, 0), first)
+	var depart: int = maxi(now + first - offset, _home_again(now) - 1)
+	for k: int in BoatRows.MAX_BOARDINGS * 2:
 		depart = Rules.departure_tick_at_or_after(depart + 1)
-		if not rows.add_boarding(r, stage, depart + offset - now):
-			return
+		rows.add_boarding(r, stage, depart - now, depart + offset - now)
+
+
+func _home_again(now: int) -> int:
+	"""The earliest tick the crossing under way can be home to take a scheduled departure: its far stage's boarding and
+	the row back (none under way: `now`). A departure due while it is out is not posted (`_follow_timetable`)."""
+	return now + _wait_when_boardable(FAR) + _row_ticks() if x_serial != 0 else now
 
 
 func _booked(stage: int, walker: int) -> bool:

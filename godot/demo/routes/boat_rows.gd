@@ -4,20 +4,24 @@ extends RefCounted
 ##
 ## A ROW (packed columns, MAX_ROWS rows, sized once): its two landings' land ends (end a, end b; metres, where the
 ## router's nodes stand), the ride in calendar ticks (deck walks and the row, landing to landing), the longest wait a
-## passenger accepts in ticks, and for each landing up to MAX_BOARDINGS upcoming BOARDINGS in ticks from now, strictly
-## ascending, each one with a seat free for the walker the row is filled for. A boat row's service (boat_service.gd)
+## passenger accepts in ticks, and for each landing up to MAX_BOARDINGS upcoming BOARDINGS, each one with a seat free for
+## the walker the row is filled for. A boarding is two ticks from now: when the boat BOARDS there, and the latest the
+## walker must be there for it to come at all (READY BY: the ferry's far stage is called by a passenger waiting there
+## when the boat leaves home, a row before it boards). Both strictly ascending; ready by <= board. A boat row's service (boat_service.gd)
 ## fills it for each trip; a closed, unstaffed or full boat lists no boardings, and a row with none is not offered.
 ## Crossing rows ROW0 .. ROW0 + MAX_ROWS - 1 are boat rows (water_crossings.gd); the ferry is row 0 (FERRY_ROW 3500).
 ##
 ## WAITING FOR THE BOAT. A bridge costs the same whenever it is reached; a boat does not. The router asks `far_mm` when it
 ## settles a landing at label `at_mm` (millimetres at the walker's pace, PACE): the walker reaches the landing at tick
-## `ticks_to_cover(at_mm, pace)` (rounded up), boards the first boarding at or after it, and stands at the other landing
-## at `max(at_mm, boarding) + ride`, both as millimetres at its pace. No boarding listed from then, or a wait longer
-## than the row's limit: no crossing (NONE).
+## `ticks_to_cover(at_mm, pace)` (rounded up), takes the first boarding it is ready by, and stands at the other landing at
+## `boarding + ride`, as millimetres at its pace (never before `at_mm`: the boarding is at or after the arrival). None
+## listed from then: no crossing (NONE).
 ##
 ## WHY THE SEARCH STAYS EXACT. A timetable is FIFO: reaching a landing later never boards earlier. So `far_mm` never falls
 ## as `at_mm` rises, Dijkstra's labels stay correct, and the router's lazy surface lower bounds (tunnel_router.gd LAZY
-## SURFACE COSTS) stay lower bounds through a boat row: an earlier arrival boards no later.
+## SURFACE COSTS) stay lower bounds through a boat row: an earlier arrival boards no later. THE WAIT LIMIT is not FIFO (an
+## earlier arrival may wait too long where a later one would not), so `far_mm` ignores it; the router checks it on the
+## route it has found, at the landing's exact label (`over_limit`), and plans again without that landing's boat if over.
 ##
 ## INTEGERS. Ticks and millimetres (or any length unit, with a speed in the same unit a second). The calendar's own
 ## exact ratio converts them (demo_calendar.gd HOUR_USEC: 25 s, 750 ticks a game hour). Nothing here reads a float.
@@ -45,6 +49,7 @@ var max_wait_ticks: PackedInt32Array = PackedInt32Array()
 ## Per row and landing (row * 2 + end): how many boardings are listed, and the boardings themselves (MAX_BOARDINGS each).
 var board_count: PackedInt32Array = PackedInt32Array()
 var boards: PackedInt64Array = PackedInt64Array()
+var ready_by: PackedInt64Array = PackedInt64Array()
 
 
 func _init() -> void:
@@ -56,6 +61,7 @@ func _init() -> void:
 	max_wait_ticks.resize(MAX_ROWS)
 	board_count.resize(MAX_ROWS * 2)
 	boards.resize(MAX_ROWS * 2 * MAX_BOARDINGS)
+	ready_by.resize(MAX_ROWS * 2 * MAX_BOARDINGS)
 
 
 static func is_boat_row(row: int) -> bool:
@@ -95,42 +101,50 @@ func open_row(r: int, end_a: Vector2, end_b: Vector2, ride: int, max_wait: int) 
 	max_wait_ticks[r] = maxi(max_wait, 0)
 
 
-func add_boarding(r: int, end: int, tick: int) -> bool:
-	"""List a boarding at landing `end` (0: a, 1: b) of open row `r`, `tick` ticks from now. False, nothing listed, when
-	the row is closed, the landing's list is full, or `tick` is negative or not after the last one listed."""
+func add_boarding(r: int, end: int, ready: int, board: int) -> bool:
+	"""List a boarding at landing `end` (0: a, 1: b) of open row `r`: the walker there by tick `ready`, boarding at tick
+	`board` (ticks from now). False, nothing listed, when the row is closed, the landing's list is full, `ready` is
+	negative or after `board`, or either is not after the last one listed."""
 	var at: int = r * 2 + end
 	var n: int = board_count[at]
-	if open[r] == 0 or n >= MAX_BOARDINGS or tick < 0:
+	if open[r] == 0 or n >= MAX_BOARDINGS or ready < 0 or board < ready:
 		return false
-	if n > 0 and tick <= boards[at * MAX_BOARDINGS + n - 1]:
+	var last: int = at * MAX_BOARDINGS + n - 1
+	if n > 0 and (ready <= ready_by[last] or board <= boards[last]):
 		return false
-	boards[at * MAX_BOARDINGS + n] = tick
+	boards[last + 1] = board
+	ready_by[last + 1] = ready
 	board_count[at] = n + 1
 	return true
 
 
 func offered(r: int) -> bool:
 	"""Whether row `r` is open with a boarding listed at either landing."""
-	return open[r] == 1 and board_count[r * 2] + board_count[r * 2 + 1] > 0
+	return board_count[r * 2] + board_count[r * 2 + 1] > 0
 
 
-func first_boarding(r: int, end: int, from_tick: int) -> int:
-	"""The first boarding at landing `end` of row `r` at or after `from_tick` (NONE: none listed)."""
-	var at: int = r * 2 + end
-	for k: int in board_count[at]:
-		var tick: int = boards[at * MAX_BOARDINGS + k]
-		if tick >= from_tick:
-			return tick
+func first_boarding(r: int, end: int, arrive: int) -> int:
+	"""The first boarding at landing `end` of row `r` a walker there at tick `arrive` is ready by (NONE: none listed)."""
+	var at: int = (r * 2 + end) * MAX_BOARDINGS
+	for k: int in board_count[r * 2 + end]:
+		if ready_by[at + k] >= arrive:
+			return boards[at + k]
 	return NONE
 
 
 func far_mm(r: int, end: int, at_mm: int) -> int:
 	"""Where a walker settled at landing `end` of row `r` at label `at_mm` stands at the other landing, as millimetres at
-	`pace_mm_s` (see WAITING FOR THE BOAT); NONE when it cannot board in time."""
-	if open[r] == 0:
+	`pace_mm_s` (see WAITING FOR THE BOAT); NONE when no boarding is listed from its arrival. The wait limit is not
+	applied (see WHY THE SEARCH STAYS EXACT)."""
+	var board: int = first_boarding(r, end, ticks_to_cover(at_mm, pace_mm_s))
+	if board == NONE:
 		return NONE
+	return distance_in(board, pace_mm_s) + distance_in(ride_ticks[r], pace_mm_s)
+
+
+func over_limit(r: int, end: int, at_mm: int) -> bool:
+	"""Whether a walker at landing `end` of row `r` at label `at_mm` would wait longer than the row's limit for its
+	boarding (or has none)."""
 	var arrive: int = ticks_to_cover(at_mm, pace_mm_s)
 	var board: int = first_boarding(r, end, arrive)
-	if board == NONE or board - arrive > max_wait_ticks[r]:
-		return NONE
-	return maxi(at_mm, distance_in(board, pace_mm_s)) + distance_in(ride_ticks[r], pace_mm_s)
+	return board == NONE or board - arrive > max_wait_ticks[r]

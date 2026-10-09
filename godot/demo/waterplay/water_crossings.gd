@@ -112,6 +112,11 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _revision: int = 0
 
 
+func _init() -> void:
+	"""A row for each boat row's service (none yet), so a service may be added before `configure`."""
+	_boat_services.resize(BoatRowsScript.MAX_ROWS)
+
+
 func configure(cast: DemoCastScript, water_map: WaterMapScript, water_links: LinksScript,
 		bridge_rows: BridgesScript, swim_state: StateScript, swim_motion: MotionScript) -> void:
 	"""Answer for `cast` over these water parts; one leg row per resident."""
@@ -127,7 +132,6 @@ func configure(cast: DemoCastScript, water_map: WaterMapScript, water_links: Lin
 	_leg_phase.resize(n)
 	_ashore_land.resize(n)
 	_ashore_water.resize(n)
-	_boat_services.resize(BoatRowsScript.MAX_ROWS)
 	_pick_rows.resize(RouterScript.MAX_CROSSING_PAIRS)
 	_pick_cost.resize(RouterScript.MAX_CROSSING_PAIRS)
 	_near_d.resize(RouterScript.MAX_CROSSING_PAIRS)
@@ -194,11 +198,10 @@ func _pick_boats(walker: int, from: Vector2, loaded: bool) -> void:
 
 
 func pace_mm_s(walker: int, loaded: bool) -> int:
-	"""`walker`'s pace on land for the boat rows, mm a second: its walk speed, its carry's share of it when loaded (as
-	the ferry has always priced a load: CARRY_WALK_FRACTION)."""
-	var walk: float = (_cast.actor(walker) as DemoActorScript).brain.walk_speed
-	var share: float = BrainScript.CARRY_WALK_FRACTION if loaded else 1.0
-	return maxi(1, roundi(walk * share * float(BoatRowsScript.MM_PER_M)))
+	"""`walker`'s pace on land for the boat rows, mm a second: the pace it really walks a planned route's metres at,
+	carrying when `loaded` (resident_brain.gd `base_speed`: the router's surface costs already carry the weather)."""
+	var brain: BrainScript = (_cast.actor(walker) as DemoActorScript).brain
+	return maxi(1, roundi(brain.base_speed(loaded) * float(BoatRowsScript.MM_PER_M)))
 
 
 func offer_into(router: RefCounted, walker: int, from: Vector2, to: Vector2, loaded: bool) -> void:
@@ -455,7 +458,7 @@ func turn_back(brain: RefCounted) -> bool:
 	there. True when it turned (it was mid-swim and the start was nearer)."""
 	var who: int = brain.index
 	var row: int = _leg_row[who]
-	if row < LINK_ROW0 or row == ASHORE_ROW or BoatRowsScript.is_boat_row(row) or _leg_phase[who] != PHASE_ACROSS:
+	if row < LINK_ROW0 or row == ASHORE_ROW or _leg_phase[who] != PHASE_ACROSS:
 		return false
 	var reverse: bool = _leg_reverse[who] == 1
 	var back: Vector2 = _leg_point(row, 1, reverse)

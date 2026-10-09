@@ -507,17 +507,18 @@ func _filled(rig: Rig, walker: int) -> BoatRowsScript:
 	return rows
 
 
-static func _boardings(rows: BoatRowsScript, stage: int) -> PackedInt64Array:
-	"""Row 0's boardings at `stage`, in ticks from now."""
+static func _boardings(rows: BoatRowsScript, stage: int, ready: bool = false) -> PackedInt64Array:
+	"""Row 0's boardings at `stage` (or, `ready`, the ticks a walker must be there by for each), in ticks from now."""
 	var at: int = stage * BoatRowsScript.MAX_BOARDINGS
-	return rows.boards.slice(at, at + rows.board_count[stage])
+	return (rows.ready_by if ready else rows.boards).slice(at, at + rows.board_count[stage])
 
 
 func test_the_ferrys_boat_row_lists_the_timetable_from_each_stage_and_its_ride() -> void:
 	"""Decision 1821. At 09:00 with a helm: open between the stage's land ends; its ride is both decks at 600 mm/s (3379 u
 	+ 3404 u = 6624 mm: 332 ticks) and the row (10362 u at 819 u/s: 380 ticks); its longest wait 2 game hours. At the
 	ferry stage the boardings are the departures from 10:00 every two hours to 18:00, then 06:00 next day, eight in all
-	(the first is `wait_ticks`); at the far stage each one a row later."""
+	(the first is `wait_ticks`), each ready by when it boards; at the far stage each one a row later, and ready by when
+	the boat leaves home -- a scheduled crossing is posted only for a passenger already waiting."""
 	var rig: Rig = _rig(9)
 	_helm(rig, 4, 2)
 	assert_equal(rig.ferry.ride_ticks(), 332 + 380, "the ride")
@@ -536,6 +537,55 @@ func test_the_ferrys_boat_row_lists_the_timetable_from_each_stage_and_its_ride()
 	assert_equal(far.size(), BoatRowsScript.MAX_BOARDINGS, "eight at the far stage")
 	for k: int in far.size():
 		assert_equal(far[k], near[k] + 380, "far boarding %d: a row after its departure" % k)
+	assert_equal(_boardings(rows, FerryScript.NEAR, true), near, "home: ready by the boarding")
+	assert_equal(_boardings(rows, FerryScript.FAR, true), near, "far: ready by the departure from home")
+
+
+func test_a_walker_reaching_the_far_stage_after_the_boat_left_home_is_offered_the_next() -> void:
+	"""The review's finding (decision 1821): at 09:00 the 10:00 crossing boards at the far stage at 10:00 plus the row
+	(1130), but it leaves home only for someone already waiting there at 10:00 (750). A walker there at 850 is offered
+	the 12:00 one (2250 + 380); one there by 750 the 10:00 one."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	var rows: BoatRowsScript = _filled(rig, 2)
+	var hour: int = SimClock.TICKS_PER_HOUR
+	assert_equal(rows.first_boarding(0, FerryScript.FAR, hour), hour + 380, "there by 10:00")
+	assert_equal(rows.first_boarding(0, FerryScript.FAR, 850), 3 * hour + 380, "there at 850: the 12:00 crossing")
+
+
+func test_a_crossing_under_way_comes_for_whoever_waits_and_takes_no_departure_while_out() -> void:
+	"""Posted for its crew (the crew's walk to the stage), the crossing boards at home whenever the walker gets there by
+	its boarding, and at the far stage a row later; no scheduled departure is listed before it can be home again."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(rig.ferry.order_send(PackedInt32Array([4])), "", "sent")
+	var rows: BoatRowsScript = _filled(rig, 2)
+	var near: PackedInt64Array = _boardings(rows, FerryScript.NEAR)
+	var far: PackedInt64Array = _boardings(rows, FerryScript.FAR)
+	assert_equal(near[0], rig.ferry.wait_ticks(FerryScript.NEAR), "home: the crew's walk")
+	assert_equal(_boardings(rows, FerryScript.NEAR, true)[0], near[0], "ready by its boarding: it comes anyway")
+	assert_equal(far[0], near[0] + 380, "far: a row later")
+	assert_equal(_boardings(rows, FerryScript.FAR, true)[0], far[0], "ready by its boarding there too")
+	assert_true(near[1] >= far[0] + 380, "the next departure from home no sooner than it is home again (%d)" % near[1])
+
+
+func test_rowing_home_the_boat_boards_nobody_at_home() -> void:
+	"""At home a crossing loads only setting out: loading there, a passenger boards now; rowing home (it only unloads
+	there), the wait at home is the next departure, not the row; rowing out to the far stage, the far stage waits a
+	row."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	rig.ferry.x_serial = 7
+	rig.ferry.x_stage = FerryScript.NEAR
+	rig.ferry.x_state = FerryScript.X_LOADING
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), 0, "loading at home: now")
+	rig.ferry.x_state = FerryScript.X_ROWING
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), SimClock.TICKS_PER_HOUR, "rowing home: the 10:00 departure")
+	rig.ferry.x_stage = FerryScript.FAR
+	assert_equal(rig.ferry.wait_ticks(FerryScript.FAR), 380, "rowing out: the row")
+	rig.ferry.x_serial = 0
+	rig.ferry.x_state = FerryScript.X_NONE
 
 
 func test_a_seat_booked_at_a_stage_offers_the_next_boarding_there() -> void:
@@ -578,8 +628,23 @@ func test_a_posted_crossing_waits_for_its_crews_walk_in_whole_ticks() -> void:
 	crew.walk_speed = 0.8
 	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), BoatRowsScript.ticks_to_cover(mm, 800), "at 0.8 m/s")
 	crew.walk_speed = 0.0
-	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), BoatRowsScript.ticks_to_cover(mm, FerryScript.MIN_WALK_MM_S),
-		"standing still: at the floor")
+	@warning_ignore("integer_division") var floor_ticks: int = (mm * 3 + 9) / 10
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), floor_ticks, "standing still: at 100 mm/s, 0.3 ticks a mm")
+
+
+func test_the_ferrys_row_is_filled_at_the_walkers_own_pace() -> void:
+	"""Through the water's crossings, the row a trip over the water is offered is filled for its walker at its walk
+	speed (resident_brain.gd `base_speed`), with the ferry's boardings."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	var brain: BrainScript = rig.ferry.brain_of(5)
+	brain.walk_speed = 0.74
+	var crossings: CrossingsScript = rig.play.crossings
+	assert_true(crossings.offers_for(5, rig.ferry.stage_land(FerryScript.NEAR), rig.ferry.copse_at[0], false), "offered")
+	assert_equal(crossings.boat_rows.pace_mm_s, 740, "at its pace")
+	assert_true(crossings.boat_rows.offered(CrossingsScript.FERRY_BOAT_ROW), "the ferry's row")
+	assert_equal(_boardings(crossings.boat_rows, FerryScript.NEAR), _boardings(_filled(rig, 5), FerryScript.NEAR),
+		"its boardings")
 
 
 func test_the_wait_is_priced_from_when_the_walker_reaches_the_stage() -> void:

@@ -30,7 +30,10 @@ extends RefCounted
 ## BOAT ROWS (decision 1821, demo/routes/boat_rows.gd). A boat crossing (`add_boat_crossing`: the ferry) has no fixed
 ## cost: the boat runs to a timetable. When the search settles one of its landings, the edge to the other is priced from
 ## that label -- the wait for the first boarding from when the walker gets there, then the ride (`_relax_boat`). A
-## timetable is FIFO, so the labels and the lazy surface bounds stay exact.
+## timetable is FIFO, so the labels and the lazy surface bounds stay exact. The longest wait a boat's passenger accepts
+## is not FIFO, so it is checked once a route is found with every surface edge on it real (`_drop_long_waits`): a boat
+## leg whose wait at its landing's exact label is over the limit takes that landing's boat out of this plan, and the
+## search runs again.
 ##
 ## WEATHER, LANTERNS AND QUEUES (demo). Costs are compared as WALKING TIME in metres-at-walk-speed: a
 ## surface edge is its length times 1000 / `surface_permille` (the weather's), while a tunnel edge -- dry and
@@ -119,6 +122,8 @@ var _partner: PackedInt32Array = PackedInt32Array()
 var _partner_cost: PackedFloat32Array = PackedFloat32Array()
 ## Per stop: its boat row in `_boats` (-1: not a boat crossing's landing; see BOAT ROWS).
 var _boat: PackedInt32Array = PackedInt32Array()
+## Per stop: 1 when its boat is out of this plan (a wait over the limit; see BOAT ROWS).
+var _boat_off: PackedByteArray = PackedByteArray()
 var _boats: BoatRowsScript = null
 var _count: int = 0
 var _graph: GraphScript = null
@@ -153,6 +158,8 @@ func _init() -> void:
 	for column: PackedFloat32Array in [_wait, _partner_cost, _dist]:
 		column.resize(MAX_NODES)
 	_via.resize(MAX_NODES)
+	_boat_off.resize(MAX_NODES)
+	_boat.fill(-1)
 	_done.resize(MAX_NODES)
 	_tunnel_cost.resize(MAX_NODES * MAX_NODES)
 	_weight.resize(MAX_NODES * MAX_NODES)
@@ -215,6 +222,9 @@ func add_boat_crossing(row: int, boats: BoatRowsScript, r: int) -> bool:
 	reaches each landing (see BOAT ROWS). False (nothing offered) as `add_crossing`, or when `r` is not open."""
 	if boats == null or r < 0 or r >= BoatRowsScript.MAX_ROWS or boats.open[r] == 0:
 		return false
+	if _boats != null and _boats != boats:
+		push_error("tunnel_router: one plan's boat rows come from one table")
+		return false
 	if not add_crossing(row, boats.land_a[r], boats.land_b[r], 0.0):
 		return false
 	_boat[_count - 2] = r
@@ -271,11 +281,11 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 	_begin(nav, body, standing, standing_count, revision)
 	_goal_node = goal_node if _graph != null else -1
 	_reset(from, to)
-	for round_index in MAX_NODES * MAX_NODES + 1:
+	for round_index in MAX_NODES * MAX_NODES + 2 * MAX_CROSSING_PAIRS + 1:
 		_search()
 		if _dist[GOAL] == INF:
 			break
-		if _refine() == 0:
+		if _refine() == 0 and _drop_long_waits() == 0:
 			_emit(out, legs)
 			_release()
 			return true
@@ -289,6 +299,7 @@ func _release() -> void:
 	plan is a reference cycle that kept both alive after the world dropped them (decision 0501)."""
 	_graph = null
 	_nav = null
+	_boats = null
 
 
 func _fallback(from: Vector2, to: Vector2, out: PackedVector2Array, legs: PackedInt32Array, below: bool) -> void:
@@ -327,6 +338,7 @@ func _reset(from: Vector2, to: Vector2) -> void:
 	_mouth[START] = -1
 	_mouth[GOAL] = -1
 	for u in _count:
+		_boat_off[u] = 0
 		for v in _count:
 			var edge := u * MAX_NODES + v
 			_weight[edge] = _node[u].distance_to(_node[v]) * _surface_scale()
@@ -391,18 +403,39 @@ func _relax_all(u: int) -> void:
 	var partner := _partner[u] if u >= FIRST_STOP else -1
 	if partner >= 0 and _done[partner] == 0:
 		if _boat[u] >= 0:
-			_relax_boat(u, partner)
+			if _boat_off[u] == 0:
+				_relax_boat(u, partner)
 		else:
 			_relax(u, partner, _partner_cost[u], VIA_CROSSING)
 
 
 func _relax_boat(u: int, partner: int) -> void:
 	"""Relax a boat crossing from landing u, settled now, to its partner: the far landing's label in integer millimetres
-	at the walker's pace from the timetable (boat_rows.gd WAITING FOR THE BOAT); no edge when it cannot board in time."""
-	var at_mm: int = ceili(_dist[u] * float(BoatRowsScript.MM_PER_M))
-	var far: int = _boats.far_mm(_boat[u], (_key[u] - Rules.MAX_MOUTHS) % 2, at_mm)
+	at the walker's pace from the timetable (boat_rows.gd WAITING FOR THE BOAT); no edge when no boarding is listed from
+	its arrival."""
+	var far: int = _boats.far_mm(_boat[u], (_key[u] - Rules.MAX_MOUTHS) % 2, _label_mm(u))
 	if far != BoatRowsScript.NONE:
 		_relax_to(u, partner, float(far) / float(BoatRowsScript.MM_PER_M), VIA_CROSSING)
+
+
+func _drop_long_waits() -> int:
+	"""Take out of this plan the boat at every landing on the best path whose wait there, at its exact label, is over the
+	boat's limit (see BOAT ROWS); how many were taken out."""
+	var dropped := 0
+	var v := GOAL
+	while v != START:
+		var u := _prev[v]
+		if _via[v] == VIA_CROSSING and _boat[u] >= 0 \
+				and _boats.over_limit(_boat[u], (_key[u] - Rules.MAX_MOUTHS) % 2, _label_mm(u)):
+			_boat_off[u] = 1
+			dropped += 1
+		v = u
+	return dropped
+
+
+func _label_mm(u: int) -> int:
+	"""Node u's label in whole millimetres, rounded up (a boat row's reading of it)."""
+	return ceili(_dist[u] * float(BoatRowsScript.MM_PER_M))
 
 
 func _settle_nearest() -> bool:

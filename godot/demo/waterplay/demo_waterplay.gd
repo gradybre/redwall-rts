@@ -695,13 +695,13 @@ func _bridge_costs(survey: BridgesScript.Survey) -> void:
 	"""The bridge's material rows: planks and pier wood, or a log's wood (none from the stores off a ready trunk)."""
 	var stores: StoresScript = services.stores
 	if survey.kind == Rules.KIND_PLANK:
-		_card.add_cost("Planks", stores.plank_milli_u, survey.planks_milli)
+		_card.add_cost("Planks", &"planks", stores.plank_milli_u, survey.planks_milli)
 		if survey.wood_milli > 0:
-			_card.add_cost("Wood (piers)", stores.wood_milli_u, survey.wood_milli)
+			_card.add_cost("Wood (piers)", &"wood", stores.wood_milli_u, survey.wood_milli)
 	elif _source_kind == CrewScript.SOURCE_TRUNK and survey.ok:
 		_card.result += TRUNK_NOTE
 	else:
-		_card.add_cost("Wood (a log)", stores.wood_milli_u, Rules.LOG_WOOD_MILLI)
+		_card.add_cost("Wood (a log)", &"wood", stores.wood_milli_u, Rules.LOG_WOOD_MILLI)
 
 
 func _build_who(survey: BridgesScript.Survey, members: PackedInt32Array) -> void:

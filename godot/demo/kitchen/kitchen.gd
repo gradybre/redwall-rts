@@ -2347,9 +2347,9 @@ func preview_cook_into(card: CardScript, members: PackedInt32Array) -> void:
 		card.result = "%d batches of %s: %d portions of %d NP" % [d.batches, Rules.DISH_NAMES[d.dish].to_lower(),
 			d.batches * Rules.PORTIONS_PER_BATCH[d.dish], Rules.NP_PER_PORTION[d.dish]]
 		for k: int in d.input_have.size():
-			card.add_cost(Words.input_words(d.dish, k).capitalize(), d.input_have[k], d.input_need[k])
-		card.add_cost("Water", d.water_have, d.water_need)
-		card.add_cost("Wood", d.wood_have, d.wood_need)
+			card.add_cost(Words.input_words(d.dish, k).capitalize(), Rules.input_good(d.dish, k), d.input_have[k], d.input_need[k])
+		card.add_cost("Water", &"water", d.water_have, d.water_need)
+		card.add_cost("Wood", &"wood", d.wood_have, d.wood_need)
 		card.work_usec = CalendarScript.usec_for_ticks(d.batches * Rules.batch_ticks(d.dish))
 		card.work_note = ", plus fetching and the walk"
 	card.who = d.who

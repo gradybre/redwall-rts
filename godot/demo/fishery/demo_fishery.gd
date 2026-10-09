@@ -64,6 +64,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Recipes := preload("res://demo/preserve/preserve_rules.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const RationReserveScript := preload("res://demo/preserve/ration_reserve.gd")
 const PlanScript := preload("res://demo/fishery/catch_plan.gd")
 const RollsScript := preload("res://demo/fishery/fishing_rolls.gd")
@@ -826,9 +827,9 @@ func make_card(kind: int, members: PackedInt32Array) -> CardScript:
 	"""A Make button's card: `fishery.make_refusal`, its costs (the stores' wood, the locker's rope or iron)."""
 	_card.reset("Make a %s at the workbench" % LockerScript.KIND_NAMES[kind])
 	var why: String = fishery.make_refusal(kind)
-	_card.add_cost("Wood", fishery.stores.wood_milli_u, LockerScript.MAKE_WOOD_MILLI[kind])
+	_card.add_cost("Wood", &"wood", fishery.stores.wood_milli_u, LockerScript.MAKE_WOOD_MILLI[kind])
 	var mat: int = LockerScript.MAKE_MATERIAL[kind]
-	_card.add_cost(LockerScript.MAT_NAMES[mat].capitalize(), fishery.locker.material_milli(mat), LockerScript.MAKE_MATERIAL_MILLI[kind])
+	_card.add_cost(LockerScript.MAT_NAMES[mat].capitalize(), LockerScript.MAT_KEYS[mat], fishery.locker.material_milli(mat), LockerScript.MAKE_MATERIAL_MILLI[kind])
 	_card.result = "A new %s in the gear locker (1000/1000)" % LockerScript.KIND_NAMES[kind]
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
@@ -843,8 +844,8 @@ func mend_card(members: PackedInt32Array) -> CardScript:
 	var target: int = fishery.worst_to_mend()
 	_card.reset("Mend %s" % _mend_name(target))
 	var why: String = fishery.mend_refusal(target)
-	_card.add_cost("Wood", fishery.stores.wood_milli_u, LockerScript.MEND_WOOD_MILLI)
-	_card.add_cost("Rope", fishery.locker.material_milli(LockerScript.MAT_ROPE), LockerScript.MEND_ROPE_MILLI)
+	_card.add_cost("Wood", &"wood", fishery.stores.wood_milli_u, LockerScript.MEND_WOOD_MILLI)
+	_card.add_cost("Rope", &"rope", fishery.locker.material_milli(LockerScript.MAT_ROPE), LockerScript.MEND_ROPE_MILLI)
 	_card.result = "+%d durability (to at most 1000)" % LockerScript.MEND_POINTS
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)
@@ -867,7 +868,7 @@ func dry_card(members: PackedInt32Array) -> CardScript:
 	"""Dry fish's card: `fishery.dry_refusal`, §5.7's dry_fish (fish 4 -> dried fish 3, 24 WU + 12 h)."""
 	_card.reset("Dry fish on the smoking rack")
 	var why: String = fishery.dry_refusal()
-	_card.add_cost("Fresh fish", fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), Rules.DRY_IN_MILLI)
+	_card.add_cost("Fresh fish", &"fish", fishery.input_available_milli(Recipes.IN_FIRST[Recipes.R_DRY_FISH]), Rules.DRY_IN_MILLI)
 	_card.result = "%s of dried fish (keeps 720 h; eaten as it is) after 12 game hours on the rack" % Text.units(Rules.DRY_OUT_MILLI)
 	_card.prerequisites.append("a free rack slot (4); the fish that spoils first is taken")
 	if not why.is_empty():
@@ -886,10 +887,11 @@ func batch_card(recipe: int, members: PackedInt32Array) -> CardScript:
 	var why: String = fishery.batch_refusal(recipe)
 	for k: int in Recipes.IN_COUNT[recipe]:
 		var input: int = Recipes.IN_FIRST[recipe] + k
-		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])), fishery.input_available_milli(input),
+		_card.add_cost(Recipes.cap(Recipes.category_words(Recipes.IN_CATEGORY[input])),
+			MealRules.selector_good(Recipes.IN_CATEGORY[input]), fishery.input_available_milli(input),
 			Recipes.IN_MILLI[input])
 	if Recipes.WATER_MILLI[recipe] > 0:
-		_card.add_cost("Water", maxi(0, fishery.stores.water_milli_u - fishery.water_held_milli()) if fishery.stores != null \
+		_card.add_cost("Water", &"water", maxi(0, fishery.stores.water_milli_u - fishery.water_held_milli()) if fishery.stores != null \
 			else 0, Recipes.WATER_MILLI[recipe])
 	_card.result = "%s of %s (keeps %d h; %s)%s" % [Text.units(Recipes.OUT_MILLI[recipe]),
 		Catalog.ITEM_LABELS[item].to_lower(), Catalog.shelf_hours_of(item),
@@ -911,7 +913,7 @@ func mill_card(members: PackedInt32Array) -> CardScript:
 	"""Mill grain's card: `fishery.mill_refusal`, §5.7's flour (grain 3 -> flour 3, 12 WU)."""
 	_card.reset("Mill grain at the watermill")
 	var why: String = fishery.mill_refusal()
-	_card.add_cost("Grain", fishery.grain_available_milli(), Rules.MILL_IN_MILLI)
+	_card.add_cost("Grain", &"grain", fishery.grain_available_milli(), Rules.MILL_IN_MILLI)
 	_card.result = "%s of flour in the pantry (keeps 240 h). No dish here uses it yet: it is kept for later" % Text.units(Rules.MILL_OUT_MILLI)
 	if not why.is_empty():
 		_card.refuse(fishery.refused_code, why, fishery.refused_fix)

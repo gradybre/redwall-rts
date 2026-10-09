@@ -370,16 +370,16 @@ func _costs_of(action: StringName) -> void:
 	match action:
 		&"plant_apple", &"plant_pear":
 			var species: int = Rules.APPLE if action == &"plant_apple" else Rules.PEAR
-			_card.add_cost("%s saplings" % Text.cap(Rules.SPECIES_NAMES[species]), _model.saplings[species] * 1000,
+			_card.add_cost("%s saplings" % Text.cap(Rules.SPECIES_NAMES[species]), Rules.SAPLING_GOODS[species], _model.saplings[species] * 1000,
 				Hive.PLANT_SAPLING_MILLI)
-			_card.add_cost("Compost", compost, Hive.PLANT_COMPOST_MILLI)
+			_card.add_cost("Compost", &"compost", compost, Hive.PLANT_COMPOST_MILLI)
 		&"move":
-			_card.add_cost("Compost", compost, Rules.MOVE_COMPOST_MILLI)
+			_card.add_cost("Compost", &"compost", compost, Rules.MOVE_COMPOST_MILLI)
 		&"cart":
-			_card.add_cost("Wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, Rules.CART_WOOD_MILLI)
+			_card.add_cost("Wood", &"wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, Rules.CART_WOOD_MILLI)
 		&"recolonize":
-			_card.add_cost("Honey (free)", _jobs.hive_honey_free(), HiveRules.RECOLONIZE_HONEY_MILLI)
-			_card.add_cost("Wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, HiveRules.RECOLONIZE_WOOD_MILLI)
+			_card.add_cost("Honey (free)", &"honey", _jobs.hive_honey_free(), HiveRules.RECOLONIZE_HONEY_MILLI)
+			_card.add_cost("Wood", &"wood", _jobs.stores.wood_milli_u if _jobs.stores != null else 0, HiveRules.RECOLONIZE_WOOD_MILLI)
 
 
 func _work_of(job_kind: int, id: int) -> int:

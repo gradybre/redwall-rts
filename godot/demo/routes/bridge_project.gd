@@ -19,12 +19,12 @@ const CONDITION: String = "Condition: sound — the demo's bridges need no upkee
 
 
 static func shortage_line(kind: int, card: CardScript) -> String:
-	"""What a `kind` bridge lacks, from its Build card's have / need: "Plank footbridge: missing 4.7 U planks" ("" when
+	"""What a `kind` bridge lacks, from its Build card's have / need: "Plank footbridge: missing 5 planks" ("" when
 	nothing is short)."""
 	var missing := PackedStringArray()
 	for k: int in card.cost_names.size():
 		if card.cost_need[k] > card.cost_have[k]:
-			missing.append("%s %s" % [CardScript.need_text(card.cost_need[k] - card.cost_have[k]), card.cost_names[k].to_lower()])
+			missing.append(card.short_text(k))
 	if missing.is_empty():
 		return ""
 	var what: String = SwimRules.KIND_NAMES[kind]

@@ -92,11 +92,11 @@ static func _first_waiting(graph: RefCounted, r: int, f_new: int) -> String:
 static func _costs(card: CardScript, stores: RefCounted, cost: Vector3i) -> void:
 	"""Cost rows (planks, wood, stone) for the parts that are not nothing."""
 	if cost.x > 0:
-		card.add_cost("Planks", stores.plank_milli_u, cost.x)
+		card.add_cost("Planks", &"planks", stores.plank_milli_u, cost.x)
 	if cost.y > 0:
-		card.add_cost("Wood", stores.wood_milli_u, cost.y)
+		card.add_cost("Wood", &"wood", stores.wood_milli_u, cost.y)
 	if cost.z > 0:
-		card.add_cost("Stone", stores.stone_milli_u, cost.z)
+		card.add_cost("Stone", &"stone", stores.stone_milli_u, cost.z)
 
 
 static func _refuse(card: CardScript, graph: RefCounted, r: int, parts: PackedStringArray, code: int, stores: RefCounted,

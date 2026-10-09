@@ -347,6 +347,11 @@ static func main_greens_words() -> String:
 	return MealRules.IN_WORDS[MealRules.INPUT_FIRST[MealRules.DISH_BEAN_HOTPOT] + 1]
 
 
+static func main_greens_good() -> StringName:
+	"""The good the second input's amounts are worded as (decision 1801)."""
+	return MealRules.input_good(MealRules.DISH_BEAN_HOTPOT, 1)
+
+
 func free_beans() -> int:
 	"""Beans in the pantry nobody has set aside, milli-U (with the planned supper's own: `count_supper`)."""
 	return _free_with_supper(main_beans())

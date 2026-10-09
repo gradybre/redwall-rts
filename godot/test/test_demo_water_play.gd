@@ -1237,7 +1237,7 @@ func test_the_water_panel_shows_the_site_and_disables_what_cannot_be_built() -> 
 	assert_equal(panel.line(&"site_title"), "Bridge site 1 of 3: the neck, the stream's narrowest", "title")
 	assert_true(panel.line(&"site").contains("Plank footbridge: 4.") and panel.line(&"site").contains("Log bridge: one 6.0 U log (from the log stack)"), panel.line(&"site"))
 	assert_true(panel.button(PanelScript.ACTION_BUILD_PLANK).disabled, "plank: no planks in the stores (decision 0332)")
-	assert_true(panel.button(PanelScript.ACTION_BUILD_PLANK).tooltip_text.contains("Planks: have 0.0 U"), "its card says why")
+	assert_true(panel.button(PanelScript.ACTION_BUILD_PLANK).tooltip_text.contains("Planks: 0 of "), "its card says why")
 	_services.stores.add_planks(6000)
 	rig.play.refresh_panel()
 	assert_false(panel.button(PanelScript.ACTION_BUILD_PLANK).disabled, "plank: may, once the planks are in")

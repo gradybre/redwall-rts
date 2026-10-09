@@ -15,7 +15,9 @@ extends RefCounted
 ##     cell, the shell's own rule), the cell enabled so it opens the ledger like the others. The shell's table
 ##     (ui_availability.gd) is untouched: the game's claim stays true for the game.
 ##   * Heating fuel's no-demand STATE ("No demand") is words, not a figure: drawn in the 16 px disclosure role, as
-##     "Unavailable" is, so it fits the narrow cell (decision 0571).
+##     "Unavailable" is, so it fits the narrow cell (decision 0571). Wood's LEVEL ("running low", decision 1011 §3,
+##     DEC-049; MEAS-2, decision 1801) is words the same way: 91 px at 16 px inside the 1280x720 cell's 101, where the
+##     18 px value face would need 106 and disclose the ledger instead.
 ##   * Heating fuel's WARNING state (demo_hud_model.gd `is_warning`: under 2 days) draws its value in clay with the
 ##     shell's warning glyph in place of the fuel one (UI §7's fuel warning).
 ##   * A figure whose owner is absent (demo_hud_model.gd UNAVAILABLE IS NOT ZERO) is drawn "Unavailable" in the

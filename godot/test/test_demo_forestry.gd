@@ -529,7 +529,7 @@ func test_the_demo_stores_take_wood_in_and_saw_planks_out_all_or_nothing() -> vo
 	assert_false(stores.pay_planks(2500), "refused whole")
 	assert_true(stores.pay_planks(500), "paid")
 	assert_equal(stores.plank_milli_u, 1500, "left")
-	assert_equal(stores.stock_line(), "Village stores: wood 50.0 U · stone 20.0 U · planks 1.5 U · earth 0.0 U", "the line")
+	assert_equal(stores.stock_line(), "Village stores: 50 logs · 20 blocks of stone · a plank · no earth", "the line")
 	stores.add_wood(-5)
 	assert_equal(stores.wood_milli_u, 50000, "a negative intake is nothing")
 

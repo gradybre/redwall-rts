@@ -779,7 +779,7 @@ func test_a_planned_bridge_s_materials_are_reserved_then_delivered_and_nothing_i
 	missing; once at the site, delivered."""
 	var rig: Fixture.Rig = _water._rig()
 	var card: CardScript = rig.play.build_card(SwimRules.KIND_PLANK, PackedInt32Array([1]))
-	assert_equal(ProjectScript.shortage_line(SwimRules.KIND_PLANK, card), "Plank footbridge: missing 4.7 U planks", "short")
+	assert_equal(ProjectScript.shortage_line(SwimRules.KIND_PLANK, card), "Plank footbridge: missing 5 planks", "short: 4.7 planks, never understated")
 	rig.play.services.stores.add_planks(5000)
 	assert_equal(ProjectScript.shortage_line(SwimRules.KIND_PLANK, rig.play.build_card(SwimRules.KIND_PLANK,
 		PackedInt32Array([1]))), "", "paid for: nothing short")

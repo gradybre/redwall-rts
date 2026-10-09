@@ -65,7 +65,6 @@ const ALLOWLIST: Dictionary = {
 	"res://demo/waterplay/demo_waterplay.gd": 1,
 	"res://demo/waterplay/water_panel.gd": 2,
 	"res://demo/work/spoil_work.gd": 1,
-	"res://scripts/ui/ui_specimen.gd": 1,
 }
 
 var _patterns: Array[RegEx] = []

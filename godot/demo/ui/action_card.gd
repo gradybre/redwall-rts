@@ -11,7 +11,7 @@ extends RefCounted
 ##     Can't now: the demo stores are short ...       only when refused: the exact refusal the order would say,
 ##     To fix: Woods ▸ Saw planks ...                 and how to put it right (a panel ▸ button where one does it)
 ##     Braced: no seep, no roof fall                  the result
-##     Wood: have 40.0 U · need 2.0 U                 each cost, have / need, from the stores the HUD reads
+##     Wood: 2 logs — enough                          each cost, have / need, from the stores the HUD reads
 ##     Work: about 20 game minutes, plus the walk     the work in game time on the demo calendar
 ##     Who: Assign selected: Mouse keeper (nearest of 3)        the assignment (F44: the system's real rule)
 ##     Interrupts: Felling the oak — goes back to it after      what that resident stops, and whether it resumes
@@ -26,13 +26,17 @@ extends RefCounted
 ## THE SIZE. UI-SET-073 bounds a tooltip to 360 x 240 logical px. Godot's tooltip label does not wrap, so the card
 ## breaks its own lines at LINE_CHARS (about 340 px at the tooltip's type) and keeps to the lines above.
 ##
-## UNITS are the stores' formatter (tunnel_stores.gd `units_text`, the HUD's), here and nowhere else in the card.
+## AMOUNTS are goods_measures.gd's (decision 1011, DEC-049; MEAS-2, decision 1801): a cost row names its good, and
+## says its have beside its need in the need's measure -- "Planks: 4 of 5 planks", or "Wood: 2 logs — enough" once the
+## stores meet it (`have_need`). The measure noun stays beside the count even where the row's name repeats it
+## ("Planks: ... planks"), so a row whose measure is not the good ("Barley: 1½ of 2½ sacks") reads the same way.
 ##
 ## THE LOOK. The demo panels sit outside the HUD's skinned theme, so a card's tooltip would draw in the engine's grey.
 ## `dress` gives a card's button a theme holding only the HUD skin's tooltip items (woodland_theme_patch.gd: the map
 ## piece, ink text) at TIP_PX: the button keeps its own look, and its tooltip is the HUD's.
 
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
@@ -62,8 +66,9 @@ static var _tip_scale: float = 1.0
 var verb: String = ""
 ## What the action does when it is done.
 var result: String = ""
-## Each cost: its name, what the stores hold, what the action takes (milli-U).
+## Each cost: its name, its good (goods_measures.gd's key), what the stores hold, what the action takes (milli-U).
 var cost_names: PackedStringArray = PackedStringArray()
+var cost_goods: Array[StringName] = []
 var cost_have: PackedInt64Array = PackedInt64Array()
 var cost_need: PackedInt64Array = PackedInt64Array()
 ## The work, in demo microseconds (NO_WORK: unknown), and anything said after it.
@@ -88,6 +93,7 @@ func reset(p_verb: String) -> RefCounted:
 	verb = p_verb
 	result = ""
 	cost_names.clear()
+	cost_goods.clear()
 	cost_have.clear()
 	cost_need.clear()
 	work_usec = NO_WORK
@@ -103,9 +109,10 @@ func reset(p_verb: String) -> RefCounted:
 	return self
 
 
-func add_cost(what: String, have_milli: int, need_milli: int) -> void:
-	"""A cost row: `need_milli` of `what` from stores holding `have_milli`."""
+func add_cost(what: String, good: StringName, have_milli: int, need_milli: int) -> void:
+	"""A cost row: `need_milli` of `what` (the good `good`) from stores holding `have_milli`."""
 	cost_names.append(what)
+	cost_goods.append(good)
 	cost_have.append(have_milli)
 	cost_need.append(need_milli)
 
@@ -162,8 +169,14 @@ func text() -> String:
 
 
 func cost_line(k: int) -> String:
-	"""Cost row `k`: "Planks: have 0.0 U · need 4.7 U"."""
-	return "%s: have %s · need %s" % [cost_names[k], amount_text(cost_have[k]), need_text(cost_need[k])]
+	"""Cost row `k`: "Planks: 0 of 5 planks", "Wood: 2 logs — enough" (see AMOUNTS)."""
+	return "%s: %s" % [cost_names[k], Measures.have_need(cost_goods[k], cost_have[k], cost_need[k])]
+
+
+func short_text(k: int) -> String:
+	"""What cost row `k` still lacks, as a need in a sentence ("2 planks", "half a jar of honey"); "" when met."""
+	var short: int = cost_need[k] - cost_have[k]
+	return Measures.need(cost_goods[k], short) if short > 0 else ""
 
 
 # --- THE COMMAND GRAMMAR (F44): one way, in every panel, of saying who an order goes to -------------------

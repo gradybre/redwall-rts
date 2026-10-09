@@ -97,9 +97,9 @@ static func fill(card: CardScript, sim: SimScript, kind: int, bed: int, earth_mi
 	card.prerequisites.append(needs % CardScript.amount_text(dose_milli(kind == JobsScript.KIND_COMPOST)) if needs.contains("%s") else needs)
 	match kind:
 		JobsScript.KIND_COMPOST:
-			card.add_cost(COMPOST_STORE, sim.compost_milli, sim.farming().compost_milli_per_tile())
+			card.add_cost(COMPOST_STORE, &"compost", sim.compost_milli, sim.farming().compost_milli_per_tile())
 		JobsScript.KIND_RAISE, JobsScript.KIND_BANK:
-			card.add_cost(EARTH, earth_milli, JobsScript.EARTH_PER_JOB_MILLI)
+			card.add_cost(EARTH, &"earth", earth_milli, JobsScript.EARTH_PER_JOB_MILLI)
 
 
 static func result_text(sim: SimScript, kind: int, bed: int, read: IntMath.IntResult,

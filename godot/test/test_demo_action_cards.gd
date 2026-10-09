@@ -120,7 +120,7 @@ func test_a_card_puts_the_refusal_and_its_fix_first() -> void:
 	var card := CardScript.new()
 	card.reset("Build a plank footbridge")
 	card.result = "Bridged"
-	card.add_cost("Planks", 0, 4700)
+	card.add_cost("Planks", &"planks", 0, 4700)
 	card.work_usec = CalendarScript.HOUR_USEC * 3
 	card.who = "Queue for the bridgewright"
 	card.interrupts = "Interrupts: x — goes back to it after"
@@ -128,7 +128,7 @@ func test_a_card_puts_the_refusal_and_its_fix_first() -> void:
 	card.refuse("MATERIAL", "it needs 4.7 U planks", "Woods ▸ Saw planks")
 	var lines := card.text().split("\n")
 	assert_equal(Array(lines), ["Build a plank footbridge", "Can't now: it needs 4.7 U planks", "To fix: Woods ▸ Saw planks",
-		"Bridged", "Planks: have 0.0 U · need 4.7 U", "Work: about 3.0 game hours, plus the walk",
+		"Bridged", "Planks: 0 of 5 planks", "Work: about 3.0 game hours, plus the walk",
 		"Who: Queue for the bridgewright", "Interrupts: x — goes back to it after", "Needs: planks"],
 		"in order")
 	assert_false(card.is_ok(), "refused")
@@ -801,7 +801,7 @@ func test_a_bridge_card_costs_what_the_build_pays() -> void:
 	assert_false(card.reason.contains(" -- "), "its fix on its own line, not twice")
 	assert_equal(card.fix, WaterplayScript.build_fix(SwimRules.KIND_PLANK), "saw planks")
 	assert_true(card.fix.ends_with("(2.0 U wood makes 2.0 U planks)"), "the saw's batch: " + card.fix)
-	assert_true(card.text().contains("Planks: have 0.0 U · need 4."), card.text())
+	assert_true(card.text().contains("Planks: 0 of 5 planks"), card.text())
 	_services.stores.add_planks(6000)
 	card = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array())
 	assert_true(card.is_ok(), card.text())
@@ -1004,7 +1004,7 @@ func test_the_tunnels_panel_buttons_are_their_cards() -> void:
 	ext.refresh_panel()
 	var add: Button = ext.panel.button(StringName("fit:add:%d" % RoomsScript.FIX_BED))
 	assert_true(add.disabled, "no planks: no bed")
-	assert_true(add.tooltip_text.contains("Planks: have 0.0 U · need 2.0 U"), add.tooltip_text)
+	assert_true(add.tooltip_text.contains("Planks: 0 of 2 planks"), add.tooltip_text)
 	var take: Button = ext.panel.button(StringName("fit:take:%d" % RoomsScript.FIX_BED))
 	assert_true(take.disabled and take.tooltip_text.contains("Can't now: "), "none to take out")
 	var suggest: Button = ext.panel.button(&"fit:suggest")
@@ -1054,10 +1054,16 @@ func test_a_cards_edges() -> void:
 	them); a long line keeps every continuation indented; a refusal can be cleared."""
 	var card := CardScript.new()
 	card.reset("v")
-	card.add_cost("X", 2000, 2000)
+	card.add_cost("X", &"wood", 2000, 2000)
 	assert_equal(card.short_row(), -1, "have == need: not short")
-	card.add_cost("Compost", 100, 250)
-	assert_equal(card.cost_line(1), "Compost: have 0.1 U · need 0.25 U", "a quarter unit, exactly")
+	assert_equal(card.cost_line(0), "X: 2 logs — enough", "have == need: enough")
+	assert_equal(card.short_text(0), "", "and nothing short")
+	card.add_cost("Compost", &"compost", 100, 250)
+	assert_equal(card.cost_line(1), "Compost: under 1 of 1 spadeful", "a spadeful (0.25 U) needed, less than one held")
+	assert_equal(card.short_text(1), "150 g of compost", "what is short, in a sentence: under a spadeful, its weight")
+	card.add_cost("Planks", &"planks", 1000, 4700)
+	assert_equal(card.cost_line(2), "Planks: 1 of 5 planks", "4.7 planks needed: 5, never understated")
+	assert_equal(card.short_text(2), "4 planks", "3.7 short: 4 planks")
 	assert_equal(CardScript.need_text(4700), "4.7 U", "tenths as the HUD prints them")
 	card.work_usec = 0
 	assert_true(card.text().contains("Work: about 0 game minutes"), "no work is still work said")

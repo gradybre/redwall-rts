@@ -579,7 +579,7 @@ func test_the_stores_keep_earth_all_or_nothing() -> void:
 	assert_true(_stores.revision > before, "a take is seen")
 	assert_equal(_stores.earth_milli_u, 0, "none left")
 	_stores.add_earth(1500)
-	assert_true(_stores.stock_line().ends_with(" · earth 1.5 U"), _stores.stock_line())
+	assert_true(_stores.stock_line().ends_with(" · 1.5 kg of earth"), _stores.stock_line())
 
 
 func test_the_stores_are_a_source_beside_the_heaps() -> void:

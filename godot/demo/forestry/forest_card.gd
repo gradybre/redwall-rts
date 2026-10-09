@@ -72,10 +72,10 @@ static func fill(card: CardScript, kind: int, amount_milli: int, wood_milli: int
 			card.result = "The nearest pile (%s) gathered into the stores' wood" % amount
 		JobsScript.KIND_SAW:
 			card.result = "%s of logs sawn into %s of planks at the sawhorse" % [amount, amount]
-			card.add_cost(WOOD, wood_milli, Rules.SAW_BATCH_MILLI)
+			card.add_cost(WOOD, &"wood", wood_milli, Rules.SAW_BATCH_MILLI)
 		JobsScript.KIND_PLANT:
 			card.result = "A sapling planted: a mature tree in %d days" % Rules.REGROW_DAYS
-			card.add_cost(COMPOST, compost_milli, Rules.PLANT_COMPOST_MILLI)
+			card.add_cost(COMPOST, &"compost", compost_milli, Rules.PLANT_COMPOST_MILLI)
 		JobsScript.KIND_GRUB:
 			card.result = "The stump dug out: the spot is cleared for planting"
 

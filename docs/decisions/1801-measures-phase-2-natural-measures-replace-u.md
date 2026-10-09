@@ -60,6 +60,39 @@ This record holds what phase 2 found and chose, not 1011's rules again. 1011 §1
   second weight in its tooltip.
 - **A need's kilograms are raised** to the 10 g step (a stock's are floored), so "1.81 kg of iron" never understates.
 
+## Slice 2: the HUD, the stores and the settlement UI
+
+- **The demo's Wood cell** (`demo_hud_model.gd`) is the level when the winter is bound (`bind_fuel` now also reads
+  `firewood_urgent`, `firewood_wanted` and the fuel's `projection_milli`), else the count ("40 logs"). The level is a
+  **state in words**, drawn in the 16 px disclosure role as Heating fuel's "No demand" is: measured at 1280x720,
+  "running low" is 106 px in the 18 px value face against the cell's 101 px, and 91 px at 16 px. So it never turns
+  into "See ledger" (`test_running_low_fits_the_narrowest_wood_cell`). The model's `stamp` carries the level, so a
+  season turning repaints the cell with no change in the wood.
+- **Stone** is "20 blocks"; **Ready food's fallback** (no kitchen) is "6½ baskets" in the cell. The tooltips add the
+  weight ("Wood: 40 logs (200 kg) in the village stores (and 3 planks)"); with the level, 1011 §3's form: "Wood: enough
+  — 40 logs (200 kg) in the village stores; winter needs 60 logs (and 3 planks)". The ledger keeps the counts: "Wood:
+  40 logs · 3 planks in store".
+- **The stores' line** (`tunnel_stores.gd stock_line`) is "Village stores: 40 logs · 20 blocks of stone · 3 planks · no
+  earth". It stays (it is no longer a U helper); `units_text` beside it is deleted in slice 9.
+- **Cost rows** (`action_card.gd add_cost`) take the good: `add_cost(what, good, have, need)`, and read through
+  `have_need`: "Planks: 0 of 5 planks", "Wood: 2 logs — enough". *Reading, recorded:* the measure noun stays after
+  the count even where the row's name repeats it ("Planks: ... planks"), because for a container measure the count
+  alone would be ambiguous ("Barley: 1½ of 2½ sacks"); 1011's "Planks: 4 of 5" example drops it. A new
+  `short_text(k)` says what a row lacks as a need ("5 planks"); the bridge's shortage line uses it. All 33 `add_cost`
+  callers pass their good now, including those in later slices' files (only those lines). The kitchen's and the
+  preserving rows' recipe categories map to goods through the new `meal_rules.gd CATEGORY_GOODS` and `selector_good`
+  (a single-item selector is that item; several items in one category, that category; anything, mixed food).
+- **The settlement HUD** (`scripts/systems/ui_manager.gd`): Wood and Stone are UI-SET-004/005's amended readout,
+  "180 logs available; none reserved" and "100 blocks available; none reserved" (available is §5.8's unreserved
+  stock, reserved the rest). *Reading, recorded:* §4a says `hud.gd set_counter` takes the good; but hud.gd's contract
+  is to render byte for byte and never derive, so ui_manager composes the readout through the module and hands it to
+  `set_counter_text`, as it already does for Food-days. `set_counter` keeps its unit for the NP counter.
+- **The settlement Wood level.** §4b's levels after "none" all read fuel-days or REQ-SET-114's projection, and the
+  economy has no heating-demand input for either (`EconomySystem.fuel_days_missing_input`). So the level is shown as
+  "none" with no available wood ("none — none available; 4 logs reserved") and is otherwise omitted, not guessed. See
+  P-M2.
+- **The specimen's** synthetic counter reads "1,234 logs".
+
 ## PROVISIONAL rows: goods 1011 has no row for
 
 1011 was written before the 2026-10-07/08 lanes. These goods are now shown and had no measure; each is built so a
@@ -264,7 +297,7 @@ SEND_BELOW, `control/demo_party_panel.gd` HINT, `sound/sound_table.json` "(U vie
 
 - [x] Slice 1: the module, `test_demo_measures.gd` (19 tests), and the lint `test_demo_no_u_text.gd` switched on with
   an exact, shrinking allowlist (44 files, 84 strings).
-- [ ] Slice 2: the HUD (demo and settlement) and the stores.
+- [x] Slice 2: the HUD (demo and settlement) and the stores (and every `add_cost` caller).
 - [ ] Slice 3: farm and pantry (with orchard and hives).
 - [ ] Slice 4: kitchen and winter (with preserving, brewing and feasts).
 - [ ] Slice 5: the woods: forestry, forage, ferry, regatta, waterplay, bridges.
@@ -277,6 +310,14 @@ SEND_BELOW, `control/demo_party_panel.gd` HINT, `sound/sound_table.json` "(U vie
 
 - **P-M1 — The measures for goods added since 1011** (the PROVISIONAL rows above). (a) As built. (b) Different
   measures for any of them. **Recommendation: (a).**
+- **P-M2 — The settlement HUD's Wood level before §5.8 has heating demand.** (a) As built: "none" with no wood,
+  otherwise no level until fuel-days and the winter projection exist. (b) "enough" whenever there is wood. **Recommendation:
+  (a)**: (b) would be a reading nobody derived.
+- **P-M4 — The settlement Wood and Stone cells.** UI-SET-004/005's amended readout ("180 logs available; none
+  reserved") is far wider than the 104–144 px cell, so the cell draws the shell's "See ledger" and the ledger line
+  carries the readout (the shell's own rule, UI-C3-R01 §2). (a) Keep it. (b) Let a counter carry a short cell value
+  ("180 logs", or the level) beside its full ledger readout, a change to hud.gd's one-string contract. **Recommendation:
+  (b)**, in a settlement UI lane; the demo's top bar (which Brendan plays) already shows the short form.
 - **P-M3 — The cask.** (a) Keep it whole-only, as approved: 2.99 casks reads "2 casks". (b) Give it halves, so every
   "from 2" measure keeps 1011's 20% bound ("2½ casks of mead"). **Recommendation: (b)**; it is a one-flag change.
 

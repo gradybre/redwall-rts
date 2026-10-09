@@ -258,9 +258,9 @@ func _cost_rows(card: CardScript, job: int) -> void:
 		return
 	jobs.cost_into(selected, job, _cost)
 	if _cost[0] > 0:
-		card.add_cost("Wood", _works.stores.wood_milli_u, _cost[0])
+		card.add_cost("Wood", &"wood", _works.stores.wood_milli_u, _cost[0])
 	if _cost[1] > 0:
-		card.add_cost("Stone", _works.stores.stone_milli_u, _cost[1])
+		card.add_cost("Stone", &"stone", _works.stores.stone_milli_u, _cost[1])
 
 
 func _preview_who(card: CardScript, job: int, selection: PackedInt32Array) -> void:

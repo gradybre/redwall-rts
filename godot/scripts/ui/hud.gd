@@ -95,7 +95,9 @@ func _process(delta: float) -> void:
 
 
 func set_counter(label: StringName, value: int, unit: String) -> void:
-	"""Record one top-left counter as a comma-grouped integer with its unit, and repaint."""
+	"""Record one top-left counter as a comma-grouped integer with its unit, and repaint: a count with its own unit
+	(Ready NP's "NP") or none. An amount of a GOOD never comes here: DEC-049 words it in the good's natural measure
+	(scripts/ui/goods_measures.gd), so ui_manager.gd composes UI-SET-004/005's readout and sets it as text."""
 	var text: String = _group_digits(value)
 	if unit != "":
 		text = "%s %s" % [text, unit]

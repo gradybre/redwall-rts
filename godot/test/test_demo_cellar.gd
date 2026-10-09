@@ -874,7 +874,7 @@ func test_the_work_board_lists_a_move_as_hauling_in_words() -> void:
 	var task := TaskScript.new()
 	source.fill(task, 0)
 	assert_equal(task.action, StoresWork.ACTION, "the verb")
-	assert_equal(task.target, "5.0 U of carrot: Covered store → Root cellar (keeps 2.8× as long)", "the words")
+	assert_equal(task.target, "5 bunches of carrots: Covered store → Root cellar (keeps 2.8× as long)", "the words")
 	assert_equal(task.activity, WorkIds.ACT_HAUL, "hauling")
 	assert_equal(task.state, WorkIds.STATE_QUEUED, "queued")
 	assert_equal(source.point(0), Vector2(-4.0, 0.0), "at the covered store")

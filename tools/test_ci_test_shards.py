@@ -216,6 +216,8 @@ class RealRunner(unittest.TestCase):
         for name in ("run_tests.gd", "framework/test_case.gd"):
             shutil.copy(REPO / "godot/test" / name, self.repo / "godot/test" / name)
         (self.repo / "docs/validation/state_registry_coverage.py").write_text('print("fixture registry preflight")\n')
+        # run_tests.sh also preflights the mole publication's source pins (ADR 1192); the fixture has no publication.
+        (self.repo / "tools/renew_source_pins.py").write_text('print("fixture source pin preflight")\n')
         self.output = self.repo / "artifacts"
 
     def suite(self, name: str, body: str) -> None:

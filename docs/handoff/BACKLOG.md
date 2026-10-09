@@ -1346,7 +1346,7 @@ generate nothing until he approves it and a cap. Add each new art need here as i
 
 | Item | Key(s) | Why | Style and cost | Source |
 |---|---|---|---|---|
-| The feasts' four new courses | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble` | They show the fallback swatch in the Pantry and the guide (no dish art) | The 3D-render item-icon style (ART-LOCK-001 as amended, 0971); one `nano-banana-2` image-to-image 3×3 sheet conditioned on pass 1's `sheet_foods_a`, as 0972's was: **about 6 credits** (0972's sheet cost 6; suggested cap 12). Five spare cells for other waiting dishes | Decision 1701 P8 (b), approved by Brendan 2026-10-07 |
+| **Done (decision 1831, 2026-10-09).** The eleven dishes without an icon: the feasts' four new courses and seven older breakfasts and suppers | `dish_feast_fish`, `dish_berry_tart`, `dish_nut_roast`, `dish_orchard_crumble`, `dish_porridge`, `dish_barleymeal`, `dish_soup`, `dish_beetroot_soup`, `dish_vole_stew`, `dish_fish_stew`, `dish_poached_dace` | The Pantry's kitchen rows and the Kitchen tab drew no icon for them (the field guide draws no icons for any entry) | Two `nano-banana-2` 3×3 sheets conditioned on `sheet_foods_a`, **12 credits** of a 20 cap; staged by `make_art_pass3.py --icons` and `stage_art_passes.py`. Visual acceptance is still Brendan's (`tools/art_gate.py`) | Brendan approved "Two sheets", 2026-10-09; first listed by decision 1701 P8 (b) |
 
 # Not chosen: do not build
 

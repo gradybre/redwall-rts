@@ -293,7 +293,7 @@ static func divides(good: StringName, milli: int) -> bool:
 	"""Whether `exact` names a measure for `milli` of `good` rather than falling back to its weight ("5 cabbages" for
 	10 U; 5 U of cabbage is no whole count): a caller may then prefer `need`."""
 	var row: int = _row(good)
-	return row >= 0 and milli > 0 and _pick(row, milli, ROUND_EXACT) >= 0
+	return row >= 0 and _pick(row, milli, ROUND_EXACT) >= 0
 
 
 static func noun(good: StringName) -> String:

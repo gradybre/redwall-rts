@@ -39,6 +39,7 @@ const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
@@ -118,9 +119,11 @@ func second_short(eligible: int) -> String:
 	"""Why the second course can't be made now ("" when it can): the exact shortfall and its fix."""
 	var need: int = second_need_milli(eligible)
 	if free_nuts() < need:
-		return "short of nuts: %s needed, %s free — a foraging trip (Woods ▸ Foraging)" % [_units(need), _units(free_nuts())]
+		return "short of nuts: %s needed, %s free — a foraging trip (Woods ▸ Foraging)" % [Measures.need_cell(&"nuts", need),
+			Measures.amount_cell(&"nuts", free_nuts())]
 	if free_flour() < need:
-		return "short of flour: %s needed, %s free — Mill grain (Water ▸ Drying rack and mill)" % [_units(need), _units(free_flour())]
+		return "short of flour: %s needed, %s free — Mill grain (Water ▸ Drying rack and mill)" % [
+			Measures.need_cell(&"flour", need), Measures.amount_cell(&"flour", free_flour())]
 	return ""
 
 
@@ -128,11 +131,12 @@ func infusion_short(eligible: int) -> String:
 	"""Why the warm infusion can't be made now ("" when it can): the exact shortfall and its fix."""
 	var herb: int = Rules.infusion_herb_milli(eligible)
 	if free_herb() < herb:
-		return "short of herb: %s needed, %s free — a foraging trip for herbs (Woods ▸ Foraging)" % [_units(herb), _units(free_herb())]
+		return "short of herb: %s needed, %s free — a foraging trip for herbs (Woods ▸ Foraging)" % [
+			Measures.need_cell(&"herb", herb), Measures.amount_cell(&"herb", free_herb())]
 	var water: int = Rules.infusion_water_milli(eligible)
 	if stores != null and stores.water_milli_u < water:
-		return "short of water: %s needed in the butt, %s there — Draw water (Pantry ▸ Kitchen)" % [_units(water),
-			_units(stores.water_milli_u)]
+		return "short of water: %s needed in the butt, %s there — Draw water (Pantry ▸ Kitchen)" % [
+			Measures.need_cell(&"water", water), Measures.amount_cell(&"water", stores.water_milli_u)]
 	return ""
 
 
@@ -146,13 +150,15 @@ func preview_lines(eligible: int) -> PackedStringArray:
 	var lines := PackedStringArray()
 	var b: int = Rules.second_batches(eligible)
 	var second: String = second_short(eligible)
+	var need: int = second_need_milli(eligible)
 	lines.append("Second: %s x%d (%d portions): flour %s (free %s), nuts %s (free %s), water %s%s" % [Rules.SECOND_COURSE, b,
-		b * MealRules.PORTIONS_PER_BATCH[NUT_LOAF], _units(second_need_milli(eligible)), _units(free_flour()),
-		_units(second_need_milli(eligible)), _units(free_nuts()), _units(b * MealRules.WATER_MILLI[NUT_LOAF]),
-		"" if second.is_empty() else " — can't be made: " + second])
+		b * MealRules.PORTIONS_PER_BATCH[NUT_LOAF], Measures.need_cell(&"flour", need), Measures.amount_cell(&"flour", free_flour()),
+		Measures.need_cell(&"nuts", need), Measures.amount_cell(&"nuts", free_nuts()),
+		Measures.need_cell(&"water", b * MealRules.WATER_MILLI[NUT_LOAF]), "" if second.is_empty() else " — can't be made: " + second])
 	var infusion: String = infusion_short(eligible)
-	lines.append("Warm infusion: water %s, herb %s (free %s)%s" % [_units(Rules.infusion_water_milli(eligible)),
-		_units(Rules.infusion_herb_milli(eligible)), _units(free_herb()), "" if infusion.is_empty() else " — can't be made: " + infusion])
+	lines.append("Warm infusion: water %s, herb %s (free %s)%s" % [Measures.need_cell(&"water", Rules.infusion_water_milli(eligible)),
+		Measures.need_cell(&"herb", Rules.infusion_herb_milli(eligible)), Measures.amount_cell(&"herb", free_herb()),
+		"" if infusion.is_empty() else " — can't be made: " + infusion])
 	lines.append(drinks_words(eligible))
 	lines.append(buff_words(eligible, second.is_empty() and infusion.is_empty()))
 	return lines
@@ -174,7 +180,9 @@ func drinks_words(eligible: int) -> String:
 	var parts := PackedStringArray()
 	for k: int in DRINK_ITEMS.size():
 		var poured: bool = free_drink(k) >= drink_need_milli(eligible)
-		parts.append("%s %s (free %s)%s" % [DRINK_NAMES[k], _units(drink_need_milli(eligible)), _units(free_drink(k)),
+		var good: StringName = Catalog.ITEM_KEYS[DRINK_ITEMS[k]]
+		parts.append("%s %s (free %s)%s" % [DRINK_NAMES[k], Measures.need_cell(good, drink_need_milli(eligible)),
+			Measures.amount_cell(good, free_drink(k)),
 			"" if poured else " — not poured: the brewery has not made enough"])
 	return "Drinks, if there: %s; no one is made drunk" % ", ".join(parts)
 

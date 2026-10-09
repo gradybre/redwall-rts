@@ -11,13 +11,14 @@ const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ZonesScript := preload("res://demo/forestry/forest_zones.gd")
 const DeadfallScript := preload("res://demo/forestry/forest_deadfall.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## The verbs as a card names them, by forest_jobs.gd KIND_*: "%s" is the tree or spot ("" for none).
 const VERBS: Array[String] = ["Fell %s", "Haul logs from %s", "Gather deadfall", "Saw planks", "Plant a sapling at %s",
 	"Grub out %s"]
 const NEEDS: Array[String] = ["a mature tree within the village's reach; its zone's floor kept",
-	"a felled trunk, or a tree being felled", "deadfall lying in the woods", "%s of wood in the stores",
-	"a cleared spot within reach; %s of compost", "a stump"]
+	"a felled trunk, or a tree being felled", "deadfall lying in the woods", "%s in the stores",
+	"a cleared spot within reach; %s", "a stump"]
 ## Felling's work is the felling; the feller then hauls the trunk in, `%d` trips.
 const FELL_NOTE: String = ", plus the walk; then it is hauled in (%d trips)"
 ## A haul's work is every trip's loading and stacking, shared by its haulers.
@@ -57,27 +58,35 @@ static func trips(milli: int) -> int:
 
 static func fill(card: CardScript, kind: int, amount_milli: int, wood_milli: int, compost_milli: int) -> void:
 	"""The card's result, cost (have / need) and needs for a woods job bringing in `amount_milli`."""
-	var needs: String = NEEDS[kind]
-	if needs.contains("%s"):
-		needs = needs % CardScript.need_text(Rules.SAW_BATCH_MILLI if kind == JobsScript.KIND_SAW else Rules.PLANT_COMPOST_MILLI)
-	card.prerequisites.append(needs)
-	var amount: String = CardScript.amount_text(amount_milli)
+	card.prerequisites.append(needs_text(kind))
+	var amount: String = Measures.amount(&"wood", amount_milli)
 	match kind:
 		JobsScript.KIND_FELL:
-			card.result = "Felled: %s of wood lies ready to haul to the log stack" % amount
+			card.result = "Felled: a trunk of %s lies ready to haul to the log stack" % amount
 		JobsScript.KIND_HAUL:
-			card.result = "%s of logs carried to the log stack (%s a trip): wood in the stores" % [amount,
-				CardScript.amount_text(Rules.CARRY_LOAD_MILLI)]
+			card.result = "Carried to the log stack: %s (%s a trip), wood in the stores" % [amount,
+				Measures.exact(&"wood", Rules.CARRY_LOAD_MILLI)]
 		JobsScript.KIND_GATHER:
 			card.result = "The nearest pile (%s) gathered into the stores' wood" % amount
 		JobsScript.KIND_SAW:
-			card.result = "%s of logs sawn into %s of planks at the sawhorse" % [amount, amount]
+			card.result = "Sawn at the sawhorse: %s into %s" % [amount, Measures.amount(&"planks", amount_milli)]
 			card.add_cost(WOOD, &"wood", wood_milli, Rules.SAW_BATCH_MILLI)
 		JobsScript.KIND_PLANT:
 			card.result = "A sapling planted: a mature tree in %d days" % Rules.REGROW_DAYS
 			card.add_cost(COMPOST, &"compost", compost_milli, Rules.PLANT_COMPOST_MILLI)
 		JobsScript.KIND_GRUB:
 			card.result = "The stump dug out: the spot is cleared for planting"
+
+
+static func needs_text(kind: int) -> String:
+	"""What a woods job needs, its rule amounts worded exactly: "2 logs in the stores", "a cleared spot within reach; a
+	spadeful of compost" (goods_measures.gd, decision 1801)."""
+	match kind:
+		JobsScript.KIND_SAW:
+			return NEEDS[kind] % Measures.exact(&"wood", Rules.SAW_BATCH_MILLI)
+		JobsScript.KIND_PLANT:
+			return NEEDS[kind] % Measures.exact(&"compost", Rules.PLANT_COMPOST_MILLI)
+	return NEEDS[kind]
 
 
 static func compost_paid(card: CardScript) -> void:

@@ -129,6 +129,10 @@ func test_the_top_bar_equals_the_stores_after_spending_and_hauling() -> void:
 		func() -> bool:
 		stores.refund(500, 250, 100)
 		return true]
+	## The planks after each step, worded by hand from decision 1011's table: whole planks, floored; under one plank
+	## its weight (5 kg a plank, P2): 0, 0, 1.5, 0.6, 0.5, 0.6 U.
+	var plank_words: Array[String] = ["no planks", "no planks", "a plank", "3 kg of planks", "2.5 kg of planks",
+		"3 kg of planks"]
 	for k: int in steps.size():
 		assert_true(bool(steps[k].call()), "step %d happened" % k)
 		counters.sync()
@@ -138,8 +142,7 @@ func test_the_top_bar_equals_the_stores_after_spending_and_hauling() -> void:
 		assert_equal(_value(shell, UiShell.ID_STONE), blocks, "step %d: whole blocks, floored" % k)
 		assert_true(stores.stock_line().contains(logs + " · "), "step %d: the Tunnels line's wood" % k)
 		assert_true(stores.stock_line().contains(blocks + " of stone"), "step %d: its stone" % k)
-		var planks: String = StoresScript.units_text(stores.plank_milli_u)
-		assert_true(woods.stores_line().contains("planks " + planks), "step %d: the Woods line" % k)
+		assert_equal(woods.stores_line(), "Village stores: %s · %s" % [logs, plank_words[k]], "step %d: the Woods line" % k)
 	assert_equal(_value(shell, UiShell.ID_WOOD), "38 logs", "40 - 3.7 + 4.25 - 2.0 = 38.55, floored to whole logs")
 	assert_true(counters.ledger_label().text.contains("Wood: 38 logs · 3 kg of planks in store"),
 		"1.5 sawn - 0.9 for the bridge: 0.6 of a plank is its weight, 3 kg")

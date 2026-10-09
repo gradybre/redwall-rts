@@ -283,7 +283,7 @@ func test_ale_and_cider_follow_the_mead_rule_at_the_feast() -> void:
 	var menu := MenuScript.new()
 	menu.configure(kitchen, _services.stores)
 	menu.reserve(kitchen.takes.new_take(), 9, 0)
-	assert_true(menu.drinks_words(9).contains("ale 3.0 U (free 0.0 U)") and menu.drinks_words(9).contains("cider 3.0 U (free 2.0 U)"),
+	assert_true(menu.drinks_words(9).contains("ale 3 jugs (free none)") and menu.drinks_words(9).contains("cider 3 jugs (free 2 jugs)"),
 		"each drink by its own name, its 3 U set aside: %s" % menu.drinks_words(9))
 	assert_equal(Array(menu.drinks_planned), [3000, 0, 3000, 3000], "mead, ale and cider set aside")
 	menu.second_planned = true

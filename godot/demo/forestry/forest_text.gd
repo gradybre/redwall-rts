@@ -5,6 +5,7 @@ extends RefCounted
 ## for a notice.
 
 const Rules := preload("res://demo/forestry/forest_rules.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ZonesScript := preload("res://demo/forestry/forest_zones.gd")
 const DeadfallScript := preload("res://demo/forestry/forest_deadfall.gd")
@@ -51,11 +52,11 @@ func remember(answer: String) -> void:
 
 
 func stores_line() -> String:
-	"""The village stores' wood and planks, the figures the top bar shows: "Village stores: wood 40.0 U · planks
-	2.0 U" (decision 0251: no line explains whose stock it is -- there is one)."""
+	"""The village stores' wood and planks, the figures the top bar shows: "Village stores: 40 logs · 3 planks"
+	(decision 0251: no line explains whose stock it is -- there is one; goods_measures.gd, decision 1801)."""
 	var stores := _services.stores
-	return "Village stores: wood %s · planks %s" % [Rules.units_text(stores.wood_milli_u),
-		Rules.units_text(stores.plank_milli_u)]
+	return "Village stores: %s · %s" % [Measures.amount(&"wood", stores.wood_milli_u),
+		Measures.amount(&"planks", stores.plank_milli_u)]
 
 
 func counts_line() -> String:
@@ -64,7 +65,8 @@ func counts_line() -> String:
 	return "Standing: %d mature · %d young\nFelled: %s · %d cleared · trunks %s\nDeadfall: %s, %s" % [
 		_counts[StandScript.STATE_MATURE], _counts[StandScript.STATE_YOUNG],
 		counted(_counts[StandScript.STATE_STUMP], "stump"), _counts[StandScript.STATE_CLEARED],
-		Rules.units_text(_counts[4]), counted(_deadfall.live_count(), "pile"), Rules.units_text(_deadfall.total_milli())]
+		Measures.amount_cell(&"wood", _counts[4]), counted(_deadfall.live_count(), "pile"),
+		Measures.amount_cell(&"wood", _deadfall.total_milli())]
 
 
 static func counted(n: int, noun: String) -> String:
@@ -119,12 +121,12 @@ func tree_title(t: int, day: int) -> String:
 	var label: String = _stand.label_of(t)
 	match _stand.state_of(t):
 		StandScript.STATE_MATURE:
-			return "%s — mature, %s" % [label, Rules.units_text(_stand.wood_milli_of(t))]
+			return "%s — mature, %s" % [label, Measures.amount(&"wood", _stand.wood_milli_of(t))]
 		StandScript.STATE_STUMP:
 			return "%s — regrowing, %d days left" % [label, _stand.days_left(t, day)]
 		StandScript.STATE_YOUNG:
 			return "%s — growing, %d days to maturity" % [label, _stand.days_left(t, day)]
-	return "%s — plant a sapling (compost 0.25 U, 4 WU)" % label
+	return "%s — plant a sapling (%s, %d WU)" % [label, Measures.exact(&"compost", Rules.PLANT_COMPOST_MILLI), Rules.PLANT_WU]
 
 
 func tree_text(t: int) -> String:
@@ -136,7 +138,7 @@ func tree_text(t: int) -> String:
 		var z: int = _read.value
 		line = "%s (%s): %s" % [_zones.names[z], _zones.kind_name(z), _zones.floor_text(_stand, z)]
 	if _stand.trunk_milli[t] > 0:
-		line += "\nTrunk lying: %s to haul" % Rules.units_text(_stand.trunk_milli[t])
+		line += "\nTrunk lying: %s to haul" % Measures.amount(&"wood", _stand.trunk_milli[t])
 	var fell_code: String = _crew.refusal_for(JobsScript.KIND_FELL, t, 0)
 	if _stand.state_of(t) == StandScript.STATE_MATURE and not fell_code.is_empty():
 		line += "\nCan't fell: " + _crew.reason_text(fell_code, t)

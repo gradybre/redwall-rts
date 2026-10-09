@@ -787,7 +787,8 @@ func test_a_planned_bridge_s_materials_are_reserved_then_delivered_and_nothing_i
 	assert_true(rig.play.bridge_on_site_into(_read), "planned at the site")
 	var row: int = _read.value
 	var lines: String = ProjectScript.planned_lines(rig.play.bridges, rig.play.crew, row)
-	assert_true(lines.begins_with("Materials: 4.7 U planks — paid when it was planned, nothing missing; reserved at the plank stack"), lines)
+	assert_true(lines.begins_with("Materials: 5 planks — paid when it was planned, nothing missing; reserved at the plank stack"),
+		"4.7 U of planks, stated as its cost was (rounded up): " + lines)
 	assert_true(lines.contains("Work: piers 100% · beams 0% · deck 0%"), "its stages (no piers to build)")
 	rig.play.crew.at_site[row] = 1
 	assert_true(ProjectScript.planned_lines(rig.play.bridges, rig.play.crew, row).contains("delivered at the site"), "delivered")

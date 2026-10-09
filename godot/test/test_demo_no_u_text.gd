@@ -29,17 +29,12 @@ const ALLOWLIST: Dictionary = {
 	"res://demo/farm/farm_tending_page.gd": 1,
 	"res://demo/farm/farm_text.gd": 3,
 	"res://demo/feast/feast_menu.gd": 1,
-	"res://demo/forage/demo_forage.gd": 1,
-	"res://demo/forestry/forest_crew.gd": 2,
 	"res://demo/forestry/forest_rules.gd": 1,
-	"res://demo/forestry/forest_text.gd": 1,
 	"res://demo/hives/hive_text.gd": 2,
 	"res://demo/orchard/orchard_cards.gd": 3,
 	"res://demo/orchard/orchard_text.gd": 3,
 	"res://demo/tunnel/tunnel_stores.gd": 1,
 	"res://demo/ui/action_card.gd": 1,
-	"res://demo/waterplay/demo_waterplay.gd": 1,
-	"res://demo/waterplay/water_panel.gd": 2,
 }
 
 var _patterns: Array[RegEx] = []

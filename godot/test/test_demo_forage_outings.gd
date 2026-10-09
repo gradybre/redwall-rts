@@ -258,7 +258,7 @@ func test_the_kit_goes_with_one_trip_and_its_carrier_brings_two_baskets() -> voi
 	assert_true(_run(rig, func() -> bool: return t.trip_count() == 0), "home")
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_HERB), 12000, "12 U of herbs")
 	assert_equal(t.kit_trip(), TripsScript.NONE, "the kit is home")
-	assert_true(t.note_line(HERBS).contains("12.0 U of herbs"), t.note_line(HERBS))
+	assert_true(t.note_line(HERBS).contains("12 bunches of herbs"), t.note_line(HERBS))
 	assert_true(t.note_line(HERBS).begins_with("Remembered (Y1 Summer 1)"), t.note_line(HERBS))
 
 
@@ -280,7 +280,7 @@ func test_a_named_lead_is_in_the_news_and_the_note() -> void:
 	assert_true(t.note_line(HERBS).contains(" h ") and t.note_line(HERBS).contains(" min"), t.note_line(HERBS))
 	assert_equal(t.order_trip(HERBS, 1, PackedInt32Array([3])), "", "another, nobody named")
 	assert_true(_run(rig, func() -> bool: return t.trip_count() == 0), "home again")
-	assert_true(t.note_line(HERBS).contains("4.0 U of herbs") and not t.note_line(HERBS).contains("led by"),
+	assert_true(t.note_line(HERBS).contains("4 bunches of herbs") and not t.note_line(HERBS).contains("led by"),
 		"the latest trip's note only: %s" % t.note_line(HERBS))
 
 

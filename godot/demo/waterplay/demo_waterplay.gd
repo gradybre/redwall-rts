@@ -71,6 +71,7 @@ const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const WaterRangeScript := preload("res://demo/waterplay/water_range.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const Measures := preload("res://scripts/ui/goods_measures.gd")
 
 ## The player did something with the water: show the Water panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
@@ -105,8 +106,8 @@ const TRUNK_SIDE_M: float = 1.6
 ## The Build buttons' action cards (decision 0332; `build_card`), by swim_rules.gd KIND_*.
 const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
 const BUILD_NEEDS: Array[String] = ["a site both banks take; planks (sawn at the sawhorse) and wood for any piers",
-	"a site both banks take; a 6.0 U log: a felled trunk lying ready, or wood at the log stack"]
-const BUILD_FIXES: Array[String] = ["Woods ▸ Saw planks (%s wood makes %s planks)",
+	"a site both banks take; %s: a felled one lying ready, or wood at the log stack"]
+const BUILD_FIXES: Array[String] = ["Woods ▸ Saw planks (%s make %s)",
 	"Woods ▸ Fell a tree (its trunk gives the log), or Haul logs to the log stack"]
 ## build_refusal's checks, and the codes a Build card gives them.
 const BUILD_OK: int = 0
@@ -664,7 +665,7 @@ func build_card(kind: int, members: PackedInt32Array) -> CardScript:
 	Reused: read it before the next call."""
 	var survey: BridgesScript.Survey = survey_site(kind)
 	_card.reset("Build a %s" % Rules.KIND_NAMES[kind])
-	_card.prerequisites.append(BUILD_NEEDS[kind])
+	_card.prerequisites.append(BUILD_NEEDS[kind] % Rules.log_words() if kind == Rules.KIND_LOG else BUILD_NEEDS[kind])
 	var refused: String = build_refusal(kind, members)
 	if survey.ok:
 		_card.result = BUILT % [WaterRules.to_m(survey.span_u), site_name()]
@@ -679,8 +680,10 @@ func build_card(kind: int, members: PackedInt32Array) -> CardScript:
 
 static func build_fix(kind: int) -> String:
 	"""How to find a `kind` bridge's material: the saw (its batch stated from the woods' own figure), or a log."""
-	var batch: String = Rules.units_text(ForestRules.SAW_BATCH_MILLI)
-	return BUILD_FIXES[kind] % [batch, batch] if kind == Rules.KIND_PLANK else BUILD_FIXES[kind]
+	if kind != Rules.KIND_PLANK:
+		return BUILD_FIXES[kind]
+	return BUILD_FIXES[kind] % [Measures.exact(&"wood", ForestRules.SAW_BATCH_MILLI),
+		Measures.exact(&"planks", ForestRules.SAW_BATCH_MILLI)]
 
 
 static func _reason_of(refused: String) -> String:

@@ -576,8 +576,8 @@ func test_a_resident_fells_the_west_oak_and_hauls_it_all_to_the_stores() -> void
 	assert_equal(_services.stores.wood_milli_u, 52000, "40 U + 12 U")
 	assert_equal(forestry.stand.trunk_milli[WEST_OAK], 0, "nothing left lying")
 	assert_equal(forestry.crew.skills.xp_of(0, Rules.SKILL_FELLING), 1200, "120 WU learned")
-	assert_true(_feed_has("Placeholder 0 felled the oak at the woods' edge: 12.0 U of wood lie ready to haul", NoticesScript.LEVEL_NOTE), "posted")
-	assert_true(_feed_has("The oak's logs are all stacked: the demo stores hold 52.0 U of wood", NoticesScript.LEVEL_NOTE), "stacked")
+	assert_true(_feed_has("Placeholder 0 felled the oak at the woods' edge: 12 logs lie ready to haul", NoticesScript.LEVEL_NOTE), "posted")
+	assert_true(_feed_has("The oak's logs are all stacked: the demo stores hold 52 logs", NoticesScript.LEVEL_NOTE), "stacked")
 
 
 func test_the_others_selected_wait_by_the_tree_and_haul_it_with_the_feller() -> void:
@@ -693,7 +693,7 @@ func test_sawing_turns_two_units_of_logs_into_planks() -> void:
 	assert_equal(forestry.crew.skills.xp_of(3, Rules.SKILL_SAWING), 400, "40 WU learned")
 	_services.stores.wood_milli_u = 1999
 	assert_equal(forestry.order_on(PickScript.KIND_SAW, -1, PackedInt32Array([3])),
-		"Can't saw planks: the demo stores hold under 2.0 U of wood", "not enough")
+		"Can't saw planks: the demo stores hold under 2 logs", "not enough")
 
 
 func test_a_sawing_called_off_carries_its_load_away_as_what_it_is() -> void:
@@ -777,7 +777,7 @@ func test_replanting_a_cleared_spot_spends_the_farms_compost() -> void:
 	forestry.stand.blow_down_into(WEST_OAK, 1, Vector2.UP, _read)
 	forestry.stand.take_trunk_into(WEST_OAK, 12000, _read)
 	assert_equal(forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([0])),
-		"Can't plant a sapling: no compost to plant with (0.25 U needed)", "no compost wired")
+		"Can't plant a sapling: no compost to plant with: a sapling takes a spadeful of compost", "no compost wired")
 	var compost := PackedInt64Array([1000])
 	forestry.crew.set_compost(func() -> int: return compost[0],
 		func(milli: int) -> bool:
@@ -957,18 +957,21 @@ func test_the_marks_draw_zones_the_overlay_discs_and_the_ring() -> void:
 # --- panel, tab and command layer ---------------------------------------------------------------
 
 func test_the_woods_panel_says_what_the_selected_tree_can_take() -> void:
-	"""The west oak: mature, 12 U, outside any zone, Fell enabled; the Old grove's oak: Fell disabled
+	"""The west oak: mature, 12 logs, outside any zone, Fell enabled; the Old grove's oak: Fell disabled
 	with the reason; the counts and the stock read the real numbers."""
 	var forestry := _forestry()
 	forestry.select_tree(WEST_OAK)
 	forestry.refresh_panel()
 	var panel: PanelScript = forestry.panel
-	assert_equal(panel.line(&"tree_title"), "Oak — mature, 12.0 U", "the title")
+	assert_equal(panel.line(&"tree_title"), "Oak — mature, 12 logs", "the title")
 	assert_equal(panel.line(&"tree"), "Outside any zone: fell freely", "its zone")
 	assert_false(panel.button(PanelScript.ACTION_FELL).disabled, "fell")
 	assert_true(panel.button(PanelScript.ACTION_PLANT).disabled, "no planting")
-	assert_equal(panel.line(&"counts"), "Standing: 170 mature · 3 young\nFelled: 0 stumps · 0 cleared · trunks 0.0 U\nDeadfall: 3 piles, %s" % Rules.units_text(forestry.deadfall.total_milli()), "counts")
-	assert_true(panel.line(&"stores").begins_with("Village stores: wood 40.0 U · planks 0.0 U"), "the stock")
+	var lying: int = forestry.deadfall.total_milli()
+	assert_true(lying >= 3000 and lying <= 6000, "three piles of 1 to 2 U: %d" % lying)
+	@warning_ignore("integer_division") var logs: int = lying / 1000
+	assert_equal(panel.line(&"counts"), "Standing: 170 mature · 3 young\nFelled: 0 stumps · 0 cleared · trunks none\nDeadfall: 3 piles, %d logs" % logs, "counts: whole logs, rounded down")
+	assert_true(panel.line(&"stores").begins_with("Village stores: 40 logs · no planks"), "the stock")
 	forestry.select_tree(OLD_GROVE_OAK)
 	forestry.refresh_panel()
 	assert_true(panel.button(PanelScript.ACTION_FELL).disabled, "protected")

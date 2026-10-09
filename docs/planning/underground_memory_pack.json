@@ -8685,7 +8685,7 @@
       "godot/scripts/ui/ui_world_session.gd": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
     },
     "source_sha256": {
-      "godot/scripts/systems/ui_manager.gd": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98",
+      "godot/scripts/systems/ui_manager.gd": "757e05e01c529666d741655f8760f13cf09679d2cdb1c3ccf7948025b90747a4",
       "godot/scripts/ui/ui_world_session.gd": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
     },
     "current_composition_source_sha256": {
@@ -41264,7 +41264,8 @@
       "godot/scripts/core/underground_world_routes.gd",
       "godot/scripts/core/work.gd",
       "godot/scripts/core/world_init.gd",
-      "godot/scripts/systems/settlement_system.gd"
+      "godot/scripts/systems/settlement_system.gd",
+      "godot/scripts/systems/ui_manager.gd"
     ],
     "historical_motion": {
       "source_sha256": "46e71996e15c1ccc12906831775b23f7a7c66d69bc2d161ddfdd78d0f6db67e3",
@@ -44208,6 +44209,16 @@
             ]
           ]
         }
+      },
+      "godot/scripts/systems/ui_manager.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "MEAS-2 (decision 1801): the Wood and Stone counters worded in natural measures; two static text helpers, no member, packet or resize"
+          }
+        ],
+        "delta": {}
       }
     },
     "charged_by_carrier": {

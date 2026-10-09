@@ -167,6 +167,10 @@
     "godot/scripts/systems/settlement_system.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/settlement_system.gd-66e8eda0c6de.txt",
       "sha256": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50"
+    },
+    "godot/scripts/systems/ui_manager.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/ui_manager.gd-4d64b299a4d6.txt",
+      "sha256": "4d64b299a4d639043662805fd092f1ad33695b6d4b6a7ac826b90bbd932b2f98"
     }
   },
   "last_passing_commit": "94dca0a3",

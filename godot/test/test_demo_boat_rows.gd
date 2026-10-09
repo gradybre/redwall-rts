@@ -222,6 +222,8 @@ func test_boardings_are_listed_strictly_ascending_and_at_most_eight() -> void:
 	rows.open_row(R, LANDING_A, LANDING_B, RIDE, MAX_WAIT)
 	assert_false(rows.add_boarding(R, 0, -1, 5), "ready by before now")
 	assert_false(rows.add_boarding(R, 0, 6, 5), "ready by after it boards")
+	assert_true(rows.add_boarding(R, 1, 0, 100), "ready now, boarding at 100")
+	assert_false(rows.add_boarding(R, 1, 50, 100), "a later ready by, the same boarding")
 	assert_true(rows.add_boarding(R, 0, 0, 0), "now")
 	assert_false(rows.add_boarding(R, 0, 0, 50), "the same ready by again")
 	assert_false(rows.add_boarding(R, 0, 50, 0), "the same boarding again")
@@ -229,7 +231,7 @@ func test_boardings_are_listed_strictly_ascending_and_at_most_eight() -> void:
 		assert_true(rows.add_boarding(R, 0, k * 100, k * 100 + 30), "boarding %d" % k)
 	assert_false(rows.add_boarding(R, 0, 5000, 5000), "the ninth")
 	assert_equal(rows.board_count[R * 2], BoatRows.MAX_BOARDINGS, "eight at a")
-	assert_equal(rows.board_count[R * 2 + 1], 0, "none at b")
+	assert_equal(rows.board_count[R * 2 + 1], 1, "one at b")
 	assert_true(rows.offered(R), "offered")
 
 

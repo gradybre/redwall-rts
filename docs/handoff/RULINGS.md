@@ -137,6 +137,13 @@ Every row was checked against the record named.
 | 1742's questions (F10, R5) and #240 | F10 **(c) leave it**: rations may be eaten any time. R5 **add the controls**: a field to set the reserve's target and a Release button for emergencies, per UI-SET-099 and §5.10 (built in the Water panel's Preserves section). **Merge #240 after that, the extra missed meals included**; R1–R4 accepted as built, provisional. The REQ-SET-117 amendment stays a proposal. (Relayed by the coordinator) | 1742; `docs/balance/2026-10-07-year-matrix-rerun.md` |
 | Measures phase 2 (MEAS-2) timing | MEAS-2 (natural measures in place of "U", DEC-049 and 1011) runs **after the digging revamp lands**, as one pass over the demo, the tunnel and burrow stores and the settlement UI. Until then new lanes may keep using the existing U helpers. (Relayed by the coordinator) | `docs/handoff/BACKLOG.md` MEAS-2; DEC-049; 1011 |
 
+## 2026-10-09
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| 1801's blocker B1 (the settlement HUD's `ui_manager.gd`, pinned by the underground memory pack) | **(a), "Update the pin"**: the established ADR 1212 projection update for `godot/scripts/systems/ui_manager.gd` (master's bytes archived, a reviewed-delta row with no storage change, `PROJECTION_SHA` / `REVIEWED_SHA` bumped, the pack regenerated) is authorised. (Relayed by the coordinator) | 1801 |
+| 1801's proposals (P-M1–P-M8) | P-M1 **(a)**, the new goods' measures as built, with P-M3 **(b)**: the cask shows halves. P-M2, P-M5, P-M7, P-M8 **(a)**, as recommended. P-M4 **(b)** and P-M6 **(b)**, as recommended, **as follow-ups, not on the MEAS-2 branch** (BACKLOG MEAS-FOLLOWUPS). (Relayed by the coordinator) | 1801; `docs/handoff/BACKLOG.md` MEAS-FOLLOWUPS |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

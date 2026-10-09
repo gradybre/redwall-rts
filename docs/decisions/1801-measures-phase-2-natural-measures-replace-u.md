@@ -1,5 +1,5 @@
 # 1801 — Measures phase 2: natural measures replace "U" in the demo and the settlement UI
-Date: 2026-10-09 · Status: Accepted (built; Brendan's rulings on P-M1–P-M8 pending) (MEAS-2; BACKLOG.md's printed range 1181–1190 is replaced by 1801–1819, as
+Date: 2026-10-09 · Status: Accepted (built; Brendan's rulings of 2026-10-09 below) (MEAS-2; BACKLOG.md's printed range 1181–1190 is replaced by 1801–1819, as
 `docs/handoff/README.md` §3.6 directs)
 
 ## Decision
@@ -12,6 +12,17 @@ coming back. Display only: no `*_milli` arithmetic, no `STEP`, no `scripts/core/
 
 This record holds what phase 2 found and chose, not 1011's rules again. 1011 §1/§1a (the table), §2 (wording), §3/§4b
 (the Wood levels), §4 (the plan) and §5 (Underground) are the rules.
+
+## Brendan's rulings (2026-10-09, relayed by the coordinator)
+
+- **B1 (a), "Update the pin":** the ADR 1212 projection update for `godot/scripts/systems/ui_manager.gd` is authorised
+  -- master's bytes archived, a reviewed-delta row, `PROJECTION_SHA` / `REVIEWED_SHA` bumped, the pack regenerated.
+  Done (see "The memory pack's pin on ui_manager.gd").
+- **P-M1 (a)** (the new goods' measures, as built) **with P-M3 (b)**: the cask shows halves. Done: `M_CASK`'s halves
+  flag, and the sweep's cask exemption removed (every "from 2" measure now keeps 1011's 20% bound).
+- **P-M2, P-M5, P-M7, P-M8: (a)**, as recommended (as built).
+- **P-M4 (b) and P-M6 (b)**, as recommended, **as follow-ups, not on this branch**: `docs/handoff/BACKLOG.md`
+  MEAS-FOLLOWUPS, with the Cellar bar's unseen Build tooltip and the UI reference renders.
 
 ## Rulings this runs under
 
@@ -49,9 +60,9 @@ This record holds what phase 2 found and chose, not 1011's rules again. 1011 §1
   show from "2½ sacks" to "9½ sacks". "1½ jars of honey" (the jar is not "from 2") is the halves example that occurs.
 - **Mixed food has no "from 2"** (§1: "baskets of food (5 U = 1.25 kg, ½), then bowls"), while `spoiled_food` (§1a:
   "as mixed food: basket, from 2, ½") has. Both are built as written: "a basket of food", "5 bowls of spoiled food".
-- **The 20% accuracy bound** (1011 §2) holds for every "from 2" measure with halves. The cask (mead, ale, cider) is the
-  one "from 2" measure without halves, so 59 U of mead reads "2 casks of mead" (32% under) with "59 litres (59 kg)" in
-  its tooltip. The sweep test exempts the cask and says why. See P-M3.
+- **The 20% accuracy bound** (1011 §2) holds for every "from 2" measure. The cask was the one without halves (59 U of
+  mead read "2 casks", 32% under) until Brendan's P-M3 (b) gave it halves: "2½ casks of mead". The sweep checks every
+  "from 2" measure, the cask included.
 - **`exact` respects "from" and the ten-measure halves limit**, so 20 U of grain authored is "20 scoops of grain", not
   "a sack" (a sack is never shown below two), and 230 U is "230 scoops" (11½ sacks has no half shown).
 - **have_need's have below one of the need's measure** reads "under 1 of 5 planks" (or "under ½ of ½ jar"), not "0",
@@ -100,13 +111,13 @@ different ruling is a one-row change in `ROWS`.
 
 | Good (demo key) | Weighs as (g/U) | Measure, then below | Why |
 |---|---|---|---|
-| Ale (`ale`), cider (`cider`) | mead (1000) | cask, from 2 (20 U); jug (1 U = 1 L) | Brewed drinks kept like mead (1011's approved mead row) |
+| Ale (`ale`), cider (`cider`) | mead (1000) | cask, from 2, ½ (20 U); jug (1 U = 1 L) | Brewed drinks kept like mead (1011's approved mead row) |
 | Cordial (`cordial`) | mead (1000) | jug (1 U = 1 L); cup (0.25 U) | A table drink, poured by the cup at supper; never casked |
 | Apple vinegar (`vinegar`) | mead (1000) | jug (1 U); cup (0.25 U) | An ingredient measured like water |
 | Berry jam (`jam`), pickles (`pickles`) | dried fruit (250) | jar, ½ (1 U = 250 g) | Kept in jars, as honey is |
 | Nut cheese (`cheese`) | dried fruit (250) | round, ½ (1 U = 250 g) | A small pressed round |
 
-Dried fruit (bag, 1 U), rations (counted), honey (jar, ½), wax (cake, ½; piece 0.25 U) and mead (cask from 2; jug)
+Dried fruit (bag, 1 U), rations (counted), honey (jar, ½), wax (cake, ½; piece 0.25 U) and mead (cask from 2, ½ since P-M3 (b); jug)
 already have approved rows (1011 §1, §1a). Apples and pears use §1's "Apple, pear" row (basket from 2, ½; counted).
 
 ## Inventory (slice 1, at `0727350a`)
@@ -307,7 +318,7 @@ SEND_BELOW, `control/demo_party_panel.gd` HINT, `sound/sound_table.json` "(U vie
 - [x] Slice 8: guide, goals, orders, chronicle, practice stories, and the Underground rename.
 - [x] Slice 9: the lint's allowlist empty, `godot/demo/README.md` (a "Natural measures" section; 16 "U view" mentions
   renamed; 13 quoted amounts updated), and the 23 old helpers deleted.
-- [x] Gates: see Gates; one contract group is BLOCKED (see below).
+- [x] Gates: see Gates.
 
 ## How slices 3–8 were built
 
@@ -352,7 +363,7 @@ and slice 4's reserved part; `test_demo_orchard_ui.gd`'s raw-NP check, slice 8's
   the module ("12 g" of carrot is never "none"; 5.1 U is "5 bunches", floored).
 - **Slices 3–8 were built in parallel**, not one after another (see above); each was tested on its own and the
   integration run here.
-## PROPOSALS — for Brendan
+## PROPOSALS — ruled 2026-10-09 (see Brendan's rulings above)
 
 - **P-M1 — The measures for goods added since 1011** (the PROVISIONAL rows above: ale and cider in casks and jugs;
   cordial and vinegar in jugs and cups; jam and pickles in jars; nut cheese in rounds). (a) As built. (b) Different
@@ -377,6 +388,7 @@ and slice 4's reserved part; `test_demo_orchard_ui.gd`'s raw-NP check, slice 8's
 - **P-M8 — The feast preview's free food** reads "beans 4 scoops — enough" / "mead 0 of 2 jugs free". (a) As built
   (`have_need`). (b) The old "need (free X)" layout, each in its own measure, which can mix measures ("2½ sacks (free
   39 scoops)"). **Recommendation: (a).**
+- **Follow-ups** (BACKLOG MEAS-FOLLOWUPS): P-M4 (b); P-M6 (b); and these two:
 - **Found, not fixed (UI behaviour, outside this lane):** the Cellar bar's Build tooltip is set in `configure()` and
   cleared at once by `refresh()` (`FarmUi.set_enabled(_build, true, "")`), so a player never sees it. A small
   follow-up.
@@ -384,28 +396,26 @@ and slice 4's reserved part; `test_demo_orchard_ui.gd`'s raw-NP check, slice 8's
   (`docs/design/ui_refinement/render_targets.py`, `woodland_art_prompt.txt`); they are re-rendered under the art
   process, not hand-edited here.
 
-## BLOCKED: the settlement HUD change and the underground memory pack
+## The memory pack's pin on ui_manager.gd (was BLOCKED; resolved by B1 (a))
 
 `godot/scripts/systems/ui_manager.gd` is a **pinned reviewed witness** of the underground memory pack (manifest 3,
 `docs/validation/evidence/underground-entry-source-phases-2026-10-05/memory-manifest-3.json`; checked by
 `tools/underground_room_memory.py`, `docs/validation/ready07_arithmetic.py` and `tools/underground_memory_budget.py
---check`). Slice 2's change to its Wood and Stone counters (UI-SET-004/005's readout, which §4a assigns to this file)
-changes its bytes, so the contracts **ready07_arithmetic**, **underground_memory_budget --check**,
-**test_underground_memory_budget** and **test_underground_current_census** fail with "reviewed witness changed:
-godot/scripts/systems/ui_manager.gd". Every other contract passes.
+--check`). Slice 2's change to its Wood and Stone counters changed its bytes, so four contracts failed with "reviewed
+witness changed: godot/scripts/systems/ui_manager.gd". The lane's first attempt at the ADR 1212 update was refused by
+the session's permission system (and so was reverting the file); it waited for Brendan's ruling.
 
-The established path (ADR 1212, as `b51ae5bd` did for `excavation_contract.gd`) is to archive the reviewed bytes as a
-projected input, add its reviewed-delta row (this change adds two static text helpers: no member, packet, resize or
-allocation site), bump the pinned `PROJECTION_SHA` / `REVIEWED_SHA` and regenerate the pack. This lane's attempt to do
-so was refused by the session's permission system as audit tampering, and reverting the file to master was refused as
-a CI bypass, so **neither was done**. It needs the coordinator's or Brendan's decision:
-
-- **(a)** Authorise the ADR 1212 projection update for `ui_manager.gd` (a no-storage-delta row), done by the
-  coordinator or by this lane with explicit permission.
-- **(b)** Drop the settlement HUD part from this branch (restore `ui_manager.gd` and `test_ui_manager.gd`'s two
-  expectations), leaving the settlement game's Wood and Stone cells at "180 U" / "100 U" until a settlement UI lane
-  takes UI-SET-004/005 with the pack update (P-M2 and P-M4 go with it).
-- **Recommendation: (a)**; the change is display-only and the census row is mechanical.
+Under B1 (a), the established path (ADR 1212, as `b51ae5bd` did for `excavation_contract.gd`):
+- master's bytes (`0727350a`, sha256 `4d64b299…`) archived as
+  `docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/ui_manager.gd-4d64b299a4d6.txt`, and
+  its row added to that census's `projection.json`;
+- a reviewed-delta row in `reviewed-deltas.json`: 0 bytes, "the Wood and Stone counters worded in natural measures;
+  two static text helpers, no member, packet or resize". `underground_current_census.delta` of the change is `{}` (no
+  member, resize, integer constant or allocation site);
+- `PROJECTION_SHA` (`tools/underground_room_memory.py`) and `REVIEWED_SHA` (`tools/underground_current_census.py`)
+  bumped to the two files' new digests;
+- `docs/planning/underground_memory_pack.json` regenerated by `python3 tools/underground_memory_budget.py`: only the
+  file's current source hash, its place among the projected inputs and the reviewed row change. No byte figure moves.
 
 ## Gates
 
@@ -414,8 +424,8 @@ a CI bypass, so **neither was done**. It needs the coordinator's or Brendan's de
   shards"): 12,141 tests, 1,241,630 assertions, 0 failures; 0 unexpected errors, 0 unexpected warnings; 0 leaked
   objects, 0 leaked resources (each shard's `diagnostics:` and `log:` lines both clean).
 - **The analyzer** (`tools/gdscript_warnings.py --max 0 --port 6311`): "0 GDScript warning(s) in 0 of 1476 file(s)".
-- **The contracts**: 30 of 34 pass, `decision_numbers` included ("PASS -- 538 records"); the 4 that read the
-  underground memory pack fail on `ui_manager.gd` (see BLOCKED above).
+- **The contracts**: 30 of 34 passed before B1; the 4 that read the underground memory pack failed on
+  `ui_manager.gd`. After the pin's update: see "After the rulings" below.
 - **Live harnesses** at 1280x720 and 1920x1080 (windowed, captured): food 71/71, winter 44/44, hall 43/43, care 37/37,
   Underground (modular world) 42/42, feasts 18/18, orchard 22/22 (one capture run timed out on a game-time wait under
   load and passed on its rerun), layout 159/159 and 230/230 without capture (two capture-mode timing failures that
@@ -439,6 +449,20 @@ a CI bypass, so **neither was done**. It needs the coordinator's or Brendan's de
   (main scene: Wood and Stone draw "See ledger", P-M4). They found one regression, fixed: the Ready-food ledger line
   wrapped and pushed Beds out of the fixed eight-line ledger (`2c250549`; the food harness now checks no ledger line
   wraps).
+
+## After the rulings (2026-10-09)
+
+- **The pin** (B1 (a)): done as recorded above. Two auditor self-tests asserted that an injected change to
+  `ui_manager.gd` is refused by the room census itself, which is true only of an unprojected input. They now follow
+  ADR 1212's projected-input semantics, as for every other projected input (`refuses_current_change`): the injected
+  text is replaced by the reviewed bytes before anything runs, a storage change is refused by the current census
+  ("current census: unreviewed storage delta: godot/scripts/systems/ui_manager.gd"), and a method with no storage is
+  admitted there (`tools/test_underground_room_memory.py`, `tools/test_underground_memory_budget.py`).
+- **The contracts: 34 of 34 pass**, among them `ready07_arithmetic` ("status": "PASS"), `underground_memory_budget
+  --check`, `test_underground_memory_budget` (285 tests, OK), `test_underground_current_census` (OK) and
+  `decision_numbers` ("PASS -- 538 records, 0 problem(s)").
+- **The cask's halves** (P-M3 (b)): `goods_measures.gd`'s mutants rerun with the change, 56 of 56 killed (three new
+  ones on the cask's row: its halves flag, its "from 2", its size).
 
 ## Consequences
 

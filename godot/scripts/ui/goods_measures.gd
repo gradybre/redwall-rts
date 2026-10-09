@@ -24,7 +24,7 @@ extends RefCounted
 ## Below the smallest measure an amount shows its weight ("40 g of herbs"), never 0 (decision 0222's rule kept); under
 ## 1 g it is "a trace of herbs". Each good's MASS (grams per U) comes from the catalogue through item_definitions.gd,
 ## never retyped: a demo good names the catalogue row it weighs as (a radish weighs as `roots`; planks as `wood`, P2).
-## A good with no catalogue row at all names the row it is PROVISIONALLY weighed as (decision 1801 P-rows).
+## A good with no catalogue row at all names the row it is weighed as (decision 1801; approved by Brendan, P-M1 (a)).
 ##
 ## FOUR RENDERINGS (1011 §2). `amount` rounds DOWN (stock, yield, catch: never claims what is not there); `need` rounds
 ## UP (a requirement, cost or rate: never understates it, BAL-NUM-001's direction); `exact` rounds not at all (an
@@ -72,7 +72,8 @@ const M_BUNCH: Array = ["bunch", "bunches", 1000, 1, 0, 1]
 const M_BUCKET: Array = ["bucket", "buckets", 10000, 2, 1, 1]
 const M_JUG: Array = ["jug", "jugs", 1000, 1, 0, 1]
 const M_CUP: Array = ["cup", "cups", 250, 1, 0, 1]
-const M_CASK: Array = ["cask", "casks", 20000, 2, 0, 1]
+## The cask shows halves (Brendan's ruling on 1801 P-M3 (b), 2026-10-09), so every "from 2" measure keeps 1011's 20%.
+const M_CASK: Array = ["cask", "casks", 20000, 2, 1, 1]
 const M_JAR: Array = ["jar", "jars", 1000, 1, 1, 1]
 const M_PORTION: Array = ["portion", "portions", 1000, 1, 0, 1]
 const M_SEED_POUCH: Array = ["pouch", "pouches", 4000, 1, 0, 1]
@@ -80,7 +81,7 @@ const M_SEED_HANDFUL: Array = ["handful", "handfuls", 250, 1, 0, 1]
 const M_FOOD_BASKET: Array = ["basket", "baskets", 5000, 1, 1, 1]
 
 ## Every good: [key, the catalogue row it weighs as, its name in a sentence, liquid (1: litres in its tooltip),
-## measures largest first]. Rows marked PROVISIONAL are decision 1801's proposals for goods 1011 has no row for.
+## measures largest first]. The last block is decision 1801's rows for goods 1011 has no row for (Brendan, 2026-10-09).
 const ROWS: Array = [
 	# Materials and stores (1011 §1).
 	[&"wood", &"wood", "wood", 0, [["log", "logs", 1000, 1, 0, 0], ["quarter log", "quarter logs", 250, 1, 0, 0],
@@ -176,9 +177,10 @@ const ROWS: Array = [
 	[&"trap", &"trap", "traps", 0, [["trap", "traps", 1000, 1, 0, 0]]],
 	[&"ice_kit", &"ice_kit", "ice kits", 0, [["ice kit", "ice kits", 1000, 1, 0, 0]]],
 	[&"outfit_tier2", &"outfit_tier2", "winter outfits", 0, [["winter outfit", "winter outfits", 1000, 1, 0, 0]]],
-	# PROVISIONAL (decision 1801): the demo's goods added after 1011, which no catalogue row weighs. The drinks weigh
-	# as mead (a litre a U) and are measured as mead (ale, cider) or as water's jug and cup (cordial, vinegar); the
-	# eaten-as-they-are preserves weigh as dried fruit (250 g a U) and are measured as honey is, in jars, or in rounds.
+	# Decision 1801, approved by Brendan 2026-10-09 (P-M1 (a)): the demo's goods added after 1011, which no catalogue
+	# row weighs. The drinks weigh as mead (a litre a U) and are measured as mead (ale, cider) or as water's jug and
+	# cup (cordial, vinegar); the eaten-as-they-are preserves weigh as dried fruit (250 g a U) and are measured as
+	# honey is, in jars, or in rounds.
 	[&"ale", &"mead", "ale", 1, [M_CASK, M_JUG]],
 	[&"cider", &"mead", "cider", 1, [M_CASK, M_JUG]],
 	[&"cordial", &"mead", "cordial", 1, [M_JUG, M_CUP]],

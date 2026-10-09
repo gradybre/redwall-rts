@@ -470,8 +470,8 @@ barley", "9 perch", "a bunch of herbs", "half a jar of honey", "6½ baskets of f
 integer milli-U everywhere; only the words change.
 
 - **One module** words every amount: `godot/scripts/ui/goods_measures.gd` (it serves the settlement UI too). Its
-  table is decision 1011 §1/§1a plus 1801's PROVISIONAL rows for the goods added since (ale, cider, cordial, vinegar,
-  jam, pickles, nut cheese). Call it with the good's key and the milli-U:
+  table is decision 1011 §1/§1a plus 1801's rows for the goods added since (ale, cider, cordial, vinegar, jam,
+  pickles, nut cheese; approved by Brendan 2026-10-09, with halves for the cask). Call it with the good's key and the milli-U:
   - `amount` (stock, a harvest, a catch: rounded down), `need` (a cost or a rate: rounded up), `exact` (a rule
     constant or a player's target), `have_need` ("4 of 5 planks", "2 logs — enough"), `weight` and `tooltip`;
   - each with a `_cell` form for a labelled cell ("12 sacks", "none") beside the sentence form ("12 sacks of

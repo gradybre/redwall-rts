@@ -173,6 +173,10 @@ func test_each_measure_and_just_below_it() -> void:
 	assert_equal(M.amount(&"cloth", 3999), "7 lengths of cloth", "just below half a bolt")
 	assert_equal(M.amount(&"mead", 40000), "2 casks of mead", "2 casks")
 	assert_equal(M.amount(&"mead", 39999), "39 jugs of mead", "just below 2 casks")
+	assert_equal(M.amount(&"mead", 59000), "2½ casks of mead", "P-M3 (b): the cask shows halves")
+	assert_equal(M.amount(&"mead", 59999), "2½ casks of mead", "floored to the half")
+	assert_equal(M.need(&"ale", 50001), "3 casks of ale", "a need raised to the half above")
+	assert_equal(M.amount(&"cider", 200000), "10 casks of cider", "whole from ten")
 
 
 func test_need_rounds_up() -> void:
@@ -191,7 +195,8 @@ func test_exact_picks_the_largest_dividing_measure() -> void:
 	assert_equal(M.exact(&"herb", 250), "a handful of herbs", "a nut roast's herbs")
 	assert_equal(M.exact(&"barley", 15000), "15 scoops of barley", "a standing order's target")
 	assert_equal(M.exact(&"wood", 100), "a bundle of kindling", "the kitchen's wood a batch")
-	assert_equal(M.exact(&"mead", 59000), "59 jugs of mead", "59 U is no whole number of casks")
+	assert_equal(M.exact(&"mead", 59000), "59 jugs of mead", "59 U is no whole number of half casks")
+	assert_equal(M.exact(&"mead", 50000), "2½ casks of mead", "50 U is two and a half casks")
 	assert_equal(M.exact(&"barley", 30000), "30 scoops of barley", "1½ sacks is below the from-2 threshold")
 	assert_equal(M.exact(&"barley", 150), "37 g of barley", "no measure divides: the weight")
 	assert_equal(M.exact_cell(&"compost", 2000), "1 basket", "a cell")
@@ -332,8 +337,7 @@ func test_the_half_glyph_is_in_every_ui_font() -> void:
 func test_amount_never_above_and_need_never_below_the_truth() -> void:
 	"""For every good, densely to 3 U and then on a stride to 260 U: amount <= true <= need, read back from the
 	words; from a from-2 container's threshold up, amount is within 20% of the truth. Something present never reads 0
-	(under a gram it is "a trace"). The cask (mead, ale, cider) is the one from-2 measure without halves, so 2.99 casks
-	reads "2 casks" (33% under): it is outside the 20% bound, with the exact weight in its tooltip (decision 1801)."""
+	(under a gram it is "a trace"). Every from-2 measure shows halves, the cask included since P-M3 (b)."""
 	var bad: int = 0
 	for r: Array in M.ROWS:
 		bad += _sweep_row(r)
@@ -361,7 +365,7 @@ func _check_one(r: Array, milli: int) -> int:
 	var trace: bool = down_words.begins_with("a trace") and truth < 1000
 	var ok: bool = down <= truth and up >= truth and (down > 0 or trace)
 	var from2: int = _from_two_threshold(r)
-	if from2 > 0 and milli >= from2 and r[0] != &"mead" and r[0] != &"ale" and r[0] != &"cider":
+	if from2 > 0 and milli >= from2:
 		ok = ok and down * 5 >= truth * 4
 	if not ok:
 		fail("%s at %d milli: amount '%s' (%d), need '%s' (%d), truth %d" % [good, milli, M.amount(good, milli), down,

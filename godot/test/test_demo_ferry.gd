@@ -533,6 +533,7 @@ func test_the_ferrys_boat_row_lists_the_timetable_from_each_stage_and_its_ride()
 	assert_equal(near, PackedInt64Array([hour, 3 * hour, 5 * hour, 7 * hour, 9 * hour, 21 * hour, 23 * hour, 25 * hour]),
 		"10:00, 12:00, 14:00, 16:00, 18:00, then 06:00, 08:00, 10:00")
 	assert_equal(near[0], rig.ferry.wait_ticks(FerryScript.NEAR), "the first is the one in sight")
+	assert_equal(rig.ferry.wait_ticks(FerryScript.FAR), hour + 380, "at the far stage: 10:00 and the row")
 	var far: PackedInt64Array = _boardings(rows, FerryScript.FAR)
 	assert_equal(far.size(), BoatRowsScript.MAX_BOARDINGS, "eight at the far stage")
 	for k: int in far.size():
@@ -695,12 +696,19 @@ func test_unstaffed_iced_or_frozen_the_ferrys_row_is_not_offered() -> void:
 	assert_false(_filled(rig, 2).offered(0), "unstaffed")
 	_helm(rig, 4, 2)
 	assert_true(_filled(rig, 2).offered(0), "staffed")
+	assert_false(_filled(rig, -1).offered(0), "for nobody")
+	rig.ferry.x_serial = 7
+	rig.ferry.x_state = FerryScript.X_HELD
+	assert_false(_filled(rig, 2).offered(0), "held at the far stage")
+	assert_equal(rig.ferry.wait_ticks(FerryScript.FAR), FerryScript.NONE, "held: no boarding in sight")
+	rig.ferry.x_serial = 0
+	rig.ferry.x_state = FerryScript.X_NONE
 	rig.ferry.ice.thickness_um = IceScript.FROZEN_UM
 	assert_false(_filled(rig, 2).offered(0), "ice on the pond")
 	rig.ferry.ice.thickness_um = 0
 	rig.weather.observe(0, 1, 12, -120, 0, WeatherCore.EVENT_HARD_FREEZE)
 	assert_false(_filled(rig, 2).offered(0), "a hard freeze")
-	assert_false(_filled(rig, -1).offered(0), "nobody")
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), FerryScript.NONE, "no boarding in sight")
 
 
 func test_a_posted_crossing_waits_for_its_crews_walk_in_whole_ticks() -> void:

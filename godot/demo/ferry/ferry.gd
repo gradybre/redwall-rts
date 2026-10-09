@@ -1288,9 +1288,8 @@ func _underway_board(stage: int) -> int:
 	"""When the crossing under way loads at `stage`, in ticks from now (NONE: none under way, or it will not load there
 	again). Posted for its crew: the crew's walk to the ferry stage (and the row out to the far stage). Loading at home:
 	now (the far stage: a row on). Rowing out: the far stage when it gets there. At the far stage: now, there. Homeward
-	-- rowing home, unloading or stepping off at home -- it loads nowhere: at home a crossing loads only setting out."""
-	if x_serial == 0:
-		return NONE
+	-- rowing home, unloading or stepping off at home -- it loads nowhere: at home a crossing loads only setting out.
+	(No crossing under way is X_NONE: `_end_crossing` clears the serial and the state together.)"""
 	var row_out: int = _row_ticks() if stage == FAR else 0
 	match x_state:
 		X_WAITING:
@@ -1311,8 +1310,6 @@ func _home_again(now: int) -> int:
 	departure it hides is only a later boat priced, never a boat that does not come. The crew's walk to the stage is
 	reckoned at twice its straight line (`_crew_walk_ticks`, a straight line): a crew detouring further than that is the
 	one case it can still be early in, and a passenger then waits for the next departure or goes by land at the stage."""
-	if x_serial == 0:
-		return now
 	var row: int = _row_ticks()
 	var stop: int = _stop_ticks()
 	match x_state:

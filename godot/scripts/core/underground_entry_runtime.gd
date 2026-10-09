@@ -137,6 +137,9 @@ func advance(tick: int) -> StringName:
 	if _foreman.awaiting_crew(): return _replace_crew(tick, false)
 	var code: StringName = _crew_loss_refusal()
 	if code != &"": return _lose_crew(code, tick)
+	if _walk_left == 0 and _tired(_worker_row) and _crew_at_rest():
+		code = _change_shift(tick)
+		if code != &"" or _crew.worker == NULL_REF or _walk_left > 0: return code
 	if _walk_left > 0:
 		_walk_left -= 1
 		if _walk_left > 0: return &""
@@ -164,6 +167,31 @@ func _lose_crew(code: StringName, tick: int) -> StringName:
 	_worker_row = -1
 	var replaced: StringName = _replace_crew(tick, true)
 	return replaced if replaced != &"" else code
+
+
+func _tired(row: int) -> bool:
+	"""DEC-059: the crew's hunger or rest has reached its GDD 5.2 seek threshold (eat <= 3,500, sleep <= 2,500)."""
+	return _seeking(_jobs.needs(), row)
+
+
+func _change_shift(tick: int) -> StringName:
+	"""DEC-059 shift change: at a resting point (ADR1226) a tired crew hands the entry over by ADR1225's path once a
+	rested idle mole can take it (checked each JobSelector interval; until then the crew carries on). The two trade
+	places: the tired mole is released, unreserved, onto the rested one's surface pose (outside the work area, where
+	it stood idle; no surface walk is modelled, as ADR1219's arrival models none), to eat or sleep like any resident;
+	the rested one walks to H (ADR1219) and the step resumes."""
+	if tick % Foreman.Jobs.REEVALUATION_INTERVAL_TICKS != 0: return &""
+	var o: Foreman.Owners = _foreman._owners
+	var found: Array[Vector2i] = []
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	if _idle_mole(o, found) != &"" or not _transforms.read_into(found[0], pose): return &""
+	var tired: Vector2i = _crew.worker
+	var released: StringName = _foreman.release_lost_crew(true)
+	if released != &"": return _halt(released)
+	if not _transforms.place(tired, pose.x, pose.y, pose.z, pose.yaw): return _halt(REFUSE_SURFACE_ARRIVAL)
+	_walk_left = 0
+	_worker_row = -1
+	return _replace_crew(tick, true)
 
 
 func _replace_crew(tick: int, now: bool) -> StringName:
@@ -315,9 +343,16 @@ static func _idle_mole(o: RefCounted, out: Array[Vector2i]) -> StringName:
 		if o.jobs.job_of(slot) != NULL_REF:
 			busy = true
 			continue
+		if _seeking(o.jobs.needs(), slot): continue # DEC-059: a tired mole is picked again once it has recovered.
 		out.assign([residents.ref_of(slot)])
 		return &""
 	return Foreman.Jobs.REFUSE_AGENT_BUSY if busy else REFUSE_NO_IDLE_MOLE
+
+
+static func _seeking(needs: RefCounted, row: int) -> bool:
+	"""DEC-059: hunger or rest at or below its GDD 5.2 seek threshold."""
+	return needs._need_value[row * Needs.NEED_COUNT + Needs.NEED_HUNGER] <= Needs.HUNGER_EAT_THRESHOLD \
+		or needs._need_value[row * Needs.NEED_COUNT + Needs.NEED_REST] <= Needs.REST_SEEK_SLEEP_THRESHOLD
 
 
 func _plan_foreman(o: RefCounted) -> StringName:

@@ -21,9 +21,10 @@ const SaveFile := preload("res://scripts/core/save_file.gd")
 const FRAME_USEC: int = 100000
 ## Save points along the live chain, from the surface walk through the hauls, the paid phases and
 ## the installation; each is loaded and run to the next. Multiples of 3: one host frame is 3 ticks.
-const CHECKPOINTS: Array[int] = [210, 1200, 2004, 2805, 3609, 4410]
-## Past the first-entry prefix's finish (ADR 1227: tick 4630 in the host suite's chain).
-const END_TICK: int = 4800
+## DEC-059: on through the descent (its cuts, T1's haul, the chained treads) to the whole entry's end.
+const CHECKPOINTS: Array[int] = [210, 1200, 2004, 2805, 3609, 4410, 5103, 6402, 7101, 7800]
+## Past the whole entry's finish at the Kitchen gap (DEC-059: tick 8348 in the host suite's chain).
+const END_TICK: int = 8400
 const SAVE_PATH: String = "user://test_settlement_save_underground.rwlsave"
 const ROLLBACK_PATH: String = "user://test_settlement_save_underground.rwlsave.rollback"
 
@@ -137,6 +138,9 @@ func test_the_live_chain_saved_to_a_file_at_each_checkpoint_continues_byte_ident
 	assert_true(GameManager.start_game(), "a fresh clock")
 	var host: Node = _composed()
 	assert_equal(Chain.begin_entry(host), &"", "the entry begins")
+	var o: RefCounted = host.underground_session()._retirement_owners
+	for item: Array in [[&"wood", 13000], [&"stone", 2000]]: # DEC-059: stock for the whole descent.
+		assert_equal(Chain._stage(o, host.underground_entry()._output, item[0], item[1]), &"", "staged")
 	var saves: Array[PackedByteArray] = _checkpoint_saves(host)
 	var ends: Array[int] = []
 	ends.assign(CHECKPOINTS.slice(1))

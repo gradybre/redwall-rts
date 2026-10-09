@@ -1683,3 +1683,77 @@ func test_a_rest_at_a_haul_stand_lets_the_lift_finish_and_the_haul_carries_on() 
 	tick = _run_until(entry, tick, _prefix_done.bind(entry))
 	assert_true(entry.is_running() and _prefix_done(entry), "the haul carried on: %s" % entry.error())
 	assert_equal(_done_ledger(o, entry._foreman), DONE_LEDGER, "with the same ledgers")
+
+
+func test_a_tired_crew_changes_shift_at_a_resting_point_and_a_rested_mole_carries_on() -> void:
+	"""DEC-059 shift change: the crew starts with rest just above its GDD 5.2 seek line (2,500). When rest reaches
+	it, the crew hands over at its next resting point by ADR1225's path: it is released alive where it stands (no
+	Job, unreserved, unregistered) to eat or sleep; the rested spare walks in and the prefix ends with the same
+	ledger. The tired mole is not picked while it is tired, and is again once it has recovered."""
+	var live: Array = _live_with_spare()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tired: int = o.residents.directory().get_typed_row(live[2])
+	o.jobs.needs()._need_value[tired * Needs.NEED_COUNT + Needs.NEED_REST] = Needs.REST_SEEK_SLEEP_THRESHOLD + 375
+	var tick: int = _run_until(entry, 1, func() -> bool: return entry.crew().worker != live[2])
+	assert_true(entry.is_running() and entry.crew().worker == live[3], "the rested spare is the crew: %s" % entry.error())
+	assert_true(o.jobs.needs().need_of(tired, Needs.NEED_REST).value <= Needs.REST_SEEK_SLEEP_THRESHOLD, "it was tired")
+	assert_true(o.residents.is_alive(tired), "the tired mole is alive")
+	assert_equal(o.routes._resident_ref(tired), Vector2i(-1, 0), "and no longer an underground route actor")
+	assert_false(entry.reserves_resident(tired), "nor reserved by the entry")
+	var found: Array[Vector2i] = []
+	var code: StringName = Settlement.UndergroundEntryRuntime._idle_mole(o, found)
+	assert_true(code != &"" or found[0] != live[2], "a tired mole is not picked")
+	var surface: Transforms.Pose = Transforms.Pose.new()
+	assert_true(o.transforms.read_into(live[2], surface) and surface.y >= 0, "it left the work area for the surface")
+	o.jobs.needs()._need_value[tired * Needs.NEED_COUNT + Needs.NEED_REST] = 9000
+	if o.jobs.job_of(tired) == Jobs.NULL_REF and not o.residents.has_equipped_tool(tired):
+		found.clear()
+		assert_true(Settlement.UndergroundEntryRuntime._seeking(o.jobs.needs(), tired) == false, "rested again")
+	tick = _run_until(entry, tick, _prefix_done.bind(entry))
+	assert_true(entry.is_running() and _prefix_done(entry), "the spare finishes the prefix: %s" % entry.error())
+	assert_equal(_done_ledger(o, entry._foreman), DONE_LEDGER, "with the same ledgers")
+
+
+## DEC-059: the whole-entry restore variant replaces the runtime by its record this often (ticks; prime), and
+## cold-restores the route owners every ROUTE_RESTORE_EVERY ticks.
+const ENTRY_RESTORE_EVERY: int = 11
+
+
+func _whole_entry(restoring: bool) -> Array:
+	"""[finish tick, error, ledger..., owner images..., final record, route and entry owner images] of the whole
+	entry on the default schedule, uninterrupted or with its runtime and route owners restored along the way."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	_stage(o, live[1]._output, &"wood", 13000)
+	_stage(o, live[1]._output, &"stone", 2000)
+	var session: Session = _host.underground_session()
+	var tick: int = 1
+	while _host.underground_entry().is_running() and tick < 20000:
+		if restoring and tick % ENTRY_RESTORE_EVERY == 0 and not _replace_entry_with_its_record(session, tick): return []
+		if restoring and tick % ROUTE_RESTORE_EVERY == 0 and not _cold_restore_routes(o, tick): return []
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var record: PackedByteArray = PackedByteArray()
+	assert_equal(entry.capture(record), &"", "final record")
+	return [tick - 1, entry.error()] + _done_ledger(o, entry._foreman) + _snapshot() + [record] \
+		+ RouteFixture.route_images(o.routes, o.world_routes, o.budget) \
+		+ RouteFixture.entry_owner_images(o.contacts, o.delivery, o.budget)
+
+
+func test_the_whole_entry_restored_along_the_way_ends_byte_identical() -> void:
+	"""DEC-059: the whole entry (prefix, descent cuts with one claw entry a cube, T1 and the chained treads) on the
+	default schedule, uninterrupted and again with its runtime replaced by its record every ENTRY_RESTORE_EVERY
+	ticks and its route owners cold-restored every ROUTE_RESTORE_EVERY ticks: the same finish, ledger and images."""
+	var plain: Array = _whole_entry(false)
+	if plain.is_empty(): return
+	assert_equal(plain.slice(0, 2), [DESCENT_DONE_TICK, Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT],
+		"the uninterrupted entry ends at the Kitchen gap")
+	assert_equal(plain.slice(2, 7), DESCENT_LEDGER, "with the whole descent's ledger")
+	after_each()
+	before_each()
+	var restored: Array = _whole_entry(true)
+	if restored.is_empty(): return
+	for index: int in plain.size():
+		assert_equal(restored[index], plain[index], "whole-entry image %d is byte-identical after restores" % index)

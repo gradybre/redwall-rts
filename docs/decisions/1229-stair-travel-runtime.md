@@ -526,3 +526,35 @@ at a cube boundary (READY after FINISH), not at every phase. A cube is 4,230 mil
 
 - The prefix ends on tick 3,462. The whole entry ends on tick 8,348 (17:07), with `[50, 59,220, 19, 77,840, 8]`.
 - At the finish, hunger is 4,751 and rest 3,376: neither has reached its seek line.
+
+## DEC-059 shift change (2026-10-08)
+
+The rules are recorded in ADR 1225's amendment. With P1–P3, the default-schedule chain finishes on tick 8,348 with
+hunger 4,751 and rest 3,376, so the shift change does not trigger in the goal run. It is exercised by its own suite,
+which starts the crew 375 rest points above the line.
+
+## Re-measured after DEC-059 (default schedule, live `run_tick` chain, no needs held up)
+
+| Where the ticks go | Prefix L0/T0 (before → now) | Descent cuts, 8 cubes | T1–T6 |
+|---|---:|---:|---:|
+| Cut Work | 594 → 280 | 832 → 400 (33,840 mWU) | – |
+| Claw entry / recovery | 546 / 810 → 186 / 284 | 728 / 1,168 → 248 / 352 (one each a cube) | – |
+| Travel to cut stations (via M; P4 not chosen) | 701 | 1,461 | – |
+| Fastening Work | 501 → 497 | – | 822 → 390 (5,640 mWU each) |
+| Handling / INSTALL entry / recovery | 122 / 60 / 107 | – | 366 / 180 / 366 |
+| Walk to M before each tread | – | – | 1,221 → 141 (T1 only) |
+| Haul trips + walks to M | 418 + 324 | 194 + 235 | 324 (T1's six trips) |
+| Down the stair to the station | 109 | – | 1,134 → 279 (T1 from M; T2–T6 31 each) |
+| Schedule pauses | 6 | 1,468 → 0 | stall at 22:00 → none |
+| **Total** | **4,669 → 3,461** | **4,618 (+1,468 paused) → 2,890** | **4,371 (stalled) → 1,997** (741, then 251 each) |
+
+The whole entry finishes on tick 8,348 (17:07) of the first day, inside the 06:00–18:00 work block, with hunger
+4,751 and rest 3,376. It used to stall at T3 from 22:00 (tick 12,178) for good. Ledger: 50 tasks, 59,220 cut
+mWU, 19 hauled units, 77,840 install mWU, 8 groups.
+
+**Found by the whole-entry save goal: the Space authority's static proof is not saved.** `test_settlement_save_underground`
+now saves and reloads at ten checkpoints through the descent. A load taken while a cut phase was in EARN failed
+`SPACE_STATIC_PROOF_MISSING`: the proof is a cache, and nothing re-derived it after a load. The foreman's EARN
+tick now re-derives it with the authority's own cold revalidation (`refresh_static_proof`, "recovers funded work
+after revision/load changes") and retries the same tick's Work. A loaded chain therefore spends exactly the ticks
+the uninterrupted one does, and every checkpoint is byte-identical to tick 8,400.

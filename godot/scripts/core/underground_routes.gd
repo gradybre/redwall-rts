@@ -3030,6 +3030,30 @@ func unregister_lost_actor(worker: Vector2i) -> StringName:
 	return &""
 
 
+func unregister_resting_actor(worker: Vector2i) -> StringName:
+	"""DEC-059 shift change (amends ADR1225's rule for one case): a living resident leaves the underground roster
+	only at a resting point (ADR1210/1226): registered, on an endpoint with no edge, queue or tail, holding the idle
+	READY source word or an idle automatic row. It stays where it stands; its row becomes the blank row, as a lost
+	actor's does. Anyone moving, working or handling is refused."""
+	if _frontier_publish_blocked() or _reject_callback() or _token != 0 or _searching or _advancing:
+		return &"ROUTE_TRANSACTION_BUSY"
+	var code: StringName = _binding_refusal()
+	if code != &"": return code
+	if _owner.has_prepared(): return &"ROUTE_SPACE_TRANSACTION"
+	var row: int = _lost_actor_row(worker)
+	if row < 0: return &"ROUTE_ACTOR_NOT_REGISTERED"
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	if not _at_rest(row) or (word != PHASE_IDLE and word != _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY)):
+		return &"ROUTE_UNREGISTER_NOT_AT_REST"
+	_release_route(row)
+	_unindex_actor(row)
+	for field: int in RESIDENT_FIELDS:
+		_motion.resident[field * RESIDENT_CAPACITY + row] = -1 if ACTOR_NULL_FIELDS.has(field) else 0
+	for field: int in RESIDENT_LONGS:
+		_motion.resident_long[field * RESIDENT_CAPACITY + row] = 0
+	return &""
+
+
 func _lost_actor_row(worker: Vector2i) -> int:
 	"""The registered row of `worker`: its typed row while the reference is live, else the row still naming it."""
 	if _ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT):

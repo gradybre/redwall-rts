@@ -158,3 +158,34 @@ Owner rules amended, each excusing exactly the order's own live piece and nothin
 
 Every run reaches the same next gap with L0 `INSTALLED` once and 32,000 mWU of fastening. A loss mid-handling also
 runs with the whole runtime restored every 7 ticks and is byte-identical.
+
+## Amendment (2026-10-08, DEC-059): a tired crew changes shift
+
+Brendan chose a shift change for the crew's needs: "when hunger or rest gets low (the GDD seek thresholds), the crew
+hands off at a safe point via the ADR 1225 replacement path and goes to eat or sleep; an idle mole continues; the
+tired mole can be picked again later."
+
+- **Trigger.** Before each tick of a running entry, the runtime checks the crew's hunger (eat threshold ≤ 3,500)
+  and rest (seek-sleep threshold ≤ 2,500), GDD §5.2.
+- **The hand-off.**
+  - It happens only at a resting point, ADR 1226's safe point: registered, on an endpoint with no edge, queue or
+    tail, with the idle READY source word or an idle automatic row. A crew mid-route, mid-Work or mid-handling
+    carries on until it reaches one.
+  - The foreman then releases the crew by this record's own path (`release_lost_crew(resting = true)`): its haul,
+    its Job and its Sites binding are released, and DEC-057 covers a paid installation.
+- **Routes amendment.** Routes gains `unregister_resting_actor`. Only for this case and only at a resting point, it
+  lifts the rule that a living resident is never unregistered.
+- **The two moles trade places.** The hand-off waits for a rested idle mole: the first idle adult mole not itself
+  at a seek threshold, looked for each JobSelector interval. Until one exists the tired crew carries on.
+  - A tired mole released in place would stand inside the work area, where ADR 1219's G5 check
+    (`ROUTE_UNREGISTERED_RESIDENT_NEAR`) stops the entry. So the tired mole is placed on the rested mole's surface
+    pose, outside the work area, where that mole stood idle. No surface walk is modelled, just as ADR 1219's arrival
+    models none.
+  - The tired mole is then unreserved, and the settlement's own needs and schedule take it from there.
+  - The rested mole walks to H (ADR 1219), and the step resumes.
+  - A tired mole is passed over until it has recovered; then it can be picked again.
+- **No new state.** The trigger is derived from saved needs and Routes state.
+- **Open gap.** The tired mole's move to the surface is not walked. Whether it then reaches food or a bed is the
+  settlement's own Movement, as for any resident.
+
+Evidence: `test_underground_host.gd::test_a_tired_crew_changes_shift_at_a_resting_point_and_a_rested_mole_carries_on`.

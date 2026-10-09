@@ -529,6 +529,7 @@ func _earn(tick: int) -> StringName:
 	if not _owners.jobs.remaining_mwu_into(_job, _math): return REFUSE_STATE
 	if _math.value > 0:
 		var worked: RefCounted = _owners.work.tick_solo(_job)
+		if not worked.ok and _proof_lost(worked.error): worked = _reproved_tick()
 		if not worked.ok: return _rest_or(worked.error)
 		_accepted_mwu += worked.accepted_mwu
 		return &""
@@ -536,6 +537,21 @@ func _earn(tick: int) -> StringName:
 	var code: StringName = _owners.routes.request_source_ready(_crew.worker, _owners.jobs.ref_of(_job))
 	if code == &"": _set_stage(STAGE_RECOVER)
 	return code
+
+
+static func _proof_lost(code: StringName) -> bool:
+	"""The Space authority's cached static proof of a funded phase is absent or stale: not saved, so a settlement load
+	(or a revision change) leaves it to be re-derived."""
+	return code == &"SPACE_STATIC_PROOF_MISSING" or code == &"SPACE_STATIC_PROOF_STALE"
+
+
+func _reproved_tick() -> RefCounted:
+	"""DEC-059 (found with the whole-entry save goal): the authority's own cold revalidation (refresh_static_proof,
+	"recovers funded work after revision/load changes") re-derives the phase's proof, and the same tick's Work runs
+	again, so a loaded chain spends exactly the ticks the uninterrupted one does. A refused refresh leaves the proof
+	missing, and the retried tick refuses with it."""
+	_owners.sites._spatial().refresh_static_proof(_tasks[_index].site)
+	return _owners.work.tick_solo(_job)
 
 
 func _hands_over() -> bool:
@@ -637,18 +653,20 @@ func halt(code: StringName) -> StringName:
 	return _fail(code) if not _terminal() else _error
 
 
-func release_lost_crew() -> StringName:
+func release_lost_crew(resting: bool = false) -> StringName:
 	"""ADR1225: detach the dispatch from a crew that died or left: cancel its admitted haul, release its Job
 	(Sites' own departure path once the phase is bound), unregister its actor, then wait in RESUME for
 	a replacement. Paid progress, consumed inputs and the parked Jobs stay; carried goods stay with the lost crew.
-	DEC-057: a paid installation is released by its installer and re-handled in place by the replacement."""
+	DEC-057: a paid installation is released by its installer and re-handled in place by the replacement.
+	DEC-059: `resting` releases a living crew that changes shift at a resting point; Routes unregisters it there."""
 	if _terminal(): return _error
 	var lost: Vector2i = _crew.worker
 	var row: int = _owners.residents.directory().get_typed_row(lost)
 	var code: StringName = _release_haul(lost, row)
 	if code == &"" and _installer != null: code = _installer.release_lost_crew(lost, row)
 	elif code == &"" and _job >= 0 and _owners.jobs.worker_of(_job) == lost: code = _release_phase_job(row)
-	if code == &"" and _owners.routes._lost_actor_row(lost) >= 0: code = _owners.routes.unregister_lost_actor(lost)
+	if code == &"" and _owners.routes._lost_actor_row(lost) >= 0:
+		code = _owners.routes.unregister_resting_actor(lost) if resting else _owners.routes.unregister_lost_actor(lost)
 	if code != &"": return code
 	_crew.worker = NULL_REF
 	_crew.tool = NULL_REF

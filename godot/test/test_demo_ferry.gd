@@ -566,6 +566,22 @@ func test_unstaffed_iced_or_frozen_the_ferrys_row_is_not_offered() -> void:
 	assert_false(_filled(rig, -1).offered(0), "nobody")
 
 
+func test_a_posted_crossing_waits_for_its_crews_walk_in_whole_ticks() -> void:
+	"""A crossing posted and claimed: the boarding at the ferry stage waits for the crew's walk there, its straight line
+	in whole millimetres at its walk speed (rounded up to a tick); a crew standing still is reckoned at MIN_WALK_MM_S."""
+	var rig: Rig = _rig(9)
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(rig.ferry.order_send(PackedInt32Array([4])), "", "sent")
+	var crew: BrainScript = rig.ferry.brain_of(4)
+	var mm: int = roundi(crew.position.distance_to(rig.ferry.stage_land(FerryScript.NEAR)) * 1000.0)
+	crew.walk_speed = 0.8
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), BoatRowsScript.ticks_to_cover(mm, 800), "at 0.8 m/s")
+	crew.walk_speed = 0.0
+	assert_equal(rig.ferry.wait_ticks(FerryScript.NEAR), BoatRowsScript.ticks_to_cover(mm, FerryScript.MIN_WALK_MM_S),
+		"standing still: at the floor")
+
+
 func test_the_wait_is_priced_from_when_the_walker_reaches_the_stage() -> void:
 	"""The fix of decision 1821. A walker 40 m from the ferry stage at 800 mm/s gets there 1500 ticks from now (two game
 	hours): the 10:00 boat (750 ticks) has gone, so it boards the 12:00 one (2250), a wait of 750, then rides. Priced

@@ -1309,7 +1309,7 @@ func ride_ticks() -> int:
 	return BoatRows.ticks_to_cover(decks_mm, Rules.DECK_WALK_MM_S) + _row_ticks()
 
 
-func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _loaded: bool) -> void:
+func fill_boat_row(rows: BoatRows, r: int, walker: int, _from: Vector2, _carrying: bool) -> void:
 	"""The ferry's boat row for `walker` (see PASSENGERS): open between the two stages with its ride and its longest
 	wait, and at each stage its boardings with the seat free -- none while closed, unstaffed or held."""
 	if walker < 0 or walker >= p_state.size() or fleet == null:

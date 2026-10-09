@@ -187,7 +187,6 @@ func add_mouth(m: int, at: Vector2, wait_m: float) -> void:
 	_mouth[u] = m
 	_wait[u] = wait_m
 	_partner[u] = -1
-	_boat[u] = -1
 	_count += 1
 	mouth_count += 1
 

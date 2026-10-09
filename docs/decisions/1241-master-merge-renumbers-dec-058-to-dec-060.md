@@ -33,6 +33,9 @@ branch's whole run, keeps every other citation valid.
   evidence produced before the merge; there, DEC-058 means DEC-060 by this record.
 - A "DEC-058" in a transcript, commit message or review packet written before 2026-10-09 on this branch means
   **DEC-060**. A "DEC-058" anywhere on master, or after the merge, means the feast supper.
+- Master's sixteen new suites were measured in the merge's `--fast` run and added to
+  `tools/ci_test_shard_weights.json`. Two cross ADR 1240's 60 s line and join the slow tier in
+  `godot/test/slow_suites.json`: `test_demo_orchard_remainders_live.gd` (86 s) and `test_demo_feast_live.gd` (80 s).
 - `docs/setting_decisions.md` now orders DEC-057, DEC-058 (feast), DEC-059, DEC-060 (treads); DEC-060 carries a
   renumbering note.
 

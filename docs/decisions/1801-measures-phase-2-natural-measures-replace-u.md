@@ -461,6 +461,14 @@ Under B1 (a), the established path (ADR 1212, as `b51ae5bd` did for `excavation_
 - **The contracts: 34 of 34 pass**, among them `ready07_arithmetic` ("status": "PASS"), `underground_memory_budget
   --check`, `test_underground_memory_budget` (285 tests, OK), `test_underground_current_census` (OK) and
   `decision_numbers` ("PASS -- 538 records, 0 problem(s)").
+- **After merging `origin/master`** (#242 boat crossings, #243 dish icons; merge `d5a1797c`: `ferry_rules.gd` loses
+  both neighbouring helpers, `ferry.gd` keeps the boat lane's pricing and this branch's text):
+  - the full suite CI-style (a fresh art-free worktree at `d5a1797c`, re-imported, eight shards; "ok: 480 suite files
+    executed exactly once across 8 shards"): 12,183 tests, 1,241,978 assertions, 0 failures, 0 unexpected errors or
+    warnings, 0 leaked objects or resources;
+  - the analyzer: "0 GDScript warning(s) in 0 of 1479 file(s)";
+  - the contracts: 34 of 34;
+  - the routes harness 35/35 and the food harness 71/71, at 1280x720 and at 1920x1080.
 - **The cask's halves** (P-M3 (b)): `goods_measures.gd`'s mutants rerun with the change, 56 of 56 killed (three new
   ones on the cask's row: its halves flag, its "from 2", its size).
 

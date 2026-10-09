@@ -35,7 +35,6 @@ extends RefCounted
 ## `dress` gives a card's button a theme holding only the HUD skin's tooltip items (woodland_theme_patch.gd: the map
 ## piece, ink text) at TIP_PX: the button keeps its own look, and its tooltip is the HUD's.
 
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")

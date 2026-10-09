@@ -98,10 +98,14 @@ static func amount_text(kind: int, amount: int, item: int = NO_ITEM) -> String:
 
 
 static func target_text(kind: int, amount: int, item: int = NO_ITEM) -> String:
-	"""An amount the player set (or a rule's: a step, the most allowed), unrounded: "20 planks", "3.0 days"."""
+	"""An amount the player set (or a rule's: a step, the most allowed), unrounded: "20 planks", "3.0 days". Where the
+	good's measure does not divide it (the 5 U crop step of a 2 U cabbage), it is worded as a need, rounded up ("Keep
+	8 cabbages" for 15 U), never as a weight a target cannot be counted in (decision 1801)."""
 	if is_kind(kind) and UNITS[kind] == UNIT_MILLI_DAYS:
 		return KitchenText.days_value(amount)
-	return Measures.exact(good_key(kind, item), maxi(amount, 0))
+	var good: StringName = good_key(kind, item)
+	var milli: int = maxi(amount, 0)
+	return Measures.exact(good, milli) if milli == 0 or Measures.divides(good, milli) else Measures.need(good, milli)
 
 
 static func title(kind: int, item: int, amount: int) -> String:

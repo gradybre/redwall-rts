@@ -227,7 +227,8 @@ static func need_cell(good: StringName, milli: int) -> String:
 
 static func exact(good: StringName, milli: int) -> String:
 	"""An authored constant or a player-set target, unrounded: the largest measure that divides it ("2 scoops of
-	grain", "a handful of herbs"), otherwise its exact weight."""
+	grain", "a handful of herbs"), otherwise its weight -- floored to the gram (or, from a kilogram, to 10 g), so only
+	a measure is truly exact (see `divides`)."""
 	return _render(good, milli, ROUND_EXACT, false)
 
 
@@ -286,6 +287,13 @@ static func tooltip(good: StringName, milli: int) -> String:
 	if milli <= 0 or _pick(row, milli, ROUND_DOWN) < 0:
 		return _render_row(row, milli, ROUND_DOWN, false)
 	return "%s — %s" % [_render_row(row, milli, ROUND_DOWN, false), weight(good, milli)]
+
+
+static func divides(good: StringName, milli: int) -> bool:
+	"""Whether `exact` names a measure for `milli` of `good` rather than falling back to its weight ("5 cabbages" for
+	10 U; 5 U of cabbage is no whole count): a caller may then prefer `need`."""
+	var row: int = _row(good)
+	return row >= 0 and milli > 0 and _pick(row, milli, ROUND_EXACT) >= 0
 
 
 static func noun(good: StringName) -> String:

@@ -28,7 +28,8 @@ extends RefCounted
 ## REPAINTING. UIManager repaints the wired cells and the ledger with the settlement's figures whenever the
 ## simulation's stock changes, and the shell repaints every cell on a relayout. `sync()` paints a cell again when
 ## its figure changed or when its drawn caption or value is no longer what the demo drew; the ledger likewise.
-## Per frame: six integer reads and compares, the model's stamp (the planks and the fuel's breakdown, decision 0571) and
+## Per frame: six integer reads and compares, the model's stamp (the planks, the fuel's breakdown, decision 0571, and the Wood level's three integer reads,
+## decision 1801) and
 ## thirteen short string compares; formatting only on a change.
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")

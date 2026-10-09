@@ -302,7 +302,7 @@ func test_windfall_is_gathered_ferried_and_stacked_as_the_stores_wood() -> void:
 	assert_equal(rig.ferry.pile_count(), 0, "the copse gathered")
 	var brought: int = 0
 	for line: String in said:
-		brought += 1 if line.ends_with(" brought a log of windfall to " + Routes.FAR_STAGE_NAME) else 0
+		brought += 1 if line.ends_with(" brought windfall to " + Routes.FAR_STAGE_NAME + ": a log") else 0
 		assert_false(line.contains(" U "), "no U in the news: " + line)
 	assert_equal(brought, 2, "the 1.5 U and 1.25 U piles are a log each (logs are whole, floored): %s" % " | ".join(said))
 	rig.ferry.say = Callable()

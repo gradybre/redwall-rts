@@ -871,7 +871,7 @@ func _end_drop(row: int) -> String:
 		_say("%s stacked %s: the demo stores hold %s" % [name_of(jobs.worker[row]), Measures.amount(&"wood", milli),
 			Measures.amount(&"wood", _stores.wood_milli_u)])
 	elif jobs.kind[row] == JobsScript.KIND_GATHER:
-		_say("%s gathered %s of deadfall into the stores" % [name_of(jobs.worker[row]), Measures.amount(&"wood", milli)])
+		_say("%s gathered deadfall into the stores: %s" % [name_of(jobs.worker[row]), Measures.amount(&"wood", milli)])
 	elif _stand.trunk_milli[jobs.target[row]] <= 0 and jobs.on_target(JobsScript.KIND_HAUL, jobs.target[row]) == 1:
 		_say("The %s's logs are all stacked: the demo stores hold %s" % [_tree_name(jobs.target[row]),
 			Measures.amount(&"wood", _stores.wood_milli_u)])

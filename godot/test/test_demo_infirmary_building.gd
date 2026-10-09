@@ -177,7 +177,7 @@ func test_cancel_after_work_began_returns_eighty_percent() -> void:
 	assert_equal(project.cancel(), ProjectsScript.REFUSE_NOT_PLANNED, "nothing planned")
 	project.plan_at(SITE, 0.0)
 	_deliver_all(project)
-	assert_true(project.status_text().begins_with("Infirmary: being built — wood 40 logs — enough, stone 30 blocks — enough, cloth 1½ bolts — enough"),
+	assert_true(project.status_text().begins_with("Infirmary: being built; wood 40 logs — enough, stone 30 blocks — enough, cloth 1½ bolts — enough"),
 		project.status_text())
 	project.add_work(1)
 	assert_equal(project.refund_text(), "returns 32 logs, 24 blocks of stone, a bolt of cloth (80%: the work has begun)",

@@ -269,12 +269,12 @@ func percent(c: int) -> int:
 
 
 func status_text(c: int) -> String:
-	"""'Cellar 1: materials being fetched — wood 8 of 20 logs, stone 12 of 60 blocks (13%)', or '… built — holds 400
+	"""'Cellar 1: materials being fetched; wood 8 of 20 logs, stone 12 of 60 blocks (13%)', or '… built — holds 400
 	baskets of food' (a capacity: no weight, decision 1011 P5)."""
 	var label: String = Rules.LABEL % (c + 1)
 	if state[c] == STATE_DONE:
 		return "%s: built — holds %s, food keeps as in a cool cellar" % [label, capacity_words()]
-	return "%s: %s — wood %s, stone %s (%d%%)" % [label, STATE_WORDS[state[c]],
+	return "%s: %s; wood %s, stone %s (%d%%)" % [label, STATE_WORDS[state[c]],
 		Measures.have_need(&"wood", delivered[_cell(c, Rules.MAT_WOOD)], Rules.cost_milli(Rules.MAT_WOOD)),
 		Measures.have_need(&"stone", delivered[_cell(c, Rules.MAT_STONE)], Rules.cost_milli(Rules.MAT_STONE)), percent(c)]
 

@@ -7,7 +7,6 @@ extends RefCounted
 const Rules := preload("res://demo/fishery/fishery_rules.gd")
 const Driver := preload("res://demo/water/fishing_driver.gd")
 const Fishing := preload("res://scripts/core/fishing.gd")
-const FarmText := preload("res://demo/farm/farm_text.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")

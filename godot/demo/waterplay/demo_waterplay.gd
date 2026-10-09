@@ -704,7 +704,7 @@ func _bridge_costs(survey: BridgesScript.Survey) -> void:
 	elif _source_kind == CrewScript.SOURCE_TRUNK and survey.ok:
 		_card.result += TRUNK_NOTE
 	else:
-		_card.add_cost("Wood (a log)", &"wood", stores.wood_milli_u, Rules.LOG_WOOD_MILLI)
+		_card.add_cost("Wood (a trunk)", &"wood", stores.wood_milli_u, Rules.LOG_WOOD_MILLI)
 
 
 func _build_who(survey: BridgesScript.Survey, members: PackedInt32Array) -> void:

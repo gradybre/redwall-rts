@@ -5,7 +5,6 @@ extends RefCounted
 
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")

@@ -982,7 +982,7 @@ func _gathered(j: int) -> void:
 func _consign(j: int, brain: BrainScript) -> void:
 	"""The wood put down on the far stage's stack (in hand -> far stack): the job is done."""
 	far_stack_milli += j_load[j]
-	_note("%s brought %s of windfall to %s" % [name_of(brain.index), StoresScript.Measures.amount(&"wood", j_load[j]), Routes.FAR_STAGE_NAME], false)
+	_note("%s brought windfall to %s: %s" % [name_of(brain.index), Routes.FAR_STAGE_NAME, StoresScript.Measures.amount(&"wood", j_load[j])], false)
 	j_load[j] = 0
 	_end_job(j)
 
@@ -1005,7 +1005,7 @@ func _store(j: int, brain: BrainScript) -> void:
 	stores.add_wood(milli)
 	stored_milli += milli
 	j_load[j] = 0
-	_note("%s stacked %s of ferried wood: the stores hold %s" % [name_of(brain.index), StoresScript.Measures.amount(&"wood", milli),
+	_note("%s stacked the ferried wood, %s: the stores hold %s" % [name_of(brain.index), StoresScript.Measures.amount(&"wood", milli),
 		StoresScript.Measures.amount(&"wood", stores.wood_milli_u)], false)
 	_end_job(j)
 

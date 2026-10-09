@@ -6,7 +6,6 @@ extends RefCounted
 const Rules := preload("res://demo/winter/winter_rules.gd")
 const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const ColdScript := preload("res://demo/winter/cold_exposure.gd")
-const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")

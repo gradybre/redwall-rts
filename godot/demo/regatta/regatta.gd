@@ -63,7 +63,6 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
-const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
 const MenuScript := preload("res://demo/regatta/regatta_menu.gd")
 

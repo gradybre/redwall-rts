@@ -700,10 +700,10 @@ Dive. A card reads, top down:
 
 ```text
 Build a plank footbridge
-Can't now: it needs 4.7 U planks; the stores hold 0.0 U planks and 76.0 U wood
-To fix: Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks)
+Can't now: it needs 5 planks; the stores hold no planks and 76 logs
+To fix: Woods ▸ Saw planks (2 logs make 2 planks)
 3.4 m of water bridged (neck bridge): anyone may cross, carrying or not
-Planks: have 0.0 U · need 4.7 U
+Planks: 0 of 5 planks
 Work: about 40 game minutes, plus the walk
 Who: Assign selected: Squirrel forester (nearest of 2)
 Interrupts: Felling the oak — goes back to it after
@@ -777,7 +777,7 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The Work screen** (`work/work_screen.gd`): the HUD's **Jobs** command (UI-SET-029, **J**) -- unlocked by the demo
   for it, as Food is for the Pantry -- opens it over the HUD (Esc, J or × close it; Tab and Enter work inside it).
   **Tasks**: every task, blocked first, then under way, queued, paused: "Harvest — the carrot bed · Mouse
-  fieldworker", its state and why it waits ("Blocked: no store has room for 5.1 U of carrot — make room in the
+  fieldworker", its state and why it waits ("Blocked: no store has room for 6 bunches of carrots — make room in the
   Pantry (K)", "Travelling: finding a route", "can't reach it"), the work left in game time and who means to come
   back to it; with **Go to**, **Pause/Resume**, **Cancel this task**, **Reassign…** (every resident, each with its
   eligibility; with residents selected, the group previewed member by member), **▲/▼ Priority** and **Urgent**. A
@@ -1066,7 +1066,7 @@ dig, for the next piece.
   it in a T.
 - **The ghost.** While laying, the piece is drawn to the pointer as its bore will curve: chalk-cream while it
   may be dug, clay with the reason beside the pointer when it may not. Beside it, the **cost readout**
-  (`tunnel/dig_readout.gd`): e.g. "14.0 m · 14 quanta · 32 min (crew of 3)" over "28 U spoil · clay 4 m
+  (`tunnel/dig_readout.gd`): e.g. "14.0 m · 14 quanta · 32 min (crew of 3)" over "14 baskets of earth · clay 4 m
   (slow), sand 2 m (weak: brace)" -- length, the metres the network will cut, the time on the demo calendar
   (minutes under an hour, else hours to the tenth; decision 0421) for the crew that would dig it, the spoil, and the ground that slows or weakens it.
 - **Refused, in words** (demo values, `tunnel/tunnel_rules.gd`): a point off the map or on top of the last;
@@ -1327,8 +1327,8 @@ where the covered store ages it at 1000 -- it keeps 2.8 times as long. Nothing a
   with every lot row taken only whole lots move. A move that cannot be made (walks failing, the pick-up or the
   shelving refused) leaves the store that failed it alone for 60 s, and a cellar warmed by a hearth meanwhile is no
   longer a destination.
-- **On the work board** as HAULING, source **Food stores** (`work/stores_work.gd`): "Move to a cooler store -- 9.0 U of
-  carrot: Covered store → Root cellar 1 (keeps 2.8× as long)". The board claims it for an idle carrier; the claim holds
+- **On the work board** as HAULING, source **Food stores** (`work/stores_work.gd`): "Move to a cooler store -- 9 bunches of
+  carrots: Covered store → Root cellar 1 (keeps 2.8× as long)". The board claims it for an idle carrier; the claim holds
   the room at the cellar (the Pantry shows it Incoming there). The carrier walks to the store, picks the food up (1 WU),
   carries it -- down the hatch to the cellar's middle when it can take a load below, else to the hatch -- and shelves it
   (1 WU). Pause, Cancel and Reassign work before the pick-up and are refused with the food in hand.
@@ -1488,8 +1488,9 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
   becomes its **delivery**: the carrier walks on and the store is credited when it gets there. A carrier
   ordered elsewhere keeps the load with the job and comes back to it (its resume queue); released, the
   field crew takes it.
-- **The Pantry's figures.** Every quantity -- stock, totals, capacity, yield, a load carried -- is one form, tenths of a unit floored (`5.1 U`, `400.0 U`, never `0 U` for something:
-  `<0.1 U`), and totals are summed in milli-units first. Each row names the **first lot to spoil**, its
+- **The Pantry's figures.** Every quantity -- stock, totals, capacity, yield, a load carried -- is one form, its good's natural measure
+  rounded down ("5 bunches of carrots", "80 baskets", never "none" for something: below the smallest measure, its
+  weight; see Natural measures), and totals are summed in milli-units first. Each row names the **first lot to spoil**, its
   store and the **game hours** until it does, at that store's rate and each season's, a season change
   included -- the very sum the hourly ageing makes.
 

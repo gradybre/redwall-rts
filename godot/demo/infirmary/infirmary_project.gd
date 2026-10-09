@@ -312,7 +312,7 @@ func refund_text() -> String:
 
 
 func status_text() -> String:
-	"""'Infirmary: materials being fetched — wood 8 of 40 logs, stone 0 of 30 blocks, cloth 0 of 1½ bolts (5%)', or
+	"""'Infirmary: materials being fetched; wood 8 of 40 logs, stone 0 of 30 blocks, cloth 0 of 1½ bolts (5%)', or
 	built."""
 	if state == STATE_NONE:
 		return "No infirmary yet: the hurt rest in their own beds or by the hall"
@@ -323,7 +323,7 @@ func status_text() -> String:
 	for mat: int in Rules.MAT_COUNT:
 		parts.append("%s %s" % [Rules.MAT_WORDS[mat], Measures.have_need(StringName(Rules.MAT_KEYS[mat]), delivered[mat],
 			Rules.cost_milli(mat))])
-	return "%s: %s — %s (%d%%)" % [Rules.LABEL, STATE_WORDS[state], ", ".join(parts), percent()]
+	return "%s: %s; %s (%d%%)" % [Rules.LABEL, STATE_WORDS[state], ", ".join(parts), percent()]
 
 
 func door() -> Vector2:

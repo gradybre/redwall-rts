@@ -491,7 +491,7 @@ static func _material_planks() -> Entry:
 			_planks(SwimRules.PLANK_MILLI_PER_M), _planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
 			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
 		"Sawing logs at the sawhorse (%d WU a batch)." % ForestRules.SAW_WU,
-		"A log bridge needs a log, not planks.", "The plank stack by the workbench; the top bar's ledger and the Wood cell's tooltip."]),
+		"A log bridge needs a trunk (6 logs), not planks.", "The plank stack by the workbench; the top bar's ledger and the Wood cell's tooltip."]),
 		[&"material_wood", &"station_sawhorse", &"station_bridges", &"station_burrow"])
 
 

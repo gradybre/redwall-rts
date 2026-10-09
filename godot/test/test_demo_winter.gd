@@ -457,6 +457,31 @@ func test_the_heating_fuel_cell_s_words_and_warning() -> void:
 	assert_true(Text.is_warning(0), "out of fuel")
 
 
+func test_the_wood_cell_reads_its_level_from_the_bound_winter() -> void:
+	"""Decision 1011 §3 (MEAS-2, decision 1801): `bind_fuel` wires the Wood level to the winter's own Firewood readings
+	-- firewood_urgent, firewood_wanted and the fuel's twelve-day projection -- end to end, no stubs."""
+	var stores := StoresScript.new()
+	stores.wood_milli_u = 20000
+	var winter: WinterScript = _keep(WinterScript.new()) as WinterScript
+	winter.fuel = FuelScript.new()
+	winter.fuel.bind_stores(stores)
+	winter.fuel.set_hearth(HALL, true)
+	winter.fuel.pass_hour(10, AUTUMN, 180, 180)
+	var model := ModelScript.new()
+	model.stores = stores
+	model.bind_fuel(winter)
+	assert_equal(winter.fuel.projection_milli(), 48000, "the hall at 4 logs a winter day, 12 days")
+	assert_equal(model.value_text(ModelScript.CELL_WOOD, 20000), "running low", "autumn, 20 logs below 48: wanted")
+	stores.wood_milli_u = 48000
+	assert_equal(model.value_text(ModelScript.CELL_WOOD, 48000), "plenty", "at the projection")
+	stores.wood_milli_u = 20000
+	winter.fuel.pass_hour(11, SUMMER, 180, 180)
+	assert_equal(model.value_text(ModelScript.CELL_WOOD, 20000), "enough", "summer, no demand: not wanted")
+	assert_true(model.tooltip(ModelScript.CELL_WOOD, 20000).contains("winter needs 48 logs"), "its projection in logs")
+	stores.wood_milli_u = 0
+	assert_equal(model.value_text(ModelScript.CELL_WOOD, 0), "none", "no wood")
+
+
 func test_the_hud_model_reads_the_winter_and_keeps_planks_in_the_ledger() -> void:
 	"""The Fuel slot is Heating fuel from the winter; Planks move to a ledger line after Wood and the Wood tooltip."""
 	var model := ModelScript.new()

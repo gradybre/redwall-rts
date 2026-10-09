@@ -239,7 +239,7 @@ func test_progress_is_half_delivery_and_half_work() -> void:
 	assert_equal(projects.percent(0), 75, "half the work")
 	projects.add_work(0, half - 1)
 	assert_equal(projects.percent(0), 99, "not done yet")
-	assert_true(projects.status_text(0).begins_with("Cellar 1: being built — wood 20 logs — enough, stone 60 blocks — enough"),
+	assert_true(projects.status_text(0).begins_with("Cellar 1: being built; wood 20 logs — enough, stone 60 blocks — enough"),
 		projects.status_text(0))
 
 

@@ -10,6 +10,7 @@ const M := preload("res://scripts/ui/goods_measures.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const DishBook := preload("res://demo/kitchen/dish_book.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 
 const CATALOGUE_PATH: String = "res://data/item_definitions.json"
 ## The display keys 1011 §4 adds beside the catalogue's and the pantry's (planks, earth, mixed food, the kitchen's
@@ -225,6 +226,17 @@ func _assert_exact_round_trip(good: StringName, milli: int, what: String) -> voi
 	assert_equal(back.x, milli, "%s: '%s' reads back exactly" % [what, words])
 
 
+func test_the_kitchen_categories_are_worded_as_their_goods() -> void:
+	"""meal_rules.gd CATEGORY_GOODS lines up with CATEGORY_WORDS: each category's good has that category's name (the
+	kitchen's "fresh fish" are counted "fish"; "greens" are §5.7's cabbage row)."""
+	assert_equal(MealRules.CATEGORY_GOODS.size(), MealRules.CATEGORY_WORDS.size(), "one good a category")
+	for c: int in MealRules.CATEGORY_GOODS.size():
+		var words: String = MealRules.CATEGORY_WORDS[c].trim_prefix("fresh ")
+		var good: StringName = MealRules.CATEGORY_GOODS[c]
+		assert_true(M.noun(good).ends_with(words) or M.noun(good).ends_with(words.trim_suffix("s")),
+			"category %d '%s' is the good %s ('%s')" % [c, MealRules.CATEGORY_WORDS[c], good, M.noun(good)])
+
+
 # --- have_need, weight, tooltip ----------------------------------------------------------------------------------------
 
 func test_have_need_uses_the_needs_measure_and_reads_enough_at_the_edge() -> void:
@@ -240,6 +252,9 @@ func test_have_need_uses_the_needs_measure_and_reads_enough_at_the_edge() -> voi
 	assert_equal(M.have_need(&"honey", 100, 500), "under ½ of ½ jar", "under half a jar")
 	assert_equal(M.have_need(&"barley", 190000, 200000), "9 of 10 sacks", "a need of ten measures: whole ones, both")
 	assert_equal(M.have_need(&"barley", 190000, 199999), "9½ of 10 sacks", "just under ten: halves")
+	assert_equal(M.have_need(&"stone", 300, 800), "1.5 kg of 4 kg", "a need below every measure: both as weights")
+	assert_equal(M.have_need(&"stone", 199, 800), "995 g of 4 kg", "the have's weight floored, never above it")
+	assert_equal(M.have_need(&"herb", 3, 100), "a trace of 25 g", "a trace beside a need in grams")
 
 
 func test_weight_is_exact_in_grams() -> void:
@@ -256,6 +271,9 @@ func test_weight_is_exact_in_grams() -> void:
 	assert_equal(M.weight(&"water", 1000), "1 litre (1 kg)", "one litre")
 	assert_equal(M.weight(&"water", 250), "250 ml (250 g)", "a cup")
 	assert_equal(M.weight(&"herb", 1), "under 1 g", "a trace")
+	assert_equal(M.weight(&"herb", 0), "0 g", "nothing")
+	assert_true(M.divides(&"cabbage", 4000) and not M.divides(&"cabbage", 5000), "a cabbage is 2 U: 5 U is no whole count")
+	assert_false(M.divides(&"barley", 0), "nothing is no measure")
 	assert_equal(M.weight(&"stone", 1000000), "5,000 kg", "kg grouped")
 
 
@@ -296,6 +314,7 @@ func test_wood_level_in_order_at_each_boundary() -> void:
 	assert_equal(M.level_words(M.LEVEL_RUNNING_LOW), "running low", "words")
 	assert_equal(M.level_words(M.LEVEL_PLENTY), "plenty", "words")
 	assert_equal(M.level_words(9), "?", "out of range")
+	assert_equal(M.level_words(-1), "?", "below range")
 
 
 func test_the_half_glyph_is_in_every_ui_font() -> void:

@@ -101,7 +101,7 @@ func test_flags_amounts_in_the_unit() -> void:
 	for line: String in ['var a := "12 U of wood"', 'var a := "%d U" % n', 'var a := "%.1f U left" % f',
 			'var a := "herbs %s U" % s', 'var a := str(n) + " U"', 'var a := "4\\u00a0U"', 'const K := "the U view"',
 			'var a := "(%d NP a unit)" % n', 'var a := "a unit for every four guests"', 'var a := "3 units"',
-			'var a := &"5 U"', "var a := '7 U'", 'f(x, "U View")']:
+			'var a := &"5 U"', "var a := '7 U'", 'f(x, "U View")', 'var a := "4\u00a0U"'.replace("\\u00a0", "\u00a0")]:
 		assert_equal(scan_source(line).size(), 1, "flagged: %s" % line)
 
 
@@ -127,7 +127,10 @@ func test_strings_with_escapes_and_hashes_are_read_whole() -> void:
 func test_a_triple_quoted_string_that_is_a_value_is_linted() -> void:
 	"""A triple-quoted string assigned or passed is text, not a docstring."""
 	assert_equal(scan_source('const T := """long\n12 U text"""').size(), 1, "assigned")
-	assert_equal(scan_source('\t"""docstring\n12 U"""\n\tvar a := 1').size(), 0, "a statement: a docstring")
+	assert_equal(scan_source('func f() -> void:\n\t"""docstring\n12 U"""\n\tvar a := 1').size(), 0, "after a header: a docstring")
+	assert_equal(scan_source('func f() -> void: """3 units"""').size(), 0, "an inline docstring")
+	assert_equal(scan_source('var t := (\n\t"""12 U""")').size(), 1, "a value on a line of its own is text")
+	assert_equal(scan_source('var t := [\n\t"""12 U""",\n]').size(), 1, "an array element is text")
 
 
 func test_json_values_are_linted() -> void:
@@ -160,12 +163,13 @@ func scan_source(text: String) -> PackedStringArray:
 	var out := PackedStringArray()
 	var i: int = 0
 	var line: int = 1
-	var line_start: bool = true
+	var head: int = 0
+	var prev: String = ""
 	while i < text.length():
 		var c: String = text[i]
 		if c == "\n":
 			line += 1
-			line_start = true
+			head = i + 1
 			i += 1
 		elif c == " " or c == "\t":
 			i += 1
@@ -173,13 +177,22 @@ func scan_source(text: String) -> PackedStringArray:
 			i = _line_end(text, i)
 		elif c == "\"" or c == "'":
 			var start: int = i
-			i = _literal(text, i, line, line_start, out)
+			i = _literal(text, i, line, _docstring_here(text, head, start, prev), out)
 			line += text.substr(start, i - start).count("\n")
-			line_start = false
+			prev = c
 		else:
-			line_start = false
+			prev = c
 			i += 1
 	return out
+
+
+func _docstring_here(text: String, head: int, at: int, prev: String) -> bool:
+	"""Whether a triple-quoted string at `at` is a docstring: right after a block header's ':' -- on a line of its own,
+	or inline after a `func` header. A triple-quoted VALUE (assigned, passed, in an array) is player text."""
+	if prev != ":":
+		return false
+	var before: String = text.substr(head, at - head).strip_edges()
+	return before.is_empty() or before.begins_with("func ") or before.begins_with("static func ")
 
 
 func _line_end(text: String, i: int) -> int:
@@ -188,13 +201,13 @@ func _line_end(text: String, i: int) -> int:
 	return text.length() if j < 0 else j
 
 
-func _literal(text: String, i: int, line: int, line_start: bool, out: PackedStringArray) -> int:
+func _literal(text: String, i: int, line: int, docstring: bool, out: PackedStringArray) -> int:
 	"""Read the literal starting at `i`, check it unless it is a docstring, and return the index after it."""
 	var quote: String = text[i]
 	if text.substr(i, 3) == quote.repeat(3):
 		var close: int = text.find(quote.repeat(3), i + 3)
 		var end: int = text.length() if close < 0 else close + 3
-		if not line_start:
+		if not docstring:
 			_check(text.substr(i + 3, end - i - 6), line, out)
 		return end
 	var j: int = i + 1

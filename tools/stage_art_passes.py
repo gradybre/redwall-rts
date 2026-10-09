@@ -87,8 +87,9 @@ def bounds(path: pathlib.Path) -> tuple[list[float], list[float]]:
 
 
 def record_stale(out: pathlib.Path, record: str) -> bool:
-	"""Whether a pass-3 record must be (re)made: it is missing or unreadable, or it is the icon record and lacks a key
-	of make_art_pass3.ICONS."""
+	"""Whether a pass-3 record must be (re)made: it is missing, or it is the icon record and is unreadable or lacks a
+	key make_art_pass3.py can cut from the library (a key whose sheet the library lacks is not asked for, so a mirror
+	without a later sheet is not recut on every restage)."""
 	path = out / record
 	if not path.is_file():
 		return True
@@ -98,7 +99,13 @@ def record_stale(out: pathlib.Path, record: str) -> bool:
 		made = json.loads(path.read_text())
 	except (OSError, ValueError):
 		return True
-	return not isinstance(made, dict) or not set(make_art_pass3.ICONS) <= set(made)
+	if not isinstance(made, dict):
+		return True
+	try:
+		wanted = make_art_pass3.cuttable_keys(make_art_pass3.library())
+	except SystemExit:
+		wanted = []
+	return not set(wanted) <= set(made)
 
 
 def run_tools(out: pathlib.Path) -> list[str]:

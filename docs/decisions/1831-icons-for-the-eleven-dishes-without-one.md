@@ -90,10 +90,21 @@ They were on the reference's style first time, so no retry was spent. Each cell 
 ## The staging change
 
 `tools/stage_art_passes.py` ran `make_art_pass3.py --icons` only when the icon record was missing. A checkout staged
-before this decision therefore kept a record without the eleven, and a restage would not have cut them. The icon
-record is now remade when it lacks a key that `make_art_pass3.ICONS` cuts, or cannot be read. Cutting needs Pillow
-and the library, not Blender. `tools/test_stage_art_passes.py` tests the rule (N04) and checks that every
-`dish_book.gd` dish has a `dish_<key>` icon that a cutter cuts, the eleven on their cells.
+before this decision therefore kept a record without the eleven, and a restage would not have cut them. Now:
+- **The icon record is remade when it lacks a key the library can supply,** or cannot be read. Cutting needs Pillow
+  and the library, not Blender.
+- **A key whose sheet the library lacks is skipped, not fatal.** `make_icons` names it, cuts the rest and writes the
+  record; it fails only when it can cut nothing. Staleness asks only for keys whose sheet is in the library. A library
+  mirror without these two sheets therefore stages as before, with the eleven left to the panels' stand-ins, and is
+  not recut on every restage. The code reviewer found this case (MEDIUM 1): before the fix, such a mirror failed
+  every restage.
+- **`tools/test_stage_art_passes.py` tests it:**
+  - N04 tests the staleness rule, including a partial library and no library.
+  - N05 tests that `run_tools` recuts a stale record and runs nothing for a complete one, with the tool calls recorded
+    rather than run.
+  - It checks that every `dish_book.gd` row has a `dish_<key>` icon a cutter cuts, the eleven on their cells.
+  - It checks that each sheet keeps its decision.
+  - Mutating the staleness wiring, the decision map or the partial-library filter fails it.
 
 ## Seen in the game
 

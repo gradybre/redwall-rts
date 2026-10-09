@@ -325,23 +325,38 @@ def fit_icon(cut):
 	return icon
 
 
+def decision_of(sheet_path: str) -> str:
+	"""The decision that made `sheet_path` (art pass 3's own, 0971, unless SHEET_DECISIONS names another)."""
+	return SHEET_DECISIONS.get(sheet_path, "0971")
+
+
+def cuttable_keys(lib: pathlib.Path) -> list[str]:
+	"""The ICONS keys whose sheet is in `lib` (a library mirror may lack a later sheet: its keys are skipped)."""
+	return [key for key, (sheet_path, _, _) in ICONS.items() if (lib / sheet_path).is_file()]
+
+
 def make_icons(lib: pathlib.Path) -> int:
-	"""Cut every icon of every sheet in ICONS into OUT/icons/; write their rows to OUT/art_pass3_icons.json."""
+	"""Cut every icon whose sheet is in the library into OUT/icons/; write their rows to OUT/art_pass3_icons.json.
+	A key whose sheet is missing is named and skipped (its panel keeps its stand-in); 1 when nothing could be cut."""
 	from PIL import Image
 	sheets = {}
 	(OUT / "icons").mkdir(parents=True, exist_ok=True)
 	rows = {}
+	cuttable = cuttable_keys(lib)
 	for key, (sheet_path, column, row) in ICONS.items():
+		if key not in cuttable:
+			print(f"  {key:20} skipped: {sheet_path} is not in {lib}", flush=True)
+			continue
 		if sheet_path not in sheets:
 			sheets[sheet_path] = Image.open(lib / sheet_path)
 		target = OUT / "icons" / f"{key}.png"
 		fit_icon(cut_cell(sheets[sheet_path], column, row)).save(target)
 		rows[key] = {"icon": f"{RES}/icons/{key}.png", "px": ICON_PX, "sheet": sheet_path, "cell": [column, row],
 			"sheet_sha256": sha256(lib / sheet_path), "sha256": sha256(target), "tool": "tools/make_art_pass3.py",
-			"decision": SHEET_DECISIONS.get(sheet_path, "0971")}
+			"decision": decision_of(sheet_path)}
 		print(f"  {key:20} {sheet_path} {column},{row}", flush=True)
 	(OUT / "art_pass3_icons.json").write_text(json.dumps(rows, indent=1, sort_keys=True) + "\n")
-	return 0
+	return 0 if rows else 1
 
 
 def check_ice() -> int:

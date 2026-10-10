@@ -160,6 +160,12 @@ python3 tools/demo_texture_imports.py --godot godot         # the compression st
 - **`godot/export_presets.cfg` stays gitignored and local.** The committed preset is
   `tools/demo_build/windows_export_preset.cfg`; the script merges it in by name and keeps every other
   preset there (the macOS benchmark one).
+- **The exporter never enters a `.gdignore` folder, even for a path named exactly in `include_filter`**
+  (measured on 4.7.2, decision 1841). Files there are left out of the pack with no warning. The underground binaries
+  the game reads with FileAccess (`.ugprof`, `.ugactor`, `.ugconn` and the rest; four of them sit under `.gdignore`)
+  are therefore packed by the editor plugin `godot/addons/demo_pack_files`, from the list in
+  `godot/data/underground/runtime_files.gd`, never by the preset's filters. When the runtime reads a new binary, add
+  the reader's constants to that list; `test_underground_runtime_files.gd` fails until you do.
 - **The export templates reject `--main-pack`** (verified in `tools/export_benchmark_build.py`), so
   the pack is verified with the *editor* binary:
   `godot --main-pack <pck> --script tools/godot/verify_demo_pack.gd -- <out.json>`.

@@ -2,6 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## Actual pack-verifier checks, without starting a demo or granting World/renderer permission.
 
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
+const RuntimeFiles := preload("res://data/underground/runtime_files.gd")
 const DRIVER_PATH: String = "res://data/underground/mole-worker/mole_profile_driver.gd"
 const STEP_PATH: String = "res://data/underground/mole-worker/work-step-v1/source_program.gd"
 const TEMP: String = "user://test_demo_profile_pack.ugprof"
@@ -107,3 +108,22 @@ func test_short_step_consumer_is_retained_and_its_actual_cached_text_is_checked(
 	assert_equal(_check().error, "MOLE_CATALOG_SOURCE_DRIFT", "step source mutation refuses")
 	_changed_script.set_source_code(_original_source)
 	assert_equal(_check().error, "", "restored exact step source passes")
+
+
+func test_every_runtime_binary_passes_and_a_missing_or_changed_one_refuses() -> void:
+	"""Decision 1841: the pack check reads every underground binary the game opens, at the reader's own pin."""
+	var report: Dictionary = _verifier.call("runtime_files")
+	assert_equal(report.error, "", "every listed binary on disk at its pinned digest")
+	assert_equal(report.count, RuntimeFiles.FILES.size(), "the whole list is read")
+	assert_equal(report.refused.size(), 0, "none refused")
+	var absent: Dictionary = _verifier.call("runtime_files", {"user://absent_runtime_file.ugactor": "0".repeat(64)})
+	assert_true(absent.error.contains("missing"), "a missing binary refuses")
+	assert_equal(absent.refused, PackedStringArray(["user://absent_runtime_file.ugactor"]), "and is named")
+	_write(PackedByteArray([1, 2, 3]))
+	var changed: Dictionary = _verifier.call("runtime_files", {TEMP: "0".repeat(64)})
+	assert_true(changed.error.contains("digest differs"), "changed bytes refuse")
+	var oversized: PackedByteArray = PackedByteArray()
+	oversized.resize(_verifier.RUNTIME_FILE_MAX_BYTES + 1)
+	_write(oversized)
+	var large: Dictionary = _verifier.call("runtime_files", {TEMP: FileAccess.get_sha256(TEMP)})
+	assert_true(large.error.contains("byte count"), "an oversized binary refuses before it is streamed")

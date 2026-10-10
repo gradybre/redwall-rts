@@ -39,6 +39,12 @@ window/stretch/mode="disabled"
 window/stretch/aspect="expand"
 window/size/mode.demo_build=2
 
+[editor_plugins]
+
+; Editor-only (decision 1841): adds the underground binaries the game reads with FileAccess to an export with the
+; "demo_build" feature, which the preset's include_filter cannot reach under .gdignore folders.
+enabled=PackedStringArray("res://addons/demo_pack_files/plugin.cfg")
+
 [input]
 
 ; UI/UX controls rev 1.1, section 5 "Complete Input Map and Interaction Precedence".

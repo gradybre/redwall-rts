@@ -9,10 +9,13 @@ NEGATIVE TESTS COME FIRST:
        comment is kept.
   N03  a verification that resolved the main scene to scenes/main.tscn, lacks the demo_build feature,
        packed no staged assets, booted on placeholders or ended in an overload pause is a failure.
+  N04  a pack missing an underground binary, or whose demo did not mount its underground foundation, is a
+       failure (decision 1841).
 
 Then: merging replaces the demo preset in place of an older copy, renumbers from 0, and is idempotent;
 the committed preset carries the build's contract (feature, filters, x86_64, separate pck, S3TC,
-unsigned); the README template's placeholders are all filled.
+unsigned), and names no underground binary, which the editor plugin packs instead (decision 1841); the README
+template's placeholders are all filled.
 """
 
 from __future__ import annotations
@@ -60,7 +63,8 @@ GOOD_REPORT = {"error": "", "main_scene": "res://demo/demo_village.tscn", "featu
 	"pack": {"manifest": True, "raw_png": 44, "s3tc_ctex": 337}, "stall_clock": 'PAUSED ["CRITICAL"]',
 	"stall_banner_shown": True, "after_resume_clock": "PLAYING []", "after_resume_banner_shown": False,
 	"ticks_after_resume": 30, "build_info": '{"commit": "abc1234", "export": "debug"}',
-	"playtest_log": "playtest-2026-10-01_10-00-00-p1.log"}
+	"playtest_log": "playtest-2026-10-01_10-00-00-p1.log", "underground_mounted": True,
+	"runtime_files": {"error": "", "count": 14, "bytes": 3848932, "refused": []}}
 
 
 def check(name: str, condition: bool) -> None:
@@ -139,6 +143,19 @@ def test_n03_the_packed_build_info_must_be_this_build() -> None:
 		expected={**expected, "export": "release"}) != [])
 	check("N03 unreadable build info fails", build.verification_problems({**GOOD_REPORT, "build_info": "{"}, "",
 		expected=expected) != [])
+
+
+def test_n04_the_underground_must_be_in_the_pack_and_mount() -> None:
+	refused = {"error": "source-bound profile artifact missing: res://x.ugactor", "count": 14, "bytes": 0,
+		"refused": ["res://x.ugactor"]}
+	check("N04 a refused runtime binary fails", build.verification_problems({**GOOD_REPORT, "runtime_files": refused}, "")
+		!= [])
+	check("N04 an unmounted foundation fails",
+		build.verification_problems({**GOOD_REPORT, "underground_mounted": False}, "") != [])
+	missing = {key: value for key, value in GOOD_REPORT.items() if key != "underground_mounted"}
+	check("N04 a report without the mount check fails", build.verification_problems(missing, "") != [])
+	check("N04 the demo's refusal warning fails", build.verification_problems(GOOD_REPORT,
+		"WARNING: Underground foundation unavailable: MOLE_PRESENTATION_FILE\n   at: x") != [])
 
 
 def test_playtest_builds_are_debug_and_release_is_asked_for() -> None:
@@ -236,13 +253,29 @@ def test_the_committed_preset_is_the_build_contract() -> None:
 	include = re.search(r'^include_filter="(.*)"$', text, re.M).group(1)
 	exclude = re.search(r'^exclude_filter="(.*)"$', text, re.M).group(1)
 	check("the staged assets are included", "demo/assets/*" in include and "*.json" in include)
-	check("the exact source-bound profile binary is included",
-		"data/underground/mole-worker/profile-publication-v3-frontier/mole-worker.ugprof" in include.split(", "))
-	check("the exact source-bound actor binary is included",
-		"data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
-		in include.split(", "))
+	check("the include filter is the JSON and the staged assets alone", include.split(", ") == ["*.json", "demo/assets/*"])
+	check("no underground binary is named there: the exporter skips .gdignore folders (decision 1841)",
+		"data/underground" not in include and ".ug" not in include)
 	check("unrelated binary evidence is not broadly packed", "*.ugprof" not in include and "*.ugactor" not in include)
-	check("tests and tools are excluded", "test/*" in exclude and "tools/*" in exclude)
+	check("tests, tools and the editor-only addons are excluded",
+		"test/*" in exclude and "tools/*" in exclude and "addons/*" in exclude)
+
+
+def test_the_editor_plugin_packs_the_underground_binaries() -> None:
+	project = (build.PROJECT / "project.godot").read_text()
+	plugin = build.PROJECT / "addons/demo_pack_files"
+	check("the project enables the demo pack plugin",
+		'enabled=PackedStringArray("res://addons/demo_pack_files/plugin.cfg")' in project)
+	check("its plugin.cfg names its script", 'script="plugin.gd"' in (plugin / "plugin.cfg").read_text())
+	source = (plugin / "export_plugin.gd").read_text()
+	check("it acts on the preset's own feature", 'const FEATURE: String = "demo_build"' in source
+		and 'custom_features="demo_build"' in build.PRESET_SOURCE.read_text())
+	check("it packs the runtime list", 'const MANIFEST: String = "res://data/underground/runtime_files.gd"' in source
+		and (build.PROJECT / "data/underground/runtime_files.gd").is_file())
+	check("at each file's own path, checked against its pin", "add_file(path, bytes, false)" in source
+		and "_sha256(bytes) != files[path]" in source)
+	check("the pack check reads the same list", 'preload("res://data/underground/runtime_files.gd")'
+		in build.VERIFY_SCRIPT.read_text())
 
 
 def test_the_readme_template_is_filled() -> None:

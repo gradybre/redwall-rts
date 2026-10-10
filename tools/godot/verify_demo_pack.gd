@@ -19,12 +19,14 @@ extends SceneTree
 ## rises: "as level as a bone pointing that way allows"); the stall Resume -- a deliberate 1.2 s frame
 ## at 1x must put the clock into its CRITICAL diagnostic pause, show the stall banner, stay paused, and
 ## an Enter press must resume it with ticks advancing again (demo/ui/demo_stall_banner.gd); the build's
-## version file and whether the playtest log is running (decision 0562); and screenshots of the opening view, the
-## beaver's tail and the banner.
+## version file and whether the playtest log is running (decision 0562); every underground binary the game reads with
+## FileAccess, at its pinned digest, before the demo boots, and whether the underground foundation then mounted
+## (decision 1841); and screenshots of the opening view, the beaver's tail and the banner.
 
 const TailFlatRollScript := preload("res://scripts/presentation/tail_flat_roll.gd")
 const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
 const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
+const RuntimeFiles := preload("res://data/underground/runtime_files.gd")
 ## Retain the actual consumer Script objects whose source the cold runtime catalog checks.
 const PROFILE_SCRIPTS: Array[Script] = [
 	preload("res://scripts/core/underground_profiles.gd"),
@@ -41,6 +43,8 @@ const PROFILE_SCRIPTS: Array[Script] = [
 const ACTOR_CONTENT: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
 const ACTOR_BYTES: int = 648760
 const HASH_BLOCK_BYTES: int = 16384
+## The largest runtime binary is the 1,058,772-byte claw image; a file past this refuses before it is streamed.
+const RUNTIME_FILE_MAX_BYTES: int = 4194304
 const BUILD_INFO: String = "res://demo/build_info.json"
 
 const DEMO_SCENE: String = "res://demo/demo_village.tscn"
@@ -82,10 +86,12 @@ func _initialize() -> void:
 		return
 	_out = args[0]
 	_shots = args[1] if args.size() > 1 else ""
+	_report["runtime_files"] = runtime_files()
 	_report["profile_package"] = profile_package()
-	if not _report["profile_package"]["error"].is_empty():
-		_finish(_report["profile_package"]["error"])
-		return
+	for check: String in ["runtime_files", "profile_package"]:
+		if not _report[check]["error"].is_empty():
+			_finish(_report[check]["error"])
+			return
 	_boot_demo()
 
 
@@ -121,20 +127,36 @@ static func profile_package(profile_path: String = MoleCatalog.WIRE_PATH,
 		"world_activation_qualified": false, "static_memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC)}
 
 
+static func runtime_files(files: Dictionary = RuntimeFiles.FILES) -> Dictionary:
+	"""Every underground binary the game opens with FileAccess, present at its pinned digest (decision 1841)."""
+	var refused: PackedStringArray = PackedStringArray()
+	var report: Dictionary = {"error": "", "count": files.size(), "bytes": 0}
+	for path: String in files:
+		var file: Dictionary = _profile_binary(path, -1, files[path])
+		if not file["error"].is_empty():
+			refused.append(path)
+			if report["error"].is_empty():
+				report["error"] = file["error"]
+		report["bytes"] += maxi(file["bytes"], 0)
+	report["refused"] = refused
+	return report
+
+
 static func _profile_binary(path: String, size: int, digest: String) -> Dictionary:
-	"""Hash the same open stream in16KiB blocks; size mismatch refuses before allocating file-sized data."""
+	"""Hash the same open stream in16KiB blocks; size mismatch refuses before allocating file-sized data. A size of
+	-1 takes any length up to RUNTIME_FILE_MAX_BYTES, where the digest alone pins the bytes."""
 	var report: Dictionary = {"path": path, "bytes": -1, "sha256": "", "error": ""}
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		report["error"] = "source-bound profile artifact missing: " + path
 		return report
 	report["bytes"] = file.get_length()
-	if report["bytes"] != size:
+	if report["bytes"] != size and (size >= 0 or report["bytes"] > RUNTIME_FILE_MAX_BYTES):
 		report["error"] = "source-bound profile artifact byte count differs: " + path
 		return report
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
-	var left: int = size
+	var left: int = report["bytes"]
 	while left > 0:
 		var block: PackedByteArray = file.get_buffer(mini(HASH_BLOCK_BYTES, left))
 		if block.size() != mini(HASH_BLOCK_BYTES, left):
@@ -211,6 +233,7 @@ func _process(_delta: float) -> bool:
 		_report["renderer"] = RenderingServer.get_current_rendering_driver_name()
 		_report["demo_root"] = str(_demo.name)
 		_report["playtest_log"] = PlaytestLog.session().file_name() if PlaytestLog.session() != null else ""
+		_report["underground_mounted"] = _underground_mounted()
 		_bind_beaver()
 	elif _frame == WARM_FRAMES + 2:
 		_hold_clock(false)
@@ -258,6 +281,15 @@ func _press(keycode: Key, pressed: bool) -> void:
 	event.keycode = keycode
 	event.pressed = pressed
 	Input.parse_input_event(event)
+
+
+func _underground_mounted() -> bool:
+	"""Whether the demo gave the settlement its underground foundation and composed its room and route owners
+	(demo_village.gd _mount_modular_foundation; session state 2, owners ready). A binary missing from the pack refuses
+	that with only a warning, so the check reads the session itself."""
+	var settlement: Node = root.get_node_or_null("SettlementSystem")
+	var session: Object = settlement.call("underground_session") if settlement != null else null
+	return session != null and settlement.call("underground_content") != null and session.get("_operations_state") == 2
 
 
 func _clock_state() -> String:

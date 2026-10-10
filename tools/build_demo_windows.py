@@ -19,9 +19,11 @@ the export and verification logs beside them.
      null call with no word. `--release` exports on the release template instead (for a final build).
      Needs Godot's Windows export templates (windows_debug_x86_64.exe, or windows_release_x86_64.exe) for
      this Godot version; without them it stops and says how to install them. `--pack-only` exports just the .pck (no template needed) to check it.
-  5. Verify the pack with the editor binary (`--main-pack`, tools/godot/verify_demo_pack.gd): the
-     main scene resolves to the demo, the staged assets and raw atlases are packed, the demo boots,
-     the beaver's flat tail is bound; screenshots of it.
+  5. Verify the pack with the editor binary (`--main-pack`, tools/godot/verify_demo_pack.gd): every underground
+     binary the game reads with FileAccess is packed at its pinned digest (the editor plugin
+     godot/addons/demo_pack_files adds them, decision 1841), the main scene resolves to the demo, the staged assets
+     and raw atlases are packed, the demo boots with its underground foundation mounted, the beaver's flat tail is
+     bound; screenshots of it.
   6. Write README.txt (tools/demo_build/README.txt, with this build's facts) and zip the folder.
 
 Before the export it writes godot/demo/build_info.json (gitignored) -- the commit, the build time and Godot's
@@ -255,6 +257,21 @@ def verification_problems(found: dict, output: str, kept: int = 1, expected: dic
 	problems += build_info_problems(found, expected)
 	if not found.get("playtest_log"):
 		problems.append("the playtest log did not start in the pack (decision 0562)")
+	problems += underground_problems(found, output)
+	return problems
+
+
+def underground_problems(found: dict, output: str) -> list[str]:
+	"""What is wrong with the underground in the pack (decision 1841): a binary the game reads with FileAccess missing
+	or changed (verify_demo_pack.gd checks each before the boot, and stops there), or the foundation not mounted -- the
+	demo refuses it with only a warning, so a pack without its binaries otherwise boots and looks whole."""
+	problems = []
+	files = found.get("runtime_files", {})
+	if files.get("refused"):
+		problems.append(f"underground binaries missing from the pack or changed: {files['refused']}")
+	if found.get("main_scene") and not found.get("underground_mounted"):
+		problems.append("the underground foundation did not mount in the pack")
+	problems += [line for line in output.splitlines() if "Underground foundation unavailable" in line][:1]
 	return problems
 
 

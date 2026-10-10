@@ -6,6 +6,30 @@ const RuntimeFiles := preload("res://data/underground/runtime_files.gd")
 const DRIVER_PATH: String = "res://data/underground/mole-worker/mole_profile_driver.gd"
 const STEP_PATH: String = "res://data/underground/mole-worker/work-step-v1/source_program.gd"
 const TEMP: String = "user://test_demo_profile_pack.ugprof"
+
+
+## A stand-in Session: its route observer is null until the route graph is composed.
+class FakeSession extends RefCounted:
+	var routes: Object = null
+
+	func world_route_provider() -> Object:
+		"""The composed route graph, or null."""
+		return routes
+
+
+## A stand-in SettlementSystem with the two borrowing calls the mount check reads.
+class FakeHost extends RefCounted:
+	var session: FakeSession = null
+	var content: Object = null
+
+	func underground_session() -> FakeSession:
+		"""The mounted Session, or null."""
+		return session
+
+	func underground_content() -> Object:
+		"""The loaded actor image, or null."""
+		return content
+
 var _verifier: GDScript = null
 var _changed_script: Script = null
 var _original_source: String = ""
@@ -127,3 +151,17 @@ func test_every_runtime_binary_passes_and_a_missing_or_changed_one_refuses() -> 
 	_write(oversized)
 	var large: Dictionary = _verifier.call("runtime_files", {TEMP: FileAccess.get_sha256(TEMP)})
 	assert_true(large.error.contains("byte count"), "an oversized binary refuses before it is streamed")
+
+
+func test_the_mount_check_needs_the_session_its_image_and_the_composed_route_graph() -> void:
+	"""Decision 1841: room owners alone, or a refused route composition, leave no route observer and fail the check."""
+	var host: FakeHost = FakeHost.new()
+	assert_false(_verifier.call("underground_mounted", null), "no SettlementSystem")
+	assert_false(_verifier.call("underground_mounted", host), "no Session")
+	host.session = FakeSession.new()
+	host.content = RefCounted.new()
+	assert_false(_verifier.call("underground_mounted", host), "room owners only: no route observer")
+	host.session.routes = RefCounted.new()
+	assert_true(_verifier.call("underground_mounted", host), "the composed route graph mounts")
+	host.content = null
+	assert_false(_verifier.call("underground_mounted", host), "no loaded image")

@@ -146,7 +146,7 @@ def test_n03_the_packed_build_info_must_be_this_build() -> None:
 
 
 def test_n04_the_underground_must_be_in_the_pack_and_mount() -> None:
-	refused = {"error": "source-bound profile artifact missing: res://x.ugactor", "count": 14, "bytes": 0,
+	refused = {"error": "underground runtime binary missing: res://x.ugactor", "count": 14, "bytes": 0,
 		"refused": ["res://x.ugactor"]}
 	check("N04 a refused runtime binary fails", build.verification_problems({**GOOD_REPORT, "runtime_files": refused}, "")
 		!= [])
@@ -154,6 +154,11 @@ def test_n04_the_underground_must_be_in_the_pack_and_mount() -> None:
 		build.verification_problems({**GOOD_REPORT, "underground_mounted": False}, "") != [])
 	missing = {key: value for key, value in GOOD_REPORT.items() if key != "underground_mounted"}
 	check("N04 a report without the mount check fails", build.verification_problems(missing, "") != [])
+	no_list = {key: value for key, value in GOOD_REPORT.items() if key != "runtime_files"}
+	check("N04 a report without the runtime binary check fails", build.verification_problems(no_list, "") != [])
+	empty = {"error": "", "count": 0, "bytes": 0, "refused": []}
+	check("N04 an empty runtime binary list fails",
+		build.verification_problems({**GOOD_REPORT, "runtime_files": empty}, "") != [])
 	check("N04 the demo's refusal warning fails", build.verification_problems(GOOD_REPORT,
 		"WARNING: Underground foundation unavailable: MOLE_PRESENTATION_FILE\n   at: x") != [])
 
@@ -272,8 +277,10 @@ def test_the_editor_plugin_packs_the_underground_binaries() -> None:
 		and 'custom_features="demo_build"' in build.PRESET_SOURCE.read_text())
 	check("it packs the runtime list", 'const MANIFEST: String = "res://data/underground/runtime_files.gd"' in source
 		and (build.PROJECT / "data/underground/runtime_files.gd").is_file())
-	check("at each file's own path, checked against its pin", "add_file(path, bytes, false)" in source
-		and "_sha256(bytes) != files[path]" in source)
+	check("at each file's own path", "add_file(path, bytes[path], false)" in source)
+	check("its selection is a static function the Godot suite tests (test_underground_runtime_files.gd)",
+		"static func files_to_pack(" in source and "files_to_pack" in
+		(build.PROJECT / "test/test_underground_runtime_files.gd").read_text())
 	check("the pack check reads the same list", 'preload("res://data/underground/runtime_files.gd")'
 		in build.VERIFY_SCRIPT.read_text())
 

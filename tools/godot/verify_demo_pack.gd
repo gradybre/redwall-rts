@@ -146,13 +146,14 @@ static func _profile_binary(path: String, size: int, digest: String) -> Dictiona
 	"""Hash the same open stream in16KiB blocks; size mismatch refuses before allocating file-sized data. A size of
 	-1 takes any length up to RUNTIME_FILE_MAX_BYTES, where the digest alone pins the bytes."""
 	var report: Dictionary = {"path": path, "bytes": -1, "sha256": "", "error": ""}
+	var label: String = "source-bound profile artifact" if size >= 0 else "underground runtime binary"
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		report["error"] = "source-bound profile artifact missing: " + path
+		report["error"] = "%s missing: %s" % [label, path]
 		return report
 	report["bytes"] = file.get_length()
 	if report["bytes"] != size and (size >= 0 or report["bytes"] > RUNTIME_FILE_MAX_BYTES):
-		report["error"] = "source-bound profile artifact byte count differs: " + path
+		report["error"] = "%s byte count differs: %s" % [label, path]
 		return report
 	var hashing: HashingContext = HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
@@ -160,13 +161,13 @@ static func _profile_binary(path: String, size: int, digest: String) -> Dictiona
 	while left > 0:
 		var block: PackedByteArray = file.get_buffer(mini(HASH_BLOCK_BYTES, left))
 		if block.size() != mini(HASH_BLOCK_BYTES, left):
-			report["error"] = "source-bound profile artifact truncated: " + path
+			report["error"] = "%s truncated: %s" % [label, path]
 			return report
 		hashing.update(block)
 		left -= block.size()
 	report["sha256"] = hashing.finish().hex_encode()
 	if report["sha256"] != digest:
-		report["error"] = "source-bound profile artifact digest differs: " + path
+		report["error"] = "%s digest differs: %s" % [label, path]
 	return report
 
 
@@ -233,7 +234,7 @@ func _process(_delta: float) -> bool:
 		_report["renderer"] = RenderingServer.get_current_rendering_driver_name()
 		_report["demo_root"] = str(_demo.name)
 		_report["playtest_log"] = PlaytestLog.session().file_name() if PlaytestLog.session() != null else ""
-		_report["underground_mounted"] = _underground_mounted()
+		_report["underground_mounted"] = underground_mounted(root.get_node_or_null("SettlementSystem"))
 		_bind_beaver()
 	elif _frame == WARM_FRAMES + 2:
 		_hold_clock(false)
@@ -283,13 +284,14 @@ func _press(keycode: Key, pressed: bool) -> void:
 	Input.parse_input_event(event)
 
 
-func _underground_mounted() -> bool:
+static func underground_mounted(settlement: Object) -> bool:
 	"""Whether the demo gave the settlement its underground foundation and composed its room and route owners
-	(demo_village.gd _mount_modular_foundation; session state 2, owners ready). A binary missing from the pack refuses
-	that with only a warning, so the check reads the session itself."""
-	var settlement: Node = root.get_node_or_null("SettlementSystem")
+	(demo_village.gd _mount_modular_foundation): the Session's public route observer exists only once the whole route
+	graph is composed and nothing is refused. A binary missing from the pack refuses that with only a warning, so the
+	check reads the Session itself."""
 	var session: Object = settlement.call("underground_session") if settlement != null else null
-	return session != null and settlement.call("underground_content") != null and session.get("_operations_state") == 2
+	return session != null and settlement.call("underground_content") != null \
+		and session.call("world_route_provider") != null
 
 
 func _clock_state() -> String:

@@ -54,15 +54,28 @@ two things:
 
 - **Before the boot:** `runtime_files()` streams each listed file from the pack and checks it against its pin. The
   size bound is 4 MiB, against a largest image of 1,058,772 bytes.
-- **After the boot:** the check confirms that the underground foundation mounted and its room and route owners were
-  composed (session state 2).
+- **After the boot:** the check confirms that the underground foundation mounted, with its actor image, and that
+  its route graph was composed. It reads the Session's public `world_route_provider()`, which is non-null only past
+  route composition with nothing refused. Session state 2 is not enough: a route composition refused before its
+  catalog loads also returns the Session to state 2.
+- **Where it runs:** the check runs in the logs folder, so a `res://` path missing from the pack cannot fall through
+  to a project file beside the working directory.
 
-`build_demo_windows.py` fails the build if any file is refused, if the foundation is not mounted, or if the log holds
-the "Underground foundation unavailable" warning.
+`build_demo_windows.py` fails the build if the check read no list, if any file is refused, if the foundation is not
+mounted, or if the log holds the "Underground foundation unavailable" warning.
+
+The plugin's choice of files is a static function, `files_to_pack(features)`, which the headless suite tests directly.
+An `EditorExportPlugin` cannot be instantiated outside the editor. Given no `demo_build` feature, it returns nothing;
+given the feature, it returns every listed file at its pin; a changed or missing file is refused. Godot gives
+`_export_begin` no way to abort an export, so a refused file is an `ERROR` line, which fails the export step. It must
+stay an error.
 
 ## Consequences
 
 - When a new runtime reader opens a binary, its constants go into `runtime_files.gd`. The test enforces this.
+- The staleness walk sees a path only as a double-quoted `res://` literal naming a file on disk. A reader that builds
+  a path with `path_join` or `%` must add its constants to the list by hand. A second test refuses any reachable use of
+  a `NAMED_UNREAD` constant outside its own catalog.
 - Do not put underground paths back in `include_filter`. A path under `.gdignore` silently does nothing there.
 - The plugin loads in every editor session but registers only the export hook. It loads the list lazily, only when a
   `demo_build` export runs.

@@ -124,9 +124,9 @@ def strip_ansi(text: str) -> str:
 	return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
-def run(command: list[str], log: pathlib.Path, timeout: int) -> tuple[int, str]:
-	"""Run one bounded command, keep its whole output in `log`, return (status, output)."""
-	completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=timeout)
+def run(command: list[str], log: pathlib.Path, timeout: int, cwd: pathlib.Path | None = None) -> tuple[int, str]:
+	"""Run one bounded command (in `cwd`, when given), keep its whole output in `log`, return (status, output)."""
+	completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=timeout, cwd=cwd)
 	output = strip_ansi(completed.stdout + completed.stderr)
 	log.write_text("$ " + " ".join(command) + "\n" + output)
 	return completed.returncode, output
@@ -186,12 +186,14 @@ def export(godot: str, target: pathlib.Path, logs: pathlib.Path, pack_only: bool
 
 def verify(godot: str, pack: pathlib.Path, logs: pathlib.Path, kept: int, expected: dict[str, str] | None = None) -> dict:
 	"""Boot the pack with the editor binary and read back what verify_demo_pack.gd found. `kept` is how
-	many pictures the demo reads itself (tools/demo_texture_imports.py); all of them must be packed."""
+	many pictures the demo reads itself (tools/demo_texture_imports.py); all of them must be packed. It runs in the
+	logs folder, where no res:// path can fall through to a project file beside the working directory."""
 	report = logs / "verify.json"
 	if report.exists():
 		report.unlink()
 	status, output = run([godot, "--main-pack", str(pack), "--resolution", "1920x1080", "--script",
-		str(VERIFY_SCRIPT), "--", str(report), str(logs / "screenshots")], logs / "verify.log", VERIFY_TIMEOUT)
+		str(VERIFY_SCRIPT), "--", str(report), str(logs / "screenshots")], logs / "verify.log", VERIFY_TIMEOUT,
+		cwd=logs)
 	if not report.is_file():
 		raise RuntimeError(f"pack verification did not run (status {status}); see {logs / 'verify.log'}")
 	found = json.loads(report.read_text())
@@ -267,6 +269,8 @@ def underground_problems(found: dict, output: str) -> list[str]:
 	demo refuses it with only a warning, so a pack without its binaries otherwise boots and looks whole."""
 	problems = []
 	files = found.get("runtime_files", {})
+	if files.get("count", 0) < 1:
+		problems.append("the pack check read no underground runtime binary list")
 	if files.get("refused"):
 		problems.append(f"underground binaries missing from the pack or changed: {files['refused']}")
 	if found.get("main_scene") and not found.get("underground_mounted"):

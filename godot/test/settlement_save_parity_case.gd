@@ -18,6 +18,13 @@ extends "res://test/framework/test_case.gd"
 ## reservation lease expires inside a window, and the surface composes no navigation, so no A* heap is
 ## ever partial. `REACHED_CASES` states that; a change that makes one reachable fails here and must add
 ## it. Their columns are still in every tick's fingerprint.
+##
+## SHARED FIXTURE, NOT A SUITE (decision 1895). Fingerprinting is about 18 ms of every tick's 18 ms, and
+## the test fingerprints 33,000 ticks (575 s), so it ran alone on its own CI shard and bounded every run.
+## The resolved members are divided into PARTS of about equal bytes (`Fingerprint.partition()`), and each
+## `test_settlement_save_parity_<n>.gd` runs the whole test above (the same runs, saves, loads, windows and
+## byte comparisons) fingerprinting part n - 1 at every tick. Together the parts compare every member at
+## every tick, as the single fingerprint did; ticks are cheap (0.16 ms), so each suite replays them.
 
 const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
 const SettlementSystemScript := preload("res://scripts/systems/settlement_system.gd")
@@ -27,6 +34,10 @@ const SaveWorld := preload("res://scripts/core/settlement_save_world.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const Fingerprint := preload("res://test/fixtures/save_parity_fingerprint.gd")
+
+## How many suites share the fingerprint, and the suite file of part n (1-based).
+const PARTS: int = 6
+const PART_SUITE: String = "res://test/test_settlement_save_parity_%d.gd"
 
 ## ARCH-SAVE-006's fork and horizon.
 const START_TICK: int = 3000
@@ -60,6 +71,10 @@ var _first_mismatch: int = -1
 ## Save bytes by completed tick, and the edge case found at each save tick.
 var _saves: Dictionary = {}
 var _edges: Dictionary = {}
+## This suite's part (0-based), the member assignment made on the uninterrupted run, and its member names.
+var _part: int = 0
+var _assignment: PackedInt32Array = PackedInt32Array()
+var _members: PackedStringArray = PackedStringArray()
 
 
 func after_each() -> void:
@@ -178,6 +193,9 @@ func _record_uninterrupted(source: Node) -> void:
 	var world: SaveWorld.World = SaveWorld.bind(source, GameManager)
 	_running = source
 	_fingerprint.bind(world)
+	_members = _fingerprint.member_names()
+	_assignment = _fingerprint.partition(PARTS)
+	assert_true(_fingerprint.restrict(_assignment, _part), "part %d of %d is kept" % [_part + 1, PARTS])
 	_recording = true
 	var window_ends: Array[int] = [END_TICK]
 	assert_true(GameManager.bind_simulation(_step, _day), "bind the recording step")
@@ -209,6 +227,8 @@ func _replay(from_tick: int, to_tick: int) -> void:
 	assert_equal(GameManager.clock().completed_tick(), from_tick, "the clock is back at the save")
 	_running = target
 	_fingerprint.bind(SaveWorld.bind(target, GameManager))
+	assert_equal(_fingerprint.member_names(), _members, "%d: the loaded world binds the same members" % from_tick)
+	assert_true(_fingerprint.restrict(_assignment, _part), "%d: the same part is kept" % from_tick)
 	_recording = false
 	_first_mismatch = -1
 	assert_true(GameManager.bind_simulation(_step, _day), "bind the comparing step")
@@ -221,9 +241,13 @@ func _replay(from_tick: int, to_tick: int) -> void:
 		% [from_tick, to_tick, to_tick])
 
 
-func test_a_save_at_3000_continues_tick_for_tick_to_18000_with_its_coverage_cases() -> void:
+func _check_part(part: int) -> void:
 	"""ARCH-SAVE-006: the fork at 3000 with a pending command, every tick to 18000, and each
-	coverage case found on the way, each compared tick for tick over its own window."""
+	coverage case found on the way, each compared tick for tick over its own window; fingerprinting
+	part `part` (0-based) of the members at every tick."""
+	_part = part
+	for suite: int in range(1, PARTS + 2):
+		assert_equal(FileAccess.file_exists(PART_SUITE % suite), suite <= PARTS, "exactly PARTS suites: %d" % suite)
 	assert_true(GameManager.start_game(), "a fresh clock")
 	var source: Node = _settlement()
 	assert_true(source.create_generated_settlement(source.item_definitions()), "generates")
@@ -234,12 +258,26 @@ func test_a_save_at_3000_continues_tick_for_tick_to_18000_with_its_coverage_case
 	_record_uninterrupted(source)
 	assert_equal(_fingerprint.resolved_count() + _unmounted_fields(), _fingerprint.declared_count(),
 		"every declared field is fingerprinted except the unmounted underground owners'")
-	print("SAVE-PARITY coverage cases: %s" % [_edges])
+	_assert_partition()
+	print("SAVE-PARITY part %d/%d (%d members) coverage cases: %s"
+		% [part + 1, PARTS, _fingerprint.hashed_count(), _edges])
 	_replay(START_TICK, END_TICK)
 	for tick: int in _edges:
 		_replay(tick, tick + EDGE_WINDOW)
 	for edge: String in [EDGE_MIDNIGHT, EDGE_BATCH, EDGE_LEASE, EDGE_DYING]:
 		assert_equal(_edges.values().has(edge), REACHED_CASES.has(edge), "the %s case reached" % edge)
+
+
+func _assert_partition() -> void:
+	"""Every whole-hashed member is in exactly one part, every part has members, and this suite's is kept."""
+	var sizes: PackedInt32Array = PackedInt32Array()
+	sizes.resize(PARTS + 1)
+	for member_part: int in _assignment:
+		sizes[member_part if member_part >= 0 and member_part < PARTS else PARTS] += 1
+	assert_equal(_assignment.size(), _members.size(), "one part per member")
+	assert_equal(sizes[PARTS], 0, "no member outside parts 1-%d" % PARTS)
+	assert_false(sizes.slice(0, PARTS).has(0), "every part fingerprints members: %s" % [sizes])
+	assert_equal(_fingerprint.hashed_count(), sizes[_part], "part %d hashes its own members" % (_part + 1))
 
 
 func _unmounted_fields() -> int:

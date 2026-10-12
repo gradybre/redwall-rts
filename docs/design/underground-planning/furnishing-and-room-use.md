@@ -1,5 +1,7 @@
 # Underground furnishing and room use — planning slice 3
 
+**Amended 2026-10-11 by [DEC-061](../../setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible) and [SET-BUILD-001](../../building_model_amendment.md).** Furniture now sits on the same 1 m cell grid as the painted room, and every piece has authored **access tiles** and an optional **wall-behind** rule (SET-BUILD-001 §6), shown on its ghost. The Furnish tab lists only what the chosen room type allows. Removal returns 50% through an explicit review, never a silent sale.
+
 2026-10-02. D09 is approved as player-facing design direction: the player
 places and rotates compatible furniture on a grid, with footprint and access
 guides. D08 requires the empty room project, including its selected finishes,

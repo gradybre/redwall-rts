@@ -192,6 +192,8 @@ Active v2 catalog counts are 60 items, 24 main recipes, 12 tabulated ancillary r
 
 ## 4. Building, furniture, and crop tables
 
+**Amended by [SET-BUILD-001](building_model_amendment.md) (DEC-061); see [BAL-ROOM-001](#bal-room-001--painted-rooms-and-item-costs-dec-061) at the end of this document.** The §4.1–4.3 rows below stay the source of every bill, work amount, slot and capacity. Their footprint columns now apply only to outdoor items; roofed buildings become painted rooms whose costs BAL-ROOM-001 derives.
+
 ### 4.1 BuildingDefinition rows
 
 | id | footprint_x | footprint_z | materials_milli | work_mwu | slots | managed_interior | room_tiles | unlock | Provenance |
@@ -573,7 +575,7 @@ recipe, shelf life, storage-age factor or sowing refund changes.
 
 ## DEC-040 — spoil and hazard authoring inputs
 
-The two player-policy choices are confirmed: real haulable/reusable spoil with its own catalog key and mass, and warned/preventable hazards with rescue using existing injury/care. Next author exact spoil mass/yield, excavation and hauling work, legal placement/capacity, reuse/disposal/refund accounting, plus hazard triggers, air/return/recovery, injury and rescue parameters. Neither existing stone/compost values nor fishing penalties may be substituted as defaults. The four-level/4m geometry remains unratified and requires G02 representation/peak-memory review. This confirmation supplies no new production numbers and closes no MOVE gate.
+The two player-policy choices are confirmed: real haulable/reusable spoil with its own catalog key and mass, and warned/preventable hazards with rescue using existing injury/care. Next author exact spoil mass/yield, excavation and hauling work, legal placement/capacity, reuse/disposal/refund accounting, plus hazard triggers, air/return/recovery, injury and rescue parameters. Neither existing stone/compost values nor fishing penalties may be substituted as defaults. The four-level/4m geometry remains unratified and requires G02 representation/peak-memory review. *(Superseded for level count and spacing by [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible): surface plus four underground levels, 5 m apart; see [SET-BUILD-001](building_model_amendment.md) §3.)* This confirmation supplies no new production numbers and closes no MOVE gate.
 
 See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
 
@@ -601,3 +603,30 @@ hazards are unchanged.
   cuts get them too.
 - **The authoring manifest is not changed.** `planning/underground_economy_hazard_values.json` and its oracle
   keep SET-MOVE-ECON-001's authored targets (2,000/4,000/3,000); DEC-059 overrides them for active content.
+
+## BAL-ROOM-001 — Painted rooms and item costs (DEC-061)
+
+[SET-BUILD-001](building_model_amendment.md) replaces the fixed-footprint surface buildings with painted rooms, key
+items and outdoor items on a 1 m cell grid. This section states what that forces in the balance tables. It changes no
+§3 item or recipe row and no §4.1–4.3 value; `[DERIVED]` below means exact arithmetic on cited rows.
+
+| Cost line | Rule | Status |
+|---|---|---|
+| Outdoor item (17 §4.1 rows: `open_stockpile`, `well`, `workbench`, `dryer`, `fisher_shelter`, `weir`, `composter`, `apiary`, `nursery`, `saltpan`, `lookout`, `fence`, `stone_wall`, `gate`, `dirt_path`, `paved_path`, `memorial_garden`) | Its §4.1/§4.2 row unchanged; footprint × 2 per side in cells | [GDD §5.9] |
+| Furniture (9 §4.3 rows) | Its §4.3 row unchanged; footprint × 2 per side in cells; access tiles SET-BUILD-001 §6 | [GDD §5.9] |
+| Half partition (one cell edge) | wood 500 milli-U, 4000 milli-WU = §4.3 `interior_partition` ÷ 2 exactly | [DERIVED] |
+| Underground painted cell (4 quanta at clear height 4096 u) | wood 1000, stone 1000 milli-U; 16920 milli-WU; output 8000 milli-U `excavated_earth` | [DERIVED from BAL-UG-001 and ECON-002] |
+| Key item (`store_bay`, `cellar_bay`, `craft_bench`, `millstone`, `smoker`, `boat_slip`, `brew_vat`, `forester_rack`, `quarry_rack`) | The source building's §4.1 materials and work and §4.2 store, passive slots and builders | PROPOSED, SET-BUILD-001 OPEN-01 (b) |
+| Surface room cells, `c` cells per batch operation | `ceil_div(c × (wood 60000, stone 24000, cloth 8000, work 1200000), 192)` — the `residence` row over its 8 × 6-tile floor | PROPOSED, OPEN-01 (b) |
+| KITCHEN room replacing the `kitchen` building | Shell + 2 × `kitchen_bench` + 1 × `hearth` = shell + wood 8000, stone 14000, iron 2000 milli-U, 180000 milli-WU | [DERIVED] under OPEN-01 (b) |
+| `hall`, `residence`, `infirmary` building rows | Retired as buildings; `residence` becomes the shell-rate source | PROPOSED, OPEN-01 (b) |
+| Tier-2 packages | Store and workshop packages attach to `store_bay`/`craft_bench`; the residence/hall package scales as `ceil_div(c × package, 192)` per living room | PROPOSED, OPEN-08 |
+
+**What this forces later (follow-up, not done here).**
+- The labor and survival probes of §8 assumed fixed building bills; once Brendan rules OPEN-01, rerun the
+  construction-dependent scenarios and the three-year contract (§8.5) with room-cell and item costs.
+- §4.1's `footprint_x`/`footprint_z` and §4.2's per-building rows stay in place because
+  `docs/validation/setting_contract.py` parses them (30 buildings, 9 furniture); the key-item and room-type tables
+  are added by the slice that implements them (slice G) without renaming those columns.
+- A painted surface room has no `managed_interior`/`room_tiles` value; those two columns apply only to the starter
+  hall fixture until slice G retires them.

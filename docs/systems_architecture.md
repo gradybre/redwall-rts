@@ -28,7 +28,7 @@ Ruleset v2 is reconciled with [setting_rules_amendment.md](setting_rules_amendme
 
 **ARCH-MEM-001.** In the tables, I32=`PackedInt32Array` at 4 bytes/element, I64=`PackedInt64Array` at 8, B8=`PackedByteArray` at 1 `[GDD §4.2; Godot packed-array types]`. A comma-separated field group expands into separate contiguous columns of the stated length. Fixed children use the stated flattened owner-major indexing; variable children use packed arenas plus explicit offset/count indices. Do not allocate a GDScript `Array` for each row. Payload totals exclude allocator/object headers, which receive a separate measured reserve.
 
-**ARCH-MEM-002.** **BASELINE-ONLY under SET-MOVE-001:** these bounds and all downstream directory, transform, payload and save-memory totals do not cover required multi-level space. Recompute them under MOVE-G02; do not multiply by an invented floor count. Fixed registry cardinalities below remain mandatory for the existing baseline. The remaining finite bounds below are geometric/conservation bounds, not new arbitrary gameplay caps `[DERIVED from GDD §5.1, §5.9]`: the map has 16384 exterior tiles and only one managed floor, so all interior floor furniture occupies at most 16384 floor tiles. Each tile has at most 4 edges; an edge holds at most one partition/door `[NEW explicit edge exclusivity consistent with no overlap]`. A conservative furniture bound is `16384+4*16384=81920`. Projects ≤81920 furniture+1024 exterior objects=82944. Interior rooms ≤16*1024=16384. Main containers ≤1024 building+512 satchel+82944 project+512 expedition+16384 nonempty ground-pile containers=101376. Empty orphan containers are reclaimed at lifecycle commit; a ground pile with no live lot cannot retain an occupied row `[NEW lifecycle rule]`. **Implemented for ground piles by decision 0532 (DEMO-CONTAIN-R01 #9):** `inventory.gd::create_ground_pile()` is the only door, at most one pile per tile (so the 16384 ground-pile rows above are exactly one per exterior tile), and every successful inventory commit that created a pile or took a lot out of one retires each such pile left with no lot and no reserved mass. A derived, unsaved tile -> pile map (§2.3) makes the one-per-tile check one read.
+**ARCH-MEM-002.** **BASELINE-ONLY under SET-MOVE-001, and under SET-BUILD-001 (DEC-061) whose 1 m cell grid over five levels replaces the one-floor tile model; see [ARCH-BUILD-001](#arch-build-001--painted-rooms-on-a-1-m-cell-grid-dec-061):** these bounds and all downstream directory, transform, payload and save-memory totals do not cover required multi-level space. Recompute them under MOVE-G02; do not multiply by an invented floor count. Fixed registry cardinalities below remain mandatory for the existing baseline. The remaining finite bounds below are geometric/conservation bounds, not new arbitrary gameplay caps `[DERIVED from GDD §5.1, §5.9]`: the map has 16384 exterior tiles and only one managed floor, so all interior floor furniture occupies at most 16384 floor tiles. Each tile has at most 4 edges; an edge holds at most one partition/door `[NEW explicit edge exclusivity consistent with no overlap]`. A conservative furniture bound is `16384+4*16384=81920`. Projects ≤81920 furniture+1024 exterior objects=82944. Interior rooms ≤16*1024=16384. Main containers ≤1024 building+512 satchel+82944 project+512 expedition+16384 nonempty ground-pile containers=101376. Empty orphan containers are reclaimed at lifecycle commit; a ground pile with no live lot cannot retain an occupied row `[NEW lifecycle rule]`. **Implemented for ground piles by decision 0532 (DEMO-CONTAIN-R01 #9):** `inventory.gd::create_ground_pile()` is the only door, at most one pile per tile (so the 16384 ground-pile rows above are exactly one per exterior tile), and every successful inventory commit that created a pile or took a lot out of one retires each such pile left with no lot and no reserved mass. A derived, unsaved tile -> pile map (§2.3) makes the one-per-tile check one read.
 
 **ARCH-MEM-003.** Relations retain at most degree 8 among the 512 resident slots, so undirected live edges ≤512*8/2=2048. Preserve historical relationships in ChronicleRecord before retiring their live edge. Expedited parties cannot exceed 512 rows because each consumes at least one resident slot; the living limit usually makes the real bound smaller. Orchard blocks ≤16384/16=1024. Use the more conservative capacities even when geometric/resource constraints prevent all maxima occurring simultaneously. `[GDD §4.2, §5.3, §5.6; DERIVED]`
 
@@ -1241,3 +1241,44 @@ The source approach helper and retirement native allowances are provisional,
 not measured resident memory. The separately counted1152 provider raises the
 one-world reservation to99999806B; only194B remains outside reserved envelopes.
 New retained allocations must receive explicit joint accounting before use.
+
+## ARCH-BUILD-001 — Painted rooms on a 1 m cell grid (DEC-061)
+
+[SET-BUILD-001](building_model_amendment.md) makes every room on every level a set of painted cells on one 1 m grid,
+with furniture, key items, connectors and outdoor items placed on the same cells. This section records what that
+forces in the architecture. **It adds no allocation-ledger row and changes no byte total**; the memory budget is a
+slice-B obligation, because no column width or capacity below has been chosen and the exact recomputation must run
+through `docs/validation/ready07_arithmetic.py` and `merge_gate.py` with the chosen columns.
+
+**Exact counts the representation must cover** `[DERIVED from GDD §1, SET-BUILD-001 §3, DEC-061 Q6]`:
+
+- one level is 256 × 256 = 65536 cells (the 256 m map at 1024 u); five levels are 327680 cells;
+- a cell is the X/Z column of the excavation lattice (ECON-001); an underground cell covers the 4 quanta of its
+  level's 4096 u clear height, so the four underground levels hold 4 × 65536 × 4 = 1048576 priceable quanta, all
+  inside the initial level pack's 256 × 48 × 256 quantum domain.
+
+**Storage shape (adopted direction; widths and capacities are slice B's).**
+
+| Store | What it must hold | Replaces / constrains |
+|---|---|---|
+| Per-level cell grid | For each of the 327680 cells: the owning Room row (or none), as packed integer columns indexed `level × 65536 + z × 256 + x` | §3 `WorldTileMaps.room_slot` over 16384 tiles for room membership; `building_slot` stays for outdoor items |
+| Room rows | Type (RoomType 0–16), level, cell count, bounding box, validity, temperature, furniture mask, occupants; `Room.building` becomes optional and is null for painted rooms | GDD §4.2 Room's `tile_offset`/`tile_count` (tile-based) and the “up to 16 rooms per managed building” cardinality |
+| Item rows | Furniture/key-item/connector definition ID, room, level, origin cell, rotation, user, condition; access tiles are derived from the definition and rotation, never stored per item | GDD §4.2 Furniture `origin_tile` |
+| Edge items | Partitions and doors on cell edges (2 edges per GDD tile edge; half partitions on 1) | ARCH-MEM-002's tile-edge furniture bound `16384 + 4 × 16384` |
+| Pending batch | Drafted operations, Undo/Redo stack and running ledger: presentation-side, never saved and never authoritative (BUILD-REQ-020) | The modular planner's 32-step draft (ADRs 1052, 1055) |
+
+Rules that stay: integer state only; packed structure-of-arrays columns, never one object per cell, room or item
+(ARCH-MEM-001); `EntityRef` generation validation for Room and item rows; living population capped at 256; deferred
+reads of the cell grid only on layout change (ARCH-SYS-016 RoomHeat stays event-driven).
+
+**Slice-B obligations** (each must land with its ledger rows, registry entries and save-schema version):
+
+1. Choose column widths and capacities for the cell grid, Room rows, item rows and edge items, and recompute
+   ARCH-MEM-002's bounds (room, furniture, project and container capacities) for five levels; record the bytes in
+   §2.3 and the ARCH-MEM-009 trail.
+2. Append RoomType 8–16 and item definitions 9–17 through the versioned rules/catalog fingerprint (SET-BUILD-001
+   §5.2–5.3); widen `Room.furniture_mask` to 18 bits; refuse older saves rather than migrate them.
+3. Bind a painted underground room delta to the existing RoomProjects/ExcavationSites owners (decisions 1053, 1062,
+   1066) instead of the polyline tunnel and template paths.
+4. Re-run `docs/validation/state_registry_coverage.py`, the registry capacity audit and the canonical state table
+   generator for every new column.

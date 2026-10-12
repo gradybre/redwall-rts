@@ -1,5 +1,7 @@
 # Underground levels and connections — planning slice 2
 
+**Amended 2026-10-11 by [DEC-061](../../setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible) and [SET-BUILD-001](../../building_model_amendment.md).** The level count and spacing are now adopted (surface plus four underground levels, 5 m apart), and every connection family is a placed **item** with a ✓ / ! / X ghost and a “Connects to level N” card (SET-BUILD-001 §9), placed on a painted Passage or, for the entrance, on the surface. Statements below that leave the level count or spacing open are superseded; the approved families and clearance rules stand.
+
 2026-10-02. The user requires multiple underground levels and setting-appropriate
 ways to move between them, without a connection overlapping a wall, furnishing
 or other obstruction on an affected level. These requirements extend D01;

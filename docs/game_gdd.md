@@ -4,6 +4,8 @@
 
 **Adopted movement amendment:** [SET-MOVE-001](movement_direction_amendment.md) implements DEC-035 at the direction/specification level. Its requirements supersede ground-only and one-floor claims as the complete settlement design. `settlement_rules_v2` remains the incomplete implementation baseline; MOVE-G01–05 identify exact engineering closure still required.
 
+**Building model amendment, 2026-10-11:** [SET-BUILD-001](building_model_amendment.md) implements DEC-061. Every room on every level is painted cells on one 1 m grid; surface buildings become room types with key items or stay outdoor items; tunnels are painted Passages; the entrance is a placed item; five levels at 5 m. Where it and §4.2, §4.3 or §5.9 below differ, SET-BUILD-001 governs.
+
 | Field | Value |
 |---|---|
 | Document | SET-GDD-001, revision 1.1, 2026-09-05 |
@@ -206,7 +208,7 @@ defines exact IDs, mutation/load rules, station binding and the starter shelf.
 | JobKind/skill index | HAUL=0, BUILD=1, FISH=2, RESERVED_3=3, FORAGE=4, FARM=5, COOK=6, PRESERVE=7, CRAFT=8, TEND=9, KEEP=10, HEAL=11 |
 | JobState | QUEUED=0, RESERVED=1, TRAVEL=2, WORK=3, HAUL_OUTPUT=4, COMPLETE=5, BLOCKED=6, CANCELLED=7 |
 | ZoneType | FISH=0, RESERVED_1=1, FORAGE=2, FARM=3, ORCHARD=4, FORESTRY=5, QUARRY=6, STOCKPILE=7, CONSERVATION=8 |
-| RoomType | DORMITORY=0, PRIVATE_ROOM=1, KITCHEN=2, DINING=3, COMMON=4, INFIRMARY=5, PANTRY=6, CORRIDOR=7 |
+| RoomType | DORMITORY=0, PRIVATE_ROOM=1, KITCHEN=2, DINING=3, COMMON=4, INFIRMARY=5, PANTRY=6, CORRIDOR=7; appended by SET-BUILD-001 §5.2: STORE=8, CELLAR=9, WORKSHOP=10, MILL=11, SMOKEHOUSE=12, BOATHOUSE=13, BREWERY=14, FORESTER_LODGE=15, QUARRY_SHED=16 (inactive until its catalog fingerprint activates) |
 | BuildingState | BLUEPRINT=0, BUILDING=1, ACTIVE=2, PAUSED=3, DAMAGED=4, DEMOLISHING=5 |
 | Milestone | M0=0, M1=1, M2=2, M3=3, M4=4; protected domain, Start maps to M0 |
 | Soil | LOAM=0, CLAY=1, SAND=2 |
@@ -631,6 +633,8 @@ Fuel-days=`available_wood_equivalent/daily_heating_demand`. One wood U heats one
 
 Footprints are 2 m tiles, rotation in 90° steps. Materials are U; WU is total shared construction work, not per worker. Maximum 4 builders/project unless listed. Indoor kit themes change geometry only.
 
+**Amended by [SET-BUILD-001](building_model_amendment.md) (DEC-061).** Rooms, items and outdoor items now share one 1 m cell grid (a tile below is 2 × 2 cells). The building table below remains the source of each bill, but its roofed buildings become painted room types with a key item and the rest stay outdoor items (SET-BUILD-001 §5.1: 13 rooms, 17 outdoor items; adopted, decision 1851 OPEN-03). Furniture footprints, access tiles and wall-behind rules are in SET-BUILD-001 §6; room validity in cells in §4; the heat rule's “within that building” means “within that roofed room group”. REQ-SET-121, -122, -129 and -136 are read through SET-BUILD-001 §2 and §7; REQ-SET-123–128 are unchanged.
+
 | Building | Footprint | Materials | WU | Operational slots | Managed interior / capacity | Unlock |
 |---|---|---|---:|---:|---|---|
 | Refuge/community hall |12×10 |wood 100, stone 60, cloth 12 |2400 |Keeper 2 |Interior 10×8; configured rooms |Start |
@@ -973,13 +977,13 @@ new yield does not change composter recipes or other food-spoilage contracts.
 
 ## Connected-movement policy confirmation — DEC-040
 
-Excavation shall generate real haulable, reusable spoil with a distinct catalog identity and declared mass, not an alias of stone or compost. Movement/excavation hazards shall be warned and preventable, with rescue using existing settlement injury/care rather than surprise death rolls. This is confirmed direction, not an item/recipe/hazard parameter table. Four underground levels at 4m spacing remain a candidate; G02 must derive representation and memory before adoption. Complete the G01 numerical contracts before activating the dependent production mechanics.
+Excavation shall generate real haulable, reusable spoil with a distinct catalog identity and declared mass, not an alias of stone or compost. Movement/excavation hazards shall be warned and preventable, with rescue using existing settlement injury/care rather than surprise death rolls. This is confirmed direction, not an item/recipe/hazard parameter table. Four underground levels at 4m spacing remain a candidate; G02 must derive representation and memory before adoption. *(Superseded for level count and spacing by [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible): surface plus four underground levels, 5 m apart; see [SET-BUILD-001](building_model_amendment.md) §3.)* Complete the G01 numerical contracts before activating the dependent production mechanics.
 
 See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
 
 ## SET-MOVE-ECON-001 — numerical excavation and hazard amendment
 
-Adopt [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) as the owning numerical supplement under DEC-040. ECON-001–006 define volume-priced excavation, real spoil, tip/reuse accounts, coupled closure and the explicit modular-phase exception to REQ-SET-126; ordinary surface-building refunds retain their rules. HAZ-001–006 define air/exhaustion/fall/rescue values and shared health ordering using the existing InjuryKind domain. These scoped parameters are author-adopted for implementation, replacing their earlier pending-authoring status. Four levels at4m spacing remain a candidate; all unsupplied G01 inputs and G02–G05 remain open.
+Adopt [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) as the owning numerical supplement under DEC-040. ECON-001–006 define volume-priced excavation, real spoil, tip/reuse accounts, coupled closure and the explicit modular-phase exception to REQ-SET-126; ordinary surface-building refunds retain their rules. HAZ-001–006 define air/exhaustion/fall/rescue values and shared health ordering using the existing InjuryKind domain. These scoped parameters are author-adopted for implementation, replacing their earlier pending-authoring status. Four levels at4m spacing remain a candidate; all unsupplied G01 inputs and G02–G05 remain open. *(Superseded for level count and spacing by [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible): surface plus four underground levels, 5 m apart; see [SET-BUILD-001](building_model_amendment.md) §3.)*
 
 ## PC-04 family amendment — DEC-044
 
@@ -1022,3 +1026,7 @@ protected rules name them; none changes current behaviour.
   `young_day` (ID 3) and SET_POLICY selectors 2 CARE_WILLING / 3 CARE_PREFERRED are adopted and
   enter one versioned rules/catalog fingerprint at activation. Existing ordinals do not move, and a
   pre-family file refuses rather than migrating.
+
+## SET-BUILD-001 — painted rooms on one grid (DEC-061)
+
+[DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible) adopts Evil Genius 2's building model as closely as possible. [SET-BUILD-001](building_model_amendment.md) is the owning amendment: BUILD-REQ-001–021, the 1 m cell grid, room rules in cells, the mapping of all 30 §5.9 buildings and 9 furniture types, access tiles, underground paint-as-dig, Passage rooms, entrance and connector items, five levels (surface and underground 1–4, 5120 u apart) and how a painted batch becomes paid blueprints. It closes the level-count and spacing part of MOVE-G01; payment rules REQ-SET-124–128 are unchanged. Brendan adopted the recommended option on all eleven OPEN items of [decision 1851](decisions/1851-painted-room-contracts.md) on 2026-10-11; only the per-item geometry of new key items and connector families remains to be authored per slice.

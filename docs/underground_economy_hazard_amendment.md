@@ -15,6 +15,11 @@ Other GDD rules remain authoritative. It supersedes statements that these partic
 prices or hazard outcomes are still awaiting authoring. Four underground levels
 at4m spacing remain a candidate. **It does not close full MOVE-G01 or G02–G05.**
 
+**2026-10-11:** [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible)
+adopts the surface plus four underground levels at 5 m, superseding the 4 m candidate in this document;
+[SET-BUILD-001](building_model_amendment.md) prices a painted underground cell as four of these quanta.
+The values manifest keeps its authoring `depth` record unchanged, as BAL-UG-001 did for DEC-059.
+
 Read [the implementation sequence](planning/underground_economy_hazard_handoff.md)
 and [machine-readable values](planning/underground_economy_hazard_values.json).
 The values JSON is an authoring/import fixture, not automatically loaded production

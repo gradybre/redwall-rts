@@ -149,7 +149,7 @@ Eight slices, in order. Each is a lane with the usual gates (README §3.4–3.7)
 because that is where the room-painting model fits and where the code is closest; G brings the surface into the same
 panel. Decision ranges are allocated when Brendan approves (check `docs/validation/decision_numbers.py`).
 
-**A — Rulings and contracts (docs only).** Brendan answers §6. Then amend the owning documents:
+**A — Rulings and contracts (docs only). Done 2026-10-11:** [SET-BUILD-001](../../building_model_amendment.md) and [decision 1851](../../decisions/1851-painted-room-contracts.md). Brendan answered §6 (DEC-061). Then amend the owning documents:
 `docs/ui_ux_controls.md` (one build panel; the always-visible level bar closes part of UI-MOVE-001),
 `docs/design/underground-planning/levels-and-connections.md` (entrance and connectors as items),
 `furnishing-and-room-use.md` (access tiles), and the GDD/movement amendment rows these touch. No code.
@@ -192,15 +192,32 @@ repaint to grow or shrink a room; changing a room's purpose remains forbidden un
 furniture a repaint would invalidate is listed in a review card with its 50% return (demolition ruling) — never sold
 silently.
 
-**G — Surface buildings in the same panel.** The surface keeps the GDD's fixed-footprint prefabs (§6 Q3). The
-Rooms tab on the Surface level becomes **Buildings**: the BLD-PANEL catalog with thumbnails, ground-snapped ghost on
-2 m tiles, R rotation, Shift+click repeat, cost strip, same batch and Confirm all. Interior room painting for
-hall/residence/infirmary uses the same Rooms/Furnish tabs. This is the GDD's UI-SET-052–057 delivered through the
-shared panel.
+**G — Surface rooms in the same panel (re-planned for DEC-061 Q3 (b), “Everything becomes a room”).** The surface
+uses the same Rooms · Furnish · Decor panel as every other level. Thirteen GDD buildings become painted room types with
+a key item (hall → its starter rooms; residence → Dormitory/Bedroom; infirmary; kitchen → Kitchen with two benches and
+a hearth; covered store, cellar, workshop, mill, smokehouse, boathouse, brewery, forester lodge and quarry shed with
+one key item each); the other seventeen stay outdoor items placed from the Furnish tab under **Outdoor** (well, fence,
+paths, weir, apiary, stockpile and the rest). Walls and roof are generated from the painted cells; exterior doors are
+door items. Implements SET-BUILD-001 §5–7 and BAL-ROOM-001: the nine new room types and nine key items enter the
+catalog fingerprint, `room_catalog.gd` loses its “no ninth room type” limit, and the starter hall is re-expressed as
+painted rooms. Its surface costs follow Brendan's ruling on OPEN-01 (b): key items carry their old building's bill, room cells pay the residence-derived wall-and-roof rate. This replaces UI-SET-052–058.
 
 **H — Polish from EG2's complaints.** Show a room's size and validity on hover after it is built; jump-to-problem from
 any refusal (EG2's Cancel → camera); bulk select/remove; no "crew abandons the build" — keep the existing per-digger
 job queues and show who is assigned on the blueprint.
+
+**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851, so no slice waits on a ruling). “Needs” means the slice cannot finish without it.
+
+| Slice | Needs (slices) | Needs (other work and rulings) |
+|---|---|---|
+| A | — | DEC-061 (done) |
+| B | A | Slice-B storage obligations (ARCH-BUILD-001: cell grid, Room/item rows, container owners, ledger bytes); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
+| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07) |
+| D | B, C | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
+| E | B, C | Install crews (ADR 1081); access tiles and wall-behind are ruled (OPEN-05) |
+| F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |
+| G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17; BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
+| H | B–G | — |
 
 ---
 

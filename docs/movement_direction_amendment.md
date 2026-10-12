@@ -122,10 +122,31 @@ The user's Windows PC has 64 GB RAM and an RTX 5090 and is currently unavailable
 
 ## DEC-040 follow-up — confirmed logistics and hazard direction
 
-Real spoil has its own inventory identity and declared mass; it is not stone or compost renamed. Hazards require warnings, prevention and rescue using existing injury/care. Four underground levels at 4m spacing remain a candidate pending G02 representation and memory review. Exact numerical contracts and all movement gates remain open.
+Real spoil has its own inventory identity and declared mass; it is not stone or compost renamed. Hazards require warnings, prevention and rescue using existing injury/care. Four underground levels at 4m spacing remain a candidate pending G02 representation and memory review. *(Superseded for level count and spacing by [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible); see the last section.)* Exact numerical contracts and all movement gates remain open.
 
 See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
 
 ## Numerical follow-through — SET-MOVE-ECON-001
 
-[SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) now owns the DEC-040 economy/hazard numbers, outcomes and explicit disability cases. It adds no random disaster rolls or species permissions. It preserves required multi-level construction, swimming/diving and connected canopy access; geometry/profile/mode/architecture bindings remain predecessors for their affected production scope. The four-level candidate is not adopted by this numerical supplement.
+[SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) now owns the DEC-040 economy/hazard numbers, outcomes and explicit disability cases. It adds no random disaster rolls or species permissions. It preserves required multi-level construction, swimming/diving and connected canopy access; geometry/profile/mode/architecture bindings remain predecessors for their affected production scope. The four-level candidate is not adopted by this numerical supplement. *(Superseded for level count and spacing by [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible); see the last section.)*
+
+## Level count and spacing adopted — DEC-061 / SET-BUILD-001 (2026-10-11)
+
+[DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible) Q6 adopts **the
+surface plus four underground levels, 5 m (5120 u) apart**, replacing the four-levels-at-4 m candidate above and the
+demo's 4 m second level. [SET-BUILD-001](building_model_amendment.md) §3 binds the planes to the initial level pack:
+underground level k has its floor at excavation quantum y = −5k from the pack datum, with the pack's 4096 u clear
+height, 1024 u roof band and 1024 u footing; level 4's footing ends at quantum −21, inside the domain minimum −32.
+
+| Gate | After DEC-061 / SET-BUILD-001 |
+|---|---|
+| MOVE-G01 | **Level count and spacing closed** (readiness register Q2-26 is settled at policy level; the register keeps `value: null` because its own validator forbids values in slots). Still open: traversal profiles and modes, connector geometry and fixture recipes for every family except the qualified earth/timber stair, finite water/canopy extents, and every hazard input not owned by SET-MOVE-ECON-001. |
+| MOVE-G02 | Open. The 1 m cell grid over five levels (5 × 256 × 256 = 327680 cells) needs typed packed tables, capacities, byte arithmetic and save migration (`systems_architecture.md` ARCH-BUILD-001). |
+| MOVE-G03 | Partly closed: `ui_ux_controls.md` UI-BUILD-001–014 registers the always-visible level bar, the build panel and the connector card. Route inspection, cross-layer picking and canopy/water layer controls of UI-MOVE-001 remain open. |
+| MOVE-G04 | Open. |
+| MOVE-G05 | Open. |
+
+Tunnels are now painted Passage (`CORRIDOR`) rooms and the entrance is a placed item, so the three interoperable
+underground methods of §1 become one painting tool over one excavation ledger; by Brendan's ruling on decision 1851 OPEN-11 (DEC-031's placed burrows), MOVE-TEST-01's “placed burrow,
+planned tunnel and freely excavated room” reads as a surface entrance, a painted Passage and a painted room on a
+deeper level.

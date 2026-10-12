@@ -17,6 +17,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Contrast := preload("res://demo/ui/woodland_contrast.gd")
+const SheetScript := preload("res://demo/control/party_sheet.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 777
@@ -300,8 +301,8 @@ func test_state_words() -> void:
 func test_panel_placement_keeps_clear_of_the_hud_at_every_size() -> void:
 	"""At 1280x720, 1920x1080, 2560x1440 and a HiDPI 3456x2160, the panel (with its carved frame)
 	misses every HUD zone, the ordinary workspace and the level bar (UI-BUILD-013, decision 1871), and stays on
-	screen. The level bar takes the column's foot, so at 1280x720 the panel has room for its header, summary and
-	actions and its inspector scrolls (it undocks below MIN_INSPECTOR_H: THE FRAME NEVER HIDES)."""
+	screen. The party has at least 250 px of room everywhere: the column, or at 720 rows, where the level bar takes the
+	column's foot, the sheet its compact form opens beside it (decision 1891, restoring 1871 E12's relaxed check)."""
 	var layout := UiLayout.new()
 	var geometry := UiLayout.Geometry.new()
 	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3456, 2160)]:
@@ -314,8 +315,10 @@ func test_panel_placement_keeps_clear_of_the_hud_at_every_size() -> void:
 			hits += 1 if rect.intersects(zone) else 0
 		assert_equal(hits, 0, "%s: no HUD zone overlapped" % size)
 		assert_true(Rect2(0, 0, geometry.logical_width, geometry.logical_height).encloses(rect), "%s: on screen" % size)
-		var least: float = 150.0 if size.y <= 720 else 250.0
-		assert_true(rect.size.y >= least, "%s: room for the party (%.0f px)" % [size, rect.size.y])
+		var room: float = rect.size.y
+		if size.y <= 720:
+			room = SheetScript.placement(geometry, PanelScript.column_right(), PanelScript.inner_width()).size.y
+		assert_true(room >= 250.0, "%s: room for the party (%.0f px)" % [size, room])
 
 
 func test_panel_text_contrast_on_parchment() -> void:
@@ -423,7 +426,8 @@ func test_one_resident_s_orders_are_listed_with_the_gated_ones_explained() -> vo
 func test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides() -> void:
 	"""Selected alone, a resident's orders are listed IN FULL -- each with what to right-click (review F31: never
 	folded away); in a group they are not. However short the column, the frame stays: the summary and actions sit
-	above the inspector where they leave it MIN_INSPECTOR_H, else at its top (decision 0391)."""
+	above the inspector where they leave it MIN_INSPECTOR_H, else the panel takes its compact form and the inspector,
+	orders and all, goes to the sheet (decision 1891; before it, to the inspector's top: decision 0391)."""
 	var panel := PanelScript.new()
 	panel.build()
 	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
@@ -439,8 +443,9 @@ func test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides() -> voi
 	panel.show_party(one)
 	assert_true(panel.fit(2000.0), "a tall column: docked")
 	assert_true(panel.docked(), "the summary and actions above the inspector")
-	assert_false(panel.fit(1.0), "no room: the summary and actions go to the inspector's top")
-	assert_false(panel.docked(), "undocked")
+	assert_false(panel.fit(1.0), "no room: the compact form")
+	assert_false(panel.docked(), "not the full form")
+	assert_true(panel.compact(), "compact")
 	assert_equal(panel.abilities_text(), "\n".join(lines), "the orders still listed in full")
 	assert_true(panel.fit(2000.0), "room again: docked again")
 	panel.free()

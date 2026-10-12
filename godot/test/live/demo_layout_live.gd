@@ -19,6 +19,8 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
 const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
+const PartyScript := preload("res://demo/control/demo_party_panel.gd")
+const SheetScript := preload("res://demo/control/party_sheet.gd")
 
 const BOOT_FRAMES: int = 14
 const SETTLE_FRAMES: int = 4
@@ -235,21 +237,94 @@ func _party_checks() -> void:
 		var what: String = "party %d" % n
 		_check("%s: the frame is shown" % what, frame.is_visible_in_tree() and _fraction(frame) >= FULL,
 			str(party.call(&"frame_rect")))
-		var count: Label = party.get("_count")
-		_check("%s: the count in view" % what, count.text == "%d selected" % n and _fraction(count) >= FULL, count.text)
-		var summary: Label = party.get("_summary")
-		_check("%s: the summary reachable" % what, not summary.text.is_empty() and await _reachable(summary), summary.text)
-		var release: Button = party.call(&"release_button")
-		var docked: bool = bool(party.call(&"docked"))
-		_check("%s: Release in view (docked) or reachable" % what, _fraction(release) >= FULL if docked else await _reachable(release),
-			"docked %s" % docked)
-		if _scale == 100 and _size.y > 720:
-			# At 1280x720 the level bar (UI-BUILD-013, always shown above the minimap; decision 1871) takes 148 px of
-			# this column, so there the actions move to the inspector's top and are reached by scrolling (checked above).
-			_check("%s: at 100%% the actions are always in view" % what, docked and _fraction(release) >= FULL)
-		await _members(party, n, what)
+		var count: Control = party.call(&"count_control")
+		_check("%s: the count in view" % what, String(count.get(&"text")).contains("%d selected" % n)
+			and _fraction(count) >= FULL, String(count.get(&"text")))
+		_actions_in_view(party, what)
+		_clear_of_the_level_bar(party, what)
 		_floors(what, party)
 		_capture("party_%d" % n)
+		await _open_if_compact(party, what)
+		var summary: Label = _summary_shown(party)
+		_check("%s: the summary reachable" % what, not summary.text.is_empty() and await _reachable(summary), summary.text)
+		await _members(party, n, what)
+		_floors(what + " sheet", party.call(&"sheet"))
+		party.call(&"fold_sheet")
+		await _frames(SETTLE_FRAMES)
+
+
+func _actions_in_view(party: CanvasLayer, what: String) -> void:
+	"""Release and Follow in view, unscrolled, at every scale and size (decisions 0801 and 1891: the compact form keeps
+	them in its frame where the full form would not dock) -- and, compact, Open beside them."""
+	var release: Button = party.call(&"release_button")
+	var follow: Button = party.call(&"follow_button")
+	var docked: bool = bool(party.call(&"docked"))
+	_check("%s: Release in view (docked) or reachable" % what, _fraction(release) >= FULL, "docked %s" % docked)
+	if _scale == 100:
+		_check("%s: at 100%% the actions are always in view" % what, _fraction(release) >= FULL and _fraction(follow) >= FULL)
+	_check("%s: Release and Follow always in view" % what, _fraction(release) >= FULL and _fraction(follow) >= FULL,
+		"compact %s" % party.call(&"compact"))
+	if not bool(party.call(&"compact")):
+		return
+	_check("%s: compact, Open in view" % what, _fraction(party.call(&"open_button")) >= FULL)
+	var s: float = _effective()
+	var frame: Rect2 = party.call(&"frame_rect")
+	_check("%s: compact, the thin carving fills the column's carved extent" % what, absf(frame.position.x
+		- UiLayout.SAFE_INSET * s) <= 0.5 and absf(frame.size.x - (PartyScript.WIDTH + 2.0 * PartyScript.FRAME_EXPAND) * s)
+		<= 0.5, str(frame))
+	if _scale == 100:
+		_check("%s: compact at 100 %%, the title and the summary in view too" % what,
+			_fraction(party.get("_header")) >= FULL and _fraction(party.get("_summary")) >= FULL)
+
+
+func _clear_of_the_level_bar(party: CanvasLayer, what: String) -> void:
+	"""UX-BUILD-T01: the party frame, and the sheet where it is used, overlap no part of the level bar."""
+	var bar: Rect2 = _village.call(&"build").get("bar").call(&"screen_rect")
+	var frame: Rect2 = party.call(&"frame_rect")
+	_check("%s: clear of the level bar" % what, not frame.intersects(bar), "%s %s" % [frame, bar])
+	if bool(party.call(&"compact")):
+		var sheet: Rect2 = SheetScript.placement(_layout_geometry(), PartyScript.column_right(), PartyScript.inner_width())
+		var s: float = _effective()
+		var drawn := Rect2(sheet.position * s, sheet.size * s)
+		_check("%s: the sheet clear of the level bar and the column" % what, not drawn.intersects(bar)
+			and not drawn.intersects(frame), "%s" % drawn)
+
+
+func _layout_geometry() -> UiLayout.Geometry:
+	"""The HUD's layout for this window at the scale now."""
+	var geometry := UiLayout.Geometry.new()
+	UiLayout.new().compute_into(_size.x, _size.y, DemoUiScale.percent, false, geometry)
+	return geometry
+
+
+func _open_if_compact(party: CanvasLayer, what: String) -> void:
+	"""In the compact form, Open lays the sheet over the world: shown, the input gate's top modal, inside the window and
+	clear of the right column (decision 1891). The full form has nothing to open."""
+	if not bool(party.call(&"compact")):
+		return
+	(party.call(&"open_button") as Button).pressed.emit()
+	await _frames(SETTLE_FRAMES)
+	var sheet: CanvasLayer = party.call(&"sheet")
+	var frame: Rect2 = sheet.call(&"frame_rect")
+	_check("%s: Open lays the sheet over the world" % what, bool(sheet.call(&"is_open"))
+		and _fraction(sheet.call(&"frame")) >= FULL, str(frame))
+	_check("%s: the sheet is the gate's top modal" % what, _village.call(&"input_gate").call(&"top_layer") == sheet)
+	_check("%s: the sheet clear of the right column" % what, frame.end.x <= _zone_left() + 0.5,
+		"%s, right column at %.1f" % [frame, _zone_left()])
+	_capture("party_open_%s" % what.get_slice(" ", 1))
+
+
+func _zone_left() -> float:
+	"""The left edge of the right column's tab strip and panels, viewport px."""
+	return (_village.get("_zone").get("_strip") as Control).get_global_rect().position.x
+
+
+func _summary_shown(party: CanvasLayer) -> Label:
+	"""The summary as shown: the frame's, or where the compact frame has no room for it, the open sheet's."""
+	var summary: Label = party.get("_summary")
+	if summary.is_visible_in_tree():
+		return summary
+	return party.call(&"sheet").call(&"summary_label")
 
 
 func _members(party: CanvasLayer, n: int, what: String) -> void:
@@ -279,12 +354,10 @@ func _reveal_checks(party: CanvasLayer, n: int) -> void:
 	var inspector: ScrollContainer = party.call(&"inspector")
 	var last: Button = party.call(&"member_row", n - 1)
 	var margin_px: float = 4.0 * inspector.get_global_transform().get_scale().y
-	if inspector.get_global_rect().size.y < last.get_global_rect().size.y + 2.0 * margin_px:
-		# Shorter than one row here (the column is about 76 logical px at 125 %; 156 at 100 %): the level bar took the
-		# column's foot (decision 1871, P-B8, review M6). Not asserted here: the caller's "every member row reachable"
-		# checks that every row scrolls into view.
-		print("LIVE-SKIP %dx%d reveal: the inspector is shorter than a row" % [_size.x, _size.y])
-		return
+	# Decision 1891 restores what 1871 E12 skipped here: in the compact form the inspector is in the open sheet, taller
+	# than a row at every offered scale.
+	_check("reveal: the inspector taller than a row", inspector.get_global_rect().size.y
+		>= last.get_global_rect().size.y + 2.0 * margin_px, "%s" % inspector.get_global_rect())
 	inspector.scroll_vertical = 0
 	await _frames(2)
 	inspector.call(&"reveal", last)
@@ -323,6 +396,8 @@ func _reveal_tall(party: CanvasLayer, hint: Control) -> void:
 func _dock_keeps_focus(party: CanvasLayer) -> void:
 	"""A focused Release keeps its focus when the summary and actions move into the inspector and back."""
 	var release: Button = party.call(&"release_button")
+	party.call(&"fold_sheet")
+	await _frames(1)
 	release.grab_focus()
 	var was: bool = bool(party.call(&"docked"))
 	party.call(&"fit", 1.0)
@@ -330,12 +405,27 @@ func _dock_keeps_focus(party: CanvasLayer) -> void:
 	party.call(&"fit", 4000.0)
 	_check("docking again keeps it", root.gui_get_focus_owner() == release)
 	release.release_focus()
+	_no_focus_left_on_a_hidden_row(party)
 	# Back to the real column (it decides the docking itself): fit(4000) left the inspector as tall as its content, past
 	# the window's foot, which the rows checked next would be measured against (decision 0801's Follow (End) made the
 	# actions one row taller). `was` is the docking it restores.
 	party.call(&"_place")
 	_check("the real column docks as before", bool(party.call(&"docked")) == was)
+	if bool(party.call(&"compact")):
+		party.call(&"open_sheet")
 	await _frames(SETTLE_FRAMES)
+
+
+func _no_focus_left_on_a_hidden_row(party: CanvasLayer) -> void:
+	"""A member row focused in the full form's column: when the compact form moves the inspector into the folded sheet,
+	the focus is not left on the hidden row (decision 1891)."""
+	var row: Button = party.call(&"member_row", 0)
+	party.call(&"fit", 4000.0)
+	row.grab_focus()
+	var held: bool = root.gui_get_focus_owner() == row and row.is_visible_in_tree()
+	party.call(&"fit", 1.0)
+	_check("compact: no focus left on a row in the folded sheet", held and root.gui_get_focus_owner() != row,
+		"held %s" % held)
 
 
 # --- F12: the Water panel ---------------------------------------------------------------------------------
@@ -495,7 +585,8 @@ func _scale_checks() -> void:
 		if card_frame.is_visible_in_tree():
 			break
 		await _frames(1)
-	var frames: Dictionary = {"party": _party().get("_frame"), "zone strip": _village.get("_zone").get("_strip"),
+	var frames: Dictionary = {"party": _party().get("_frame"), "party sheet": _party().call(&"sheet").call(&"frame"),
+		"zone strip": _village.get("_zone").get("_strip"),
 		"water": _water().get("_frame"), "bed": _farm().get("bed_panel").get("_frame"),
 		"lens picker": _village.get("_lens_picker").get("_frame"), "card": _village.get("_cards").get("_frame"),
 		"news strip": _village.get("_news").get("_frame"), "news window": _village.get("_history").get("_frame"),

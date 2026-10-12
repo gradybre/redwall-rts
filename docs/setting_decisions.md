@@ -1570,3 +1570,54 @@ Unchanged: the bills (ADR 1209 D3), the tread geometry (D1, D2), and the exact c
 
 Engineering records: [decision1217](decisions/1217-claw-digging.md) step 2d and
 [decision1209](decisions/1209-descent-past-t0.md).
+
+
+### DEC-061 — Building matches Evil Genius 2 as closely as possible
+
+On 2026-10-11, after reading the study
+[evil-genius-2-building-study.md](design/underground-planning/evil-genius-2-building-study.md), Brendan decided:
+**"Overall, I want us to match this functionality as close as possible to EG2."** He answered the study's §6
+questions in chat:
+
+- **Q1, one build panel for everything: (a) yes.** One build panel serves every level, the surface included. It
+  replaces the B dig tool, the H/C room template tool and the modular room planner's separate entry. It has tabs
+  (Rooms · Furnish · Decor), a room type chosen first, one pending batch, a running ledger, Undo/Redo, one Confirm all
+  and an always-visible level bar.
+- **Q2, the paint grid: (a) 1 m cells**, matching the adopted 1 m³ cut quantum. Rooms and furniture share that grid.
+- **Q3, the surface: (b), "change surface as well".** Asked how far this goes, he chose **"Everything becomes a
+  room"**:
+  - every surface building becomes a painted room type;
+  - its machines and furniture become items placed inside it, for example a mill room with a millstone item, or a
+    kitchen with a hearth and a bench;
+  - walls and roof are generated from the painted area;
+  - outdoor things (well, fence, paths, weir, apiary) stay placed items.
+
+  This supersedes the GDD's fixed-footprint surface buildings (§5.9's building table, REQ-SET-122) and the balance
+  catalog's per-building costs. Those documents must be amended to match (study slice A).
+- **Q4, tunnels: (a) yes.** Tunnels become painted **Passage** rooms (the GDD's `CORRIDOR`), at least 2 cells wide.
+  The polyline tunnel tool is retired once painted passages replace it.
+- **Q5, the entrance:** his direction, given with EG2's stairs: "the same concept should be had with building an
+  entrance on the ground level that lets you begin building underground." An entrance is a placed surface item
+  (burrow mouth, hatch or stair-head). Its ghost shows ✓ / ! / X and its card confirms "Connects to Underground
+  level 1". Building it opens level 1 for painting. The same item family placed on a passage connects underground
+  levels.
+- **Q7, access tiles:** settled by "match EG2". Every furniture piece and machine item gets authored access cells,
+  shown on the ghost, and an optional wall-behind rule.
+- **Q8, room purpose: (a) "No, keep it permanent".** ADR 1081 stands. A room may be grown or shrunk by repainting
+  cells, but its type cannot be repainted in place: remove it and paint a new room. Removing furniture follows the
+  demolition ruling (an explicit review with a 50% return), never EG2's silent auto-sell.
+- **Paying: keep the current rule.** He first chose "Deduct at confirm, like EG2", then changed his mind the same
+  day: **"don't deduct at confirm, keep as we currently do."** Confirm all creates delivery and building work.
+  Materials are hauled and are used when work starts, with 100% / 80% cancel refunds (REQ-SET-124..128 unchanged).
+- **Q6, level count and spacing: surface + 4 underground levels at 5 m spacing.** Brendan asked which of 4 m and
+  5 m was recommended. The coordinator recommended 5 m, for three reasons:
+  - the badger is 2.55 m tall (DEC-039), and 4 m spacing leaves 2.75 m of headroom, too little for loads and the
+    heavy swing;
+  - 5 m is the engineering pack's `level_spacing_u` 5120 (4 m clear plus a 1 m band);
+  - five levels fit inside the pack's −32 m domain.
+
+  Brendan answered **"Yes please"**. This adopts a level count and spacing for MOVE-G01/G03, which
+  `docs/movement_direction_amendment.md` and the GDD had left open. The demo's 4 m second level is superseded.
+
+Not ruled, so the study's proposals stand: the slice order A–H and everything in study §4 (things not copied from
+EG2). These include research-gated rock and gold veins.

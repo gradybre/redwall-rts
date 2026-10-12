@@ -5,6 +5,7 @@ extends "res://test/framework/test_case.gd"
 
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 
 var _bar: LevelBar = null
 var _chosen: PackedInt32Array = PackedInt32Array()
@@ -140,3 +141,26 @@ func test_an_unreached_level_carries_a_mark_besides_colour() -> void:
 	assert_equal(_bar.level_button(5).text, "All", "NARROW's labels kept")
 	_bar.set_reachable(3, true)
 	assert_equal(_bar.level_button(3).text, "L3", "the mark leaves with a way in")
+
+
+func test_a_re_place_to_smaller_cells_resizes_every_button() -> void:
+	"""Placed STANDARD (1280x720 at 100 %) and then NARROW (at 125 %), every button is its UI-BUILD-014 cell with its
+	label trimmed, no two overlap, and back to STANDARD they grow again. Outside the tree Godot does not clamp a size
+	to the minimum, so the minimum-before-size order is checked live by demo_layout_live's _level_buttons_inside
+	(decision 1891, review)."""
+	var layout: UiLayout = UiLayout.new()
+	var geometry: UiLayout.Geometry = UiLayout.Geometry.new()
+	for percent: int in [100, 125, 100]:
+		assert_true(layout.compute_into(1280, 720, percent, false, geometry), "%d %%" % percent)
+		_bar.place(geometry, true)
+		var cells: Array[Rect2] = []
+		for level: int in LevelBar.LEVEL_COUNT:
+			var cell: Rect2 = BuildLayout.level_button_rect(_bar.frame_rect(), level, geometry.profile)
+			var button: Button = _bar.level_button(level)
+			assert_equal(Rect2(button.position, button.size), cell, "%d %%: level %d is its cell" % [percent, level])
+			cells.append(Rect2(button.position, button.size))
+		var overlaps: int = 0
+		for a: int in cells.size():
+			for b: int in range(a + 1, cells.size()):
+				overlaps += 1 if cells[a].intersects(cells[b]) else 0
+		assert_equal(overlaps, 0, "%d %%: no two buttons overlap" % percent)

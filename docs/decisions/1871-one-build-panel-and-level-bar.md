@@ -228,9 +228,17 @@ answered four questions, each as recommended:
     panel through the same press. While the panel shows, the command strip is hidden, and B reaches the panel through
     the build hook as before.
   - The settlement game's shell keeps Build locked (ruling 4). Neither `ui_shell.gd`, `ui_manager.gd` nor any pinned
-    file changed. `test_ui_shell.gd`'s "Build is locked" covers the game's shell, so it stands.
+    file changed (decision 1891 later added `ui_shell.gd command_icon`; see the correction below). `test_ui_shell.gd`'s "Build is locked" covers the game's shell, so it stands.
   - `demo_command_tips.gd` no longer writes the old "In the demo, B opens …" line. Like the farm's Food, an enabled
     Build keeps the tip its owner wrote.
+  - **Corrected by decision 1891 (2026-10-12, the PARTY-COMPACT review).**
+    - The enabled Build command still wore the lock icon. The shell gives an unwired control the lock when it is
+      built (UI §2.2), and nothing replaced it.
+    - `unlock_build_command` now sets `button.icon = _shell.command_icon(UiShell.ID_BUILD)`. `command_icon` is a new
+      pure wrapper in `ui_shell.gd`; `ui_shell.gd` is not a pinned file.
+    - `test_demo_build_panel.gd` asserts the game's shell keeps the lock and the demo's enabled Build does not.
+    - The same review fixed the level bar's re-place: `level_bar.gd place` set each button's size before its
+      minimum, so a shrink (100 % to 125 % at 1280x720, F11) kept the old cells.
 - **E23. Setup refusals are shown and disarm painting** (review M4). The refusal codes from `batch.configure` and
   `paint.configure` are kept. The first is pushed with `UIManager.push_refusal`, and `armed_type()` is then -1.
 - **E24. The paint ghosts redraw only on a batch change** (review M5). A cursor move redraws only the stroke and

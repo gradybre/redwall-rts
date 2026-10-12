@@ -128,7 +128,8 @@ func configure(command: CommandScript, cast: DemoCastScript, board: BoardScript,
 
 
 func _build_panel(party: PanelScript) -> void:
-	"""The group panel, as the party panel's section and top row, its signals connected."""
+	"""The group panel, as the party panel's section and top row, its signals connected ("Send to…" also folds the
+	party sheet: decision 1891)."""
 	party.build()
 	panel = GroupPanel.new()
 	panel.build(PanelScript.inner_width() - PanelScript.SCROLLBAR_ALLOWANCE)
@@ -137,6 +138,8 @@ func _build_panel(party: PanelScript) -> void:
 	panel.tile_pressed.connect(_on_tile)
 	panel.crew_pressed.connect(put_on_crew)
 	panel.send_pressed.connect(func() -> void: arm_send(not _armed))
+	# "Send to…" arms the next world click: the party sheet, if open, folds so that click reaches the world (1891).
+	panel.send_pressed.connect(party.fold_sheet)
 	panel.idle_pressed.connect(select_idle)
 
 

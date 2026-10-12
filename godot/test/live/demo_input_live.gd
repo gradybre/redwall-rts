@@ -25,6 +25,7 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
 const BuildValidity := preload("res://scripts/ui/build_validity.gd")
 const BuildOrders := preload("res://demo/build_panel/demo_build_orders.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 
 ## Frames to let the village boot (its prewarm releases the clock after its first frames).
 const BOOT_FRAMES: int = 12
@@ -80,7 +81,9 @@ func _initialize() -> void:
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
 		_the_hud_workspace_keeps_the_keys, _the_workspace_covers_no_stop, _a_group_is_box_selected,
-		_a_member_row_selects_and_centres, _a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
+		_a_member_row_selects_and_centres, _sheet_compact_form, _sheet_opens_on_a_click, _sheet_holds_the_world_keys,
+		_sheet_traps_tab, _sheet_folds_on_escape, _sheet_click_away_folds, _sheet_by_keyboard, _sheet_scale_back,
+		_a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
 		_the_picker_crosses_spring_5, _jobs_opens_the_work_screen, _work_tab_and_enter, _work_queue_a_fell,
 		_work_show_the_fell, _work_open_the_picker, _work_show_the_target, _work_reassign_by_click, _work_show_residents, _work_scroll_to_resident, _work_edit_a_crew, _work_cancel_all_shows_its_scope,
 		_work_keep_working, _work_closes_on_j, _shift_right_click_queues,
@@ -1193,9 +1196,30 @@ func _a_member_row_selects_and_centres() -> void:
 	_check("a row per member", int(party.call(&"member_row_count")) == picked.size())
 	if picked.size() < 2:
 		return
-	var row: Button = party.call(&"member_row", 1)
-	(party.call(&"inspector") as ScrollContainer).call(&"reveal", row)
+	if bool(party.call(&"compact")):
+		_click(_centre(party.call(&"open_button")))
+		_check("compact: a real click on Open shows the member rows", bool(party.call(&"sheet").call(&"is_open")))
+	_steps.push_front(_fold_after_the_pick)
 	_steps.push_front(_click_member_row.bind(picked[1]))
+	_steps.push_front(_reveal_member_row)
+
+
+func _reveal_member_row() -> void:
+	"""The second member row scrolled into view (a frame after the sheet, where used, was laid out)."""
+	var row: Button = _command().call(&"panel").call(&"member_row", 1)
+	(_command().call(&"panel").call(&"inspector") as ScrollContainer).call(&"reveal", row)
+
+
+func _fold_after_the_pick() -> void:
+	"""Compact: the sheet stays open on the picked resident; Esc folds it and keeps that selection (decision 1891)."""
+	var party: Node = _command().call(&"panel")
+	if not bool(party.call(&"sheet").call(&"is_open")):
+		return
+	_check("the sheet stays open on the pick", int(party.call(&"member_row_count")) == 0
+		and String(party.call(&"sheet").call(&"count_text")) == "1 selected")
+	_key(KEY_ESCAPE)
+	_check("Esc folds it, the pick kept", not bool(party.call(&"sheet").call(&"is_open"))
+		and _command().call(&"selection_count") == 1)
 
 
 func _click_member_row(who: int) -> void:
@@ -1211,6 +1235,141 @@ func _click_member_row(who: int) -> void:
 	var after: Vector3 = camera.get("_target_focus")
 	_check("and centred the camera on it", absf(after.x - feet.x) < 1.0 and absf(after.z - feet.y) < 1.0,
 		"%s -> %s, feet %s" % [before, after, feet])
+
+
+# --- decision 1891: the party panel's compact form and its sheet ---------------------------------------------
+
+## The interface scale before the sheet's steps (they take 150 % at 1920x1080, the same logical 1280x720).
+var _sheet_scale_was: int = 100
+
+
+func _party() -> CanvasLayer:
+	"""The party panel."""
+	return _command().call(&"panel")
+
+
+func _sheet() -> CanvasLayer:
+	"""The party sheet."""
+	return _party().call(&"sheet")
+
+
+func _sheet_compact_form() -> void:
+	"""The compact form at this window (at 1920x1080 at 150 %), the whole cast selected."""
+	_sheet_scale_was = DemoUiScale.percent
+	if _size.y > 720:
+		_village.call(&"set_ui_scale", 150)
+	_command().call(&"select", PackedInt32Array(range(int(_village.get("_cast").call(&"actor_count")))))
+	_command().call(&"_refresh_panel")
+
+
+func _sheet_opens_on_a_click() -> void:
+	"""A real click on Open lays the sheet out as the gate's top modal, over its scrim, with the focus inside it."""
+	var open: Button = _party().call(&"open_button")
+	_check("the compact form here", bool(_party().call(&"compact")), "%d%%" % DemoUiScale.percent)
+	_check("Release, Follow and Open in view", _fraction(_party().call(&"release_button")) >= 0.99
+		and _fraction(_party().call(&"follow_button")) >= 0.99 and _fraction(open) >= 0.99)
+	_click(_centre(open))
+	_check("a real click on Open lays the sheet out", bool(_sheet().call(&"is_open")))
+	_check("the sheet is the gate's top modal", _gate().top_layer() == _sheet())
+	var scrim: ColorRect = _gate().scrim_of(_sheet())
+	_check("with the gate's scrim over the whole view", scrim != null
+		and scrim.get_global_rect().size.x >= float(_size.x) - 1.0)
+	_check("focus inside the sheet", _gate().in_top_modal(_focus()), str(_focus()))
+	_check("opened by a click, its focus not drawn", _focus() != null and not _focus().has_focus(true))
+	_check("and its inspector shown from the top", (_party().call(&"inspector") as ScrollContainer).scroll_vertical == 0)
+	_order_before = int(_brain(0).get("order"))
+	_capture("party_sheet_open")
+
+
+func _sheet_holds_the_world_keys() -> void:
+	"""B, V, Space and Page Down wait behind the sheet (the gate swallows them); it stays open."""
+	var was_paused: bool = bool(_manager().call(&"is_paused"))
+	var overlay: int = int(_village.get("_farm").get("lenses").get("active"))
+	var level: int = int(_build().get("bar").call(&"shown_level"))
+	for code: Key in [KEY_B, KEY_V, KEY_SPACE, KEY_PAGEDOWN]:
+		_key(code)
+	_check("B waits behind the sheet", not bool(_build().call(&"is_open")))
+	_check("V waits", int(_village.get("_farm").get("lenses").get("active")) == overlay)
+	_check("Space waits", bool(_manager().call(&"is_paused")) == was_paused)
+	_check("Page Down waits", int(_build().get("bar").call(&"shown_level")) == level)
+	_check("the sheet is still open", bool(_sheet().call(&"is_open")))
+
+
+func _sheet_traps_tab() -> void:
+	"""Tab and Shift+Tab stay inside the sheet; Close (Esc) is last in its ring."""
+	var ring: Array[Control] = _gate().modal_controls()
+	_check("Close is last in the sheet's Tab order", not ring.is_empty()
+		and ring.back() == _sheet().call(&"close_button"), "%d stops" % ring.size())
+	for k: int in 40:
+		_key(KEY_TAB)
+		if not _gate().in_top_modal(_focus()):
+			break
+	_check("40 Tabs never leave the sheet", _gate().in_top_modal(_focus()))
+	_key(KEY_TAB, true)
+	_check("Shift+Tab stays inside", _gate().in_top_modal(_focus()))
+
+
+func _sheet_folds_on_escape() -> void:
+	"""Esc folds the sheet alone: the selection stays, no modal is left, the focus goes back to Open."""
+	var count: int = int(_command().call(&"selection_count"))
+	_key(KEY_ESCAPE)
+	_check("Esc folds the sheet", not bool(_sheet().call(&"is_open")))
+	_check("the same Esc keeps the selection", int(_command().call(&"selection_count")) == count)
+	_check("no modal is left", not _gate().modal_open())
+	_check("the focus back on Open", _focus() == _party().call(&"open_button"), str(_focus()))
+
+
+func _sheet_click_away_folds() -> void:
+	"""A real left click away folds the sheet and does nothing else (the selection is kept); a right click away folds
+	it and orders nobody."""
+	var open: Button = _party().call(&"open_button")
+	var count: int = int(_command().call(&"selection_count"))
+	_click(_centre(open))
+	_click(_world_point())
+	_check("a click away folds it", not bool(_sheet().call(&"is_open")))
+	_check("and does nothing else: the selection kept", int(_command().call(&"selection_count")) == count)
+	_click(_centre(open))
+	_click(_world_point(), MOUSE_BUTTON_RIGHT)
+	_check("a right click away folds it too", not bool(_sheet().call(&"is_open")))
+	_check("and orders nobody", int(_brain(0).get("order")) == _order_before, "order %d" % int(_brain(0).get("order")))
+
+
+func _sheet_by_keyboard() -> void:
+	"""F7 keeps its order (right column, then the party panel); Tab reaches Open; Enter opens the sheet with the drawn
+	focus inside (the next step goes on)."""
+	var open: Button = _party().call(&"open_button")
+	_key(KEY_F7)
+	_key(KEY_F7)
+	_check("F7 twice: the party panel", _gate().region_of(_focus()) == 1, str(_focus()))
+	for k: int in _gate().region_controls(1).size():
+		if _focus() == open:
+			break
+		_key(KEY_TAB)
+	_check("Tab reaches Open", _focus() == open, str(_focus()))
+	_key(KEY_ENTER)
+	_check("Enter opens the sheet", bool(_sheet().call(&"is_open")))
+	_check("the keyboard's focus inside it, drawn", _gate().in_top_modal(_focus()) and _focus().has_focus(true))
+	_steps.push_front(_sheet_keyboard_focus_in_view)
+
+
+func _sheet_keyboard_focus_in_view() -> void:
+	"""(A frame after Enter opened the sheet.) The drawn focus is in view: the inspector keeps the scroll that revealed
+	it; then Esc folds the sheet and Open has its drawn focus back, and F7 goes on to the Map layer picker."""
+	var open: Button = _party().call(&"open_button")
+	_check("the keyboard's focus in view", _fraction(_focus()) >= 0.99, str(_focus()))
+	_key(KEY_ESCAPE)
+	_check("Esc folds it and Open has the drawn focus back", not bool(_sheet().call(&"is_open")) and _focus() == open
+		and open.has_focus(true))
+	_key(KEY_F7)
+	_check("F7 goes on to the Map layer picker", _focus() != null
+		and _village.get("_lens_picker").is_ancestor_of(_focus()), str(_focus()))
+	_key(KEY_ESCAPE)
+
+
+func _sheet_scale_back() -> void:
+	"""The interface scale as it was before the sheet's steps."""
+	if DemoUiScale.percent != _sheet_scale_was:
+		_village.call(&"set_ui_scale", _sheet_scale_was)
 
 
 func _a_water_action_without_scrolling() -> void:

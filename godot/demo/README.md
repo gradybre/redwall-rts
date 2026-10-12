@@ -956,8 +956,9 @@ back to:" with a row per unfinished job, its skills, and **what it can be ordere
 marked × with the rule: anybeast who fits a bore digs (moles start skilled), the otters and the badger are too
 big for a bore until it is widened, only otters dive, the badger wades only and breaks rock, the beaver gnaws.
 For a group, a row for **every** member (no "+ n more"): click one to select it alone and centre the camera
-on it. Where the column is too short for the header, summary and actions and a useful inspector (125 % at
-1280x720), the summary and actions go to the top of the inspector, reached by scrolling. Its **notice line is each resident's own**: a prompt or answer is
+on it. Where the column is too short for the header, summary and actions and a useful inspector (1280x720, where the
+level bar takes the column's foot), the panel takes its **compact form** and the inspector moves into a sheet opened
+beside the column (see The compact party panel and its sheet). Its **notice line is each resident's own**: a prompt or answer is
 kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
 called away from a job it had not finished (a tunnel job, a dig, a farm or a woods job, a spoil heap)
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
@@ -965,6 +966,27 @@ called away from a job it had not finished (a tunnel job, a dig, a farm or a woo
 finished dig takes its saved job back up once the
 digger has stepped clear of the hole (at night it keeps it for the morning). Orders move the demo cast only,
 never the simulation.
+
+### The compact party panel and its sheet (decision 1891; 1871 P-B8)
+
+Brendan's ruling of 2026-10-12, P-B8: "Compact panel, next". Since slice B the level bar stands above the minimap, so
+at 1280x720 the "Demo party" column is 136 logical px (76 at 125 %): too short for the header, summary, actions and an
+inspector. There the panel (`control/demo_party_panel.gd`) takes a **compact form**:
+
+- the frame wears the thin carving and fills the column's whole carved extent, ending 8 px above the level bar
+  (UX-BUILD-T01);
+- it shows the title, the summary line and the actions: **Release (R)** and **Follow (End)** always in view
+  (decision 0801), **Select idle (n)** (decision 0791) and **Open · n selected**, which carries the count;
+- where even that is short (125 % at 1280x720) the title goes first, then the summary; the actions stay.
+
+**Open** lays the **party sheet** (`control/party_sheet.gd`) over the world beside the column, from the column's top to
+the level bar's foot: a head (the title, the count and ×), the summary on up to two lines, and the inspector itself --
+the notice, the group section, every member row, one resident's lines, person and orders. It is a modal of the demo's
+input gate: a light scrim, world keys wait (B, V, Space, Page Up/Down...), Tab and Shift+Tab stay inside it with × last.
+**Esc**, **×** or **a click anywhere away** folds it; the click does nothing else (it neither selects nor orders), and
+the focus goes back to Open. Picking a member row keeps the sheet open on that resident; **Send to…** folds it so the
+next click reaches the world. At 1920x1080 (100 % and 125 %) the column is tall enough and the panel is as before. No
+key was added. PROPOSALS P-PC1 to P-PC5 in decision 1891.
 
 **Selecting a group** (decision 0791, `control/group_select.gd`). **Select idle (n)**, under the party panel's actions
 and shown with or without a selection, selects every resident the Work screen calls *available* (no key: UI §5 has

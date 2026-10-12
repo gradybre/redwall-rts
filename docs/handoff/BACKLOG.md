@@ -74,7 +74,7 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [MEASURE-BAL](#measure-bal) | Rerun the balance year matrix | tools | 1511–1520 |
 | [MEASURE-SOAK](#measure-soak) | A windowed soak and a 25-resident soak | tools | 1521–1530 |
 | [FOLLOW-UPS](#follow-ups) | Follow-up fixes not finished by `fix/follow-ups` | demo + tools | 1531–1540 |
-| [PARTY-COMPACT](#party-compact) | A compact Demo party panel with an "open" overlay (1871 P-B8) | demo | unnumbered |
+| [PARTY-COMPACT](#party-compact) | **Done (decision 1891, 2026-10-12)**: a compact Demo party panel with an "open" overlay (1871 P-B8) | demo | 1891–1894 |
 | [TEST-SPEED](#test-speed) | **Done** ([1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md)): split the slowest suites and run local shards in parallel | tools + tests | 1895–1899 |
 | [MEAL-CALLAWAY](#meal-callaway) | Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | unnumbered |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
@@ -1306,6 +1306,8 @@ decision records on batch 8; "built" means a record says so.
 <a id="party-compact"></a>
 ## PARTY-COMPACT — A compact Demo party panel with an "open" overlay
 
+- **Status: done** on `feat/party-compact` (decision 1891, 2026-10-12): the compact form and the party sheet, with the
+  three relaxed checks restored. Its PROPOSALS (P-PC1 to P-PC5) wait for Brendan's ruling.
 - **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: P-B8 **"Compact panel, next"** -- a compact party
   panel with an "open" overlay, as the follow-up right after slice B merges (decision 1871, "Brendan's rulings";
   RULINGS.md 2026-10-12).
@@ -1320,7 +1322,7 @@ decision records on batch 8; "built" means a record says so.
 - **Files:** `godot/demo/control/demo_party_panel.gd`, `demo_command.gd` (the column's layout), the live harnesses
   `test/live/demo_layout_live.gd` and `demo_input_live.gd`, `test/test_demo_command.gd`. Conflicts: any packet laying
   out the left column.
-- **Decisions:** unnumbered; take the next free number from the range book when the lane starts.
+- **Decisions:** 1891–1894 (the coordinator's; 1891 used).
 - **Acceptance:** restore the checks slice B relaxed (1871 E12): `demo_layout_live.gd`'s "at 100 % the actions are
   always in view" at 720 rows too, and its scroll-reveal checks with no `LIVE-SKIP` at 125 %; `test_demo_command.gd`'s
   room check back to 250 px at 720 rows. Every member row reachable; UX-BUILD-T01 (no overlap with the level bar);

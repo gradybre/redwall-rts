@@ -14,6 +14,7 @@ extends SceneTree
 ## check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const Rules := preload("res://demo/infirmary/care_rules.gd")
+const SheetLive := preload("res://test/live/party_sheet_live.gd")
 const Tasks := preload("res://demo/infirmary/care_tasks.gd")
 const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const Injury := preload("res://scripts/core/injury.gd")
@@ -157,7 +158,10 @@ func _fraction(control: Control) -> float:
 
 
 func _reveal(control: Control) -> void:
-	"""Scroll `control`'s scroll to it (the way focus does), and wait for it to move."""
+	"""Scroll `control`'s scroll to it (the way focus does) -- in the party sheet, opened first where it is folded
+	(decision 1891) -- and wait for it to move."""
+	if SheetLive.open_for(control, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	var at: Node = control.get_parent()
 	while at != null and not at is ScrollContainer:
 		at = at.get_parent()
@@ -280,6 +284,8 @@ func _the_card(fisher: int) -> void:
 	_command().call(&"_refresh_panel")
 	await _frames(SETTLE_FRAMES)
 	var panel: CanvasLayer = _command().call(&"panel")
+	if SheetLive.open_for(panel.call(&"inspector"), panel):
+		await _frames(SETTLE_FRAMES)
 	var line: Label = _label_with(panel, "Hurt: a bite (minor)")
 	_check("the card says it", line != null, "" if line == null else line.text)
 	if line != null:
@@ -288,6 +294,7 @@ func _the_card(fisher: int) -> void:
 	_floors("the card", panel)
 	_look_at(_brain(fisher).get("position"), 14.0)
 	await _capture("care_hurt_card")
+	panel.call(&"fold_sheet")
 
 
 func _treated() -> void:
@@ -453,6 +460,10 @@ func _patient_inside(building: Node, at: Vector2) -> void:
 	_check("it has a bed there", bool(building.get("project").call(&"is_admitted", who)))
 	_look_at(at, 16.0)
 	await _select(who)
-	var line: Label = _label_with(_command().call(&"panel"), "Resting in the infirmary")
+	var party: CanvasLayer = _command().call(&"panel")
+	if SheetLive.open_for(party.call(&"inspector"), party):
+		await _frames(SETTLE_FRAMES)
+	var line: Label = _label_with(party, "Resting in the infirmary")
 	_check("its card says so", line != null)
+	party.call(&"fold_sheet")
 	await _capture("care_infirmary_patient")

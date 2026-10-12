@@ -1858,12 +1858,21 @@ func _build_input() -> void:
 	_gate.set_modal_close(_fuel_panel, _fuel_panel.close_button())
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
-	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
+	_left_column(_command as DemoCommandScript)
 	_gate.add_region("map layers", [_lens_picker] as Array[Node])
 	_guide.attach(_menu, _lab, _gate, _shell())
 	_attach_chronicle()
 	_gate.add_region("offer card", [_people_card] as Array[Node])
 	_sound.watch_buttons.call_deferred(get_tree().root)
+
+
+func _left_column(command: DemoCommandScript) -> void:
+	"""The left column's F7 region (the party panel), and its sheet a modal of the gate (decision 1891): world keys wait
+	behind it, Tab stays inside it with Close last, and Esc folds it."""
+	var party := command.panel()
+	_gate.add_region("left column", [party] as Array[Node])
+	_gate.watch_modal(party.sheet(), party.sheet().frame(), party.fold_sheet)
+	_gate.set_modal_close(party.sheet(), party.sheet().close_button())
 
 
 func _workspace_rect(shell: UiShell) -> Rect2:

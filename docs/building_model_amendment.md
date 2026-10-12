@@ -38,7 +38,7 @@ and cancel/removal refunds follow the GDD.
 | BUILD-REQ-009 | When a surface room is drafted, the system shall apply REQ-SET-122's terrain rules (in bounds, no overlap with rooms, items, resource nodes or water, slope ≤ 8°, height spread ≤ 0.5 m) to its painted cells, and shall require a walk path from the room to a door item on the outside boundary of its roofed room group (§4) before the room is valid. | ADOPTED (REQ-SET-122 “accessible door” restated; GDD §5.9 “connected to exterior door”) |
 | BUILD-REQ-010 | When an item is placed, the system shall require its footprint cells to lie inside one room of a type the item allows (outdoor items: unpainted surface cells), to overlap no other item, to keep at least one of its access tiles free and reachable, and to satisfy its wall-behind rule where §6 declares one. | ADOPTED (DEC-061 Q7; GDD §5.9 access) |
 | BUILD-REQ-011 | While an item ghost is shown, the system shall draw its footprint, its access cells and its wall-behind requirement, and shall state its validity as ✓ / ! / X with a reason in words. | ADOPTED (DEC-061 Q5, Q7; MOVE-REQ-018) |
-| BUILD-REQ-012 | When a batch containing underground room cells is confirmed, the system shall create excavation for every painted cell and dig the cells one by one outward from the access face, in breadth-first order from the cells touching finished space, ties by cell index. | ADOPTED (DEC-061 Q1–Q4; ECON-001–005) |
+| BUILD-REQ-012 | When a batch containing underground room cells is confirmed, the system shall create excavation for every painted cell and dig the cells one by one outward from the access face, in breadth-first priority order from the cells touching finished space, ties by cell index (parallel faces as ECON-001 allows, up to 4 builders). | ADOPTED (DEC-061 Q1–Q4; ECON-001–005) |
 | BUILD-REQ-013 | While a drafted underground cell has no route to finished space or to a built connector on its level, the system shall mark it “! No way in” and refuse to confirm it. | ADOPTED; drafting against an unbuilt connector in the same batch is OPEN-07 |
 | BUILD-REQ-014 | The system shall represent tunnels as rooms of type `CORRIDOR` (shown as “Passage”) at least 2 cells wide, and shall offer no polyline tunnel tool. | ADOPTED (DEC-061 Q4) |
 | BUILD-REQ-015 | When the player places a surface entrance item, the system shall show its ✓ / ! / X ghost and a card stating “Connects to Underground level 1”; when the entrance is built, the system shall make level 1 paintable from it. | ADOPTED (DEC-061 Q5) |
@@ -83,10 +83,11 @@ GDD §5.9's room validity, restated exactly (1 tile = 4 cells). Furniture counts
 | New room types (§5.2) | — | Large enough for their required key item's footprint and one free access tile; no further area rule |
 
 **Heat.** A fuelled hearth heats every valid room connected to its room by open boundaries or interior doors within
-one **roofed room group** (rooms sharing generated walls, not joined through the outside), up to 120 tiles = **480
+one **roofed room group** (rooms whose painted cells are contiguous under one generated roof, not joined through the outside), up to 120 tiles = **480
 cells** per hearth. “Within that building” in GDD §5.9 now means “within that roofed room group”; underground, a
 group is the set of rooms joined without passing a connector item. Allocation order (hearth ID, then room ID) and the
-whole-room rule are unchanged.
+whole-room rule are unchanged. REQ-SET-134's “kitchen door” is read as any walk-path entry cell of the KITCHEN
+room, so a painted kitchen with open boundaries keeps the 8 m hauling bonus.
 
 **Starter interior.** GDD §5.9's 10 × 8-tile layout is unchanged in meaning: each character becomes a 2 × 2 cell
 block (20 × 16 cells), the partition at tile x4/x5 lies on cell edge x9/x10, the door on tile row 4 spans cell rows
@@ -107,7 +108,7 @@ building's service. The item bill and room-cell bill follow §7.
 | 1 | Refuge/community hall (`hall`) | Room group | DORMITORY + KITCHEN + COMMON + PANTRY, as the starter layout | Beds, bench, hearth, seats, shelves (furniture §6) | Starter on surface |
 | 2 | Residence (`residence`) | Room | DORMITORY or PRIVATE_ROOM | Beds (furniture); a door on the group's outside boundary on the surface | Any |
 | 3 | Infirmary (`infirmary`) | Room | INFIRMARY | Patient bed(s), shelf, hearth for heat (or heat from a hearth in its group) | Any |
-| 4 | Kitchen (`kitchen`) | Room | KITCHEN | 2 kitchen benches + 1 hearth (the black box's 2 cooking slots) | Any |
+| 4 | Kitchen (`kitchen`) | Room | KITCHEN | Validity is §4's ≥ 1 bench + ≥ 1 hearth; the old building's 2 cooking slots equal 2 benches + 1 hearth | Any |
 | 5 | Open stockpile (`open_stockpile`) | Outdoor item | — | 8 × 8 cells, 400000 g open storage | Surface |
 | 6 | Covered store (`covered_store`) | Room | STORE (new) | 1 `store_bay` | Any |
 | 7 | Cellar (`cellar`) | Room | CELLAR (new) | 1 `cellar_bay` | Any |
@@ -136,7 +137,7 @@ building's service. The item bill and room-cell bill follow §7.
 | 30 | Memorial garden (`memorial_garden`) | Outdoor item | — | 8 × 8 cells | Surface |
 
 Totals: 13 buildings become rooms or room groups (rows 1–4, 6, 7, 10, 11, 13, 16, 20, 22, 23); 17 stay outdoor
-items. DEC-061 names well, fence, paths, weir and apiary as outdoor; the other twelve outdoor classifications
+items. DEC-061 names well, fence, paths, weir and apiary as outdoor; the other eleven outdoor classifications
 (stockpile, workbench shelter, dryer, fisher shelter, composter, nursery, saltpan, lookout, stone wall, gate, memorial
 garden) and the “any level” column are PROPOSED (OPEN-03).
 
@@ -166,20 +167,24 @@ wall-behind rules are **OPEN-02** (no geometry exists for them). `Room.furniture
 
 ## 6. Furniture: footprint, access tiles, wall-behind
 
-Footprints, bills, work and functions stay exactly GDD §5.9 / balance §4.3. **Front** is the local −Z side of the
-item (rotation 0), consistent with −Z forward. An **access tile** is a 2 × 2-cell block touching the item's front
-edge — the exact conversion of GDD §5.9's “adjacent walk tile”. A piece is usable when at least one of its access
-tiles is walkable, free of other items and reachable from the room's entrance (GDD: “at least one connected walk path
-must reach every usable furniture access tile”).
+Footprints, bills, work and functions stay exactly GDD §5.9 / balance §4.3. An **access tile** is a 2 × 2-cell
+block (one GDD tile) sharing an edge with the item's footprint — the exact conversion of GDD §5.9's “adjacent walk
+tile”. Access is **rotation-independent**: the candidate access tiles are every tile side-adjacent to the footprint
+(for the 2 × 1-tile bench and hearth, the tiles along either long side), and a piece is usable when at least one of
+them is walkable, free of other items and reachable from the room's entrance (GDD: “at least one connected walk path
+must reach every usable furniture access tile”). **Wall-behind** means at least one footprint edge touches a
+generated wall or earth. Rotation (0–3) stays a presentation and footprint-orientation choice and never removes an
+access candidate; `starter_structures.gd` writes rotation 0 for every starter piece and its multi-sided access lists
+satisfy this rule.
 
-| Furniture key | Footprint (cells) | Access tiles (local cells, rotation 0) | Wall-behind | Basis |
+| Furniture key | Footprint (cells) | Access tiles | Wall-behind | Basis |
 |---|---|---|---|---|
-| `bed` | 2 × 2 | 1 tile: x 0–1, z −2…−1 | No | GDD “adjacent walk tile”; starter beds on tile rows 2 and 4 stand free |
-| `patient_bed` | 2 × 2 | 1 tile: x 0–1, z −2…−1 | No (PROPOSED, OPEN-05) | Same function as `bed`; no instance in the GDD |
-| `seat` | 2 × 2 | 1 tile: x 0–1, z −2…−1 | No | GDD “adjacent walk tile above or below”; starter seats stand free |
-| `kitchen_bench` | 4 × 2 | 2 tiles: x 0–1 and x 2–3, z −2…−1 (≥ 1 usable) | No (PROPOSED, OPEN-05) | GDD 2 × 1 tiles; starter bench is against a wall, which is permitted, not required |
-| `hearth` | 4 × 2 | 2 tiles: x 0–1 and x 2–3, z −2…−1 (≥ 1 usable) | Yes (PROPOSED, OPEN-05) | Starter hearth is against the north wall; its second front tile holds the kitchen shelf, so “≥ 1 usable” is required |
-| `shelf` | 2 × 2 | 1 tile: x 0–1, z −2…−1 | Yes (PROPOSED, OPEN-05) | All five starter shelves have a wall behind and are reached from the front |
+| `bed` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | No | GDD “adjacent walk tile”; starter beds on tile rows 2 and 4 stand free |
+| `patient_bed` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | No (PROPOSED, OPEN-05) | Same function as `bed`; no instance in the GDD |
+| `seat` | 2 × 2 | Tile above or below (along the item's z axis), ≥ 1 usable | No | GDD “adjacent walk tile above or below”; starter seats stand free |
+| `kitchen_bench` | 4 × 2 | The 2 tiles along either long side, ≥ 1 usable | No (PROPOSED, OPEN-05) | GDD 2 × 1 tiles; starter bench touches the north wall, which is permitted, not required |
+| `hearth` | 4 × 2 | The 2 tiles along either long side, ≥ 1 usable | Yes (PROPOSED, OPEN-05) | Starter hearth touches the north wall; of its south tiles, (8,1) is walk and (9,1) holds the kitchen shelf |
+| `shelf` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | Yes (PROPOSED, OPEN-05) | All five starter shelves touch an outside wall and have a walk tile beside them |
 | `decoration` | 2 × 2 | None (no user and no service work) | No | GDD user slots 0 |
 | `interior_partition` | 2 cell edges (one GDD tile edge) | None | n/a | GDD “Tile edge”; also a 1-edge half piece, §7.4 |
 | `interior_door` | 2 cell edges | The 2 cells on each side touching the door edge must be walk cells | n/a | GDD “passable boundary”; also used as a surface room's exterior door (BUILD-REQ-009) |
@@ -255,9 +260,10 @@ costs exactly half the GDD tile-edge partition: wood 1000 / 2 = **500 milli-U**,
 
 ### 7.5 Removal and tier-2 upgrades
 
-- **Removing surface cells** (Clear ground) is demolition of that part of the room: REQ-SET-127's evacuation, work
-  of declared WU × 0.25 and 50% return, computed on the removed cells' share of the shell with `floor_div` so a return
-  never exceeds half of what was paid. Items inside follow DEMO-CONTAIN-R01's 50%-of-own-materials rule.
+- **Removing surface cells** (Clear ground; PROPOSED with OPEN-01) is demolition of that part of the room: REQ-SET-127's
+  evacuation, work of declared WU × 0.25 and 50% return, computed with `floor_div` on the removed cells' share of the
+  bill **actually paid and recorded** for that room (BUILD-C4-R01: never repriced), so a return never exceeds half of
+  what was paid. Items inside follow DEMO-CONTAIN-R01's 50%-of-own-materials rule.
 - **Removing underground cells** (Earth) is ECON-005 backfill: earth 2000 milli-U per open quantum, 4.25 WU and
   wood 125 / stone 125 salvage per supported quantum.
 - **Tier-2 upgrades** (PROPOSED, OPEN-08): the covered-store and workshop packages attach unchanged to `store_bay`
@@ -285,7 +291,7 @@ costs exactly half the GDD tile-edge partition: wood 1000 / 2 = **500 milli-U**,
 
 | Player-facing item | `room_connectors.gd` family | Where placed | Geometry status |
 |---|---|---|---|
-| Burrow mouth (ramp) | `RAMP` (2) | Surface cells (entrance) or a Passage | Demo slope 1:2.5 (decision 0212) is a candidate: a 5120 u rise needs a 12800 u run. Not qualified. OPEN-02 |
+| Burrow mouth (ramp) | `RAMP` (2) | Surface cells (entrance) or a Passage | Demo slope 1:2.5 (decision 0212) is a candidate: a 5120 u rise needs a run of at least 12800 u, plus 0212's end fillets. Not qualified. OPEN-02 |
 | Stair-head, earth/timber steps | `EARTH_TIMBER` (0) | Surface or Passage | The only qualified descent is ADR 1209's 128 u rise per 512 u run; a full 5120 u level needs 40 treads over 20480 u. Shorter stairs (demo 4:5, decision 0212) are candidates. OPEN-10 (first entrance), OPEN-02 |
 | Stone stairs | `STONE` (1) | Surface or Passage | OPEN-02 |
 | Spiral stair | `SPIRAL` (3) | Surface or Passage | OPEN-02 |
@@ -331,5 +337,5 @@ anything. Cancelling one confirmed project never cancels the rest of its batch.
   route inspection, cross-layer picking and canopy/water layers remain open.
 - **MOVE-G04, MOVE-G05**: open.
 
-The OPEN list (OPEN-01 … OPEN-10) with options and recommendations is in
+The OPEN list (OPEN-01 … OPEN-11) with options and recommendations is in
 [decision 1851](decisions/1851-painted-room-contracts.md#open-list-for-brendan).

@@ -633,7 +633,7 @@ Fuel-days=`available_wood_equivalent/daily_heating_demand`. One wood U heats one
 
 Footprints are 2 m tiles, rotation in 90° steps. Materials are U; WU is total shared construction work, not per worker. Maximum 4 builders/project unless listed. Indoor kit themes change geometry only.
 
-**Amended by [SET-BUILD-001](building_model_amendment.md) (DEC-061).** Rooms, items and outdoor items now share one 1 m cell grid (a tile below is 2 × 2 cells). The building table below remains the source of each bill, but its 13 roofed buildings become painted room types with a key item and its 17 other rows become outdoor items (SET-BUILD-001 §5.1). Furniture footprints, access tiles and wall-behind rules are in SET-BUILD-001 §6; room validity in cells in §4; the heat rule's “within that building” means “within that roofed room group”. REQ-SET-121, -122, -129 and -136 are read through SET-BUILD-001 §2 and §7; REQ-SET-123–128 are unchanged.
+**Amended by [SET-BUILD-001](building_model_amendment.md) (DEC-061).** Rooms, items and outdoor items now share one 1 m cell grid (a tile below is 2 × 2 cells). The building table below remains the source of each bill, but its roofed buildings become painted room types with a key item and the rest stay outdoor items (SET-BUILD-001 §5.1; the proposed 13/17 split awaits OPEN-03). Furniture footprints, access tiles and wall-behind rules are in SET-BUILD-001 §6; room validity in cells in §4; the heat rule's “within that building” means “within that roofed room group”. REQ-SET-121, -122, -129 and -136 are read through SET-BUILD-001 §2 and §7; REQ-SET-123–128 are unchanged.
 
 | Building | Footprint | Materials | WU | Operational slots | Managed interior / capacity | Unlock |
 |---|---|---|---:|---:|---|---|

@@ -44,13 +44,17 @@ Each choice below is this lane's, made so that later code slices can build witho
 - **E7 — Level planes.** Underground level k's floor is quantum y = −5k from the initial level pack's datum; the pack
   already holds `level_spacing_u` 5120, clear height 4096, roof band 1024 and footing 1024, and level 4's footing
   (quantum −21) fits its −32 minimum. The terrain-cover check over level 1 stays with the geometry owner.
-- **E8 — Access tiles are the exact conversion of the GDD's “adjacent walk tile”**: a 2 × 2-cell block touching the
-  item's front (−Z) edge, with “at least one access tile usable” for two-tile-wide items. Wall-behind is authored only
-  where the GDD's starter layout is consistent (bed and seat: no, since starter beds and seats stand free); other
-  wall-behind values are PROPOSED (OPEN-05). **Starter check:** every piece of the GDD 10 × 8 starter interior was
-  checked against these rules: beds on tile rows 0, 2 and 4 reach walk rows 1, 3 or 5; seats on rows 2, 4 and 5 reach
-  rows 3, 3 and 6; the bench reaches (6,1)–(7,1); the hearth reaches (8,1) while (9,1) holds the kitchen shelf, which
-  is why “at least one” is required; all five shelves have a wall behind and a walk tile in front. Every room still
+- **E8 — Access tiles are the exact conversion of the GDD's “adjacent walk tile”**: any 2 × 2-cell block sharing
+  an edge with the footprint (seats: above or below; bench and hearth: along either long side), with “at least one
+  usable”. Access is deliberately **rotation-independent**: the first draft used a single −Z front tile, and the
+  review found that `starter_structures.gd` writes rotation 0 for all 31 starter pieces (and refuses any other), so a
+  front-only rule would have invalidated the row-0 beds, the bench, the hearth, the row-5 seats, seat (9,2) and the
+  kitchen shelf. Wall-behind means “a footprint edge touches a generated wall or earth”, also rotation-independent.
+  It is authored only where the starter layout is consistent (bed and seat: no, since starter beds and seats stand
+  free); other wall-behind values are PROPOSED (OPEN-05). **Starter check:** beds on tile rows 0, 2 and 4 reach walk
+  rows 1, 3 or 5; seats on rows 2, 4 and 5 reach rows 3, 3 and 6 (seat (9,2) by (9,3)); the bench reaches
+  (6,1)–(7,1); the hearth reaches (8,1) while (9,1) holds the kitchen shelf, which is why “at least one” is required;
+  the kitchen shelf reaches (8,1); all five shelves touch an outside wall. Every room still
   meets its minimum (dormitory 40 tiles for 12 beds, kitchen 10, common 25 with 12 seats, pantry 5).
 - **E9 — Repainting another type over a room is refused**, not converted. DEC-061 Q8 allows growing and shrinking
   but not changing type in place, and ADR 1081 says a Kitchen cannot become a Bedroom by clearing its contents.
@@ -59,7 +63,8 @@ Each choice below is this lane's, made so that later code slices can build witho
   edge; it costs exactly half the GDD tile-edge partition (500 milli-U wood, 4000 milli-WU), both exact.
 - **E11 — Doors.** A surface room group needs a walk path to a door item on its outside boundary (REQ-SET-122's
   “accessible door”, GDD's “connected to exterior door”). The door is the existing `interior_door` row; there is no
-  separate exterior door catalog entry.
+  separate exterior door catalog entry. This adds one door bill (wood 2000 milli-U, 12000 milli-WU) to every
+  surface room group; it follows from REQ-SET-122 rather than a new price.
 - **E12 — PageUp/PageDown change level, so keyboard zoom moves to = / −** (PROPOSED, OPEN-09). The GDD UI bound
   PageUp/PageDown to zoom, while the demo, the study and the brief use them for levels; = and − are unbound in
   `godot/project.godot` and the demo. Alt+PageUp/PageDown pitch is a different chord and stays.
@@ -75,13 +80,17 @@ Each choice below is this lane's, made so that later code slices can build witho
   oracle asserts it. Both are authoring records; DEC-061 supersedes them for active content, the same way BAL-UG-001
   left the manifest's work values in place for DEC-059. The documents that read them now carry a pointer.
 - **E16 — Memory not recomputed.** No column width or capacity is chosen for the 1 m grid, so no bytes are written
-  into the ledger; ARCH-BUILD-001 states the exact cell counts (327680 cells, 1048576 underground quanta) and lists
+  into the ledger; ARCH-BUILD-001 states the exact counts (327680 cells; 1048576 room-cell quanta underground; 3145728 quanta in the
+  whole pack domain, which bounds connectors) and lists
   the slice-B obligations.
 
 ## Consequences
 
-- Slices B–F can start from SET-BUILD-001 without a ruling; slice G waits for OPEN-01, -03, -04 and -08; slice D's
-  connectors wait for OPEN-02 and OPEN-10 geometry.
+- Slices B–F can **start** from SET-BUILD-001 without a ruling, but each **finishes** only after the OPEN items the
+  study's dependency table assigns to it (B: OPEN-09; C: OPEN-07; D: OPEN-02, OPEN-10; E: OPEN-05; F: OPEN-06).
+  Slice G waits for OPEN-01, -03, -04 and -08.
+- DEC-031's “placed burrows” are read, under DEC-061, as painted rooms opened from a placed entrance (the H/C
+  templates are retired). That reading of a `USER_CONFIRMED` decision is not this lane's to make silently: OPEN-11.
 - The demo's polyline tunnel tool, H/C templates and 4 m second level are superseded by contract; they stay playable
   until the slices replace them.
 - `room_catalog.gd`'s refusal to author access offsets is overruled by DEC-061 Q7 for slice E; its height and
@@ -96,8 +105,10 @@ Each needs a ruling before the slice named. Recommendation in bold.
 1. **OPEN-01 — Who pays on the surface: the room's cells or its machine?** (slice G)
    (a) Cells pay the whole old building bill, spread over its area; machines free.
    **(b) Machines carry their old building's bill; every surface room's cells pay one wall-and-roof rate taken from
-   the residence (a 2 × 2 room: 1¼ logs, ½ block of stone, a little cloth, 25 work-minutes).** Surface buildings cost
-   a little more than today; balance probes are rerun.
+   the residence (a 2 × 2 room: 1¼ logs, ½ block of stone, a little cloth, 25 work-minutes).** Surface buildings cost more
+   than today: painted at the old footprint size (144 cells), a covered store goes from wood 35, stone 10,
+   480 work-minutes to wood 80, stone 28, cloth 6, 1380 work-minutes, and every surface room now needs some cloth.
+   A room painted tightly around its machine costs less. Balance probes are rerun.
    (c) Split each bill by a fixed fraction (needs a number from you).
    (a) would make an underground mill's millstone free, because underground rooms pay digging, not walls.
 2. **OPEN-02 — Shapes for the new machines and the other stair families.** (slices D, G) The nine key items
@@ -106,7 +117,7 @@ Each needs a ruling before the slice named. Recommendation in bold.
    **(a) Author each from the asset dimensions in its slice, starting with 4 × 4 cells and one front access pair as a
    placeholder for review**; (b) give every machine the old building's footprint (much larger rooms).
 3. **OPEN-03 — Which old buildings stay outside, and which levels rooms may use.** (slice G) **(a) As tabled in
-   SET-BUILD-001 §5.1: twelve open-air or open-sided structures stay outdoor items; boathouse, forester lodge and
+   SET-BUILD-001 §5.1: eleven more structures (open-air, open-sided or boundary pieces) stay outdoor items; boathouse, forester lodge and
    quarry shed rooms are surface-only; other rooms any level**; (b) make the fisher shelter, workbench shelter and
    nursery rooms too.
 4. **OPEN-04 — Services that belonged to a building with no machine.** (slice G) **(a) The hall's two Keeper places
@@ -130,6 +141,11 @@ Each needs a ruling before the slice named. Recommendation in bold.
     earth/timber flight for a full level (new motion work) and keep the 20 m flight as the fallback**; (b) accept the
     20 m flight as the entrance; (c) make the burrow-mouth ramp (1:2.5, 12.8 m) the first entrance once qualified.
 
+11. **OPEN-11 — What DEC-031's “placed burrows” become.** (slice D) DEC-031 confirmed that placed burrows, planned
+    tunnels and free digging work together. DEC-061 retires the burrow templates. **(a) A “placed burrow” is now a
+    painted room reached from a placed entrance, with no separate template**; (b) keep the burrow home and root
+    cellar as one-click room presets that paint a fixed shape into the same batch.
+
 ## Gates
 
 Run in this worktree after the edits (summary lines in the lane report): `decision_numbers.py`,
@@ -139,6 +155,25 @@ Run in this worktree after the edits (summary lines in the lane report): `decisi
 `underground_memory_budget.py --check`, the three cycle handoff validators, the movement profile and envelope tests,
 `validate_save_registry_handoff.py --source-root .` and `generate_canonical_state_table.py --check`. No GDScript
 changed, so the Godot suite and analyzer were not run.
+
+## Review
+
+An independent `code-reviewer` read the first commit. It confirmed every link, anchor and ID, the one-to-one mapping
+of 30 buildings and 9 furniture types, and all of the arithmetic. It raised 2 HIGH, 8 MEDIUM and 8 LOW findings, all
+fixed in the second commit:
+- HIGH: the front-only access rule failed the starter at rotation 0 (now rotation-independent, E8).
+- HIGH: the connector card overlapped the narrow alert zone (it now sits inside the panel in NARROW).
+- MEDIUM: PROPOSED items were stated as settled in the GDD, balance and UI (now tagged).
+- MEDIUM: the kitchen's 2-bench wording was ambiguous.
+- MEDIUM: “twelve” outdoor items should be eleven.
+- MEDIUM: the quanta bound covered room cells only (connectors now bounded by the pack domain).
+- MEDIUM: painted stores had no container owner (now slice-B obligation 4).
+- MEDIUM: removal could not be reached by mouse in build mode (Remove tool card added).
+- MEDIUM: DEC-031 was reinterpreted silently (now OPEN-11).
+- MEDIUM: OPEN-01's cost increase was understated (worked totals added).
+- LOW: removal now uses the paid ledger; digging uses priority order with parallel faces; the ramp run is stated as a
+  minimum; the heat group is defined by one roof; “start, not finish” is explicit for slices B–F; Passage is offered
+  on every level; REQ-SET-134 is re-read for kitchens; the door bill is noted.
 
 ## Source
 

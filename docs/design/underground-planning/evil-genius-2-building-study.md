@@ -213,7 +213,7 @@ job queues and show who is assigned on the blueprint.
 | A | — | DEC-061 (done) |
 | B | A | Slice-B storage obligations (ARCH-BUILD-001: cell grid, Room/item rows, ledger bytes); PageUp/PageDown rebinding (OPEN-09); `ui_registry.gd` rows |
 | C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials; OPEN-07 (drafting against an unbuilt connector) |
-| D | B, C | Connector geometry and fixture recipes per family (OPEN-02; only the earth/timber stair is qualified); `begin_underground_entry` trigger; OPEN-10 (first-entrance cost) |
+| D | B, C | Connector geometry and fixture recipes per family (OPEN-02; only the earth/timber stair is qualified); `begin_underground_entry` trigger; OPEN-10 (first-entrance geometry); OPEN-11 (DEC-031 placed burrows) |
 | E | B, C | Access tiles and wall-behind (SET-BUILD-001 §6; OPEN-05); install crews (ADR 1081) |
 | F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); OPEN-06 (joining rooms) |
 | G | B, E, F | OPEN-01 (surface costs), OPEN-03 (outdoor classification), OPEN-04 (orphan services), OPEN-08 (upgrades); catalog fingerprint for RoomType 8–16 and items 9–17; BAL §8 reruns |

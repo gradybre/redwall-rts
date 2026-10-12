@@ -612,7 +612,7 @@ items and outdoor items on a 1 m cell grid. This section states what that forces
 
 | Cost line | Rule | Status |
 |---|---|---|
-| Outdoor item (17 §4.1 rows: `open_stockpile`, `well`, `workbench`, `dryer`, `fisher_shelter`, `weir`, `composter`, `apiary`, `nursery`, `saltpan`, `lookout`, `fence`, `stone_wall`, `gate`, `dirt_path`, `paved_path`, `memorial_garden`) | Its §4.1/§4.2 row unchanged; footprint × 2 per side in cells | [GDD §5.9] |
+| Outdoor item (17 §4.1 rows: `open_stockpile`, `well`, `workbench`, `dryer`, `fisher_shelter`, `weir`, `composter`, `apiary`, `nursery`, `saltpan`, `lookout`, `fence`, `stone_wall`, `gate`, `dirt_path`, `paved_path`, `memorial_garden`) | Its §4.1/§4.2 row unchanged; footprint × 2 per side in cells | [GDD §5.9] values; the outdoor classification is PROPOSED, OPEN-03 |
 | Furniture (9 §4.3 rows) | Its §4.3 row unchanged; footprint × 2 per side in cells; access tiles SET-BUILD-001 §6 | [GDD §5.9] |
 | Half partition (one cell edge) | wood 500 milli-U, 4000 milli-WU = §4.3 `interior_partition` ÷ 2 exactly | [DERIVED] |
 | Underground painted cell (4 quanta at clear height 4096 u) | wood 1000, stone 1000 milli-U; 16920 milli-WU; output 8000 milli-U `excavated_earth` | [DERIVED from BAL-UG-001 and ECON-002] |

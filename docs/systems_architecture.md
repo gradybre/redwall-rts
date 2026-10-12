@@ -1254,8 +1254,9 @@ through `docs/validation/ready07_arithmetic.py` and `merge_gate.py` with the cho
 
 - one level is 256 × 256 = 65536 cells (the 256 m map at 1024 u); five levels are 327680 cells;
 - a cell is the X/Z column of the excavation lattice (ECON-001); an underground cell covers the 4 quanta of its
-  level's 4096 u clear height, so the four underground levels hold 4 × 65536 × 4 = 1048576 priceable quanta, all
-  inside the initial level pack's 256 × 48 × 256 quantum domain.
+  level's 4096 u clear height, so the room cells of the four underground levels hold 4 × 65536 × 4 = 1048576 quanta. That is the
+  room-cell subset only: connectors also cut roof-band, footing and surface quanta between levels, so a bound for
+  every priceable quantum is the initial level pack's whole 256 × 48 × 256 = 3145728-quantum domain.
 
 **Storage shape (adopted direction; widths and capacities are slice B's).**
 
@@ -1280,5 +1281,9 @@ reads of the cell grid only on layout change (ARCH-SYS-016 RoomHeat stays event-
    §5.2–5.3); widen `Room.furniture_mask` to 18 bits; refuse older saves rather than migrate them.
 3. Bind a painted underground room delta to the existing RoomProjects/ExcavationSites owners (decisions 1053, 1062,
    1066) instead of the polyline tunnel and template paths.
-4. Re-run `docs/validation/state_registry_coverage.py`, the registry capacity audit and the canonical state table
+4. Name the inventory-container owner for painted PANTRY/STORE/CELLAR rooms and for key items that carry
+   `base_store_g` (for example `store_bay`, 1500000 g). DEMO-CONTAIN-R01 #3b/#7 has shelves add capacity to a
+   Building-owned container and `create_container` refuses a null owner, so a painted room with `Room.building`
+   null needs an explicit owner kind and anchor cell before any store is built.
+5. Re-run `docs/validation/state_registry_coverage.py`, the registry capacity audit and the canonical state table
    generator for every new column.

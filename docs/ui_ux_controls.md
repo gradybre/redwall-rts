@@ -285,7 +285,7 @@ All content pickers exclude retired hunt zones, hunter huts, hunting gear, game 
 | UI-SET-086 Pause label |TC, below time/alerts |96×32→240×40 |READOUT |“Paused: ”+ordered_pause_reasons |CONDITION paused; not clickable; no empty hit rect |
 | UI-SET-087 World access list |BC opens CENTER 051 |480×320→960×720 |PANEL |“World locations and entities” |F6/accessible mode; resident/building/zone/resource/tile categories; keyboard camera/pick/place |
 | UI-SET-088 Cycle selection |BC, selection cell |32×32→44×44 |BUTTON |“Next selected resident”/“Previous selected resident” |SELECTED multiple; Tab/Shift Tab in world focus |
-| UI-SET-089 Zoom buttons |TR time popover or BL map header |32×32→44×44 |BUTTON |“Zoom in”/“Zoom out” |ALWAYS via map layers; keyboard = / − (UI-BUILD-014 took PageUp/Down) |
+| UI-SET-089 Zoom buttons |TR time popover or BL map header |32×32→44×44 |BUTTON |“Zoom in”/“Zoom out” |ALWAYS via map layers; keyboard = / − (UI-BUILD-014 took PageUp/Down) (PROPOSED, decision 1851 OPEN-09) |
 | UI-SET-090 Pitch slider |TR camera/settings popover |240×56→320×72 |FIELD |“Camera pitch ”+degrees+“ degrees below horizon” |CONDITION camera options; min 35, max 65, step 1 |
 | UI-SET-091 Schedule template |BC, schedule form |240×44→360×48 |FIELD |“Schedule template: ”+name |WORKSPACE 042; Day/Night/Flexible; preview before apply |
 | UI-SET-092 Back/menu action |Owning menu, bottom left |96×44→240×48 |BUTTON |Explicit action“Back”/“Main menu”/“Quit game”/“New settlement” |MODAL; dirty save warning when leaving world |
@@ -332,7 +332,7 @@ All actions below are Godot `InputMap` actions with the exact snake_case IDs. Us
 | Speed 2 / time_speed_2 |UI-SET-016 |F2 |Set requested 2× |
 | Speed 4 / time_speed_4 |UI-SET-017 |F3 |Set requested 4× |
 | Build / open_build |UI-SET-027 |B |Open or close the build panel UI-BUILD-001 |
-| Level up/down / level_up, level_down |UI-BUILD-014 |PageUp / PageDown |View and build one level up or down (Surface, Level 1–4); Overview from the level bar only |
+| Level up/down / level_up, level_down |UI-BUILD-014 |PageUp / PageDown (PROPOSED, decision 1851 OPEN-09) |View and build one level up or down (Surface, Level 1–4); Overview from the level bar only |
 | Zones / open_zones |UI-SET-028 |Z |Open zone types/brush |
 | Safe harvest / open_harvest |Context/zone palette |H |Select FORAGE zone brush, without dangerous consent |
 | Jobs / open_jobs |UI-SET-029 |J |Open job matrix |
@@ -402,7 +402,7 @@ Box selection begins only if pointer-down was unhandled world input. It selects 
 |---|---|
 | Projection |Perspective; vertical FOV 55°; KEEP_HEIGHT |
 | Initial orbit |Yaw 45°; pitch 48° below horizon; distance 40 m; target central hall |
-| Zoom |Orbit distance 8–120 m; wheel multiplier 1.10/step; = / − keys same (PageUp/Down now change level, UI-BUILD-014) |
+| Zoom |Orbit distance 8–120 m; wheel multiplier 1.10/step; = / − keys same (PageUp/Down now change level, UI-BUILD-014) (PROPOSED, decision 1851 OPEN-09) |
 | Yaw |Continuous 360°, stored wrapped 0–360°; hold rotation 90°/real second |
 | Pitch |35–65°; initial 48°; keyboard 1°/step |
 | Pan speed |`clamp(0.8*distance,8,64)` m/real second; Shift×1.75 |
@@ -551,7 +551,7 @@ Close MOVE-G03 by extending this document's component registry and existing resp
 
 Canonical state labels for binding are `Planning route`, `Waiting for access`, `Digging`, `Using tunnel`, `Climbing`, `Swimming`, `Diving`, `Returning to air`, `Blocked: no exit`, and `Blocked: load does not fit`. Show each only when the corresponding committed state/reason exists. A closed visual cutaway cannot change discovery or simulation visibility. The existing 1280×720 through 3840×2160 layout range and plain operational wording remain required.
 
-**Amended 2026-10-11 (DEC-061, SET-BUILD-001):** the underground part of “Layer/level selection” and the underground “Construction preview” are now registered as [UI-BUILD-010–014](#ui-build-001--one-build-panel-and-the-level-bar-dec-061): Surface plus Underground levels 1–4 and an Overview, always visible, PageUp/PageDown. PageUp/PageDown therefore no longer zoom. Canopy and water layers, route inspection, cross-layer picking and cancellation acknowledgment remain `SPEC_INCOMPLETE` here.
+**Amended 2026-10-11 (DEC-061, SET-BUILD-001):** the underground part of “Layer/level selection” and the underground “Construction preview” are now registered as [UI-BUILD-010–014](#ui-build-001--one-build-panel-and-the-level-bar-dec-061): Surface plus Underground levels 1–4 and an Overview, always visible, PageUp/PageDown (PROPOSED, decision 1851 OPEN-09). PageUp/PageDown therefore no longer zoom. Canopy and water layers, route inspection, cross-layer picking and cancellation acknowledgment remain `SPEC_INCOMPLETE` here.
 
 ## Alert text by profile — 2026-09-12
 
@@ -620,7 +620,7 @@ level-selection part of UI-MOVE-001. Profiles, tokens, focus, Escape order and a
 |---|---|---|---|---|---|
 | UI-BUILD-001 Build panel |BC, bottom-anchored; rect below |480×256→912×256 |PANEL |“Build on ”+level_name+“; ”+pending_count+“ pending changes” |WORKSPACE; B or UI-SET-027 opens/closes; while open, UI-SET-026 and the BR detail are hidden |
 | UI-BUILD-002 Build tab |BUILD-001 top row |96×44→160×44 |TOGGLE |Tab name (“Rooms”, “Furnish”, “Decor”)+“ tab ”+index+“ of 3” |WORKSPACE 001; Furnish/Decor disabled with “Choose a room type first” until a room type or Outdoor/Passage is chosen; Ctrl+Tab cycles |
-| UI-BUILD-003 Type or item card |BUILD-001 content row, horizontal scroll |136×128→208×128 |BUTTON |Name+“; ”+cost per cell or per item in natural measures+“; ”+footprint in cells+“; ”+unlock state |WORKSPACE 001; Rooms lists the room types allowed on this level plus Outdoor (surface), Passage (underground), Clear ground (surface) and Earth (underground); Furnish lists only items the chosen type allows; locked cards stay inspectable |
+| UI-BUILD-003 Type or item card |BUILD-001 content row, horizontal scroll |136×128→208×128 |BUTTON |Name+“; ”+cost per cell or per item in natural measures+“; ”+footprint in cells+“; ”+unlock state |WORKSPACE 001; Rooms lists the room types allowed on this level plus Outdoor (surface), Passage (every level), Clear ground (surface), Earth (underground) and a Remove tool (every level: click a placed room or item to open its removal review); Furnish lists only items the chosen type allows; locked cards stay inspectable |
 | UI-BUILD-004 Info card |BUILD-001 content row, left |160×128→208×128 |PANEL |Picture description+purpose line+cost+rules (“Needs 1 bench and 1 hearth; at least 24 cells”)+gesture (“Drag to paint”, “Click to place; R to rotate”) |WORKSPACE 001; follows the focused or hovered card; with nothing chosen reads “Choose a room type to begin” |
 | UI-BUILD-005 Running ledger |BUILD-001 footer, left; expands upward |120×44→520×44; expanded 320×160→640×320 |READOUT |“Plan needs ”+totals in natural measures+“; work ”+hours+“; earth out ”+amount+“; stores hold ”+available |WORKSPACE 001; one line per room type or item (“Kitchen (+24 cells)”) when expanded; shows needs beside stock and never reserves anything |
 | UI-BUILD-006 Undo |BUILD-001 footer |44×44→96×44 |BUTTON |“Undo ”+last_operation |WORKSPACE 001; disabled with “Nothing to undo”; Ctrl+Z / Cmd+Z |
@@ -629,9 +629,9 @@ level-selection part of UI-MOVE-001. Profiles, tokens, focus, Escape order and a
 | UI-BUILD-009 Discard all |BUILD-001 footer |96×44→160×44 |BUTTON (instance UI-SET-067/discard_all) |“Discard ”+pending_count+“ pending changes” |WORKSPACE 001; asks once when pending_count>0; no inventory or job effect |
 | UI-BUILD-010 Paint ghost |CENTER, cells of the current level |Painted cell set |OVERLAY |“Paint ”+type+“ ”+w+“ × ”+d+“ cells (”+w+“ m × ”+d+“ m); ”+validity |WORLD_TOOL; live size label at the pointer; valid cells GOLD outline, blocked WARNING dashed, impossible DANGER hatched and numbered against the reason list |
 | UI-BUILD-011 Item ghost |CENTER, item footprint |Footprint + access tiles |OVERLAY |“Place ”+item+“ facing ”+direction+“; ”+✓/!/X+“ ”+reason |WORLD_TOOL; footprint outlined, access tiles drawn as a labelled “access” pattern, wall-behind edge marked “needs wall”; R / Shift+R rotate |
-| UI-BUILD-012 Connector card |BC, above BUILD-001's top-right edge |280×136→360×160 |PANEL |“Connects to ”+target_level_name+“; ”+validity |CONDITION connector or entrance ghost placed; direction toggles Down/Up (impossible one disabled with its reason); “Add to plan” (066) and Cancel (067) |
+| UI-BUILD-012 Connector card |BC, above BUILD-001's top-right edge; in NARROW, inside BUILD-001's content row |280×136→360×160 |PANEL |“Connects to ”+target_level_name+“; ”+validity |CONDITION connector or entrance ghost placed; direction toggles Down/Up (impossible one disabled with its reason); “Add to plan” (066) and Cancel (067) |
 | UI-BUILD-013 Level bar |BL, above the minimap; rect below |160×104→256×140 |PANEL |“Levels; viewing ”+level_name |ALWAYS, including with the minimap hidden and outside build mode |
-| UI-BUILD-014 Level button |BUILD-013 grid, 2 columns × 3 rows |78×32→126×44 |TOGGLE |Full name (“Surface”, “Underground level 1”…“Underground level 4”, “Overview, all levels”)+“; ”+access state |ALWAYS; one selected; PageUp / PageDown step through Surface…Level 4; Overview only by the bar; never disabled — a level with no way in reads “no way in yet” |
+| UI-BUILD-014 Level button |BUILD-013 grid, 2 columns × 3 rows |78×32→126×44 |TOGGLE |Full name (“Surface”, “Underground level 1”…“Underground level 4”, “Overview, all levels”)+“; ”+access state |ALWAYS; one selected; PageUp / PageDown (PROPOSED, decision 1851 OPEN-09) step through Surface…Level 4; Overview only by the bar; never disabled — a level with no way in reads “no way in yet” |
 
 UI-SET-034's demolition review is reused for BUILD-REQ-006 removals (paint Earth / Clear ground, or Delete on a placed
 room or item). It lists every item, occupant and lot affected and its 50% return, and never removes anything before
@@ -651,7 +651,10 @@ its own Confirm.
   hidden (above its restore control). At 1280×720 it spans y 316–456; at 1920×1080, y 628–768; at 853.33 × 480,
   y 160–264, below the 128-high resource frame. Visible labels: “Surface”, “Level 1”…“Level 4”, “Overview” (NARROW:
   “Surf.”, “L1”…“L4”, “All”); accessible names are always the full names.
-- **Connector card.** Right edge aligned with the build panel's right edge, bottom edge 8 px above its top edge.
+- **Connector card.** STANDARD/WIDE: right edge aligned with the build panel's right edge, bottom edge 8 px above its
+  top edge (at 1280×720: y 304–440; at 1920×1080: y 664–800; clear of the alerts and the time cluster). NARROW: it replaces the card grid inside
+  the panel's 128-high content row while open (280 wide, 128 high), because above the panel it would overlap the
+  narrow alert zone.
 
 ### Input in build mode
 
@@ -667,7 +670,7 @@ its own Confirm.
 | Cancel the current stroke | Right click or right drag release within 6 px | Escape | Removes only the stroke in progress |
 | Undo / Redo | UI-BUILD-006/007 | Ctrl+Z; Ctrl+Shift+Z or Ctrl+Y (Cmd on Mac) | Pending operations only |
 | Change level | UI-BUILD-014 | PageUp / PageDown | The panel and ghosts move to that level; the pending batch keeps operations on every level |
-| Remove a placed room or item | Select it, UI-SET-034 | Delete with world focus | Opens the removal review |
+| Remove a placed room or item | Remove tool card (UI-BUILD-003), then click the room or item | Delete with world focus on a selected room or item | Opens the UI-SET-034 removal review |
 | Confirm | UI-BUILD-008 | Enter on the focused button | Creates the blueprints (BUILD-REQ-019) |
 
 Escape order (§3) gains one step: cancel the current stroke → close the connector card → close the build panel (with

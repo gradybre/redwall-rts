@@ -1,7 +1,7 @@
 # 1880 — Painted-room memory budget: slice B's widths, capacities and bytes
 
-Date: 2026-10-12 · Status: Accepted (budget recorded and checked; held outside the live total until the fold-in is
-authorized; three questions open for Brendan)
+Date: 2026-10-12 · Status: Accepted (budget recorded and checked; Brendan ruled Q1–Q3 on 2026-10-12: the budget stays
+outside the live total until slice C or G builds it; one project per room; removal keeps the 2 × 2 rule)
 
 Number range: 1880–1884 was allocated to this lane by the coordinator; 1880 is the only record it uses. It replaces
 no BACKLOG range.
@@ -14,14 +14,16 @@ ARCH-BUILD-001 obligation 1 is closed **as a budget**, with no runtime code: wid
 `ready07_arithmetic.py` and `merge_gate.py`. ARCH-MEM-002's room, furniture, project and container bounds are
 recomputed for five levels. Obligations 2 and 4 move to slice G and obligation 3 to slice C, by Brendan's ruling.
 
-Two things are **not** done, and why:
+Two things are **not** done in slice B, and why:
 
 - **The bytes are held outside the live total.** Folding them into §2.3 changes the live figure that
   `ready07_arithmetic.py` asserts equal to `docs/planning/underground_memory_pack.json`, and that needs the pack
-  regenerated and eight test pins changed (see “Held, not folded”). The brief says to stop and report rather than do
-  that. With them folded in, the gate still holds: live 117208047, headroom 32791953.
-- **Project and container bytes are not budgeted.** Under SET-BUILD-001 §10 as written they do not fit the gate
-  (see “Projects and containers”). Their binding is slice C's and slice G's, and needs Brendan's answer to Q1 first.
+  regenerated and eight test pins changed (see “Held, not folded”). Brendan ruled (Q2) that the slice C or G change
+  that first allocates these columns folds them in. Counted, the gate still holds: live 117208047, headroom 32791953;
+  until then the pack's reported 49.7 MB headroom is really 32.8 MB.
+- **Project and container bytes are not ledgered.** Under SET-BUILD-001 §10 as first written they did not fit the
+  gate. Brendan's Q1 ruling (one project per room) gives a bound that fits (see “Projects and containers”); slices C
+  and G ledger it when they bind projects and store containers.
 
 ## Brendan's rulings (2026-10-12)
 
@@ -35,19 +37,30 @@ ready07_arithmetic.py and merge_gate.py). Adding the nine new room types and ite
 rooms to room projects to slice C, and store ownership to slice G. ARCH-BUILD-001 is amended to say so. No
 save-format change and no pinned-file edits in B.”
 
+On the same day, after this lane's report, the coordinator relayed Brendan's answers to the three questions below
+(in chat, using the AskUserQuestion tool; the coordinator reports he chose the recommended option each time). On Q2
+his answer is this record's option (b), which keeps his “no pinned-file edits in B” ruling; this record had
+recommended (a):
+
+| Question | Ruling | Written into |
+|---|---|---|
+| Q1 — How are partitions, doors and repainted cells built? | **“One project per room”**: each room's painted cells, partitions and doors are built as one project, and painting more onto a room still under construction extends that project | SET-BUILD-001 §10 (table and text, ADOPTED); ARCH-BUILD-001 and ARCH-MEM-002 bounds; §3.1 |
+| Q2 — Count the 17.0 MB in the live total now? | **“Later, when built”**: the budget stays in its own checked ARCH-BUILD-001 table; slice C or G folds it into the live total, the pack tool and the pinned test values when it first allocates those columns | ARCH-BUILD-001 (states the 49.7 MB → 32.8 MB headroom plainly); §2.3 Metric row; SET-BUILD-001 §11 |
+| Q3 — Can removing cells leave a room part one cell wide? | **“No, refuse it”**: a removal that would leave a room part narrower than 2 × 2 cells is refused in words, or those cells are added to the removal review | BUILD-REQ-006 (ADOPTED); UI-BUILD “Validity in words” (new reason); ARCH-BUILD-001 and ARCH-MEM-002 |
+
 ## Rules used
 
 | Rule | Source |
 |---|---|
 | Five levels, 256 × 256 one-metre cells each, index `level × 65536 + z × 256 + x` | SET-BUILD-001 §3, BUILD-REQ-018, ARCH-BUILD-001 |
-| Every painted cell lies in a 2 × 2 block of its room (at painting; on removal only by this record's PROPOSED Q3) | BUILD-REQ-002 |
+| Every painted cell lies in a 2 × 2 block of its room, at painting and after any removal | BUILD-REQ-002; BUILD-REQ-006 as amended (Q3) |
 | Rooms on one level never overlap; each 4-connected same-type set is one room | BUILD-REQ-003, SET-BUILD-001 §3 |
 | Items never overlap; access tiles must be free of other items | BUILD-REQ-010, SET-BUILD-001 §6 |
 | Every GDD furniture footprint is at least one 2 m tile (2 × 2 cells); new key items and connector families start from a 4 × 4-cell placeholder | GDD §5.9, SET-BUILD-001 §3 and §5.3, OPEN-02 (a) |
 | Partitions and doors sit on cell edges; a half partition covers one edge; one piece per edge | SET-BUILD-001 §6, §7.4; ARCH-MEM-002 edge exclusivity |
 | Heat and the exterior door belong to the roofed room group, not a building | SET-BUILD-001 §4, BUILD-REQ-009 |
 | Unfinished space is not a route; “No way in” before Confirm | SET-BUILD-001 §8, BUILD-REQ-013 |
-| One project per item and per room delta | SET-BUILD-001 §10; GDD §4.2 Construction |
+| One project per room (its cells, partitions and doors) and one per item | SET-BUILD-001 §10 as amended (Q1); GDD §4.2 Construction |
 | Packed columns only, integer state, generation-checked references | ARCH-MEM-001, ARCH-BUILD-001, AGENTS.md |
 | Gate 150000000 bytes | REQ-SET-163 as amended by DEC-053 |
 
@@ -56,20 +69,21 @@ save-format change and no pinned-file edits in B.”
 | Store | Capacity | Derivation |
 |---|---:|---|
 | Cells | 327680 | 5 × 256 × 256 |
-| Painted rooms | 81920 | a room holds ≥ 4 cells (BUILD-REQ-002) and rooms do not overlap: 65536 / 4 = 16384 per level, × 5. A checkerboard of 2 × 2 rooms of two alternating types reaches it. **PROPOSED, Q3:** holds only if removal keeps the 2 × 2 rule; otherwise rooms ≤ cells = 327680 |
+| Painted rooms | 81920 | a room holds ≥ 4 cells (BUILD-REQ-002) and rooms do not overlap: 65536 / 4 = 16384 per level, × 5. A checkerboard of 2 × 2 rooms of two alternating types reaches it. Removal keeps the 2 × 2 rule (BUILD-REQ-006, ADOPTED by Q3); were that reversed, rooms ≤ cells = 327680 |
 | Items | 81920 | footprint ≥ 2 × 2 cells, no overlap: 5 × 65536 / 4. Equals today's Furniture capacity 16384 + 4 × 16384 |
 | Edge pieces | 652800 | 2 × 256 × 255 = 130560 edges between two map cells per level, × 5 |
 | Edge slots | 655360 | each cell's west and north edge, 2 × 65536 per level, × 5; the 512 map-border slots per level are never used and kept so an edge is found by arithmetic |
 
-**Rooms and removal (PROPOSED, Q3).** BUILD-REQ-002 governs painting. Nothing yet stops a removal (BUILD-REQ-006,
+**Rooms and removal (ADOPTED, Q3).** BUILD-REQ-002 governs painting. Before Q3 nothing stopped a removal (BUILD-REQ-006,
 UI-BUILD “Remove cells”) from leaving a remaining cell outside any 2 × 2 block: clear three cells of a 2 × 2 room and a
 one-cell room remains; clear a checkerboard from a large room and every remaining cell is its own room. The 81920
 bound therefore needs the smallest rule that keeps BUILD-REQ-002's stated purpose (“no room has a strip one cell
 wide”) after removal: **a removal that would leave a remaining cell outside a 2 × 2 block of its room is refused with
-its reason, or those cells are added to the removal review.** Without it the honest bound is rooms ≤ cells = 327680,
-which adds 245760 rows × 91 bytes (35 row + 17 index + 39 directory) = **22364160** bytes, total 39321600; still under
-the gate (live 139572207), but it leaves no room for Q1 (a). The budget uses 81920 pending Q3, and states the
-fallback beside it; `ready07_arithmetic.py` checks both.
+its reason, or those cells are added to the removal review.** Brendan adopted it (Q3), and BUILD-REQ-006 now says so,
+with the reason “Too narrow: this would leave part of ”+room+“ under 2 × 2 cells; remove those cells too”. Were the
+rule ever reversed, the honest bound would be rooms ≤ cells = 327680, which adds 245760 rows × 91 bytes (35 row + 17
+index + 39 directory) = **22364160** bytes, total 39321600; still under the gate (live 139572207), but leaving no room
+for the per-room projects. `ready07_arithmetic.py` checks that arithmetic too.
 
 **`[NEW constraint]`** The item bound holds only while every item covers at least 2 × 2 cells. Slices D and G author
 OPEN-02's real footprints; a definition smaller than that needs a ledger revision first.
@@ -161,7 +175,8 @@ ARCH-MEM-009 trail. That interacts with a pinned figure:
   PaintedRoomDirectory bytes lengthen §2.2's EntityIdentity and §3's DirectoryIndex rows to G = 434338 (one directory,
   not two), and the other eight rows move into §3; and a trail row `+16957440 | 108819439 | 117208047` is added.
 
-That is regenerating the pack and re-pinning tests, which the brief forbids without authorization. Changing only
+That is regenerating the pack and re-pinning tests, which Brendan's ruling keeps out of slice B; by Q2 the slice C or G
+change that first allocates these columns does all of the above in the same change. Changing only
 ready07's equality to `live == pack + 16957440` was rejected: it would leave the pack's own `headroom_bytes` and its
 `total < GATE_BYTES` check 17 MB too generous for the next underground lane. So the bytes sit in ARCH-BUILD-001's own
 table, outside §3 and §2.3, and three Metric rows state the held total and the folded figures. `ready07_arithmetic.py`
@@ -170,7 +185,17 @@ checks every row's shape against named `DECISION_1880_*` products, their sum, th
 
 ## Projects and containers
 
-Recomputed for five levels under SET-BUILD-001 §10 as written (one project per item, per partition or door piece and
+**Adopted bound (Q1, one project per room).** A room's painted cells, partitions and doors are one project, and
+painting more onto a room still under construction extends it, so a room has at most one unfinished project; items
+keep one each. On five levels:
+
+- projects ≤ 81920 items + 81920 rooms + 1024 outdoor items = **164864**, 81920 more than today's 82944;
+- containers ≤ 164864 + 18432 = **183296** (surface ground piles only, see below), 81920 more than today's 101376;
+- bytes: 81920 × (185 + 99) = **23265280**, plus up to **8110080** if slice G gives each painted store room one
+  container; with this budget counted, **1416593** bytes of headroom would remain. Tight, so slices C and G must
+  ledger exactly and early.
+
+**Why the ruling was needed.** Recomputed for five levels under SET-BUILD-001 §10 as first written (one project per item, per partition or door piece and
 per room delta, each with a material container):
 
 - projects ≤ 81920 items + 1024 outdoor items + 652800 edge pieces + 327680 room deltas = **1063424** (a delta needs
@@ -183,17 +208,18 @@ Today's rows cost 185 bytes per project (the §2.2/§3 rows at 82944 = 114, four
 directory slot = 39) and 99 per container (the §2.2/§3 rows at 101376 = 51, the §2.3 demolition scan pair and
 de-duplication byte = 9, a directory slot = 39); `ready07_arithmetic.py` derives each part from the printed rows. The 980480 extra projects and containers would add **278456320**
 bytes; the edge pieces alone (652800 × 284 = 185395200) exceed the whole gate. So these bytes cannot be budgeted
-under §10 as written. They are listed in §3.1 “Still unbudgeted”; slices C and G ledger them once Q1 is ruled.
+under §10 as first written. The adopted bound is listed in §3.1 “Still unbudgeted” until slices C and G ledger it.
 
 ## Deferred, and to which slice
 
 | Item | Slice | Source |
 |---|---|---|
 | RoomType 8–16, item definitions 9–17, catalog fingerprint, older-save refusal, 18-bit mask, `FurnitureKindCount` 9 → 18 | G | Brendan's ruling (obligation 2) |
-| Binding painted underground room deltas to RoomProjects/ExcavationSites, and their project bytes. ExcavationSites' source maximum (73909 sites, about 18477 cells of 4 quanta) also limits one batch | C | Brendan's ruling (obligation 3) |
+| Binding painted underground room deltas to RoomProjects/ExcavationSites as one project per room (Q1), and their project bytes. ExcavationSites' source maximum (73909 sites, about 18477 cells of 4 quanta) also limits one batch | C | Brendan's ruling (obligation 3) |
 | Container owner for painted PANTRY/STORE/CELLAR rooms and `base_store_g` key items, and their container bytes (one per room: at most 81920 more, 8110080 bytes) | G | Brendan's ruling (obligation 4) |
 | Registry, capacity audit and canonical-table reruns for each implemented column | C, G | Obligation 5 travels with the columns |
 | Retiring the superseded tile-based rows (1802240 bytes) | C, G | “Added, not replacing” |
+| Folding the 16957440 bytes into §3/§2.3, the trail, `underground_memory_budget.py`, the pack and its eight pinned test values | Whichever of C or G first allocates these columns | Q2 |
 | The pending batch's draft, Undo/Redo and running ledger (presentation-side, unsaved) | B's panel lane | ARCH-BUILD-001 storage table; not in obligation 1 |
 | Scratch for re-deriving rooms after removal (split and relabel), `room_group` and the breadth-first dig order, over up to 65536 cells per level. `room_footprint.gd`'s 13-byte-per-cell scratch would be 851968 bytes at one level; today it is capped at 16384 cells | C, F | Review M4; listed in §3.1 |
 | Underground spoil ground piles' owner and bound | C | Decision 1075; ECON-003 |
@@ -232,6 +258,9 @@ including the reviewer's two survivors (an extra row inside the budget table; `t
 the B8 and I32 rows) and every prose figure the reviewer found unchecked: **46 of 46 killed**, 0 survived.
 `ready07_arithmetic.py` killed all 46; `merge_gate.py` killed the one mutant that made a row's own arithmetic wrong
 (the others were internally consistent rows, which only the named products catch).
+After Brendan's rulings the adopted per-room project bound, the store-container figure, the remaining headroom and the
+plain 32.8 MB headroom statement became asserted too; nine more mutants on those: **55 of 55 killed** in all. All
+gates above were rerun after the rulings with the same summary lines.
 
 ## Review
 
@@ -261,7 +290,7 @@ the second commit:
   are stated as kept for GDD fidelity; `KIND_COUNT` and declaration growth are deferred to the slices that register
   the columns.
 
-## Open questions for Brendan
+## Questions put to Brendan (all ruled 2026-10-12; see “Brendan's rulings”)
 
 **Q1 — How are partitions, doors and repainted cells built?** (slices C and G) Today every partition, door and every
 newly painted patch gets its own building job with its own material store. On five levels that is up to a million

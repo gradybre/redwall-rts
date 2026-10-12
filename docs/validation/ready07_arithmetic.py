@@ -520,10 +520,10 @@ for label,value in [('Planned allocated payload',payload),('One live world plus 
 # Decision1880: slice B's painted-room budget (ARCH-BUILD-001 obligation 1, Brendan's 2026-10-12 ruling
 # "Budget now, rest later"). Every capacity is a product of the map's geometry, never a cap:
 # 5 levels (BUILD-REQ-018) of 256 x 256 one-metre cells; a room holds >= 4 cells (BUILD-REQ-002's 2 x 2 rule,
-# kept on removal by decision 1880's PROPOSED Q3(a); otherwise rooms <= cells); an item covers >= 2 x 2 cells and
+# kept on removal by BUILD-REQ-006 as amended, decision 1880 Q3; were that reversed, rooms <= cells); an item covers >= 2 x 2 cells and
 # items never overlap (BUILD-REQ-010); a piece sits on one of the 2*256*255 edges between two cells of a level.
-# HELD OUTSIDE the live total: folding it in moves `live`, which the assertion above pins to
-# underground_memory_pack.json, and that pack is not regenerated without authorization.
+# HELD OUTSIDE the live total (Brendan, decision 1880 Q2, "Later, when built"): the slice C or G change that first
+# allocates these columns folds it into the rows, the trail, underground_memory_budget.py and its pinned tests.
 DECISION_1880_LEVELS=5;DECISION_1880_LEVEL_CELLS=256*256
 DECISION_1880_CELLS=DECISION_1880_LEVELS*DECISION_1880_LEVEL_CELLS
 DECISION_1880_ROOMS=DECISION_1880_LEVELS*(DECISION_1880_LEVEL_CELLS//(2*2))
@@ -579,7 +579,7 @@ for label,value in [('Painted-room budget held outside the live total (decision 
                     ('Headroom below the 150 MB gate with decision 1880 folded in',GATE-DECISION_1880_LIVE)]:
  assert f'| {label} | {value} |' in s,label
 assert f'planned payload {payload+DECISION_1880_PLANNED}, one live world plus reserve\n{DECISION_1880_LIVE}' in s
-# Without Q3(a), removal can leave one-cell rooms and rooms are bounded only by cells.
+# Were Q3's removal rule reversed, removal could leave one-cell rooms, bounded only by cells.
 DECISION_1880_ROOM_ROW_BYTES=(7*1+7*4)+(1*1+4*4)+DECISION_1880_DIRECTORY_SLOT
 DECISION_1880_FALLBACK_EXTRA=(DECISION_1880_CELLS-DECISION_1880_ROOMS)*DECISION_1880_ROOM_ROW_BYTES
 assert (DECISION_1880_ROOM_ROW_BYTES,DECISION_1880_FALLBACK_EXTRA)==(91,22364160)
@@ -605,8 +605,21 @@ assert DECISION_1880_PROJECTS-82944==DECISION_1880_CONTAINERS-101376==980480
 DECISION_1880_PAIR=DECISION_1880_PROJECT_BYTES+DECISION_1880_CONTAINER_BYTES
 assert 980480*DECISION_1880_PAIR==278456320 and DECISION_1880_EDGE_PIECES*DECISION_1880_PAIR==185395200>GATE
 for text in ['1063424 projects, each with a material container','containers become 1063424 + 18432 = 1081856','would add 278456320 bytes','alone (185395200)',
-             'projects ≤81920+1024+652800+327680=1063424','containers ≤1081856','rooms ≤5×65536/4=81920','otherwise ≤327680',
+             'projects ≤81920+1024+652800+327680=1063424','containers ≤1081856','rooms ≤5×65536/4=81920','≤327680 only if that rule were reversed',
              'about 278456320 bytes']:
+ assert text in s,text
+# The ADOPTED bound (decision 1880 Q1, one project per room): items and rooms each own at most one unfinished project.
+DECISION_1880_Q1_PROJECTS=DECISION_1880_ITEMS+DECISION_1880_ROOMS+1024
+DECISION_1880_Q1_CONTAINERS=1024+512+DECISION_1880_Q1_PROJECTS+512+16384
+assert (DECISION_1880_Q1_PROJECTS,DECISION_1880_Q1_CONTAINERS)==(164864,183296)
+assert DECISION_1880_Q1_PROJECTS-82944==DECISION_1880_Q1_CONTAINERS-101376==DECISION_1880_ROOMS
+DECISION_1880_Q1_BYTES=DECISION_1880_ROOMS*DECISION_1880_PAIR
+DECISION_1880_STORE_CONTAINERS=DECISION_1880_ROOMS*DECISION_1880_CONTAINER_BYTES
+assert (DECISION_1880_Q1_BYTES,DECISION_1880_STORE_CONTAINERS)==(23265280,8110080)
+assert GATE-DECISION_1880_LIVE-DECISION_1880_Q1_BYTES-DECISION_1880_STORE_CONTAINERS==1416593>0
+for text in ['projects ≤ 81920 items + 81920 rooms + 1024 outdoor items = 164864','containers ≤ 164864 + 18432 = 183296',
+             'that is 23265280 bytes, plus up to 8110080','1416593 bytes of headroom','projects ≤81920+81920+1024=164864',
+             'containers ≤183296','164864 projects and 183296 containers','headroom is 32791953 bytes (32.8 MB)']:
  assert text in s,text
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}

@@ -685,6 +685,7 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 | Reason text | Glyph | Source |
 |---|---|---|
 | “Too narrow: rooms need at least 2 × 2 cells” | X | BUILD-REQ-002 |
+| “Too narrow: this would leave part of ”+room+“ under 2 × 2 cells; remove those cells too” | X | BUILD-REQ-006 (decision 1880 Q3) |
 | “Too small: ”+type+“ needs at least ”+n+“ cells (has ”+m+“)” | ! | SET-BUILD-001 §4 |
 | “Needs ”+missing furniture (“1 hearth”) | ! | GDD §5.9 room validity |
 | “No way in: connect to a finished Passage or entrance” | ! | BUILD-REQ-013 |

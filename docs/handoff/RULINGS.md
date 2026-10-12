@@ -154,6 +154,12 @@ Every row was checked against the record named.
 | Building, after the Evil Genius 2 study | "Match this functionality as close as possible to EG2". **One build panel for all** levels. **1 m cells**. **The surface changes too: everything becomes a painted room** (machines become items; outdoor things stay items). **Tunnels become painted passages.** An **entrance is a placed surface item** that opens underground level 1. Furniture gets **access cells**. **Room purpose stays permanent** (ADR 1081). **Payment stays as now**: materials hauled and used at work start ("don't deduct at confirm, keep as we currently do", reversing his first answer). **Levels: surface + 4 underground at 5 m spacing** ("Yes please") | DEC-061; `docs/design/underground-planning/evil-genius-2-building-study.md` |
 | Slice A's open items (1851's OPEN-01–OPEN-11) | **All eleven as recommended.** OPEN-01 **(b)**: machines carry their old building's bill, room cells pay a wall-and-roof rate. OPEN-02 (a): geometry authored per slice from a 4×4 placeholder. OPEN-03 (a): outdoor/room split as tabled. OPEN-04 (a): services move. OPEN-05 (a): hearth and shelf need a wall behind. OPEN-06 (a): same-type rooms merge, the older survives. OPEN-07 (a): paint against a planned entrance, digging waits. OPEN-08 (a): upgrades move onto machines and rooms. OPEN-09 (a): zoom on = and −, PageUp/PageDown change level. OPEN-10 (a): qualify a steeper earth/timber flight, 20 m flight as fallback. OPEN-11 (a): a placed burrow is a painted room reached from a placed entrance. (Relayed by the coordinator) | 1851; SET-BUILD-001 |
 
+## 2026-10-12
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Building slice B's scope and memory budget (1880's Q1–Q3) | **“Budget now, rest later”**: slice B budgets the 1 m cell grid, room rows, item rows and edge items; new room types and items and store ownership move to slice G, room-project binding to slice C; no save-format change and no pinned-file edits in B. **Q1 “One project per room”**: a room's cells, partitions and doors are one project, extended while unfinished. **Q2 “Later, when built”**: the 17.0 MB budget stays in its own table until slice C or G allocates it. **Q3 “No, refuse it”**: a removal that leaves a room part narrower than 2 × 2 cells is refused in words or those cells join the removal review. (Relayed by the coordinator) | 1880; SET-BUILD-001 §10, BUILD-REQ-006 |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

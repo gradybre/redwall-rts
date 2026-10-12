@@ -211,8 +211,8 @@ job queues and show who is assigned on the blueprint.
 | Slice | Needs (slices) | Needs (other work and rulings) |
 |---|---|---|
 | A | — | DEC-061 (done) |
-| B | A | Memory budget for the cell grid, Room/item rows and edge items: done as a budget (decision 1880; folding its bytes into the live total waits on authorization, decision 1880 Q2); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
-| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07); binding painted room deltas to RoomProjects/ExcavationSites and ledgering their projects (ARCH-BUILD-001 obligation 3, moved from B); how room deltas, partitions and doors are built (decision 1880 Q1) |
+| B | A | Memory budget for the cell grid, Room/item rows and edge items: done as a budget (decision 1880; slice C or G folds its bytes into the live total when it first allocates those columns, decision 1880 Q2); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
+| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07); binding painted room deltas to RoomProjects/ExcavationSites and ledgering their projects (ARCH-BUILD-001 obligation 3, moved from B); one project per room for its cells, partitions and doors (ruled, decision 1880 Q1); refusing removals that leave a part narrower than 2 × 2 (ruled, decision 1880 Q3) |
 | D | B, C | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
 | E | B, C | Install crews (ADR 1081); access tiles and wall-behind are ruled (OPEN-05) |
 | F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |

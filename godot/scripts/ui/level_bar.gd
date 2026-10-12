@@ -23,6 +23,9 @@ const SHORT_NAMES: Array[String] = ["Surface", "Level 1", "Level 2", "Level 3", 
 const NARROW_NAMES: Array[String] = ["Surf.", "L1", "L2", "L3", "L4", "All"]
 const OPEN_WORDS: String = "way in open"
 const NO_WAY_IN: String = "no way in yet"
+## The visible, non-colour mark on a level with no way in (decision 1871, review LOW): the table's "!" for "No way in";
+## the words are in the button's tooltip and accessible name. The label itself stays the spec's ("Level 3", "L3").
+const NO_WAY_IN_GLYPH: String = "!"
 const VIEWING: String = "Levels; viewing %s"
 const FONT_PX: int = 14
 
@@ -182,7 +185,7 @@ func _sync() -> void:
 	var names: Array[String] = NARROW_NAMES if _profile == UiLayout.PROFILE_NARROW else SHORT_NAMES
 	for level: int in LEVEL_COUNT:
 		var button: Button = _buttons[level]
-		button.text = names[level]
+		button.text = names[level] if is_reachable(level) else "%s %s" % [names[level], NO_WAY_IN_GLYPH]
 		button.set_pressed_no_signal(level == _level)
 		button.accessibility_name = button_name(level)
 		button.tooltip_text = button_name(level)

@@ -39,6 +39,9 @@ const Orders := preload("res://demo/build_panel/demo_build_orders.gd")
 const TunnelControl := preload("res://demo/tunnel/tunnel_control.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const ThemeResource: Theme = preload("res://ui/theme/woodland_theme.tres")
+const CardScript := preload("res://demo/ui/action_card.gd")
+## The paint label keeps this far inside the window's edges (UI §1.2's safe inset).
+const SAFE_INSET: float = 16.0
 
 ## Over the demo's panels (layer 0), with the HUD's.
 const CANVAS_LAYER: int = 1
@@ -77,6 +80,12 @@ var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _minimap_was: bool = true
 var _pointer: Vector2 = Vector2.INF
 var _seen_label: int = -1
+## Why the panel could not be set up ("": it was): painting stays disarmed (decision 1871, review M4).
+var _setup_refusal: StringName = &""
+## `interrupts(actor_index) -> String`: what an order would stop (demo_command.gd `interrupt_text`), for the old tools'
+## cards' notes (review M8). Unset: no such line.
+var _interrupts: Callable = Callable()
+var _card_data: CardScript = CardScript.new()
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -93,14 +102,44 @@ func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked
 	catalog = BuildCatalog.new()
 	orders = Orders.new()
 	orders.bind_session(session, camera)
-	catalog.set_clear_height(orders.clear_height())
+	for level: int in range(1, LevelBar.LEVEL_DEEPEST + 1):
+		catalog.set_level_clear_height(level, orders.clear_height_of(level))
 	batch = Batch.new()
-	batch.configure(catalog, orders.cell_bounds(), orders.cell_capacity())
 	paint = Paint.new()
 	add_child(paint)
-	paint.configure(batch, camera, Vector2i(orders.datum_u().x, orders.datum_u().z), orders.cell_bounds())
+	take_setup(batch.configure(catalog, orders.cell_bounds(), orders.cell_capacity()))
+	take_setup(paint.configure(batch, camera, Vector2i(orders.datum_u().x, orders.datum_u().z), orders.cell_bounds()))
 	_build_layer()
+	panel.card_note = _card_note
 	place()
+
+
+func take_setup(code: StringName) -> void:
+	"""A setup step's answer: a refusal is kept (painting stays disarmed) and shown as a HUD refusal."""
+	if code == &"" or _setup_refusal != &"":
+		return
+	_setup_refusal = code
+	UIManager.push_refusal(code)
+
+
+func setup_refusal() -> StringName:
+	"""Why the panel could not be set up ("" when it was)."""
+	return _setup_refusal
+
+
+func set_interrupts(interrupts: Callable) -> void:
+	"""`interrupts(actor_index) -> String`: what an order to that resident would stop (the old tools' card notes)."""
+	_interrupts = interrupts
+
+
+func _card_note(card: BuildCatalog.Card) -> String:
+	"""The old tools' action card on their cards (review M8): who would dig and what they would stop."""
+	if card.kind != BuildCatalog.CARD_LEGACY:
+		return ""
+	_tunnels.tool_card_into(_card_data, card.name, card.purpose)
+	if _card_data.worker >= 0 and _interrupts.is_valid():
+		_card_data.interrupts = String(_interrupts.call(_card_data.worker))
+	return _card_data.text()
 
 
 func _build_layer() -> void:
@@ -290,11 +329,12 @@ func _sync_label(open: bool) -> void:
 
 
 static func label_position(wanted: Vector2, drawn: Vector2, view: Vector2, avoid: Rect2) -> Vector2:
-	"""Where the paint label stands: at `wanted`, kept on screen, and lifted above the panel (`avoid`) rather than
-	drawn over it."""
-	var at: Vector2 = wanted.clamp(Vector2.ZERO, (view - drawn).max(Vector2.ZERO))
+	"""Where the paint label stands: at `wanted`, kept 16 px inside the window, and lifted above the panel (`avoid`)
+	rather than drawn over it."""
+	var inset: Vector2 = Vector2(SAFE_INSET, SAFE_INSET)
+	var at: Vector2 = wanted.clamp(inset, (view - drawn - inset).max(inset))
 	if Rect2(at, drawn).intersects(avoid):
-		at.y = maxf(avoid.position.y - drawn.y - LABEL_GAP, 0.0)
+		at.y = maxf(avoid.position.y - drawn.y - LABEL_GAP, SAFE_INSET)
 	return at
 
 
@@ -347,7 +387,7 @@ func _set_special(level: int) -> void:
 
 func armed_type() -> int:
 	"""The room type a stroke paints now, or -1: the panel open with a type chosen, on a level 1-2 view."""
-	if not panel.is_open() or panel.suspended() or _special >= 0 or not _tunnels.view.on:
+	if _setup_refusal != &"" or not panel.is_open() or panel.suspended() or _special >= 0 or not _tunnels.view.on:
 		return -1
 	var level: int = bar.shown_level()
 	return panel.paint_type() if Paint.paintable(level) and bar.is_reachable(level) else -1
@@ -475,7 +515,8 @@ func _panel_key(key: InputEventKey) -> bool:
 		panel.cycle_tab(not key.shift_pressed)
 		return true
 	if key.is_action_pressed(&"tool_redo", true, true):
-		batch.redo()
+		if not batch.stroke_active():
+			batch.redo()
 		return true
 	if key.is_action_pressed(&"tool_undo", true, true):
 		batch.undo()

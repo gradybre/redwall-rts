@@ -280,9 +280,10 @@ func _reveal_checks(party: CanvasLayer, n: int) -> void:
 	var last: Button = party.call(&"member_row", n - 1)
 	var margin_px: float = 4.0 * inspector.get_global_transform().get_scale().y
 	if inspector.get_global_rect().size.y < last.get_global_rect().size.y + 2.0 * margin_px:
-		# Shorter than one row here: the level bar took the column's foot (decision 1871, P-B8). Rows still scroll
-		# through it (every member row reachable, checked by the caller).
-		_check("reveal: the inspector is shorter than a row at this size; rows scroll through it", true)
+		# Shorter than one row here (the column is about 76 logical px at 125 %; 156 at 100 %): the level bar took the
+		# column's foot (decision 1871, P-B8, review M6). Not asserted here: the caller's "every member row reachable"
+		# checks that every row scrolls into view.
+		print("LIVE-SKIP %dx%d reveal: the inspector is shorter than a row" % [_size.x, _size.y])
 		return
 	inspector.scroll_vertical = 0
 	await _frames(2)

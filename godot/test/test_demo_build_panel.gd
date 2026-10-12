@@ -322,8 +322,74 @@ func test_the_paint_label_stays_on_screen_and_off_the_panel() -> void:
 	var view: Vector2 = Vector2(1280, 720)
 	var panel: Rect2 = Rect2(296, 448, 912, 256)
 	assert_equal(BuildScript.label_position(Vector2(100, 100), Vector2(200, 40), view, panel), Vector2(100, 100), "free")
-	assert_equal(BuildScript.label_position(Vector2(1200, 100), Vector2(200, 40), view, panel), Vector2(1080, 100),
-		"kept inside the right edge")
+	assert_equal(BuildScript.label_position(Vector2(1200, 100), Vector2(200, 40), view, panel), Vector2(1064, 100),
+		"kept 16 px inside the right edge")
 	assert_equal(BuildScript.label_position(Vector2(700, 500), Vector2(200, 40), view, panel), Vector2(700, 400),
 		"lifted above the panel, 8 px clear")
-	assert_equal(BuildScript.label_position(Vector2(-50, -50), Vector2(200, 40), view, panel), Vector2.ZERO, "top-left")
+	assert_equal(BuildScript.label_position(Vector2(-50, -50), Vector2(200, 40), view, panel), Vector2(16, 16),
+		"16 px inside the top-left")
+
+
+func test_a_setup_refusal_disarms_painting() -> void:
+	"""Review M4: a setup step's refusal is kept and painting stays disarmed; the first refusal wins."""
+	assert_equal(_build.setup_refusal(), &"", "set up")
+	_build.open_panel()
+	_press(KEY_PAGEDOWN)
+	_build.panel.choose_card(KITCHEN_CARD)
+	assert_equal(_build.armed_type(), 2, "armed")
+	_build.take_setup(&"BUILD_TEST_REFUSAL")
+	_build.take_setup(&"A_SECOND_ONE")
+	assert_equal(_build.setup_refusal(), &"BUILD_TEST_REFUSAL", "kept, the first")
+	assert_equal(_build.armed_type(), -1, "painting disarmed")
+	_build._process(0.016)
+	assert_true(true, "a frame with a refused setup runs")
+
+
+func test_a_ghost_refused_by_its_floor_never_breaks_a_frame() -> void:
+	"""Review M4: the painter refuses an empty planning area and draws nothing on a frame without a ghost."""
+	var paint = BuildScript.Paint.new()
+	_nodes.append(paint)
+	assert_true(paint.configure(_build.batch, null, Vector2i.ZERO, Rect2i()) != &"",
+		"an empty area is refused")
+	paint.refresh(1, true)
+	assert_equal(paint.stroke_draws, 0, "nothing drawn, nothing broken")
+
+
+func test_the_passage_card_says_who_would_dig_and_what_they_would_stop() -> void:
+	"""Review M8: the old tool's action card on the Passage card's info and tooltip."""
+	_command.select(PackedInt32Array([0]))
+	_build.set_interrupts(_command.interrupt_text)
+	_build.open_panel()
+	var passage: int = _card("Passage")
+	_build.panel._show_card(passage)
+	assert_true(_build.panel.info_text().contains("Who: "), _build.panel.info_text())
+	assert_true(_build.panel.card_button(passage).tooltip_text.contains("Who: "), "and in its tooltip")
+	_build.panel._show_card(_card("Kitchen"))
+	assert_false(_build.panel.info_text().contains("Who: "), "a room type has no such note")
+
+
+func test_redo_waits_for_a_keyboard_stroke() -> void:
+	"""Review M2: Ctrl+Shift+Z during a keyboard stroke redoes nothing."""
+	_paint_kitchen_by_keys()
+	_press(KEY_Z, true)
+	_build.paint.set_cursor(Vector2i(20, 20), 1, 2)
+	_press(KEY_ENTER)
+	assert_true(_build.batch.stroke_active(), "a stroke")
+	assert_true(_press(KEY_Z, true, true), "taken")
+	assert_equal(_build.batch.pending_count(), 0, "nothing redone mid-stroke")
+
+
+func test_a_cursor_move_redraws_no_room_ghost() -> void:
+	"""Review M5: room ghosts redraw only when the batch changes; the cursor moves only the stroke ghost."""
+	_paint_kitchen_by_keys()
+	_build._process(0.016)
+	var rooms: int = _build.paint.operation_draws
+	var strokes: int = _build.paint.stroke_draws
+	for k: int in 10:
+		_press(KEY_RIGHT)
+		_build._process(0.016)
+	assert_equal(_build.paint.operation_draws, rooms, "no room ghost redrawn by the cursor")
+	assert_true(_build.paint.stroke_draws > strokes, "the cursor ghost was")
+	_press(KEY_Z, true)
+	_build._process(0.016)
+	assert_true(_build.paint.operation_draws >= rooms, "a batch change redraws the rooms")

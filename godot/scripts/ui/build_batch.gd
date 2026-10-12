@@ -57,6 +57,8 @@ var _levels: PackedInt32Array = PackedInt32Array()
 var _counts: PackedInt32Array = PackedInt32Array()
 var _refusals: PackedStringArray = PackedStringArray()
 var _refused_at: PackedInt32Array = PackedInt32Array()
+## The kept refusal's kind: ! (the route may take it later: retried, never holding Confirm all back) or X.
+var _refused_kind: PackedInt32Array = PackedInt32Array()
 var _judged_at: PackedInt32Array = PackedInt32Array()
 var _kinds: PackedInt32Array = PackedInt32Array()
 var _reasons: PackedStringArray = PackedStringArray()
@@ -143,10 +145,21 @@ func finish_stroke() -> int:
 		return kind
 	var target: int = _stroke_target if _stroke_target >= 0 else _new_operation(_stroke_type, _stroke_level)
 	if target < 0:
-		return Validity.KIND_NOT_POSSIBLE
-	_paint_rectangle(target)
+		return _drop(Validity.shape(shape_words(&"")))
+	var before: int = _drafts[target].revision
+	var error: StringName = _paint_rectangle(target)
+	if error != &"" or _drafts[target].revision == before:
+		_prune()
+		return _drop(Validity.shape(shape_words(error)) if error != &"" else Validity.nothing_new())
 	_record(target)
 	return kind
+
+
+func _drop(reason: String) -> int:
+	"""A stroke the planner would not take after all: dropped as "X", its words kept, no history step."""
+	_last_dropped = Validity.line(Validity.KIND_NOT_POSSIBLE, reason)
+	revision += 1
+	return Validity.KIND_NOT_POSSIBLE
 
 
 func stroke_active() -> bool:
@@ -236,7 +249,26 @@ func _judge_against_batch() -> void:
 	var cells: int = rect.get_area()
 	if _stroke_target >= 0:
 		cells += _counts[_stroke_target] - _inside_count(_drafts[_stroke_target].visible_cells(), rect)
+		if cells == _counts[_stroke_target]:
+			_stroke_reason = Validity.nothing_new()
+			return
+	if cells > _capacity:
+		_stroke_reason = Validity.shape(shape_words(&"FOOTPRINT_CAPACITY"))
+		return
 	_set_size_kind(_stroke_type, cells)
+	if _stroke_target >= 0:
+		_judge_union_shape()
+
+
+func _judge_union_shape() -> void:
+	"""The room the stroke would make, judged as the planner will judge it: a hole or a pinch is "! Blocked" while it
+	is drawn, never ✓ (review M2). Cold: once per changed stroke cell."""
+	var union: Dictionary = Footprint.combine(_drafts[_stroke_target].visible_cells(), _stroke.visible_cells(), false,
+		_capacity)
+	var error: StringName = Footprint.validation_error(union.cells, _capacity, false) if union.ok else union.error
+	if error != &"":
+		_stroke_kind = Validity.KIND_BLOCKED
+		_stroke_reason = Validity.shape(shape_words(error))
 
 
 func _set_size_kind(room_type: int, cells: int) -> void:
@@ -299,19 +331,22 @@ func _new_operation(room_type: int, level: int) -> int:
 	_counts.append(0)
 	_refusals.append("")
 	_refused_at.append(-1)
+	_refused_kind.append(Validity.KIND_BLOCKED)
 	_judged_at.append(-1)
 	_kinds.append(Validity.KIND_CAN_BUILD)
 	_reasons.append("")
 	return _drafts.size() - 1
 
 
-func _paint_rectangle(k: int) -> void:
-	"""Replay the stroke's rectangle onto operation `k`'s draft: one completed edit in its own history."""
+func _paint_rectangle(k: int) -> StringName:
+	"""Replay the stroke's rectangle onto operation `k`'s draft: one completed edit in its own history (none when it
+	adds no cell, or the planner refuses it: its code)."""
 	var draft: Draft = _drafts[k]
 	draft.begin_stroke(Draft.RECTANGLE, _stroke_start, 0, false)
 	draft.extend_stroke(_stroke_end)
-	draft.finish_stroke()
+	var error: StringName = draft.finish_stroke()
 	_recount(k)
+	return error
 
 
 func _record(k: int) -> void:
@@ -396,6 +431,7 @@ func discard_all() -> int:
 	_counts.clear()
 	_refusals.clear()
 	_refused_at.clear()
+	_refused_kind.clear()
 	_judged_at.clear()
 	_kinds.clear()
 	_reasons.clear()
@@ -436,6 +472,7 @@ func _keep_only(keep: PackedInt32Array) -> void:
 	_levels = _picked(_levels, keep)
 	_counts = _picked(_counts, keep)
 	_refused_at = _picked(_refused_at, keep)
+	_refused_kind = _picked(_refused_kind, keep)
 	_judged_at = _picked(_judged_at, keep)
 	_kinds = _picked(_kinds, keep)
 	_refusals = _picked_words(_refusals, keep)
@@ -517,20 +554,40 @@ func operation_line(k: int) -> String:
 
 
 func first_invalid() -> int:
-	"""The first pending operation, in batch order, that is not "✓ Can build"; -1 when none."""
+	"""The first pending operation, in batch order, that holds Confirm all back (not "✓ Can build" and not only
+	refused by the route last time, which Confirm all retries); -1 when none."""
 	for k: int in _drafts.size():
-		if _counts[k] > 0 and operation_kind(k) != Validity.KIND_CAN_BUILD:
+		if _holds_back(k):
 			return k
 	return -1
 
 
 func invalid_count() -> int:
-	"""How many pending operations are not "✓ Can build" (BUILD-REQ-021)."""
+	"""How many pending operations hold Confirm all back (BUILD-REQ-021; see `first_invalid`)."""
 	var count: int = 0
 	for k: int in _drafts.size():
-		if _counts[k] > 0 and operation_kind(k) != Validity.KIND_CAN_BUILD:
+		if _holds_back(k):
 			count += 1
 	return count
+
+
+func _holds_back(k: int) -> bool:
+	"""Whether pending operation `k` disables Confirm all: any judgement but ✓, except a "!" refusal of the route."""
+	return _counts[k] > 0 and operation_kind(k) != Validity.KIND_CAN_BUILD and not retryable(k)
+
+
+func retryable(k: int) -> bool:
+	"""Whether operation `k`'s only problem is the order route's "!" refusal last time: it stays "! Blocked" in words
+	and Confirm all tries it again (decision 1871, the coordinator's resolution of review H3)."""
+	return operation_kind(k) == Validity.KIND_BLOCKED and _refused_at[k] == _drafts[k].revision
+
+
+func first_refused() -> int:
+	"""The first pending operation the route refused last time and Confirm all will retry; -1 when none."""
+	for k: int in _drafts.size():
+		if _counts[k] > 0 and retryable(k):
+			return k
+	return -1
 
 
 func _judge(k: int) -> void:
@@ -553,7 +610,7 @@ func _judge(k: int) -> void:
 	elif _counts[k] < least:
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.too_small(BuildCatalog.type_name(_types[k]), least, _counts[k]))
 	elif _refused_at[k] == draft.revision and not _refusals[k].is_empty():
-		_set_judgement(k, Validity.KIND_BLOCKED, _refusals[k])
+		_set_judgement(k, _refused_kind[k], _refusals[k])
 
 
 func _set_judgement(k: int, kind: int, reason: String) -> void:
@@ -632,8 +689,12 @@ func confirm_all(submit: Callable) -> PackedInt32Array:
 
 
 func _keep_refusal(k: int, answer: Variant) -> void:
-	"""Operation `k` stays in the batch, "! Blocked" with the route's own words until it changes."""
+	"""Operation `k` stays in the batch with the route's words until it changes: "! Blocked" (retried by the next
+	Confirm all), or "X Not possible" when the answer's `kind` says it can never succeed there."""
 	var words: String = String((answer as Dictionary).get("error", "")) if answer is Dictionary else ""
+	var kind: int = int((answer as Dictionary).get("kind", Validity.KIND_BLOCKED)) if answer is Dictionary \
+		else Validity.KIND_BLOCKED
+	_refused_kind[k] = Validity.KIND_NOT_POSSIBLE if kind == Validity.KIND_NOT_POSSIBLE else Validity.KIND_BLOCKED
 	_refusals[k] = words if not words.is_empty() else UNCHECKED
 	_refused_at[k] = _drafts[k].revision
 	_judged_at[k] = -1

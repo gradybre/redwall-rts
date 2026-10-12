@@ -35,11 +35,13 @@ var _stroke_ghosts: Array[Ghost] = [null, null, null]
 var _seen_revision: int = -1
 var _seen_stroke: int = -1
 var _seen_cursor: Vector3i = Vector3i(0, 0, -1)
+var _seen_level: int = -1
 var _cursor: Vector2i = Vector2i.ZERO
 var _cursor_level: int = -1
 var _armed_type: int = -1
-## Ghosts drawn in the last refresh (checks).
-var drawn: int = 0
+## Operation ghosts redrawn and stroke ghosts redrawn since configure (checks: a cursor move redraws no room).
+var operation_draws: int = 0
+var stroke_draws: int = 0
 
 
 func configure(batch: Batch, camera: Camera3D, datum_xz: Vector2i, bounds: Rect2i) -> StringName:
@@ -109,17 +111,20 @@ func screen_of(cell: Vector2i, level: int) -> Vector2:
 
 
 func refresh(shown_level: int, active: bool) -> void:
-	"""Redraw when the batch, the stroke or the cursor moved: every level's operations; the stroke or cursor and
-	the grid on the level shown while `active` (the panel open with a type armed)."""
+	"""Redraw what moved: every level's operation ghosts only when the batch changed; the stroke-or-cursor ghost and
+	the grid on the level shown (while `active`: the panel open with a type armed) when the stroke or cursor moved."""
 	var cursor_key: Vector3i = Vector3i(_cursor.x, _cursor.y, (_cursor_level * 64 + _armed_type + 1) if active else -1)
-	if _batch.revision == _seen_revision and _batch.stroke_revision == _seen_stroke and cursor_key == _seen_cursor:
+	var batch_moved: bool = _batch.revision != _seen_revision
+	if not batch_moved and _batch.stroke_revision == _seen_stroke and cursor_key == _seen_cursor \
+			and shown_level == _seen_level:
 		return
 	_seen_revision = _batch.revision
 	_seen_stroke = _batch.stroke_revision
 	_seen_cursor = cursor_key
-	drawn = 0
+	_seen_level = shown_level
 	for level: int in LEVELS:
-		_draw_operations(level)
+		if batch_moved:
+			_draw_operations(level)
 		_draw_stroke(level, active and level == shown_level)
 
 
@@ -142,12 +147,14 @@ func _draw_operations(level: int) -> void:
 		used += 1
 	for at: int in range(used, pool.size()):
 		(pool[at] as Ghost).visible = false
-	drawn += used
+	operation_draws += used
 
 
 func _draw_stroke(level: int, shown: bool) -> void:
 	"""The stroke in progress, or the cursor cell, with the level's grid -- on the level shown only."""
 	var ghost: Ghost = _stroke_ghosts[level]
+	if ghost == null:
+		return
 	ghost.visible = shown
 	if not shown:
 		return
@@ -157,7 +164,7 @@ func _draw_stroke(level: int, shown: bool) -> void:
 	if not _bounds.has_point(_cursor) and not _batch.stroke_active():
 		cells = PackedInt32Array()
 	ghost.show_cells(cells, kind, "")
-	drawn += 1
+	stroke_draws += 1
 
 
 func operation_ghosts(level: int) -> Array:

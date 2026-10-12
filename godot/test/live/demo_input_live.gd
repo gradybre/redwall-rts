@@ -72,6 +72,7 @@ func _initialize() -> void:
 		_scroll_to_the_passage_card, _enter_goes_to_the_dig_tool, _the_panel_returns_after_the_tool, _build_opens_on_b, _build_rectangles_apart, _build_minimap_hidden,
 		_build_minimap_back, _build_level_one, _build_choose_by_keyboard, _build_paint_by_keyboard, _build_undo_redo,
 		_build_ledger_expanded, _build_refusal_in_words, _build_overview, _build_close_keeps,
+		_build_many_refused, _build_many_refused_cleared,
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
 		_the_hud_workspace_keeps_the_keys, _the_workspace_covers_no_stop, _a_group_is_box_selected,
@@ -247,6 +248,26 @@ func _pantry_opens_as_a_modal() -> void:
 	_capture("pantry_open")
 
 
+func _level_keys_wait_with_the_u_view_on() -> void:
+	"""Review M1: with the U view on behind the Pantry, Page Down and Page Up change neither the view's level nor the
+	bar's (the tunnel tool's own level-key branch is gone; the gate passes navigation keys to nothing that steps)."""
+	var tunnels: Object = _command().call(&"tunnels")
+	var view: Object = tunnels.get("view")
+	var was_on: bool = bool(view.get("on"))
+	if not was_on:
+		tunnels.call(&"toggle_view")
+	var shown: int = int(view.get("level"))
+	var bar: int = int(_build().get("bar").call(&"shown_level"))
+	_key(KEY_PAGEDOWN)
+	_key(KEY_PAGEUP)
+	_key(KEY_PAGEDOWN)
+	_check("U on behind the Pantry: Page Up/Down change no level",
+		bool(view.get("on")) and int(view.get("level")) == shown and int(_build().get("bar").call(&"shown_level")) == bar,
+		"view %d->%d bar %d->%d" % [shown, int(view.get("level")), bar, int(_build().get("bar").call(&"shown_level"))])
+	if not was_on:
+		tunnels.call(&"toggle_view")
+
+
 func _pantry_blocks_the_world() -> void:
 	"""An outside right-click, a drag, B, V and Space change nothing behind the Pantry."""
 	var was_paused: bool = bool(_manager().call(&"is_paused"))
@@ -269,6 +290,7 @@ func _pantry_blocks_the_world() -> void:
 	_key(KEY_PAGEDOWN)
 	_check("Page Down neither zooms nor changes level behind it (decision 1871)",
 		is_equal_approx(float(camera.get("_target_distance")), distance) and int(_build().get("bar").call(&"shown_level")) == level)
+	_level_keys_wait_with_the_u_view_on()
 	var down := InputEventKey.new()
 	down.keycode = KEY_LEFT
 	down.pressed = true
@@ -1556,7 +1578,13 @@ func _build_refusal_in_words() -> void:
 	var reason: String = String(batch.call(&"operation_reason", 0)) if int(batch.call(&"operation_count")) > 0 else ""
 	_check("with its reason in words", not reason.is_empty(), reason)
 	var status: Label = controls[&"status"]
-	_check("Confirm all now names it", status.text.begins_with("! 1 of 1 not ready: Kitchen: "), status.text)
+	# Review H3: a site that can never take the room (here: protected water) is "X" and holds Confirm all back; any
+	# other refusal is "!" and Confirm all tries it again.
+	var never: bool = int(batch.call(&"operation_kind", 0)) == 2
+	var words: String = "X 1 of 1 not ready: Kitchen: Cannot dig here: " if never \
+		else "! Refused last time, Confirm all tries again: Kitchen: "
+	_check("the status says which (review H3)", status.text.begins_with(words), status.text)
+	_check("Confirm all held back only for X", (controls[&"confirm"] as Button).disabled == never)
 	_check("Confirm all took nothing from the stores",
 		int(_village.get_node(^"/root/EconomySystem").call(&"stock_milli", &"wood")) == wood)
 	_capture("build_refusal")
@@ -1583,6 +1611,41 @@ func _build_close_keeps() -> void:
 	_check("the command strip is back", _shell_control("ID_COMMAND_STRIP").is_visible_in_tree())
 	_build().get("batch").call(&"discard_all")
 	_command().call(&"clear_selection")
+
+
+func _build_many_refused() -> void:
+	"""Review H2: six rooms of several types, all refused by the route; the expanded ledger lists every one, stands
+	inside the panel from its top edge, clear of the alerts, and its words scroll."""
+	_key(KEY_B)
+	var batch: Object = _build().get("batch")
+	for k: int in 6:
+		batch.call(&"begin_stroke", [0, 2, 6, 5, 1, 2][k], 1, Vector2i(40 + 8 * k, 40))
+		batch.call(&"extend_stroke", Vector2i(45 + 8 * k, 43))
+		batch.call(&"finish_stroke")
+	var panel: Node = _build().get("panel")
+	panel.call(&"refresh", true)
+	var controls: Dictionary = panel.call(&"controls")
+	_click(_centre(controls[&"confirm"]))
+	panel.call(&"set_ledger_expanded", true)
+	var rect: Rect2 = panel.call(&"ledger_rect")
+	var frame: Rect2 = panel.call(&"screen_rect")
+	_check("six rooms kept, each refused in words", int(batch.call(&"pending_count")) == 6
+		and not String(batch.call(&"operation_reason", 5)).is_empty(), str(batch.call(&"pending_count")))
+	_check("the ledger lists them all", String((controls[&"ledger_scroll"] as ScrollContainer).get_child(0).get(&"text")).count("\n") >= 11)
+	_check("inside the panel from its top edge", frame.encloses(rect) and is_equal_approx(rect.position.y, frame.position.y),
+		"%s in %s" % [rect, frame])
+	_check("clear of the alerts", not rect.intersects(_screen_rect(_shell_control("ID_ALERT_STACK"))))
+	_capture("build_ledger_refused")
+
+
+func _build_many_refused_cleared() -> void:
+	"""Fold the ledger, discard the rooms, close the panel."""
+	var panel: Node = _build().get("panel")
+	panel.call(&"set_ledger_expanded", false)
+	_build().get("batch").call(&"discard_all")
+	panel.call(&"refresh", true)
+	_key(KEY_B)
+	_check("closed again", not bool(_build().call(&"is_open")))
 
 
 func _key_chord(code: Key, ctrl: bool, shift: bool) -> void:

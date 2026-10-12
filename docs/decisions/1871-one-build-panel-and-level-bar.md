@@ -94,7 +94,13 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
   - A stroke that is never valid there ("X") is dropped, and its words are said. That covers a strip one cell wide, a
     stroke past the planning area, one over another type, and one joining two planned rooms.
   - A room that is valid there but not ready ("!") stays in the batch and holds Confirm all back. That covers "too
-    small", a planner shape refusal, and the planner route's last refusal (until the room changes).
+    small" and a planner shape refusal (a hole or a pinch), judged on the room's whole union while the stroke is
+    still drawn, so a closing stroke never reads ✓.
+  - A stroke that adds no new cell to its room (painted wholly inside it) is dropped as X "Nothing to add: these cells
+    are already planned for this room". It records no Undo step (review H1).
+  - A stroke whose union with its room would pass the room's most cells is X, in the planner's capacity words, and is
+    dropped the same way. A stroke the planner's draft refuses on finish is dropped with its words, never recorded.
+  - The planner route's last refusal is kept on the room until it changes. See E6 for how it counts.
   - This follows the section's glyph semantics: ! is fixable, X is never valid here.
 - **E4. Words.** `build_validity.gd` holds the fifteen canonical reasons word for word, each with its glyph and
   token. Four reasons were added: see PROPOSAL P-B2.
@@ -106,9 +112,23 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
     level catalog, exactly as `modular_room_mode.gd` does.
   - It calls the runtime's `check_request` and then `submit_request`. The temporary nodes are freed before it returns.
   - Nothing is deducted, and no access endpoint is invented.
-  - Live, the route refused a room under the village with RoomOrders' own words: "This room would intersect
-    protected water." With no passage it says "Connect a completed passage …". The room stays in the batch with that
-    reason.
+  - **Corrected (review H3).** The first version of this entry said the missing-approach refusal goes away once a
+    passage is dug. It does not: RoomOrders asks for a prospective entry contact bound to the room, and nothing a
+    player can do from the panel or the Dig tool makes one. So no room can be ordered from the panel in this slice.
+    That is P-B11.
+  - **The coordinator's resolution of review H3** (relayed 2026-10-12). The route is kept, and `classify` maps its
+    answers into the panel's words and kinds:
+    - `PROSPECTIVE_ENTRY_CONTACT_UNBOUND` (no approach) is "! Blocked: No way in: connect to a finished Passage or
+      entrance; the way in from the build panel comes in a later update".
+    - Protected water, a paid cut, protected ground above and required footing are X "Cannot dig here: water" /
+      "occupied" / "protected ground". They can never succeed on that site, so they hold Confirm all back.
+    - Any other refusal keeps the runtime's own words as "! Blocked".
+  - A "!" route refusal does not count as invalid. It stays "! Blocked", the status line says "! Refused last time,
+    Confirm all tries again: …", and the next Confirm all retries it. Shape, size and overlap judgements still disable
+    Confirm all. `build_batch.gd retryable()` holds the rule: the room is unchanged since the refusal, and the
+    refusal was "!".
+  - Live, the route refused the harness's Kitchen under the village as X "Cannot dig here: water", and six rooms
+    painted south-east of it as "! Blocked" in the runtime's words.
 - **E7. The painting frame.**
   - Cells are world metres in the frame the planner and the entry worker already share. Cell (0, 0) is at the actual
     space domain's datum.
@@ -126,6 +146,9 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
 - **E9. Level keys are read before the HUD, everywhere.** This is how the U view's level keys were already read,
   through demo_command's `_input` hook. They are never taken behind a modal or the stall banner. At an end the bar
   says the canonical "X Not possible: No level above the surface" or "No level below level 4".
+  - **Review M1.** The Dig tool's own level-key branch read PgUp/PgDn before the gate while the U view was on, so
+    they changed level behind the Pantry. It is removed from `tunnel_control.gd`. The build hook alone reads the
+    keys. The live harness now checks PgUp/PgDn behind the Pantry with the U view on.
 - **E10. The arrow keys.** The section says "Arrows move the cell cursor" and also "WASD and arrows outside the card
   row still pan". Read together: the arrows move the cell cursor only while a room type is armed and the world has
   the keys. Otherwise they pan, and WASD always pans. Up is −Z, world-aligned (see P-B10).
@@ -145,7 +168,8 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
     - `test_demo_command.gd`'s room check is 150 px at 720 rows and 250 px above that.
     - `demo_layout_live.gd`'s "at 100 % the actions are always in view" now applies above 720 rows.
     - Its scroll-reveal checks are skipped where the inspector is shorter than a row. Every member row is still
-      checked reachable.
+      checked reachable. The skip prints a `LIVE-SKIP` line and asserts nothing (review M6). The column measured
+      156 logical px at 1280×720 against `test_demo_command.gd`'s 150 px threshold, which is kept.
   - This is a real loss in the demo at 1280×720: see P-B8.
 - **E13. The old tools are sub-modes of the panel.** A Passage, Burrow home or Root cellar card hides the panel. The
   demo's surfaces come back so the old tools' own panels show. The tool opens, and the panel returns when it closes.
@@ -158,13 +182,35 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
   question. Both questions ("Keep N pending changes?" and "Discard N pending changes?") stand in the footer's place,
   not in a modal.
 - **E17. The build panel is a planning surface** for the "Pause while planning" setting, as the Dig tool is.
-- **E18. The expanded ledger grows upward from the footer, over the panel's upper rows.** It is 320 × 160 at
-  STANDARD and NARROW, and up to 640 wide at WIDE. Placed above the panel it would cover the guide card at 1280×720.
+- **E18. The expanded ledger stands inside the panel, from its top edge down to 8 px above the footer** (review H2
+  and M3). It is 192 high, 320 wide at STANDARD and NARROW and 640 at WIDE, never wider than the footer.
+  - Its words sit in a ScrollContainer, so any number of operations scroll inside it.
+  - It never rises above the panel, so it is clear of the alerts at every profile.
+  - **M3 choice: it covers the tab row whole.** The first version started it part-way down and cut the tabs in half.
+    The alternative, hiding the tabs while it is open, was not chosen. Covering keeps the panel's layout still, and
+    folding the ledger puts the tabs back untouched.
+  - Placed above the panel it would cover the guide card at 1280×720.
 - **E19. The party panel's tool buttons and their action cards are gone.** Those cards said who would dig and what
-  they would stop. The Dig tool's own readout and `tool_card_into` remain (test kept).
+  they would stop. That information now shows on the Passage, Burrow home and Root cellar cards (review M8): the
+  panel's `card_note` hook asks `demo_build.gd`, which fills `tool_card_into` and the work interrupt words. It is
+  added to the info card and the card's tooltip.
 - **E20. A card's picture is a described placeholder** ("Picture (placeholder): …"). No room art exists (see P-B6).
 - **E21. UI-SET-027 stays locked**, as ruling 4 says. Its demo tooltip now says "In the demo, B opens the build panel:
   …" (`demo_command_tips.gd`).
+- **E23. Setup refusals are shown and disarm painting** (review M4). The refusal codes from `batch.configure` and
+  `paint.configure` are kept. The first is pushed with `UIManager.push_refusal`, and `armed_type()` is then -1.
+- **E24. The paint ghosts redraw only on a batch change** (review M5). A cursor move redraws only the stroke and
+  cursor ghost. `demo_build_paint.gd` counts both kinds of draw, and a check holds the room ghosts still while the
+  cursor moves.
+- **E25. The level bar marks a level with no way in, beside colour** (review LOW). It shows "Level 3 !" ("L3 !" at
+  NARROW), using the table's ! for "No way in". The spec's labels are otherwise unchanged, and the words "no way in
+  yet" are in the tooltip and accessible name.
+- **E26. Smaller review fixes.**
+  - The paint label keeps a 16 px safe inset from the window's edges.
+  - `quanta_per_cell` rounds up, so a part quantum is still costed.
+  - Each room is priced at the clear height of the level it was painted on (`build_catalog.gd clear_height_of`).
+  - A stroke alone no longer rebuilds the ledger or the status words.
+  - The card pool grows to fit a row, never dropping a card.
 - **E22. The ghost's states.** Valid, blocked and impossible each tint the outline with their own §2.1 token, and
   each carries a tag with its glyph and type. The section's dashed (blocked) and hatched, numbered (impossible)
   outlines are not drawn yet. The words carry the state, so UX-BUILD-T03 holds.
@@ -182,7 +228,8 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
   - X "Outside the planning area: keep the whole room inside it";
   - ! "Shape: …", the planner's own shape refusals in plain words;
   - X "Joins two planned rooms: undo one of them first";
-  - "Choose one level to paint on: Overview shows them all".
+  - "Choose one level to paint on: Overview shows them all";
+  - X "Nothing to add: these cells are already planned for this room" (review H1).
 
   Options: (a) adopt them as worded; (b) for the joining case, merge the two pending rooms in the batch instead,
   which is OPEN-06's merge applied before confirmation. **Recommend (a) now, and (b) with slice C**, where confirmed
@@ -213,6 +260,14 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
   (b) now. **Recommend (a).**
 - **P-B10. The keyboard cell cursor's directions** (E10). Options: (a) world-aligned, Up is −Z (built); (b) screen-relative,
   following the camera's yaw. **Recommend (b), in slice C.**
+- **P-B11. No room can be ordered from the panel until slices C/D add the way in** (E6, review H3). RoomOrders
+  needs a prospective entry contact bound to the room, and no step in the panel or the Dig tool makes one. Every room
+  is refused "No way in …; the way in from the build panel comes in a later update". Options:
+  - (a) accept this for slice B (built, as the coordinator resolved);
+  - (b) add a minimal way-in step now, binding a finished passage's contact to a painted room before Confirm all.
+
+  **Recommend (a).** The way in is slices C/D's connector work (UI-BUILD-012). A minimal step now would be replaced,
+  and it would need an entry rule no document states.
 
 ## Keys
 
@@ -246,11 +301,13 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
 - `demo/control/demo_party_panel.gd`: the dig and room buttons and signals removed. The column ends above the level
   bar.
 - `demo/tunnel/tunnel_control.gd`: B outside the tool, and H and C everywhere, removed. The words were updated.
+  In the review round its own PgUp/PgDn branch (`level_step`, `is_level_key`, `_level_key`) was removed too (E9, M1).
 - `demo/tunnel/tunnel_view.gd`: `set_unreached` and the `unreached` flag; the indicator's words trimmed.
 - `demo/tunnel/tunnel_panel.gd`: the "Plan an underground room" button and its action removed.
 - `demo/demo_village.gd`:
   - `_build_build_panel` mounts the panel, the bar and the hooks, a "build panel" focus region and a planning surface;
   - `build()` returns it;
+  - `set_interrupts` hands the panel the command's interrupt words for the old tools' cards (E19);
   - the help's Dig action opens the panel;
   - the planner's button wiring was removed.
 - `demo/playtest/playtest_taps.gd`: build-panel probes replace the dig and room crumbs.
@@ -264,9 +321,62 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
 
 No pinned file was touched. Neither `ui_manager.gd` nor any `scripts/core` file changed.
 
+## Review round (2026-10-12)
+
+The coordinator's review of 06aa9b08 found three high, eight medium and six low items. All were fixed in this
+worktree on top of bbbb3207. Where each fix is recorded:
+
+| Finding | Resolution |
+|---|---|
+| H1 phantom Undo step (a stroke inside its own room, or over capacity) | E3: "Nothing to add" and capacity judged on the union; the draft's revision compared before recording; a draft refusal dropped as X |
+| H2 the expanded ledger overflowed the panel | E18: a ScrollContainer inside the panel, below the alerts; checked with 12 rooms at 1280×720 and NARROW, and live with six refused rooms |
+| M3 the ledger cut the tab row in half | E18: it starts at the panel's top edge, covering the tabs whole |
+| H3 REFUSE_ENTRY never satisfiable | E6 corrected; the coordinator's resolution (`classify`, retry); P-B11 |
+| M1 PgUp/PgDn changed level behind a modal with U on | E9: the tunnel tool's own branch removed; a live check behind the Pantry |
+| M2 surviving mutants | tests for Redo never naming a confirmed room, the ring hole while drawn, and the stroke guards in `confirm_all`, `redo()` and `demo_build.gd` |
+| M4 setup refusals ignored | E23 |
+| M5 every ghost redrawn on a cursor move | E24 |
+| M6 a check that could not fail | a `LIVE-SKIP` line (E12) |
+| M7 the EconomySystem stand-in | `test_demo_build_orders.gd`: inventory, reservations, jobs, sites and identities byte-for-byte across paint, undo, redo, a refused Confirm all and discard, on the actual owners |
+| M8 `tool_card_into` had no caller | E19 |
+| LOW (six) | E25 and E26 |
+
+The live Kitchen the harness paints lies on protected water, so it now reads X and holds Confirm all back. The six
+rooms painted by the new step read "!" and leave it enabled.
+
 ## Gates
 
 Every line below is quoted from the run, never taken from an exit status.
+
+### Review round
+
+- **`./tools/run_tests.sh --fast`**, twice.
+  - First run: `12171 test(s), 1130168 assertion(s), 1 failure(s)`. The failure was `test_modular_demo_live.gd`, a
+    child's `6 ObjectDB instances were leaked at exit`. It did not recur in 3 sequential runs of the suite, nor in 8
+    parallel runs of its scene.
+  - Final run: `12175 test(s), 1130192 assertion(s), 1 failure(s)` and `diagnostics: 0 unexpected error(s), 0
+    unexpected warning(s), 278 expected, 310 tolerated; leaked at exit: 0 object(s), 0 resource(s)`. The failure was
+    `test_demo_orchard_live.gd` "the apple is tended in game time: FAIL after 2400 frames".
+  - **That failure is pre-existing on master.** The tend job loses its worker (`worker -1`) in some runs. It failed
+    2 of 5 runs here, 2 of 8 on a copy at bbbb3207, and 1 of 8 on a copy at master 1cfe1e3c, before slice B. It is
+    not this slice's, and it is left for its owner.
+- **Focused run** of the 26 touched suites, the live wrappers included. It printed `644 test(s), 14117 assertion(s),
+  0 failure(s)`, `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 206 tolerated; leaked at
+  exit: 0 object(s), 0 resource(s)` and `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0
+  object(s), 0 resource(s).`
+- **Live input harness**, with frames. `LIVE-SUMMARY 250 0` at 1280×720 and `LIVE-SUMMARY 258 0` at 1920×1080.
+  The new steps are the U view behind the Pantry, the X or ! refusal and Confirm all's state, and six refused rooms
+  with the ledger expanded (`build_ledger_refused`).
+- **Analyzer** on port 6383: `0 GDScript warning(s) in 0 of 1503 file(s)`.
+- **Contract checks.**
+  - `underground_memory_budget.py --check`: exit 0.
+  - `ready07_arithmetic.py`: `"status": "PASS"`.
+  - `decision_numbers.py`: `PASS -- 544 records, 0 problem(s)`.
+  - `merge_gate.py`, `lane_notes.py --check`, `dispatch_plan.py --validate`, `astra_inbox.py --check`,
+    `generate_canonical_state_table.py --check`, `state_registry_coverage.py` and `ui_refinement_contract.py`: PASS.
+  - `setting_contract.py`: `PASS_STATIC_SPEC_AND_REFERENCE_ONLY`.
+
+### First round (06aa9b08)
 
 - **`./tools/run_tests.sh --fast`.**
   - The run printed: `12146 test(s), 1129975 assertion(s), 2 failure(s)` and `diagnostics: 0 unexpected error(s), 0
@@ -296,6 +406,39 @@ Every line below is quoted from the run, never taken from an exit status.
     `setting_contract.py`: all PASS.
 
 ## Mutation testing
+
+### Review round
+
+There were 39 new mutants over the review's logic, and the first round's 42 were rerun (3 anchors re-pointed at the
+changed code). That makes 81 in all.
+- The new mutants covered:
+  - the batch: 14 (the revision compare, "Nothing to add", capacity, the union shape, the history guards, the retry
+    rule and the kept answer kind);
+  - the ledger: 3;
+  - the catalog: 2;
+  - the panel: 6;
+  - the geometry: 2;
+  - the level bar's mark: 1;
+  - `classify`: 4;
+  - the demo mount: 5;
+  - the painter: 2.
+- **The first pass killed 72 and left 9.** Six were real gaps, and each now has a test that kills it:
+  - Confirm all mid-stroke with a room pending (R7);
+  - the retry rule's kind and staleness (R9, R10);
+  - the dropped stroke's words (R14);
+  - the ledger on a panel narrower than it (G8);
+  - `classify` never writing the runtime's answer (O3).
+- Two of the retry rule's conditions were redundant and were removed. A route refusal's room is judged with that
+  refusal's kind, so it is retryable exactly when it is "! Blocked" at the refused revision.
+- **Final: 78 killed and 3 survived, all equivalent.**
+  - `D2`, as in the first round.
+  - `R1`: finish_stroke's revision compare. The stroke judgement already measures the union against the draft's own
+    cells, so the draft cannot record nothing for a stroke that reached it. The compare is kept as the backstop the
+    review asked for.
+  - `D6`: `demo_build.gd`'s redo guard during a keyboard stroke. `batch.redo()` refuses mid-stroke itself (R6,
+    killed). The guard is kept as the review asked.
+
+### First round (06aa9b08)
 
 There were 42 mutants, one per run (operator, constant or branch): each mutant was applied, its focused suite run,
 and the source restored. They covered:
@@ -328,6 +471,7 @@ and the source restored. They covered:
 - **Painting on the settlement's actual World.** The demo still shows the legacy warren (slice C).
 - **"No way in" judged per cell before confirmation.** This is slice C. Today the planner route says it at Confirm
   all.
+- **A way in made from the panel.** Slices C/D (P-B11). Until then no room can be ordered from the panel.
 
 ## Source
 

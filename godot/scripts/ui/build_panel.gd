@@ -51,6 +51,7 @@ const NOTHING_TO_CONFIRM: String = "Nothing to confirm yet"
 const FINISH_STROKE: String = "Finish or cancel the stroke first"
 const NOT_READY: String = "%s %d of %d not ready: %s: %s"
 const READY: String = "%d pending changes, all ready"
+const RETRY: String = "! Refused last time, Confirm all tries again: %s: %s"
 const NONE_PENDING: String = "No pending changes"
 const PICTURE: String = "Picture (placeholder): %s"
 
@@ -74,8 +75,13 @@ var _info_text: Label = null
 var _scroll: ScrollContainer = null
 var _row: HBoxContainer = null
 var _card_buttons: Array[Button] = []
+var _card_size: Vector2 = Vector2(BuildLayout.CARD_MIN_WIDTH, BuildLayout.CONTENT_HEIGHT - 12.0)
+## `note(card) -> String`: more words a host has for a card (the demo: who would dig a Passage and what they would
+## stop); "" for none. Shown in the info card and the card's tooltip.
+var card_note: Callable = Callable()
 var _ledger: Button = null
 var _ledger_open: Panel = null
+var _ledger_scroll: ScrollContainer = null
 var _ledger_text: Label = null
 var _undo: Button = null
 var _redo: Button = null
@@ -184,15 +190,20 @@ func _build_cards() -> void:
 	_row = HBoxContainer.new()
 	_row.add_theme_constant_override(&"separation", int(BuildLayout.GAP))
 	_scroll.add_child(_row)
-	for k: int in CARD_POOL:
+	_grow_cards(CARD_POOL)
+
+
+func _grow_cards(count: int) -> void:
+	"""Pooled card buttons up to `count` (cold: at build, and when a row has more cards than the pool -- no card is
+	ever dropped)."""
+	for k: int in range(_card_buttons.size(), count):
 		var card: Button = Button.new()
 		card.name = "UI-BUILD-003-%d" % k
 		card.theme_type_variation = &"WoodlandButton"
 		card.focus_mode = Control.FOCUS_ALL
-		card.clip_text = false
 		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		card.add_theme_font_size_override(&"font_size", TEXT_PX)
-		card.custom_minimum_size = Vector2(BuildLayout.CARD_MIN_WIDTH, BuildLayout.CONTENT_HEIGHT - 12.0)
+		card.custom_minimum_size = _card_size
 		card.pressed.connect(_on_card_pressed.bind(k))
 		card.focus_entered.connect(_show_card.bind(k))
 		card.mouse_entered.connect(_show_card.bind(k))
@@ -234,17 +245,22 @@ func _build_question() -> void:
 
 
 func _build_ledger_open() -> void:
-	"""UI-BUILD-005 expanded: a panel above the footer, growing upward."""
+	"""UI-BUILD-005 expanded: a panel over the content and tab rows, its words in a vertical scroll."""
 	_ledger_open = Panel.new()
 	_ledger_open.name = "UI-BUILD-005-open"
 	_ledger_open.theme_type_variation = &"WoodlandPanel"
 	_ledger_open.mouse_filter = Control.MOUSE_FILTER_STOP
 	_ledger_open.visible = false
+	_ledger_open.clip_contents = true
 	add_child(_ledger_open)
+	_ledger_scroll = ScrollContainer.new()
+	_ledger_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_ledger_open.add_child(_ledger_scroll)
 	_ledger_text = Label.new()
 	_ledger_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_ledger_text.add_theme_font_size_override(&"font_size", TEXT_PX)
-	_ledger_open.add_child(_ledger_text)
+	_ledger_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_ledger_scroll.add_child(_ledger_text)
 
 
 func _button(control_name: String, text: String, pressed: Callable) -> Button:
@@ -322,8 +338,9 @@ func _place_content() -> void:
 	_scroll.position = cards.position
 	_scroll.size = cards.size
 	var width: float = BuildLayout.CARD_MAX_WIDTH if _profile == UiLayout.PROFILE_WIDE else BuildLayout.CARD_MIN_WIDTH
+	_card_size = Vector2(width, BuildLayout.CONTENT_HEIGHT - 12.0)
 	for card: Button in _card_buttons:
-		card.custom_minimum_size = Vector2(width, BuildLayout.CONTENT_HEIGHT - 12.0)
+		card.custom_minimum_size = _card_size
 
 
 func _place_footer() -> void:
@@ -342,15 +359,14 @@ func _place_footer() -> void:
 
 
 func _place_ledger_open() -> void:
-	"""The expanded ledger above the footer's left, growing upward from it."""
-	var lines: int = maxi(_ledger_text.get_line_count(), 1)
-	var open: Vector2 = BuildLayout.ledger_open_size(lines, float(TEXT_PX + 6), _profile)
-	var footer: Rect2 = BuildLayout.footer_rect(_panel_rect.size.x)
-	var bottom: float = _panel_rect.position.y + footer.position.y - BuildLayout.GAP
-	_ledger_open.position = Vector2(_panel_rect.position.x + footer.position.x, bottom - open.y)
-	_ledger_open.size = open
-	_ledger_text.position = Vector2(BuildLayout.PADDING, BuildLayout.PADDING)
-	_ledger_text.size = open - 2.0 * Vector2(BuildLayout.PADDING, BuildLayout.PADDING)
+	"""The expanded ledger at the panel's top edge down to the footer (build_layout.gd `ledger_open_rect`)."""
+	var open: Rect2 = BuildLayout.ledger_open_rect(_panel_rect, _profile)
+	_ledger_open.position = open.position
+	_ledger_open.size = open.size
+	var inner: Vector2 = Vector2(BuildLayout.PADDING, BuildLayout.PADDING)
+	_ledger_scroll.position = inner
+	_ledger_scroll.size = open.size - 2.0 * inner
+	_ledger_text.custom_minimum_size.x = maxf(open.size.x - 2.0 * inner.x - 16.0, 0.0)
 
 
 # --- opening, closing, the level -----------------------------------------------------------------------------------
@@ -538,6 +554,7 @@ func _sync_tabs() -> void:
 
 func _sync_cards() -> void:
 	"""Each pooled button shows its card's words: name, cost, size, and a lock line when locked."""
+	_grow_cards(_cards.size())
 	for k: int in _card_buttons.size():
 		var button: Button = _card_buttons[k]
 		button.visible = k < _cards.size()
@@ -548,7 +565,13 @@ func _sync_cards() -> void:
 		var mark: String = "✓ " if _chosen != null and card.id == _chosen.id else ""
 		button.text = "%s%s\n%s%s" % [mark, card.name, card.footprint, lock]
 		button.accessibility_name = card.accessible_name()
-		button.tooltip_text = card.accessible_name()
+		var note: String = _note_of(card)
+		button.tooltip_text = card.accessible_name() if note.is_empty() else "%s\n%s" % [card.accessible_name(), note]
+
+
+func _note_of(card: BuildCatalog.Card) -> String:
+	"""The host's extra words for `card` ("" without a host note)."""
+	return String(card_note.call(card)) if card_note.is_valid() else ""
 
 
 func _on_card_pressed(index: int) -> void:
@@ -570,7 +593,9 @@ func _sync_info() -> void:
 		_info.accessibility_name = BuildCatalog.NOTHING_CHOSEN
 		return
 	var lock: String = "" if card.usable() else "\n%s" % Validity.line(Validity.KIND_BLOCKED, card.locked)
-	_info_text.text = "%s\n%s\n%s\n%s%s" % [card.name, card.purpose, card.cost, card.rules, lock]
+	var note: String = _note_of(card)
+	_info_text.text = "%s\n%s\n%s\n%s%s%s" % [card.name, card.purpose, card.cost, card.rules, lock,
+		"" if note.is_empty() else "\n" + note]
 	_info.accessibility_name = "%s; %s; %s; %s; %s; %s" % [PICTURE % card.picture, card.name, card.purpose, card.cost,
 		card.rules, card.gesture]
 	_info.tooltip_text = "%s\n%s" % [PICTURE % card.picture, card.gesture]
@@ -593,11 +618,13 @@ func refresh(force: bool) -> void:
 	"""Re-read the batch: the footer, the status words and the accessible names (cold: on a batch change)."""
 	if _batch == null or (not force and _batch.revision == _seen_revision and _batch.stroke_revision == _seen_stroke):
 		return
+	var batch_changed: bool = force or _batch.revision != _seen_revision
 	_seen_revision = _batch.revision
 	_seen_stroke = _batch.stroke_revision
 	_sync_history()
 	_sync_confirm()
-	_sync_ledger()
+	if batch_changed:
+		_sync_ledger()
 	_frame.accessibility_name = ACCESSIBLE % [LevelBar.level_name(_level), _batch.pending_count()]
 	_question.visible = _question_kind != QUESTION_NONE
 	for control: Button in _footer:
@@ -627,8 +654,22 @@ func _sync_confirm() -> void:
 	_confirm.accessibility_name = "Confirm all; %d changes" % pending
 	_confirm.tooltip_text = blocked if not blocked.is_empty() else _confirm.accessibility_name
 	_confirm.accessibility_description = blocked
-	_status.text = blocked if not blocked.is_empty() and pending > 0 else (READY % pending if pending > 0 else NONE_PENDING)
+	_status.text = status_words(blocked)
 	_status.tooltip_text = _status.text
+
+
+func status_words(blocked: String) -> String:
+	"""The status line: why Confirm all is held back; else a room the route refused last time (retried by Confirm
+	all); else how many changes are ready; else none pending."""
+	var pending: int = _batch.pending_count()
+	if pending == 0:
+		return NONE_PENDING
+	if not blocked.is_empty():
+		return blocked
+	var refused: int = _batch.first_refused()
+	if refused >= 0:
+		return RETRY % [BuildCatalog.type_name(_batch.operation_type(refused)), _batch.operation_reason(refused)]
+	return READY % pending
 
 
 func confirm_blocked() -> String:
@@ -648,10 +689,10 @@ func confirm_blocked() -> String:
 
 func _sync_ledger() -> void:
 	"""UI-BUILD-005: the short form on the button, the full one when expanded and in the accessible name."""
-	var cells: int = _batch.total_cells()
+	var cells: int = _sum_tally()
 	var wood: int = int(_stock.call(&"wood")) if _stock.is_valid() else 0
 	var stone: int = int(_stock.call(&"stone")) if _stock.is_valid() else 0
-	var summary: String = Ledger.summary(cells, _catalog_height(), wood, stone, _tally)
+	var summary: String = Ledger.summary_of(_tally, cells > 0, wood, stone)
 	_ledger.accessibility_name = summary
 	_ledger.tooltip_text = summary
 	_ledger.text = _short_ledger(cells) + (" ▾" if _ledger.button_pressed else " ▴")
@@ -659,16 +700,24 @@ func _sync_ledger() -> void:
 	_place_ledger_open()
 
 
-func _catalog_height() -> int:
-	"""The clear height the catalog prices cells at."""
-	return _catalog.clear_height() if _catalog != null else Ledger.DEFAULT_CLEAR_HEIGHT_U
+func _sum_tally() -> int:
+	"""Every pending operation's cells into `_tally`, each at its own level's clear height; returns the cells."""
+	_tally.resize(Ledger.SLOTS)
+	_tally.fill(0)
+	var cells: int = 0
+	for k: int in _batch.operation_count():
+		var count: int = _batch.operation_cell_count(k)
+		if count > 0:
+			Ledger.add_into(count, _catalog.clear_height_of(_batch.operation_level(k)), _tally)
+			cells += count
+	return cells
 
 
 func _short_ledger(cells: int) -> String:
-	"""The collapsed ledger: "Plan: 24 logs · 24 blocks · work about 6.8 hours" (all of it is in the expanded view)."""
+	"""The collapsed ledger (`_tally` already summed): "Plan: 24 logs · 24 blocks · work about 6.8 hours" -- all of it
+	is in the expanded view."""
 	if cells <= 0:
 		return "Plan: nothing yet"
-	Ledger.totals_into(cells, _catalog_height(), _tally)
 	return "Plan: %s · %s\nwork %s" % [Measures.need_cell(&"wood", _tally[Ledger.WOOD]),
 		Measures.need_cell(&"stone", _tally[Ledger.STONE]), Ledger.work_text(int(_tally[Ledger.WORK]))]
 
@@ -806,4 +855,4 @@ func controls() -> Dictionary:
 	"""The panel's named controls (checks and the host's focus region)."""
 	return {&"tabs": _tabs, &"ledger": _ledger, &"undo": _undo, &"redo": _redo, &"discard": _discard,
 		&"confirm": _confirm, &"yes": _question_yes, &"no": _question_no, &"status": _status, &"where": _where,
-		&"frame": _frame, &"info": _info}
+		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll}

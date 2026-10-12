@@ -23,11 +23,23 @@ const Draft := preload("res://demo/burrow/modular_draft.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Footprint := preload("res://scripts/core/room_footprint.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
+const Validity := preload("res://scripts/ui/build_validity.gd")
+const RoomBindings := preload("res://scripts/core/underground_room_bindings.gd")
 
 ## The initial level pack's square in cells (data/underground/initial_level_pack.json: datum x/z 0, 256 quanta).
 const DEFAULT_BOUNDS: Rect2i = Rect2i(0, 0, 256, 256)
 const PITCH_U: int = 1024
 const NOT_COMPOSED: String = "the settlement's underground is not ready in this run, so nothing can be ordered"
+## The coordinator's resolution of review H3 (decision 1871): RoomOrders' missing-approach refusal in the canonical
+## BUILD-REQ-013 words, with the plain clause that the way in itself is a later update (slices C/D).
+const LATER_WAY_IN: String = "; the way in from the build panel comes in a later update"
+## RoomOrders refusals that can never succeed on that site, in the canonical ECON-003 words ("X Cannot dig here").
+const NEVER_HERE: Dictionary = {
+	&"TERRAIN_WATER_PROTECTED": "water",
+	&"ROOM_PAID_CUT_OCCUPIED": "occupied",
+	&"ROOM_PROTECTED_ABOVE_OCCUPIED": "protected ground",
+	&"ROOM_REQUIRED_FOOTING_OCCUPIED": "protected ground",
+}
 
 var _orders: WeakRef = null
 var _bindings: WeakRef = null
@@ -70,9 +82,7 @@ func bind_owners(orders: Object, bindings: Object, levels: Levels, camera: Camer
 	_datum = datum
 	_bounds = bounds
 	_capacity = capacity
-	var record: Levels.Record = Levels.Record.new()
-	if levels != null and levels.level_into(1, 0, record) == &"":
-		_clear_height = record.clear_height_u
+	_clear_height = clear_height_of(1)
 
 
 static func grid_bounds(bounds_u: PackedInt32Array, datum: Vector3i) -> Rect2i:
@@ -101,8 +111,17 @@ func cell_capacity() -> int:
 
 
 func clear_height() -> int:
-	"""The levels' clear height (the ledger prices a cell by it)."""
+	"""Level 1's clear height (the ledger prices a cell by its own level's: `clear_height_of`)."""
 	return _clear_height
+
+
+func clear_height_of(level: int) -> int:
+	"""Level `level`'s clear height from the bound level catalog (the level pack's 4096 u when unbound or unknown)."""
+	var levels: Levels = _owner(_levels) as Levels
+	var record: Levels.Record = Levels.Record.new()
+	if levels != null and levels.level_into(level, 0, record) == &"" and record.has_roof:
+		return record.clear_height_u
+	return Ledger.DEFAULT_CLEAR_HEIGHT_U
 
 
 func datum_u() -> Vector3i:
@@ -152,7 +171,24 @@ func _check_and_submit(editor: Editor, tool: Tool) -> Dictionary:
 	var words: String = runtime.check_request(request)
 	var answer: Dictionary = {"ok": false, "error": words} if not words.is_empty() else runtime.submit_request(request)
 	runtime.disconnect_view()
-	return answer
+	return classify(answer)
+
+
+static func classify(answer: Dictionary) -> Dictionary:
+	"""A refused answer in the build panel's words and kind (decision 1871, H3): no approach is "! Blocked: No way in:
+	…" (retried by the next Confirm all); water, a cut or protected ground is "X Not possible: Cannot dig here: …";
+	anything else "! Blocked" with the runtime's own words. An admitted answer is returned as it came."""
+	if bool(answer.get("ok", false)):
+		return answer
+	var code: StringName = answer.get("error_code", &"")
+	var out: Dictionary = answer.duplicate()
+	out["kind"] = Validity.KIND_BLOCKED
+	if code == RoomBindings.REFUSE_ENTRY:
+		out["error"] = Validity.no_way_in() + LATER_WAY_IN
+	elif NEVER_HERE.has(code):
+		out["kind"] = Validity.KIND_NOT_POSSIBLE
+		out["error"] = Validity.cannot_dig(NEVER_HERE[code])
+	return out
 
 
 func _never_blocked() -> bool:

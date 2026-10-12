@@ -125,3 +125,18 @@ func test_choosing_an_unknown_level_does_nothing() -> void:
 	_bar.choose(6)
 	assert_equal(_chosen.size(), 0, "nothing chosen")
 	assert_null(_bar.level_button(7), "no button past the six")
+
+
+func test_an_unreached_level_carries_a_mark_besides_colour() -> void:
+	"""Review LOW: "Level 3 !" (NARROW "L3 !"); the spec's labels otherwise unchanged; the mark goes with the way in."""
+	_bar.set_reachable(3, false)
+	assert_equal(_bar.level_button(3).text, "Level 3 !", "marked")
+	assert_equal(_bar.level_button(2).text, "Level 2", "a reached level unmarked")
+	assert_equal(_bar.level_button(3).tooltip_text, "Underground level 3; no way in yet", "the words in the tooltip")
+	var geometry: UiLayout.Geometry = UiLayout.Geometry.new()
+	assert_true(UiLayout.new().compute_into(1280, 720, 150, false, geometry), "NARROW geometry")
+	_bar.place(geometry, true)
+	assert_equal(_bar.level_button(3).text, "L3 !", "NARROW marked")
+	assert_equal(_bar.level_button(5).text, "All", "NARROW's labels kept")
+	_bar.set_reachable(3, true)
+	assert_equal(_bar.level_button(3).text, "L3", "the mark leaves with a way in")

@@ -239,16 +239,14 @@ func test_two_by_two_is_build_req_002() -> void:
 	assert_true(Batch.two_by_two(PackedInt32Array()), "nothing to fail")
 
 
-func test_painting_undoing_and_discarding_touch_no_store_reservation_or_job() -> void:
-	"""UX-BUILD-T04: the batch holds no owner reference at all; the settlement's stock does not move."""
-	var wood_before: int = EconomySystem.stock_milli(&"wood")
-	var stone_before: int = EconomySystem.stock_milli(&"stone")
+func test_the_batch_holds_no_owner_reference() -> void:
+	"""UX-BUILD-T04's structural half: the batch references no Node and no owner at all (the actual owners' bytes,
+	reservations and jobs are checked unchanged across painting, Undo, Discard and Confirm all in
+	test_demo_build_orders.gd)."""
 	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
 	_batch.undo()
 	_batch.redo()
 	_batch.discard_all()
-	assert_equal(EconomySystem.stock_milli(&"wood"), wood_before, "wood unchanged")
-	assert_equal(EconomySystem.stock_milli(&"stone"), stone_before, "stone unchanged")
 	for property: Dictionary in _batch.get_property_list():
 		var value: Variant = _batch.get(property.name)
 		assert_false(value is Node, "%s is no Node" % property.name)
@@ -276,3 +274,139 @@ func test_a_stroke_over_its_own_room_counts_the_union_once() -> void:
 	assert_equal(_batch.stroke_reason(), Validity.too_small("Pantry", 16, 12), "the union, not the sum")
 	assert_equal(_batch.finish_stroke(), Validity.KIND_BLOCKED, "kept, blocked")
 	assert_equal(_batch.operation_cell_count(0), 12, "one room of 12 cells")
+
+
+func test_a_stroke_inside_its_own_room_adds_nothing_and_no_undo_step() -> void:
+	"""Review H1: Kitchen 6×4, Dormitory 6×6, a 3×2 Kitchen stroke inside the Kitchen: dropped, words, no step; the
+	first Undo then removes the Dormitory, never the Kitchen."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_paint(DORMITORY, 1, Vector2i(10, 0), Vector2i(15, 5))
+	var steps: int = _batch.history_size()
+	assert_true(_batch.begin_stroke(KITCHEN, 1, Vector2i(1, 1)), "begun")
+	_batch.extend_stroke(Vector2i(3, 2))
+	assert_equal(_batch.stroke_reason(), Validity.nothing_new(), "nothing to add, before release")
+	assert_equal(_batch.stroke_kind(), Validity.KIND_NOT_POSSIBLE, "never ✓")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_NOT_POSSIBLE, "dropped")
+	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.nothing_new()), "said why")
+	assert_equal(_batch.history_size(), steps, "no phantom step")
+	assert_true(_batch.undo(), "Undo")
+	assert_equal(_batch.operation_cell_count(0), 24, "the Kitchen is untouched")
+	assert_equal(_batch.pending_count(), 1, "the Dormitory went")
+
+
+func test_a_room_past_the_capacity_is_not_possible_and_records_nothing() -> void:
+	"""Review H1: a stroke whose room would pass a room's most cells is X before release and joins nothing."""
+	var small: Batch = Batch.new()
+	assert_equal(small.configure(BuildCatalog.new(), BOUNDS, 40), &"", "a 40-cell capacity")
+	small.begin_stroke(KITCHEN, 1, Vector2i(0, 0))
+	small.extend_stroke(Vector2i(5, 3))
+	assert_equal(small.finish_stroke(), Validity.KIND_CAN_BUILD, "24 cells")
+	small.begin_stroke(KITCHEN, 1, Vector2i(0, 4))
+	small.extend_stroke(Vector2i(5, 7))
+	assert_equal(small.stroke_kind(), Validity.KIND_NOT_POSSIBLE, "48 > 40")
+	assert_equal(small.stroke_reason(), Validity.shape(Batch.shape_words(&"FOOTPRINT_CAPACITY")), "in words")
+	assert_equal(small.finish_stroke(), Validity.KIND_NOT_POSSIBLE, "dropped")
+	assert_equal(small.history_size(), 1, "one step only")
+	assert_equal(small.operation_cell_count(0), 24, "unchanged")
+	small.begin_stroke(KITCHEN, 1, Vector2i(20, 20))
+	small.extend_stroke(Vector2i(27, 25))
+	assert_equal(small.stroke_kind(), Validity.KIND_NOT_POSSIBLE, "a new room past it too")
+
+
+func test_redo_never_names_a_confirmed_room() -> void:
+	"""Review M2 / BUILD-REQ-020: undone, then confirmed, a room leaves Redo too."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_paint(KITCHEN, 1, Vector2i(0, 4), Vector2i(5, 5))
+	_batch.undo()
+	assert_true(_batch.can_redo(), "a redo step on the Kitchen")
+	_batch.confirm_all(_submit)
+	assert_false(_batch.can_redo(), "the confirmed Kitchen is out of Redo's reach")
+	assert_equal(_batch.redo_label(), "Nothing to redo", "and Redo says so")
+
+
+func test_a_ring_with_a_hole_is_blocked_while_drawn_and_after() -> void:
+	"""Review M2: four rectangles round a gap make FOOTPRINT_HOLES_NOT_ALLOWED -- never ✓."""
+	_paint(PANTRY, 1, Vector2i(0, 0), Vector2i(5, 1))
+	_paint(PANTRY, 1, Vector2i(0, 2), Vector2i(1, 5))
+	_paint(PANTRY, 1, Vector2i(4, 2), Vector2i(5, 5))
+	assert_true(_batch.begin_stroke(PANTRY, 1, Vector2i(2, 4)), "the closing stroke")
+	_batch.extend_stroke(Vector2i(3, 5))
+	assert_equal(_batch.stroke_kind(), Validity.KIND_BLOCKED, "never ✓ while drawn")
+	assert_equal(_batch.stroke_reason(), Validity.shape(Batch.shape_words(&"FOOTPRINT_HOLES_NOT_ALLOWED")), "a hole, in words")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_BLOCKED, "kept, blocked")
+	assert_equal(_batch.operation_kind(0), Validity.KIND_BLOCKED, "the ring is blocked")
+	assert_equal(_batch.operation_reason(0), Validity.shape(Batch.shape_words(&"FOOTPRINT_HOLES_NOT_ALLOWED")), "in words")
+	assert_equal(_batch.first_invalid(), 0, "and holds Confirm all back")
+
+
+func test_confirm_all_and_redo_wait_for_the_stroke_in_progress() -> void:
+	"""Review M2: no order and no redo while a stroke is drawn."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_paint(PANTRY, 1, Vector2i(10, 0), Vector2i(13, 3))
+	_batch.undo()
+	assert_equal(_batch.pending_count(), 1, "the Kitchen pending, the Pantry undone")
+	_batch.begin_stroke(PANTRY, 1, Vector2i(20, 20))
+	assert_false(_batch.redo(), "no redo mid-stroke")
+	assert_equal(_batch.confirm_all(_submit), PackedInt32Array([0, 0]), "no order mid-stroke")
+	assert_equal(_submitted.size(), 0, "the route untouched")
+
+
+func test_a_route_refusal_is_retried_and_never_holds_confirm_all_back() -> void:
+	"""Review H3 (the coordinator's resolution): a "!" route refusal stays in words, is retried by the next Confirm
+	all and does not disable it; an "X" one holds it back."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_paint(PANTRY, 1, Vector2i(10, 0), Vector2i(13, 3))
+	_answers = [{"ok": false, "error": "No way in", "kind": Validity.KIND_BLOCKED},
+		{"ok": false, "error": "Cannot dig here: water", "kind": Validity.KIND_NOT_POSSIBLE}]
+	_batch.confirm_all(_submit)
+	assert_true(_batch.retryable(0), "the Kitchen is retried")
+	assert_equal(_batch.operation_line(0), "Kitchen (+24 cells): ! Blocked: No way in", "in words")
+	assert_equal(_batch.first_refused(), 0, "the first refused")
+	assert_equal(_batch.operation_kind(1), Validity.KIND_NOT_POSSIBLE, "the Pantry: X")
+	assert_equal(_batch.first_invalid(), 1, "only the X holds Confirm all back")
+	_batch.undo()
+	assert_equal(_batch.first_invalid(), -1, "the Pantry undone: nothing holds it back")
+	_submitted.clear()
+	_answers = [{"ok": true, "error": ""}]
+	assert_equal(_batch.confirm_all(_submit), PackedInt32Array([1, 0]), "retried and ordered")
+	assert_equal(_submitted.size(), 1, "the Kitchen went again")
+
+
+func test_a_refusal_goes_stale_once_its_room_changes() -> void:
+	"""Review H3: a refused room that changes is judged afresh; "too small" again holds Confirm all back, never
+	retried as the old refusal."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(3, 3))
+	_paint(KITCHEN, 1, Vector2i(4, 0), Vector2i(5, 3))
+	_answers = [{"ok": false, "error": "No way in", "kind": Validity.KIND_BLOCKED}]
+	_batch.confirm_all(_submit)
+	assert_true(_batch.retryable(0), "refused: retried")
+	assert_true(_batch.undo(), "the second stroke undone: 16 cells")
+	assert_false(_batch.retryable(0), "the old refusal no longer stands")
+	assert_equal(_batch.first_invalid(), 0, "too small holds Confirm all back")
+	assert_equal(_batch.first_refused(), -1, "nothing to retry")
+
+
+func test_cells_the_draft_already_holds_are_nothing_to_add() -> void:
+	"""Review H1: a stroke over cells the room's draft already holds -- even cells added underneath the batch -- is
+	judged against the draft itself and dropped as "Nothing to add", with no Undo step."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	var draft: Draft = _batch.operation_draft(0)
+	draft.begin_stroke(Draft.RECTANGLE, Vector2i(6, 0), 0, false)
+	draft.extend_stroke(Vector2i(7, 3))
+	assert_equal(draft.finish_stroke(), &"", "the draft grown underneath")
+	var steps: int = _batch.history_size()
+	assert_equal(_paint(KITCHEN, 1, Vector2i(6, 0), Vector2i(7, 3)), Validity.KIND_NOT_POSSIBLE, "dropped")
+	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.nothing_new()), "in words")
+	assert_equal(_batch.history_size(), steps, "no Undo step")
+
+
+func test_a_stroke_the_draft_refuses_is_dropped_with_its_words() -> void:
+	"""Review H1: the planner's own refusal on finish (here its capacity, smaller than the batch was told) drops the
+	stroke as "X" with the planner's words, and records nothing."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_batch._capacity = CAPACITY * 4
+	var steps: int = _batch.history_size()
+	assert_equal(_paint(KITCHEN, 1, Vector2i(0, 4), Vector2i(127, 127)), Validity.KIND_NOT_POSSIBLE, "dropped")
+	assert_true(_batch.last_dropped().begins_with("X Not possible: Shape: "), _batch.last_dropped())
+	assert_equal(_batch.history_size(), steps, "no Undo step")
+	assert_equal(_batch.operation_cell_count(0), 24, "the room unchanged")

@@ -274,3 +274,81 @@ func test_card_buttons_carry_the_cards_accessible_names() -> void:
 	assert_true(locked.text.contains("! Not yet"), "a locked card shows its glyph: %s" % locked.text)
 	assert_false(_panel.card_button(12).visible, "the pool's spare buttons are hidden")
 	assert_null(_panel.card_button(99), "none past the pool")
+
+
+func test_the_expanded_ledger_scrolls_many_operations_inside_the_panel() -> void:
+	"""Review H2: twelve rooms (most of them refused) never push the ledger over the footer, off screen or over the
+	alerts: it stands inside the panel and its words scroll. At 1280×720 and at NARROW."""
+	for k: int in 12:
+		_batch.begin_stroke(6, 1, Vector2i(k * 6, 40))
+		_batch.extend_stroke(Vector2i(k * 6 + 3, 43))
+		_batch.finish_stroke()
+	var answer: Dictionary = {"ok": false, "error": "No way in: connect to a finished Passage or entrance", "kind": 1}
+	_batch.confirm_all(func(_d: Object, _l: int, _t: int) -> Dictionary: return answer)
+	for percent: int in [100, 150]:
+		_place(1280, 720, percent)
+		_panel.set_ledger_expanded(true)
+		var open: Rect2 = _panel.ledger_rect()
+		assert_true(open.size.y > 0.0 and _panel.screen_rect().encloses(open), "%d%%: inside the panel %s" % [percent, open])
+		assert_equal(open.position.y, _panel.screen_rect().position.y, "%d%%: from its top edge, below the alerts" % percent)
+		assert_true(_panel.ledger_lines("T").count("\n") >= 13, "%d%%: every room listed" % percent)
+		var scroll: ScrollContainer = _panel.controls()[&"ledger_scroll"]
+		assert_true(scroll.position.y + scroll.size.y <= open.size.y / _panel.scale.y, "%d%%: the words scroll inside it" % percent)
+		_panel.set_ledger_expanded(false)
+
+
+func test_a_route_refusal_reads_in_the_status_and_confirm_all_stays_enabled() -> void:
+	"""Review H3: "! Refused last time, Confirm all tries again: …"; Confirm all enabled."""
+	_paint(Vector2i(0, 0), Vector2i(5, 3))
+	var answer: Dictionary = {"ok": false, "error": "No way in: x", "kind": 1}
+	_batch.confirm_all(func(_d: Object, _l: int, _t: int) -> Dictionary: return answer)
+	_panel.refresh(true)
+	assert_false((_panel.controls()[&"confirm"] as Button).disabled, "Confirm all still enabled: it retries")
+	assert_equal((_panel.controls()[&"status"] as Label).text,
+		"! Refused last time, Confirm all tries again: Kitchen: No way in: x", "the status says so")
+
+
+func test_a_row_longer_than_the_pool_drops_no_card() -> void:
+	"""Review LOW: the card pool grows; every card gets a button."""
+	var many: Array[BuildCatalog.Card] = []
+	for k: int in BuildPanel.CARD_POOL + 5:
+		many.append(_catalog.room_card(k % 7, ""))
+	_panel._cards = many
+	_panel._sync_cards()
+	assert_true(_panel.card_button(BuildPanel.CARD_POOL + 4) != null, "the 21st card has a button")
+	assert_true(_panel.card_button(BuildPanel.CARD_POOL + 4).visible, "shown")
+
+
+func test_a_stroke_alone_does_not_rebuild_the_ledger() -> void:
+	"""Review LOW: a stroke's moves redraw the history and Confirm all, never the ledger's words."""
+	_paint(Vector2i(0, 0), Vector2i(5, 3))
+	var ledger: Button = _panel.controls()[&"ledger"]
+	ledger.text = "SENTINEL"
+	_batch.begin_stroke(KITCHEN, 1, Vector2i(20, 20))
+	_batch.extend_stroke(Vector2i(23, 23))
+	_panel.refresh(false)
+	assert_equal(ledger.text, "SENTINEL", "the ledger untouched by the stroke")
+	assert_equal(_panel.confirm_blocked(), "Finish or cancel the stroke first", "Confirm all followed it")
+
+
+func test_a_card_note_from_the_host_is_shown() -> void:
+	"""Review M8's hook: a host's note for a card shows in the info card and the tooltip."""
+	_panel.card_note = func(card: BuildCatalog.Card) -> String: return "NOTE %s" % card.name
+	_panel._show_card(0)
+	assert_true(_panel.info_text().ends_with("NOTE Dormitory"), _panel.info_text())
+	_panel._sync_cards()
+	assert_true(_panel.card_button(0).tooltip_text.ends_with("NOTE Dormitory"), "tooltip")
+	_panel.card_note = Callable()
+
+
+func test_the_ledger_prices_each_room_at_its_own_level() -> void:
+	"""Review LOW: a room on a taller level costs more in the ledger than the same room on level 1."""
+	_catalog.set_level_clear_height(2, 8192)
+	_paint(Vector2i(0, 0), Vector2i(5, 3))
+	var level_one: String = (_panel.controls()[&"ledger"] as Button).accessibility_name
+	_batch.discard_all()
+	_batch.begin_stroke(KITCHEN, 2, Vector2i(0, 0))
+	_batch.extend_stroke(Vector2i(5, 3))
+	_batch.finish_stroke()
+	_panel.refresh(false)
+	assert_true((_panel.controls()[&"ledger"] as Button).accessibility_name != level_one, "level 2 priced its own way")

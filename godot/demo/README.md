@@ -1065,7 +1065,8 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
   later update"), but every card stays inspectable.
 - **Rooms**: the seven GDD room types (Dormitory, Bedroom, Kitchen, Dining room, Common room, Infirmary, Pantry) to
   paint on levels 1-2; **Passage** opens the Dig tool, **Burrow home** / **Root cellar** the room tool, each with its
-  own confirm (the panel hides until the tool closes). On the surface, on Overview and on a level with no way in the
+  own confirm (the panel hides until the tool closes); their info card and tooltip say who would dig and what they
+  would stop. On the surface, on Overview and on a level with no way in the
   room types are locked with the reason in words; Earth, Remove, Outdoor and Clear ground are locked "Not yet".
 - **The info card** follows the hovered or focused card: a described placeholder picture, its purpose, its cost per
   cell in natural measures (a log of wood, a block of stone, about 17 minutes of work, 4 baskets of earth out:
@@ -1074,20 +1075,25 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
 - **Painting** (a room type chosen, the U view on level 1 or 2): **left drag** a rectangle on the floor -- a gold
   ghost with a label "Paint Kitchen 6 × 4 cells (6 m × 4 m)" and its validity, **✓ Can build**, **! Blocked: …** or
   **X Not possible: …** (never by colour alone). Release adds it to the batch: a stroke touching a planned room of its
-  type grows it; one over another type, one cell wide, outside the planning area or joining two planned rooms is
-  dropped, saying why. Right click or Esc cancels the stroke. Keyboard: the arrows move the cell cursor (north is −Z),
+  type grows it; one over another type, one cell wide, outside the planning area, joining two planned rooms, past a
+  room's most cells, or adding no new cell ("Nothing to add") is dropped, saying why, with no Undo step. A stroke that
+  would leave a hole or a pinch reads "! Blocked: Shape: …" while it is still drawn. Right click or Esc cancels the stroke. Keyboard: the arrows move the cell cursor (north is −Z),
   Enter sets the first corner and Enter the second. The planning area is the settlement's actual underground (the level
   pack's 0..256 m square): under the village that is its south-east quadrant (x, z ≥ 0).
-- **The footer**: the **ledger** (click to expand: one line per room type, every operation's validity, and what the
-  plan needs -- wood, stone, work, earth out -- beside what the stores hold; it reserves nothing), **Undo** / **Redo**
+- **The footer**: the **ledger** (click to expand over the panel's tabs and cards, from its top edge, its words
+  scrolling: one line per room type, every operation's validity, and what the plan needs -- wood, stone, work, earth
+  out, each room at its own level's height -- beside what the stores hold; it reserves nothing), **Undo** / **Redo**
   (Ctrl+Z; Ctrl+Shift+Z or Ctrl+Y; 32 steps; "Nothing to undo"), **Discard all** (asks once) and **Confirm all**,
   disabled while any room is not ready, naming the first reason and the count. Confirm all sends each room through
-  the planner's route to the settlement's RoomOrders; nothing is taken from the stores. Today it refuses every room in
-  its own words (no completed passage reaches one yet; or protected water), and the room stays in the batch with that
-  reason. Painting, Undo, Redo and Discard all touch no store, reservation or job.
+  the planner's route to the settlement's RoomOrders; nothing is taken from the stores. Today it refuses every room
+  (decision 1871 P-B11): with no way in, "! Blocked: No way in: connect to a finished Passage or entrance; the way in
+  from the build panel comes in a later update"; on water or protected ground, "X Not possible: Cannot dig here: …".
+  The room stays in the batch with that reason. A "!" refusal leaves Confirm all enabled -- the status says "! Refused
+  last time, Confirm all tries again: …" -- and an "X" one holds it back. Painting, Undo, Redo and Discard all touch no store, reservation or job.
 - **The level bar** (always shown, bottom left above the minimap): Surface, Level 1-4, Overview. **PageUp / PageDown**
   step Surface ... Level 4 everywhere; Overview only by a click (the surface view, painting off). Level 1/2 are the U
-  view's; Levels 3-4 read "no way in yet" (the demo's warren has two levels) and show nothing. U still toggles the
+  view's; Levels 3-4 are marked "Level 3 !" and say "no way in yet" (the demo's warren has two levels) and show
+  nothing. U still toggles the
   view and the bar follows. The selection is kept across every level change.
 - The modular planner's separate view ("Plan an underground room") has no entry any more; its harness opens it directly
   (`burrow/modular_demo_live.gd`).

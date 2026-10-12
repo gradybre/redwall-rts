@@ -61,10 +61,9 @@ extends Node3D
 ## THE EXTENSIONS (tunnel_ext.gd: weather, hauling, upgrades, hazards, finds, ground, crews, threats) are
 ## built here and handed what this tool does not take.
 ##
-## THE SECOND LEVEL (decision 0212). In Underground, PgUp and PgDn show level 1 and level 2 (tunnel_view.gd THE
-## LEVELS) -- read before the HUD and the camera (`takes_before_gui`). In the demo the level bar (decision 1871,
-## demo/build_panel/demo_build.gd) reads them first, everywhere, and maps them onto this; PgUp/PgDn never zoom now (= and
-## - do), and U stays the view's switch. The Dig
+## THE SECOND LEVEL (decision 0212). The U view shows level 1 or level 2 (tunnel_view.gd THE LEVELS; `show_level`).
+## PgUp/PgDn are the level bar's (decision 1871, demo/build_panel/demo_build.gd): it reads them, never behind a modal,
+## and maps them onto `show_level`; this tool takes none of them. U stays the view's switch. The Dig
 ## tool lays pieces and rooms on the level shown: a piece on level 2 starts on its network (a stair's or ramp's
 ## foot, a junction, a bore) and may end blind. L in the tool lays a LINK down between the levels instead -- L once
 ## a RAMP, again STAIRS, again back to tunnels: click (or press) its head on level 1's network and release (or
@@ -300,9 +299,8 @@ func notice() -> String:
 # --- input ----------------------------------------------------------------------------------
 
 func handle_input(event: InputEvent) -> bool:
-	"""Apply one event; true when it was a tunnel input (and so consumed)."""
-	if _level_key(event):
-		return true
+	"""Apply one event; true when it was a tunnel input (and so consumed). PgUp/PgDn are not the tool's: the level bar
+	owns the levels and maps them onto `show_level` (decision 1871, review M1)."""
 	if planning:
 		return _plan_input(event)
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -328,8 +326,6 @@ static func is_confirm_key(event: InputEvent) -> bool:
 func takes_before_gui(event: InputEvent) -> bool:
 	"""Whether the tool must see `event` before any HUD control: Enter while laying, and a drag's motion and
 	release (so a drag ending over the HUD still ends here)."""
-	if view.on and is_level_key(event):
-		return true
 	if not planning:
 		return false
 	if is_confirm_key(event):
@@ -338,35 +334,6 @@ func takes_before_gui(event: InputEvent) -> bool:
 	if _pressing and button != null and button.button_index == MOUSE_BUTTON_LEFT and not button.pressed:
 		return true
 	return _pressing and event is InputEventMouseMotion
-
-
-static func level_step(event: InputEvent) -> int:
-	"""The level step an unmodified PgDn (+1) or PgUp (-1) press asks for (0: neither; see THE SECOND LEVEL)."""
-	var key := event as InputEventKey
-	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
-		return 0
-	if key_of(key) == KEY_PAGEDOWN:
-		return 1
-	return -1 if key_of(key) == KEY_PAGEUP else 0
-
-
-static func is_level_key(event: InputEvent) -> bool:
-	"""Whether `event` presses PgUp or PgDn, unmodified, its key's repeats too (Alt+PgUp/PgDn stay the camera's
-	pitch): in Underground every one is the tool's, so a held key never reaches the camera's zoom."""
-	var key := event as InputEventKey
-	return key != null and key.is_pressed() and not _modified(key) \
-			and (key_of(key) == KEY_PAGEDOWN or key_of(key) == KEY_PAGEUP)
-
-
-func _level_key(event: InputEvent) -> bool:
-	"""In Underground, a PgUp or PgDn press: show the level up or down (see THE SECOND LEVEL); its repeats are taken
-	and do nothing. True when taken."""
-	if not view.on or not is_level_key(event):
-		return false
-	var step := level_step(event)
-	if step != 0:
-		show_level(view.level + step)
-	return true
 
 
 func show_level(level: int) -> void:

@@ -37,7 +37,9 @@ func test_totals_scale_by_cells_and_never_go_negative() -> void:
 	assert_equal(_tally, PackedInt64Array([0, 0, 0, 0]), "no cells")
 	Ledger.totals_into(-3, Ledger.DEFAULT_CLEAR_HEIGHT_U, _tally)
 	assert_equal(_tally, PackedInt64Array([0, 0, 0, 0]), "a negative count is none")
-	assert_equal(Ledger.quanta_per_cell(1023), 0, "under one quantum")
+	assert_equal(Ledger.quanta_per_cell(1023), 1, "a part quantum is still cut: rounded up (a need)")
+	assert_equal(Ledger.quanta_per_cell(4097), 5, "just over four: five")
+	assert_equal(Ledger.quanta_per_cell(0), 0, "no height, no quanta")
 	assert_equal(Ledger.quanta_per_cell(5120), 5, "a taller level")
 	assert_equal(Ledger.quanta_per_cell(-1024), 0, "a negative height")
 	Ledger.totals_into(24, Ledger.DEFAULT_CLEAR_HEIGHT_U, _tally)
@@ -91,3 +93,14 @@ func test_cost_and_stock_words_round_needs_up_and_stock_down() -> void:
 	var tally: PackedInt64Array = PackedInt64Array([1500, 1000, 1000, 2000])
 	assert_true(Ledger.cost_words(tally).begins_with("2 logs"), Ledger.cost_words(tally))
 	assert_true(Ledger.stock_words(1500, 0).contains("a log"), Ledger.stock_words(1500, 0))
+
+
+func test_a_tally_adds_cells_at_each_levels_own_height() -> void:
+	"""add_into sums levels at their own clear heights; summary_of words the sum."""
+	var tally: PackedInt64Array = PackedInt64Array()
+	Ledger.add_into(2, 4096, tally)
+	Ledger.add_into(1, 5120, tally)
+	assert_equal(int(tally[Ledger.WOOD]), 2 * 1000 + 1250, "8 + 5 quanta of brace wood")
+	assert_equal(int(tally[Ledger.EARTH]), 13 * 2000, "13 quanta of earth")
+	assert_true(Ledger.summary_of(tally, true, 0, 0).begins_with("Plan needs 4 logs"), Ledger.summary_of(tally, true, 0, 0))
+	assert_true(Ledger.summary_of(tally, false, 0, 0).begins_with(Ledger.NOTHING_YET), "nothing")

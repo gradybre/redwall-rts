@@ -44,13 +44,14 @@ const REASON_SHAPE: int = 17
 const REASON_JOINS_TWO: int = 18
 const REASON_NOT_YET: int = 19
 const REASON_REFUSED: int = 20
-const REASON_COUNT: int = 21
+const REASON_NOTHING_NEW: int = 21
+const REASON_COUNT: int = 22
 ## The glyph each reason carries, by REASON_* id (the table's Glyph column; proposals as decision 1871 says).
 const REASON_KINDS: Array[int] = [
 	KIND_CAN_BUILD, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
-	KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED,
+	KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 ]
 
 const TEXT_TOO_NARROW: String = "Too narrow: rooms need at least 2 × 2 cells"
@@ -76,6 +77,8 @@ const FORMAT_SHAPE: String = "Shape: %s"
 const TEXT_JOINS_TWO: String = "Joins two planned rooms: undo one of them first"
 ## PROPOSAL: a card for a later part of the build model, inspectable but not usable yet.
 const FORMAT_NOT_YET: String = "Not yet: %s"
+## PROPOSAL: a stroke wholly inside its own planned room adds nothing (it is dropped, no Undo step).
+const TEXT_NOTHING_NEW: String = "Nothing to add: these cells are already planned for this room"
 
 
 static func is_kind(kind: int) -> bool:
@@ -205,3 +208,8 @@ static func joins_two() -> String:
 static func not_yet(what: String) -> String:
 	"""PROPOSAL: a card for a later update, e.g. "furnishing comes in a later update" (!)."""
 	return FORMAT_NOT_YET % what
+
+
+static func nothing_new() -> String:
+	"""PROPOSAL: a stroke wholly inside its own planned room (X: dropped, nothing to undo)."""
+	return TEXT_NOTHING_NEW

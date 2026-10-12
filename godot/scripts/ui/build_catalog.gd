@@ -129,12 +129,26 @@ class Card extends RefCounted:
 
 var _rooms: RoomCatalog = RoomCatalog.new()
 var _clear_height_u: int = Ledger.DEFAULT_CLEAR_HEIGHT_U
+## Each level's clear height (index = level; 0 and Overview unused), for a cell's cost on that level.
+var _level_heights: PackedInt32Array = PackedInt32Array([4096, 4096, 4096, 4096, 4096, 4096])
 var _tally: PackedInt64Array = PackedInt64Array()
 
 
 func set_clear_height(clear_height_u: int) -> void:
-	"""The levels' clear height, which sets a cell's cost (build_ledger.gd)."""
+	"""Every level's clear height, which sets a cell's cost (build_ledger.gd)."""
 	_clear_height_u = clear_height_u
+	_level_heights.fill(clear_height_u)
+
+
+func set_level_clear_height(level: int, clear_height_u: int) -> void:
+	"""One level's clear height (the level actually painted prices its cells)."""
+	if level >= 0 and level < _level_heights.size():
+		_level_heights[level] = clear_height_u
+
+
+func clear_height_of(level: int) -> int:
+	"""Level `level`'s clear height (the shared one for a level the catalog does not know)."""
+	return _level_heights[level] if level >= 0 and level < _level_heights.size() else _clear_height_u
 
 
 func clear_height() -> int:
@@ -172,9 +186,9 @@ func rules_text(room_type: int) -> String:
 	return "Needs %s; at least %d cells" % [NEEDS[room_type], least]
 
 
-func cell_cost_text() -> String:
-	"""What one painted underground cell costs, in natural measures (build_ledger.gd)."""
-	Ledger.per_cell_into(_clear_height_u, _tally)
+func cell_cost_text(level: int = 1) -> String:
+	"""What one painted cell on `level` costs, in natural measures (build_ledger.gd)."""
+	Ledger.per_cell_into(clear_height_of(level), _tally)
 	return "per cell %s" % Ledger.cost_words(_tally)
 
 
@@ -206,7 +220,7 @@ func _room_cards(level: int, lock: String, out: Array[Card]) -> void:
 	"""Rooms: the painted types, then the old tools, then the locked tools (see WHAT EACH TAB LISTS)."""
 	var surface: bool = level <= 0
 	for room_type: int in PAINTED_TYPES:
-		out.append(room_card(room_type, lock))
+		out.append(room_card(room_type, lock, clampi(level, 1, 4)))
 	if surface:
 		out.append(_tool_card(&"tool:outdoor", "Outdoor", LATER_OUTDOOR, "Wells, fences, paths and other things built in the open"))
 	for legacy: int in [LEGACY_PASSAGE, LEGACY_HOME, LEGACY_CELLAR]:
@@ -218,15 +232,16 @@ func _room_cards(level: int, lock: String, out: Array[Card]) -> void:
 	out.append(_tool_card(&"tool:remove", "Remove", LATER_REMOVE, "Click a placed room or item to review its removal"))
 
 
-func room_card(room_type: int, locked_reason: String) -> Card:
-	"""A room type's card: paint it on the level (or locked with `locked_reason`)."""
+func room_card(room_type: int, locked_reason: String, level: int = 1) -> Card:
+	"""A room type's card on `level`: paint it there, priced at that level's clear height (or locked with
+	`locked_reason`)."""
 	var card: Card = Card.new()
 	card.id = StringName("room:%d" % room_type)
 	card.kind = CARD_ROOM
 	card.name = type_name(room_type)
 	card.room_type = room_type
 	card.locked = locked_reason
-	card.cost = cell_cost_text()
+	card.cost = cell_cost_text(level)
 	card.footprint = "at least %d cells" % minimum_cells(room_type) if minimum_cells(room_type) > 0 else "at least 2 cells wide"
 	card.purpose = PURPOSES[room_type]
 	card.rules = rules_text(room_type)

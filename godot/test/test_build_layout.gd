@@ -117,12 +117,6 @@ func test_the_footer_fits_its_five_controls_at_every_width() -> void:
 		assert_true(widths[0] <= BuildLayout.LEDGER_MAX_WIDTH, "ledger at most 520")
 
 
-func test_the_expanded_ledger_stays_in_its_range() -> void:
-	"""320×160 → 640×320."""
-	assert_equal(BuildLayout.ledger_open_size(2, 20.0, UiLayout.PROFILE_STANDARD), Vector2(320, 160), "few lines")
-	assert_equal(BuildLayout.ledger_open_size(40, 20.0, UiLayout.PROFILE_WIDE), Vector2(640, 320), "many lines")
-
-
 func test_ux_build_t01_rectangles_stay_in_bounds_and_apart_at_the_nine_sizes() -> void:
 	"""Panel, level bar and connector card: inside the viewport, and none over resources, time, alerts or the minimap
 	(the command strip and BR detail are hidden while the panel is open), with the minimap shown and hidden."""
@@ -147,3 +141,23 @@ func _assert_apart(row: Array, shown: bool, view: Rect2, own: Array[Rect2], hud:
 			assert_false(own[k].intersects(other), "%s: rect %d %s clear of %s" % [label, k, own[k], other])
 	assert_false(own[0].intersects(own[1]), "%s: panel and level bar apart" % label)
 	assert_false(own[2].intersects(own[1]), "%s: connector card and level bar apart" % label)
+
+
+func test_the_expanded_ledger_stays_inside_the_panel_clear_of_the_alerts() -> void:
+	"""Review H2/M3: from the panel's top edge to 8 px above the footer, never above the panel, never over the alerts
+	(NARROW too), no wider than the footer."""
+	for row: Array in [[1280, 720, 150], [1280, 720, 100], [1920, 1080, 100]]:
+		var geometry: UiLayout.Geometry = _at(int(row[0]), int(row[1]), int(row[2]))
+		var panel: Rect2 = BuildLayout.panel_rect(geometry)
+		var open: Rect2 = BuildLayout.ledger_open_rect(panel, geometry.profile)
+		assert_true(panel.encloses(open), "%s: inside the panel %s" % [row, open])
+		assert_equal(open.position.y, panel.position.y, "%s: from the panel's top edge (covering the tabs whole)" % [row])
+		assert_equal(open.end.y, panel.position.y + BuildLayout.FOOTER_Y - BuildLayout.GAP, "%s: 8 px above the footer" % [row])
+		assert_false(open.intersects(geometry.alerts), "%s: clear of the alerts" % [row])
+		assert_true(open.size.x >= 320.0 or open.size.x == panel.size.x - 24.0, "%s: 320 wide or the footer's" % [row])
+
+
+func test_the_expanded_ledger_is_never_wider_than_a_narrow_panel() -> void:
+	"""Review H2: on a panel narrower than the ledger's width, the ledger keeps the panel's 12 px padding each side."""
+	var open: Rect2 = BuildLayout.ledger_open_rect(Rect2(100, 200, 300, 256), UiLayout.PROFILE_STANDARD)
+	assert_equal(open, Rect2(112, 200, 276, 192), "276 wide inside a 300 px panel")

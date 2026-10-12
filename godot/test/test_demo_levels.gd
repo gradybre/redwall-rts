@@ -824,7 +824,8 @@ func _village_below() -> Dictionary:
 	var tool: ControlScript = v["tool"]
 	var network: GraphScript = tool.network
 	var stairs := _lay_stairs(tool)
-	assert_true(tool.handle_input(ViewTest._key(KEY_PAGEDOWN)), "PgDn in the U view")
+	tool.show_level(Rules.LEVEL_2)
+	assert_equal(tool.view.level, Rules.LEVEL_2, "level 2 shown (the level bar's PgDn maps onto show_level)")
 	var list := _place_lower_home(tool)
 	_helper._frame(v)
 	var laid: int = network.piece_room[list[1]]
@@ -997,7 +998,8 @@ func test_the_tool_lays_on_the_level_the_view_shows() -> void:
 	assert_true(tool.handle_input(ViewTest._key(KEY_U)) and tool.plan.level == Rules.LEVEL_2, "U again: on level 2")
 	tool.begin_room(RoomsScript.TEMPLATE_HOME)
 	assert_equal(tool.room.plan.level, Rules.LEVEL_2, "the room tool on level 2")
-	assert_true(tool.handle_input(ViewTest._key(KEY_PAGEUP)) and tool.room.plan.level == Rules.TOP_LEVEL, "PgUp: it follows")
+	tool.show_level(Rules.TOP_LEVEL)
+	assert_equal(tool.room.plan.level, Rules.TOP_LEVEL, "level 1 shown: it follows")
 	_held_pgdn_switches_nothing(tool)
 	tool.cancel_plan()
 
@@ -1028,11 +1030,13 @@ func _modified_letters_are_not_the_tool_s(tool: ControlScript) -> void:
 
 
 func _held_pgdn_switches_nothing(tool: ControlScript) -> void:
-	"""On level 1 in the U view, a held PgDn's repeat is the tool's (never the camera's zoom) and switches nothing."""
+	"""On level 1 in the U view, PgDn and its repeat are not the tool's (the level bar's: decision 1871) and switch
+	nothing here."""
 	var held := ViewTest._key(KEY_PAGEDOWN)
 	held.echo = true
-	assert_true(tool.takes_before_gui(held) and tool.handle_input(held), "a held key's repeat: taken, never the camera's")
-	assert_equal(tool.view.level, Rules.TOP_LEVEL, "and switches nothing")
+	assert_false(tool.takes_before_gui(held) or tool.handle_input(held), "a held key's repeat: not the tool's")
+	assert_false(tool.handle_input(ViewTest._key(KEY_PAGEDOWN)), "nor a press")
+	assert_equal(tool.view.level, Rules.TOP_LEVEL, "and nothing switches")
 
 
 func test_a_level_switch_writes_the_cull_mask_and_builds_nothing() -> void:
@@ -1050,7 +1054,7 @@ func test_a_level_switch_writes_the_cull_mask_and_builds_nothing() -> void:
 	var bores: int = tool.overlay.bore_builds
 	for press: int in 20:
 		var down := tool.view.level == Rules.TOP_LEVEL
-		assert_true(tool.handle_input(ViewTest._key(KEY_PAGEDOWN if down else KEY_PAGEUP)), "switch %d taken" % press)
+		tool.show_level(Rules.LEVEL_2 if down else Rules.TOP_LEVEL)
 		_helper._frame(v)
 		var level := Rules.LEVEL_2 if down else Rules.TOP_LEVEL
 		assert_equal([tool.view.level, Layers.active_level], [level, level], "level %d shown" % level)
@@ -1071,29 +1075,32 @@ func _snapshot_but_lights(v: Dictionary) -> Dictionary:
 	return state
 
 
-func test_pgup_and_pgdn_switch_levels_only_in_the_u_view() -> void:
-	"""On the surface PgUp/PgDn are the camera's zoom (not taken); in the U view they switch the level, before the HUD
-	and the camera; Alt+PgUp stays the camera's pitch; U still toggles the view, and the indicator shows with it."""
+func test_pgup_and_pgdn_are_never_the_tool_s_and_show_level_switches() -> void:
+	"""PgUp/PgDn belong to the level bar (decision 1871, review M1): the tool takes neither, on the surface or in the U
+	view, nor Alt+PgUp (the camera's pitch). The bar maps them onto `show_level`, which switches the U view's level and
+	says so; U still toggles the view, and the indicator shows with it."""
 	var s := _village_below()
 	var tool: ControlScript = s["v"]["tool"]
 	tool.cancel_plan()
 	tool.view.set_on(false)
 	tool.view.set_level(Rules.TOP_LEVEL)
 	var down := ViewTest._key(KEY_PAGEDOWN)
-	assert_false(tool.takes_before_gui(down) or tool.handle_input(down), "on the surface: the camera's")
-	assert_equal(tool.view.level, Rules.TOP_LEVEL, "no switch")
+	assert_false(tool.takes_before_gui(down) or tool.handle_input(down), "on the surface: not the tool's")
 	assert_false(tool.view.indicator_shown(), "no indicator on the surface")
 	assert_true(tool.handle_input(ViewTest._key(KEY_U)) and tool.view.on and tool.view.indicator_shown(), "U: the view, and its indicator")
-	assert_true(tool.takes_before_gui(down), "in the U view, before the HUD and the camera")
-	assert_true(tool.handle_input(down) and tool.view.level == Rules.LEVEL_2, "PgDn: level 2")
-	assert_true(tool.handle_input(down) and tool.view.level == Rules.LEVEL_2, "PgDn at the bottom: taken, still level 2")
+	assert_false(tool.takes_before_gui(down) or tool.handle_input(down), "in the U view: not the tool's either")
+	assert_equal(tool.view.level, Rules.TOP_LEVEL, "no switch from the tool")
+	tool.show_level(Rules.LEVEL_2)
+	assert_equal(tool.view.level, Rules.LEVEL_2, "show_level: level 2")
 	var alt := ViewTest._key(KEY_PAGEUP)
 	alt.alt_pressed = true
 	assert_false(tool.takes_before_gui(alt) or tool.handle_input(alt), "Alt+PgUp: the camera's pitch")
-	assert_true(tool.handle_input(ViewTest._key(KEY_PAGEUP)) and tool.view.level == Rules.TOP_LEVEL, "PgUp: level 1")
+	tool.show_level(Rules.TOP_LEVEL)
+	assert_equal(tool.view.level, Rules.TOP_LEVEL, "level 1")
 	assert_true(tool.notice().contains("level 1 -- PageUp / PageDown or the level bar"), "said: %s" % tool.notice())
 	_indicator_under_the_alerts(tool)
-	assert_true(tool.handle_input(down) and Layers.active_level == Rules.LEVEL_2, "level 2 shown")
+	tool.show_level(Rules.LEVEL_2)
+	assert_equal(Layers.active_level, Rules.LEVEL_2, "level 2 shown")
 	_helper.after_each()
 	_helper = null
 	assert_equal(Layers.active_level, Rules.TOP_LEVEL, "the view gone: level 1 again for everything that reads it")

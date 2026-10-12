@@ -143,9 +143,11 @@ static func footer_widths_into(footer_width: float, out: PackedFloat32Array) -> 
 	out[0] = clampf(footer_width - gaps - (wide if big else narrow), 0.0, LEDGER_MAX_WIDTH)
 
 
-static func ledger_open_size(lines: int, line_height: float, profile: int) -> Vector2:
-	"""UI-BUILD-005 expanded: 320×160 at least, its lines' height plus padding, at most 640×320 (WIDE) -- STANDARD and
-	NARROW keep the 160 minimum height above a 256-high panel's footer unless more lines need it."""
+static func ledger_open_rect(panel: Rect2, profile: int) -> Rect2:
+	"""UI-BUILD-005 expanded, logical px (decision 1871, review H2/M3): from the panel's TOP edge down to 8 px above
+	the footer, covering the tabs and content rows whole (never cut through a row, never above the panel, so never
+	over the alerts at any profile): 192 high, 320 wide (640 at WIDE), no wider than the footer. Its words scroll."""
 	var width: float = LEDGER_OPEN_MAX.x if profile == UiLayout.PROFILE_WIDE else LEDGER_OPEN_MIN.x
-	var height: float = clampf(lines * line_height + 2.0 * PADDING, LEDGER_OPEN_MIN.y, LEDGER_OPEN_MAX.y)
-	return Vector2(width, height)
+	width = minf(width, panel.size.x - 2.0 * PADDING)
+	return Rect2(panel.position.x + PADDING, panel.position.y, width, FOOTER_Y - GAP)
+

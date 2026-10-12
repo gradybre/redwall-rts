@@ -90,3 +90,9 @@ func test_the_proposed_reasons_carry_their_recorded_glyphs() -> void:
 	assert_equal(Validity.joins_two(), "Joins two planned rooms: undo one of them first", "joins two")
 	assert_equal(Validity.not_yet("furnishing comes in a later update"),
 		"Not yet: furnishing comes in a later update", "not yet")
+
+
+func test_nothing_to_add_is_a_dropped_stroke() -> void:
+	"""Decision 1871's proposal for a stroke wholly inside its own room: X, in words."""
+	assert_equal(Validity.kind_of(Validity.REASON_NOTHING_NEW), Validity.KIND_NOT_POSSIBLE, "X")
+	assert_equal(Validity.nothing_new(), "Nothing to add: these cells are already planned for this room", "words")

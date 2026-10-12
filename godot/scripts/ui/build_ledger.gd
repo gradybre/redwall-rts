@@ -32,8 +32,10 @@ const NOTHING_YET: String = "Plan needs nothing yet"
 
 
 static func quanta_per_cell(clear_height_u: int) -> int:
-	"""How many 1 m³ excavation quanta one painted cell opens: its level's clear height in whole quanta."""
-	@warning_ignore("integer_division") var quanta: int = maxi(clear_height_u, 0) / Excavation.QUANTUM_SIDE_U
+	"""How many 1 m³ excavation quanta one painted cell opens: its level's clear height in quanta, rounded UP (a need
+	is never understated: a part quantum is still cut)."""
+	var side: int = Excavation.QUANTUM_SIDE_U
+	@warning_ignore("integer_division") var quanta: int = (maxi(clear_height_u, 0) + side - 1) / side
 	return quanta
 
 
@@ -47,11 +49,8 @@ static func totals_into(cells: int, clear_height_u: int, out: PackedInt64Array) 
 	"""`cells` painted cells' cost into `out` (see per_cell_into). No allocation once `out` is sized."""
 	if out.size() != SLOTS:
 		out.resize(SLOTS)
-	var quanta: int = maxi(cells, 0) * quanta_per_cell(clear_height_u)
-	out[WOOD] = quanta * Excavation.BRACE_WOOD_MILLI
-	out[STONE] = quanta * Excavation.BRACE_STONE_MILLI
-	out[WORK] = quanta * (Excavation.BRACE_WORK_MWU + Excavation.CUT_WORK_MWU + Excavation.FINISH_WORK_MWU)
-	out[EARTH] = quanta * Excavation.EARTH_MILLI
+	out.fill(0)
+	add_into(cells, clear_height_u, out)
 
 
 static func work_text(milli_wu: int) -> String:
@@ -80,10 +79,27 @@ static func stock_words(wood_milli: int, stone_milli: int) -> String:
 static func summary(cells: int, clear_height_u: int, wood_milli: int, stone_milli: int, tally: PackedInt64Array) -> String:
 	"""UI-BUILD-005's accessible line: "Plan needs <totals>; work <hours>; earth out <amount>; stores hold <stock>".
 	`tally` is scratch space (filled here)."""
-	if cells <= 0:
-		return "%s; %s" % [NOTHING_YET, stock_words(wood_milli, stone_milli)]
 	totals_into(cells, clear_height_u, tally)
+	return summary_of(tally, cells > 0, wood_milli, stone_milli)
+
+
+static func summary_of(tally: PackedInt64Array, any: bool, wood_milli: int, stone_milli: int) -> String:
+	"""The same line from a tally already summed (cells on several levels, each at its own clear height)."""
+	if not any:
+		return "%s; %s" % [NOTHING_YET, stock_words(wood_milli, stone_milli)]
 	return "Plan needs %s; %s" % [cost_words(tally), stock_words(wood_milli, stone_milli)]
+
+
+static func add_into(cells: int, clear_height_u: int, out: PackedInt64Array) -> void:
+	"""Add `cells` cells at `clear_height_u` to the tally `out` (sized to SLOTS, zeroed, when it is not)."""
+	if out.size() != SLOTS:
+		out.resize(SLOTS)
+		out.fill(0)
+	var quanta: int = maxi(cells, 0) * quanta_per_cell(clear_height_u)
+	out[WOOD] += quanta * Excavation.BRACE_WOOD_MILLI
+	out[STONE] += quanta * Excavation.BRACE_STONE_MILLI
+	out[WORK] += quanta * (Excavation.BRACE_WORK_MWU + Excavation.CUT_WORK_MWU + Excavation.FINISH_WORK_MWU)
+	out[EARTH] += quanta * Excavation.EARTH_MILLI
 
 
 static func line(type_name: String, cells: int) -> String:

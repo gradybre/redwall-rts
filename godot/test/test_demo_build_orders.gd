@@ -13,6 +13,8 @@ const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Bindings := preload("res://scripts/core/underground_room_bindings.gd")
 const Runtime := preload("res://demo/burrow/modular_runtime.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Validity := preload("res://scripts/ui/build_validity.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
 
 const KITCHEN: int = 2
 
@@ -66,7 +68,8 @@ func test_an_order_reaches_actual_room_admission_and_is_refused_without_access()
 	var answer: Dictionary = orders.submit(draft, 1, KITCHEN)
 	assert_false(bool(answer.ok), "refused")
 	assert_equal(answer.get("error_code", &""), Bindings.REFUSE_ENTRY, "the actual missing approach")
-	assert_equal(String(answer.error), Runtime.refusal_words(Bindings.REFUSE_ENTRY), "in the runtime's words")
+	assert_equal(String(answer.error), Validity.no_way_in() + Orders.LATER_WAY_IN, "in the panel's words (review H3)")
+	assert_equal(int(answer.kind), Validity.KIND_BLOCKED, "! Blocked: retried by the next Confirm all")
 	assert_equal(_f._rooms.preflights, 1, "the real RoomOrders reached room preflight once")
 	assert_equal(_f._state(), before, "no identity, site, work or store changed")
 	assert_equal(draft.snapshot(), request, "the draft is kept exactly")
@@ -121,5 +124,59 @@ func test_confirm_all_through_the_route_keeps_the_refused_room_with_its_reason()
 	var before: PackedByteArray = _f._state()
 	assert_equal(batch.confirm_all(orders.submit), PackedInt32Array([0, 1]), "refused")
 	assert_equal(batch.pending_count(), 1, "kept")
-	assert_equal(batch.operation_reason(0), Runtime.refusal_words(Bindings.REFUSE_ENTRY), "with the reason")
+	assert_equal(batch.operation_reason(0), Validity.no_way_in() + Orders.LATER_WAY_IN, "with the reason")
+	assert_equal(batch.operation_kind(0), Validity.KIND_BLOCKED, "! Blocked")
+	assert_equal(batch.first_invalid(), -1, "a route refusal does not hold Confirm all back")
+	assert_equal(batch.first_refused(), 0, "it is retried by the next Confirm all")
 	assert_equal(_f._state(), before, "nothing changed in any owner")
+
+
+func _owners() -> PackedByteArray:
+	"""Every actual owner's bytes: identities, sites, work and stores (`_state`), and the reservations pool's rows."""
+	var out: PackedByteArray = _f._state()
+	out.append_array(_f._sites._pool.state_bytes())
+	return out
+
+
+func test_painting_undoing_discarding_and_confirming_touch_no_owner() -> void:
+	"""Review M7: the batch's every step -- paint, undo, redo, discard, and a refused Confirm all through the bound
+	route -- leaves the actual inventory, reservations, jobs, sites and identities byte-for-byte as they were."""
+	var orders: Orders = _bound()
+	var batch: Batch = Batch.new()
+	assert_equal(batch.configure(BuildCatalog.new(), Rect2i(-16, -16, 32, 32), 512), &"", "batch")
+	var before: PackedByteArray = _owners()
+	var reserved: int = _f._sites._pool.active_row_count()
+	for at: int in 2:
+		batch.begin_stroke(KITCHEN, 1, Vector2i(at * 8, 0))
+		batch.extend_stroke(Vector2i(at * 8 + 5, 3))
+		batch.finish_stroke()
+	assert_equal(_owners(), before, "painted: nothing reserved, stored, worked or identified")
+	assert_true(batch.undo() and batch.redo(), "undo and redo")
+	assert_equal(_owners(), before, "undone and redone: unchanged")
+	batch.confirm_all(orders.submit)
+	assert_equal(_owners(), before, "refused Confirm all: unchanged")
+	assert_equal(_f._sites._pool.active_row_count(), reserved, "no reservation row taken")
+	batch.discard_all()
+	assert_equal(_owners(), before, "discarded: unchanged")
+
+
+func test_classify_names_the_way_in_and_the_never_possible_sites() -> void:
+	"""Review H3: no approach is "! No way in" with the later-update clause; water, a cut and protected ground are
+	"X Cannot dig here: …"; any other refusal keeps the runtime's words as "! Blocked"; an admission is untouched."""
+	var refused: Dictionary = {"ok": false, "error": "x", "error_code": Bindings.REFUSE_ENTRY}
+	var entry: Dictionary = Orders.classify(refused)
+	assert_equal(refused, {"ok": false, "error": "x", "error_code": Bindings.REFUSE_ENTRY}, "the runtime's answer kept")
+	assert_equal([entry.error, entry.kind], [Validity.no_way_in() + Orders.LATER_WAY_IN, Validity.KIND_BLOCKED], "entry")
+	var water: Dictionary = Orders.classify({"ok": false, "error": "x", "error_code": Terrain.REFUSE_WATER})
+	assert_equal([water.error, water.kind], [Validity.cannot_dig("water"), Validity.KIND_NOT_POSSIBLE], "water")
+	for code: StringName in [Bindings.REFUSE_CUT, Bindings.REFUSE_ABOVE, Bindings.REFUSE_FOOTING]:
+		var never: Dictionary = Orders.classify({"ok": false, "error": "x", "error_code": code})
+		assert_equal(never.kind, Validity.KIND_NOT_POSSIBLE, "%s never possible here" % code)
+		assert_true(String(never.error).begins_with(Validity.cannot_dig("")), "%s: %s" % [code, never.error])
+	var other: Dictionary = Orders.classify({"ok": false, "error": "Busy now", "error_code": &"SOMETHING_ELSE"})
+	assert_equal([other.error, other.kind], ["Busy now", Validity.KIND_BLOCKED], "other refusals keep their words")
+	var plain: Dictionary = Orders.classify({"ok": false, "error": "Checked"})
+	assert_equal([plain.error, plain.kind], ["Checked", Validity.KIND_BLOCKED], "a check's words without a code")
+	var admitted: Dictionary = {"ok": true, "room": 7}
+	assert_equal(Orders.classify(admitted), admitted, "an admission is returned as it came")
+	assert_false(admitted.has("kind"), "and the original is never written")

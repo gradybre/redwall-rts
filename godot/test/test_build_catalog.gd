@@ -149,3 +149,16 @@ func test_overview_and_a_level_with_no_way_in_lock_the_room_types_saying_why() -
 	assert_false(_cards[2].usable(), "the Kitchen is locked there")
 	assert_equal(_cards[2].locked, Validity.no_way_in(), "in the canonical words")
 	assert_true(_cards[7].usable() and _cards[7].kind == BuildCatalog.CARD_LEGACY, "Passage still opens its tool")
+
+
+func test_a_card_prices_a_cell_at_its_own_level_s_clear_height() -> void:
+	"""Review LOW: each level's clear height prices its cards; an unknown level falls back to the shared height."""
+	_catalog.set_clear_height(4096)
+	_catalog.set_level_clear_height(2, 8192)
+	assert_equal(_catalog.clear_height_of(2), 8192, "level 2's own")
+	assert_equal(_catalog.clear_height_of(1), 4096, "level 1 unchanged")
+	assert_equal(_catalog.clear_height_of(9), 4096, "an unknown level: the shared height")
+	assert_true(_catalog.cell_cost_text(2) != _catalog.cell_cost_text(1), "a taller level costs more a cell")
+	assert_equal(_catalog.room_card(2, "", 2).cost, _catalog.cell_cost_text(2), "its card says so")
+	_catalog.set_level_clear_height(9, 1)
+	assert_equal(_catalog.clear_height_of(9), 4096, "an unknown level is never set")

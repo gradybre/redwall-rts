@@ -119,9 +119,12 @@ lines.
 - **Run the full suite once at the end, the way CI does**:
   1. move `godot/demo/assets` aside (CI has no staged assets);
   2. delete `godot/.godot` and re-import: `godot --headless --path godot --editor --quit`;
-  3. run `./tools/run_tests.sh`, or the shards as CI does (decision 0991):
-     `./tools/run_tests.sh --shard N/8 --output-dir <dir>` for N = 0..7, then
-     `python3 tools/ci_test_shards.py verify --reports <dir> --count 8`;
+  3. run **`./tools/run_tests_parallel.sh`**, the recommended local gate (decision 1895): CI's ten shards, four
+     at a time (`--jobs 5` on an idle machine), each with its own `user://`, then CI's own merged
+     `ci_test_shards.py verify`. Quote each shard's lines and the verify summary; it exits 0 only when all pass.
+     (By hand: `./tools/run_tests.sh --shard N/10 --output-dir <dir>` for N = 0..9, then
+     `python3 tools/ci_test_shards.py verify --reports <dir> --count 10`. `./tools/run_tests.sh` alone runs it in
+     one process, which takes over an hour);
   4. restore the assets.
 
   It must end with **0 failures, 0 unexpected errors, 0 unexpected warnings and 0 leaked objects or resources** on

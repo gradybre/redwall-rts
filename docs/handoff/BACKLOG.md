@@ -75,7 +75,7 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [MEASURE-SOAK](#measure-soak) | A windowed soak and a 25-resident soak | tools | 1521–1530 |
 | [FOLLOW-UPS](#follow-ups) | Follow-up fixes not finished by `fix/follow-ups` | demo + tools | 1531–1540 |
 | [PARTY-COMPACT](#party-compact) | A compact Demo party panel with an "open" overlay (1871 P-B8) | demo | unnumbered |
-| [TEST-SPEED](#test-speed) | Split the slowest suites and run local shards in parallel | tools + tests | unnumbered |
+| [TEST-SPEED](#test-speed) | **Done** ([1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md)): split the slowest suites and run local shards in parallel | tools + tests | 1895–1899 |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
 | [WIN-PERF](#win-perf) | The Windows performance test (GTX 1660 tiers) | all | 1551–1560 |
 
@@ -1328,6 +1328,10 @@ decision records on batch 8; "built" means a record says so.
 <a id="test-speed"></a>
 ## TEST-SPEED — Split the slowest suites and run local shards in parallel
 
+- **Status: done** on `perf/test-speed`, decision
+  [1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md): the parity suite
+  is six fingerprint parts, the crew-loss suite starts from the `underground_spare` checkpoint, and
+  `./tools/run_tests_parallel.sh` is the local full-suite gate. Its PROPOSALS await Brendan.
 - **Approval:** Brendan, 2026-10-12: **parallel local shards** for the test turnaround (relayed by the coordinator;
   RULINGS.md 2026-10-12). Decision 1240's checkpoint starts were his decision of 2026-10-08.
 - **Scope:**

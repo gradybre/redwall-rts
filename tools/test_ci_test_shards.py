@@ -76,6 +76,13 @@ class ShardGuards(unittest.TestCase):
                             next(i for i, group in enumerate(plan["shards"]) if "test_b.gd" in group))
         self.assertEqual(plan["estimated_usec"], [1100, 1000])
 
+    def test_a_weight_naming_a_missing_suite_fails_the_plan(self) -> None:
+        # Decision 1895 (review L4): a weight for a renamed or deleted suite is refused, as slow_suites.json is.
+        weights = self.repo / "weights.json"
+        shards.write_json(weights, {"suite_usec": {"test_a.gd": 1000, "test_gone.gd": 900}})
+        with self.assertRaisesRegex(shards.InvalidRun, "test_gone.gd"):
+            shards.make_plan(2, self.repo, weights)
+
     def test_tiers_partition_the_corpus_and_default_to_all_fast(self) -> None:
         # Decision 1240: no slow_suites.json means everything is fast; with one, fast + slow == corpus, disjoint.
         self.assertEqual(shards.tier("fast", self.repo), shards.discover(self.repo))

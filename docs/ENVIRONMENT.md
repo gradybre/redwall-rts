@@ -22,7 +22,8 @@ Run these from the repository root unless stated.
 
 ```bash
 # Test suite — prefer the script: it asserts the runner actually ran (see below)
-./tools/run_tests.sh                       # complete: both tiers (milestones; CI always runs this)
+./tools/run_tests_parallel.sh              # complete, as CI's shards 4 at a time + CI's verify (the local gate)
+./tools/run_tests.sh                       # complete: both tiers, one process (CI always runs both tiers)
 ./tools/run_tests.sh --fast                # every suite except the slow tier (per commit; see "Test tiers")
 ./tools/run_tests.sh --slow                # the slow tier alone
 ./tools/run_tests.sh --suite test_x.gd     # focused; repeat --suite for more
@@ -71,10 +72,24 @@ it. They form the **slow tier**, declared in `godot/test/slow_suites.json` with 
 - **Per commit:** `./tools/run_tests.sh --fast` plus `--suite` runs of the suites your change touches (slow ones
   included when you touched them). `--fast` took 1,580 s (26 min) at `cda8d64f`; a focused run is minutes.
 - **At a milestone, before a merge, and in CI:** the complete run. CI's ten shards always run both tiers;
-  `--fast` is never a full-suite claim.
+  `--fast` is never a full-suite claim. Locally, run it with `./tools/run_tests_parallel.sh` (below).
 - **A suite crosses 60 s either way:** re-measure (`--suite` prints `CI_SUITE_TIME`) and edit the list. A slow
   entry naming a suite that no longer exists fails `--fast` and CI's shard plan.
-- `tools/ci_test_shard_weights.json` (shard balancing) was re-measured from the same full run.
+- `tools/ci_test_shard_weights.json` (shard balancing) was re-measured from the same full run, and again by
+  decision 1895.
+
+**The local full-suite gate: `./tools/run_tests_parallel.sh` (decision 1895).** It runs CI's shards (the count
+CI's verify step uses, 10) as `./tools/run_tests.sh --shard N/COUNT --output-dir DIR`, `--jobs` at a time (default
+4; 5 when nothing else runs on the machine), each with its own private `user://`. It then prints each shard's
+summary lines and `ci_test_shards.py verify`'s merged summary (`ok: <n> suite files executed exactly once across
+10 shards` and the counts), and exits 0 only when every shard and verify passed. Import first and move the demo
+assets aside as for any CI-style run. `--output-dir` must be new or empty; by default it makes one and prints it.
+At `bf49943a` the complete suite took 1,397 s this way at 4 jobs; one process takes over an hour.
+
+**Long suites split for the shards (decision 1895).** ARCH-SAVE-006's parity test is
+`settlement_save_parity_case.gd` (not a suite) run by `test_settlement_save_parity_1.gd` ... `_6.gd`: each runs
+the whole test and fingerprints one sixth of the canonical members at every tick, because fingerprinting is
+almost all of its cost. Together they compare every member at every tick.
 
 **Checkpoint starts.** A long live-chain test can start from a committed save instead of replaying from tick 0:
 `godot/test/fixtures/checkpoints/<name>-<point>.rwlsave.gz` (the exact save bytes, gzip; about 0.33 MB each) and
@@ -90,6 +105,9 @@ Recipes live in `godot/test/fixtures/checkpoint_recipes.gd`.
   to be byte-identical; it covers what the literal walk cannot see.
 - Only a chain that costs much more than a load (1-2 s) earns a recipe; a test that asserts a property of the
   whole run from tick 0 (a finishing tick, "never" over every tick) keeps its replay.
+- Recipes: `underground_entry` (the save suites) and `underground_spare` (decision 1895: the host suites'
+  crew-loss chain at each of DEC-057's seven installer stages, stepped one tick a frame as the host suites step;
+  `test_underground_host_crew_loss.gd` loads it through `underground_host_case.gd`'s `_spare_from_checkpoint()`).
 
 ## Reading the test log
 

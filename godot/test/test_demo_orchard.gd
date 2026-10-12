@@ -36,6 +36,8 @@ const Layout := preload("res://demo/world/world_layout.gd")
 const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const BoardScript := preload("res://demo/work/work_board.gd")
+const OrchardWork := preload("res://demo/work/orchard_work.gd")
 
 const DT: float = 0.1
 const MAX_FRAMES: int = 8000
@@ -753,29 +755,79 @@ func test_a_drought_tending_pays_two_units_of_water() -> void:
 
 
 func test_a_tender_called_away_comes_back_to_her_tree() -> void:
-	"""Decision 1900 (the live orchard flake): resident 0, at work on the apple, is called away -- as breakfast's call
-	does, by another task -- and keeps the job: on the board, promised to her alone, her card saying she goes back to
-	it; the errand over, she takes it back and finishes it from where she stopped."""
+	"""Decision 1900 (the live orchard flake): resident 0, a quarter into the apple's tending, is called away -- as
+	breakfast's call does, by another task -- and keeps the job: on the board, kept on her list, her card saying she
+	goes back to it; the errand over, she takes it back and goes on from where she stopped (nothing done is lost)."""
 	var rig := _rig(1)
-	assert_equal(rig.jobs.order(JobsScript.K_TEND, 0, -1, PackedInt32Array([0])), "", "ordered for resident 0")
-	var j: int = rig.jobs.find(JobsScript.K_TEND, 0)
+	var j: int = _tending_a_quarter_done(rig, 0)
 	var job_serial: int = rig.jobs.serial[j]
-	assert_true(_run(rig, func() -> bool: return rig.jobs.done_mwu[j] > 0), "at work")
 	var brain: BrainScript = rig.jobs.brain_of(0)
 	var no_rules: Array[Callable] = []
 	assert_equal(InterruptScript.resume_of(brain, no_rules, 0), InterruptScript.RESUMES, "the card: goes back to it")
 	var done: int = rig.jobs.done_mwu[j]
+	var need: int = rig.jobs.need_mwu[j]
 	brain.order_task(ErrandScript.new())
 	assert_equal(rig.jobs.worker[j], JobsScript.NONE, "let go")
 	assert_true(rig.jobs.is_job(j, job_serial), "still on the board")
 	assert_equal(brain.queue_size(), 1, "kept to come back to")
 	assert_true(brain.queue_size() == 1 and brain.queue_entry(0).names_task(WorkIds.SOURCE_ORCHARD, job_serial),
-		"promised to her on the work board")
+		"naming the work board's task")
 	assert_equal(brain.queue_entry(0).label() if brain.queue_size() == 1 else "", "Tend, the old apple", "its words")
 	assert_true(_run(rig, func() -> bool: return rig.jobs.worker[j] == 0, MAX_FRAMES, false), "taken back")
-	assert_true(rig.jobs.done_mwu[j] >= done, "nothing lost: %d of %d" % [rig.jobs.done_mwu[j], done])
+	assert_true(_run(rig, func() -> bool: return rig.jobs.at_work[j] == 1, MAX_FRAMES, false), "at work again")
+	assert_equal(rig.jobs.need_mwu[j], need, "the same work step")
+	@warning_ignore("integer_division") var one_frame: int = need / 20
+	assert_true(rig.jobs.done_mwu[j] >= done and rig.jobs.done_mwu[j] < done + one_frame,
+		"from where she stopped: %d after %d" % [rig.jobs.done_mwu[j], done])
 	assert_true(_run(rig, func() -> bool: return rig.model.tended_today(0), MAX_FRAMES, false), "tended by her")
 	assert_equal(brain.queue_size(), 0, "nothing left on her list")
+
+
+func test_a_called_away_tender_is_promised_on_the_real_work_board() -> void:
+	"""Decision 1900 with 0411's promise, through the REAL work board (work_board.gd, orchard_work.gd): resident 0,
+	called away from the apple's tending by another order, promises to come back to it; the board gives it to no idle
+	resident meanwhile; her order done, it is hers again."""
+	var rig := _rig(1)
+	var j: int = _tending_a_quarter_done(rig, 0)
+	var board := BoardScript.new()
+	board.bind(_brains_of(rig), _names_of(rig), [] as Array[StringName])
+	var source := OrchardWork.new(rig.jobs)
+	board.add_source(source)
+	var brain: BrainScript = rig.jobs.brain_of(0)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_ORCHARD, source.key(j)), "promised, naming its task")
+	assert_true(rig.jobs.waiting(j), "the job waits on the board")
+	board.rebuild_index()
+	for who: int in range(1, rig.cast.actor_count()):
+		assert_false(board.consider(who), "resident %d is not given it" % who)
+	assert_equal(rig.jobs.worker[j], JobsScript.NONE, "nobody else took it")
+	brain.work_done()
+	assert_equal(rig.jobs.worker[j], 0, "back to it")
+
+
+func _tending_a_quarter_done(rig: Rig, who: int) -> int:
+	"""Resident `who` ordered to tend the old apple and run until a quarter of its work is done; the job's row."""
+	assert_equal(rig.jobs.order(JobsScript.K_TEND, 0, -1, PackedInt32Array([who])), "", "ordered for %d" % who)
+	var j: int = rig.jobs.find(JobsScript.K_TEND, 0)
+	var quarter := func() -> bool: return rig.jobs.need_mwu[j] > 0 and rig.jobs.done_mwu[j] * 4 >= rig.jobs.need_mwu[j]
+	assert_true(_run(rig, quarter), "a quarter done")
+	return j
+
+
+func _brains_of(rig: Rig) -> Array[BrainScript]:
+	"""Every resident's brain, by actor index."""
+	var brains: Array[BrainScript] = []
+	for who: int in rig.cast.actor_count():
+		brains.append(rig.jobs.brain_of(who))
+	return brains
+
+
+func _names_of(rig: Rig) -> PackedStringArray:
+	"""Every resident's name, by actor index."""
+	var names := PackedStringArray()
+	for who: int in rig.cast.actor_count():
+		names.append(rig.jobs.name_of(who))
+	return names
 
 
 func test_a_job_the_board_takes_away_or_a_lost_walk_is_not_kept() -> void:

@@ -12,6 +12,14 @@ failing runs the tend job had lost its worker (`worker -1`). Decision 1871 measu
 branch, 2 of 8 at bbbb3207 and 1 of 8 at master 1cfe1e3c, so it was older than slice B. BACKLOG.md's FOLLOW-UPS asked
 its owner to find the cause.
 
+## Brendan's rulings (2026-10-12)
+
+Relayed by the coordinator. On 2026-10-12, in chat via AskUserQuestion, Brendan was asked: "Fishing, foraging and the
+ferry have the same bug the orchard had … Fix them the same way?" He answered **"Fix all three next"**: a small
+follow-up lane right after this fix merges, giving `fishery_task.gd`, `forage_task.gd` and `ferry_task.gd` the
+orchard's three functions, each job type with a test. It is BACKLOG.md's packet **MEAL-CALLAWAY**; this lane does not
+implement it.
+
 ## The cause
 
 **Breakfast's call takes the tender off the apple, and the orchard keeps nothing for her to come back to.**
@@ -29,15 +37,16 @@ its owner to find the cause.
    orchard's task did not override `unfinished()`, so the base answered null and **nothing was kept**.
 4. The kitchen's own header says a called diner's job is "PARKED on its resume queue (decision 0205)". The farm, the
    woods, the hall, the kitchen, the tunnel jobs, installs and the spoil crew all keep one (RESUMING, decision 0205;
-   the work board's promise, decision 0411). The orchard (0671) never joined. After breakfast resident 0 went back to
+   the work board's promise, decision 0411). The orchard (0671) never joined; nor did the fishery, the forage or the
+   ferry (see "Follow-ups"). After breakfast resident 0 went back to
    her routine, and the job waited for whoever the board offered it to. In the failing runs that was resident 7, at
    about tick 1995 (08:40), when the 2,400-frame wait ran out.
 
 **Why only some runs.** The demo's presentation clock is real frame time × speed (decision 0196), and route planning is
 budgeted in real microseconds per frame (decisions 0361, 1001). So the village's exact state at 07:00 (who is free, how
 much water has been drawn) varies with machine load, and with it whether a stand-in cook starts breakfast before 08:00.
-That variation is by design. The bug is that the orchard lost the player's order to an interruption that every other
-job owner survives. **The harness's 2,400-frame bound was also wall-clock dependent:** how much game time a frame passes
+That variation is by design. The bug is that the orchard lost the player's order to an interruption that the farm,
+the woods, the hall and the tunnel jobs survive. **The harness's 2,400-frame bound was also wall-clock dependent:** how much game time a frame passes
 depends on the load.
 
 **Evidence.** Temporary prints (removed before committing) gave the calendar tick at each let-go, each meal call, each
@@ -58,12 +67,14 @@ done.
   CALLED AWAY, says so.
 - **`orchard_text.gd` `order_words`**: the order list's words, "Tend, the old apple".
 - **The harness** (`test/live/demo_orchard_live.gd`) waits on game state, not frames. It runs until the apple is tended,
-  with the bound **TEND_BY_HOUR = 14 (game time, day 1)** and a stopped-clock guard: it gives up if the calendar does
+  with the bound **TEND_BY_HOUR, 14:00 game time on day 1** (read from `meal_rules.gd`: the hour before supper's
+  `COOK_FROM_HOUR`, 15:00) and a stopped-clock guard: it gives up if the calendar does
   not move for 600 frames, so it fails rather than hangs. The bound comes from the rules and the measured runs. The walk
   is about an hour and the work a third of an hour. Breakfast may keep her from 07:00 to its end at 09:00 (meal_rules.gd
   `CALL_HOUR`, `END_HOUR`). Her walk back from the hall is about two hours. Done by about 11:30; the latest of this
-  lane's runs was 11:28 (tick 4098). 14:00 leaves two and a half hours in hand, before supper's cooking (15:00). It
-  replaces a frame count, not a budget of the same kind. The harness also proves more than before: a new check, **"the
+  lane's runs was 11:28 (tick 4098). 14:00 leaves two and a half hours in hand. A LIVE check, "the bound leaves her
+  time after breakfast", requires `END_HOUR[0] + RETURN_HOURS (3) <= TEND_BY_HOUR`, so a change to the meal hours
+  cannot leave the bound stale silently. It replaces a frame count, not a budget of the same kind. The harness also proves more than before: a new check, **"the
   selected resident tended it"**, records the last worker seen on the job, and it must be resident 0.
 
 The village itself still decides, from run to run, whether breakfast interrupts the tending. Both paths are now
@@ -76,12 +87,17 @@ correct and both pass. The deterministic proof of the interrupted path is the un
 - `test_a_tender_called_away_comes_back_to_her_tree`: **the failure scenario, deterministic.** Resident 0 at work on
   the apple is handed another task, the path the kitchen's call takes. The job is let go but stays on the board, kept
   on her list as "Tend, the old apple" and naming source 13 with its serial. The card says RESUMES. With the board's
-  hand-out off, as the work board leaves a promised job alone, she takes it back, nothing done is lost, and she tends
-  it. **It fails without the fix** (`FAIL test_a_tender_called_away_comes_back_to_her_tree`, 1 failure).
+  hand-out off, as the work board leaves a promised job alone, she takes it back. Interrupted a quarter into the work,
+  she is back at it with the same step (`need_mwu` unchanged) and the work done carried over (`done_mwu` at least what
+  it was and less than one frame's work more), and she tends it. **It fails without the fix** (`FAIL test_a_tender_called_away_comes_back_to_her_tree`, 1 failure).
 - `test_a_job_the_board_takes_away_or_a_lost_walk_is_not_kept`: Pause and Reassign keep nothing. A walk given up
   (trip failed) keeps nothing, and the job waits `RETRY_USEC` with one try counted.
 - `test_a_kept_job_cancelled_is_stale`: a kept job the player cancels, its row reused by the pear's tending, is neither
   taken back nor kept again.
+- `test_a_called_away_tender_is_promised_on_the_real_work_board` (added after review): the same through the REAL work
+  board (`work_board.gd` with `orchard_work.gd`, as `test_demo_work_edges.gd` does for tunnel jobs). Called away by an
+  order, she `promises(SOURCE_ORCHARD, key)`; with the index rebuilt, `consider` gives the job to none of the other
+  idle residents; after her `work_done()` it is hers again.
 - `_run` takes `board: bool`. With it false, the rig's simple hand-out does not give a promised job to someone else.
 
 ## Failure rate, before and after
@@ -127,6 +143,33 @@ The suites (`./tools/run_tests.sh --suite test_demo_orchard_live.gd --suite test
   wrong board source; `take_back` never claims; cancel never marks the task called away; `unfinished()` ignoring the
   keep flag; `unfinished()` always null; the order words. Plus the harness mutant above. No survivors.
 
+## The independent review of e336ef53, and what was done
+
+The coordinator's independent review found nothing CRITICAL or HIGH. Its findings, each fixed on top of e336ef53:
+
+- **MEDIUM 1: "nothing lost" could not fail.** The mutant `need_mwu[j] = 0` in `_let_go`'s non-carrying branch
+  survived: the test read `done_mwu` while she was still walking back, and `_open_work` resets the progress only on
+  arrival. Now the test interrupts her a quarter into the work, runs until she is at work again, and requires the same
+  `need_mwu` and `done_mwu` carried over (at least what it was, less than one frame's work more). Killed, and so is
+  `done_mwu[j] = 0` in the same place.
+- **MEDIUM 2: no test used the promise through the REAL work board.** Added
+  `test_a_called_away_tender_is_promised_on_the_real_work_board` (see Tests). It kills the mutant "`orchard_work.gd`
+  `key()` returns the row, not the serial", and the mutant "the entry names the row".
+- **LOW 3: TEND_BY_HOUR could go stale.** It is now read from `meal_rules.gd` (`COOK_FROM_HOUR[1] - 1`), and a LIVE
+  check requires `END_HOUR[0] + RETURN_HOURS <= TEND_BY_HOUR`.
+- **LOW 4: the orchard was not "alone".** The fishery (source 7), the ferry (8) and the forage (12) have the same gap.
+  The wording here and in BACKLOG.md is corrected, and the PROPOSAL was widened to all three. Brendan ruled on it
+  (above).
+- **LOW 5: the slow-tier question** is recorded as handed over to TEST-SPEED (Follow-ups).
+
+After the fixes: `./tools/run_tests.sh --suite test_demo_orchard.gd` printed `53 test(s), 2760 assertion(s), 0
+failure(s)`, 0 unexpected, 0 leaks. Four consecutive suite runs (`test_demo_orchard_live.gd` with
+`test_demo_orchard.gd`, one at a time) passed staged and four art-free, each `55 test(s), 2814 assertion(s), 0
+failure(s)` and `diagnostics: 0 unexpected error(s), 0 unexpected warning(s)`. The live suite took 37–41 s, or 62–64 s
+on a breakfast path. The analyzer, `underground_memory_budget.py --check`, `ready07_arithmetic.py` and
+`decision_numbers.py` passed again (lines as in Gates). **Mutation:** the 4 new mutants were killed, and the 10 earlier
+ones are still killed against the stronger tests: **14 of 14**.
+
 ## Follow-ups
 
 - **Exit leaks in the harness's own process.** Two of the 64 plain runs after the fix printed "2 ObjectDB instances
@@ -136,9 +179,12 @@ The suites (`./tools/run_tests.sh --suite test_demo_orchard_live.gd --suite test
   holds the board, and the board holds its tasks, which hold it only weakly. The brain's `drop_jobs` clears entries
   when its actor is freed. The live wrapper does not read the child's leak line.
 
-- **The fishery's and the forage's tasks have the same gap** (`fishery_task.gd`, `forage_task.gd`: no `unfinished()`).
-  A fisher or forager called to a meal loses the job to the board in the same way. Their owners should give them the
-  orchard's three functions. This lane left them alone: they are outside its packet.
+- **The fishery's, the forage's and the ferry's tasks have the same gap** (ruled: "Fix all three next", see
+  "Brendan's rulings"; BACKLOG MEAL-CALLAWAY) (`fishery_task.gd`, source 7;
+  `ferry_task.gd`, source 8; `forage_task.gd`, source 12: none overrides `unfinished()`). A worker of theirs called to
+  a meal or by another order loses the job to the board in the same way. Their owners get the orchard's three
+  functions (`called_away` returning the keep, `unfinished_of`, `take_back`) in that lane, not this one.
 - **The live suite's time**: about 40 s, but 62–88 s when breakfast interrupts the tending at one or both sizes (about
-  one run in five). The slow tier's threshold is 60 s (`slow_suites.json`, decision 1240). That file belongs to the
-  TEST-SPEED lane, so it is not edited here.
+  one run in five). The slow tier's threshold is 60 s (`slow_suites.json`, decision 1240). **Handed over:** TEST-SPEED
+  (its decision 1895 §4) keeps `test_demo_orchard_live.gd` in the fast tier by its median time (about 38–40 s).
+  Re-measure after both lanes merge.

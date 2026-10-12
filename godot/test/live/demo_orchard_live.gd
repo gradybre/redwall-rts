@@ -20,16 +20,20 @@ const ForestJobs := preload("res://demo/forestry/forest_jobs.gd")
 const ForestCrew := preload("res://demo/forestry/forest_crew.gd")
 const ForestStand := preload("res://demo/forestry/forest_stand.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 
 const BOOT_FRAMES: int = 12
 const STEP_FRAMES: int = 3
 ## The game hour of day 1 the tending must be done by (demo_calendar.gd `hour_index`; decision 1900). It is bounded in
 ## GAME time, never in frames: how much game time a frame passes depends on the machine's load. From 06:00 her walk is
 ## about an hour and the work 20 WU (a third of an hour), done by about 07:35. But breakfast's call may take her from it
-## first (meal_rules.gd CALL_HOUR 07:00) and keep her until its end (END_HOUR 09:00); she comes back after, about two
-## hours' walk from the hall -- done by about 11:30 (the latest of 1900's runs: 11:28). 14:00 leaves two and a half
-## hours in hand, and nothing else of the day calls her before it (supper is cooked from 15:00).
-const TEND_BY_HOUR: int = 14
+## first (meal_rules.gd CALL_HOUR) and keep her until its end (END_HOUR); she comes back after, about two hours' walk
+## from the hall, and finishes -- RETURN_HOURS after breakfast's end at most (the latest of 1900's runs: 11:28). The
+## bound is the last hour before supper's cooking may call anyone (COOK_FROM_HOUR), read from the rules so it cannot
+## go stale; `_run_at_4x` checks that it still leaves her RETURN_HOURS after breakfast's end.
+const TEND_BY_HOUR: int = MealRules.COOK_FROM_HOUR[1] - 1
+## Her walk back from the hall and the rest of the work, rounded up (about 2 h 30 min at the most measured).
+const RETURN_HOURS: int = 3
 ## Frames the calendar may stand still before the wait gives up (a stopped clock fails; it never hangs the run).
 const STALL_FRAMES: int = 600
 
@@ -266,7 +270,9 @@ func _the_trees_wear_the_season() -> void:
 
 
 func _run_at_4x() -> void:
-	"""Resume at 4x."""
+	"""Resume at 4x (the tending's bound checked against the meal hours first)."""
+	_check("the bound leaves her time after breakfast", MealRules.END_HOUR[0] + RETURN_HOURS <= TEND_BY_HOUR,
+		"by %d:00" % TEND_BY_HOUR)
 	root.get_node(^"GameManager").call(&"resume_game")
 	root.get_node(^"GameManager").call(&"set_speed", 4)
 	_steps.push_front(_wait_for_tending)

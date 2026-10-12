@@ -250,7 +250,9 @@ answered four questions, each as recommended:
     kept back -- Dormitory: No way in: …".
   - The old tools' card notes ("who would dig, what they would stop") are re-read every
     `demo_command.gd PANEL_REFRESH_S` (0.2 s), the old party panel's cadence, while the panel shows. Nothing is
-    read on the frames between, and only a changed tooltip is written.
+    read on the frames between. A refresh creates no objects, but it does build the note strings each time and rewrites
+    the info card's text even when it has not changed (third review, LOW 1); at 5 Hz for three legacy cards the cost
+    is negligible, and these cards go when slice C retires the old tools.
   - A locked card's visible line gives its own reason's head: "! Choose one level to paint on" on Overview, "! No
     way in" on Levels 3–4, "! Not yet" for later slices' cards. The whole reason stays in the info card.
 - **E28. The live harness puts the camera back** after the build steps. `_build_level_one` centres the camera on
@@ -394,6 +396,16 @@ worktree on top of bbbb3207. Where each fix is recorded:
 The live Kitchen the harness paints lies on protected water, so it now reads X and holds Confirm all back. The six
 rooms the first round's new step painted read "!" only because of a gap in the mapping; the second review found it
 (E6), and the step now paints on open ground.
+
+**Third review (af9005c6, coordinator's independent reviewer): no CRITICAL or HIGH.** It confirmed the terrain
+mapping on the real demo (protected resource/foundation → X, water → X, open ground → "! No way in", retried), the
+Build command toggling once per B press through the shell or the build hook, the settlement shell staying locked, the
+tab row hidden and restored on fold/suspend/close, the lock-line wording and the camera restore (E28). Three LOW items
+are left as they are, recorded here:
+- The 0.2 s note refresh builds strings and rewrites unchanged text (E27 corrected above). Not a per-frame cost.
+- `test_the_demo_build_command_opens_and_closes_the_panel`'s "connects once" check cannot fail on its own: Godot
+  refuses a duplicate `connect` itself, with an ERROR line that the runner's diagnostics gate would catch.
+- Ctrl+Tab while the ledger is expanded switches the hidden tab, and a focused tab loses focus when hidden. Harmless.
 
 ## Gates
 

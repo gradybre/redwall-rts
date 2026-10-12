@@ -1290,8 +1290,10 @@ decision records on batch 8; "built" means a record says so.
     at 256;
   - a layout check ("party 9: every member row reachable") failed once under doubled load (0902 "What the gates
     found");
-  - `test_demo_orchard_live.gd` "the apple is tended in game time" fails intermittently (the tend job loses its
-    worker); it fails on master 1cfe1e3c too (decision 1871, slice B's gates). Its owner should find the cause;
+  - **Done (decision 1900).** `test_demo_orchard_live.gd` "the apple is tended in game time" failed intermittently
+    (the tend job lost its worker): breakfast's call took the tender off the job, and the orchard, alone among the
+    work board's job owners, kept nothing to come back to. Orchard workers now resume (0205), and the harness waits
+    in game time. The fishery's and the forage's tasks have the same gap (1900 "Follow-ups");
   - the art notes in 0941 and 0951: the baked-fish icon has lemon slices; the raspberry's leaf mask is weak; the
     staged `residence` and `hall` keep 4096 px maps where GAP-04 says 2048; some bare-oak root flares catch snow.
 - **Depends on:** nothing.

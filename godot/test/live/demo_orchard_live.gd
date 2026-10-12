@@ -3,7 +3,8 @@ extends SceneTree
 ## the tab-less Orchard panel into the right column (inside the window, no tab lit); its verbs and their cards; the Tend
 ## button and a right click on the pear give the selected residents the work; a tab takes the zone back; the work board
 ## lists the orchard's jobs; the grove stops the woods felling; the fruit trees wear the season; and a resident tends the
-## apple in game time. Not discovered by the runner: test/test_demo_orchard_live.gd runs it in its own process.
+## apple in game time -- the one ordered to, coming back to it if breakfast calls her away first (decision 1900).
+## Not discovered by the runner: test/test_demo_orchard_live.gd runs it in its own process.
 ##
 ##     godot --headless --path godot --script res://test/live/demo_orchard_live.gd [-- --size 1920x1080]
 ##         [-- --capture <dir>]   (not headless: saves the checked frames as PNGs)
@@ -18,11 +19,19 @@ const LookScript := preload("res://demo/seasons/season_look.gd")
 const ForestJobs := preload("res://demo/forestry/forest_jobs.gd")
 const ForestCrew := preload("res://demo/forestry/forest_crew.gd")
 const ForestStand := preload("res://demo/forestry/forest_stand.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 
 const BOOT_FRAMES: int = 12
 const STEP_FRAMES: int = 3
-## How many frames the tending may take in game time at 4x (bounded: the walk is ~30 m, the work 20 WU).
-const TEND_FRAMES: int = 2400
+## The game hour of day 1 the tending must be done by (demo_calendar.gd `hour_index`; decision 1900). It is bounded in
+## GAME time, never in frames: how much game time a frame passes depends on the machine's load. From 06:00 her walk is
+## about an hour and the work 20 WU (a third of an hour), done by about 07:35. But breakfast's call may take her from it
+## first (meal_rules.gd CALL_HOUR 07:00) and keep her until its end (END_HOUR 09:00); she comes back after, about two
+## hours' walk from the hall -- done by about 11:30 (the latest of 1900's runs: 11:28). 14:00 leaves two and a half
+## hours in hand, and nothing else of the day calls her before it (supper is cooked from 15:00).
+const TEND_BY_HOUR: int = 14
+## Frames the calendar may stand still before the wait gives up (a stopped clock fails; it never hangs the run).
+const STALL_FRAMES: int = 600
 
 var _village: Node = null
 var _wait: int = BOOT_FRAMES
@@ -33,6 +42,10 @@ var _size: Vector2i = Vector2i(1280, 720)
 var _capture_dir: String = ""
 var _pending_capture: String = ""
 var _tend_frames: int = 0
+## The last resident seen working the apple's tending (-1: none yet), and the calendar's tick when it last moved.
+var _tender: int = -1
+var _last_tick: int = -1
+var _still_frames: int = 0
 
 
 func _initialize() -> void:
@@ -260,14 +273,28 @@ func _run_at_4x() -> void:
 
 
 func _wait_for_tending() -> void:
-	"""Run until the apple is tended (bounded)."""
+	"""Run until the apple is tended, noting who works it, bounded in game time (TEND_BY_HOUR) and by a stopped clock."""
 	root.get_node(^"GameManager").call(&"acknowledge_overload")
 	_tend_frames += STEP_FRAMES
-	if not bool(_orchard().get("model").call(&"tended_today", 0)) and _tend_frames < TEND_FRAMES:
+	var jobs: RefCounted = _orchard().get("jobs")
+	var j: int = int(jobs.call(&"find", JobsScript.K_TEND, 0))
+	if j >= 0 and int(jobs.get("worker")[j]) >= 0:
+		_tender = int(jobs.get("worker")[j])
+	var tick: int = _calendar().tick
+	_still_frames = _still_frames + STEP_FRAMES if tick == _last_tick else 0
+	_last_tick = tick
+	if not bool(_orchard().get("model").call(&"tended_today", 0)) and _calendar().hour_index() < TEND_BY_HOUR \
+			and _still_frames < STALL_FRAMES:
 		_steps.push_front(_wait_for_tending)
 
 
+func _calendar() -> CalendarScript:
+	"""The demo's one calendar (game time)."""
+	return _orchard().get("jobs").get("calendar")
+
+
 func _the_apple_is_tended() -> void:
-	"""The selected resident walked to the apple and did its 20 WU."""
-	_check("the apple is tended in game time", bool(_orchard().get("model").call(&"tended_today", 0)),
-		"after %d frames" % _tend_frames)
+	"""The selected resident walked to the apple and did its 20 WU, by TEND_BY_HOUR in game time."""
+	var at: String = "by game hour %d (tick %d), %d frames" % [_calendar().hour_index(), _calendar().tick, _tend_frames]
+	_check("the apple is tended in game time", bool(_orchard().get("model").call(&"tended_today", 0)), at)
+	_check("the selected resident tended it", _tender == 0, "resident %d" % _tender)

@@ -1,28 +1,20 @@
 extends "res://test/underground_host_case.gd"
 ## The live entry chain with its crew lost in each installation stage, plain and restored. Split from
-## test_underground_host.gd so CI can shard it apart (decision 1243); fixture: underground_host_case.gd.
-
-
-## DEC-057: installer stages a crew can be lost in, in the order the live chain crosses them ([ordinal, stage]).
-const LOSS_STAGES: Array = [[0, 10], [0, 2], [0, 4], [0, 5], [0, 6], [0, 7], [1, 9]]
-
-
-func _installing_at(entry: Settlement.UndergroundEntryRuntime, ordinal: int, stage: int) -> bool:
-	"""The crew has spent a few ticks in this installation's stage."""
-	var foreman: RefCounted = entry._foreman
-	var installer: RefCounted = foreman._installer
-	return installer != null and installer._plan.ordinal == ordinal and installer.stage() == stage \
-		and foreman._stage_ticks > 3
+## test_underground_host.gd so CI can shard it apart (decision 1243); fixture: underground_host_case.gd. Each loss
+## starts from the committed underground_spare checkpoint at its stage instead of replaying the chain from tick 1
+## (decision 1895): the tests assert what follows the loss, not the path to it.
 
 
 func _lose_and_resume(at: Array, restore_every: int) -> Array:
-	"""Kill the crew in installer stage `at`; run to the finish (restoring the runtime every `restore_every` ticks
-	when positive). Returns [finish tick, prefix done, DONE_LEDGER-shaped ledger..., owner images...]."""
-	var live: Array = _live_with_spare()
+	"""Load the chain with its crew in installer stage `at`, kill the crew; run to the finish (restoring the runtime
+	every `restore_every` ticks when positive). Returns [finish tick, prefix done, DONE_LEDGER-shaped ledger...,
+	owner images...]."""
+	var live: Array = _spare_from_checkpoint(Recipes.loss_point(at))
+	if live.is_empty(): return []
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
-	var tick: int = _run_until(entry, 1, _installing_at.bind(entry, at[0], at[1]))
-	assert_true(entry.is_running(), "reached installation %d stage %d" % at)
+	var tick: int = live[4]
+	assert_true(entry.is_running() and Recipes.installing_at(entry, at[0], at[1]), "reached installation %d stage %d" % at)
 	_kill(o, live[2])
 	assert_equal(entry.advance(tick), Jobs.REFUSE_RESIDENT_DEAD, "the loss is alerted once (stage %d)" % at[1])
 	assert_true(entry.is_running() and entry.crew().worker == live[3], "the spare walks in (stage %d)" % at[1])
@@ -42,7 +34,7 @@ func test_a_crew_lost_in_any_installation_stage_is_replaced_and_re_handles_in_pl
 	walks in, is registered on H, walks to M and on to the station; a funded order is revalidated with resume_work
 	and the piece is handled again where it stands (or, already handled, goes straight to INSTALL). Every run reaches
 	the end of the prefix with L0 and T0 each installed exactly once and no Work paid twice."""
-	for at: Array in LOSS_STAGES:
+	for at: Array in Recipes.LOSS_STAGES:
 		var result: Array = _lose_and_resume(at, 0)
 		if result.is_empty(): return
 		assert_true(result[1], "lost in installation %d stage %d: finished the prefix" % at)

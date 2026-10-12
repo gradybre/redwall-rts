@@ -25,6 +25,10 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
+const AutoloadClockReset := preload("res://test/fixtures/autoload_clock_reset.gd")
+const Chain := preload("res://test/fixtures/underground_entry_chain.gd")
+const Recipes := preload("res://test/fixtures/checkpoint_recipes.gd")
+const Store := preload("res://test/fixtures/checkpoint_store.gd")
 ## ADR1227 (G14): with Contacts' Region scans charged one check per slot plus the row's own checks per present row,
 ## T0's paid FUND fits its operation budget and the live chain runs the whole first-entry prefix: L0 installed, T0's
 ## six cuts settled, T0 installed. The foreman is then done; nothing past the prefix is planned (ADR1197 G9: the
@@ -141,6 +145,7 @@ var _nested_reset: bool = true
 var _saved_gear: Gear = null
 var _surface_script: Script = null
 var _surface_source_text: String = ""
+var _checkpoint_loaded: bool = false
 
 
 func before_each() -> void:
@@ -168,6 +173,9 @@ func after_each() -> void:
 	_host = null
 	_content = null
 	_saved_gear = null
+	if _checkpoint_loaded:
+		_checkpoint_loaded = false
+		assert_true(AutoloadClockReset.release(), "the autoload is handed back at tick 0")
 
 
 func _generate_and_mount() -> Session:
@@ -221,14 +229,7 @@ func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, 
 
 func _eligible_moles(o: Session.Retirement.Owners) -> Array[Vector2i]:
 	"""Every living adult mole holding no Job and no tool, by resident slot: the runtime's crew order (DEC-052)."""
-	var residents: RefCounted = o.residents
-	var found: Array[Vector2i] = []
-	for slot: int in residents._present.size():
-		if not residents.is_alive(slot) or residents.life_stage_code_of(slot) != Residents.LIFE_STAGE_ADULT \
-				or residents.species_key(residents.species_of(slot).value) != &"mole" or residents.has_equipped_tool(slot) \
-				or o.jobs.job_of(slot) != Jobs.NULL_REF: continue
-		found.append(residents.ref_of(slot))
-	return found
+	return Chain.eligible_moles(o)
 
 
 func _first_mole(o: Session.Retirement.Owners) -> Vector2i:
@@ -294,6 +295,21 @@ func _live_with_spare() -> Array:
 	if others.is_empty(): return [o, entry, live[2], Vector2i(-1, 0)]
 	_bench_moles(o, entry._output, [live[2], others[0]])
 	return [o, entry, entry.crew().worker, others[0]]
+
+
+func _spare_from_checkpoint(point: String) -> Array:
+	"""[owners, runtime, crew, spare, next tick to run] of `_live_with_spare()`'s chain at `point` of the committed
+	`underground_spare` checkpoint (decision 1895; test_checkpoint_equivalence.gd proves it equals the replay from
+	tick 1), or [] when it did not load."""
+	_checkpoint_loaded = true
+	var refusal: String = Store.load_into(_host, GameManager, Recipes.SPARE, point, _content)
+	assert_equal(refusal, "", "the underground_spare %s checkpoint loads" % point)
+	if refusal != "": return []
+	var entry: Settlement.UndergroundEntryRuntime = _host.underground_entry()
+	var spare: Vector2i = Chain.spare_of(_host)
+	assert_true(spare != Vector2i(-1, 0), "exactly one spare mole besides the crew")
+	return [_host.underground_session()._retirement_owners, entry, entry.crew().worker, spare,
+		GameManager.clock().completed_tick() + 1]
 
 
 func _replace_entry_with_its_record(session: Session, tick: int) -> bool:

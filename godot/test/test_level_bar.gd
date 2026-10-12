@@ -144,9 +144,10 @@ func test_an_unreached_level_carries_a_mark_besides_colour() -> void:
 
 
 func test_a_re_place_to_smaller_cells_resizes_every_button() -> void:
-	"""Placed STANDARD (1280x720 at 100 %) and then NARROW (at 125 %), every button is its UI-BUILD-014 cell and no two
-	overlap -- the minimum is set before the size, so a shrink is not clamped to the old cells (decision 1891, review);
-	and back to STANDARD they grow again."""
+	"""Placed STANDARD (1280x720 at 100 %) and then NARROW (at 125 %), every button is its UI-BUILD-014 cell with its
+	label trimmed, no two overlap, and back to STANDARD they grow again. Outside the tree Godot does not clamp a size
+	to the minimum, so the minimum-before-size order is checked live by demo_layout_live's _level_buttons_inside
+	(decision 1891, review)."""
 	var layout: UiLayout = UiLayout.new()
 	var geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 	for percent: int in [100, 125, 100]:

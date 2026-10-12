@@ -28,6 +28,15 @@ Decision 1871, "Brendan's rulings (2026-10-12)", relayed by the coordinator. In 
 summary and actions only, with an 'open' control that lays the inspector over the world beside the column while it
 is used". It was to be the follow-up right after slice B merged (BACKLOG PARTY-COMPACT; RULINGS.md 2026-10-12).
 
+### Brendan's rulings (2026-10-12)
+
+In chat via AskUserQuestion, the coordinator asking; each the recommended option:
+
+| Proposals | Ruling |
+|---|---|
+| P1 what the compact panel shows, P5 the thin frame | **"Approve both"**: as built |
+| P2 Pantry-style shaded sheet, P3 its full height, P4 a row click keeps it open | **"Approve all three"**: as built |
+
 ## Rules used
 
 - **1871 E12 and P-B8**: the column ends above the level bar; the checks to restore.
@@ -212,6 +221,15 @@ of 17fef19a.
 - **LOW f.** The three copies of the open-the-sheet helper are now one, `test/live/party_sheet_live.gd`. The select,
   people and care harnesses call `SheetLive.open_for(control, party)`. Their other code is as on master; an earlier
   edit that had left one blank line between functions is gone.
+
+**Second review (ef6561c6): no CRITICAL or HIGH.** It confirmed every first-pass fix by running it: the three live
+harnesses lost no function, a click away keeps both press and release from the world (engine probe), `command_icon`
+changes nothing in the settlement shell, and the 125 % / 150 % frames are clean. Two LOW items are recorded, not fixed:
+- `test_level_bar.gd`'s re-place test cannot see the line order outside the tree (Godot does not clamp `size` there);
+  its docstring now says so, and mutant L1 is killed by the live check `_level_buttons_inside`, as the list credits.
+- A lone release can still reach the world after a two-button chord over the catcher, or after Esc between a press
+  and its release. Harmless today: world selection acts on a left release only after its own press, and placing tools
+  act on a press. A future tool that acts on a bare release must swallow it.
 
 ## Gates
 

@@ -136,7 +136,9 @@ func _fraction(control: Control) -> float:
 
 
 func _reveal(control: Control) -> void:
-	"""Scroll `control`'s scroll to it (the way focus does), and wait for it to move."""
+	"""Scroll `control`'s scroll to it (the way focus does) -- in the party sheet, opened first where it is folded --
+	and wait for it to move."""
+	await _open_sheet_for(control)
 	var at: Node = control.get_parent()
 	while at != null and not at is ScrollContainer:
 		at = at.get_parent()
@@ -147,6 +149,15 @@ func _reveal(control: Control) -> void:
 			(at as ScrollContainer).ensure_control_visible(control)
 	await _frames(2)
 
+
+func _open_sheet_for(control: Control) -> void:
+	"""Where the party panel is compact (1280x720) its inspector is in the party sheet (decision 1891): when `control`
+	is there and the sheet is folded, a real click on Open lays it out first."""
+	var party: CanvasLayer = _command().call(&"panel")
+	var sheet: CanvasLayer = party.call(&"sheet")
+	if sheet.is_ancestor_of(control) and not bool(sheet.call(&"is_open")):
+		_click(party.call(&"open_button"))
+		await _frames(SETTLE_FRAMES)
 
 func _click(control: Control) -> void:
 	"""A left click at `control`'s centre, through the Viewport."""
@@ -239,6 +250,7 @@ func _the_inspector() -> void:
 	var name: String = String(_cast().call(&"actor", who).get("display_name"))
 	_check("the summary names the resident", String(panel.call(&"summary")).begins_with(name), panel.call(&"summary"))
 	var section: Control = _section()
+	await _open_sheet_for(section)
 	_check("the person section shows", section.is_visible_in_tree())
 	_check("its skills as meters", String(section.call(&"skill_line", 0)).begins_with("Felling · Level"),
 		section.call(&"skill_line", 0))
@@ -290,6 +302,7 @@ func _a_notable_moment() -> void:
 func _the_spotlight() -> void:
 	"""The spotlight card is shown, in the window, clear of the party panel; Spotlight ★ clicked marks the rescuer
 	notable and the roster stars it."""
+	_command().call(&"panel").call(&"fold_sheet")
 	var card: CanvasLayer = _village.call(&"people_card")
 	var guide: Node = _village.call(&"guide")
 	if bool(guide.get(&"card").call(&"is_shown")):

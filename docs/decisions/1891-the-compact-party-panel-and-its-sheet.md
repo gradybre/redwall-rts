@@ -141,6 +141,13 @@ is used". It was to be the follow-up right after slice B merged (BACKLOG PARTY-C
   now means the full form, and `compact()` is new.
 - Tests: `test_demo_command.gd`, `test_demo_group_select.gd`, `test/live/demo_layout_live.gd`,
   `test/live/demo_input_live.gd`; new `test_demo_party_sheet.gd`.
+- Three more live harnesses read the inspector at 1280x720, so each gained `_open_sheet_for(control)`. Their
+  `_reveal`, and the steps that read a row first, click Open where the control is in the folded sheet:
+  - `test/live/demo_select_live.gd`: the group section, tiles, crews and Send to…;
+  - `test/live/demo_people_live.gd`: the person section and a notable moment; it folds the sheet before the
+    spotlight card;
+  - `test/live/demo_care_live.gd` (slow tier): the injury and infirmary lines; it folds after reading them.
+  The first `--fast` run found the first two; the third was found by searching the harnesses.
 - No pinned file (ADR 1212) was touched, and no file of the TEST-SPEED or ORCHARD-FLAKE lanes.
 
 ## Keys
@@ -177,7 +184,16 @@ None added. In the sheet:
   - `underground_memory_budget.py --check` exited 0 with headroom_bytes 49749393;
   - `ready07_arithmetic.py` printed "status": "PASS";
   - `decision_numbers.py` printed "decision_numbers: PASS -- 545 records, 0 problem(s)".
-- **`--fast`**: see the final report (run after this record was written).
+- **Other live wrappers** (test_demo_select_live, test_demo_people_live, test_demo_care_live, test_demo_camera_live,
+  test_demo_guide_live):
+  - staged: "10 test(s), 516 assertion(s), 0 failure(s)";
+  - art-free: "10 test(s), 508 assertion(s), 0 failure(s)";
+  - both with 0 unexpected diagnostics and 0 leaks.
+- **`--fast`**:
+  - The first run, at 06a9d809, printed "12198 test(s), 1130651 assertion(s), 2 failure(s)". The failures were
+    test_demo_people_live and test_demo_select_live at 1280x720, which read the inspector unopened; they are fixed
+    above.
+  - The final run is in the lane's report.
 - **Frames** in the lane's scratchpad `party_check/`:
   - folded `party_{1,6,9}_*` and open `party_open_{1,6,9}_*` at 1280x720 (100 %, 125 %) and 1920x1080 (150 %);
   - folded only at 1920x1080 (100 %, 125 %), where the full form is used;

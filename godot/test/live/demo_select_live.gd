@@ -193,7 +193,9 @@ func _key(code: Key, ctrl: bool = false) -> void:
 
 
 func _reveal(control: Control) -> void:
-	"""Scroll `control`'s scroll to it, and wait for it to move."""
+	"""Scroll `control`'s scroll to it -- in the party sheet, opened first where it is folded -- and wait for it to
+	move."""
+	await _open_sheet_for(control)
 	var at: Node = control.get_parent()
 	while at != null and not at is ScrollContainer:
 		at = at.get_parent()
@@ -201,6 +203,15 @@ func _reveal(control: Control) -> void:
 		(at as ScrollContainer).ensure_control_visible(control)
 	await _frames(2)
 
+
+func _open_sheet_for(control: Control) -> void:
+	"""Where the party panel is compact (1280x720) its inspector is in the party sheet (decision 1891): when `control`
+	is there and the sheet is folded, a real click on Open lays it out first."""
+	var party: CanvasLayer = _command().call(&"panel")
+	var sheet: CanvasLayer = party.call(&"sheet")
+	if sheet.is_ancestor_of(control) and not bool(sheet.call(&"is_open")):
+		_click(party.call(&"open_button"))
+		await _frames(SETTLE_FRAMES)
 
 func _fraction(control: Control) -> float:
 	"""How much of `control` is on screen: its rect cut by the window and every clipping ancestor."""
@@ -412,6 +423,7 @@ func _the_group_section() -> void:
 	_command().call(&"select", five)
 	await _settle()
 	var panel: Control = _group().get("panel")
+	await _open_sheet_for(panel)
 	_check("the group section shows", panel.is_visible_in_tree())
 	_check("a tile each", int(panel.call(&"tile_count")) == 5, str(panel.call(&"tile_count")))
 	var text: String = panel.call(&"lines_text")

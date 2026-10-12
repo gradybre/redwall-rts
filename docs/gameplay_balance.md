@@ -612,18 +612,18 @@ items and outdoor items on a 1 m cell grid. This section states what that forces
 
 | Cost line | Rule | Status |
 |---|---|---|
-| Outdoor item (17 §4.1 rows: `open_stockpile`, `well`, `workbench`, `dryer`, `fisher_shelter`, `weir`, `composter`, `apiary`, `nursery`, `saltpan`, `lookout`, `fence`, `stone_wall`, `gate`, `dirt_path`, `paved_path`, `memorial_garden`) | Its §4.1/§4.2 row unchanged; footprint × 2 per side in cells | [GDD §5.9] values; the outdoor classification is PROPOSED, OPEN-03 |
+| Outdoor item (17 §4.1 rows: `open_stockpile`, `well`, `workbench`, `dryer`, `fisher_shelter`, `weir`, `composter`, `apiary`, `nursery`, `saltpan`, `lookout`, `fence`, `stone_wall`, `gate`, `dirt_path`, `paved_path`, `memorial_garden`) | Its §4.1/§4.2 row unchanged; footprint × 2 per side in cells | [GDD §5.9] values; outdoor classification ADOPTED (decision 1851 OPEN-03) |
 | Furniture (9 §4.3 rows) | Its §4.3 row unchanged; footprint × 2 per side in cells; access tiles SET-BUILD-001 §6 | [GDD §5.9] |
 | Half partition (one cell edge) | wood 500 milli-U, 4000 milli-WU = §4.3 `interior_partition` ÷ 2 exactly | [DERIVED] |
 | Underground painted cell (4 quanta at clear height 4096 u) | wood 1000, stone 1000 milli-U; 16920 milli-WU; output 8000 milli-U `excavated_earth` | [DERIVED from BAL-UG-001 and ECON-002] |
-| Key item (`store_bay`, `cellar_bay`, `craft_bench`, `millstone`, `smoker`, `boat_slip`, `brew_vat`, `forester_rack`, `quarry_rack`) | The source building's §4.1 materials and work and §4.2 store, passive slots and builders | PROPOSED, SET-BUILD-001 OPEN-01 (b) |
-| Surface room cells, `c` cells per batch operation | `ceil_div(c × (wood 60000, stone 24000, cloth 8000, work 1200000), 192)` — the `residence` row over its 8 × 6-tile floor | PROPOSED, OPEN-01 (b) |
-| KITCHEN room replacing the `kitchen` building | Shell + 2 × `kitchen_bench` + 1 × `hearth` = shell + wood 8000, stone 14000, iron 2000 milli-U, 180000 milli-WU | [DERIVED] under OPEN-01 (b) |
-| `hall`, `residence`, `infirmary` building rows | Retired as buildings; `residence` becomes the shell-rate source | PROPOSED, OPEN-01 (b) |
-| Tier-2 packages | Store and workshop packages attach to `store_bay`/`craft_bench`; the residence/hall package scales as `ceil_div(c × package, 192)` per living room | PROPOSED, OPEN-08 |
+| Key item (`store_bay`, `cellar_bay`, `craft_bench`, `millstone`, `smoker`, `boat_slip`, `brew_vat`, `forester_rack`, `quarry_rack`) | The source building's §4.1 materials and work and §4.2 store, passive slots and builders | ADOPTED (decision 1851 OPEN-01 (b)) |
+| Surface room cells, `c` cells per batch operation | `ceil_div(c × (wood 60000, stone 24000, cloth 8000, work 1200000), 192)` — the `residence` row over its 8 × 6-tile floor | ADOPTED (decision 1851 OPEN-01 (b)) |
+| KITCHEN room replacing the `kitchen` building | Shell + 2 × `kitchen_bench` + 1 × `hearth` = shell + wood 8000, stone 14000, iron 2000 milli-U, 180000 milli-WU | [DERIVED] under adopted OPEN-01 (b) |
+| `hall`, `residence`, `infirmary` building rows | Retired as buildings; `residence` becomes the shell-rate source | ADOPTED (decision 1851 OPEN-01 (b)) |
+| Tier-2 packages | Store and workshop packages attach to `store_bay`/`craft_bench`; the residence/hall package scales as `ceil_div(c × package, 192)` per living room | ADOPTED (decision 1851 OPEN-08 (a)) |
 
 **What this forces later (follow-up, not done here).**
-- The labor and survival probes of §8 assumed fixed building bills; once Brendan rules OPEN-01, rerun the
+- The labor and survival probes of §8 assumed fixed building bills; now that Brendan has ruled OPEN-01 (b), rerun the
   construction-dependent scenarios and the three-year contract (§8.5) with room-cell and item costs.
 - §4.1's `footprint_x`/`footprint_z` and §4.2's per-building rows stay in place because
   `docs/validation/setting_contract.py` parses them (30 buildings, 9 furniture); the key-item and room-type tables

@@ -147,6 +147,6 @@ height, 1024 u roof band and 1024 u footing; level 4's footing ends at quantum �
 | MOVE-G05 | Open. |
 
 Tunnels are now painted Passage (`CORRIDOR`) rooms and the entrance is a placed item, so the three interoperable
-underground methods of §1 become one painting tool over one excavation ledger; Under the proposed reading in decision 1851 OPEN-11 (DEC-031's placed burrows), MOVE-TEST-01's “placed burrow,
-planned tunnel and freely excavated room” would read as a surface entrance, a painted Passage and a painted room on a
-deeper level; until Brendan rules, the test keeps its wording.
+underground methods of §1 become one painting tool over one excavation ledger; by Brendan's ruling on decision 1851 OPEN-11 (DEC-031's placed burrows), MOVE-TEST-01's “placed burrow,
+planned tunnel and freely excavated room” reads as a surface entrance, a painted Passage and a painted room on a
+deeper level.

@@ -285,7 +285,7 @@ All content pickers exclude retired hunt zones, hunter huts, hunting gear, game 
 | UI-SET-086 Pause label |TC, below time/alerts |96×32→240×40 |READOUT |“Paused: ”+ordered_pause_reasons |CONDITION paused; not clickable; no empty hit rect |
 | UI-SET-087 World access list |BC opens CENTER 051 |480×320→960×720 |PANEL |“World locations and entities” |F6/accessible mode; resident/building/zone/resource/tile categories; keyboard camera/pick/place |
 | UI-SET-088 Cycle selection |BC, selection cell |32×32→44×44 |BUTTON |“Next selected resident”/“Previous selected resident” |SELECTED multiple; Tab/Shift Tab in world focus |
-| UI-SET-089 Zoom buttons |TR time popover or BL map header |32×32→44×44 |BUTTON |“Zoom in”/“Zoom out” |ALWAYS via map layers; keyboard = / − (UI-BUILD-014 took PageUp/Down) (PROPOSED, decision 1851 OPEN-09) |
+| UI-SET-089 Zoom buttons |TR time popover or BL map header |32×32→44×44 |BUTTON |“Zoom in”/“Zoom out” |ALWAYS via map layers; keyboard = / − (UI-BUILD-014 took PageUp/Down) (adopted, decision 1851 OPEN-09) |
 | UI-SET-090 Pitch slider |TR camera/settings popover |240×56→320×72 |FIELD |“Camera pitch ”+degrees+“ degrees below horizon” |CONDITION camera options; min 35, max 65, step 1 |
 | UI-SET-091 Schedule template |BC, schedule form |240×44→360×48 |FIELD |“Schedule template: ”+name |WORKSPACE 042; Day/Night/Flexible; preview before apply |
 | UI-SET-092 Back/menu action |Owning menu, bottom left |96×44→240×48 |BUTTON |Explicit action“Back”/“Main menu”/“Quit game”/“New settlement” |MODAL; dirty save warning when leaving world |
@@ -313,7 +313,7 @@ All actions below are Godot `InputMap` actions with the exact snake_case IDs. Us
 |---|---|---|---|
 | Pan / camera_pan_left, camera_pan_right, camera_pan_forward, camera_pan_back |Edge scroll; middle drag; Option/Alt+left drag |WASD; arrow keys outside editing/tools |Unscaled camera movement; diagonal normalized |
 | Rotate left/right / camera_rotate_left, right |None |Q/E |Hold 90°/s; no yaw limit |
-| Zoom in/out / camera_zoom_in, out |Wheel; two-finger vertical scroll over world |= / − (numpad + / −); was PageUp/PageDown, which UI-BUILD-014 now uses (PROPOSED, decision 1851 OPEN-09) |One step changes distance by factor 1.10; UI scroll never zooms world |
+| Zoom in/out / camera_zoom_in, out |Wheel; two-finger vertical scroll over world |= / − (numpad + / −); was PageUp/PageDown, which UI-BUILD-014 now uses (adopted, decision 1851 OPEN-09) |One step changes distance by factor 1.10; UI scroll never zooms world |
 | Pitch / camera_pitch_up, down |Alt+middle vertical drag |Alt+PageUp/PageDown |1° increments,35–65° range |
 | Select / select_primary |Left click |Enter on focused world-list row |Resident/building/zone/object under cursor |
 | Box select / select_box |Left drag from world |World list multi select with Shift+arrows |Threshold 6 logical pixels; residents only |
@@ -332,7 +332,7 @@ All actions below are Godot `InputMap` actions with the exact snake_case IDs. Us
 | Speed 2 / time_speed_2 |UI-SET-016 |F2 |Set requested 2× |
 | Speed 4 / time_speed_4 |UI-SET-017 |F3 |Set requested 4× |
 | Build / open_build |UI-SET-027 |B |Open or close the build panel UI-BUILD-001 |
-| Level up/down / level_up, level_down |UI-BUILD-014 |PageUp / PageDown (PROPOSED, decision 1851 OPEN-09) |View and build one level up or down (Surface, Level 1–4); Overview from the level bar only |
+| Level up/down / level_up, level_down |UI-BUILD-014 |PageUp / PageDown (adopted, decision 1851 OPEN-09) |View and build one level up or down (Surface, Level 1–4); Overview from the level bar only |
 | Zones / open_zones |UI-SET-028 |Z |Open zone types/brush |
 | Safe harvest / open_harvest |Context/zone palette |H |Select FORAGE zone brush, without dangerous consent |
 | Jobs / open_jobs |UI-SET-029 |J |Open job matrix |
@@ -402,7 +402,7 @@ Box selection begins only if pointer-down was unhandled world input. It selects 
 |---|---|
 | Projection |Perspective; vertical FOV 55°; KEEP_HEIGHT |
 | Initial orbit |Yaw 45°; pitch 48° below horizon; distance 40 m; target central hall |
-| Zoom |Orbit distance 8–120 m; wheel multiplier 1.10/step; = / − keys same (PageUp/Down now change level, UI-BUILD-014) (PROPOSED, decision 1851 OPEN-09) |
+| Zoom |Orbit distance 8–120 m; wheel multiplier 1.10/step; = / − keys same (PageUp/Down now change level, UI-BUILD-014) (adopted, decision 1851 OPEN-09) |
 | Yaw |Continuous 360°, stored wrapped 0–360°; hold rotation 90°/real second |
 | Pitch |35–65°; initial 48°; keyboard 1°/step |
 | Pan speed |`clamp(0.8*distance,8,64)` m/real second; Shift×1.75 |
@@ -551,7 +551,7 @@ Close MOVE-G03 by extending this document's component registry and existing resp
 
 Canonical state labels for binding are `Planning route`, `Waiting for access`, `Digging`, `Using tunnel`, `Climbing`, `Swimming`, `Diving`, `Returning to air`, `Blocked: no exit`, and `Blocked: load does not fit`. Show each only when the corresponding committed state/reason exists. A closed visual cutaway cannot change discovery or simulation visibility. The existing 1280×720 through 3840×2160 layout range and plain operational wording remain required.
 
-**Amended 2026-10-11 (DEC-061, SET-BUILD-001):** the underground part of “Layer/level selection” and the underground “Construction preview” are now registered as [UI-BUILD-010–014](#ui-build-001--one-build-panel-and-the-level-bar-dec-061): Surface plus Underground levels 1–4 and an Overview, always visible, PageUp/PageDown (PROPOSED, decision 1851 OPEN-09). PageUp/PageDown therefore no longer zoom. Canopy and water layers, route inspection, cross-layer picking and cancellation acknowledgment remain `SPEC_INCOMPLETE` here.
+**Amended 2026-10-11 (DEC-061, SET-BUILD-001):** the underground part of “Layer/level selection” and the underground “Construction preview” are now registered as [UI-BUILD-010–014](#ui-build-001--one-build-panel-and-the-level-bar-dec-061): Surface plus Underground levels 1–4 and an Overview, always visible, PageUp/PageDown (adopted, decision 1851 OPEN-09). PageUp/PageDown therefore no longer zoom. Canopy and water layers, route inspection, cross-layer picking and cancellation acknowledgment remain `SPEC_INCOMPLETE` here.
 
 ## Alert text by profile — 2026-09-12
 
@@ -631,7 +631,7 @@ level-selection part of UI-MOVE-001. Profiles, tokens, focus, Escape order and a
 | UI-BUILD-011 Item ghost |CENTER, item footprint |Footprint + access tiles |OVERLAY |“Place ”+item+“ facing ”+direction+“; ”+✓/!/X+“ ”+reason |WORLD_TOOL; footprint outlined, access tiles drawn as a labelled “access” pattern, wall-behind edge marked “needs wall”; R / Shift+R rotate |
 | UI-BUILD-012 Connector card |BC, above BUILD-001's top-right edge; in NARROW, inside BUILD-001's content row |280×136→360×160 |PANEL |“Connects to ”+target_level_name+“; ”+validity |CONDITION connector or entrance ghost placed; direction toggles Down/Up (impossible one disabled with its reason); “Add to plan” (066) and Cancel (067) |
 | UI-BUILD-013 Level bar |BL, above the minimap; rect below |160×104→256×140 |PANEL |“Levels; viewing ”+level_name |ALWAYS, including with the minimap hidden and outside build mode |
-| UI-BUILD-014 Level button |BUILD-013 grid, 2 columns × 3 rows |78×32→126×44 |TOGGLE |Full name (“Surface”, “Underground level 1”…“Underground level 4”, “Overview, all levels”)+“; ”+access state |ALWAYS; one selected; PageUp / PageDown (PROPOSED, decision 1851 OPEN-09) step through Surface…Level 4; Overview only by the bar; never disabled — a level with no way in reads “no way in yet” |
+| UI-BUILD-014 Level button |BUILD-013 grid, 2 columns × 3 rows |78×32→126×44 |TOGGLE |Full name (“Surface”, “Underground level 1”…“Underground level 4”, “Overview, all levels”)+“; ”+access state |ALWAYS; one selected; PageUp / PageDown (adopted, decision 1851 OPEN-09) step through Surface…Level 4; Overview only by the bar; never disabled — a level with no way in reads “no way in yet” |
 
 UI-SET-034's demolition review is reused for BUILD-REQ-006 removals (paint Earth / Clear ground, or Delete on a placed
 room or item). It lists every item, occupant and lot affected and its 50% return, and never removes anything before

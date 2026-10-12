@@ -7,7 +7,7 @@
 | Input study | [Evil Genius 2 building study](design/underground-planning/evil-genius-2-building-study.md) (DEC-061 overrides it where they differ) |
 | Amends | GDD §4.2 Building/Room/Furniture rows, §4.3 RoomType, §5.9 (tables, room validity, heat, starter layout, REQ-SET-121/122/129/136); SET-MOVE-001 level scope; UI rev 1.1 build rows; balance §4.1–4.3; architecture §2–3 room storage |
 | Keeps | REQ-SET-123–128 (paths to the hall, hauled payment, 100%/80% refunds, 50% demolition return), SET-MOVE-ECON-001 excavation economy with DEC-052/DEC-059, ADR 1081 permanent room purpose, DEMO-CONTAIN-R01 |
-| Status | Rules marked **ADOPTED** restate DEC-061 or derive exactly from existing numbers. Rules marked **PROPOSED** are this lane's derivations awaiting Brendan; each has an `OPEN-nn` entry in [decision 1851](decisions/1851-painted-room-contracts.md). Nothing here is runtime evidence. |
+| Status | Rules marked **ADOPTED** restate DEC-061 or derive exactly from existing numbers. Rules marked **ADOPTED, OPEN-nn** were this lane's proposals, adopted by Brendan's rulings of 2026-10-11 on every OPEN item of [decision 1851](decisions/1851-painted-room-contracts.md#brendans-rulings-2026-10-11). Values still to be authored (OPEN-02's per-item geometry) are marked as such. Nothing here is runtime evidence. |
 | Engineering record | [decision 1851](decisions/1851-painted-room-contracts.md) |
 
 Notation: a **cell** is 1 m × 1 m (1024 u × 1024 u) on one level. A GDD **tile** (2 m) is exactly 2 × 2 cells: tile
@@ -30,7 +30,7 @@ and cancel/removal refunds follow the GDD.
 | BUILD-REQ-001 | The system shall represent every constructed room on every level as a set of painted cells of one room type on a 1 m cell grid (1024 u), the same grid on which items and outdoor items are placed. | ADOPTED (DEC-061 Q1, Q2) |
 | BUILD-REQ-002 | When the player paints room cells, the system shall require every painted cell to lie inside at least one 2 × 2 block of cells of that same room, so that no room has a strip one cell wide. | ADOPTED (DEC-061 Q2; study §1 2×2 minimum) |
 | BUILD-REQ-003 | The system shall treat each 4-connected set of same-type painted cells on one level as one room and shall apply the room rules of §4 in cells. | ADOPTED |
-| BUILD-REQ-004 | When a stroke adds cells of type T touching an existing room of type T on the same level, the system shall add them to that room rather than create a second room. | ADOPTED (grow by repainting, DEC-061 Q8); joining two existing rooms is OPEN-06 |
+| BUILD-REQ-004 | When a stroke adds cells of type T touching an existing room of type T on the same level, the system shall add them to that room rather than create a second room. | ADOPTED (grow by repainting, DEC-061 Q8). A stroke joining two existing rooms of type T merges them; the older room (lower persistent ID) survives and the other's items, occupants and lots move to it (OPEN-06 ruled (a)) |
 | BUILD-REQ-005 | If a stroke would paint a room type over cells of an existing room of a different type, then the system shall refuse it with the words “Remove these cells first; a room's purpose cannot change”. | ADOPTED (DEC-061 Q8, ADR 1081) |
 | BUILD-REQ-006 | When the player removes cells from a room (paint **Earth** underground, **Clear ground** on the surface), the system shall open an explicit removal review naming every affected item, occupant and stored lot and its return, and shall never sell or delete anything silently. | ADOPTED (DEC-061 Q8; REQ-SET-127/128; DEMO-CONTAIN-R01) |
 | BUILD-REQ-007 | When removal of open underground cells commits, the system shall backfill each open cut quantum with `excavated_earth` under SET-MOVE-ECON-001 ECON-005. | ADOPTED |
@@ -39,7 +39,7 @@ and cancel/removal refunds follow the GDD.
 | BUILD-REQ-010 | When an item is placed, the system shall require its footprint cells to lie inside one room of a type the item allows (outdoor items: unpainted surface cells), to overlap no other item, to keep at least one of its access tiles free and reachable, and to satisfy its wall-behind rule where §6 declares one. | ADOPTED (DEC-061 Q7; GDD §5.9 access) |
 | BUILD-REQ-011 | While an item ghost is shown, the system shall draw its footprint, its access cells and its wall-behind requirement, and shall state its validity as ✓ / ! / X with a reason in words. | ADOPTED (DEC-061 Q5, Q7; MOVE-REQ-018) |
 | BUILD-REQ-012 | When a batch containing underground room cells is confirmed, the system shall create excavation for every painted cell and dig the cells one by one outward from the access face, in breadth-first priority order from the cells touching finished space, ties by cell index (parallel faces as ECON-001 allows, up to 4 builders). | ADOPTED (DEC-061 Q1–Q4; ECON-001–005) |
-| BUILD-REQ-013 | While a drafted underground cell has no route to finished space or to a built connector on its level, the system shall mark it “! No way in” and refuse to confirm it. | ADOPTED; drafting against an unbuilt connector in the same batch is OPEN-07 |
+| BUILD-REQ-013 | While a drafted underground cell has no route to finished space, to a built connector, or to a connector drafted in the same pending batch, the system shall mark it “! No way in” and refuse to confirm it; cells reached only through a drafted connector are confirmed, and their digging waits until that connector is built. | ADOPTED (OPEN-07 ruled (a)) |
 | BUILD-REQ-014 | The system shall represent tunnels as rooms of type `CORRIDOR` (shown as “Passage”) at least 2 cells wide, and shall offer no polyline tunnel tool. | ADOPTED (DEC-061 Q4) |
 | BUILD-REQ-015 | When the player places a surface entrance item, the system shall show its ✓ / ! / X ghost and a card stating “Connects to Underground level 1”; when the entrance is built, the system shall make level 1 paintable from it. | ADOPTED (DEC-061 Q5) |
 | BUILD-REQ-016 | When the player places a connector item of the same family on a Passage on level N, the system shall offer “Connects to level N+1” or “level N−1” (an impossible direction shown disabled with its reason) and, when built, shall connect the two levels. | ADOPTED (DEC-061 Q5) |
@@ -139,9 +139,9 @@ building's service. The item bill and room-cell bill follow §7.
 Totals: 13 buildings become rooms or room groups (rows 1–4, 6, 7, 10, 11, 13, 16, 20, 22, 23); 17 stay outdoor
 items. DEC-061 names well, fence, paths, weir and apiary as outdoor; the other eleven outdoor classifications
 (stockpile, workbench shelter, dryer, fisher shelter, composter, nursery, saltpan, lookout, stone wall, gate, memorial
-garden) and the “any level” column are PROPOSED (OPEN-03).
+garden) and the “any level” column are ADOPTED (OPEN-03 ruled (a)).
 
-**Services that belonged to a building without a key item** (PROPOSED, OPEN-04): the hall's Keeper 2 slots belong to
+**Services that belonged to a building without a key item** (ADOPTED, OPEN-04 ruled (a)): the hall's Keeper 2 slots belong to
 the central hall's hearth; the infirmary's Healer 2 slots belong to each INFIRMARY room; the black-box kitchen's
 100000 g operational store is retired, and KITCHEN rooms draw from reachable PANTRY/STORE rooms as the starter kitchen
 already does. **The central hall** of REQ-SET-123 and REQ-SET-133 is the starter's roofed room group.
@@ -162,7 +162,7 @@ Nine new item definitions, appended after the nine GDD furniture IDs (IDs 9–17
 `craft_bench`, `millstone`, `smoker`, `boat_slip`, `brew_vat`, `forester_rack`, `quarry_rack`. Each carries, from its
 source building's balance §4.1/§4.2 row: materials, work, operational slots, `base_store_g`, passive slots,
 `max_builders`, unlock milestone and tier-2 upgrade (covered store, workshop). Their footprints, access tiles and
-wall-behind rules are **OPEN-02** (no geometry exists for them). `Room.furniture_mask`'s known mask grows from 511 to
+wall-behind rules are **still to be authored**: each slice authors them from a 4 × 4-cell placeholder with one front access pair, for review (OPEN-02 ruled (a)). `Room.furniture_mask`'s known mask grows from 511 to
 `(1 << 18) − 1 = 262143`; R-BUILD-DOM-003/004 must be amended with it (slice G).
 
 ## 6. Furniture: footprint, access tiles, wall-behind
@@ -180,11 +180,11 @@ satisfy this rule.
 | Furniture key | Footprint (cells) | Access tiles | Wall-behind | Basis |
 |---|---|---|---|---|
 | `bed` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | No | GDD “adjacent walk tile”; starter beds on tile rows 2 and 4 stand free |
-| `patient_bed` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | No (PROPOSED, OPEN-05) | Same function as `bed`; no instance in the GDD |
+| `patient_bed` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | No (ADOPTED, OPEN-05) | Same function as `bed`; no instance in the GDD |
 | `seat` | 2 × 2 | Tile above or below (along the item's z axis), ≥ 1 usable | No | GDD “adjacent walk tile above or below”; starter seats stand free |
-| `kitchen_bench` | 4 × 2 | The 2 tiles along either long side, ≥ 1 usable | No (PROPOSED, OPEN-05) | GDD 2 × 1 tiles; starter bench touches the north wall, which is permitted, not required |
-| `hearth` | 4 × 2 | The 2 tiles along either long side, ≥ 1 usable | Yes (PROPOSED, OPEN-05) | Starter hearth touches the north wall; of its south tiles, (8,1) is walk and (9,1) holds the kitchen shelf |
-| `shelf` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | Yes (PROPOSED, OPEN-05) | All five starter shelves touch an outside wall and have a walk tile beside them |
+| `kitchen_bench` | 4 × 2 | The 2 tiles along either long side, ≥ 1 usable | No (ADOPTED, OPEN-05) | GDD 2 × 1 tiles; starter bench touches the north wall, which is permitted, not required |
+| `hearth` | 4 × 2 | The 2 tiles along either long side, ≥ 1 usable | Yes (ADOPTED, OPEN-05) | Starter hearth touches the north wall; of its south tiles, (8,1) is walk and (9,1) holds the kitchen shelf |
+| `shelf` | 2 × 2 | Any side-adjacent tile, ≥ 1 usable | Yes (ADOPTED, OPEN-05) | All five starter shelves touch an outside wall and have a walk tile beside them |
 | `decoration` | 2 × 2 | None (no user and no service work) | No | GDD user slots 0 |
 | `interior_partition` | 2 cell edges (one GDD tile edge) | None | n/a | GDD “Tile edge”; also a 1-edge half piece, §7.4 |
 | `interior_door` | 2 cell edges | The 2 cells on each side touching the door edge must be walk cells | n/a | GDD “passable boundary”; also used as a surface room's exterior door (BUILD-REQ-009) |
@@ -221,7 +221,7 @@ A 2 × 2 Passage patch is 16 quanta: wood 4000, stone 4000 milli-U, 67680 milli-
 already open (BACKFILLED re-dig follows ECON-005's withdrawal branch) is never charged twice. Underground rooms have
 no generated-wall or roof bill: their walls are braced earth.
 
-### 7.3 Surface room cells and key items (PROPOSED, OPEN-01)
+### 7.3 Surface room cells and key items (ADOPTED, OPEN-01 ruled (b))
 
 The GDD priced each building as one bill. DEC-061 splits each building into painted cells plus items, and on the
 surface the cells must pay for generated walls and roof. Three derivations need no new constant:
@@ -229,7 +229,7 @@ surface the cells must pay for generated walls and roof. Three derivations need 
 | Option | Room cells pay | Key item pays | Problem |
 |---|---|---|---|
 | (a) Cells carry the whole building bill, spread over its reference area | `ceil_div(c × bill, reference cells)` | Nothing | An underground MILL would pay only excavation and get the millstone free |
-| **(b) Recommended.** Key item carries its building's whole bill; cells carry one generic shell rate | Shell rate below | The source building's balance §4.1 bill and work | Surface totals rise by the shell of the painted area; balance §8 must be rerun |
+| **(b) Adopted.** Key item carries its building's whole bill; cells carry one generic shell rate | Shell rate below | The source building's balance §4.1 bill and work | Surface totals rise by the shell of the painted area; balance §8 must be rerun |
 | (c) Split each bill by a fixed fraction | Fraction × bill | Rest | Needs a fraction; no source supplies one |
 
 **Generic surface shell rate under (b).** The residence is the GDD's only building whose bill is pure shell with no
@@ -260,13 +260,13 @@ costs exactly half the GDD tile-edge partition: wood 1000 / 2 = **500 milli-U**,
 
 ### 7.5 Removal and tier-2 upgrades
 
-- **Removing surface cells** (Clear ground; PROPOSED with OPEN-01) is demolition of that part of the room: REQ-SET-127's
+- **Removing surface cells** (Clear ground; ADOPTED with OPEN-01 (b)) is demolition of that part of the room: REQ-SET-127's
   evacuation, work of declared WU × 0.25 and 50% return, computed with `floor_div` on the removed cells' share of the
   bill **actually paid and recorded** for that room (BUILD-C4-R01: never repriced), so a return never exceeds half of
   what was paid. Items inside follow DEMO-CONTAIN-R01's 50%-of-own-materials rule.
 - **Removing underground cells** (Earth) is ECON-005 backfill: earth 2000 milli-U per open quantum, 4.25 WU and
   wood 125 / stone 125 salvage per supported quantum.
-- **Tier-2 upgrades** (PROPOSED, OPEN-08): the covered-store and workshop packages attach unchanged to `store_bay`
+- **Tier-2 upgrades** (ADOPTED, OPEN-08 ruled (a)): the covered-store and workshop packages attach unchanged to `store_bay`
   and `craft_bench`. The residence/hall package (wood 20000, stone 40000, cloth 8000, 1200000 milli-WU) becomes a
   per-room upgrade of DORMITORY, PRIVATE_ROOM, KITCHEN, DINING, COMMON, PANTRY and surface CORRIDOR rooms, scaled
   like the shell: `ceil_div(c × package, 192)`; one upgrade per room; INFIRMARY keeps no upgrade.
@@ -291,11 +291,11 @@ costs exactly half the GDD tile-edge partition: wood 1000 / 2 = **500 milli-U**,
 
 | Player-facing item | `room_connectors.gd` family | Where placed | Geometry status |
 |---|---|---|---|
-| Burrow mouth (ramp) | `RAMP` (2) | Surface cells (entrance) or a Passage | Demo slope 1:2.5 (decision 0212) is a candidate: a 5120 u rise needs a run of at least 12800 u, plus 0212's end fillets. Not qualified. OPEN-02 |
-| Stair-head, earth/timber steps | `EARTH_TIMBER` (0) | Surface or Passage | The only qualified descent is ADR 1209's 128 u rise per 512 u run; a full 5120 u level needs 40 treads over 20480 u. Shorter stairs (demo 4:5, decision 0212) are candidates. OPEN-10 (first entrance), OPEN-02 |
-| Stone stairs | `STONE` (1) | Surface or Passage | OPEN-02 |
-| Spiral stair | `SPIRAL` (3) | Surface or Passage | OPEN-02 |
-| Hatch with ladder | `LADDER_HATCH` (4) | Surface or Passage | OPEN-02; grip, capability and load eligibility apply (levels-and-connections D04) |
+| Burrow mouth (ramp) | `RAMP` (2) | Surface cells (entrance) or a Passage | Demo slope 1:2.5 (decision 0212) is a candidate: a 5120 u rise needs a run of at least 12800 u, plus 0212's end fillets. Not qualified; its geometry and fixture bill are still to be authored (OPEN-02 (a)) |
+| Stair-head, earth/timber steps | `EARTH_TIMBER` (0) | Surface or Passage | The only qualified descent is ADR 1209's 128 u rise per 512 u run; a full 5120 u level needs 40 treads over 20480 u. First entrance (OPEN-10 ruled (a)): a steeper earth/timber flight for a full level is to be qualified (new motion work); the 40-tread, 20 m flight is the fallback |
+| Stone stairs | `STONE` (1) | Surface or Passage | Still to be authored (OPEN-02 (a)) |
+| Spiral stair | `SPIRAL` (3) | Surface or Passage | Still to be authored (OPEN-02 (a)) |
+| Hatch with ladder | `LADDER_HATCH` (4) | Surface or Passage | Still to be authored (OPEN-02 (a)); grip, capability and load eligibility apply (levels-and-connections D04) |
 
 - **Ghost** (BUILD-REQ-011, -015): **✓** “Can build” — every condition met; **!** “Blocked: <reason>” — valid here but
   waiting on something the player can fix (milestone, no finished Passage on the target level yet, an occupant to move,
@@ -307,7 +307,7 @@ costs exactly half the GDD tile-edge partition: wood 1000 / 2 = **500 milli-U**,
   trigger, replacing the demo's automatic tunnel mouths.
 - **Bill**: the excavation quanta the connector's geometry actually opens (§7.2 prices) plus the family's fixture
   recipe. Fixture recipes exist only for the qualified earth/timber stair (ADR 1202 L0/T0, ADR 1209 D3 treads,
-  DEC-059 work); every other family's fixture bill is OPEN-02.
+  DEC-059 work); every other family's fixture bill is still to be authored in its slice (OPEN-02 (a)).
 - **Removal**: refused while it is the only way in or out of anything (BUILD-REQ-017).
 
 ## 10. Payment: from a painted batch to blueprints
@@ -337,5 +337,6 @@ anything. Cancelling one confirmed project never cancels the rest of its batch.
   route inspection, cross-layer picking and canopy/water layers remain open.
 - **MOVE-G04, MOVE-G05**: open.
 
-The OPEN list (OPEN-01 … OPEN-11) with options and recommendations is in
-[decision 1851](decisions/1851-painted-room-contracts.md#open-list-for-brendan).
+The OPEN list (OPEN-01 … OPEN-11), with options, is in
+[decision 1851](decisions/1851-painted-room-contracts.md#open-list-for-brendan); Brendan chose the recommended option on all
+eleven on 2026-10-11 ([rulings](decisions/1851-painted-room-contracts.md#brendans-rulings-2026-10-11)).

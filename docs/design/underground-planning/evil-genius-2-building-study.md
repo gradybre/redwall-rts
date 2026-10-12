@@ -200,23 +200,23 @@ one key item each); the other seventeen stay outdoor items placed from the Furni
 paths, weir, apiary, stockpile and the rest). Walls and roof are generated from the painted cells; exterior doors are
 door items. Implements SET-BUILD-001 §5–7 and BAL-ROOM-001: the nine new room types and nine key items enter the
 catalog fingerprint, `room_catalog.gd` loses its “no ninth room type” limit, and the starter hall is re-expressed as
-painted rooms. Its surface costs wait on Brendan's OPEN-01 (cells vs key items). This replaces UI-SET-052–058.
+painted rooms. Its surface costs follow Brendan's ruling on OPEN-01 (b): key items carry their old building's bill, room cells pay the residence-derived wall-and-roof rate. This replaces UI-SET-052–058.
 
 **H — Polish from EG2's complaints.** Show a room's size and validity on hover after it is built; jump-to-problem from
 any refusal (EG2's Cancel → camera); bulk select/remove; no "crew abandons the build" — keep the existing per-digger
 job queues and show who is assigned on the blueprint.
 
-**Dependencies per slice** (added by slice A, 2026-10-11). “Needs” means the slice cannot finish without it.
+**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851, so no slice waits on a ruling). “Needs” means the slice cannot finish without it.
 
 | Slice | Needs (slices) | Needs (other work and rulings) |
 |---|---|---|
 | A | — | DEC-061 (done) |
-| B | A | Slice-B storage obligations (ARCH-BUILD-001: cell grid, Room/item rows, ledger bytes); PageUp/PageDown rebinding (OPEN-09); `ui_registry.gd` rows |
-| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials; OPEN-07 (drafting against an unbuilt connector) |
-| D | B, C | Connector geometry and fixture recipes per family (OPEN-02; only the earth/timber stair is qualified); `begin_underground_entry` trigger; OPEN-10 (first-entrance geometry); OPEN-11 (DEC-031 placed burrows) |
-| E | B, C | Access tiles and wall-behind (SET-BUILD-001 §6; OPEN-05); install crews (ADR 1081) |
-| F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); OPEN-06 (joining rooms) |
-| G | B, E, F | OPEN-01 (surface costs), OPEN-03 (outdoor classification), OPEN-04 (orphan services), OPEN-08 (upgrades); catalog fingerprint for RoomType 8–16 and items 9–17; BAL §8 reruns |
+| B | A | Slice-B storage obligations (ARCH-BUILD-001: cell grid, Room/item rows, container owners, ledger bytes); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
+| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07) |
+| D | B, C | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
+| E | B, C | Install crews (ADR 1081); access tiles and wall-behind are ruled (OPEN-05) |
+| F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |
+| G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17; BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
 | H | B–G | — |
 
 ---

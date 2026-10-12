@@ -1,6 +1,6 @@
 # 1851 — Painted-room contracts: how DEC-061 lands in the owning documents
 
-Date: 2026-10-11 · Status: Accepted (contract slice A of the Evil Genius 2 study; docs only, no code)
+Date: 2026-10-11 · Status: Accepted (contract slice A of the Evil Genius 2 study; docs only, no code). All OPEN items ruled 2026-10-11.
 
 Number range: 1851–1869 was allocated to this lane by the coordinator; 1851 is the only record it uses. It replaces
 no BACKLOG range.
@@ -86,11 +86,10 @@ Each choice below is this lane's, made so that later code slices can build witho
 
 ## Consequences
 
-- Slices B–F can **start** from SET-BUILD-001 without a ruling, but each **finishes** only after the OPEN items the
-  study's dependency table assigns to it (B: OPEN-09; C: OPEN-07; D: OPEN-02, OPEN-10; E: OPEN-05; F: OPEN-06).
-  Slice G waits for OPEN-01, -03, -04 and -08.
+- After Brendan's rulings no slice waits on a ruling. Slice D still needs the steeper flight qualified (OPEN-10 (a)),
+  and slices D and G author OPEN-02's per-item geometry.
 - DEC-031's “placed burrows” are read, under DEC-061, as painted rooms opened from a placed entrance (the H/C
-  templates are retired). That reading of a `USER_CONFIRMED` decision is not this lane's to make silently: OPEN-11.
+  templates are retired). Brendan confirmed this reading (OPEN-11 (a), 2026-10-11).
 - The demo's polyline tunnel tool, H/C templates and 4 m second level are superseded by contract; they stay playable
   until the slices replace them.
 - `room_catalog.gd`'s refusal to author access offsets is overruled by DEC-061 Q7 for slice E; its height and
@@ -155,6 +154,29 @@ Run in this worktree after the edits (summary lines in the lane report): `decisi
 `underground_memory_budget.py --check`, the three cycle handoff validators, the movement profile and envelope tests,
 `validate_save_registry_handoff.py --source-root .` and `generate_canonical_state_table.py --check`. No GDScript
 changed, so the Godot suite and analyzer were not run.
+
+## Brendan's rulings (2026-10-11)
+
+Relayed by the coordinator: on 2026-10-11, in chat, using the AskUserQuestion tool, Brendan chose the recommended
+option on **all eleven** OPEN items above.
+
+| Item | Ruling |
+|---|---|
+| OPEN-01 | **(b)**, machines carry their old building's bill, and room cells pay the residence-derived wall-and-roof rate |
+| OPEN-02 | **(a)**, author each item's and connector family's geometry and bill in its slice, from a 4 × 4-cell placeholder |
+| OPEN-03 | **(a)**, the outdoor/room split and level eligibility as tabled in SET-BUILD-001 §5.1 |
+| OPEN-04 | **(a)**, the services move: hall Keepers to the central hearth, Healers to each infirmary room, kitchen buffer dropped |
+| OPEN-05 | **(a)**, hearth and shelf need a wall behind; patient bed and kitchen bench do not |
+| OPEN-06 | **(a)**, same-type rooms merge and the older one survives |
+| OPEN-07 | **(a)**, paint against a planned entrance; the digging waits for it |
+| OPEN-08 | **(a)**, upgrades move onto machines (store, workshop) and living rooms (residence/hall package by area) |
+| OPEN-09 | **(a)**, PageUp/PageDown change level; keyboard zoom on = and − |
+| OPEN-10 | **(a)**, qualify a steeper earth/timber flight for the first entrance, with the 20 m flight as fallback |
+| OPEN-11 | **(a)**, a placed burrow is a painted room reached from a placed entrance |
+
+Every PROPOSED tag these settle is now ADOPTED in SET-BUILD-001, BAL-ROOM-001, UI-BUILD, the GDD, SET-MOVE-001 and the
+study. Still to be authored, not ruled away: OPEN-02's per-item values (each slice authors them for review) and
+OPEN-10's steeper flight (new motion qualification work).
 
 ## Review
 

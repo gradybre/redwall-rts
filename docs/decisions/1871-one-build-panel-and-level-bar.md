@@ -485,6 +485,18 @@ The coordinator runs the full sharded suite after this commit; `--fast` was not 
     `generate_canonical_state_table.py --check`, `state_registry_coverage.py`, `ui_refinement_contract.py` and
     `setting_contract.py`: all PASS.
 
+**Coordinator's final CI-style run** (af9005c6, art-free checkout, `godot/.godot` deleted and re-imported, the ten CI
+shards run five at a time locally by Brendan's choice of 2026-10-12, then `ci_test_shards.py verify --count 10`):
+
+```text
+ok: 490 suite files executed exactly once across 10 shards
+{"counts": {"assertions": 1245499, "expected": 278, "failures": 0, "leaked_objects": 0, "leaked_resources": 0,
+ "tests": 12333, "tolerated": 373, "unexpected_errors": 0, "unexpected_warnings": 0}, "shard_count": 10, "suite_count": 490}
+wall seconds: 1057
+```
+
+An earlier sharded run at 46947083 found the art-free drag-select failure fixed in E28.
+
 ## Mutation testing
 
 ### Second review and the rulings (final batch)

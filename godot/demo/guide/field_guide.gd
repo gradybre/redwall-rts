@@ -670,7 +670,7 @@ static func _station_burrow() -> Entry:
 		"Beds for the night (a bed %s, a large bed %s), a hearth, table, rug, lantern: comfort." % [
 			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
 			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
-		"Dug by a digger from the Dig tool (H); fitted out from the stores.", "Without a bed a resident sleeps on the hall's floor.",
+		"Dug by a digger from the build panel's Burrow home card (B); fitted out from the stores.", "Without a bed a resident sleeps on the hall's floor.",
 		"Wherever you dig one."]), [&"skill_digging", &"material_planks", &"station_tunnels"])
 
 
@@ -678,7 +678,7 @@ static func _station_cellar() -> Entry:
 	"""The station cellar entry."""
 	return make(&"station_cellar", KIND_STATION, "Root cellar", "A cool store below ground", PackedStringArray([
 		"Keeping food at the GDD's cellar rate (%d per mille) while it is 1 m down, racked, and no hearth is near." % StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR],
-		"Dug from the Dig tool (C), then racked: a shelf holds %s, a pantry rack %s, a root bin %s." % [
+		"Dug from the build panel's Root cellar card (B), then racked: a shelf holds %s, a pantry rack %s, a root bin %s." % [
 			Measures.exact(&"food", Fixtures.CAPACITY_U[RoomsScript.FIX_SHELF] * 1000),
 			_food_room(Fixtures.CAPACITY_U[RoomsScript.FIX_RACK]), _food_room(Fixtures.CAPACITY_U[RoomsScript.FIX_BIN])],
 		"The covered store (faster spoiling).", "Wherever you dig one; harvests go there first."]),

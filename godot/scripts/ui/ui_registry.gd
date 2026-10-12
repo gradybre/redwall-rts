@@ -104,10 +104,12 @@ const SIZE_DRAG_RECT: int = 2
 const SIZE_FOOTPRINT: int = 3
 ## UI-SET-074: "Owner rect + 4 px".
 const SIZE_OWNER_RELATIVE: int = 4
-const SIZE_KIND_COUNT: int = 5
+## UI-BUILD-010: "Painted cell set" -- the cells a stroke paints on the current level (decision 1871).
+const SIZE_PAINTED_CELLS: int = 5
+const SIZE_KIND_COUNT: int = 6
 
 const SIZE_KIND_KEYS: Array[StringName] = [
-	&"FIXED", &"VIEWPORT", &"DRAG_RECT", &"FOOTPRINT", &"OWNER_RELATIVE",
+	&"FIXED", &"VIEWPORT", &"DRAG_RECT", &"FOOTPRINT", &"OWNER_RELATIVE", &"PAINTED_CELLS",
 ]
 
 # --- the catalog --------------------------------------------------------------------------------
@@ -384,6 +386,73 @@ const OPENS: Dictionary = {
 	102: [12, SURFACE_EXPANSION],      # 102 "activates 012; N shortcut"
 }
 
+
+# --- UI-BUILD-001..014: the build panel and the level bar (DEC-061) -----------------------------
+#
+# docs/ui_ux_controls.md "UI-BUILD-001 — one build panel and the level bar" registers fourteen rows in §4's columns.
+# They are a FAMILY OF THEIR OWN (decision 1871): ids 1..14 keyed "UI-BUILD-nnn", in parallel columns of their own
+# with their own count and contract checks. ELEMENT_COUNT stays 103 -- the shell, its availability table, its focus
+# order and many suites size their arrays by it and loop `UI-SET` ids over it, and a UI-BUILD row is not a UI-SET row.
+# The family reuses this file's zone, profile, gate and size-kind enums. Two rows do not fit a fixed rectangle and
+# say so with a size kind, exactly as UI-SET-054 does: UI-BUILD-010's size is "Painted cell set" (SIZE_PAINTED_CELLS,
+# added for it) and UI-BUILD-011's "Footprint + access tiles" (SIZE_FOOTPRINT). UI-BUILD-005 also has an expanded
+# size, held in BUILD_LEDGER_OPEN_*. UI-BUILD-008 and 009 are instances of UI-SET-066/confirm_all and
+# UI-SET-067/discard_all (BUILD_INSTANCES).
+
+const BUILD_FIRST_ID: int = 1
+const BUILD_ELEMENT_COUNT: int = 14
+const BUILD_LAST_ID: int = BUILD_FIRST_ID + BUILD_ELEMENT_COUNT - 1
+
+const BUILD_NAMES: Array[StringName] = [
+	&"Build panel", &"Build tab", &"Type or item card", &"Info card", &"Running ledger", &"Undo", &"Redo",
+	&"Confirm all", &"Discard all", &"Paint ghost", &"Item ghost", &"Connector card", &"Level bar", &"Level button",
+]
+## The "Zone / anchor" column: BC; owned by 001 (its top row, content row, footer); CENTER (cells / footprint of the
+## level); BC above 001; BL above the minimap; owned by 013's grid.
+const BUILD_ZONES: Array[int] = [
+	ZONE_BOTTOM_CENTER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER, ZONE_OWNER,
+	ZONE_OWNER, ZONE_OWNER, ZONE_CENTER, ZONE_CENTER, ZONE_BOTTOM_CENTER, ZONE_BOTTOM_LEFT, ZONE_OWNER,
+]
+const BUILD_PROFILES: Array[int] = [
+	PROFILE_PANEL, PROFILE_TOGGLE, PROFILE_BUTTON, PROFILE_PANEL, PROFILE_READOUT, PROFILE_BUTTON, PROFILE_BUTTON,
+	PROFILE_BUTTON, PROFILE_BUTTON, PROFILE_OVERLAY, PROFILE_OVERLAY, PROFILE_PANEL, PROFILE_PANEL, PROFILE_TOGGLE,
+]
+const BUILD_GATES: Array[int] = [
+	GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORKSPACE,
+	GATE_WORKSPACE, GATE_WORKSPACE, GATE_WORLD_TOOL, GATE_WORLD_TOOL, GATE_CONDITION, GATE_ALWAYS, GATE_ALWAYS,
+]
+const BUILD_SIZE_KINDS: Array[int] = [
+	SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED,
+	SIZE_FIXED, SIZE_FIXED, SIZE_PAINTED_CELLS, SIZE_FOOTPRINT, SIZE_FIXED, SIZE_FIXED, SIZE_FIXED,
+]
+## "Size min->max", logical px; zero for the two runtime-sized ghosts (unreachable: `build_size_into` refuses them).
+const BUILD_MIN_W: Array[int] = [480, 96, 136, 160, 120, 44, 44, 120, 96, 0, 0, 280, 160, 78]
+const BUILD_MIN_H: Array[int] = [256, 44, 128, 128, 44, 44, 44, 44, 44, 0, 0, 136, 104, 32]
+const BUILD_MAX_W: Array[int] = [912, 160, 208, 208, 520, 96, 96, 240, 160, 0, 0, 360, 256, 126]
+const BUILD_MAX_H: Array[int] = [256, 44, 128, 128, 44, 44, 44, 44, 44, 0, 0, 160, 140, 44]
+## UI-BUILD-005 "expanded 320×160→640×320".
+const BUILD_LEDGER_OPEN_MIN: Vector2i = Vector2i(320, 160)
+const BUILD_LEDGER_OPEN_MAX: Vector2i = Vector2i(640, 320)
+## UI-BUILD-008 "BUTTON (instance UI-SET-066/confirm_all)", 009 "BUTTON (instance UI-SET-067/discard_all)".
+const BUILD_INSTANCES: Dictionary = {8: [66, &"confirm_all"], 9: [67, &"discard_all"]}
+## The "Accessible name/value binding" column, as the section writes it.
+const BUILD_BINDINGS: Array[String] = [
+	"“Build on ”+level_name+“; ”+pending_count+“ pending changes”",
+	"Tab name (“Rooms”, “Furnish”, “Decor”)+“ tab ”+index+“ of 3”",
+	"Name+“; ”+cost per cell or per item in natural measures+“; ”+footprint in cells+“; ”+unlock state",
+	"Picture description+purpose line+cost+rules+gesture",
+	"“Plan needs ”+totals in natural measures+“; work ”+hours+“; earth out ”+amount+“; stores hold ”+available",
+	"“Undo ”+last_operation",
+	"“Redo ”+next_operation",
+	"“Confirm all; ”+pending_count+“ changes”",
+	"“Discard ”+pending_count+“ pending changes”",
+	"“Paint ”+type+“ ”+w+“ × ”+d+“ cells (”+w+“ m × ”+d+“ m); ”+validity",
+	"“Place ”+item+“ facing ”+direction+“; ”+✓/!/X+“ ”+reason",
+	"“Connects to ”+target_level_name+“; ”+validity",
+	"“Levels; viewing ”+level_name",
+	"Full name+“; ”+access state",
+]
+
 # --- §1.3 and §2.2's overflow rules --------------------------------------------------------------
 #
 # There are exactly two policies and NEITHER of them truncates. §1.3 forbids the alternatives by
@@ -467,6 +536,16 @@ func _assert_contracts() -> void:
 	assert(SURFACE_KEYS.size() == SURFACE_COUNT and OVERFLOW_KEYS.size() == OVERFLOW_COUNT,
 		"every surface kind and overflow policy must be named")
 	_assert_opens_contracts()
+	_assert_build_contracts()
+
+
+func _assert_build_contracts() -> void:
+	"""Every UI-BUILD column holds exactly one entry per UI-BUILD row."""
+	for column: Array in [BUILD_ZONES, BUILD_PROFILES, BUILD_GATES, BUILD_SIZE_KINDS, BUILD_MIN_W, BUILD_MIN_H,
+			BUILD_MAX_W, BUILD_MAX_H]:
+		assert(column.size() == BUILD_ELEMENT_COUNT, "every UI-BUILD column must hold one entry per row")
+	assert(BUILD_NAMES.size() == BUILD_ELEMENT_COUNT and BUILD_BINDINGS.size() == BUILD_ELEMENT_COUNT,
+		"every UI-BUILD row must be named and bound")
 
 
 func _assert_opens_contracts() -> void:
@@ -722,3 +801,81 @@ func _refuse(code: StringName) -> bool:
 	"""Record an explicit refusal code and return false. No sentinel value is ever returned."""
 	_last_refusal = code
 	return false
+
+
+# --- UI-BUILD reads ---------------------------------------------------------------------------------
+
+static func is_build_element(id: int) -> bool:
+	"""True for a UI-BUILD id, 1..14."""
+	return id >= BUILD_FIRST_ID and id <= BUILD_LAST_ID
+
+
+func build_element_key(id: int) -> StringName:
+	"""The stable runtime id `UI-BUILD-nnn`."""
+	if not is_build_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return &""
+	_last_refusal = REFUSE_NONE
+	return StringName("UI-BUILD-%03d" % id)
+
+
+func build_name_of(id: int) -> StringName:
+	"""A UI-BUILD row's name, or the empty StringName after an UNKNOWN_ID refusal."""
+	if not is_build_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return &""
+	_last_refusal = REFUSE_NONE
+	return BUILD_NAMES[id - BUILD_FIRST_ID]
+
+
+func build_zone_of(id: int) -> IntMath.IntResult:
+	"""A UI-BUILD row's zone."""
+	return _build_column_read(id, BUILD_ZONES)
+
+
+func build_profile_of(id: int) -> IntMath.IntResult:
+	"""A UI-BUILD row's §2.2 profile."""
+	return _build_column_read(id, BUILD_PROFILES)
+
+
+func build_gate_of(id: int) -> IntMath.IntResult:
+	"""A UI-BUILD row's gate."""
+	return _build_column_read(id, BUILD_GATES)
+
+
+func build_size_kind_of(id: int) -> IntMath.IntResult:
+	"""How a UI-BUILD row states its size."""
+	return _build_column_read(id, BUILD_SIZE_KINDS)
+
+
+func _build_column_read(id: int, column: Array[int]) -> IntMath.IntResult:
+	"""Read one UI-BUILD column at `id`, refusing an id the family does not define."""
+	if not is_build_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return IntMath.IntResult.new(false, 0)
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, column[id - BUILD_FIRST_ID])
+
+
+func build_size_into(id: int, out: Size) -> bool:
+	"""A UI-BUILD row's minimum/maximum logical size; REFUSES for the two ghosts, whose size is the painted cells or
+	the item's footprint."""
+	out.reset()
+	if not is_build_element(id):
+		return _refuse(REFUSE_UNKNOWN_ID)
+	var row: int = id - BUILD_FIRST_ID
+	if BUILD_SIZE_KINDS[row] != SIZE_FIXED:
+		return _refuse(REFUSE_SIZE_NOT_FIXED)
+	out.min_width = BUILD_MIN_W[row]
+	out.min_height = BUILD_MIN_H[row]
+	out.max_width = BUILD_MAX_W[row]
+	out.max_height = BUILD_MAX_H[row]
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func build_is_interactive(id: int) -> bool:
+	"""Whether a UI-BUILD row's profile is one a player presses (BUTTON or TOGGLE here)."""
+	var profile: IntMath.IntResult = build_profile_of(id)
+	return profile.ok and (profile.value == PROFILE_BUTTON or profile.value == PROFILE_TOGGLE \
+		or profile.value == PROFILE_ROW or profile.value == PROFILE_FIELD)

@@ -243,7 +243,9 @@ func _party_checks() -> void:
 		var docked: bool = bool(party.call(&"docked"))
 		_check("%s: Release in view (docked) or reachable" % what, _fraction(release) >= FULL if docked else await _reachable(release),
 			"docked %s" % docked)
-		if _scale == 100:
+		if _scale == 100 and _size.y > 720:
+			# At 1280x720 the level bar (UI-BUILD-013, always shown above the minimap; decision 1871) takes 148 px of
+			# this column, so there the actions move to the inspector's top and are reached by scrolling (checked above).
 			_check("%s: at 100%% the actions are always in view" % what, docked and _fraction(release) >= FULL)
 		await _members(party, n, what)
 		_floors(what, party)
@@ -276,6 +278,13 @@ func _reveal_checks(party: CanvasLayer, n: int) -> void:
 	keeps its focus when the summary and actions move (`fit` to no room and back)."""
 	var inspector: ScrollContainer = party.call(&"inspector")
 	var last: Button = party.call(&"member_row", n - 1)
+	var margin_px: float = 4.0 * inspector.get_global_transform().get_scale().y
+	if inspector.get_global_rect().size.y < last.get_global_rect().size.y + 2.0 * margin_px:
+		# Shorter than one row here (the column is about 76 logical px at 125 %; 156 at 100 %): the level bar took the
+		# column's foot (decision 1871, P-B8, review M6). Not asserted here: the caller's "every member row reachable"
+		# checks that every row scrolls into view.
+		print("LIVE-SKIP %dx%d reveal: the inspector is shorter than a row" % [_size.x, _size.y])
+		return
 	inspector.scroll_vertical = 0
 	await _frames(2)
 	inspector.call(&"reveal", last)

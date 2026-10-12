@@ -4,7 +4,8 @@ extends CanvasLayer
 ##
 ## ---------------------------------------------------------------------------------------
 ## PLACEMENT. It sits in the HUD's LEFT COLUMN: x at the safe inset, from `management_top` (below
-## the resource cluster and the reserved band) down to just above the minimap. UI §1.2's permanent
+## the resource cluster and the reserved band) down to just above the LEVEL BAR (UI-BUILD-013, always shown above
+## the minimap since decision 1871: scripts/ui/build_layout.gd), which shortens the column by the bar. UI §1.2's permanent
 ## zones leave that column empty at every supported profile: alerts and the workspace are centred,
 ## time and detail are on the right, the command strip starts right of the minimap. ONE transient
 ## HUD surface opens there -- UI-SET-009, the resource ledger, dropped under the resources when a
@@ -21,8 +22,8 @@ extends CanvasLayer
 ##     group's common activity ("Holding ×3 · Walking to the well ×2") -- cut with an ellipsis where it
 ##     is too long, whole in its tooltip; and the ACTIONS, always shown: Release (R) and Follow (End) for any
 ##     selection (Follow: the camera follows the primary resident, camera_modes.gd; "Stop following (End)" while it
-##     does -- UI §5's `camera_follow` "Detail title context action", decision 0801), and Dig tunnel (B), Burrow home (H)
-##     and Root cellar (C) with a digger in it;
+##     does -- UI §5's `camera_follow` "Detail title context action", decision 0801). The Dig tunnel, Burrow home and
+##     Root cellar buttons are gone: the build panel's cards open those tools (decision 1871, Brendan's ruling 3);
 ##   * the INSPECTOR, a vertical scroll filling the rest of the column: first the notice line (the
 ##     selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
 ##     one resident its species, what it is doing now, the progress or the step of that (the words after
@@ -44,10 +45,8 @@ extends CanvasLayer
 ## The panel stops the mouse, so a click on it never selects or orders anything in the world. Text is at
 ## least 14 logical px (UI §2.1) and every button at least 32 px tall (UX-T03).
 ##
-## TUNNELS (demo/tunnel/). With a digger in the party -- anybeast who fits a bore (decision 0208) -- "Dig
-## tunnel (B)" shows (emits `dig_requested`, the same as B), and beside it "Burrow home (H)" and "Root cellar
-## (C)" (emit `room_requested` with the room's template: decision 0209). They take keyboard focus only from Tab
-## and F7 (decision 0261), so Enter while laying a piece digs rather than pressing one again.
+## TUNNELS (demo/tunnel/). The tools that lay tunnels and rooms are opened from the build panel (B; its Passage,
+## Burrow home and Root cellar cards; decision 1871), not from here.
 
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
@@ -57,11 +56,9 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const PickRow := preload("res://demo/ui/demo_pick_row.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
-const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const PersonSection := preload("res://demo/people/person_section.gd")
 
-signal dig_requested
-signal room_requested(kind: int)
 ## A member's row was pressed: select that resident alone and centre on it (demo_command.gd `pick_member`).
 signal member_picked(actor_index: int)
 ## Release (R) was pressed: hand the selection back to its routine (demo_command.gd `release_selection`).
@@ -70,16 +67,7 @@ signal release_requested
 signal follow_requested
 
 const TITLE: String = "Demo party"
-const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: Underground"
-const DIG_BUTTON: String = "Dig tunnel (B)"
-## The Dig button's hover tip (decision 0205: every action button says what it does and its key).
-const DIG_TIP: String = "Dig tunnel (B) — the Dig tool: drag a tunnel from where it starts to where it ends (start on a tunnel to branch off it), or click its points and press Enter; Esc drops it, B closes the tool"
-## The room tools' buttons (decision 0209): text, tip, and the template each asks for (underground_rooms.gd).
-const ROOM_BUTTONS: Array[String] = ["Burrow home (H)", "Root cellar (C)"]
-const ROOM_TIPS: Array[String] = [
-	"Burrow home (H) — a round home with its own front door: move it, R turns it, click to hold a blueprint with its passage (Shift+click: none), then Confirm or Enter to order the dig",
-	"Root cellar (C) — a stone-lined cellar with a hatch: move it, R turns it, click to hold a blueprint with its passage (Shift+click: none), then Confirm or Enter to order the dig"]
-const ROOM_TEMPLATES: Array[int] = [RoomsScript.TEMPLATE_HOME, RoomsScript.TEMPLATE_CELLAR]
+const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: build · U: Underground"
 const RELEASE_BUTTON: String = "Release (R)"
 const RELEASE_TIP: String = "Release (R) — hand the selected residents back to their own routine; they stay selected"
 const FOLLOW_BUTTON: String = "Follow (End)"
@@ -146,8 +134,6 @@ var _actions: HFlowContainer = null
 var _extra_rows: Array[Control] = []
 var _release: Button = null
 var _follow: Button = null
-var _dig: Button = null
-var _room_buttons: Array[Button] = []
 var _inspector: DemoScroll = null
 var _detail: VBoxContainer = null
 var _rows: VBoxContainer = null
@@ -189,11 +175,6 @@ func build() -> void:
 	_build()
 	show_party([])
 	show_notice(_pending_notice)
-
-
-func dig_button() -> Button:
-	"""The "Dig tunnel" button (null before build)."""
-	return _dig
 
 
 func release_button() -> Button:
@@ -286,7 +267,7 @@ func _build_top() -> VBoxContainer:
 
 
 func _build_actions() -> HFlowContainer:
-	"""Release (R) always; the Dig tool and the room tools, hidden until a digger is in the party."""
+	"""Release (R) and Follow (End) for any selection."""
 	var row := HFlowContainer.new()
 	row.name = "Actions"
 	row.add_theme_constant_override(&"h_separation", SEPARATION)
@@ -295,12 +276,6 @@ func _build_actions() -> HFlowContainer:
 	row.add_child(_release)
 	_follow = _wood_button(FOLLOW_BUTTON, FOLLOW_TIP, func() -> void: follow_requested.emit())
 	row.add_child(_follow)
-	_dig = _wood_button(DIG_BUTTON, DIG_TIP, func() -> void: dig_requested.emit())
-	row.add_child(_dig)
-	for k in ROOM_BUTTONS.size():
-		var room := _wood_button(ROOM_BUTTONS[k], ROOM_TIPS[k], room_requested.emit.bind(ROOM_TEMPLATES[k]))
-		_room_buttons.append(room)
-		row.add_child(room)
 	return row
 
 
@@ -342,11 +317,6 @@ func add_section(section: Control) -> void:
 	decision 0791). It shows and hides itself."""
 	_detail.add_child(section)
 	_detail.move_child(section, _notice.get_index() + 1)
-
-
-func room_button(k: int) -> Button:
-	"""The room tool's button `k` (0 Burrow home, 1 Root cellar; null before build)."""
-	return _room_buttons[k] if k >= 0 and k < _room_buttons.size() else null
 
 
 func _wood_button(text: String, tip: String, pressed: Callable) -> Button:
@@ -407,9 +377,6 @@ func show_party(entries: Array[Dictionary]) -> void:
 	_chip.visible = entries.size() == 1
 	_release.visible = not entries.is_empty()
 	_follow.visible = _release.visible
-	_dig.visible = has_digger(entries)
-	for room: Button in _room_buttons:
-		room.visible = _dig.visible
 	_actions.visible = _release.visible or not _extra_rows.is_empty()
 	_fill_rows(entries)
 	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
@@ -766,13 +733,13 @@ func inspector() -> ScrollContainer:
 
 static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
 	"""The panel's rectangle in the HUD's logical pixels: the left column between the reserved band
-	and the minimap, inset by the carved frame. Fills `geometry` (scale 1 when the viewport is
-	below the supported floor and the HUD refuses to lay out)."""
+	and the level bar over the minimap (decision 1871), inset by the carved frame. Fills `geometry` (scale 1 when the
+	viewport is below the supported floor and the HUD refuses to lay out)."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
 			DemoUiScale.percent, false, geometry):
 		geometry.scale = 1.0
 	var top := geometry.management_top + FRAME_EXPAND
-	var bottom := geometry.minimap.position.y - MINIMAP_GAP - FRAME_EXPAND
+	var bottom := BuildLayout.level_bar_rect(geometry, true).position.y - MINIMAP_GAP - FRAME_EXPAND
 	return Rect2(UiLayout.SAFE_INSET + FRAME_EXPAND, top, WIDTH, maxf(bottom - top, 0.0))
 
 

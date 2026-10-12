@@ -28,7 +28,7 @@ Ruleset v2 is reconciled with [setting_rules_amendment.md](setting_rules_amendme
 
 **ARCH-MEM-001.** In the tables, I32=`PackedInt32Array` at 4 bytes/element, I64=`PackedInt64Array` at 8, B8=`PackedByteArray` at 1 `[GDD §4.2; Godot packed-array types]`. A comma-separated field group expands into separate contiguous columns of the stated length. Fixed children use the stated flattened owner-major indexing; variable children use packed arenas plus explicit offset/count indices. Do not allocate a GDScript `Array` for each row. Payload totals exclude allocator/object headers, which receive a separate measured reserve.
 
-**ARCH-MEM-002.** **BASELINE-ONLY under SET-MOVE-001, and under SET-BUILD-001 (DEC-061) whose 1 m cell grid over five levels replaces the one-floor tile model; see [ARCH-BUILD-001](#arch-build-001--painted-rooms-on-a-1-m-cell-grid-dec-061):** these bounds and all downstream directory, transform, payload and save-memory totals do not cover required multi-level space. Recompute them under MOVE-G02; do not multiply by an invented floor count. Fixed registry cardinalities below remain mandatory for the existing baseline. The remaining finite bounds below are geometric/conservation bounds, not new arbitrary gameplay caps `[DERIVED from GDD §5.1, §5.9]`: the map has 16384 exterior tiles and only one managed floor, so all interior floor furniture occupies at most 16384 floor tiles. Each tile has at most 4 edges; an edge holds at most one partition/door `[NEW explicit edge exclusivity consistent with no overlap]`. A conservative furniture bound is `16384+4*16384=81920`. Projects ≤81920 furniture+1024 exterior objects=82944. Interior rooms ≤16*1024=16384. Main containers ≤1024 building+512 satchel+82944 project+512 expedition+16384 nonempty ground-pile containers=101376. Empty orphan containers are reclaimed at lifecycle commit; a ground pile with no live lot cannot retain an occupied row `[NEW lifecycle rule]`. **Implemented for ground piles by decision 0532 (DEMO-CONTAIN-R01 #9):** `inventory.gd::create_ground_pile()` is the only door, at most one pile per tile (so the 16384 ground-pile rows above are exactly one per exterior tile), and every successful inventory commit that created a pile or took a lot out of one retires each such pile left with no lot and no reserved mass. A derived, unsaved tile -> pile map (§2.3) makes the one-per-tile check one read.
+**ARCH-MEM-002.** **BASELINE-ONLY under SET-MOVE-001, and under SET-BUILD-001 (DEC-061) whose 1 m cell grid over five levels replaces the one-floor tile model; see [ARCH-BUILD-001](#arch-build-001--painted-rooms-on-a-1-m-cell-grid-dec-061):** these bounds and all downstream directory, transform, payload and save-memory totals do not cover required multi-level space. Recompute them under MOVE-G02; do not multiply by an invented floor count. Fixed registry cardinalities below remain mandatory for the existing baseline. The remaining finite bounds below are geometric/conservation bounds, not new arbitrary gameplay caps `[DERIVED from GDD §5.1, §5.9]`: the map has 16384 exterior tiles and only one managed floor, so all interior floor furniture occupies at most 16384 floor tiles. Each tile has at most 4 edges; an edge holds at most one partition/door `[NEW explicit edge exclusivity consistent with no overlap]`. A conservative furniture bound is `16384+4*16384=81920`. Projects ≤81920 furniture+1024 exterior objects=82944. Interior rooms ≤16*1024=16384. Main containers ≤1024 building+512 satchel+82944 project+512 expedition+16384 nonempty ground-pile containers=101376. Empty orphan containers are reclaimed at lifecycle commit; a ground pile with no live lot cannot retain an occupied row `[NEW lifecycle rule]`. **Implemented for ground piles by decision 0532 (DEMO-CONTAIN-R01 #9):** `inventory.gd::create_ground_pile()` is the only door, at most one pile per tile (so the 16384 ground-pile rows above are exactly one per exterior tile), and every successful inventory commit that created a pile or took a lot out of one retires each such pile left with no lot and no reserved mass. A derived, unsaved tile -> pile map (§2.3) makes the one-per-tile check one read. **Recomputed for five levels by [decision 1880](decisions/1880-painted-room-memory-budget.md)** (ARCH-BUILD-001 “Memory budget”): rooms ≤5×65536/4=81920 (removal keeps BUILD-REQ-002's 2×2 rule, BUILD-REQ-006 as amended by decision 1880 Q3; ≤327680 only if that rule were reversed); items ≤5×65536/4=81920, which equals the furniture bound above because edge pieces leave the item rows; edge pieces ≤5×2×256×255=652800, stored per edge; projects ≤81920+81920+1024=164864 and containers ≤183296 (surface ground piles only) under one project per room (decision 1880 Q1), not yet ledgered (§3.1); §10 as first written gave projects ≤81920+1024+652800+327680=1063424 and containers ≤1081856, which do not fit the gate. The figures above stay in force for the tile-based stores until slices C and G replace them.
 
 **ARCH-MEM-003.** Relations retain at most degree 8 among the 512 resident slots, so undirected live edges ≤512*8/2=2048. Preserve historical relationships in ChronicleRecord before retiring their live edge. Expedited parties cannot exceed 512 rows because each consumes at least one resident slot; the living limit usually makes the real bound smaller. Orchard blocks ≤16384/16=1024. Use the more conservative capacities even when geometric/resource constraints prevent all maxima occurring simultaneously. `[GDD §4.2, §5.3, §5.6; DERIVED]`
 
@@ -58,6 +58,8 @@ Ruleset v2 is reconciled with [setting_rules_amendment.md](setting_rules_amendme
 | feast | 1 | [GDD §4.2; derived bounds §2] |
 
 Directory length G=352418, the sum of the rows above; positioned-entity capacity P=512+1024+81920+4096=87552. Room, plot, zone, and hive position is derived from tile/owner metadata and does not duplicate a Transform. Furniture, residents, exterior structures, and resource nodes receive Transform rows. Transform ownership uses the directory indexes budgeted below. `[DERIVED; NEW placement of optional positioned components]`
+
+Planned by [decision 1880](decisions/1880-painted-room-memory-budget.md) and held outside the live total: a `painted_room` kind of 81920 rows, giving G=352418+81920=434338 while the tile-based `room` kind is still allocated, and 417954 once its 16384 rows retire. Painted rooms take no Transform row, so P is unchanged; edge pieces take no directory slot. The extra slots' bytes are the PaintedRoomDirectory rows of ARCH-BUILD-001; at fold-in they lengthen this one directory, not a second one. The 81920 rests on BUILD-REQ-006 as amended (decision 1880 Q3).
 
 ### 2.2 Every fixed component field
 
@@ -287,6 +289,9 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Additional candidate mutable state | 85610234 | Decision1229 adds22565B per world. Decision1217 adds16384B per world. Decision1223 adds9B per world. Decision1221 adds196694B per world. Decision1218 adds5128B per world. Decision1219 adds124B per world. Decision1212 adds7825B per world. Decision1152 adds1024B per world.  Decision1140 adds4096 fixed/helper/native bytes per world. Decision1141 adds3072 control/helper/native bytes per world. Decision1134 conservatively adds29928 bytes per world, including its private immutable template and all cold/native allowances. Decision1131 adds2048 mutable/reserved bytes per world. Decisions1117/1120/1122 add388 mutable/reserved bytes per world. Decision1102 adds4096 mutable bytes per world. Second mutable world: payload −3670016 navigation map −2097152 catalog arenas −262144 I/O −131072 UI snapshots −55200 timing −23573 shared immutable declaration −10536 shared immutable component schema. Decision0167 corrects the prior duplicate charge of the whole declaration row, not just its growth. Decision 0531's anchor column is mutable world state, so a second resident world carries it too (+405504 here as well as in the live total). Decision 0532's four rows are mutable too and are not subtracted (+167940 here as well). Decision 0521's household/care owner is mutable world state too (+46352 in both worlds). Decision 0534's record and scratch are not subtracted either (+63808 in both worlds), nor are decision 0536's (+8400 in both) or decision 0537's (+16384 in both). Decision 1031's stamp is mutable world state too (+4096 in both worlds). Decision 0996's bound-slot column is household-owner state too (+2048 in both worlds), nor decisions 1022/1023's haul record and scratch (+231564 in both). Decision 1053's RoomProjects columns add 1707008 in both worlds; decision 1060's 352 declaration bytes are shared once. Decision1066 adds13603020 mutable bytes in each world and1674 shared declaration bytes once. Decision 1068 adds 131072 mutable index/live-staging bytes per world. Decision1071 adds196609 mutable bytes per world;82 declaration bytes are shared once. Decision1072 adds4962389 mutable/reserved bytes per world;2388 declaration bytes are shared once. |
 | Transactional peak plus same reserve | 185860841 | Live total + candidate mutable state |
 | Transactional headroom | -35860841 | 150000000 − transactional peak (DEC-053). Decision1228 adds642B of shared declaration. Decision1222 adds1115B of shared declaration. Decision1217 adds32768B across both worlds. Decision1223 adds18B across both worlds. Decision1221 adds393388B across both worlds and165B of shared declaration. Decision1218 adds10256B across both worlds and150B of shared declaration. Decision1219 adds248B across both worlds. Decision1212 adds15650B across both worlds. Decision1152 adds2048B across both worlds.  Decision1140 adds8192 bytes across both worlds. Decision1141 adds6144 bytes across both worlds. Decision1134 adds59856 bytes across both worlds; the two-world design remains rejected. Decision1131 adds4096 bytes across the two worlds. 100000000 − transactional peak. Decisions1117/1120/1122 add776 (388 mutable/reserved bytes twice). Decision1102 adds8192 (4096 mutable bytes twice). Decision1072 adds9927166 (4962389 mutable/reserved bytes twice plus2388 declaration bytes once). Decision1071 adds393300 (196609 mutable bytes twice plus82 declaration bytes once). Decision 1068 adds262144 for both worlds, including their conservative cold-index allowances. **Decision1066 adds27207714** (13603020 mutable bytes twice,1674 declaration bytes once); the two-world design remains rejected. **Decision 1062 adds a further 3414368** (1707008 RoomProjects bytes in each world plus 352 shared declaration bytes once); nothing offsets it. **Decisions 1022/1023 add a further 463128** (231564 in each world); nothing offsets it. **Decision 0996 adds a further 4096** (2048 in each world) for the same rejected two-world design; nothing offsets it. **Decision 1031 adds a further 8192** (4096 in each world); nothing offsets it. **Decision 0537 adds a further 32768** (16384 in each world); nothing offsets it. **Decision 0536 adds a further 16800** (8400 in each world); nothing offsets it. **Decision 0534 adds a further 127616** (63808 in each world) for the same rejected two-world design; nothing offsets it. **Decision 0521 adds a further 92704** (46352 in each world) for the same rejected two-world design; nothing offsets it. **Decision 0532 made this a further 335880 bytes worse** (167940 in each world); nothing offsets it either. **Decision 0531 made it 811037 bytes worse** (405533 in the live world, 405504 in the candidate): the two-resident-world design was already 42175094 over the gate and is rejected under ARCH-MEM-006; the anchor column does not change that conclusion, and it is not offset anywhere |
+| Painted-room budget held outside the live total (decision 1880) | 16957440 | ARCH-BUILD-001's budget table: cell grid 2949120 + room rows 2867200 + room index 1392640 + room directory 3194880 + edge items 6553600. Not in any figure above until slice C or G first allocates these columns and folds it in with the pack tool and its pinned tests (decision 1880 Q2, “Later, when built”) |
+| One live world plus reserve with decision 1880 folded in | 117208047 | 100250607 + 16957440 |
+| Headroom below the 150 MB gate with decision 1880 folded in | 32791953 | 150000000 − 117208047 |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Historical decision0066 snapshot (current totals are in §2.3): payload was
@@ -640,6 +645,7 @@ These are known allocations that no line of §2.2, §3 or §2.3 counts. They are
 | Path/lease bookkeeping fields | REQ-SET-032/033; ARCH-JOB-004 | Allocated but never written: `path_id`, `path_cursor`, `lease_expiry`, `blocked_tick`, `manual_until`. The **memory is counted** in §2.2's JobAgent rows; the point is that the behavior these back is unimplemented, so no further allocation should be assumed absent. |
 | Underground modular composition | decisions1053/1054/1056/1060/1062/1066; UG16/17 | RoomProjects and both excavation owners now have source-bound logical payload rows. This does not qualify the whole modular system: RoomLayout, sparse space banks/snapshots, qualified profile/cargo catalogs, shell caches and UG16 decode/rebuild/rollback lifetimes still need a complete composition ledger and runtime measurement. Individual arena maxima are not permission to allocate them together beyond the unchanged100000000-byte gate or to consume the8388608 reserve as free capacity. Current arithmetic headroom is not measured RAM. |
 | Other implemented core stores | — | `residents.gd`, `needs.gd`, `priorities.gd`, `inventory.gd`, `orchard_hive.gd` and `entity_directory.gd` each allocate presence, liveness, free-list, environment-input and journal columns beyond their §2.2 rows, in the same way `jobs.gd` did before this pass. Only the jobs module was reconciled here. Each of the others needs the same column-by-column pass against §2.2/§3 before any measured-memory qualification is attempted; their deltas are **not** in the 59370190 total. |
+| Painted-room projects and containers | decision 1880 Q1; SET-BUILD-001 §10; ARCH-BUILD-001 | **Not counted anywhere.** Adopted bound, one project per room: 164864 projects and 183296 containers, 81920 more of each than today, 23265280 bytes at today's 185 bytes per project and 99 per container, plus up to 8110080 for painted store containers. Slice C (room projects) and slice G (items, store containers) ledger them when they implement. Before the ruling, one project per item, partition/door piece and room delta would have meant 1063424 projects, about 278456320 bytes. Also uncounted: underground spoil ground piles (decision 1075) and the scratch for re-deriving rooms, room groups and dig order over up to 65536 cells per level (`room_footprint.gd`'s 13-byte-per-cell scratch would be 851968 bytes at one level; it is capped at 16384 cells today), owed by slices C and F. |
 | Measured allocator and engine overhead | ARCH-MEM-007; ARCH-CONFLICT-009 | The 8388608-byte reserve is a budget to measure, not a measurement. No Godot process memory has been measured against this ledger. |
 
 ## 4. Entity allocation, lifetime, and safe references
@@ -1246,9 +1252,12 @@ New retained allocations must receive explicit joint accounting before use.
 
 [SET-BUILD-001](building_model_amendment.md) makes every room on every level a set of painted cells on one 1 m grid,
 with furniture, key items, connectors and outdoor items placed on the same cells. This section records what that
-forces in the architecture. **It adds no allocation-ledger row and changes no byte total**; the memory budget is a
-slice-B obligation, because no column width or capacity below has been chosen and the exact recomputation must run
-through `docs/validation/ready07_arithmetic.py` and `merge_gate.py` with the chosen columns.
+forces in the architecture. Slice B's memory budget ([decision 1880](decisions/1880-painted-room-memory-budget.md))
+chose the widths and capacities below and wrote their exact bytes into the budget table further down. **Those bytes are
+held outside the live total until they are built** (Brendan, decision 1880 Q2, “Later, when built”): the slice C or G
+change that first allocates these columns folds them into §3/§2.3, the ARCH-MEM-009 trail, the underground memory
+pack tool and its pinned test values, in that same change. **Until then the pack's reported 49749393-byte (49.7 MB)
+headroom is 32791953 bytes (32.8 MB) once this budget is counted**; no lane may spend the difference.
 
 **Exact counts the representation must cover** `[DERIVED from GDD §1, SET-BUILD-001 §3, DEC-061 Q6]`:
 
@@ -1258,32 +1267,105 @@ through `docs/validation/ready07_arithmetic.py` and `merge_gate.py` with the cho
   room-cell subset only: connectors also cut roof-band, footing and surface quanta between levels, so a bound for
   every priceable quantum is the initial level pack's whole 256 × 48 × 256 = 3145728-quantum domain.
 
-**Storage shape (adopted direction; widths and capacities are slice B's).**
+**Storage shape (adopted direction; widths and capacities chosen by decision 1880).**
 
 | Store | What it must hold | Replaces / constrains |
 |---|---|---|
-| Per-level cell grid | For each of the 327680 cells: the owning Room row (or none), as packed integer columns indexed `level × 65536 + z × 256 + x` | §3 `WorldTileMaps.room_slot` over 16384 tiles for room membership; `building_slot` stays for outdoor items |
-| Room rows | Type (RoomType 0–16), level, cell count, bounding box, validity, temperature, furniture mask, occupants; `Room.building` becomes optional and is null for painted rooms | GDD §4.2 Room's `tile_offset`/`tile_count` (tile-based) and the “up to 16 rooms per managed building” cardinality |
-| Item rows | Furniture/key-item/connector definition ID, room, level, origin cell, rotation, user, condition; access tiles are derived from the definition and rotation, never stored per item | GDD §4.2 Furniture `origin_tile` |
-| Edge items | Partitions and doors on cell edges (2 edges per GDD tile edge; half partitions on 1) | ARCH-MEM-002's tile-edge furniture bound `16384 + 4 × 16384` |
+| Per-level cell grid | For each of the 327680 cells: the owning Room row (or none), as packed integer columns indexed `level × 65536 + z × 256 + x`; also the item or outdoor item standing on the cell and whether the cell is finished (decision 1880) | §3 `WorldTileMaps.room_slot` and `furniture_slot` over 16384 tiles; `building_slot` stays for the tile-based code until slice G |
+| Room rows | Type (RoomType 0–16), level, cell count, bounding box, validity, temperature, furniture mask, occupants, roofed room group; `Room.building` becomes optional and is null for painted rooms | GDD §4.2 Room's `tile_offset`/`tile_count` (tile-based) and the “up to 16 rooms per managed building” cardinality |
+| Item rows | Furniture/key-item/connector definition ID, room, origin cell (a global cell index, so it carries the level), rotation, user, condition; access tiles are derived from the definition and rotation, never stored per item | GDD §4.2 Furniture `origin_tile`: **the same row and the same 81920 capacity**, re-keyed to cells; no new allocation (decision 1880) |
+| Edge items | Partitions and doors on cell edges (2 edges per GDD tile edge; half partitions on 1), stored per edge, **not** as item rows | ARCH-MEM-002's tile-edge furniture bound `16384 + 4 × 16384` |
 | Pending batch | Drafted operations, Undo/Redo stack and running ledger: presentation-side, never saved and never authoritative (BUILD-REQ-020) | The modular planner's 32-step draft (ADRs 1052, 1055) |
 
 Rules that stay: integer state only; packed structure-of-arrays columns, never one object per cell, room or item
 (ARCH-MEM-001); `EntityRef` generation validation for Room and item rows; living population capped at 256; deferred
 reads of the cell grid only on layout change (ARCH-SYS-016 RoomHeat stays event-driven).
 
-**Slice-B obligations** (each must land with its ledger rows, registry entries and save-schema version):
+**Memory budget (decision 1880, held outside the live total).** Capacities are geometric bounds, derived the way
+ARCH-MEM-002 derives its own, not gameplay caps `[DERIVED from SET-BUILD-001 §3, §6, BUILD-REQ-002/010/018]`:
 
-1. Choose column widths and capacities for the cell grid, Room rows, item rows and edge items, and recompute
-   ARCH-MEM-002's bounds (room, furniture, project and container capacities) for five levels; record the bytes in
-   §2.3 and the ARCH-MEM-009 trail.
-2. Append RoomType 8–16 and item definitions 9–17 through the versioned rules/catalog fingerprint (SET-BUILD-001
-   §5.2–5.3); widen `Room.furniture_mask` to 18 bits; refuse older saves rather than migrate them.
-3. Bind a painted underground room delta to the existing RoomProjects/ExcavationSites owners (decisions 1053, 1062,
-   1066) instead of the polyline tunnel and template paths.
-4. Name the inventory-container owner for painted PANTRY/STORE/CELLAR rooms and for key items that carry
-   `base_store_g` (for example `store_bay`, 1500000 g). DEMO-CONTAIN-R01 #3b/#7 has shelves add capacity to a
-   Building-owned container and `create_container` refuses a null owner, so a painted room with `Room.building`
-   null needs an explicit owner kind and anchor cell before any store is built.
-5. Re-run `docs/validation/state_registry_coverage.py`, the registry capacity audit and the canonical state table
-   generator for every new column.
+- **Cells**: 5 levels × 256 × 256 = **327680**.
+- **Rooms**: BUILD-REQ-002 puts every painted cell inside a 2 × 2 block of that room, so a room holds at least 4 cells;
+  rooms on one level do not overlap, so a level holds at most 65536 / 4 = 16384 rooms and five levels **81920**. A
+  checkerboard of 2 × 2 rooms of two alternating types reaches it. Removal keeps the same rule (BUILD-REQ-006 as
+  amended, ADOPTED by decision 1880 Q3): a removal that would leave a remaining cell outside a 2 × 2 block of its room
+  is refused in words unless those cells join the removal. If that rule were ever reversed, removal could leave
+  one-cell rooms and the bound would be rooms ≤ cells = 327680, adding 22364160 bytes (245760 more rows at 35 + 17 +
+  39 bytes) for a total of 39321600.
+- **Items** (furniture, key items, connectors): every item footprint is at least 2 × 2 cells (all nine GDD
+  furniture are at least one 2 m tile; the nine key items and connector families start from OPEN-02's 4 × 4
+  placeholder) and items never overlap (BUILD-REQ-010), so five levels hold at most 5 × 65536 / 4 = **81920**. This
+  equals today's Furniture capacity `16384 + 4 × 16384`, so the item rows are the existing Furniture rows re-keyed to
+  cells and cost nothing new. `[NEW constraint]` An item definition smaller than 2 × 2 cells needs a ledger revision.
+- **Edges**: a 256 × 256 level has 2 × 256 × 255 = 130560 edges between two map cells, so five levels hold at most
+  **652800** edge pieces (a half partition covers one edge). Stored per edge at 2 × 65536 = 131072 slots per level
+  (each cell's west and north edge, index `level × 131072 + (z × 256 + x) × 2 + axis`), **655360** slots; the 512
+  map-border slots per level (west of x = 0, north of z = 0) are never used and are kept for direct indexing. Edges on
+  the map border have no cell beyond them, so a piece there is refused; the east and south border edges have no slot.
+
+Widths: `PackedByteArray` wherever the value fits 0–255 (room type 0–16, level 0–4, bounding-box coordinates 0–255,
+flags, edge piece codes); `PackedInt32Array` for row and directory references, `cell_count` (up to 65536),
+`occupants` (0–256), signed temperature, the 18-bit furniture mask and GDD's int32 `condition`. Godot has no 16-bit
+packed array.
+
+| Table | Separate columns | Array | Bytes/element | Column count | Length/column | Payload bytes | Purpose / provenance |
+|---|---|---|---|---|---|---|---|
+| PaintedCellGrid | room_slot, occupant_slot | I32 | 4 | 2 | 327680 | 2621440 | [decision 1880] `room_slot`: the painted Room row owning the cell, or -1; authoritative room membership, saved. `occupant_slot`: the directory slot of the item or outdoor item standing on the cell, or -1; derived from item and outdoor-item rows, unsaved. BUILD-REQ-010 (no overlap, access tiles free) and BUILD-REQ-009 in one read, as decision 0080's `furniture_slot` does per tile |
+| PaintedCellGrid | finished | B8 | 1 | 1 | 327680 | 327680 | [decision 1880] Whether the cell is dug (underground) or built (surface). Derived from the excavation sites and the room-shell project, unsaved; makes “unfinished space is not a route” and BUILD-REQ-013's “No way in” one read |
+| PaintedRoom | type, level, min_x, min_z, max_x, max_z, valid | B8 | 1 | 7 | 81920 | 573440 | [decision 1880] RoomType 0–16, level 0–4, inclusive bounding box in cells, validity |
+| PaintedRoom | cell_count, temperature_tenths, furniture_mask, occupants, building_slot, building_generation, room_group | I32 | 4 | 7 | 81920 | 2293760 | [decision 1880] GDD §4.2 Room fields with `tile_count` as cells; optional `Room.building`, null for painted rooms; `room_group` is the lowest Room row of the roofed room group (SET-BUILD-001 §4 heat, BUILD-REQ-009 door), derived on layout change |
+| PaintedRoomIndex | present | B8 | 1 | 1 | 81920 | 81920 | [decision 1880] Which painted Room rows are live, as decision 0080's RoomIndex |
+| PaintedRoomIndex | ref_slot, ref_generation, item_head, item_count | I32 | 4 | 4 | 81920 | 1310720 | [decision 1880] The room's directory reference and the head of its item list (FurnitureIndex already links items to their room) |
+| PaintedRoomDirectory | persistent_id, generation, kind, typed_row, transform_row, active_index, free_heap, heap_index, typed_owner_slot | I32 | 4 | 9 | 81920 | 2949120 | [decision 1880] One directory slot per painted room (EntityRef generation validation): EntityIdentity's three and DirectoryIndex's six I32 columns at 81920 more slots |
+| PaintedRoomDirectory | active, retired, dirty | B8 | 1 | 3 | 81920 | 245760 | [decision 1880] EntityIdentity's and DirectoryIndex's byte columns at the same 81920 slots |
+| EdgeItems | piece, built | B8 | 1 | 2 | 655360 | 1310720 | [decision 1880] `piece`: 0 none, 1 half partition, 2/3 first/second edge of a partition, 4/5 first/second edge of a door; `built`: installed or still a blueprint. Edge exclusivity is one piece per edge, as ARCH-MEM-002 already rules |
+| EdgeItems | condition, generation | I32 | 4 | 2 | 655360 | 5242880 | [decision 1880] GDD §4.2 Furniture `condition`, kept for partitions and doors now that they leave the Furniture rows; `generation` makes a piece a generation-checked `(edge slot, generation)` reference in its own edge space, as inventory containers have their own generation space, so a project or job can name it. `built`, `condition` and `generation` are held on a piece's first edge only (codes 1, 2, 4); a second edge (3, 5) carries only its code. A piece's room is the lower Room row of its two cells, or the one painted side of an outside door |
+
+The table sums to **16957440 bytes**: cell grid 2949120, room rows 2867200, room index 1392640, room directory
+3194880, edge items 6553600. Folded into §2.3 it would make the planned payload 108819439, one live world plus reserve
+117208047 and the headroom below the 150 MB gate 32791953 (decision 1880; `ready07_arithmetic.py` checks all four).
+At fold-in the PaintedRoomDirectory rows lengthen §2.2's EntityIdentity and §3's DirectoryIndex rows (and §2.1's G)
+rather than becoming a second directory; the total is the same.
+
+**Added, not replacing — and what retires later.** These rows add to the ledger: the tile-based stores they supersede
+are still allocated by `buildings.gd` and stay counted until the slice that implements the painted stores deletes them
+in the same change, with its own negative trail row (as decision 0138 did). Retirable then, at least: §2.2's Room rows
+(540672), §3's RoomIndex (409600), RoomTileLinks (65536), SpatialRoomExtension (16384) and the `room_slot` and
+`furniture_slot` tile columns (65536 each), plus 16384 `room` directory slots (638976). Nothing is double counted:
+the item rows are not added at all (they are the Furniture rows), and each new table holds state no existing row
+holds. Planned directory length with painted rooms added: G = 352418 + 81920 = 434338
+(417954 once the 16384 tile rooms retire).
+
+**Projects and containers: bound adopted, bytes not yet ledgered** (see §3.1). **Adopted bound** (decision 1880 Q1, one
+project per room; SET-BUILD-001 §10 as amended): projects ≤ 81920 items + 81920 rooms + 1024 outdoor items = 164864,
+81920 more than today's 82944; containers ≤ 164864 + 18432 = 183296 (surface ground piles only), 81920 more than
+today's 101376. At 185 bytes per project and 99 per container that is 23265280 bytes, plus up to 8110080 if slice G
+gives each painted store room one container (≤ 81920); with this budget counted, 1416593 bytes of headroom would then
+remain. Slices C and G ledger these bytes when they implement the bindings. **Why the ruling was needed:** §10 as first
+written gave every item, including each partition and door, its own Construction project and every room delta its
+own project. On five levels that bound is
+81920 items + 1024 outdoor items + 652800 edge pieces + 327680 room deltas (a delta needs only one new cell) =
+1063424 projects, each with a material container; containers become 1063424 + 18432 = 1081856, counting the 16384
+ground piles of the surface only (underground spoil piles still need the owner and bound decision 1075 names). At 185 bytes per
+project (§2.2/§3 rows at 82944, its four ledger cells and a directory slot) and 99 per container (§2.2/§3/§2.3 rows at
+101376 and a directory slot), the 980480 extra projects and containers would add 278456320 bytes; the edge pieces
+alone (185395200) exceed the whole 150000000-byte gate.
+
+**Obligations after slice B** (Brendan's ruling of 2026-10-12, decision 1880: “Budget now, rest later”):
+
+1. **Closed by slice B as a budget** (decision 1880): widths and capacities for the cell grid, Room rows, item rows
+   and edge items, with exact bytes in the table above; ARCH-MEM-002's room, furniture, project and container
+   bounds recomputed for five levels. The bytes enter §2.3 and the ARCH-MEM-009 trail when they are folded in.
+2. **Moved to slice G:** append RoomType 8–16 and item definitions 9–17 through the versioned rules/catalog
+   fingerprint (SET-BUILD-001 §5.2–5.3); widen `Room.furniture_mask` to 18 bits; refuse older saves rather than
+   migrate them.
+3. **Moved to slice C:** bind a painted underground room delta to the existing RoomProjects/ExcavationSites owners
+   (decisions 1053, 1062, 1066) instead of the polyline tunnel and template paths, as one project per room that later
+   deltas, partitions and doors extend (decision 1880 Q1), and ledger its project bytes.
+4. **Moved to slice G:** name the inventory-container owner for painted PANTRY/STORE/CELLAR rooms and for key items
+   that carry `base_store_g` (for example `store_bay`, 1500000 g). DEMO-CONTAIN-R01 #3b/#7 has shelves add capacity to
+   a Building-owned container and `create_container` refuses a null owner, so a painted room with `Room.building`
+   null needs an explicit owner kind and anchor cell before any store is built; ledger its container bytes.
+5. **Travels with the columns:** slice B adds no runtime column, so `state_registry_coverage.py`, the registry
+   capacity audit and the canonical state table generator pass unchanged; slices C and G re-run them for every
+   column they implement.

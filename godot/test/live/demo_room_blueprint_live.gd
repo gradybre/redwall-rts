@@ -21,12 +21,21 @@ func _initialize() -> void:
 
 
 func _open_room_tool() -> void:
-	"""B then H reach the room tool through the actual input gate."""
+	"""B opens the build panel through the actual input gate; its Burrow home card opens the room tool (decision 1871:
+	H no longer does)."""
 	_tool = _command().call(&"tunnels") as Node3D
 	_key(KEY_B)
+	var build: Node = _village.call(&"build")
+	_check("B opens the build panel", bool(build.call(&"is_open")))
 	_key(KEY_H)
-	_check("B opens the Dig tool", _tool.planning)
-	_check("H opens the home blueprint", _tool.room.active and _tool.room.plan.kind == Rooms.TEMPLATE_HOME)
+	_check("H opens nothing now", not _tool.planning)
+	var panel: Node = build.get("panel")
+	var cards: Array = panel.call(&"row_cards")
+	for k: int in cards.size():
+		if String(cards[k].get("name")) == "Burrow home":
+			panel.call(&"choose_card", k)
+	_check("the Burrow home card opens the Dig tool's home blueprint", _tool.planning and _tool.room.active
+		and _tool.room.plan.kind == Rooms.TEMPLATE_HOME)
 	_initial_revision = _tool.network.revision
 	_initial_stock = _tool.ext.works.stores.stock_line()
 

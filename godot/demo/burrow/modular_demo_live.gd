@@ -1,5 +1,8 @@
 extends Node
 ## Real demo/Viewport input witness. No room, access endpoint, material or worker is seeded.
+## Since decision 1871 the planning view has no player entry (the build panel paints rooms and orders them through the
+## same planner route; its "Plan an underground room" button is gone), so this opens it directly; everything inside the
+## view is still driven by real input.
 
 const SceneMode := preload("res://demo/burrow/modular_demo_mode.gd")
 const TunnelPanel := preload("res://demo/tunnel/tunnel_panel.gd")
@@ -56,21 +59,21 @@ func _run() -> void:
 
 
 func _open_from_panel() -> void:
-	"""The actual Tunnels tab and new button open the original settlement's inspector."""
+	"""The Tunnels panel no longer carries the planner's button (decision 1871: the build panel is the entry); the
+	view is opened directly on the original settlement's inspector."""
 	var zone: Zone = _village.get("_zone") as Zone
 	_click(_centre(zone._tabs[Zone.PANEL_TUNNELS]))
 	await _frames(2)
 	var panel: TunnelPanel = _village.call(&"_tunnel_tool").ext.panel
-	var button: Button = panel._buttons[TunnelPanel.ACTION_MODULAR_ROOM]
-	_check(button.is_visible_in_tree(), "entry button visible in real Tunnels panel")
-	_check(_onscreen(button), "entry button fits1280×720")
+	_check(not panel._button_words.has(&"blueprint:modular_room"), "no planner button in the real Tunnels panel")
+	_check(_village.call(&"build") != null, "the build panel is the room entry now")
 	_state_before = _state()
 	_pause_before = GameManager.clock().pause_mask()
 	_speed_before = GameManager.clock().requested_speed()
 	_old_pose = _scene._old_rig.transform
-	_click(_centre(button))
+	_scene.open()
 	await _frames(3)
-	_check(_scene.is_active(), "real click opens actual planning")
+	_check(_scene.is_active(), "direct open opens actual planning")
 	_check(_same_state(), "opening changes no canonical gameplay state")
 	_check(GameManager.clock().pause_mask() == _pause_before, "opening preserves pause reasons")
 	_check(GameManager.clock().requested_speed() == _speed_before, "opening preserves requested speed")
@@ -141,9 +144,9 @@ func _close_and_reopen() -> void:
 	await _frames(2)
 	var panel: TunnelPanel = _village.call(&"_tunnel_tool").ext.panel
 	_check(panel.visible, "original Tunnels panel restored")
-	_click(_centre(panel._buttons[TunnelPanel.ACTION_MODULAR_ROOM]))
+	_scene.open()
 	await _frames(2)
-	_check(_scene.is_active(), "same real entry reopens planning")
+	_check(_scene.is_active(), "the same view reopens planning")
 	_check(_scene._mode._editor.draft.visible_cells() == _cells, "reopen preserves exact draft")
 	_check(_same_state(), "complete inspection cycle is canonical read-only")
 	_scene.close()
@@ -151,8 +154,7 @@ func _close_and_reopen() -> void:
 
 func _modal_stall() -> void:
 	"""A real clock overload takes ownership of held keys, open popup Windows and GUI clicks."""
-	var panel: TunnelPanel = _village.call(&"_tunnel_tool").ext.panel
-	_click(_centre(panel._buttons[TunnelPanel.ACTION_MODULAR_ROOM]))
+	_scene.open()
 	await _frames(2)
 	_check(_scene.is_active(), "planning reopened for live stall")
 	get_viewport().gui_release_focus()
@@ -237,8 +239,7 @@ func _blocked_keyboard_inputs() -> void:
 
 func _replace_world() -> void:
 	"""The actual UI Create command retires the old view; reopening binds only the new original World."""
-	var panel: TunnelPanel = _village.call(&"_tunnel_tool").ext.panel
-	_click(_centre(panel._buttons[TunnelPanel.ACTION_MODULAR_ROOM]))
+	_scene.open()
 	await _frames(2)
 	var old_world: Vector2i = _scene._mode._world
 	var old_popup: PopupMenu = _scene._mode._purpose.get_popup()
@@ -250,9 +251,9 @@ func _replace_world() -> void:
 	await _frames(3)
 	_check(not _scene.is_active(), "World retirement closes the active planning view")
 	_check(not old_popup.visible, "World retirement dismisses the old popup")
-	_click(_centre(panel._buttons[TunnelPanel.ACTION_MODULAR_ROOM]))
+	_scene.open()
 	await _frames(3)
-	_check(_scene.is_active(), "real planning button reopens after World Create")
+	_check(_scene.is_active(), "the view reopens after World Create")
 	_check(_scene._mode._world == SettlementSystem.world_ref() and _scene._mode._world != old_world,
 		"reopened view binds only the newly created original World")
 	_check(_scene._mode._editor.draft.visible_cells().is_empty(), "old World's draft cannot be adopted by its replacement")

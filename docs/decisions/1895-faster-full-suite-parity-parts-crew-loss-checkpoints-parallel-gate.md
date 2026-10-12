@@ -10,6 +10,12 @@ Number range: 1895–1899 was allocated to this lane by the coordinator. This la
   compact, and test speed and orchard test" (this lane). BACKLOG.md's TEST-SPEED packet is the brief.
 - Checkpoint starts are his decision 1240 of 2026-10-08, and its rule holds: a test that asserts a property of the
   whole run from tick 0 keeps its replay.
+- 2026-10-12, in chat via AskUserQuestion, on the PROPOSALS below (each the recommended option):
+  - Proposals 1 and 4, **"Approve both"**: the local runner keeps CI's 10 shards and 4 jobs as its default (pass
+    `--jobs 5` on an idle machine); the CI weights are refreshed from this branch's first CI run once it merges.
+  - Proposals 2 and 3, **"Approve both"**: `test_underground_host_whole_chain.gd` and
+    `test_underground_paid_assembly_handling.gd` stay unsplit until a CI shard nears its 30-minute guard; checkpoint
+    files stay committed, revisited at about 50 MB of growth.
 
 ## Baseline (bf49943a, art-free, freshly imported, this Mac)
 

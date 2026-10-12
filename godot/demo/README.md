@@ -2109,6 +2109,10 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
   staged oak drawn small (0671's art gap).
 - **The work** is on the work board as source 13 since the batch 8 integration (decision 0903), **Orchard** (`work/orchard_work.gd`): tend, harvest, pick berries, haul
   baskets, plant, propagate, observe -- each conserving its load (a delivery always finishes).
+- **Called away, a worker keeps its job** (decision 1900, the resume rule of decision 0205): taken off it by another
+  order, a meal's call or the night, it goes back to it after, from where it stopped, and the work board leaves the job
+  to it meanwhile (its action card says "goes back to it after"). A walk it could not finish is not kept (the job is
+  offered to anyone after its wait), and Pause, Reassign and Cancel keep nothing.
 
 | Input | Does |
 |---|---|

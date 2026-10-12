@@ -76,6 +76,7 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [FOLLOW-UPS](#follow-ups) | Follow-up fixes not finished by `fix/follow-ups` | demo + tools | 1531–1540 |
 | [PARTY-COMPACT](#party-compact) | A compact Demo party panel with an "open" overlay (1871 P-B8) | demo | unnumbered |
 | [TEST-SPEED](#test-speed) | **Done** ([1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md)): split the slowest suites and run local shards in parallel | tools + tests | 1895–1899 |
+| [MEAL-CALLAWAY](#meal-callaway) | Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | unnumbered |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
 | [WIN-PERF](#win-perf) | The Windows performance test (GTX 1660 tiers) | all | 1551–1560 |
 
@@ -1290,8 +1291,11 @@ decision records on batch 8; "built" means a record says so.
     at 256;
   - a layout check ("party 9: every member row reachable") failed once under doubled load (0902 "What the gates
     found");
-  - `test_demo_orchard_live.gd` "the apple is tended in game time" fails intermittently (the tend job loses its
-    worker); it fails on master 1cfe1e3c too (decision 1871, slice B's gates). Its owner should find the cause;
+  - **Done (decision 1900).** `test_demo_orchard_live.gd` "the apple is tended in game time" failed intermittently
+    (the tend job lost its worker): breakfast's call took the tender off the job, and the orchard, unlike the farm,
+    the woods, the hall and the tunnel jobs, kept nothing to come back to. Orchard workers now resume (0205), and the
+    harness waits in game time. The fishery's, the ferry's and the forage's tasks have the same gap: packet
+    MEAL-CALLAWAY (Brendan, 2026-10-12: "Fix all three next");
   - the art notes in 0941 and 0951: the baked-fish icon has lemon slices; the raspberry's leaf mask is weak; the
     staged `residence` and `hall` keep 4096 px maps where GAP-04 says 2048; some bare-oak root flares catch snow.
 - **Depends on:** nothing.
@@ -1353,6 +1357,37 @@ decision records on batch 8; "built" means a record says so.
 - **Art:** none.
 - **Pitfalls:** live suites are timing-sensitive under load (see FOLLOW-UPS' orchard note); give each shard its own
   HOME so Godot's user data does not collide.
+
+<a id="meal-callaway"></a>
+## MEAL-CALLAWAY — Fishery, forage and ferry workers called away keep their jobs
+
+- **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: **"Fix all three next"** -- a small follow-up lane
+  right after the orchard fix (`fix/orchard-tend-flake`, decision 1900) merges, the same three functions per job type,
+  each with a test (decision 1900, "Brendan's rulings"; RULINGS.md 2026-10-12).
+- **Scope:** a resident called away from a fishery, forage or ferry job -- by a meal's call, the night or another
+  order -- loses the job to the board today: their tasks (`fishery_task.gd`, source 7; `ferry_task.gd`, source 8;
+  `forage_task.gd`, source 12) do not override `unfinished()`, so nothing is kept to come back to (decision 0205's
+  RESUMING) and the work board's promise (0411) never holds it. Give each owner what decision 1900 gave the orchard:
+  `called_away` returns whether the worker keeps the job (not for a walk it could not finish, nor when the owner's own
+  Pause or Reassign took it); `unfinished_of(job, serial)` makes the entry naming its source and the job's serial;
+  `take_back(brain, job, serial)` claims it again only while it is the same job and waits; the task's `unfinished()`
+  answers the job before a call-away (so the action card says "goes back to it after") and after one only when kept.
+  A load in hand keeps each owner's existing delivery rules.
+- **Read first:** decision 1900 (the orchard's fix and its tests); 0205 (RESUMING); 0411 (the order list and the
+  promise); `demo/orchard/orchard_task.gd`, `orchard_jobs.gd` (CALLED AWAY); the three owners' headers (0431 the
+  fishery, 0437 the ferry, 0681 the forage).
+- **Depends on:** `fix/orchard-tend-flake` (decision 1900) merged.
+- **Files:** `godot/demo/fishery/fishery_task.gd` and `fishery.gd`; `godot/demo/forage/forage_task.gd` and
+  `forage_trips.gd`; `godot/demo/ferry/ferry_task.gd` and `ferry.gd`; their text files for the order-list words;
+  `godot/test/test_demo_fishery.gd`, `test_demo_forage.gd`, `test_demo_ferry.gd`. Conflicts: FISHING, WATER, TRADE.
+- **Decisions:** unnumbered; take the next free number from the range book when the lane starts.
+- **Acceptance:** per job type, a deterministic test like 1900's: called away mid-job, the job is kept on the
+  worker's list naming its task, given to no other idle resident by the REAL work board (`promises`, `consider`), and
+  taken back with its progress carried over; a lost walk and the owner's Pause and Reassign keep nothing; a cancelled
+  job's entry is stale. Each test fails without its fix; mutation-test the new functions; the gates.
+- **Art:** none.
+- **Pitfalls:** a seat on a shared trip (a fishing boat, a crossing's crew, a foraging party) may be refilled by the
+  owner while its worker eats: `take_back` must refuse a seat no longer waiting rather than displace anyone.
 
 ---
 

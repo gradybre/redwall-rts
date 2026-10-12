@@ -196,6 +196,11 @@ static func gave_up(jobs: RefCounted, j: int) -> String:
 		KIND_NAMES[int(jobs.get(&"kind")[j])].to_lower()]
 
 
+static func order_words(jobs: RefCounted, j: int) -> String:
+	"""A job as a resident's order list says it: "Tend, the old apple"."""
+	return "%s, %s" % [KIND_NAMES[int(jobs.get(&"kind")[j])], target_words(jobs, j)]
+
+
 static func target_words(jobs: RefCounted, j: int) -> String:
 	"""What a job is on, for the Work screen: "the old apple", "the raspberry canes", "the old orchard's baskets"."""
 	var model: ModelScript = jobs.get(&"model")

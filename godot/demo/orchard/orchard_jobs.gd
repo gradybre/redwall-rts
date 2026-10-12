@@ -30,6 +30,12 @@ extends RefCounted
 ## drought tending check their inputs when the work starts and take them when it is done, so a cancelled job owes
 ## nothing back (a PROPOSAL of decision 0671: §5.7 production takes its inputs at the start).
 ##
+## CALLED AWAY (decision 1900; resident_brain.gd RESUMING, decision 0205): a worker taken off its job by another order,
+## a meal's call or the night keeps it to come back to (`unfinished_of`, `take_back`), and the work board leaves it to
+## that resident meanwhile (decision 0411's promise) -- it does not go to whoever is free first. A walk it could not
+## finish is not kept: that job waits RETRY_USEC and is offered to anyone. The board's Pause, Cancel and Reassign keep
+## nothing (the job's serial or its waiting state turns a kept entry stale).
+##
 ## ROUTINE (`plan_work`, each game hour): a tending for every tree that needs it, a harvest for every tree that may be
 ## picked (by its group's TIMING), a picking while the hedge has fruit above its floor, a haul while a stand holds more
 ## than its group keeps, a planting for every plan whose sapling is ready, a propagation for every plan waiting, and the
@@ -57,6 +63,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const HiveRules := preload("res://demo/hives/hive_rules.gd")
 const HiveText := preload("res://demo/hives/hive_text.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const MAX_JOBS: int = 16
 const NONE: int = -1
@@ -562,15 +570,17 @@ func drive(j: int, job_serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, job_serial) and worker[j] == brain.index
 
 
-func called_away(j: int, job_serial: int, brain: BrainScript) -> void:
+func called_away(j: int, job_serial: int, brain: BrainScript) -> bool:
 	"""The brain gave the task up: a walk it could not finish (it waits RETRY_USEC and is offered again; after MAX_TRIES
-	the routine's job is dropped), or an order, the night or a release (back on the board; a load in hand set down)."""
+	the routine's job is dropped), or an order, a meal, the night or a release (back on the board, a load in hand set
+	down). True when the worker keeps the job to come back to (see CALLED AWAY): let go here, not for a failed walk."""
 	if not is_job(j, job_serial) or worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed():
 		_unreached(j, brain)
-	else:
-		_let_go(j, brain)
+		return false
+	_let_go(j, brain)
+	return true
 
 
 func _unreached(j: int, brain: BrainScript) -> void:
@@ -583,6 +593,22 @@ func _unreached(j: int, brain: BrainScript) -> void:
 	if tries[j] >= MAX_TRIES and not carrying(j):
 		_note(Text.gave_up(self, j), true)
 		_end_job(j)
+
+
+func unfinished_of(j: int, job_serial: int) -> UnfinishedScript:
+	"""Job `j` as the entry its worker keeps when called away (see CALLED AWAY): taken back by `take_back` while it is
+	still the same job, naming the work board's task (its serial) so nobody else claims it meanwhile. Null once the job
+	is over."""
+	if not is_job(j, job_serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, job_serial), Text.order_words(self, j), WorkIds.SOURCE_ORCHARD,
+		job_serial)
+
+
+func take_back(brain: RefCounted, j: int, job_serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again while it is the same job
+	and waits for someone (not paused, not given to another, not waiting out a walk nobody finished)."""
+	return is_job(j, job_serial) and claim(j, int(brain.get(&"index")))
 
 
 func must_finish(j: int, job_serial: int) -> bool:

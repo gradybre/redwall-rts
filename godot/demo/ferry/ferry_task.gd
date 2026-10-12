@@ -5,11 +5,16 @@ extends "res://demo/tunnel/tunnel_task.gd"
 ## next step; this task only lets the brain walk where the ferry says and stand at the work (resident_brain.gd TASKS),
 ## and tells the ferry when it arrives, when it is called away and when it is over -- so an interruption loses nothing:
 ## a load in hand is set down where it is for the next to fetch.
+## Called away by an order, a meal or the night, its resident keeps the job to come back to (`unfinished`; decision
+## 1905, as the orchard's 1900).
 
 ## The ferry (ferry.gd; untyped: it preloads this script), held WEAKLY so a Restart frees both.
 var _owner_ref: WeakRef = null
 var job: int = -1
 var serial: int = 0
+## Set once the brain has called it away (`cancel`), and whether the owner let its resident keep the job then.
+var _called_away: bool = false
+var _kept: bool = false
 
 
 func _init(owner: RefCounted, p_job: int, p_serial: int) -> void:
@@ -46,8 +51,18 @@ func step(brain: RefCounted, delta: float) -> bool:
 func cancel(brain: RefCounted) -> void:
 	"""Called away (an order, the night, a release, a walk it could not finish)."""
 	var ferry: Object = _owner()
-	if ferry != null:
-		ferry.call(&"called_away", job, serial, brain)
+	_called_away = true
+	_kept = ferry != null and bool(ferry.call(&"called_away", job, serial, brain))
+
+
+func unfinished() -> RefCounted:
+	"""The job to come back to (the owner's `unfinished_of`; decision 1905): asked before it is called away (an action
+	card's "goes back to it after"), the job while it lasts; after, only one its resident was let keep -- not a walk it
+	could not finish, nor one the board itself took away (Pause, Reassign)."""
+	var ferry: Object = _owner()
+	if ferry == null or (_called_away and not _kept):
+		return null
+	return ferry.call(&"unfinished_of", job, serial) as RefCounted
 
 
 func label() -> String:

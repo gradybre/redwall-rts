@@ -76,7 +76,7 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [FOLLOW-UPS](#follow-ups) | Follow-up fixes not finished by `fix/follow-ups` | demo + tools | 1531–1540 |
 | [PARTY-COMPACT](#party-compact) | A compact Demo party panel with an "open" overlay (1871 P-B8) | demo | unnumbered |
 | [TEST-SPEED](#test-speed) | **Done** ([1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md)): split the slowest suites and run local shards in parallel | tools + tests | 1895–1899 |
-| [MEAL-CALLAWAY](#meal-callaway) | Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | unnumbered |
+| [MEAL-CALLAWAY](#meal-callaway) | **Done (decision 1905).** Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | 1905 |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
 | [WIN-PERF](#win-perf) | The Windows performance test (GTX 1660 tiers) | all | 1551–1560 |
 
@@ -1294,8 +1294,8 @@ decision records on batch 8; "built" means a record says so.
   - **Done (decision 1900).** `test_demo_orchard_live.gd` "the apple is tended in game time" failed intermittently
     (the tend job lost its worker): breakfast's call took the tender off the job, and the orchard, unlike the farm,
     the woods, the hall and the tunnel jobs, kept nothing to come back to. Orchard workers now resume (0205), and the
-    harness waits in game time. The fishery's, the ferry's and the forage's tasks have the same gap: packet
-    MEAL-CALLAWAY (Brendan, 2026-10-12: "Fix all three next");
+    harness waits in game time. The fishery's, the ferry's and the forage's tasks had the same gap: packet
+    MEAL-CALLAWAY (Brendan, 2026-10-12: "Fix all three next"), done in decision 1905;
   - the art notes in 0941 and 0951: the baked-fish icon has lemon slices; the raspberry's leaf mask is weak; the
     staged `residence` and `hall` keep 4096 px maps where GAP-04 says 2048; some bare-oak root flares catch snow.
 - **Depends on:** nothing.
@@ -1361,6 +1361,10 @@ decision records on batch 8; "built" means a record says so.
 <a id="meal-callaway"></a>
 ## MEAL-CALLAWAY — Fishery, forage and ferry workers called away keep their jobs
 
+- **Done (decision 1905, 2026-10-12, `fix/meal-callaway`).** Each owner has the orchard's three functions and its task
+  an `unfinished()`; each suite has the four tests below (the REAL work board's promise, a lost walk / Pause /
+  Reassign keeping nothing, a cancelled job's stale entry, a refilled seat or crew place not taken back). 42 of 42
+  mutants killed.
 - **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: **"Fix all three next"** -- a small follow-up lane
   right after the orchard fix (`fix/orchard-tend-flake`, decision 1900) merges, the same three functions per job type,
   each with a test (decision 1900, "Brendan's rulings"; RULINGS.md 2026-10-12).
@@ -1380,7 +1384,7 @@ decision records on batch 8; "built" means a record says so.
 - **Files:** `godot/demo/fishery/fishery_task.gd` and `fishery.gd`; `godot/demo/forage/forage_task.gd` and
   `forage_trips.gd`; `godot/demo/ferry/ferry_task.gd` and `ferry.gd`; their text files for the order-list words;
   `godot/test/test_demo_fishery.gd`, `test_demo_forage.gd`, `test_demo_ferry.gd`. Conflicts: FISHING, WATER, TRADE.
-- **Decisions:** unnumbered; take the next free number from the range book when the lane starts.
+- **Decisions:** 1905 (the lane was given 1905–1909; it uses 1905 only).
 - **Acceptance:** per job type, a deterministic test like 1900's: called away mid-job, the job is kept on the
   worker's list naming its task, given to no other idle resident by the REAL work board (`promises`, `consider`), and
   taken back with its progress carried over; a lost walk and the owner's Pause and Reassign keep nothing; a cancelled

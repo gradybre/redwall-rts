@@ -45,6 +45,9 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
+const WorkBoard := preload("res://demo/work/work_board.gd")
+const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const RescueCardScript := preload("res://demo/routes/rescue_card.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
@@ -1048,3 +1051,122 @@ func test_the_fishery_s_words_count_fish_one_a_unit() -> void:
 	p.restocking = true
 	assert_equal(Text.stock_line(p), "Stock: no perch (0% of 900 perch) · restocking · quota 52 fish a day, no fish left",
 		"none left")
+
+
+# --- called away, a worker keeps its job (decision 1905, as the orchard's 1900) ------------------------------------
+
+func _milling_a_quarter_done(rig: Rig, who: int) -> int:
+	"""Resident `who` ordered to the mill and run until a quarter of its grinding is done; the job's row."""
+	rig.pantry.add_into(13, 5000, 0, _read)
+	assert_equal(rig.fishery.order_mill(PackedInt32Array([who])), "", "the mill ordered for %d" % who)
+	var f: FisheryScript = rig.fishery
+	var j: int = f.tables.job_of_worker(who)
+	var quarter := func() -> bool: return f.step_of(j) == FisheryScript.S_STATION and f.tables.j_need[j] > 0 \
+		and f.tables.j_mwu[j] * 4 >= f.tables.j_need[j]
+	assert_true(_run(rig, quarter, MAX_FRAMES, false), "a quarter ground")
+	return j
+
+
+func _board_over(rig: Rig) -> WorkBoard:
+	"""The REAL work board over the rig's residents, the fishery its one source."""
+	var board := WorkBoard.new()
+	var brains: Array[BrainScript] = []
+	var names := PackedStringArray()
+	for who: int in rig.cast.actor_count():
+		brains.append(rig.fishery.brain_of(who))
+		names.append(rig.fishery.name_of(who))
+	board.bind(brains, names, [] as Array[StringName])
+	board.add_source(FisheryWork.new(rig.fishery))
+	return board
+
+
+func test_a_miller_called_away_keeps_the_job_promised_on_the_work_board() -> void:
+	"""Decision 1905: resident 1, a quarter into the grinding, is called away by an order -- as a meal's call does -- and
+	keeps the job: on her list naming it, the REAL work board gives it to none of the idle residents, her order done
+	it is hers again, and back at the mill she goes on from where she stopped."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	var j: int = _milling_a_quarter_done(rig, 1)
+	var board: WorkBoard = _board_over(rig)
+	var brain: BrainScript = f.brain_of(1)
+	var no_rules: Array[Callable] = []
+	assert_equal(InterruptScript.resume_of(brain, no_rules, 1), InterruptScript.RESUMES, "the card: goes back to it")
+	var done: int = f.tables.j_mwu[j]
+	var need: int = f.tables.j_need[j]
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, FisheryWork.new(f).key(j)), "kept, naming its task")
+	assert_true(f.waiting(j) and f.eligibility(j, 2).is_empty(), "the job waits, and another may do it")
+	assert_equal(brain.queue_entry(0).label() if brain.queue_size() > 0 else "", "Mill grain, the mill",
+		"in the order list's words")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(f.tables.j_worker[j], FisheryScript.NONE, "nobody else was given it")
+	brain.work_done()
+	assert_equal(f.tables.j_worker[j], 1, "back to it")
+	var at_work := func() -> bool: return f.step_of(j) == FisheryScript.S_STATION and f.tables.j_at[j] == 1
+	assert_true(_run(rig, at_work, MAX_FRAMES, false), "at the mill again")
+	assert_equal(f.tables.j_need[j], need, "the same work step")
+	@warning_ignore("integer_division") var one_frame: int = need / 20
+	assert_true(f.tables.j_mwu[j] >= done and f.tables.j_mwu[j] < done + one_frame,
+		"from where she stopped: %d after %d" % [f.tables.j_mwu[j], done])
+
+
+func test_a_fishery_job_lost_on_the_way_paused_or_reassigned_keeps_nothing() -> void:
+	"""Decision 1905: a walk given up keeps nothing (the job waits RETRY_USEC, one try counted), nor do the board's
+	Pause and Reassign for the resident they take the job from."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(13, 5000, 0, _read)
+	assert_equal(f.order_mill(PackedInt32Array([1])), "", "the mill ordered")
+	var j: int = f.tables.job_of_worker(1)
+	assert_equal(f.pause_job(j, true), "", "paused")
+	assert_equal(f.brain_of(1).queue_size(), 0, "a pause keeps nothing")
+	assert_equal(f.pause_job(j, false), "", "resumed")
+	assert_equal(f.reassign_job(j, 1), "", "given back to 1")
+	assert_equal(f.reassign_job(j, 2), "", "and on to 2")
+	assert_equal(f.brain_of(1).queue_size(), 0, "a reassign keeps nothing")
+	var brain: BrainScript = f.brain_of(2)
+	brain.trip_outcome = BrainScript.TRIP_FAILED
+	brain.order_task(ErrandScript.new())
+	assert_equal(brain.queue_size(), 0, "a walk it could not finish keeps nothing")
+	assert_equal(f.tables.j_wait_usec[j], Rules.RETRY_USEC, "the job waits to be offered again")
+	assert_equal(f.tables.j_tries[j], 1, "one try counted")
+
+
+func test_a_kept_fishery_job_cancelled_is_stale() -> void:
+	"""Decision 1905: a kept job the player cancels -- its row reused by the next order -- is neither taken back nor
+	kept again."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	rig.pantry.add_into(13, 8000, 0, _read)
+	assert_equal(f.order_mill(PackedInt32Array([1])), "", "the mill ordered")
+	var j: int = f.tables.job_of_worker(1)
+	var old_serial: int = f.tables.j_serial[j]
+	var brain: BrainScript = f.brain_of(1)
+	brain.order_task(ErrandScript.new())
+	assert_equal(brain.queue_size(), 1, "kept")
+	assert_equal(f.cancel_station_job(j), "", "cancelled")
+	assert_equal(f.order_mill(PackedInt32Array()), "", "the mill ordered again")
+	assert_equal(f.tables.j_live[j], 1, "in the same row")
+	assert_false(f.take_back(brain, j, old_serial), "the old entry is stale")
+	assert_null(f.unfinished_of(j, old_serial), "and makes no entry")
+	assert_equal(f.tables.j_worker[j], FisheryScript.NONE, "the new job is not hers")
+
+
+func test_a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back() -> void:
+	"""Decision 1905's pitfall: the boat's second, called away, keeps her seat -- but given to another meanwhile (the
+	fishery's own hand-out ignores the board's promise), it is not taken back and nobody is displaced."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	var seat: int = f.tables.t_seat_job[1]
+	var serial: int = f.tables.j_serial[seat]
+	var brain: BrainScript = f.brain_of(1)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "kept")
+	assert_true(f.claim(seat, 2), "the seat refilled")
+	assert_false(f.take_back(brain, seat, serial), "not taken back")
+	brain.work_done()
+	assert_equal(f.tables.j_worker[seat], 2, "nobody displaced")

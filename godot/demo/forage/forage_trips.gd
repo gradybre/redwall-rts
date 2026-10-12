@@ -18,7 +18,10 @@ extends RefCounted
 ## shelved there as its own item: nuts, mushrooms, herbs or berries, each its own lot that ages as §5.8 says.
 ##
 ## INTERRUPTION loses nothing. Called away on the way or at work (an order, the night, a meal), the seat goes back on the
-## board with its claim, its room and its work done kept, for whoever takes it next. A haul in hand is carried home
+## board with its claim, its room and its work done kept, and its forager keeps it to come back to (`unfinished_of`,
+## `take_back`; decision 1905, as the orchard's 1900): the work board leaves it to that forager meanwhile (decision
+## 0411's promise), and a seat refilled meanwhile is not taken back. A walk it could not finish keeps nothing (the seat
+## is offered to another), nor do the board's Pause and Reassign. A haul in hand is carried home
 ## before the night or a meal takes its forager (`must_finish`); an order that takes it sets the haul down where it
 ## stands, still in the books, for the next to fetch. CANCEL calls off the seats not yet carrying (their claims and room
 ## given back); a haul in hand is always brought home.
@@ -52,6 +55,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const NONE: int = -1
 const NULL_REF: Vector2i = DriverScript.NULL_REF
@@ -734,14 +739,33 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, serial) and j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the seat up: a walk it could not finish, or an order, the night, a meal or a release."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the seat up: a walk it could not finish, or an order, the night, a meal or a release. True when
+	the forager keeps the seat to come back to (see INTERRUPTION): let go here, not for a failed walk."""
 	if not is_job(j, serial) or j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed() and j_step[j] != S_GATHER:
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Seat `j` as the entry its forager keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), "%s, %s" % [task_words(j), place_words(j)],
+		WorkIds.SOURCE_FORAGE, serial)
+
+
+func take_back(brain: RefCounted, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return is_job(j, serial) and claim(j, int(brain.get(&"index")))
 
 
 func must_finish(j: int, serial: int) -> bool:

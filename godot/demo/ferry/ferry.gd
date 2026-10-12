@@ -60,6 +60,8 @@ const Yard := preload("res://demo/forestry/forest_yard.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const BoatRows := preload("res://demo/routes/boat_rows.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const NONE: int = -1
 const MAX_JOBS: int = 12
@@ -798,14 +800,34 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, serial) and j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the task up: a walk it could not finish, or an order, the night or a release."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the task up: a walk it could not finish, or an order, a meal, the night or a release. True when
+	the worker keeps the job to come back to (decision 1905, as the orchard's 1900; the board leaves it to that
+	resident meanwhile, decision 0411): let go here, not for a failed walk."""
 	if not is_job(j, serial) or j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed() and WALK_STEPS.has(j_step[j]):
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Job `j` as the entry its worker keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), "%s, %s" % [KIND_WORDS[j_kind[j]], place_words(j)],
+		WorkIds.SOURCE_FERRY, serial)
+
+
+func take_back(brain: RefCounted, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return is_job(j, serial) and claim(j, int(brain.get(&"index")))
 
 
 func must_finish(j: int, serial: int) -> bool:

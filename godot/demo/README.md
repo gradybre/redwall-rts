@@ -2061,6 +2061,10 @@ haul" (berries too, at the dishes lane's request). `forage/`:
   back from the hazel brake: 8.0 U of nuts in the stores" is said in the village news.
 - **Nothing is lost**: called away, a seat goes back on the board with its claim, room and work kept; a haul in hand is
   delivered before the night or a meal; Cancel ends the seats not yet carrying and gives their claims and room back.
+- **Called away, a forager keeps its seat** (decision 1905, as the orchard's 1900): taken off it by an order, a meal's
+  call or the night, it goes back to it after, from where it stopped, and the work board leaves the seat to it
+  meanwhile (its action card says "goes back to it after"). A seat refilled meanwhile is not taken back; a walk it
+  could not finish keeps nothing, nor do Pause and Reassign.
 - **The items**: `nuts` (1600 NP, raw edible, 720 h), `mushrooms` (72 h), `herb` (480 h), `berries` (700 NP, raw edible,
   48 h) -- the catalogue's keys, items 26–29 of the pantry (after the dishes' potato and honey). Nuts and herb are the
   regatta feast's (below); nuts and mushrooms also cook the pasty, the scones and the woodland pie, and the berries
@@ -2396,6 +2400,10 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   in a store for the catch), the work is done, the store's catch is taken, and the catch is carried to the store. **Cancel
   trip** releases everything at once; a catch out of the water is always landed. One called away sets its catch down
   where it stands, for the next to fetch. A trip two game hours past its estimate is an OVERDUE warning.
+- **Called away, a fisher keeps its job** (decision 1905, as the orchard's 1900): taken off a seat or a station job by
+  an order, a meal's call or the night, it goes back to it after, from where it stopped (a catch it set down included),
+  and the work board leaves the job to it meanwhile. A boat seat refilled meanwhile is not taken back; a walk it could
+  not finish keeps nothing, nor do Pause and Reassign.
 - **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse (and a third, the ferry boat: see The ferry), moored at the **jetty** on the pond's west bank
   (outside the boathouse). The crew wait at the jetty, board, row a **fixed route** to a fishing station and back, and
   step off; out on the water they are held (nothing calls them off mid-pond). A boat wears 15 a trip and none sets out
@@ -2473,6 +2481,10 @@ rated the ferry "Stretch" and moving vessels lie outside the adopted movement sc
   bring it home (none can reach it: the job stays on the board, never ended with the boat out; Cancel is refused).
   Wood stranded at the far stage or aboard while closed is the incident **"The ferry is closed: …"** (Village news ▸
   Needs attention). The Routes layer and the Water panel say it.
+- **Called away, a ferry worker keeps its job** (decision 1905, as the orchard's 1900): a gatherer, hauler or crew
+  taken off by an order, a meal's call or the night goes back to it after, from where it stopped, and the work board
+  leaves the job to it meanwhile. A crew place refilled meanwhile by another helm is not taken back; a walk it could
+  not finish keeps nothing, nor do Pause and Reassign.
 - **Passengers**: the ferry is the route planner's **boat row 0** (decision 1821, `routes/boat_rows.gd`). For any trip
   across the water it lists each stage's next boardings with the seat free (none while closed or unstaffed) and its ride
   (both decks and the row), in integer ticks; the router prices **the wait for the boat from when the walker reaches the

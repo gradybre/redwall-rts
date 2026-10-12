@@ -8,6 +8,7 @@ const Batch := preload("res://scripts/ui/build_batch.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const LevelBar := preload("res://scripts/ui/level_bar.gd")
 
 const KITCHEN: int = 2
 
@@ -352,3 +353,47 @@ func test_the_ledger_prices_each_room_at_its_own_level() -> void:
 	_batch.finish_stroke()
 	_panel.refresh(false)
 	assert_true((_panel.controls()[&"ledger"] as Button).accessibility_name != level_one, "level 2 priced its own way")
+
+
+func test_the_expanded_ledger_hides_the_tab_row_under_it() -> void:
+	"""Review LOW a: expanded, the tabs and the where/status words are hidden (none clickable or showing beside it);
+	folded, or the panel closed and opened again, they are back."""
+	var tabs: Array = _panel.controls()[&"tabs"]
+	_panel.set_ledger_expanded(true)
+	for tab: Button in tabs:
+		assert_false(tab.visible, "%s hidden" % tab.text)
+	assert_false((_panel.controls()[&"where"] as Label).visible or (_panel.controls()[&"status"] as Label).visible,
+		"the words hidden")
+	_panel.set_ledger_expanded(false)
+	assert_true((tabs[2] as Button).visible and (_panel.controls()[&"status"] as Label).visible, "folded: back")
+	_panel.set_ledger_expanded(true)
+	assert_true(_panel.request_close(), "closed")
+	_panel.open_on(1)
+	assert_true((tabs[0] as Button).visible and (_panel.controls()[&"where"] as Label).visible, "reopened: back")
+	assert_false(_panel.ledger_expanded(), "folded")
+	_panel.set_ledger_expanded(true)
+	_panel.suspend(true)
+	_panel.suspend(false)
+	assert_true((tabs[1] as Button).visible, "an old tool's turn folds it too")
+
+
+func test_a_locked_card_says_its_own_reason() -> void:
+	"""Review LOW d: on Overview a room card reads "! Choose one level to paint on", on a level with no way in
+	"! No way in"; the whole reason stays in the info card."""
+	_panel.set_level(LevelBar.LEVEL_OVERVIEW)
+	assert_true(_panel.card_button(0).text.ends_with("\n! Choose one level to paint on"), _panel.card_button(0).text)
+	_panel.set_level(3, false)
+	assert_true(_panel.card_button(0).text.ends_with("\n! No way in"), _panel.card_button(0).text)
+
+
+func test_card_notes_are_reread_into_the_tooltips() -> void:
+	"""Review LOW c: refresh_notes writes a changed note into the card's tooltip and the info card."""
+	var note: Array[String] = ["one"]
+	_panel.card_note = func(_card: BuildCatalog.Card) -> String: return note[0]
+	_panel._show_card(0)
+	_panel._sync_cards()
+	note[0] = "two"
+	_panel.refresh_notes()
+	assert_true(_panel.card_button(0).tooltip_text.ends_with("\ntwo"), _panel.card_button(0).tooltip_text)
+	assert_true(_panel.info_text().ends_with("two"), "the info card too")
+	_panel.card_note = Callable()

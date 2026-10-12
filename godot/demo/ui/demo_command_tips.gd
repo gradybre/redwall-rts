@@ -8,13 +8,13 @@ extends RefCounted
 ## one of the seven says both:
 ##
 ##     Zone (Z) — Paint a work zone on the map with the zone brush
-##     Build (B) — Place and upgrade the settlement's buildings
-##     In the demo, B opens the build panel: paint rooms underground, or open the Passage and burrow tools
-##     Not in the demo yet: no Building, Furniture or Room store exists; task 06 owns those contracts
+##     Feast (F) — Plan a feast for the settlement
+##     Not in the demo yet: <the shell's own reason>
 ##
-## Build's key is the demo's build panel while Build is locked (decision 1871: the shell passes a locked
-## command's key on, and the demo's build panel takes it; UI-SET-027 itself stays disabled until surface rooms exist,
-## Brendan's ruling 4 of 2026-10-12), so its tip says so (DEMO_BUILD_KEY).
+## Build is the demo's build panel: the demo enables UI-SET-027 and writes its own tip ("Build (B) — Open the
+## build panel: ...", demo_build.gd `unlock_build_command`; decision 1871, P-B3 as Brendan approved on 2026-10-12).
+## The settlement game's shell keeps Build locked (ruling 4). Like the farm's Food, an enabled Build keeps the tip
+## its owner wrote.
 ##
 ## THE KEY IS READ FROM THE INPUT MAP (`UiShell.COMMAND_ACTIONS`, the project's `open_*` actions), never
 ## written here, so a rebinding in project.godot cannot leave a tooltip naming the old key. The shell
@@ -36,8 +36,6 @@ const WHAT: Array[String] = [
 	"Plan a feast for the settlement",
 	"The settlement's goals and how far along they are",
 ]
-## What Build's key does in the demo while Build is locked (see the header).
-const DEMO_BUILD_KEY: String = "In the demo, B opens the build panel: paint rooms underground, or open the Passage and burrow tools"
 ## Between the command's name-and-key and what it does.
 const DASH: String = " — "
 ## The second line of a command the demo does not have yet, before the shell's own reason.
@@ -69,18 +67,17 @@ static func tooltip(label: String, action: StringName, what: String, missing: St
 
 static func apply(shell: UiShell) -> int:
 	"""Write every command's tooltip on `shell`'s strip; returns how many were written. The Food
-	command the farm unlocked (enabled) keeps the Pantry tip the farm wrote."""
+	command the farm unlocked and the Build command the build panel unlocked (enabled) keep the tips their owners
+	wrote."""
 	if shell == null:
 		return 0
 	var written: int = 0
 	for index: int in UiShell.COMMAND_IDS.size():
 		var id: int = UiShell.COMMAND_IDS[index]
 		var button := shell.control_for(id) as Button
-		if button == null or (id == UiShell.ID_FOOD_ORDERS and not button.disabled):
+		if button == null or ((id == UiShell.ID_FOOD_ORDERS or id == UiShell.ID_BUILD) and not button.disabled):
 			continue
 		var what := WHAT[index]
-		if id == UiShell.ID_BUILD and button.disabled:
-			what += "\n" + DEMO_BUILD_KEY
 		button.tooltip_text = tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index], what,
 			missing_of(shell, id) if button.disabled else "")
 		written += 1

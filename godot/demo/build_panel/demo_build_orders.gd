@@ -7,8 +7,9 @@ extends RefCounted
 ## level catalog -- and a `modular_runtime.gd` command adapter over the settlement's own RoomOrders, room bindings and
 ## level catalog, exactly as `modular_room_mode.gd` composes them; then asks the runtime's `check_request` and, when
 ## that passes, its `submit_request`. The runtime re-checks every identity, and RoomOrders alone admits or refuses the
-## room: no access endpoint is invented here, so with no completed passage to the room it refuses in its own words
-## ("Connect a completed passage ..."), and the batch keeps the operation with that reason. NOTHING IS DEDUCTED HERE
+## room: no access endpoint is invented here, so with no way in bound to the room it refuses, and `classify` puts
+## that in the panel's words ("No way in: ...; the way in from the build panel comes in a later update", P-B11); a
+## site that can never take the room is "X Cannot dig here". The batch keeps the operation with that reason. NOTHING IS DEDUCTED HERE
 ## (BUILD-REQ-019): an admitted room becomes a project whose materials are hauled and used when work starts. The
 ## temporary editor, tool and runtime are freed before `submit` returns; the draft is the batch's.
 ##
@@ -25,6 +26,7 @@ const Footprint := preload("res://scripts/core/room_footprint.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const RoomBindings := preload("res://scripts/core/underground_room_bindings.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
 
 ## The initial level pack's square in cells (data/underground/initial_level_pack.json: datum x/z 0, 256 quanta).
 const DEFAULT_BOUNDS: Rect2i = Rect2i(0, 0, 256, 256)
@@ -33,12 +35,20 @@ const NOT_COMPOSED: String = "the settlement's underground is not ready in this 
 ## The coordinator's resolution of review H3 (decision 1871): RoomOrders' missing-approach refusal in the canonical
 ## BUILD-REQ-013 words, with the plain clause that the way in itself is a later update (slices C/D).
 const LATER_WAY_IN: String = "; the way in from the build panel comes in a later update"
-## RoomOrders refusals that can never succeed on that site, in the canonical ECON-003 words ("X Cannot dig here").
+## RoomOrders refusals that can never succeed on that site, in the canonical ECON-003 words ("X Cannot dig here"):
+## the room bindings' occupied cut, above and footing, and the terrain survey's protected water, resources,
+## foundations, building sites and ground that is not natural dry solid (underground_terrain.gd; decision 1871, the
+## second review of H3). The survey's binding, bounds, capacity and open-exterior refusals are not the site's: they
+## keep the runtime's words as "!".
 const NEVER_HERE: Dictionary = {
-	&"TERRAIN_WATER_PROTECTED": "water",
-	&"ROOM_PAID_CUT_OCCUPIED": "occupied",
-	&"ROOM_PROTECTED_ABOVE_OCCUPIED": "protected ground",
-	&"ROOM_REQUIRED_FOOTING_OCCUPIED": "protected ground",
+	Terrain.REFUSE_WATER: "water",
+	RoomBindings.REFUSE_CUT: "occupied",
+	RoomBindings.REFUSE_ABOVE: "protected ground",
+	RoomBindings.REFUSE_FOOTING: "protected ground",
+	Terrain.REFUSE_RESOURCE: "protected ground",
+	Terrain.REFUSE_FOUNDATION: "protected ground",
+	Terrain.REFUSE_BODY: "protected ground",
+	Terrain.REFUSE_DRY: "protected ground",
 }
 
 var _orders: WeakRef = null

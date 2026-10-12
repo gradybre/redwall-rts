@@ -23,6 +23,8 @@ const ForestPanel := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
+const BuildValidity := preload("res://scripts/ui/build_validity.gd")
+const BuildOrders := preload("res://demo/build_panel/demo_build_orders.gd")
 
 ## Frames to let the village boot (its prewarm releases the clock after its first frames).
 const BOOT_FRAMES: int = 12
@@ -46,6 +48,8 @@ var _restart_checked_hold: bool = false
 ## The playtest log's node and file as first seen (decision 0562): the same after a restart.
 var _playtest_node: Node = null
 var _playtest_file: String = ""
+## Where the camera looked before the build steps moved it (restored after them).
+var _camera_before_build: Vector3 = Vector3.ZERO
 
 
 func _initialize() -> void:
@@ -1501,6 +1505,7 @@ func _build_level_one() -> void:
 	# The settlement's planning area is the level pack's 0..256 m square: under the village, its south-east quadrant
 	# (decision 1871). Look there, so the keyboard's cursor (the screen's middle) starts inside it.
 	var camera: Node = _village.get("_camera")
+	_camera_before_build = camera.call(&"target_focus")
 	camera.call(&"centre_on", Vector3(9.0, 0.0, 8.0))
 	camera.call(&"snap")
 	_capture("build_level1")
@@ -1596,6 +1601,9 @@ func _build_overview() -> void:
 	_click(_centre(_build().get("bar").call(&"level_button", 5)))
 	_check("Overview chosen by a click", int(_build().get("bar").call(&"shown_level")) == 5)
 	_check("Overview never paints", int(_build().call(&"armed_type")) == -1)
+	var kitchen: Button = _card_button("Kitchen")
+	_check("its room cards say why", kitchen != null and kitchen.text.ends_with("! Choose one level to paint on"),
+		kitchen.text if kitchen != null else "no card")
 	_check("the selected resident kept", _command().call(&"selected") == PackedInt32Array([1]))
 	_capture("build_overview")
 
@@ -1614,13 +1622,18 @@ func _build_close_keeps() -> void:
 
 
 func _build_many_refused() -> void:
-	"""Review H2: six rooms of several types, all refused by the route; the expanded ledger lists every one, stands
-	inside the panel from its top edge, clear of the alerts, and its words scroll."""
-	_key(KEY_B)
+	"""P-B3: a click on the HUD's Build command opens the panel. Review H2 and the second review of H3: six rooms of
+	several types on open ground (x 100-145, z 100-103), each refused "! No way in" in the canonical words (P-B11);
+	the expanded ledger lists every one, stands inside the panel from its top edge, hides the tab row, is clear of
+	the alerts, and its words scroll; Confirm all stays enabled."""
+	var command: Button = _shell_control("ID_BUILD") as Button
+	_check("the demo's Build command is enabled", not command.disabled)
+	_click(_centre(command))
+	_check("a click on Build opens the panel", bool(_build().call(&"is_open")))
 	var batch: Object = _build().get("batch")
 	for k: int in 6:
-		batch.call(&"begin_stroke", [0, 2, 6, 5, 1, 2][k], 1, Vector2i(40 + 8 * k, 40))
-		batch.call(&"extend_stroke", Vector2i(45 + 8 * k, 43))
+		batch.call(&"begin_stroke", [0, 2, 6, 5, 1, 2][k], 1, Vector2i(100 + 8 * k, 100))
+		batch.call(&"extend_stroke", Vector2i(105 + 8 * k, 103))
 		batch.call(&"finish_stroke")
 	var panel: Node = _build().get("panel")
 	panel.call(&"refresh", true)
@@ -1629,8 +1642,16 @@ func _build_many_refused() -> void:
 	panel.call(&"set_ledger_expanded", true)
 	var rect: Rect2 = panel.call(&"ledger_rect")
 	var frame: Rect2 = panel.call(&"screen_rect")
-	_check("six rooms kept, each refused in words", int(batch.call(&"pending_count")) == 6
-		and not String(batch.call(&"operation_reason", 5)).is_empty(), str(batch.call(&"pending_count")))
+	var no_way_in: String = BuildValidity.no_way_in() + BuildOrders.LATER_WAY_IN
+	var canonical: int = 0
+	for k: int in int(batch.call(&"operation_count")):
+		canonical += 1 if String(batch.call(&"operation_reason", k)) == no_way_in \
+			and int(batch.call(&"operation_kind", k)) == BuildValidity.KIND_BLOCKED else 0
+	_check("six rooms kept, each \"! No way in\" in the canonical words", int(batch.call(&"pending_count")) == 6
+		and canonical == 6, "%d of %d: %s" % [canonical, int(batch.call(&"pending_count")), batch.call(&"operation_reason", 0)])
+	_check("Confirm all stays enabled to retry them", not (controls[&"confirm"] as Button).disabled)
+	_check("the tab row hidden under the ledger", not ((controls[&"tabs"] as Array)[2] as Button).visible
+		and not (controls[&"status"] as Label).visible)
 	_check("the ledger lists them all", String((controls[&"ledger_scroll"] as ScrollContainer).get_child(0).get(&"text")).count("\n") >= 11)
 	_check("inside the panel from its top edge", frame.encloses(rect) and is_equal_approx(rect.position.y, frame.position.y),
 		"%s in %s" % [rect, frame])
@@ -1646,6 +1667,12 @@ func _build_many_refused_cleared() -> void:
 	panel.call(&"refresh", true)
 	_key(KEY_B)
 	_check("closed again", not bool(_build().call(&"is_open")))
+	# The camera back where the build steps found it: the later steps frame the residents from there (a box drag
+	# from a moved camera started under the HUD and selected no one, art-free).
+	var camera: Node = _village.get("_camera")
+	camera.call(&"centre_on", _camera_before_build)
+	camera.call(&"snap")
+	_check("the camera framing restored", (camera.call(&"target_focus") as Vector3).is_equal_approx(_camera_before_build))
 
 
 func _key_chord(code: Key, ctrl: bool, shift: bool) -> void:

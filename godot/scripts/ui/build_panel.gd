@@ -391,8 +391,7 @@ func suspend(value: bool) -> void:
 	and the choice stay."""
 	_frame.visible = not value
 	if value:
-		_ledger_open.visible = false
-		_ledger.button_pressed = false
+		_show_ledger(false)
 
 
 func suspended() -> bool:
@@ -421,8 +420,7 @@ func _finish_close(kept: bool) -> void:
 	_furnish_type = -1
 	_tab = BuildCatalog.TAB_ROOMS
 	_question_kind = QUESTION_NONE
-	_ledger.button_pressed = false
-	_ledger_open.visible = false
+	_show_ledger(false)
 	closed.emit(kept)
 
 
@@ -561,12 +559,36 @@ func _sync_cards() -> void:
 		if not button.visible:
 			continue
 		var card: BuildCatalog.Card = _cards[k]
-		var lock: String = "" if card.usable() else "\n%s %s" % [Validity.glyph(Validity.KIND_BLOCKED), "Not yet"]
+		var lock: String = "" if card.usable() else "\n%s %s" % [Validity.glyph(Validity.KIND_BLOCKED), lock_head(card)]
 		var mark: String = "✓ " if _chosen != null and card.id == _chosen.id else ""
 		button.text = "%s%s\n%s%s" % [mark, card.name, card.footprint, lock]
 		button.accessibility_name = card.accessible_name()
 		var note: String = _note_of(card)
 		button.tooltip_text = card.accessible_name() if note.is_empty() else "%s\n%s" % [card.accessible_name(), note]
+
+
+static func lock_head(card: BuildCatalog.Card) -> String:
+	"""A locked card's short reason, its words before the colon ("Not yet", "No way in", "Choose one level to paint
+	on"); the whole reason is in the info card and the accessible name."""
+	return card.locked.get_slice(":", 0)
+
+
+func refresh_notes() -> void:
+	"""Re-read the host's notes (the old tools' "who would dig / what they would stop", which change as residents
+	work) into the shown cards' tooltips and the info card; only what changed is written. Cold: the host calls it on
+	its own cadence."""
+	if not card_note.is_valid() or not visible:
+		return
+	for k: int in mini(_cards.size(), _card_buttons.size()):
+		var note: String = _note_of(_cards[k])
+		if note.is_empty():
+			continue
+		var tip: String = "%s\n%s" % [_cards[k].accessible_name(), note]
+		if _card_buttons[k].tooltip_text != tip:
+			_card_buttons[k].tooltip_text = tip
+	var card: BuildCatalog.Card = _shown if _shown != null else _chosen
+	if card != null and not _note_of(card).is_empty():
+		_sync_info()
 
 
 func _note_of(card: BuildCatalog.Card) -> String:
@@ -736,9 +758,20 @@ func ledger_lines(summary: String) -> String:
 
 
 func toggle_ledger() -> void:
-	"""Expand or fold the ledger."""
-	_ledger_open.visible = _ledger.button_pressed
+	"""Expand or fold the ledger. Expanded, it covers the tab row, so the tabs and the where/status words are hidden
+	with it (none of them clickable or showing beside it) and come back when it folds (decision 1871 E18)."""
+	_show_ledger(_ledger.button_pressed)
 	refresh(true)
+
+
+func _show_ledger(expanded: bool) -> void:
+	"""The expanded ledger shown or folded, the tab row's controls the other way round."""
+	_ledger.set_pressed_no_signal(expanded)
+	_ledger_open.visible = expanded
+	for tab: Button in _tabs:
+		tab.visible = not expanded
+	_where.visible = not expanded
+	_status.visible = not expanded
 
 
 func ledger_expanded() -> bool:

@@ -40,6 +40,8 @@ const TunnelControl := preload("res://demo/tunnel/tunnel_control.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const ThemeResource: Theme = preload("res://ui/theme/woodland_theme.tres")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
+const DemoCommand := preload("res://demo/control/demo_command.gd")
 ## The paint label keeps this far inside the window's edges (UI §1.2's safe inset).
 const SAFE_INSET: float = 16.0
 
@@ -54,6 +56,8 @@ const NO_WAY_IN_HERE: String = "Paint %s: %s"
 const ORDERED: String = "Confirm all: %d ordered, %d kept back"
 const OPENED: String = "Build on %s: choose a room type to paint"
 const CLOSED_KEPT: String = "Build panel closed; its pending changes are kept"
+## The demo's Build command (UI-SET-027, P-B3 as Brendan approved on 2026-10-12): what it does here.
+const BUILD_COMMAND: String = "Open the build panel: paint rooms underground, or open the Passage and burrow tools"
 const ARROWS: Dictionary = {KEY_LEFT: Vector2i(-1, 0), KEY_RIGHT: Vector2i(1, 0), KEY_UP: Vector2i(0, -1),
 	KEY_DOWN: Vector2i(0, 1)}
 
@@ -86,6 +90,8 @@ var _setup_refusal: StringName = &""
 ## cards' notes (review M8). Unset: no such line.
 var _interrupts: Callable = Callable()
 var _card_data: CardScript = CardScript.new()
+## Seconds to the next re-read of the old tools' card notes (the old party panel's cadence, review LOW c).
+var _notes_in: float = 0.0
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -111,7 +117,35 @@ func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked
 	take_setup(paint.configure(batch, camera, Vector2i(orders.datum_u().x, orders.datum_u().z), orders.cell_bounds()))
 	_build_layer()
 	panel.card_note = _card_note
+	unlock_build_command()
 	place()
+
+
+func unlock_build_command() -> bool:
+	"""P-B3, in the demo only: the HUD's Build command (UI-SET-027) is enabled and opens or closes the panel, as B
+	does. The settlement game's shell keeps it locked (ruling 4); nothing in the shell or UIManager changes. False
+	without a shell."""
+	var button: Button = _shell.control_for(UiShell.ID_BUILD) as Button if _shell != null else null
+	if button == null:
+		return false
+	button.disabled = false
+	var index: int = UiShell.COMMAND_IDS.find(UiShell.ID_BUILD)
+	button.tooltip_text = CommandTips.tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index],
+		BUILD_COMMAND, "")
+	button.accessibility_description = BUILD_COMMAND
+	if not button.pressed.is_connected(_on_build_command):
+		button.pressed.connect(_on_build_command)
+	return true
+
+
+func _on_build_command() -> void:
+	"""The Build command clicked, or B pressed through the shell (an enabled command's key is the shell's, read
+	before demo_command's): what B does -- in the Dig tool it closes the tool, else it opens or asks to close the
+	panel."""
+	if _tunnels.planning:
+		_tunnels.cancel_plan()
+		return
+	toggle_panel()
 
 
 func take_setup(code: StringName) -> void:
@@ -248,7 +282,7 @@ func _on_closed(kept: bool) -> void:
 
 # --- per frame -----------------------------------------------------------------------------------------------------
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	"""Follow the view (U, the Dig tool), the old tools' end, the minimap; hold the HUD; redraw the ghosts and label.
 	Integer compares a frame; allocation only when something changed."""
 	follow_view()
@@ -263,6 +297,17 @@ func _process(_delta: float) -> void:
 		_release_hud()
 	paint.refresh(bar.shown_level(), open and armed_type() >= 0)
 	_sync_label(open)
+	_tick_notes(delta, open)
+
+
+func _tick_notes(delta: float, open: bool) -> void:
+	"""Every PANEL_REFRESH_S while the panel shows, the old tools' card notes are re-read (residents move on, so who
+	would dig changes); nothing is read or allocated on the frames between."""
+	_notes_in -= delta
+	if not open or _notes_in > 0.0:
+		return
+	_notes_in = DemoCommand.PANEL_REFRESH_S
+	panel.refresh_notes()
 
 
 func follow_view() -> void:
@@ -417,6 +462,8 @@ func confirm_all() -> void:
 		return
 	var result: PackedInt32Array = batch.confirm_all(orders.submit)
 	var first: int = batch.first_invalid()
+	if first < 0:
+		first = batch.first_refused()
 	var words: String = ORDERED % [result[0], result[1]]
 	if first >= 0:
 		words += " -- %s: %s" % [BuildCatalog.type_name(batch.operation_type(first)), batch.operation_reason(first)]

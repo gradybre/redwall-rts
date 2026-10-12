@@ -180,3 +180,26 @@ func test_classify_names_the_way_in_and_the_never_possible_sites() -> void:
 	var admitted: Dictionary = {"ok": true, "room": 7}
 	assert_equal(Orders.classify(admitted), admitted, "an admission is returned as it came")
 	assert_false(admitted.has("kind"), "and the original is never written")
+
+
+func test_every_terrain_refusal_is_classified() -> void:
+	"""Second review of H3: every underground_terrain.gd REFUSE_* code walked through classify. A site the terrain
+	protects is "X Cannot dig here" (never retried); the survey's own binding, bounds, capacity and open-exterior codes
+	keep the runtime's words as "!". A code added to the terrain owner later fails here until it is placed."""
+	var site: Dictionary = {&"REFUSE_WATER": "water", &"REFUSE_RESOURCE": "protected ground",
+		&"REFUSE_FOUNDATION": "protected ground", &"REFUSE_BODY": "protected ground", &"REFUSE_DRY": "protected ground"}
+	var survey: Array[StringName] = [&"REFUSE_BINDING", &"REFUSE_BOUNDS", &"REFUSE_CAPACITY", &"REFUSE_EXTERIOR"]
+	var walked: int = 0
+	var constants: Dictionary = (Terrain as GDScript).get_script_constant_map()
+	for key: String in constants:
+		if not key.begins_with("REFUSE_"):
+			continue
+		walked += 1
+		var answer: Dictionary = Orders.classify({"ok": false, "error": "runtime words", "error_code": constants[key]})
+		if site.has(StringName(key)):
+			assert_equal([answer.error, answer.kind], [Validity.cannot_dig(site[StringName(key)]),
+				Validity.KIND_NOT_POSSIBLE], key)
+		else:
+			assert_true(survey.has(StringName(key)), "%s is placed in one list or the other" % key)
+			assert_equal([answer.error, answer.kind], ["runtime words", Validity.KIND_BLOCKED], key)
+	assert_equal(walked, site.size() + survey.size(), "every code walked")

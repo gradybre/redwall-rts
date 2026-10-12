@@ -924,7 +924,7 @@ part is read as at-least. Register before the first hour or after; a goal is fir
 | Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else the build panel's stroke, question, ledger, then the panel; else clear the selection; else open the game menu |
 | Menu ("≡") | The game menu (above) |
 | F8 | The Demo Lab (above) |
-| B | The build panel (decision 1871; see The build panel and the level bar): paint room types underground; its Passage card opens the Dig tool, its Burrow home and Root cellar cards the room tools. B again asks to close it; in the Dig tool B closes the tool. (B is the HUD's Build key, whose button stays locked; the command strip says B opens the panel) |
+| B | The build panel (decision 1871; see The build panel and the level bar): paint room types underground; its Passage card opens the Dig tool, its Burrow home and Root cellar cards the room tools. B again asks to close it; in the Dig tool B closes the tool. (B is the HUD's Build key; in the demo the Build button is enabled and opens the panel too: decision 1871 E21, P-B3) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | PgUp / PgDn | One level up / down on the level bar, everywhere: Surface, Level 1, Level 2 (the U view), Levels 3-4 (no way in yet). Alt+PgUp/PgDn stay the camera's pitch; = and − (keypad + and −) and the wheel zoom (decision 1871) |
 | L in the Dig tool | Lay a link down to level 2: once a ramp, again stairs, again back to tunnels (see The second level) |
@@ -1057,7 +1057,7 @@ types are painted into one pending batch with the modular planner's draft and un
 through the planner's route; B opens the panel and the old tools are reached only from its cards; the panel and bar
 are game UI the demo mounts, and the settlement game's own Build button stays locked until surface rooms exist.
 
-- **B** opens it on the level shown; B again closes it, asking **"Keep N pending changes?"** (Keep / Discard) when
+- **B**, or a click on the HUD's **Build** command (enabled in the demo only, decision 1871 E21), opens it on the level shown; B again closes it, asking **"Keep N pending changes?"** (Keep / Discard) when
   there are any. While it shows, the HUD's command strip and detail, the right column, the Map layer picker and the
   news strip step aside (their place is the panel's) and come back on close.
 - **Tabs** Rooms · Furnish · Decor (Ctrl+Tab / Ctrl+Shift+Tab). Furnish and Decor wait, saying "Choose a room type
@@ -1067,7 +1067,7 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
   paint on levels 1-2; **Passage** opens the Dig tool, **Burrow home** / **Root cellar** the room tool, each with its
   own confirm (the panel hides until the tool closes); their info card and tooltip say who would dig and what they
   would stop. On the surface, on Overview and on a level with no way in the
-  room types are locked with the reason in words; Earth, Remove, Outdoor and Clear ground are locked "Not yet".
+  room types are locked with the reason in words ("! Choose one level to paint on", "! No way in"); Earth, Remove, Outdoor and Clear ground are locked "Not yet".
 - **The info card** follows the hovered or focused card: a described placeholder picture, its purpose, its cost per
   cell in natural measures (a log of wood, a block of stone, about 17 minutes of work, 4 baskets of earth out:
   SET-BUILD-001 §7.2, read from the excavation contract), its rules ("Needs 1 bench and 1 hearth; at least 24 cells")
@@ -1081,7 +1081,7 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
   Enter sets the first corner and Enter the second. The planning area is the settlement's actual underground (the level
   pack's 0..256 m square): under the village that is its south-east quadrant (x, z ≥ 0).
 - **The footer**: the **ledger** (click to expand over the panel's tabs and cards, from its top edge, its words
-  scrolling: one line per room type, every operation's validity, and what the plan needs -- wood, stone, work, earth
+  scrolling, the tabs and the status words hidden under it: one line per room type, every operation's validity, and what the plan needs -- wood, stone, work, earth
   out, each room at its own level's height -- beside what the stores hold; it reserves nothing), **Undo** / **Redo**
   (Ctrl+Z; Ctrl+Shift+Z or Ctrl+Y; 32 steps; "Nothing to undo"), **Discard all** (asks once) and **Confirm all**,
   disabled while any room is not ready, naming the first reason and the count. Confirm all sends each room through

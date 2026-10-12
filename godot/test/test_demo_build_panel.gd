@@ -13,6 +13,7 @@ const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Orders := preload("res://demo/build_panel/demo_build_orders.gd")
+const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
 
 const KITCHEN_CARD: int = 2
 
@@ -393,3 +394,58 @@ func test_a_cursor_move_redraws_no_room_ghost() -> void:
 	_press(KEY_Z, true)
 	_build._process(0.016)
 	assert_true(_build.paint.operation_draws >= rooms, "a batch change redraws the rooms")
+
+
+func test_the_demo_build_command_opens_and_closes_the_panel() -> void:
+	"""P-B3 (approved 2026-10-12): in the demo the HUD's Build command is enabled and does what B does -- opens the
+	panel, asks Keep / Discard when closing with changes, and in the Dig tool closes the tool."""
+	assert_false(_build.unlock_build_command(), "no shell: nothing to unlock")
+	var shell := UiShellScript.new()
+	_nodes.append(shell)
+	shell.build()
+	assert_true((shell.control_for(UiShellScript.ID_BUILD) as Button).disabled, "the game's shell keeps it locked")
+	_build._shell = shell
+	assert_true(_build.unlock_build_command(), "unlocked in the demo")
+	var button: Button = shell.control_for(UiShellScript.ID_BUILD) as Button
+	assert_false(button.disabled, "enabled")
+	assert_equal(button.tooltip_text, "Build (B) — " + BuildScript.BUILD_COMMAND, "its tip")
+	button.pressed.emit()
+	assert_true(_build.is_open(), "a click opens the panel")
+	button.pressed.emit()
+	assert_false(_build.is_open(), "and closes it with nothing pending")
+	_paint_kitchen_by_keys()
+	button.pressed.emit()
+	assert_equal(_build.panel.question(), BuildScript.BuildPanel.QUESTION_CLOSE, "with a change it asks first")
+	_build.panel.answer(false)
+	assert_true(_command.tunnels().begin_plan(), "the Dig tool open")
+	button.pressed.emit()
+	assert_false(_command.tunnels().planning, "in the Dig tool it closes the tool, as B does")
+	assert_true(_build.unlock_build_command(), "unlocking twice connects once")
+	assert_equal(button.pressed.get_connections().size(), 1, "one connection")
+
+
+func test_confirm_all_names_the_room_the_route_refused() -> void:
+	"""Review LOW b: "0 ordered, 1 kept back -- Kitchen: <why>" even when the refusal does not hold Confirm all back."""
+	_paint_kitchen_by_keys()
+	_build.confirm_all()
+	assert_equal(_said[_said.size() - 1], "Confirm all: 0 ordered, 1 kept back -- Kitchen: " + Orders.NOT_COMPOSED,
+		_said[_said.size() - 1])
+
+
+func test_the_old_tools_notes_are_reread_on_the_party_panel_cadence() -> void:
+	"""Review LOW c: while the panel shows, its card notes are re-read every PANEL_REFRESH_S, not on the frames
+	between."""
+	var reads: Array[int] = [0]
+	_build.panel.card_note = func(_unused: BuildCatalog.Card) -> String:
+		reads[0] += 1
+		return ""
+	_build.open_panel()
+	_build._process(0.05)
+	assert_true(reads[0] > 0, "read on the first frame open")
+	reads[0] = 0
+	_build._process(0.05)
+	_build._process(0.05)
+	assert_equal(reads[0], 0, "not between")
+	_build._process(0.11)
+	assert_true(reads[0] > 0, "read again after %.2f s" % CommandScript.PANEL_REFRESH_S)
+	_build.panel.card_note = Callable()

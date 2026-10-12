@@ -1,6 +1,7 @@
 # 1871 — Slice B: one build panel and the level bar
 
-Date: 2026-10-12 · Status: Accepted (engineering record of DEC-061's slice B; the PROPOSALS below await Brendan)
+Date: 2026-10-12 · Status: Accepted (engineering record of DEC-061's slice B; Brendan ruled on every PROPOSAL on
+2026-10-12, recorded below)
 
 Number range: 1871–1879 was allocated to this lane by the coordinator. This lane uses 1871 only. It replaces no
 BACKLOG range. A separate lane records the slice's memory budget (decision 1880).
@@ -42,6 +43,16 @@ each of the four questions:
    until slice G gives it surface rooms to build."
 
 Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, and keyboard zoom moves to = and −.
+
+**The PROPOSALS (P-B1 to P-B11).** Relayed by the coordinator. On 2026-10-12, in chat, using AskUserQuestion, Brendan
+answered four questions, each as recommended:
+
+| Question | His answer | What it rules |
+|---|---|---|
+| P-B1, P-B6, P-B11 | "Approve all three" | P-B1 (a): later slices' cards stay visible, locked, saying when. P-B6 (a): the described placeholder pictures stay. P-B11 (a): no room can be ordered from the panel until slices C/D add the way in |
+| P-B3, P-B2, P-B4 | "Approve all three" | P-B3 (b): in the demo, the Build command (UI-SET-027) opens the panel, built here (E21); the settlement game keeps it locked. P-B2 (a): the added reasons as worded, with the merge of joined rooms in slice C. P-B4 (a): Overview is the surface view now, a real all-levels view later |
+| P-B5, P-B7, P-B9, P-B10 | "Approve all four" | P-B5 (a): the paint area keeps the planner's frame until slice C. P-B7 (a): the old planner view retires in slice C. P-B9 (a): the dashed and hatched outlines come in slice C. P-B10 (b): a camera-relative cell cursor, in slice C |
+| P-B8 | "Compact panel, next" | P-B8 (b): a compact Demo party panel with an "open" overlay, as the follow-up right after slice B merges (BACKLOG PARTY-COMPACT) |
 
 ## Rules used
 
@@ -122,13 +133,24 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
       entrance; the way in from the build panel comes in a later update".
     - Protected water, a paid cut, protected ground above and required footing are X "Cannot dig here: water" /
       "occupied" / "protected ground". They can never succeed on that site, so they hold Confirm all back.
+    - **Second review.** The terrain survey's protected resources, foundations and building sites, and ground that
+      is not natural dry solid (`underground_terrain.gd` REFUSE_RESOURCE, REFUSE_FOUNDATION, REFUSE_BODY and
+      REFUSE_DRY), are X "Cannot dig here: protected ground" too. The first round missed them: they fell to the
+      runtime's catch-all "This site is not ready for that room …", read "!" and were retried for ever, and most
+      sites under the demo village give one of them. `NEVER_HERE` names the owners' constants. A test walks every
+      `underground_terrain.gd` REFUSE_* code through `classify`. The survey's binding, bounds, capacity and
+      open-exterior codes are not the site's, so they keep the runtime's words as "!".
     - Any other refusal keeps the runtime's own words as "! Blocked".
   - A "!" route refusal does not count as invalid. It stays "! Blocked", the status line says "! Refused last time,
     Confirm all tries again: …", and the next Confirm all retries it. Shape, size and overlap judgements still disable
     Confirm all. `build_batch.gd retryable()` holds the rule: the room is unchanged since the refusal, and the
     refusal was "!".
-  - Live, the route refused the harness's Kitchen under the village as X "Cannot dig here: water", and six rooms
-    painted south-east of it as "! Blocked" in the runtime's words.
+  - Live, the route refused the harness's Kitchen under the village as X "Cannot dig here: water".
+  - **Corrected (second review).** The first round's six live rooms at x 40–85, z 40–43 were refused
+    TERRAIN_RESOURCE_PROTECTED. They read "! … not ready for that room" because of the gap above, not because the
+    route judged them fixable. The live step now paints six rooms on open ground at x 100–145, z 100–103. Each is
+    refused PROSPECTIVE_ENTRY_CONTACT_UNBOUND, and the harness checks every one reads the canonical "! Blocked: No
+    way in: …; the way in from the build panel comes in a later update", with Confirm all still enabled.
 - **E7. The painting frame.**
   - Cells are world metres in the frame the planner and the entry worker already share. Cell (0, 0) is at the actual
     space domain's datum.
@@ -187,16 +209,28 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
   - Its words sit in a ScrollContainer, so any number of operations scroll inside it.
   - It never rises above the panel, so it is clear of the alerts at every profile.
   - **M3 choice: it covers the tab row whole.** The first version started it part-way down and cut the tabs in half.
-    The alternative, hiding the tabs while it is open, was not chosen. Covering keeps the panel's layout still, and
-    folding the ledger puts the tabs back untouched.
+    Covering keeps the panel's layout still.
+  - **Corrected (second review).** Covering alone was not enough: the Decor tab's strip beside the ledger (x 332–388
+    at 1280×720) was still clickable, and at WIDE the status words' tail showed beside it. While the ledger is
+    expanded, the three tabs and the where/status words are now hidden. They come back when it folds, when an old
+    tool's card suspends the panel, and when the panel closes (`build_panel.gd _show_ledger`).
   - Placed above the panel it would cover the guide card at 1280×720.
 - **E19. The party panel's tool buttons and their action cards are gone.** Those cards said who would dig and what
   they would stop. That information now shows on the Passage, Burrow home and Root cellar cards (review M8): the
   panel's `card_note` hook asks `demo_build.gd`, which fills `tool_card_into` and the work interrupt words. It is
   added to the info card and the card's tooltip.
 - **E20. A card's picture is a described placeholder** ("Picture (placeholder): …"). No room art exists (see P-B6).
-- **E21. UI-SET-027 stays locked**, as ruling 4 says. Its demo tooltip now says "In the demo, B opens the build panel:
-  …" (`demo_command_tips.gd`).
+- **E21. In the demo the Build command opens the panel** (P-B3, approved 2026-10-12).
+  - `demo_build.gd unlock_build_command` enables the shell's UI-SET-027 in the demo only. It writes its own tip,
+    "Build (B) — Open the build panel: paint rooms underground, or open the Passage and burrow tools", and connects
+    its press to what B does: open the panel, ask before closing with changes, and in the Dig tool close the tool.
+  - Enabled, Build's key is the shell's (its `_unhandled_key_input` runs before demo_command's), so B reaches the
+    panel through the same press. While the panel shows, the command strip is hidden, and B reaches the panel through
+    the build hook as before.
+  - The settlement game's shell keeps Build locked (ruling 4). Neither `ui_shell.gd`, `ui_manager.gd` nor any pinned
+    file changed. `test_ui_shell.gd`'s "Build is locked" covers the game's shell, so it stands.
+  - `demo_command_tips.gd` no longer writes the old "In the demo, B opens …" line. Like the farm's Food, an enabled
+    Build keeps the tip its owner wrote.
 - **E23. Setup refusals are shown and disarm painting** (review M4). The refusal codes from `batch.configure` and
   `paint.configure` are kept. The first is pushed with `UIManager.push_refusal`, and `armed_type()` is then -1.
 - **E24. The paint ghosts redraw only on a batch change** (review M5). A cursor move redraws only the stroke and
@@ -211,11 +245,27 @@ Earlier, decision 1851 OPEN-09 was ruled (a): PageUp and PageDown change level, 
   - Each room is priced at the clear height of the level it was painted on (`build_catalog.gd clear_height_of`).
   - A stroke alone no longer rebuilds the ledger or the status words.
   - The card pool grows to fit a row, never dropping a card.
+- **E27. The second review's smaller fixes.**
+  - Confirm all's notice names the first room the route refused when none is invalid: "Confirm all: 0 ordered, 6
+    kept back -- Dormitory: No way in: …".
+  - The old tools' card notes ("who would dig, what they would stop") are re-read every
+    `demo_command.gd PANEL_REFRESH_S` (0.2 s), the old party panel's cadence, while the panel shows. Nothing is
+    read on the frames between, and only a changed tooltip is written.
+  - A locked card's visible line gives its own reason's head: "! Choose one level to paint on" on Overview, "! No
+    way in" on Levels 3–4, "! Not yet" for later slices' cards. The whole reason stays in the info card.
+- **E28. The live harness puts the camera back** after the build steps. `_build_level_one` centres the camera on
+  (9, 0, 8) so the keyboard cursor starts in the planning area. Left there, the later box-select step framed the
+  residents from that point. In an art-free checkout (CI's) the placeholder residents' screen box then started under
+  the top-left HUD, and the drag selected no one at either size. This happened in 46947083 and was found by the
+  coordinator's CI-style run. The harness was wrong, not the game: it now saves the camera's target before the build
+  steps, restores it after them, and checks the framing is restored.
 - **E22. The ghost's states.** Valid, blocked and impossible each tint the outline with their own §2.1 token, and
   each carries a tag with its glyph and type. The section's dashed (blocked) and hatched, numbered (impossible)
   outlines are not drawn yet. The words carry the state, so UX-BUILD-T03 holds.
 
 ## PROPOSALS for Brendan
+
+All eleven were ruled on 2026-10-12, each as recommended (see Brendan's rulings above).
 
 - **P-B1. Locked cards for later slices.** These cards stay visible and inspectable, marked "! Blocked":
   - Furnish and Decor items: "Not yet: furnishing comes in a later update".
@@ -342,11 +392,29 @@ worktree on top of bbbb3207. Where each fix is recorded:
 | LOW (six) | E25 and E26 |
 
 The live Kitchen the harness paints lies on protected water, so it now reads X and holds Confirm all back. The six
-rooms painted by the new step read "!" and leave it enabled.
+rooms the first round's new step painted read "!" only because of a gap in the mapping; the second review found it
+(E6), and the step now paints on open ground.
 
 ## Gates
 
 Every line below is quoted from the run, never taken from an exit status.
+
+### Second review and the rulings (final batch)
+
+The coordinator runs the full sharded suite after this commit; `--fast` was not rerun here.
+- **Focused run** of 28 suites (the 26 above plus `test_demo_ui.gd` and `test_ui_shell.gd`), the live wrappers at both
+  sizes included. It printed `865 test(s), 16289 assertion(s), 0 failure(s)`, `diagnostics: 0 unexpected error(s), 0
+  unexpected warning(s), 0 expected, 206 tolerated; leaked at exit: 0 object(s), 0 resource(s)` and `log: 0
+  unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+- **Art-free**, in the coordinator's checkout (no `godot/demo/assets`, CI's import) with this change applied:
+  - `test_demo_input_live.gd`: `3 test(s), 672 assertion(s), 0 failure(s)`. At 46947083 it failed "the drag selected
+    a group" at both sizes (E28).
+  - `test_demo_layout_live`, `test_demo_guide_live`, `test_modular_demo_live`, `test_demo_build_panel`,
+    `test_demo_build_orders` and `test_demo_ui`: `84 test(s), 1395 assertion(s), 0 failure(s)`.
+- **Live input harness**, with frames: `LIVE-SUMMARY 256 0` at 1280×720 and `LIVE-SUMMARY 264 0` at 1920×1080.
+- **Analyzer** on port 6383: `0 GDScript warning(s) in 0 of 1503 file(s)`.
+- **Contract checks:** `underground_memory_budget.py --check` exit 0; `ready07_arithmetic.py` `"status": "PASS"`;
+  `decision_numbers.py` `PASS -- 544 records, 0 problem(s)`; `merge_gate.py` and `lane_notes.py --check` PASS.
 
 ### Review round
 
@@ -406,6 +474,20 @@ Every line below is quoted from the run, never taken from an exit status.
     `setting_contract.py`: all PASS.
 
 ## Mutation testing
+
+### Second review and the rulings (final batch)
+
+18 new mutants, each killed:
+- the terrain mapping: 5 (each of the four new protected-ground codes dropped, and water's words);
+- the Build command: 3 (left locked, its press unwired, the Dig tool ignored);
+- Confirm all's notice without the refused room: 1;
+- the notes' cadence: 2 (read every frame, never read);
+- the ledger over the tab row: 4 (tabs and status left showing; a close or an old tool's turn leaving them hidden);
+- the lock line's own reason: 1;
+- the notes rewritten into the tooltips: 1;
+- `demo_command_tips.gd` overwriting the demo's Build tip: 1.
+
+With the earlier rounds that makes 99 mutants: 96 killed and 3 equivalent survivors (D2, R1, D6, above).
 
 ### Review round
 

@@ -215,6 +215,19 @@ Counts after the fixes: each parity part 77 assertions (one more: the suite-path
 tick checks, +8 clock checks); the full-suite total moves by +6 x 1 + 17 = +23 assertions over the final run above,
 with the same 12,340 tests.
 
+## Proposal 4 carried out: CI weights refreshed from CI (2026-10-12)
+
+Per Brendan's ruling on proposal 4, `tools/ci_test_shard_weights.json` was regenerated from the first master CI run
+after this lane merged (run 38307575838, PR #251's merge, all ten shard artifacts):
+`python3 tools/ci_test_shards.py weights --reports <the ten shards' reports> --count 10 --output tools/ci_test_shard_weights.json`.
+The reports verified first: `ok: 495 suite files executed exactly once across 10 shards`, 12340 tests, 0 failures.
+
+- That run's shard walls on the local-seconds weights: [702, 1127, 1049, 1116, 797, 753, 848, 980, 855, 842] s.
+- The plan with the CI weights estimates [907, 895, 895, 895, 895, 895, 895, 895, 895, 895] s: the slowest CI shard
+  about 220 s shorter.
+- The local parallel runner reads the same weights, so its shards are now balanced for the runner, not the Mac;
+  the Mac runs a suite 1.1x to 3.2x faster than the runner (1243), so local shards may be somewhat less even.
+
 ## Gates
 
 - The final parallel run above (art-free, `godot/.godot` deleted and re-imported at fdf9d421).

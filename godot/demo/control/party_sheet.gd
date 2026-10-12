@@ -11,7 +11,7 @@ extends CanvasLayer
 ## It is a MODAL of the demo's input gate (demo/ui/demo_input_gate.gd `watch_modal`, wired by demo_village.gd): while it
 ## shows, the gate lays its scrim under it, world keys wait, Tab stays inside it and Esc folds it. A CLICK AWAY folds it
 ## too: a clear catcher over the whole view, above the gate's scrim and below the frame, takes any press outside the
-## frame and folds the sheet (the press does nothing else, as a modal's scrim would).
+## frame and folds the sheet on its release (neither does anything else, as a modal's scrim would).
 ##
 ## PLACEMENT (`placement`), in the HUD's logical pixels, drawn at its scale S: left edge GAP right of the column's
 ## carved frame; width the column's inner width with this frame's margins (so the inspector's rows keep their width);
@@ -52,6 +52,8 @@ var _count: Label = null
 var _close: Button = null
 var _summary: Label = null
 var _slot: VBoxContainer = null
+## The button pressed on the catcher, whose release folds the sheet (MOUSE_BUTTON_NONE: none).
+var _pressed_away: MouseButton = MOUSE_BUTTON_NONE
 
 
 func build(inner_width: float) -> void:
@@ -74,11 +76,11 @@ func build(inner_width: float) -> void:
 	_frame.theme = CardScript.tooltip_theme()
 	_frame.custom_minimum_size.x = width_for(inner_width)
 	add_child(_frame)
-	_frame.add_child(_build_column(inner_width))
+	_frame.add_child(_build_column())
 	fold()
 
 
-func _build_column(inner_width: float) -> VBoxContainer:
+func _build_column() -> VBoxContainer:
 	"""The head, the summary and the slot, top to bottom."""
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", SEPARATION)
@@ -100,7 +102,6 @@ func _build_column(inner_width: float) -> VBoxContainer:
 	_summary.max_lines_visible = SUMMARY_LINES
 	_summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_summary.mouse_filter = Control.MOUSE_FILTER_PASS
-	_summary.custom_minimum_size.x = inner_width
 	column.add_child(_summary)
 	_slot = VBoxContainer.new()
 	_slot.name = "Slot"
@@ -145,7 +146,8 @@ func open() -> void:
 
 
 func fold() -> void:
-	"""Hide the sheet (the gate gives the focus back where it was)."""
+	"""Hide the sheet (the gate gives the focus back where it was); a press on the catcher is forgotten."""
+	_pressed_away = MOUSE_BUTTON_NONE
 	_set_shown(false)
 
 
@@ -163,10 +165,15 @@ func _set_shown(on: bool) -> void:
 
 
 func _on_catcher_input(event: InputEvent) -> void:
-	"""A press outside the frame folds the sheet; it goes no further, as nothing does past the catcher's MOUSE_FILTER_STOP
-	(a wheel or a move is only stopped)."""
-	var press := event as InputEventMouseButton
-	if press != null and press.pressed and folds_on(press.button_index):
+	"""A click outside the frame folds the sheet: the press is taken here, and the sheet folds on its matching release,
+	so neither reaches the world (nothing goes past the catcher's MOUSE_FILTER_STOP, and Godot sends a press's release
+	to the control that took the press). A wheel or a move is only stopped."""
+	var click := event as InputEventMouseButton
+	if click == null or not folds_on(click.button_index):
+		return
+	if click.pressed:
+		_pressed_away = click.button_index
+	elif click.button_index == _pressed_away:
 		fold()
 
 
@@ -244,7 +251,6 @@ func place(rect: Rect2, scale_s: float) -> void:
 	party panel within `slot_room`)."""
 	_frame.scale = Vector2(scale_s, scale_s)
 	_frame.position = rect.position * scale_s
-	_frame.custom_minimum_size.x = rect.size.x
 	_frame.size = Vector2(rect.size.x, 0.0)
 
 

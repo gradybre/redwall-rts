@@ -317,6 +317,7 @@ func test_panel_placement_keeps_clear_of_the_hud_at_every_size() -> void:
 		assert_true(Rect2(0, 0, geometry.logical_width, geometry.logical_height).encloses(rect), "%s: on screen" % size)
 		var room: float = rect.size.y
 		if size.y <= 720:
+			assert_true(rect.size.y >= 150.0, "%s: the column holds the compact frame (%.0f px)" % [size, rect.size.y])
 			room = SheetScript.placement(geometry, PanelScript.column_right(), PanelScript.inner_width()).size.y
 		assert_true(room >= 250.0, "%s: room for the party (%.0f px)" % [size, room])
 

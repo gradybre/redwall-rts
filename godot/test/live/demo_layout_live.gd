@@ -210,10 +210,34 @@ func _at_scale(percent: int) -> void:
 			and bool(_village.call(&"ui_scale_fits", _scale)), "now %d%%" % _scale)
 		return
 	_check("%d%% applied" % percent, _scale == percent)
+	_level_buttons_inside()
 	await _party_checks()
+	await _sheet_follows_its_content()
 	await _water_checks()
 	await _picker_checks()
 	await _scale_checks()
+
+
+func _level_buttons_inside() -> void:
+	"""UI-BUILD-014 after the scale's re-place: every level button inside the bar's screen rectangle and none overlapping
+	another (the bar kept a larger scale's cells before decision 1891's review fix)."""
+	var bar: Node = _village.call(&"build").get("bar")
+	var frame: Rect2 = (bar.call(&"screen_rect") as Rect2).grow(0.5)
+	var rects: Array[Rect2] = []
+	var outside: PackedStringArray = PackedStringArray()
+	for level: int in 6:
+		var button: Button = bar.call(&"level_button", level)
+		var xform: Transform2D = button.get_global_transform_with_canvas()
+		var rect := Rect2(xform.origin, button.size * xform.get_scale())
+		if not frame.encloses(rect):
+			outside.append("%d %s" % [level, rect])
+		rects.append(rect.grow(-0.5))
+	var overlaps: int = 0
+	for a: int in rects.size():
+		for b: int in range(a + 1, rects.size()):
+			overlaps += 1 if rects[a].intersects(rects[b]) else 0
+	_check("every level button inside the bar", outside.is_empty(), ", ".join(outside))
+	_check("no two level buttons overlap", overlaps == 0, "%d pairs" % overlaps)
 
 
 # --- F20 / F31: the party panel ---------------------------------------------------------------------------
@@ -251,6 +275,29 @@ func _party_checks() -> void:
 		_floors(what + " sheet", party.call(&"sheet"))
 		party.call(&"fold_sheet")
 		await _frames(SETTLE_FRAMES)
+
+
+func _sheet_follows_its_content() -> void:
+	"""Compact: the open sheet's frame is as tall as its content, and shrinks with it -- the whole cast selected, then
+	one resident, then nobody (decision 1891, review: the frame's size is reset on every place)."""
+	var party: CanvasLayer = _party()
+	if not bool(party.call(&"compact")):
+		return
+	var heights: PackedFloat32Array = PackedFloat32Array()
+	var fitted: bool = true
+	for who: PackedInt32Array in [PackedInt32Array(range(int(_village.get("_cast").call(&"actor_count")))),
+			PackedInt32Array([0]), PackedInt32Array()]:
+		_command().call(&"select", who)
+		_command().call(&"_refresh_panel")
+		party.call(&"open_sheet")
+		await _frames(SETTLE_FRAMES)
+		var frame: Control = party.call(&"sheet").call(&"frame")
+		heights.append(frame.size.y)
+		fitted = fitted and absf(frame.size.y - frame.get_combined_minimum_size().y) <= 1.0
+	_check("the sheet as tall as its content", fitted, str(heights))
+	_check("and shorter for nobody than for the cast", heights[2] < heights[0] - 1.0, str(heights))
+	party.call(&"fold_sheet")
+	await _frames(SETTLE_FRAMES)
 
 
 func _actions_in_view(party: CanvasLayer, what: String) -> void:
@@ -406,6 +453,7 @@ func _dock_keeps_focus(party: CanvasLayer) -> void:
 	_check("docking again keeps it", root.gui_get_focus_owner() == release)
 	release.release_focus()
 	_no_focus_left_on_a_hidden_row(party)
+	_focus_kind_survives_the_full_form(party)
 	# Back to the real column (it decides the docking itself): fit(4000) left the inspector as tall as its content, past
 	# the window's foot, which the rows checked next would be measured against (decision 0801's Follow (End) made the
 	# actions one row taller). `was` is the docking it restores.
@@ -414,6 +462,22 @@ func _dock_keeps_focus(party: CanvasLayer) -> void:
 	if bool(party.call(&"compact")):
 		party.call(&"open_sheet")
 	await _frames(SETTLE_FRAMES)
+
+
+func _focus_kind_survives_the_full_form(party: CanvasLayer) -> void:
+	"""Compact with the sheet open, a member row focused as a click leaves it (hidden) and as the keyboard does (drawn):
+	when the full form comes back the inspector moves first and the sheet folds after, so the row keeps its focus, of
+	the same kind (decision 1891 E7)."""
+	var row: Button = party.call(&"member_row", 0)
+	for drawn: bool in [false, true]:
+		root.gui_release_focus()
+		party.call(&"fit", 1.0)
+		party.call(&"open_sheet")
+		row.grab_focus(not drawn)
+		party.call(&"fit", 4000.0)
+		_check("the full form keeps a %s row focus" % ("drawn" if drawn else "hidden"),
+			root.gui_get_focus_owner() == row and row.has_focus(true) == drawn, str(root.gui_get_focus_owner()))
+	row.release_focus()
 
 
 func _no_focus_left_on_a_hidden_row(party: CanvasLayer) -> void:

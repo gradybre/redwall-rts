@@ -191,17 +191,28 @@ func test_the_sheet_is_built_folded_on_its_layer() -> void:
 	assert_true(sheet.close_button().custom_minimum_size.y >= 32.0, "a 32 px target")
 
 
-func test_a_press_away_folds_the_sheet() -> void:
-	"""The catcher: a left, right or middle press folds the sheet; a release or the wheel does not."""
+func test_a_click_away_folds_the_sheet_on_its_release() -> void:
+	"""The catcher: a left, right or middle press is taken and its matching release folds the sheet, so neither reaches
+	the world; a press alone, a release with no press, another button's release, the wheel and a move do not."""
 	var sheet := _sheet()
 	for button: MouseButton in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_MIDDLE]:
 		sheet.open()
 		sheet.catcher().gui_input.emit(_press(button))
-		assert_false(sheet.is_open(), "a press of %d folds it" % button)
+		assert_true(sheet.is_open(), "a press of %d alone does not fold it" % button)
+		sheet.catcher().gui_input.emit(_press(button, false))
+		assert_false(sheet.is_open(), "its release does")
 	sheet.open()
 	sheet.catcher().gui_input.emit(_press(MOUSE_BUTTON_LEFT, false))
-	assert_true(sheet.is_open(), "a release does not")
+	assert_true(sheet.is_open(), "a release with no press does not")
+	sheet.catcher().gui_input.emit(_press(MOUSE_BUTTON_LEFT))
+	sheet.catcher().gui_input.emit(_press(MOUSE_BUTTON_RIGHT, false))
+	assert_true(sheet.is_open(), "nor another button's release")
+	sheet.fold()
+	sheet.open()
+	sheet.catcher().gui_input.emit(_press(MOUSE_BUTTON_LEFT, false))
+	assert_true(sheet.is_open(), "a fold forgets the press")
 	sheet.catcher().gui_input.emit(_press(MOUSE_BUTTON_WHEEL_DOWN))
+	sheet.catcher().gui_input.emit(_press(MOUSE_BUTTON_WHEEL_DOWN, false))
 	assert_true(sheet.is_open(), "the wheel does not")
 	sheet.catcher().gui_input.emit(InputEventMouseMotion.new())
 	assert_true(sheet.is_open(), "a move does not")
@@ -260,6 +271,8 @@ func test_the_slot_gets_what_the_head_leaves() -> void:
 	var used: float = SheetScript.MARGINS[1] + SheetScript.MARGINS[3] + head + line + 2.0 * SheetScript.SEPARATION
 	assert_almost_equal(sheet.slot_room(300.0), 300.0 - used, "the rest")
 	assert_almost_equal(sheet.slot_room(1.0), 0.0, "never below nothing")
+	assert_true(line <= sheet.get("_count").get_combined_minimum_size().y * 1.5 + 4.0,
+		"a short summary is one line, measured at the sheet's width before any layout (%.0f px)" % line)
 
 
 func test_the_compact_frame_shows_the_rows_its_height_holds() -> void:

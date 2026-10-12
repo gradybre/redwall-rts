@@ -65,6 +65,9 @@ func build() -> void:
 		button.focus_mode = Control.FOCUS_ALL
 		button.theme_type_variation = &"WoodlandToggle"
 		button.add_theme_font_size_override(&"font_size", FONT_PX)
+		# Its cell sets its size, never its words: a trimmed label adds no width to the minimum, so a wider font or
+		# label cannot push it over its neighbour (decision 1891, review).
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		button.pressed.connect(choose.bind(level))
 		_frame.add_child(button)
 		_buttons.append(button)
@@ -94,8 +97,10 @@ func place(geometry: UiLayout.Geometry, minimap_shown: bool) -> void:
 	for level: int in LEVEL_COUNT:
 		var cell: Rect2 = BuildLayout.level_button_rect(_bar, level, _profile)
 		_buttons[level].position = cell.position
-		_buttons[level].size = cell.size
+		# The minimum first: a size below the old minimum would be clamped up to it, and a re-place to smaller cells
+		# (100 % to 125 % at 1280x720, F11, any profile-changing shrink) kept the old size (decision 1891, review).
 		_buttons[level].custom_minimum_size = cell.size
+		_buttons[level].size = cell.size
 	_sync()
 
 

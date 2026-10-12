@@ -49,8 +49,11 @@ is used". It was to be the follow-up right after slice B merged (BACKLOG PARTY-C
 
 - **E1. When the compact form is used.** `fit(height)` keeps the full form where the column leaves the inspector
   MIN_INSPECTOR_H (72) or all its content (`full_fits`). This is the old dock rule. Otherwise the panel is compact.
-  `full_room` measures every part as the full form shows it, whatever shows now, so the choice never feeds back on
-  itself.
+  `full_room` measures the header, the summary line and the actions as the full form lays them out, even while the
+  compact form hides some of them. The one part that differs between the forms is the actions' flow, which holds
+  Open only in the compact form; Open can only add height. So once compact, the panel stays compact at a column the
+  full form would only just fit: a small, stable bias toward compact, never a flip back and forth. At the demo's sizes
+  both flows take the same two rows, so the bias never shows.
   - Compact: 1280x720 at 100 % and 125 %, 1920x1080 at 150 %, 2560x1440 at 150 % (logical 1280x720 each).
   - Full: 1920x1080 at 100 % and 125 %, 2560x1440 at 100 % and 125 %.
 - **E2. The compact frame fills the column's carved extent.** The full frame's carving draws FRAME_EXPAND (10 px)
@@ -80,17 +83,22 @@ is used". It was to be the follow-up right after slice B merged (BACKLOG PARTY-C
   - the gate lays its scrim under it, and world keys wait (B, V, Space, Page Up/Down, checked live);
   - Tab and Shift+Tab stay inside it with × last;
   - Esc folds it and gives the focus back where it was (Open).
-  - **A click away:** a clear full-view catcher sits above the gate's scrim and below the frame. A left, right or
-    middle press on it folds the sheet. It stops the press (MOUSE_FILTER_STOP), so the click neither selects nor
-    orders. The wheel and a move are only stopped.
+  - **A click away:** a clear full-view catcher sits above the gate's scrim and below the frame.
+    - A left, right or middle press on it is taken, and its matching release folds the sheet.
+    - Godot sends a press's release to the control that took the press, so neither reaches the world. Since the
+      review, the fold no longer happens on the press, which let the release fall through to the world.
+    - A release with no press, another button's release, the wheel and a move do nothing but stop.
   - The folded sheet hides its frame and catcher as well as its layer. Otherwise the gate's region walk, which does
     not look through a CanvasLayer's own visibility, would offer its × to F7 and Tab.
 - **E7. The inspector moves, its focus kept.** `_set_compact` reparents the inspector into the sheet's slot (compact)
   or back to the end of the column (full).
-  - A focused row moved where it is still shown keeps its focus.
+  - A focused row moved where it is still shown keeps its focus, of the same kind: drawn (the keyboard's) or hidden
+    (a click's). Both are checked live.
   - One moved into a folded sheet loses it, so no focus is left on a hidden row (checked live).
-  - Going back to the full form folds the sheet.
-- **E8. Opening.** `open_sheet` does nothing in the full form.
+  - Going back to the full form moves the inspector out first and folds the sheet after. The other order let the
+    gate's close take the focus off the row (review LOW c).
+- **E8. Opening.** `open_sheet` does nothing in the full form. It does not place the sheet: every `_place` already
+  places it, so a second placement on opening was redundant (removed in review, mutant U1).
   - Opened by a click, the inspector shows from its top. The gate's hidden focus on the first control would
     otherwise scroll it down.
   - Opened by the keyboard, the drawn focus on the first control stays in view.
@@ -141,14 +149,21 @@ is used". It was to be the follow-up right after slice B merged (BACKLOG PARTY-C
   now means the full form, and `compact()` is new.
 - Tests: `test_demo_command.gd`, `test_demo_group_select.gd`, `test/live/demo_layout_live.gd`,
   `test/live/demo_input_live.gd`; new `test_demo_party_sheet.gd`.
-- Three more live harnesses read the inspector at 1280x720, so each gained `_open_sheet_for(control)`. Their
-  `_reveal`, and the steps that read a row first, click Open where the control is in the folded sheet:
+- Three more live harnesses read the inspector at 1280x720, so they open the sheet first through the shared
+  `test/live/party_sheet_live.gd` (`SheetLive.open_for`, a real click on Open):
   - `test/live/demo_select_live.gd`: the group section, tiles, crews and Send to…;
   - `test/live/demo_people_live.gd`: the person section and a notable moment; it folds the sheet before the
     spotlight card;
   - `test/live/demo_care_live.gd` (slow tier): the injury and infirmary lines; it folds after reading them.
   The first `--fast` run found the first two; the third was found by searching the harnesses.
-- No pinned file (ADR 1212) was touched, and no file of the TEST-SPEED or ORCHARD-FLAKE lanes.
+- Review round:
+  - `scripts/ui/level_bar.gd`: the place order and trimmed labels;
+  - `scripts/ui/ui_shell.gd`: `command_icon(id)`, additive;
+  - `demo/build_panel/demo_build.gd`: one line in `unlock_build_command`;
+  - new `test/live/party_sheet_live.gd`;
+  - `test_level_bar.gd` and `test_demo_build_panel.gd`.
+- No pinned file (ADR 1212) was touched (`underground_memory_budget.py --check` passes), and no file of the
+  TEST-SPEED or ORCHARD-FLAKE lanes.
 
 ## Keys
 
@@ -160,7 +175,70 @@ None added. In the sheet:
 - F7 order is unchanged: world → right column → left column (Open is a stop) → Map layer picker → guide card →
   level bar → world.
 
+## Review round (2026-10-12)
+
+The coordinator's independent review of 06a9d809..17fef19a found nothing CRITICAL or HIGH in this lane. Its full
+sharded art-free run at 17fef19a was clean (491 suites, 12348 tests, 0 failures, 0 unexpected diagnostics, 0 leaks).
+It asked for two fixes to slice B's leftovers in this column and HUD, and several in this lane. All were fixed on top
+of 17fef19a.
+
+- **HIGH (slice B), level bar re-place.**
+  - The fault: `level_bar.gd place` set each button's size before its minimum. A re-place to smaller cells kept the
+    old size. At 1280x720 from 100 % to 125 %, the buttons stayed 102x44 instead of 78x32; 11 of 15 pairs overlapped
+    and the bottom row ran into the minimap.
+  - The fix: the minimum is now set first, then the size. The buttons' labels are trimmed, so a word never adds width.
+  - Tests: `test_level_bar.gd` places STANDARD, NARROW and STANDARD and requires each button to equal its
+    `BuildLayout.level_button_rect`, with no two overlapping. `demo_layout_live.gd` checks at every scale, after each
+    scale's re-place, that every level button is inside the bar's `screen_rect()` and none overlaps another. The
+    swap-back mutant (L1) is killed live.
+  - Frames: `party_check/review/` holds the bar at 1280x720 at 125 % after 100 %, and at 1920x1080 at 150 % after
+    125 %.
+- **MEDIUM (slice B), the enabled Build command wore the lock.**
+  - The fix: `ui_shell.gd command_icon(id)` is a pure wrapper of `_icon_texture_for`. `demo_build.gd
+    unlock_build_command` sets the button's icon from it.
+  - `test_demo_build_panel.gd` asserts the game's shell keeps the lock and the demo's Build does not. This is
+    recorded as a correction in decision 1871 (E21). `ui_shell.gd` is not pinned.
+- **MEDIUM, the sheet frame's size reset was untested (U12).** `demo_layout_live.gd _sheet_follows_its_content`
+  opens the sheet for the whole cast, one resident and nobody. It requires the frame to be as tall as its content,
+  and shorter for nobody.
+- **MEDIUM, the mutation record could not be checked.** It now lists every mutant above.
+- **LOW a, a click away's release reached the world.** The catcher now takes the press and folds on its matching
+  release (E6).
+- **LOW b, drawn vs hidden focus across a form change was untested (U18).** It is now checked live, both kinds.
+- **LOW c, going back to the full form with the sheet open dropped a keyboard focus.** The inspector now moves first
+  and the sheet folds after (E7).
+- **LOW d.** E1's "never feeds back" is reworded to what is true: a small, stable bias toward the compact form.
+- **LOW e.** `test_demo_command.gd` keeps its column floor (150 px at 720 rows) beside the 250 px sheet check.
+- **LOW f.** The three copies of the open-the-sheet helper are now one, `test/live/party_sheet_live.gd`. The select,
+  people and care harnesses call `SheetLive.open_for(control, party)`. Their other code is as on master; an earlier
+  edit that had left one blank line between functions is gone.
+
 ## Gates
+
+### Review round (on top of 17fef19a)
+
+- **Focused suites:** test_demo_party_sheet, test_demo_command, test_demo_group_select, test_level_bar,
+  test_build_layout, test_demo_build_panel, test_build_panel, test_ui_shell, test_demo_input_gate,
+  test_demo_panels_fit, test_demo_camera_modes, and the live wrappers test_demo_layout_live (1280x720, 1920x1080,
+  2560x1440), test_demo_input_live (1280x720, 1920x1080), test_demo_select_live, test_demo_people_live,
+  test_demo_care_live, test_demo_camera_live and test_demo_guide_live.
+  - staged: "421 test(s), 6073 assertion(s), 0 failure(s)";
+  - art-free: "421 test(s), 6251 assertion(s), 0 failure(s)";
+  - both: "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0
+    object(s), 0 resource(s)" and "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s),
+    0 resource(s)."
+- **Live harness runs, staged:**
+  - layout: 1280x720 238 0, 1920x1080 306 0;
+  - input: 1280x720 290 0;
+  - select: 1280x720 60 0;
+  - people: 1280x720 36 0;
+  - care: 1280x720 37 0.
+- **Analyzer** (port 6391): "0 GDScript warning(s) in 0 of 1506 file(s)".
+- **Contracts:** `underground_memory_budget.py --check` exit 0 (headroom_bytes 49749393); `ready07_arithmetic.py`
+  "status": "PASS"; `decision_numbers.py` "decision_numbers: PASS -- 545 records, 0 problem(s)".
+- `--fast` was not rerun in this round; the coordinator runs the full suite.
+
+### Before the review
 
 - **Focused suites, staged**: `./tools/run_tests.sh` with test_demo_party_sheet, test_demo_command,
   test_demo_group_select, test_demo_layout_live, test_demo_input_live, test_demo_input_gate, test_demo_panels_fit and
@@ -205,21 +283,96 @@ None added. In the sheet:
 
 ## Mutation testing
 
-Mutants were run one at a time and each file was restored (SHA-256 checked). They covered the form choice and its
-bounds, the compact rows, the margins and carving, Open's visibility and words, the count's place, the inspector's move
-and focus, the open-scroll rule, the sheet's placement, slot room, layer, folding, catcher and tooltip, the gate
-registration and the Send-to hook.
+Each mutant was run one at a time, and each file was restored with its SHA-256 checked.
 
-- **First pass: 53 mutants.**
-  - The unit suites killed 37; the live harnesses at 1280x720 killed 4 more (M19 focus, M29 slot clamp, V1
-    watch_modal, V2 Close last).
-  - 12 survived. Four were redundant code, which was removed: the `acting` guard in `full_room`, the same-parent guard
-    in `_move_inspector`, an explicit `release_focus`, and the catcher's `accept_event` under MOUSE_FILTER_STOP.
-  - The other eight were killed by checks added for them: the compact rows on the real nodes, Open hidden again in the
-    full form, `fixed_height`, the thin carving filling the carved extent, the title and summary at 100 %, and a
-    click-opened sheet starting at its top.
-- **Final list: 50 mutants (one added, M34), all killed.**
-- **SURVIVED_MUTANTS: none.**
+- **Unit stage:** `./tools/run_tests.sh` with test_demo_party_sheet, test_demo_command, test_level_bar,
+  test_demo_build_panel and test_demo_group_select.
+- **Live stage:** survivors of the unit stage were run against `demo_layout_live.gd` and `demo_input_live.gd` at
+  1280x720.
+
+**Final list, on the reviewed code:** 63 mutants. The unit suites kill 49 and the live harnesses the other 14.
+**SURVIVED_MUTANTS: none.** Line numbers are those of the code these were run on.
+
+- M1 `demo/control/demo_party_panel.gd:769`: `return room >= MIN_INSPECTOR_H or room >= content` to `return room > MIN_INSPECTOR_H or room >= content`. Killed by by test_the_full_form_needs_min_inspector_h_or_all_its_content.
+- M2 `demo/control/demo_party_panel.gd:769`: `return room >= MIN_INSPECTOR_H or room >= content` to `return room >= MIN_INSPECTOR_H and room >= content`. Killed by by test_the_full_form_needs_min_inspector_h_or_all_its_content.
+- M3 `demo/control/demo_party_panel.gd:769`: `return room >= MIN_INSPECTOR_H or room >= content` to `return room >= MIN_INSPECTOR_H or room > content`. Killed by by test_the_full_form_needs_min_inspector_h_or_all_its_content.
+- M4 `demo/control/demo_party_panel.gd:799`: `if inner < need: / return ROWS_ACTIONS` to `if inner <= need: / return ROWS_ACTIONS`. Killed by by test_the_compact_frame_drops_the_title_then_the_summary, test_the_compact_frame_shows_the_rows_its_height_holds.
+- M5 `demo/control/demo_party_panel.gd:801`: `inner >= need + SEPARATION + header_h else` to `inner >= need + header_h else`. Killed by by test_the_compact_frame_drops_the_title_then_the_summary, test_the_compact_frame_shows_the_rows_its_height_holds.
+- M6 `demo/control/demo_party_panel.gd:801`: `inner >= need + SEPARATION + header_h else` to `inner > need + SEPARATION + header_h else`. Killed by by test_the_compact_frame_drops_the_title_then_the_summary, test_the_compact_frame_shows_the_rows_its_height_holds.
+- M7 `demo/control/demo_party_panel.gd:801`: `return ROWS_ALL if inner >= need + SEPARATION + header_h else ROWS_SU...` to `return ROWS_SUMMARY if inner >= need + SEPARATION + header_h else ROW...`. Killed by by test_the_compact_frame_drops_the_title_then_the_summary, test_the_compact_frame_shows_the_rows_its_height_holds.
+- M8 `demo/control/demo_party_panel.gd:791`: `_summary_line.visible = rows != ROWS_ACTIONS` to `_summary_line.visible = rows == ROWS_ALL`. Killed by by test_the_compact_frame_shows_the_rows_its_height_holds.
+- M9 `demo/control/demo_party_panel.gd:792`: `_header.visible = rows == ROWS_ALL` to `_header.visible = rows != ROWS_ACTIONS`. Killed by by test_the_compact_frame_shows_the_rows_its_height_holds.
+- M10 `demo/control/demo_party_panel.gd:788`: `var inner: float = frame_h - COMPACT_MARGINS[1] - COMPACT_MARGINS[3]` to `var inner: float = frame_h - COMPACT_MARGINS[1]`. Killed by by test_the_compact_frame_shows_the_rows_its_height_holds.
+- M11 `demo/control/demo_party_panel.gd:762`: `_fit_compact(height + 2.0 * FRAME_EXPAND)` to `_fit_compact(height)`. Killed by live demo_layout_live, "party 1: compact at 100 %, the title and the summary in view too".
+- M12 `demo/control/demo_party_panel.gd:714`: `_draw_frame(rect if full else rect.grow(FRAME_EXPAND))` to `_draw_frame(rect)`. Killed by live demo_layout_live, "party 1: compact, the thin carving fills the column's carved extent".
+- M13 `demo/control/demo_party_panel.gd:812`: `_count.visible = not on` to `_count.visible = on`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M14 `demo/control/demo_party_panel.gd:813`: `_open.visible = on` to `_open.visible = true`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M15 `demo/control/demo_party_panel.gd:818`: `_summary_line.visible = true / _sheet.fold()` to `_summary_line.visible = true`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M16 `demo/control/demo_party_panel.gd:811`: `_compact_box if on else _full_box` to `_full_box if on else _compact_box`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M17 `demo/control/demo_party_panel.gd:816`: `if not on: / _header.visible = true` to `if not on:`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M19 `demo/control/demo_party_panel.gd:830`: `if mine and focused.is_visible_in_tree():` to `if mine:`. Killed by live demo_layout_live, "compact: no focus left on a row in the folded sheet".
+- M20 `demo/control/demo_party_panel.gd:847`: `if not _compact: / return / _sheet.open()` to `_sheet.open()`. Killed by by test_only_the_compact_form_opens_the_sheet.
+- M21 `demo/control/demo_party_panel.gd:852`: `_inspector.scroll_vertical = 0 /  /  / func fold_sheet` to `pass /  /  / func fold_sheet`. Killed by by test_only_the_compact_form_opens_the_sheet.
+- M22 `demo/control/demo_party_panel.gd:851`: `if focused == null or not focused.has_focus(true):` to `if focused == null:`. Killed by live demo_input_live, "and its inspector shown from the top".
+- M22b `demo/control/demo_party_panel.gd:851`: `if focused == null or not focused.has_focus(true):` to `if true:`. Killed by live demo_input_live, "the keyboard's focus in view".
+- M23 `demo/control/demo_party_panel.gd:437`: `return OPEN_BUTTON if selected == 0 else` to `return OPEN_BUTTON if selected <= 1 else`. Killed by by test_open_carries_the_count.
+- M24 `demo/control/demo_party_panel.gd:350`: `_actions.move_child(row, _open.get_index())` to `(removed)`. Killed by by test_the_party_panel_hosts_the_section_after_its_notice_and_the_row_in_its_top.
+- M25 `demo/control/demo_party_panel.gd:432`: `_actions.visible = _release.visible or not _extra_rows.is_empty() or ...` to `_actions.visible = _release.visible or not _extra_rows.is_empty()`. Killed by by test_the_actions_show_with_open_alone.
+- M27 `demo/control/demo_party_panel.gd:872`: `if _compact: / return _open / return _count` to `return _count`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M28 `demo/control/demo_party_panel.gd:738`: `return UiLayout.SAFE_INSET + 2.0 * FRAME_EXPAND + WIDTH` to `return UiLayout.SAFE_INSET + FRAME_EXPAND + WIDTH`. Killed by by test_at_125_percent_on_1280x720_the_sheet_keeps_clear_of_the_right_column, test_the_sheet_stands_beside_the_column_down_to_the_level_bar_s_foot.
+- M29 `demo/control/demo_party_panel.gd:732`: `_inspector.custom_minimum_size.y = clampf(_inspector_content(), 0.0, ...` to `pass`. Killed by live demo_layout_live, "reveal: the inspector taller than a row".
+- M29b `demo/control/demo_party_panel.gd:732`: `_inspector.custom_minimum_size.y = clampf(_inspector_content(), 0.0, ...` to `_inspector.custom_minimum_size.y = _inspector_content()`. Killed by live demo_layout_live, "party 1: Open lays the sheet over the world".
+- M30 `demo/control/demo_party_panel.gd:419`: `_sheet.show_words(_count.text, _summary.text)` to `(removed)`. Killed by by test_the_sheet_says_the_count_and_the_whole_summary.
+- M31 `demo/control/demo_party_panel.gd:879`: `return -full_room(0.0) - SEPARATION` to `return -full_room(0.0) + SEPARATION`. Killed by by test_fixed_height_is_the_full_form_s_fixed_part.
+- M32 `demo/control/demo_party_panel.gd:815`: `_move_inspector(_sheet.slot() if on else _column)` to `_move_inspector(_column)`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back.
+- M34 `demo/control/demo_party_panel.gd:776`: `(actions_h + SEPARATION if actions_h > 0.0 else 0.0)` to `(actions_h + SEPARATION)`. Killed by by test_fixed_height_is_the_full_form_s_fixed_part.
+- M35 `demo/control/demo_party_panel.gd:831`: `focused.grab_focus(not keyboard)` to `focused.grab_focus()`. Killed by live demo_layout_live, "the full form keeps a hidden row focus".
+- M36 `demo/control/demo_party_panel.gd:815`: `_move_inspector(_sheet.slot() if on else _column) / if not on: / _hea...` to `if not on: / _sheet.fold() / _header.visible = true / _summary_line.v...`. Killed by live demo_layout_live, "the full form keeps a hidden row focus".
+- S1 `demo/control/party_sheet.gd:182`: `or button == MOUSE_BUTTON_MIDDLE` to `(removed)`. Killed by by test_a_click_away_folds_the_sheet_on_its_release.
+- S2 `demo/control/party_sheet.gd:174`: `if click.pressed: / _pressed_away = click.button_index` to `if click.pressed: / fold()`. Killed by by test_a_click_away_folds_the_sheet_on_its_release.
+- S3 `demo/control/party_sheet.gd:163`: `_frame.visible = on / visible = on` to `visible = on`. Killed by by test_the_compact_form_moves_the_inspector_to_the_sheet_and_back, test_the_sheet_is_built_folded_on_its_layer.
+- S4 `demo/control/party_sheet.gd:162`: `_catcher.visible = on` to `(removed)`. Killed by by test_the_sheet_is_built_folded_on_its_layer.
+- S5 `demo/control/party_sheet.gd:238`: `Rect2(column_right + GAP, top,` to `Rect2(column_right, top,`. Killed by by test_the_sheet_stands_beside_the_column_down_to_the_level_bar_s_foot.
+- S6 `demo/control/party_sheet.gd:238`: `maxf(bar.end.y - top, 0.0)` to `maxf(bar.position.y - top, 0.0)`. Killed by by test_at_125_percent_on_1280x720_the_sheet_keeps_clear_of_the_right_column, test_panel_placement_keeps_clear_of_the_hud_at_every_size.
+- S7 `demo/control/party_sheet.gd:237`: `var top: float = geometry.management_top` to `var top: float = geometry.management_top + 10.0`. Killed by by test_the_sheet_stands_beside_the_column_down_to_the_level_bar_s_foot.
+- S8 `demo/control/party_sheet.gd:245`: `+ _summary.get_combined_minimum_size().y + 2.0 * SEPARATION` to `+ _summary.get_combined_minimum_size().y + SEPARATION`. Killed by by test_the_slot_gets_what_the_head_leaves.
+- S9 `demo/control/party_sheet.gd:246`: `return maxf(height - used, 0.0)` to `return height - used`. Killed by by test_the_slot_gets_what_the_head_leaves.
+- S10 `demo/control/party_sheet.gd:230`: `return inner_width + MARGINS[0] + MARGINS[2]` to `return inner_width + MARGINS[0]`. Killed by by test_the_sheet_stands_beside_the_column_down_to_the_level_bar_s_foot.
+- S11 `demo/control/party_sheet.gd:97`: `_close.pressed.connect(fold)` to `(removed)`. Killed by by test_the_sheet_is_built_folded_on_its_layer.
+- S12 `demo/control/party_sheet.gd:29`: `const LAYER: int = 2` to `const LAYER: int = 0`. Killed by by test_the_sheet_is_built_folded_on_its_layer.
+- S13 `demo/control/party_sheet.gd:193`: `_summary.tooltip_text = summary` to `(removed)`. Killed by by test_the_sheet_says_the_count_and_the_whole_summary.
+- S14 `demo/control/party_sheet.gd:102`: `_summary.max_lines_visible = SUMMARY_LINES` to `(removed)`. Killed by by test_the_sheet_says_the_count_and_the_whole_summary.
+- S16 `demo/control/party_sheet.gd:68`: `_catcher.mouse_filter = Control.MOUSE_FILTER_STOP` to `_catcher.mouse_filter = Control.MOUSE_FILTER_IGNORE`. Killed by by test_a_click_away_folds_the_sheet_on_its_release.
+- S17 `demo/control/party_sheet.gd:189`: `if _count.text != count: / _count.text = count` to `(removed)`. Killed by by test_the_sheet_says_the_count_and_the_whole_summary.
+- S18 `demo/control/party_sheet.gd:254`: `_frame.size = Vector2(rect.size.x, 0.0)` to `pass`. Killed by live demo_layout_live, "the sheet as tall as its content".
+- S19 `demo/control/party_sheet.gd:176`: `elif click.button_index == _pressed_away:` to `elif true:`. Killed by by test_a_click_away_folds_the_sheet_on_its_release.
+- S20 `demo/control/party_sheet.gd:150`: `_pressed_away = MOUSE_BUTTON_NONE / _set_shown(false)` to `_set_shown(false)`. Killed by by test_a_click_away_folds_the_sheet_on_its_release.
+- S21 `demo/control/party_sheet.gd:172`: `if click == null or not folds_on(click.button_index): / return` to `if click == null: / return`. Killed by by test_a_click_away_folds_the_sheet_on_its_release.
+- S22 `demo/control/party_sheet.gd:69`: `_catcher.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)` to `(removed)`. Killed by live demo_input_live, "a click away folds it".
+- V1 `demo/demo_village.gd:1874`: `_gate.watch_modal(party.sheet(), party.sheet().frame(), party.fold_sh...` to `(removed)`. Killed by live demo_layout_live, "party 1: the sheet is the gate's top modal".
+- V2 `demo/demo_village.gd:1875`: `_gate.set_modal_close(party.sheet(), party.sheet().close_button())` to `(removed)`. Killed by live demo_input_live, "Close is last in the sheet's Tab order".
+- G1 `demo/control/group_select.gd:142`: `panel.send_pressed.connect(party.fold_sheet)` to `(removed)`. Killed by by test_send_to_folds_the_party_sheet.
+- L1 `scripts/ui/level_bar.gd:102`: `_buttons[level].custom_minimum_size = cell.size / _buttons[level].siz...` to `_buttons[level].size = cell.size / _buttons[level].custom_minimum_siz...`. Killed by live demo_layout_live, "every level button inside the bar".
+- L2 `scripts/ui/level_bar.gd:70`: `button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS` to `(removed)`. Killed by by test_a_re_place_to_smaller_cells_resizes_every_button.
+- B1 `demo/build_panel/demo_build.gd:134`: `button.icon = _shell.command_icon(UiShell.ID_BUILD)` to `(removed)`. Killed by by test_the_demo_build_command_opens_and_closes_the_panel.
+- B2 `scripts/ui/ui_shell.gd:632`: `return _icon_texture_for(id) /  /  / func _icon_texture_for` to `return load(LOCK_ICON) as Texture2D /  /  / func _icon_texture_for`. Killed by by test_the_demo_build_command_opens_and_closes_the_panel.
+
+**History.**
+
+- **The first pass (06a9d809): 53 mutants.**
+  - Four of its survivors were redundant code, which was removed: the `acting` guard in `full_room`, the same-parent
+    guard in `_move_inspector`, an explicit `release_focus`, and the catcher's `accept_event`.
+  - The other survivors were killed by checks added then.
+- **The review's sample (U1–U26) had five survivors.**
+  - U1, the redundant `_place_sheet()` in `open_sheet`: removed.
+  - U2, the frame's minimum width set again on every place: removed, since the build sets it once.
+  - U12, the frame's size reset: killed now by S18 ("the sheet as tall as its content").
+  - U18, `grab_focus(not keyboard)`: killed now by M35 ("the full form keeps a hidden row focus").
+  - U25, the summary's minimum width: removed. The VBox gives the label its width, and `max_lines_visible` bounds
+    its height. `test_the_slot_gets_what_the_head_leaves` still checks a short summary measures one line.
+- **The review round also found:**
+  - `clip_text` on the level buttons was redundant beside their trimmed overrun, which already keeps the text out of
+    the minimum width. It was removed; L2 removes the overrun and is killed.
 
 ## Not done here, and why
 

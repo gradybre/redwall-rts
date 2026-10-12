@@ -803,7 +803,8 @@ static func compact_rows(inner: float, actions_h: float, line_h: float, header_h
 
 func _set_compact(on: bool) -> void:
 	"""Switch form: the frame's carving, the count (in the header, or on Open), Open, and where the inspector is. The
-	sheet folds when the full form comes back."""
+	sheet folds when the full form comes back -- after the inspector has left it, so a focused row keeps its focus
+	(E7)."""
 	if on == _compact:
 		return
 	_compact = on
@@ -811,11 +812,11 @@ func _set_compact(on: bool) -> void:
 	_count.visible = not on
 	_open.visible = on
 	_show_actions()
+	_move_inspector(_sheet.slot() if on else _column)
 	if not on:
-		_sheet.fold()
 		_header.visible = true
 		_summary_line.visible = true
-	_move_inspector(_sheet.slot() if on else _column)
+		_sheet.fold()
 
 
 func _move_inspector(into: Node) -> void:
@@ -845,7 +846,6 @@ func open_sheet() -> void:
 	shows from the top -- unless the keyboard opened it, when the gate's drawn focus on its first control stays in view."""
 	if not _compact:
 		return
-	_place_sheet()
 	_sheet.open()
 	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
 	if focused == null or not focused.has_focus(true):

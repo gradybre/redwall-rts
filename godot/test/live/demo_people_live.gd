@@ -13,6 +13,7 @@ extends SceneTree
 ## `LIVE <name>: PASS|FAIL <detail>` per check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const PeopleBook := preload("res://demo/people/people_book.gd")
+const SheetLive := preload("res://test/live/party_sheet_live.gd")
 const CardScript := preload("res://demo/people/people_card.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
@@ -136,9 +137,10 @@ func _fraction(control: Control) -> float:
 
 
 func _reveal(control: Control) -> void:
-	"""Scroll `control`'s scroll to it (the way focus does) -- in the party sheet, opened first where it is folded --
-	and wait for it to move."""
-	await _open_sheet_for(control)
+	"""Scroll `control`'s scroll to it (the way focus does) -- in the party sheet, opened first where it is folded
+	(decision 1891) -- and wait for it to move."""
+	if SheetLive.open_for(control, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	var at: Node = control.get_parent()
 	while at != null and not at is ScrollContainer:
 		at = at.get_parent()
@@ -149,15 +151,6 @@ func _reveal(control: Control) -> void:
 			(at as ScrollContainer).ensure_control_visible(control)
 	await _frames(2)
 
-
-func _open_sheet_for(control: Control) -> void:
-	"""Where the party panel is compact (1280x720) its inspector is in the party sheet (decision 1891): when `control`
-	is there and the sheet is folded, a real click on Open lays it out first."""
-	var party: CanvasLayer = _command().call(&"panel")
-	var sheet: CanvasLayer = party.call(&"sheet")
-	if sheet.is_ancestor_of(control) and not bool(sheet.call(&"is_open")):
-		_click(party.call(&"open_button"))
-		await _frames(SETTLE_FRAMES)
 
 func _click(control: Control) -> void:
 	"""A left click at `control`'s centre, through the Viewport."""
@@ -250,7 +243,8 @@ func _the_inspector() -> void:
 	var name: String = String(_cast().call(&"actor", who).get("display_name"))
 	_check("the summary names the resident", String(panel.call(&"summary")).begins_with(name), panel.call(&"summary"))
 	var section: Control = _section()
-	await _open_sheet_for(section)
+	if SheetLive.open_for(section, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	_check("the person section shows", section.is_visible_in_tree())
 	_check("its skills as meters", String(section.call(&"skill_line", 0)).begins_with("Felling · Level"),
 		section.call(&"skill_line", 0))

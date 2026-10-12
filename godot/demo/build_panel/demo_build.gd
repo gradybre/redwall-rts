@@ -123,12 +123,15 @@ func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked
 
 func unlock_build_command() -> bool:
 	"""P-B3, in the demo only: the HUD's Build command (UI-SET-027) is enabled and opens or closes the panel, as B
-	does. The settlement game's shell keeps it locked (ruling 4); nothing in the shell or UIManager changes. False
-	without a shell."""
+	does, wearing its own icon, not the lock (decision 1891). The settlement game's shell keeps it locked (ruling 4);
+	the shell only lends the icon (`command_icon`). False without a shell."""
 	var button: Button = _shell.control_for(UiShell.ID_BUILD) as Button if _shell != null else null
 	if button == null:
 		return false
 	button.disabled = false
+	# The shell gave it the lock at creation (UI §2.2: an unwired control wears the lock); enabled, it wears its own
+	# icon (decision 1891, correcting 1871 E21).
+	button.icon = _shell.command_icon(UiShell.ID_BUILD)
 	var index: int = UiShell.COMMAND_IDS.find(UiShell.ID_BUILD)
 	button.tooltip_text = CommandTips.tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index],
 		BUILD_COMMAND, "")

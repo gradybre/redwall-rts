@@ -14,6 +14,9 @@ const Settlement := preload("res://scripts/systems/settlement_system.gd")
 const SettlementSave := preload("res://scripts/core/settlement_save.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 
+## The test that proves recipe `%s`.
+const PROOF_TEST: String = "test_the_%s_checkpoint_equals_its_replay_and_reloads"
+
 
 func after_each() -> void:
 	"""Leave the autoload as the other suites expect it."""
@@ -53,7 +56,23 @@ func _assert_loads_and_resaves(name: String, content: RefCounted) -> void:
 		assert_true(AutoloadClockReset.release(), "the autoload is back at tick 0")
 
 
+func test_every_recipe_has_its_replay_proof() -> void:
+	"""Each recipe in checkpoint_recipes.gd's NAMES has its own test below, so a new recipe cannot go unproved."""
+	var methods: PackedStringArray = PackedStringArray()
+	for method: Dictionary in (get_script() as Script).get_script_method_list():
+		methods.append(String(method["name"]))
+	for name: String in Recipes.NAMES:
+		assert_true(methods.has(PROOF_TEST % name), "%s has its proof, %s" % [name, PROOF_TEST % name])
+
+
 func test_the_underground_entry_checkpoint_equals_its_replay_and_reloads() -> void:
 	"""underground_entry: replay the live chain, compare every point, load each with its content, resave."""
 	_assert_replay_matches(Recipes.UNDERGROUND)
 	_assert_loads_and_resaves(Recipes.UNDERGROUND, Recipes.underground_content())
+
+
+func test_the_underground_spare_checkpoint_equals_its_replay_and_reloads() -> void:
+	"""underground_spare (decision 1895): replay the host suites' crew-loss chain one tick a frame, compare every
+	point, load each with its content, resave."""
+	_assert_replay_matches(Recipes.SPARE)
+	_assert_loads_and_resaves(Recipes.SPARE, Recipes.underground_content())

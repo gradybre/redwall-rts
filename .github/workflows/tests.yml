@@ -382,6 +382,11 @@ jobs:
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check
 
+      # The recommended local full-suite gate runs CI's shards in parallel (decision 1895); its shard
+      # arguments, exit status on a failed shard or a missing report, and job limit, against fakes.
+      - name: Local parallel suite runner
+        run: python3 tools/test_run_tests_parallel.py
+
       # MOVE-C2-R01's fit arithmetic. Its load-bearing property is that a negative
       # translated minimum reports PLACEMENT_INCOMPATIBLE_AT_OFFSET and never
       # CLEARANCE_CLASS_EXCEEDS_DOMAIN -- no clearance class repairs it, because the

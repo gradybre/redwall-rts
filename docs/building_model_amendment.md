@@ -331,8 +331,11 @@ anything. Cancelling one confirmed project never cancels the rest of its batch.
 - **MOVE-G01 level count and spacing** (Q2-26): closed by DEC-061 Q6 — five levels, 5120 u. The other G01 inputs
   remain open (traversal profiles, connector geometry and recipes other than the qualified stair, finite water/canopy
   extents, hazards beyond ECON/HAZ).
-- **MOVE-G02**: open. The 1 m cell grid over five levels is a new representation; its packed columns and bytes are a
-  slice-B obligation (`systems_architecture.md` ARCH-BUILD-001).
+- **MOVE-G02**: open. Slice B budgeted the 1 m cell grid over five levels, the painted Room rows, the item rows and
+  the edge items ([decision 1880](decisions/1880-painted-room-memory-budget.md): 14336000 bytes, held outside the live
+  total until the fold-in is authorized). Still open: the project and container bytes (slices C and G, after decision
+  1880 Q1), the new room types and items (slice G) and the store owners (slice G), as `systems_architecture.md`
+  ARCH-BUILD-001 now lists.
 - **MOVE-G03**: partly closed. `ui_ux_controls.md` UI-BUILD-001–014 registers the level bar and the build panel;
   route inspection, cross-layer picking and canopy/water layers remain open.
 - **MOVE-G04, MOVE-G05**: open.

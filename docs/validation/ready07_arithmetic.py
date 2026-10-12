@@ -517,6 +517,67 @@ assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index,
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below the 150 MB gate (DEC-053)',GATE-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',GATE-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
+# Decision1880: slice B's painted-room budget (ARCH-BUILD-001 obligation 1, Brendan's 2026-10-12 ruling
+# "Budget now, rest later"). Every capacity is a product of the map's geometry, never a cap:
+# 5 levels (BUILD-REQ-018) of 256 x 256 one-metre cells; a room holds >= 4 cells (BUILD-REQ-002's 2 x 2 rule);
+# an item covers >= 2 x 2 cells and items never overlap (BUILD-REQ-010); a piece sits on one of the 2*256*255
+# edges between two cells of a level. HELD OUTSIDE the live total: folding it in moves `live`, which the
+# assertion above pins to underground_memory_pack.json, and that pack is not regenerated without
+# authorization. Raise these with the fold-in; never relax them.
+DECISION_1880_LEVELS=5;DECISION_1880_LEVEL_CELLS=256*256
+DECISION_1880_CELLS=DECISION_1880_LEVELS*DECISION_1880_LEVEL_CELLS
+DECISION_1880_ROOMS=DECISION_1880_LEVELS*(DECISION_1880_LEVEL_CELLS//(2*2))
+DECISION_1880_ITEMS=DECISION_1880_LEVELS*(DECISION_1880_LEVEL_CELLS//(2*2))
+DECISION_1880_EDGE_PIECES=DECISION_1880_LEVELS*2*256*255
+DECISION_1880_EDGE_SLOTS=DECISION_1880_LEVELS*2*DECISION_1880_LEVEL_CELLS
+assert (DECISION_1880_CELLS,DECISION_1880_ROOMS,DECISION_1880_ITEMS)==(327680,81920,81920)
+assert (DECISION_1880_EDGE_PIECES,DECISION_1880_EDGE_SLOTS)==(652800,655360)
+# The item rows ARE the Furniture rows: the same 8 x I32 shape at the same capacity, so they add no byte.
+assert DECISION_1880_ITEMS==16384+4*16384
+assert '| Furniture | type_id, room_slot, room_generation, origin_tile, rotation, user_slot, user_generation, condition | I32 | 4 | 8 | 81920 | 2621440 |' in s
+DECISION_1880_GRID=DECISION_1880_CELLS*(2*4+1*1)            # room_slot, occupant_slot I32; finished B8
+DECISION_1880_ROOM_ROWS=DECISION_1880_ROOMS*(7*1+7*4)       # 7 B8 + 7 I32
+DECISION_1880_ROOM_INDEX=DECISION_1880_ROOMS*(1*1+4*4)      # present B8; ref, generation, item head, count
+DECISION_1880_ROOM_DIRECTORY=DECISION_1880_ROOMS*(9*4+3*1)  # EntityIdentity + DirectoryIndex per slot
+assert 9*4+3*1==sum(int(c[3])*int(c[4]) for c in ([x.strip() for x in l.strip('|').split('|')] for l in s.splitlines()
+ if l.startswith('| EntityIdentity |') or l.startswith('| DirectoryIndex |')))
+DECISION_1880_EDGES=DECISION_1880_EDGE_SLOTS*(2*1+1*4)      # piece, built B8; condition I32
+DECISION_1880_PLANNED=DECISION_1880_GRID+DECISION_1880_ROOM_ROWS+DECISION_1880_ROOM_INDEX+DECISION_1880_ROOM_DIRECTORY+DECISION_1880_EDGES
+assert (DECISION_1880_GRID,DECISION_1880_ROOM_ROWS,DECISION_1880_ROOM_INDEX,DECISION_1880_ROOM_DIRECTORY,DECISION_1880_EDGES)==(2949120,2867200,1392640,3194880,3932160)
+assert DECISION_1880_PLANNED==14336000
+# The ARCH-BUILD-001 budget table must print exactly these rows and nothing else; it sits after section 4,
+# so neither the section-3 sum nor the allocation list above can see it.
+budget=s.split('**Memory budget (decision 1880',1)[1].split('The table sums to',1)[0]
+budget_rows=[[x.strip() for x in l.strip('|').split('|')] for l in budget.splitlines() if l.startswith('| Painted') or l.startswith('| EdgeItems')]
+assert [(c[0],c[2],int(c[3]),int(c[4]),int(c[5])) for c in budget_rows]==[
+ ('PaintedCellGrid','I32',4,2,DECISION_1880_CELLS),('PaintedCellGrid','B8',1,1,DECISION_1880_CELLS),
+ ('PaintedRoom','B8',1,7,DECISION_1880_ROOMS),('PaintedRoom','I32',4,7,DECISION_1880_ROOMS),
+ ('PaintedRoomIndex','B8',1,1,DECISION_1880_ROOMS),('PaintedRoomIndex','I32',4,4,DECISION_1880_ROOMS),
+ ('PaintedRoomDirectory','I32',4,9,DECISION_1880_ROOMS),('PaintedRoomDirectory','B8',1,3,DECISION_1880_ROOMS),
+ ('EdgeItems','B8',1,2,DECISION_1880_EDGE_SLOTS),('EdgeItems','I32',4,1,DECISION_1880_EDGE_SLOTS)]
+assert all(len(c[1].split(','))==int(c[4]) for c in budget_rows)
+assert sum(int(c[6]) for c in budget_rows)==DECISION_1880_PLANNED
+assert f'The table sums to **{DECISION_1880_PLANNED} bytes**' in s
+DECISION_1880_LIVE=live+DECISION_1880_PLANNED
+assert (payload+DECISION_1880_PLANNED,DECISION_1880_LIVE,GATE-DECISION_1880_LIVE)==(106197999,114586607,35413393)
+assert DECISION_1880_LIVE<GATE
+for label,value in [('Painted-room budget held outside the live total (decision 1880)',DECISION_1880_PLANNED),
+                    ('One live world plus reserve with decision 1880 folded in',DECISION_1880_LIVE),
+                    ('Headroom below the 150 MB gate with decision 1880 folded in',GATE-DECISION_1880_LIVE)]:
+ assert f'| {label} | {value} |' in s,label
+assert f'planned payload {payload+DECISION_1880_PLANNED}, one live world plus reserve\n{DECISION_1880_LIVE}' in s
+# Projects and containers, recomputed but NOT budgeted (section 3.1): SET-BUILD-001 section 10 gives every item,
+# partition/door piece and room delta (>= 1 new cell) its own project with a material container. Per-row
+# costs are today's ledger rows at the project and container capacities plus one 39-byte directory slot.
+DECISION_1880_PROJECT_BYTES=114+4*8+39
+DECISION_1880_CONTAINER_BYTES=51+(2*4+1)+39
+DECISION_1880_PROJECTS=DECISION_1880_ITEMS+1024+DECISION_1880_EDGE_PIECES+DECISION_1880_CELLS
+DECISION_1880_CONTAINERS=1024+512+DECISION_1880_PROJECTS+512+16384
+assert (DECISION_1880_PROJECT_BYTES,DECISION_1880_CONTAINER_BYTES)==(185,99)
+assert (DECISION_1880_PROJECTS,DECISION_1880_CONTAINERS)==(1063424,1081856)
+assert DECISION_1880_PROJECTS-82944==DECISION_1880_CONTAINERS-101376==980480
+assert 980480*(DECISION_1880_PROJECT_BYTES+DECISION_1880_CONTAINER_BYTES)==278456320
+assert DECISION_1880_EDGE_PIECES*(DECISION_1880_PROJECT_BYTES+DECISION_1880_CONTAINER_BYTES)==185395200>GATE-DECISION_1880_LIVE
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}
 actual={k:[catalog[n] for n in names] for k,names in bindings.items()}

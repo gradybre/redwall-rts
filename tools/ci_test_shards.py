@@ -126,6 +126,9 @@ def make_plan(count: int, repo: Path = REPO, weights_path: Path = WEIGHTS) -> di
     known = json.loads(weights_path.read_text(encoding="utf-8"))["suite_usec"] if weights_path.exists() else {}
     require(isinstance(known, dict) and all(isinstance(k, str) and integer(v, 1) for k, v in known.items()),
             "timing weights must be positive integer microseconds")
+    unknown = sorted(set(known) - set(corpus))
+    # Like slow_suites.json: a weight for a renamed or deleted suite is refused, not silently dropped (decision 1895).
+    require(not unknown, f"{weights_path.name} names suites that do not exist: {unknown}")
     # Unknown files get a conservative source-size estimate; coverage never depends on timing data.
     rates = [known[name] / (repo / "godot/test" / name).stat().st_size for name in corpus if name in known]
     rate = max(1.0, statistics.median(rates)) if rates else 1.0

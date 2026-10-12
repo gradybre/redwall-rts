@@ -14,6 +14,8 @@ func _lose_and_resume(at: Array, restore_every: int) -> Array:
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
 	var tick: int = live[4]
+	var saved_at: int = int(Store.read_manifest(Recipes.SPARE)["points"][Recipes.loss_point(at)]["tick"])
+	assert_equal(tick, saved_at + 1, "the loss lands on the tick after the checkpoint's (stage %d)" % at[1])
 	assert_true(entry.is_running() and Recipes.installing_at(entry, at[0], at[1]), "reached installation %d stage %d" % at)
 	_kill(o, live[2])
 	assert_equal(entry.advance(tick), Jobs.REFUSE_RESIDENT_DEAD, "the loss is alerted once (stage %d)" % at[1])
@@ -26,6 +28,11 @@ func _lose_and_resume(at: Array, restore_every: int) -> Array:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
 	return [tick, _prefix_done(_host.underground_entry())] + _done_ledger(o, _host.underground_entry()._foreman) + _snapshot()
+
+
+func _assert_clock_released() -> void:
+	"""after_each() handed the autoload clock back at tick 0 after a checkpoint load (decision 1236)."""
+	assert_equal(GameManager.clock().completed_tick(), 0, "the autoload clock is back at tick 0")
 
 
 func test_a_crew_lost_in_any_installation_stage_is_replaced_and_re_handles_in_place() -> void:
@@ -41,6 +48,7 @@ func test_a_crew_lost_in_any_installation_stage_is_replaced_and_re_handles_in_pl
 		assert_equal(result.slice(2, 7), DONE_LEDGER,
 			"lost in installation %d stage %d: cut Work, both fastenings and INSTALLED exactly once" % at)
 		after_each()
+		_assert_clock_released()
 		before_each()
 
 
@@ -51,6 +59,7 @@ func test_a_crew_lost_while_handling_resumes_byte_identically_across_restores() 
 	var plain: Array = _lose_and_resume([0, 4], 0)
 	if plain.is_empty(): return
 	after_each()
+	_assert_clock_released()
 	before_each()
 	var restored: Array = _lose_and_resume([0, 4], 7)
 	if restored.is_empty(): return

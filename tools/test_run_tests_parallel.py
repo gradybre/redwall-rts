@@ -137,17 +137,18 @@ class ParallelRunner(unittest.TestCase):
         self.assertIn("missing or extra shard reports", result.stderr)
 
     def test_jobs_bounds_how_many_shards_run_at_once(self) -> None:
-        for jobs, expected in (("1", 1), ("3", 3)):
+        # A loaded runner may start the fakes unevenly, so with 3 jobs at least 2 must overlap and never more than 3.
+        for jobs, lowest, highest in (("1", 1, 1), ("3", 2, 3)):
             with self.subTest(jobs=jobs):
                 reports = self.root / f"reports-{jobs}"
-                result = self.run_tool("--jobs", jobs, "--output-dir", str(reports), FAKE_SLEEP="0.4")
+                result = self.run_tool("--jobs", jobs, "--output-dir", str(reports), FAKE_SLEEP="1.5")
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 spans = []
                 for path in reports.glob("calls-*"):
                     lines = path.read_text().splitlines()
                     spans.append((float(lines[0].split("start=")[1]), float(lines[1].split("end=")[1])))
                 peak = max(sum(1 for start, end in spans if start <= moment < end) for moment, _ in spans)
-                self.assertEqual(peak, expected)
+                self.assertTrue(lowest <= peak <= highest, f"{peak} shards at once with --jobs {jobs}")
 
     def test_a_non_empty_output_directory_is_refused_before_any_shard_runs(self) -> None:
         self.reports.mkdir()

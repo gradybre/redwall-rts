@@ -64,6 +64,25 @@ class Built:
 	var error: String = ""
 
 
+class Stepper extends RefCounted:
+	"""The step a recipe binds to the GameManager clock: the host's run_tick, remembering the first tick it
+	refused. GameManager's clock adapter discards run_tick's bool, so without this a refused tick would pass
+	unseen through regeneration and the equivalence replay (decision 1895, review M1)."""
+	var host: Node = null
+	var failed_tick: int = -1
+
+	func _init(settlement: Node) -> void:
+		"""Step `settlement`."""
+		host = settlement
+
+	func step(tick: int) -> bool:
+		"""Run one tick; record it when the settlement refuses it."""
+		var ok: bool = host.run_tick(tick)
+		if not ok and failed_tick < 0:
+			failed_tick = tick
+		return ok
+
+
 static func roots() -> PackedStringArray:
 	"""The fingerprint roots shared by every recipe: this script (which preloads the settlement and
 	the fixtures) and the one autoload the simulation reaches by name. The UI, economy and entity
@@ -100,6 +119,21 @@ static func _save_point(built: Built, host: Node, point: String) -> void:
 		built.error = "%s: save refused %s %s" % [point, refusal.code, refusal.detail]
 
 
+static func _bind(built: Built, stepper: Stepper, name: String) -> bool:
+	"""Bind `stepper` to the autoload clock; a refusal fails the build."""
+	if GameManager.bind_simulation(stepper.step, stepper.host.run_day_boundary):
+		return true
+	if built.error == "":
+		built.error = "%s: bind refused %s" % [name, GameManager.last_refusal()]
+	return false
+
+
+static func _check_steps(built: Built, stepper: Stepper, name: String) -> void:
+	"""Fail the build when the settlement refused any tick of its replay."""
+	if stepper.failed_tick >= 0 and built.error == "":
+		built.error = "%s: the settlement refused tick %d: %s" % [name, stepper.failed_tick, stepper.host.last_refusal()]
+
+
 static func _release(built: Built) -> void:
 	"""Hand the autoload back at tick 0; a refusal to do so fails the build."""
 	if not AutoloadClockReset.release() and built.error == "":
@@ -118,20 +152,21 @@ static func _build_underground() -> Built:
 		refused = &"FIXTURE_CLOCK"
 	if refused == &"":
 		refused = Chain.begin_entry(host)
+	var stepper: Stepper = Stepper.new(host)
 	if refused != &"":
 		built.error = "%s: the chain did not start (%s)" % [UNDERGROUND, refused]
-	elif GameManager.bind_simulation(host.run_tick, host.run_day_boundary):
-		_drive_underground(built, host)
-	else:
-		built.error = "%s: bind refused %s" % [UNDERGROUND, GameManager.last_refusal()]
+	elif _bind(built, stepper, UNDERGROUND):
+		_drive_underground(built, stepper)
 	host.free()
 	_release(built)
 	return built
 
 
-static func _drive_underground(built: Built, host: Node) -> void:
+static func _drive_underground(built: Built, stepper: Stepper) -> void:
 	"""Advance frame by frame until every point has been saved or UNDERGROUND_LIMIT passes."""
-	while GameManager.clock().completed_tick() < UNDERGROUND_LIMIT and built.points.size() < 2:
+	var host: Node = stepper.host
+	while GameManager.clock().completed_tick() < UNDERGROUND_LIMIT and built.points.size() < 2 \
+			and stepper.failed_tick < 0 and built.error == "":
 		GameManager.advance_host_time(FRAME_USEC)
 		var tick: int = GameManager.clock().completed_tick()
 		var due: PackedStringArray = PackedStringArray()
@@ -143,8 +178,9 @@ static func _drive_underground(built: Built, host: Node) -> void:
 			GameManager.unbind_simulation()
 			for point: String in due:
 				_save_point(built, host, point)
-			GameManager.bind_simulation(host.run_tick, host.run_day_boundary)
+			_bind(built, stepper, UNDERGROUND)
 	GameManager.unbind_simulation()
+	_check_steps(built, stepper, UNDERGROUND)
 	for point: String in [BRACE_POINT, INSTALL_POINT]:
 		if not built.points.has(point) and built.error == "":
 			built.error = "%s: %s was never reached by tick %d" % [UNDERGROUND, point, UNDERGROUND_LIMIT]
@@ -202,21 +238,21 @@ static func _build_spare() -> Built:
 		refused = &"FIXTURE_CLOCK"
 	if refused == &"":
 		refused = Chain.begin_with_spare(host)
+	var stepper: Stepper = Stepper.new(host)
 	if refused != &"":
 		built.error = "%s: the chain did not start (%s)" % [SPARE, refused]
-	elif GameManager.bind_simulation(host.run_tick, host.run_day_boundary):
-		_drive_spare(built, host)
-	else:
-		built.error = "%s: bind refused %s" % [SPARE, GameManager.last_refusal()]
+	elif _bind(built, stepper, SPARE):
+		_drive_spare(built, stepper)
 	host.free()
 	_release(built)
 	return built
 
 
-static func _drive_spare(built: Built, host: Node) -> void:
+static func _drive_spare(built: Built, stepper: Stepper) -> void:
 	"""Advance one tick a frame until every point has been saved, the chain stops or SPARE_LIMIT passes."""
+	var host: Node = stepper.host
 	var pending: PackedStringArray = spare_points()
-	while not pending.is_empty() and host.underground_entry().is_running() \
+	while not pending.is_empty() and host.underground_entry().is_running() and stepper.failed_tick < 0 \
 			and GameManager.clock().completed_tick() < SPARE_LIMIT and built.error == "":
 		if GameManager.advance_host_time(TICK_USEC) != 1:
 			built.error = "%s: a frame did not run exactly one tick" % SPARE
@@ -229,7 +265,8 @@ static func _drive_spare(built: Built, host: Node) -> void:
 			for point: String in due:
 				_save_point(built, host, point)
 				pending.remove_at(pending.find(point))
-			GameManager.bind_simulation(host.run_tick, host.run_day_boundary)
+			_bind(built, stepper, SPARE)
 	GameManager.unbind_simulation()
+	_check_steps(built, stepper, SPARE)
 	if not pending.is_empty() and built.error == "":
 		built.error = "%s: %s never reached by tick %d" % [SPARE, ", ".join(pending), SPARE_LIMIT]

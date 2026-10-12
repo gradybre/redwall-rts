@@ -91,7 +91,10 @@ fails when a recipe in `NAMES` has no proof test.
 
 **Counts.** `test_underground_host_crew_loss.gd`: 2 tests before and after; 35,495 -> 17,723 assertions, 369 s -> 198 s.
 The 17,772 assertions that went are the replayed prefixes' per-tick "the settlement tick itself never fails" and
-their setup; that replay now runs once, in the equivalence suite. `test_checkpoint_equivalence.gd`: 1 test, 17
+their setup. That check now runs once per replay inside the recipe instead (review M1, below): the recipe binds a
+`Stepper` that records the first tick `run_tick` refuses, and regeneration and the equivalence replay both fail on
+it. (As first committed it did not: the recipe bound `run_tick` straight to the autoload, whose clock adapter
+discards the bool, so a refused tick between about 643 and 3106 would have gone unseen.) `test_checkpoint_equivalence.gd`: 1 test, 17
 assertions, 34 s -> 3 tests, 72 assertions, 105 s. The `underground_entry` checkpoint's bytes are unchanged (its
 manifest moved with the chain fixture).
 
@@ -167,14 +170,44 @@ Every shard printed `log: 0 unexpected error(s), 0 unexpected warning(s); leaked
   case was added for it.
 - **The parity split: 3 of 3 killed** (every member in part 0: "every part fingerprints members [623, 0, ...]";
   `restrict()` keeping every member: "part 1 hashes its own members (expected 100, got 623)"; the loaded run
-  restricted to the next part: "first difference at 3001").
-- **The checkpoint starts: 5 of 7 killed** (`spare_of` not excluding the crew; the spare benched too; the stage
-  condition at `> 2`; three-tick frames; the spare recipe's proof test renamed). **SURVIVED_MUTANTS: 2.**
+  restricted to the next part: "first difference at 3001"); the review's M2 mutant (a suite passing another part's number) is killed too: 4 of 4.
+- **The review fixes' own mutants: 5 of 5 killed** (M1 refusal at tick 1000, M2, L1, L2, and L4's check removed).
+- **The checkpoint starts: 5 of 7 killed** in the first round, **7 of 7 after the review fixes (L1, L2)** (`spare_of` not excluding the crew; the spare benched too; the stage
+  condition at `> 2`; three-tick frames; the spare recipe's proof test renamed). First round, SURVIVED_MUTANTS: 2 (both killed now; **SURVIVED_MUTANTS: 0**).
   (a) `_spare_from_checkpoint` returning the loaded tick instead of the next one shifts the rest of the run by one
   tick; the crew-loss tests assert the finish, ledgers and plain-against-restored images, none of which depends on
   the exact loss tick, which was equally true of the replayed version. (b) Not handing the autoload back in
   `after_each()` passes inside the suite; the harm (a later suite's commands stamped past its clock, decision 1236) is
   outside it.
+
+## Independent review (2026-10-12) and resolutions
+
+The coordinator's reviewer found nothing CRITICAL or HIGH. Every MEDIUM and LOW is fixed on top of d0898ef4:
+
+- **M1, the per-tick refusal check was not moved.** `checkpoint_recipes.gd` now binds `Stepper.step`, which runs
+  `run_tick` and remembers the first refused tick; `_drive_underground` and `_drive_spare` stop there and set
+  `built.error` ("the settlement refused tick N"). Regenerated: **every `.rwlsave.gz` is byte-identical**; only the two
+  manifests changed (the recipe script is a fingerprint root). Mutant: a step that refuses tick 1000 fails both
+  equivalence proofs ("underground_spare: the settlement refused tick 1000").
+- **M2, a part suite could fingerprint another part.** `settlement_save_parity_case.gd`'s `_assert_suite_files(part)`
+  requires the running script's path to be `PART_SUITE % (part + 1)` and stops the test when it is not. Mutant:
+  `_parity_2` calling `_check_part(0)` fails at once ("this suite fingerprints its own part, 1").
+- **L1, survivor (a).** `_lose_and_resume` asserts the loss tick is the manifest point's tick + 1. The off-by-one
+  mutant now fails ("expected 1492, got 1491").
+- **L2, survivor (b).** After each explicit `after_each()` the crew-loss tests assert the autoload clock is back at
+  tick 0. The no-release mutant now fails ("expected 0, got 1491").
+- **L3, independent partitions.** Chosen: each part prints a digest of the member names and their parts in its
+  coverage line (`partition 852e831fede0e32a` in all six at this commit), so CI logs show they agree. Partitioning
+  is still by bytes at bind time, which balances the parts; a member-name-only partition would not.
+- **L4.** `ci_test_shards.make_plan()` refuses a weight naming no suite, as `slow_suites()` does; a new planner test
+  covers it, and removing the check fails that test.
+- **L5.** A refused rebind after a save sets `built.error` (the shared `_bind()`).
+- **L6.** The jobs test sleeps 1.5 s per fake and accepts 2-3 overlapping shards at `--jobs 3` (exactly 1 at
+  `--jobs 1`); the tool's mutants are still 17 of 17 killed.
+
+Counts after the fixes: each parity part 77 assertions (one more: the suite-path check); crew loss 17,740 (+9 loss
+tick checks, +8 clock checks); the full-suite total moves by +6 x 1 + 17 = +23 assertions over the final run above,
+with the same 12,340 tests.
 
 ## Gates
 
@@ -192,6 +225,11 @@ Every shard printed `log: 0 unexpected error(s), 0 unexpected warning(s); leaked
 - `python3 tools/test_ci_test_shards.py`: `OK (skipped=5)`; with `--godot`: `Ran 20 tests ... OK`.
 - `python3 tools/test_run_tests_parallel.py`: `Ran 13 tests ... OK`.
 - `ci_test_shards.py`: the ten-shard plan assigns all 495 suites exactly once; tiers 477 fast + 18 slow.
+- After the review fixes (focused, at most three processes): parity parts 1-3 and 4-6 each
+  `ok: 3 tests, 231 assertions, 0 failures.`; crew loss, equivalence and store together
+  `ok: 13 tests, 17848 assertions, 0 failures.`; `test_ci_test_shards.py` `OK (skipped=5)`;
+  `test_run_tests_parallel.py` OK; analyzer `0 GDScript warning(s) in 0 of 1509 file(s)`; memory budget, ready07,
+  decision numbers and lane notes pass. No full run: the fixes reach only these suites and tools.
 
 ## PROPOSALS (for Brendan)
 

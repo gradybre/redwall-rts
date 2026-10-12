@@ -246,8 +246,8 @@ func _check_part(part: int) -> void:
 	coverage case found on the way, each compared tick for tick over its own window; fingerprinting
 	part `part` (0-based) of the members at every tick."""
 	_part = part
-	for suite: int in range(1, PARTS + 2):
-		assert_equal(FileAccess.file_exists(PART_SUITE % suite), suite <= PARTS, "exactly PARTS suites: %d" % suite)
+	if not _assert_suite_files(part):
+		return
 	assert_true(GameManager.start_game(), "a fresh clock")
 	var source: Node = _settlement()
 	assert_true(source.create_generated_settlement(source.item_definitions()), "generates")
@@ -259,13 +259,29 @@ func _check_part(part: int) -> void:
 	assert_equal(_fingerprint.resolved_count() + _unmounted_fields(), _fingerprint.declared_count(),
 		"every declared field is fingerprinted except the unmounted underground owners'")
 	_assert_partition()
-	print("SAVE-PARITY part %d/%d (%d members) coverage cases: %s"
-		% [part + 1, PARTS, _fingerprint.hashed_count(), _edges])
+	print("SAVE-PARITY part %d/%d (%d members, partition %s) coverage cases: %s"
+		% [part + 1, PARTS, _fingerprint.hashed_count(), _partition_digest(), _edges])
 	_replay(START_TICK, END_TICK)
 	for tick: int in _edges:
 		_replay(tick, tick + EDGE_WINDOW)
 	for edge: String in [EDGE_MIDNIGHT, EDGE_BATCH, EDGE_LEASE, EDGE_DYING]:
 		assert_equal(_edges.values().has(edge), REACHED_CASES.has(edge), "the %s case reached" % edge)
+
+
+func _assert_suite_files(part: int) -> bool:
+	"""Exactly PARTS part suites exist, and this one is the suite of `part`, so no part can be skipped by a suite
+	passing another's number (decision 1895, review M2). False when this suite is not part `part`'s."""
+	for suite: int in range(1, PARTS + 2):
+		assert_equal(FileAccess.file_exists(PART_SUITE % suite), suite <= PARTS, "exactly PARTS suites: %d" % suite)
+	var path: String = (get_script() as Script).resource_path
+	assert_equal(path, PART_SUITE % (part + 1), "this suite fingerprints its own part, %d" % (part + 1))
+	return path == PART_SUITE % (part + 1)
+
+
+func _partition_digest() -> String:
+	"""The first 16 hex digits of SHA-256 over the member names and their parts. Every part suite prints it, so
+	CI logs show the six suites partitioned the same members the same way (decision 1895, review L3)."""
+	return ("%s|%s" % [",".join(_members), _assignment]).sha256_text().left(16)
 
 
 func _assert_partition() -> void:

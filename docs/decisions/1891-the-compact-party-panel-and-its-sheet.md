@@ -193,7 +193,11 @@ None added. In the sheet:
   - The first run, at 06a9d809, printed "12198 test(s), 1130651 assertion(s), 2 failure(s)". The failures were
     test_demo_people_live and test_demo_select_live at 1280x720, which read the inspector unopened; they are fixed
     above.
-  - The final run is in the lane's report.
+  - The final run, at 28c48f1d, printed:
+    - "12198 test(s), 1130658 assertion(s), 0 failure(s)";
+    - "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 278 expected, 310 tolerated; leaked at exit: 0
+      object(s), 0 resource(s)";
+    - "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
 - **Frames** in the lane's scratchpad `party_check/`:
   - folded `party_{1,6,9}_*` and open `party_open_{1,6,9}_*` at 1280x720 (100 %, 125 %) and 1920x1080 (150 %);
   - folded only at 1920x1080 (100 %, 125 %), where the full form is used;

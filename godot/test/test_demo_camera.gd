@@ -190,6 +190,16 @@ func test_alt_page_up_pitches_and_does_not_zoom() -> void:
 		DemoCamera.PITCH_DEFAULT_DEGREES + DemoCamera.PITCH_STEP_DEGREES, "pitched up one step")
 
 
+func test_plain_page_keys_are_no_longer_the_cameras() -> void:
+	"""Decision 1851 OPEN-09 / 1871: PageUp and PageDown change level; the camera neither zooms nor pitches on them."""
+	for code: Key in [KEY_PAGEUP, KEY_PAGEDOWN]:
+		var key: InputEventKey = InputEventKey.new()
+		key.keycode = code
+		key.pressed = true
+		assert_false(_rig.handle_input(key), "%s is no camera action" % OS.get_keycode_string(code))
+		assert_almost_equal(_rig.target_distance(), DemoCamera.DISTANCE_DEFAULT, "distance unchanged")
+
+
 func test_focus_loss_releases_every_held_key() -> void:
 	"""After the window loses focus a key whose release never arrived no longer pans or turns."""
 	_rig.handle_input(_action(DemoCamera.ACTION_PAN_LEFT, true))

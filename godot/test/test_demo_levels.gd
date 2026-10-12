@@ -1055,7 +1055,7 @@ func test_a_level_switch_writes_the_cull_mask_and_builds_nothing() -> void:
 		var level := Rules.LEVEL_2 if down else Rules.TOP_LEVEL
 		assert_equal([tool.view.level, Layers.active_level], [level, level], "level %d shown" % level)
 		assert_equal((v["camera"] as Camera3D).cull_mask, Layers.level_mask(level), "the mask")
-		assert_true(tool.view.indicator_text().contains("Level %d of 2" % level) and tool.view.indicator_shown(), "the indicator")
+		assert_true(tool.view.indicator_text().contains("Level %d (floor" % level) and tool.view.indicator_shown(), "the indicator (trimmed: decision 1871)")
 		assert_true(_snapshot_but_lights(v) == before, "nothing else moved after switch %d" % press)
 	assert_equal([tool.ext.room_view.shell_builds, tool.overlay.bore_builds], [rooms, bores], "nothing built by a switch")
 
@@ -1091,7 +1091,7 @@ func test_pgup_and_pgdn_switch_levels_only_in_the_u_view() -> void:
 	alt.alt_pressed = true
 	assert_false(tool.takes_before_gui(alt) or tool.handle_input(alt), "Alt+PgUp: the camera's pitch")
 	assert_true(tool.handle_input(ViewTest._key(KEY_PAGEUP)) and tool.view.level == Rules.TOP_LEVEL, "PgUp: level 1")
-	assert_true(tool.notice().contains("level 1 of 2"), "said: %s" % tool.notice())
+	assert_true(tool.notice().contains("level 1 -- PageUp / PageDown or the level bar"), "said: %s" % tool.notice())
 	_indicator_under_the_alerts(tool)
 	assert_true(tool.handle_input(down) and Layers.active_level == Rules.LEVEL_2, "level 2 shown")
 	_helper.after_each()

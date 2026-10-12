@@ -5,10 +5,10 @@ extends Node3D
 ##
 ## CONTROLS (demo_command.gd hands every event here first; Enter, and a drag's motion and release, are read
 ## in its `_input`, before the HUD, so they can never press or be lost to a HUD control):
-##   B (or "Dig tunnel" in the Demo party panel)         the Dig tool: the view goes underground (the
-##                                         cutaway, tunnel_view.gd) and back to what it was when the tool
-##                                         closes; again: close it. B was the HUD's Build key, locked in the
-##                                         demo (its command strip says so); U stays the view's own switch.
+##   the build panel's Passage card (B opens the panel: demo/build_panel/demo_build.gd, decision 1871)
+##                                         the Dig tool: the view goes underground (the cutaway,
+##                                         tunnel_view.gd) and back to what it was when the tool closes; B in
+##                                         the tool closes it. U stays the view's own switch.
 ##   in the tool:  drag (left)          lay a piece: press where it starts, release where it ends -- the
 ##                                      piece is dug at once if it may be; Shift while dragging drops a bend
 ##                                      at the pointer
@@ -52,9 +52,9 @@ extends Node3D
 ## WHO FITS. At setup each resident's body is recorded -- the height the cast draws it at and its body
 ## radius, in integer u -- and its fit is judged per segment from it (underground_graph.set_body).
 ##
-## ROOMS (decision 0209). In the tool, H or C (or the party panel's "Burrow home (H)" / "Root cellar (C)")
-## opens the ROOM TOOL for a burrow home or a root cellar (demo/burrow/room_tool.gd): a ghost room follows the
-## pointer, R turns it, a click lays it with a passage to the network proposed (Shift+click: standalone), and
+## ROOMS (decision 0209). The build panel's "Burrow home" and "Root cellar" cards (decision 1871: H and C no longer
+## open them) open the ROOM TOOL for a burrow home or a root cellar (demo/burrow/room_tool.gd): a ghost room follows
+## the pointer, R turns it, a click lays it with a passage to the network proposed (Shift+click: standalone), and
 ## Esc goes back to laying tunnels. A room is dug by the same diggers, crews and job list as a tunnel. A tunnel
 ## laid to a room's socket joins it there (tunnel_plan.gd ROOMS).
 ##
@@ -62,8 +62,9 @@ extends Node3D
 ## built here and handed what this tool does not take.
 ##
 ## THE SECOND LEVEL (decision 0212). In Underground, PgUp and PgDn show level 1 and level 2 (tunnel_view.gd THE
-## LEVELS) -- read before the HUD and the camera (`takes_before_gui`), so in Underground they never zoom; on the
-## surface they stay the camera's zoom keys (the wheel zooms everywhere), and U stays the view's switch. The Dig
+## LEVELS) -- read before the HUD and the camera (`takes_before_gui`). In the demo the level bar (decision 1871,
+## demo/build_panel/demo_build.gd) reads them first, everywhere, and maps them onto this; PgUp/PgDn never zoom now (= and
+## - do), and U stays the view's switch. The Dig
 ## tool lays pieces and rooms on the level shown: a piece on level 2 starts on its network (a stair's or ramp's
 ## foot, a junction, a bore) and may end blind. L in the tool lays a LINK down between the levels instead -- L once
 ## a RAMP, again STAIRS, again back to tunnels: click (or press) its head on level 1's network and release (or
@@ -130,7 +131,7 @@ const TOOL_BUSY: String = "the most skilled digger: it digs this after its prese
 ## The card's code when no piece at all could fit (`begin_plan`'s capacity gate, decision 0361's F08).
 const TOOL_FULL_CODE: String = "NETWORK_FULL"
 const VIEW_ON: String = "Underground (U to return to the surface)"
-const LEVEL_SHOWN: String = "Underground: level %d of 2 -- PgUp / PgDn to switch, U to return"
+const LEVEL_SHOWN: String = "Underground: level %d -- PageUp / PageDown or the level bar to switch, U to return"
 const LINK_FIRST: String = "Dig %s down: press on the first level's network where it starts and release where its foot lands on the second -- L: %s · Esc: back to tunnels"
 const LINK_OPEN: Array[String] = ["", "Ramp down open: a walk down to the second level at 1:2.5", "Stairs down open: 16 timber risers down to the second level -- steep, and slower to climb"]
 const ROOM_OPEN: Array[String] = ["", "Burrow home dug: everybeast fits and stands upright in it -- in at its round door or a tunnel",
@@ -435,12 +436,10 @@ static func _modified(event: InputEventKey) -> bool:
 
 
 func _on_key(event: InputEventKey) -> bool:
-	"""B opens the Dig tool; U switches Underground on and off (T is the seasonal planner's, decision 0492)."""
+	"""U switches Underground on and off (T is the seasonal planner's, decision 0492). B is the build panel's now
+	(decision 1871): its Passage card opens this tool."""
 	if _modified(event):
 		return false
-	if key_of(event) == KEY_B:
-		begin_plan()
-		return true
 	if key_of(event) == KEY_U:
 		toggle_view()
 		return true
@@ -473,8 +472,9 @@ func _plan_input(event: InputEvent) -> bool:
 
 func _plan_key(event: InputEventKey) -> bool:
 	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B closes it,
-	U switches the view, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a letter with Shift --
-	is not the tool's."""
+	U switches the view, L cycles a link, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a
+	letter with Shift -- is not the tool's. H and C no longer open the room tools (decision 1871: the build panel's
+	cards do)."""
 	if _modified(event) and not (key_of(event) == KEY_SHIFT or _shift_only_non_letter(event)):
 		return false
 	match key_of(event):
@@ -488,10 +488,6 @@ func _plan_key(event: InputEventKey) -> bool:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
-		KEY_H:
-			begin_room(RoomsScript.TEMPLATE_HOME)
-		KEY_C:
-			begin_room(RoomsScript.TEMPLATE_CELLAR)
 		KEY_L:
 			cycle_link()
 		KEY_SHIFT:
@@ -502,8 +498,8 @@ func _plan_key(event: InputEventKey) -> bool:
 
 
 func _room_key(event: InputEvent) -> bool:
-	"""With a room tool open: B closes the Dig tool, U switches the view, H or C switches the room tool
-	(the same one again: back to tunnels)."""
+	"""With a room tool open: B closes the Dig tool, U switches the view (H and C no longer switch the room tool:
+	decision 1871)."""
 	var key := event as InputEventKey
 	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
 		return false
@@ -512,10 +508,6 @@ func _room_key(event: InputEvent) -> bool:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
-		KEY_H:
-			begin_room(RoomsScript.TEMPLATE_HOME)
-		KEY_C:
-			begin_room(RoomsScript.TEMPLATE_CELLAR)
 		_:
 			return false
 	return true
@@ -669,8 +661,7 @@ func toggle_view() -> void:
 # --- the tool -------------------------------------------------------------------------------
 
 func toggle_plan() -> bool:
-	"""The panel's "Dig tunnel" button: open the Dig tool -- or, open, close it, as B does. Returns whether it
-	is open now."""
+	"""Open the Dig tool -- or, open, close it, as B does in it. Returns whether it is open now."""
 	if planning:
 		cancel_plan()
 	else:

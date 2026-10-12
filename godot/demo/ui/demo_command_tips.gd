@@ -9,11 +9,12 @@ extends RefCounted
 ##
 ##     Zone (Z) — Paint a work zone on the map with the zone brush
 ##     Build (B) — Place and upgrade the settlement's buildings
-##     In the demo, B opens the Dig tool instead: lay tunnels underground
+##     In the demo, B opens the build panel: paint rooms underground, or open the Passage and burrow tools
 ##     Not in the demo yet: no Building, Furniture or Room store exists; task 06 owns those contracts
 ##
-## Build's key is the demo's Dig tool while Build is locked (decision 0208: the shell passes a locked
-## command's key on, and the tunnel tool takes it), so its tip says so (DEMO_BUILD_KEY).
+## Build's key is the demo's build panel while Build is locked (decision 1871: the shell passes a locked
+## command's key on, and the demo's build panel takes it; UI-SET-027 itself stays disabled until surface rooms exist,
+## Brendan's ruling 4 of 2026-10-12), so its tip says so (DEMO_BUILD_KEY).
 ##
 ## THE KEY IS READ FROM THE INPUT MAP (`UiShell.COMMAND_ACTIONS`, the project's `open_*` actions), never
 ## written here, so a rebinding in project.godot cannot leave a tooltip naming the old key. The shell
@@ -36,7 +37,7 @@ const WHAT: Array[String] = [
 	"The settlement's goals and how far along they are",
 ]
 ## What Build's key does in the demo while Build is locked (see the header).
-const DEMO_BUILD_KEY: String = "In the demo, B opens the Dig tool instead: lay tunnels underground"
+const DEMO_BUILD_KEY: String = "In the demo, B opens the build panel: paint rooms underground, or open the Passage and burrow tools"
 ## Between the command's name-and-key and what it does.
 const DASH: String = " — "
 ## The second line of a command the demo does not have yet, before the shell's own reason.

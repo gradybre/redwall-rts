@@ -708,6 +708,9 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 | UX-BUILD-T04 No silent cost | Opening, painting, undoing and discarding change no inventory, reservation or job; Confirm all creates blueprints without deducting stores |
 | UX-BUILD-T05 Levels | Selecting each level keeps selected-resident identity; Overview never enables painting |
 
-**Follow-up (slice B).** `godot/project.godot` still binds PageUp/PageDown to `camera_zoom_in/out`, and
-`godot/scripts/ui/ui_registry.gd` holds 103 rows; both change in the slice that builds the panel, with
-`godot/test/test_input_map.gd` and `test_ui_registry.gd` updated to these rows.
+**Follow-up (slice B), done 2026-10-12 ([decision 1871](decisions/1871-one-build-panel-and-level-bar.md)).**
+`godot/project.godot` binds PageUp/PageDown to `level_up`/`level_down` and keyboard zoom to = / − (keypad + / −), with
+§5's `tool_redo` added; `godot/scripts/ui/ui_registry.gd` keeps its 103 UI-SET rows and holds these fourteen as their
+own UI-BUILD family; `godot/test/test_input_map.gd` and `test_ui_registry.gd` check both. Read together, this
+section's "Arrows move the cell cursor" and "arrows outside the card row still pan" mean the arrows move the cell
+cursor while a room type is armed and the world has the keys, and pan otherwise (decision 1871 E10).

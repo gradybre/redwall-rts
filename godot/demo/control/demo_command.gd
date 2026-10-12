@@ -13,9 +13,10 @@ extends Node3D
 ##                                the work board's `queue_at` (demo/work/work_orders.gd); not in the underground view
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
-##   B / U                        the Dig tool (the cutaway, drag a tunnel) / underground view -- the
-##                                tool (demo/tunnel/tunnel_control.gd) sees every event first and,
-##                                while it is open, takes the clicks and keys it uses
+##   B / U                        the build panel (demo/build_panel/demo_build.gd, decision 1871: its Passage card opens the
+##                                Dig tool) / underground view -- the build hooks (`set_build_hooks`) see every event
+##                                first, then the Dig tool (demo/tunnel/tunnel_control.gd), which, while it is open,
+##                                takes the clicks and keys it uses
 ##   left click a finished tunnel select it for the "Tunnels & burrows (demo)" panel, keeping any
 ##                                selected residents (demo/tunnel/tunnel_ext.gd)
 ##   left / right click a bed, a tree, a trunk, deadfall or the sawhorse: the farm's and the woods'
@@ -150,8 +151,10 @@ var _resume_rules: Array[Callable] = []
 var _centre: Callable = Callable()
 ## Shift+right-click's handler (`queue(screen, ground, members) -> QueueAnswer`; see set_queue_handler).
 var _queue: Callable = Callable()
-## The tool buttons' action card (reused; _refresh_tool_cards).
-var _tool_card_data: CardScript = CardScript.new()
+## The build panel's hooks (demo/build_panel/demo_build.gd; set_build_hooks): `before_gui(event) -> bool` read in `_input`
+## before the HUD, `handle(event) -> bool` first of the world's handlers. Unset: none.
+var _build_before_gui: Callable = Callable()
+var _build_handle: Callable = Callable()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
 var _notice_of: PackedStringArray = PackedStringArray()
 var _notice_order: PackedInt32Array = PackedInt32Array()
@@ -193,27 +196,23 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 
 
 func _connect_panel() -> void:
-	"""The party panel's buttons: the Dig and room tools, a member's row (pick_member), Release (R)."""
-	_panel.dig_requested.connect(_on_dig_requested)
-	_panel.room_requested.connect(_on_room_requested)
+	"""The party panel's buttons: a member's row (pick_member), Release (R). The Dig and room tools are the build
+	panel's cards now (decision 1871)."""
 	_panel.member_picked.connect(pick_member)
 	_panel.release_requested.connect(release_selection)
+
+
+func set_build_hooks(before_gui: Callable, handle: Callable) -> void:
+	"""The build panel's input (decision 1871): `before_gui(event) -> bool` sees every event in `_input`, before the
+	HUD and the Dig tool's own (the level keys, a stroke's drag); `handle(event) -> bool` sees every world event first,
+	before the Dig tool (B, the panel's keys and clicks). True takes the event."""
+	_build_before_gui = before_gui
+	_build_handle = handle
 
 
 func set_world(world: DemoWorldScript) -> void:
 	"""The world the tunnel tool's underground view fades and whose buildings it keeps out from under."""
 	_tunnels.set_world(world)
-
-
-func _on_dig_requested() -> void:
-	"""The panel's "Dig tunnel" button: the same as B -- the Dig tool opened, or closed."""
-	_tunnels.toggle_plan()
-
-
-func _on_room_requested(kind: int) -> void:
-	"""The panel's "Burrow home" / "Root cellar" buttons: the Dig tool's room tool for that template (H / C in
-	the tool; decision 0209)."""
-	_tunnels.begin_room(kind)
 
 
 func tunnels() -> TunnelControlScript:
@@ -428,8 +427,11 @@ func _input(event: InputEvent) -> void:
 
 
 func take_before_gui(event: InputEvent) -> bool:
-	"""In the Dig tool, Enter (dig the piece laid) and a drag's motion and release, before any HUD control
-	can take them (see INPUT). True when taken."""
+	"""The build panel's level keys and stroke first; then, in the Dig tool, Enter (dig the piece laid) and a drag's
+	motion and release, before any HUD control can take them (see INPUT). True when taken."""
+	if _build_before_gui.is_valid() and bool(_build_before_gui.call(event)):
+		_refresh_in = 0.0
+		return true
 	if _tunnels == null or not _tunnels.takes_before_gui(event):
 		return false
 	_tunnels.handle_input(event)
@@ -444,7 +446,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func handle_input(event: InputEvent) -> bool:
-	"""Apply one event; true when it was a tunnel, selection or order input (and so consumed)."""
+	"""Apply one event; true when it was a build, tunnel, selection or order input (and so consumed)."""
+	if _build_handle.is_valid() and bool(_build_handle.call(event)):
+		_refresh_in = 0.0
+		return true
 	if _tunnels != null and _tunnels.handle_input(event):
 		_refresh_in = 0.0
 		return true
@@ -799,7 +804,6 @@ func _process(delta: float) -> void:
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
 		_refresh_panel()
-		_refresh_tool_cards()
 		_panel.follow_hud()
 
 
@@ -986,28 +990,3 @@ func interrupt_text(actor_index: int) -> String:
 		return ""
 	var brain := (_cast.actor(actor_index) as DemoActorScript).brain
 	return InterruptScript.text(activity_text(actor_index), InterruptScript.resume_of(brain, _resume_rules, actor_index))
-
-
-func _refresh_tool_cards() -> void:
-	"""The party panel's Dig tunnel and room tool buttons, each with its action card (tunnel_control.gd
-	`tool_card_into`) and what its digger would stop doing -- while they show."""
-	var dig := _panel.dig_button()
-	if dig == null or not dig.visible or _tunnels == null:
-		return
-	_tool_card(dig, PanelScript.DIG_TIP)
-	for k: int in PanelScript.ROOM_TIPS.size():
-		var room := _panel.room_button(k)
-		if room != null:
-			_tool_card(room, PanelScript.ROOM_TIPS[k])
-
-
-func _tool_card(button: Button, tip: String) -> void:
-	"""One tool button's card: its own words (`tip`: "Name (key) — what it does") as verb and result."""
-	var cut := tip.find(" — ")
-	_tunnels.tool_card_into(_tool_card_data, tip.left(cut), tip.substr(cut + 3))
-	if _tool_card_data.worker >= 0:
-		_tool_card_data.interrupts = interrupt_text(_tool_card_data.worker)
-	var said := _tool_card_data.text()
-	CardScript.dress(button)
-	if button.tooltip_text != said:
-		button.tooltip_text = said

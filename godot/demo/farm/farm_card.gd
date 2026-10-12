@@ -46,7 +46,7 @@ const WORDS: Dictionary = {
 const FIXES: Dictionary = {
 	&"NOTHING_GROWING": "Plant… a crop first",
 	&"NO_CROP_STANDING": "Plant… a crop first",
-	&"NO_EARTH": "Dig tunnel (B): its earth heaps up at the mouth",
+	&"NO_EARTH": "Dig a passage (B, Passage): its earth heaps up at the mouth",
 	&"NOT_ENOUGH_COMPOST": "Pantry (K) ▸ compost spoiled food, or clear a withered bed",
 	&"COMPOST_NOT_ELIGIBLE": "wait for the next season",
 	&"BED_RESTING_FALLOW": "Unrest the bed first",
@@ -57,7 +57,7 @@ const FIXES: Dictionary = {
 	&"NOT_RIPE": "wait: the bed says when it ripens",
 	&"JOB_BOARD_FULL": "Cancel jobs on a bed",
 	&"NOT_LAID_OUT": "Lay out a bed here first (the garden site's panel)",
-	&"NO_TUNNEL_UNDER": "Dig tunnel (B) under the bed first",
+	&"NO_TUNNEL_UNDER": "Dig a passage (B, Passage) under the bed first",
 	&"NO_OUTLET_FITTED": "Fit outlet first",
 	&"BED_IN_USE": "harvest or clear the bed first",
 }

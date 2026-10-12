@@ -13,6 +13,12 @@ extends Node3D
 ## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
 ## tool (demo/tunnel/) also gets the world, whose footings and roots the underground view's cap shows.
 ##
+## THE BUILD PANEL AND THE LEVEL BAR (decision 1871; DEC-061): the game's one build panel and level bar
+## (scripts/ui/build_panel.gd, level_bar.gd), mounted by demo/build_panel/demo_build.gd: B opens it; it paints room types
+## on the U view's level into one pending batch and confirms them through the settlement's planner route; its
+## Passage, Burrow home and Root cellar cards open the Dig tool and its room tool. The bar (Surface, Level 1-4,
+## Overview; PageUp/PageDown) is always shown above the minimap. `build()` is it.
+##
 ## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, rooms, threats) show themselves in the
 ## "Tunnels & burrows (demo)" panel; `rooms()` lists the network's rooms (decision 0209), whose root cellars are the
 ## farm's pantry stores (see FARM).
@@ -313,6 +319,7 @@ const MolePresentation := preload("res://data/underground/mole-worker/mole_prese
 const EntryWorkerView := preload("res://demo/cast/entry_worker_view.gd")
 const EntryWorkerMeshes := preload("res://demo/cast/entry_worker_meshes.gd")
 const ModularDemoMode := preload("res://demo/burrow/modular_demo_mode.gd")
+const DemoBuildScript := preload("res://demo/build_panel/demo_build.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
@@ -443,6 +450,8 @@ var _forage: ForageNodeScript = null
 ## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
 var _orchard: OrchardScript = null
 var _modular_mode: ModularDemoMode = null
+## The build panel and the level bar (decision 1871; demo/build_panel/demo_build.gd).
+var _build: DemoBuildScript = null
 ## ADR1201/1211: one pinned presentation image per mole profile source (actor, assembly handling, wood haul, stone).
 var _modular_sources: ModularSources = null
 ## ADR1211: the entry crew's worker Actors and the G5 surface walk to the stair-top anchor.
@@ -507,8 +516,9 @@ func _ready() -> void:
 	_warm_and_open()
 	_build_input()
 	_build_modular_room_mode()
+	_build_build_panel()
 	PlaytestTaps.wire(self, _gate, _zone, _farm.lenses, _command as DemoCommandScript, _services.notices,
-		_services.calendar)
+		_services.calendar, _build)
 
 
 func _build_wildlife() -> void:
@@ -615,20 +625,38 @@ func _build_entry_worker(manifest: Dictionary) -> void:
 
 
 func _build_modular_room_mode() -> void:
-	"""Open actual-world dirt planning from the existing tunnel panel; retain the older village on close."""
+	"""Mount the actual-world dirt planning view (decision 1055). Its "Plan an underground room" entry is gone
+	(decision 1871: the build panel paints rooms and orders them through the same planner route); it is opened only
+	by its own harness (demo/burrow/modular_demo_live.gd) until slice C retires it."""
 	_modular_mode = ModularDemoMode.new()
 	add_child(_modular_mode)
 	var code: StringName = _modular_mode.configure(SettlementSystem, self, _camera as DemoCameraScript,
 		_stall_banner, [_camera, _camera_modes, _camera_modes.edge] as Array[Node], _modular_view_blocked)
 	if code != &"": UIManager.push_refusal(code)
-	_tunnel_tool().ext.panel.action.connect(_modular_panel_action)
 
 
-func _modular_panel_action(action: StringName) -> void:
-	"""The new blueprint action belongs to the original settlement's inspector, not a legacy dig timer."""
-	if action != TunnelPanelScript.ACTION_MODULAR_ROOM: return
-	var code: StringName = _modular_mode.open()
-	if code != &"": UIManager.push_refusal(code)
+func _build_build_panel() -> void:
+	"""THE BUILD PANEL AND THE LEVEL BAR (see the header): mounted over the village after the input gate, its hooks
+	first in the command layer's input, a focus region for F7 and Tab, a planning surface for the planning pause."""
+	_build = DemoBuildScript.new()
+	add_child(_build)
+	var shell: UiShell = _shell()
+	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	var replaced: Array[Node] = [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel, _orchard.panel,
+		_lens_picker, _news]
+	if shell != null:
+		replaced.append(shell.control_for(UiShell.ID_COMMAND_STRIP))
+		replaced.append(shell.control_for(UiShell.ID_DETAIL))
+	_build.configure(_tunnel_tool(), shell, _camera.camera(), _modular_view_blocked, (_command as DemoCommandScript).say,
+		replaced, SettlementSystem.underground_session())
+	(_command as DemoCommandScript).set_build_hooks(_build.takes_before_gui, _build.handle_input)
+	_gate.add_region("build panel", [_build.panel, _build.bar] as Array[Node])
+	_time.add_planning("the build panel", _build.is_open)
+
+
+func build() -> DemoBuildScript:
+	"""The build panel and the level bar (demo/build_panel/demo_build.gd)."""
+	return _build
 
 
 func _modular_view_blocked() -> bool:
@@ -1231,7 +1259,6 @@ func _build_guide() -> void:
 	_guide.card.hide_while(_workspace_open)
 	_people_card.hide_while(_workspace_open)
 	_guide.card.set_avoid(func() -> Rect2: return _lens_picker.frame_rect() if _lens_picker.visible else Rect2())
-	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	_guide.actions = {
 		HelpTopics.ACTION_PANTRY: _farm.open_pantry,
 		HelpTopics.ACTION_KITCHEN: func() -> void: _farm.open_pantry(); _farm.pantry_panel.show_tab(PantryPanelScript.TAB_KITCHEN),
@@ -1239,7 +1266,7 @@ func _build_guide() -> void:
 		HelpTopics.ACTION_NEWS: _history.open,
 		HelpTopics.ACTION_RESIDENTS: _open_residents,
 		HelpTopics.ACTION_WATER: _zone.show_panel.bind(DetailZoneScript.PANEL_WATER),
-		HelpTopics.ACTION_DIG: _open_dig_tool.bind(tool),
+		HelpTopics.ACTION_DIG: _open_build_panel,
 		HelpTopics.ACTION_LOGS: PlaytestLog.open_folder,
 		HelpTopics.ACTION_FUEL: _fuel_panel.open,
 	}
@@ -1274,10 +1301,10 @@ func camera_modes() -> CameraModesScript:
 	return _camera_modes
 
 
-func _open_dig_tool(tool: TunnelControlScript) -> void:
-	"""The Dig tool open (B), or left open."""
-	if not tool.planning:
-		tool.begin_plan()
+func _open_build_panel() -> void:
+	"""The build panel open (B), or left open (decision 1871: the Dig tool is its Passage card's)."""
+	if _build != null:
+		_build.open_panel()
 
 
 func _guide_world() -> GuideWorldScript:

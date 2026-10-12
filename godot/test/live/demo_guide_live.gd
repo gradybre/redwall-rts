@@ -551,10 +551,17 @@ func _back_to_100() -> void:
 
 
 func _dig_tool_then_the_guide() -> void:
-	"""B opens the Dig tool; O opens the guide over it, on Help."""
+	"""B opens the build panel and its Passage card the Dig tool (decision 1871); O opens the guide over it, on Help."""
 	_key(KEY_B)
+	var build: Node = _village.call(&"build")
+	_check("B opens the build panel", bool(build.call(&"is_open")))
+	var panel: Node = build.get("panel")
+	var cards: Array = panel.call(&"row_cards")
+	for k: int in cards.size():
+		if String(cards[k].get("name")) == "Passage":
+			panel.call(&"choose_card", k)
 	var tool: Object = _village.get("_command").call(&"tunnels")
-	_check("B opens the Dig tool", bool(tool.get("planning")))
+	_check("its Passage card opens the Dig tool", bool(tool.get("planning")))
 	tool.set("_last_notice", "")
 	_key(KEY_O)
 	_window().call(&"show_tab", WindowScript.TAB_HELP)
@@ -573,11 +580,15 @@ func _enter_in_the_search_never_digs() -> void:
 
 
 func _close_both() -> void:
-	"""Esc closes the guide; B closes the Dig tool."""
+	"""Esc closes the guide; B closes the Dig tool, the build panel comes back, and B closes it."""
 	_key(KEY_ESCAPE)
 	_key(KEY_B)
 	_check("the guide and the Dig tool closed", not _window().visible
 		and not bool(_village.get("_command").call(&"tunnels").get("planning")))
+	var build: Node = _village.call(&"build")
+	build.call(&"_process", 0.0)
+	_key(KEY_B)
+	_check("and B closes the build panel", not bool(build.call(&"is_open")))
 
 
 func _the_lab_s_practice_stories() -> void:

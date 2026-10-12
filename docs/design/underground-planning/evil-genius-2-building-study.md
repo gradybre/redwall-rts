@@ -206,17 +206,17 @@ painted rooms. Its surface costs follow Brendan's ruling on OPEN-01 (b): key ite
 any refusal (EG2's Cancel → camera); bulk select/remove; no "crew abandons the build" — keep the existing per-digger
 job queues and show who is assigned on the blueprint.
 
-**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851, so no slice waits on a ruling). “Needs” means the slice cannot finish without it.
+**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851; updated 2026-10-12 by Brendan's “Budget now, rest later” ruling, [decision 1880](../../decisions/1880-painted-room-memory-budget.md)). “Needs” means the slice cannot finish without it.
 
 | Slice | Needs (slices) | Needs (other work and rulings) |
 |---|---|---|
 | A | — | DEC-061 (done) |
-| B | A | Slice-B storage obligations (ARCH-BUILD-001: cell grid, Room/item rows, container owners, ledger bytes); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
-| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07) |
+| B | A | Memory budget for the cell grid, Room/item rows and edge items: done as a budget (decision 1880; slice C or G folds its bytes into the live total when it first allocates those columns, decision 1880 Q2); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
+| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07); binding painted room deltas to RoomProjects/ExcavationSites and ledgering their projects (ARCH-BUILD-001 obligation 3, moved from B); one project per room for its cells, partitions and doors (ruled, decision 1880 Q1); refusing removals that leave a part narrower than 2 × 2 (ruled, decision 1880 Q3) |
 | D | B, C | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
 | E | B, C | Install crews (ADR 1081); access tiles and wall-behind are ruled (OPEN-05) |
 | F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |
-| G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17; BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
+| G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17, 18-bit furniture mask and older-save refusal (ARCH-BUILD-001 obligation 2, moved from B); container owner for painted stores and `base_store_g` key items (obligation 4, moved from B); BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
 | H | B–G | — |
 
 ---

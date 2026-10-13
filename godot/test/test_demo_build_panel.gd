@@ -493,3 +493,44 @@ func test_the_bar_marks_a_level_reached_once_a_way_down_lands_there() -> void:
 	_build._process(0.016)
 	assert_true(_build.bar.is_reachable(1), "the Entrance lands there")
 	assert_false(_build.bar.is_reachable(2), "level 2 still has none")
+
+
+func test_the_mole_is_the_selected_one_and_figures_are_reused() -> void:
+	"""M1: a selected mole is preferred; a finished trip's figure is reused for the next."""
+	var cast: Node = _nodes[0]
+	(cast.call(&"actor", 1) as Node).set(&"species", "Mole")
+	var selected: PackedInt32Array = PackedInt32Array([1])
+	_build.bind_cast(cast, func() -> PackedInt32Array: return selected)
+	_build.works.order_way_down(0, Vector2i(4, 4))
+	assert_true(_build._send_mole(), "sent")
+	assert_true(_said[-1].begins_with(_build._name_of(1)), "the selected mole: %s" % _said[-1])
+	(cast.call(&"actor", 1) as Node).get(&"brain").call(&"release")
+	assert_false(_build.digging(), "its trip taken by another order")
+	selected = PackedInt32Array()
+	assert_true(_build._send_mole(), "sent again")
+	assert_equal(_build._figures.size(), 1, "the figure reused")
+
+
+func test_with_no_mole_anyone_digs_and_says_so() -> void:
+	"""P-1912-3: an art-free village of placeholders has no mole; the first resident digs, and the notice says so."""
+	var cast: Node = _nodes[0]
+	(cast.call(&"actor", 0) as Node).set(&"species", "Otter")
+	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
+	_build.works.order_way_down(0, Vector2i(4, 4))
+	assert_true(_build._send_mole(), "someone sent")
+	assert_true(_said[-1].begins_with("No mole lives in the village: "), _said[-1])
+
+
+func test_cells_cut_off_from_every_entrance_are_said_once_and_send_nobody() -> void:
+	"""Review H4/M6: an ordered room no Entrance reaches sends nobody, and says so once."""
+	var cast: Node = _nodes[0]
+	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
+	_build.works.order_way_down(0, Vector2i(4, 4))
+	_build.works.order_room(1, PackedInt32Array([30, 30, 31, 30]), 2)
+	for cell: Vector2i in [Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5), Vector2i(5, 5)]:
+		_build.works.open_cell(1, cell)
+	var before: int = _said.size()
+	assert_false(_build._send_mole(), "nobody sent")
+	assert_false(_build._send_mole(), "nor the next time")
+	assert_equal(_said.size(), before + 1, "said once")
+	assert_true(_said[-1].ends_with("cannot be reached from an Entrance: they wait"), _said[-1])

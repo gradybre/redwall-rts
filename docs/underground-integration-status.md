@@ -18,9 +18,10 @@ The "Next, in order" list below (2026-10-05) is out of date. Checked in code at 
 - **No room is dug by anything in the game.** `RoomOrders.confirm_room` creates Sites and geometry, no project, job
   or worker; the room loop of ADR 1213 is test-only. Slice C2 (decision 1931 and its successors) builds the
   production room foreman.
-- **Room digging in the game uses the claws' M1 down stroke**, under the rule change slice C2.1 makes in core
-  (Brendan's ruling P-C2-1 on decision 1931, "Dig rooms with the down stroke"; decision 1931 and its successor).
-  ADR 1217's M2/M3 strokes are no longer the room path.
+- **How rooms are dug in the game**: Brendan first ruled P-C2-1 on decision 1931, "Dig rooms with the down stroke"
+  (M1, no M2/M3); decision 1932 then settled one basic claw front stroke (M3) and rooms 1 quantum high (a cell: wood
+  250, stone 250, 4,230 milli-WU, earth 2,000). Until M3 lands no claw stroke cuts a room wall (0 quanta cut,
+  decision 1931 F1), although `reachable_height_u` reports 1,024 u for the claw crew from anchor heights alone.
 - **The excavation owners cost about 6.4 ms per working tick per builder** against REQ-SET-163's 2 ms (decision 1931
   F3). The `perf/dig-tick-cost` lane is fixing it (P-C2-2 (a)).
 - **A room's planned height and its price are read with the claw crew's identity** (P-C2-3 (a)): the build ledger

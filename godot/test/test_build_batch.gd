@@ -740,3 +740,60 @@ func test_a_kept_refusal_never_covers_a_later_no_way_in() -> void:
 	assert_equal(_batch.operation_reason(0), Validity.no_way_in(), "no way in now")
 	assert_false(_batch.retryable(0), "not a retry")
 	assert_equal(_batch.first_invalid(), 0, "it holds Confirm all back")
+
+
+# --- review round (decision 1912) ---------------------------------------------------------------------------------
+
+func test_a_partial_confirm_never_puts_undo_out_of_step() -> void:
+	"""Review H1: an erase over two rooms, one then ordered and one refused: nothing older than that step is undone
+	into the kept room, and Redo is cleared."""
+	_paint(DORMITORY, 1, Vector2i(20, 0), Vector2i(25, 5))
+	_paint(DORMITORY, 1, Vector2i(0, 0), Vector2i(5, 5))
+	_batch.set_tool(Stroke.TOOL_ERASE)
+	_paint(DORMITORY, 1, Vector2i(4, 4), Vector2i(20, 4))
+	var kept_cells: int = _batch.operation_cell_count(0)
+	_answers.append({"ok": false, "error": "refused", "kind": Validity.KIND_BLOCKED})
+	_batch.confirm_all(_submit)
+	assert_equal(_batch.pending_count(), 1, "the refused room kept")
+	assert_false(_batch.can_undo(), "nothing older than the ordered step can be undone")
+	assert_false(_batch.can_redo(), "and no Redo")
+	assert_equal(_batch.operation_cell_count(0), kept_cells, "the kept room as it was")
+
+
+func test_a_prune_with_a_way_down_step_in_the_history_keeps_its_row() -> void:
+	"""M1: a pruned room renumbers the room entries only; the way down's entry keeps its row."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_batch.place_item(0, Vector2i(30, 30))
+	_paint(PANTRY, 1, Vector2i(10, 0), Vector2i(13, 3))
+	_batch.undo()
+	_batch.undo()
+	_batch.undo()
+	_paint(PANTRY, 2, Vector2i(10, 0), Vector2i(13, 3))
+	assert_equal(_batch.items().live_count(), 0, "the way down undone and its step cleared")
+	assert_equal(_batch.operation_count(), 1, "the emptied rooms pruned")
+	assert_equal(_batch.undo_label(), "Undo Paint Pantry", "the new step")
+
+
+func test_an_erase_into_three_pieces_keeps_the_first_cells_piece() -> void:
+	"""M1: two cuts make three rooms; the piece with the room's first cell stays the room."""
+	_paint(DORMITORY, 1, Vector2i(0, 0), Vector2i(13, 2))
+	_batch.set_tool(Stroke.TOOL_PAINT)
+	_batch.set_tool(Stroke.TOOL_ERASE)
+	_batch.begin_stroke(DORMITORY, 1, Vector2i(4, 0))
+	_batch.extend_stroke(Vector2i(4, 1))
+	_batch.finish_stroke()
+	_batch.begin_stroke(DORMITORY, 1, Vector2i(9, 0))
+	_batch.extend_stroke(Vector2i(9, 1))
+	_batch.finish_stroke()
+	assert_equal(_batch.pending_count(), 3, "three rooms")
+	assert_equal(_batch.operation_cells(0)[0], 0, "the first room starts at x 0")
+	assert_equal(_batch.operation_cell_count(0), 12, "and is the west piece")
+
+
+func test_a_way_down_stands_on_dug_space() -> void:
+	"""M1: a Way down over dug (ground FINISHED) cells needs no pending room under it."""
+	_bind_ground()
+	for cell: Vector2i in [Vector2i(50, 50), Vector2i(51, 50), Vector2i(50, 51), Vector2i(51, 51)]:
+		_ground[cell] = Cells.CELL_FINISHED
+	_ground_revision += 1
+	assert_equal(_batch.place_item(1, Vector2i(50, 50)), Validity.KIND_CAN_BUILD, "on dug space")

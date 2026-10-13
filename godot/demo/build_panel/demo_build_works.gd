@@ -12,7 +12,9 @@ extends RefCounted
 ## THE DIG ORDER (`next_dig`): from where the mole stands, breadth first through open cells and open ways down, the
 ## nearest ordered cell beside open space (or a landing below an open way down, or the mole's own cell): so rooms
 ## open outward from the way in, as SET-BUILD-001 §8 wants, by the plainest rule. `path_to` is the same search for a
-## resident walking to an open cell. Searches stop at SEARCH_LIMIT cells -- a guard, not a tuning.
+## resident walking to an open cell. Searches stop at SEARCH_LIMIT cells -- a guard, not a tuning. EVERY ENTRANCE IS
+## JOINED TO EVERY OTHER through the surface (the node SURFACE), so the mole reaches cells beyond a second Entrance
+## (review H4). Per level, a box around its non-earth cells (`box_of`) keeps scans to what was ordered (review H2).
 
 const LEVELS: int = 5
 const EARTH: int = 0
@@ -22,6 +24,9 @@ const TYPE_NONE: int = 255
 const SIDE: int = 2
 const SEARCH_LIMIT: int = 65536
 const SIDES: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+## The surface, as one node joining every Entrance's landing (a walk through it goes up and over).
+const SURFACE: Vector3i = Vector3i(0, -1, -1)
+const QUAD: Array[Vector2i] = [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i.ONE]
 
 ## Bumped by every change; readers redraw when it moves.
 var revision: int = 0
@@ -32,6 +37,8 @@ var _way_levels: PackedInt32Array = PackedInt32Array()
 var _way_xs: PackedInt32Array = PackedInt32Array()
 var _way_zs: PackedInt32Array = PackedInt32Array()
 var _ordered: int = 0
+## Per level: the box around its non-earth cells (an empty Rect2i: none yet).
+var _boxes: Array[Rect2i] = []
 
 
 func configure(bounds: Rect2i) -> void:
@@ -52,6 +59,9 @@ func configure(bounds: Rect2i) -> void:
 	_way_xs.clear()
 	_way_zs.clear()
 	_ordered = 0
+	_boxes.clear()
+	for level: int in LEVELS:
+		_boxes.append(Rect2i())
 	revision += 1
 
 
@@ -85,7 +95,7 @@ func order_way_down(level: int, cell: Vector2i) -> bool:
 	_way_levels.append(level)
 	_way_xs.append(cell.x)
 	_way_zs.append(cell.y)
-	for offset: Vector2i in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i.ONE]:
+	for offset: Vector2i in QUAD:
 		_order(level + 1, cell + offset, TYPE_NONE)
 	revision += 1
 	return true
@@ -97,6 +107,8 @@ func _order(level: int, cell: Vector2i, room_type: int) -> void:
 	if _state[level][index] == EARTH:
 		_state[level][index] = ORDERED
 		_ordered += 1
+		var box: Rect2i = _boxes[level]
+		_boxes[level] = Rect2i(cell, Vector2i.ONE) if box.size == Vector2i.ZERO else box.expand(cell).expand(cell + Vector2i.ONE)
 	if room_type != TYPE_NONE or _type[level][index] == TYPE_NONE:
 		_type[level][index] = room_type
 
@@ -110,6 +122,26 @@ func open_cell(level: int, cell: Vector2i) -> bool:
 	_ordered -= 1
 	revision += 1
 	return true
+
+
+func box_of(level: int) -> Rect2i:
+	"""The box around `level`'s ordered and dug cells (empty with none)."""
+	return _boxes[level] if level >= 0 and level < _boxes.size() else Rect2i()
+
+
+func cells_into(level: int, wanted: int, out: PackedInt32Array) -> void:
+	"""Every cell of `level` in state `wanted`, canonical pairs, into `out` (cleared first): a scan of its box only."""
+	out.clear()
+	var box: Rect2i = box_of(level)
+	if level <= 0 or level >= LEVELS:
+		return
+	var states: PackedByteArray = _state[level]
+	for z: int in range(box.position.y, box.end.y):
+		var row: int = (z - _bounds.position.y) * _bounds.size.x - _bounds.position.x
+		for x: int in range(box.position.x, box.end.x):
+			if states[row + x] == wanted:
+				out.append(x)
+				out.append(z)
 
 
 func waiting() -> int:
@@ -173,15 +205,18 @@ func _search(from: Vector3i, goal: Vector3i, digging: bool) -> Dictionary:
 				return {"path": _walk(came, next)}
 			if digging and state(next.x, Vector2i(next.y, next.z)) == ORDERED:
 				return {"target": next, "path": _walk(came, at)}
-			if state(next.x, Vector2i(next.y, next.z)) == OPEN:
+			if next == SURFACE or state(next.x, Vector2i(next.y, next.z)) == OPEN:
 				came[next] = at
 				queue.append(next)
 	return {}
 
 
 func _neighbours(at: Vector3i) -> Array[Vector3i]:
-	"""The four cells beside `at` on its level, and the other end of a way down it stands on or lands on."""
+	"""The four cells beside `at` on its level, the other end of a way down it stands on or lands on, and the surface
+	from an Entrance's landing (or every Entrance's landing from the surface)."""
 	var out: Array[Vector3i] = []
+	if at == SURFACE:
+		return _entrance_landings()
 	for side: Vector2i in SIDES:
 		out.append(Vector3i(at.x, at.y + side.x, at.z + side.y))
 	for row: int in _way_levels.size():
@@ -192,6 +227,18 @@ func _neighbours(at: Vector3i) -> Array[Vector3i]:
 			out.append(Vector3i(top.x + 1, at.y, at.z))
 		elif at.x == top.x + 1 and top.x > 0:
 			out.append(Vector3i(top.x, at.y, at.z))
+		elif at.x == 1 and top.x == 0 and state(1, Vector2i(at.y, at.z)) == OPEN:
+			out.append(SURFACE)
+	return out
+
+
+func _entrance_landings() -> Array[Vector3i]:
+	"""Every cell an Entrance lands on, on level 1."""
+	var out: Array[Vector3i] = []
+	for row: int in _way_levels.size():
+		if _way_levels[row] == 0:
+			for offset: Vector2i in QUAD:
+				out.append(Vector3i(1, _way_xs[row] + offset.x, _way_zs[row] + offset.y))
 	return out
 
 

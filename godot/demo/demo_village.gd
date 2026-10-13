@@ -16,9 +16,10 @@ extends Node3D
 ## THE BUILD PANEL AND THE LEVEL BAR (decision 1871; DEC-061): the game's one build panel and level bar
 ## (scripts/ui/build_panel.gd, level_bar.gd), mounted by demo/build_panel/demo_build.gd: B opens it; it paints room types
 ## on the settlement's ACTUAL underground levels (5 m apart; the World cut at the level is drawn in this camera, decision
-## 1912) into one pending batch, judged per cell, and confirms them through the settlement's planner route. The old
-## Passage, Burrow home and Root cellar cards are gone (Brendan's ruling on decision 1911 P-C2 (c)): no playable
-## digging until slice C3. The bar (Surface, Level 1-4, Overview; PageUp/PageDown) is always shown above the minimap.
+## 1912) into one pending batch, judged per cell; an Entrance placed on the surface gives them a way in, and Confirm
+## all hands them to the proof of concept, where a mole digs them (decision 1912, free for now, until slice C3). The old
+## Passage, Burrow home and Root cellar cards are gone (Brendan's ruling on decision 1911 P-C2 (c)). The bar (Surface,
+## Level 1-4, Overview; PageUp/PageDown) is always shown above the minimap.
 ## `build()` is it.
 ##
 ## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, rooms, threats) show themselves in the
@@ -1291,7 +1292,8 @@ func camera_modes() -> CameraModesScript:
 
 
 func _open_build_panel() -> void:
-	"""The build panel open (B), or left open: the help's planning action (decision 1912: the panel plans rooms; digging them comes in a later update)."""
+	"""The build panel open (B), or left open: the help's dig action (decision 1912: an Entrance, rooms and passages,
+	and a mole digs them)."""
 	if _build != null:
 		_build.open_panel()
 

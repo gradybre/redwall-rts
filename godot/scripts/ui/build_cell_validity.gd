@@ -14,8 +14,9 @@ extends RefCounted
 ## the chain.
 ##
 ## PRESENTATION SCRATCH, never saved or authoritative (ARCH-BUILD-001 "Pending batch"): one level's cells as packed
-## columns sized once to the planning area -- a membership column (I32) and a breadth-first queue (I32), 8 bytes a
-## cell, 524288 bytes for the 256 × 256-cell area -- reset cell by cell after each judgement, never reallocated.
+## columns sized once to the planning area -- a membership column (I32), a breadth-first queue (I32) and a reached
+## flag (B8), 9 bytes a cell, 589824 bytes for the 256 × 256-cell area -- reset cell by cell after each judgement,
+## never reallocated.
 ## WITH NO GROUND READER BOUND only the 2 × 2 rule is judged (a host that knows no ground claims nothing about it).
 
 const Validity := preload("res://scripts/ui/build_validity.gd")
@@ -35,6 +36,10 @@ const DIG_WORDS: Dictionary = {CELL_WATER: "water", CELL_PROTECTED: "protected g
 	CELL_ROUTE: "protected route", CELL_FINISHED: "occupied"}
 const REFUSE_BOUNDS: StringName = &"BUILD_CELLS_BOUNDS"
 const SIDES: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+## The four 2 × 2 blocks a cell can be a corner of, by their north-west cell's offset.
+const BLOCK_CORNERS: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 0)]
+## The membership id `all_in_blocks` marks with (never a set's: sets are numbered from 1).
+const CHECK_ID: int = -1
 
 var _bounds: Rect2i = Rect2i()
 var _ground: Callable = Callable()
@@ -83,6 +88,24 @@ func ground_bound() -> bool:
 func ground_revision() -> int:
 	"""The ground reader's revision (0 with none bound)."""
 	return int(_ground_revision.call()) if _ground_revision.is_valid() else 0
+
+
+func all_in_blocks(cells: PackedInt32Array) -> bool:
+	"""BUILD-REQ-002 for one set, in time linear in its cells (review H3: the batch's binary-search check took 19 ms
+	for a 64 × 64 stroke): every cell lies in a 2 × 2 block of the set. A cell off the planning area fails."""
+	for at: int in range(0, cells.size(), 2):
+		var index: int = _index(Vector2i(cells[at], cells[at + 1]))
+		if index < 0:
+			_unmark(cells)
+			return false
+		_member[index] = CHECK_ID
+	var ok: bool = true
+	for at: int in range(0, cells.size(), 2):
+		if not _in_block(Vector2i(cells[at], cells[at + 1]), CHECK_ID):
+			ok = false
+			break
+	_unmark(cells)
+	return ok
 
 
 func ground_of(level: int, cell: Vector2i) -> int:
@@ -169,7 +192,7 @@ func _dig_code(level: int, cell: Vector2i) -> int:
 
 func _in_block(cell: Vector2i, id: int) -> bool:
 	"""BUILD-REQ-002: whether `cell` is a corner of a 2 × 2 block wholly in its own set."""
-	for corner: Vector2i in [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 0)]:
+	for corner: Vector2i in BLOCK_CORNERS:
 		var at: Vector2i = cell + corner
 		if _is(at, id) and _is(at + Vector2i(1, 0), id) and _is(at + Vector2i(0, 1), id) and _is(at + Vector2i.ONE, id):
 			return true

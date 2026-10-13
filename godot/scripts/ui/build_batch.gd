@@ -132,14 +132,14 @@ func configured() -> bool:
 func bind_ground(ground: Callable, ground_revision: Callable) -> void:
 	"""The host's ground reader for the per-cell judgement (build_cell_validity.gd `bind_ground`)."""
 	_cells.bind_ground(ground, ground_revision)
-	revision += 1
+	_changed()
 
 
 func bind_landings(landings: Callable) -> void:
 	"""The host's built connector landings per level, `landings(level) -> PackedInt32Array` (slice D's); the batch adds
 	its own pending ways down to them for the per-cell way in."""
 	_host_landings = landings
-	revision += 1
+	_changed()
 
 
 func _all_landings(level: int) -> PackedInt32Array:
@@ -306,7 +306,7 @@ func _judge_stroke() -> void:
 		_stroke_reason = Validity.shape(shape_words(error))
 	elif _stroke.erasing():
 		_judge_erase(stamp)
-	elif not two_by_two(stamp):
+	elif not _cells.all_in_blocks(stamp):
 		_stroke_reason = Validity.too_narrow()
 	else:
 		_judge_paint(stamp)
@@ -408,7 +408,7 @@ func _judge_erase(stamp: PackedInt32Array) -> void:
 		return
 	for k: int in _targets:
 		var kept: Dictionary = Footprint.combine(_drafts[k].visible_cells(), stamp, true, _capacity)
-		if not kept.ok or not two_by_two(kept.cells):
+		if not kept.ok or not _cells.all_in_blocks(kept.cells):
 			_stroke_reason = Validity.narrow_removal(name)
 			return
 	_set_stroke(Validity.KIND_CAN_BUILD, "")
@@ -1122,8 +1122,9 @@ func _keep_refusal(k: int, answer: Variant) -> void:
 
 
 func _forget(ordered: PackedInt32Array, items_gone: PackedInt32Array = PackedInt32Array()) -> void:
-	"""Ordered changes are confirmed now: they leave the batch, and every step naming one leaves the history whole,
-	so Undo/Redo never reach them (BUILD-REQ-020)."""
+	"""Ordered changes are confirmed now: they leave the batch; every step naming one, and every step older than the
+	newest such, leaves the history, and Redo is cleared, so Undo/Redo never reach them and never fall out of step
+	(BUILD-REQ-020; review H1)."""
 	if ordered.is_empty() and items_gone.is_empty():
 		return
 	for k: int in ordered:
@@ -1131,19 +1132,26 @@ func _forget(ordered: PackedInt32Array, items_gone: PackedInt32Array = PackedInt
 		_counts[k] = 0
 	var gone: PackedInt32Array = ordered.duplicate()
 	gone.append_array(items_gone)
-	_undo = _without(_undo, gone)
-	_redo = _without(_redo, gone)
+	_undo = _after_newest(_undo, gone)
+	_redo.clear()
 	_changed()
 	_prune()
 
 
-static func _without(history: Array[PackedInt32Array], gone: PackedInt32Array) -> Array[PackedInt32Array]:
-	"""`history` without every step that names an operation in `gone`."""
-	var out: Array[PackedInt32Array] = []
-	for step: PackedInt32Array in history:
-		var names_gone: bool = false
-		for at: int in range(1, step.size()):
-			names_gone = names_gone or gone.has(step[at])
-		if not names_gone:
-			out.append(step)
-	return out
+static func _after_newest(history: Array[PackedInt32Array], gone: PackedInt32Array) -> Array[PackedInt32Array]:
+	"""`history` from just after its newest step naming an ordered change (review H1: a step naming an ordered room may
+	also name a kept one, whose own draft history would then fall out of step with the batch's, so nothing older is
+	kept either); the whole history when no step names one."""
+	var newest: int = -1
+	for at: int in history.size():
+		if _names_any(history[at], gone):
+			newest = at
+	return history.slice(newest + 1) if newest >= 0 else history
+
+
+static func _names_any(step: PackedInt32Array, gone: PackedInt32Array) -> bool:
+	"""Whether `step` names an entry in `gone`."""
+	for at: int in range(1, step.size()):
+		if gone.has(step[at]):
+			return true
+	return false

@@ -43,6 +43,8 @@ func _open_on_the_surface() -> void:
 	_key(KEY_B)
 	_check("B opens the build panel on the surface", bool(_build().call(&"is_open"))
 		and int(_build().get("bar").call(&"shown_level")) == 0)
+	var dug_u: int = int(_build().get("orders").call(&"dug_height_of", 1))
+	_check("a room is priced at the claw crew's reach on the mounted content (1912 E9)", dug_u == 1024, str(dug_u))
 
 
 func _scroll_to(card_name: String) -> void:
@@ -117,14 +119,15 @@ func _confirm_all() -> void:
 	var works: Object = _build().get("works")
 	_check("everything ordered", int(works.call(&"waiting")) == ORDERED_CELLS, str(works.call(&"waiting")))
 	_check("nothing taken from the stores", int(_village.get_node(^"/root/EconomySystem").call(&"stock_milli", &"wood")) == wood)
-	_check("a mole is sent", bool(_build().call(&"digging")))
+	_check("a mole is sent (with no mole in an art-free village, any resident: P-1912-3)", bool(_build().call(&"digging")))
 	_manager().call(&"set_speed", 4)
 
 
 func _wait_for_the_mole() -> void:
 	"""Until the mole is below and has dug six cells."""
 	_wait_until("the mole walks in and digs", func() -> bool:
-		return int(_build().get("digger").get("dug")) >= 6, "loop_mole_digging", WAIT_STEPS)
+		var digger: Object = _build().get("digger")
+		return digger != null and int(digger.get("dug")) >= 6, "loop_mole_digging", WAIT_STEPS)
 
 
 func _wait_for_the_rooms() -> void:
@@ -139,15 +142,17 @@ func _send_a_visitor() -> void:
 	_visitor = _first_not_mole()
 	_command().call(&"select", PackedInt32Array([_visitor]))
 	_right_click(_screen_of(KITCHEN_FROM + Vector2i(2, 1), 1))
-	_check("a visitor is sent", _visitor >= 0 and String((_village.get("_cast").call(&"actor", _visitor) as Node).get("brain")
-		.get("task").call(&"label")).begins_with("Going down"))
+	var task: Object = null if _visitor < 0 else (_village.get("_cast").call(&"actor", _visitor) as Node).get("brain").get("task")
+	var said: String = String(task.call(&"label")) if task != null and task.has_method(&"label") else str(task)
+	# Art-free, with no mole, the digger may be this resident: it came out at the Entrance, so it is in at once.
+	_check("a visitor is sent", said.begins_with("Going down") or said.begins_with("In the dug rooms"), said)
 
 
 func _wait_for_the_visitor() -> void:
 	"""Until the visitor stands in the Kitchen below."""
 	_wait_until("the visitor walks into the Kitchen", func() -> bool:
 		var task: Object = (_village.get("_cast").call(&"actor", _visitor) as Node).get("brain").get("task")
-		return task != null and task.call(&"at") == Vector3i(1, KITCHEN_FROM.x + 2, KITCHEN_FROM.y + 1),
+		return task != null and task.has_method(&"at") and task.call(&"at") == Vector3i(1, KITCHEN_FROM.x + 2, KITCHEN_FROM.y + 1),
 		"loop_visitor_inside", WAIT_STEPS)
 
 

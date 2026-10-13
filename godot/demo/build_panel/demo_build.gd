@@ -76,7 +76,9 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const MOLE: String = "Mole"
 ## How often a waiting order looks for a free mole again (seconds; a guard against asking every frame).
 const SEND_EVERY_S: float = 2.0
-const NO_MOLE: String = "No mole lives in the village to dig: the ordered cells wait"
+const NO_MOLE: String = "No mole lives in the village: %s digs instead"
+const NOBODY: String = "Nobody can dig: the ordered cells wait"
+const CUT_OFF: String = "%d ordered cells cannot be reached from an Entrance: they wait"
 const SENT: String = "%s goes to the Entrance to dig"
 const VISIT: String = "%s goes down to the dug room"
 const PLACE_HINT: String = "Place %s: click a spot, or Enter at the cursor"
@@ -125,6 +127,8 @@ var _trips: Array[BelowTask] = []
 var _figures: Array[Figure] = []
 var _trip_actors: PackedInt32Array = PackedInt32Array()
 var _send_in: float = 0.0
+## The last thing said about why no mole went (said once, review M6).
+var _said: String = ""
 ## The works revision the bar's marks were set at.
 var _marked_at: int = -1
 
@@ -410,7 +414,8 @@ func _apply_build_view() -> void:
 		world.hide_view()
 		return
 	world_refusal = world.show_level(level)
-	_tunnels.view.set_override_mask(BuildWorld.SHOWN_MASK if world_refusal == &"" else 0)
+	# With no World to draw (review M4), the ghosts and dug rooms still show on the marks layer.
+	_tunnels.view.set_override_mask(BuildWorld.SHOWN_MASK if world_refusal == &"" else BuildWorld.MARKS_LAYER)
 
 
 func _leave_build_view() -> void:
@@ -612,39 +617,75 @@ func digging() -> bool:
 
 func _still_on(trip: BelowTask) -> bool:
 	"""Whether a resident is still on `trip` (no other order took it)."""
-	var row: int = _trips.find(trip)
-	return row >= 0 and _cast != null and (_cast.call(&"actor", _trip_actors[row]) as Node).get(&"brain").get(&"task") == trip
+	var row: int = _trips.find(trip) if trip != null else -1
+	if row < 0 or _cast == null or _trip_actors[row] < 0:
+		return false
+	return (_cast.call(&"actor", _trip_actors[row]) as Node).get(&"brain").get(&"task") == trip
 
 
 func _send_mole() -> bool:
-	"""A mole to the Entrance to dig (the first selected mole, else the first free one); false, saying why, when none
-	can go, or when there is no Entrance yet or a mole is already digging."""
+	"""A mole to the Entrance to dig (see `_pick_mole`) -- only when no mole is digging, an Entrance exists and an
+	ordered cell can be reached from it (review H4); each reason not to is said once, not every SEND_EVERY_S (M6)."""
 	if digging() or works.entrance() < 0 or _cast == null:
+		return false
+	if works.next_dig(works.landing_of(works.entrance())).is_empty():
+		_say_once(CUT_OFF % works.waiting())
 		return false
 	var mole: int = _pick_mole()
 	if mole < 0:
-		_say.call(NO_MOLE)
+		_say_once(NOBODY)
 		return false
-	digger = _send(mole, BelowTask.MODE_DIG, Vector3i.ZERO)
-	_say.call(SENT % _name_of(mole))
+	var trip: BelowTask = _send(mole, BelowTask.MODE_DIG, Vector3i.ZERO)
+	if not _still_on(trip):
+		_say_once(NOBODY)
+		return false
+	digger = trip
+	_said = ""
+	_say.call(SENT % _name_of(mole) if _is_mole(mole) else NO_MOLE % _name_of(mole))
 	return true
 
 
+func _say_once(words: String) -> void:
+	"""Say `words` unless they were the last thing this said about digging."""
+	if words != _said:
+		_said = words
+		_say.call(words)
+
+
 func _pick_mole() -> int:
-	"""The first selected mole, else the first mole on no task, else the first mole (its routine task gives way, as
-	any order's does; its routine sends it again later); -1 with no mole in the village."""
+	"""The first selected mole, else the first mole on no task, else the first mole not below on a visit (its routine
+	task gives way, as any order's does); with no mole in the village (the art-free placeholders), any resident not
+	below (decision 1912 P-1912-3). -1 when nobody can go."""
 	var selected: PackedInt32Array = PackedInt32Array(_selection.call()) if _selection.is_valid() else PackedInt32Array()
 	for i: int in selected:
-		if _is_mole(i):
+		if _is_mole(i) and not _below_now(i):
 			return i
 	var any: int = -1
+	var anyone: int = -1
 	for i: int in int(_cast.call(&"actor_count")):
+		if _below_now(i):
+			continue
+		anyone = i if anyone < 0 else anyone
 		if not _is_mole(i):
 			continue
 		if int((_cast.call(&"actor", i) as Node).get(&"brain").get(&"order")) != BrainScript.ORDER_TASK:
 			return i
 		any = i if any < 0 else any
-	return any
+	return any if any >= 0 or _has_mole() else anyone
+
+
+func _has_mole() -> bool:
+	"""Whether any mole lives in the village."""
+	for i: int in int(_cast.call(&"actor_count")):
+		if _is_mole(i):
+			return true
+	return false
+
+
+func _below_now(i: int) -> bool:
+	"""Whether resident `i` is on one of the build panel's trips below."""
+	var row: int = _trip_actors.find(i)
+	return row >= 0 and _still_on(_trips[row])
 
 
 func _is_mole(i: int) -> bool:

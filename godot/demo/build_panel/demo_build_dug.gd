@@ -3,7 +3,7 @@ extends Node3D
 ## layer, demo_build_world.gd), from demo_build_works.gd:
 ##   OPEN cells     an earth floor, and walls 1 m high where open space meets earth (decision 1932's 1 quantum; the
 ##                  proof of concept draws the room at that height)
-##   ORDERED cells  a pale blueprint floor, waiting for the mole
+##   ORDERED cells  a pale blueprint floor, waiting for the mole, named so in words ("Waiting for the mole: N cells")
 ##   ways down      a dark square where one stands and a lighter one where it lands, each named
 ## and on the surface (the village's own layers, seen without the panel) each confirmed Entrance as a dark hole named
 ## "Entrance". Rebuilt only when the works or the level shown change. Presentation only.
@@ -22,6 +22,7 @@ const BLUEPRINT: Color = Color(0.46, 0.58, 0.7)
 const SHAFT: Color = Color(0.12, 0.09, 0.07)
 const LANDING: Color = Color(0.78, 0.66, 0.46)
 const TAG_PX: int = 32
+const WAITING: String = "Waiting for the mole: %d cells"
 ## Way-down names stand above a resident's own name tag (demo_build_figure.gd) so the two never overlap.
 const TAG_LIFT_M: float = 2.2
 
@@ -33,6 +34,9 @@ var _below: MeshInstance3D = null
 var _surface: MeshInstance3D = null
 var _tags: Array[Label3D] = []
 var _seen: Vector2i = Vector2i(-1, -1)
+## The level's open and ordered cells, refilled on a rebuild (demo_build_works.gd `cells_into`: its box only).
+var _open: PackedInt32Array = PackedInt32Array()
+var _ordered: PackedInt32Array = PackedInt32Array()
 ## Rebuilds since configure (checks: nothing is rebuilt on a still frame).
 var rebuilds: int = 0
 
@@ -78,8 +82,10 @@ func refresh(level: int) -> void:
 
 func _level_mesh(level: int) -> ImmediateMesh:
 	"""The level's open floor and walls, ordered blueprint cells, and the ways down on it."""
-	var open: PackedInt32Array = _cells_in(level, Works.OPEN)
-	var ordered: PackedInt32Array = _cells_in(level, Works.ORDERED)
+	_works.cells_into(level, Works.OPEN, _open)
+	_works.cells_into(level, Works.ORDERED, _ordered)
+	var open: PackedInt32Array = _open
+	var ordered: PackedInt32Array = _ordered
 	var mesh: ImmediateMesh = ImmediateMesh.new()
 	if open.is_empty() and ordered.is_empty():
 		return mesh
@@ -93,16 +99,6 @@ func _level_mesh(level: int) -> ImmediateMesh:
 	_ways(mesh, level, y + LIFT_M)
 	mesh.surface_end()
 	return mesh
-
-
-func _cells_in(level: int, state: int) -> PackedInt32Array:
-	"""Every cell of `level` in `state`, canonical pairs (a scan of the area: cold, on a change)."""
-	var out: PackedInt32Array = PackedInt32Array()
-	for z: int in range(_bounds.position.y, _bounds.end.y):
-		for x: int in range(_bounds.position.x, _bounds.end.x):
-			if _works.state(level, Vector2i(x, z)) == state:
-				out.append_array(PackedInt32Array([x, z]))
-	return out
 
 
 func _quad(mesh: ImmediateMesh, cell: Vector2i, y: float, colour: Color) -> void:
@@ -181,6 +177,10 @@ func _place_tags(level: int) -> void:
 		if level >= 1 and (top == level or top + 1 == level):
 			var words: String = "Way down" if top == level else "Way up to the surface" if top == 0 else "Way up"
 			used = _tag(used, words, at + Vector3(0.0, _floors[level] / UNITS_PER_M + TAG_LIFT_M, 0.0), LAYER)
+	if level >= 1 and not _ordered.is_empty():
+		var first: Vector3 = _corner(Vector2i(_ordered[0], _ordered[1]) + Vector2i.ONE, _floors[level] / UNITS_PER_M + 0.6)
+		@warning_ignore("integer_division") var waiting: int = _ordered.size() / 2
+		used = _tag(used, WAITING % waiting, first, LAYER)
 	for at: int in range(used, _tags.size()):
 		_tags[at].visible = false
 

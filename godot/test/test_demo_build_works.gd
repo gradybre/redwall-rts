@@ -96,3 +96,26 @@ func test_a_repaint_keeps_cells_ordered_once() -> void:
 	assert_equal(_works.way_count(), 1, "one way down")
 	assert_equal(_works.way_level(0), 0, "the Entrance")
 	assert_equal(_works.way_cell(0), Vector2i(4, 4), "its cell")
+
+
+func test_a_second_entrance_is_reached_through_the_surface() -> void:
+	"""Review H4: a room beside a second Entrance is dug from the first's landing, over the top."""
+	_works.order_way_down(0, Vector2i(4, 4))
+	_works.order_way_down(0, Vector2i(20, 20))
+	_works.order_room(1, PackedInt32Array([22, 20, 23, 20, 22, 21, 23, 21]), 2)
+	assert_equal(_dig_all(Vector3i(1, 4, 4)).size(), 12, "both landings and the room")
+	assert_equal(_works.waiting(), 0, "nothing waits")
+	var path: PackedVector3Array = _works.path_to(Vector3i(1, 4, 4), Vector3i(1, 22, 20))
+	assert_true(path.has(Vector3(Works.SURFACE)), "the walk goes over the top")
+
+
+func test_cells_into_scans_the_box_of_ordered_cells() -> void:
+	"""Review H2: the cells of a state, from the level's box only, canonical."""
+	_works.order_room(1, PackedInt32Array([10, 10, 11, 10]), 2)
+	assert_equal(_works.box_of(1), Rect2i(10, 10, 2, 1), "the box")
+	var out: PackedInt32Array = PackedInt32Array()
+	_works.cells_into(1, Works.ORDERED, out)
+	assert_equal(out, PackedInt32Array([10, 10, 11, 10]), "both")
+	_works.cells_into(1, Works.OPEN, out)
+	assert_true(out.is_empty(), "none dug")
+	assert_equal(_works.box_of(2), Rect2i(), "level 2 has none")

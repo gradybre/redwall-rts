@@ -7,8 +7,10 @@ extends "res://demo/tunnel/tunnel_task.gd"
 ##          to the nearest ordered one and stands beside it for DIG_SECONDS, then the cell opens; when nothing is left
 ##          that it can reach it walks back to the Entrance and comes out.
 ##   VISIT  a resident walks through dug cells to the cell it was sent to and stays there until called away.
-## Walking is a straight line from cell middle to cell middle at the resident's own walk speed. No claw stroke, no
-## Work or Routes phase, no payment: none of the settlement's excavation runs (that is slice C3's).
+## Walking is a straight line from cell middle to cell middle at the resident's own walk speed; a step through the
+## surface (demo_build_works.gd SURFACE: from one Entrance to another, or into a landing from above) is taken at once,
+## up and over. No claw stroke, no Work or Routes phase, no payment: none of the settlement's excavation runs (that is
+## slice C3's).
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
@@ -114,9 +116,13 @@ func _go(next_stage: int) -> void:
 
 
 func _walk(stride: float) -> void:
-	"""Along `_path` at walk speed, cell middle to cell middle; at its end: dig, stay, or come out."""
+	"""Along `_path` at walk speed, cell middle to cell middle (through the surface at once); at its end: dig, stay, or
+	come out."""
 	while _next < _path.size() and stride > 0.0:
 		var cell: Vector3i = Vector3i(_path[_next])
+		if cell == Works.SURFACE or _from_surface():
+			_over_the_top(cell)
+			continue
 		var to: Vector3 = world_of(cell) - _figure.position
 		if to.length() <= stride:
 			_figure.move_to(world_of(cell))
@@ -128,6 +134,20 @@ func _walk(stride: float) -> void:
 			stride = 0.0
 	if _next >= _path.size():
 		_arrive_below()
+
+
+func _from_surface() -> bool:
+	"""Whether the step just taken was through the surface."""
+	return _next > 0 and Vector3i(_path[_next - 1]) == Works.SURFACE
+
+
+func _over_the_top(cell: Vector3i) -> void:
+	"""A step through the surface: at once to the next cell (or, ending there, over the cell to be dug)."""
+	_next += 1
+	var landing: Vector3i = cell if cell != Works.SURFACE else _target
+	if landing.x >= 1:
+		_figure.move_to(world_of(landing))
+		_at = landing
 
 
 func _arrive_below() -> void:

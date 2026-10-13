@@ -406,10 +406,20 @@ static func dug_height_u(profiles: Object, clear_height_u: int, identity_row: in
 	(`underground_room_approach.gd reachable_height_u` with `crew_identity_row`), in whole quanta; the clear height
 	when no such row is published. The planner's plan (`_make_plan`) and the build ledger's price both read it. On
 	master the claw rows reach 1,024 u; slice C2.1 changes the room-digging rule in core (decision 1931 and its
-	successor), and this follows whatever it publishes. `identity_row` names another crew (-2: the claw crew)."""
+	successor), and this follows whatever it publishes. `identity_row` names another crew (-2: the claw crew). A crew
+	whose rows are published but reach nothing digs 0 (review M2); only profiles without that crew's row at all fall
+	back to the clear height."""
 	var row: int = crew_identity_row() if identity_row == -2 else identity_row
-	var reach: int = Approach.reachable_height_u(profiles, row) if profiles != null and row >= 0 else 0
-	return mini(clear_height_u, reach) if reach > 0 else clear_height_u
+	if profiles == null or row < 0 or row >= _published_rows(profiles):
+		return clear_height_u
+	return mini(clear_height_u, Approach.reachable_height_u(profiles, row))
+
+
+static func _published_rows(profiles: Object) -> int:
+	"""How many rows `profiles` publishes (its live header's row count; 0 when it has none)."""
+	var live: Object = profiles.get(&"_live") as Object
+	var header: PackedInt64Array = live.get(&"header") if live != null else PackedInt64Array()
+	return header[1] if header.size() > 1 else 0
 
 
 func _selected_refusal(request: Dictionary, bindings: RoomBindings, levels: Levels) -> StringName:

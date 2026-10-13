@@ -41,6 +41,9 @@ func test_the_dug_rooms_are_drawn_per_level_and_rebuilt_only_on_a_change() -> vo
 	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "drawn once")
+	var below: MeshInstance3D = dug.get_child(0) as MeshInstance3D
+	assert_true(below.mesh != null and (below.mesh as ImmediateMesh).get_surface_count() == 1, "something drawn")
+	assert_true(dug.tags().has("Waiting for the mole: 8 cells"), "waiting cells said in words")
 	assert_true(dug.tags().has("Entrance") and dug.tags().has("Way up to the surface"), ", ".join(dug.tags()))
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "a still frame rebuilds nothing")
@@ -99,8 +102,31 @@ func test_a_visit_walks_through_dug_cells_and_stays() -> void:
 	assert_equal(trip.label(), "In the dug rooms below", "says so")
 	assert_false(trip.holds_when_lost(), "lost on the way, back to its routine")
 	assert_equal(trip.world_of(Vector3i(1, 6, 4)), Vector3(6.5, -4.5, 4.5), "a cell's middle on level 1's floor")
+	var walker: _Walker = _Walker.new()
+	trip.cancel(walker)
+	assert_false(figure.visible, "called away: the figure gone")
+	assert_false(walker.indoors, "and the resident out")
+
+
+func test_a_dig_waits_before_the_cell_opens() -> void:
+	"""M1: a cell opens only after DIG_SECONDS of digging."""
+	var figure: Figure = Figure.new()
+	_nodes.append(figure)
+	var trip: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_DIG, Vector3i.ZERO, "Tuppen")
+	trip.arrived(_Walker.new())
+	trip.step(_Walker.new(), 0.01)
+	trip.step(_Walker.new(), 0.01)
+	assert_equal(trip.stage, BelowTask.STAGE_DIG, "digging the landing it stands on")
+	trip.step(_Walker.new(), BelowTask.DIG_SECONDS / 2.0)
+	assert_equal(trip.dug, 0, "not yet")
+	trip.step(_Walker.new(), BelowTask.DIG_SECONDS)
+	assert_equal(trip.dug, 1, "opened")
 
 
 class _Walker:
 	extends "res://demo/cast/resident_brain.gd"
-	## A brain stand-in for a trip's walk: only its walk speed is read below.
+	## A brain stand-in for a trip: its walk speed is read; going in and out only flips `indoors` (no space here).
+
+	func task_go_indoors(inside: bool, _building: int) -> void:
+		"""In or out, with no walking space to tell."""
+		indoors = inside

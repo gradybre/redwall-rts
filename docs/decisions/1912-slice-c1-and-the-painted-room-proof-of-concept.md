@@ -52,7 +52,10 @@ anything paid. It holds again when C3 wires the real economy.
 
 **Earlier the same day** (recorded in decision 1911 and `docs/handoff/RULINGS.md`): P-C1 (b), P-C2 (c), P-C3 (a) as
 corrected by P-C2-3 (a), P-C4–P-C9 (a); P-C2-1 to P-C2-5 on decision 1931; and decision 1932's room height (1 quantum,
-one claw front stroke M3; until M3 lands claws reach 0 quanta).
+one claw front stroke M3). "Until M3 lands claws reach 0 quanta" there means the height a claw stroke can actually
+CUT (decision 1931 F1: no published claw stroke reaches a room wall). `reachable_height_u` reads anchor heights only
+and reports 1,024 u for the claw crew; the build panel prices with that function's result (E9), which is decision
+1932's 1 quantum. The proof of concept digs regardless (ruling 1).
 
 ## What was built
 
@@ -104,13 +107,16 @@ one claw front stroke M3; until M3 lands claws reach 0 quanta).
   (`set_crew_identity`). `reachable_height_u` itself (core) is unchanged.
 - **E10 — The proof of concept draws rooms 1 m high** (1 quantum: decision 1932's height, and the simplest to draw).
 - **E11 — The works store** (`demo_build_works.gd`): one byte a cell per underground level for EARTH / ORDERED / OPEN
-  and one for the room type (5 × 65,536 × 2 bytes at most), and a short list of confirmed ways down. Ordered and dug
+  and one for the room type (4 × 65,536 × 2 bytes), a box per level around its ordered and dug cells (scans stay
+  inside it), and a short list of confirmed ways down. Every Entrance is joined to every other through the surface. Ordered and dug
   cells read as finished space for the next plan (`demo_build_ground.gd`), so new rooms connect to them.
 - **E12 — The dig order.** Breadth first from where the mole stands, through dug cells and dug ways down: the nearest
   ordered cell beside open space (or the landing under a dug way down, or its own cell). Rooms therefore open outward
   from the Entrance (SET-BUILD-001 §8's shape, by the plainest rule). A short wait of 1.5 s of game time per cell.
-- **E13 — The mole.** The first selected mole, else the first mole on no task, else the first mole (its routine task
-  gives way, as any order's does). It walks the surface to the Entrance as any task's resident does; underground its
+- **E13 — The mole.** The first selected mole, else the first mole on no task, else the first mole not below on a
+  visit (its routine task gives way, as any order's does); in a village with no mole at all (the art-free
+  placeholders, as in CI) any resident digs, and the notice says so ("No mole lives in the village: X digs instead").
+  A mole is sent only when an ordered cell can be reached from an Entrance; otherwise the reason is said once. It walks the surface to the Entrance as any task's resident does; underground its
   actor is indoors (not drawn) and a stand-in figure with its name is drawn in the World view. A trip lost on the
   surface goes back to its routine and the panel sends a mole again every 2 s while cells wait.
 - **E14 — Visitors.** With residents selected, a right click on a dug cell (panel open on that level) sends them down;
@@ -135,8 +141,9 @@ one claw front stroke M3; until M3 lands claws reach 0 quanta).
   stroke's "✓ Takes out the planned cells under it". Options: (a) as worded; (b) other words. **Recommend (a).**
 - **P-1912-2 — The Way down below level 1** stands on a planned or dug passage or room and lands on the same 2 × 2
   cells one level down. Options: (a) as built; (b) only on a Passage. **Recommend (a)** for the proof of concept.
-- **P-1912-3 — Which mole digs** (E13): (a) as built, taking a mole from its routine when none is free; (b) wait for a
-  free mole. **Recommend (a)**: the loop should never stall silently.
+- **P-1912-3 — Which mole digs** (E13): (a) as built, taking a mole from its routine when none is free, and any
+  resident when the village has no mole (the art-free placeholders); (b) wait for a free mole, and nobody digs without
+  one. **Recommend (a)**: the loop should never stall silently, and the art-free CI run can check it.
 - **P-1912-4 — Nothing is saved** (E11): (a) accept for the proof of concept; (b) save the works. **Recommend (a)**;
   C3's real owners save.
 

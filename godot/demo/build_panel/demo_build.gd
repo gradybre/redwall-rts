@@ -194,6 +194,11 @@ func bind_cast(cast: Node, selection: Callable) -> void:
 	_selection = selection
 
 
+func bind_props(props: Object) -> void:
+	"""The demo's staged props table (demo_props.gd): the build art drawn where it is staged (decision 1913)."""
+	dug.use_props(props)
+
+
 func _configure_world(session: Object) -> void:
 	"""The actual World's level view, built when first shown."""
 	world = BuildWorld.new()

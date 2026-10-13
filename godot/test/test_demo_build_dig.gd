@@ -304,6 +304,48 @@ func test_spread_clears_with_float_positions() -> void:
 		placed.append(moved)
 
 
+func test_staged_art_stands_in_for_the_procedural_pieces() -> void:
+	"""Decision 1913: a staged mouth and stair flight replace the procedural ones (the flight stretched over a landing
+	and the room's rise); with none (null), nothing changes."""
+	var dug: Dug = Dug.new()
+	_nodes.append(dug)
+	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
+	dug.use_props(null)
+	dug.set_art(null, Transform3D.IDENTITY, null, Transform3D.IDENTITY)
+	assert_equal(dug.art, PackedStringArray(), "nothing staged: the procedural pieces")
+	var bare: Dug.Props = Dug.Props.new()
+	bare.load_from({})
+	dug.use_props(bare)
+	assert_equal(dug.art, PackedStringArray(), "an art-free table (CI): still the procedural pieces")
+	assert_true(dug.earth.looks()[0] is ShaderMaterial and dug.earth.looks()[2] is ShaderMaterial, "and surfaces")
+	var box: BoxMesh = BoxMesh.new()
+	box.size = Vector3(1.9, 0.5, 1.7)
+	dug.set_art(box, Transform3D.IDENTITY, box, Transform3D.IDENTITY)
+	assert_equal(dug.art, PackedStringArray(["mouth", "stairs"]), "both staged")
+	var laid: AABB = Dug.stretched(box.get_aabb(), Transform3D.IDENTITY) * box.get_aabb()
+	assert_true(laid.position.is_equal_approx(Vector3.ZERO) and laid.size.is_equal_approx(Vector3(2.0, 1.0, 2.0)),
+		"laid over a landing, a room deep: %s" % laid)
+	var sunk: AABB = Dug.DOWN_TURN * laid
+	assert_true(sunk.position.is_equal_approx(Vector3(0.0, -1.0, 0.0)) and sunk.size.is_equal_approx(laid.size),
+		"turned and sunk for a way down: %s" % sunk)
+
+
+func test_staged_textures_dress_the_earth() -> void:
+	"""Decision 1913: a staged floor texture dresses the top (darkened) and the dug floors; a missing wall texture
+	leaves the walls procedural."""
+	var earth: Earth = Earth.new()
+	_nodes.append(earth)
+	earth.configure(Vector2i.ZERO, BOUNDS)
+	var texture: ImageTexture = ImageTexture.create_from_image(Image.create(4, 4, false, Image.FORMAT_RGB8))
+	earth.set_textures(texture, null)
+	var top: StandardMaterial3D = earth.looks()[0] as StandardMaterial3D
+	assert_true(top != null and top.albedo_texture == texture and top.albedo_color == Earth.TOP_TINT, "the top")
+	assert_true((earth.looks()[1] as StandardMaterial3D).albedo_color == Color.WHITE, "the dug floor, full")
+	assert_true(earth.looks()[2] is ShaderMaterial, "no wall texture: the procedural wall")
+	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
+	assert_true(earth.top_mesh().surface_get_material(0) == top, "drawn with it")
+
+
 func _top_area(earth: Earth) -> float:
 	"""The area (m²) of the earth top's land surface, from its triangles."""
 	var arrays: Array = earth.top_mesh().surface_get_arrays(0)

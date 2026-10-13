@@ -147,6 +147,18 @@ static func stairs_down_mesh(paint: Material) -> ArrayMesh:
 	return mesh
 
 
+static func cut_mesh(paint: Material, depth_m: float) -> ArrayMesh:
+	"""The cut a staged stair flight goes down in (decision 1913): its earth sides `depth_m` deep and its dark far end,
+	the flight itself drawn by the art."""
+	var quads: Quads = Quads.new()
+	_cut_sides(quads, -depth_m, 0.0, SIDE_M, Mouth.CUT_DEEP)
+	quads.quad(Vector3(0.0, -depth_m, 0.0), Vector3(SIDE_M, -depth_m, 0.0), Vector3(SIDE_M, 0.0, 0.0),
+		Vector3(0.0, 0.0, 0.0), Vector3.BACK, Mouth.THROAT_END)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.commit(mesh, paint)
+	return mesh
+
+
 static func _cut_sides(quads: Quads, low: float, north: float, south: float, colour: Color) -> void:
 	"""The earth walls either side of one tread, from the tread up to the dug floor, facing in."""
 	for x: float in [0.0, SIDE_M]:

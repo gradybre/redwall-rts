@@ -12,6 +12,10 @@ extends Node3D
 ## tile from the settlement's World (demo_build_world.gd `section_kinds`); with no World it is all earth. It replaces
 ## the section's own plane in the build view, which cannot be cut (decision 1913 E1).
 ##
+## THE TEXTURES (decision 1913, Brendan's "Yes, all three"): where the bought packed-earth and dug-wall textures are
+## staged (`set_textures`, demo_props.gd `build_texture`), the floors and the top wear the first and the walls the
+## second, tiled in metres; the top darkened as the unexcavated mass. Where they are not (CI), the procedural surfaces.
+##
 ## THE CELLS (demo_build_works.gd), told apart by shape and by words, never by colour alone:
 ##   EARTH     the top, plain;
 ##   ORDERED   the top, each cell pegged out in chalk (and named "Waiting for the mole" by the dug view);
@@ -52,6 +56,10 @@ const LIFT_M: float = 0.006
 ## cap's water hue (underground_cap.gdshader `water_colour`), darkened to sit below the earth (unshaded, it glared).
 const APRON_M: float = 96.0
 const WATER: Color = Color(0.085, 0.12, 0.155)
+## The staged textures' tiling (metres a texture spans: each holds two repeats) and the unexcavated top's darkening.
+const FLOOR_TILE_M: float = 4.0
+const WALL_TILE_M: float = 2.0
+const TOP_TINT: Color = Color(0.72, 0.68, 0.64)
 const SIDES: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
 const NO_CELL: Vector3i = Vector3i(-1, 0, 0)
 
@@ -61,6 +69,8 @@ var _bounds: Rect2i = Rect2i()
 var _runs: Array[PackedInt32Array] = []
 var _surfaces: Materials = Materials.new()
 var _wet: Dictionary = {}
+## The surfaces drawn: [top, dug floor, dug wall] (the procedural ones until `set_textures`).
+var _looks: Array[Material] = []
 var _marks_material: StandardMaterial3D = null
 var _top: MeshInstance3D = null
 var _dug: MeshInstance3D = null
@@ -89,6 +99,8 @@ func configure(datum_u: Vector2i, bounds: Rect2i) -> void:
 	_marks_material.vertex_color_is_srgb = true
 	_marks_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_marks_material.render_priority = 1
+	_looks = [_surfaces.material(Materials.EARTH, Materials.FLOOR), _surfaces.material(Materials.EARTH, Materials.FLOOR),
+		_surfaces.material(Materials.EARTH, Materials.WALL)]
 	_top = _node(TOP_LAYER, true)
 	_dug = _node(LAYER, true)
 	_marks = _node(LAYER, false)
@@ -105,6 +117,31 @@ func _node(layer: int, shadows: bool) -> MeshInstance3D:
 		else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)
 	return node
+
+
+func set_textures(floor_texture: Texture2D, wall_texture: Texture2D) -> void:
+	"""Wear the staged textures (null: keep that surface procedural); the next `draw` uses them."""
+	if floor_texture != null:
+		_looks[0] = textured(floor_texture, FLOOR_TILE_M, TOP_TINT)
+		_looks[1] = textured(floor_texture, FLOOR_TILE_M, Color.WHITE)
+	if wall_texture != null:
+		_looks[2] = textured(wall_texture, WALL_TILE_M, Color.WHITE)
+
+
+static func textured(texture: Texture2D, tile_m: float, tint: Color) -> StandardMaterial3D:
+	"""A matte, lit surface wearing `texture` once every `tile_m` metres of the quads' metre UVs (a wall's v runs up,
+	the image's down: flipped)."""
+	var look: StandardMaterial3D = StandardMaterial3D.new()
+	look.albedo_texture = texture
+	look.albedo_color = tint
+	look.roughness = 1.0
+	look.uv1_scale = Vector3(1.0 / tile_m, -1.0 / tile_m, 1.0)
+	return look
+
+
+func looks() -> Array[Material]:
+	"""The surfaces drawn: top, dug floor, dug wall (checks)."""
+	return _looks
 
 
 func set_kinds(tile_kinds: PackedByteArray) -> void:
@@ -152,13 +189,13 @@ func draw(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
 	var cut: Array[Quads] = [Quads.new(), Quads.new(), Quads.new()]
 	_cuts(works, level, box, top_m, cut)
 	var top_drawn: ArrayMesh = ArrayMesh.new()
-	top.commit(top_drawn, _surfaces.material(Materials.EARTH, Materials.FLOOR))
+	top.commit(top_drawn, _looks[0])
 	for kind: int in wet:
 		(wet[kind] as Quads).commit(top_drawn, _wet_material(kind))
 	_top.mesh = top_drawn
 	var dug_mesh: ArrayMesh = ArrayMesh.new()
-	cut[0].commit(dug_mesh, _surfaces.material(Materials.EARTH, Materials.FLOOR))
-	cut[1].commit(dug_mesh, _surfaces.material(Materials.EARTH, Materials.WALL))
+	cut[0].commit(dug_mesh, _looks[1])
+	cut[1].commit(dug_mesh, _looks[2])
 	_dug.mesh = dug_mesh
 	var marks_mesh: ArrayMesh = ArrayMesh.new()
 	cut[2].commit(marks_mesh, _marks_material)
@@ -362,7 +399,7 @@ static func _unit_edge(side: int) -> Array[Vector3]:
 func _commit(quads: Quads) -> ArrayMesh:
 	"""`quads` as a mesh in the dug wall's surface."""
 	var mesh: ArrayMesh = ArrayMesh.new()
-	quads.commit(mesh, _surfaces.material(Materials.EARTH, Materials.WALL))
+	quads.commit(mesh, _looks[2])
 	return mesh
 
 

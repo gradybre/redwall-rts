@@ -17,6 +17,7 @@ const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
 const Ways := preload("res://demo/build_panel/demo_build_ways.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const Look := preload("res://demo/world/world_look.gd")
+const Props := preload("res://demo/props/demo_props.gd")
 
 const LAYER: int = 256
 const UNITS_PER_M: float = 1024.0
@@ -35,6 +36,11 @@ const ENTRANCE_TAG_M: float = 1.5
 ## This view's sun, on what was dug: high, from the south-west behind the camera, so the far walls and the floors are
 ## lit and each cut's west and south edges cast their shade into the room. The earth's top takes only a dim fill from
 ## straight above (demo_build_earth.gd TOP_LAYER), so the rooms stand out of the mass.
+## The build art (decision 1913; demo_props.gd SIZES): the Entrance's burrow mouth and the landings' stair flight.
+const MOUTH_KEY: StringName = &"burrow_mouth"
+const STAIRS_KEY: StringName = &"dig_stairs"
+## A staged flight rises north; turned about its middle and sunk a room's depth it goes down north instead.
+const DOWN_TURN: Transform3D = Transform3D(Basis(Vector3.UP, PI), Vector3(Ways.SIDE_M, -Earth.DEPTH_M, Ways.SIDE_M))
 const SUN_TOWARD: Vector3 = Vector3(-0.38, 0.8, 0.46)
 const SUN_ENERGY: float = 1.7
 const FILL_ENERGY: float = 0.22
@@ -58,6 +64,8 @@ var _has_kinds: bool = false
 var _ordered: PackedInt32Array = PackedInt32Array()
 ## Rebuilds since configure (checks: nothing is rebuilt on a still frame).
 var rebuilds: int = 0
+## Which pieces are the staged art (checks): "mouth", "stairs".
+var art: PackedStringArray = PackedStringArray()
 
 
 func configure(works: Works, floors: PackedInt32Array, datum: Vector2i, bounds: Rect2i) -> void:
@@ -97,6 +105,45 @@ static func _make_light(title: String, toward: Vector3, energy: float, layers: i
 	light.shadow_caster_mask = layers
 	light.visible = false
 	return light
+
+
+func use_props(props: Props) -> void:
+	"""Draw the build art where `props` has it staged (decision 1913: the burrow mouth, the stair flight, the earth's
+	textures); every piece not staged (CI, a fresh clone) keeps its procedural drawing."""
+	if props == null:
+		return
+	var mouth: Mesh = props.mesh_of(MOUTH_KEY) if props.is_staged(MOUTH_KEY) else null
+	var stairs: Mesh = props.mesh_of(STAIRS_KEY) if props.is_staged(STAIRS_KEY) else null
+	set_art(mouth, props.fit_of(MOUTH_KEY) if mouth != null else Transform3D.IDENTITY, stairs,
+		props.fit_of(STAIRS_KEY) if stairs != null else Transform3D.IDENTITY)
+	earth.set_textures(props.build_texture("earth_floor"), props.build_texture("earth_wall"))
+	_seen = Vector4i(-1, -1, -1, -1)
+
+
+func set_art(mouth: Mesh, mouth_fit: Transform3D, stairs: Mesh, stairs_fit: Transform3D) -> void:
+	"""The art in place of the procedural mouth (drawn by `mouth_fit`: on the ground, centred) and stairs (stretched
+	to a landing's 2 × 2 m and the room's rise; turned and sunk, in its cut, for a way down). Null keeps the
+	procedural piece. Setup only: the meshes are baked once."""
+	if mouth != null:
+		_mouth = Props.transformed(mouth, mouth_fit)
+		art.append("mouth")
+	if stairs == null:
+		return
+	var up_fit: Transform3D = stretched(stairs.get_aabb(), stairs_fit)
+	_up = Props.transformed(stairs, up_fit)
+	_down = Props.transformed(stairs, DOWN_TURN * up_fit)
+	var cut: ArrayMesh = Ways.cut_mesh(_paint, Earth.DEPTH_M)
+	_down.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, cut.surface_get_arrays(0))
+	_down.surface_set_material(_down.get_surface_count() - 1, _paint)
+	art.append("stairs")
+
+
+static func stretched(bound: AABB, fit: Transform3D) -> Transform3D:
+	"""`fit` then a stretch that lays the drawn bound over a landing: x and z 0 to its side, y 0 to a room's depth."""
+	var drawn: AABB = fit * bound
+	var side: float = Ways.SIDE_M
+	var stretch: Vector3 = Vector3(side / drawn.size.x, Earth.DEPTH_M / drawn.size.y, side / drawn.size.z)
+	return Transform3D(Basis.from_scale(stretch), -drawn.position * stretch) * fit
 
 
 func set_kinds(tile_kinds: PackedByteArray) -> void:

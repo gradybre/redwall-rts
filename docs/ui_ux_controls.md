@@ -715,3 +715,10 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 own UI-BUILD family; `godot/test/test_input_map.gd` and `test_ui_registry.gd` check both. Read together, this
 section's "Arrows move the cell cursor" and "arrows outside the card row still pan" mean the arrows move the cell
 cursor while a room type is armed and the world has the keys, and pan otherwise (decision 1871 E10).
+
+**Follow-up (slice C1 and the proof of concept), 2026-10-12 ([decision 1912](decisions/1912-slice-c1-and-the-painted-room-proof-of-concept.md)).**
+UI-BUILD-010's ghost now judges every cell (✓ GOLD outline, ! WARNING dashed, X DANGER hatched and numbered "X1 …");
+a tool strip of four toggles (Rect · Oval · Paint · Erase) stands along the info card's foot while a room type is
+chosen (32 px high, inside UI-BUILD-004's rectangle); the arrows move the cell cursor relative to the camera
+(P-B10 (b)); the Rooms tab offers the Entrance on the Surface and a Way down on levels 1–3 (a lite UI-BUILD-012:
+placed by a click, no connector card yet). Proposed words for the Validity table are listed in decision 1912.

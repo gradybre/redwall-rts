@@ -8,8 +8,9 @@ extends RefCounted
 ##
 ## The canonical reasons are the section's table, word for word; each builder below returns one and names the
 ## glyph it carries (`REASON_KINDS`). A reason the table does not hold is marked PROPOSAL where it is defined
-## (decision 1871): the shape words the planner already shows, "Outside the planning area", "Joins two planned
-## rooms" and the locked cards' "Not yet: ...". Pure and static; nothing here reads game state.
+## (decision 1871): the shape words the planner already shows, "Outside the planning area" and the locked cards'
+## "Not yet: ..."; decision 1912 (slice C1) adds "Nothing to erase" and retires "Joins two planned rooms" (a stroke
+## joining two pending rooms of its type now merges them: P-B2 (b)). Pure and static; nothing here reads game state.
 
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 
@@ -41,17 +42,22 @@ const REASON_NO_LEVEL_BELOW: int = 14
 const REASON_CUT_OFF: int = 15
 const REASON_OUTSIDE: int = 16
 const REASON_SHAPE: int = 17
-const REASON_JOINS_TWO: int = 18
+## Slot 18 was "Joins two planned rooms" (decision 1871), retired by decision 1912: BUILD-REQ-006's removal words.
+const REASON_NARROW_REMOVAL: int = 18
 const REASON_NOT_YET: int = 19
 const REASON_REFUSED: int = 20
 const REASON_NOTHING_NEW: int = 21
-const REASON_COUNT: int = 22
+const REASON_NOTHING_TO_ERASE: int = 22
+const REASON_WAY_DOWN_CLASH: int = 23
+const REASON_NEEDS_FLOOR: int = 24
+const REASON_COUNT: int = 25
 ## The glyph each reason carries, by REASON_* id (the table's Glyph column; proposals as decision 1871 says).
 const REASON_KINDS: Array[int] = [
 	KIND_CAN_BUILD, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
+	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_BLOCKED,
 ]
 
 const TEXT_TOO_NARROW: String = "Too narrow: rooms need at least 2 × 2 cells"
@@ -69,16 +75,23 @@ const FORMAT_LOCKED: String = "Locked: needs %s"
 const TEXT_NO_LEVEL_ABOVE: String = "No level above the surface"
 const TEXT_NO_LEVEL_BELOW: String = "No level below level 4"
 const FORMAT_CUT_OFF: String = "Would cut off %s: build another way in first"
+## BUILD-REQ-006 as amended by decision 1880 Q3 (canonical): here an Erase that would leave a pending room part one
+## cell wide (the review that adds those cells comes with slice F's removals).
+const FORMAT_NARROW_REMOVAL: String = "Too narrow: this would leave part of %s under 2 × 2 cells; remove those cells too"
 ## PROPOSAL (decision 1871): a stroke past the planning area's edge is refused whole, never clipped (ADR 1055).
 const TEXT_OUTSIDE: String = "Outside the planning area: keep the whole room inside it"
 ## PROPOSAL: the planner's own shape refusals (modular_editor.gd `_words`), prefixed so they read as a reason.
 const FORMAT_SHAPE: String = "Shape: %s"
-## PROPOSAL: a stroke touching two planned rooms of its type would have to merge them, which the batch does not do.
-const TEXT_JOINS_TWO: String = "Joins two planned rooms: undo one of them first"
 ## PROPOSAL: a card for a later part of the build model, inspectable but not usable yet.
 const FORMAT_NOT_YET: String = "Not yet: %s"
 ## PROPOSAL: a stroke wholly inside its own planned room adds nothing (it is dropped, no Undo step).
 const TEXT_NOTHING_NEW: String = "Nothing to add: these cells are already planned for this room"
+## PROPOSAL (decision 1912): an Erase stroke over no pending cell of the chosen room type takes nothing out.
+const FORMAT_NOTHING_TO_ERASE: String = "Nothing to erase: no planned %s cells here"
+## PROPOSAL (decision 1912, the proof of concept's ways down): two ways down on the same cells.
+const FORMAT_WAY_DOWN_CLASH: String = "Overlaps another %s: undo it first"
+## PROPOSAL (decision 1912): a way down below the surface stands on a planned or dug passage or room.
+const FORMAT_NEEDS_FLOOR: String = "%s needs a passage or room under it: paint one there first"
 
 
 static func is_kind(kind: int) -> bool:
@@ -200,9 +213,9 @@ static func shape(words: String) -> String:
 	return FORMAT_SHAPE % words
 
 
-static func joins_two() -> String:
-	"""PROPOSAL: a stroke touching two planned rooms of its type (X)."""
-	return TEXT_JOINS_TWO
+static func narrow_removal(room: String) -> String:
+	"""BUILD-REQ-006 (decision 1880 Q3): taking cells out would leave part of `room` one cell wide (X)."""
+	return FORMAT_NARROW_REMOVAL % room
 
 
 static func not_yet(what: String) -> String:
@@ -213,3 +226,18 @@ static func not_yet(what: String) -> String:
 static func nothing_new() -> String:
 	"""PROPOSAL: a stroke wholly inside its own planned room (X: dropped, nothing to undo)."""
 	return TEXT_NOTHING_NEW
+
+
+static func nothing_to_erase(type_name: String) -> String:
+	"""PROPOSAL (decision 1912): an Erase stroke over no pending cell of `type_name` (X: dropped, nothing to undo)."""
+	return FORMAT_NOTHING_TO_ERASE % type_name
+
+
+static func overlaps_way_down(name: String) -> String:
+	"""PROPOSAL (decision 1912): a way down over another on the same level (X)."""
+	return FORMAT_WAY_DOWN_CLASH % name
+
+
+static func needs_floor(name: String) -> String:
+	"""PROPOSAL (decision 1912): a way down below the surface with no passage or room under it (!)."""
+	return FORMAT_NEEDS_FLOOR % name

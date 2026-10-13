@@ -16,6 +16,8 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
 const Access := preload("res://demo/burrow/modular_access.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+## The mounted content's claw crew rows (decision 1912; Brendan's ruling P-C2-3 (a) on decision 1931).
+const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"MODULAR_VIEW_OWNER_BINDING"
 const REFUSE_DRAFT: StringName = &"MODULAR_VIEW_DRAFT_CHANGED"
@@ -38,6 +40,8 @@ class AccessSetup extends RefCounted:
 	var blocked: Callable = Callable()
 	var read_view: Callable = Callable()
 
+## The crew whose dig rows set a planned room's height (`dug_height_u`): the claw crew unless a fixture names its own.
+var _crew_row: int = crew_identity_row()
 var _editor: Editor = null
 var _tool: WorldTool = null
 var _draft: WeakRef = null
@@ -379,11 +383,43 @@ func _make_plan(bindings: RoomBindings, request: Dictionary, level: Levels.Recor
 
 
 func _excavated_height(clear_height_u: int) -> int:
-	"""DEC-054: the level's clear height, capped at the band the published dig rows reach from the floor."""
+	"""DEC-054: the level's clear height, capped at the band the crew's dig rows reach from the floor (`dug_height_u`)."""
 	var provider: WorldRoutes = _access._actual() if _access != null else null
-	if provider == null or provider._profiles == null: return clear_height_u
-	var reach: int = Approach.reachable_height_u(provider._profiles, -1)
-	return mini(clear_height_u, reach) if reach > 0 else clear_height_u
+	return dug_height_u(provider._profiles if provider != null else null, clear_height_u, _crew_row)
+
+
+func set_crew_identity(row: int) -> void:
+	"""Name the crew that will dig by one of its rows (the claw crew by default). Only a fixture whose crew is not
+	the game's -- the content-6 pick fixtures of ADRs 1161/1213 -- names its own."""
+	_crew_row = row
+
+
+static func crew_identity_row() -> int:
+	"""The crew that digs rooms: the claw crew (DEC-052), named by its first dig row's actor, tool and cargo. Brendan's
+	ruling P-C2-3 (a) on decision 1931: "price and plan by the claw crew's identity, never 'any row'"."""
+	return ClawPins.CLAW_DIG_ROWS[0]
+
+
+static func dug_height_u(profiles: Object, clear_height_u: int, identity_row: int = -2) -> int:
+	"""THE ONE PLACE a painted underground room's height is read (DEC-054; decision 1911 P-C3 (a) as corrected by
+	P-C2-3 (a)): the clear height capped at the band the claw crew's published dig rows reach from the floor
+	(`underground_room_approach.gd reachable_height_u` with `crew_identity_row`), in whole quanta; the clear height
+	when no such row is published. The planner's plan (`_make_plan`) and the build ledger's price both read it. On
+	master the claw rows reach 1,024 u; slice C2.1 changes the room-digging rule in core (decision 1931 and its
+	successor), and this follows whatever it publishes. `identity_row` names another crew (-2: the claw crew). A crew
+	whose rows are published but reach nothing digs 0 (review M2); only profiles without that crew's row at all fall
+	back to the clear height."""
+	var row: int = crew_identity_row() if identity_row == -2 else identity_row
+	if profiles == null or row < 0 or row >= _published_rows(profiles):
+		return clear_height_u
+	return mini(clear_height_u, Approach.reachable_height_u(profiles, row))
+
+
+static func _published_rows(profiles: Object) -> int:
+	"""How many rows `profiles` publishes (its live header's row count; 0 when it has none)."""
+	var live: Object = profiles.get(&"_live") as Object
+	var header: PackedInt64Array = live.get(&"header") if live != null else PackedInt64Array()
+	return header[1] if header.size() > 1 else 0
 
 
 func _selected_refusal(request: Dictionary, bindings: RoomBindings, levels: Levels) -> StringName:

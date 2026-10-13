@@ -217,6 +217,15 @@ A painted underground cell is dug to the level's clear height of 4096 u = **4 qu
 | Work | 4 × 4230 | 16920 milli-WU |
 | Earth output | 4 × 2000 | 8000 milli-U `excavated_earth` |
 
+**DEC-054 note (Brendan's ruling on decision 1911 P-C3 (a), 2026-10-12).** [DEC-054](setting_decisions.md#dec-054--a-room-is-excavated-only-as-high-as-the-dig-strokes-reach)
+caps how high a Room is dug: only as high as the published dig rows reach from the floor, derived live
+(`underground_room_approach.gd reachable_height_u`), and never above the clear height. RoomOrders already plans a
+painted room at that height (`modular_runtime.gd _excavated_height`). So a painted underground cell is priced and dug
+at `ceil_div(min(clear height, reachable height), 1024)` quanta, not always 4. The table above is the 4-quantum
+ceiling. On the current rows the reachable height is 2048 u, so a cell is **2 quanta: wood 500, stone 500 milli-U,
+work 8460 milli-WU, earth 4000 milli-U**. Every figure is the same per-quantum price times the quanta actually cut;
+no new constant.
+
 A 2 × 2 Passage patch is 16 quanta: wood 4000, stone 4000 milli-U, 67680 milli-WU, 32000 milli-U earth. A cell
 already open (BACKFILLED re-dig follows ECON-005's withdrawal branch) is never charged twice. Underground rooms have
 no generated-wall or roof bill: their walls are braced earth.

@@ -1,6 +1,7 @@
 # 1911 — Slice C scoping: what "paint a room on earth = the dig order" needs, and what exists today
 
-Date: 2026-10-12 · Status: Proposed (scoping only; no code). Waiting on Brendan's answers to P-C1–P-C9 below.
+Date: 2026-10-12 · Status: Accepted (Brendan ruled P-C1–P-C9 on 2026-10-12, recorded below; C1 is implemented under
+this record)
 
 Number range: 1911–1929 was allocated to this lane by the coordinator; checked free on every local and remote ref
 (`git ls-tree` over `refs/heads` and `refs/remotes`) and with `decision_numbers.py`. It replaces no BACKLOG range.
@@ -20,6 +21,27 @@ cannot be finished in this slice**, for two reasons found in the code, not in th
 This record proposes splitting the slice (P-C1). **C1** is all the painting work on the actual World, which needs
 neither missing piece. **C2** is the production room dispatcher, which can run beside C1 because it touches different
 files. **C3** wires Confirm all to C2 once slice D gives level 1 a way in.
+
+## Brendan's rulings (2026-10-12)
+
+Relayed by the coordinator: on 2026-10-12, in chat to the coordinator, Brendan answered P-C1–P-C9.
+
+| Item | Ruling |
+|---|---|
+| P-C1 | **(b) split.** "You do C1 now. C2 (room foreman) starts as a separate lane in parallel. C3 comes after slice D and C2." |
+| P-C2 | **(c) remove them now** (not this record's recommendation). "The Passage / Burrow home / Root cellar cards no longer open the old tunnel and template tools; remove those entries from the panel. The demo has no playable digging until C3, so make the panel/words honest about that." Deleting the old tool code itself is optional, only where nothing else uses it |
+| P-C3 | **(a)** "price the height actually cut (2 quanta per cell on the current rows), and add a DEC-054 note to SET-BUILD-001 §7.2" |
+| P-C4 | **(a)**, a chain of drafted cells of any type on the level to finished space or a connector is a way in; "No way in" holds Confirm all back |
+| P-C5 | **(a)**, keep the shared frame and draw the actual terrain |
+| P-C6 | **(a)**, levels 1–4 show the actual World at 5 m; the legacy warren is hidden while painting |
+| P-C7 | **(a)**, the Rectangle · Oval · Paint · Erase strip with a 2 × 2 brush; Erase removes pending cells only |
+| P-C8 | **(a)**, fold decision 1880's bytes in when the columns are first allocated (C3, or C2 if first) |
+| P-C9 | **(a)**, C2 digs in BUILD-REQ-012's breadth-first order with up to 4 builders |
+
+Written in: SET-BUILD-001 §7.2 (the DEC-054 note), the study's §5 dependency rows (C1 needs B; C3 needs C2 and D),
+`docs/handoff/RULINGS.md`. File boundary with the C2 lane (coordinator, same message): C2 owns `godot/scripts/core/`
+(the room foreman, `room_projects.gd`, the `settlement_system.gd` tick wiring, `underground_room_orders.gd`) and its
+own tests and decisions (1931+); C1 edits none of them and keeps `docs/underground-integration-status.md`.
 
 ## 1. What slice C must deliver
 

@@ -166,6 +166,88 @@ concept changes.
 
   **Recommend (c)** for the proof of concept, since C3 replaces this view.
 
+## The art (P-1913-2, as ruled)
+
+Bought within Brendan's cap of 78 credits including retries, delegated under decision 0961. The balance was checked
+before the first call and between each group: **86 → 77 → 68 → 48 → 18 → 8. 78 credits, six calls, no retry, no
+failure.**
+
+| # | Item | Tool and model | Task | Credits | Balance after |
+|---|---|---|---|---|---|
+| 1 | Packed-earth floor texture, tileable | text-to-image, nano-banana-pro, 1:1 | `01a1356b-d802-70bf-8505-3cd3d221f661` | 9 | 77 |
+| 2 | Dug earth wall texture, tileable | text-to-image, nano-banana-pro, 1:1 | `01a1356c-8780-74c8-9bdc-f544dd7fff42` | 9 | 68 |
+| 3 | Stair flight, preview (untextured high-poly) | text-to-3d, latest (meshy-7.1), no remesh | `01a1356d-6523-7537-a2bc-c321a5d7a293` | 20 | 48 |
+| 4 | Stair flight, texture (2K, PBR) | text-to-3d refine | `01a1356e-8a07-74b9-aeac-632997f602eb` | 10 | — |
+| 5 | Burrow mouth, preview | text-to-3d, latest (meshy-7.1), no remesh | `01a1356e-a6d7-732b-88d8-2ac226b50bf3` | 20 | 18 |
+| 6 | Burrow mouth, texture (2K, PBR) | text-to-3d refine | `01a13571-9abb-75b5-82a8-026b040b4d95` | 10 | 8 |
+
+Each preview was rendered and looked at before its texture was paid for. The prompts are in the calls' rows of
+`docs/art-reference/asset_library/meshy_tasks.jsonl`; the palette was locked in them to the earth's own tones (umber
+#452E1B, warm brown #7D5938, humus #2E1E12, rust clay #8A4A2A).
+
+- **One deviation: the burrow mouth was made from text, not from an image.** P-1913-2 itemised it as image-to-3D with a
+  2K texture (30), but no concept image existed for it and a concept was not in the approved list. Text-to-3D preview
+  plus refine is the same 30 credits for the same item; it was used instead. Recorded here, not hidden.
+- **Measured before use** (the asset pipeline's rule): both models are glTF Y-up with an identity node, the mouth
+  1.87 × 0.90 × 1.90 m and the flight 1.90 × 0.48 × 1.69 m as delivered; the mouth opens toward +Z (its +Z edge is
+  ground, max height −0.29 m) and the flight rises toward −Z. Both match the procedural pieces' directions.
+- **Where it lives.** As decision 0188 rules, nothing generated is committed: the high-poly sources are in the
+  gitignored `assets/library/prop/{burrow_mouth,dig_stairs}/` and `assets/library/texture/{earth_floor,earth_wall}/`,
+  and are re-downloadable by task ID. `tools/make_demo_props.py` makes each prop's game L0 at the furniture budget
+  (`burrow_mouth` 1,900 triangles, decimated; `dig_stairs` 1,899, voxel remesh then decimate; 1,024 px baked maps);
+  the new `tools/stage_build_art.py` copies each texture byte for byte, only when its SHA-256 is the recorded one,
+  into the manifest's new `build` section (`tools/stage_demo_assets.py` runs it; `test_stage_build_art.py` in CI).
+- **How it is drawn** (`demo_build_dug.gd use_props`, `demo_build_earth.gd set_textures`):
+  - The mouth replaces the procedural mound, 3.0 m across (`demo_props.gd` SIZES): its arch is tall enough for a
+    0.90 m mole.
+  - The flight is stretched over a landing's 2 × 2 m and the room's 1 m rise for a way up. For a way down it is
+    turned about its middle and sunk a room's depth, inside the procedural cut's walls (`Ways.cut_mesh`).
+  - The floor texture tiles every 4 m on the floors and on the top; the top is darkened (`TOP_TINT`). The wall
+    texture tiles every 2 m.
+  - With nothing staged (CI, a fresh clone), every piece keeps its procedural drawing. The checks cover both, and an
+    art-free props table.
+- **The mouth's arch faces the default heading.** The village camera starts at yaw 0, looking north from the south.
+  The mouth opens to +Z, toward that camera; the procedural mound opens the same way. A Way down's landing gives no
+  better direction: the landing lies straight under the Entrance.
+  - **In the open the model reads as an entrance.** Seen from the default heading at 35°, it is a stone-arched earth
+    mound with a dark tunnel mouth (`mouth_in_the_open_default_heading_*.png`, below).
+  - **At the loop harness's Entrance, (10, 36), it does not, and no camera fixes that.** An oak's trunk and a fallen
+    log stand just south of the mouth, and crowns close over it. The camera allows nothing nearer than 7 m or lower
+    than 30° (`demo_camera.gd`). Four headings were tried: yaw 0 at 7.5 m and 32°; 320; 340; and 300. From every one
+    the arch is hidden behind the trunk or the log, or the eye is pushed out above the crowns.
+  - **The surface frame therefore looks from the west** (yaw 270, 38°, 7 m), the clearest side. It shows the mound
+    whole and the arch in profile; from there it reads as a mound, not as a hole.
+  - **Nothing was spent to fix it**, and none of the 8 credits left is approved. Moving the harness's loop to an open
+    site would show the arch, but it would move every cell the loop paints; that is left for Brendan to ask for.
+- **Frames**, at both sizes:
+  - Before (procedural): `polish_check/art_before_1280x720/` and `art_before_1920x1080/`.
+  - After: `art_after_1280x720/` and `art_after_1920x1080/`. These include the re-aimed `loop_entrance_open_*` and
+    `mouth_in_the_open_default_heading_*`, the staged mouth alone on open ground.
+  - The textured floors read as packed earth and the stairs as timber treads.
+- **The review of the wiring** (independent `code-reviewer` on `b1bb4779`) found no CRITICAL and no HIGH. Fixed:
+  - **M1:** the way-down test could not fail on direction. A wedge flight, made both ways round, now checks it.
+  - **M2:** the flight's direction was assumed. It is now measured (`rises_north`) and turned if needed. The bought
+    flight rises north as delivered.
+  - **M3:** the art and its cut shared planes. The flight is laid `ART_INSET_M` (1 cm) inside the landing's sides.
+  - **LOW 4:** `set_art` starts again on a second call.
+  - **LOW 5:** a flat flight is not drawn.
+  - **LOW 7:** the staging tool removes a staged texture that no key names.
+  - **LOW 8:** the tool's `main` is checked.
+  - **LOW 9:** the texture rows carry `multi_view`, and the model is named `meshy-7.1` with `ai_model: latest` in its
+    params.
+
+  Six new mutants over the art logic were all killed. Left as they are:
+  - **LOW 6:** the two textures are decoded and mipmapped once, when the panel is built, uncompressed, about 5.6 MB
+    each at 1,024 px.
+  - **LOW 9, timestamps:** the ledger's six `created` times are the minutes the calls were made, not the API's
+    timestamps.
+- **No art is accepted.** These are candidates; visual acceptance is Brendan's, through `tools/art_gate.py`.
+  `docs/planning/art_approvals.json` was not touched. The request block, for him to paste if he wants the gate:
+  `{"id": "ART-BUILD-POC", "what": "Build panel proof of concept: burrow_mouth and dig_stairs props, earth_floor and
+  earth_wall textures (decision 1913) -- visual acceptance", "spends_credits": false, "estimated_credits": 0,
+  "why_gated": "visual acceptance", "status": "pending", "requested": "2026-10-13", "decided": null,
+  "decided_by": null}`.
+
 ## Gates
 
 At `c1ab280c` (code), merged with `origin/master` `8e2bc009` (`fe09e6ee`; no content change), Godot 4.7.2, 2026-10-13.

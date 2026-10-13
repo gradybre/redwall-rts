@@ -41,6 +41,10 @@ const MOUTH_KEY: StringName = &"burrow_mouth"
 const STAIRS_KEY: StringName = &"dig_stairs"
 ## A staged flight rises north; turned about its middle and sunk a room's depth it goes down north instead.
 const DOWN_TURN: Transform3D = Transform3D(Basis(Vector3.UP, PI), Vector3(Ways.SIDE_M, -Earth.DEPTH_M, Ways.SIDE_M))
+## A half turn about a landing's middle: a flight that rises south, turned to rise north.
+const HALF_TURN: Transform3D = Transform3D(Basis(Vector3.UP, PI), Vector3(Ways.SIDE_M, 0.0, Ways.SIDE_M))
+## How far inside a landing's sides the staged flight is laid (review M3 on b1bb4779: no coplanar faces).
+const ART_INSET_M: float = 0.01
 const SUN_TOWARD: Vector3 = Vector3(-0.38, 0.8, 0.46)
 const SUN_ENERGY: float = 1.7
 const FILL_ENERGY: float = 0.22
@@ -121,15 +125,20 @@ func use_props(props: Props) -> void:
 
 
 func set_art(mouth: Mesh, mouth_fit: Transform3D, stairs: Mesh, stairs_fit: Transform3D) -> void:
-	"""The art in place of the procedural mouth (drawn by `mouth_fit`: on the ground, centred) and stairs (stretched
-	to a landing's 2 × 2 m and the room's rise; turned and sunk, in its cut, for a way down). Null keeps the
-	procedural piece. Setup only: the meshes are baked once."""
+	"""The art in place of the procedural mouth (drawn by `mouth_fit`: on the ground, centred) and stairs (laid over a
+	landing's 2 × 2 m and the room's rise, rising north; turned and sunk, in its cut, for a way down). A null or flat
+	piece is drawn procedurally. Setup only: the meshes are baked once; a second call starts again."""
+	art.clear()
+	_mouth = Props.transformed(mouth, mouth_fit) if mouth != null else Ways.mouth_mesh(_paint)
 	if mouth != null:
-		_mouth = Props.transformed(mouth, mouth_fit)
 		art.append("mouth")
-	if stairs == null:
+	_up = Ways.stairs_up_mesh(_paint, Earth.DEPTH_M)
+	_down = Ways.stairs_down_mesh(_paint)
+	if stairs == null or not (stairs_fit * stairs.get_aabb()).has_volume():
 		return
 	var up_fit: Transform3D = stretched(stairs.get_aabb(), stairs_fit)
+	if not rises_north(stairs, up_fit):
+		up_fit = HALF_TURN * up_fit
 	_up = Props.transformed(stairs, up_fit)
 	_down = Props.transformed(stairs, DOWN_TURN * up_fit)
 	var cut: ArrayMesh = Ways.cut_mesh(_paint, Earth.DEPTH_M)
@@ -139,11 +148,33 @@ func set_art(mouth: Mesh, mouth_fit: Transform3D, stairs: Mesh, stairs_fit: Tran
 
 
 static func stretched(bound: AABB, fit: Transform3D) -> Transform3D:
-	"""`fit` then a stretch that lays the drawn bound over a landing: x and z 0 to its side, y 0 to a room's depth."""
+	"""`fit` then a stretch that lays the drawn bound over a landing, ART_INSET_M inside its sides (so no face of the
+	art lies on a wall or a cut's side) and from 0 to a room's depth."""
 	var drawn: AABB = fit * bound
-	var side: float = Ways.SIDE_M
+	var side: float = Ways.SIDE_M - 2.0 * ART_INSET_M
 	var stretch: Vector3 = Vector3(side / drawn.size.x, Earth.DEPTH_M / drawn.size.y, side / drawn.size.z)
-	return Transform3D(Basis.from_scale(stretch), -drawn.position * stretch) * fit
+	var offset: Vector3 = Vector3(ART_INSET_M, 0.0, ART_INSET_M)
+	return Transform3D(Basis.from_scale(stretch), offset - drawn.position * stretch) * fit
+
+
+static func rises_north(mesh: Mesh, at: Transform3D) -> bool:
+	"""Whether `mesh` drawn by `at` stands higher on its north half (smaller z) than its south (review M2 on b1bb4779:
+	a flight's direction is measured, not assumed)."""
+	var middle: float = (at * mesh.get_aabb()).get_center().z
+	var sums: PackedFloat64Array = PackedFloat64Array([0.0, 0.0, 0.0, 0.0])
+	for surface: int in mesh.get_surface_count():
+		var points: PackedVector3Array = mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+		for point: Vector3 in points:
+			var placed: Vector3 = at * point
+			var north: int = 0 if placed.z < middle else 2
+			sums[north] += placed.y
+			sums[north + 1] += 1.0
+	return sums[0] / maxf(sums[1], 1.0) >= sums[2] / maxf(sums[3], 1.0)
+
+
+func stairs_mesh(up: bool) -> ArrayMesh:
+	"""The stairs drawn up out of a landing, or down a way (checks)."""
+	return _up if up else _down
 
 
 func set_kinds(tile_kinds: PackedByteArray) -> void:

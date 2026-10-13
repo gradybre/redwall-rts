@@ -8,9 +8,11 @@ NEGATIVE TESTS COME FIRST:
   N01  a source missing from the library is skipped and reported; the other is staged.
   N02  a source whose SHA-256 differs from the record is skipped, and a copy staged before is removed with its
        .import (a stale texture never ships).
+  N03  a staged texture no key names (a renamed or dropped one) is removed with its .import.
 
 Then: a staged texture is the source byte for byte, its manifest row names it under res://demo/assets/build/ with its
-source, hash and task; a second run copies nothing new; and every recorded key has a task ID in the committed ledger.
+source, hash and task; a second run copies nothing new; `main` writes the `build` section and leaves the manifest's
+other sections as they were; and every recorded key has a task ID in the committed ledger.
 """
 
 from __future__ import annotations
@@ -82,9 +84,29 @@ def run(root: pathlib.Path) -> None:
 		before = (out / "build/earth_wall.png").stat().st_mtime_ns
 		art.stage(library, out)
 		check("a second run copies nothing new", (out / "build/earth_wall.png").stat().st_mtime_ns == before)
+		(out / "build/earth_old.png").write_bytes(b"old")
+		(out / "build/earth_old.png.import").write_text("[remap]\n")
+		art.stage(library, out)
+		check("N03 a texture no key names is removed", not (out / "build/earth_old.png").exists()
+			and not (out / "build/earth_old.png.import").exists())
+		main_writes(library, out)
 	finally:
 		art.TEXTURES.clear()
 		art.TEXTURES.update(saved)
+
+
+def main_writes(library: pathlib.Path, out: pathlib.Path) -> None:
+	"""`main` patches the manifest's `build` section only."""
+	(out / "manifest.json").write_text(json.dumps({"world": {"a": 1}, "ui": {"b": 2}, "build": {"stale": 0}}))
+	saved = (art.LIBRARY, art.OUT)
+	art.LIBRARY, art.OUT = library, out
+	try:
+		art.main()
+	finally:
+		art.LIBRARY, art.OUT = saved
+	manifest = json.loads((out / "manifest.json").read_text())
+	check("main writes the build section", set(manifest["build"]) == set(art.TEXTURES), json.dumps(manifest["build"]))
+	check("and leaves the others", manifest["world"] == {"a": 1} and manifest["ui"] == {"b": 2})
 
 
 def ledger_tasks() -> set[str]:

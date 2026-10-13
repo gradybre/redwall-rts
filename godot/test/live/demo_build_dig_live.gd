@@ -24,7 +24,10 @@ const WAIT_STEPS: int = 3000
 const MAX_RESENDS: int = 2
 ## Steps the surface is left to settle before its frame (a crown over the Entrance fades out over a few frames).
 const SETTLE_STEPS: int = 30
-## Where the camera looks at the Entrance's mouth from (demo_camera.gd `aim`).
+## Where the camera looks at the Entrance's mouth from (demo_camera.gd `aim`). The mouth's arch faces the default
+## heading (yaw 0, from the south; decision 1913), but at this Entrance an oak's trunk and a fallen log stand south of
+## it, and no view the camera allows (7 m and 30 degrees at the least) sees into the arch: from the west, the clearest
+## side, the frame shows the mound whole.
 const MOUTH_YAW_DEG: float = 270.0
 const MOUTH_PITCH_DEG: float = 38.0
 const MOUTH_M: float = 7.0
@@ -165,8 +168,8 @@ func _rooms_drawn_as_pits() -> void:
 
 
 func _up_to_the_entrance() -> void:
-	"""Page Up: the surface, where the Entrance is a burrow mouth (the camera low over it from the west, under the
-	oak whose crown covers it from above)."""
+	"""Page Up: the surface, where the Entrance is a burrow mouth (the camera low over it from the west: see
+	MOUTH_YAW_DEG)."""
 	_key(KEY_PAGEUP)
 	var camera: Node = _village.get("_camera")
 	camera.call(&"aim", Vector3(ENTRANCE.x + 1.0, 0.0, ENTRANCE.y + 1.0), MOUTH_YAW_DEG, MOUTH_PITCH_DEG, MOUTH_M)

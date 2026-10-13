@@ -7,7 +7,7 @@ and dug walls with two tileable textures bought for it. Like every library file 
 (assets/library/, decision 0188); the ledger (docs/art-reference/asset_library/meshy_tasks.jsonl) holds their task
 IDs. This copies each one, byte for byte, into the gitignored godot/demo/assets/build/, only when its SHA-256 is the
 one recorded here: a missing or changed source is skipped and reported, and a staged copy it leaves behind is removed
-with its .import, so a stale texture never ships. The demo reads them raw (`demo_props.gd build_texture`), so they are
+with its .import, as is any staged texture no key here names, so a stale texture never ships. The demo reads them raw (`demo_props.gd build_texture`), so they are
 named in the manifest, where tools/demo_texture_imports.py finds them. With nothing staged (CI) the earth keeps its
 procedural surfaces.
 
@@ -74,12 +74,16 @@ def stage(library: pathlib.Path = LIBRARY, out: pathlib.Path = OUT) -> dict:
 			shutil.copyfile(source, staged)
 		rows[key] = {"path": f"{RES}/{FOLDER}/{key}.png", "source": f"assets/library/{relative}", "sha256": digest,
 			"task_id": task}
+	folder = out / FOLDER
+	for stale in sorted(folder.glob("*.png")) if folder.is_dir() else []:
+		if stale.stem not in TEXTURES:
+			_remove(stale)
 	return {"build": rows, "skipped": skipped}
 
 
 def main() -> int:
 	"""Stage and patch the existing manifest; 0 even when something is skipped (the demo then draws its own)."""
-	made = stage()
+	made = stage(LIBRARY, OUT)
 	path = OUT / "manifest.json"
 	manifest = json.loads(path.read_text()) if path.is_file() else {"world": {}, "cast": {}}
 	manifest["build"] = made["build"]

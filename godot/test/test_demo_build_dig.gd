@@ -322,12 +322,47 @@ func test_staged_art_stands_in_for_the_procedural_pieces() -> void:
 	box.size = Vector3(1.9, 0.5, 1.7)
 	dug.set_art(box, Transform3D.IDENTITY, box, Transform3D.IDENTITY)
 	assert_equal(dug.art, PackedStringArray(["mouth", "stairs"]), "both staged")
+	var inset: float = Dug.ART_INSET_M
 	var laid: AABB = Dug.stretched(box.get_aabb(), Transform3D.IDENTITY) * box.get_aabb()
-	assert_true(laid.position.is_equal_approx(Vector3.ZERO) and laid.size.is_equal_approx(Vector3(2.0, 1.0, 2.0)),
-		"laid over a landing, a room deep: %s" % laid)
-	var sunk: AABB = Dug.DOWN_TURN * laid
-	assert_true(sunk.position.is_equal_approx(Vector3(0.0, -1.0, 0.0)) and sunk.size.is_equal_approx(laid.size),
-		"turned and sunk for a way down: %s" % sunk)
+	assert_true(laid.position.is_equal_approx(Vector3(inset, 0.0, inset))
+		and laid.size.is_equal_approx(Vector3(2.0 - 2.0 * inset, 1.0, 2.0 - 2.0 * inset)),
+		"laid over a landing, just inside its sides, a room deep: %s" % laid)
+	dug.set_art(null, Transform3D.IDENTITY, BoxMesh.new(), Transform3D(Basis.from_scale(Vector3(1, 0, 1)), Vector3.ZERO))
+	assert_equal(dug.art, PackedStringArray(), "a flat flight is not drawn; a second call starts again")
+
+
+func test_a_staged_flight_rises_north_whichever_way_it_was_made() -> void:
+	"""Review M1/M2 on b1bb4779: a wedge high at its north end, or one made the other way round, is laid rising north
+	out of a landing; down a way it falls north from the floor."""
+	var dug: Dug = Dug.new()
+	_nodes.append(dug)
+	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
+	for high_north: bool in [true, false]:
+		dug.set_art(null, Transform3D.IDENTITY, _wedge(high_north), Transform3D.IDENTITY)
+		var top: Vector3 = _highest(dug.stairs_mesh(true), 0)
+		assert_true(top.z < 1.0 and is_equal_approx(top.y, 1.0), "rises north (%s): %s" % [high_north, top])
+		var down_top: Vector3 = _highest(dug.stairs_mesh(false), 0)
+		assert_true(down_top.z > 1.0 and is_equal_approx(down_top.y, 0.0), "falls north from the floor: %s" % down_top)
+	assert_true(dug.stairs_mesh(false).get_surface_count() == 2, "in its cut")
+
+
+func _wedge(high_north: bool) -> ArrayMesh:
+	"""A sloped quad 2 m square, 0.5 m high at its north end (or its south)."""
+	var near: float = 0.5 if high_north else 0.0
+	var far: float = 0.5 - near
+	var quads: Dug.Ways.Quads = Dug.Ways.Quads.new()
+	quads.quad(Vector3(0, near, 0), Vector3(2, near, 0), Vector3(2, far, 2), Vector3(0, far, 2), Vector3.UP, Color.WHITE)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.commit(mesh, StandardMaterial3D.new())
+	return mesh
+
+
+static func _highest(mesh: ArrayMesh, surface: int) -> Vector3:
+	"""The highest vertex of one of `mesh`'s surfaces."""
+	var top: Vector3 = Vector3(0, -INF, 0)
+	for point: Vector3 in mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]:
+		top = point if point.y > top.y else top
+	return top
 
 
 func test_staged_textures_dress_the_earth() -> void:

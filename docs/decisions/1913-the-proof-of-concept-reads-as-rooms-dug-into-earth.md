@@ -272,6 +272,23 @@ At `c1ab280c` (code), merged with `origin/master` `8e2bc009` (`fe09e6ee`; no con
   rect inside another, the wall beside the digging cell, the digging cell's chalk, a digging cell on another level, a
   quarter-dug landing, the step's scale, the digging tag on another level) were real gaps, each now checked, and the
   second pass killed all seven: **29 of 29 killed, none survived.**
+- **The art step** (final code at `32caf8ad`), 2026-10-13:
+  - **Full CI-style run.** `godot/demo/assets` was set aside, `godot/.godot` deleted and imported with no
+    `handle_crash`, then `./tools/run_tests_parallel.sh` ran 10 shards, 4 jobs at a time.
+    - Every shard exited 0. verify reported `ok: 500 suite files executed exactly once across 10 shards`.
+    - 12,440 tests, 1,229,312 assertions, 0 failures.
+    - Every shard's `diagnostics:` and `log:` line shows 0 unexpected errors or warnings and 0 leaked objects or
+      resources.
+    - The run took 1,396 s.
+    - Afterwards the art was put back and re-imported; `demo_texture_imports.py --check` reported 0 files that would
+      change.
+  - **Suites touched, with the art:** test_demo_build_dig (18 tests), test_demo_build_panel and test_demo_props. All
+    had 0 failures and 0 leaks.
+  - **Tool self-tests:** `test_stage_build_art.py` 0 failures; `test_make_demo_props.py` 73 checks, 0 failures.
+  - **Loop harness**, windowed with the art staged: 25 / 25 at both sizes.
+  - **Analyzer:** 0 warnings in 1,528 files.
+  - **Decision numbers:** PASS, 550 records.
+  - **Review and mutants:** the wiring's review is above; its six new mutants were all killed.
 - **Frames looked at**, the whole loop at both sizes, before and after (session scratchpad, not committed):
   `polish_check/before_1280/`, `before_1920/` (decision 1912's look) and `after_1280x720/`, `after_1920x1080/`
   (entrance placed, painted, mole digging, rooms open, visitor inside, and the new entrance open).

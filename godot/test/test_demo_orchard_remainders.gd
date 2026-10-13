@@ -29,6 +29,7 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const KitchenNode := preload("res://demo/kitchen/demo_kitchen.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
@@ -167,14 +168,26 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES) -> bool:
 
 
 func _board_pass(rig: Rig) -> void:
-	"""The work board's part: each waiting job to the first idle resident who may take it."""
+	"""The work board's part: each waiting job to the first idle resident who may take it -- never one promised to
+	another, who means to come back to it (decision 0411; 1905)."""
 	for j: int in JobsScript.MAX_JOBS:
 		if not rig.jobs.waiting(j):
 			continue
+		var keeper: int = _promised_to(rig, rig.jobs.serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = rig.jobs.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and rig.jobs.eligibility(j, who).is_empty() and rig.jobs.claim(j, who):
 				break
+
+
+func _promised_to(rig: Rig, task_key: int) -> int:
+	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
+	for who: int in rig.cast.actor_count():
+		if rig.jobs.brain_of(who).promises(WorkIds.SOURCE_ORCHARD, task_key):
+			return who
+	return -1
 
 
 func _stand(rig: Rig, group: int) -> int:

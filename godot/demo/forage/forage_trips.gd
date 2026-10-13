@@ -270,6 +270,31 @@ func update(usec: int) -> void:
 	for j: int in Rules.MAX_JOBS:
 		if j_live[j] == 1 and j_wait_usec[j] > 0:
 			j_wait_usec[j] = maxi(0, j_wait_usec[j] - usec)
+	_release_held_seats()
+
+
+func _release_held_seats() -> void:
+	"""TRIP DOESN'T WAIT (Brendan, 2026-10-12; decision 1905): a party under way -- another of its seats has its forager
+	-- does not wait for a seat whose forager was called away (promised to her) with nothing in hand: her promise is
+	released and the board offers the seat to anyone idle. A party of one, or a seat whose haul was set down, keeps it."""
+	for j: int in Rules.MAX_JOBS:
+		if waiting(j) and j_load[j] == 0 and _party_out(j):
+			_release_promise(WorkIds.SOURCE_FORAGE, j_serial[j])
+
+
+func _party_out(j: int) -> bool:
+	"""Whether another seat of seat `j`'s trip has its forager (the party is under way)."""
+	for k: int in Rules.MAX_JOBS:
+		if k != j and j_live[k] == 1 and j_trip[k] == j_trip[j] and j_worker[k] != NONE:
+			return true
+	return false
+
+func _release_promise(task_source: int, task_key: int) -> void:
+	"""Nobody keeps that work board task to come back to any more (TRIP DOESN'T WAIT): the board offers it to anyone."""
+	if _cast == null:
+		return
+	for who: int in _cast.actor_count():
+		brain_of(who).forget_task(task_source, task_key)
 
 
 func _credit_work(usec: int) -> void:
@@ -761,11 +786,11 @@ func unfinished_of(j: int, serial: int) -> UnfinishedScript:
 		WorkIds.SOURCE_FORAGE, serial)
 
 
-func take_back(brain: RefCounted, j: int, serial: int) -> bool:
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
 	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
 	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
 	a walk nobody finished."""
-	return is_job(j, serial) and claim(j, int(brain.get(&"index")))
+	return is_job(j, serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, serial: int) -> bool:

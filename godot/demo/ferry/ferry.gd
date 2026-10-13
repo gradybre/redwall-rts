@@ -422,6 +422,24 @@ func update(usec: int) -> void:
 		if j_live[j] == 1 and j_wait_usec[j] > 0:
 			j_wait_usec[j] = maxi(0, j_wait_usec[j] - usec)
 	_say_closure()
+	_release_held_crew()
+
+
+func _release_held_crew() -> void:
+	"""TRIP DOESN'T WAIT (Brendan, 2026-10-12; decision 1905): a crossing ready to leave -- posted, the ferry open, the
+	boat waiting only for its crew (a crew aboard is never called away: `must_finish`) -- whose crew place waits for a
+	helm called away (promised to her) gives it up: her promise is released and the board offers it to any idle helm.
+	A gather or haul keeps its own; a closed ferry waits anyway, and keeps it."""
+	if x_serial == 0 or x_job == NONE or not is_open() or not waiting(x_job):
+		return
+	_release_promise(WorkIds.SOURCE_FERRY, j_serial[x_job])
+
+func _release_promise(task_source: int, task_key: int) -> void:
+	"""Nobody keeps that work board task to come back to any more (TRIP DOESN'T WAIT): the board offers it to anyone."""
+	if _cast == null:
+		return
+	for who: int in _cast.actor_count():
+		brain_of(who).forget_task(task_source, task_key)
 
 
 func _follow_hours() -> void:
@@ -823,11 +841,11 @@ func unfinished_of(j: int, serial: int) -> UnfinishedScript:
 		WorkIds.SOURCE_FERRY, serial)
 
 
-func take_back(brain: RefCounted, j: int, serial: int) -> bool:
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
 	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
 	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
 	a walk nobody finished."""
-	return is_job(j, serial) and claim(j, int(brain.get(&"index")))
+	return is_job(j, serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, serial: int) -> bool:

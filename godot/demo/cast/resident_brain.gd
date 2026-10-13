@@ -2216,11 +2216,15 @@ class DigBack extends RefCounted:
 
 func remember_unfinished(job: UnfinishedScript) -> void:
 	"""Keep an unfinished job to come back to (see RESUMING), taken next: the latest RESUME_MAX are kept, and one kept
-	again (the same words: the same job) moves to the latest place rather than twice. A player's queued entries are
-	kept apart (see THE ORDER LIST)."""
+	again (the same job: the same work board task, or for one that names none, the same words) moves to the latest
+	place rather than twice -- two different tasks that read alike are both kept (decision 1905). A player's queued
+	entries are kept apart (see THE ORDER LIST)."""
 	if job == null:
 		return
-	_forget_label(job.label())
+	if job.source >= 0:
+		_forget_return(job.source, job.key)
+	else:
+		_forget_label(job.label())
 	_unfinished.append(job)
 	while _returns() > RESUME_MAX:
 		_unfinished.remove_at(_oldest_return())
@@ -2259,10 +2263,19 @@ func forget_task(task_source: int, task_key: int) -> bool:
 	return gone
 
 
-func _forget_label(words: String) -> void:
-	"""Drop every entry with these words (the same job kept again)."""
+func _forget_return(task_source: int, task_key: int) -> void:
+	"""Drop every entry kept from an interruption that names that work board task (the same job kept again); a queued
+	one stays (see THE ORDER LIST)."""
 	for k: int in range(_unfinished.size() - 1, -1, -1):
-		if _unfinished[k].label() == words:
+		if not _unfinished[k].queued and _unfinished[k].names_task(task_source, task_key):
+			_unfinished.remove_at(k)
+
+
+func _forget_label(words: String) -> void:
+	"""Drop every entry naming no work board task with these words (the same job kept again); one that names a task is
+	told apart by it (`_forget_return`)."""
+	for k: int in range(_unfinished.size() - 1, -1, -1):
+		if _unfinished[k].source < 0 and _unfinished[k].label() == words:
 			_unfinished.remove_at(k)
 
 

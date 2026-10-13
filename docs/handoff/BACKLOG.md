@@ -1362,9 +1362,11 @@ decision records on batch 8; "built" means a record says so.
 ## MEAL-CALLAWAY — Fishery, forage and ferry workers called away keep their jobs
 
 - **Done (decision 1905, 2026-10-12, `fix/meal-callaway`).** Each owner has the orchard's three functions and its task
-  an `unfinished()`; each suite has the four tests below (the REAL work board's promise, a lost walk / Pause /
-  Reassign keeping nothing, a cancelled job's stale entry, a refilled seat or crew place not taken back). 42 of 42
-  mutants killed.
+  an `unfinished()`; each suite proves the promise through the REAL work board (crews bound, with a control), a lost
+  walk / Pause / Reassign keeping nothing, a stale entry, and a place refilled by Reassign not taken back. Brendan's
+  later ruling **"Trip doesn't wait"** is built too: a boat, party or crossing ready to leave releases a place held
+  for a worker who is away; solo work keeps its promise. 60 of 61 mutants killed (the one survivor equivalent, its
+  check removed).
 - **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: **"Fix all three next"** -- a small follow-up lane
   right after the orchard fix (`fix/orchard-tend-flake`, decision 1900) merges, the same three functions per job type,
   each with a test (decision 1900, "Brendan's rulings"; RULINGS.md 2026-10-12).

@@ -336,6 +336,30 @@ func update(usec: int) -> void:
 	_follow_rack()
 	_follow_safety()
 	_count_down(usec)
+	_release_held_seats()
+
+
+func _release_held_seats() -> void:
+	"""TRIP DOESN'T WAIT (Brendan, 2026-10-12; decision 1905): a boat trip ready to leave -- one seat's fisher at the
+	jetty (a seat at S_JETTY has its fisher: `_let_go` sends a seat not yet aboard back to its walk), and so still
+	QUEUED, since nobody boards while a seat waits -- whose other seat waits only for a fisher called away (promised to
+	her) gives that seat up: her promise is released and the board offers it to anyone idle. A one-seat trip and a
+	station job keep theirs (solo work waits for its worker)."""
+	for t: int in Tables.MAX_TRIPS:
+		if not tables.is_trip(t):
+			continue
+		for seat: int in 2:
+			var j: int = tables.t_seat_job[t * 2 + seat]
+			var other: int = tables.t_seat_job[t * 2 + 1 - seat]
+			if j >= 0 and other >= 0 and waiting(j) and step_of(other) == S_JETTY:
+				_release_promise(WorkIds.SOURCE_FISHERY, tables.j_serial[j])
+
+func _release_promise(task_source: int, task_key: int) -> void:
+	"""Nobody keeps that work board task to come back to any more (TRIP DOESN'T WAIT): the board offers it to anyone."""
+	if _cast == null:
+		return
+	for who: int in _cast.actor_count():
+		brain_of(who).forget_task(task_source, task_key)
 
 
 func _follow_hours() -> void:
@@ -824,6 +848,7 @@ func claim(j: int, who: int) -> bool:
 	False when it may not."""
 	if not waiting(j) or not eligibility(j, who).is_empty():
 		return false
+	_forget_other_seat(j, who)
 	var task := TaskScript.new(self, j, tables.j_serial[j])
 	tables.j_worker[j] = who
 	tables.j_issued[j] = 1
@@ -836,6 +861,18 @@ func claim(j: int, who: int) -> bool:
 		return false
 	revision += 1
 	return true
+
+
+func _forget_other_seat(j: int, who: int) -> void:
+	"""A seat claimed: `who` no longer promises its trip's other seat (decision 1905). A boat waits for both seats, so
+	a crew who still promised the helm it left would hold that helm from everyone while it waits for one."""
+	var t: int = tables.j_trip[j]
+	if t < 0 or tables.j_kind[j] != Tables.KIND_SEAT:
+		return
+	for seat: int in 2:
+		var other: int = tables.t_seat_job[t * 2 + seat]
+		if other >= 0 and other != j:
+			brain_of(who).forget_task(WorkIds.SOURCE_FISHERY, tables.j_serial[other])
 
 
 func _end_job(j: int) -> void:
@@ -988,11 +1025,11 @@ func unfinished_of(j: int, serial: int) -> UnfinishedScript:
 		WorkIds.SOURCE_FISHERY, serial)
 
 
-func take_back(brain: RefCounted, j: int, serial: int) -> bool:
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
 	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
 	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
 	a walk nobody finished."""
-	return tables.is_job(j, serial) and claim(j, int(brain.get(&"index")))
+	return tables.is_job(j, serial) and claim(j, brain.index)
 
 
 func _order_words(j: int) -> String:

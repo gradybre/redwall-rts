@@ -1,6 +1,6 @@
 # 1905 — Fishery, forage and ferry workers called away keep their jobs (MEAL-CALLAWAY); a trip doesn't wait
 
-Date: 2026-10-12 · Status: Accepted (engineering record of BACKLOG packet MEAL-CALLAWAY, its two independent reviews,
+Date: 2026-10-12 · Status: Accepted (engineering record of BACKLOG packet MEAL-CALLAWAY, its three independent reviews,
 and Brendan's rulings "Trip doesn't wait", "Player's order holds" and "Only in working hours")
 
 Number range: 1905–1909 was allocated to this lane by the coordinator. This lane uses 1905 only.
@@ -31,6 +31,21 @@ Both rulings were made in chat via AskUserQuestion and relayed by the coordinato
 4. **"Only in working hours"** (the recommended option). Asked "Release only when someone could actually take it?",
    Brendan chose the option that reads: "A held place is released only while others are working and could fill it;
    overnight it stays hers."
+
+## OPEN: when a kept place is released in the morning
+
+From the third review. Under ruling 4 a kept place is released at 06:00, on the first frame of the day, while its
+keeper is still getting out of bed. The reviewer's evidence: the ferry is hit hardest, since a helm loses her crossing
+every morning before she can reach it. A forage seat goes to the first co-forager who is up. The fishery is mostly
+unaffected, because a boat is only ready to leave once a fisher stands at the jetty.
+
+Brendan was asked on 2026-10-12, in chat via AskUserQuestion:
+
+- **"Release once she's up"** (recommended): wait until the keeper herself is awake before her place may be released.
+- **"Keep 06:00 release"**.
+
+He answered **"Figure this out later"**. The 06:00 release stays as built. The question is OPEN_QUESTIONS.md Q-D22, with
+a deferral row in RULINGS.md.
 
 ## Decision
 
@@ -95,6 +110,33 @@ How it is released (rulings 3 and 4, the second review), in one shared helper, `
 - **The ferry** (`_release_held_crew`): a crossing posted with the ferry open, its crew place waiting. A crew aboard is
   never called away (`must_finish`), so a waiting crew place means the boat waits only for its crew. A closed ferry
   waits anyway and keeps the place; it is released once the ferry opens. Gathers and hauls keep theirs.
+
+### The third review of 5557aa5d, and what was done
+
+It found no CRITICAL or HIGH, and confirmed the queued-order fix and the O(1) path. Two MEDIUMs:
+
+- **Fixed: clearing the keeper on claim was NOT equivalent.** This record said it was, and that was wrong. Clearing
+  the column on claim orphaned a kept promise, which breaks ruling 2. The reviewer's reproduction in the fishery:
+  resident 3 keeps the crew seat; the player queues it for resident 1, who takes it at once, so the column is cleared
+  but 3 still promises the seat. 1 then loses the walk, and at 07:00, with the helm at the jetty and the seat waiting,
+  the column is NONE, so 3's promise holds the boat until she returns. The same happens when 1 is called away and
+  overwrites the column. Now each owner's `claim`, on success, calls `_hand_over_keep`: the keeper's kept entry is
+  released (`HeldPlaces.release`, as the board's Reassign does), then the column is cleared. The release does not test
+  `keeper != who`: when she takes her own place back, `take_up_unfinished` has already popped her entry. A mutant
+  showed that test made no difference, so it was removed. New tests, one per owner:
+  `test_a_seat_taken_by_another_ends_her_kept_promise` (fishery and forage) and
+  `test_a_crew_place_taken_by_another_ends_her_kept_promise` (ferry). The place is kept, then queued for an idle
+  resident who takes it at once; the keeper's promise ends and the column is NONE.
+- **Not changed: the 06:00 release.** Brendan deferred this ("Figure this out later"); see "OPEN" above.
+
+Mutants of the new code, one per run (both killed in each owner, by its new test):
+
+- `fishery.gd:364`, `forage_trips.gd:285`, `ferry.gd:436`: `_hand_over_keep` without the release (the keeper's
+  promise left behind).
+- `fishery.gd:365`, `forage_trips.gd:286`, `ferry.gd:437`: the column's clear removed (killed by the column assertion).
+
+`_hand_over_keep` adds 10 lines above the release functions. The file:line references in the mutation section below
+are from 5557aa5d; in the three owners, lines after `_hand_over_keep` are now about 10 lower.
 
 ### The second review of f35ce497, and what was done
 
@@ -209,6 +251,8 @@ In each of `test_demo_fishery.gd`, `test_demo_forage.gd` and `test_demo_ferry.gd
   - O(1), only the keeper: `test_only_the_keepers_entry_is_given_up`, `_seat_entry_`, `_crew_entry_`. Another
     resident's kept entry naming the same place (put on her list by hand) is not looked at.
   - Both away: `test_two_seats_both_away_stay_kept` and `test_two_party_seats_both_away_stay_kept` (the review's LOW).
+  - Taken by another (the third review): `test_a_seat_taken_by_another_ends_her_kept_promise` (fishery and forage)
+    and `test_a_crew_place_taken_by_another_ends_her_kept_promise` (ferry).
 - The fishery only: `test_a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm`. The orchard:
   `test_without_her_promise_the_board_gives_the_tending_to_another` and
   `test_two_kept_tasks_that_read_alike_are_both_kept`.
@@ -223,10 +267,11 @@ trip's seat counted as her party.
 references are current. Two mutants survived their first run against these tests and were then killed:
 "working hours from the hearth rule", once the dawn test moved to 06:00 (the hearth rule still counts 06:00 as
 night), and "the release forgets queued entries too", once the self-queued tests were added. One mutant from the
-previous round, the boat release's TRIP_QUEUED check, was equivalent, and that check was removed. Three guards
+previous round, the boat release's TRIP_QUEUED check, was equivalent, and that check was removed. Two guards
 were not mutated because they are equivalent by construction: `may_release`'s keeper test (every caller checks
-the keeper first), clearing the keeper on `claim`, and clearing it after a release (a stale keeper's release finds
-no entry). Killed by: the tests named, without their `test_` prefix.
+the keeper first) and clearing the column after a release (a stale keeper's release finds no entry). This list also
+called clearing the keeper on `claim` equivalent. That was wrong: see the third review above. Killed by: the tests
+named, without their `test_` prefix.
 
 The fishery:
 
@@ -313,9 +358,9 @@ Shared code:
 - **Focused suites**, staged and art-free (`godot/demo/assets` moved aside, then restored). The suites:
   `test_demo_fishery`, `_forage`, `_ferry`, `_orchard`, `_work`, `_work_edges`, `_action_cards`, `_kitchen`,
   `_forage_outings`, and the rigs changed here (`_brew`, `_new_recipes`, `_preserve`, `_fishing_revamp`, `_hives`,
-  `_orchard_remainders`). Each run printed `581 test(s), 11541 assertion(s), 0 failure(s)`; `diagnostics: 0 unexpected
-  error(s), 0 unexpected warning(s), 0 expected, 2 tolerated; leaked at exit: 0 object(s), 0 resource(s)`; `log: 0
-  unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
+  `_orchard_remainders`). After the third review's fix each run printed `584 test(s), 11561 assertion(s), 0 failure(s)`;
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 2 tolerated; leaked at exit: 0 object(s), 0
+  resource(s)`; `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
 - `./tools/run_tests.sh --fast`, at 11d7c30a, before the reviews: `12199 test(s), 1130436 assertion(s), 0
   failure(s)`, 0 unexpected, 0 leaks. The coordinator reruns the full sharded suite on each fix-up.
 - **Analyzer** (port 6397): `0 GDScript warning(s) in 0 of 1510 file(s)`.

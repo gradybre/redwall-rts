@@ -428,6 +428,16 @@ func update(usec: int) -> void:
 	_release_held_crew()
 
 
+func _hand_over_keep(j: int) -> void:
+	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
+	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
+	and hold the trip; the column is cleared."""
+	var keeper: int = j_keeper[j]
+	if keeper != NONE:
+		HeldPlaces.release(brain_of(keeper), WorkIds.SOURCE_FERRY, j_serial[j])
+	j_keeper[j] = NONE
+
+
 func _release_held_crew() -> void:
 	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a crossing ready to leave -- posted, the ferry open,
 	the boat waiting only for its crew (a crew aboard is never called away: `must_finish`) -- does not wait, in working
@@ -737,7 +747,6 @@ func claim(j: int, who: int) -> bool:
 		return false
 	var task := TaskScript.new(self, j, j_serial[j])
 	j_worker[j] = who
-	j_keeper[j] = NONE
 	j_issued[j] = 1
 	j_at[j] = 0
 	_tasks[j] = task
@@ -746,6 +755,7 @@ func claim(j: int, who: int) -> bool:
 	if brain.task != task:
 		j_worker[j] = NONE
 		return false
+	_hand_over_keep(j)
 	revision += 1
 	return true
 

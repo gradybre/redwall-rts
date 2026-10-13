@@ -846,3 +846,22 @@ func test_her_own_queued_order_outlives_the_release_of_her_kept_seat() -> void:
 	_run(rig, func() -> bool: return false, 60, false)
 	assert_equal(brain.queue_size(), 1, "the kept entry given up")
 	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, serial), "her queued order holds")
+
+
+func test_a_seat_taken_by_another_ends_her_kept_promise() -> void:
+	"""The third review: 3, called away, kept her seat; the player queues it for resident 5, idle, who takes it at once.
+	Her kept entry goes with the keeper column (as a Reassign's would), so no promise is left to outlive it and hold the
+	seat if 5 later loses it."""
+	var rig: Rig = _rig(2, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(HERBS, 2, PackedInt32Array([3, 4])), "", "a party of two")
+	var j: int = t.job_of_worker(3)
+	var serial: int = t.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	var brain: BrainScript = t.brain_of(3)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, serial), "kept")
+	assert_equal(board.queue_task(WorkIds.SOURCE_FORAGE, j, 5), "", "queued for 5")
+	assert_equal(t.j_worker[j], 5, "5 took it at once")
+	assert_false(brain.promises(WorkIds.SOURCE_FORAGE, serial), "her kept promise ended")
+	assert_equal(t.j_keeper[j], TripsScript.NONE, "and the keeper column with it")

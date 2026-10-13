@@ -1404,3 +1404,23 @@ func test_her_own_queued_order_outlives_the_release_of_her_kept_seat() -> void:
 	_run(rig, func() -> bool: return false, 60, false)
 	assert_equal(brain.queue_size(), 1, "the kept entry given up")
 	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "her queued order holds")
+
+
+func test_a_seat_taken_by_another_ends_her_kept_promise() -> void:
+	"""The third review: the second, called away, kept her seat; the player queues it for resident 2, idle, who takes
+	it at once. Her kept entry goes with the keeper column (as a Reassign's would), so no promise is left to outlive
+	it and hold the boat if 2 later loses it; a queued order of her own would stay."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	var seat: int = f.tables.t_seat_job[1]
+	var serial: int = f.tables.j_serial[seat]
+	var board: WorkBoard = _board_over(rig, seat)
+	var brain: BrainScript = f.brain_of(1)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "kept")
+	assert_equal(board.queue_task(WorkIds.SOURCE_FISHERY, seat, 2), "", "queued for 2")
+	assert_equal(f.tables.j_worker[seat], 2, "2 took it at once")
+	assert_false(brain.promises(WorkIds.SOURCE_FISHERY, serial), "her kept promise ended")
+	assert_equal(f.tables.j_keeper[seat], FisheryScript.NONE, "and the keeper column with it")

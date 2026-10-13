@@ -1330,3 +1330,25 @@ func test_her_own_queued_order_outlives_the_release_of_her_kept_place() -> void:
 	_run(rig, func() -> bool: return false, 60, false)
 	assert_equal(brain.queue_size(), 1, "the kept entry given up")
 	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "her queued order holds")
+
+
+func test_a_crew_place_taken_by_another_ends_her_kept_promise() -> void:
+	"""The third review: the helm, called away, kept the crew place; the player queues it for helm 5, idle, who takes it
+	at once. Her kept entry goes with the keeper column (as a Reassign's would), so no promise is left to outlive it and
+	hold the crossing if 5 later loses it."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_helm(rig, 5, 1)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "kept")
+	assert_equal(board.queue_task(WorkIds.SOURCE_FERRY, j, 5), "", "queued for 5")
+	assert_equal(ferry.j_worker[j], 5, "5 took it at once")
+	assert_false(brain.promises(WorkIds.SOURCE_FERRY, serial), "her kept promise ended")
+	assert_equal(ferry.j_keeper[j], FerryScript.NONE, "and the keeper column with it")

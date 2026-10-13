@@ -39,7 +39,6 @@ func _init() -> void:
 	_body.mesh = capsule
 	_body.material_override = _material
 	_body.layers = LAYER
-	_body.position.y = HEIGHT_M / 2.0 - SINK_M
 	add_child(_body)
 	_name = Label3D.new()
 	_name.layers = LAYER
@@ -50,15 +49,25 @@ func _init() -> void:
 	_name.outline_size = 8
 	_name.render_priority = NAME_PRIORITY
 	_name.outline_render_priority = NAME_PRIORITY - 1
-	_name.position.y = HEIGHT_M + 0.35 - SINK_M
 	add_child(_name)
+	set_sink(SINK_M)
 
 
 func show_as(name_words: String, at: Vector3) -> void:
 	"""Shown at `at` (the floor, metres) with `name_words` over it."""
 	_name.text = name_words
 	position = at
+	set_sink(SINK_M)
 	visible = true
+
+
+func set_sink(depth_m: float) -> void:
+	"""Draw the body and name `depth_m` below its place: a dug pit's floor (SINK_M), or the floor of the cell being
+	dug while it deepens under the mole (review M2: it no longer stands buried under a shallow pit)."""
+	if is_equal_approx(_body.position.y, HEIGHT_M / 2.0 - depth_m):
+		return
+	_body.position.y = HEIGHT_M / 2.0 - depth_m
+	_name.position.y = HEIGHT_M + 0.35 - depth_m
 
 
 func move_to(at: Vector3) -> void:

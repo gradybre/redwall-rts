@@ -10,6 +10,7 @@ extends RefCounted
 ## Screen pixels kept between two tags, and the least change of lift worth redrawing a tag for.
 const GAP_PX: float = 4.0
 const MOVE_PX: float = 0.5
+const LIFT_SLACK_PX: float = 0.01
 
 var _rects: Array[Rect2] = []
 var _scales: PackedFloat32Array = PackedFloat32Array()
@@ -46,7 +47,8 @@ static func clear_of(rect: Rect2, placed: Array[Rect2], gap: float) -> Rect2:
 		var hit: int = first_hit(out, placed, gap)
 		if hit < 0:
 			return out
-		out.position.y = placed[hit].position.y - gap - out.size.y
+		# LIFT_SLACK_PX more: Rect2's float32 sums could leave it one ulp short and meet the same rect again (review M3).
+		out.position.y = placed[hit].position.y - gap - out.size.y - LIFT_SLACK_PX
 	return out
 
 
@@ -101,5 +103,5 @@ static func overlaps(camera: Camera3D, tags: Array[Label3D]) -> int:
 	var pairs: int = 0
 	for a: int in drawn.size():
 		for b: int in range(a + 1, drawn.size()):
-			pairs += 1 if drawn[a].has_area() and drawn[a].intersects(drawn[b]) else 0
+			pairs += 1 if drawn[a].has_area() and drawn[b].has_area() and drawn[a].intersects(drawn[b]) else 0
 	return pairs

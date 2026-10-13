@@ -22,6 +22,9 @@ const LAYER: int = 256
 const UNITS_PER_M: float = 1024.0
 const TAG_PX: int = 36
 const TAG_PRIORITY: int = 5
+const TAG_PIXEL: float = 0.01
+## A surface tag's size at a constant screen size (tunnel_overlay.gd LABEL_PIXEL).
+const SURFACE_TAG_PIXEL: float = 0.0006
 const WAITING: String = "Waiting for the mole: %d cells"
 const DIGGING: String = "Digging"
 ## Over the earth's top: a way's name, the waiting cells' and the digging cell's (m).
@@ -159,7 +162,7 @@ func _place_stairs(level: int) -> void:
 	var used: int = 0
 	for row: int in _works.way_count():
 		var top: int = _works.way_level(row)
-		if not underground(level) or (top != level and top + 1 != level) or not Earth.way_dug(_works, row):
+		if not underground(level) or (top != level and top + 1 != level) or not Earth.way_open(_works, row):
 			continue
 		var stairs: MeshInstance3D = _pooled(_stairs, used, _down if top == level else _up, LAYER)
 		stairs.position = _corner(_works.way_cell(row), top_m(level) - Earth.DEPTH_M)
@@ -229,7 +232,6 @@ func _tag(used: int, words: String, at: Vector3, layer: int) -> int:
 		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		tag.no_depth_test = true
 		tag.font_size = TAG_PX
-		tag.pixel_size = 0.01
 		tag.outline_size = 8
 		tag.render_priority = TAG_PRIORITY
 		tag.outline_render_priority = TAG_PRIORITY - 1
@@ -238,6 +240,12 @@ func _tag(used: int, words: String, at: Vector3, layer: int) -> int:
 	var label: Label3D = _tags[used]
 	label.text = words
 	label.layers = layer
+	# A pooled tag may carry another's lift (review M4); the spacer lifts it again the same frame.
+	label.offset = Vector2.ZERO
+	# On the surface the camera comes close (a burrow mouth from 7 m): a constant size there, as the village's own
+	# tags (tunnel_overlay.gd); on a level, the size the spacer measures (demo_build_tags.gd).
+	label.fixed_size = layer != LAYER
+	label.pixel_size = SURFACE_TAG_PIXEL if layer != LAYER else TAG_PIXEL
 	label.position = at
 	label.visible = true
 	return used + 1

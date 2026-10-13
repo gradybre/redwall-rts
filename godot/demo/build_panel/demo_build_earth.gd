@@ -32,6 +32,8 @@ const TOP_LAYER: int = 512
 ## How deep a dug cell is drawn (decision 1912 E10: rooms are 1 m, decision 1932's one quantum).
 const DEPTH_M: float = 1.0
 const DEPTH_U: int = 1024
+## A cell's side (u): the planner's 1 m grid.
+const CELL_U: int = 1024
 const UNITS_PER_M: float = 1024.0
 ## modular_surface.gdshader reads the vertex colour: red is a dug (finished) face, anything else the unexcavated earth.
 const DUG: Color = Color(1.0, 0.0, 0.0)
@@ -46,6 +48,10 @@ const CHALK: Color = Color(0.93, 0.88, 0.74, 0.32)
 const CHALK_M: float = 0.06
 const CHALK_INSET_M: float = 0.14
 const LIFT_M: float = 0.006
+## How far the earth's top runs on past the planning area's edge (m), and the colour water is marked in: the legacy
+## cap's water hue (underground_cap.gdshader `water_colour`), darkened to sit below the earth (unshaded, it glared).
+const APRON_M: float = 96.0
+const WATER: Color = Color(0.085, 0.12, 0.155)
 const SIDES: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
 const NO_CELL: Vector3i = Vector3i(-1, 0, 0)
 
@@ -130,7 +136,7 @@ func _row_runs(tile_kinds: PackedByteArray, z: int) -> PackedInt32Array:
 
 static func _tile_of(datum_u: int, cell: int) -> int:
 	"""The World tile a cell's west (or north) edge is in."""
-	return floori(float(datum_u + cell * DEPTH_U) / float(World.TILE_SIZE_UNITS))
+	return floori(float(datum_u + cell * CELL_U) / float(World.TILE_SIZE_UNITS))
 
 
 func draw(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
@@ -142,6 +148,7 @@ func draw(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
 	var wet: Dictionary = {}
 	for row: int in _runs.size():
 		_row(works, level, _bounds.position.y + row, box, top, wet, top_m)
+	_apron(top, top_m)
 	var cut: Array[Quads] = [Quads.new(), Quads.new(), Quads.new()]
 	_cuts(works, level, box, top_m, cut)
 	var top_drawn: ArrayMesh = ArrayMesh.new()
@@ -197,13 +204,30 @@ static func _wet_quads(wet: Dictionary, kind: int) -> Quads:
 
 
 func _wet_material(kind: int) -> Material:
-	"""The World view's own matte mark for a wet kind (made once), drawn flat: no light reaches it in the dug view, and
-	unlit it read as the void beyond the map."""
+	"""The World view's own matte mark for a wet kind (made once), drawn flat in WATER: lit by nothing, its own
+	near-black ink read as a hole in the earth."""
 	if not _wet.has(kind):
 		var mark: StandardMaterial3D = WorldView._wet_projection_material(kind)
 		mark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mark.albedo_color = WATER
 		_wet[kind] = mark
 	return _wet[kind]
+
+
+func _apron(top: Quads, y: float) -> void:
+	"""The earth's top carried APRON_M past each edge of the planning area, so the map's edge never reads as a hole in
+	the cutaway (nothing is painted or picked there: the cells stop at the edge)."""
+	var low: Vector3 = _corner(_bounds.position, y)
+	var high: Vector3 = _corner(_bounds.end, y)
+	var out_low: Vector3 = low - Vector3(APRON_M, 0.0, APRON_M)
+	var out_high: Vector3 = high + Vector3(APRON_M, 0.0, APRON_M)
+	var bands: Array = [[out_low, Vector3(out_high.x, y, low.z)], [Vector3(out_low.x, y, high.z), out_high],
+		[Vector3(out_low.x, y, low.z), Vector3(low.x, y, high.z)],
+		[Vector3(high.x, y, low.z), Vector3(out_high.x, y, high.z)]]
+	for band: Array in bands:
+		var a: Vector3 = band[0]
+		var c: Vector3 = band[1]
+		top.quad(a, Vector3(c.x, y, a.z), c, Vector3(a.x, y, c.z), Vector3.UP, UNDUG)
 
 
 func _strip(quads: Quads, from: int, to: int, z: int, y: float) -> void:
@@ -275,12 +299,24 @@ func _chalk(marks: Quads, cell: Vector2i, y: float) -> void:
 
 
 static func stairs_down_at(works: Works, level: int, cell: Vector2i) -> bool:
-	"""Whether `cell` is under a way down standing on `level` whose landing below is dug (its stairs are drawn there)."""
+	"""Whether `cell` is under a way down standing on `level` that is dug through (its stairs are drawn there)."""
 	for row: int in works.way_count():
 		var at: Vector2i = works.way_cell(row)
-		if works.way_level(row) == level and Rect2i(at, Vector2i(2, 2)).has_point(cell) and way_dug(works, row):
+		if works.way_level(row) == level and Rect2i(at, Vector2i(2, 2)).has_point(cell) and way_open(works, row):
 			return true
 	return false
+
+
+static func way_open(works: Works, row: int) -> bool:
+	"""Whether way down `row` is dug through: its landing, and below the surface its own 2 × 2 cells too (a way may
+	stand on a passage still waiting for the mole; review M1: its stairs were drawn buried under the earth's top)."""
+	if not way_dug(works, row):
+		return false
+	var top: int = works.way_level(row)
+	for offset: Vector2i in Works.QUAD:
+		if top >= 1 and works.state(top, works.way_cell(row) + offset) != Works.OPEN:
+			return false
+	return true
 
 
 static func way_dug(works: Works, row: int) -> bool:
@@ -332,7 +368,7 @@ func _commit(quads: Quads) -> ArrayMesh:
 
 func set_progress(share: float) -> void:
 	"""How far the cell being dug has gone (0-1): its pit deepens, its steps down shrink. A transform, no rebuild."""
-	var dug: float = clampf(share, 0.04, 0.96) * DEPTH_M
+	var dug: float = dug_depth_m(share)
 	_pit.scale = Vector3(1.0, dug, 1.0)
 	_step.scale = Vector3(1.0, DEPTH_M - dug, 1.0)
 
@@ -345,6 +381,11 @@ func top_mesh() -> ArrayMesh:
 func digging_nodes() -> Array[MeshInstance3D]:
 	"""The cell being dug's pit and its steps down (checks)."""
 	return [_pit, _step]
+
+
+static func dug_depth_m(share: float) -> float:
+	"""How deep the cell being dug is drawn at `share` (0-1) of its dig (never quite flat nor quite through)."""
+	return clampf(share, 0.04, 0.96) * DEPTH_M
 
 
 func digging() -> Vector3i:

@@ -607,8 +607,8 @@ func _tick_works(delta: float) -> void:
 	var shown: int = bar.shown_level() if panel.is_open() else -1
 	var dig_cell: Vector3i = digger.digging_cell() if digging() else Dug.Earth.NO_CELL
 	dug.refresh(shown, dig_cell)
-	if dig_cell.x >= 1:
-		dug.set_progress(digger.dig_share())
+	if digging():
+		_show_dig(dig_cell)
 	if works.revision != _marked_at:
 		_mark_reachable()
 	for k: int in _trips.size():
@@ -618,6 +618,18 @@ func _tick_works(delta: float) -> void:
 	if _send_in <= 0.0 and works.waiting() > 0 and not digging():
 		_send_in = SEND_EVERY_S
 		_send_mole()
+
+
+func _show_dig(dig_cell: Vector3i) -> void:
+	"""The cell being dug (none: x < 1) deepens, and a mole standing on it stands on its floor so far (review M2);
+	anywhere else the mole stands on a dug floor."""
+	var share: float = digger.dig_share()
+	if dig_cell.x >= 1:
+		dug.set_progress(share)
+	var row: int = _trips.find(digger)
+	var on_it: bool = row >= 0 and dig_cell.x >= 1 and digger.at() == dig_cell
+	if row >= 0:
+		_figures[row].set_sink(Dug.Earth.dug_depth_m(share) if on_it else Figure.SINK_M)
 
 
 func _space_tags(shown: int) -> void:

@@ -71,7 +71,7 @@ func mounted() -> bool:
 
 
 func _mount() -> StringName:
-	"""Build the World view and its light once, over the session's own World, domain and level catalog."""
+	"""Build the World view once, over the session's own World, domain and level catalog, and read its terrain kinds."""
 	if _view != null:
 		return _view.owner_refusal()
 	var session: Object = _session.get_ref() if _session != null else null

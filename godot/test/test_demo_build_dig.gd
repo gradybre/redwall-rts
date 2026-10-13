@@ -9,6 +9,8 @@ const Figure := preload("res://demo/build_panel/demo_build_figure.gd")
 const Ground := preload("res://demo/build_panel/demo_build_ground.gd")
 const BelowTask := preload("res://demo/build_panel/demo_build_below_task.gd")
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
+const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
+const Tags := preload("res://demo/build_panel/demo_build_tags.gd")
 
 const BOUNDS: Rect2i = Rect2i(0, 0, 32, 32)
 const FLOORS: PackedInt32Array = [0, -4608, -9728, -14848, -19968]
@@ -41,8 +43,7 @@ func test_the_dug_rooms_are_drawn_per_level_and_rebuilt_only_on_a_change() -> vo
 	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "drawn once")
-	var below: MeshInstance3D = dug.get_child(0) as MeshInstance3D
-	assert_true(below.mesh != null and (below.mesh as ImmediateMesh).get_surface_count() == 1, "something drawn")
+	assert_true(dug.earth.visible and dug.earth.top_quads >= BOUNDS.size.y, "the level's earth drawn")
 	assert_true(dug.tags().has("Waiting for the mole: 8 cells"), "waiting cells said in words")
 	assert_true(dug.tags().has("Entrance") and dug.tags().has("Way up to the surface"), ", ".join(dug.tags()))
 	dug.refresh(1)
@@ -52,6 +53,9 @@ func test_the_dug_rooms_are_drawn_per_level_and_rebuilt_only_on_a_change() -> vo
 	assert_equal(dug.rebuilds, 2, "a dug cell redraws")
 	dug.refresh(-1)
 	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "no level shown: only the surface's name")
+	dug.refresh(5)
+	assert_false(dug.earth.visible, "the bar's Overview is no underground level")
+	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "and shows only the surface's name")
 
 
 func test_the_figure_shows_its_name_and_digging_state() -> void:
@@ -121,6 +125,108 @@ func test_a_dig_waits_before_the_cell_opens() -> void:
 	assert_equal(trip.dug, 0, "not yet")
 	trip.step(_Walker.new(), BelowTask.DIG_SECONDS)
 	assert_equal(trip.dug, 1, "opened")
+
+
+func test_a_dug_cell_is_a_pit_in_the_earth() -> void:
+	"""Decision 1913: the top is cut away over a dug cell (its row split round it, a floor instead), a wall, a shade and
+	a lip on each side that is not dug, the ordered cells pegged out in chalk; the earth reads the World's ground per
+	tile (a wet tile is not earth)."""
+	var earth: Earth = Earth.new()
+	_nodes.append(earth)
+	earth.configure(Vector2i.ZERO, BOUNDS)
+	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
+	var top: int = earth.top_quads
+	assert_equal(earth.wall_quads, 0, "nothing dug: no wall")
+	assert_equal(earth.mark_quads, 8 * 4, "eight ordered cells pegged out, four chalk lines each")
+	_works.open_cell(1, Vector2i(6, 4))
+	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
+	assert_equal(earth.top_quads, top + 1, "row 4's top split round the pit")
+	assert_equal(earth.floor_quads, 1, "the pit's floor")
+	assert_equal(earth.wall_quads, 4, "a wall on each side: earth or ordered, none dug")
+	assert_equal(earth.mark_quads, 7 * 4 + 4 * 2, "seven cells pegged out; a shade and a lip at each wall")
+	var kinds: PackedByteArray = PackedByteArray()
+	kinds.resize(Earth.World.TILE_COUNT)
+	kinds.fill(Earth.World.TERRAIN_LAND)
+	kinds[Earth.World.MAP_TILES_X * 5 + 5] = Earth.World.TERRAIN_LAKE
+	earth.set_kinds(kinds)
+	earth.draw(_works, 1, -4.5, Earth.NO_CELL)
+	assert_equal(earth.top_mesh().get_surface_count(), 2, "the earth's top, and the lake's tile in its own mark")
+
+
+func test_the_cell_being_dug_deepens() -> void:
+	"""The digging cell is cut out of the top and drawn as a pit scaled by the dig's progress; its step down to a dug
+	neighbour shrinks as it deepens; "Digging" says so, and the waiting count leaves it out."""
+	_works.open_cell(1, Vector2i(4, 4))
+	var dug: Dug = Dug.new()
+	_nodes.append(dug)
+	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
+	dug.refresh(1, Vector3i(1, 5, 4))
+	assert_equal(dug.earth.digging(), Vector3i(1, 5, 4), "drawn as being dug")
+	dug.set_progress(0.5)
+	var pit: MeshInstance3D = dug.earth.digging_nodes()[0]
+	var step: MeshInstance3D = dug.earth.digging_nodes()[1]
+	assert_true(pit.visible and is_equal_approx(pit.scale.y, 0.5), "half dug: half deep")
+	assert_true(is_equal_approx(step.scale.y, 0.5), "the step down to the dug landing cell: what is left")
+	assert_equal((step.mesh as ArrayMesh).get_surface_count(), 1, "one dug neighbour, one step face")
+	assert_true(dug.tags().has("Digging") and dug.tags().has("Waiting for the mole: 6 cells"), ", ".join(dug.tags()))
+	dug.refresh(1)
+	assert_false(pit.visible, "not digging: no pit drawn")
+
+
+func test_ways_are_drawn_as_a_mouth_and_stairs() -> void:
+	"""The Entrance is a burrow mouth on the surface; its landing gets stairs up once dug, not before."""
+	var dug: Dug = Dug.new()
+	_nodes.append(dug)
+	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
+	dug.refresh(1)
+	assert_equal(dug.mouths_shown(), 1, "the burrow mouth")
+	assert_equal(dug.stairs_shown(), 0, "the landing not dug: no stairs yet")
+	for offset: Vector2i in Works.QUAD:
+		_works.open_cell(1, Vector2i(4, 4) + offset)
+	dug.refresh(1)
+	assert_equal(dug.stairs_shown(), 1, "stairs up out of the dug landing")
+	dug.refresh(2)
+	assert_equal(dug.stairs_shown(), 0, "none on a level it does not touch")
+
+
+func test_the_figure_stands_on_the_pit_floor() -> void:
+	"""Its place is the floor plane; its body and name are drawn a pit's depth lower, the name over everything."""
+	var figure: Figure = Figure.new()
+	_nodes.append(figure)
+	assert_true(figure.tag().position.y < Figure.HEIGHT_M + 0.35 and figure.tag().position.y > 0.0, "sunk, still over")
+	assert_true(figure.tag().outline_render_priority < figure.tag().render_priority, "outline under text")
+
+
+func test_tags_spread_upward_only_as_far_as_they_must() -> void:
+	"""The first tag never moves; one that meets it rises just clear (`gap` apart); one clear of all stays; a third
+	that meets the lifted one rises past both; a tag with no area (behind the camera) is ignored."""
+	var gap: float = 4.0
+	var rects: Array[Rect2] = [Rect2(0, 100, 100, 20), Rect2(50, 110, 100, 20), Rect2(300, 100, 50, 20),
+		Rect2(40, 95, 30, 20), Rect2()]
+	var lifts: PackedFloat32Array = Tags.spread(rects, gap)
+	assert_equal(lifts[0], 0.0, "the first stays")
+	assert_equal(lifts[1], 110.0 - (100.0 - gap - 20.0), "just clear of the first")
+	assert_equal(lifts[2], 0.0, "clear of all: stays")
+	assert_equal(lifts[3], 95.0 - (76.0 - gap - 20.0), "past the first and the lifted second")
+	assert_equal(lifts[4], 0.0, "no area: left alone")
+	assert_equal(Tags.first_hit(Rect2(0, 76, 100, 20), [Rect2(0, 100, 100, 20)], gap), -1, "exactly gap apart: clear")
+	assert_equal(Tags.first_hit(Rect2(0, 77, 100, 20), [Rect2(0, 100, 100, 20)], gap), 0, "closer: meets")
+	assert_equal(Tags.first_hit(Rect2(0, 0, 10, 10), [Rect2()], gap), -1, "an empty rect is never met")
+
+
+func test_a_trip_says_which_cell_it_digs_and_how_far() -> void:
+	"""digging_cell and dig_share: the target while digging, nothing otherwise."""
+	var figure: Figure = Figure.new()
+	_nodes.append(figure)
+	var trip: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_DIG, Vector3i.ZERO, "Tuppen")
+	assert_equal(trip.digging_cell(), Vector3i(-1, 0, 0), "not yet")
+	assert_equal(trip.dig_share(), 0.0, "none")
+	trip.arrived(_Walker.new())
+	trip.step(_Walker.new(), 0.01)
+	trip.step(_Walker.new(), 0.01)
+	trip.step(_Walker.new(), BelowTask.DIG_SECONDS / 4.0)
+	assert_equal(trip.digging_cell(), Vector3i(1, 4, 4), "the landing it stands on")
+	assert_true(is_equal_approx(trip.dig_share(), 0.25), str(trip.dig_share()))
 
 
 class _Walker:

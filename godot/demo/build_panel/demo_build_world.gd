@@ -4,26 +4,31 @@ extends Node3D
 ## planner view (`modular_demo_mode.gd`, retired by P-B7) inside the demo's own camera.
 ##
 ## WHAT IT DRAWS. The planner's read-only view of the settlement's actual World (`modular_world_view.gd`: the terrain
-## cut at the chosen level's floor from the level catalog) on its own render layer, lit by its own light on that layer
-## only, with the paint ghosts on the marks layer (demo_build_paint.gd). While shown, the U view draws exactly these two
-## layers (tunnel_view.gd `set_override_mask`): the legacy warren, its residents and the surface are not drawn.
+## cut at the chosen level's floor from the level catalog) is mounted and checked here, and its ground handed to the
+## dug view (`section_kinds`): since decision 1913 the level is drawn by demo_build_earth.gd as that ground cut away,
+## with each dug cell a pit in it -- the World view's own section is one plane that no pit can be cut into, so it stays
+## on its own layer, not drawn. While shown, the U view draws exactly the marks layer (tunnel_view.gd
+## `set_override_mask`): the earth, the dug rooms, the paint ghosts (the marks layer and the earth's top layer); the
+## legacy warren, its residents and the surface are not drawn.
 ## BUILT ON FIRST USE: the view reads the World once (a cold mount, measured in `build_usec`), the first time the
 ## panel shows an underground level, never at boot. Presentation only: it creates no Room, void, route or order.
 
 const WorldView := preload("res://demo/burrow/modular_world_view.gd")
-const Look := preload("res://demo/world/world_look.gd")
 
 ## Render layers the legacy demo never uses (demo_layers.gd holds 1-32): the World's surface (built, never shown
 ## here), its section at a level, and the paint ghosts.
 const SURFACE_LAYER: int = 64
 const SECTION_LAYER: int = 128
 const MARKS_LAYER: int = 256
-const SHOWN_MASK: int = SECTION_LAYER | MARKS_LAYER
+## The earth's top (demo_build_earth.gd TOP_LAYER), and what the U view draws while a level is shown (decision 1913:
+## the earth, its top and the ghosts).
+const TOP_LAYER: int = 512
+const SHOWN_MASK: int = MARKS_LAYER | TOP_LAYER
 const REFUSE_UNBOUND: StringName = &"BUILD_WORLD_NOT_COMPOSED"
 
 var _session: WeakRef = null
 var _view: WorldView = null
-var _light: DirectionalLight3D = null
+var _kinds: PackedByteArray = PackedByteArray()
 var _level: int = -1
 ## Microseconds the one cold mount took (0 before it).
 var build_usec: int = 0
@@ -81,10 +86,12 @@ func _mount() -> StringName:
 		view.free()
 		return code
 	_view = view
-	_light = Look.make_sun()
-	_light.name = "BuildWorldLight"
-	_light.light_cull_mask = SHOWN_MASK
-	_light.shadow_enabled = false
-	add_child(_light)
+	_kinds = view._read_terrain(session.get(&"_world"))
 	build_usec = Time.get_ticks_usec() - started
 	return &""
+
+
+func section_kinds() -> PackedByteArray:
+	"""The World's terrain kind per tile, read once at the mount (modular_world_view.gd `_read_terrain`; the earth applies
+	the section's own rule, `_kind_at`); empty before a mount or with no World."""
+	return _kinds

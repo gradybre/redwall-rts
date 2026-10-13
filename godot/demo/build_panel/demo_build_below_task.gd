@@ -206,6 +206,16 @@ func at() -> Vector3i:
 	return _at
 
 
+func digging_cell() -> Vector3i:
+	"""The cell being dug now (level, x, z), or (-1, 0, 0) when not digging (demo_build_earth.gd draws it deepening)."""
+	return _target if stage == STAGE_DIG else Vector3i(-1, 0, 0)
+
+
+func dig_share() -> float:
+	"""How far the cell being dug has gone, 0-1 (0 when not digging)."""
+	return clampf(1.0 - _wait / DIG_SECONDS, 0.0, 1.0) if stage == STAGE_DIG else 0.0
+
+
 func below() -> bool:
 	"""Whether the resident is underground now (checks)."""
 	return stage != STAGE_GOING and stage != STAGE_OUT

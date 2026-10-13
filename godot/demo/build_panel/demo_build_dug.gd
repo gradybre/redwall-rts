@@ -1,41 +1,57 @@
 extends Node3D
-## THE DUG ROOMS, DRAWN (decision 1912's proof of concept). On the level the build panel shows (the World view's marks
-## layer, demo_build_world.gd), from demo_build_works.gd:
-##   OPEN cells     an earth floor, and walls 1 m high where open space meets earth (decision 1932's 1 quantum; the
-##                  proof of concept draws the room at that height)
-##   ORDERED cells  a pale blueprint floor, waiting for the mole, named so in words ("Waiting for the mole: N cells")
-##   ways down      a dark square where one stands and a lighter one where it lands, each named
-## and on the surface (the village's own layers, seen without the panel) each confirmed Entrance as a dark hole named
-## "Entrance". Rebuilt only when the works or the level shown change. Presentation only.
+## THE DUG ROOMS, DRAWN (decision 1912's proof of concept; its look, decision 1913). On the level the build panel
+## shows (the World view's marks layer, demo_build_world.gd), from demo_build_works.gd:
+##   THE EARTH     the level as a cutaway block of earth with each dug cell a pit in it, ordered cells pegged out in
+##                 chalk and the cell being dug deepening as it goes (demo_build_earth.gd), what was dug lit by this
+##                 view's own sun and the earth's top by a dim fill, so the rooms stand out of the mass;
+##   WAYS DOWN     where one stands on the level, stairs cut down into the floor; where one lands, stairs rising out of
+##                 it (demo_build_ways.gd), once the landing is dug;
+##   TAGS          "Way down", "Way up", "Way up to the surface", "Waiting for the mole: N cells", "Digging", in words;
+## and on the surface (the village's own layers, seen without the panel) each confirmed Entrance as a burrow mouth named
+## "Entrance". Rebuilt only when the works, the level shown or the cell being dug change. The tags are drawn over
+## everything with their outline under their text (a tag drawn the other way round read as doubled), and are kept
+## off each other by demo_build_tags.gd. Presentation only.
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
-const Footprint := preload("res://scripts/core/room_footprint.gd")
+const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
+const Ways := preload("res://demo/build_panel/demo_build_ways.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const Look := preload("res://demo/world/world_look.gd")
 
 const LAYER: int = 256
-const WALL_M: float = 1.0
-const LIFT_M: float = 0.01
 const UNITS_PER_M: float = 1024.0
-const FLOOR: Color = Color(0.74, 0.6, 0.42)
-const WALL: Color = Color(0.45, 0.33, 0.22)
-const BLUEPRINT: Color = Color(0.46, 0.58, 0.7)
-const SHAFT: Color = Color(0.12, 0.09, 0.07)
-const LANDING: Color = Color(0.78, 0.66, 0.46)
-const TAG_PX: int = 32
+const TAG_PX: int = 36
+const TAG_PRIORITY: int = 5
 const WAITING: String = "Waiting for the mole: %d cells"
-## Way-down names stand above a resident's own name tag (demo_build_figure.gd) so the two never overlap.
-const TAG_LIFT_M: float = 2.2
+const DIGGING: String = "Digging"
+## Over the earth's top: a way's name, the waiting cells' and the digging cell's (m).
+const WAY_TAG_M: float = 1.1
+const WAITING_TAG_M: float = 0.6
+const DIGGING_TAG_M: float = 0.5
+const ENTRANCE_TAG_M: float = 1.5
+## This view's sun, on what was dug: high, from the south-west behind the camera, so the far walls and the floors are
+## lit and each cut's west and south edges cast their shade into the room. The earth's top takes only a dim fill from
+## straight above (demo_build_earth.gd TOP_LAYER), so the rooms stand out of the mass.
+const SUN_TOWARD: Vector3 = Vector3(-0.38, 0.8, 0.46)
+const SUN_ENERGY: float = 1.7
+const FILL_ENERGY: float = 0.22
 
+var earth: Earth = null
 var _works: Works = null
 var _floors: PackedInt32Array = PackedInt32Array()
 var _datum: Vector2i = Vector2i.ZERO
-var _bounds: Rect2i = Rect2i()
-var _below: MeshInstance3D = null
-var _surface: MeshInstance3D = null
+var _sun: DirectionalLight3D = null
+var _fill: DirectionalLight3D = null
+var _paint: StandardMaterial3D = null
+var _mouth: ArrayMesh = null
+var _up: ArrayMesh = null
+var _down: ArrayMesh = null
+var _mouths: Array[MeshInstance3D] = []
+var _stairs: Array[MeshInstance3D] = []
 var _tags: Array[Label3D] = []
-var _seen: Vector2i = Vector2i(-1, -1)
-## The level's open and ordered cells, refilled on a rebuild (demo_build_works.gd `cells_into`: its box only).
-var _open: PackedInt32Array = PackedInt32Array()
+var _seen: Vector4i = Vector4i(-1, -1, -1, -1)
+var _has_kinds: bool = false
+## The level's ordered cells, refilled on a rebuild (demo_build_works.gd `cells_into`: its box only).
 var _ordered: PackedInt32Array = PackedInt32Array()
 ## Rebuilds since configure (checks: nothing is rebuilt on a still frame).
 var rebuilds: int = 0
@@ -47,142 +63,163 @@ func configure(works: Works, floors: PackedInt32Array, datum: Vector2i, bounds: 
 	_works = works
 	_floors = floors
 	_datum = datum
-	_bounds = bounds
-	_below = _mesh_node(LAYER)
-	_surface = _mesh_node(Layers.SURFACE)
+	earth = Earth.new()
+	earth.configure(datum, bounds)
+	add_child(earth)
+	_paint = Ways.material()
+	_mouth = Ways.mouth_mesh(_paint)
+	_up = Ways.stairs_up_mesh(_paint, Earth.DEPTH_M)
+	_down = Ways.stairs_down_mesh(_paint)
+	_sun = _make_light("BuildDugSun", SUN_TOWARD, SUN_ENERGY, LAYER)
+	_sun.shadow_enabled = true
+	_sun.shadow_caster_mask = LAYER | Earth.TOP_LAYER
+	_sun.shadow_blur = 1.5
+	_sun.directional_shadow_max_distance = 80.0
+	add_child(_sun)
+	_fill = _make_light("BuildDugFill", Vector3.UP + Vector3(0.0, 0.0, 0.01), FILL_ENERGY, Earth.TOP_LAYER)
+	add_child(_fill)
 
 
-func _mesh_node(layer: int) -> MeshInstance3D:
-	"""One mesh node on `layer`, coloured by its vertices."""
-	var node: MeshInstance3D = MeshInstance3D.new()
-	node.layers = layer
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	# Flat colours: the underground view is dark by design (tunnel_view.gd), and the proof of concept must read.
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	node.material_override = material
-	add_child(node)
-	return node
+static func _make_light(title: String, toward: Vector3, energy: float, layers: int) -> DirectionalLight3D:
+	"""A light the village sun's colour shining from `toward` on `layers` only (the village above never shades the
+	level: only these layers cast its shadows), hidden until a level is shown. The light is itself on `layers`: a
+	camera draws only the lights on the layers it draws (the U view draws the marks layers alone)."""
+	var light: DirectionalLight3D = DirectionalLight3D.new()
+	light.name = title
+	light.layers = layers
+	light.transform = Transform3D(Basis.looking_at(-toward.normalized(), Vector3.FORWARD), Vector3.ZERO)
+	light.light_color = Look.SUN_COLOR
+	light.light_energy = energy
+	light.light_cull_mask = layers
+	light.shadow_caster_mask = layers
+	light.visible = false
+	return light
 
 
-func refresh(level: int) -> void:
-	"""Redraw when the works or the level shown (-1: none) changed."""
-	var key: Vector2i = Vector2i(_works.revision, level)
+func set_kinds(tile_kinds: PackedByteArray) -> void:
+	"""The World's ground per tile (demo_build_world.gd `section_kinds`); the level is drawn again."""
+	earth.set_kinds(tile_kinds)
+	_has_kinds = not tile_kinds.is_empty()
+	_seen = Vector4i(-1, -1, -1, -1)
+
+
+func has_kinds() -> bool:
+	"""Whether the World's ground has been handed in."""
+	return _has_kinds
+
+
+func refresh(level: int, digging: Vector3i = Earth.NO_CELL) -> void:
+	"""Redraw when the works, the level shown (-1: none) or the cell being dug (level, x, z) changed."""
+	var below: bool = underground(level)
+	var on_level: bool = digging.x == level and below
+	var key: Vector4i = Vector4i(_works.revision, level, digging.y if on_level else -1, digging.z if on_level else -1)
 	if key == _seen:
 		return
 	_seen = key
 	rebuilds += 1
-	_below.mesh = _level_mesh(level) if level >= 1 else null
-	_below.visible = level >= 1
-	_surface.mesh = _entrances_mesh()
-	_place_tags(level)
+	earth.visible = below
+	_sun.visible = below
+	_fill.visible = below
+	if below:
+		earth.draw(_works, level, top_m(level), digging)
+	_place_mouths()
+	_place_stairs(level)
+	_place_tags(level, digging if on_level else Earth.NO_CELL)
 
 
-func _level_mesh(level: int) -> ImmediateMesh:
-	"""The level's open floor and walls, ordered blueprint cells, and the ways down on it."""
-	_works.cells_into(level, Works.OPEN, _open)
-	_works.cells_into(level, Works.ORDERED, _ordered)
-	var open: PackedInt32Array = _open
-	var ordered: PackedInt32Array = _ordered
-	var mesh: ImmediateMesh = ImmediateMesh.new()
-	if open.is_empty() and ordered.is_empty():
-		return mesh
-	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-	var y: float = _floors[level] / UNITS_PER_M + LIFT_M
-	for at: int in range(0, open.size(), 2):
-		_quad(mesh, Vector2i(open[at], open[at + 1]), y, FLOOR)
-	for at: int in range(0, ordered.size(), 2):
-		_quad(mesh, Vector2i(ordered[at], ordered[at + 1]), y, BLUEPRINT)
-	_walls(mesh, open, y)
-	_ways(mesh, level, y + LIFT_M)
-	mesh.surface_end()
-	return mesh
+func underground(level: int) -> bool:
+	"""Whether `level` is an underground level drawn here (1-4; not the surface, nor the bar's Overview)."""
+	return level >= 1 and level < _floors.size()
 
 
-func _quad(mesh: ImmediateMesh, cell: Vector2i, y: float, colour: Color) -> void:
-	"""One cell's square at height `y`."""
-	var low: Vector3 = _corner(cell, y)
-	var high: Vector3 = _corner(cell + Vector2i.ONE, y)
-	mesh.surface_set_color(colour)
-	mesh.surface_set_normal(Vector3.UP)
-	for point: Vector3 in [low, Vector3(high.x, y, low.z), high, low, high, Vector3(low.x, y, high.z)]:
-		mesh.surface_add_vertex(point)
+func set_progress(share: float) -> void:
+	"""How far the cell being dug has gone (0-1)."""
+	earth.set_progress(share)
 
 
-func _walls(mesh: ImmediateMesh, open: PackedInt32Array, y: float) -> void:
-	"""A 1 m wall on every edge where open space meets earth."""
-	var edges: PackedInt32Array = Footprint.boundary_edges(open) if not open.is_empty() else PackedInt32Array()
-	mesh.surface_set_color(WALL)
-	for at: int in range(0, edges.size(), 3):
-		var ends: Array[Vector2i] = _edge_ends(Vector2i(edges[at], edges[at + 1]), edges[at + 2])
-		var a: Vector3 = _corner(ends[0], y)
-		var b: Vector3 = _corner(ends[1], y)
-		var up: Vector3 = Vector3(0.0, WALL_M, 0.0)
-		mesh.surface_set_normal((b - a).cross(Vector3.UP).normalized())
-		for point: Vector3 in [a, b, b + up, a, b + up, a + up]:
-			mesh.surface_add_vertex(point)
+func top_m(level: int) -> float:
+	"""Level `level`'s earth top: its floor plane, where cells are painted and picked (m)."""
+	return _floors[level] / UNITS_PER_M
 
 
-static func _edge_ends(cell: Vector2i, side: int) -> Array[Vector2i]:
-	"""The two corners of `cell`'s `side` edge (room_footprint.gd's sides)."""
-	match side:
-		Footprint.NORTH:
-			return [cell, cell + Vector2i(1, 0)]
-		Footprint.EAST:
-			return [cell + Vector2i(1, 0), cell + Vector2i.ONE]
-		Footprint.SOUTH:
-			return [cell + Vector2i.ONE, cell + Vector2i(0, 1)]
-	return [cell + Vector2i(0, 1), cell]
+func _place_mouths() -> void:
+	"""A burrow mouth on the surface for each confirmed Entrance."""
+	var used: int = 0
+	for row: int in _works.way_count():
+		if _works.way_level(row) == 0:
+			var mouth: MeshInstance3D = _pooled(_mouths, used, _mouth, Layers.SURFACE)
+			mouth.position = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
+			used += 1
+	for k: int in range(used, _mouths.size()):
+		_mouths[k].visible = false
 
 
-func _ways(mesh: ImmediateMesh, level: int, y: float) -> void:
-	"""Each way down standing on (dark) or landing on (light) `level`."""
+func _place_stairs(level: int) -> void:
+	"""Stairs down where a dug way stands on `level`, stairs up where one lands on it."""
+	var used: int = 0
 	for row: int in _works.way_count():
 		var top: int = _works.way_level(row)
-		if top != level and top + 1 != level:
+		if not underground(level) or (top != level and top + 1 != level) or not Earth.way_dug(_works, row):
 			continue
-		var cell: Vector2i = _works.way_cell(row)
-		for offset: Vector2i in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i.ONE]:
-			_quad(mesh, cell + offset, y, SHAFT if top == level else LANDING)
+		var stairs: MeshInstance3D = _pooled(_stairs, used, _down if top == level else _up, LAYER)
+		stairs.position = _corner(_works.way_cell(row), top_m(level) - Earth.DEPTH_M)
+		used += 1
+	for k: int in range(used, _stairs.size()):
+		_stairs[k].visible = false
 
 
-func _entrances_mesh() -> ImmediateMesh:
-	"""Each confirmed Entrance as a dark 2 × 2 hole on the ground."""
-	var mesh: ImmediateMesh = ImmediateMesh.new()
-	var holes: int = 0
-	for row: int in _works.way_count():
-		if _works.way_level(row) != 0:
-			continue
-		if holes == 0:
-			mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-		holes += 1
-		var cell: Vector2i = _works.way_cell(row)
-		for offset: Vector2i in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i.ONE]:
-			_quad(mesh, cell + offset, 0.04, SHAFT)
-	if holes > 0:
-		mesh.surface_end()
-	return mesh
+func _pooled(pool: Array[MeshInstance3D], at: int, mesh: ArrayMesh, layer: int) -> MeshInstance3D:
+	"""The pool's node `at` (made when the pool is that short), showing `mesh` on `layer`."""
+	if at == pool.size():
+		var node: MeshInstance3D = MeshInstance3D.new()
+		add_child(node)
+		pool.append(node)
+	var out: MeshInstance3D = pool[at]
+	out.mesh = mesh
+	out.layers = layer
+	out.visible = true
+	return out
 
 
-func _place_tags(level: int) -> void:
-	"""A name over each way down seen: "Entrance" on the ground; "Way down" / "Way up" on the level shown."""
+func _place_tags(level: int, digging: Vector3i) -> void:
+	"""The names, in the order they give way to each other: the cell being dug, the ways, the waiting cells."""
 	var used: int = 0
+	if digging.x >= 1:
+		used = _tag(used, DIGGING, _corner(Vector2i(digging.y, digging.z), top_m(level) + DIGGING_TAG_M) \
+			+ Vector3(0.5, 0.0, 0.5), LAYER)
+	used = _way_tags(used, level)
+	_ordered.clear()
+	if underground(level):
+		_works.cells_into(level, Works.ORDERED, _ordered)
+	if not _ordered.is_empty():
+		@warning_ignore("integer_division") var waiting: int = _ordered.size() / 2 - (1 if digging.x >= 1 else 0)
+		if waiting > 0:
+			used = _tag(used, WAITING % waiting, _middle_of(_ordered, top_m(level) + WAITING_TAG_M), LAYER)
+	for at: int in range(used, _tags.size()):
+		_tags[at].visible = false
+
+
+func _way_tags(used: int, level: int) -> int:
+	""""Entrance" over each mouth on the surface; "Way down" / "Way up" / "Way up to the surface" on the level shown."""
 	for row: int in _works.way_count():
 		var top: int = _works.way_level(row)
 		var at: Vector3 = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
 		if top == 0:
-			used = _tag(used, "Entrance", at + Vector3(0.0, 1.2, 0.0), Layers.SURFACE_MARKS)
-		if level >= 1 and (top == level or top + 1 == level):
+			used = _tag(used, "Entrance", at + Vector3(0.0, ENTRANCE_TAG_M, 0.0), Layers.SURFACE_MARKS)
+		if underground(level) and (top == level or top + 1 == level):
 			var words: String = "Way down" if top == level else "Way up to the surface" if top == 0 else "Way up"
-			used = _tag(used, words, at + Vector3(0.0, _floors[level] / UNITS_PER_M + TAG_LIFT_M, 0.0), LAYER)
-	if level >= 1 and not _ordered.is_empty():
-		var first: Vector3 = _corner(Vector2i(_ordered[0], _ordered[1]) + Vector2i.ONE, _floors[level] / UNITS_PER_M + 0.6)
-		@warning_ignore("integer_division") var waiting: int = _ordered.size() / 2
-		used = _tag(used, WAITING % waiting, first, LAYER)
-	for at: int in range(used, _tags.size()):
-		_tags[at].visible = false
+			used = _tag(used, words, at + Vector3(0.0, top_m(level) + WAY_TAG_M, 0.0), LAYER)
+	return used
+
+
+func _middle_of(cells: PackedInt32Array, y: float) -> Vector3:
+	"""The middle of the box round `cells` (canonical pairs) at height `y`."""
+	var box: Rect2i = Rect2i(Vector2i(cells[0], cells[1]), Vector2i.ONE)
+	for at: int in range(2, cells.size(), 2):
+		box = box.expand(Vector2i(cells[at], cells[at + 1])).expand(Vector2i(cells[at], cells[at + 1]) + Vector2i.ONE)
+	var low: Vector3 = _corner(box.position, y)
+	var high: Vector3 = _corner(box.end, y)
+	return (low + high) / 2.0
 
 
 func _tag(used: int, words: String, at: Vector3, layer: int) -> int:
@@ -194,6 +231,8 @@ func _tag(used: int, words: String, at: Vector3, layer: int) -> int:
 		tag.font_size = TAG_PX
 		tag.pixel_size = 0.01
 		tag.outline_size = 8
+		tag.render_priority = TAG_PRIORITY
+		tag.outline_render_priority = TAG_PRIORITY - 1
 		add_child(tag)
 		_tags.append(tag)
 	var label: Label3D = _tags[used]
@@ -216,3 +255,26 @@ func tags() -> PackedStringArray:
 		if tag.visible:
 			out.append(tag.text)
 	return out
+
+
+func shown_tags(out: Array[Label3D]) -> void:
+	"""Append the level's shown tags to `out`, in the order they give way (the surface's are not on the level)."""
+	for tag: Label3D in _tags:
+		if tag.visible and tag.layers == LAYER:
+			out.append(tag)
+
+
+func stairs_shown() -> int:
+	"""Stairs drawn on the level (checks)."""
+	var shown: int = 0
+	for node: MeshInstance3D in _stairs:
+		shown += 1 if node.visible else 0
+	return shown
+
+
+func mouths_shown() -> int:
+	"""Burrow mouths drawn on the surface (checks)."""
+	var shown: int = 0
+	for node: MeshInstance3D in _mouths:
+		shown += 1 if node.visible else 0
+	return shown

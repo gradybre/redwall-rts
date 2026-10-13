@@ -97,12 +97,12 @@ static func paintable(level: int) -> bool:
 	return LEVELS.has(level)
 
 
-func pick(screen: Vector2, level: int) -> WorldTool.Pick:
+func pick(screen: Vector2, level: int, lift_u: int = 0) -> WorldTool.Pick:
 	"""The cell under a screen point on `level`'s floor (modular_world_tool.gd `ray_pick`; the surface's ground plane
-	for level 0); not ok off it."""
+	for level 0), or on a plane `lift_u` above it (a dug pit's floor: decision 1913); not ok off it."""
 	if not DRAWN.has(level) or not is_instance_valid(_camera) or not _camera.is_inside_tree():
 		return WorldTool.Pick.new()
-	var datum: Vector3i = Vector3i(_datum_xz.x, floor_u(level), _datum_xz.y)
+	var datum: Vector3i = Vector3i(_datum_xz.x, floor_u(level) + lift_u, _datum_xz.y)
 	return WorldTool.ray_pick(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen), datum, 1024)
 
 
@@ -118,10 +118,11 @@ func cursor() -> Vector2i:
 	return _cursor
 
 
-func screen_of(cell: Vector2i, level: int) -> Vector2:
-	"""Where a cell's middle is on screen (the size label stands beside it); INF behind the camera."""
-	var at: Vector3 = Vector3((_datum_xz.x + (cell.x + 0.5) * 1024.0) / UNITS_PER_M, floor_u(level) / UNITS_PER_M,
-		(_datum_xz.y + (cell.y + 0.5) * 1024.0) / UNITS_PER_M)
+func screen_of(cell: Vector2i, level: int, lift_u: int = 0) -> Vector2:
+	"""Where a cell's middle is on screen (the size label stands beside it), on the floor or `lift_u` above it; INF
+	behind the camera."""
+	var at: Vector3 = Vector3((_datum_xz.x + (cell.x + 0.5) * 1024.0) / UNITS_PER_M,
+		(floor_u(level) + lift_u) / UNITS_PER_M, (_datum_xz.y + (cell.y + 0.5) * 1024.0) / UNITS_PER_M)
 	if not is_instance_valid(_camera) or not _camera.is_inside_tree() or _camera.is_position_behind(at):
 		return Vector2.INF
 	return _camera.unproject_position(at)

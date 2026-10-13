@@ -1120,9 +1120,13 @@ Brendan's ruling of 2026-10-12 ("A simple mole digs", "Free for now", "Place a s
 passages"). **Confirm all** hands the ways down and rooms to `build_panel/demo_build_works.gd` -- nothing is paid,
 nothing reaches the settlement's simulation -- and sends a **mole** (the first selected mole, else the first free one):
 it walks to the Entrance, goes in, and a stand-in figure with its name (`demo_build_figure.gd`) digs the ordered cells
-one by one below, nearest first, each opening after a short wait (`demo_build_below_task.gd`). Dug cells are drawn as
-open floor with 1 m walls (`demo_build_dug.gd`), ordered ones as a blue-grey blueprint; the Entrance shows as a dark
-hole named "Entrance" on the ground. With residents selected, a **right click** on a dug cell sends them down into it.
+one by one below, nearest first, each opening after a short wait (`demo_build_below_task.gd`). **The look (decision
+1913)**: the level is a cutaway block of earth whose top is the plane you paint on (`demo_build_earth.gd`); each dug
+cell is a pit 1 m deep in it, lit packed-earth floor and walls against the darker mass; an ordered cell is pegged out in
+chalk ("Waiting for the mole: N cells"); the cell being dug deepens as the mole works ("Digging"). The Entrance is a
+burrow mouth on the surface, and its landing below has stairs rising out of it; a Way down whose landing is dug has
+stairs going down into the dark (`demo_build_ways.gd`). The tags and the names over the figures never sit on each other
+(`demo_build_tags.gd`). With residents selected, a **right click** on a dug cell's floor sends them down into it.
 Slice C3 replaces all of this with the settlement's own room foreman, excavation and payment. Nothing here is saved.
 
 Checks: `test_build_*.gd` (batch, stroke, cell validity, items, validity, catalog, panel, ledger, layout),

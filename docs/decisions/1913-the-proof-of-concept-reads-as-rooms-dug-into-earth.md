@@ -241,7 +241,9 @@ Each preview was rendered and looked at before its texture was paid for. The pro
     each at 1,024 px.
   - **LOW 9, timestamps:** the ledger's six `created` times are the minutes the calls were made, not the API's
     timestamps.
-- **No art is accepted.** These are candidates; visual acceptance is Brendan's, through `tools/art_gate.py`.
+- **Accepted 2026-10-13.** Brendan, in chat to the coordinator: "accept ART-BUILD-POC and merge when green". The
+  entry in `docs/planning/art_approvals.json` records it (`decided_by` Brendan, recorded by the coordinator).
+  Before that: these were candidates; visual acceptance is Brendan's, through `tools/art_gate.py`.
   `docs/planning/art_approvals.json` was not touched. The request block, for him to paste if he wants the gate:
   `{"id": "ART-BUILD-POC", "what": "Build panel proof of concept: burrow_mouth and dig_stairs props, earth_floor and
   earth_wall textures (decision 1913) -- visual acceptance", "spends_credits": false, "estimated_credits": 0,

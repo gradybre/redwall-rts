@@ -605,10 +605,10 @@ func unfinished_of(j: int, job_serial: int) -> UnfinishedScript:
 		job_serial)
 
 
-func take_back(brain: RefCounted, j: int, job_serial: int) -> bool:
+func take_back(brain: BrainScript, j: int, job_serial: int) -> bool:
 	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again while it is the same job
 	and waits for someone (not paused, not given to another, not waiting out a walk nobody finished)."""
-	return is_job(j, job_serial) and claim(j, int(brain.get(&"index")))
+	return is_job(j, job_serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, job_serial: int) -> bool:

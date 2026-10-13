@@ -60,6 +60,9 @@ const Yard := preload("res://demo/forestry/forest_yard.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const BoatRows := preload("res://demo/routes/boat_rows.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 const MAX_JOBS: int = 12
@@ -192,6 +195,8 @@ var j_wait_usec: PackedInt64Array = PackedInt64Array()
 var j_tries: PackedInt32Array = PackedInt32Array()
 ## The last resident who could not reach the job's place: not handed the same job again (another may get there).
 var j_failed: PackedInt32Array = PackedInt32Array()
+## Who was let keep the job when called away (demo/work/held_places.gd; NONE: nobody), cleared when anyone claims it.
+var j_keeper: PackedInt32Array = PackedInt32Array()
 var j_sub: PackedInt32Array = PackedInt32Array()
 var j_paused: PackedByteArray = PackedByteArray()
 var j_words: PackedStringArray = PackedStringArray()
@@ -241,7 +246,7 @@ func configure(p_cast: DemoCastScript, p_fleet: FleetScript, p_skills: SkillsScr
 
 func _size_rows(residents: int) -> void:
 	"""Every column sized once."""
-	for column: PackedInt32Array in [j_serial, j_kind, j_step, j_worker, j_pile, j_tries, j_sub, j_failed]:
+	for column: PackedInt32Array in [j_serial, j_kind, j_step, j_worker, j_pile, j_tries, j_sub, j_failed, j_keeper]:
 		column.resize(MAX_JOBS)
 	for column: PackedInt64Array in [j_load, j_num, j_mwu, j_need, j_wait_usec]:
 		column.resize(MAX_JOBS)
@@ -420,6 +425,30 @@ func update(usec: int) -> void:
 		if j_live[j] == 1 and j_wait_usec[j] > 0:
 			j_wait_usec[j] = maxi(0, j_wait_usec[j] - usec)
 	_say_closure()
+	_release_held_crew()
+
+
+func _hand_over_keep(j: int) -> void:
+	"""Job `j` claimed: the worker who kept it while away keeps it no longer -- her kept entry goes, as the
+	board's Reassign does (her own take-back has popped it already) -- else her promise would outlive the keeper column
+	and hold the trip; the column is cleared."""
+	var keeper: int = j_keeper[j]
+	if keeper != NONE:
+		HeldPlaces.release(brain_of(keeper), WorkIds.SOURCE_FERRY, j_serial[j])
+	j_keeper[j] = NONE
+
+
+func _release_held_crew() -> void:
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a crossing ready to leave -- posted, the ferry open,
+	the boat waiting only for its crew (a crew aboard is never called away: `must_finish`) -- does not wait, in working
+	hours, for a crew place its helm KEPT when called away. A place the player queued for someone waits for her; a
+	gather or haul keeps its own; a closed ferry waits anyway, and keeps it."""
+	if x_serial == 0 or x_job == NONE or j_keeper[x_job] == NONE or not is_open() or not waiting(x_job):
+		return
+	if not HeldPlaces.may_release(j_keeper[x_job], calendar):
+		return
+	HeldPlaces.release(brain_of(j_keeper[x_job]), WorkIds.SOURCE_FERRY, j_serial[x_job])
+	j_keeper[x_job] = NONE
 
 
 func _follow_hours() -> void:
@@ -666,6 +695,7 @@ func _open_job(kind: int) -> int:
 	_next_serial += 1
 	j_kind[j] = kind
 	j_worker[j] = NONE
+	j_keeper[j] = NONE
 	j_pile[j] = NONE
 	j_load[j] = 0
 	j_load_at[j] = Vector2.INF
@@ -725,6 +755,7 @@ func claim(j: int, who: int) -> bool:
 	if brain.task != task:
 		j_worker[j] = NONE
 		return false
+	_hand_over_keep(j)
 	revision += 1
 	return true
 
@@ -798,14 +829,35 @@ func drive(j: int, serial: int, brain: BrainScript, delta: float) -> bool:
 	return is_job(j, serial) and j_worker[j] == brain.index
 
 
-func called_away(j: int, serial: int, brain: BrainScript) -> void:
-	"""The brain gave the task up: a walk it could not finish, or an order, the night or a release."""
+func called_away(j: int, serial: int, brain: BrainScript) -> bool:
+	"""The brain gave the task up: a walk it could not finish, or an order, a meal, the night or a release. True when
+	the worker keeps the job to come back to (decision 1905, as the orchard's 1900; the board leaves it to that
+	resident meanwhile, decision 0411): let go here, not for a failed walk."""
 	if not is_job(j, serial) or j_worker[j] != brain.index:
-		return
+		return false
 	if brain.trip_failed() and WALK_STEPS.has(j_step[j]):
 		_unreached(j, brain)
-		return
+		return false
 	_let_go(j)
+	j_keeper[j] = brain.index
+	return true
+
+
+func unfinished_of(j: int, serial: int) -> UnfinishedScript:
+	"""Job `j` as the entry its worker keeps when called away (decision 1905, the orchard's 1900): taken back by
+	`take_back` while it is still the same job, naming the work board's task (its serial) so nobody else claims it
+	meanwhile. Null once the job is over."""
+	if not is_job(j, serial):
+		return null
+	return UnfinishedScript.new(take_back.bind(j, serial), "%s, %s" % [KIND_WORDS[j_kind[j]], place_words(j)],
+		WorkIds.SOURCE_FERRY, serial)
+
+
+func take_back(brain: BrainScript, j: int, serial: int) -> bool:
+	"""A resident called away comes back to job `j` (resident_brain.gd RESUMING): claimed again only while it is the
+	same job and waits for someone -- never a seat or a crew place refilled meanwhile, a paused job, or one waiting out
+	a walk nobody finished."""
+	return is_job(j, serial) and claim(j, brain.index)
 
 
 func must_finish(j: int, serial: int) -> bool:

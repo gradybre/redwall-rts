@@ -39,6 +39,10 @@ const BoatRowsScript := preload("res://demo/routes/boat_rows.gd")
 const IceScript := preload("res://demo/fishery/pond_ice.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
+const WorkBoard := preload("res://demo/work/work_board.gd")
+const CrewsScript := preload("res://demo/work/work_crews.gd")
+const ErrandScript := preload("res://demo/tunnel/tunnel_task.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 const KindsScript := preload("res://demo/routes/route_kinds.gd")
 const ReasonsScript := preload("res://demo/routes/route_reasons.gd")
@@ -169,15 +173,27 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES, board: bool = true
 
 
 func _board_pass(rig: Rig) -> void:
-	"""The work board's part (decision 0411): each waiting job to the first idle resident who may take it."""
+	"""The work board's part (decision 0411): each waiting job to the first idle resident who may take it
+	-- never one promised to another, who means to come back to it (decision 0411; 1905)."""
 	var f: FerryScript = rig.ferry
 	for j: int in FerryScript.MAX_JOBS:
 		if not f.waiting(j):
 			continue
+		var keeper: int = _promised_to(rig, f.j_serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = f.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and not brain.in_water and f.eligibility(j, who).is_empty() and f.claim(j, who):
 				break
+
+
+func _promised_to(rig: Rig, task_key: int) -> int:
+	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
+	for who: int in rig.cast.actor_count():
+		if rig.ferry.brain_of(who).promises(WorkIds.SOURCE_FERRY, task_key):
+			return who
+	return -1
 
 
 func _debug(rig: Rig, frame: int) -> void:
@@ -905,8 +921,9 @@ func test_afloat_the_crossing_is_not_cancelled_or_its_crew_taken() -> void:
 
 
 func test_a_carrier_called_away_sets_the_wood_down_for_the_next() -> void:
-	"""A gatherer with wood in hand given another order sets it down where it stands; the job waits, the next resident
-	picks it up and carries on; the stores get it all."""
+	"""A gatherer with wood in hand given another order sets it down where it stands; the job waits, kept for her
+	(decision 1905); released (R) she forgets it, and the next resident picks it up and carries on; the stores get it
+	all."""
 	var rig: Rig = _rig(9)
 	_helm(rig, 4, 2)
 	assert_equal(rig.ferry.order_gather(PackedInt32Array([0])), "", "gathering ordered")
@@ -918,7 +935,10 @@ func test_a_carrier_called_away_sets_the_wood_down_for_the_next() -> void:
 	assert_true(rig.ferry.cancel_job(j).contains("delivery"), "Cancel refused: a delivery finishes")
 	rig.ferry.brain_of(0).order_move(Vector2(10.0, 0.0))
 	assert_true(rig.ferry.j_load_at[j].is_finite(), "set down where it stood")
-	assert_equal(rig.ferry.j_worker[j], FerryScript.NONE, "the job waits for the next")
+	assert_equal(rig.ferry.j_worker[j], FerryScript.NONE, "the job waits")
+	assert_true(rig.ferry.brain_of(0).promises(WorkIds.SOURCE_FERRY, rig.ferry.j_serial[j]), "kept for her")
+	rig.ferry.brain_of(0).release()
+	assert_false(rig.ferry.brain_of(0).promises(WorkIds.SOURCE_FERRY, rig.ferry.j_serial[j]), "released: for the next")
 	assert_true(rig.ferry.books_balance(), "THE BOOKS with the wood set down")
 	var stored := func() -> bool: return rig.ferry.stored_milli == rig.ferry.fallen_milli and rig.ferry.job_count() == 0
 	assert_true(_run(rig, stored), "picked up, ferried and stored")
@@ -984,3 +1004,351 @@ func test_one_who_could_not_reach_the_stage_is_not_handed_the_crossing_again() -
 	rig.ferry.j_failed[j] = 4
 	assert_true(rig.ferry.eligibility(j, 4).contains("could not reach"), "not resident 4 again: %s" % rig.ferry.eligibility(j, 4))
 	assert_equal(rig.ferry.eligibility(j, 5), "", "another helm may")
+
+
+# --- called away, a worker keeps its job (decision 1905, as the orchard's 1900) ------------------------------------
+
+func _gathering_a_quarter_done(rig: Rig, who: int) -> int:
+	"""Resident `who` sent to gather the far copse and run until a quarter of its pile's gathering is done; its row."""
+	var ferry: FerryScript = rig.ferry
+	assert_equal(ferry.order_gather(PackedInt32Array([who])), "", "gathering ordered for %d" % who)
+	var j: int = ferry.job_of_worker(who)
+	var quarter := func() -> bool: return ferry.j_step[j] == FerryScript.S_GATHER and ferry.j_need[j] > 0 \
+		and ferry.j_mwu[j] * 4 >= ferry.j_need[j]
+	assert_true(_run(rig, quarter, MAX_FRAMES, false), "a quarter gathered")
+	return j
+
+
+func _board_over(rig: Rig, j: int) -> WorkBoard:
+	"""The REAL work board over the rig's residents, its one source: a crew key a resident, and every crew allowed job
+	`j`'s activity, so the board WOULD give it to an idle resident -- the promise is what stops it."""
+	var board := WorkBoard.new()
+	var brains: Array[BrainScript] = []
+	var names := PackedStringArray()
+	var keys: Array[StringName] = []
+	for who: int in rig.cast.actor_count():
+		brains.append(rig.ferry.brain_of(who))
+		names.append(rig.ferry.name_of(who))
+		keys.append(&"")
+	board.bind(brains, names, keys)
+	var source := FerryWork.new(rig.ferry)
+	for crew: int in CrewsScript.CREW_COUNT:
+		board.crews.set_priority(crew, source.activity(j), WorkIds.PRIORITY_NORMAL)
+	board.add_source(source)
+	return board
+
+
+func test_a_gatherer_called_away_keeps_the_job_promised_on_the_work_board() -> void:
+	"""Decision 1905: resident 0, a quarter into gathering a pile, is called away by an order -- as a meal's call does --
+	and keeps the job: on her list naming it, the REAL work board gives it to none of the idle residents (the other pile
+	may go), her order done it is hers again, and back at the pile she goes on from where she stopped."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	var j: int = _gathering_a_quarter_done(rig, 0)
+	var board: WorkBoard = _board_over(rig, j)
+	var brain: BrainScript = ferry.brain_of(0)
+	var no_rules: Array[Callable] = []
+	assert_equal(InterruptScript.resume_of(brain, no_rules, 0), InterruptScript.RESUMES, "the card: goes back to it")
+	var done: int = ferry.j_mwu[j]
+	var need: int = ferry.j_need[j]
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, FerryWork.new(ferry).key(j)), "kept, naming its task")
+	assert_true(ferry.waiting(j) and ferry.eligibility(j, 2).is_empty(), "the job waits, and another may do it")
+	assert_equal(brain.queue_entry(0).label() if brain.queue_size() > 0 else "", "Gather windfall, the far copse",
+		"in the order list's words")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(ferry.j_worker[j], FerryScript.NONE, "nobody else was given it")
+	brain.work_done()
+	assert_equal(ferry.j_worker[j], 0, "back to it")
+	var at_work := func() -> bool: return ferry.j_step[j] == FerryScript.S_GATHER and ferry.j_at[j] == 1
+	assert_true(_run(rig, at_work, MAX_FRAMES, false), "gathering again")
+	assert_equal(ferry.j_need[j], need, "the same pile's work")
+	@warning_ignore("integer_division") var one_frame: int = need / 20
+	assert_true(ferry.j_mwu[j] >= done and ferry.j_mwu[j] < done + one_frame,
+		"from where she stopped: %d after %d" % [ferry.j_mwu[j], done])
+
+
+func test_a_ferry_job_lost_on_the_way_paused_or_reassigned_keeps_nothing() -> void:
+	"""Decision 1905: a walk given up keeps nothing (the job waits RETRY_USEC, one try counted), nor do the board's
+	Pause and Reassign for the resident they take the job from."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	assert_equal(ferry.order_gather(PackedInt32Array([0])), "", "gathering ordered")
+	var j: int = ferry.job_of_worker(0)
+	assert_equal(ferry.pause_job(j, true), "", "paused")
+	assert_equal(ferry.brain_of(0).queue_size(), 0, "a pause keeps nothing")
+	assert_equal(ferry.pause_job(j, false), "", "resumed")
+	assert_equal(ferry.reassign_job(j, 0), "", "given back to 0")
+	assert_equal(ferry.reassign_job(j, 1), "", "and on to 1")
+	assert_equal(ferry.brain_of(0).queue_size(), 0, "a reassign keeps nothing")
+	var brain: BrainScript = ferry.brain_of(1)
+	brain.trip_outcome = BrainScript.TRIP_FAILED
+	brain.order_task(ErrandScript.new())
+	assert_equal(brain.queue_size(), 0, "a walk it could not finish keeps nothing")
+	assert_equal(ferry.j_wait_usec[j], Rules.RETRY_USEC, "the job waits to be offered again")
+	assert_equal(ferry.j_tries[j], 1, "one try counted")
+
+
+func test_a_kept_ferry_job_cancelled_is_stale() -> void:
+	"""Decision 1905: a kept gather the player cancels -- its row reused by the next order -- is neither taken back nor
+	kept again."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	assert_equal(ferry.order_gather(PackedInt32Array([0])), "", "gathering ordered")
+	var j: int = ferry.job_of_worker(0)
+	var old_serial: int = ferry.j_serial[j]
+	var brain: BrainScript = ferry.brain_of(0)
+	brain.order_task(ErrandScript.new())
+	assert_equal(brain.queue_size(), 1, "kept")
+	assert_equal(ferry.cancel_job(j), "", "cancelled")
+	assert_equal(ferry.order_gather(PackedInt32Array()), "", "ordered again")
+	assert_equal(ferry.j_live[j], 1, "its pile's job in the same row")
+	assert_false(ferry.take_back(brain, j, old_serial), "the old entry is stale")
+	assert_null(ferry.unfinished_of(j, old_serial), "and makes no entry")
+	assert_equal(ferry.j_worker[j], FerryScript.NONE, "the new job is not hers")
+
+
+func test_a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back() -> void:
+	"""Decision 1905's pitfall: the crossing's helm, called away on the way to the stage, keeps the crew place; the
+	board's Reassign gives it to another helm meanwhile -- she no longer promises it (nobody does), it is not taken
+	back, and nobody is displaced."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_helm(rig, 5, 1)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "kept")
+	assert_equal(board.reassign(WorkIds.SOURCE_FERRY, j, 5), "", "the crew place refilled by Reassign")
+	assert_false(brain.promises(WorkIds.SOURCE_FERRY, serial), "she no longer promises it")
+	assert_false(ferry.take_back(brain, j, serial), "not taken back")
+	brain.work_done()
+	assert_equal(ferry.j_worker[j], 5, "nobody displaced")
+
+
+func test_without_her_promise_the_board_gives_the_pile_to_another() -> void:
+	"""The control for the REAL work board test (decision 1905): the same job, her entry removed, is given to another
+	idle resident -- so it is the promise, not the board's setup, that keeps it for her."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	var j: int = _gathering_a_quarter_done(rig, 0)
+	var board: WorkBoard = _board_over(rig, j)
+	var brain: BrainScript = ferry.brain_of(0)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.remove_queued(0), "her entry removed")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_true(ferry.j_worker[j] >= 0 and ferry.j_worker[j] != 0, "another took it: %d" % ferry.j_worker[j])
+
+
+# --- TRIP DOESN'T WAIT (Brendan, 2026-10-12; decision 1905) ---------------------------------------------------------
+
+func _crossing_with_its_helm_away(rig: Rig) -> int:
+	"""A crossing sent with 4 at the helm (5 an able helm too), 4 called away at once and keeping the crew place; run
+	until the crossing, ready to leave, gives it up. Its crew row."""
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_helm(rig, 5, 1)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "kept at first")
+	var released := func() -> bool: return not brain.promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, MAX_FRAMES, false), "released: the crossing is ready to leave")
+	return j
+
+
+func test_a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away() -> void:
+	"""TRIP DOESN'T WAIT: the crew place of a helm called away is offered by the REAL work board to an idle helm, and
+	the crossing leaves with them."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	var j: int = _crossing_with_its_helm_away(rig)
+	var board: WorkBoard = _board_over(rig, j)
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_true(ferry.j_worker[j] >= 0 and ferry.j_worker[j] != 4, "another helm took it: %d" % ferry.j_worker[j])
+	var rowing := func() -> bool: return ferry.x_state == FerryScript.X_ROWING or ferry.crossings_done > 0
+	assert_true(_run(rig, rowing, MAX_FRAMES, false), "the crossing leaves")
+
+
+func test_the_helm_back_from_her_meal_steps_aside() -> void:
+	"""TRIP DOESN'T WAIT: back, the helm called away has nothing to come back to -- no promise, no crew place taken from
+	whoever has it now; she goes on with her routine."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	var j: int = _crossing_with_its_helm_away(rig)
+	var board: WorkBoard = _board_over(rig, j)
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	var now: int = ferry.j_worker[j]
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.work_done()
+	assert_equal(brain.queue_size(), 0, "nothing on her list")
+	assert_equal(ferry.j_worker[j], now, "the crew place still theirs")
+	assert_equal(ferry.job_of_worker(4), FerryScript.NONE, "no ferry job of hers")
+
+
+func test_a_gatherer_still_keeps_her_pile() -> void:
+	"""TRIP DOESN'T WAIT is for the crossing's crew only: a gatherer called away keeps her pile however long she is away
+	(solo work waits for its worker)."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	var j: int = _gathering_a_quarter_done(rig, 0)
+	var brain: BrainScript = ferry.brain_of(0)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	_run(rig, func() -> bool: return false, 600, false)
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, ferry.j_serial[j]), "still kept")
+	assert_equal(ferry.j_worker[j], FerryScript.NONE, "and nobody else's")
+
+
+func test_a_closed_ferry_keeps_its_helm_called_away() -> void:
+	"""TRIP DOESN'T WAIT is for a crossing ready to leave: with the ferry closed (a storm) it waits anyway and keeps the
+	crew place for the helm called away; the storm passed, it gives the place up."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var serial: int = ferry.j_serial[ferry.x_job]
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	_storm(rig, true)
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_false(ferry.is_open(), "closed")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "the crew place still kept")
+	_storm(rig, false)
+	var given_up := func() -> bool: return not brain.promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, given_up, 600, false), "open: given up")
+
+
+func _next_hour(rig: Rig, hour: int) -> int:
+	"""The calendar tick of the next `hour`:00 (0..23) from now."""
+	var now: int = rig.calendar.hour_index()
+	var at: int = now - posmod(now, SimClock.HOURS_PER_DAY) + hour
+	if at <= now:
+		at += SimClock.HOURS_PER_DAY
+	return at * SimClock.TICKS_PER_HOUR - SimClock.CALENDAR_OFFSET_TICKS
+
+
+# --- held places: the player's order holds, working hours, O(1) (Brendan, 2026-10-12; decision 1905) -----------------
+
+func test_a_crew_place_the_player_queued_holds_the_crossing() -> void:
+	"""PLAYER'S ORDER HOLDS: the helm, called away, kept the crew place; the player then queued it (Shift+right-click)
+	for helm 5, busy. The crossing gives up the KEPT place -- 4's -- but 5's queued order holds: the crossing waits for
+	her, and the board gives the place to no other helm."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_helm(rig, 5, 1)
+	_helm(rig, 3, 1)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	ferry.brain_of(4).order_move(ferry.brain_of(4).position + Vector2(-1.0, 0.0))
+	var brain: BrainScript = ferry.brain_of(5)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(board.queue_task(WorkIds.SOURCE_FERRY, j, 5), "", "the crew place queued for 5")
+	var released := func() -> bool: return not ferry.brain_of(4).promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, 60, false), "4's kept place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "5's queued order holds")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(ferry.j_worker[j], FerryScript.NONE, "the crossing waits for her")
+
+
+func test_a_kept_crew_place_is_given_up_only_in_working_hours() -> void:
+	"""ONLY IN WORKING HOURS: a helm called away (the night) keeps the crew place overnight though the crossing is
+	posted and the ferry open; in the morning the crossing gives it up."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var serial: int = ferry.j_serial[ferry.x_job]
+	rig.calendar.tick = _next_hour(rig, 21)
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_true(ferry.is_open(), "the ferry open")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "overnight it stays hers")
+	rig.calendar.tick = _next_hour(rig, 6)
+	var released := func() -> bool: return not brain.promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, 60, false), "given up at dawn (06:00)")
+
+
+func test_only_the_keepers_crew_entry_is_given_up() -> void:
+	"""O(1): the crossing gives up only the entry of the helm it let keep the crew place (its keeper column) -- another
+	resident's kept entry naming the same place (put on 5's list by hand) is not looked at."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var brain: BrainScript = ferry.brain_of(5)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	brain.remember_unfinished(ferry.unfinished_of(j, serial))
+	ferry.brain_of(4).order_move(ferry.brain_of(4).position + Vector2(-1.0, 0.0))
+	var released := func() -> bool: return not ferry.brain_of(4).promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, 60, false), "the keeper's place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "5's entry not looked at")
+
+
+func test_her_own_queued_order_outlives_the_release_of_her_kept_place() -> void:
+	"""PLAYER'S ORDER HOLDS: the helm also queued her own crew place (Shift+right-click) before she was called away. The
+	crossing gives up only her KEPT entry; her queued order holds, so the place still waits for her."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	assert_equal(board.queue_task(WorkIds.SOURCE_FERRY, j, 4), "", "queued for herself")
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(brain.queue_size(), 2, "queued and kept")
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_equal(brain.queue_size(), 1, "the kept entry given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "her queued order holds")
+
+
+func test_a_crew_place_taken_by_another_ends_her_kept_promise() -> void:
+	"""The third review: the helm, called away, kept the crew place; the player queues it for helm 5, idle, who takes it
+	at once. Her kept entry goes with the keeper column (as a Reassign's would), so no promise is left to outlive it and
+	hold the crossing if 5 later loses it."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_helm(rig, 5, 1)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "kept")
+	assert_equal(board.queue_task(WorkIds.SOURCE_FERRY, j, 5), "", "queued for 5")
+	assert_equal(ferry.j_worker[j], 5, "5 took it at once")
+	assert_false(brain.promises(WorkIds.SOURCE_FERRY, serial), "her kept promise ended")
+	assert_equal(ferry.j_keeper[j], FerryScript.NONE, "and the keeper column with it")

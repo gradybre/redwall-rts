@@ -170,6 +170,19 @@ on a breakfast path. The analyzer, `underground_memory_budget.py --check`, `read
 `decision_numbers.py` passed again (lines as in Gates). **Mutation:** the 4 new mutants were killed, and the 10 earlier
 ones are still killed against the stronger tests: **14 of 14**.
 
+## Correction (decision 1905, 2026-10-12)
+
+**The REAL work board test proved less than this record says.** `test_a_called_away_tender_is_promised_on_the_real_work_board`
+bound the board with no crew keys (`[] as Array[StringName]`), so every resident's crew priority was FORBIDDEN, and
+`consider()` would have given the job to nobody whether or not it was promised. The independent review of MEAL-CALLAWAY
+showed it: with `work_board.gd` `_candidate_ok` reduced to `if _idx_taken[k] == 1:` (the promise ignored) every suite
+stayed green, the orchard's included. MEDIUM 2's resolution above therefore did not hold as claimed: its mutant
+"`key()` returns the row" was killed only by the order-list assertions, not by the board. Decision 1905 fixed the test:
+it binds a crew key a resident and allows every crew the job's activity, and a control test
+(`test_without_her_promise_the_board_gives_the_tending_to_another`) shows the same board gives the job away once her
+entry is removed. The promise-ignoring mutant is now killed in the orchard suite too. The production code was right;
+only the proof was missing.
+
 ## Follow-ups
 
 - **Exit leaks in the harness's own process.** Two of the 64 plain runs after the fix printed "2 ObjectDB instances

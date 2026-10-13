@@ -29,6 +29,7 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 
 const DT: float = 0.1
@@ -127,15 +128,27 @@ func _run(rig: Rig, done: Callable, frames: int = MAX_FRAMES) -> bool:
 
 
 func _board_pass(rig: Rig) -> void:
-	"""The work board's part: each waiting seat to the first idle resident who may take it."""
+	"""The work board's part: each waiting seat to the first idle resident who may take it -- never one promised to
+	another, who means to come back to it (decision 0411; 1905)."""
 	var t: TripsScript = rig.trips
 	for j: int in Rules.MAX_JOBS:
 		if not t.waiting(j):
 			continue
+		var keeper: int = _promised_to(rig, t.j_serial[j])
 		for who: int in rig.cast.actor_count():
+			if keeper >= 0 and keeper != who:
+				continue
 			var brain: BrainScript = t.brain_of(who)
 			if brain.order == BrainScript.ORDER_NONE and t.eligibility(j, who).is_empty() and t.claim(j, who):
 				break
+
+
+func _promised_to(rig: Rig, task_key: int) -> int:
+	"""Who means to come back to that task (the work board leaves it to them, decision 0411; -1: nobody)."""
+	for who: int in rig.cast.actor_count():
+		if rig.trips.brain_of(who).promises(WorkIds.SOURCE_FORAGE, task_key):
+			return who
+	return -1
 
 
 # --- the rules ---------------------------------------------------------------------------------------------------------

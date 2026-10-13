@@ -482,3 +482,14 @@ func test_a_way_down_is_placed_by_click_or_enter_and_says_why_not() -> void:
 	assert_equal(_build.batch.item_kind(0), Validity.KIND_BLOCKED, "nothing under it")
 	assert_true(_said[-1].contains("needs a passage or room under it"), _said[-1])
 
+
+
+func test_the_bar_marks_a_level_reached_once_a_way_down_lands_there() -> void:
+	"""Decision 1912: level 1 reads "no way in yet" until an Entrance is confirmed; then its mark goes."""
+	_build._process(0.016)
+	assert_false(_build.bar.is_reachable(1), "no way in yet")
+	_build.batch.place_item(0, Vector2i(4, 4))
+	_build.confirm_all()
+	_build._process(0.016)
+	assert_true(_build.bar.is_reachable(1), "the Entrance lands there")
+	assert_false(_build.bar.is_reachable(2), "level 2 still has none")

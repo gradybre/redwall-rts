@@ -125,6 +125,8 @@ var _trips: Array[BelowTask] = []
 var _figures: Array[Figure] = []
 var _trip_actors: PackedInt32Array = PackedInt32Array()
 var _send_in: float = 0.0
+## The works revision the bar's marks were set at.
+var _marked_at: int = -1
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -334,12 +336,22 @@ func _on_closed(kept: bool) -> void:
 
 
 func _mark_reachable() -> void:
-	"""The bar's "no way in yet" marks while building: a level has a way in only where something is dug at all
-	(no excavation Site exists anywhere: none has; every cell's ghost judges it exactly)."""
+	"""The bar's "no way in yet" marks: a level has a way in when a confirmed way down lands on it (the proof of
+	concept's, decision 1912) or, conservatively, when any settlement excavation Site exists; every cell's ghost judges
+	it exactly."""
 	var sites: Object = orders.excavation_sites()
 	var any: bool = sites != null and int(sites.get(&"_count")) > 0
 	for level: int in range(1, LevelBar.LEVEL_DEEPEST + 1):
-		bar.set_reachable(level, any)
+		bar.set_reachable(level, any or _landed_on(level))
+	_marked_at = works.revision
+
+
+func _landed_on(level: int) -> bool:
+	"""Whether a confirmed way down lands on `level`."""
+	for row: int in works.way_count():
+		if works.way_level(row) + 1 == level:
+			return true
+	return false
 
 
 # --- per frame -----------------------------------------------------------------------------------------------------
@@ -583,6 +595,8 @@ func _tick_works(delta: float) -> void:
 	SEND_EVERY_S while cells wait and no mole is digging -- a mole sent again."""
 	var shown: int = bar.shown_level() if panel.is_open() else -1
 	dug.refresh(shown)
+	if works.revision != _marked_at:
+		_mark_reachable()
 	for k: int in _trips.size():
 		_figures[k].visible = _trips[k].below() and shown >= 1 and _trips[k].at().x == shown and _still_on(_trips[k])
 	_send_in -= delta

@@ -76,6 +76,7 @@ const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 ## A refusal's note that the free food it counts includes the kitchen's beyond its next meal (decisions 1739, 1741).
@@ -340,26 +341,28 @@ func update(usec: int) -> void:
 
 
 func _release_held_seats() -> void:
-	"""TRIP DOESN'T WAIT (Brendan, 2026-10-12; decision 1905): a boat trip ready to leave -- one seat's fisher at the
-	jetty (a seat at S_JETTY has its fisher: `_let_go` sends a seat not yet aboard back to its walk), and so still
-	QUEUED, since nobody boards while a seat waits -- whose other seat waits only for a fisher called away (promised to
-	her) gives that seat up: her promise is released and the board offers it to anyone idle. A one-seat trip and a
-	station job keep theirs (solo work waits for its worker)."""
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a boat trip ready to leave -- one seat's fisher at
+	the jetty (a seat at S_JETTY has its fisher: `_let_go` sends a seat not yet aboard back to its walk), and so still
+	QUEUED, since nobody boards while a seat waits -- whose other seat waits for the fisher who KEPT it when called away
+	gives it up in working hours. A place the player queued for someone waits for her; a one-seat trip and a station
+	job keep theirs (solo work waits for its worker)."""
 	for t: int in Tables.MAX_TRIPS:
 		if not tables.is_trip(t):
 			continue
 		for seat: int in 2:
 			var j: int = tables.t_seat_job[t * 2 + seat]
 			var other: int = tables.t_seat_job[t * 2 + 1 - seat]
-			if j >= 0 and other >= 0 and waiting(j) and step_of(other) == S_JETTY:
-				_release_promise(WorkIds.SOURCE_FISHERY, tables.j_serial[j])
+			if j >= 0 and other >= 0 and tables.j_keeper[j] != NONE and waiting(j) and step_of(other) == S_JETTY:
+				_release_kept(j)
 
-func _release_promise(task_source: int, task_key: int) -> void:
-	"""Nobody keeps that work board task to come back to any more (TRIP DOESN'T WAIT): the board offers it to anyone."""
-	if _cast == null:
+
+func _release_kept(j: int) -> void:
+	"""Job `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
+	to anyone idle."""
+	if not HeldPlaces.may_release(tables.j_keeper[j], calendar):
 		return
-	for who: int in _cast.actor_count():
-		brain_of(who).forget_task(task_source, task_key)
+	HeldPlaces.release(brain_of(tables.j_keeper[j]), WorkIds.SOURCE_FISHERY, tables.j_serial[j])
+	tables.j_keeper[j] = NONE
 
 
 func _follow_hours() -> void:
@@ -851,6 +854,7 @@ func claim(j: int, who: int) -> bool:
 	_forget_other_seat(j, who)
 	var task := TaskScript.new(self, j, tables.j_serial[j])
 	tables.j_worker[j] = who
+	tables.j_keeper[j] = NONE
 	tables.j_issued[j] = 1
 	tables.j_at[j] = 0
 	_tasks[j] = task
@@ -1012,6 +1016,7 @@ func called_away(j: int, serial: int, brain: BrainScript) -> bool:
 		_unreached(j, brain)
 		return false
 	_let_go(j)
+	tables.j_keeper[j] = brain.index
 	return true
 
 

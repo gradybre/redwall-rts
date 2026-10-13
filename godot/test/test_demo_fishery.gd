@@ -1295,3 +1295,112 @@ func test_a_station_job_still_waits_for_its_miller() -> void:
 	_run(rig, func() -> bool: return false, 600, false)
 	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, f.tables.j_serial[j]), "still kept")
 	assert_equal(f.tables.j_worker[j], FisheryScript.NONE, "and nobody else's")
+
+
+func _next_hour(rig: Rig, hour: int) -> int:
+	"""The calendar tick of the next `hour`:00 (0..23) from now."""
+	var now: int = rig.calendar.hour_index()
+	var at: int = now - posmod(now, SimClock.HOURS_PER_DAY) + hour
+	if at <= now:
+		at += SimClock.HOURS_PER_DAY
+	return at * SimClock.TICKS_PER_HOUR - SimClock.CALENDAR_OFFSET_TICKS
+
+
+# --- held places: the player's order holds, working hours, O(1) (Brendan, 2026-10-12; decision 1905) -----------------
+
+func test_a_seat_the_player_queued_holds_the_boat() -> void:
+	"""PLAYER'S ORDER HOLDS: the second, called away, kept her seat; the player then queued it (Shift+right-click) for
+	resident 2, busy. With the helm at the jetty the boat gives up the KEPT place -- 1's -- but 2's queued order holds:
+	the boat waits for her, and the board gives the seat to nobody else."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	var seat: int = f.tables.t_seat_job[1]
+	var serial: int = f.tables.j_serial[seat]
+	var board: WorkBoard = _board_over(rig, seat)
+	f.brain_of(1).order_move(f.brain_of(1).position + Vector2(-1.0, 0.0))
+	var brain: BrainScript = f.brain_of(2)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(board.queue_task(WorkIds.SOURCE_FISHERY, seat, 2), "", "the seat queued for 2")
+	var released := func() -> bool: return not f.brain_of(1).promises(WorkIds.SOURCE_FISHERY, serial)
+	assert_true(_run(rig, released, MAX_FRAMES, false), "1's kept place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "2's queued order holds")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(f.tables.j_worker[seat], FisheryScript.NONE, "the boat waits for her")
+
+
+func test_a_kept_seat_is_given_up_only_in_working_hours() -> void:
+	"""ONLY IN WORKING HOURS: a second called away keeps her seat overnight though the helm stands at the jetty; in the
+	morning the boat gives it up."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	var serial: int = f.tables.j_serial[f.tables.t_seat_job[1]]
+	var brain: BrainScript = f.brain_of(1)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	rig.calendar.tick = _next_hour(rig, 21)
+	var at_jetty := func() -> bool: return f.step_of(f.tables.t_seat_job[0]) == FisheryScript.S_JETTY
+	assert_true(_run(rig, at_jetty, MAX_FRAMES, false), "the helm at the jetty, at night")
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "overnight it stays hers")
+	rig.calendar.tick = _next_hour(rig, 6)
+	var released := func() -> bool: return not brain.promises(WorkIds.SOURCE_FISHERY, serial)
+	assert_true(_run(rig, released, 60, false), "given up at dawn (06:00)")
+
+
+func test_only_the_keepers_entry_is_given_up() -> void:
+	"""O(1): the boat gives up only the entry of the fisher it let keep the seat (its keeper column) -- another
+	resident's kept entry naming the same seat (put on 2's list by hand) is not looked at."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	var seat: int = f.tables.t_seat_job[1]
+	var serial: int = f.tables.j_serial[seat]
+	f.brain_of(1).order_move(f.brain_of(1).position + Vector2(-1.0, 0.0))
+	var brain: BrainScript = f.brain_of(2)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	brain.remember_unfinished(f.unfinished_of(seat, serial))
+	var released := func() -> bool: return not f.brain_of(1).promises(WorkIds.SOURCE_FISHERY, serial)
+	assert_true(_run(rig, released, MAX_FRAMES, false), "the keeper's place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "2's entry not looked at")
+
+
+func test_two_seats_both_away_stay_kept() -> void:
+	"""Both fishers of a boat called away (as the night takes both): nobody stands at the jetty, the boat is not ready to
+	leave, and both keep their seats."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	for who: int in 2:
+		f.brain_of(who).order_move(f.brain_of(who).position + Vector2(-1.0, 0.0))
+	_run(rig, func() -> bool: return false, 300, false)
+	for seat: int in 2:
+		var serial: int = f.tables.j_serial[f.tables.t_seat_job[seat]]
+		assert_true(f.brain_of(seat).promises(WorkIds.SOURCE_FISHERY, serial), "seat %d still kept" % seat)
+
+
+func test_her_own_queued_order_outlives_the_release_of_her_kept_seat() -> void:
+	"""PLAYER'S ORDER HOLDS: the second also queued her own seat (Shift+right-click) before she was called away. The boat
+	gives up only her KEPT entry; her queued order holds, so the seat still waits for her."""
+	var rig := _rig()
+	var f: FisheryScript = rig.fishery
+	_helm(rig, 0, 2)
+	assert_equal(f.authorise(Rules.METHOD_BOAT, Driver.SITE_POND, 0, PackedInt32Array([0, 1])), "", "authorised")
+	var seat: int = f.tables.t_seat_job[1]
+	var serial: int = f.tables.j_serial[seat]
+	var board: WorkBoard = _board_over(rig, seat)
+	assert_equal(board.queue_task(WorkIds.SOURCE_FISHERY, seat, 1), "", "queued for herself")
+	var brain: BrainScript = f.brain_of(1)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(brain.queue_size(), 2, "queued and kept")
+	var at_jetty := func() -> bool: return f.step_of(f.tables.t_seat_job[0]) == FisheryScript.S_JETTY
+	assert_true(_run(rig, at_jetty, MAX_FRAMES, false), "the helm at the jetty")
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_equal(brain.queue_size(), 1, "the kept entry given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FISHERY, serial), "her queued order holds")

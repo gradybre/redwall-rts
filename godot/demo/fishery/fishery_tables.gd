@@ -80,6 +80,8 @@ var j_live: PackedByteArray = PackedByteArray()
 var j_serial: PackedInt32Array = PackedInt32Array()
 var j_kind: PackedInt32Array = PackedInt32Array()
 var j_worker: PackedInt32Array = PackedInt32Array()
+## Who was let keep the job when called away (demo/work/held_places.gd; NONE: nobody), cleared when anyone claims it.
+var j_keeper: PackedInt32Array = PackedInt32Array()
 var j_trip: PackedInt32Array = PackedInt32Array()
 var j_seat: PackedInt32Array = PackedInt32Array()
 var j_slot: PackedInt32Array = PackedInt32Array()
@@ -146,7 +148,7 @@ func _size_jobs() -> void:
 	for column: PackedByteArray in [j_live, j_issued, j_paused, j_started, j_at]:
 		column.resize(MAX_JOBS)
 	for column: PackedInt32Array in [j_serial, j_kind, j_worker, j_trip, j_seat, j_slot, j_recipe, j_prog, j_pos,
-			j_load_item, j_take, j_hold, j_tries]:
+			j_load_item, j_take, j_hold, j_tries, j_keeper]:
 		column.resize(MAX_JOBS)
 	for column: PackedInt64Array in [j_mwu, j_num, j_need, j_load_milli, j_wait_usec]:
 		column.resize(MAX_JOBS)
@@ -212,7 +214,7 @@ func open_job(kind: int, prog: int, trip: int) -> int:
 	j_kind[j] = kind
 	j_prog[j] = prog
 	j_trip[j] = trip
-	for column: PackedInt32Array in [j_worker, j_seat, j_slot, j_recipe, j_load_item, j_take, j_hold]:
+	for column: PackedInt32Array in [j_worker, j_seat, j_slot, j_recipe, j_load_item, j_take, j_hold, j_keeper]:
 		column[j] = NONE
 	j_pos[j] = 0
 	j_tries[j] = 0

@@ -746,3 +746,103 @@ func test_a_party_seat_with_its_haul_set_down_is_still_kept() -> void:
 	assert_true(t.j_load_at[j].is_finite(), "the haul set down")
 	_run(rig, func() -> bool: return false, 60, false)
 	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, t.j_serial[j]), "still kept")
+
+
+func _next_hour(rig: Rig, hour: int) -> int:
+	"""The calendar tick of the next `hour`:00 (0..23) from now."""
+	var now: int = rig.calendar.hour_index()
+	var at: int = now - posmod(now, SimClock.HOURS_PER_DAY) + hour
+	if at <= now:
+		at += SimClock.HOURS_PER_DAY
+	return at * SimClock.TICKS_PER_HOUR - SimClock.CALENDAR_OFFSET_TICKS
+
+
+# --- held places: the player's order holds, working hours, O(1) (Brendan, 2026-10-12; decision 1905) -----------------
+
+func test_a_seat_the_player_queued_holds_for_her() -> void:
+	"""PLAYER'S ORDER HOLDS: 3, called away, kept her seat; the player then queued it (Shift+right-click) for resident
+	5, busy. With the party under way the KEPT place -- 3's -- is given up, but 5's queued order holds, and the board
+	gives the seat to nobody else."""
+	var rig: Rig = _rig(2, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(HERBS, 2, PackedInt32Array([3, 4])), "", "a party of two")
+	var j: int = t.job_of_worker(3)
+	var serial: int = t.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	t.brain_of(3).order_move(t.brain_of(3).position + Vector2(-1.0, 0.0))
+	var brain: BrainScript = t.brain_of(5)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(board.queue_task(WorkIds.SOURCE_FORAGE, j, 5), "", "the seat queued for 5")
+	var released := func() -> bool: return not t.brain_of(3).promises(WorkIds.SOURCE_FORAGE, serial)
+	assert_true(_run(rig, released, MAX_FRAMES, false), "3's kept place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, serial), "5's queued order holds")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(t.j_worker[j], TripsScript.NONE, "the seat waits for her")
+
+
+func test_a_kept_party_seat_is_given_up_only_in_working_hours() -> void:
+	"""ONLY IN WORKING HOURS: one of a party called away keeps her seat overnight though her partner is out; in the
+	morning the party gives it up."""
+	var rig: Rig = _rig(2, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(HERBS, 2, PackedInt32Array([3, 4])), "", "a party of two")
+	var serial: int = t.j_serial[t.job_of_worker(3)]
+	rig.calendar.tick = _next_hour(rig, 21)
+	var brain: BrainScript = t.brain_of(3)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, serial), "overnight it stays hers")
+	rig.calendar.tick = _next_hour(rig, 6)
+	var released := func() -> bool: return not brain.promises(WorkIds.SOURCE_FORAGE, serial)
+	assert_true(_run(rig, released, 60, false), "given up at dawn (06:00)")
+
+
+func test_only_the_keepers_seat_entry_is_given_up() -> void:
+	"""O(1): the party gives up only the entry of the forager it let keep the seat (its keeper column) -- another
+	resident's kept entry naming the same seat (put on 5's list by hand) is not looked at."""
+	var rig: Rig = _rig(2, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(HERBS, 2, PackedInt32Array([3, 4])), "", "a party of two")
+	var j: int = t.job_of_worker(3)
+	var serial: int = t.j_serial[j]
+	t.brain_of(3).order_move(t.brain_of(3).position + Vector2(-1.0, 0.0))
+	var brain: BrainScript = t.brain_of(5)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	brain.remember_unfinished(t.unfinished_of(j, serial))
+	var released := func() -> bool: return not t.brain_of(3).promises(WorkIds.SOURCE_FORAGE, serial)
+	assert_true(_run(rig, released, MAX_FRAMES, false), "the keeper's place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, serial), "5's entry not looked at")
+
+
+func test_two_party_seats_both_away_stay_kept() -> void:
+	"""Both of a party called away (as the night takes both): nobody is out, the party is not under way, and both keep
+	their seats."""
+	var rig: Rig = _rig(2, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(HERBS, 2, PackedInt32Array([3, 4])), "", "a party of two")
+	var serials := PackedInt32Array([t.j_serial[t.job_of_worker(3)], t.j_serial[t.job_of_worker(4)]])
+	for who: int in [3, 4]:
+		t.brain_of(who).order_move(t.brain_of(who).position + Vector2(-1.0, 0.0))
+	_run(rig, func() -> bool: return false, 300, false)
+	assert_true(t.brain_of(3).promises(WorkIds.SOURCE_FORAGE, serials[0]), "3 still keeps hers")
+	assert_true(t.brain_of(4).promises(WorkIds.SOURCE_FORAGE, serials[1]), "4 still keeps hers")
+
+
+func test_her_own_queued_order_outlives_the_release_of_her_kept_seat() -> void:
+	"""PLAYER'S ORDER HOLDS: one of a party also queued her own seat (Shift+right-click) before she was called away. The
+	party gives up only her KEPT entry; her queued order holds, so the seat still waits for her."""
+	var rig: Rig = _rig(2, 8)
+	var t: TripsScript = rig.trips
+	assert_equal(t.order_trip(HERBS, 2, PackedInt32Array([3, 4])), "", "a party of two")
+	var j: int = t.job_of_worker(3)
+	var serial: int = t.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	assert_equal(board.queue_task(WorkIds.SOURCE_FORAGE, j, 3), "", "queued for herself")
+	var brain: BrainScript = t.brain_of(3)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(brain.queue_size(), 2, "queued and kept")
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_equal(brain.queue_size(), 1, "the kept entry given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FORAGE, serial), "her queued order holds")

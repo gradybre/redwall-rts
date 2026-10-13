@@ -2064,8 +2064,9 @@ haul" (berries too, at the dishes lane's request). `forage/`:
 - **Called away, a forager keeps its seat** (decision 1905, as the orchard's 1900): taken off it by an order, a meal's
   call or the night, it goes back to it after, from where it stopped, and the work board leaves the seat to it
   meanwhile (its action card says "goes back to it after"). **A party doesn't wait** (Brendan, "Trip doesn't wait"):
-  while another of its seats is out, a seat whose forager is away with nothing in hand is offered to anyone idle, and
-  she steps aside when she comes back. A forager out alone keeps hers. A walk she could not finish keeps nothing, nor
+  in the day (06:00-20:00), while another of its seats is out, a seat whose forager is away with nothing in hand is
+  offered to anyone idle, and she steps aside when she comes back; overnight it stays hers, and a seat the player
+  queued for someone (Shift+right-click) always waits for her. A forager out alone keeps hers. A walk she could not finish keeps nothing, nor
   do Pause and Reassign (a Reassign leaves nobody promising the seat).
 - **The items**: `nuts` (1600 NP, raw edible, 720 h), `mushrooms` (72 h), `herb` (480 h), `berries` (700 NP, raw edible,
   48 h) -- the catalogue's keys, items 26–29 of the pantry (after the dishes' potato and honey). Nuts and herb are the
@@ -2404,9 +2405,10 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   where it stands, for the next to fetch. A trip two game hours past its estimate is an OVERDUE warning.
 - **Called away, a fisher keeps its job** (decision 1905, as the orchard's 1900): taken off a seat or a station job by
   an order, a meal's call or the night, it goes back to it after, from where it stopped (a catch it set down included),
-  and the work board leaves the job to it meanwhile. **A boat doesn't wait** (Brendan, "Trip doesn't wait"): once one
-  of its two fishers stands at the jetty, the other seat, held for a fisher who is away, is offered to anyone idle,
-  and she steps aside when she comes back. Station jobs and one-seat trips keep theirs. A walk it could not finish
+  and the work board leaves the job to it meanwhile. **A boat doesn't wait** (Brendan, "Trip doesn't wait"): in the day
+  (06:00-20:00), once one of its two fishers stands at the jetty, the other seat, kept for a fisher who is away, is
+  offered to anyone idle, and she steps aside when she comes back; overnight it stays hers, and a seat the player
+  queued for someone (Shift+right-click) always waits for her. Station jobs and one-seat trips keep theirs. A walk it could not finish
   keeps nothing, nor do Pause and Reassign; a fisher who takes the boat's other seat no longer holds her first.
 - **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse (and a third, the ferry boat: see The ferry), moored at the **jetty** on the pond's west bank
   (outside the boathouse). The crew wait at the jetty, board, row a **fixed route** to a fishing station and back, and
@@ -2487,8 +2489,9 @@ rated the ferry "Stretch" and moving vessels lie outside the adopted movement sc
   Needs attention). The Routes layer and the Water panel say it.
 - **Called away, a ferry worker keeps its job** (decision 1905, as the orchard's 1900): a gatherer, hauler or crew
   taken off by an order, a meal's call or the night goes back to it after, from where it stopped, and the work board
-  leaves the job to it meanwhile. **A crossing doesn't wait** (Brendan, "Trip doesn't wait"): posted and the ferry
-  open, a crew place held for a helm who is away is offered to any idle helm, and she steps aside when she comes back.
+  leaves the job to it meanwhile. **A crossing doesn't wait** (Brendan, "Trip doesn't wait"): in the day (06:00-20:00),
+  posted and the ferry open, a crew place kept for a helm who is away is offered to any idle helm, and she steps aside
+  when she comes back; overnight it stays hers, and a place the player queued for someone always waits for her.
   Gathering and hauling keep theirs. A walk it could not finish keeps nothing, nor do Pause and Reassign.
 - **Passengers**: the ferry is the route planner's **boat row 0** (decision 1821, `routes/boat_rows.gd`). For any trip
   across the water it lists each stage's next boardings with the seat free (none while closed or unstaffed) and its ride

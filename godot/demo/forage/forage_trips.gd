@@ -57,6 +57,7 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
+const HeldPlaces := preload("res://demo/work/held_places.gd")
 
 const NONE: int = -1
 const NULL_REF: Vector2i = DriverScript.NULL_REF
@@ -136,6 +137,8 @@ var j_need: PackedInt64Array = PackedInt64Array()
 var j_wait_usec: PackedInt64Array = PackedInt64Array()
 var j_tries: PackedInt32Array = PackedInt32Array()
 var j_failed: PackedInt32Array = PackedInt32Array()
+## Who was let keep the seat when called away (demo/work/held_places.gd; NONE: nobody), cleared when anyone claims it.
+var j_keeper: PackedInt32Array = PackedInt32Array()
 var j_paused: PackedByteArray = PackedByteArray()
 var j_words: PackedStringArray = PackedStringArray()
 
@@ -175,7 +178,8 @@ func _size_rows() -> void:
 	for column: PackedInt64Array in [t_asked, t_got, t_posted]:
 		column.resize(Rules.MAX_TRIPS)
 	t_live.resize(Rules.MAX_TRIPS)
-	for column: PackedInt32Array in [j_serial, j_trip, j_step, j_worker, j_claim_slot, j_claim_gen, j_hold, j_tries, j_failed]:
+	for column: PackedInt32Array in [j_serial, j_trip, j_step, j_worker, j_claim_slot, j_claim_gen, j_hold, j_tries,
+			j_failed, j_keeper]:
 		column.resize(Rules.MAX_JOBS)
 	for column: PackedInt64Array in [j_share, j_claimed, j_load, j_num, j_mwu, j_need, j_wait_usec]:
 		column.resize(Rules.MAX_JOBS)
@@ -274,12 +278,12 @@ func update(usec: int) -> void:
 
 
 func _release_held_seats() -> void:
-	"""TRIP DOESN'T WAIT (Brendan, 2026-10-12; decision 1905): a party under way -- another of its seats has its forager
-	-- does not wait for a seat whose forager was called away (promised to her) with nothing in hand: her promise is
-	released and the board offers the seat to anyone idle. A party of one, or a seat whose haul was set down, keeps it."""
+	"""TRIP DOESN'T WAIT (decision 1905, demo/work/held_places.gd): a party under way -- another of its seats has its
+	forager -- does not wait, in working hours, for a seat its forager KEPT when called away with nothing in hand. A
+	seat the player queued for someone waits for her; a party of one, or a seat whose haul was set down, keeps it."""
 	for j: int in Rules.MAX_JOBS:
-		if waiting(j) and j_load[j] == 0 and _party_out(j):
-			_release_promise(WorkIds.SOURCE_FORAGE, j_serial[j])
+		if j_keeper[j] != NONE and waiting(j) and j_load[j] == 0 and _party_out(j):
+			_release_kept(j)
 
 
 func _party_out(j: int) -> bool:
@@ -289,12 +293,14 @@ func _party_out(j: int) -> bool:
 			return true
 	return false
 
-func _release_promise(task_source: int, task_key: int) -> void:
-	"""Nobody keeps that work board task to come back to any more (TRIP DOESN'T WAIT): the board offers it to anyone."""
-	if _cast == null:
+
+func _release_kept(j: int) -> void:
+	"""Seat `j`'s keeper gives it up (held_places.gd: only her kept entry, only in working hours); the board offers it
+	to anyone idle."""
+	if not HeldPlaces.may_release(j_keeper[j], calendar):
 		return
-	for who: int in _cast.actor_count():
-		brain_of(who).forget_task(task_source, task_key)
+	HeldPlaces.release(brain_of(j_keeper[j]), WorkIds.SOURCE_FORAGE, j_serial[j])
+	j_keeper[j] = NONE
 
 
 func _credit_work(usec: int) -> void:
@@ -612,6 +618,7 @@ func _open_seat(t: int, share: int) -> int:
 	j_trip[j] = t
 	j_step[j] = S_TO_SPOT
 	j_worker[j] = NONE
+	j_keeper[j] = NONE
 	j_share[j] = share
 	j_claimed[j] = 0
 	j_claim_slot[j] = NULL_REF.x
@@ -669,6 +676,7 @@ func claim(j: int, who: int) -> bool:
 		return false
 	var task := TaskScript.new(self, j, j_serial[j])
 	j_worker[j] = who
+	j_keeper[j] = NONE
 	j_issued[j] = 1
 	j_at[j] = 0
 	_tasks[j] = task
@@ -773,6 +781,7 @@ func called_away(j: int, serial: int, brain: BrainScript) -> bool:
 		_unreached(j, brain)
 		return false
 	_let_go(j)
+	j_keeper[j] = brain.index
 	return true
 
 

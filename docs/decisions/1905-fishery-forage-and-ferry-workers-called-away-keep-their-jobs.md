@@ -1,7 +1,7 @@
 # 1905 — Fishery, forage and ferry workers called away keep their jobs (MEAL-CALLAWAY); a trip doesn't wait
 
-Date: 2026-10-12 · Status: Accepted (engineering record of BACKLOG packet MEAL-CALLAWAY, its independent review, and
-Brendan's ruling "Trip doesn't wait")
+Date: 2026-10-12 · Status: Accepted (engineering record of BACKLOG packet MEAL-CALLAWAY, its two independent reviews,
+and Brendan's rulings "Trip doesn't wait", "Player's order holds" and "Only in working hours")
 
 Number range: 1905–1909 was allocated to this lane by the coordinator. This lane uses 1905 only.
 
@@ -24,6 +24,13 @@ Both rulings were made in chat via AskUserQuestion and relayed by the coordinato
    absent worker is released to anyone idle (a separate small change and ruling)." It is built below for the
    shared-trip places only: the fishery's boat seats, the forage party's seats and the ferry's crew place. Solo work
    keeps its promise, as ruling 1 decided.
+3. **"Player's order holds"** (the recommended option), on the second review's HIGH. Asked "Should a deliberate
+   queued order still hold the trip?", Brendan chose the option that reads: "Only places kept automatically from a meal
+   or other call-away are released; a place the player queued for someone waits for her. The player can always
+   reassign it."
+4. **"Only in working hours"** (the recommended option). Asked "Release only when someone could actually take it?",
+   Brendan chose the option that reads: "A held place is released only while others are working and could fill it;
+   overnight it stays hers."
 
 ## Decision
 
@@ -55,10 +62,26 @@ Both rulings were made in chat via AskUserQuestion and relayed by the coordinato
 
 ### A trip doesn't wait (ruling 2)
 
-Each owner checks once a frame, in its `update`, whether a shared trip that is ready to leave is held only by a place
-promised to a worker who is away. If so, it releases that promise: `forget_task(source, key)` on every brain, through a
-small `_release_promise`. The REAL work board then offers the place to any idle, eligible resident. When she comes back,
-nothing is left on her list: she does not take the place back, and goes on with her routine.
+Each owner checks once a frame, in its `update`, whether a shared trip that is ready to leave is held by a place a
+worker KEPT when she was called away. If so, it releases that place. The REAL work board then offers it to any idle,
+eligible resident. When she comes back nothing is left on her list: she does not take the place back, and goes on with
+her routine.
+
+How it is released (rulings 3 and 4, the second review), in one shared helper, `demo/work/held_places.gd`:
+
+- **The keeper column.** Each owner records, per job row, who `called_away` let keep the job (`tables.j_keeper` in the
+  fishery, `j_keeper` in the forage and the ferry). It is cleared when anyone claims the job and when the row is opened
+  afresh.
+- **Only her kept entry.** The release calls `HeldPlaces.release`, which uses the brain's new public `forget_kept`
+  (formerly `_forget_return`) on the keeper alone. That drops only entries kept from an interruption, so a place the
+  player queued for anyone (Shift+right-click, `work_board.queue_task`) is never touched: it holds the trip
+  (ruling 3).
+- **O(1).** A place nobody kept is skipped on its keeper column, and no brain is looked at. The first version swept
+  every brain with `forget_task` each frame while a place waited (about 56 µs per sweep of 256 brains). That sweep was
+  also what deleted queued orders.
+- **Working hours** (ruling 4): `HeldPlaces.working_hours` is the demo's existing day, the night routine's own rule:
+  not `night_routine.gd` `is_night_hour`, whose night runs from `DUSK_HOUR` 20:00 to `DAWN_HOUR` 06:00. No new
+  constant. Overnight a kept place stays hers; from 06:00 it may be released.
 
 "Ready to leave", owner by owner:
 
@@ -72,6 +95,31 @@ nothing is left on her list: she does not take the place back, and goes on with 
 - **The ferry** (`_release_held_crew`): a crossing posted with the ferry open, its crew place waiting. A crew aboard is
   never called away (`must_finish`), so a waiting crew place means the boat waits only for its crew. A closed ferry
   waits anyway and keeps the place; it is released once the ferry opens. Gathers and hauls keep theirs.
+
+### The second review of f35ce497, and what was done
+
+It confirmed every earlier finding fixed and found:
+
+- **HIGH: the release deleted the player's queued orders.** `_release_promise` called `forget_task` on every brain, and
+  `forget_task` also removes queued entries. The reviewer reproduced it twice: a ferry crossing queued for a busy helm
+  vanished within 2 frames, and a queued second boat seat vanished once the helm reached the jetty. Fixed by the keeper
+  column and `forget_kept`, per ruling 3. The reviewer also saw a helm sent to bed lose her ferry place at once, and a
+  forage seat at night; fixed per ruling 4.
+- **MEDIUM: the per-frame sweep of every brain.** Fixed by the same change: O(1).
+- **LOW: three copies of the release.** The shared logic is now `held_places.gd`. Each owner keeps only a few lines
+  naming its own columns, with two blank lines between functions.
+- **LOW: two seats both away.** New tests show a boat whose fishers are both away, and a party whose foragers are
+  both away (as the night takes both), keep both places: nobody is out or at the jetty, so the trip is not ready to
+  leave.
+- **LOW, noted: the board's Reassign removes other residents' QUEUED entries for that task too** (`work_board.gd`
+  `reassign` calls `forget_task` on every brain, decision 1905's first review). This is deliberate: Reassign is the
+  player's latest explicit choice for that task, and a queued order of someone else's would otherwise hold a task the
+  player has just given away.
+- **LOW, noted: a stale entry takes a RESUME_MAX slot.** A kept entry whose job was refilled by the owner's own
+  `claim` (not Reassign), or one the player's queued order made redundant, stays on the list beside the live entries
+  until `take_up_unfinished` reaches it and drops it. Until then it counts toward RESUME_MAX (3) kept entries, so it
+  can push out the oldest live kept entry. In practice this needs three call-aways before the next take-up. It is
+  unchanged by this lane and recorded, not fixed.
 
 ### The independent review of 11d7c30a, and what was done
 
@@ -107,7 +155,8 @@ Nothing CRITICAL; the production code held.
 - **LOW 2: labels are not unique.** Examples: both seats of a boat, two pond trips, two far-copse jobs.
   `remember_unfinished` de-duplicated by words, so one kept job could silently drop another's promise.
   - It now de-duplicates an entry that names a work board task by (source, key), dropping only entries kept from
-    interruptions (`_forget_return`), so a player's queued entries stay apart (decision 0411).
+    interruptions (`_forget_return`, since made public as `forget_kept`), so a player's queued entries stay apart
+    (decision 0411).
   - An entry that names no task still goes by its words, and only against other such entries (`_forget_label`).
   - Test: `test_two_kept_tasks_that_read_alike_are_both_kept` (`test_demo_orchard.gd`).
   - `resident_brain.gd` is not in the underground memory pack (`underground_memory_budget.py --check` passes). Its
@@ -149,6 +198,17 @@ In each of `test_demo_fishery.gd`, `test_demo_forage.gd` and `test_demo_ferry.gd
     `test_a_forager_alone_still_keeps_her_seat` (with another trip out at the same time),
     `test_a_party_seat_with_its_haul_set_down_is_still_kept`, `test_a_gatherer_still_keeps_her_pile` and
     `test_a_closed_ferry_keeps_its_helm_called_away`.
+- **Held places** (rulings 3 and 4; the second review):
+  - The player's order holds: `test_a_seat_the_player_queued_holds_the_boat`,
+    `test_a_seat_the_player_queued_holds_for_her` and `test_a_crew_place_the_player_queued_holds_the_crossing`. The
+    keeper's kept place is given up, another resident's queued order for it holds, and the board gives it to nobody.
+    Also `test_her_own_queued_order_outlives_the_release_of_her_kept_{seat,seat,place}`: the keeper had also queued
+    it herself, her kept entry goes, and her queued order stays.
+  - Working hours: `test_a_kept_seat_is_given_up_only_in_working_hours`, the party seat's and the crew place's. The
+    place is kept overnight (21:00) though the trip is ready, and given up at dawn (06:00).
+  - O(1), only the keeper: `test_only_the_keepers_entry_is_given_up`, `_seat_entry_`, `_crew_entry_`. Another
+    resident's kept entry naming the same place (put on her list by hand) is not looked at.
+  - Both away: `test_two_seats_both_away_stay_kept` and `test_two_party_seats_both_away_stay_kept` (the review's LOW).
 - The fishery only: `test_a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm`. The orchard:
   `test_without_her_promise_the_board_gives_the_tending_to_another` and
   `test_two_kept_tasks_that_read_alike_are_both_kept`.
@@ -159,98 +219,106 @@ trip's seat counted as her party.
 
 ## Mutation testing (one mutant per run; the owner's focused suite)
 
-**60 of 61 killed.** The one survivor, "the boat releases with no TRIP_QUEUED check", was equivalent: a seat that waits
-keeps the boat QUEUED. The check was removed and the docstring says why.
+**68 of 68 killed, no survivors.** Every mutant was run again after the last change to its file, so the file:line
+references are current. Two mutants survived their first run against these tests and were then killed:
+"working hours from the hearth rule", once the dawn test moved to 06:00 (the hearth rule still counts 06:00 as
+night), and "the release forgets queued entries too", once the self-queued tests were added. One mutant from the
+previous round, the boat release's TRIP_QUEUED check, was equivalent, and that check was removed. Three guards
+were not mutated because they are equivalent by construction: `may_release`'s keeper test (every caller checks
+the keeper first), clearing the keeper on `claim`, and clearing it after a release (a stale keeper's release finds
+no entry). Killed by: the tests named, without their `test_` prefix.
 
-Each line gives the file:line, the substitution, and what killed it. M is the main board test, C the control, N
-nothing-kept, S stale, R the Reassign refill, L the trip-leaves test, A the steps-aside test, K the solo-kept test(s),
-H the soft-lock test and D the de-duplication test.
+The fishery:
 
-The fishery (`test_demo_fishery.gd`):
+- `fishery/fishery.gd:918` let go loses the work done: a_miller_called_away_keeps_the_job_promised_on_the_work_board.
+- `fishery/fishery.gd:1043` the order words: a_miller_called_away_keeps_the_job_promised_on_the_work_board.
+- `fishery/fishery.gd:854` claim keeps the other seat's promise: a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm.
+- `fishery/fishery.gd:874` _forget_other_seat forgets nothing: a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm.
+- `fishery/fishery.gd:879` _forget_other_seat forgets the claimed seat instead: a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm.
+- `fishery/fishery.gd:339` the boat never releases a held seat: a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, a_seat_the_player_queued_holds_the_boat, a_kept_seat_is_given_up_only_in_working_hours, only_the_keepers_entry_is_given_up.
+- `fishery/fishery.gd:355` a seat is released before the other fisher is at the jetty: a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, two_seats_both_away_stay_kept.
+- `fishery/fishery.gd:1018` called_away records no keeper: a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, a_seat_the_player_queued_holds_the_boat, a_kept_seat_is_given_up_only_in_working_hours, only_the_keepers_entry_is_given_up.
+- `fishery/fishery.gd:364` release sweeps every brain (forget_kept): only_the_keepers_entry_is_given_up.
+- `fishery/fishery.gd:1018` called_away keeps nothing: a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_kept_fishery_job_cancelled_is_stale, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back, without_her_promise_the_board_gives_the_mill_to_another, a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm, a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, a_station_job_still_waits_for_its_miller, a_kept_seat_is_given_up_only_in_working_hours, two_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `fishery/fishery.gd:1016` a lost walk is kept: a_fishery_job_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `fishery/fishery.gd:1027` unfinished_of without its job guard: a_kept_fishery_job_cancelled_is_stale.
+- `fishery/fishery.gd:1037` take_back without its job guard: a_kept_fishery_job_cancelled_is_stale.
+- `fishery/fishery.gd:1037` take_back never claims: a_miller_called_away_keeps_the_job_promised_on_the_work_board.
+- `fishery/fishery.gd:1030` the wrong board source: a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back, a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm, a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, a_station_job_still_waits_for_its_miller, a_kept_seat_is_given_up_only_in_working_hours, only_the_keepers_entry_is_given_up, two_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `fishery/fishery.gd:1030` the entry names the row: a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back, a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm, a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, a_station_job_still_waits_for_its_miller, a_kept_seat_is_given_up_only_in_working_hours, only_the_keepers_entry_is_given_up, two_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `fishery/fishery.gd:1037` take_back ignores the waiting test (claim forced): a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back.
+- `fishery/fishery_task.gd:54` cancel never marks the task called away: a_fishery_job_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `fishery/fishery_task.gd:63` unfinished ignores the keep flag: a_fishery_job_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `fishery/fishery_task.gd:63` unfinished always null (the fix absent): a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_kept_fishery_job_cancelled_is_stale, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back, without_her_promise_the_board_gives_the_mill_to_another, a_helm_moved_to_the_crew_seat_no_longer_holds_the_helm, a_boat_ready_to_leave_does_not_wait_for_a_second_called_away, the_second_back_from_her_meal_steps_aside, a_station_job_still_waits_for_its_miller, a_kept_seat_is_given_up_only_in_working_hours, two_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `work/fishery_work.gd:34` key() returns the row: a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back, a_seat_the_player_queued_holds_the_boat, her_own_queued_order_outlives_the_release_of_her_kept_seat.
 
-- `fishery.gd:1014` `return true` → `return false` (called away keeps nothing): M, C, S, R, H, L, A, K.
-- `fishery.gd:1012` a lost walk kept: N.
-- `fishery.gd:1022` the job guard in `unfinished_of` removed: S.
-- `fishery.gd:1032` the job guard in `take_back` removed: S.
-- `fishery.gd:1032` `take_back` never claims: M.
-- `fishery.gd:1032` `take_back` forces the worker in place of `claim`: M, R.
-- `fishery.gd:1025` `SOURCE_FISHERY` → `SOURCE_FARM`: M, R, H, L, A, K.
-- `fishery.gd:1025` the key `serial` → `j`: M, R, H, L, A, K.
-- `fishery.gd:914` `_let_go` zeroes `j_mwu`: M.
-- `fishery.gd:1038` the words' `", "` → `" "`: M.
-- `fishery_task.gd:54` `_called_away = true` → `pass`: N.
-- `fishery_task.gd:63` `unfinished()` ignores the keep flag: N.
-- `fishery_task.gd:63` `unfinished()` always null (the fix absent): M, C, S, R, H, L, A, K.
-- `work/fishery_work.gd:34` `key()` returns the row: M, R.
-- `fishery.gd:851` `claim` without `_forget_other_seat`: H.
-- `fishery.gd:870` `_forget_other_seat` forgets nothing: H.
-- `fishery.gd:875` `_forget_other_seat` forgets the claimed seat instead: H.
-- `fishery.gd:339` `update` without `_release_held_seats`: L, A.
-- `fishery.gd:354` the `S_JETTY` condition dropped (released before the other fisher stands there): L, A.
-- `fishery.gd:362` `_release_promise` forgets nothing: L, A.
+The forage:
 
-The forage (`test_demo_forage.gd`):
+- `forage/forage_trips.gd:728` let go loses the work done: an_interruption_loses_nothing_and_another_finishes, a_forager_called_away_keeps_the_seat_promised_on_the_work_board.
+- `forage/forage_trips.gd:794` the order words: a_forager_called_away_keeps_the_seat_promised_on_the_work_board.
+- `forage/forage_trips.gd:276` the party never releases a held seat: a_party_under_way_does_not_wait_for_a_forager_called_away, the_forager_back_from_her_meal_steps_aside, a_seat_the_player_queued_holds_for_her, a_kept_party_seat_is_given_up_only_in_working_hours, only_the_keepers_seat_entry_is_given_up.
+- `forage/forage_trips.gd:285` a forager alone is released too: a_forager_alone_still_keeps_her_seat, two_party_seats_both_away_stay_kept.
+- `forage/forage_trips.gd:292` _party_out without its same-trip test: a_forager_alone_still_keeps_her_seat.
+- `forage/forage_trips.gd:285` a seat with its haul set down is released too: a_party_seat_with_its_haul_set_down_is_still_kept.
+- `forage/forage_trips.gd:783` called_away records no keeper: a_party_under_way_does_not_wait_for_a_forager_called_away, the_forager_back_from_her_meal_steps_aside, a_seat_the_player_queued_holds_for_her, a_kept_party_seat_is_given_up_only_in_working_hours, only_the_keepers_seat_entry_is_given_up.
+- `forage/forage_trips.gd:302` release sweeps every brain (forget_kept): only_the_keepers_seat_entry_is_given_up.
+- `forage/forage_trips.gd:783` called_away keeps nothing: a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_kept_seat_cancelled_is_stale, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back, without_her_promise_the_board_gives_the_seat_to_another, a_party_under_way_does_not_wait_for_a_forager_called_away, the_forager_back_from_her_meal_steps_aside, a_forager_alone_still_keeps_her_seat, a_party_seat_with_its_haul_set_down_is_still_kept, a_kept_party_seat_is_given_up_only_in_working_hours, two_party_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `forage/forage_trips.gd:781` a lost walk is kept: an_interruption_loses_nothing_and_another_finishes, a_seat_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `forage/forage_trips.gd:792` unfinished_of without its job guard: a_kept_seat_cancelled_is_stale.
+- `forage/forage_trips.gd:802` take_back without its job guard: a_kept_seat_cancelled_is_stale.
+- `forage/forage_trips.gd:802` take_back never claims: a_forager_called_away_keeps_the_seat_promised_on_the_work_board.
+- `forage/forage_trips.gd:795` the wrong board source: a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back, a_party_under_way_does_not_wait_for_a_forager_called_away, the_forager_back_from_her_meal_steps_aside, a_forager_alone_still_keeps_her_seat, a_party_seat_with_its_haul_set_down_is_still_kept, a_kept_party_seat_is_given_up_only_in_working_hours, only_the_keepers_seat_entry_is_given_up, two_party_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `forage/forage_trips.gd:795` the entry names the row: a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back, a_party_under_way_does_not_wait_for_a_forager_called_away, the_forager_back_from_her_meal_steps_aside, a_forager_alone_still_keeps_her_seat, a_party_seat_with_its_haul_set_down_is_still_kept, a_kept_party_seat_is_given_up_only_in_working_hours, only_the_keepers_seat_entry_is_given_up, two_party_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `forage/forage_trips.gd:802` take_back ignores the waiting test (claim forced): a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back.
+- `forage/forage_task.gd:54` cancel never marks the task called away: a_seat_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `forage/forage_task.gd:63` unfinished ignores the keep flag: a_seat_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `forage/forage_task.gd:63` unfinished always null (the fix absent): a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_kept_seat_cancelled_is_stale, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back, without_her_promise_the_board_gives_the_seat_to_another, a_party_under_way_does_not_wait_for_a_forager_called_away, the_forager_back_from_her_meal_steps_aside, a_forager_alone_still_keeps_her_seat, a_party_seat_with_its_haul_set_down_is_still_kept, a_kept_party_seat_is_given_up_only_in_working_hours, two_party_seats_both_away_stay_kept, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `work/forage_work.gd:33` key() returns the row: the_work_board_reads_the_seats, a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back, a_seat_the_player_queued_holds_for_her, her_own_queued_order_outlives_the_release_of_her_kept_seat.
 
-- `forage_trips.gd:775` called away keeps nothing: M, C, S, R, L, A, K.
-- `forage_trips.gd:773` a lost walk kept: N, and the older `test_an_interruption_loses_nothing_and_another_finishes`.
-- `forage_trips.gd:783` the `unfinished_of` guard: S.
-- `forage_trips.gd:793` the `take_back` guard: S.
-- `forage_trips.gd:793` `take_back` never claims: M.
-- `forage_trips.gd:793` `take_back` forces the worker: M, R.
-- `forage_trips.gd:786` the wrong source: M, R, L, A, K.
-- `forage_trips.gd:786` the key names the row: M, R, L, A, K.
-- `forage_trips.gd:720` `_let_go` zeroes `j_mwu`: M, and the older interruption test.
-- `forage_trips.gd:785` the words: M.
-- `forage_task.gd:54` the call-away mark: N.
-- `forage_task.gd:63` the keep flag ignored: N.
-- `forage_task.gd:63` always null: M, C, S, R, L, A, K.
-- `work/forage_work.gd:33` `key()` returns the row: M, R, and the older `test_the_work_board_reads_the_seats`.
-- `forage_trips.gd:273` `update` without `_release_held_seats`: L, A.
-- `forage_trips.gd:281` `_party_out` dropped (a forager alone released): K (`test_a_forager_alone_still_keeps_her_seat`).
-- `forage_trips.gd:288` `_party_out` without its same-trip test: K (alone, with another trip out).
-- `forage_trips.gd:281` the `j_load == 0` condition dropped: K (`test_a_party_seat_with_its_haul_set_down_is_still_kept`).
+The ferry:
 
-The ferry (`test_demo_ferry.gd`):
-
-- `ferry.gd:830` called away keeps nothing: M, C, S, R, L, A, K, and the carrier test.
-- `ferry.gd:828` a lost walk kept: N.
-- `ferry.gd:838` the `unfinished_of` guard: S.
-- `ferry.gd:848` the `take_back` guard: S.
-- `ferry.gd:848` `take_back` never claims: M.
-- `ferry.gd:848` `take_back` forces the worker: M, R.
-- `ferry.gd:841` the wrong source: M, R, L, A, K, and the carrier test.
-- `ferry.gd:841` the key names the row: the same.
-- `ferry.gd:777` `_let_go` zeroes `j_mwu`: M.
-- `ferry.gd:840` the words: M.
-- `ferry_task.gd:54` the call-away mark: N.
-- `ferry_task.gd:63` the keep flag ignored: N.
-- `ferry_task.gd:63` always null: M, C, S, R, L, A, K, and the carrier test.
-- `work/ferry_work.gd:32` `key()` returns the row: M, R.
-- `ferry.gd:425` `update` without `_release_held_crew`: L, A, K (the closed-ferry test's release once open).
-- `ferry.gd:433` the `is_open()` condition dropped: K (`test_a_closed_ferry_keeps_its_helm_called_away`).
-- `ferry.gd:442` `_release_promise` forgets nothing: L, A, K.
+- `ferry/ferry.gd:778` let go loses the work done: a_gatherer_called_away_keeps_the_job_promised_on_the_work_board.
+- `ferry/ferry.gd:842` the order words: a_gatherer_called_away_keeps_the_job_promised_on_the_work_board.
+- `ferry/ferry.gd:427` the crossing never releases its crew place: a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away, the_helm_back_from_her_meal_steps_aside, a_closed_ferry_keeps_its_helm_called_away, a_crew_place_the_player_queued_holds_the_crossing, a_kept_crew_place_is_given_up_only_in_working_hours, only_the_keepers_crew_entry_is_given_up.
+- `ferry/ferry.gd:436` the crossing releases while the ferry is closed: a_closed_ferry_keeps_its_helm_called_away.
+- `ferry/ferry.gd:831` called_away records no keeper: a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away, the_helm_back_from_her_meal_steps_aside, a_closed_ferry_keeps_its_helm_called_away, a_crew_place_the_player_queued_holds_the_crossing, a_kept_crew_place_is_given_up_only_in_working_hours, only_the_keepers_crew_entry_is_given_up.
+- `ferry/ferry.gd:440` release sweeps every brain (forget_kept): only_the_keepers_crew_entry_is_given_up.
+- `ferry/ferry.gd:831` called_away keeps nothing: a_carrier_called_away_sets_the_wood_down_for_the_next, a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_kept_ferry_job_cancelled_is_stale, a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back, without_her_promise_the_board_gives_the_pile_to_another, a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away, the_helm_back_from_her_meal_steps_aside, a_gatherer_still_keeps_her_pile, a_closed_ferry_keeps_its_helm_called_away, a_kept_crew_place_is_given_up_only_in_working_hours, her_own_queued_order_outlives_the_release_of_her_kept_place.
+- `ferry/ferry.gd:829` a lost walk is kept: a_ferry_job_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `ferry/ferry.gd:840` unfinished_of without its job guard: a_kept_ferry_job_cancelled_is_stale.
+- `ferry/ferry.gd:850` take_back without its job guard: a_kept_ferry_job_cancelled_is_stale.
+- `ferry/ferry.gd:850` take_back never claims: a_gatherer_called_away_keeps_the_job_promised_on_the_work_board.
+- `ferry/ferry.gd:843` the wrong board source: a_carrier_called_away_sets_the_wood_down_for_the_next, a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back, a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away, the_helm_back_from_her_meal_steps_aside, a_gatherer_still_keeps_her_pile, a_closed_ferry_keeps_its_helm_called_away, a_kept_crew_place_is_given_up_only_in_working_hours, only_the_keepers_crew_entry_is_given_up, her_own_queued_order_outlives_the_release_of_her_kept_place.
+- `ferry/ferry.gd:843` the entry names the row: a_carrier_called_away_sets_the_wood_down_for_the_next, a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back, a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away, the_helm_back_from_her_meal_steps_aside, a_gatherer_still_keeps_her_pile, a_closed_ferry_keeps_its_helm_called_away, a_kept_crew_place_is_given_up_only_in_working_hours, only_the_keepers_crew_entry_is_given_up, her_own_queued_order_outlives_the_release_of_her_kept_place.
+- `ferry/ferry.gd:850` take_back ignores the waiting test (claim forced): a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back.
+- `ferry/ferry_task.gd:54` cancel never marks the task called away: a_ferry_job_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `ferry/ferry_task.gd:63` unfinished ignores the keep flag: a_ferry_job_lost_on_the_way_paused_or_reassigned_keeps_nothing.
+- `ferry/ferry_task.gd:63` unfinished always null (the fix absent): a_carrier_called_away_sets_the_wood_down_for_the_next, a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_kept_ferry_job_cancelled_is_stale, a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back, without_her_promise_the_board_gives_the_pile_to_another, a_crossing_ready_to_leave_does_not_wait_for_a_helm_called_away, the_helm_back_from_her_meal_steps_aside, a_gatherer_still_keeps_her_pile, a_closed_ferry_keeps_its_helm_called_away, a_kept_crew_place_is_given_up_only_in_working_hours, her_own_queued_order_outlives_the_release_of_her_kept_place.
+- `work/ferry_work.gd:32` key() returns the row: a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back, a_crew_place_the_player_queued_holds_the_crossing, her_own_queued_order_outlives_the_release_of_her_kept_place.
 
 Shared code:
 
-- `work/work_board.gd:302` `_candidate_ok` ignores promises (the review's mutant): M in all four suites, the orchard's
-  `test_a_called_away_tender_is_promised_on_the_real_work_board` included.
-- `work/work_board.gd:451` `reassign` forgets only the new worker's promise: R in the fishery, forage and ferry.
-- `cast/resident_brain.gd:2224` de-duplication by words again: D.
-- `cast/resident_brain.gd:2270` `_forget_return` drops queued entries too: `test_demo_work_edges.gd`'s
-  `test_a_task_taken_up_from_the_list_leaves_no_second_entry_for_it`.
-- `cast/resident_brain.gd:2278` `_forget_label` drops entries that name a task: D.
+- `work/work_board.gd:302` the board ignores promises (the review's mutant): a_gatherer_called_away_keeps_the_job_promised_on_the_work_board, a_crew_place_the_player_queued_holds_the_crossing, a_miller_called_away_keeps_the_job_promised_on_the_work_board, a_seat_the_player_queued_holds_the_boat, a_forager_called_away_keeps_the_seat_promised_on_the_work_board, a_seat_the_player_queued_holds_for_her, a_called_away_tender_is_promised_on_the_real_work_board.
+- `work/work_board.gd:451` Reassign forgets only the new worker's promise: a_crew_place_refilled_while_its_helm_is_away_is_not_taken_back, a_boat_seat_refilled_while_its_fisher_is_away_is_not_taken_back, a_party_seat_refilled_while_its_forager_is_away_is_not_taken_back.
+- `cast/resident_brain.gd:2224` remember_unfinished de-duplicates by words again: two_kept_tasks_that_read_alike_are_both_kept.
+- `cast/resident_brain.gd:2272` forget_kept drops queued entries too (order lists): a_task_taken_up_from_the_list_leaves_no_second_entry_for_it.
+- `cast/resident_brain.gd:2284` _forget_label drops entries that name a task: two_kept_tasks_that_read_alike_are_both_kept.
+- `work/held_places.gd:24` working hours always: a_kept_crew_place_is_given_up_only_in_working_hours, a_kept_seat_is_given_up_only_in_working_hours, a_kept_party_seat_is_given_up_only_in_working_hours.
+- `work/held_places.gd:26` working hours from the wrong rule (hearth hours): a_kept_crew_place_is_given_up_only_in_working_hours, a_kept_seat_is_given_up_only_in_working_hours, a_kept_party_seat_is_given_up_only_in_working_hours.
+- `work/held_places.gd:36` release forgets queued entries too (the review's HIGH): her_own_queued_order_outlives_the_release_of_her_kept_place, her_own_queued_order_outlives_the_release_of_her_kept_seat, her_own_queued_order_outlives_the_release_of_her_kept_seat.
+- `cast/resident_brain.gd:2272` forget_kept drops queued entries too: a_task_taken_up_from_the_list_leaves_no_second_entry_for_it.
 
 ## Gates
 
 - **Focused suites**, staged and art-free (`godot/demo/assets` moved aside, then restored). The suites:
   `test_demo_fishery`, `_forage`, `_ferry`, `_orchard`, `_work`, `_work_edges`, `_action_cards`, `_kitchen`,
   `_forage_outings`, and the rigs changed here (`_brew`, `_new_recipes`, `_preserve`, `_fishing_revamp`, `_hives`,
-  `_orchard_remainders`). Each run printed `567 test(s), 11475 assertion(s), 0 failure(s)`; `diagnostics: 0 unexpected
+  `_orchard_remainders`). Each run printed `581 test(s), 11541 assertion(s), 0 failure(s)`; `diagnostics: 0 unexpected
   error(s), 0 unexpected warning(s), 0 expected, 2 tolerated; leaked at exit: 0 object(s), 0 resource(s)`; `log: 0
   unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).`
-- `./tools/run_tests.sh --fast`, at 11d7c30a, before the review: `12199 test(s), 1130436 assertion(s), 0 failure(s)`,
-  0 unexpected, 0 leaks. The coordinator reruns the full sharded suite on this fix-up.
-- **Analyzer** (port 6397): `0 GDScript warning(s) in 0 of 1509 file(s)`.
+- `./tools/run_tests.sh --fast`, at 11d7c30a, before the reviews: `12199 test(s), 1130436 assertion(s), 0
+  failure(s)`, 0 unexpected, 0 leaks. The coordinator reruns the full sharded suite on each fix-up.
+- **Analyzer** (port 6397): `0 GDScript warning(s) in 0 of 1510 file(s)`.
 - `underground_memory_budget.py --check`: exit 0. `ready07_arithmetic.py`: `"status": "PASS"`. `decision_numbers.py`:
   `PASS -- 547 records, 0 problem(s)`.
 

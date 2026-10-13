@@ -2222,7 +2222,7 @@ func remember_unfinished(job: UnfinishedScript) -> void:
 	if job == null:
 		return
 	if job.source >= 0:
-		_forget_return(job.source, job.key)
+		forget_kept(job.source, job.key)
 	else:
 		_forget_label(job.label())
 	_unfinished.append(job)
@@ -2263,17 +2263,23 @@ func forget_task(task_source: int, task_key: int) -> bool:
 	return gone
 
 
-func _forget_return(task_source: int, task_key: int) -> void:
-	"""Drop every entry kept from an interruption that names that work board task (the same job kept again); a queued
-	one stays (see THE ORDER LIST)."""
+func forget_kept(task_source: int, task_key: int) -> bool:
+	"""Drop every entry kept from an interruption that names that work board task -- the same job kept again, or a
+	place its trip gave up (demo/work/held_places.gd) -- while a player's queued one stays (see THE ORDER LIST). Whether
+	one went."""
+	var gone: bool = false
 	for k: int in range(_unfinished.size() - 1, -1, -1):
 		if not _unfinished[k].queued and _unfinished[k].names_task(task_source, task_key):
 			_unfinished.remove_at(k)
+			gone = true
+	if gone:
+		queue_revision += 1
+	return gone
 
 
 func _forget_label(words: String) -> void:
 	"""Drop every entry naming no work board task with these words (the same job kept again); one that names a task is
-	told apart by it (`_forget_return`)."""
+	told apart by it (`forget_kept`)."""
 	for k: int in range(_unfinished.size() - 1, -1, -1):
 		if _unfinished[k].source < 0 and _unfinished[k].label() == words:
 			_unfinished.remove_at(k)

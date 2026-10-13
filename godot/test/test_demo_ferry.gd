@@ -1233,3 +1233,100 @@ func test_a_closed_ferry_keeps_its_helm_called_away() -> void:
 	_storm(rig, false)
 	var given_up := func() -> bool: return not brain.promises(WorkIds.SOURCE_FERRY, serial)
 	assert_true(_run(rig, given_up, 600, false), "open: given up")
+
+
+func _next_hour(rig: Rig, hour: int) -> int:
+	"""The calendar tick of the next `hour`:00 (0..23) from now."""
+	var now: int = rig.calendar.hour_index()
+	var at: int = now - posmod(now, SimClock.HOURS_PER_DAY) + hour
+	if at <= now:
+		at += SimClock.HOURS_PER_DAY
+	return at * SimClock.TICKS_PER_HOUR - SimClock.CALENDAR_OFFSET_TICKS
+
+
+# --- held places: the player's order holds, working hours, O(1) (Brendan, 2026-10-12; decision 1905) -----------------
+
+func test_a_crew_place_the_player_queued_holds_the_crossing() -> void:
+	"""PLAYER'S ORDER HOLDS: the helm, called away, kept the crew place; the player then queued it (Shift+right-click)
+	for helm 5, busy. The crossing gives up the KEPT place -- 4's -- but 5's queued order holds: the crossing waits for
+	her, and the board gives the place to no other helm."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_helm(rig, 5, 1)
+	_helm(rig, 3, 1)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	ferry.brain_of(4).order_move(ferry.brain_of(4).position + Vector2(-1.0, 0.0))
+	var brain: BrainScript = ferry.brain_of(5)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(board.queue_task(WorkIds.SOURCE_FERRY, j, 5), "", "the crew place queued for 5")
+	var released := func() -> bool: return not ferry.brain_of(4).promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, 60, false), "4's kept place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "5's queued order holds")
+	board.rebuild_index()
+	for who: int in rig.cast.actor_count():
+		board.consider(who)
+	assert_equal(ferry.j_worker[j], FerryScript.NONE, "the crossing waits for her")
+
+
+func test_a_kept_crew_place_is_given_up_only_in_working_hours() -> void:
+	"""ONLY IN WORKING HOURS: a helm called away (the night) keeps the crew place overnight though the crossing is
+	posted and the ferry open; in the morning the crossing gives it up."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var serial: int = ferry.j_serial[ferry.x_job]
+	rig.calendar.tick = _next_hour(rig, 21)
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_true(ferry.is_open(), "the ferry open")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "overnight it stays hers")
+	rig.calendar.tick = _next_hour(rig, 6)
+	var released := func() -> bool: return not brain.promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, 60, false), "given up at dawn (06:00)")
+
+
+func test_only_the_keepers_crew_entry_is_given_up() -> void:
+	"""O(1): the crossing gives up only the entry of the helm it let keep the crew place (its keeper column) -- another
+	resident's kept entry naming the same place (put on 5's list by hand) is not looked at."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var brain: BrainScript = ferry.brain_of(5)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	brain.remember_unfinished(ferry.unfinished_of(j, serial))
+	ferry.brain_of(4).order_move(ferry.brain_of(4).position + Vector2(-1.0, 0.0))
+	var released := func() -> bool: return not ferry.brain_of(4).promises(WorkIds.SOURCE_FERRY, serial)
+	assert_true(_run(rig, released, 60, false), "the keeper's place given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "5's entry not looked at")
+
+
+func test_her_own_queued_order_outlives_the_release_of_her_kept_place() -> void:
+	"""PLAYER'S ORDER HOLDS: the helm also queued her own crew place (Shift+right-click) before she was called away. The
+	crossing gives up only her KEPT entry; her queued order holds, so the place still waits for her."""
+	var rig: Rig = _rig(9)
+	var ferry: FerryScript = rig.ferry
+	_helm(rig, 4, 2)
+	_stock_far(rig, 1000)
+	assert_equal(ferry.order_send(PackedInt32Array([4])), "", "sent, 4 at the helm")
+	var j: int = ferry.x_job
+	var serial: int = ferry.j_serial[j]
+	var board: WorkBoard = _board_over(rig, j)
+	assert_equal(board.queue_task(WorkIds.SOURCE_FERRY, j, 4), "", "queued for herself")
+	var brain: BrainScript = ferry.brain_of(4)
+	brain.order_move(brain.position + Vector2(-1.0, 0.0))
+	assert_equal(brain.queue_size(), 2, "queued and kept")
+	_run(rig, func() -> bool: return false, 60, false)
+	assert_equal(brain.queue_size(), 1, "the kept entry given up")
+	assert_true(brain.promises(WorkIds.SOURCE_FERRY, serial), "her queued order holds")

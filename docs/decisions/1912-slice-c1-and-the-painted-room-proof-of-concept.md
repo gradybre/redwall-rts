@@ -133,6 +133,15 @@ and reports 1,024 u for the claw crew; the build panel prices with that function
 - **E18 — The 1280×720 box-select step.** On this branch it failed 2 of 3 windowed runs; master passed 3 of 3, but only
   because a wandering resident put the residents' box corner off-screen. The harness now grows the box until a
   corner inside the window is clear of the HUD (`demo_input_live.gd _cast_box`). Fixed, not recorded as a flake.
+- **E19 — A visit can be dropped on the surface.** A resident whose walk to the Entrance gets lost ends the trip and
+  goes back to its routine (`resident_brain.gd`'s lost-trip rule; the below task does not hold when lost). It happened
+  once in five windowed 1280×720 runs of the loop harness (and, art-free, the resident's next routine task was its
+  sleep). The player clicks again; the harness does the same, at most twice, and reports how often
+  (`demo_build_dig_live.gd _report_resends`; every later run: 0). A failed wait now names the visitor's task and cell.
+- **E20 — The first import can crash.** One `godot --headless --path godot --editor --quit` after deleting
+  `godot/.godot` ended in signal 11 while reimporting `NotoSans-SemiBold.ttf` (`propagate_notification()` called off
+  the main thread). The shell chain went on, and the suite then failed across eight shards on a half-made import. Run
+  again, the import finished cleanly and the suite passed. Check the import log for `handle_crash` before a run.
 
 ## PROPOSALS for Brendan
 
@@ -149,7 +158,37 @@ and reports 1,024 u for the claw crew; the build panel prices with that function
 
 ## Gates
 
-Filled in by the gates commit below this record (see "Gates, final").
+The full run is at `b17e7f03`; the gates commit changes only the loop harness (E19) and its registered minimum (20
+checks), checked afterwards by test_demo_input_live and the windowed runs below (2026-10-12/13, Godot 4.7.2).
+
+- **Full CI-style run** (demo assets aside, `godot/.godot` deleted, imported; `./tools/run_tests_parallel.sh`, 4 jobs):
+  `ok: 500 suite files executed exactly once across 10 shards`; 12,427 tests, 1,229,226 assertions, 0 failures,
+  0 unexpected errors or warnings, 0 leaked objects or resources; 1,397 s. (The run before it was void: E20.)
+- **Suites touched** (with the art): test_build_batch 56 tests, test_build_cell_validity 12, test_demo_build_works 7,
+  test_demo_build_dig 5, test_demo_build_panel 30, test_modular_runtime 17, test_modular_access 25,
+  test_demo_input_live 4, test_demo_guide_live 2: all 0 failures.
+- **Analyzer** (`tools/gdscript_warnings.py --port 6417`): 0 GDScript warnings in 0 of 1,524 files. Functions ≤ 30 lines.
+- **Decision numbers** (`docs/validation/decision_numbers.py`): PASS, 549 records, 0 problems.
+- **Independent review** (`code-reviewer`): no CRITICAL. HIGH, all fixed: H1 Undo after a partial Confirm all replayed
+  confirmed pieces (history now keeps only steps after the newest one naming a confirmed piece); H2 each dig scanned
+  all 65,536 cells of a level (now the ordered box only); H3 the 2 × 2 check was quadratic (one linear pass,
+  `all_in_blocks`); H4 an unreachable order resent a mole forever and a second Entrance was never reached (every
+  Entrance joins the surface node; a mole is sent only when an ordered cell is reachable; the reason is said once).
+  MEDIUM: M1 tests added; M2 a crew whose rows reach nothing now digs 0 and the docs say so; M4 the marks mask falls
+  back; M5 the level bar's marks follow confirmed ways down (`269d4ee3`); M6 notices said once. **M3 declined**
+  (bind the ground reader only once it is `readable()`): with no settlement underground there is no World to judge,
+  E6's shape-only judgement is the honest answer there, and H4's say-once covers the stall. LOW: binds now refresh;
+  the waiting tag is in words; stale text fixed; `retryable`'s reason comparison kept (the reasons are plain strings).
+- **Mutation testing** (new validity and batch logic, plus the review's fixes; `scratchpad/mut/run.py`): 51 mutants,
+  46 killed. The 5 survivors are equivalent: B03 (the union already enforces capacity), B10 and B12 (defensive
+  guards no caller reaches), S01 (an ellipse fills its own box's corners' rows), W01 (walking only proceeds through
+  open cells). M2a survived the first pass and is killed by the empty-profiles case added to test_modular_runtime.
+- **Frames looked at**, the whole loop, windowed (Entrance placed, rooms painted ✓, the mole digging with "Waiting for
+  the mole: 34 cells", rooms open, a visitor inside), at 1280×720 and 1920×1080:
+  `scratchpad/slicec_check/loop_v2_1280x720/` and `loop_v2_1920x1080/` (session scratchpad, not committed).
+  Loop harness: 20 of 20 checks at both sizes, windowed and headless, with and without the art.
+- **Windowed harnesses**: demo_input_live 296 / 301 checks, demo_room_blueprint_live 35 / 35, all passing at
+  1280×720 / 1920×1080; the 1280×720 box-select step passes (E18).
 
 ## Source
 

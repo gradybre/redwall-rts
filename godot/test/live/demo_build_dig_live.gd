@@ -18,8 +18,12 @@ const LOOK_AT: Vector3 = Vector3(17.0, 0.0, 41.0)
 const ORDERED_CELLS: int = 40
 ## Steps (of STEP_FRAMES frames) a wait may take before it fails.
 const WAIT_STEPS: int = 3000
+const MAX_RESENDS: int = 2
 
 var _visitor: int = -1
+## Times the visit was ordered again after the resident dropped it (a walk to the Entrance that got lost ends the
+## trip and the resident goes back to its routine, `resident_brain.gd`'s lost-trip rule; decision 1912 E19).
+var _resends: int = 0
 
 
 func _initialize() -> void:
@@ -28,7 +32,7 @@ func _initialize() -> void:
 	_steps = [_open_on_the_surface, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
 		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage, _scroll_to.bind("Kitchen"),
 		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _wait_for_the_rooms, _send_a_visitor,
-		_wait_for_the_visitor, _close_the_panel]
+		_wait_for_the_visitor, _report_resends, _close_the_panel]
 
 
 func _open_on_the_surface() -> void:
@@ -140,8 +144,7 @@ func _wait_for_the_rooms() -> void:
 func _send_a_visitor() -> void:
 	"""A resident who is not a mole, selected, and a right click on a dug Kitchen cell: down they go."""
 	_visitor = _first_not_mole()
-	_command().call(&"select", PackedInt32Array([_visitor]))
-	_right_click(_screen_of(KITCHEN_FROM + Vector2i(2, 1), 1))
+	_order_the_visit()
 	var task: Object = null if _visitor < 0 else (_village.get("_cast").call(&"actor", _visitor) as Node).get("brain").get("task")
 	var said: String = String(task.call(&"label")) if task != null and task.has_method(&"label") else str(task)
 	# Art-free, with no mole, the digger may be this resident: it came out at the Entrance, so it is in at once.
@@ -152,8 +155,17 @@ func _wait_for_the_visitor() -> void:
 	"""Until the visitor stands in the Kitchen below."""
 	_wait_until("the visitor walks into the Kitchen", func() -> bool:
 		var task: Object = (_village.get("_cast").call(&"actor", _visitor) as Node).get("brain").get("task")
+		if (task == null or not task.has_method(&"at")) and _resends < MAX_RESENDS:
+			_resends += 1
+			_order_the_visit()
+			return false
 		return task != null and task.has_method(&"at") and task.call(&"at") == Vector3i(1, KITCHEN_FROM.x + 2, KITCHEN_FROM.y + 1),
 		"loop_visitor_inside", WAIT_STEPS)
+
+
+func _report_resends() -> void:
+	"""How often the visit had to be ordered again (a player would click again too)."""
+	_check("the visit was ordered again at most %d times" % MAX_RESENDS, _resends <= MAX_RESENDS, str(_resends))
 
 
 func _close_the_panel() -> void:
@@ -171,9 +183,25 @@ func _wait_until(check_name: String, done: Callable, capture_name: String, steps
 		_capture(capture_name)
 		return
 	if steps_left <= 0:
-		_check(check_name, false, "gave up")
+		_check(check_name, false, "gave up; the visitor: " + _visitor_state())
 		return
 	_steps.push_front(_wait_until.bind(check_name, done, capture_name, steps_left - 1))
+
+
+func _order_the_visit() -> void:
+	"""Select the visitor and right-click the dug Kitchen cell."""
+	_command().call(&"select", PackedInt32Array([_visitor]))
+	_right_click(_screen_of(KITCHEN_FROM + Vector2i(2, 1), 1))
+
+
+func _visitor_state() -> String:
+	"""The visitor's task and where it stands below, for a failed wait's detail."""
+	if _visitor < 0:
+		return "none"
+	var task: Object = (_village.get("_cast").call(&"actor", _visitor) as Node).get("brain").get("task")
+	if task == null or not task.has_method(&"label"):
+		return str(task)
+	return "%s at %s" % [task.call(&"label"), task.call(&"at") if task.has_method(&"at") else "?"]
 
 
 func _first_not_mole() -> int:

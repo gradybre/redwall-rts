@@ -217,14 +217,18 @@ A painted underground cell is dug to the level's clear height of 4096 u = **4 qu
 | Work | 4 × 4230 | 16920 milli-WU |
 | Earth output | 4 × 2000 | 8000 milli-U `excavated_earth` |
 
-**DEC-054 note (Brendan's ruling on decision 1911 P-C3 (a), 2026-10-12).** [DEC-054](setting_decisions.md#dec-054--a-room-is-excavated-only-as-high-as-the-dig-strokes-reach)
-caps how high a Room is dug: only as high as the published dig rows reach from the floor, derived live
-(`underground_room_approach.gd reachable_height_u`), and never above the clear height. RoomOrders already plans a
-painted room at that height (`modular_runtime.gd _excavated_height`). So a painted underground cell is priced and dug
-at `ceil_div(min(clear height, reachable height), 1024)` quanta, not always 4. The table above is the 4-quantum
-ceiling. On the current rows the reachable height is 2048 u, so a cell is **2 quanta: wood 500, stone 500 milli-U,
-work 8460 milli-WU, earth 4000 milli-U**. Every figure is the same per-quantum price times the quanta actually cut;
-no new constant.
+**DEC-054 note (Brendan's ruling on decision 1911 P-C3 (a), 2026-10-12, as corrected by his ruling on decision 1931
+P-C2-3 (a) the same day).** [DEC-054](setting_decisions.md#dec-054--a-room-is-excavated-only-as-high-as-the-dig-strokes-reach)
+caps how high a Room is dug: only as high as the dig rows of **the crew that digs** reach from the floor, derived live
+and never above the clear height. The crew is the claw crew (DEC-052); the height is read in one place with that crew's
+identity, never "any row" (`demo/burrow/modular_runtime.gd dug_height_u`, over
+`underground_room_approach.gd reachable_height_u`), and both the planner's plan and the build panel's price read it.
+So a painted underground cell is priced and dug at `ceil_div(min(clear height, the claw crew's reach), 1024)` quanta,
+not always 4; the table above is the 4-quantum ceiling. **On master the claw crew's rows reach 1,024 u, so a cell is
+1 quantum: wood 250, stone 250 milli-U, work 4230 milli-WU, earth 2000 milli-U.** That is the claw crew's result at
+master, not a settled room height: Brendan ruled rooms are dug with the claws' down stroke (P-C2-1), and slice C2.1
+changes the room-digging rule in core (decision 1931 and its successor); the price follows whatever it publishes.
+(P-C3 (a) first read "2 quanta" from identity −1, which counts the retired pick's rows: decision 1931 F2.)
 
 A 2 × 2 Passage patch is 16 quanta: wood 4000, stone 4000 milli-U, 67680 milli-WU, 32000 milli-U earth. A cell
 already open (BACKFILLED re-dig follows ECON-005's withdrawal branch) is never charged twice. Underground rooms have

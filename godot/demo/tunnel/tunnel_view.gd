@@ -75,7 +75,7 @@ const INDICATOR_TEXT: Color = Color(0.96, 0.91, 0.78)
 const INDICATOR_BACK: Color = Color(0.1, 0.075, 0.055, 0.82)
 
 var on: bool = false
-## Whether the U view shows a level with no way in (`set_unreached`): nothing in 3D.
+## Whether the U view draws other layers than its level (`set_override_mask`; `set_unreached`: nothing in 3D).
 var unreached: bool = false
 ## The level the U view shows (see THE LEVELS).
 var level: int = Rules.TOP_LEVEL
@@ -170,11 +170,18 @@ func set_on(value: bool) -> void:
 func set_unreached(value: bool) -> void:
 	"""Show a level the demo has no way into (the level bar's Level 3 or 4; decision 1871): the U view on with nothing
 	drawn in 3D -- nothing is dug there -- until the view or its level changes. False puts the shown level back."""
-	unreached = value
+	set_override_mask(0 if value else -1)
+
+
+func set_override_mask(mask: int) -> void:
+	"""Draw other layers than the legacy level's while the U view is on (decision 1912: the build panel shows the
+	actual World's level there; 0 draws nothing in 3D, decision 1871's unreached level), until the view or its level
+	changes; -1 puts the shown level back. The level indicator (it names a legacy floor) hides meanwhile."""
+	unreached = mask >= 0
 	if _indicator != null:
-		_indicator.visible = on and not value
+		_indicator.visible = on and not unreached
 	if _camera != null and on:
-		_camera.cull_mask = 0 if value else Layers.level_mask(level)
+		_camera.cull_mask = mask if unreached else Layers.level_mask(level)
 
 
 func set_level(value: int) -> bool:

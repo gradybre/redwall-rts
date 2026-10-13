@@ -19,6 +19,8 @@ extends RefCounted
 ## a capacity with no weight ("80 baskets of food"). A raw-food figure is NP per the good's small measure ("800 NP for a
 ## bunch of carrots"), not per catalogue unit.
 
+## Decision 1912 (Brendan's ruling on decision 1911 P-C2 (c)): the old dig tools are gone from the build panel.
+const LATER_DIGGING: String = "digging comes back with the build panel's dig orders in a later update"
 const SearchScript := preload("res://demo/guide/guide_search.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
@@ -670,18 +672,18 @@ static func _station_burrow() -> Entry:
 		"Beds for the night (a bed %s, a large bed %s), a hearth, table, rug, lantern: comfort." % [
 			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
 			_planks(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
-		"Dug by a digger from the build panel's Burrow home card (B); fitted out from the stores.", "Without a bed a resident sleeps on the hall's floor.",
-		"Wherever you dig one."]), [&"skill_digging", &"material_planks", &"station_tunnels"])
+		"Dug by a digger; new ones cannot be dug in this build (%s). Fitted out from the stores." % LATER_DIGGING, "Without a bed a resident sleeps on the hall's floor.",
+		"Where one was dug."]), [&"skill_digging", &"material_planks", &"station_tunnels"])
 
 
 static func _station_cellar() -> Entry:
 	"""The station cellar entry."""
 	return make(&"station_cellar", KIND_STATION, "Root cellar", "A cool store below ground", PackedStringArray([
 		"Keeping food at the GDD's cellar rate (%d per mille) while it is 1 m down, racked, and no hearth is near." % StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR],
-		"Dug from the build panel's Root cellar card (B), then racked: a shelf holds %s, a pantry rack %s, a root bin %s." % [
+		"Dug (not in this build: " + LATER_DIGGING + "), then racked: a shelf holds %s, a pantry rack %s, a root bin %s." % [
 			Measures.exact(&"food", Fixtures.CAPACITY_U[RoomsScript.FIX_SHELF] * 1000),
 			_food_room(Fixtures.CAPACITY_U[RoomsScript.FIX_RACK]), _food_room(Fixtures.CAPACITY_U[RoomsScript.FIX_BIN])],
-		"The covered store (faster spoiling).", "Wherever you dig one; harvests go there first."]),
+		"The covered store (faster spoiling).", "Where one was dug; harvests go there first."]),
 		[&"station_store", &"skill_digging", &"material_planks"])
 
 
@@ -690,7 +692,7 @@ static func _station_tunnels() -> Entry:
 	return make(&"station_tunnels", KIND_STATION, "Tunnels", "Dug ways below", PackedStringArray([
 		"Routes in any weather (rain and snow do not slow walkers below); draining or watering a bed above through an outlet fitted to it; reaching homes and cellars.",
 		"A digger who fits the bore (mice, moles, squirrels); 8 m at least, mouth to mouth.",
-		"A bridge or the ford over the stream.", "Wherever you dig them (B); they cannot pass under water."]),
+		"A bridge or the ford over the stream.", "Where they were dug; new ones cannot be dug in this build (%s)." % LATER_DIGGING]),
 		[&"skill_digging", &"material_earth", &"station_bridges"])
 
 

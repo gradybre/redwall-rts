@@ -1,7 +1,8 @@
 extends "res://test/framework/test_case.gd"
-## The build panel and level bar mounted in the demo (demo/build_panel/demo_build.gd; decision 1871), off-tree over a real
-## command layer and Dig tool: B, the level keys and their ends, the level mapping (levels 3-4 with no way in, Overview
-## never painting), the keyboard's paint, Undo / Redo, the legacy cards and the panel's return, Escape, the hidden HUD,
+## The build panel and level bar mounted in the demo (demo/build_panel/demo_build.gd; decisions 1871 and 1912), off-tree
+## over a real command layer and Dig tool, with no underground composed: B, the level keys and their ends, the level
+## mapping (closed: the legacy U view; open: the actual World's levels, U read as a choice, Overview never painting),
+## the keyboard's paint and its camera-relative arrows, Undo / Redo, no old tool cards, Escape, the hidden HUD,
 ## UX-BUILD-T04 (no silent cost) and UX-BUILD-T05 (selection identity across levels), and a still frame allocating
 ## nothing.
 
@@ -182,7 +183,8 @@ func test_overview_never_paints() -> void:
 	assert_false(_command.tunnels().view.on, "the surface view")
 	assert_equal(_build.armed_type(), -1, "never painting")
 	_build.bar.choose(3)
-	assert_equal(_build.armed_type(), -1, "nor on a level with no way in")
+	_build.panel.choose_card(KITCHEN_CARD)
+	assert_equal(_build.armed_type(), 2, "a level with no way in is painted all the same (its cells say so)")
 
 
 func test_the_keyboard_paints_a_room_and_undo_redo_step_it() -> void:
@@ -229,35 +231,55 @@ func test_ctrl_tab_cycles_the_tabs() -> void:
 	assert_equal(_build.panel.shown_tab(), BuildCatalog.TAB_ROOMS, "back to Rooms")
 
 
-func test_passage_opens_the_dig_tool_and_the_panel_returns_when_it_closes() -> void:
-	"""The Passage card: the panel hides, the Dig tool opens; B in the tool closes it; the panel comes back."""
+func test_the_old_tool_cards_are_gone_and_passage_paints() -> void:
+	"""Brendan's ruling on decision 1911 P-C2 (c): no Burrow home or Root cellar card, and Passage is a room type that
+	paints CORRIDOR (BUILD-REQ-014); no card opens the Dig tool; the panel says digging comes later."""
 	_command.select(PackedInt32Array([0]))
 	_build.open_panel()
+	assert_true(_said[-1].ends_with("digging painted rooms comes in a later update"), _said[-1])
+	assert_equal(_card("Burrow home"), -1, "no Burrow home card")
+	assert_equal(_card("Root cellar"), -1, "no Root cellar card")
+	_build.bar.choose(1)
 	_build.panel.choose_card(_card("Passage"))
-	assert_true(_command.tunnels().planning, "the Dig tool is open")
-	assert_true(_build.panel.suspended(), "the panel hidden behind it")
-	assert_true(_command.handle_input(_key(KEY_B)), "B in the tool")
-	assert_false(_command.tunnels().planning, "the tool closed")
-	_build._process(0.016)
-	assert_false(_build.panel.suspended(), "the panel back")
-	assert_true(_build.is_open(), "still open")
+	assert_false(_command.tunnels().planning, "no Dig tool")
+	assert_equal(_build.armed_type(), BuildCatalog.CORRIDOR, "Passage paints")
 
 
-func test_the_burrow_home_and_root_cellar_cards_open_the_room_tool() -> void:
-	"""Each opens its template's room tool (H and C no longer do)."""
-	_command.select(PackedInt32Array([0]))
+func test_while_building_the_bar_shows_the_actual_world_and_u_is_a_choice() -> void:
+	"""Decision 1912 (P-C6 (a)): open, an underground level turns the U view on drawing only the World's layers (here
+	nothing: no underground composed, and it says why); U off goes to the Surface, U on to Level 1; closing gives the
+	U view its own level back."""
+	var view = _command.tunnels().view
 	_build.open_panel()
-	_build.panel.choose_card(_card("Burrow home"))
-	assert_true(_command.tunnels().room.active, "the home tool")
-	_command.tunnels().cancel_plan()
+	_build.bar.choose(2)
 	_build._process(0.016)
-	_build.panel.choose_card(_card("Root cellar"))
-	assert_true(_command.tunnels().room.active, "the cellar tool")
-	assert_false(_command.handle_input(_key(KEY_H)) and _command.tunnels().room.plan.kind == 1, "H is no switch")
+	assert_true(view.on and view.unreached, "the U view on, drawing the override")
+	assert_equal(_build.world_refusal, BuildScript.BuildWorld.REFUSE_UNBOUND, "no World to draw in this run")
+	_command.tunnels().toggle_view()
+	_build._process(0.016)
+	assert_equal(_build.bar.shown_level(), LevelBar.LEVEL_SURFACE, "U off: the Surface")
+	_command.tunnels().toggle_view()
+	_build._process(0.016)
+	assert_equal(_build.bar.shown_level(), 1, "U on: Level 1")
+	assert_true(view.unreached, "the World's level again")
+	_build.panel.request_close()
+	assert_false(view.unreached, "closed: the U view's own level")
+
+
+func test_the_arrows_follow_the_camera() -> void:
+	"""P-B10 (b): Up is the way the camera looks, snapped to the nearer axis; Right a quarter turn clockwise."""
+	assert_equal(BuildScript.arrow_step(KEY_UP, Vector3(0, -1, -1)), Vector2i(0, -1), "looking -Z: Up is -Z")
+	assert_equal(BuildScript.arrow_step(KEY_RIGHT, Vector3(0, -1, -1)), Vector2i(1, 0), "and Right is +X")
+	assert_equal(BuildScript.arrow_step(KEY_UP, Vector3(1, -1, 0.2)), Vector2i(1, 0), "looking +X: Up is +X")
+	assert_equal(BuildScript.arrow_step(KEY_RIGHT, Vector3(1, -1, 0.2)), Vector2i(0, 1), "and Right is +Z")
+	assert_equal(BuildScript.arrow_step(KEY_DOWN, Vector3(-1, -1, 0)), Vector2i(1, 0), "looking -X: Down is +X")
+	assert_equal(BuildScript.arrow_step(KEY_LEFT, Vector3(0, -1, 1)), Vector2i(1, 0), "looking +Z: Left is +X")
+	assert_equal(BuildScript.arrow_step(KEY_UP, Vector3(1, 0, -1)), Vector2i(0, -1), "a tie goes to z")
+	assert_equal(BuildScript.arrow_step(KEY_A, Vector3(0, 0, -1)), Vector2i.ZERO, "another key moves nothing")
 
 
 func test_the_panel_hides_the_surfaces_it_replaces_and_gives_them_back() -> void:
-	"""Hidden while open (and re-hidden each frame); back as they were on close, and while an old tool runs."""
+	"""Hidden while open (and re-hidden each frame); back as they were on close."""
 	_hidden.visible = true
 	_build.open_panel()
 	_build._process(0.016)
@@ -350,23 +372,10 @@ func test_a_ghost_refused_by_its_floor_never_breaks_a_frame() -> void:
 	"""Review M4: the painter refuses an empty planning area and draws nothing on a frame without a ghost."""
 	var paint = BuildScript.Paint.new()
 	_nodes.append(paint)
-	assert_true(paint.configure(_build.batch, null, Vector2i.ZERO, Rect2i()) != &"",
+	assert_true(paint.configure(_build.batch, null, Vector2i.ZERO, Rect2i(), PackedInt32Array([0, 0, 0, 0, 0])) != &"",
 		"an empty area is refused")
 	paint.refresh(1, true)
 	assert_equal(paint.stroke_draws, 0, "nothing drawn, nothing broken")
-
-
-func test_the_passage_card_says_who_would_dig_and_what_they_would_stop() -> void:
-	"""Review M8: the old tool's action card on the Passage card's info and tooltip."""
-	_command.select(PackedInt32Array([0]))
-	_build.set_interrupts(_command.interrupt_text)
-	_build.open_panel()
-	var passage: int = _card("Passage")
-	_build.panel._show_card(passage)
-	assert_true(_build.panel.info_text().contains("Who: "), _build.panel.info_text())
-	assert_true(_build.panel.card_button(passage).tooltip_text.contains("Who: "), "and in its tooltip")
-	_build.panel._show_card(_card("Kitchen"))
-	assert_false(_build.panel.info_text().contains("Who: "), "a room type has no such note")
 
 
 func test_redo_waits_for_a_keyboard_stroke() -> void:
@@ -398,7 +407,7 @@ func test_a_cursor_move_redraws_no_room_ghost() -> void:
 
 func test_the_demo_build_command_opens_and_closes_the_panel() -> void:
 	"""P-B3 (approved 2026-10-12): in the demo the HUD's Build command is enabled and does what B does -- opens the
-	panel, asks Keep / Discard when closing with changes, and in the Dig tool closes the tool."""
+	panel and asks Keep / Discard when closing with changes."""
 	assert_false(_build.unlock_build_command(), "no shell: nothing to unlock")
 	var shell := UiShellScript.new()
 	_nodes.append(shell)
@@ -421,9 +430,7 @@ func test_the_demo_build_command_opens_and_closes_the_panel() -> void:
 	button.pressed.emit()
 	assert_equal(_build.panel.question(), BuildScript.BuildPanel.QUESTION_CLOSE, "with a change it asks first")
 	_build.panel.answer(false)
-	assert_true(_command.tunnels().begin_plan(), "the Dig tool open")
-	button.pressed.emit()
-	assert_false(_command.tunnels().planning, "in the Dig tool it closes the tool, as B does")
+	assert_false(_build.is_open(), "discarded and closed")
 	assert_true(_build.unlock_build_command(), "unlocking twice connects once")
 	assert_equal(button.pressed.get_connections().size(), 1, "one connection")
 
@@ -434,22 +441,3 @@ func test_confirm_all_names_the_room_the_route_refused() -> void:
 	_build.confirm_all()
 	assert_equal(_said[_said.size() - 1], "Confirm all: 0 ordered, 1 kept back -- Kitchen: " + Orders.NOT_COMPOSED,
 		_said[_said.size() - 1])
-
-
-func test_the_old_tools_notes_are_reread_on_the_party_panel_cadence() -> void:
-	"""Review LOW c: while the panel shows, its card notes are re-read every PANEL_REFRESH_S, not on the frames
-	between."""
-	var reads: Array[int] = [0]
-	_build.panel.card_note = func(_unused: BuildCatalog.Card) -> String:
-		reads[0] += 1
-		return ""
-	_build.open_panel()
-	_build._process(0.05)
-	assert_true(reads[0] > 0, "read on the first frame open")
-	reads[0] = 0
-	_build._process(0.05)
-	_build._process(0.05)
-	assert_equal(reads[0], 0, "not between")
-	_build._process(0.11)
-	assert_true(reads[0] > 0, "read again after %.2f s" % CommandScript.PANEL_REFRESH_S)
-	_build.panel.card_note = Callable()

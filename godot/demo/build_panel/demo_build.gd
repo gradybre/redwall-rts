@@ -1,30 +1,34 @@
 extends Node
-## THE ONE BUILD PANEL AND THE LEVEL BAR IN THE DEMO (DEC-061 Q1; docs/ui_ux_controls.md UI-BUILD-001; decision 1871).
-## The panel and the bar are game UI (scripts/ui/build_panel.gd, level_bar.gd); this mounts them over the village and
-## maps them onto what the demo has: the legacy warren's U view, its dig and room tools, and the settlement's planner
-## route (Brendan's rulings 2-4 of 2026-10-12).
+## THE ONE BUILD PANEL AND THE LEVEL BAR IN THE DEMO (DEC-061 Q1; docs/ui_ux_controls.md UI-BUILD-001; decisions 1871
+## and 1912). The panel and the bar are game UI (scripts/ui/build_panel.gd, level_bar.gd); this mounts them over the
+## village and maps them onto what the demo has.
 ##
-## KEYS (read through demo_command.gd's build hooks: `takes_before_gui`, then `handle_input` before the Dig tool's):
-##   B                  open or close the panel (closing with pending changes asks Keep / Discard). In the Dig tool
-##                      B stays the tool's: it closes it, and the panel comes back.
-##   PageUp / PageDown  the level bar, everywhere (level_up / level_down): Surface ... Level 4. Read before the HUD, as
-##                      the U view's level keys were; never behind a modal.
+## KEYS (read through demo_command.gd's build hooks: `takes_before_gui`, then `handle_input`):
+##   B                  open or close the panel (closing with pending changes asks Keep / Discard).
+##   PageUp / PageDown  the level bar, everywhere (level_up / level_down): Surface ... Level 4. Read before the HUD;
+##                      never behind a modal.
 ##   in the panel:      Esc one layer (the stroke, a question, the ledger, the panel); Ctrl+Tab / Ctrl+Shift+Tab the
 ##                      tabs; Ctrl+Z / Cmd+Z undo; Ctrl+Shift+Z, Ctrl+Y / Cmd+Shift+Z redo; with a room type armed,
-##                      left drag paints a rectangle, right click cancels the stroke, the arrows move the cell cursor
-##                      (north is -Z) and Enter sets the first corner, Enter again the second.
+##                      left drag paints with the chosen tool, right click cancels the stroke, the arrows move the cell
+##                      cursor RELATIVE TO THE CAMERA (Up is the way the camera looks, snapped to the grid: P-B10 (b))
+##                      and Enter sets the first corner, Enter again the second.
 ##
-## THE LEVELS. Surface = the U view off. Level 1 / Level 2 = the U view on that level of the legacy warren (its 4 m
-## spacing is the demo's; DEC-061's 5 m is slices C/D's). Levels 3 and 4: no way in yet in the demo -- selected, the
-## U view shows nothing (tunnel_view.gd `set_unreached`) and nothing can be painted. Overview = the surface view with
-## painting off (the demo has no all-levels view: a PROPOSAL). U still toggles the view; the bar follows it.
+## THE LEVELS (decision 1912; Brendan's ruling on decision 1911 P-C6 (a)). WHILE THE PANEL IS OPEN the bar decides:
+## Levels 1-4 are the settlement's ACTUAL underground levels, 5 m apart (demo_build_world.gd draws the World cut at
+## the level's floor; the U view draws only that, so the legacy warren is hidden), and painting is armed there;
+## Surface and Overview are the surface view with painting off. U pressed meanwhile is read as a choice: off goes to
+## the Surface, on goes to Level 1. WITH THE PANEL CLOSED the bar follows the legacy U view as before (decision 1871:
+## Level 1 / 2 the legacy warren's; Levels 3 and 4 show nothing). A level with no way in yet is marked "!" on the bar
+## and still painted: each cell then says "No way in" on its ghost (BUILD-REQ-013 per cell).
 ##
-## THE CARDS. A room type arms painting on levels 1-2 (on the surface the room cards are locked); Passage opens the
-## Dig tool and Burrow home / Root cellar its room tool (their own confirm), the panel hidden until the tool closes.
-## While the panel shows, the HUD's command strip (UI-SET-026) and its detail (UI-SET-036), the demo's right column,
-## its map-layer picker and its news strip are hidden (their place is the panel's), and given back on close.
-## Opening, painting, Undo, Redo and Discard all touch no store, reservation or job; Confirm all orders each valid
-## operation through the planner's route (demo_build_orders.gd) and deducts nothing.
+## THE CARDS. A room type -- Passage among them -- arms painting on levels 1-4. The old Passage / Burrow home / Root
+## cellar tool cards are gone (Brendan's ruling on decision 1911 P-C2 (c)): THE DEMO HAS NO PLAYABLE DIGGING until
+## slice C3 makes painted rooms diggable, and the panel says so when it opens. While the panel shows, the HUD's command
+## strip (UI-SET-026) and its detail (UI-SET-036), the demo's right column, its map-layer picker and its news strip are
+## hidden (their place is the panel's), and given back on close. Opening, painting, Undo, Redo and Discard all touch
+## no store, reservation or job. Confirm all is held back while any cell has no way in, which on the actual
+## underground is every cell until slice D's entrance (decision 1911 §2.1); the route behind it (demo_build_orders.gd)
+## deducts nothing.
 
 const BuildPanel := preload("res://scripts/ui/build_panel.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
@@ -36,12 +40,11 @@ const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Paint := preload("res://demo/build_panel/demo_build_paint.gd")
 const Orders := preload("res://demo/build_panel/demo_build_orders.gd")
+const Ground := preload("res://demo/build_panel/demo_build_ground.gd")
+const BuildWorld := preload("res://demo/build_panel/demo_build_world.gd")
 const TunnelControl := preload("res://demo/tunnel/tunnel_control.gd")
-const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const ThemeResource: Theme = preload("res://ui/theme/woodland_theme.tres")
-const CardScript := preload("res://demo/ui/action_card.gd")
 const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
-const DemoCommand := preload("res://demo/control/demo_command.gd")
 ## The paint label keeps this far inside the window's edges (UI §1.2's safe inset).
 const SAFE_INSET: float = 16.0
 
@@ -52,14 +55,13 @@ const LABEL_PX: int = 16
 ## The paint label keeps this far above the panel.
 const LABEL_GAP: float = 8.0
 const ARMED_HINT: String = "Paint %s: drag on the floor, or Enter to set a corner"
-const NO_WAY_IN_HERE: String = "Paint %s: %s"
 const ORDERED: String = "Confirm all: %d ordered, %d kept back"
-const OPENED: String = "Build on %s: choose a room type to paint"
+## Decision 1912 (P-C2 (c)): the panel plans; digging what it plans comes later, and it says so.
+const OPENED: String = "Build on %s: plan rooms by painting them; digging painted rooms comes in a later update"
 const CLOSED_KEPT: String = "Build panel closed; its pending changes are kept"
 ## The demo's Build command (UI-SET-027, P-B3 as Brendan approved on 2026-10-12): what it does here.
-const BUILD_COMMAND: String = "Open the build panel: paint rooms underground, or open the Passage and burrow tools"
-const ARROWS: Dictionary = {KEY_LEFT: Vector2i(-1, 0), KEY_RIGHT: Vector2i(1, 0), KEY_UP: Vector2i(0, -1),
-	KEY_DOWN: Vector2i(0, 1)}
+const BUILD_COMMAND: String = "Open the build panel: plan rooms underground (digging them comes in a later update)"
+const ARROW_KEYS: Array[int] = [KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT]
 
 var panel: BuildPanel = null
 var bar: LevelBar = null
@@ -67,11 +69,14 @@ var batch: Batch = null
 var catalog: BuildCatalog = null
 var paint: Paint = null
 var orders: Orders = null
+var ground: Ground = null
+var world: BuildWorld = null
 var _layer: CanvasLayer = null
 var _label_box: PanelContainer = null
 var _label: Label = null
 var _tunnels: TunnelControl = null
 var _shell: UiShell = null
+var _camera: Camera3D = null
 var _blocked: Callable = Callable()
 var _say: Callable = Callable()
 var _hide: Array[Node] = []
@@ -79,6 +84,9 @@ var _hidden_was: PackedByteArray = PackedByteArray()
 var _holding: bool = false
 var _special: int = -1
 var _special_on: bool = false
+## While building: the level the view was last set to (-1: none) and whether the U view was left on.
+var _applied_level: int = -1
+var _applied_on: bool = false
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _minimap_was: bool = true
@@ -86,39 +94,58 @@ var _pointer: Vector2 = Vector2.INF
 var _seen_label: int = -1
 ## Why the panel could not be set up ("": it was): painting stays disarmed (decision 1871, review M4).
 var _setup_refusal: StringName = &""
-## `interrupts(actor_index) -> String`: what an order would stop (demo_command.gd `interrupt_text`), for the old tools'
-## cards' notes (review M8). Unset: no such line.
-var _interrupts: Callable = Callable()
-var _card_data: CardScript = CardScript.new()
-## Seconds to the next re-read of the old tools' card notes (the old party panel's cadence, review LOW c).
-var _notes_in: float = 0.0
+## Why the actual World's level could not be shown ("": it was, or was not asked for).
+var world_refusal: StringName = &""
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
 		hide: Array[Node], session: Object) -> void:
-	"""Mount over this village: its Dig tool and U view, the HUD shell, the camera that paints, the modal test
-	(`blocked() -> bool`), the notice line (`say(text)`), the demo surfaces the panel replaces while open, and the
-	settlement's underground session (null: none composed, every order refused)."""
+	"""Mount over this village: its U view, the HUD shell, the camera that paints, the modal test (`blocked() ->
+	bool`), the notice line (`say(text)`), the demo surfaces the panel replaces while open, and the settlement's
+	underground session (null: none composed, every order refused)."""
 	name = "DemoBuild"
 	_tunnels = tunnels
 	_shell = shell
+	_camera = camera
 	_blocked = blocked
 	_say = say
 	_hide = hide.duplicate()
 	catalog = BuildCatalog.new()
 	orders = Orders.new()
 	orders.bind_session(session, camera)
-	for level: int in range(1, LevelBar.LEVEL_DEEPEST + 1):
-		catalog.set_level_clear_height(level, orders.clear_height_of(level))
 	batch = Batch.new()
-	paint = Paint.new()
-	add_child(paint)
 	take_setup(batch.configure(catalog, orders.cell_bounds(), orders.cell_capacity()))
-	take_setup(paint.configure(batch, camera, Vector2i(orders.datum_u().x, orders.datum_u().z), orders.cell_bounds()))
+	_configure_ground()
+	_configure_world(session)
 	_build_layer()
-	panel.card_note = _card_note
 	unlock_build_command()
 	place()
+
+
+func _configure_ground() -> void:
+	"""Each level's dug height (the ledger, DEC-054) and floor (the ghosts), and the ground reader bound to the batch
+	(only over a composed underground: with none, the batch judges shapes alone and Confirm all says why)."""
+	ground = Ground.new()
+	ground.configure(orders.datum_u(), orders.cell_bounds())
+	ground.bind(orders.terrain_owner(), orders.excavation_sites(), orders.space_owner())
+	var floors: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0])
+	for level: int in range(1, LevelBar.LEVEL_DEEPEST + 1):
+		catalog.set_level_clear_height(level, orders.dug_height_of(level))
+		floors[level] = orders.floor_of(level)
+		ground.set_level(level, floors[level], orders.dug_height_of(level))
+	if ground.bound():
+		batch.bind_ground(ground.ground, ground.revision)
+	paint = Paint.new()
+	add_child(paint)
+	take_setup(paint.configure(batch, _camera, Vector2i(orders.datum_u().x, orders.datum_u().z), orders.cell_bounds(),
+		floors))
+
+
+func _configure_world(session: Object) -> void:
+	"""The actual World's level view, built when first shown."""
+	world = BuildWorld.new()
+	world.configure(session)
+	add_child(world)
 
 
 func unlock_build_command() -> bool:
@@ -136,19 +163,9 @@ func unlock_build_command() -> bool:
 	button.tooltip_text = CommandTips.tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index],
 		BUILD_COMMAND, "")
 	button.accessibility_description = BUILD_COMMAND
-	if not button.pressed.is_connected(_on_build_command):
-		button.pressed.connect(_on_build_command)
+	if not button.pressed.is_connected(toggle_panel):
+		button.pressed.connect(toggle_panel)
 	return true
-
-
-func _on_build_command() -> void:
-	"""The Build command clicked, or B pressed through the shell (an enabled command's key is the shell's, read
-	before demo_command's): what B does -- in the Dig tool it closes the tool, else it opens or asks to close the
-	panel."""
-	if _tunnels.planning:
-		_tunnels.cancel_plan()
-		return
-	toggle_panel()
 
 
 func take_setup(code: StringName) -> void:
@@ -162,21 +179,6 @@ func take_setup(code: StringName) -> void:
 func setup_refusal() -> StringName:
 	"""Why the panel could not be set up ("" when it was)."""
 	return _setup_refusal
-
-
-func set_interrupts(interrupts: Callable) -> void:
-	"""`interrupts(actor_index) -> String`: what an order to that resident would stop (the old tools' card notes)."""
-	_interrupts = interrupts
-
-
-func _card_note(card: BuildCatalog.Card) -> String:
-	"""The old tools' action card on their cards (review M8): who would dig and what they would stop."""
-	if card.kind != BuildCatalog.CARD_LEGACY:
-		return ""
-	_tunnels.tool_card_into(_card_data, card.name, card.purpose)
-	if _card_data.worker >= 0 and _interrupts.is_valid():
-		_card_data.interrupts = String(_interrupts.call(_card_data.worker))
-	return _card_data.text()
 
 
 func _build_layer() -> void:
@@ -249,7 +251,7 @@ func _stock(good: StringName) -> int:
 # --- opening and closing -------------------------------------------------------------------------------------------
 
 func is_open() -> bool:
-	"""Whether the panel is open (suspended behind an old tool or not)."""
+	"""Whether the panel is open."""
 	return panel.is_open()
 
 
@@ -258,8 +260,10 @@ func open_panel() -> bool:
 	if _blocked.is_valid() and bool(_blocked.call()):
 		return false
 	if not panel.is_open():
+		_mark_reachable()
 		panel.open_on(bar.shown_level(), bar.is_reachable(bar.shown_level()))
 		_hold_hud()
+		_apply_build_view()
 		if is_inside_tree():
 			get_viewport().gui_release_focus()
 		_say.call(OPENED % LevelBar.level_name(bar.shown_level()))
@@ -267,7 +271,7 @@ func open_panel() -> bool:
 
 
 func toggle_panel() -> bool:
-	"""B: open, or ask to close. True when the panel is open afterwards."""
+	"""B or the Build command: open, or ask to close. True when the panel is open afterwards."""
 	if panel.is_open():
 		panel.request_close()
 		return panel.is_open()
@@ -275,57 +279,93 @@ func toggle_panel() -> bool:
 
 
 func _on_closed(kept: bool) -> void:
-	"""The panel closed: the HUD's surfaces back, the ghosts' stroke and label hidden."""
+	"""The panel closed: the HUD's surfaces back, the actual World's level put away (the U view shows its own level
+	again), the ghosts' stroke and label hidden."""
 	_release_hud()
+	_leave_build_view()
 	_label_box.visible = false
-	paint.refresh(bar.shown_level(), false)
+	paint.refresh(-1, false)
 	if kept and batch.pending_count() > 0:
 		_say.call(CLOSED_KEPT)
 
 
+func _mark_reachable() -> void:
+	"""The bar's "no way in yet" marks while building: a level has a way in only where something is dug at all
+	(no excavation Site exists anywhere: none has; every cell's ghost judges it exactly)."""
+	var sites: Object = orders.excavation_sites()
+	var any: bool = sites != null and int(sites.get(&"_count")) > 0
+	for level: int in range(1, LevelBar.LEVEL_DEEPEST + 1):
+		bar.set_reachable(level, any)
+
+
 # --- per frame -----------------------------------------------------------------------------------------------------
 
-func _process(delta: float) -> void:
-	"""Follow the view (U, the Dig tool), the old tools' end, the minimap; hold the HUD; redraw the ghosts and label.
-	Integer compares a frame; allocation only when something changed."""
+func _process(_delta: float) -> void:
+	"""Follow the view (U), the minimap; hold the HUD; redraw the ghosts and label. Integer compares a frame;
+	allocation only when something changed."""
 	follow_view()
-	if panel.suspended() and not _tunnels.planning:
-		panel.suspend(false)
 	if minimap_shown() != _minimap_was:
 		place()
-	var open: bool = panel.is_open() and not panel.suspended()
+	var open: bool = panel.is_open()
 	if open:
 		_hold_hud()
 	elif _holding:
 		_release_hud()
-	paint.refresh(bar.shown_level(), open and armed_type() >= 0)
+	paint.refresh(bar.shown_level() if open else -1, open and armed_type() >= 0)
 	_sync_label(open)
-	_tick_notes(delta, open)
-
-
-func _tick_notes(delta: float, open: bool) -> void:
-	"""Every PANEL_REFRESH_S while the panel shows, the old tools' card notes are re-read (residents move on, so who
-	would dig changes); nothing is read or allocated on the frames between."""
-	_notes_in -= delta
-	if not open or _notes_in > 0.0:
-		return
-	_notes_in = DemoCommand.PANEL_REFRESH_S
-	panel.refresh_notes()
 
 
 func follow_view() -> void:
-	"""The bar (and the panel) show the level the view shows: the U key and the Dig tool move it too."""
+	"""While building, the bar decides and the view follows (U read as a choice); else the bar follows the legacy
+	U view (decision 1871)."""
+	if panel.is_open():
+		_follow_build_view()
+		return
 	var shown: int = view_level()
 	if shown != bar.shown_level():
 		bar.set_level(shown)
-	if shown != panel.building_level():
+
+
+func _follow_build_view() -> void:
+	"""U pressed while building: off goes to the Surface, on goes to Level 1; then the view is kept as the bar says."""
+	if _applied_level >= 0 and _tunnels.view.on != _applied_on:
+		bar.set_level(LevelBar.LEVEL_SURFACE if not _tunnels.view.on else 1)
+		_applied_level = -1
+	if bar.shown_level() != panel.building_level():
 		batch.cancel_stroke()
-		panel.set_level(shown, bar.is_reachable(shown))
+		panel.set_level(bar.shown_level(), bar.is_reachable(bar.shown_level()))
+	_apply_build_view()
+
+
+func _apply_build_view() -> void:
+	"""Show what the bar's level is while building: an underground level's actual World (the U view on, drawing only
+	it), or the surface view. Writes only when the level changed."""
+	var level: int = bar.shown_level()
+	if level == _applied_level:
+		return
+	_applied_level = level
+	_special = -1
+	var underground: bool = Paint.paintable(level)
+	if _tunnels.view.on != underground:
+		_tunnels.toggle_view()
+	_applied_on = _tunnels.view.on
+	if not underground:
+		world.hide_view()
+		return
+	world_refusal = world.show_level(level)
+	_tunnels.view.set_override_mask(BuildWorld.SHOWN_MASK if world_refusal == &"" else 0)
+
+
+func _leave_build_view() -> void:
+	"""Building ended: the World's level hidden and the U view's own level back (the bar then follows it)."""
+	world.hide_view()
+	_tunnels.view.set_override_mask(-1)
+	_applied_level = -1
 
 
 func view_level() -> int:
-	"""The level shown, in the bar's terms: a level 3/4 or Overview choice while the view is as it left it, else the
-	U view's level, or the surface with it off."""
+	"""The level shown with the panel closed, in the bar's terms: a level 3/4 or Overview choice while the view is as
+	it left it, else the U view's level, or the surface with it off."""
 	var on: bool = _tunnels.view.on
 	if _special >= 0 and on == _special_on:
 		return _special
@@ -402,21 +442,21 @@ func step_level(by: int) -> bool:
 
 
 func _on_level_chosen(level: int) -> void:
-	"""Map the bar's level onto the demo's view (see THE LEVELS); the bar then follows what the view really shows
-	(a room tool holding a draft on another level refuses to move, and says so)."""
+	"""The bar's choice: while building, the view follows it (`_apply_build_view`); else it is mapped onto the legacy
+	U view as decision 1871 did (Levels 1/2 its levels, 3/4 nothing, Overview the surface)."""
+	if panel.is_open():
+		_follow_build_view()
+		return
 	_set_special(-1)
-	var view_on: bool = _tunnels.view.on
 	match level:
 		LevelBar.LEVEL_SURFACE, LevelBar.LEVEL_OVERVIEW:
-			if view_on:
+			if _tunnels.view.on:
 				_tunnels.toggle_view()
-		1, 2:
-			if not view_on:
-				_tunnels.toggle_view()
-			_tunnels.show_level(level)
 		_:
-			if not view_on:
+			if not _tunnels.view.on:
 				_tunnels.toggle_view()
+			if level <= 2:
+				_tunnels.show_level(level)
 	if (level == 3 or level == 4) and _tunnels.view.on:
 		_set_special(level)
 	elif level == LevelBar.LEVEL_OVERVIEW and not _tunnels.view.on:
@@ -425,7 +465,7 @@ func _on_level_chosen(level: int) -> void:
 
 
 func _set_special(level: int) -> void:
-	"""Hold a level the view cannot name itself (3, 4 or Overview) until the view changes under it."""
+	"""Hold a level the legacy view cannot name itself (3, 4 or Overview) until the view changes under it."""
 	_special = level
 	_special_on = _tunnels.view.on
 	_tunnels.view.set_unreached(level == 3 or level == 4)
@@ -434,11 +474,12 @@ func _set_special(level: int) -> void:
 # --- painting ------------------------------------------------------------------------------------------------------
 
 func armed_type() -> int:
-	"""The room type a stroke paints now, or -1: the panel open with a type chosen, on a level 1-2 view."""
-	if _setup_refusal != &"" or not panel.is_open() or panel.suspended() or _special >= 0 or not _tunnels.view.on:
+	"""The room type a stroke paints now, or -1: the panel open with a type chosen, on an underground level. (With no
+	underground composed in the run the World cannot be drawn, `world_refusal` says why, and painting still works:
+	Confirm all then says nothing can be ordered.)"""
+	if _setup_refusal != &"" or not panel.is_open():
 		return -1
-	var level: int = bar.shown_level()
-	return panel.paint_type() if Paint.paintable(level) and bar.is_reachable(level) else -1
+	return panel.paint_type() if Paint.paintable(bar.shown_level()) else -1
 
 
 func _begin_at(cell: Vector2i) -> bool:
@@ -483,7 +524,7 @@ func takes_before_gui(event: InputEvent) -> bool:
 		return false
 	if _level_key(event):
 		return true
-	if not panel.is_open() or panel.suspended():
+	if not panel.is_open():
 		return false
 	if batch.stroke_active() and _stroke_pointer(event):
 		return true
@@ -538,13 +579,13 @@ func _focused() -> bool:
 
 
 func handle_input(event: InputEvent) -> bool:
-	"""After the HUD, before the Dig tool: B, and the panel's keys and world clicks (see KEYS). True when taken."""
-	if (_blocked.is_valid() and bool(_blocked.call())) or _tunnels.planning:
+	"""After the HUD: B, and the panel's keys and world clicks (see KEYS). True when taken."""
+	if _blocked.is_valid() and bool(_blocked.call()):
 		return false
 	if event.is_action_pressed(&"open_build", false, true):
 		toggle_panel()
 		return true
-	if not panel.is_open() or panel.suspended():
+	if not panel.is_open():
 		return false
 	if event is InputEventKey:
 		return _panel_key(event as InputEventKey)
@@ -575,14 +616,34 @@ func _panel_key(key: InputEventKey) -> bool:
 
 
 func _arrow(key: InputEventKey) -> bool:
-	"""With a type armed, an arrow moves the cell cursor one cell (north is -Z) and drags a keyboard stroke with it."""
-	if armed_type() < 0 or not ARROWS.has(key.keycode) or key.shift_pressed or key.ctrl_pressed or key.alt_pressed:
+	"""With a type armed, an arrow moves the cell cursor one cell relative to the camera and drags a keyboard stroke
+	with it."""
+	if armed_type() < 0 or not ARROW_KEYS.has(key.keycode) or key.shift_pressed or key.ctrl_pressed or key.alt_pressed:
 		return false
 	_pointer = Vector2.INF
-	var cell: Vector2i = paint.cursor() + ARROWS[key.keycode]
+	var forward: Vector3 = -_camera.global_transform.basis.z if is_instance_valid(_camera) else Vector3.FORWARD
+	var cell: Vector2i = paint.cursor() + arrow_step(key.keycode, forward)
 	paint.set_cursor(cell, bar.shown_level(), armed_type())
 	batch.extend_stroke(cell)
 	return true
+
+
+static func arrow_step(keycode: int, forward: Vector3) -> Vector2i:
+	"""P-B10 (b): Up moves one cell the way the camera looks, snapped to the grid's nearer axis (a tie goes to z);
+	Right a quarter turn clockwise from it seen from above; Down and Left the opposites. Vector2i(0, 0) for another key."""
+	var up: Vector2i = Vector2i(1 if forward.x > 0.0 else -1, 0) if absf(forward.x) > absf(forward.z) \
+		else Vector2i(0, -1 if forward.z <= 0.0 else 1)
+	var right: Vector2i = Vector2i(-up.y, up.x)
+	match keycode:
+		KEY_UP:
+			return up
+		KEY_DOWN:
+			return -up
+		KEY_RIGHT:
+			return right
+		KEY_LEFT:
+			return -right
+	return Vector2i.ZERO
 
 
 func _panel_click(button: InputEventMouseButton) -> bool:
@@ -621,27 +682,6 @@ func centre_cursor() -> void:
 # --- the cards -----------------------------------------------------------------------------------------------------
 
 func _on_card_chosen(card: BuildCatalog.Card) -> void:
-	"""A room type arms painting (the cursor to the screen's middle); Passage, Burrow home and Root cellar open their
-	old tool, the panel hidden until it closes; a locked card is only shown."""
+	"""A room type arms painting (the cursor to the screen's middle); a locked card is only shown."""
 	if card.kind == BuildCatalog.CARD_ROOM and card.usable():
 		centre_cursor()
-		return
-	if card.kind != BuildCatalog.CARD_LEGACY:
-		return
-	batch.cancel_stroke()
-	panel.suspend(true)
-	_release_hud()
-	if not _open_legacy(card.legacy):
-		panel.suspend(false)
-
-
-func _open_legacy(legacy: int) -> bool:
-	"""Open the old tool for a legacy card; false when it refused (it says why in the notice line)."""
-	match legacy:
-		BuildCatalog.LEGACY_PASSAGE:
-			return _tunnels.planning or _tunnels.begin_plan()
-		BuildCatalog.LEGACY_HOME:
-			return _tunnels.begin_room(RoomsScript.TEMPLATE_HOME)
-		BuildCatalog.LEGACY_CELLAR:
-			return _tunnels.begin_room(RoomsScript.TEMPLATE_CELLAR)
-	return false

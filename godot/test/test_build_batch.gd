@@ -7,6 +7,9 @@ const Batch := preload("res://scripts/ui/build_batch.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Draft := preload("res://demo/burrow/modular_draft.gd")
+const Stroke := preload("res://scripts/ui/build_stroke.gd")
+const Footprint := preload("res://scripts/core/room_footprint.gd")
+const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 
 const KITCHEN: int = 2
 const DORMITORY: int = 0
@@ -17,6 +20,11 @@ const CAPACITY: int = 4096
 var _batch: Batch = null
 var _submitted: Array = []
 var _answers: Array = []
+
+
+func after_each() -> void:
+	"""Let go of the subject: its bound readers close over this suite, which would otherwise keep both alive."""
+	_batch = null
 
 
 func before_each() -> void:
@@ -108,13 +116,144 @@ func test_a_stroke_over_another_room_type_is_not_possible() -> void:
 	assert_equal(_paint(PANTRY, 2, Vector2i(0, 0), Vector2i(3, 3)), Validity.KIND_CAN_BUILD, "under it, a level down")
 
 
-func test_a_stroke_joining_two_planned_rooms_is_refused() -> void:
-	"""The batch never merges two operations (a PROPOSAL in decision 1871)."""
+func test_a_stroke_joining_two_planned_rooms_merges_them_into_the_older() -> void:
+	"""P-B2 (b), ruled for slice C (decision 1912): a bridge between two pending Dormitories makes one room, the older
+	one (lower operation) surviving; one Undo step parts them again, and Redo joins them."""
 	_paint(DORMITORY, 1, Vector2i(0, 0), Vector2i(3, 2))
 	_paint(DORMITORY, 1, Vector2i(6, 0), Vector2i(9, 2))
-	assert_equal(_paint(DORMITORY, 1, Vector2i(4, 0), Vector2i(5, 2)), Validity.KIND_NOT_POSSIBLE, "a bridge")
-	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.joins_two()), "words")
-	assert_equal(_batch.pending_count(), 2, "both kept apart")
+	assert_equal(_paint(DORMITORY, 1, Vector2i(4, 0), Vector2i(5, 2)), Validity.KIND_CAN_BUILD, "a bridge")
+	assert_equal(_batch.pending_count(), 1, "one room")
+	assert_equal(_batch.operation_cell_count(0), 30, "12 + 6 + 12 cells in the older")
+	assert_equal(_batch.operation_cell_count(1), 0, "the younger emptied")
+	assert_equal(_batch.undo_label(), "Undo Paint Dormitory", "one step")
+	assert_true(_batch.undo(), "undone")
+	assert_equal(_batch.pending_count(), 2, "two rooms again")
+	assert_equal(_batch.operation_cell_count(0), 12, "the older as it was")
+	assert_equal(_batch.operation_cell_count(1), 12, "the younger as it was")
+	assert_true(_batch.redo(), "redone")
+	assert_equal(_batch.pending_count(), 1, "joined again")
+	assert_equal(_batch.operation_cell_count(0), 30, "all of it")
+
+
+func test_a_merge_past_a_rooms_most_cells_is_not_possible() -> void:
+	"""The merged room is held to the planner's capacity like any stroke."""
+	var small: Batch = Batch.new()
+	small.configure(BuildCatalog.new(), BOUNDS, 40)
+	_paint_on(small, DORMITORY, Vector2i(0, 0), Vector2i(3, 4))
+	_paint_on(small, DORMITORY, Vector2i(6, 0), Vector2i(9, 4))
+	assert_equal(_paint_on(small, DORMITORY, Vector2i(4, 0), Vector2i(5, 1)), Validity.KIND_NOT_POSSIBLE, "44 > 40")
+	assert_equal(small.pending_count(), 2, "both kept apart")
+
+
+func _paint_on(batch: Batch, room_type: int, from: Vector2i, to: Vector2i) -> int:
+	"""One stroke of the batch's tool on level 1 of `batch`, released."""
+	assert_true(batch.begin_stroke(room_type, 1, from), "stroke begins")
+	batch.extend_stroke(to)
+	return batch.finish_stroke()
+
+
+func test_an_oval_is_painted_as_the_planners_ellipse() -> void:
+	"""P-C7 (a): Oval fills the corners' box as modular_draft.gd's ELLIPSE does, and is judged as one room."""
+	assert_true(_batch.set_tool(Stroke.TOOL_OVAL), "oval")
+	assert_true(_batch.begin_stroke(DORMITORY, 1, Vector2i(0, 0)), "begun")
+	_batch.extend_stroke(Vector2i(7, 5))
+	assert_equal(_batch.stroke_size(), Vector2i(8, 6), "the box")
+	var expected: Dictionary = Footprint.ellipse(0, 0, 8, 6, CAPACITY)
+	assert_equal(_batch.stroke_cells(), expected.cells, "the planner's ellipse")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_CAN_BUILD, "painted")
+	assert_equal(_batch.operation_cells(0), expected.cells, "as drawn")
+
+
+func test_an_oval_with_one_cell_tips_is_too_narrow() -> void:
+	"""BUILD-REQ-002 holds for every shape: an oval whose tips are one cell wide is X."""
+	_batch.set_tool(Stroke.TOOL_OVAL)
+	_batch.begin_stroke(DORMITORY, 1, Vector2i(0, 0))
+	_batch.extend_stroke(Vector2i(6, 2))
+	assert_false(Batch.two_by_two(_batch.stroke_cells()), "a 7 × 3 oval has one-cell tips")
+	assert_equal(_batch.stroke_reason(), Validity.too_narrow(), "too narrow")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_NOT_POSSIBLE, "dropped")
+
+
+func test_the_paint_brush_stamps_two_by_two_blocks_along_the_drag() -> void:
+	"""P-C7 (a): Paint covers each dragged cell's 2 × 2 block, so even a one-cell drag keeps BUILD-REQ-002."""
+	_batch.set_tool(Stroke.TOOL_PAINT)
+	_batch.begin_stroke(PANTRY, 1, Vector2i(4, 4))
+	assert_equal(_batch.stroke_cells(), PackedInt32Array([4, 4, 5, 4, 4, 5, 5, 5]), "one block")
+	_batch.extend_stroke(Vector2i(7, 4))
+	assert_equal(_batch.stroke_size(), Vector2i(5, 2), "a 5 × 2 run")
+	assert_true(Batch.two_by_two(_batch.stroke_cells()), "every cell in a block")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_BLOCKED, "10 of the Pantry's 16 cells")
+	assert_equal(_batch.operation_cell_count(0), 10, "painted")
+
+
+func test_erase_takes_pending_cells_out_in_one_step() -> void:
+	"""P-C7 (a): Erase removes pending cells of the chosen type only; one Undo step puts them back."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(7, 3))
+	_batch.set_tool(Stroke.TOOL_ERASE)
+	assert_true(_batch.begin_stroke(KITCHEN, 1, Vector2i(6, 0)), "erase begun")
+	_batch.extend_stroke(Vector2i(6, 2))
+	assert_true(_batch.stroke_erasing(), "erasing")
+	assert_equal(_batch.stroke_line(), "Erase Kitchen 2 × 4 cells (2 m × 4 m); %s" % Batch.ERASE_OK, "its words")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_CAN_BUILD, "taken out")
+	assert_equal(_batch.operation_cell_count(0), 24, "32 less the two columns")
+	assert_equal(_batch.undo_label(), "Undo Erase Kitchen", "the step named")
+	assert_true(_batch.undo(), "undone")
+	assert_equal(_batch.operation_cell_count(0), 32, "back")
+
+
+func test_erase_over_nothing_of_its_type_is_dropped_in_words() -> void:
+	"""The PROPOSAL words: nothing of the chosen type under the brush, so nothing is taken and no step kept."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(5, 3))
+	_batch.set_tool(Stroke.TOOL_ERASE)
+	assert_equal(_paint(PANTRY, 1, Vector2i(0, 0), Vector2i(1, 1)), Validity.KIND_NOT_POSSIBLE, "no Pantry here")
+	assert_equal(_batch.last_dropped(),
+		Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.nothing_to_erase("Pantry")), "said why")
+	assert_equal(_batch.history_size(), 1, "no step")
+	assert_equal(_batch.operation_cell_count(0), 24, "the Kitchen untouched")
+
+
+func test_erase_that_would_leave_a_strip_is_refused_with_build_req_006s_words() -> void:
+	"""Decision 1880 Q3: never a part one cell wide; the stroke is dropped."""
+	_paint(KITCHEN, 1, Vector2i(0, 0), Vector2i(6, 3))
+	_batch.set_tool(Stroke.TOOL_ERASE)
+	assert_equal(_paint(KITCHEN, 1, Vector2i(4, 0), Vector2i(4, 2)), Validity.KIND_NOT_POSSIBLE, "leaves x 6 alone")
+	assert_equal(_batch.last_dropped(),
+		Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.narrow_removal("Kitchen")), "BUILD-REQ-006's words")
+	assert_equal(_batch.operation_cell_count(0), 28, "nothing taken")
+
+
+func test_erase_that_cuts_a_room_in_two_splits_it_and_undo_rejoins() -> void:
+	"""BUILD-REQ-003: two pieces are two rooms; the piece with the first cell stays; one step undoes both."""
+	_paint(DORMITORY, 1, Vector2i(0, 0), Vector2i(9, 2))
+	_batch.set_tool(Stroke.TOOL_ERASE)
+	assert_equal(_paint(DORMITORY, 1, Vector2i(4, 0), Vector2i(4, 1)), Validity.KIND_CAN_BUILD, "a cut")
+	assert_equal(_batch.pending_count(), 2, "two rooms")
+	assert_equal(_batch.operation_cell_count(0), 12, "the west piece stays first")
+	assert_equal(_batch.operation_cell_count(1), 12, "the east piece is a new room")
+	assert_equal(_batch.operation_type(1), DORMITORY, "of the same type")
+	assert_true(_batch.undo(), "one step")
+	assert_equal(_batch.pending_count(), 1, "one room again")
+	assert_equal(_batch.operation_cell_count(0), 30, "whole")
+	assert_true(_batch.redo(), "and split again")
+	assert_equal(_batch.pending_count(), 2, "two")
+
+
+func test_components_part_cells_into_four_connected_pieces() -> void:
+	"""The split's helper: pieces are canonical, the first cell's piece first; a diagonal is no join."""
+	var pieces: Array[PackedInt32Array] = Batch.components(PackedInt32Array([0, 0, 1, 0, 5, 0, 2, 1]))
+	assert_equal(pieces.size(), 3, "three pieces")
+	assert_equal(pieces[0], PackedInt32Array([0, 0, 1, 0]), "the first")
+	assert_equal(Batch.components(PackedInt32Array()).size(), 0, "none from nothing")
+
+
+func test_set_tool_refuses_an_unknown_tool_and_cancels_a_stroke() -> void:
+	"""Four tools; choosing one drops the stroke in progress (it was drawn with the other)."""
+	assert_false(_batch.set_tool(Stroke.TOOL_COUNT), "no fifth tool")
+	assert_false(_batch.set_tool(-1), "nor a negative one")
+	assert_equal(_batch.tool(), Stroke.TOOL_RECTANGLE, "Rectangle by default")
+	_batch.begin_stroke(KITCHEN, 1, Vector2i(0, 0))
+	assert_true(_batch.set_tool(Stroke.TOOL_PAINT), "Paint")
+	assert_false(_batch.stroke_active(), "the stroke dropped")
 
 
 func test_too_small_operations_stay_but_block_confirm_all_naming_the_first() -> void:
@@ -410,3 +549,87 @@ func test_a_stroke_the_draft_refuses_is_dropped_with_its_words() -> void:
 	assert_true(_batch.last_dropped().begins_with("X Not possible: Shape: "), _batch.last_dropped())
 	assert_equal(_batch.history_size(), steps, "no Undo step")
 	assert_equal(_batch.operation_cell_count(0), 24, "the room unchanged")
+
+
+# --- per cell (decision 1912) -----------------------------------------------------------------------------------
+
+var _ground: Dictionary = {}
+var _ground_revision: int = 0
+
+
+func _bind_ground() -> void:
+	"""The fixture's ground: finished space along column 0 of level 1, water where `_ground` says."""
+	_ground.clear()
+	for z: int in 64:
+		_ground[Vector2i(0, z)] = Cells.CELL_FINISHED
+	_batch.bind_ground(func(level: int, cell: Vector2i) -> int:
+		return int(_ground.get(cell, Cells.CELL_OK)) if level == 1 else Cells.CELL_OK,
+		func() -> int: return _ground_revision)
+
+
+func test_a_room_beside_finished_space_can_be_built_and_one_apart_has_no_way_in() -> void:
+	"""BUILD-REQ-013 per cell: beside the finished passage, ✓; apart, "! No way in", which holds Confirm all back
+	(it is the batch's own judgement, never a retried route refusal)."""
+	_bind_ground()
+	assert_equal(_paint(KITCHEN, 1, Vector2i(1, 0), Vector2i(6, 3)), Validity.KIND_CAN_BUILD, "beside it")
+	assert_equal(_paint(PANTRY, 1, Vector2i(20, 20), Vector2i(23, 23)), Validity.KIND_BLOCKED, "apart")
+	assert_equal(_batch.operation_reason(1), Validity.no_way_in(), "the words")
+	assert_equal(_batch.operation_cell_codes(1).count(Cells.CELL_NO_WAY_IN), 16, "every cell")
+	assert_equal(_batch.first_invalid(), 1, "it holds Confirm all back")
+	assert_equal(_batch.confirm_all(_submit), PackedInt32Array([0, 0]), "nothing ordered")
+	assert_false(_batch.retryable(1), "not a route refusal")
+
+
+func test_a_passage_brings_the_way_in_to_the_room_behind_it() -> void:
+	"""P-C4 (a): painting a Passage from the finished column to the Pantry gives the Pantry its way in."""
+	_bind_ground()
+	_paint(PANTRY, 1, Vector2i(8, 0), Vector2i(11, 3))
+	assert_equal(_batch.operation_kind(0), Validity.KIND_BLOCKED, "no way in yet")
+	assert_equal(_paint(BuildCatalog.CORRIDOR, 1, Vector2i(1, 0), Vector2i(7, 1)), Validity.KIND_CAN_BUILD, "a passage")
+	assert_equal(_batch.operation_kind(0), Validity.KIND_CAN_BUILD, "the Pantry is reached")
+	assert_equal(_batch.first_invalid(), -1, "all ready")
+
+
+func test_a_stroke_over_ground_the_crew_cannot_dig_is_dropped() -> void:
+	"""ECON-003 per cell: a stroke covering water is X, its cell codes say which, and it is dropped on release."""
+	_bind_ground()
+	_ground[Vector2i(3, 1)] = Cells.CELL_WATER
+	assert_true(_batch.begin_stroke(KITCHEN, 1, Vector2i(1, 0)), "begun")
+	_batch.extend_stroke(Vector2i(6, 3))
+	assert_equal(_batch.stroke_reason(), Validity.cannot_dig("water"), "water")
+	assert_equal(_batch.stroke_cell_codes().count(Cells.CELL_WATER), 1, "one cell")
+	assert_equal(_batch.stroke_cell_codes().size(), 24, "aligned with the stroke's cells")
+	assert_equal(_batch.finish_stroke(), Validity.KIND_NOT_POSSIBLE, "dropped")
+	assert_equal(_batch.pending_count(), 0, "nothing painted")
+
+
+func test_a_stroke_with_no_way_in_says_so_while_drawn() -> void:
+	"""The stroke's own words name the way in before it is released."""
+	_bind_ground()
+	_batch.begin_stroke(PANTRY, 1, Vector2i(20, 20))
+	_batch.extend_stroke(Vector2i(23, 23))
+	assert_equal(_batch.stroke_reason(), Validity.no_way_in(), "no way in")
+	assert_equal(_batch.stroke_kind(), Validity.KIND_BLOCKED, "!")
+
+
+func test_a_ground_change_judges_the_cells_again() -> void:
+	"""The ground reader's revision moving re-judges every operation (and bumps the batch's revision for the
+	ghosts)."""
+	_bind_ground()
+	_paint(KITCHEN, 1, Vector2i(1, 0), Vector2i(6, 3))
+	assert_equal(_batch.operation_kind(0), Validity.KIND_CAN_BUILD, "✓")
+	_ground[Vector2i(4, 2)] = Cells.CELL_OCCUPIED
+	assert_equal(_batch.operation_kind(0), Validity.KIND_CAN_BUILD, "the same revision: unchanged")
+	var seen: int = _batch.revision
+	_ground_revision += 1
+	assert_equal(_batch.operation_kind(0), Validity.KIND_NOT_POSSIBLE, "judged again")
+	assert_equal(_batch.operation_reason(0), Validity.cannot_dig("occupied"), "occupied")
+	assert_true(_batch.revision > seen, "the ghosts redraw")
+
+
+func test_landings_are_handed_to_the_cell_judge() -> void:
+	"""bind_landings: a connector landing on level 2 gives a room there its way in."""
+	_bind_ground()
+	_batch.bind_landings(func(level: int) -> PackedInt32Array: return PackedInt32Array([30, 30]) if level == 2 else PackedInt32Array())
+	assert_equal(_paint(PANTRY, 2, Vector2i(29, 29), Vector2i(32, 32)), Validity.KIND_CAN_BUILD, "landed on")
+	assert_true(_batch.cell_judge().ground_bound(), "the judge has the ground")

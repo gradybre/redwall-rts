@@ -13,6 +13,14 @@ extends RefCounted
 ## (BUILD-REQ-019): an admitted room becomes a project whose materials are hauled and used when work starts. The
 ## temporary editor, tool and runtime are freed before `submit` returns; the draft is the batch's.
 ##
+## SLICE C1 (decision 1912). Every painted room on levels 1-4 has no way in until slice D's entrance (decision 1911
+## §2.1), so the batch holds Confirm all back with "No way in" (BUILD-REQ-013, judged per cell) and this route is not
+## reached from the panel; it stays for the rooms C3 will order. This file also lends the panel what it reads of the
+## actual underground: each level's floor (`floor_of`), the height a room is actually dug there (`dug_height_of`:
+## the clear height capped by DEC-054's reachable height for the claw crew -- decision 1911 P-C3 (a) as corrected by
+## P-C2-3 (a) of decision 1931, read in `modular_runtime.gd dug_height_u`), and the
+## terrain survey, the excavation Sites and the space owner for the ground reader (demo_build_ground.gd).
+##
 ## The planning area and a room's most cells are the actual space domain's (the same 0..256 m square the planner
 ## draws on), on the 1 m grid; with no underground composed in this run (`bound` false), a default of the initial level
 ## pack's 256 × 256 cells is used and every order is refused, saying so.
@@ -52,6 +60,7 @@ const NEVER_HERE: Dictionary = {
 }
 
 var _orders: WeakRef = null
+var _session: WeakRef = null
 var _bindings: WeakRef = null
 var _levels: WeakRef = null
 var _camera: Camera3D = null
@@ -77,6 +86,7 @@ func bind_session(session: Object, camera: Camera3D) -> StringName:
 	if owners == null or space == null or session.call(&"room_orders") == null:
 		return &"BUILD_ORDERS_NO_SESSION"
 	var domain: Dictionary = space.call(&"domain_copy").call(&"descriptor")
+	_session = weakref(session)
 	bind_owners(session.call(&"room_orders"), owners.get(&"room_bindings"), session.call(&"level_catalog"), camera,
 		domain.datum_u, grid_bounds(domain.bounds_u, domain.datum_u), mini(int(domain.max_cells), Footprint.MAX_OPERATION_CELLS))
 	return &"" if bound() else &"BUILD_ORDERS_NO_SESSION"
@@ -132,6 +142,42 @@ func clear_height_of(level: int) -> int:
 	if levels != null and levels.level_into(level, 0, record) == &"" and record.has_roof:
 		return record.clear_height_u
 	return Ledger.DEFAULT_CLEAR_HEIGHT_U
+
+
+func floor_of(level: int) -> int:
+	"""Level `level`'s floor (u) from the bound level catalog (section 0), or 0 when unbound or unknown."""
+	var levels: Levels = _owner(_levels) as Levels
+	var record: Levels.Record = Levels.Record.new()
+	if levels != null and levels.level_into(level, 0, record) == &"" and record.has_roof:
+		return record.floor_y_u
+	return 0
+
+
+func dug_height_of(level: int) -> int:
+	"""DEC-054: the height a room on `level` is actually dug to, read where the planner reads it
+	(`modular_runtime.gd dug_height_u`: the claw crew's reach, never "any row"; P-C2-3 (a))."""
+	var session: Object = _owner(_session)
+	var provider: Object = session.call(&"world_route_provider") if session != null else null
+	return Runtime.dug_height_u(provider.get(&"_profiles") if provider != null else null, clear_height_of(level))
+
+
+func terrain_owner() -> Object:
+	"""The settlement's terrain survey (null unbound)."""
+	var session: Object = _owner(_session)
+	return session.call(&"terrain_owner") if session != null else null
+
+
+func space_owner() -> Object:
+	"""The settlement's space owner (null unbound)."""
+	var session: Object = _owner(_session)
+	return session.call(&"space_owner") if session != null else null
+
+
+func excavation_sites() -> Object:
+	"""The settlement's excavation Sites, through RoomOrders' construction owner (null unbound)."""
+	var orders: Object = _owner(_orders)
+	var construction: Object = orders.call(&"construction_owner") if orders != null else null
+	return construction.call(&"excavation_authority") if construction != null else null
 
 
 func datum_u() -> Vector3i:

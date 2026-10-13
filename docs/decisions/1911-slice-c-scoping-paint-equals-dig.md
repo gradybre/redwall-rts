@@ -38,7 +38,13 @@ Relayed by the coordinator: on 2026-10-12, in chat to the coordinator, Brendan a
 | P-C8 | **(a)**, fold decision 1880's bytes in when the columns are first allocated (C3, or C2 if first) |
 | P-C9 | **(a)**, C2 digs in BUILD-REQ-012's breadth-first order with up to 4 builders |
 
-Written in: SET-BUILD-001 §7.2 (the DEC-054 note), the study's §5 dependency rows (C1 needs B; C3 needs C2 and D),
+**Corrected the same day (Brendan's rulings on decision 1931, relayed by the coordinator).** P-C3 (a)'s "2 quanta"
+came from identity −1 ("any row"), which counts the retired pick's rows (decision 1931 F2). Brendan ruled P-C2-3 (a):
+"price and plan by the claw crew's identity, never 'any row'". The principle of P-C3 (a) stands; its number is
+the claw crew's result, read in one place (`modular_runtime.gd dug_height_u`): 1,024 u, 1 quantum per cell on master,
+until slice C2.1 changes the room-digging rule (P-C2-1: rooms are dug with the claws' down stroke).
+
+Written in: SET-BUILD-001 §7.2 (the DEC-054 note, corrected for P-C2-3), the study's §5 dependency rows (C1 needs B; C3 needs C2 and D),
 `docs/handoff/RULINGS.md`. File boundary with the C2 lane (coordinator, same message): C2 owns `godot/scripts/core/`
 (the room foreman, `room_projects.gd`, the `settlement_system.gd` tick wiring, `underground_room_orders.gd`) and its
 own tests and decisions (1931+); C1 edits none of them and keeps `docs/underground-integration-status.md`.

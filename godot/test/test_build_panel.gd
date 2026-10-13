@@ -9,6 +9,8 @@ const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
+const Stroke := preload("res://scripts/ui/build_stroke.gd")
+const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 
 const KITCHEN: int = 2
 
@@ -97,20 +99,23 @@ func test_the_info_card_follows_the_shown_card_or_asks_for_a_choice() -> void:
 	assert_true(_panel.info_text().contains("per cell"), "cost")
 	var info: Control = _panel.controls()[&"info"]
 	assert_true(info.accessibility_name.begins_with("Picture (placeholder): "), "the picture described")
-	_panel.choose_card(10)
+	_panel.choose_card(8)
 	assert_true(_panel.info_text().contains("! Blocked: Not yet:"), "a locked card says why: %s" % _panel.info_text())
 	assert_equal(_panel.paint_type(), KITCHEN, "inspecting a locked card keeps the Kitchen armed")
 
 
 func test_choosing_arms_paintable_types_only() -> void:
-	"""A room type arms painting; the old tools and locked cards are only told to the host."""
+	"""A room type arms painting -- Passage too, as CORRIDOR (BUILD-REQ-014, decision 1912); a locked card is only
+	told to the host and keeps the armed type."""
 	_panel.choose_card(2)
 	assert_equal(_panel.paint_type(), KITCHEN, "Kitchen armed")
 	_panel.choose_card(7)
-	assert_equal(_panel.paint_type(), -1, "Passage opens its tool instead")
-	assert_equal(_chosen, ["Kitchen", "Passage"], "both told to the host")
+	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "Passage paints")
+	_panel.choose_card(9)
+	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "the locked Remove card keeps Passage armed")
+	assert_equal(_chosen, ["Kitchen", "Passage", "Remove"], "each told to the host")
 	_panel.choose_card(99)
-	assert_equal(_chosen.size(), 2, "a card past the row does nothing")
+	assert_equal(_chosen.size(), 3, "a card past the row does nothing")
 
 
 func test_on_the_surface_nothing_paints() -> void:
@@ -271,9 +276,9 @@ func test_card_buttons_carry_the_cards_accessible_names() -> void:
 	assert_true(first.visible, "a card")
 	assert_true(first.accessibility_name.begins_with("Dormitory; per cell "), first.accessibility_name)
 	assert_true(first.text.contains("Dormitory"), first.text)
-	var locked: Button = _panel.card_button(11)
+	var locked: Button = _panel.card_button(9)
 	assert_true(locked.text.contains("! Not yet"), "a locked card shows its glyph: %s" % locked.text)
-	assert_false(_panel.card_button(12).visible, "the pool's spare buttons are hidden")
+	assert_false(_panel.card_button(10).visible, "the pool's spare buttons are hidden")
 	assert_null(_panel.card_button(99), "none past the pool")
 
 
@@ -332,14 +337,35 @@ func test_a_stroke_alone_does_not_rebuild_the_ledger() -> void:
 	assert_equal(_panel.confirm_blocked(), "Finish or cancel the stroke first", "Confirm all followed it")
 
 
-func test_a_card_note_from_the_host_is_shown() -> void:
-	"""Review M8's hook: a host's note for a card shows in the info card and the tooltip."""
-	_panel.card_note = func(card: BuildCatalog.Card) -> String: return "NOTE %s" % card.name
-	_panel._show_card(0)
-	assert_true(_panel.info_text().ends_with("NOTE Dormitory"), _panel.info_text())
-	_panel._sync_cards()
-	assert_true(_panel.card_button(0).tooltip_text.ends_with("NOTE Dormitory"), "tooltip")
-	_panel.card_note = Callable()
+func test_the_tool_strip_shows_with_a_room_type_and_sets_the_batch_tool() -> void:
+	"""Decision 1912 (P-C7 (a)): Rect · Oval · Paint · Erase under the info card once a room type is chosen; a press
+	sets the batch's tool, the pressed one is named "selected", and the info card says the tool and its gesture."""
+	var tools: Array[Button] = _panel.tool_buttons()
+	assert_equal(tools.size(), 4, "four tools")
+	for button: Button in tools:
+		assert_false(button.visible, "hidden before a choice")
+	_panel.choose_card(2)
+	assert_true(tools[0].visible and tools[0].button_pressed, "Rectangle shown and pressed")
+	assert_equal(tools[1].accessibility_name, "Oval tool", "named in words")
+	assert_true(_panel.choose_tool(Stroke.TOOL_ERASE), "Erase")
+	assert_equal(_batch.tool(), Stroke.TOOL_ERASE, "the batch's tool")
+	assert_true(tools[3].button_pressed and not tools[0].button_pressed, "only Erase pressed")
+	assert_equal(tools[3].accessibility_description, "selected", "said, not only shown")
+	assert_true(_panel.info_text().ends_with("Tool: Erase. %s" % Stroke.TOOL_GESTURES[Stroke.TOOL_ERASE]),
+		_panel.info_text())
+	assert_false(_panel.choose_tool(9), "no ninth tool")
+	_panel.select_tab(1)
+	assert_false(tools[0].visible, "hidden on Furnish")
+
+
+func test_the_tool_strip_sits_inside_the_info_card_at_every_profile() -> void:
+	"""The strip's four toggles lie wholly inside the info card, 32 px high, never over the card row."""
+	for profile: int in [UiLayout.PROFILE_NARROW, UiLayout.PROFILE_STANDARD, UiLayout.PROFILE_WIDE]:
+		var strip: Rect2 = BuildLayout.tool_strip_rect(profile)
+		var info: Rect2 = BuildLayout.info_rect(profile)
+		assert_true(info.encloses(strip), "inside the info card at profile %d" % profile)
+		assert_equal(strip.size.y, BuildLayout.TOOL_STRIP_HEIGHT, "32 high")
+		assert_false(strip.intersects(BuildLayout.cards_rect(912.0, profile)), "clear of the cards")
 
 
 func test_the_ledger_prices_each_room_at_its_own_level() -> void:
@@ -371,29 +397,12 @@ func test_the_expanded_ledger_hides_the_tab_row_under_it() -> void:
 	_panel.open_on(1)
 	assert_true((tabs[0] as Button).visible and (_panel.controls()[&"where"] as Label).visible, "reopened: back")
 	assert_false(_panel.ledger_expanded(), "folded")
-	_panel.set_ledger_expanded(true)
-	_panel.suspend(true)
-	_panel.suspend(false)
-	assert_true((tabs[1] as Button).visible, "an old tool's turn folds it too")
 
 
 func test_a_locked_card_says_its_own_reason() -> void:
-	"""Review LOW d: on Overview a room card reads "! Choose one level to paint on", on a level with no way in
-	"! No way in"; the whole reason stays in the info card."""
+	"""Review LOW d: on Overview a room card reads "! Choose one level to paint on"; on a level with no way in it is
+	usable (its cells say "No way in" on the ghost, decision 1912); the whole reason stays in the info card."""
 	_panel.set_level(LevelBar.LEVEL_OVERVIEW)
 	assert_true(_panel.card_button(0).text.ends_with("\n! Choose one level to paint on"), _panel.card_button(0).text)
 	_panel.set_level(3, false)
-	assert_true(_panel.card_button(0).text.ends_with("\n! No way in"), _panel.card_button(0).text)
-
-
-func test_card_notes_are_reread_into_the_tooltips() -> void:
-	"""Review LOW c: refresh_notes writes a changed note into the card's tooltip and the info card."""
-	var note: Array[String] = ["one"]
-	_panel.card_note = func(_card: BuildCatalog.Card) -> String: return note[0]
-	_panel._show_card(0)
-	_panel._sync_cards()
-	note[0] = "two"
-	_panel.refresh_notes()
-	assert_true(_panel.card_button(0).tooltip_text.ends_with("\ntwo"), _panel.card_button(0).tooltip_text)
-	assert_true(_panel.info_text().ends_with("two"), "the info card too")
-	_panel.card_note = Callable()
+	assert_false(_panel.card_button(0).text.contains("!"), _panel.card_button(0).text)

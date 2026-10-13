@@ -1,6 +1,9 @@
 extends "res://test/live/demo_input_live.gd"
 ## A bounded live room-blueprint walkthrough. Uses the real village/input gate and shared capture helpers.
 ## Optional: -- --capture <directory>; images are runtime evidence, never design mockups.
+## Since decision 1912 (Brendan's ruling on decision 1911 P-C2 (c)) the build panel has no Burrow home card, so no
+## player input reaches the old room tool; the tool's code stays (the village's existing burrows are drawn by it), and
+## this harness opens it directly to keep that code exercised through the real input gate.
 
 const Rooms := preload("res://demo/burrow/underground_rooms.gd")
 const RoomRules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -21,21 +24,22 @@ func _initialize() -> void:
 
 
 func _open_room_tool() -> void:
-	"""B opens the build panel through the actual input gate; its Burrow home card opens the room tool (decision 1871:
-	H no longer does)."""
+	"""B opens the build panel through the actual input gate: it has no Burrow home card any more (decision 1912), and H
+	opens nothing; B closes it again, and the room tool is opened directly (see the header)."""
 	_tool = _command().call(&"tunnels") as Node3D
 	_key(KEY_B)
 	var build: Node = _village.call(&"build")
 	_check("B opens the build panel", bool(build.call(&"is_open")))
 	_key(KEY_H)
 	_check("H opens nothing now", not _tool.planning)
-	var panel: Node = build.get("panel")
-	var cards: Array = panel.call(&"row_cards")
-	for k: int in cards.size():
-		if String(cards[k].get("name")) == "Burrow home":
-			panel.call(&"choose_card", k)
-	_check("the Burrow home card opens the Dig tool's home blueprint", _tool.planning and _tool.room.active
-		and _tool.room.plan.kind == Rooms.TEMPLATE_HOME)
+	var names: PackedStringArray = PackedStringArray()
+	for card: Object in build.get("panel").call(&"row_cards"):
+		names.append(String(card.get("name")))
+	_check("no Burrow home card in the panel", not names.has("Burrow home"), ", ".join(names))
+	_key(KEY_B)
+	_check("B closes it", not bool(build.call(&"is_open")))
+	_check("the room tool opens directly", bool(_tool.call(&"begin_room", Rooms.TEMPLATE_HOME)) and _tool.planning
+		and _tool.room.active and _tool.room.plan.kind == Rooms.TEMPLATE_HOME)
 	_initial_revision = _tool.network.revision
 	_initial_stock = _tool.ext.works.stores.stock_line()
 

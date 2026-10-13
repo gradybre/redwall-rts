@@ -363,3 +363,15 @@ func test_old_host_disconnect_does_not_disconnect_new_editor_owner() -> void:
 	assert_equal(other.disconnect_view(), &"", "new host releases its own callbacks")
 	assert_false(_editor.request_confirmation(), "disconnected editor cannot order")
 	assert_equal(_f._rooms.preflights, 1, "no call after disconnect")
+
+
+func test_a_planned_rooms_height_is_the_claw_crews_reach() -> void:
+	"""Decision 1912 (Brendan's ruling P-C2-3 (a) on decision 1931): the one place a room's height is read takes the
+	crew's identity -- the claw crew by default, never "any row" (-1 reads nothing); with no dig rows published, the
+	clear height. The claw crew's reach on the mounted content is checked live (demo_input_live.gd)."""
+	assert_equal(Runtime.crew_identity_row(), Runtime.ClawPins.CLAW_DIG_ROWS[0], "the claw crew's first dig row")
+	assert_equal(Runtime.dug_height_u(null, 4096), 4096, "no dig rows published: the clear height")
+	assert_equal(Runtime.dug_height_u(null, 5120, 3), 5120, "a named crew, no rows: the clear height")
+	assert_equal(_runtime._crew_row, Runtime.crew_identity_row(), "a runtime plans for the claw crew by default")
+	_runtime.set_crew_identity(7)
+	assert_equal(_runtime._crew_row, 7, "a fixture names its own crew")

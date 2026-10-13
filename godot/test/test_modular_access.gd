@@ -336,6 +336,8 @@ func _ui(bind_access: bool = true) -> void:
 	assert_equal(_tool.configure(_camera, _editor, _fixture._plan.origin_u, 1, _not_modal, _view), &"", "world drawing")
 	_tool.set_active(true)
 	_runtime = Runtime.new()
+	# This fixture's crew is its synthetic work row 1 (as the plan heights below read it), not the game's claw crew.
+	_runtime.set_crew_identity(1)
 	assert_equal(_runtime.configure(_editor, _tool, actual.orders, actual.rooms, actual._levels, 0), &"", "actual Runtime")
 	if bind_access: assert_equal(_runtime.configure_access(actual._binding, actual._first), &"", "explicit actual access")
 	assert_true(_editor.world_press(Vector2i.ZERO), "draw on dirt")

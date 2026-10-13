@@ -156,6 +156,11 @@ and reports 1,024 u for the claw crew; the build panel prices with that function
 - **P-1912-4 — Nothing is saved** (E11): (a) accept for the proof of concept; (b) save the works. **Recommend (a)**;
   C3's real owners save.
 
+**Brendan's ruling (2026-10-13, relayed by the coordinator): "Approve all four"**, i.e. P-1912-1 to P-1912-4 all (a)
+as built: the words as worded; a Way down stands on a planned or dug passage or room; a mole is taken from its routine
+when none is free, and any resident digs when the village has no mole; nothing about the works is saved for the
+proof of concept.
+
 ## Gates
 
 The full run is at `b17e7f03`; the gates commit changes only the loop harness (E19) and its registered minimum (20

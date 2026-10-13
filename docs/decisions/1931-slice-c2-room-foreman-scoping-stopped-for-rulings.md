@@ -1,6 +1,7 @@
 # 1931 — Slice C2 scoping: the room foreman is stopped for rulings (no claw stroke reaches a room wall, and the owners it drives are over the tick budget)
 
-Date: 2026-10-12 · Status: Proposed. Scoping only; no code. Stopped for Brendan's rulings on P-C2-1 to P-C2-5 below.
+Date: 2026-10-12 · Status: Ruled 2026-10-12 (see "Brendan's rulings"). P-C2-1 as ruled cannot be built with M1 alone
+(decision 1932), so the lane is stopped again for a new P-C2-1 ruling. Scoping only; no code.
 
 Number range: 1931–1949 was allocated to this lane by the coordinator. It was checked free on every local and remote
 ref (`git ls-tree` over `refs/heads` and `refs/remotes`) and with `decision_numbers.py`. It replaces no BACKLOG range.
@@ -19,6 +20,18 @@ until they are ruled.** The work is also larger than one lane; §4 proposes a sp
 
 Brendan's rulings that bind this lane (2026-10-12, relayed by the coordinator): P-C1 (b), P-C3 (a), P-C8 (a),
 P-C9 (a). They are quoted in decision 1911 and not repeated here.
+
+## Brendan's rulings (2026-10-12)
+
+Relayed by the coordinator. Brendan gave them in chat on 2026-10-12.
+
+| Proposal | Ruling | What it means here |
+|---|---|---|
+| P-C2-1 | "keep basic claw strokes". Asked to clarify, he chose **"Dig rooms with the down stroke"**: no M2/M3 authoring and no pick. The room rules change so that M1 digs a room down through its cells. If M1 alone cannot do it, stop and report with options. Never use the retired pick rows to justify a height | **Cannot be built with M1 alone.** Decision 1932 proves that no M1 stroke can open the top layer of any underground room, and gives new options. Stopped for a new ruling |
+| P-C2-2 | **(a)**: a separate cost lane, `perf/dig-tick-cost`, decisions 1951–1969. It owns `work.gd` `Work.tick_solo` and the routes module's `Routes.advance_tick` | This lane does not edit those files. Gate 6 is judged after the cost lane lands; the foreman's own share is still measured |
+| P-C2-3 | **(a)**: price and plan by the identity of the crew that will dig (the claws), never "any row". `reachable_height_u` requires the face the stroke actually strikes | For M1, a room's height is 0 quanta (decision 1932). The per-cell table for C1 is in 1932 |
+| P-C2-4 | **(a)**: one small packed record per room plus the existing per-phase projects. Add the note to SET-BUILD-001 §10 | The note is added to `docs/building_model_amendment.md` §10 in this lane |
+| P-C2-5 | **(a)**: three lanes; this lane does C2.1 now (foreman on the fixture, breadth-first order, up to 4 builders, spoil, tick wiring, with M1 rooms under P-C2-1), then C2.2, then C2.3 | C2.1 as ruled depends on M1 rooms, which 1932 finds impossible. It waits on the new P-C2-1 ruling |
 
 ## 1. Finding F1: on the active content, no stroke can dig a room wall
 

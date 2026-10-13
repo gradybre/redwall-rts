@@ -100,6 +100,11 @@ Every motion follows the established path:
 **Order.** M1 → M5 + M4a → M6 (or a decision to travel on rows 30/31 with a switch at rest at each station) →
 content 7 and the runtime changes above, which retire G11 → M7 + M4b/c (descent) → M2/M3 (Room).
 
+> **Note (2026-10-12, decision 1932).** Brendan ruled rooms dug with M1 alone (decision 1931 P-C2-1). M1's
+> patches are flat in y, and its turn-recovery air rises over the patch, so it can cut only a cube under air that is
+> already open. No underground room's top layer is, so M1 cannot open any room. Rooms still need M3 (or M2) or a new
+> ruling; see 1932's options.
+
 **Known risk for M2.** The open paw's reach is the arm (182 + 128 u) plus 202 u from the wrist to the claw tip.
 Standing upright, the right shoulder is 549 u up, so the claw tip reaches at most about 1,060 u above the stance.
 The Room's level-1 cubes need an anchor above 1,024 u (ADR 1213), which leaves a thin band. If it does not fit,

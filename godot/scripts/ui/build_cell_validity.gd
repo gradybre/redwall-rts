@@ -9,8 +9,9 @@ extends RefCounted
 ##
 ## THE WAY IN (Brendan's ruling on decision 1911 P-C4 (a), 2026-10-12): a drafted cell has a way in when a 4-connected
 ## chain of drafted cells on its level -- of ANY room type, the stroke in progress included -- links it to a cell
-## whose side touches finished space (the ground reader's FINISHED), or to a connector's landing (built or drafted in
-## the same batch: OPEN-07 (a); the host's `landings` reader, slice D's). Only cells that can be dug carry the chain.
+## whose side touches finished space (the ground reader's FINISHED), or that is on or beside a connector's landing
+## (built, or drafted in the same batch: OPEN-07 (a); the host's `landings` reader). Only cells that can be dug carry
+## the chain.
 ##
 ## PRESENTATION SCRATCH, never saved or authoritative (ARCH-BUILD-001 "Pending batch"): one level's cells as packed
 ## columns sized once to the planning area -- a membership column (I32) and a breadth-first queue (I32), 8 bytes a
@@ -82,6 +83,13 @@ func ground_bound() -> bool:
 func ground_revision() -> int:
 	"""The ground reader's revision (0 with none bound)."""
 	return int(_ground_revision.call()) if _ground_revision.is_valid() else 0
+
+
+func ground_of(level: int, cell: Vector2i) -> int:
+	"""The ground reader's code for `cell` on `level` (CELL_PROTECTED outside the planning area, CELL_OK unbound)."""
+	if _index(cell) < 0:
+		return CELL_PROTECTED
+	return int(_ground.call(level, cell)) if _ground.is_valid() else CELL_OK
 
 
 static func kind_of(code: int) -> int:
@@ -189,11 +197,14 @@ func _way_in(level: int, sets: Array[PackedInt32Array], out: Array[PackedByteArr
 
 
 func _seed(level: int, sets: Array[PackedInt32Array], out: Array[PackedByteArray]) -> int:
-	"""Queue every diggable drafted cell with a side on finished space, and every one on a connector's landing."""
+	"""Queue every diggable drafted cell on or beside a connector's landing, and every one beside finished space."""
 	var tail: int = 0
 	var landings: PackedInt32Array = PackedInt32Array(_landings.call(level)) if _landings.is_valid() else PackedInt32Array()
 	for at: int in range(0, landings.size(), 2):
-		tail = _push(Vector2i(landings[at], landings[at + 1]), sets, out, tail)
+		var landing: Vector2i = Vector2i(landings[at], landings[at + 1])
+		tail = _push(landing, sets, out, tail)
+		for side: Vector2i in SIDES:
+			tail = _push(landing + side, sets, out, tail)
 	for index: int in sets.size():
 		var cells: PackedInt32Array = sets[index]
 		for at: int in range(0, cells.size(), 2):

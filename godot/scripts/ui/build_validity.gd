@@ -48,14 +48,16 @@ const REASON_NOT_YET: int = 19
 const REASON_REFUSED: int = 20
 const REASON_NOTHING_NEW: int = 21
 const REASON_NOTHING_TO_ERASE: int = 22
-const REASON_COUNT: int = 23
+const REASON_WAY_DOWN_CLASH: int = 23
+const REASON_NEEDS_FLOOR: int = 24
+const REASON_COUNT: int = 25
 ## The glyph each reason carries, by REASON_* id (the table's Glyph column; proposals as decision 1871 says).
 const REASON_KINDS: Array[int] = [
 	KIND_CAN_BUILD, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
-	KIND_NOT_POSSIBLE,
+	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_BLOCKED,
 ]
 
 const TEXT_TOO_NARROW: String = "Too narrow: rooms need at least 2 × 2 cells"
@@ -86,6 +88,10 @@ const FORMAT_NOT_YET: String = "Not yet: %s"
 const TEXT_NOTHING_NEW: String = "Nothing to add: these cells are already planned for this room"
 ## PROPOSAL (decision 1912): an Erase stroke over no pending cell of the chosen room type takes nothing out.
 const FORMAT_NOTHING_TO_ERASE: String = "Nothing to erase: no planned %s cells here"
+## PROPOSAL (decision 1912, the proof of concept's ways down): two ways down on the same cells.
+const FORMAT_WAY_DOWN_CLASH: String = "Overlaps another %s: undo it first"
+## PROPOSAL (decision 1912): a way down below the surface stands on a planned or dug passage or room.
+const FORMAT_NEEDS_FLOOR: String = "%s needs a passage or room under it: paint one there first"
 
 
 static func is_kind(kind: int) -> bool:
@@ -225,3 +231,13 @@ static func nothing_new() -> String:
 static func nothing_to_erase(type_name: String) -> String:
 	"""PROPOSAL (decision 1912): an Erase stroke over no pending cell of `type_name` (X: dropped, nothing to undo)."""
 	return FORMAT_NOTHING_TO_ERASE % type_name
+
+
+static func overlaps_way_down(name: String) -> String:
+	"""PROPOSAL (decision 1912): a way down over another on the same level (X)."""
+	return FORMAT_WAY_DOWN_CLASH % name
+
+
+static func needs_floor(name: String) -> String:
+	"""PROPOSAL (decision 1912): a way down below the surface with no passage or room under it (!)."""
+	return FORMAT_NEEDS_FLOOR % name

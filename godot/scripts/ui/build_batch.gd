@@ -35,6 +35,7 @@ const Validity := preload("res://scripts/ui/build_validity.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
 
 ## SET-BUILD-001 §3: one cell is 1 m, 1024 u.
 const PITCH_U: int = 1024
@@ -49,7 +50,10 @@ const NOTHING_TO_REDO: String = "Nothing to redo"
 ## A step's verb, stored as its first entry.
 const VERB_PAINT: int = 0
 const VERB_ERASE: int = 1
-const VERBS: Array[String] = ["Paint", "Erase"]
+const VERB_PLACE: int = 2
+const VERBS: Array[String] = ["Paint", "Erase", "Place"]
+## A step entry at or past ITEM_TAG names a way down (build_items.gd row = entry - ITEM_TAG), not an operation.
+const ITEM_TAG: int = 1 << 24
 ## A refusal that came back without words.
 const UNCHECKED: String = "the order could not be checked; review it and try again"
 const SHAPE_WORDS: Dictionary = {
@@ -98,6 +102,8 @@ var _stroke_reason: String = ""
 var _targets: PackedInt32Array = PackedInt32Array()
 var _stroke_codes: PackedByteArray = PackedByteArray()
 var _last_dropped: String = ""
+var _items: Items = Items.new()
+var _host_landings: Callable = Callable()
 
 
 func configure(catalog: BuildCatalog, bounds: Rect2i, capacity: int) -> StringName:
@@ -110,6 +116,7 @@ func configure(catalog: BuildCatalog, bounds: Rect2i, capacity: int) -> StringNa
 	code = _cells.configure(bounds)
 	if code != &"":
 		return code
+	_cells.bind_landings(_all_landings)
 	_catalog = catalog
 	_bounds = bounds
 	_capacity = capacity
@@ -129,9 +136,18 @@ func bind_ground(ground: Callable, ground_revision: Callable) -> void:
 
 
 func bind_landings(landings: Callable) -> void:
-	"""The host's connector landings per level (build_cell_validity.gd `bind_landings`; slice D's)."""
-	_cells.bind_landings(landings)
+	"""The host's built connector landings per level, `landings(level) -> PackedInt32Array` (slice D's); the batch adds
+	its own pending ways down to them for the per-cell way in."""
+	_host_landings = landings
 	revision += 1
+
+
+func _all_landings(level: int) -> PackedInt32Array:
+	"""Every landing on `level`: the host's built ones and the batch's pending ways down (OPEN-07 (a))."""
+	var out: PackedInt32Array = _items.landings(level)
+	if _host_landings.is_valid():
+		out.append_array(PackedInt32Array(_host_landings.call(level)))
+	return out
 
 
 func cell_judge() -> Cells:
@@ -535,6 +551,96 @@ static func _piece_from(cells: PackedInt32Array, start: Vector2i, seen: Dictiona
 	return Footprint.combine(PackedInt32Array(), piece, false, Footprint.MAX_OPERATION_CELLS).cells
 
 
+# --- the ways down (decision 1912) ----------------------------------------------------------------------------------
+
+func items() -> Items:
+	"""The pending ways down (read only for hosts: drawing, the ledger, checks)."""
+	return _items
+
+
+func place_item(level: int, cell: Vector2i) -> int:
+	"""Place a way down on `level` at `cell` (its north-west cell): one step; an "X" one is dropped with its words in
+	`last_dropped`. Returns its validity kind, or -1 with a stroke in progress or no planning area."""
+	if _catalog == null or _stroke.active():
+		return -1
+	var judged: Array = judge_item(level, cell, -1)
+	if int(judged[0]) == Validity.KIND_NOT_POSSIBLE:
+		_last_dropped = Validity.line(Validity.KIND_NOT_POSSIBLE, String(judged[1]))
+		revision += 1
+		return Validity.KIND_NOT_POSSIBLE
+	_last_dropped = ""
+	_record(PackedInt32Array([VERB_PLACE, ITEM_TAG + _items.add(level, cell)]))
+	return int(judged[0])
+
+
+func judge_item(level: int, cell: Vector2i, own_row: int) -> Array:
+	"""[kind, reason] for a way down on `level` at `cell` (`own_row`: its own pending row, -1 for a new one): it needs a
+	level below, room for itself, on levels 1-3 a planned or dug passage or room under it, and diggable ground where it
+	lands. Cold: on placement and once per judgement of the batch."""
+	var name: String = Items.name_of(level)
+	if level < 0 or level > Items.DEEPEST_TOP:
+		return [Validity.KIND_NOT_POSSIBLE, Validity.no_level_below()]
+	var cells: PackedInt32Array = Items.footprint(cell)
+	for at: int in range(0, cells.size(), 2):
+		if not _bounds.has_point(Vector2i(cells[at], cells[at + 1])):
+			return [Validity.KIND_NOT_POSSIBLE, Validity.outside()]
+	var clash: int = _items.clashes(level, cell)
+	if clash >= 0 and clash != own_row:
+		return [Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down(Items.name_of(level))]
+	var landing: String = _landing_refusal(level + 1, cells)
+	if not landing.is_empty():
+		return [Validity.KIND_NOT_POSSIBLE, landing]
+	if level > 0 and not _stands_on_rooms(level, cells):
+		return [Validity.KIND_BLOCKED, Validity.needs_floor(name)]
+	return [Validity.KIND_CAN_BUILD, ""]
+
+
+func _landing_refusal(level: int, cells: PackedInt32Array) -> String:
+	"""Why the cells a way down lands on cannot be dug ("" when they can, or are dug already)."""
+	if not _cells.ground_bound():
+		return ""
+	for at: int in range(0, cells.size(), 2):
+		var code: int = _cells.ground_of(level, Vector2i(cells[at], cells[at + 1]))
+		if code != Cells.CELL_OK and code != Cells.CELL_FINISHED:
+			return Cells.words_of(code)
+	return ""
+
+
+func _stands_on_rooms(level: int, cells: PackedInt32Array) -> bool:
+	"""Whether every cell lies in a pending room on `level` or in dug (or ordered) space."""
+	for at: int in range(0, cells.size(), 2):
+		var cell: Vector2i = Vector2i(cells[at], cells[at + 1])
+		if not _in_any_operation(level, cell) and _cells.ground_of(level, cell) != Cells.CELL_FINISHED:
+			return false
+	return true
+
+
+func _in_any_operation(level: int, cell: Vector2i) -> bool:
+	"""Whether a pending room on `level` holds `cell`."""
+	for k: int in _drafts.size():
+		if _levels[k] == level and _counts[k] > 0 and Footprint.contains_cell(_drafts[k].visible_cells(), cell.x, cell.y):
+			return true
+	return false
+
+
+func item_kind(row: int) -> int:
+	"""Pending way down `row`'s validity kind now."""
+	return int(judge_item(_items.level_of(row), _items.cell_of(row), row)[0])
+
+
+func item_reason(row: int) -> String:
+	"""Why pending way down `row` is blocked or not possible ("" when it can be built)."""
+	return String(judge_item(_items.level_of(row), _items.cell_of(row), row)[1])
+
+
+func first_invalid_item() -> int:
+	"""The first pending way down that holds Confirm all back; -1 when none."""
+	for row: int in _items.count():
+		if _items.is_live(row) and item_kind(row) != Validity.KIND_CAN_BUILD:
+			return row
+	return -1
+
+
 # --- the operations ------------------------------------------------------------------------------------------------
 
 func _new_operation(room_type: int, level: int) -> int:
@@ -591,8 +697,7 @@ func undo() -> bool:
 		return false
 	var step: PackedInt32Array = _undo.pop_back()
 	for at: int in range(1, step.size()):
-		_drafts[step[at]].undo()
-		_recount(step[at])
+		_replay(step[at], false)
 	_redo.append(step)
 	_changed()
 	return true
@@ -604,11 +709,22 @@ func redo() -> bool:
 		return false
 	var step: PackedInt32Array = _redo.pop_back()
 	for at: int in range(1, step.size()):
-		_drafts[step[at]].redo()
-		_recount(step[at])
+		_replay(step[at], true)
 	_undo.append(step)
 	_changed()
 	return true
+
+
+func _replay(entry: int, forward: bool) -> void:
+	"""One step entry undone (`forward` false) or redone: an operation's draft, or a way down's placement."""
+	if entry >= ITEM_TAG:
+		_items.set_live(entry - ITEM_TAG, forward)
+		return
+	if forward:
+		_drafts[entry].redo()
+	else:
+		_drafts[entry].undo()
+	_recount(entry)
 
 
 func can_undo() -> bool:
@@ -634,7 +750,10 @@ func redo_label() -> String:
 
 
 func _step_words(step: PackedInt32Array) -> String:
-	"""A step in words: its verb and its first operation's room type ("Paint Kitchen")."""
+	"""A step in words: its verb and its first operation's room type ("Paint Kitchen"), or the way down ("Place
+	Entrance")."""
+	if step[1] >= ITEM_TAG:
+		return "%s %s" % [VERBS[step[0]], Items.name_of(_items.level_of(step[1] - ITEM_TAG))]
 	return "%s %s" % [VERBS[step[0]], BuildCatalog.type_name(_types[step[1]])]
 
 
@@ -659,6 +778,7 @@ func discard_all() -> int:
 	_reasons.clear()
 	_drafts.clear()
 	_codes.clear()
+	_items.clear()
 	_undo.clear()
 	_redo.clear()
 	_level_judged.clear()
@@ -692,15 +812,17 @@ func _reached_operations() -> Dictionary:
 	for history: Array[PackedInt32Array] in [_undo, _redo]:
 		for step: PackedInt32Array in history:
 			for at: int in range(1, step.size()):
-				out[step[at]] = true
+				if step[at] < ITEM_TAG:
+					out[step[at]] = true
 	return out
 
 
 static func _renumber(history: Array[PackedInt32Array], map: PackedInt32Array) -> void:
-	"""Each step's operations through `map` (old index → new)."""
+	"""Each step's operations through `map` (old index → new); ways down keep their rows."""
 	for step: PackedInt32Array in history:
 		for at: int in range(1, step.size()):
-			step[at] = map[step[at]]
+			if step[at] < ITEM_TAG:
+				step[at] = map[step[at]]
 
 
 func _keep_only(keep: PackedInt32Array) -> void:
@@ -748,8 +870,8 @@ func operation_count() -> int:
 
 
 func pending_count() -> int:
-	"""How many operations would be ordered: those with at least one cell."""
-	var count: int = 0
+	"""How many changes would be ordered: rooms with at least one cell, and pending ways down."""
+	var count: int = _items.live_count()
 	for cells: int in _counts:
 		if cells > 0:
 			count += 1
@@ -814,8 +936,11 @@ func first_invalid() -> int:
 
 
 func invalid_count() -> int:
-	"""How many pending operations hold Confirm all back (BUILD-REQ-021; see `first_invalid`)."""
+	"""How many pending changes hold Confirm all back (BUILD-REQ-021; see `first_invalid`), ways down included."""
 	var count: int = 0
+	for row: int in _items.count():
+		if _items.is_live(row) and item_kind(row) != Validity.KIND_CAN_BUILD:
+			count += 1
 	for k: int in _drafts.size():
 		if _holds_back(k):
 			count += 1
@@ -946,15 +1071,17 @@ func type_cells_into(types_out: PackedInt32Array, cells_out: PackedInt32Array) -
 
 # --- Confirm all ------------------------------------------------------------------------------------------------------
 
-func confirm_all(submit: Callable) -> PackedInt32Array:
-	"""BUILD-REQ-019 through the host's order route: `submit(draft, level, room_type) -> Dictionary` with `ok` and
-	`error` (words) is called for each pending "✓" operation in batch order. An ordered operation leaves the batch,
-	out of Undo's reach; a refused one stays with its reason. Nothing is deducted here. Returns [ordered, refused];
-	[0, 0] while a stroke is in progress or any operation is invalid (Confirm all is disabled then)."""
-	var ordered: PackedInt32Array = PackedInt32Array()
-	var refused: int = 0
+func confirm_all(submit: Callable, submit_item: Callable = Callable()) -> PackedInt32Array:
+	"""BUILD-REQ-019 through the host's order route: first each pending way down (`submit_item(level, cell) ->
+	Dictionary`; the ways in come first, SET-BUILD-001 §10), then `submit(draft, level, room_type) -> Dictionary` with
+	`ok` and `error` (words) for each pending "✓" room in batch order. Ordered changes leave the batch, out of Undo's
+	reach; a refused room stays with its reason. Nothing is deducted here. Returns [ordered, refused]; [0, 0] while a
+	stroke is in progress or any change is invalid (Confirm all is disabled then)."""
 	if _stroke.active() or invalid_count() > 0:
 		return PackedInt32Array([0, 0])
+	var gone: PackedInt32Array = _confirm_items(submit_item)
+	var ordered: PackedInt32Array = PackedInt32Array()
+	var refused: int = _items.live_count()
 	for k: int in _drafts.size():
 		if _counts[k] == 0:
 			continue
@@ -964,9 +1091,22 @@ func confirm_all(submit: Callable) -> PackedInt32Array:
 		else:
 			refused += 1
 			_keep_refusal(k, answer)
-	_forget(ordered)
+	_forget(ordered, gone)
 	revision += 1
-	return PackedInt32Array([ordered.size(), refused])
+	return PackedInt32Array([ordered.size() + gone.size(), refused])
+
+
+func _confirm_items(submit_item: Callable) -> PackedInt32Array:
+	"""Each pending way down through `submit_item`; the step entries of those it ordered (no longer pending)."""
+	var gone: PackedInt32Array = PackedInt32Array()
+	for row: int in _items.count():
+		if not _items.is_live(row) or not submit_item.is_valid():
+			continue
+		var answer: Variant = submit_item.call(_items.level_of(row), _items.cell_of(row))
+		if answer is Dictionary and bool((answer as Dictionary).get("ok", false)):
+			_items.set_live(row, false)
+			gone.append(ITEM_TAG + row)
+	return gone
 
 
 func _keep_refusal(k: int, answer: Variant) -> void:
@@ -981,16 +1121,18 @@ func _keep_refusal(k: int, answer: Variant) -> void:
 	_judged_at[k] = -1
 
 
-func _forget(ordered: PackedInt32Array) -> void:
-	"""Ordered operations are confirmed projects now: they leave the batch, and every step naming one leaves the
-	history whole, so Undo/Redo never reach them (BUILD-REQ-020)."""
-	if ordered.is_empty():
+func _forget(ordered: PackedInt32Array, items_gone: PackedInt32Array = PackedInt32Array()) -> void:
+	"""Ordered changes are confirmed now: they leave the batch, and every step naming one leaves the history whole,
+	so Undo/Redo never reach them (BUILD-REQ-020)."""
+	if ordered.is_empty() and items_gone.is_empty():
 		return
 	for k: int in ordered:
 		_drafts[k].discard()
 		_counts[k] = 0
-	_undo = _without(_undo, ordered)
-	_redo = _without(_redo, ordered)
+	var gone: PackedInt32Array = ordered.duplicate()
+	gone.append_array(items_gone)
+	_undo = _without(_undo, gone)
+	_redo = _without(_redo, gone)
 	_changed()
 	_prune()
 

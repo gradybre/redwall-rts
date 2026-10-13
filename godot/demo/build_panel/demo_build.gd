@@ -21,14 +21,19 @@ extends Node
 ## Level 1 / 2 the legacy warren's; Levels 3 and 4 show nothing). A level with no way in yet is marked "!" on the bar
 ## and still painted: each cell then says "No way in" on its ghost (BUILD-REQ-013 per cell).
 ##
-## THE CARDS. A room type -- Passage among them -- arms painting on levels 1-4. The old Passage / Burrow home / Root
-## cellar tool cards are gone (Brendan's ruling on decision 1911 P-C2 (c)): THE DEMO HAS NO PLAYABLE DIGGING until
-## slice C3 makes painted rooms diggable, and the panel says so when it opens. While the panel shows, the HUD's command
-## strip (UI-SET-026) and its detail (UI-SET-036), the demo's right column, its map-layer picker and its news strip are
-## hidden (their place is the panel's), and given back on close. Opening, painting, Undo, Redo and Discard all touch
-## no store, reservation or job. Confirm all is held back while any cell has no way in, which on the actual
-## underground is every cell until slice D's entrance (decision 1911 §2.1); the route behind it (demo_build_orders.gd)
-## deducts nothing.
+## THE CARDS. A room type -- Passage among them -- arms painting on levels 1-4; the Entrance (surface) and Way down
+## (levels 1-3) cards arm placing a way down (build_items.gd). The old Passage / Burrow home / Root cellar tool cards
+## are gone (Brendan's ruling on decision 1911 P-C2 (c)). While the panel shows, the HUD's command strip (UI-SET-026)
+## and its detail (UI-SET-036), the demo's right column, its map-layer picker and its news strip are hidden (their
+## place is the panel's), and given back on close. Opening, painting, Undo, Redo and Discard all touch no store,
+## reservation or job. Confirm all is held back while any cell has no way in.
+##
+## THE PROOF OF CONCEPT (decision 1912; Brendan's ruling of 2026-10-12: "A simple mole digs", "Free for now", "Place a
+## simple entrance", "Paint rooms + passages"). Confirm all hands the batch to demo_build_works.gd -- nothing is paid,
+## nothing reaches the settlement -- and sends a mole (the first selected mole, else the first one free): it walks to
+## the Entrance and digs the ordered cells one by one, drawn below by a stand-in figure (demo_build_below_task.gd);
+## the dug rooms are drawn open (demo_build_dug.gd) and count as finished space for the next plan. With residents
+## selected, a right click on a dug cell sends them down into it. Slice C3 replaces all of it with the real thing.
 
 const BuildPanel := preload("res://scripts/ui/build_panel.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
@@ -57,11 +62,24 @@ const LABEL_GAP: float = 8.0
 const ARMED_HINT: String = "Paint %s: drag on the floor, or Enter to set a corner"
 const ORDERED: String = "Confirm all: %d ordered, %d kept back"
 ## Decision 1912 (P-C2 (c)): the panel plans; digging what it plans comes later, and it says so.
-const OPENED: String = "Build on %s: plan rooms by painting them; digging painted rooms comes in a later update"
+const OPENED: String = "Build on %s: place an Entrance from the surface, paint rooms and passages below, Confirm all, and a mole digs them (free for now)"
 const CLOSED_KEPT: String = "Build panel closed; its pending changes are kept"
 ## The demo's Build command (UI-SET-027, P-B3 as Brendan approved on 2026-10-12): what it does here.
-const BUILD_COMMAND: String = "Open the build panel: plan rooms underground (digging them comes in a later update)"
+const BUILD_COMMAND: String = "Open the build panel: place an Entrance, paint rooms and passages below, and a mole digs them"
 const ARROW_KEYS: Array[int] = [KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT]
+const Works := preload("res://demo/build_panel/demo_build_works.gd")
+const Dug := preload("res://demo/build_panel/demo_build_dug.gd")
+const Figure := preload("res://demo/build_panel/demo_build_figure.gd")
+const BelowTask := preload("res://demo/build_panel/demo_build_below_task.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
+const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const MOLE: String = "Mole"
+## How often a waiting order looks for a free mole again (seconds; a guard against asking every frame).
+const SEND_EVERY_S: float = 2.0
+const NO_MOLE: String = "No mole lives in the village to dig: the ordered cells wait"
+const SENT: String = "%s goes to the Entrance to dig"
+const VISIT: String = "%s goes down to the dug room"
+const PLACE_HINT: String = "Place %s: click a spot, or Enter at the cursor"
 
 var panel: BuildPanel = null
 var bar: LevelBar = null
@@ -96,6 +114,17 @@ var _seen_label: int = -1
 var _setup_refusal: StringName = &""
 ## Why the actual World's level could not be shown ("": it was, or was not asked for).
 var world_refusal: StringName = &""
+var works: Works = null
+var dug: Dug = null
+var _floors: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0])
+var _cast: Node = null
+var _selection: Callable = Callable()
+## The dig trip under way (null: none), and every trip below with its figure.
+var digger: BelowTask = null
+var _trips: Array[BelowTask] = []
+var _figures: Array[Figure] = []
+var _trip_actors: PackedInt32Array = PackedInt32Array()
+var _send_in: float = 0.0
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -128,17 +157,32 @@ func _configure_ground() -> void:
 	ground = Ground.new()
 	ground.configure(orders.datum_u(), orders.cell_bounds())
 	ground.bind(orders.terrain_owner(), orders.excavation_sites(), orders.space_owner())
-	var floors: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0])
+	works = Works.new()
+	works.configure(orders.cell_bounds())
+	ground.bind_works(works)
 	for level: int in range(1, LevelBar.LEVEL_DEEPEST + 1):
 		catalog.set_level_clear_height(level, orders.dug_height_of(level))
-		floors[level] = orders.floor_of(level)
-		ground.set_level(level, floors[level], orders.dug_height_of(level))
+		_floors[level] = orders.floor_of(level)
+		ground.set_level(level, _floors[level], orders.dug_height_of(level))
 	if ground.bound():
 		batch.bind_ground(ground.ground, ground.revision)
 	paint = Paint.new()
 	add_child(paint)
-	take_setup(paint.configure(batch, _camera, Vector2i(orders.datum_u().x, orders.datum_u().z), orders.cell_bounds(),
-		floors))
+	take_setup(paint.configure(batch, _camera, _datum_xz(), orders.cell_bounds(), _floors))
+	dug = Dug.new()
+	add_child(dug)
+	dug.configure(works, _floors, _datum_xz(), orders.cell_bounds())
+
+
+func _datum_xz() -> Vector2i:
+	"""Cell (0, 0)'s x and z (u)."""
+	return Vector2i(orders.datum_u().x, orders.datum_u().z)
+
+
+func bind_cast(cast: Node, selection: Callable) -> void:
+	"""The village's residents (moles dig; anyone visits) and `selection() -> PackedInt32Array`, the selected ones."""
+	_cast = cast
+	_selection = selection
 
 
 func _configure_world(session: Object) -> void:
@@ -311,8 +355,9 @@ func _process(_delta: float) -> void:
 		_hold_hud()
 	elif _holding:
 		_release_hud()
-	paint.refresh(bar.shown_level() if open else -1, open and armed_type() >= 0)
+	paint.refresh(bar.shown_level() if open else -1, open and (armed_type() >= 0 or way_down_armed()), way_down_armed())
 	_sync_label(open)
+	_tick_works(_delta)
 
 
 func follow_view() -> void:
@@ -400,13 +445,15 @@ func _release_hud() -> void:
 func _sync_label(open: bool) -> void:
 	"""The paint label beside the pointer (or the cursor cell): the stroke's size and validity, or how to begin."""
 	var type: int = armed_type() if open else -1
-	_label_box.visible = type >= 0
-	if type < 0:
+	var placing: bool = open and way_down_armed()
+	_label_box.visible = type >= 0 or placing
+	if not _label_box.visible:
 		return
-	if batch.stroke_revision != _seen_label:
-		_seen_label = batch.stroke_revision
+	var label_key: int = batch.stroke_revision * 8 + (bar.shown_level() + 1 if placing else 0)
+	if label_key != _seen_label:
+		_seen_label = label_key
 		_label.text = batch.stroke_line().replace("; ", "\n") if batch.stroke_active() \
-			else ARMED_HINT % BuildCatalog.type_name(type)
+			else PLACE_HINT % Items.name_of(bar.shown_level()) if placing else ARMED_HINT % BuildCatalog.type_name(type)
 		_label_box.accessibility_name = batch.stroke_line() if batch.stroke_active() else _label.text
 		_label_box.reset_size()
 	var at: Vector2 = _pointer if _pointer.is_finite() else paint.screen_of(paint.cursor(), bar.shown_level())
@@ -501,10 +548,13 @@ func _finish() -> void:
 
 
 func confirm_all() -> void:
-	"""Confirm all: every valid operation through the planner's route, in order; nothing is deducted."""
+	"""Confirm all: the ways down, then every valid room, to the proof of concept's works (nothing is paid; decision
+	1912); then a mole is sent to dig them."""
 	if _blocked.is_valid() and bool(_blocked.call()):
 		return
-	var result: PackedInt32Array = batch.confirm_all(orders.submit)
+	var result: PackedInt32Array = batch.confirm_all(_submit_room, _submit_way_down)
+	if result[0] > 0:
+		_send_mole()
 	var first: int = batch.first_invalid()
 	if first < 0:
 		first = batch.first_refused()
@@ -513,6 +563,139 @@ func confirm_all() -> void:
 		words += " -- %s: %s" % [BuildCatalog.type_name(batch.operation_type(first)), batch.operation_reason(first)]
 	panel.refresh(true)
 	_say.call(words)
+
+
+func _submit_room(draft: Object, level: int, room_type: int) -> Dictionary:
+	"""The proof of concept's order route for a room: its cells wait for the mole (free for now)."""
+	var cells: PackedInt32Array = (draft.call(&"snapshot") as Dictionary).cells
+	return {"ok": works.order_room(level, cells, room_type), "error": Validity.outside()}
+
+
+func _submit_way_down(level: int, cell: Vector2i) -> Dictionary:
+	"""The proof of concept's order route for a way down: it and its landing wait for the mole."""
+	return {"ok": works.order_way_down(level, cell), "error": Validity.outside()}
+
+
+# --- the proof of concept's mole and visitors (decision 1912) -----------------------------------------------------
+
+func _tick_works(delta: float) -> void:
+	"""Every frame: the dug rooms drawn for the level shown, each figure shown only on its own level, and -- every
+	SEND_EVERY_S while cells wait and no mole is digging -- a mole sent again."""
+	var shown: int = bar.shown_level() if panel.is_open() else -1
+	dug.refresh(shown)
+	for k: int in _trips.size():
+		_figures[k].visible = _trips[k].below() and shown >= 1 and _trips[k].at().x == shown and _still_on(_trips[k])
+	_send_in -= delta
+	if _send_in <= 0.0 and works.waiting() > 0 and not digging():
+		_send_in = SEND_EVERY_S
+		_send_mole()
+
+
+func digging() -> bool:
+	"""Whether a mole is on its dig trip now."""
+	return digger != null and _still_on(digger)
+
+
+func _still_on(trip: BelowTask) -> bool:
+	"""Whether a resident is still on `trip` (no other order took it)."""
+	var row: int = _trips.find(trip)
+	return row >= 0 and _cast != null and (_cast.call(&"actor", _trip_actors[row]) as Node).get(&"brain").get(&"task") == trip
+
+
+func _send_mole() -> bool:
+	"""A mole to the Entrance to dig (the first selected mole, else the first free one); false, saying why, when none
+	can go, or when there is no Entrance yet or a mole is already digging."""
+	if digging() or works.entrance() < 0 or _cast == null:
+		return false
+	var mole: int = _pick_mole()
+	if mole < 0:
+		_say.call(NO_MOLE)
+		return false
+	digger = _send(mole, BelowTask.MODE_DIG, Vector3i.ZERO)
+	_say.call(SENT % _name_of(mole))
+	return true
+
+
+func _pick_mole() -> int:
+	"""The first selected mole, else the first mole on no task, else the first mole (its routine task gives way, as
+	any order's does; its routine sends it again later); -1 with no mole in the village."""
+	var selected: PackedInt32Array = PackedInt32Array(_selection.call()) if _selection.is_valid() else PackedInt32Array()
+	for i: int in selected:
+		if _is_mole(i):
+			return i
+	var any: int = -1
+	for i: int in int(_cast.call(&"actor_count")):
+		if not _is_mole(i):
+			continue
+		if int((_cast.call(&"actor", i) as Node).get(&"brain").get(&"order")) != BrainScript.ORDER_TASK:
+			return i
+		any = i if any < 0 else any
+	return any
+
+
+func _is_mole(i: int) -> bool:
+	"""Whether resident `i` is a mole."""
+	return String((_cast.call(&"actor", i) as Node).get(&"species")) == MOLE
+
+
+func _name_of(i: int) -> String:
+	"""Resident `i`'s name."""
+	return String((_cast.call(&"actor", i) as Node).get(&"display_name"))
+
+
+func _send(i: int, mode: int, goal: Vector3i) -> BelowTask:
+	"""Resident `i` on a trip below (a figure made for it, or reused from a finished trip)."""
+	var row: int = _free_trip_row()
+	var trip: BelowTask = BelowTask.new(works, _figures[row], _floors, _datum_xz(), mode, goal, _name_of(i))
+	_trips[row] = trip
+	_trip_actors[row] = i
+	(_cast.call(&"actor", i) as Node).get(&"brain").call(&"order_task", trip)
+	return trip
+
+
+func _free_trip_row() -> int:
+	"""A trip row whose resident is no longer on it (its figure reused), else a new one."""
+	for row: int in _trips.size():
+		if not _still_on(_trips[row]):
+			return row
+	var figure: Figure = Figure.new()
+	add_child(figure)
+	_figures.append(figure)
+	_trips.append(null)
+	_trip_actors.append(-1)
+	return _trips.size() - 1
+
+
+func send_visitors(cell: Vector2i) -> int:
+	"""The selected residents down into the dug cell `cell` on the level shown; how many were sent."""
+	var level: int = bar.shown_level()
+	var selected: PackedInt32Array = PackedInt32Array(_selection.call()) if _selection.is_valid() else PackedInt32Array()
+	if _cast == null or works.entrance() < 0 or works.state(level, cell) != Works.OPEN:
+		return 0
+	for i: int in selected:
+		_send(i, BelowTask.MODE_VISIT, Vector3i(level, cell.x, cell.y))
+	if not selected.is_empty():
+		_say.call(VISIT % _name_of(selected[0]))
+	return selected.size()
+
+
+func way_down_armed() -> bool:
+	"""Whether a click places a way down now (the panel open, its card chosen, a level with one shown)."""
+	return _setup_refusal == &"" and panel.is_open() and panel.way_down_armed() and bar.shown_level() <= Items.DEEPEST_TOP
+
+
+func _place_way_down(cell: Vector2i, keep: bool = false) -> bool:
+	"""Place the chosen way down at `cell` on the level shown; it joins the batch (the card put down, unless `keep`:
+	Shift, UI-BUILD's "keeps the item for another"), or is dropped saying why."""
+	var kind: int = batch.place_item(bar.shown_level(), cell)
+	if kind == Validity.KIND_NOT_POSSIBLE:
+		_say.call(batch.last_dropped())
+		return true
+	if kind >= 0:
+		_say.call(Validity.line(kind, batch.item_reason(batch.items().count() - 1)))
+		if not keep:
+			panel.clear_choice()
+	return kind >= 0
 
 
 # --- input ---------------------------------------------------------------------------------------------------------
@@ -561,10 +744,13 @@ func _stroke_pointer(event: InputEvent) -> bool:
 func _world_enter(event: InputEvent) -> bool:
 	"""Enter with a type armed and no control focused: the first corner, then the second (the keyboard's paint)."""
 	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo or armed_type() < 0 or _focused():
+	if key == null or not key.pressed or key.echo or (armed_type() < 0 and not way_down_armed()) or _focused():
 		return false
 	if key.keycode != KEY_ENTER and key.keycode != KEY_KP_ENTER:
 		return false
+	if way_down_armed():
+		_place_way_down(paint.cursor(), key.shift_pressed)
+		return true
 	if not batch.stroke_active():
 		_pointer = Vector2.INF
 		_begin_at(paint.cursor())
@@ -651,18 +837,28 @@ func _panel_click(button: InputEventMouseButton) -> bool:
 	if not button.pressed:
 		return false
 	if button.button_index == MOUSE_BUTTON_RIGHT:
-		return batch.cancel_stroke()
-	if button.button_index != MOUSE_BUTTON_LEFT or armed_type() < 0:
+		return batch.cancel_stroke() or _visit_at(button.position)
+	if button.button_index != MOUSE_BUTTON_LEFT or (armed_type() < 0 and not way_down_armed()):
 		return false
 	var hit: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level())
 	_pointer = button.position
+	if hit.ok and way_down_armed():
+		return _place_way_down(hit.cell, button.shift_pressed)
 	return hit.ok and _begin_at(hit.cell)
+
+
+func _visit_at(screen: Vector2) -> bool:
+	"""A right click on a dug cell of the level shown sends the selected residents down into it."""
+	if bar.shown_level() < 1:
+		return false
+	var hit: Paint.WorldTool.Pick = paint.pick(screen, bar.shown_level())
+	return hit.ok and send_visitors(hit.cell) > 0
 
 
 func _hover(at: Vector2) -> void:
 	"""The cursor cell follows the pointer over the floor (not taken: the hover ring still follows too)."""
 	_pointer = at
-	if armed_type() < 0:
+	if armed_type() < 0 and not way_down_armed():
 		return
 	var hit: Paint.WorldTool.Pick = paint.pick(at, bar.shown_level())
 	if hit.ok:
@@ -682,6 +878,6 @@ func centre_cursor() -> void:
 # --- the cards -----------------------------------------------------------------------------------------------------
 
 func _on_card_chosen(card: BuildCatalog.Card) -> void:
-	"""A room type arms painting (the cursor to the screen's middle); a locked card is only shown."""
-	if card.kind == BuildCatalog.CARD_ROOM and card.usable():
+	"""A room type or a way down arms the world (the cursor to the screen's middle); a locked card is only shown."""
+	if (card.kind == BuildCatalog.CARD_ROOM or card.kind == BuildCatalog.CARD_WAY_DOWN) and card.usable():
 		centre_cursor()

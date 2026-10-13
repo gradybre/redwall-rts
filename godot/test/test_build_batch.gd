@@ -633,3 +633,55 @@ func test_landings_are_handed_to_the_cell_judge() -> void:
 	_batch.bind_landings(func(level: int) -> PackedInt32Array: return PackedInt32Array([30, 30]) if level == 2 else PackedInt32Array())
 	assert_equal(_paint(PANTRY, 2, Vector2i(29, 29), Vector2i(32, 32)), Validity.KIND_CAN_BUILD, "landed on")
 	assert_true(_batch.cell_judge().ground_bound(), "the judge has the ground")
+
+
+# --- ways down (decision 1912) -------------------------------------------------------------------------------------
+
+func test_an_entrance_gives_level_one_its_way_in_and_orders_first() -> void:
+	"""OPEN-07 (a): a pending Entrance's landing is a way in for the room beside it; Confirm all sends the Entrance
+	first, then the room; Undo before that takes the Entrance away again."""
+	_bind_ground()
+	_paint(PANTRY, 1, Vector2i(20, 20), Vector2i(23, 23))
+	assert_equal(_batch.operation_reason(0), Validity.no_way_in(), "no way in yet")
+	assert_equal(_batch.place_item(0, Vector2i(24, 20)), Validity.KIND_CAN_BUILD, "an Entrance beside it")
+	assert_equal(_batch.items().landings(1), PackedInt32Array([24, 20, 25, 20, 24, 21, 25, 21]), "its landing")
+	assert_equal(_batch.operation_kind(0), Validity.KIND_CAN_BUILD, "the Pantry is reached")
+	assert_equal(_batch.pending_count(), 2, "two changes")
+	assert_equal(_batch.undo_label(), "Undo Place Entrance", "the step named")
+	assert_true(_batch.undo(), "undone")
+	assert_equal(_batch.operation_reason(0), Validity.no_way_in(), "no way in again")
+	assert_true(_batch.redo(), "redone")
+	var order: Array = []
+	var result: PackedInt32Array = _batch.confirm_all(func(_d: Draft, level: int, _t: int) -> Dictionary:
+		order.append("room %d" % level)
+		return {"ok": true}, func(level: int, cell: Vector2i) -> Dictionary:
+		order.append("way down %d %s" % [level, cell])
+		return {"ok": true})
+	assert_equal(order, ["way down 0 (24, 20)", "room 1"], "the way in first")
+	assert_equal(result, PackedInt32Array([2, 0]), "both ordered")
+	assert_equal(_batch.pending_count(), 0, "none pending")
+	assert_false(_batch.can_redo() or _batch.can_undo(), "out of Undo's reach")
+
+
+func test_a_way_down_is_judged_where_it_stands_and_lands() -> void:
+	"""Below the surface it needs a passage or room under it ("!"); it may not land on water, overlap another, stand
+	past level 3 or leave the planning area ("X", dropped in words)."""
+	_bind_ground()
+	assert_equal(_batch.place_item(1, Vector2i(30, 30)), Validity.KIND_BLOCKED, "nothing under it yet")
+	assert_equal(_batch.item_reason(0), Validity.needs_floor("Way down"), "says so")
+	assert_equal(_batch.first_invalid_item(), 0, "it holds Confirm all back")
+	assert_equal(_batch.invalid_count(), 1, "counted")
+	_paint(BuildCatalog.CORRIDOR, 1, Vector2i(30, 30), Vector2i(33, 31))
+	assert_equal(_batch.item_kind(0), Validity.KIND_CAN_BUILD, "a Passage under it")
+	assert_equal(_batch.place_item(1, Vector2i(31, 30)), Validity.KIND_NOT_POSSIBLE, "overlapping")
+	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down("Way down")), "words")
+	_ground[Vector2i(40, 40)] = Cells.CELL_WATER
+	_batch.bind_ground(func(_level: int, cell: Vector2i) -> int: return int(_ground.get(cell, Cells.CELL_OK)),
+		func() -> int: return _ground_revision)
+	assert_equal(_batch.place_item(0, Vector2i(39, 39)), Validity.KIND_NOT_POSSIBLE, "landing on water")
+	assert_equal(_batch.place_item(4, Vector2i(5, 5)), Validity.KIND_NOT_POSSIBLE, "no level below level 4")
+	assert_equal(_batch.place_item(0, Vector2i(127, 5)), Validity.KIND_NOT_POSSIBLE, "past the area")
+	_batch.begin_stroke(KITCHEN, 1, Vector2i(60, 60))
+	assert_equal(_batch.place_item(0, Vector2i(50, 50)), -1, "not mid-stroke")
+	_batch.discard_all()
+	assert_equal(_batch.items().count(), 0, "Discard all drops them")

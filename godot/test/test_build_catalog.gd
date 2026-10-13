@@ -50,26 +50,28 @@ func test_rooms_underground_lists_the_eight_types_and_locked_tools() -> void:
 	for card: BuildCatalog.Card in _cards:
 		names.append(card.name)
 	assert_equal(names, PackedStringArray(["Dormitory", "Bedroom", "Kitchen", "Dining room", "Common room",
-		"Infirmary", "Pantry", "Passage", "Earth", "Remove"]), "the row")
+		"Infirmary", "Pantry", "Passage", "Way down", "Earth", "Remove"]), "the row")
 	for at: int in 8:
 		assert_true(_cards[at].usable() and _cards[at].kind == BuildCatalog.CARD_ROOM, "%s paints" % names[at])
 	assert_equal(_cards[7].room_type, BuildCatalog.CORRIDOR, "Passage paints CORRIDOR")
 	assert_equal(_cards[7].footprint, "at least 2 cells wide", "BUILD-REQ-014")
-	assert_false(_cards[8].usable(), "Earth is locked")
-	assert_false(_cards[9].usable(), "Remove is locked")
-	assert_true(_cards[9].locked.begins_with("Not yet: "), "with words: %s" % _cards[9].locked)
+	assert_true(_cards[8].usable() and _cards[8].kind == BuildCatalog.CARD_WAY_DOWN, "a way down to level 2")
+	assert_false(_cards[9].usable(), "Earth is locked")
+	assert_false(_cards[10].usable(), "Remove is locked")
+	assert_true(_cards[10].locked.begins_with("Not yet: "), "with words: %s" % _cards[10].locked)
 
 
 func test_rooms_on_the_surface_are_locked_but_inspectable() -> void:
 	"""No surface painting before slice G: the room types and Outdoor say why."""
 	_catalog.cards_into(BuildCatalog.TAB_ROOMS, 0, -1, _cards)
-	assert_equal(_cards.size(), 11, "8 types, Outdoor, Clear ground, Remove")
+	assert_equal(_cards.size(), 12, "8 types, Outdoor, the Entrance, Clear ground, Remove")
 	for at: int in 8:
 		assert_false(_cards[at].usable(), "%s locked on the surface" % _cards[at].name)
 		assert_equal(_cards[at].locked, "Not yet: rooms on the surface come in a later update", "its reason")
 		assert_false(_cards[at].purpose.is_empty(), "still inspectable: purpose")
 	assert_equal(_cards[8].name, "Outdoor", "Outdoor follows the types")
-	assert_equal(_cards[9].name, "Clear ground", "Clear ground, not Earth, on the surface")
+	assert_true(_cards[9].name == "Entrance" and _cards[9].usable(), "the Entrance can be placed (decision 1912)")
+	assert_equal(_cards[10].name, "Clear ground", "Clear ground, not Earth, on the surface")
 	for card: BuildCatalog.Card in _cards:
 		assert_false(card.locked.contains("slice"), "no slice jargon: %s" % card.locked)
 
@@ -153,3 +155,17 @@ func test_a_card_prices_a_cell_at_its_own_level_s_clear_height() -> void:
 	assert_equal(_catalog.room_card(2, "", 2).cost, _catalog.cell_cost_text(2), "its card says so")
 	_catalog.set_level_clear_height(9, 1)
 	assert_equal(_catalog.clear_height_of(9), 4096, "an unknown level is never set")
+
+
+func test_the_way_down_cards_are_the_entrance_above_and_a_way_down_below() -> void:
+	"""Decision 1912: the surface offers the Entrance, levels 1-3 a Way down, free for now; level 4's is locked."""
+	var entrance: BuildCatalog.Card = _catalog.way_down_card(0)
+	assert_equal(entrance.name, "Entrance", "the surface's")
+	assert_equal(entrance.cost, BuildCatalog.FREE_FOR_NOW, "free for now")
+	assert_equal(entrance.footprint, "2 × 2 cells", "its size")
+	assert_true(entrance.usable(), "usable")
+	assert_equal(_catalog.way_down_card(2).name, "Way down", "below")
+	assert_equal(_catalog.way_down_card(4).locked, Validity.no_level_below(), "level 4 has no level below")
+	_catalog.cards_into(BuildCatalog.TAB_ROOMS, 5, -1, _cards)
+	for card: BuildCatalog.Card in _cards:
+		assert_true(card.kind != BuildCatalog.CARD_WAY_DOWN, "none on Overview")

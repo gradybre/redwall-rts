@@ -236,7 +236,7 @@ func test_the_old_tool_cards_are_gone_and_passage_paints() -> void:
 	paints CORRIDOR (BUILD-REQ-014); no card opens the Dig tool; the panel says digging comes later."""
 	_command.select(PackedInt32Array([0]))
 	_build.open_panel()
-	assert_true(_said[-1].ends_with("digging painted rooms comes in a later update"), _said[-1])
+	assert_true(_said[-1].contains("a mole digs them (free for now)"), _said[-1])
 	assert_equal(_card("Burrow home"), -1, "no Burrow home card")
 	assert_equal(_card("Root cellar"), -1, "no Root cellar card")
 	_build.bar.choose(1)
@@ -301,9 +301,8 @@ func test_ux_build_t04_no_silent_cost() -> void:
 	_press(KEY_Z, true)
 	_press(KEY_Z, true, true)
 	_build.confirm_all()
-	assert_equal(_build.batch.pending_count(), 1, "kept: no underground in this run")
-	assert_equal(_build.batch.operation_reason(0), Orders.NOT_COMPOSED, "saying why")
-	_build.batch.discard_all()
+	assert_equal(_build.batch.pending_count(), 0, "ordered to the proof of concept's works (decision 1912)")
+	assert_equal(_build.works.waiting(), 24, "its cells wait for a mole")
 	var after := PackedInt32Array()
 	_command.tunnels().network.job_list_into(after)
 	assert_equal(EconomySystem.stock_milli(&"wood"), wood, "wood unchanged")
@@ -435,9 +434,51 @@ func test_the_demo_build_command_opens_and_closes_the_panel() -> void:
 	assert_equal(button.pressed.get_connections().size(), 1, "one connection")
 
 
-func test_confirm_all_names_the_room_the_route_refused() -> void:
-	"""Review LOW b: "0 ordered, 1 kept back -- Kitchen: <why>" even when the refusal does not hold Confirm all back."""
+func test_confirm_all_says_what_it_ordered() -> void:
+	"""Decision 1912: Confirm all orders to the proof of concept's works and says so; with no Entrance yet, no mole is
+	sent."""
 	_paint_kitchen_by_keys()
 	_build.confirm_all()
-	assert_equal(_said[_said.size() - 1], "Confirm all: 0 ordered, 1 kept back -- Kitchen: " + Orders.NOT_COMPOSED,
-		_said[_said.size() - 1])
+	assert_equal(_said[_said.size() - 1], "Confirm all: 1 ordered, 0 kept back", _said[_said.size() - 1])
+	assert_false(_build.digging(), "no Entrance: no mole")
+
+
+func test_the_proof_of_concepts_loop_entrance_room_mole_and_visit() -> void:
+	"""Decision 1912: an Entrance on the surface and a Kitchen beside its landing on level 1; Confirm all sends the
+	mole, which walks in, digs every cell (its trip stepped here), comes out; a resident sent to a dug cell goes in."""
+	var cast: Node = _nodes[0]
+	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
+	_build.open_panel()
+	_build.panel.choose_card(_card("Entrance"))
+	assert_true(_build.way_down_armed(), "the Entrance is armed on the surface")
+	assert_equal(_build.batch.place_item(0, Vector2i(4, 4)), Validity.KIND_CAN_BUILD, "placed")
+	_build.bar.choose(1)
+	_build.panel.choose_card(KITCHEN_CARD)
+	_build.batch.begin_stroke(2, 1, Vector2i(6, 4))
+	_build.batch.extend_stroke(Vector2i(11, 7))
+	_build.batch.finish_stroke()
+	_build.confirm_all()
+	assert_equal(_build.works.waiting(), 28, "the landing's 4 and the Kitchen's 24 cells")
+	assert_true(_build.digging(), "a mole sent")
+	var brain: Object = (cast.call(&"actor", 0) as Node).get(&"brain")
+	_build.digger.arrived(brain)
+	for frame: int in 4000:
+		if not _build.digger.step(brain, 0.1):
+			break
+	assert_equal(_build.works.waiting(), 0, "every cell dug")
+	assert_equal(_build.digger.dug, 28, "by the mole")
+	assert_false(_build.digger.below(), "and it came out")
+	assert_equal(_build.send_visitors(Vector2i(8, 5)), 0, "nobody selected: nobody sent")
+
+
+func test_a_way_down_is_placed_by_click_or_enter_and_says_why_not() -> void:
+	"""Decision 1912: on a level with nothing dug a Way down is "!" (needs a passage or room under it)."""
+	_build.open_panel()
+	_build.bar.choose(1)
+	_build.panel.choose_card(_card("Way down"))
+	_build.paint.set_cursor(Vector2i(20, 20), 1, -1)
+	assert_true(_press(KEY_ENTER), "Enter places it")
+	assert_equal(_build.batch.items().live_count(), 1, "one Way down")
+	assert_equal(_build.batch.item_kind(0), Validity.KIND_BLOCKED, "nothing under it")
+	assert_true(_said[-1].contains("needs a passage or room under it"), _said[-1])
+

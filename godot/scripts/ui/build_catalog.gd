@@ -12,6 +12,8 @@ extends RefCounted
 ##   Rooms, surface       the same room types and Outdoor, Clear ground and Remove, LOCKED (surface rooms are
 ##                        slice G).
 ##   Rooms, Overview      the room types locked, saying why ("Choose one level to paint on" -- a PROPOSAL).
+## THE WAY DOWN (decision 1912, Brendan's proof-of-concept ruling "Place a simple entrance"): the surface's Rooms tab
+## offers the Entrance, levels 1-3 a Way down (level 4 shows it locked: no level below). Free for now.
 ##   Furnish              the items the chosen room type allows (room_catalog.gd), locked: furnishing is slice E.
 ##   Decor                the decoration item, locked.
 ## A locked card stays inspectable: its info card gives the plain reason (`not_yet` words, a PROPOSAL).
@@ -26,6 +28,7 @@ const Catalog := preload("res://scripts/core/catalog.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
 
 const TAB_ROOMS: int = 0
 const TAB_FURNISH: int = 1
@@ -37,6 +40,8 @@ const CARD_ROOM: int = 0
 ## 1 was the old tools' card (decision 1871), removed by decision 1912.
 const CARD_ITEM: int = 2
 const CARD_TOOL: int = 3
+## A way down (build_items.gd): the Entrance on the surface, a Way down below (decision 1912's proof of concept).
+const CARD_WAY_DOWN: int = 4
 
 ## SET-BUILD-001 §3: one GDD tile is 2 × 2 cells.
 const CELLS_PER_TILE: int = 4
@@ -69,6 +74,12 @@ const PICTURES: Array[String] = [
 ]
 const GESTURE_PAINT: String = "Drag to paint; Esc cancels the stroke"
 const GESTURE_PLACE: String = "Click to place; R to rotate"
+const GESTURE_WAY_DOWN: String = "Click a spot to place it (2 × 2 cells); Esc cancels"
+const FREE_FOR_NOW: String = "free for now (proof of concept)"
+const WAY_DOWN_PURPOSES: Array[String] = [
+	"A way down from the ground to underground level 1: rooms and passages there connect to it",
+	"A way down to the next level, standing on a passage or room",
+]
 const NOTHING_CHOSEN: String = "Choose a room type to begin"
 const CHOOSE_FIRST: String = "Choose a room type first"
 const LATER_SURFACE: String = "rooms on the surface come in a later update"
@@ -213,6 +224,8 @@ func _room_cards(level: int, lock: String, out: Array[Card]) -> void:
 		out.append(room_card(room_type, lock, clampi(level, 1, 4)))
 	if surface:
 		out.append(_tool_card(&"tool:outdoor", "Outdoor", LATER_OUTDOOR, "Wells, fences, paths and other things built in the open"))
+	if level < OVERVIEW_LEVEL:
+		out.append(way_down_card(level))
 	if surface:
 		out.append(_tool_card(&"tool:clear", "Clear ground", LATER_CLEAR, "Paint over a surface room to take it down"))
 	else:
@@ -235,6 +248,23 @@ func room_card(room_type: int, locked_reason: String, level: int = 1) -> Card:
 	card.rules = rules_text(room_type)
 	card.gesture = GESTURE_PAINT
 	card.picture = PICTURES[room_type]
+	return card
+
+
+func way_down_card(level: int) -> Card:
+	"""The Entrance (surface) or Way down (levels 1-3) card; on level 4, locked: no level below."""
+	var card: Card = Card.new()
+	card.id = StringName("way_down:%d" % level)
+	card.kind = CARD_WAY_DOWN
+	card.name = Items.name_of(level)
+	card.locked = Validity.no_level_below() if level > Items.DEEPEST_TOP else ""
+	card.cost = FREE_FOR_NOW
+	card.footprint = "2 × 2 cells"
+	card.purpose = WAY_DOWN_PURPOSES[0 if level == 0 else 1]
+	card.rules = "Lands on the cells below it, which must be diggable" if level == 0 \
+		else "Stands on a passage or room; lands on the cells below it"
+	card.gesture = GESTURE_WAY_DOWN
+	card.picture = "a hole with earth steps going down"
 	return card
 
 

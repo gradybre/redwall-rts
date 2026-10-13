@@ -13,12 +13,15 @@ extends RefCounted
 ## space owner's or the terrain's revision moves; `revision()` then moves too, so the batch judges every cell again.
 ## With no underground composed in the run, every cell reads OK and nothing is finished (the order route then says
 ## why nothing can be ordered).
+## THE PROOF OF CONCEPT'S CELLS (decision 1912, demo_build_works.gd) come first: a cell it has ordered or dug reads
+## FINISHED (a way in for the cells beside it, "occupied" under a new stroke), and its revision moves this one.
 
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Works := preload("res://demo/build_panel/demo_build_works.gd")
 
 const PITCH_U: int = 1024
 const LEVELS: int = 5
@@ -42,6 +45,8 @@ var _floors: PackedInt32Array = PackedInt32Array()
 var _heights: PackedInt32Array = PackedInt32Array()
 var _cache: Array[PackedByteArray] = []
 var _seen: Vector2i = Vector2i(-1, -1)
+var _works: Works = null
+var _seen_works: int = -1
 var _revision: int = 0
 var _phase: IntMath.IntResult = IntMath.IntResult.new()
 var _box: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
@@ -71,6 +76,11 @@ func bind(terrain: Object, sites: Object, space: Object) -> void:
 	_drop_cache()
 
 
+func bind_works(works: Works) -> void:
+	"""The proof of concept's ordered and dug cells, read first (see the header)."""
+	_works = works
+
+
 func set_level(level: int, floor_u: int, dug_u: int) -> void:
 	"""Level `level`'s floor and the height dug there (0: not paintable)."""
 	if level <= 0 or level >= LEVELS:
@@ -85,17 +95,27 @@ func bound() -> bool:
 	return _owner(_terrain) != null and _owner(_sites) != null
 
 
+func readable() -> bool:
+	"""Whether it reads anything at all: the settlement's ground, or the proof of concept's cells."""
+	return bound() or _works != null
+
+
 func revision() -> int:
 	"""Moves whenever a reading may have (the space owner's or the terrain's revision moved)."""
 	var now: Vector2i = _owner_revisions()
 	if now != _seen:
 		_seen = now
 		_drop_cache()
+	if _works != null and _works.revision != _seen_works:
+		_seen_works = _works.revision
+		_revision += 1
 	return _revision
 
 
 func ground(level: int, cell: Vector2i) -> int:
 	"""Cell `cell`'s ground code on `level` (build_cell_validity.gd CELL_*), cached until `revision` moves."""
+	if _works != null and _works.state(level, cell) != Works.EARTH:
+		return Cells.CELL_FINISHED
 	if level <= 0 or level >= LEVELS or _heights[level] <= 0 or not _bounds.has_point(cell) or not bound():
 		return Cells.CELL_OK
 	var index: int = (cell.y - _bounds.position.y) * _bounds.size.x + cell.x - _bounds.position.x

@@ -638,6 +638,7 @@ func _build_build_panel() -> void:
 	_build.configure(_tunnel_tool(), shell, _camera.camera(), _build_blocked, (_command as DemoCommandScript).say,
 		replaced, SettlementSystem.underground_session())
 	(_command as DemoCommandScript).set_build_hooks(_build.takes_before_gui, _build.handle_input)
+	_build.bind_cast(_cast, (_command as DemoCommandScript).selected)
 	_gate.add_region("build panel", [_build.panel, _build.bar] as Array[Node])
 	_time.add_planning("the build panel", _build.is_open)
 

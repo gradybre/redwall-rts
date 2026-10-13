@@ -31,6 +31,7 @@ extends Control
 
 const Batch := preload("res://scripts/ui/build_batch.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
@@ -59,6 +60,7 @@ const RETRY: String = "! Refused last time, Confirm all tries again: %s: %s"
 const NONE_PENDING: String = "No pending changes"
 const PICTURE: String = "Picture (placeholder): %s"
 const TOOL_LINE: String = "Tool: %s. %s"
+const ITEM_LINE: String = "%s · %s (a way down to level %d; free for now): %s"
 const TOOL_ACCESSIBLE: String = "%s tool"
 
 ## A card was clicked or pressed with Enter (a locked one too: the host may only show it).
@@ -380,7 +382,7 @@ func _place_tools() -> void:
 
 func _strip_shown() -> bool:
 	"""Whether the tool strip shows: a room type chosen on the Rooms tab."""
-	return _chosen != null and _tab == BuildCatalog.TAB_ROOMS
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_ROOM and _tab == BuildCatalog.TAB_ROOMS
 
 
 func choose_tool(tool: int) -> bool:
@@ -550,9 +552,10 @@ func choose_card(index: int) -> void:
 	if index < 0 or index >= _cards.size():
 		return
 	var card: BuildCatalog.Card = _cards[index]
-	if card.usable() and card.kind == BuildCatalog.CARD_ROOM:
+	if card.usable() and (card.kind == BuildCatalog.CARD_ROOM or card.kind == BuildCatalog.CARD_WAY_DOWN):
 		_chosen = card
-		_furnish_type = card.room_type
+		if card.kind == BuildCatalog.CARD_ROOM:
+			_furnish_type = card.room_type
 	_shown = card
 	_sync_tabs()
 	_sync_tools()
@@ -567,8 +570,15 @@ func chosen_card() -> BuildCatalog.Card:
 
 
 func paint_type() -> int:
-	"""The room type a stroke paints now, or -1 (none chosen, or not paintable on this level)."""
-	return _chosen.room_type if _chosen != null and _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST else -1
+	"""The room type a stroke paints now, or -1 (none chosen, a way down chosen, or not paintable on this level)."""
+	if _chosen == null or _chosen.kind != BuildCatalog.CARD_ROOM:
+		return -1
+	return _chosen.room_type if _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST else -1
+
+
+func way_down_armed() -> bool:
+	"""Whether a click places a way down now (its card chosen on a level that has one)."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_WAY_DOWN and _level < LevelBar.LEVEL_OVERVIEW
 
 
 func clear_choice() -> void:
@@ -747,11 +757,15 @@ func confirm_blocked() -> String:
 	if _batch.pending_count() == 0:
 		return NOTHING_TO_CONFIRM
 	var first: int = _batch.first_invalid()
-	if first < 0:
+	if first >= 0:
+		var kind: int = _batch.operation_kind(first)
+		return NOT_READY % [Validity.glyph(kind), _batch.invalid_count(), _batch.pending_count(),
+			BuildCatalog.type_name(_batch.operation_type(first)), _batch.operation_reason(first)]
+	var item: int = _batch.first_invalid_item()
+	if item < 0:
 		return ""
-	var kind: int = _batch.operation_kind(first)
-	return NOT_READY % [Validity.glyph(kind), _batch.invalid_count(), _batch.pending_count(),
-		BuildCatalog.type_name(_batch.operation_type(first)), _batch.operation_reason(first)]
+	return NOT_READY % [Validity.glyph(_batch.item_kind(item)), _batch.invalid_count(), _batch.pending_count(),
+		Items.name_of(_batch.items().level_of(item)), _batch.item_reason(item)]
 
 
 func _sync_ledger() -> void:
@@ -798,6 +812,11 @@ func ledger_lines(summary: String) -> String:
 	for k: int in _batch.operation_count():
 		if _batch.operation_cell_count(k) > 0:
 			lines.append("%s · %s" % [LevelBar.SHORT_NAMES[_batch.operation_level(k)], _batch.operation_line(k)])
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		if items.is_live(row):
+			lines.append(ITEM_LINE % [LevelBar.SHORT_NAMES[items.level_of(row)], Items.name_of(items.level_of(row)),
+				items.level_of(row) + 1, Validity.line(_batch.item_kind(row), _batch.item_reason(row))])
 	lines.append(summary)
 	return "\n".join(lines)
 

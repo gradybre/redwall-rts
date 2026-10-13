@@ -155,12 +155,12 @@ func cell_judge() -> Cells:
 	return _cells
 
 
-func set_tool(tool: int) -> bool:
+func set_tool(chosen: int) -> bool:
 	"""Choose Rectangle, Oval, Paint or Erase (build_stroke.gd TOOL_*); a stroke in progress is cancelled."""
-	if not Stroke.valid_tool(tool):
+	if not Stroke.valid_tool(chosen):
 		return false
 	cancel_stroke()
-	_tool = tool
+	_tool = chosen
 	stroke_revision += 1
 	return true
 

@@ -29,7 +29,7 @@ const STEP_CONFIRM: Array[String] = [
 const CHOICE_TITLES: Array[String] = ["A bridge", "A dry tunnel route", "Fields made safe"]
 const CHOICE_TEACH: Array[String] = [
 	"Build a bridge at a site and see someone cross it: loaded crews never swim, and a bridge is the dry way over.",
-	"Not in this build: digging a tunnel waits for the build panel's dig orders (a later update). Choose a bridge or the fields.",
+	"Not this way in this build: the old tunnel tool is gone, and the build panel's new passages are not counted here yet. Choose a bridge or the fields.",
 	"Drain, raise, bank or cover a bed that has a crop: a covered bed keeps 4 °C warmer through a frost night.",
 ]
 const CHOICE_CONFIRM: Array[String] = [
@@ -76,7 +76,7 @@ const BRIDGE_READY: String = "No bridge yet: a %s can be built at %s now."
 const BRIDGE_SHORT: String = "No bridge yet: %s"
 const BRIDGE_BUILDING: String = "%s: being built, %d%%."
 const BRIDGE_OPEN: String = "%s is open: waiting for someone to walk across it."
-const TUNNEL_NONE: String = "No tunnel yet, and none can be dug in this build (digging comes in a later update): choose a bridge or the fields."
+const TUNNEL_NONE: String = "No tunnel yet: the old tunnel tool is gone in this build, so choose a bridge or the fields."
 const TUNNEL_DIGGING: String = "A tunnel is being dug: %d%%."
 const TUNNEL_OPEN: String = "%d tunnel(s) open: waiting for someone to walk through one."
 const FIELD_NONE: String = "No bed is readied yet: a bed with a crop can be raised or banked now (tunnel earth)."

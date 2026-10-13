@@ -20,7 +20,7 @@ extends RefCounted
 ## bunch of carrots"), not per catalogue unit.
 
 ## Decision 1912 (Brendan's ruling on decision 1911 P-C2 (c)): the old dig tools are gone from the build panel.
-const LATER_DIGGING: String = "digging comes back with the build panel's dig orders in a later update"
+const LATER_DIGGING: String = "the build panel's first version (B) digs plain rooms and passages instead"
 const SearchScript := preload("res://demo/guide/guide_search.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")

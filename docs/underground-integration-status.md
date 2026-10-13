@@ -28,7 +28,10 @@ The "Next, in order" list below (2026-10-05) is out of date. Checked in code at 
   confirm (`ROOM_APPROACH_HEIGHT_UNREACHABLE`). Both now read `modular_runtime.gd dug_height_u` with the claw crew's
   identity: 1,024 u on master, until C2.1 changes the rule (decision 1912).
 - **The build panel (slices B and C1)** paints rooms on the actual World's levels and judges every cell before
-  Confirm all ("No way in", "Cannot dig here", the 2 × 2 rule). Until slice D and C3 it orders nothing, and says so.
+  Confirm all ("No way in", "Cannot dig here", the 2 × 2 rule).
+- **The proof of concept (decision 1912, Brendan's ruling of 2026-10-12)**: in the demo, an Entrance placed on the
+  surface, rooms and passages painted, Confirm all, and a mole digs them -- demo layer only, free, unsaved. It touches
+  none of the core owners above and is replaced by C3. Nothing in the settlement simulation digs a room yet.
 - **HAUL-H3 and later have not landed**, and underground work does not need them: the entry has its own haul path
   (`underground_entry_hauler.gd` → `underground_connector_delivery.gd`), wood and stone only, the entry Placement only.
 

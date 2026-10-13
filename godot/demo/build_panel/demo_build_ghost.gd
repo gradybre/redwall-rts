@@ -54,16 +54,17 @@ func configure_ghost(datum: Vector3i, bounds: Rect2i, marks_layer: int, owns_gri
 	return &""
 
 
-func show_cells(cells: PackedInt32Array, kind: int, words: String) -> void:
-	"""Draw `cells` as validity `kind` wants (see the header), its words on a tag over their middle ("" hides it)."""
-	refresh(cells, kind != Validity.KIND_CAN_BUILD)
-	var colour: Color = UiTheme.color_of(Validity.token(kind))
+func show_cells(cells: PackedInt32Array, shown_kind: int, words: String) -> void:
+	"""Draw `cells` as validity `shown_kind` wants (see the header), its words on a tag over their middle ("" hides
+	it)."""
+	refresh(cells, shown_kind != Validity.KIND_CAN_BUILD)
+	var colour: Color = UiTheme.color_of(Validity.token(shown_kind))
 	var fill: ShaderMaterial = _fill.material_override as ShaderMaterial
 	fill.set_shader_parameter(&"tint", colour)
-	fill.set_shader_parameter(&"hatch", 1.0 if kind == Validity.KIND_NOT_POSSIBLE else 0.0)
+	fill.set_shader_parameter(&"hatch", 1.0 if shown_kind == Validity.KIND_NOT_POSSIBLE else 0.0)
 	(_edge.material_override as StandardMaterial3D).albedo_color = colour
-	_outline(cells, kind == Validity.KIND_BLOCKED)
-	_kind = kind
+	_outline(cells, shown_kind == Validity.KIND_BLOCKED)
+	_kind = shown_kind
 	_tag.text = words
 	_tag.modulate = colour
 	_tag.visible = not words.is_empty() and not cells.is_empty()
@@ -71,13 +72,13 @@ func show_cells(cells: PackedInt32Array, kind: int, words: String) -> void:
 		_tag.position = _middle(cells) + Vector3(0.0, TAG_LIFT_M, 0.0)
 
 
-func _outline(cells: PackedInt32Array, dashed: bool) -> void:
+func _outline(cells: PackedInt32Array, dash: bool) -> void:
 	"""The outline dashed for a blocked group (rebuilt only when the cells or the dashing changed)."""
-	if cells == _drawn and dashed == _dashed:
+	if cells == _drawn and dash == _dashed:
 		return
 	_drawn = cells.duplicate()
-	_dashed = dashed
-	_edge.mesh = _dash_mesh(cells) if dashed else _boundary_mesh(cells)
+	_dashed = dash
+	_edge.mesh = _dash_mesh(cells) if dash else _boundary_mesh(cells)
 
 
 func _dash_mesh(cells: PackedInt32Array) -> ImmediateMesh:

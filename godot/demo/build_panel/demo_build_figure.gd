@@ -48,9 +48,9 @@ func _init() -> void:
 	add_child(_name)
 
 
-func show_as(words: String, at: Vector3) -> void:
-	"""Shown at `at` (the floor, metres) with `words` over it."""
-	_name.text = words
+func show_as(name_words: String, at: Vector3) -> void:
+	"""Shown at `at` (the floor, metres) with `name_words` over it."""
+	_name.text = name_words
 	position = at
 	visible = true
 

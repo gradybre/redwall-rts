@@ -1,0 +1,98 @@
+extends "res://test/framework/test_case.gd"
+## The proof of concept's works (decision 1912): ordering rooms and ways down, opening cells, the breadth-first dig
+## order from the way in, walking paths through dug cells and down a way down.
+
+const Works := preload("res://demo/build_panel/demo_build_works.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
+
+var _works: Works = null
+
+
+func before_each() -> void:
+	"""A 32 × 32-cell area, all earth."""
+	_works = Works.new()
+	_works.configure(Rect2i(0, 0, 32, 32))
+
+
+func _dig_all(from: Vector3i) -> Array[Vector3i]:
+	"""Dig every reachable ordered cell from `from` (as the mole does: dig, then plan from where it stood); the order
+	the cells opened in."""
+	var opened: Array[Vector3i] = []
+	var at: Vector3i = from
+	for guard: int in 200:
+		var found: Dictionary = _works.next_dig(at)
+		if found.is_empty():
+			break
+		var path: PackedVector3Array = found["path"]
+		at = Vector3i(path[path.size() - 1])
+		var target: Vector3i = found["target"]
+		assert_true(_works.open_cell(target.x, Vector2i(target.y, target.z)), "opens %s" % target)
+		opened.append(target)
+	return opened
+
+
+func test_an_entrance_and_a_room_are_dug_outward_from_its_landing() -> void:
+	"""The landing first (dug in place), then the room cells beside open space, nearest first, every one."""
+	assert_true(_works.order_way_down(0, Vector2i(4, 4)), "the Entrance")
+	assert_true(_works.order_room(1, PackedInt32Array([6, 4, 7, 4, 6, 5, 7, 5]), 2), "a 2 × 2 room beside it")
+	assert_equal(_works.waiting(), 8, "8 cells wait")
+	assert_equal(_works.entrance(), 0, "the first Entrance")
+	assert_equal(_works.landing_of(0), Vector3i(1, 4, 4), "it lands on level 1")
+	var opened: Array[Vector3i] = _dig_all(_works.landing_of(0))
+	assert_equal(opened.size(), 8, "all dug")
+	assert_equal(opened[0], Vector3i(1, 4, 4), "the landing under the mole first")
+	assert_true(opened.find(Vector3i(1, 6, 4)) > opened.find(Vector3i(1, 5, 4)), "the room after the landing beside it")
+	assert_equal(_works.waiting(), 0, "nothing waits")
+	assert_equal(_works.type_of(1, Vector2i(6, 4)), 2, "the room's type kept")
+	assert_equal(_works.type_of(1, Vector2i(4, 4)), Works.TYPE_NONE, "a landing has none")
+
+
+func test_a_room_cut_off_from_the_way_in_is_never_dug() -> void:
+	"""Only cells beside open space can be dug; a room across earth waits."""
+	_works.order_way_down(0, Vector2i(4, 4))
+	_works.order_room(1, PackedInt32Array([20, 20, 21, 20, 20, 21, 21, 21]), 2)
+	assert_equal(_dig_all(Vector3i(1, 4, 4)).size(), 4, "only the landing")
+	assert_equal(_works.waiting(), 4, "the far room waits")
+
+
+func test_a_way_down_is_dug_from_above_and_walked_both_ways() -> void:
+	"""A Way down standing on dug level-1 cells: its landing on level 2 is dug from above; then a walk crosses it."""
+	_works.order_way_down(0, Vector2i(4, 4))
+	_works.order_way_down(1, Vector2i(4, 4))
+	_works.order_room(2, PackedInt32Array([6, 4, 6, 5]), 7)
+	_dig_all(Vector3i(1, 4, 4))
+	assert_equal(_works.state(2, Vector2i(4, 4)), Works.OPEN, "the level-2 landing dug")
+	assert_equal(_works.state(2, Vector2i(6, 5)), Works.OPEN, "and the passage beyond it")
+	var path: PackedVector3Array = _works.path_to(Vector3i(1, 5, 5), Vector3i(2, 6, 4))
+	assert_false(path.is_empty(), "a walk from level 1 to level 2")
+	assert_equal(Vector3i(path[path.size() - 1]), Vector3i(2, 6, 4), "ending there")
+	assert_true(_works.path_to(Vector3i(2, 6, 4), Vector3i(1, 4, 4)).size() > 1, "and back up")
+	assert_true(_works.path_to(Vector3i(1, 4, 4), Vector3i(1, 30, 30)).is_empty(), "no way to earth")
+
+
+func test_orders_off_the_area_or_on_the_surface_are_refused() -> void:
+	"""Nothing is ordered past the area, below level 4 or on the surface; a cell not ordered does not open."""
+	assert_false(_works.order_room(1, PackedInt32Array([40, 40]), 2), "off the area")
+	assert_false(_works.order_way_down(4, Vector2i(1, 1)), "nothing below level 4")
+	assert_false(_works.order_way_down(0, Vector2i(31, 31)), "its landing past the area")
+	assert_false(_works.order_room(0, PackedInt32Array([1, 1]), 2), "not on the surface")
+	assert_false(_works.open_cell(1, Vector2i(1, 1)), "earth does not open")
+	assert_equal(_works.state(0, Vector2i(1, 1)), Works.EARTH, "the surface reads earth")
+	assert_equal(_works.entrance(), -1, "no Entrance")
+	assert_true(_works.next_dig(Vector3i(1, 1, 1)).is_empty(), "nothing to dig")
+
+
+func test_a_repaint_keeps_cells_ordered_once() -> void:
+	"""Ordering a cell twice waits once; a landing ordered over a room cell keeps the room's type."""
+	_works.order_room(1, PackedInt32Array([4, 4, 5, 4]), 3)
+	_works.order_room(1, PackedInt32Array([4, 4]), 3)
+	assert_equal(_works.waiting(), 2, "two cells")
+	_works.order_way_down(0, Vector2i(4, 4))
+	assert_equal(_works.type_of(1, Vector2i(4, 4)), 3, "the room's type kept")
+	assert_equal(_works.waiting(), 4, "the landing's other two")
+	var revision: int = _works.revision
+	_works.open_cell(1, Vector2i(4, 4))
+	assert_true(_works.revision > revision, "a dug cell moves the revision")
+	assert_equal(_works.way_count(), 1, "one way down")
+	assert_equal(_works.way_level(0), 0, "the Entrance")
+	assert_equal(_works.way_cell(0), Vector2i(4, 4), "its cell")

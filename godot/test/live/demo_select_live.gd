@@ -12,6 +12,7 @@ extends SceneTree
 ## Prints `LIVE <name>: PASS|FAIL <detail>` per check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const CrewsScript := preload("res://demo/work/work_crews.gd")
+const SheetLive := preload("res://test/live/party_sheet_live.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 
 const BOOT_FRAMES: int = 14
@@ -193,7 +194,10 @@ func _key(code: Key, ctrl: bool = false) -> void:
 
 
 func _reveal(control: Control) -> void:
-	"""Scroll `control`'s scroll to it, and wait for it to move."""
+	"""Scroll `control`'s scroll to it -- in the party sheet, opened first where it is folded (decision 1891) -- and wait
+	for it to move."""
+	if SheetLive.open_for(control, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	var at: Node = control.get_parent()
 	while at != null and not at is ScrollContainer:
 		at = at.get_parent()
@@ -412,6 +416,8 @@ func _the_group_section() -> void:
 	_command().call(&"select", five)
 	await _settle()
 	var panel: Control = _group().get("panel")
+	if SheetLive.open_for(panel, _command().call(&"panel")):
+		await _frames(SETTLE_FRAMES)
 	_check("the group section shows", panel.is_visible_in_tree())
 	_check("a tile each", int(panel.call(&"tile_count")) == 5, str(panel.call(&"tile_count")))
 	var text: String = panel.call(&"lines_text")

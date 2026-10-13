@@ -404,10 +404,14 @@ func test_the_demo_build_command_opens_and_closes_the_panel() -> void:
 	_nodes.append(shell)
 	shell.build()
 	assert_true((shell.control_for(UiShellScript.ID_BUILD) as Button).disabled, "the game's shell keeps it locked")
+	var lock: Texture2D = load(UiShellScript.LOCK_ICON) as Texture2D
+	assert_equal((shell.control_for(UiShellScript.ID_BUILD) as Button).icon, lock, "with the lock")
 	_build._shell = shell
 	assert_true(_build.unlock_build_command(), "unlocked in the demo")
 	var button: Button = shell.control_for(UiShellScript.ID_BUILD) as Button
 	assert_false(button.disabled, "enabled")
+	assert_true(button.icon != null and button.icon != lock, "wearing its own icon, not the lock (decision 1891)")
+	assert_equal(button.icon, shell.command_icon(UiShellScript.ID_BUILD), "the shell's own Build icon")
 	assert_equal(button.tooltip_text, "Build (B) — " + BuildScript.BUILD_COMMAND, "its tip")
 	button.pressed.emit()
 	assert_true(_build.is_open(), "a click opens the panel")

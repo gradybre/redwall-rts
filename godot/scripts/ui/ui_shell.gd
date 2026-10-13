@@ -626,6 +626,12 @@ func _style_button(button: Button, id: int) -> void:
 		button.text = ""
 
 
+func command_icon(id: int) -> Texture2D:
+	"""The icon element `id` wears when it is wired (`_icon_texture_for`): a host that enables a command the shell
+	built locked -- the demo's Build (decision 1871 P-B3, corrected by decision 1891) -- gives it this, not the lock."""
+	return _icon_texture_for(id)
+
+
 func _icon_texture_for(id: int) -> Texture2D:
 	"""The icon an element wears: painted where the lock authors one, symbolic when NARROW.
 

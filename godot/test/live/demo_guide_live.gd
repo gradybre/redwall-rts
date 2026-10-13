@@ -551,44 +551,41 @@ func _back_to_100() -> void:
 
 
 func _dig_tool_then_the_guide() -> void:
-	"""B opens the build panel and its Passage card the Dig tool (decision 1871); O opens the guide over it, on Help."""
+	"""B opens the build panel; on level 1 its Passage card arms painting, where Enter in the world would set a corner
+	(decision 1912: no card opens the old Dig tool). The guide is opened over it on Help (O itself is a command key,
+	and the panel hides the command strip, so its key does nothing then: decision 1871 E11)."""
 	_key(KEY_B)
 	var build: Node = _village.call(&"build")
 	_check("B opens the build panel", bool(build.call(&"is_open")))
+	_key(KEY_PAGEDOWN)
 	var panel: Node = build.get("panel")
 	var cards: Array = panel.call(&"row_cards")
 	for k: int in cards.size():
 		if String(cards[k].get("name")) == "Passage":
 			panel.call(&"choose_card", k)
-	var tool: Object = _village.get("_command").call(&"tunnels")
-	_check("its Passage card opens the Dig tool", bool(tool.get("planning")))
-	tool.set("_last_notice", "")
-	_key(KEY_O)
-	_window().call(&"show_tab", WindowScript.TAB_HELP)
+	_check("its Passage card arms painting", int(build.call(&"armed_type")) == 7)
+	_village.get("_guide").call(&"open_window", WindowScript.TAB_HELP)
 
 
 func _enter_in_the_search_never_digs() -> void:
-	"""Enter typed in the help's search goes nowhere: the Dig tool behind the modal never sees it (review, HIGH)."""
-	var tool: Object = _village.get("_command").call(&"tunnels")
+	"""Enter typed in the help's search goes nowhere: the build panel behind the modal never sees it (review, HIGH)."""
+	var batch: Object = _village.call(&"build").get("batch")
 	var field: LineEdit = _window().get("help").call(&"field")
 	field.grab_focus()
 	_type("tunnel")
 	_key(KEY_ENTER)
-	_check("Enter in the search does not reach the Dig tool", String(tool.call(&"notice")).is_empty(),
-		String(tool.call(&"notice")))
+	_check("Enter in the search does not reach the build panel", not bool(batch.call(&"stroke_active")))
 	_check("the guide is still open over it", _window().visible and _gate().top_layer() == _window())
 
 
 func _close_both() -> void:
-	"""Esc closes the guide; B closes the Dig tool, the build panel comes back, and B closes it."""
+	"""Esc closes the guide; B closes the build panel (nothing pending)."""
 	_key(KEY_ESCAPE)
-	_key(KEY_B)
-	_check("the guide and the Dig tool closed", not _window().visible
-		and not bool(_village.get("_command").call(&"tunnels").get("planning")))
+	_check("the guide closed", not _window().visible)
 	var build: Node = _village.call(&"build")
-	build.call(&"_process", 0.0)
 	_key(KEY_B)
 	_check("and B closes the build panel", not bool(build.call(&"is_open")))
+	_key(KEY_PAGEUP)
 
 
 func _the_lab_s_practice_stories() -> void:

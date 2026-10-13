@@ -166,3 +166,11 @@ static func _all(count: int, code: int) -> PackedByteArray:
 	out.resize(count)
 	out.fill(code)
 	return out
+
+
+func test_the_way_in_runs_through_a_one_cell_strip_to_the_block_beyond() -> void:
+	"""A strip one cell wide is still dug, so it carries the way in to the block past it (mutation C04)."""
+	_finished_column(0, 0, 3)
+	var room: PackedInt32Array = PackedInt32Array([1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 1, 1, 2, 1, 6, 1, 7, 1])
+	var codes: PackedByteArray = _cells.judge_level(1, [room])[0]
+	assert_equal(codes, PackedByteArray([0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0]), "the far block reached")

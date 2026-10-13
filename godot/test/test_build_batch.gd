@@ -685,3 +685,58 @@ func test_a_way_down_is_judged_where_it_stands_and_lands() -> void:
 	assert_equal(_batch.place_item(0, Vector2i(50, 50)), -1, "not mid-stroke")
 	_batch.discard_all()
 	assert_equal(_batch.items().count(), 0, "Discard all drops them")
+
+
+func test_a_merge_past_capacity_reads_x_while_drawn() -> void:
+	"""The made room is measured while the stroke is drawn: 44 cells against 43 is X before release (mutation B03)."""
+	var small: Batch = Batch.new()
+	small.configure(BuildCatalog.new(), BOUNDS, 43)
+	_paint_on(small, DORMITORY, Vector2i(0, 0), Vector2i(3, 4))
+	_paint_on(small, DORMITORY, Vector2i(6, 0), Vector2i(9, 4))
+	small.begin_stroke(DORMITORY, 1, Vector2i(4, 0))
+	small.extend_stroke(Vector2i(5, 1))
+	assert_equal(small.stroke_kind(), Validity.KIND_NOT_POSSIBLE, "44 of 43 while drawn")
+	assert_equal(small.stroke_reason(), Validity.shape(Batch.shape_words(&"FOOTPRINT_CAPACITY")), "in the planner's words")
+
+
+func test_a_stroke_whose_first_cell_is_water_is_x() -> void:
+	"""Even the stroke's very first cell is judged (mutation B04)."""
+	_bind_ground()
+	_ground[Vector2i(1, 0)] = Cells.CELL_WATER
+	_batch.begin_stroke(KITCHEN, 1, Vector2i(1, 0))
+	_batch.extend_stroke(Vector2i(6, 3))
+	assert_equal(_batch.stroke_reason(), Validity.cannot_dig("water"), "the corner cell")
+
+
+func test_a_way_down_may_land_on_dug_space() -> void:
+	"""A landing on cells already dug (or ordered) joins two levels; only undiggable ground refuses it (B15)."""
+	_bind_ground()
+	_ground[Vector2i(41, 41)] = Cells.CELL_FINISHED
+	assert_equal(_batch.place_item(0, Vector2i(40, 40)), Validity.KIND_CAN_BUILD, "over a dug cell")
+
+
+func test_a_way_down_with_no_route_for_it_counts_as_refused() -> void:
+	"""Confirm all with no route for ways down keeps them and counts them refused (B17)."""
+	_batch.place_item(0, Vector2i(10, 10))
+	assert_equal(_batch.confirm_all(_submit), PackedInt32Array([0, 1]), "kept, refused")
+	assert_equal(_batch.pending_count(), 1, "still pending")
+
+
+func test_a_kept_refusal_never_covers_a_later_no_way_in() -> void:
+	"""Mutation B18: a room the route refused, which then loses its way in (its Entrance undone), holds Confirm all
+	back with "No way in" rather than being retried."""
+	_bind_ground()
+	_batch.place_item(0, Vector2i(24, 20))
+	_paint(PANTRY, 1, Vector2i(20, 20), Vector2i(23, 23))
+	_answers.append({"ok": false, "error": "refused by the route", "kind": Validity.KIND_BLOCKED})
+	_batch.confirm_all(_submit)
+	assert_true(_batch.retryable(0), "refused: retried")
+	_batch.discard_all()
+	_paint(PANTRY, 1, Vector2i(20, 20), Vector2i(23, 23))
+	_batch.place_item(0, Vector2i(24, 20))
+	_answers.append({"ok": false, "error": "refused by the route", "kind": Validity.KIND_BLOCKED})
+	_batch.confirm_all(_submit)
+	assert_true(_batch.undo(), "the Entrance undone")
+	assert_equal(_batch.operation_reason(0), Validity.no_way_in(), "no way in now")
+	assert_false(_batch.retryable(0), "not a retry")
+	assert_equal(_batch.first_invalid(), 0, "it holds Confirm all back")

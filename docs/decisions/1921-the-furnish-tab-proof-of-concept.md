@@ -190,6 +190,10 @@ armed piece; a right click with a piece armed puts its card down. No new key or 
   (and slice B) put it on its own Decor tab, which this follows, placed the same way. Options: (a) as built; (b) list it
   on Furnish too. **Recommend (a).**
 
+**Brendan's ruling (2026-10-14, relayed by the coordinator): "Approve as recommended"**: P-1921-1 to P-1921-6 and
+P-1921-8 to P-1921-10 (a) as built, and P-1921-7 (c): no paid kitchen-bench model; the named blocks stay until
+slice E.
+
 ## The review
 
 An independent `code-reviewer` on `bd749c1d` found no CRITICAL. Its three HIGH and two MEDIUM defects are fixed in

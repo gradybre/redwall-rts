@@ -23,6 +23,8 @@ const ForestPanel := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
+const BuildValidity := preload("res://scripts/ui/build_validity.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 
 ## Frames to let the village boot (its prewarm releases the clock after its first frames).
 const BOOT_FRAMES: int = 12
@@ -46,6 +48,8 @@ var _restart_checked_hold: bool = false
 ## The playtest log's node and file as first seen (decision 0562): the same after a restart.
 var _playtest_node: Node = null
 var _playtest_file: String = ""
+## Where the camera looked before the build steps moved it (restored after them).
+var _camera_before_build: Vector3 = Vector3.ZERO
 
 
 func _initialize() -> void:
@@ -68,11 +72,18 @@ func _initialize() -> void:
 		_escape_ladder_ends_in_the_menu, _menu_button_opens_the_menu, _menu_pages_and_escape, _menu_controls_back,
 		_menu_restores_speed, _menu_confirms_restart_and_quit, _confirm_cancel_and_quit,
 		_settings_offer_what_works, _settings_fit_and_sound, _settings_close, _playtest_opens_the_menu, _playtest_presses_f12, _playtest_marked, _sound_really_plays, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
-		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _enter_goes_to_the_dig_tool,
+		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _b_opens_the_build_panel,
+		_scroll_to_the_passage_card, _the_passage_card_is_a_room_type, _b_closes_the_build_panel, _build_opens_on_b, _build_rectangles_apart, _build_minimap_hidden,
+		_build_minimap_back, _build_level_one, _build_choose_by_keyboard, _build_paint_by_keyboard, _build_undo_redo,
+		_build_ghost_states, _build_ghost_states_drawn, _build_ghost_states_cleared, _build_oval_tool, _build_oval_tool_back,
+		_build_ledger_expanded, _build_refusal_in_words, _build_overview, _build_close_keeps,
+		_build_many_refused, _build_many_refused_cleared,
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
 		_the_hud_workspace_keeps_the_keys, _the_workspace_covers_no_stop, _a_group_is_box_selected,
-		_a_member_row_selects_and_centres, _a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
+		_a_member_row_selects_and_centres, _sheet_compact_form, _sheet_opens_on_a_click, _sheet_holds_the_world_keys,
+		_sheet_traps_tab, _sheet_folds_on_escape, _sheet_click_away_folds, _sheet_by_keyboard, _sheet_scale_back,
+		_a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
 		_the_picker_crosses_spring_5, _jobs_opens_the_work_screen, _work_tab_and_enter, _work_queue_a_fell,
 		_work_show_the_fell, _work_open_the_picker, _work_show_the_target, _work_reassign_by_click, _work_show_residents, _work_scroll_to_resident, _work_edit_a_crew, _work_cancel_all_shows_its_scope,
 		_work_keep_working, _work_closes_on_j, _shift_right_click_queues,
@@ -244,6 +255,26 @@ func _pantry_opens_as_a_modal() -> void:
 	_capture("pantry_open")
 
 
+func _level_keys_wait_with_the_u_view_on() -> void:
+	"""Review M1: with the U view on behind the Pantry, Page Down and Page Up change neither the view's level nor the
+	bar's (the tunnel tool's own level-key branch is gone; the gate passes navigation keys to nothing that steps)."""
+	var tunnels: Object = _command().call(&"tunnels")
+	var view: Object = tunnels.get("view")
+	var was_on: bool = bool(view.get("on"))
+	if not was_on:
+		tunnels.call(&"toggle_view")
+	var shown: int = int(view.get("level"))
+	var bar: int = int(_build().get("bar").call(&"shown_level"))
+	_key(KEY_PAGEDOWN)
+	_key(KEY_PAGEUP)
+	_key(KEY_PAGEDOWN)
+	_check("U on behind the Pantry: Page Up/Down change no level",
+		bool(view.get("on")) and int(view.get("level")) == shown and int(_build().get("bar").call(&"shown_level")) == bar,
+		"view %d->%d bar %d->%d" % [shown, int(view.get("level")), bar, int(_build().get("bar").call(&"shown_level"))])
+	if not was_on:
+		tunnels.call(&"toggle_view")
+
+
 func _pantry_blocks_the_world() -> void:
 	"""An outside right-click, a drag, B, V and Space change nothing behind the Pantry."""
 	var was_paused: bool = bool(_manager().call(&"is_paused"))
@@ -257,12 +288,16 @@ func _pantry_blocks_the_world() -> void:
 	_key(KEY_V)
 	_key(KEY_SPACE)
 	_check("B does not open the Dig tool", not bool(_command().call(&"tunnels").get("planning")))
+	_check("B does not open the build panel", not bool(_build().call(&"is_open")))
 	_check("V does not step the map layer", int(_village.get("_farm").get("lenses").get("active")) == overlay)
 	_check("Space does not toggle the pause", bool(_manager().call(&"is_paused")) == was_paused)
 	var camera: Node = _village.get("_camera")
 	var distance: float = float(camera.get("_target_distance"))
-	_key(KEY_PAGEUP)
-	_check("Page Up does not zoom the camera behind it", is_equal_approx(float(camera.get("_target_distance")), distance))
+	var level: int = int(_build().get("bar").call(&"shown_level"))
+	_key(KEY_PAGEDOWN)
+	_check("Page Down neither zooms nor changes level behind it (decision 1871)",
+		is_equal_approx(float(camera.get("_target_distance")), distance) and int(_build().get("bar").call(&"shown_level")) == level)
+	_level_keys_wait_with_the_u_view_on()
 	var down := InputEventKey.new()
 	down.keycode = KEY_LEFT
 	down.pressed = true
@@ -603,8 +638,8 @@ func _focus_ring_off() -> void:
 
 
 func _f7_reaches_the_left_column_then_the_world() -> void:
-	"""With the whole cast selected (a digger among them, so the party panel's Dig and room buttons show):
-	F7, F7 -> the left column; F7 -> the Map layer picker (decision 0391); F7 -> the world."""
+	"""With the whole cast selected: F7, F7 -> the left column; F7 -> the Map layer picker (decision 0391); F7 -> the
+	guide card; F7 -> the level bar (decision 1871: always shown); F7 -> the world."""
 	_command().call(&"select", PackedInt32Array(range(int(_village.get("_cast").call(&"actor_count")))))
 	_command().call(&"_refresh_panel")
 	var party: Node = _command().call(&"panel")
@@ -622,7 +657,10 @@ func _f7_reaches_the_left_column_then_the_world() -> void:
 	_check("F7 a fourth time: the guide card (decision 0481)", _focus() != null
 		and _village.call(&"guide").get("card").call(&"frame").is_ancestor_of(_focus()), str(_focus()))
 	_key(KEY_F7)
-	_check("F7 a fifth time: the world", _focus() == null)
+	_check("F7 a fifth time: the level bar (decision 1871)", _focus() != null
+		and _build().get("bar").is_ancestor_of(_focus()), str(_focus()))
+	_key(KEY_F7)
+	_check("F7 a sixth time: the world", _focus() == null)
 	_check("the selection is untouched", _command().call(&"selection_count") > 1)
 	_key(KEY_ESCAPE)
 
@@ -650,25 +688,35 @@ func _enter_and_space_route_by_focus() -> void:
 	_key(KEY_SPACE)
 
 
-func _enter_goes_to_the_dig_tool() -> void:
-	"""With the Dig tool out: Enter from a keyboard-focused button presses the button, not the tool; from a
-	clicked button or no focus it is the tool's."""
+func _b_opens_the_build_panel() -> void:
+	"""B opens the build panel (decision 1871)."""
+	_key(KEY_B)
+	_check("B opens the build panel", bool(_build().call(&"is_open")))
+
+
+func _scroll_to_the_passage_card() -> void:
+	"""The card row, laid out now, scrolled to the Passage card (drawn by the next step)."""
+	_scroll_to_card("Passage")
+
+
+func _the_passage_card_is_a_room_type() -> void:
+	"""Decision 1912 (P-C2 (c)): the Passage card is a room type (on the surface it is locked, saying why); no card
+	opens the old Dig tool, and the panel said, on opening, that digging painted rooms comes later."""
 	var tool: Object = _command().call(&"tunnels")
-	var zone: ZoneScript = _village.get("_zone")
+	_click(_card_centre("Passage"))
+	_check("the Passage card opens no Dig tool", not bool(tool.get("planning")))
+	var passage: Button = _card_button("Passage")
+	_check("on the surface it says why it is locked", passage != null
+		and passage.accessibility_name.contains("rooms on the surface"), passage.accessibility_name if passage else "")
+	_check("no Burrow home or Root cellar card", _card_button("Burrow home") == null and _card_button("Root cellar") == null)
+	var said: String = String(_command().get("_notice_general"))
+	_check("the panel says a mole digs them", said.contains("a mole digs them (free for now)"), said)
+
+
+func _b_closes_the_build_panel() -> void:
+	"""B closes the panel (nothing pending)."""
 	_key(KEY_B)
-	_check("B opens the Dig tool", bool(tool.get("planning")))
-	tool.set("_last_notice", "")
-	_key(KEY_F7)
-	_key(KEY_TAB)
-	_key(KEY_ENTER)
-	_check("Enter on a focused tab presses the tab", zone.shown == ZoneScript.PANEL_TUNNELS)
-	_check("and the tool never saw it", String(tool.call(&"notice")).is_empty(), String(tool.call(&"notice")))
-	_click(_centre(zone.tab(ZoneScript.PANEL_FARM)))
-	_key(KEY_ENTER)
-	_check("Enter after a click is the tool's", not String(tool.call(&"notice")).is_empty())
-	_check("and did not press the clicked tab again", zone.shown == ZoneScript.PANEL_FARM)
-	_key(KEY_B)
-	_check("B closes the Dig tool", not bool(tool.get("planning")))
+	_check("B closes the build panel", not bool(_build().call(&"is_open")))
 
 
 # --- F50: the Demo Lab --------------------------------------------------------------------------
@@ -777,7 +825,8 @@ func _the_banner_takes_enter() -> void:
 	var banner: Node = _village.get("_stall_banner")
 	_check("a stall puts the banner up", bool(banner.call(&"is_shown")))
 	_key(KEY_B)
-	_check("B behind the Lab still does nothing", not bool(_command().call(&"tunnels").get("planning")))
+	_check("B behind the Lab still does nothing", not bool(_command().call(&"tunnels").get("planning"))
+		and not bool(_build().call(&"is_open")))
 	_check("the Lab is still the top modal", _gate().top_layer() == _village.call(&"lab"))
 	_key(KEY_ENTER)
 	_check("Enter is the banner's Resume", not (_manager().call(&"get_pause_reason_names") as Array).has("CRITICAL"))
@@ -1117,6 +1166,7 @@ func _a_group_is_box_selected() -> void:
 	summary and Release in view (F20: at 1280x720 it used to vanish)."""
 	_command().call(&"clear_selection")
 	var box: Rect2 = _cast_box()
+
 	_drag(box.position, box.end)
 	var picked: PackedInt32Array = _command().call(&"selected")
 	_check("the drag selected a group", picked.size() >= 2, "%d from %s" % [picked.size(), box])
@@ -1136,9 +1186,30 @@ func _a_member_row_selects_and_centres() -> void:
 	_check("a row per member", int(party.call(&"member_row_count")) == picked.size())
 	if picked.size() < 2:
 		return
-	var row: Button = party.call(&"member_row", 1)
-	(party.call(&"inspector") as ScrollContainer).call(&"reveal", row)
+	if bool(party.call(&"compact")):
+		_click(_centre(party.call(&"open_button")))
+		_check("compact: a real click on Open shows the member rows", bool(party.call(&"sheet").call(&"is_open")))
+	_steps.push_front(_fold_after_the_pick)
 	_steps.push_front(_click_member_row.bind(picked[1]))
+	_steps.push_front(_reveal_member_row)
+
+
+func _reveal_member_row() -> void:
+	"""The second member row scrolled into view (a frame after the sheet, where used, was laid out)."""
+	var row: Button = _command().call(&"panel").call(&"member_row", 1)
+	(_command().call(&"panel").call(&"inspector") as ScrollContainer).call(&"reveal", row)
+
+
+func _fold_after_the_pick() -> void:
+	"""Compact: the sheet stays open on the picked resident; Esc folds it and keeps that selection (decision 1891)."""
+	var party: Node = _command().call(&"panel")
+	if not bool(party.call(&"sheet").call(&"is_open")):
+		return
+	_check("the sheet stays open on the pick", int(party.call(&"member_row_count")) == 0
+		and String(party.call(&"sheet").call(&"count_text")) == "1 selected")
+	_key(KEY_ESCAPE)
+	_check("Esc folds it, the pick kept", not bool(party.call(&"sheet").call(&"is_open"))
+		and _command().call(&"selection_count") == 1)
 
 
 func _click_member_row(who: int) -> void:
@@ -1154,6 +1225,141 @@ func _click_member_row(who: int) -> void:
 	var after: Vector3 = camera.get("_target_focus")
 	_check("and centred the camera on it", absf(after.x - feet.x) < 1.0 and absf(after.z - feet.y) < 1.0,
 		"%s -> %s, feet %s" % [before, after, feet])
+
+
+# --- decision 1891: the party panel's compact form and its sheet ---------------------------------------------
+
+## The interface scale before the sheet's steps (they take 150 % at 1920x1080, the same logical 1280x720).
+var _sheet_scale_was: int = 100
+
+
+func _party() -> CanvasLayer:
+	"""The party panel."""
+	return _command().call(&"panel")
+
+
+func _sheet() -> CanvasLayer:
+	"""The party sheet."""
+	return _party().call(&"sheet")
+
+
+func _sheet_compact_form() -> void:
+	"""The compact form at this window (at 1920x1080 at 150 %), the whole cast selected."""
+	_sheet_scale_was = DemoUiScale.percent
+	if _size.y > 720:
+		_village.call(&"set_ui_scale", 150)
+	_command().call(&"select", PackedInt32Array(range(int(_village.get("_cast").call(&"actor_count")))))
+	_command().call(&"_refresh_panel")
+
+
+func _sheet_opens_on_a_click() -> void:
+	"""A real click on Open lays the sheet out as the gate's top modal, over its scrim, with the focus inside it."""
+	var open: Button = _party().call(&"open_button")
+	_check("the compact form here", bool(_party().call(&"compact")), "%d%%" % DemoUiScale.percent)
+	_check("Release, Follow and Open in view", _fraction(_party().call(&"release_button")) >= 0.99
+		and _fraction(_party().call(&"follow_button")) >= 0.99 and _fraction(open) >= 0.99)
+	_click(_centre(open))
+	_check("a real click on Open lays the sheet out", bool(_sheet().call(&"is_open")))
+	_check("the sheet is the gate's top modal", _gate().top_layer() == _sheet())
+	var scrim: ColorRect = _gate().scrim_of(_sheet())
+	_check("with the gate's scrim over the whole view", scrim != null
+		and scrim.get_global_rect().size.x >= float(_size.x) - 1.0)
+	_check("focus inside the sheet", _gate().in_top_modal(_focus()), str(_focus()))
+	_check("opened by a click, its focus not drawn", _focus() != null and not _focus().has_focus(true))
+	_check("and its inspector shown from the top", (_party().call(&"inspector") as ScrollContainer).scroll_vertical == 0)
+	_order_before = int(_brain(0).get("order"))
+	_capture("party_sheet_open")
+
+
+func _sheet_holds_the_world_keys() -> void:
+	"""B, V, Space and Page Down wait behind the sheet (the gate swallows them); it stays open."""
+	var was_paused: bool = bool(_manager().call(&"is_paused"))
+	var overlay: int = int(_village.get("_farm").get("lenses").get("active"))
+	var level: int = int(_build().get("bar").call(&"shown_level"))
+	for code: Key in [KEY_B, KEY_V, KEY_SPACE, KEY_PAGEDOWN]:
+		_key(code)
+	_check("B waits behind the sheet", not bool(_build().call(&"is_open")))
+	_check("V waits", int(_village.get("_farm").get("lenses").get("active")) == overlay)
+	_check("Space waits", bool(_manager().call(&"is_paused")) == was_paused)
+	_check("Page Down waits", int(_build().get("bar").call(&"shown_level")) == level)
+	_check("the sheet is still open", bool(_sheet().call(&"is_open")))
+
+
+func _sheet_traps_tab() -> void:
+	"""Tab and Shift+Tab stay inside the sheet; Close (Esc) is last in its ring."""
+	var ring: Array[Control] = _gate().modal_controls()
+	_check("Close is last in the sheet's Tab order", not ring.is_empty()
+		and ring.back() == _sheet().call(&"close_button"), "%d stops" % ring.size())
+	for k: int in 40:
+		_key(KEY_TAB)
+		if not _gate().in_top_modal(_focus()):
+			break
+	_check("40 Tabs never leave the sheet", _gate().in_top_modal(_focus()))
+	_key(KEY_TAB, true)
+	_check("Shift+Tab stays inside", _gate().in_top_modal(_focus()))
+
+
+func _sheet_folds_on_escape() -> void:
+	"""Esc folds the sheet alone: the selection stays, no modal is left, the focus goes back to Open."""
+	var count: int = int(_command().call(&"selection_count"))
+	_key(KEY_ESCAPE)
+	_check("Esc folds the sheet", not bool(_sheet().call(&"is_open")))
+	_check("the same Esc keeps the selection", int(_command().call(&"selection_count")) == count)
+	_check("no modal is left", not _gate().modal_open())
+	_check("the focus back on Open", _focus() == _party().call(&"open_button"), str(_focus()))
+
+
+func _sheet_click_away_folds() -> void:
+	"""A real left click away folds the sheet and does nothing else (the selection is kept); a right click away folds
+	it and orders nobody."""
+	var open: Button = _party().call(&"open_button")
+	var count: int = int(_command().call(&"selection_count"))
+	_click(_centre(open))
+	_click(_world_point())
+	_check("a click away folds it", not bool(_sheet().call(&"is_open")))
+	_check("and does nothing else: the selection kept", int(_command().call(&"selection_count")) == count)
+	_click(_centre(open))
+	_click(_world_point(), MOUSE_BUTTON_RIGHT)
+	_check("a right click away folds it too", not bool(_sheet().call(&"is_open")))
+	_check("and orders nobody", int(_brain(0).get("order")) == _order_before, "order %d" % int(_brain(0).get("order")))
+
+
+func _sheet_by_keyboard() -> void:
+	"""F7 keeps its order (right column, then the party panel); Tab reaches Open; Enter opens the sheet with the drawn
+	focus inside (the next step goes on)."""
+	var open: Button = _party().call(&"open_button")
+	_key(KEY_F7)
+	_key(KEY_F7)
+	_check("F7 twice: the party panel", _gate().region_of(_focus()) == 1, str(_focus()))
+	for k: int in _gate().region_controls(1).size():
+		if _focus() == open:
+			break
+		_key(KEY_TAB)
+	_check("Tab reaches Open", _focus() == open, str(_focus()))
+	_key(KEY_ENTER)
+	_check("Enter opens the sheet", bool(_sheet().call(&"is_open")))
+	_check("the keyboard's focus inside it, drawn", _gate().in_top_modal(_focus()) and _focus().has_focus(true))
+	_steps.push_front(_sheet_keyboard_focus_in_view)
+
+
+func _sheet_keyboard_focus_in_view() -> void:
+	"""(A frame after Enter opened the sheet.) The drawn focus is in view: the inspector keeps the scroll that revealed
+	it; then Esc folds the sheet and Open has its drawn focus back, and F7 goes on to the Map layer picker."""
+	var open: Button = _party().call(&"open_button")
+	_check("the keyboard's focus in view", _fraction(_focus()) >= 0.99, str(_focus()))
+	_key(KEY_ESCAPE)
+	_check("Esc folds it and Open has the drawn focus back", not bool(_sheet().call(&"is_open")) and _focus() == open
+		and open.has_focus(true))
+	_key(KEY_F7)
+	_check("F7 goes on to the Map layer picker", _focus() != null
+		and _village.get("_lens_picker").is_ancestor_of(_focus()), str(_focus()))
+	_key(KEY_ESCAPE)
+
+
+func _sheet_scale_back() -> void:
+	"""The interface scale as it was before the sheet's steps."""
+	if DemoUiScale.percent != _sheet_scale_was:
+		_village.call(&"set_ui_scale", _sheet_scale_was)
 
 
 func _a_water_action_without_scrolling() -> void:
@@ -1237,7 +1443,9 @@ func _close_the_picker() -> void:
 
 func _cast_box() -> Rect2:
 	"""A screen box round the residents in view (a box selects by screen position, under a panel too), its first
-	corner -- where the press lands -- on open ground (no panel under it)."""
+	corner -- where the press lands -- on open ground (no panel under it). The box grows until a corner, kept inside
+	the window, is clear of the HUD: where the residents stand when this step runs changes with the steps before it
+	(decision 1912 found the first corner left over a panel at 1280x720 once the build steps took a little longer)."""
 	var camera: Camera3D = get_viewport_camera()
 	var box := Rect2()
 	var first: bool = true
@@ -1250,11 +1458,13 @@ func _cast_box() -> Rect2:
 			continue
 		box = Rect2(p, Vector2.ZERO) if first else box.expand(p)
 		first = false
-	box = box.grow(24.0)
-	for corner: Vector2 in [box.position, Vector2(box.end.x, box.position.y), box.end, Vector2(box.position.x, box.end.y)]:
-		if not _over_ui(corner):
-			return Rect2(corner, box.get_center() * 2.0 - corner - corner)
-	return box
+	var window: Rect2 = Rect2(Vector2(2.0, 2.0), Vector2(_size) - Vector2(4.0, 4.0))
+	for grow: int in range(24, 600, 40):
+		var grown: Rect2 = box.grow(float(grow)).intersection(window)
+		for corner: Vector2 in [grown.position, Vector2(grown.end.x, grown.position.y), grown.end, Vector2(grown.position.x, grown.end.y)]:
+			if not _over_ui(corner):
+				return Rect2(corner, grown.get_center() * 2.0 - corner - corner)
+	return box.grow(24.0)
 
 
 func get_viewport_camera() -> Camera3D:
@@ -1327,3 +1537,362 @@ func _a_smaller_window_steps_the_scale_down() -> void:
 	var expected: int = 125 if _chose_150 else 100
 	_check("the scale steps down to what the window fits", _menu().scale_percent == expected
 		and int(_shell().get("_user_scale")) == expected, "%d%%" % _menu().scale_percent)
+
+
+# --- the build panel and the level bar (decision 1871; UI-BUILD-001..014) ------------------------------------------
+
+func _build() -> Node:
+	"""The village's build panel and level bar (demo/build_panel/demo_build.gd)."""
+	return _village.call(&"build")
+
+
+func _card_button(card_name: String) -> Button:
+	"""The build panel's card button named `card_name` in its row now (null: none)."""
+	var panel: Node = _build().get("panel")
+	var cards: Array = panel.call(&"row_cards")
+	for k: int in cards.size():
+		if String(cards[k].get("name")) == card_name:
+			return panel.call(&"card_button", k)
+	return null
+
+
+func _scroll_to_card(card_name: String) -> void:
+	"""Scroll the card row so the named card is in view (drawn by the next step)."""
+	var button: Button = _card_button(card_name)
+	if button != null:
+		(button.get_parent().get_parent() as ScrollContainer).ensure_control_visible(button)
+
+
+func _card_centre(card_name: String) -> Vector2:
+	"""The named card's centre on screen."""
+	var button: Button = _card_button(card_name)
+	return _centre(button) if button != null else Vector2(-1.0, -1.0)
+
+
+func _screen_rect(control: Control) -> Rect2:
+	"""Where a control is drawn, viewport px."""
+	return control.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, control.size)
+
+
+func _hud_rects(minimap_shown: bool) -> Array[Rect2]:
+	"""The visible HUD rectangles the panel and bar must keep off (UX-BUILD-T01): resources, time, alerts, the minimap
+	when shown, and the demo's party panel in the left column."""
+	var out: Array[Rect2] = []
+	for id_name: String in ["ID_RESOURCE_CLUSTER", "ID_TIME_CLUSTER", "ID_ALERT_STACK"]:
+		out.append(_screen_rect(_shell_control(id_name)))
+	if minimap_shown:
+		out.append(_screen_rect(_shell_control("ID_MINIMAP_FRAME")))
+	out.append(_command().call(&"panel").call(&"frame_rect"))
+	return out
+
+
+func _check_apart(label: String, own: Array[Rect2], minimap_shown: bool) -> void:
+	"""Each own rectangle on screen and clear of every HUD rectangle and of the others."""
+	var view := Rect2(Vector2.ZERO, Vector2(_size))
+	var hud: Array[Rect2] = _hud_rects(minimap_shown)
+	for k: int in own.size():
+		var hits: int = 0
+		for other: Rect2 in hud:
+			hits += 1 if own[k].grow(-0.5).intersects(other) else 0
+		for j: int in own.size():
+			hits += 1 if j != k and own[k].grow(-0.5).intersects(own[j]) else 0
+		_check("%s: rect %d in bounds and apart" % [label, k], view.encloses(own[k]) and hits == 0,
+			"%s, %d overlaps" % [own[k], hits])
+
+
+func _own_rects() -> Array[Rect2]:
+	"""The panel's and the bar's drawn rectangles."""
+	return [_build().get("panel").call(&"screen_rect") as Rect2, _build().get("bar").call(&"screen_rect") as Rect2]
+
+
+func _build_opens_on_b() -> void:
+	"""B opens the panel on the surface: the Rooms tab, Furnish and Decor waiting for a room type, every room type
+	locked there with its reason; the HUD's command strip steps aside."""
+	_key(KEY_B)
+	var panel: Node = _build().get("panel")
+	_check("B opens the build panel", bool(_build().call(&"is_open")))
+	_check("on the surface", int(_build().get("bar").call(&"shown_level")) == 0)
+	var tabs: Array = (panel.call(&"controls") as Dictionary)[&"tabs"]
+	_check("Rooms shown; Furnish and Decor wait for a room type", int(panel.call(&"shown_tab")) == 0
+		and (tabs[1] as Button).disabled and (tabs[2] as Button).tooltip_text == "Choose a room type first")
+	var kitchen: Button = _card_button("Kitchen")
+	_check("a room type on the surface is locked, saying why", kitchen != null
+		and kitchen.accessibility_name.contains("! Blocked: Not yet: rooms on the surface"), kitchen.accessibility_name if kitchen else "")
+	_check("the command strip steps aside", not _shell_control("ID_COMMAND_STRIP").is_visible_in_tree())
+	_capture("build_rooms_surface")
+
+
+func _build_rectangles_apart() -> void:
+	"""UX-BUILD-T01 at this size, the minimap shown: the panel and the bar in bounds, clear of the HUD and each other."""
+	_check_apart("minimap shown", _own_rects(), true)
+
+
+func _build_minimap_hidden() -> void:
+	"""Hide the minimap: the bar moves down above its restore control (checked next step, once placed)."""
+	_shell_control("ID_MINIMAP_FRAME").visible = false
+
+
+func _build_minimap_back() -> void:
+	"""The bar sits at Lh − 16 − 44 − 8 − Hb with the map hidden, still apart; the map comes back."""
+	var bar: Rect2 = _build().get("bar").call(&"frame_rect")
+	var geometry: Object = _build().get("_geometry")
+	var expected: float = float(geometry.get("logical_height")) - 16.0 - 44.0 - 8.0 - bar.size.y
+	_check("the bar sits above the hidden map's restore control", is_equal_approx(bar.position.y, expected),
+		"%f vs %f" % [bar.position.y, expected])
+	_check_apart("minimap hidden", _own_rects(), false)
+	_shell_control("ID_MINIMAP_FRAME").visible = true
+
+
+func _build_level_one() -> void:
+	"""Page Down: Underground level 1 -- the U view on it, the panel building there; the bar back over the map."""
+	var bar: Rect2 = _build().get("bar").call(&"frame_rect")
+	var geometry: Object = _build().get("_geometry")
+	var minimap: Rect2 = geometry.get("minimap")
+	_check("the bar is back above the minimap", is_equal_approx(bar.end.y, minimap.position.y - 8.0))
+	_key(KEY_PAGEDOWN)
+	_check("Page Down: level 1", int(_build().get("bar").call(&"shown_level")) == 1)
+	_check("the U view shows level 1", bool(_command().call(&"tunnels").get("view").get("on")))
+	var world: Object = _build().get("world")
+	_check("the actual World's level 1 is drawn (decision 1912)", int(world.call(&"shown_level")) == 1
+		and String(_build().get("world_refusal")).is_empty(), String(_build().get("world_refusal")))
+	var camera_3d: Camera3D = root.get_viewport().get_camera_3d()
+	_check("only the World's level and the ghosts are drawn", camera_3d.cull_mask == int(world.get_script().get_script_constant_map()["SHOWN_MASK"]),
+		str(camera_3d.cull_mask))
+	var where: Label = (_build().get("panel").call(&"controls") as Dictionary)[&"where"]
+	_check("the panel builds on level 1", where.text == "Building on: Underground level 1", where.text)
+	_check("the level bar names it", String(_build().get("bar").call(&"accessible_text")) == "Levels; viewing Underground level 1")
+	# The settlement's planning area is the level pack's 0..256 m square: under the village, its south-east quadrant
+	# (decision 1871). Level 1 there is under the stream's water up to z 31 m (decision 1912's probe); look at the dry
+	# ground beyond it, so the keyboard's cursor (the screen's middle) starts on cells the crew could dig.
+	var camera: Node = _village.get("_camera")
+	_camera_before_build = camera.call(&"target_focus")
+	camera.call(&"centre_on", Vector3(9.0, 0.0, 37.0))
+	camera.call(&"snap")
+	_capture("build_level1")
+
+
+func _build_choose_by_keyboard() -> void:
+	"""F7 to the build panel, Tab to the Kitchen card, Enter chooses it; Esc gives the keys back to the world."""
+	var panel: Node = _build().get("panel")
+	for k: int in 8:
+		_key(KEY_F7)
+		if _focus() != null and panel.is_ancestor_of(_focus()):
+			break
+	_check("F7 reaches the build panel", _focus() != null and panel.is_ancestor_of(_focus()), str(_focus()))
+	var kitchen: Button = _card_button("Kitchen")
+	for k: int in 40:
+		if _focus() == kitchen:
+			break
+		_key(KEY_TAB)
+	_check("Tab reaches the Kitchen card", _focus() == kitchen, str(_focus()))
+	_key(KEY_ENTER)
+	_check("Enter chooses it: painting armed", int(_build().call(&"armed_type")) == 2)
+	_key(KEY_ESCAPE)
+	_check("Esc gives the keys back to the world", _focus() == null and bool(_build().call(&"is_open")))
+
+
+func _build_paint_by_keyboard() -> void:
+	"""Enter sets the first corner, five Rights and three Downs drag it, the label says the size and validity."""
+	_key(KEY_ENTER)
+	_check("Enter: a stroke begins", bool(_build().get("batch").call(&"stroke_active")))
+	for k: int in 5:
+		_key(KEY_RIGHT)
+	for k: int in 3:
+		_key(KEY_DOWN)
+	var batch: Object = _build().get("batch")
+	_check("the stroke is 6 × 4 cells", batch.call(&"stroke_size") == Vector2i(6, 4), str(batch.call(&"stroke_size")))
+	_capture("build_painting")
+
+
+func _build_undo_redo() -> void:
+	"""Enter sets the second corner: one 24-cell Kitchen; Ctrl+Z undoes it, Ctrl+Shift+Z redoes it."""
+	var batch: Object = _build().get("batch")
+	var words: String = String(_build().call(&"label_text"))
+	_check("the paint label: size and validity in words (no way in yet: BUILD-REQ-013)",
+		words.begins_with("Paint Kitchen 6 × 4 cells (6 m × 4 m)\n! Blocked: No way in"), words)
+	_key(KEY_ENTER)
+	_check("Enter: the Kitchen joins the batch", int(batch.call(&"pending_count")) == 1
+		and int(batch.call(&"operation_cell_count", 0)) == 24)
+	_key_chord(KEY_Z, true, false)
+	_check("Ctrl+Z undoes it", int(batch.call(&"pending_count")) == 0)
+	_key_chord(KEY_Z, true, true)
+	_check("Ctrl+Shift+Z redoes it", int(batch.call(&"pending_count")) == 1)
+
+
+func _build_ghost_states() -> void:
+	"""Decision 1912 (P-B9 (a)): the pending Kitchen's cells are dashed "! No way in"; a stroke reaching over the
+	stream's water is "X" hatched and numbered, cell by cell, with its words on the label."""
+	var paint: Object = _build().get("paint")
+	var ghosts: Array = paint.call(&"operation_ghosts", 1)
+	var dashed: int = 0
+	for ghost: Object in ghosts:
+		dashed += 1 if bool(ghost.get("visible")) and bool(ghost.call(&"dashed")) else 0
+	_check("the Kitchen's cells are dashed with no way in", dashed >= 1, "%d dashed" % dashed)
+	var batch: Object = _build().get("batch")
+	var cursor: Vector2i = paint.call(&"cursor")
+	paint.call(&"set_cursor", Vector2i(cursor.x, 29), 1, 2)
+	_key(KEY_ENTER)
+	for k: int in 3:
+		_key(KEY_RIGHT)
+	for k: int in 4:
+		_key(KEY_DOWN)
+	_check("a stroke over water is not possible, in words", String(batch.call(&"stroke_reason")) == BuildValidity.cannot_dig("water"),
+		String(batch.call(&"stroke_reason")))
+
+
+func _build_ghost_states_drawn() -> void:
+	"""Drawn: the stroke's water cells hatched and numbered (captured with the stroke still in progress)."""
+	var hatched: int = 0
+	for ghost: Object in _build().get("paint").call(&"stroke_ghosts", 1):
+		hatched += 1 if bool(ghost.get("visible")) and bool(ghost.call(&"hatched")) and String(ghost.call(&"tag_text")).begins_with("X1") else 0
+	_check("its water cells hatched and numbered", hatched == 1, "%d" % hatched)
+	_capture("build_ghost_states")
+
+
+func _build_ghost_states_cleared() -> void:
+	"""Escape drops the stroke; the Kitchen stays."""
+	_key(KEY_ESCAPE)
+	var batch: Object = _build().get("batch")
+	_check("Escape drops the stroke", not bool(batch.call(&"stroke_active")) and int(batch.call(&"pending_count")) == 1)
+
+
+func _build_oval_tool() -> void:
+	"""P-C7 (a): the tool strip under the info card; a click on Oval sets the tool, the info card says so; back to
+	Rect."""
+	var panel: Node = _build().get("panel")
+	var tools: Array = panel.call(&"tool_buttons")
+	_check("the tool strip shows with a room type chosen", (tools[1] as Button).is_visible_in_tree())
+	_click(_centre(tools[1] as Button))
+	_check("Oval chosen by a click", int(_build().get("batch").call(&"tool")) == 1)
+	_check("the info card names it", String(panel.call(&"info_text")).contains("Tool: Oval."), String(panel.call(&"info_text")))
+	_capture("build_oval_tool")
+
+
+func _build_oval_tool_back() -> void:
+	"""Rect again; the click's focus given back to the world, the panel still open with its Kitchen."""
+	_click(_centre((_build().get("panel").call(&"tool_buttons") as Array)[0] as Button))
+	root.gui_release_focus()
+	_check("back to Rect", int(_build().get("batch").call(&"tool")) == 0)
+	_check("the panel open, the Kitchen kept", bool(_build().call(&"is_open"))
+		and int(_build().get("batch").call(&"pending_count")) == 1)
+
+
+func _build_ledger_expanded() -> void:
+	"""A click expands the ledger: the room's line, its validity, and the totals beside the stores; in bounds."""
+	var ledger: Button = (_build().get("panel").call(&"controls") as Dictionary)[&"ledger"]
+	_click(_centre(ledger))
+	var rect: Rect2 = _build().get("panel").call(&"ledger_rect")
+	_check("the ledger expands", bool(_build().get("panel").call(&"ledger_expanded")) and rect.size.x >= 320.0)
+	_check("in bounds", Rect2(Vector2.ZERO, Vector2(_size)).encloses(rect), str(rect))
+	_check("it says what the plan needs beside the stores", ledger.accessibility_name.begins_with("Plan needs ")
+		and ledger.accessibility_name.contains("stores hold"), ledger.accessibility_name)
+	_capture("build_painted_ledger")
+
+
+func _build_refusal_in_words() -> void:
+	"""Confirm all is held back while a cell has no way in (BUILD-REQ-013, decision 1912): a click orders nothing and
+	the status says why, in words; nothing is taken from the stores."""
+	var panel: Node = _build().get("panel")
+	var controls: Dictionary = panel.call(&"controls")
+	_click(_centre(controls[&"ledger"]))
+	var wood: int = int(_village.get_node(^"/root/EconomySystem").call(&"stock_milli", &"wood"))
+	_check("Confirm all is held back", (controls[&"confirm"] as Button).disabled)
+	_click(_centre(controls[&"confirm"]))
+	var batch: Object = _build().get("batch")
+	_check("the room stays in the batch", int(batch.call(&"pending_count")) == 1)
+	var status: Label = controls[&"status"]
+	_check("the status says why", status.text == "! 1 of 1 not ready: Kitchen: " + BuildValidity.no_way_in(), status.text)
+	_check("Confirm all took nothing from the stores",
+		int(_village.get_node(^"/root/EconomySystem").call(&"stock_milli", &"wood")) == wood)
+	_capture("build_refusal")
+
+
+func _build_overview() -> void:
+	"""A click on Overview: the surface view, nothing armed; the selection kept."""
+	_command().call(&"select", PackedInt32Array([1]))
+	_click(_centre(_build().get("bar").call(&"level_button", 5)))
+	_check("Overview chosen by a click", int(_build().get("bar").call(&"shown_level")) == 5)
+	_check("Overview never paints", int(_build().call(&"armed_type")) == -1)
+	var kitchen: Button = _card_button("Kitchen")
+	_check("its room cards say why", kitchen != null and kitchen.text.ends_with("! Choose one level to paint on"),
+		kitchen.text if kitchen != null else "no card")
+	_check("the selected resident kept", _command().call(&"selected") == PackedInt32Array([1]))
+	_capture("build_overview")
+
+
+func _build_close_keeps() -> void:
+	"""B with a pending change asks Keep / Discard; Enter on Keep closes keeping it; the command strip comes back."""
+	_key(KEY_B)
+	var panel: Node = _build().get("panel")
+	_check("B asks first", String(panel.call(&"question_text")) == "Keep 1 pending changes?")
+	_key(KEY_ENTER)
+	_check("Enter on Keep closes the panel", not bool(_build().call(&"is_open")))
+	_check("the change is kept", int(_build().get("batch").call(&"pending_count")) == 1)
+	_check("the command strip is back", _shell_control("ID_COMMAND_STRIP").is_visible_in_tree())
+	_build().get("batch").call(&"discard_all")
+	_command().call(&"clear_selection")
+
+
+func _build_many_refused() -> void:
+	"""P-B3: a click on the HUD's Build command opens the panel. Review H2: six rooms of several types on open ground
+	(x 100-145, z 100-103), each "! No way in" in the canonical words, judged per cell (decision 1912); the expanded
+	ledger lists every one, stands inside the panel from its top edge, hides the tab row, is clear of the alerts, and
+	its words scroll; Confirm all is held back."""
+	var command: Button = _shell_control("ID_BUILD") as Button
+	_check("the demo's Build command is enabled", not command.disabled)
+	_click(_centre(command))
+	_check("a click on Build opens the panel", bool(_build().call(&"is_open")))
+	var batch: Object = _build().get("batch")
+	for k: int in 6:
+		batch.call(&"begin_stroke", [0, 2, 6, 5, 1, 2][k], 1, Vector2i(100 + 8 * k, 100))
+		batch.call(&"extend_stroke", Vector2i(105 + 8 * k, 103))
+		batch.call(&"finish_stroke")
+	var panel: Node = _build().get("panel")
+	panel.call(&"refresh", true)
+	var controls: Dictionary = panel.call(&"controls")
+	panel.call(&"set_ledger_expanded", true)
+	var rect: Rect2 = panel.call(&"ledger_rect")
+	var frame: Rect2 = panel.call(&"screen_rect")
+	var no_way_in: String = BuildValidity.no_way_in()
+	var canonical: int = 0
+	for k: int in int(batch.call(&"operation_count")):
+		canonical += 1 if String(batch.call(&"operation_reason", k)) == no_way_in \
+			and int(batch.call(&"operation_kind", k)) == BuildValidity.KIND_BLOCKED else 0
+	_check("six rooms kept, each \"! No way in\" in the canonical words", int(batch.call(&"pending_count")) == 6
+		and canonical == 6, "%d of %d: %s" % [canonical, int(batch.call(&"pending_count")), batch.call(&"operation_reason", 0)])
+	_check("Confirm all is held back", (controls[&"confirm"] as Button).disabled)
+	_check("the tab row hidden under the ledger", not ((controls[&"tabs"] as Array)[2] as Button).visible
+		and not (controls[&"status"] as Label).visible)
+	_check("the ledger lists them all", String((controls[&"ledger_scroll"] as ScrollContainer).get_child(0).get(&"text")).count("\n") >= 11)
+	_check("inside the panel from its top edge", frame.encloses(rect) and is_equal_approx(rect.position.y, frame.position.y),
+		"%s in %s" % [rect, frame])
+	_check("clear of the alerts", not rect.intersects(_screen_rect(_shell_control("ID_ALERT_STACK"))))
+	_capture("build_ledger_refused")
+
+
+func _build_many_refused_cleared() -> void:
+	"""Fold the ledger, discard the rooms, close the panel."""
+	var panel: Node = _build().get("panel")
+	panel.call(&"set_ledger_expanded", false)
+	_build().get("batch").call(&"discard_all")
+	panel.call(&"refresh", true)
+	_key(KEY_B)
+	_check("closed again", not bool(_build().call(&"is_open")))
+	# The camera back where the build steps found it: the later steps frame the residents from there (a box drag
+	# from a moved camera started under the HUD and selected no one, art-free).
+	var camera: Node = _village.get("_camera")
+	camera.call(&"centre_on", _camera_before_build)
+	camera.call(&"snap")
+	_check("the camera framing restored", (camera.call(&"target_focus") as Vector3).is_equal_approx(_camera_before_build))
+
+
+func _key_chord(code: Key, ctrl: bool, shift: bool) -> void:
+	"""Press and release a key with Ctrl (and Shift)."""
+	for down: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = code
+		event.physical_keycode = code
+		event.ctrl_pressed = ctrl
+		event.shift_pressed = shift
+		event.pressed = down
+		root.push_input(event)

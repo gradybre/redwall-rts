@@ -4,7 +4,8 @@ extends CanvasLayer
 ##
 ## ---------------------------------------------------------------------------------------
 ## PLACEMENT. It sits in the HUD's LEFT COLUMN: x at the safe inset, from `management_top` (below
-## the resource cluster and the reserved band) down to just above the minimap. UI §1.2's permanent
+## the resource cluster and the reserved band) down to just above the LEVEL BAR (UI-BUILD-013, always shown above
+## the minimap since decision 1871: scripts/ui/build_layout.gd), which shortens the column by the bar. UI §1.2's permanent
 ## zones leave that column empty at every supported profile: alerts and the workspace are centred,
 ## time and detail are on the right, the command strip starts right of the minimap. ONE transient
 ## HUD surface opens there -- UI-SET-009, the resource ledger, dropped under the resources when a
@@ -21,10 +22,10 @@ extends CanvasLayer
 ##     group's common activity ("Holding ×3 · Walking to the well ×2") -- cut with an ellipsis where it
 ##     is too long, whole in its tooltip; and the ACTIONS, always shown: Release (R) and Follow (End) for any
 ##     selection (Follow: the camera follows the primary resident, camera_modes.gd; "Stop following (End)" while it
-##     does -- UI §5's `camera_follow` "Detail title context action", decision 0801), and Dig tunnel (B), Burrow home (H)
-##     and Root cellar (C) with a digger in it;
-##   * the INSPECTOR, a vertical scroll filling the rest of the column: first the notice line (the
-##     selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
+##     does -- UI §5's `camera_follow` "Detail title context action", decision 0801). The Dig tunnel, Burrow home and
+##     Root cellar buttons are gone: the build panel's cards open those tools (decision 1871, Brendan's ruling 3);
+##   * the INSPECTOR, a vertical scroll filling the rest of the column (in the compact form, the sheet): first the
+##     notice line (the selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
 ##     one resident its species, what it is doing now, the progress or the step of that (the words after
 ##     " — "), how fed it is (decision 0381: next to what it is doing, so a long skills list never pushes it
 ##     down), its order list ("Next:", decision 0411: what it will go back to and what was queued -- a row
@@ -35,19 +36,24 @@ extends CanvasLayer
 ##     is doing, and after its lines the person section (demo/people/person_section.gd): its skills as meters, and
 ##     "About <name>" opening its interest, relationships, notable pin and notable moments (each going to its place
 ##     and person: `person_section().go_to`).
-## Where the column is too short for the header, summary and actions and a useful inspector (125 % and
-## 150 % at 1280x720), the summary and actions move to the top of the inspector -- reached by scrolling,
-## never hidden.
+## THE COMPACT FORM (decision 1891; decision 1871 P-B8, Brendan's ruling "Compact panel, next"). Where the column is
+## too short for the header, summary and actions AND MIN_INSPECTOR_H of inspector (1280x720, where the level bar takes
+## the column's foot), the frame keeps only its header (the title), the summary and the actions -- Release (R) and
+## Follow (End) always in view (decision 0801), Select idle (decision 0791) and an "Open · n selected" action carrying
+## the count -- and the inspector moves into the PARTY SHEET (party_sheet.gd), which "Open" lays over the world beside
+## the column until Esc or a click away folds it. The compact frame wears the thin carving held inside its rectangle,
+## so it fills the column's whole carved extent; where even that is short (125 % at 1280x720) the title goes first,
+## then the summary (both are in the sheet's head), and the actions stay. The sheet is a modal of the demo's input
+## gate (demo_village.gd watches it): world keys wait behind it, Tab stays inside it. Before decision 1891 the summary
+## and actions moved to the inspector's top here, reached by scrolling (decision 0391).
 ##
 ## STYLE. The woodland skin's own pieces (demo/ui/): carved-wood panel with parchment face, Noto
 ## Serif title, ink and umber text -- both >= 4.5:1 on the parchment (test_demo_command.gd checks).
 ## The panel stops the mouse, so a click on it never selects or orders anything in the world. Text is at
 ## least 14 logical px (UI §2.1) and every button at least 32 px tall (UX-T03).
 ##
-## TUNNELS (demo/tunnel/). With a digger in the party -- anybeast who fits a bore (decision 0208) -- "Dig
-## tunnel (B)" shows (emits `dig_requested`, the same as B), and beside it "Burrow home (H)" and "Root cellar
-## (C)" (emit `room_requested` with the room's template: decision 0209). They take keyboard focus only from Tab
-## and F7 (decision 0261), so Enter while laying a piece digs rather than pressing one again.
+## TUNNELS (demo/tunnel/). The tools that lay tunnels and rooms are opened from the build panel (B; its Passage,
+## Burrow home and Root cellar cards; decision 1871), not from here.
 
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
@@ -57,11 +63,10 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const PickRow := preload("res://demo/ui/demo_pick_row.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
-const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const PersonSection := preload("res://demo/people/person_section.gd")
+const SheetScript := preload("res://demo/control/party_sheet.gd")
 
-signal dig_requested
-signal room_requested(kind: int)
 ## A member's row was pressed: select that resident alone and centre on it (demo_command.gd `pick_member`).
 signal member_picked(actor_index: int)
 ## Release (R) was pressed: hand the selection back to its routine (demo_command.gd `release_selection`).
@@ -70,21 +75,16 @@ signal release_requested
 signal follow_requested
 
 const TITLE: String = "Demo party"
-const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: Underground"
-const DIG_BUTTON: String = "Dig tunnel (B)"
-## The Dig button's hover tip (decision 0205: every action button says what it does and its key).
-const DIG_TIP: String = "Dig tunnel (B) — the Dig tool: drag a tunnel from where it starts to where it ends (start on a tunnel to branch off it), or click its points and press Enter; Esc drops it, B closes the tool"
-## The room tools' buttons (decision 0209): text, tip, and the template each asks for (underground_rooms.gd).
-const ROOM_BUTTONS: Array[String] = ["Burrow home (H)", "Root cellar (C)"]
-const ROOM_TIPS: Array[String] = [
-	"Burrow home (H) — a round home with its own front door: move it, R turns it, click to hold a blueprint with its passage (Shift+click: none), then Confirm or Enter to order the dig",
-	"Root cellar (C) — a stone-lined cellar with a hatch: move it, R turns it, click to hold a blueprint with its passage (Shift+click: none), then Confirm or Enter to order the dig"]
-const ROOM_TEMPLATES: Array[int] = [RoomsScript.TEMPLATE_HOME, RoomsScript.TEMPLATE_CELLAR]
+const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: build · U: Underground"
 const RELEASE_BUTTON: String = "Release (R)"
 const RELEASE_TIP: String = "Release (R) — hand the selected residents back to their own routine; they stay selected"
 const FOLLOW_BUTTON: String = "Follow (End)"
 const FOLLOW_STOP: String = "Stop following (End)"
 const FOLLOW_TIP: String = "Follow (End) — the camera follows the first selected resident; a pan or End stops it"
+## The compact form's "open" action (decision 1891): the count rides on it, so it shows wherever the actions do.
+const OPEN_BUTTON: String = "Open"
+const OPEN_COUNTED: String = "Open · %s"
+const OPEN_TIP: String = "Open — the party's details over the world beside this panel; Esc or a click away folds them"
 const DIGGING: String = "Digging tunnel — %d%%"
 ## A room being dug names itself (decision 0209), e.g. "Digging Burrow home 1 — 43%".
 const DIGGING_ROOM: String = "Digging %s — %d%%"
@@ -125,6 +125,13 @@ const SMALL_PX: int = 14
 const BUTTON_H: float = 32.0
 const CHIP_PX: float = 12.0
 const CONTENT_MARGINS: PackedFloat32Array = [14.0, 10.0, 14.0, 12.0]
+## The compact frame's margins inside its thin carving, which fills the column's carved extent (FRAME_EXPAND each
+## side): the content keeps the full form's left edge and width.
+const COMPACT_MARGINS: PackedFloat32Array = [24.0, 8.0, 24.0, 8.0]
+## What the compact frame shows above its actions (`compact_rows`).
+const ROWS_ACTIONS: int = 0
+const ROWS_SUMMARY: int = 1
+const ROWS_ALL: int = 2
 const SEPARATION: int = 6
 ## A wrapped line's least width leaves this much for the inspector's scroll bar.
 const SCROLLBAR_ALLOWANCE: float = 16.0
@@ -135,9 +142,13 @@ const LEDGER_NAME: String = "UI-SET-009"
 const LEDGER_GAP: float = 8.0
 
 var _frame: PanelContainer = null
+var _full_box: StyleBox = null
+var _compact_box: StyleBox = null
 var _column: VBoxContainer = null
+var _header: HBoxContainer = null
 var _count: Label = null
 var _top: VBoxContainer = null
+var _summary_line: HBoxContainer = null
 var _summary: Label = null
 var _chip: ColorRect = null
 var _notice: Label = null
@@ -146,8 +157,10 @@ var _actions: HFlowContainer = null
 var _extra_rows: Array[Control] = []
 var _release: Button = null
 var _follow: Button = null
-var _dig: Button = null
-var _room_buttons: Array[Button] = []
+var _open: Button = null
+var _sheet: SheetScript = null
+## The compact form (see THE COMPACT FORM): the inspector is in the sheet.
+var _compact: bool = false
 var _inspector: DemoScroll = null
 var _detail: VBoxContainer = null
 var _rows: VBoxContainer = null
@@ -163,7 +176,6 @@ var _member_count: int = 0
 var _abilities: Label = null
 var _person: PersonSection = null
 var _hint: Label = null
-var _docked: bool = true
 var _pending_notice: String = ""
 var _place_queued: bool = false
 var _layout: UiLayout = UiLayout.new()
@@ -191,11 +203,6 @@ func build() -> void:
 	show_notice(_pending_notice)
 
 
-func dig_button() -> Button:
-	"""The "Dig tunnel" button (null before build)."""
-	return _dig
-
-
 func release_button() -> Button:
 	"""The "Release (R)" button (null before build)."""
 	return _release
@@ -218,16 +225,19 @@ func notice_label() -> Label:
 
 
 func _build() -> void:
-	"""Frame; header; summary, notice and actions; the inspector."""
+	"""Frame; header; summary, notice and actions; the inspector; the sheet (folded)."""
+	_full_box = Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS)
+	_compact_box = Styles.box(Styles.PIECE_PANEL_TIGHT, COMPACT_MARGINS)
 	_frame = PanelContainer.new()
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
-	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
+	_frame.add_theme_stylebox_override(&"panel", _full_box)
 	_frame.theme = CardScript.tooltip_theme()
 	add_child(_frame)
 	_column = VBoxContainer.new()
 	_column.add_theme_constant_override(&"separation", SEPARATION)
 	_frame.add_child(_column)
-	_column.add_child(_build_header())
+	_header = _build_header()
+	_column.add_child(_header)
 	_top = _build_top()
 	_column.add_child(_top)
 	_inspector = DemoScroll.new()
@@ -238,6 +248,9 @@ func _build() -> void:
 	_detail.add_theme_constant_override(&"separation", SEPARATION)
 	_inspector.add_child(_detail)
 	_build_detail()
+	_sheet = SheetScript.new()
+	add_child(_sheet)
+	_sheet.build(inner_width())
 	_top.minimum_size_changed.connect(_queue_place)
 	_detail.minimum_size_changed.connect(_queue_place)
 
@@ -267,7 +280,9 @@ func _build_top() -> VBoxContainer:
 	top.name = "Summary"
 	top.add_theme_constant_override(&"separation", SEPARATION)
 	var line := HBoxContainer.new()
+	line.name = "SummaryLine"
 	line.add_theme_constant_override(&"separation", 8)
+	_summary_line = line
 	_chip = ColorRect.new()
 	_chip.custom_minimum_size = Vector2(CHIP_PX, CHIP_PX)
 	_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -286,7 +301,7 @@ func _build_top() -> VBoxContainer:
 
 
 func _build_actions() -> HFlowContainer:
-	"""Release (R) always; the Dig tool and the room tools, hidden until a digger is in the party."""
+	"""Release (R) and Follow (End) for any selection; Open, last, in the compact form."""
 	var row := HFlowContainer.new()
 	row.name = "Actions"
 	row.add_theme_constant_override(&"h_separation", SEPARATION)
@@ -295,12 +310,9 @@ func _build_actions() -> HFlowContainer:
 	row.add_child(_release)
 	_follow = _wood_button(FOLLOW_BUTTON, FOLLOW_TIP, func() -> void: follow_requested.emit())
 	row.add_child(_follow)
-	_dig = _wood_button(DIG_BUTTON, DIG_TIP, func() -> void: dig_requested.emit())
-	row.add_child(_dig)
-	for k in ROOM_BUTTONS.size():
-		var room := _wood_button(ROOM_BUTTONS[k], ROOM_TIPS[k], room_requested.emit.bind(ROOM_TEMPLATES[k]))
-		_room_buttons.append(room)
-		row.add_child(room)
+	_open = _wood_button(OPEN_BUTTON, OPEN_TIP, open_sheet)
+	_open.visible = false
+	row.add_child(_open)
 	return row
 
 
@@ -329,12 +341,13 @@ func _build_detail() -> void:
 
 
 func add_top_row(row: Control) -> void:
-	"""Another owner's row IN the actions' flow, after the room tools -- in view with them, docked with them, and beside
-	the last button where it fits -- so it adds no row of its own at 1280x720 (decision 0791's "Select idle" with 0801's
-	Follow (End) left the inspector too short to dock: batch 7 integration, decision 0902). The actions show while
-	such a row does."""
+	"""Another owner's row IN the actions' flow, after Release and Follow and before Open (decision 1891) -- in view
+	with them, in either form, and beside the last button where it fits -- so it adds no row of its own at 1280x720
+	(decision 0791's "Select idle" with 0801's Follow (End) left the inspector too short to dock: batch 7 integration,
+	decision 0902). The actions show while such a row does."""
 	_extra_rows.append(row)
 	_actions.add_child(row)
+	_actions.move_child(row, _open.get_index())
 
 
 func add_section(section: Control) -> void:
@@ -342,11 +355,6 @@ func add_section(section: Control) -> void:
 	decision 0791). It shows and hides itself."""
 	_detail.add_child(section)
 	_detail.move_child(section, _notice.get_index() + 1)
-
-
-func room_button(k: int) -> Button:
-	"""The room tool's button `k` (0 Burrow home, 1 Root cellar; null before build)."""
-	return _room_buttons[k] if k >= 0 and k < _room_buttons.size() else null
 
 
 func _wood_button(text: String, tip: String, pressed: Callable) -> Button:
@@ -407,10 +415,9 @@ func show_party(entries: Array[Dictionary]) -> void:
 	_chip.visible = entries.size() == 1
 	_release.visible = not entries.is_empty()
 	_follow.visible = _release.visible
-	_dig.visible = has_digger(entries)
-	for room: Button in _room_buttons:
-		room.visible = _dig.visible
-	_actions.visible = _release.visible or not _extra_rows.is_empty()
+	_open.text = open_caption(entries.size())
+	_sheet.show_words(_count.text, _summary.text)
+	_show_actions()
 	_fill_rows(entries)
 	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
 			else PackedStringArray()
@@ -418,6 +425,16 @@ func show_party(entries: Array[Dictionary]) -> void:
 	_abilities.visible = not abilities.is_empty()
 	_person.show_person(entries[0].get("person", {}) if entries.size() == 1 else {})
 	_queue_place()
+
+
+func _show_actions() -> void:
+	"""The actions' flow shows while it holds anything: Release and Follow, another owner's row, or Open."""
+	_actions.visible = _release.visible or not _extra_rows.is_empty() or _compact
+
+
+static func open_caption(selected: int) -> String:
+	"""The Open action's words: "Open · 6 selected" (the count rides on it in the compact form), "Open" for nobody."""
+	return OPEN_BUTTON if selected == 0 else OPEN_COUNTED % count_text(selected)
 
 
 func _fill_rows(entries: Array[Dictionary]) -> void:
@@ -684,8 +701,8 @@ func follow_hud() -> void:
 
 func _place() -> void:
 	"""Lay the frame out in the HUD's logical space and draw it at the HUD's scale (in the tree only:
-	built for a check out of it, there is no viewport to fit). A content change queues it again once its parts
-	have measured themselves (`_queue_place`)."""
+	built for a check out of it, there is no viewport to fit), in its full or compact form (`fit`), and the sheet
+	beside it. A content change queues it again once its parts have measured themselves (`_queue_place`)."""
 	_place_queued = false
 	if not is_inside_tree() or _frame == null:
 		return
@@ -693,12 +710,32 @@ func _place() -> void:
 	var rect := placement(int(size_px.x), int(size_px.y), _layout, _geometry)
 	if _ledger_open:
 		rect = below_ledger(rect, _ledger.get_global_rect().end.y / _geometry.scale, fixed_height())
+	var full: bool = fit(rect.size.y)
+	_draw_frame(rect if full else rect.grow(FRAME_EXPAND))
+	_place_sheet()
+
+
+func _draw_frame(rect: Rect2) -> void:
+	"""Draw the frame at `rect` (logical px) at the HUD's scale, as tall as its content."""
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.position = rect.position * _geometry.scale
 	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
-	fit(rect.size.y)
 	_frame.size = Vector2(rect.size.x, 0.0)
 	_frame.visible = true
+
+
+func _place_sheet() -> void:
+	"""The sheet beside the column (party_sheet.gd `placement`); while compact, the inspector as tall as its content or
+	the room the sheet leaves it."""
+	var rect: Rect2 = SheetScript.placement(_geometry, column_right(), inner_width())
+	if _compact:
+		_inspector.custom_minimum_size.y = clampf(_inspector_content(), 0.0, _sheet.slot_room(rect.size.y))
+	_sheet.place(rect, _geometry.scale)
+
+
+static func column_right() -> float:
+	"""The right edge of the column's carved frame, logical px."""
+	return UiLayout.SAFE_INSET + 2.0 * FRAME_EXPAND + WIDTH
 
 
 static func below_ledger(column: Rect2, ledger_bottom: float, least: float) -> Rect2:
@@ -712,51 +749,134 @@ static func below_ledger(column: Rect2, ledger_bottom: float, least: float) -> R
 
 
 func fit(height: float) -> bool:
-	"""Fit the frame to `height` logical px: the header, summary and actions fixed above an inspector as tall as
-	its content or the rest of the column -- or, where that would leave the inspector less than
-	MIN_INSPECTOR_H, the summary and actions at the inspector's top (`docked` false). True when docked."""
-	var box: StyleBox = _frame.get_theme_stylebox(&"panel")
-	var frame_h: float = box.get_minimum_size().y if box != null else 0.0
-	var header_h: float = (_column.get_child(0) as Control).get_combined_minimum_size().y
-	var top_h: float = _top.get_combined_minimum_size().y
-	var rest_h: float = _detail.get_combined_minimum_size().y - (0.0 if _docked else top_h + SEPARATION)
-	var room_docked: float = height - frame_h - header_h - top_h - 2.0 * SEPARATION
-	_dock(room_docked >= MIN_INSPECTOR_H or room_docked >= rest_h)
-	var room: float = room_docked if _docked else height - frame_h - header_h - SEPARATION
-	var content: float = rest_h if _docked else rest_h + top_h + SEPARATION
-	_inspector.custom_minimum_size.y = clampf(content, 0.0, maxf(room, 0.0))
-	return _docked
-
-
-func _dock(dock_above: bool) -> void:
-	"""Put the summary and actions above the inspector (`dock_above`) or at its top; a button of theirs that had the
-	focus keeps it (moving a node drops its focus)."""
-	if dock_above == _docked:
-		return
-	_docked = dock_above
-	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
-	var keyboard: bool = focused != null and _top.is_ancestor_of(focused) and focused.has_focus(true)
-	_top.get_parent().remove_child(_top)
-	if dock_above:
-		_column.add_child(_top)
-		_column.move_child(_top, 1)
+	"""Fit the panel to a column `height` logical px tall (its carving outside that): the FULL form -- the header,
+	summary and actions above an inspector as tall as its content or the rest of the column -- where that leaves the
+	inspector at least MIN_INSPECTOR_H (or all it needs); else the COMPACT form (`_fit_compact`). True for the full
+	form."""
+	var room: float = full_room(height)
+	var full: bool = full_fits(room, _inspector_content())
+	_set_compact(not full)
+	if full:
+		_inspector.custom_minimum_size.y = clampf(_inspector_content(), 0.0, maxf(room, 0.0))
 	else:
-		_detail.add_child(_top)
-		_detail.move_child(_top, 0)
-	if focused != null and _top.is_ancestor_of(focused) and focused.is_inside_tree():
+		_fit_compact(height + 2.0 * FRAME_EXPAND)
+	return full
+
+
+static func full_fits(room: float, content: float) -> bool:
+	"""Whether the full form fits: `room` logical px left for an inspector whose content is `content` tall is at least
+	MIN_INSPECTOR_H, or all it needs."""
+	return room >= MIN_INSPECTOR_H or room >= content
+
+
+func full_room(height: float) -> float:
+	"""What the full form leaves its inspector in a column `height` logical px tall (negative: less than nothing).
+	Measured on every part as the full form shows it, whatever shows now, so the choice of form never feeds back."""
+	var actions_h: float = _actions.get_combined_minimum_size().y
+	var top_h: float = _summary_line.get_combined_minimum_size().y + (actions_h + SEPARATION if actions_h > 0.0 else 0.0)
+	return height - _full_box.get_minimum_size().y - _header.get_combined_minimum_size().y - top_h - 2.0 * SEPARATION
+
+
+func _inspector_content() -> float:
+	"""The inspector's content height, logical px."""
+	return _detail.get_combined_minimum_size().y
+
+
+func _fit_compact(frame_h: float) -> void:
+	"""The compact frame `frame_h` logical px tall (the thin carving fills the column's carved extent): the actions
+	always; the summary above them where it fits; the title above that where it fits too (THE COMPACT FORM)."""
+	var inner: float = frame_h - COMPACT_MARGINS[1] - COMPACT_MARGINS[3]
+	var rows: int = compact_rows(inner, _actions.get_combined_minimum_size().y,
+		_summary_line.get_combined_minimum_size().y, _header.get_combined_minimum_size().y)
+	_summary_line.visible = rows != ROWS_ACTIONS
+	_header.visible = rows == ROWS_ALL
+
+
+static func compact_rows(inner: float, actions_h: float, line_h: float, header_h: float) -> int:
+	"""Which rows the compact frame shows above its actions in `inner` logical px: ROWS_ALL (the title and the
+	summary), ROWS_SUMMARY, or ROWS_ACTIONS (none: the title goes first, then the summary; the sheet's head has both)."""
+	var need: float = actions_h + SEPARATION + line_h
+	if inner < need:
+		return ROWS_ACTIONS
+	return ROWS_ALL if inner >= need + SEPARATION + header_h else ROWS_SUMMARY
+
+
+func _set_compact(on: bool) -> void:
+	"""Switch form: the frame's carving, the count (in the header, or on Open), Open, and where the inspector is. The
+	sheet folds when the full form comes back -- after the inspector has left it, so a focused row keeps its focus
+	(E7)."""
+	if on == _compact:
+		return
+	_compact = on
+	_frame.add_theme_stylebox_override(&"panel", _compact_box if on else _full_box)
+	_count.visible = not on
+	_open.visible = on
+	_show_actions()
+	_move_inspector(_sheet.slot() if on else _column)
+	if not on:
+		_header.visible = true
+		_summary_line.visible = true
+		_sheet.fold()
+
+
+func _move_inspector(into: Node) -> void:
+	"""Put the inspector into `into` (the column, last; or the sheet's slot). A control of it that had the focus keeps
+	it where it is still shown; moved into a folded sheet it loses it (no focus is left on a hidden row). Called only
+	when the form changes, so `into` is never its parent already."""
+	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	var mine: bool = focused != null and _inspector.is_ancestor_of(focused)
+	var keyboard: bool = mine and focused.has_focus(true)
+	_inspector.reparent(into, false)
+	if mine and focused.is_visible_in_tree():
 		focused.grab_focus(not keyboard)
 
 
+func compact() -> bool:
+	"""Whether the panel is in its compact form (the inspector in the sheet)."""
+	return _compact
+
+
 func docked() -> bool:
-	"""Whether the summary and actions sit above the inspector (false: at its top, see fit)."""
-	return _docked
+	"""Whether the summary and actions sit above the inspector in the column: the full form (see fit)."""
+	return not _compact
+
+
+func open_sheet() -> void:
+	"""Lay the sheet over the world beside the column (the compact form's Open; nothing in the full form). Its inspector
+	shows from the top -- unless the keyboard opened it, when the gate's drawn focus on its first control stays in view."""
+	if not _compact:
+		return
+	_sheet.open()
+	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	if focused == null or not focused.has_focus(true):
+		_inspector.scroll_vertical = 0
+
+
+func fold_sheet() -> void:
+	"""Fold the sheet (Esc and a click away do it too)."""
+	_sheet.fold()
+
+
+func sheet() -> SheetScript:
+	"""The party sheet (null before build)."""
+	return _sheet
+
+
+func open_button() -> Button:
+	"""The compact form's Open action (null before build)."""
+	return _open
+
+
+func count_control() -> Control:
+	"""Where the count shows: the header's count, or Open in the compact form."""
+	if _compact:
+		return _open
+	return _count
 
 
 func fixed_height() -> float:
-	"""The header, summary and actions' height with the frame's margins, logical px."""
-	var box: StyleBox = _frame.get_theme_stylebox(&"panel")
-	return (box.get_minimum_size().y if box != null else 0.0) + (_column.get_child(0) as Control).get_combined_minimum_size().y \
-		+ _top.get_combined_minimum_size().y + SEPARATION
+	"""The full form's header, summary and actions' height with the frame's margins, logical px."""
+	return -full_room(0.0) - SEPARATION
 
 
 func inspector() -> ScrollContainer:
@@ -766,13 +886,13 @@ func inspector() -> ScrollContainer:
 
 static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
 	"""The panel's rectangle in the HUD's logical pixels: the left column between the reserved band
-	and the minimap, inset by the carved frame. Fills `geometry` (scale 1 when the viewport is
-	below the supported floor and the HUD refuses to lay out)."""
+	and the level bar over the minimap (decision 1871), inset by the carved frame. Fills `geometry` (scale 1 when the
+	viewport is below the supported floor and the HUD refuses to lay out)."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
 			DemoUiScale.percent, false, geometry):
 		geometry.scale = 1.0
 	var top := geometry.management_top + FRAME_EXPAND
-	var bottom := geometry.minimap.position.y - MINIMAP_GAP - FRAME_EXPAND
+	var bottom := BuildLayout.level_bar_rect(geometry, true).position.y - MINIMAP_GAP - FRAME_EXPAND
 	return Rect2(UiLayout.SAFE_INSET + FRAME_EXPAND, top, WIDTH, maxf(bottom - top, 0.0))
 
 

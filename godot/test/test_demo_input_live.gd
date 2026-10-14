@@ -61,3 +61,9 @@ func test_the_real_scene_routes_input_menu_focus_and_scale_at_1920x1080() -> voi
 func test_room_blueprints_use_real_clicks_and_fit_at_1280x720() -> void:
 	"""The live room review: held clicks, panel actions, explicit confirmation, refusal and Escape routing."""
 	_assert_run("1280x720", "res://test/live/demo_room_blueprint_live.gd", 24)
+
+
+func test_the_build_proof_of_concept_digs_a_painted_room_at_1280x720() -> void:
+	"""Decision 1912: the Entrance placed, a Passage and a Kitchen painted, Confirm all, the mole digs them, and a
+	resident walks in -- through the real input gate on the real village."""
+	_assert_run("1280x720", "res://test/live/demo_build_dig_live.gd", 20)

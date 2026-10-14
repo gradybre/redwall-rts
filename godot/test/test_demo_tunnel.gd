@@ -996,23 +996,25 @@ func _key(key: Key) -> InputEventKey:
 	return event
 
 
-func test_b_opens_the_tool_for_anybody_who_fits_and_refuses_when_nobody_can_dig() -> void:
-	"""B with mice selected opens the Dig tool -- anybeast who fits a bore digs (decision 0208) -- and the
-	first selected is the digger; with nobody selected the village's most skilled free digger (the mole,
-	who starts skilled). B again closes it. With nobody able to dig, B is taken, opens nothing and says
-	why; other keys are left alone."""
+func test_the_tool_opens_for_anybody_who_fits_and_refuses_when_nobody_can_dig() -> void:
+	"""The build panel's Passage card opens the Dig tool (`begin_plan`; decision 1871: B is the panel's now) with mice
+	selected -- anybeast who fits a bore digs (decision 0208) -- and the first selected is the digger; with nobody
+	selected the village's most skilled free digger (the mole, who starts skilled). B in the tool closes it; outside it
+	B is not the tool's. With nobody able to dig, it opens nothing and says why; other keys are left alone."""
 	var cast := _cast_with_mole()
 	var notices := []
 	var tool := _tool(cast, [PackedInt32Array([1, 2])], [], notices)
-	assert_true(tool.handle_input(_key(KEY_B)), "B is the tool's key")
+	assert_false(tool.handle_input(_key(KEY_B)), "B outside the tool is the build panel's")
+	assert_false(tool.planning, "not opened by B")
+	assert_true(tool.begin_plan(), "the Passage card opens it")
 	assert_true(tool.planning, "open")
 	assert_equal(tool.choose_digger(), 1, "the first selected who can dig")
-	assert_true(tool.handle_input(_key(KEY_B)), "B again")
+	assert_true(tool.handle_input(_key(KEY_B)), "B in the tool")
 	assert_false(tool.planning, "closed")
 	var nobody := _tool(cast, [PackedInt32Array()], [], notices)
 	assert_equal(nobody.choose_digger(), 0, "nobody selected: the mole, the most skilled")
 	nobody.ext.can_dig.fill(0)
-	assert_true(nobody.handle_input(_key(KEY_B)), "B is taken")
+	assert_false(nobody.begin_plan(), "refused")
 	assert_false(nobody.planning, "not planning")
 	assert_equal(notices[-1], "Can't dig: nobody selected can dig -- select someone who fits a bore (moles dig best)", "why")
 	assert_false(tool.handle_input(_key(KEY_Y)), "other keys are left alone")
@@ -1033,14 +1035,14 @@ func test_every_resident_s_fit_is_set_from_its_body() -> void:
 
 
 func test_laying_refusing_and_undoing_points() -> void:
-	"""B with the mole among the selection opens the tool; a point off the map is refused with a clay
+	"""The Passage card with the mole among the selection opens the tool; a point off the map is refused with a clay
 	marker; a one-point route is refused at Enter, marked at its entrance; Backspace undoes, and with
 	nothing left closes the tool."""
 	var cast := _cast_with_mole()
 	var marks := []
 	var notices := []
 	var tool := _tool(cast, [PackedInt32Array([2, 0])], marks, notices)
-	assert_true(tool.handle_input(_key(KEY_B)), "B")
+	assert_true(tool.begin_plan(), "opened (the build panel's Passage card)")
 	assert_true(tool.planning, "planning")
 	assert_equal(notices[-1], ControlScript.PLAN_FIRST, "prompted for the entrance")
 	assert_false(tool.lay_ground(Vector2(25.0, 0.0)), "off the map")
@@ -1146,8 +1148,8 @@ func test_u_switches_the_underground_view() -> void:
 
 
 func test_the_command_layer_hands_t_to_the_tool_and_shows_digging() -> void:
-	"""Through demo_command: B with the mole selected opens the tool; the party shows the mole as a digger,
-	"walking to dig site", then "Digging tunnel — n%" of its piece."""
+	"""Through demo_command: the tool opened (the build panel's Passage card) with the mole selected; the party shows
+	the mole as a digger, "walking to dig site", then "Digging tunnel — n%" of its piece."""
 	var cast := _cast_with_mole()
 	var command := CommandScript.new()
 	_nodes.append(command)
@@ -1155,7 +1157,7 @@ func test_the_command_layer_hands_t_to_the_tool_and_shows_digging() -> void:
 	_nodes.append(camera)
 	command.configure(cast, camera, null)
 	command.select(PackedInt32Array([0]))
-	assert_true(command.handle_input(_key(KEY_B)), "B taken")
+	assert_true(command.tunnels().begin_plan(), "opened")
 	assert_true(command.tunnels().planning, "planning")
 	command.tunnels().lay_ground(Vector2(-4.0, 3.0))
 	command.tunnels().lay_ground(Vector2(4.0, 3.0))
@@ -2351,7 +2353,7 @@ func test_the_panel_s_button_and_notice_wear_their_colours() -> void:
 	"""The built button's text is the cream readable on wood (ink on brass pressed); the notice is ink
 	on parchment; each clears 4.5:1."""
 	var panel := _built_panel()
-	var button := panel.dig_button()
+	var button := panel.release_button()
 	var wood := PackedColorArray([Palette.face_dark(Palette.SURFACE_WOOD), Palette.face_light(Palette.SURFACE_WOOD)])
 	var parchment := PackedColorArray([Palette.face_dark(Palette.SURFACE_PARCHMENT), Palette.face_light(Palette.SURFACE_PARCHMENT)])
 	assert_equal(button.get_theme_color(&"font_color"), Palette.text_on(Palette.SURFACE_WOOD), "cream on wood")
@@ -2370,17 +2372,16 @@ func test_a_notice_given_before_the_panel_is_built_shows_once_it_is() -> void:
 	assert_true(panel.notice_label().visible, "visible")
 
 
-func test_the_dig_button_shows_only_with_a_digger_in_the_party() -> void:
-	"""A party with a digger shows the button; one without, or nobody, hides it."""
+func test_the_party_panel_has_no_dig_or_room_buttons() -> void:
+	"""Brendan's ruling 3 (decision 1871): the Dig tunnel, Burrow home and Root cellar buttons are gone -- the build
+	panel's cards open those tools; a digger in the party shows only Release and Follow."""
 	var panel := _built_panel()
 	var mole: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "wandering", "digger": true}]
-	var mice: Array[Dictionary] = [{"name": "Mouse keeper", "species": "Mouse", "state": "wandering", "digger": false}]
 	panel.show_party(mole)
-	assert_true(panel.dig_button().visible, "with the mole")
-	panel.show_party(mice)
-	assert_false(panel.dig_button().visible, "with mice only")
-	panel.show_party([])
-	assert_false(panel.dig_button().visible, "with nobody")
+	assert_false(panel.has_method(&"dig_button") or panel.has_method(&"room_button"), "no dig or room button")
+	assert_false(panel.has_signal(&"dig_requested") or panel.has_signal(&"room_requested"), "nor their signals")
+	assert_true(panel.release_button().visible and panel.follow_button().visible, "Release and Follow")
+	assert_true(PanelScript.HINT.contains("B: build"), "the hint names the build panel")
 
 
 # --- review fixes: orders measured from the surface -----------------------------------------
@@ -2555,8 +2556,9 @@ func test_a_pause_that_changes_its_reason_within_a_frame_is_announced() -> void:
 	assert_equal(notices[-1], "The digger couldn't reach the start — tunnel paused at 5%; right-click where it starts with a digger to resume", "unreached")
 
 
-func test_the_panel_s_dig_button_while_planning_cancels_through_the_command_layer() -> void:
-	"""The panel's button signal reaches the tool as a toggle: pressed while planning, it cancels."""
+func test_b_in_the_tool_cancels_through_the_command_layer() -> void:
+	"""B pressed while the tool is open reaches it through the command layer and cancels it (the build panel's hooks,
+	unset here, would pass it on while the tool plans)."""
 	var cast := _cast_with_mole()
 	var command := CommandScript.new()
 	_nodes.append(command)
@@ -2564,10 +2566,9 @@ func test_the_panel_s_dig_button_while_planning_cancels_through_the_command_laye
 	_nodes.append(camera)
 	command.configure(cast, camera, null)
 	command.select(PackedInt32Array([0]))
-	command.panel().dig_requested.emit()
-	assert_true(command.tunnels().planning, "planning")
+	assert_true(command.tunnels().begin_plan(), "opened")
 	command.tunnels().lay_ground(Vector2(-3.0, 3.0))
-	command.panel().dig_requested.emit()
+	assert_true(command.handle_input(_key(KEY_B)), "B taken")
 	assert_false(command.tunnels().planning, "cancelled")
 
 

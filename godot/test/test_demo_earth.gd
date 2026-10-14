@@ -304,7 +304,7 @@ func test_no_earth_anywhere_refuses_raise_on_the_card_and_the_order() -> void:
 	_crew.preview_into(card, JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]))
 	assert_equal(card.code, JobsScript.REFUSE_NO_EARTH, "no earth")
 	assert_equal(card.reason, "no spoil heap or store holds a basket of earth", "the words")
-	assert_equal(card.fix, "Dig tunnel (B): its earth heaps up at the mouth", "the fix")
+	assert_equal(card.fix, "Dig a passage (B, Passage): its earth heaps up at the mouth", "the fix (decision 1871: the build panel's Passage card)")
 	assert_equal(_crew.order(JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER),
 		"Can't raise: " + card.reason, "the order's words")
 	assert_equal(_stores.earth_milli_u, 1000, "nothing taken")

@@ -685,6 +685,7 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 | Reason text | Glyph | Source |
 |---|---|---|
 | “Too narrow: rooms need at least 2 × 2 cells” | X | BUILD-REQ-002 |
+| “Too narrow: this would leave part of ”+room+“ under 2 × 2 cells; remove those cells too” | X | BUILD-REQ-006 (decision 1880 Q3) |
 | “Too small: ”+type+“ needs at least ”+n+“ cells (has ”+m+“)” | ! | SET-BUILD-001 §4 |
 | “Needs ”+missing furniture (“1 hearth”) | ! | GDD §5.9 room validity |
 | “No way in: connect to a finished Passage or entrance” | ! | BUILD-REQ-013 |
@@ -708,6 +709,16 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 | UX-BUILD-T04 No silent cost | Opening, painting, undoing and discarding change no inventory, reservation or job; Confirm all creates blueprints without deducting stores |
 | UX-BUILD-T05 Levels | Selecting each level keeps selected-resident identity; Overview never enables painting |
 
-**Follow-up (slice B).** `godot/project.godot` still binds PageUp/PageDown to `camera_zoom_in/out`, and
-`godot/scripts/ui/ui_registry.gd` holds 103 rows; both change in the slice that builds the panel, with
-`godot/test/test_input_map.gd` and `test_ui_registry.gd` updated to these rows.
+**Follow-up (slice B), done 2026-10-12 ([decision 1871](decisions/1871-one-build-panel-and-level-bar.md)).**
+`godot/project.godot` binds PageUp/PageDown to `level_up`/`level_down` and keyboard zoom to = / − (keypad + / −), with
+§5's `tool_redo` added; `godot/scripts/ui/ui_registry.gd` keeps its 103 UI-SET rows and holds these fourteen as their
+own UI-BUILD family; `godot/test/test_input_map.gd` and `test_ui_registry.gd` check both. Read together, this
+section's "Arrows move the cell cursor" and "arrows outside the card row still pan" mean the arrows move the cell
+cursor while a room type is armed and the world has the keys, and pan otherwise (decision 1871 E10).
+
+**Follow-up (slice C1 and the proof of concept), 2026-10-12 ([decision 1912](decisions/1912-slice-c1-and-the-painted-room-proof-of-concept.md)).**
+UI-BUILD-010's ghost now judges every cell (✓ GOLD outline, ! WARNING dashed, X DANGER hatched and numbered "X1 …");
+a tool strip of four toggles (Rect · Oval · Paint · Erase) stands along the info card's foot while a room type is
+chosen (32 px high, inside UI-BUILD-004's rectangle); the arrows move the cell cursor relative to the camera
+(P-B10 (b)); the Rooms tab offers the Entrance on the Surface and a Way down on levels 1–3 (a lite UI-BUILD-012:
+placed by a click, no connector card yet). Proposed words for the Validity table are listed in decision 1912.

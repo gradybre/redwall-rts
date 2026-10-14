@@ -341,8 +341,9 @@ func test_send_to_shows_its_wait_and_text_and_buttons_meet_the_floors() -> void:
 
 
 func test_the_party_panel_hosts_the_section_after_its_notice_and_the_row_in_its_top() -> void:
-	"""add_section puts the group panel right after the notice; add_top_row in the actions' flow, after the room tools
-	(decision 0902), so it shows while nobody is selected and adds no row of its own."""
+	"""add_section puts the group panel right after the notice; add_top_row in the actions' flow, after Release and
+	Follow (decision 0902) and before the compact form's Open (decision 1891), so it shows while nobody is selected and
+	adds no row of its own."""
 	var party := PanelScript.new()
 	party.build()
 	var panel := _built()
@@ -352,7 +353,8 @@ func test_the_party_panel_hosts_the_section_after_its_notice_and_the_row_in_its_
 	assert_equal(panel.get_parent(), notice.get_parent(), "beside the notice")
 	assert_equal(panel.get_index(), notice.get_index() + 1, "right after it")
 	assert_equal(panel.top_row().get_parent().name, &"Actions", "in the actions' flow")
-	assert_equal(panel.top_row().get_index(), panel.top_row().get_parent().get_child_count() - 1, "after the room tools")
+	assert_equal(panel.top_row().get_index(), party.follow_button().get_index() + 1, "after Release and Follow")
+	assert_equal(party.open_button().get_index(), party.open_button().get_parent().get_child_count() - 1, "Open last")
 	party.show_party([])
 	assert_true(panel.top_row().get_parent().visible, "shown with nobody selected")
 	party.free()
@@ -454,3 +456,15 @@ func test_portraits_given_after_a_group_shows_draw_at_once() -> void:
 	assert_false((panel.tile(0).get_node(^"Portrait") as TextureRect).visible, "none: plain at once")
 	assert_equal(panel.tile(1).custom_minimum_size.x, 88.0, "three across")
 	_free(panel)
+
+
+func test_send_to_folds_the_party_sheet() -> void:
+	""""Send to…" arms the next world click, so it also folds the party sheet (decision 1891): with the sheet open the
+	click would only fold it."""
+	var party := PanelScript.new()
+	party.build()
+	var select := GroupSelect.new()
+	select._build_panel(party)
+	assert_true(select.panel.send_pressed.is_connected(party.fold_sheet), "Send to… folds the sheet")
+	select.free()
+	party.free()

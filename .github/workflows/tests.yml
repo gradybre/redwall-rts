@@ -222,6 +222,13 @@ jobs:
         # against the tool's choices (decision 0351).
         run: python3 tools/test_stage_demo_audio.py
 
+      - name: Build art staging self-test
+        if: matrix.group == 'metadata-c'
+        # Needs no art library: it checks the tool on small files it writes,
+        # and that every recorded texture's task is in the committed ledger
+        # (decision 1913).
+        run: python3 tools/test_stage_build_art.py
+
       - name: UI refinement contract
         if: matrix.group == 'metadata-c'
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
@@ -381,6 +388,11 @@ jobs:
 
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check
+
+      # The recommended local full-suite gate runs CI's shards in parallel (decision 1895); its shard
+      # arguments, exit status on a failed shard or a missing report, and job limit, against fakes.
+      - name: Local parallel suite runner
+        run: python3 tools/test_run_tests_parallel.py
 
       # MOVE-C2-R01's fit arithmetic. Its load-bearing property is that a negative
       # translated minimum reports PLACEMENT_INCOMPATIBLE_AT_OFFSET and never

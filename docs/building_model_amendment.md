@@ -32,7 +32,7 @@ and cancel/removal refunds follow the GDD.
 | BUILD-REQ-003 | The system shall treat each 4-connected set of same-type painted cells on one level as one room and shall apply the room rules of §4 in cells. | ADOPTED |
 | BUILD-REQ-004 | When a stroke adds cells of type T touching an existing room of type T on the same level, the system shall add them to that room rather than create a second room. | ADOPTED (grow by repainting, DEC-061 Q8). A stroke joining two existing rooms of type T merges them; the older room (lower persistent ID) survives and the other's items, occupants and lots move to it (OPEN-06 ruled (a)) |
 | BUILD-REQ-005 | If a stroke would paint a room type over cells of an existing room of a different type, then the system shall refuse it with the words “Remove these cells first; a room's purpose cannot change”. | ADOPTED (DEC-061 Q8, ADR 1081) |
-| BUILD-REQ-006 | When the player removes cells from a room (paint **Earth** underground, **Clear ground** on the surface), the system shall open an explicit removal review naming every affected item, occupant and stored lot and its return, and shall never sell or delete anything silently. | ADOPTED (DEC-061 Q8; REQ-SET-127/128; DEMO-CONTAIN-R01) |
+| BUILD-REQ-006 | When the player removes cells from a room (paint **Earth** underground, **Clear ground** on the surface), the system shall open an explicit removal review naming every affected item, occupant and stored lot and its return, and shall never sell or delete anything silently. If the removal would leave any remaining cell of a room outside a 2 × 2 block of that room's cells, the system shall refuse it with the words “Too narrow: this would leave part of ”+room+“ under 2 × 2 cells; remove those cells too”, unless the player adds those cells to the removal, which the review then lists. | ADOPTED (DEC-061 Q8; REQ-SET-127/128; DEMO-CONTAIN-R01). The 2 × 2 rule on removal is ADOPTED (decision 1880 Q3), so BUILD-REQ-002's rule holds for every room at all times |
 | BUILD-REQ-007 | When removal of open underground cells commits, the system shall backfill each open cut quantum with `excavated_earth` under SET-MOVE-ECON-001 ECON-005. | ADOPTED |
 | BUILD-REQ-008 | The system shall generate walls where painted cells meet unpainted cells, earth or the outside, and (on the surface) a roof over painted cells; it shall generate no wall between two adjacent painted rooms. Interior partitions and doors stay explicit edge items. | ADOPTED (DEC-061 Q3; GDD §5.9 partitions) |
 | BUILD-REQ-009 | When a surface room is drafted, the system shall apply REQ-SET-122's terrain rules (in bounds, no overlap with rooms, items, resource nodes or water, slope ≤ 8°, height spread ≤ 0.5 m) to its painted cells, and shall require a walk path from the room to a door item on the outside boundary of its roofed room group (§4) before the room is valid. | ADOPTED (REQ-SET-122 “accessible door” restated; GDD §5.9 “connected to exterior door”) |
@@ -217,6 +217,19 @@ A painted underground cell is dug to the level's clear height of 4096 u = **4 qu
 | Work | 4 × 4230 | 16920 milli-WU |
 | Earth output | 4 × 2000 | 8000 milli-U `excavated_earth` |
 
+**DEC-054 note (Brendan's ruling on decision 1911 P-C3 (a), 2026-10-12, as corrected by his ruling on decision 1931
+P-C2-3 (a) the same day).** [DEC-054](setting_decisions.md#dec-054--a-room-is-excavated-only-as-high-as-the-dig-strokes-reach)
+caps how high a Room is dug: only as high as the dig rows of **the crew that digs** reach from the floor, derived live
+and never above the clear height. The crew is the claw crew (DEC-052); the height is read in one place with that crew's
+identity, never "any row" (`demo/burrow/modular_runtime.gd dug_height_u`, over
+`underground_room_approach.gd reachable_height_u`), and both the planner's plan and the build panel's price read it.
+So a painted underground cell is priced and dug at `ceil_div(min(clear height, the claw crew's reach), 1024)` quanta,
+not always 4; the table above is the 4-quantum ceiling. **On master the claw crew's rows reach 1,024 u, so a cell is
+1 quantum: wood 250, stone 250 milli-U, work 4230 milli-WU, earth 2000 milli-U.** That is the claw crew's result at
+master, not a settled room height: Brendan ruled rooms are dug with the claws' down stroke (P-C2-1), and slice C2.1
+changes the room-digging rule in core (decision 1931 and its successor); the price follows whatever it publishes.
+(P-C3 (a) first read "2 quanta" from identity −1, which counts the retired pick's rows: decision 1931 F2.)
+
 A 2 × 2 Passage patch is 16 quanta: wood 4000, stone 4000 milli-U, 67680 milli-WU, 32000 milli-U earth. A cell
 already open (BACKFILLED re-dig follows ECON-005's withdrawal branch) is never charged twice. Underground rooms have
 no generated-wall or roof bill: their walls are braced earth.
@@ -316,11 +329,16 @@ Nothing is deducted at Confirm all (DEC-061, “don't deduct at confirm, keep as
 
 | Pending operation | Becomes on Confirm all | Paid by |
 |---|---|---|
-| Underground room delta (new cells of one room) | One room project (RoomProjects, decisions 1053/1062) owning one excavation site per quantum | Per-phase delivery and consumption, ECON-003; refunds ECON-005 |
-| Surface room delta | One room-shell Construction project (material container anchored at the delta's lowest cell index); at most 4 builders | REQ-SET-124/125; refunds REQ-SET-126 |
-| Item (furniture, key item, connector) | One item Construction project, which waits until its room's cells are finished (furnishing follows a completed shell, UG-FURN rules) | REQ-SET-124–126; ADR 1081 paid publication |
+| Underground room delta (new cells of one room) | The room's one room project (RoomProjects, decisions 1053/1062) owning one excavation site per quantum; a delta of a room whose project is unfinished extends that project | Per-phase delivery and consumption, ECON-003; refunds ECON-005 |
+| Surface room delta | The room's one room-shell Construction project (material container anchored at the room's lowest cell index); a delta of a room whose project is unfinished extends that project; at most 4 builders | REQ-SET-124/125; refunds REQ-SET-126 |
+| Partition or door (edge piece) | Part of its room's project (the lower Room row of its two cells; an outside door belongs to its one painted side), extending it if unfinished, or starting it if the room has none | As its room's project |
+| Item (furniture other than partitions and doors, key item, connector) | One item Construction project, which waits until its room's cells are finished (furnishing follows a completed shell, UG-FURN rules) | REQ-SET-124–126; ADR 1081 paid publication |
 | Outdoor item | One building Construction project, as today | REQ-SET-124–126 |
 | Earth / Clear-ground removal | One removal review (BUILD-REQ-006); after confirmation, demolition or backfill work | REQ-SET-127/128; ECON-005 |
+
+**One project per room** (ADOPTED, decision 1880 Q1): a room's painted cells, partitions and doors are built as one
+project, and painting more cells or edge pieces onto a room still under construction extends that project rather than
+starting a second one. A room therefore has at most one unfinished construction project; items keep their own.
 
 Dependencies inside a batch run in order: an entrance before the level-1 rooms it opens, a room's cells before its
 items. The ledger shows what the batch will need (natural measures, DEC-049) beside what stores hold, without reserving
@@ -331,8 +349,11 @@ anything. Cancelling one confirmed project never cancels the rest of its batch.
 - **MOVE-G01 level count and spacing** (Q2-26): closed by DEC-061 Q6 — five levels, 5120 u. The other G01 inputs
   remain open (traversal profiles, connector geometry and recipes other than the qualified stair, finite water/canopy
   extents, hazards beyond ECON/HAZ).
-- **MOVE-G02**: open. The 1 m cell grid over five levels is a new representation; its packed columns and bytes are a
-  slice-B obligation (`systems_architecture.md` ARCH-BUILD-001).
+- **MOVE-G02**: open. Slice B budgeted the 1 m cell grid over five levels, the painted Room rows, the item rows and
+  the edge items ([decision 1880](decisions/1880-painted-room-memory-budget.md): 16957440 bytes, held in ARCH-BUILD-001's own
+  table until slice C or G first allocates those columns, decision 1880 Q2). Still open: the project and container
+  bytes under one project per room (slices C and G, decision 1880 Q1), the new room types and items (slice G) and the store owners (slice G), as `systems_architecture.md`
+  ARCH-BUILD-001 now lists.
 - **MOVE-G03**: partly closed. `ui_ux_controls.md` UI-BUILD-001–014 registers the level bar and the build panel;
   route inspection, cross-layer picking and canopy/water layers remain open.
 - **MOVE-G04, MOVE-G05**: open.

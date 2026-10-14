@@ -14,8 +14,10 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Contrast := preload("res://demo/ui/woodland_contrast.gd")
+const SheetScript := preload("res://demo/control/party_sheet.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 777
@@ -298,19 +300,26 @@ func test_state_words() -> void:
 
 func test_panel_placement_keeps_clear_of_the_hud_at_every_size() -> void:
 	"""At 1280x720, 1920x1080, 2560x1440 and a HiDPI 3456x2160, the panel (with its carved frame)
-	misses every HUD zone and the ordinary workspace, and stays on screen."""
+	misses every HUD zone, the ordinary workspace and the level bar (UI-BUILD-013, decision 1871), and stays on
+	screen. The party has at least 250 px of room everywhere: the column, or at 720 rows, where the level bar takes the
+	column's foot, the sheet its compact form opens beside it (decision 1891, restoring 1871 E12's relaxed check)."""
 	var layout := UiLayout.new()
 	var geometry := UiLayout.Geometry.new()
 	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3456, 2160)]:
 		var rect := PanelScript.placement(size.x, size.y, layout, geometry).grow(PanelScript.FRAME_EXPAND)
 		var zones: Array[Rect2] = [geometry.resources, geometry.time, geometry.alerts, geometry.minimap,
-			geometry.detail, geometry.commands, UiLayout.workspace_rect(geometry, UiLayout.WORKSPACE_MAX_HEIGHT)]
+			geometry.detail, geometry.commands, UiLayout.workspace_rect(geometry, UiLayout.WORKSPACE_MAX_HEIGHT),
+			BuildLayout.level_bar_rect(geometry, true)]
 		var hits := 0
 		for zone in zones:
 			hits += 1 if rect.intersects(zone) else 0
 		assert_equal(hits, 0, "%s: no HUD zone overlapped" % size)
 		assert_true(Rect2(0, 0, geometry.logical_width, geometry.logical_height).encloses(rect), "%s: on screen" % size)
-		assert_true(rect.size.y >= 250.0, "%s: room for a full party (%.0f px)" % [size, rect.size.y])
+		var room: float = rect.size.y
+		if size.y <= 720:
+			assert_true(rect.size.y >= 150.0, "%s: the column holds the compact frame (%.0f px)" % [size, rect.size.y])
+			room = SheetScript.placement(geometry, PanelScript.column_right(), PanelScript.inner_width()).size.y
+		assert_true(room >= 250.0, "%s: room for the party (%.0f px)" % [size, room])
 
 
 func test_panel_text_contrast_on_parchment() -> void:
@@ -418,7 +427,8 @@ func test_one_resident_s_orders_are_listed_with_the_gated_ones_explained() -> vo
 func test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides() -> void:
 	"""Selected alone, a resident's orders are listed IN FULL -- each with what to right-click (review F31: never
 	folded away); in a group they are not. However short the column, the frame stays: the summary and actions sit
-	above the inspector where they leave it MIN_INSPECTOR_H, else at its top (decision 0391)."""
+	above the inspector where they leave it MIN_INSPECTOR_H, else the panel takes its compact form and the inspector,
+	orders and all, goes to the sheet (decision 1891; before it, to the inspector's top: decision 0391)."""
 	var panel := PanelScript.new()
 	panel.build()
 	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
@@ -434,8 +444,9 @@ func test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides() -> voi
 	panel.show_party(one)
 	assert_true(panel.fit(2000.0), "a tall column: docked")
 	assert_true(panel.docked(), "the summary and actions above the inspector")
-	assert_false(panel.fit(1.0), "no room: the summary and actions go to the inspector's top")
-	assert_false(panel.docked(), "undocked")
+	assert_false(panel.fit(1.0), "no room: the compact form")
+	assert_false(panel.docked(), "not the full form")
+	assert_true(panel.compact(), "compact")
 	assert_equal(panel.abilities_text(), "\n".join(lines), "the orders still listed in full")
 	assert_true(panel.fit(2000.0), "room again: docked again")
 	panel.free()
@@ -549,14 +560,14 @@ func test_the_panel_says_what_a_resident_will_go_back_to() -> void:
 	assert_equal(lines[5], PanelScript.THEN_MARK + "Harvest, bed 3", "a row each")
 
 
-func test_the_dig_button_says_what_it_does_and_its_key() -> void:
-	"""The party panel's one action button has a hover tip naming its key (decision 0205)."""
+func test_the_party_panel_hint_names_the_build_panel() -> void:
+	"""Decision 1871 (Brendan's ruling 3): the party panel has no Dig tunnel button now; its hint names B as the build
+	panel's key."""
 	var panel := PanelScript.new()
 	panel.build()
-	assert_equal(panel.dig_button().tooltip_text, PanelScript.DIG_TIP, "the tip")
-	assert_true(PanelScript.DIG_TIP.begins_with("Dig tunnel (B)"), "names the key (B opens the Dig tool)")
-	assert_equal(panel.dig_button().text, PanelScript.DIG_BUTTON, "the button's words")
-	assert_equal(PanelScript.DIG_BUTTON, "Dig tunnel (B)", "with the key")
+	assert_true(PanelScript.HINT.contains("B: build"), PanelScript.HINT)
+	assert_false(PanelScript.HINT.contains("dig tool"), "no longer the Dig tool's key")
+	assert_false(panel.has_method(&"dig_button"), "no dig button")
 	panel.free()
 
 

@@ -220,17 +220,17 @@ job queues and show who is assigned on the blueprint.
 
 Not added (offered, not chosen): decor auras, copy item with C, repainting a pending tile to cancel it.
 
-**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851, so no slice waits on a ruling). “Needs” means the slice cannot finish without it.
+**Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851; updated 2026-10-12 by Brendan's “Budget now, rest later” ruling, [decision 1880](../../decisions/1880-painted-room-memory-budget.md); C and D re-ordered 2026-10-12 by his ruling on [decision 1911](../../decisions/1911-slice-c-scoping-paint-equals-dig.md) P-C1). “Needs” means the slice cannot finish without it.
 
 | Slice | Needs (slices) | Needs (other work and rulings) |
 |---|---|---|
 | A | — | DEC-061 (done) |
-| B | A | Slice-B storage obligations (ARCH-BUILD-001: cell grid, Room/item rows, container owners, ledger bytes); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
-| C | B | UG24 underground dispatcher; HAUL-H3+ for spoil and materials (drafting against a planned connector is ruled, OPEN-07) |
-| D | B, C | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
+| B | A | Memory budget for the cell grid, Room/item rows and edge items: done as a budget (decision 1880; slice C or G folds its bytes into the live total when it first allocates those columns, decision 1880 Q2); `ui_registry.gd` rows; PageUp/PageDown to levels and zoom to = / − (ruled, OPEN-09) |
+| C | B (C1); B, C2 and D (C3) | Split by Brendan's ruling on decision 1911 P-C1 (b), 2026-10-12. **C1** (painting, per-cell validity, ghosts, actual World) needs only B. **C2** (its own lane, in parallel): the production room foreman on the fixed tick, the UG24 dispatcher's room half (ADR 1202 steps 3–7). **C3** (Confirm all digs) needs C2 and **D's entrance**: the only buildable descent ends 1 m below the surface and level 1 is 5 m down (decision 1911 §2.1), so no level-1 room has a way in before D. HAUL-H3+ is needed only for surface legs (staging settlement stock underground); the underground has its own haul path (1911 §2.2). Drafting against a planned connector is ruled (OPEN-07); binding painted room deltas to RoomProjects/ExcavationSites and ledgering their projects (ARCH-BUILD-001 obligation 3, moved from B) is C2/C3; one project per room (ruled, decision 1880 Q1); refusing removals that leave a part narrower than 2 × 2 (ruled, decision 1880 Q3) |
+| D | B, C1 (not C3: C3 needs D) | Qualifying a steeper earth/timber flight for the first entrance (ruled OPEN-10 (a); the 20 m flight is the fallback); authoring the other families' geometry and fixture bills (OPEN-02 (a)); `begin_underground_entry` trigger |
 | E | B, C | Install crews (ADR 1081); access tiles and wall-behind are ruled (OPEN-05) |
 | F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |
-| G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17; BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
+| G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17, 18-bit furniture mask and older-save refusal (ARCH-BUILD-001 obligation 2, moved from B); container owner for painted stores and `base_store_g` key items (obligation 4, moved from B); BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
 | H | B–G | — |
 
 ---

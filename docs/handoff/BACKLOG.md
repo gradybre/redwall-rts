@@ -74,6 +74,9 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [MEASURE-BAL](#measure-bal) | Rerun the balance year matrix | tools | 1511–1520 |
 | [MEASURE-SOAK](#measure-soak) | A windowed soak and a 25-resident soak | tools | 1521–1530 |
 | [FOLLOW-UPS](#follow-ups) | Follow-up fixes not finished by `fix/follow-ups` | demo + tools | 1531–1540 |
+| [PARTY-COMPACT](#party-compact) | **Done (decision 1891, 2026-10-12)**: a compact Demo party panel with an "open" overlay (1871 P-B8) | demo | 1891–1894 |
+| [TEST-SPEED](#test-speed) | **Done** ([1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md)): split the slowest suites and run local shards in parallel | tools + tests | 1895–1899 |
+| [MEAL-CALLAWAY](#meal-callaway) | Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | unnumbered |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
 | [WIN-PERF](#win-perf) | The Windows performance test (GTX 1660 tiers) | all | 1551–1560 |
 
@@ -1288,12 +1291,105 @@ decision records on batch 8; "built" means a record says so.
     at 256;
   - a layout check ("party 9: every member row reachable") failed once under doubled load (0902 "What the gates
     found");
+  - **Done (decision 1900).** `test_demo_orchard_live.gd` "the apple is tended in game time" failed intermittently
+    (the tend job lost its worker): breakfast's call took the tender off the job, and the orchard, unlike the farm,
+    the woods, the hall and the tunnel jobs, kept nothing to come back to. Orchard workers now resume (0205), and the
+    harness waits in game time. The fishery's, the ferry's and the forage's tasks have the same gap: packet
+    MEAL-CALLAWAY (Brendan, 2026-10-12: "Fix all three next");
   - the art notes in 0941 and 0951: the baked-fish icon has lemon slices; the raspberry's leaf mask is weak; the
     staged `residence` and `hall` keep 4096 px maps where GAP-04 says 2048; some bare-oak root flares catch snow.
 - **Depends on:** nothing.
 - **Files:** various; small and local. Conflicts: whichever packet owns the file.
 - **Decisions:** 1531–1540 (1041–1049 belong to `fix/follow-ups`).
 - **Acceptance:** each fix with a test that fails without it; the gates.
+
+<a id="party-compact"></a>
+## PARTY-COMPACT — A compact Demo party panel with an "open" overlay
+
+- **Status: done** on `feat/party-compact` (decision 1891, 2026-10-12): the compact form and the party sheet, with the
+  three relaxed checks restored. Its PROPOSALS (P-PC1 to P-PC5) wait for Brendan's ruling.
+- **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: P-B8 **"Compact panel, next"** -- a compact party
+  panel with an "open" overlay, as the follow-up right after slice B merges (decision 1871, "Brendan's rulings";
+  RULINGS.md 2026-10-12).
+- **Scope:** slice B's level bar stands above the minimap, so the "Demo party" column ends above it: at 1280×720 the
+  column shrank from about 284 to 156 logical px, and at 125 % its inspector is shorter than one member row (1871
+  E12). Give the party panel a compact form for a short column: its header, summary and actions only, with an "open"
+  control that lays the inspector over the world beside the column while it is used, and folds it again on Esc or a
+  click away. The level bar keeps its place.
+- **Read first:** decision 1871 E12 and P-B8; 0391 (the undocked state); 0801 (Release and Follow always in view);
+  `docs/ui_ux_controls.md` UI-BUILD-013 (the level bar's place).
+- **Depends on:** slice B (`feat/build-panel-slice-b`) merged.
+- **Files:** `godot/demo/control/demo_party_panel.gd`, `demo_command.gd` (the column's layout), the live harnesses
+  `test/live/demo_layout_live.gd` and `demo_input_live.gd`, `test/test_demo_command.gd`. Conflicts: any packet laying
+  out the left column.
+- **Decisions:** 1891–1894 (the coordinator's; 1891 used).
+- **Acceptance:** restore the checks slice B relaxed (1871 E12): `demo_layout_live.gd`'s "at 100 % the actions are
+  always in view" at 720 rows too, and its scroll-reveal checks with no `LIVE-SKIP` at 125 %; `test_demo_command.gd`'s
+  room check back to 250 px at 720 rows. Every member row reachable; UX-BUILD-T01 (no overlap with the level bar);
+  frames at 1280×720 (100 % and 125 %) and 1920×1080.
+- **Art:** none.
+- **Pitfalls:** the overlay is a new modal-like surface: register it with the input gate so world keys wait behind it,
+  and keep F7/Tab order.
+
+<a id="test-speed"></a>
+## TEST-SPEED — Split the slowest suites and run local shards in parallel
+
+- **Status: done** on `perf/test-speed`, decision
+  [1895](../decisions/1895-faster-full-suite-parity-parts-crew-loss-checkpoints-parallel-gate.md): the parity suite
+  is six fingerprint parts, the crew-loss suite starts from the `underground_spare` checkpoint, and
+  `./tools/run_tests_parallel.sh` is the local full-suite gate. Its PROPOSALS await Brendan.
+- **Approval:** Brendan, 2026-10-12: **parallel local shards** for the test turnaround (relayed by the coordinator;
+  RULINGS.md 2026-10-12). Decision 1240's checkpoint starts were his decision of 2026-10-08.
+- **Scope:**
+  - Split `godot/test/test_settlement_save_parity.gd` (575 s in 1240's table, 617 s in the coordinator's slice B run;
+    it is the shard floor) into suites of under about 150 s each, sharing one fixture file the way decision 1243 split
+    the underground host suite.
+  - Give the four suites on the underground host fixture (`test_underground_host.gd`, `_crew_loss.gd`,
+    `_whole_chain.gd` and `test_entry_worker_view.gd`) checkpoint starts (decision 1240 §2). Keep
+    `test_checkpoint_equivalence.gd` as the proof that a checkpoint start equals the replay.
+  - Make the coordinator's parallel local runner (in its scratchpad: `run_shards_parallel.sh`, `run_one_shard.sh`) a
+    repository tool, `tools/run_tests_parallel.sh`, with each shard's summary and the merged one.
+- **Read first:** decisions 1240 and 1243; `tools/run_tests.sh` (the `--shard` and `--fast` options); `docs/ENVIRONMENT.md`.
+- **Depends on:** nothing.
+- **Files:** `godot/test/test_settlement_save_parity.gd` and its new parts; the four host-fixture suites and
+  `underground_host_case.gd`; `tools/run_tests.sh`, a new `tools/run_tests_parallel.sh`; the CI shard plan.
+- **Decisions:** unnumbered; take the next free number from the range book when the lane starts.
+- **Acceptance:** the same tests and assertions before and after (counts quoted); the checkpoint equivalence suite
+  passes; the shard floor quoted before and after; a full parallel local run's merged summary.
+- **Art:** none.
+- **Pitfalls:** live suites are timing-sensitive under load (see FOLLOW-UPS' orchard note); give each shard its own
+  HOME so Godot's user data does not collide.
+
+<a id="meal-callaway"></a>
+## MEAL-CALLAWAY — Fishery, forage and ferry workers called away keep their jobs
+
+- **Approval:** Brendan, 2026-10-12, in chat via AskUserQuestion: **"Fix all three next"** -- a small follow-up lane
+  right after the orchard fix (`fix/orchard-tend-flake`, decision 1900) merges, the same three functions per job type,
+  each with a test (decision 1900, "Brendan's rulings"; RULINGS.md 2026-10-12).
+- **Scope:** a resident called away from a fishery, forage or ferry job -- by a meal's call, the night or another
+  order -- loses the job to the board today: their tasks (`fishery_task.gd`, source 7; `ferry_task.gd`, source 8;
+  `forage_task.gd`, source 12) do not override `unfinished()`, so nothing is kept to come back to (decision 0205's
+  RESUMING) and the work board's promise (0411) never holds it. Give each owner what decision 1900 gave the orchard:
+  `called_away` returns whether the worker keeps the job (not for a walk it could not finish, nor when the owner's own
+  Pause or Reassign took it); `unfinished_of(job, serial)` makes the entry naming its source and the job's serial;
+  `take_back(brain, job, serial)` claims it again only while it is the same job and waits; the task's `unfinished()`
+  answers the job before a call-away (so the action card says "goes back to it after") and after one only when kept.
+  A load in hand keeps each owner's existing delivery rules.
+- **Read first:** decision 1900 (the orchard's fix and its tests); 0205 (RESUMING); 0411 (the order list and the
+  promise); `demo/orchard/orchard_task.gd`, `orchard_jobs.gd` (CALLED AWAY); the three owners' headers (0431 the
+  fishery, 0437 the ferry, 0681 the forage).
+- **Depends on:** `fix/orchard-tend-flake` (decision 1900) merged.
+- **Files:** `godot/demo/fishery/fishery_task.gd` and `fishery.gd`; `godot/demo/forage/forage_task.gd` and
+  `forage_trips.gd`; `godot/demo/ferry/ferry_task.gd` and `ferry.gd`; their text files for the order-list words;
+  `godot/test/test_demo_fishery.gd`, `test_demo_forage.gd`, `test_demo_ferry.gd`. Conflicts: FISHING, WATER, TRADE.
+- **Decisions:** unnumbered; take the next free number from the range book when the lane starts.
+- **Acceptance:** per job type, a deterministic test like 1900's: called away mid-job, the job is kept on the
+  worker's list naming its task, given to no other idle resident by the REAL work board (`promises`, `consider`), and
+  taken back with its progress carried over; a lost walk and the owner's Pause and Reassign keep nothing; a cancelled
+  job's entry is stale. Each test fails without its fix; mutation-test the new functions; the gates.
+- **Art:** none.
+- **Pitfalls:** a seat on a shared trip (a fishing boat, a crossing's crew, a foraging party) may be refilled by the
+  owner while its worker eats: `take_back` must refuse a seat no longer waiting rather than displace anyone.
 
 ---
 

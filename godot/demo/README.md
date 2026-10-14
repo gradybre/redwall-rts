@@ -921,13 +921,12 @@ part is read as at-least. Register before the first hour or after; a goal is fir
 | J (or the Jobs command) | The Work screen: tasks, residents and crews, projects (see Work) |
 | O (or the Objectives command) | The village guide: objectives, your projects, the field guide, help and practice stories (see The first-village guide) |
 | R | Release the selection back to its own routine |
-| Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
+| Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else the build panel's stroke, question, ledger, then the panel; else clear the selection; else open the game menu |
 | Menu ("≡") | The game menu (above) |
 | F8 | The Demo Lab (above) |
-| B (or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
-| H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
+| B | The build panel (decisions 1871 and 1912; see The build panel and the level bar): place an Entrance, paint rooms and passages underground, Confirm all, and a mole digs them. B again asks to close it. (B is the HUD's Build key; in the demo the Build button is enabled and opens the panel too: decision 1871 E21, P-B3) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
-| PgUp / PgDn in Underground | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
+| PgUp / PgDn | One level up / down on the level bar, everywhere: Surface, Level 1, Level 2 (the U view), Levels 3-4 (no way in yet). Alt+PgUp/PgDn stay the camera's pitch; = and − (keypad + and −) and the wheel zoom (decision 1871) |
 | L in the Dig tool | Lay a link down to level 2: once a ramp, again stairs, again back to tunnels (see The second level) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Left click a dug home or cellar | Select it for its fit-out in the same panel (see Fit-out and living) |
@@ -948,16 +947,18 @@ part is read as at-least. Register before the first hour or after; a goal is fir
 The "Demo party" panel in the HUD's left column lists the selection, and **never hides** (decision 0391,
 review F20/F31). Its header says how many are selected; a summary line says who and what -- one resident's name
 and what it is doing, or a group's common activity ("Holding ×3 · Walking to the well ×2"), cut with an
-ellipsis and whole in its tooltip; then the actions, always in view: **Release (R)**, **Follow (End)** (decision 0801), and Dig tunnel (B),
-Burrow home (H) and Root cellar (C) with a digger selected. Below them a scrolling **inspector**: the notice
+ellipsis and whole in its tooltip; then the actions, always in view: **Release (R)** and **Follow (End)** (decision 0801)
+-- the Dig tunnel, Burrow home and Root cellar buttons are gone (decision 1871), and since decision 1912 no card opens
+those tools either. The column now ends above the level bar. Below them a scrolling **inspector**: the notice
 line, then for one resident its species, what it is doing, the progress or step of that on its own row, "Then
 back to:" with a row per unfinished job, its skills, and **what it can be ordered to do**
 (`control/resident_abilities.gd`) in full -- a line a kind of work with what to right-click, the gated ones
 marked × with the rule: anybeast who fits a bore digs (moles start skilled), the otters and the badger are too
 big for a bore until it is widened, only otters dive, the badger wades only and breaks rock, the beaver gnaws.
 For a group, a row for **every** member (no "+ n more"): click one to select it alone and centre the camera
-on it. Where the column is too short for the header, summary and actions and a useful inspector (125 % at
-1280x720), the summary and actions go to the top of the inspector, reached by scrolling. Its **notice line is each resident's own**: a prompt or answer is
+on it. Where the column is too short for the header, summary and actions and a useful inspector (1280x720, where the
+level bar takes the column's foot), the panel takes its **compact form** and the inspector moves into a sheet opened
+beside the column (see The compact party panel and its sheet). Its **notice line is each resident's own**: a prompt or answer is
 kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
 called away from a job it had not finished (a tunnel job, a dig, a farm or a woods job, a spoil heap)
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
@@ -965,6 +966,27 @@ called away from a job it had not finished (a tunnel job, a dig, a farm or a woo
 finished dig takes its saved job back up once the
 digger has stepped clear of the hole (at night it keeps it for the morning). Orders move the demo cast only,
 never the simulation.
+
+### The compact party panel and its sheet (decision 1891; 1871 P-B8)
+
+Brendan's ruling of 2026-10-12, P-B8: "Compact panel, next". Since slice B the level bar stands above the minimap, so
+at 1280x720 the "Demo party" column is 136 logical px (76 at 125 %): too short for the header, summary, actions and an
+inspector. There the panel (`control/demo_party_panel.gd`) takes a **compact form**:
+
+- the frame wears the thin carving and fills the column's whole carved extent, ending 8 px above the level bar
+  (UX-BUILD-T01);
+- it shows the title, the summary line and the actions: **Release (R)** and **Follow (End)** always in view
+  (decision 0801), **Select idle (n)** (decision 0791) and **Open · n selected**, which carries the count;
+- where even that is short (125 % at 1280x720) the title goes first, then the summary; the actions stay.
+
+**Open** lays the **party sheet** (`control/party_sheet.gd`) over the world beside the column, from the column's top to
+the level bar's foot: a head (the title, the count and ×), the summary on up to two lines, and the inspector itself --
+the notice, the group section, every member row, one resident's lines, person and orders. It is a modal of the demo's
+input gate: a light scrim, world keys wait (B, V, Space, Page Up/Down...), Tab and Shift+Tab stay inside it with × last.
+**Esc**, **×** or **a click anywhere away** folds it; the click does nothing else (it neither selects nor orders), and
+the focus goes back to Open. Picking a member row keeps the sheet open on that resident; **Send to…** folds it so the
+next click reaches the world. At 1920x1080 (100 % and 125 %) the column is tall enough and the panel is as before. No
+key was added. PROPOSALS P-PC1 to P-PC5 in decision 1891.
 
 **Selecting a group** (decision 0791, `control/group_select.gd`). **Select idle (n)**, under the party panel's actions
 and shown with or without a selection, selects every resident the Work screen calls *available* (no key: UI §5 has
@@ -1049,11 +1071,75 @@ the pointer is outside it. A diagonal key pan is now normalised too (W+D is no f
 **At 720p and at 4K** the camera frames the same: one vertical field of view kept by height, zoom limits in metres,
 frame-rate-independent easing, the edge band and the middle drag in logical pixels.
 
+## The build panel and the level bar (decision 1871; DEC-061 slice B)
+
+The game's **one build panel** and **level bar** (`scripts/ui/build_panel.gd`, `level_bar.gd`; UI-BUILD-001..014 in
+`docs/ui_ux_controls.md`), mounted over the village by `build_panel/demo_build.gd`. Brendan's rulings of 2026-10-12: room
+types are painted into one pending batch with the modular planner's draft and undo, and Confirm all orders them
+through the planner's route; B opens the panel and the old tools are reached only from its cards; the panel and bar
+are game UI the demo mounts, and the settlement game's own Build button stays locked until surface rooms exist.
+
+- **B**, or a click on the HUD's **Build** command (enabled in the demo only, decision 1871 E21), opens it on the level shown; B again closes it, asking **"Keep N pending changes?"** (Keep / Discard) when
+  there are any. While it shows, the HUD's command strip and detail, the right column, the Map layer picker and the
+  news strip step aside (their place is the panel's) and come back on close.
+- **Tabs** Rooms · Furnish · Decor (Ctrl+Tab / Ctrl+Shift+Tab). Furnish and Decor wait, saying "Choose a room type
+  first", until a room type or Passage is chosen; their items are locked in this slice ("Not yet: furnishing comes in a
+  later update"), but every card stays inspectable.
+- **Rooms** (decision 1912): the eight GDD room types -- Dormitory, Bedroom, Kitchen, Dining room, Common room,
+  Infirmary, Pantry and **Passage** (CORRIDOR, at least 2 cells wide) -- to paint on levels 1-4; the **Entrance** on the
+  Surface and a **Way down** on levels 1-3. The old Passage / Burrow home / Root cellar tool cards are gone (Brendan's
+  ruling on decision 1911 P-C2 (c)). On the surface and on Overview the room types are locked with the reason in words;
+  Earth, Remove, Outdoor and Clear ground are locked "Not yet".
+- **The info card** follows the hovered or focused card: a described placeholder picture, its purpose, its cost per
+  cell in natural measures -- the claw crew's dig height, read in one place (`burrow/modular_runtime.gd
+  dug_height_u`; 1 quantum on master: a quarter log, 1.25 kg of stone, about 5 minutes of work, a basket of earth) --
+  its rules and its gesture. With a room type chosen, a strip under it picks the tool: **Rect · Oval · Paint · Erase**
+  (Paint and Erase are a 2 × 2 brush; Erase takes out pending cells only).
+- **The levels while painting**: Levels 1-4 are the settlement's **actual** underground levels, 5 m apart, drawn in the
+  village's own camera (`build_panel/demo_build_world.gd`: the World cut at the level's floor; the legacy warren is
+  hidden meanwhile). Under the village, level 1 is under the stream's water up to z 31 m: paint beyond it.
+- **Painting**: drag with the chosen tool. Every cell is judged before Confirm all, on the ghost: gold **✓**, dashed
+  **! No way in** (no drafted chain to dug space or a way down's landing), hatched and numbered **X** ("X1 Cannot dig
+  here: water", "Too narrow"). A stroke joining two pending rooms of its type merges them; an Erase that cuts a room
+  in two splits it; each is one Undo step. The arrows move the cell cursor relative to the camera.
+- **Placing a way down**: choose Entrance (Surface) or Way down, click a spot (or Enter at the cursor; Shift keeps the
+  card): its 2 × 2 ghost says whether it can be built. Pending, it already gives the cells it lands on their way in.
+- **The footer**: the **ledger** (what the plan would need beside what the stores hold, as information: nothing is
+  charged for now), **Undo** / **Redo**, **Discard all** and **Confirm all**, held back while any cell has no way in or
+  any change is not ready, naming the first reason and the count.
+
+- **The level bar** (always shown, bottom left above the minimap): Surface, Level 1-4, Overview. **PageUp / PageDown**
+  step Surface ... Level 4 everywhere; Overview only by a click (the surface view, painting off). While the panel is
+  open the bar decides what is shown (the actual World's levels; U off goes to the Surface, U on to Level 1); with it
+  closed the bar follows the legacy U view (Level 1/2 its levels, 3-4 nothing). A level with no way in yet is marked
+  "Level 1 !". The selection is kept across every level change. The planner's separate view is retired (P-B7).
+
+### The proof of concept: a mole digs (decision 1912)
+
+Brendan's ruling of 2026-10-12 ("A simple mole digs", "Free for now", "Place a simple entrance", "Paint rooms +
+passages"). **Confirm all** hands the ways down and rooms to `build_panel/demo_build_works.gd` -- nothing is paid,
+nothing reaches the settlement's simulation -- and sends a **mole** (the first selected mole, else the first free one):
+it walks to the Entrance, goes in, and a stand-in figure with its name (`demo_build_figure.gd`) digs the ordered cells
+one by one below, nearest first, each opening after a short wait (`demo_build_below_task.gd`). **The look (decision
+1913)**: the level is a cutaway block of earth whose top is the plane you paint on (`demo_build_earth.gd`); each dug
+cell is a pit 1 m deep in it, lit packed-earth floor and walls against the darker mass; an ordered cell is pegged out in
+chalk ("Waiting for the mole: N cells"); the cell being dug deepens as the mole works ("Digging"). The Entrance is a
+burrow mouth on the surface, and its landing below has stairs rising out of it; a Way down whose landing is dug has
+stairs going down into the dark (`demo_build_ways.gd`). The tags and the names over the figures never sit on each other
+(`demo_build_tags.gd`). With residents selected, a **right click** on a dug cell's floor sends them down into it.
+Slice C3 replaces all of this with the settlement's own room foreman, excavation and payment. Nothing here is saved.
+
+Checks: `test_build_*.gd` (batch, stroke, cell validity, items, validity, catalog, panel, ledger, layout),
+`test_demo_build_panel.gd`, `test_demo_build_works.gd`, `test_demo_build_dig.gd`, `test_demo_build_orders.gd`, and
+the live harnesses `test/live/demo_input_live.gd` (build steps) and `test/live/demo_build_dig_live.gd` (the whole loop).
+
 ## Digging tunnels
 
 The tunnels are one **network** (decision 0208, `tunnel/underground_graph.gd`): bores meeting at
-junctions, reached from the surface by mouths. Press **B** (or the party panel's "Dig tunnel (B)"):
-the Dig tool opens in the underground view (and puts the view back when it closes). **Drag** from where a
+junctions, reached from the surface by mouths. **Since decision 1912 no player input opens the Dig tool** (the build
+panel's Passage is a painted room type now); the tool's code stays because the village's existing warren is drawn and
+walked with it, and its harnesses open it directly. As it was: the Dig tool opens in the underground view (and puts
+the view back when it closes). **Drag** from where a
 piece starts to where it ends -- it is dug as you release, if it may be (Shift while dragging drops a bend
 at the pointer) -- or click its points one by one and press Enter or right-click. Backspace takes back a
 point; Esc drops the piece laid, and with none closes the tool; B closes it. The tool stays open after a
@@ -1192,12 +1278,13 @@ settled. Nothing opens onto it from the surface: it is reached only by a **link*
   crews haul baskets up the links to the heap, evacuees and called-away diggers walk out up them, and a paused
   level-2 dig is resumed through them. A cellar on level 2 is deep for the cool rule; a hearth warms it only on its
   own level (never up or down a link).
-- **The view** (`tunnel/tunnel_view.gd` THE LEVELS): **PgUp/PgDn** show level 1 or level 2 -- one cull-mask write,
+- **The view** (`tunnel/tunnel_view.gd` THE LEVELS): **PgUp/PgDn** (now the level bar's, everywhere: decision 1871) show level 1 or level 2 -- one cull-mask write,
   nothing built or re-materialed (each level has its own layers, `demo_layers.gd`). Each level has its own cap at its
   own section with its own void mask and strata, and draws the **other level as a faint outline** only. A link is
   drawn on both levels, each copy cut at its level's section; from level 1 its head is seen going down under the
   cut, from level 2 its foot coming up through it. Clicks land on the shown level's floor. A strip under the alerts
-  says which level is shown; holding PgUp/PgDn never zooms in Underground. The camera's pivot stays at the ground. Residents on the other level, or on a link's hidden middle, are cream markers. The
+  says which level is shown ("Underground · Level 1 (floor 1.25 m down)", trimmed by decision 1871 so it never
+  contradicts the level bar); PgUp/PgDn never zoom. The camera's pivot stays at the ground. Residents on the other level, or on a link's hidden middle, are cream markers. The
   surface's seams and vents, and a digger's mound, are level 1's only. Particles share P5's 200-particle budget and
   face slots; lights go to the level shown.
 
@@ -1211,7 +1298,8 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
 | Burrow home | round, 4 m across | 24 (12 floor quanta, two high) | 3 | its own round **front door** in a turfed mound |
 | Root cellar | a 3 x 4 m barrel vault, stone-lined | 24 | 2 | a **hatch** over its steps |
 
-- **Placing one**: in the Dig tool press **H** (home) or **C** (cellar), or the party panel's buttons. A
+- **Placing one**: no player input reaches the room tool since decision 1912 (the build panel's cards are gone; H and C
+  no longer open it either); `test/live/demo_room_blueprint_live.gd` opens it directly. A
   ghost room follows the pointer -- its outline, its door ramp out to its door, a tick at each socket --
   **R** turns it (Shift+R back; the wheel stays the camera's zoom), and a click
   **holds a blueprint for review**. The clipped grid marks the existing quarter-metre positioning lattice;
@@ -2053,6 +2141,10 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
   staged oak drawn small (0671's art gap).
 - **The work** is on the work board as source 13 since the batch 8 integration (decision 0903), **Orchard** (`work/orchard_work.gd`): tend, harvest, pick berries, haul
   baskets, plant, propagate, observe -- each conserving its load (a delivery always finishes).
+- **Called away, a worker keeps its job** (decision 1900, the resume rule of decision 0205): taken off it by another
+  order, a meal's call or the night, it goes back to it after, from where it stopped, and the work board leaves the job
+  to it meanwhile (its action card says "goes back to it after"). A walk it could not finish is not kept (the job is
+  offered to anyone after its wait), and Pause, Reassign and Cancel keep nothing.
 
 | Input | Does |
 |---|---|

@@ -394,7 +394,7 @@ func test_every_farm_refusal_is_the_orders() -> void:
 	crew.preview_into(card, FarmJobs.KIND_WATER, BED_LOAM, PackedInt32Array())
 	assert_equal(card.fix, "Plant… a crop first", "water: plant first")
 	crew.preview_into(card, FarmJobs.KIND_RAISE, BED_LOAM, PackedInt32Array())
-	assert_true(card.fix.contains("Dig tunnel"), "spoil: dig a tunnel")
+	assert_true(card.fix.contains("Dig a passage (B, Passage)"), "spoil: dig a passage from the build panel")
 
 
 func test_the_farm_assignment_preview_is_who_the_order_sends() -> void:
@@ -1020,31 +1020,20 @@ const ExtJobs: Dictionary = {&"widen": TunnelJobs.JOB_WIDEN, &"brace": TunnelJob
 	&"lanterns": TunnelJobs.JOB_LANTERNS}
 
 
-func test_the_party_panels_tool_buttons_carry_their_cards() -> void:
-	"""The command layer's refresh puts each tool's card -- its digger and what it stops -- on Dig tunnel and the
-	room tools while they show."""
+func test_the_tools_card_names_its_digger_and_what_it_stops() -> void:
+	"""The Dig tool's action card (tunnel_control.gd `tool_card_into`) still names its digger and what an order would
+	stop; the party panel's tool buttons that wore it are gone (decision 1871: the build panel's cards open the tools)."""
 	var cast: DemoCastScript = _keep(DemoCastScript.new()) as DemoCastScript
 	cast.build({}, [] as Array[Dictionary], [] as Array[Vector3])
 	cast.set_bounds(AABB(Vector3(-20.0, 0.0, -20.0), Vector3(40.0, 4.0, 40.0)))
 	var command: CommandScript = _keep(CommandScript.new()) as CommandScript
 	command.configure(cast, _keep(Camera3D.new()) as Camera3D)
 	command.panel().build()
-	var dig: Button = command.panel().dig_button()
-	dig.visible = false
-	var before: String = dig.tooltip_text
-	command._refresh_tool_cards()
-	assert_equal(dig.tooltip_text, before, "hidden: left alone")
-	dig.visible = true
-	command._refresh_tool_cards()
-	var tool: ControlScript = command.tunnels()
+	assert_false(command.panel().has_method(&"dig_button"), "no Dig tunnel button")
 	var card := CardScript.new()
-	var tip: String = dig.tooltip_text
-	assert_true(tip.begins_with("Dig tunnel (B)\n"), tip)
-	tool.tool_card_into(card, "Dig tunnel (B)", "x")
-	assert_true(tip.contains("Who: " + card.who.left(20)), "its digger")
-	assert_true(tip.contains(command.interrupt_text(card.worker).left(12)), "and what it stops")
-	assert_true(command.panel().room_button(0).tooltip_text.begins_with("Burrow home (H)\n"), "the room tools too")
-
+	command.tunnels().tool_card_into(card, "Passage", "a tunnel")
+	assert_true(card.text().begins_with("Passage\n"), card.text())
+	assert_true(card.text().contains("Who: "), "its digger: %s" % card.text())
 
 
 # --- the edges (mutation-tested, decision 0332) ---------------------------------------------------

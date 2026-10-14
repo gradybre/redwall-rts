@@ -1062,14 +1062,17 @@ func _key_event(code: Key, shift: bool = false) -> InputEventKey:
 
 
 func test_the_room_tool_lays_a_home_with_its_passage() -> void:
-	"""In the Dig tool, H opens the home tool; R turns the ghost; north of a tunnel's bore (z 5 m) the ghost
+	"""In the Dig tool, the build panel's Burrow home card opens the home tool (`begin_room`; H no longer does,
+	decision 1871); R turns the ghost; north of a tunnel's bore (z 5 m) the ghost
 	offers its passage to its south socket; a click lays the room and the passage -- the room first in the
 	mole's job list -- and the mole goes to dig; Esc goes back to laying tunnels (decision 0209)."""
 	var tool := _tool(PackedInt32Array([0]))
 	var chain := _open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
 	tool.ext.works.step(1)
 	assert_true(tool.begin_plan(), "the Dig tool")
-	assert_true(tool.handle_input(_key_event(KEY_H)), "H")
+	assert_false(tool.handle_input(_key_event(KEY_H)), "H is not the tool's now")
+	assert_false(tool.room.active, "so no home tool")
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the Burrow home card")
 	assert_true(tool.room.active and tool.room.plan.kind == RoomsScript.TEMPLATE_HOME, "the home tool")
 	tool.room.move_to(Vector2(6.0, 10.0))
 	for k in 2:
@@ -1265,9 +1268,10 @@ func test_the_room_tool_says_why_a_room_may_not_go() -> void:
 	var list := PackedInt32Array()
 	tool.network.job_list_into(list)
 	assert_equal(list.size(), 1, "no passage")
-	assert_true(tool.handle_input(_key_event(KEY_C)), "C")
+	assert_false(tool.handle_input(_key_event(KEY_C)), "C is not the tool's now")
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_CELLAR), "the Root cellar card")
 	assert_equal(tool.room.plan.kind, RoomsScript.TEMPLATE_CELLAR, "the cellar tool")
-	assert_true(tool.handle_input(_key_event(KEY_C)), "C again")
+	assert_false(tool.begin_room(RoomsScript.TEMPLATE_CELLAR), "the same card again")
 	assert_false(tool.room.active, "back to tunnels")
 
 

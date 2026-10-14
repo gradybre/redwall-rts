@@ -443,3 +443,86 @@ func test_scroll_is_refused_for_a_measurement_the_specification_forbids() -> voi
 	assert_false(_registry.overflow_needs_scroll(23, 4, LINE_HEIGHT_AT_SCALE[0]),
 		"and a row §4 sizes at runtime has no maximum to overflow")
 	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_SIZE_NOT_FIXED, "with SIZE_NOT_FIXED")
+
+
+# --- UI-BUILD-001..014 (DEC-061; decision 1871) -------------------------------------------------
+
+## docs/ui_ux_controls.md "UI-BUILD-001 — one build panel and the level bar", quoted row by row: id, name, zone,
+## profile, gate, min w/h, max w/h (0 for the two runtime-sized ghosts).
+const BUILD_QUOTED_ROWS: Array = [
+	[1, "Build panel", UiRegistry.ZONE_BOTTOM_CENTER, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_WORKSPACE, 480, 256, 912, 256],
+	[2, "Build tab", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_TOGGLE, UiRegistry.GATE_WORKSPACE, 96, 44, 160, 44],
+	[3, "Type or item card", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_BUTTON, UiRegistry.GATE_WORKSPACE, 136, 128, 208, 128],
+	[4, "Info card", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_WORKSPACE, 160, 128, 208, 128],
+	[5, "Running ledger", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_READOUT, UiRegistry.GATE_WORKSPACE, 120, 44, 520, 44],
+	[6, "Undo", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_BUTTON, UiRegistry.GATE_WORKSPACE, 44, 44, 96, 44],
+	[7, "Redo", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_BUTTON, UiRegistry.GATE_WORKSPACE, 44, 44, 96, 44],
+	[8, "Confirm all", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_BUTTON, UiRegistry.GATE_WORKSPACE, 120, 44, 240, 44],
+	[9, "Discard all", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_BUTTON, UiRegistry.GATE_WORKSPACE, 96, 44, 160, 44],
+	[10, "Paint ghost", UiRegistry.ZONE_CENTER, UiRegistry.PROFILE_OVERLAY, UiRegistry.GATE_WORLD_TOOL, 0, 0, 0, 0],
+	[11, "Item ghost", UiRegistry.ZONE_CENTER, UiRegistry.PROFILE_OVERLAY, UiRegistry.GATE_WORLD_TOOL, 0, 0, 0, 0],
+	[12, "Connector card", UiRegistry.ZONE_BOTTOM_CENTER, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_CONDITION, 280, 136, 360, 160],
+	[13, "Level bar", UiRegistry.ZONE_BOTTOM_LEFT, UiRegistry.PROFILE_PANEL, UiRegistry.GATE_ALWAYS, 160, 104, 256, 140],
+	[14, "Level button", UiRegistry.ZONE_OWNER, UiRegistry.PROFILE_TOGGLE, UiRegistry.GATE_ALWAYS, 78, 32, 126, 44],
+]
+
+
+func test_the_build_family_is_its_own_fourteen_rows_and_leaves_the_103_alone() -> void:
+	"""UI-BUILD-001..014 have their own count and keys; §4's 103 UI-SET rows are unchanged."""
+	assert_equal(UiRegistry.BUILD_ELEMENT_COUNT, 14, "fourteen rows")
+	assert_equal(UiRegistry.ELEMENT_COUNT, EXPECTED_ELEMENT_COUNT, "the UI-SET count is untouched")
+	assert_equal(_registry.build_element_key(1), &"UI-BUILD-001", "key")
+	assert_equal(_registry.build_element_key(14), &"UI-BUILD-014", "last key")
+	assert_equal(_registry.build_element_key(15), &"", "no fifteenth")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_UNKNOWN_ID, "refused")
+	assert_false(UiRegistry.is_build_element(0), "no zeroth")
+	assert_equal(_registry.build_name_of(0), &"", "no name for 0")
+
+
+func test_the_build_rows_match_the_section_exactly() -> void:
+	"""Every quoted UI-BUILD row: name, zone, profile, gate and size."""
+	assert_equal(BUILD_QUOTED_ROWS.size(), UiRegistry.BUILD_ELEMENT_COUNT, "every row quoted")
+	for row: Array in BUILD_QUOTED_ROWS:
+		var id: int = row[0]
+		assert_equal(String(_registry.build_name_of(id)), row[1], "UI-BUILD-%03d name" % id)
+		assert_equal(_registry.build_zone_of(id).value, row[2], "UI-BUILD-%03d zone" % id)
+		assert_equal(_registry.build_profile_of(id).value, row[3], "UI-BUILD-%03d profile" % id)
+		assert_equal(_registry.build_gate_of(id).value, row[4], "UI-BUILD-%03d gate" % id)
+		if int(row[5]) == 0:
+			assert_false(_registry.build_size_into(id, _size), "UI-BUILD-%03d has no fixed rectangle" % id)
+			assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_SIZE_NOT_FIXED, "UI-BUILD-%03d refuses" % id)
+			continue
+		assert_true(_registry.build_size_into(id, _size), "UI-BUILD-%03d has a size" % id)
+		assert_equal([_size.min_width, _size.min_height, _size.max_width, _size.max_height],
+			[row[5], row[6], row[7], row[8]], "UI-BUILD-%03d size" % id)
+
+
+func test_the_two_ghosts_state_their_runtime_shapes() -> void:
+	"""UI-BUILD-010 is a painted cell set; 011 an item footprint with its access tiles."""
+	assert_equal(_registry.build_size_kind_of(10).value, UiRegistry.SIZE_PAINTED_CELLS, "painted cells")
+	assert_equal(_registry.build_size_kind_of(11).value, UiRegistry.SIZE_FOOTPRINT, "footprint")
+	assert_equal(UiRegistry.SIZE_KIND_KEYS.size(), UiRegistry.SIZE_KIND_COUNT, "every size kind named")
+	assert_false(_registry.build_size_into(99, _size), "unknown id refused")
+
+
+func test_every_interactive_build_row_meets_the_minimum_hitbox() -> void:
+	"""§2.2's 32 × 32 floor for the tabs, cards, footer buttons and level buttons."""
+	var interactive: int = 0
+	for id: int in range(1, UiRegistry.BUILD_ELEMENT_COUNT + 1):
+		if not _registry.build_is_interactive(id):
+			continue
+		interactive += 1
+		assert_true(_registry.build_size_into(id, _size), "UI-BUILD-%03d sized" % id)
+		assert_true(_size.min_width >= UiRegistry.MINIMUM_HITBOX and _size.min_height >= UiRegistry.MINIMUM_HITBOX,
+			"UI-BUILD-%03d at least 32 × 32" % id)
+	assert_equal(interactive, 7, "002, 003, 006-009 and 014 are pressed")
+	assert_false(_registry.build_is_interactive(0), "no row 0")
+
+
+func test_the_build_footer_buttons_are_instances_of_confirm_and_cancel() -> void:
+	"""UI-BUILD-008 is UI-SET-066/confirm_all; 009 is UI-SET-067/discard_all; the expanded ledger's range."""
+	assert_equal(UiRegistry.BUILD_INSTANCES[8], [66, &"confirm_all"], "Confirm all")
+	assert_equal(UiRegistry.BUILD_INSTANCES[9], [67, &"discard_all"], "Discard all")
+	assert_equal(UiRegistry.BUILD_LEDGER_OPEN_MIN, Vector2i(320, 160), "expanded minimum")
+	assert_equal(UiRegistry.BUILD_LEDGER_OPEN_MAX, Vector2i(640, 320), "expanded maximum")
+	assert_equal(UiRegistry.BUILD_BINDINGS[12], "“Levels; viewing ”+level_name", "the level bar's binding")

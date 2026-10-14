@@ -641,6 +641,8 @@ func _build_build_panel() -> void:
 	(_command as DemoCommandScript).set_build_hooks(_build.takes_before_gui, _build.handle_input)
 	_build.bind_cast(_cast, (_command as DemoCommandScript).selected)
 	_build.bind_props(_services.props)
+	# Decision 1921: beds fitted from the build panel's Furnish tab count in the HUD's Beds.
+	_counters.model.built_beds = _build.built_beds
 	_gate.add_region("build panel", [_build.panel, _build.bar] as Array[Node])
 	_time.add_planning("the build panel", _build.is_open)
 

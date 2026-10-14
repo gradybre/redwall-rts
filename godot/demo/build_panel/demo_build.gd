@@ -34,6 +34,16 @@ extends Node
 ## the Entrance and digs the ordered cells one by one, drawn below by a stand-in figure (demo_build_below_task.gd);
 ## the dug rooms are drawn open (demo_build_dug.gd) and count as finished space for the next plan. With residents
 ## selected, a right click on a dug cell sends them down into it. Slice C3 replaces all of it with the real thing.
+##
+## THE FURNISH TAB (decision 1921; Brendan's rulings of 2026-10-13: "A resident fits it", "Room becomes valid",
+## "Footprint + rotation"). An item card chosen on levels 1-4 arms placing it: its ghost follows the cursor on the dug
+## pits' floor, R / Shift+R turn it (`placement_rotate`), a click places it in the batch (judged by
+## build_furniture.gd: dug cells of one room that uses it, no overlap; refused in words), Shift keeps the card, a right
+## click puts it down. Confirm
+## all hands each piece to demo_build_fittings.gd -- free, like the rooms -- and sends a resident (the first selected,
+## else the first one free who is not a mole) down to fit them one by one (demo_build_below_task.gd MODE_FIT). Each
+## room's line ("✓ Kitchen ready") is drawn over it and shown on the Furnish tab, and fitted beds count in the HUD's
+## Beds (`built_beds`). Slice E replaces it with install crews, access tiles and payment.
 
 const BuildPanel := preload("res://scripts/ui/build_panel.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
@@ -83,6 +93,13 @@ const CUT_OFF: String = "%d ordered cells cannot be reached from an Entrance: th
 const SENT: String = "%s goes to the Entrance to dig"
 const VISIT: String = "%s goes down to the dug room"
 const PLACE_HINT: String = "Place %s: click a spot, or Enter at the cursor"
+const Fittings := preload("res://demo/build_panel/demo_build_fittings.gd")
+const Furnish := preload("res://demo/build_panel/demo_build_furnish.gd")
+const Rooms := preload("res://demo/build_panel/demo_build_rooms.gd")
+const Furniture := preload("res://scripts/ui/build_furniture.gd")
+const FITTER_SENT: String = "%s goes to the Entrance to fit the furniture"
+const NO_FITTER: String = "Nobody can fit the furniture: it waits"
+const PIECE_LABEL: String = "Place %s%s\n%s"
 
 var panel: BuildPanel = null
 var bar: LevelBar = null
@@ -134,6 +151,14 @@ var _send_in: float = 0.0
 var _said: String = ""
 ## The works revision the bar's marks were set at.
 var _marked_at: int = -1
+## The Furnish tab (decision 1921): the confirmed furniture, its drawing, the trip fitting it, and the armed piece's
+## quarter turns.
+var fittings: Fittings = null
+var furnish: Furnish = null
+var fitter: BelowTask = null
+var _turn: int = 0
+var _fit_in: float = 0.0
+var _piece_label: Vector4i = Vector4i(0, 0, -1, -1)
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -154,6 +179,7 @@ func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked
 	batch = Batch.new()
 	take_setup(batch.configure(catalog, orders.cell_bounds(), orders.cell_capacity()))
 	_configure_ground()
+	_configure_furnish()
 	_configure_world(session)
 	_build_layer()
 	unlock_build_command()
@@ -183,6 +209,30 @@ func _configure_ground() -> void:
 	dug.configure(works, _floors, _datum_xz(), orders.cell_bounds())
 
 
+func _configure_furnish() -> void:
+	"""The Furnish tab's store, its readers bound to the batch, and its drawing (decision 1921)."""
+	fittings = Fittings.new()
+	batch.bind_furniture_host(room_at, fittings.occupant, fittings.edge_occupant)
+	furnish = Furnish.new()
+	add_child(furnish)
+	furnish.configure(batch, works, fittings, _floors, _datum_xz(), orders.cell_bounds())
+
+
+func room_at(level: int, cell: Vector2i) -> int:
+	"""build_furniture.gd's room reader: a dug room cell's type, else ROOM_EARTH, ROOM_WAITING (ordered, not dug) or
+	ROOM_BARE (dug, no room: a landing)."""
+	var state: int = works.state(level, cell)
+	if state != Works.OPEN:
+		return Furniture.ROOM_WAITING if state == Works.ORDERED else Furniture.ROOM_EARTH
+	var type: int = works.type_of(level, cell)
+	return Furniture.ROOM_BARE if type == Works.TYPE_NONE else type
+
+
+func built_beds() -> int:
+	"""Fitted beds, for the HUD's Beds (Brendan's "Placed beds count in the HUD's Beds")."""
+	return Rooms.beds(fittings)
+
+
 func _datum_xz() -> Vector2i:
 	"""Cell (0, 0)'s x and z (u)."""
 	return Vector2i(orders.datum_u().x, orders.datum_u().z)
@@ -195,8 +245,10 @@ func bind_cast(cast: Node, selection: Callable) -> void:
 
 
 func bind_props(props: Object) -> void:
-	"""The demo's staged props table (demo_props.gd): the build art drawn where it is staged (decision 1913)."""
+	"""The demo's staged props table (demo_props.gd): the build art drawn where it is staged (decision 1913), and the
+	furniture's models (decision 1921)."""
 	dug.use_props(props)
+	furnish.use_props(props)
 
 
 func _configure_world(session: Object) -> void:
@@ -380,8 +432,19 @@ func _process(_delta: float) -> void:
 	elif _holding:
 		_release_hud()
 	paint.refresh(bar.shown_level() if open else -1, open and (armed_type() >= 0 or way_down_armed()), way_down_armed())
+	_refresh_furnish(open)
 	_sync_label(open)
 	_tick_works(_delta)
+
+
+func _refresh_furnish(open: bool) -> void:
+	"""The furniture drawn for the level shown (the armed piece's ghost at the cursor), and the rooms' lines handed to
+	the panel."""
+	var level: int = bar.shown_level() if open else -1
+	var fitting_row: int = fitter.fitting_row() if fitting() else -1
+	furnish.refresh(level, armed_item(), paint.cursor(), _turn, fitting_row)
+	if open:
+		panel.set_room_lines(furnish.rooms.lines_text())
 
 
 func follow_view() -> void:
@@ -473,21 +536,44 @@ func _sync_label(open: bool) -> void:
 	"""The paint label beside the pointer (or the cursor cell): the stroke's size and validity, or how to begin."""
 	var type: int = armed_type() if open else -1
 	var placing: bool = open and way_down_armed()
-	_label_box.visible = type >= 0 or placing
+	_label_box.visible = type >= 0 or placing or (open and piece_armed())
 	if not _label_box.visible:
 		return
 	var label_key: int = batch.stroke_revision * 8 + (bar.shown_level() + 1 if placing else 0)
-	if label_key != _seen_label:
+	if open and piece_armed():
+		_sync_piece_label()
+	elif label_key != _seen_label:
 		_seen_label = label_key
+		_piece_label = Vector4i(0, 0, -1, -1)
 		_label.text = batch.stroke_line().replace("; ", "\n") if batch.stroke_active() \
 			else PLACE_HINT % Items.name_of(bar.shown_level()) if placing else ARMED_HINT % BuildCatalog.type_name(type)
 		_label_box.accessibility_name = batch.stroke_line() if batch.stroke_active() else _label.text
 		_label_box.reset_size()
-	var at: Vector2 = _pointer if _pointer.is_finite() else paint.screen_of(paint.cursor(), bar.shown_level())
+	var at: Vector2 = _pointer if _pointer.is_finite() else paint.screen_of(paint.cursor(), bar.shown_level(),
+		pick_lift())
 	if at.is_finite():
 		var view: Vector2 = get_viewport().get_visible_rect().size if is_inside_tree() else Vector2(1280, 720)
 		_label_box.position = label_position(at + LABEL_OFFSET, _label_box.size * _label_box.scale, view,
 			panel.screen_rect())
+
+
+func _sync_piece_label() -> void:
+	"""The armed piece's words beside the pointer: "Place Hearth, turned once" and its validity at the cursor; worded
+	again only when the cursor, the turn, the item or the batch moved."""
+	var cursor: Vector2i = paint.cursor()
+	var key: Vector4i = Vector4i(cursor.x, cursor.y, _turn * 64 + armed_item(), batch.revision + fittings.revision * 4096)
+	if key == _piece_label:
+		return
+	_piece_label = key
+	_seen_label = -1
+	var item: int = armed_item()
+	var pieces: Furniture = batch.furniture()
+	var judged: Array = pieces.judge(bar.shown_level(), pieces.anchor_for(item, _turn, cursor), _turn, item, -1)
+	var turned: String = Furniture.turn_words(pieces.is_edge(item), _turn)
+	_label.text = PIECE_LABEL % [Furniture.name_of(item), ", " + turned if not turned.is_empty() else "",
+		Validity.line(int(judged[0]), String(judged[1]))]
+	_label_box.accessibility_name = _label.text.replace("\n", "; ")
+	_label_box.reset_size()
 
 
 static func label_position(wanted: Vector2, drawn: Vector2, view: Vector2, avoid: Rect2) -> Vector2:
@@ -579,9 +665,11 @@ func confirm_all() -> void:
 	1912); then a mole is sent to dig them."""
 	if _blocked.is_valid() and bool(_blocked.call()):
 		return
-	var result: PackedInt32Array = batch.confirm_all(_submit_room, _submit_way_down)
-	if result[0] > 0:
+	var result: PackedInt32Array = batch.confirm_all(_submit_room, _submit_way_down, _submit_piece)
+	if result[0] > 0 and works.waiting() > 0:
 		_send_mole()
+	if fittings.waiting() > 0:
+		_send_fitter()
 	var first: int = batch.first_invalid()
 	if first < 0:
 		first = batch.first_refused()
@@ -601,6 +689,11 @@ func _submit_room(draft: Object, level: int, room_type: int) -> Dictionary:
 func _submit_way_down(level: int, cell: Vector2i) -> Dictionary:
 	"""The proof of concept's order route for a way down: it and its landing wait for the mole."""
 	return {"ok": works.order_way_down(level, cell), "error": Validity.outside()}
+
+
+func _submit_piece(level: int, anchor: Vector2i, turn: int, item: int) -> Dictionary:
+	"""The Furnish tab's order route for a piece: it waits for a fitter (free for now; decision 1921)."""
+	return {"ok": fittings.order(level, anchor, turn, item), "error": Validity.not_on_room()}
 
 
 # --- the proof of concept's mole and visitors (decision 1912) -----------------------------------------------------
@@ -623,6 +716,10 @@ func _tick_works(delta: float) -> void:
 	if _send_in <= 0.0 and works.waiting() > 0 and not digging():
 		_send_in = SEND_EVERY_S
 		_send_mole()
+	_fit_in -= delta
+	if _fit_in <= 0.0 and fittings.waiting() > 0 and not fitting():
+		_fit_in = SEND_EVERY_S
+		_send_fitter()
 
 
 func _show_dig(dig_cell: Vector3i) -> void:
@@ -652,6 +749,7 @@ func _collect_tags() -> void:
 		if figure.visible:
 			_tag_list.append(figure.tag())
 	dug.shown_tags(_tag_list)
+	furnish.shown_tags(_tag_list)
 
 
 func tag_overlaps() -> int:
@@ -695,6 +793,45 @@ func _send_mole() -> bool:
 	_said = ""
 	_say.call(SENT % _name_of(mole) if _is_mole(mole) else NO_MOLE % _name_of(mole))
 	return true
+
+
+func fitting() -> bool:
+	"""Whether a resident is on its trip fitting the furniture now."""
+	return fitter != null and _still_on(fitter)
+
+
+func _send_fitter() -> bool:
+	"""A resident to the Entrance to fit the waiting furniture (see `_pick_fitter`) -- only when nobody is fitting and
+	an Entrance exists; why not is said once (decision 1921)."""
+	if fitting() or works.entrance() < 0 or _cast == null or fittings.waiting() == 0:
+		return false
+	var who: int = _pick_fitter()
+	var trip: BelowTask = _send(who, BelowTask.MODE_FIT, Vector3i.ZERO) if who >= 0 else null
+	if not _still_on(trip):
+		_say_once(NO_FITTER)
+		return false
+	fitter = trip
+	_said = ""
+	_say.call(FITTER_SENT % _name_of(who))
+	return true
+
+
+func _pick_fitter() -> int:
+	"""The first selected resident not below, else the first resident free (on no task) who is not a mole -- moles
+	dig -- else the first resident not below; -1 when nobody can go (decision 1921, a PROPOSAL)."""
+	var selected: PackedInt32Array = PackedInt32Array(_selection.call()) if _selection.is_valid() else PackedInt32Array()
+	for i: int in selected:
+		if not _below_now(i):
+			return i
+	var anyone: int = -1
+	for i: int in int(_cast.call(&"actor_count")):
+		if _below_now(i):
+			continue
+		var free: bool = int((_cast.call(&"actor", i) as Node).get(&"brain").get(&"order")) != BrainScript.ORDER_TASK
+		if free and not _is_mole(i):
+			return i
+		anyone = i if anyone < 0 else anyone
+	return anyone
 
 
 func _say_once(words: String) -> void:
@@ -754,6 +891,7 @@ func _send(i: int, mode: int, goal: Vector3i) -> BelowTask:
 	"""Resident `i` on a trip below (a figure made for it, or reused from a finished trip)."""
 	var row: int = _free_trip_row()
 	var trip: BelowTask = BelowTask.new(works, _figures[row], _floors, _datum_xz(), mode, goal, _name_of(i))
+	trip.use_fittings(fittings)
 	_trips[row] = trip
 	_trip_actors[row] = i
 	(_cast.call(&"actor", i) as Node).get(&"brain").call(&"order_task", trip)
@@ -784,6 +922,52 @@ func send_visitors(cell: Vector2i) -> int:
 	if not selected.is_empty():
 		_say.call(VISIT % _name_of(selected[0]))
 	return selected.size()
+
+
+func piece_armed() -> bool:
+	"""Whether a click places a piece of furniture now (the panel open, an item card chosen, levels 1-4 shown)."""
+	return _setup_refusal == &"" and panel.is_open() and panel.piece_armed() and Paint.paintable(bar.shown_level())
+
+
+func armed_item() -> int:
+	"""The item a click places now (-1: none)."""
+	return panel.armed_item() if piece_armed() else -1
+
+
+func piece_turn() -> int:
+	"""The armed piece's quarter turns, 0-3 (R / Shift+R)."""
+	return _turn
+
+
+func rotate_piece(by: int) -> int:
+	"""Turn the armed piece `by` quarter turns (R: +1, Shift+R: -1); its turns now."""
+	_turn = posmod(_turn + by, Furniture.ROTATIONS)
+	return _turn
+
+
+func put_down_piece() -> bool:
+	"""A right click with a piece armed puts its card down (a PROPOSAL, decision 1921: UI-BUILD's input table names no
+	way to); false when none was armed."""
+	if not piece_armed():
+		return false
+	panel.clear_choice()
+	return true
+
+
+func _place_piece(cell: Vector2i, keep: bool = false) -> bool:
+	"""Place the armed piece with the cursor at `cell` on the level shown; it joins the batch (the card put down,
+	unless `keep`: Shift), or is dropped saying why. False when nothing was tried (a stroke in progress)."""
+	var item: int = armed_item()
+	var kind: int = batch.place_piece(bar.shown_level(), batch.furniture().anchor_for(item, _turn, cell), _turn, item)
+	if kind < 0:
+		return false
+	if kind != Validity.KIND_CAN_BUILD:
+		_say.call(batch.last_dropped())
+		return true
+	_say.call("%s %s placed" % [Validity.glyph(kind), Furniture.name_of(item)])
+	if not keep:
+		panel.clear_choice()
+	return true
 
 
 func way_down_armed() -> bool:
@@ -851,10 +1035,13 @@ func _stroke_pointer(event: InputEvent) -> bool:
 func _world_enter(event: InputEvent) -> bool:
 	"""Enter with a type armed and no control focused: the first corner, then the second (the keyboard's paint)."""
 	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo or (armed_type() < 0 and not way_down_armed()) or _focused():
+	if key == null or not key.pressed or key.echo or (armed_type() < 0 and not way_down_armed() and not piece_armed()) \
+			or _focused():
 		return false
 	if key.keycode != KEY_ENTER and key.keycode != KEY_KP_ENTER:
 		return false
+	if piece_armed():
+		return _place_piece(paint.cursor(), key.shift_pressed)
 	if way_down_armed():
 		_place_way_down(paint.cursor(), key.shift_pressed)
 		return true
@@ -905,13 +1092,17 @@ func _panel_key(key: InputEventKey) -> bool:
 	if key.is_action_pressed(&"tool_undo", true, true):
 		batch.undo()
 		return true
+	if piece_armed() and key.is_action_pressed(&"placement_rotate", false, true):
+		rotate_piece(-1 if key.shift_pressed else 1)
+		return true
 	return _arrow(key)
 
 
 func _arrow(key: InputEventKey) -> bool:
 	"""With a type armed, an arrow moves the cell cursor one cell relative to the camera and drags a keyboard stroke
 	with it."""
-	if armed_type() < 0 or not ARROW_KEYS.has(key.keycode) or key.shift_pressed or key.ctrl_pressed or key.alt_pressed:
+	if (armed_type() < 0 and not piece_armed()) or not ARROW_KEYS.has(key.keycode) or key.shift_pressed \
+			or key.ctrl_pressed or key.alt_pressed:
 		return false
 	_pointer = Vector2.INF
 	var forward: Vector3 = -_camera.global_transform.basis.z if is_instance_valid(_camera) else Vector3.FORWARD
@@ -944,7 +1135,11 @@ func _panel_click(button: InputEventMouseButton) -> bool:
 	if not button.pressed:
 		return false
 	if button.button_index == MOUSE_BUTTON_RIGHT:
-		return batch.cancel_stroke() or _visit_at(button.position)
+		return batch.cancel_stroke() or put_down_piece() or _visit_at(button.position)
+	if button.button_index == MOUSE_BUTTON_LEFT and piece_armed():
+		var on_floor: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level(), -Dug.Earth.DEPTH_U)
+		_pointer = button.position
+		return on_floor.ok and _place_piece(on_floor.cell, button.shift_pressed)
 	if button.button_index != MOUSE_BUTTON_LEFT or (armed_type() < 0 and not way_down_armed()):
 		return false
 	var hit: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level())
@@ -966,9 +1161,9 @@ func _visit_at(screen: Vector2) -> bool:
 func _hover(at: Vector2) -> void:
 	"""The cursor cell follows the pointer over the floor (not taken: the hover ring still follows too)."""
 	_pointer = at
-	if armed_type() < 0 and not way_down_armed():
+	if armed_type() < 0 and not way_down_armed() and not piece_armed():
 		return
-	var hit: Paint.WorldTool.Pick = paint.pick(at, bar.shown_level())
+	var hit: Paint.WorldTool.Pick = paint.pick(at, bar.shown_level(), pick_lift())
 	if hit.ok:
 		paint.set_cursor(hit.cell, bar.shown_level(), armed_type())
 
@@ -977,15 +1172,22 @@ func centre_cursor() -> void:
 	"""Put the cell cursor under the middle of the screen (the keyboard's start)."""
 	if not is_inside_tree():
 		return
-	var hit: Paint.WorldTool.Pick = paint.pick(get_viewport().get_visible_rect().size / 2.0, bar.shown_level())
+	var hit: Paint.WorldTool.Pick = paint.pick(get_viewport().get_visible_rect().size / 2.0, bar.shown_level(),
+		pick_lift())
 	if hit.ok:
 		paint.set_cursor(hit.cell, bar.shown_level(), armed_type())
 	_pointer = Vector2.INF
+
+
+func pick_lift() -> int:
+	"""Where the cursor is picked: on the dug pits' floor while a piece is armed (where it will stand), else on the
+	paint plane."""
+	return -Dug.Earth.DEPTH_U if piece_armed() else 0
 
 
 # --- the cards -----------------------------------------------------------------------------------------------------
 
 func _on_card_chosen(card: BuildCatalog.Card) -> void:
 	"""A room type or a way down arms the world (the cursor to the screen's middle); a locked card is only shown."""
-	if (card.kind == BuildCatalog.CARD_ROOM or card.kind == BuildCatalog.CARD_WAY_DOWN) and card.usable():
+	if card.kind != BuildCatalog.CARD_TOOL and card.usable():
 		centre_cursor()

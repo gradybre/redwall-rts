@@ -14,8 +14,10 @@ extends RefCounted
 ##   Rooms, Overview      the room types locked, saying why ("Choose one level to paint on" -- a PROPOSAL).
 ## THE WAY DOWN (decision 1912, Brendan's proof-of-concept ruling "Place a simple entrance"): the surface's Rooms tab
 ## offers the Entrance, levels 1-3 a Way down (level 4 shows it locked: no level below). Free for now.
-##   Furnish              the items the chosen room type allows (room_catalog.gd), locked: furnishing is slice E.
-##   Decor                the decoration item, locked.
+##   Furnish              the items the chosen room type allows (room_catalog.gd) but decoration, placed on the dug
+##                        floor of levels 1-4 (decision 1921: Brendan's Furnish-tab rulings of 2026-10-13, a proof of
+##                        concept slice E replaces); locked on the surface and Overview, saying why.
+##   Decor                the decoration item, placed the same way (UI-BUILD-002 keeps it on its own tab).
 ## A locked card stays inspectable: its info card gives the plain reason (`not_yet` words, a PROPOSAL).
 ##
 ## NUMBERS ARE READ, NOT RESTATED: a room type's least size is room_catalog.gd's GDD §5.9 requirement in tiles,
@@ -73,7 +75,7 @@ const PICTURES: Array[String] = [
 	"shelves of jars and sacks", "a timbered tunnel",
 ]
 const GESTURE_PAINT: String = "Drag to paint; Esc cancels the stroke"
-const GESTURE_PLACE: String = "Click to place; R to rotate"
+const GESTURE_PLACE: String = "Click a dug floor to place; R / Shift+R turn it; Shift+click keeps it for another"
 const GESTURE_WAY_DOWN: String = "Click a spot to place it (2 × 2 cells); Esc cancels"
 const FREE_FOR_NOW: String = "free for now (proof of concept)"
 const WAY_DOWN_PURPOSES: Array[String] = [
@@ -81,11 +83,16 @@ const WAY_DOWN_PURPOSES: Array[String] = [
 	"A way down to the next level, standing on a passage or room",
 ]
 const NOTHING_CHOSEN: String = "Choose a room type to begin"
+## Decision 1921: the Furnish and Decor tabs with no piece chosen.
+const CHOOSE_PIECE: String = "Choose a piece to place"
 const CHOOSE_FIRST: String = "Choose a room type first"
 const LATER_SURFACE: String = "rooms on the surface come in a later update"
 const LATER_OUTDOOR: String = "outdoor items come in a later update"
-const LATER_FURNISH: String = "furnishing comes in a later update"
-const LATER_DECOR: String = "decoration comes in a later update"
+## Decision 1921: furniture stands on dug rooms below; surface rooms come later.
+const LATER_FURNISH: String = "furnishing surface rooms comes in a later update"
+const ITEM_RULES: String = "Stands on the dug floor of a room that uses it (%s), clear of other furniture"
+const EDGE_RULES: String = "Stands on 2 cell edges with a dug room floor on both sides (%s); R / Shift+R pick the side"
+const ITEM_PURPOSE: String = "Furniture for the room: a resident fits it after Confirm all; %s"
 const LATER_REMOVE: String = "removing rooms comes in a later update"
 const LATER_EARTH: String = "filling cells back in comes in a later update"
 const LATER_CLEAR: String = "clearing ground comes in a later update"
@@ -201,9 +208,9 @@ func cards_into(tab: int, level: int, chosen_type: int, out: Array[Card], reacha
 		TAB_ROOMS:
 			_room_cards(level, room_lock(level, reachable), out)
 		TAB_FURNISH:
-			_item_cards(chosen_type, false, out)
+			_item_cards(chosen_type, false, item_lock(level), out)
 		TAB_DECOR:
-			_item_cards(chosen_type, true, out)
+			_item_cards(chosen_type, true, item_lock(level), out)
 
 
 static func room_lock(level: int, _reachable: bool = true) -> String:
@@ -212,6 +219,16 @@ static func room_lock(level: int, _reachable: bool = true) -> String:
 	1912)."""
 	if level <= 0:
 		return Validity.not_yet(LATER_SURFACE)
+	if level >= OVERVIEW_LEVEL:
+		return CHOOSE_A_LEVEL
+	return ""
+
+
+static func item_lock(level: int) -> String:
+	"""Why furniture cannot be placed on `level` ("" when it can): the surface (a later update) or Overview (one level
+	at a time). Decision 1921."""
+	if level <= 0:
+		return Validity.not_yet(LATER_FURNISH)
 	if level >= OVERVIEW_LEVEL:
 		return CHOOSE_A_LEVEL
 	return ""
@@ -284,16 +301,16 @@ func _tool_card(id: StringName, title: String, later: String, purpose: String) -
 	return card
 
 
-func _item_cards(room_type: int, decor: bool, out: Array[Card]) -> void:
-	"""Furnish: the items `room_type` allows but decoration; Decor: decoration. Every one locked in slice B."""
+func _item_cards(room_type: int, decor: bool, lock: String, out: Array[Card]) -> void:
+	"""Furnish: the items `room_type` allows but decoration; Decor: decoration; each locked with `lock` ("" places
+	it)."""
 	if room_type < 0:
 		return
-	var later: String = Validity.not_yet(LATER_DECOR if decor else LATER_FURNISH)
 	for key: String in ITEM_NAMES:
 		var item: int = int(Catalog.FURNITURE_DEFINITION[key])
 		if (key == "decoration") != decor or _rooms.compatibility_error(room_type, item) != &"":
 			continue
-		out.append(item_card(item, later))
+		out.append(item_card(item, lock))
 
 
 func item_card(item: int, locked_reason: String) -> Card:
@@ -307,11 +324,26 @@ func item_card(item: int, locked_reason: String) -> Card:
 	card.locked = locked_reason
 	card.cost = "per item %s" % _bill_words(facts)
 	card.footprint = _footprint_words(facts)
-	card.purpose = "Furniture for the room"
-	card.rules = locked_reason
+	card.purpose = ITEM_PURPOSE % FREE_FOR_NOW
+	card.rules = (EDGE_RULES if facts.edge_placement else ITEM_RULES) % users_of(item) if locked_reason.is_empty() \
+		else locked_reason
 	card.gesture = GESTURE_PLACE
 	card.picture = "no picture yet"
 	return card
+
+
+func users_of(item: int) -> String:
+	"""The room types that use `item`, in words: "Dormitory or Bedroom", or "any room" for a shared fitting."""
+	return users_in(_rooms, item)
+
+
+static func users_in(rooms: RoomCatalog, item: int) -> String:
+	"""`users_of` read through `rooms` (room_catalog.gd `compatibility_error`)."""
+	var names: PackedStringArray = PackedStringArray()
+	for room_type: int in PAINTED_TYPES:
+		if rooms.compatibility_error(room_type, item) == &"":
+			names.append(type_name(room_type))
+	return " or ".join(names) if names.size() < PAINTED_TYPES.size() else "any room"
 
 
 static func _bill_words(facts: RoomCatalog.FurnitureFacts) -> String:

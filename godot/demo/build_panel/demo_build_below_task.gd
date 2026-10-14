@@ -7,6 +7,9 @@ extends "res://demo/tunnel/tunnel_task.gd"
 ##          to the nearest ordered one and stands beside it for DIG_SECONDS, then the cell opens; when nothing is left
 ##          that it can reach it walks back to the Entrance and comes out.
 ##   VISIT  a resident walks through dug cells to the cell it was sent to and stays there until called away.
+##   FIT    a resident fits the confirmed furniture (decision 1921; Brendan's "A resident fits it"): breadth first it
+##          walks to the nearest piece waiting (demo_build_fittings.gd `next_fit`), stands on it for FIT_SECONDS and
+##          the piece appears; when none is left that it can reach it walks back and comes out, as the mole does.
 ## Walking is a straight line from cell middle to cell middle at the resident's own walk speed; a step through the
 ## surface (demo_build_works.gd SURFACE: from one Entrance to another, or into a landing from above) is taken at once,
 ## up and over. No claw stroke, no Work or Routes phase, no payment: none of the settlement's excavation runs (that is
@@ -15,9 +18,11 @@ extends "res://demo/tunnel/tunnel_task.gd"
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Figure := preload("res://demo/build_panel/demo_build_figure.gd")
+const Fittings := preload("res://demo/build_panel/demo_build_fittings.gd")
 
 const MODE_DIG: int = 0
 const MODE_VISIT: int = 1
+const MODE_FIT: int = 2
 const STAGE_GOING: int = 0
 const STAGE_PLAN: int = 1
 const STAGE_WALK: int = 2
@@ -26,13 +31,19 @@ const STAGE_STAY: int = 4
 const STAGE_OUT: int = 5
 ## The short wait before a cell opens (Brendan: "the cell opens after a short wait"; seconds of game time).
 const DIG_SECONDS: float = 1.5
+## The short wait before a piece appears (Brendan: "the piece appears after a short wait, like the mole digging"; the
+## dig's own wait, seconds of game time).
+const FIT_SECONDS: float = DIG_SECONDS
 const UNITS_PER_M: float = 1024.0
 
 var mode: int = MODE_DIG
 var stage: int = STAGE_GOING
-## The cells dug by this trip (checks).
+## The cells dug, and the pieces fitted, by this trip (checks).
 var dug: int = 0
+var fitted: int = 0
 var _works: Works = null
+var _fittings: Fittings = null
+var _fit_row: int = -1
 var _figure: Figure = null
 var _floors: PackedInt32Array = PackedInt32Array()
 var _datum: Vector2i = Vector2i.ZERO
@@ -64,6 +75,11 @@ func _init(works: Works, figure: Figure, floors: PackedInt32Array, datum: Vector
 	_start = works.landing_of(row) if row >= 0 else Vector3i.ZERO
 
 
+func use_fittings(fittings: Fittings) -> void:
+	"""The confirmed furniture a FIT trip fits (set before the trip is ordered)."""
+	_fittings = fittings
+
+
 func site(_brain: RefCounted) -> Vector2:
 	"""The Entrance's middle on the surface."""
 	return _entrance
@@ -93,20 +109,37 @@ func step(brain: RefCounted, delta: float) -> bool:
 
 
 func _plan() -> void:
-	"""What next: the nearest cell to dig (DIG), the cell visited (VISIT), or the way out."""
-	var found: Dictionary = _works.next_dig(_at) if mode == MODE_DIG else {}
+	"""What next: the nearest cell to dig (DIG), the nearest piece to fit (FIT), the cell visited (VISIT), or the way
+	out."""
 	if mode == MODE_VISIT:
 		_path = _works.path_to(_at, _goal) if _at != _goal else PackedVector3Array()
 		_go(STAGE_STAY if _path.is_empty() else STAGE_WALK)
 		return
+	var found: Dictionary = _next_job()
 	if found.is_empty():
-		_path = _works.path_to(_at, _start) if _at != _start else PackedVector3Array()
-		_go(STAGE_OUT if _path.is_empty() else STAGE_WALK)
-		_target = Vector3i(-1, 0, 0)
+		_head_out()
 		return
 	_target = found["target"]
+	_fit_row = int(found.get("row", -1))
 	_path = found["path"]
 	_go(STAGE_WALK)
+
+
+func _next_job() -> Dictionary:
+	"""{target, path} (and the piece's `row` for FIT) of the nearest cell to dig or piece to fit, or {}."""
+	if mode == MODE_DIG:
+		return _works.next_dig(_at)
+	var found: Dictionary = _fittings.next_fit(_works, _at) if _fittings != null else {}
+	if found.is_empty():
+		return {}
+	return {"target": found["goal"], "path": found["path"], "row": found["row"]}
+
+
+func _head_out() -> void:
+	"""Nothing left to do that can be reached: back to the landing, then out."""
+	_path = _works.path_to(_at, _start) if _at != _start else PackedVector3Array()
+	_go(STAGE_OUT if _path.is_empty() else STAGE_WALK)
+	_target = Vector3i(-1, 0, 0)
 
 
 func _go(next_stage: int) -> void:
@@ -157,17 +190,19 @@ func _arrive_below() -> void:
 	elif _target.x < 0:
 		stage = STAGE_OUT
 	else:
-		_wait = DIG_SECONDS
+		_wait = FIT_SECONDS if mode == MODE_FIT else DIG_SECONDS
 		_figure.set_digging(true)
 		stage = STAGE_DIG
 
 
 func _dig(delta: float) -> void:
-	"""The short wait, then the cell opens."""
+	"""The short wait, then the cell opens (DIG) or the piece appears (FIT)."""
 	_wait -= delta
 	if _wait > 0.0:
 		return
-	if _works.open_cell(_target.x, Vector2i(_target.y, _target.z)):
+	if mode == MODE_FIT:
+		fitted += 1 if _fittings != null and _fittings.fit(_fit_row) else 0
+	elif _works.open_cell(_target.x, Vector2i(_target.y, _target.z)):
 		dug += 1
 	_figure.set_digging(false)
 	stage = STAGE_PLAN
@@ -208,12 +243,17 @@ func at() -> Vector3i:
 
 func digging_cell() -> Vector3i:
 	"""The cell being dug now (level, x, z), or (-1, 0, 0) when not digging (demo_build_earth.gd draws it deepening)."""
-	return _target if stage == STAGE_DIG else Vector3i(-1, 0, 0)
+	return _target if stage == STAGE_DIG and mode == MODE_DIG else Vector3i(-1, 0, 0)
+
+
+func fitting_row() -> int:
+	"""The piece being fitted now (demo_build_fittings.gd row), or -1."""
+	return _fit_row if stage == STAGE_DIG and mode == MODE_FIT else -1
 
 
 func dig_share() -> float:
 	"""How far the cell being dug has gone, 0-1 (0 when not digging)."""
-	return clampf(1.0 - _wait / DIG_SECONDS, 0.0, 1.0) if stage == STAGE_DIG else 0.0
+	return clampf(1.0 - _wait / DIG_SECONDS, 0.0, 1.0) if stage == STAGE_DIG and mode == MODE_DIG else 0.0
 
 
 func below() -> bool:
@@ -225,6 +265,10 @@ func label() -> String:
 	"""What the panel says."""
 	if mode == MODE_VISIT:
 		return "Going down to the dug rooms" if stage == STAGE_GOING else "In the dug rooms below"
+	if mode == MODE_FIT:
+		var waiting: int = _fittings.waiting() if _fittings != null else 0
+		return "Going to the Entrance to fit furniture" if stage == STAGE_GOING \
+			else "Fitting the furniture (%d %s waiting)" % [waiting, "piece" if waiting == 1 else "pieces"]
 	if stage == STAGE_GOING:
 		return "Going to the Entrance to dig"
 	return "Digging the planned rooms (%d cells waiting)" % _works.waiting()

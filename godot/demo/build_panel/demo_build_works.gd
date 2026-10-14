@@ -177,18 +177,29 @@ func landing_of(row: int) -> Vector3i:
 func next_dig(from: Vector3i) -> Dictionary:
 	"""The nearest ordered cell the mole can dig from `from` (level, x, z): {target, path} -- the cells it walks
 	(ending where it digs from) and the cell it digs -- or {} when none can be reached."""
-	return _search(from, Vector3i(-1, 0, 0), true)
+	return _search(from, {}, true)
 
 
 func path_to(from: Vector3i, goal: Vector3i) -> PackedVector3Array:
 	"""The open cells from `from` to `goal` (both included; goal open), or empty when there is no way."""
-	var found: Dictionary = _search(from, goal, false)
+	var found: Dictionary = _search(from, {goal: true}, false)
 	return found.get("path", PackedVector3Array())
 
 
-func _search(from: Vector3i, goal: Vector3i, digging: bool) -> Dictionary:
+func path_to_any(from: Vector3i, goals: Dictionary) -> Dictionary:
+	"""The nearest of `goals` (keys: open cells (level, x, z)) from `from`, other than `from` itself: {goal, path} --
+	the open cells walked, both ends included -- or {} when none can be reached (decision 1921: a fitter's walk to the
+	nearest piece waiting)."""
+	var found: Dictionary = _search(from, goals, false)
+	if found.is_empty():
+		return {}
+	var path: PackedVector3Array = found["path"]
+	return {"goal": Vector3i(path[path.size() - 1]), "path": path}
+
+
+func _search(from: Vector3i, goals: Dictionary, digging: bool) -> Dictionary:
 	"""Breadth first from `from` through open cells and open ways down: the first ordered cell beside them (digging)
-	or `goal` (walking)."""
+	or the first of `goals` (walking)."""
 	if digging and state(from.x, Vector2i(from.y, from.z)) == ORDERED:
 		return {"target": from, "path": PackedVector3Array([Vector3(from)])}
 	var came: Dictionary = {from: from}
@@ -200,7 +211,7 @@ func _search(from: Vector3i, goal: Vector3i, digging: bool) -> Dictionary:
 		for next: Vector3i in _neighbours(at):
 			if came.has(next):
 				continue
-			if not digging and next == goal:
+			if not digging and goals.has(next):
 				came[next] = at
 				return {"path": _walk(came, next)}
 			if digging and state(next.x, Vector2i(next.y, next.z)) == ORDERED:

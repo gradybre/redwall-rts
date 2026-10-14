@@ -50,14 +50,23 @@ const REASON_NOTHING_NEW: int = 21
 const REASON_NOTHING_TO_ERASE: int = 22
 const REASON_WAY_DOWN_CLASH: int = 23
 const REASON_NEEDS_FLOOR: int = 24
-const REASON_COUNT: int = 25
+## Decision 1921 (the Furnish tab's proof of concept): where a piece of furniture may not stand.
+const REASON_NOT_DUG: int = 25
+const REASON_NOT_ON_ROOM: int = 26
+const REASON_TWO_ROOMS: int = 27
+const REASON_PIECE_OVERLAPS: int = 28
+const REASON_NOT_BETWEEN_FLOORS: int = 29
+const REASON_CUTS_PIECE: int = 30
+const REASON_ON_WAY_DOWN: int = 31
+const REASON_COUNT: int = 32
 ## The glyph each reason carries, by REASON_* id (the table's Glyph column; proposals as decision 1871 says).
 const REASON_KINDS: Array[int] = [
 	KIND_CAN_BUILD, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
-	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_BLOCKED,
+	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
+	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 ]
 
 const TEXT_TOO_NARROW: String = "Too narrow: rooms need at least 2 × 2 cells"
@@ -92,6 +101,20 @@ const FORMAT_NOTHING_TO_ERASE: String = "Nothing to erase: no planned %s cells h
 const FORMAT_WAY_DOWN_CLASH: String = "Overlaps another %s: undo it first"
 ## PROPOSAL (decision 1912): a way down below the surface stands on a planned or dug passage or room.
 const FORMAT_NEEDS_FLOOR: String = "%s needs a passage or room under it: paint one there first"
+## PROPOSAL (decision 1921): furniture stands only on cells the mole has dug (Brendan's "Footprint + rotation").
+const TEXT_NOT_DUG: String = "Not dug yet: furniture stands on a dug room's floor"
+## PROPOSAL (decision 1921): a piece over earth, or over a way's landing, is in no room.
+const TEXT_NOT_ON_ROOM: String = "Not in a room: place it on a dug room's floor"
+## PROPOSAL (decision 1921): a piece's footprint lies inside one room (BUILD-REQ-010).
+const TEXT_TWO_ROOMS: String = "Spans two rooms: keep it inside one room"
+## PROPOSAL (decision 1921): furniture cannot overlap (GDD §5.9).
+const FORMAT_PIECE_OVERLAPS: String = "Overlaps a %s: place it clear of other furniture"
+## PROPOSAL (decision 1921): a door or partition stands on cell edges with dug floor on both sides and a room on one.
+const FORMAT_NOT_BETWEEN_FLOORS: String = "Not between dug floors: a %s needs dug floor on both sides and a room on one"
+## PROPOSAL (decision 1921): a door or partition may not split one piece of furniture.
+const FORMAT_CUTS_PIECE: String = "Cuts through a %s: put it between pieces"
+## PROPOSAL (decision 1921): furniture keeps a way down's stairs and landing clear.
+const TEXT_ON_WAY_DOWN: String = "On a way down: keep its stairs clear"
 
 
 static func is_kind(kind: int) -> bool:
@@ -241,3 +264,38 @@ static func overlaps_way_down(name: String) -> String:
 static func needs_floor(name: String) -> String:
 	"""PROPOSAL (decision 1912): a way down below the surface with no passage or room under it (!)."""
 	return FORMAT_NEEDS_FLOOR % name
+
+
+static func not_dug() -> String:
+	"""PROPOSAL (decision 1921): a piece over cells still waiting for the mole (X)."""
+	return TEXT_NOT_DUG
+
+
+static func not_on_room() -> String:
+	"""PROPOSAL (decision 1921): a piece over earth or a way's landing (X)."""
+	return TEXT_NOT_ON_ROOM
+
+
+static func two_rooms() -> String:
+	"""PROPOSAL (decision 1921): a piece across two rooms (X)."""
+	return TEXT_TWO_ROOMS
+
+
+static func piece_overlaps(name: String) -> String:
+	"""PROPOSAL (decision 1921): a piece over another, `name` (X)."""
+	return FORMAT_PIECE_OVERLAPS % name
+
+
+static func not_between_floors(name: String) -> String:
+	"""PROPOSAL (decision 1921): a door or partition without dug floor on both sides and a room on one (X)."""
+	return FORMAT_NOT_BETWEEN_FLOORS % name
+
+
+static func cuts_piece(name: String) -> String:
+	"""PROPOSAL (decision 1921): a door or partition through one piece, `name` (X)."""
+	return FORMAT_CUTS_PIECE % name
+
+
+static func on_way_down() -> String:
+	"""PROPOSAL (decision 1921): a piece over a way down's cells (X)."""
+	return TEXT_ON_WAY_DOWN

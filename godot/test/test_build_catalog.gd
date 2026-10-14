@@ -77,13 +77,13 @@ func test_rooms_on_the_surface_are_locked_but_inspectable() -> void:
 
 
 func test_furnish_lists_only_what_the_room_type_allows_and_decor_the_decoration() -> void:
-	"""room_catalog.gd's palette: a Kitchen takes a bench; a Dormitory takes beds but no bench; all locked."""
+	"""room_catalog.gd's palette: a Kitchen takes a bench; a Dormitory takes beds but no bench; placeable on levels
+	1-4 (decision 1921)."""
 	_catalog.cards_into(BuildCatalog.TAB_FURNISH, 1, 2, _cards)
 	var kitchen: PackedStringArray = PackedStringArray()
 	for card: BuildCatalog.Card in _cards:
 		kitchen.append(card.name)
-		assert_false(card.usable(), "%s locked" % card.name)
-		assert_equal(card.locked, "Not yet: furnishing comes in a later update", "its words")
+		assert_true(card.usable() and card.kind == BuildCatalog.CARD_ITEM, "%s placeable on level 1" % card.name)
 	assert_true(kitchen.has("Kitchen bench") and kitchen.has("Hearth"), "kitchen pieces: %s" % ", ".join(kitchen))
 	assert_false(kitchen.has("Bed") or kitchen.has("Decoration"), "no bed, decoration on its own tab")
 	_catalog.cards_into(BuildCatalog.TAB_FURNISH, 1, 0, _cards)
@@ -96,6 +96,30 @@ func test_furnish_lists_only_what_the_room_type_allows_and_decor_the_decoration(
 	assert_equal(_cards[0].name, "Decoration", "decoration")
 	_catalog.cards_into(BuildCatalog.TAB_FURNISH, 1, -1, _cards)
 	assert_equal(_cards.size(), 0, "nothing to furnish before a type is chosen")
+
+
+func test_furniture_is_locked_on_the_surface_and_overview_saying_why() -> void:
+	"""Decision 1921: furniture stands on dug rooms below; the surface's rooms come later, Overview shows them all."""
+	_catalog.cards_into(BuildCatalog.TAB_FURNISH, 0, 2, _cards)
+	assert_true(_cards.size() > 0, "the Kitchen's pieces listed on the surface")
+	for card: BuildCatalog.Card in _cards:
+		assert_false(card.usable(), "%s locked on the surface" % card.name)
+		assert_equal(card.locked, "Not yet: furnishing surface rooms comes in a later update", "its words")
+	_catalog.cards_into(BuildCatalog.TAB_DECOR, BuildCatalog.OVERVIEW_LEVEL, 2, _cards)
+	assert_equal(_cards[0].locked, BuildCatalog.CHOOSE_A_LEVEL, "Overview: one level at a time")
+	for level: int in [1, 2, 3, 4]:
+		assert_equal(BuildCatalog.item_lock(level), "", "placeable on level %d" % level)
+
+
+func test_item_cards_say_which_rooms_use_them_and_that_they_are_free() -> void:
+	"""Decision 1921: the rules name the room types that use the piece; the purpose says a resident fits it, free."""
+	var bed: BuildCatalog.Card = _catalog.item_card(0, "")
+	assert_true(bed.rules.contains("(Dormitory or Bedroom)"), bed.rules)
+	assert_true(bed.purpose.contains("free for now"), bed.purpose)
+	assert_true(_catalog.item_card(2, "").rules.contains("(any room)"), "a hearth: any room")
+	assert_true(_catalog.item_card(3, "").rules.begins_with("Stands on 2 cell edges"), "a door stands on edges")
+	assert_equal(_catalog.users_of(5), "Kitchen", "the bench: the Kitchen")
+	assert_equal(_catalog.item_card(0, "Locked").rules, "Locked", "a locked card's rules are its reason")
 
 
 func test_item_cards_carry_their_bill_and_footprint() -> void:

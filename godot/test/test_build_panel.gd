@@ -420,3 +420,89 @@ func test_a_way_down_holds_confirm_all_back_in_its_own_words() -> void:
 		_panel.confirm_blocked())
 	assert_true(_panel.ledger_lines("").contains("Level 1 · Way down (a way down to level 2; free for now): ! Blocked"),
 		_panel.ledger_lines(""))
+
+
+# --- the Furnish tab (decision 1921) ------------------------------------------------------------------------------
+
+func _furnish_kitchen() -> void:
+	"""A Kitchen chosen, then the Furnish tab."""
+	_panel.choose_card(KITCHEN)
+	assert_true(_panel.select_tab(BuildCatalog.TAB_FURNISH), "Furnish")
+
+
+func _card_named(card_name: String) -> int:
+	"""The row's card called `card_name` (-1: none)."""
+	for k: int in _panel.row_cards().size():
+		if _panel.row_cards()[k].name == card_name:
+			return k
+	return -1
+
+
+func test_an_item_card_arms_placing_it_on_an_underground_level() -> void:
+	"""Choosing the Hearth card arms it (no room type painting meanwhile); on the surface it is locked and disarmed."""
+	_furnish_kitchen()
+	assert_false(_panel.piece_armed(), "nothing armed yet")
+	_panel.choose_card(_card_named("Hearth"))
+	assert_true(_panel.piece_armed(), "the hearth is armed")
+	assert_equal(_panel.armed_item(), 2, "item 2")
+	assert_equal(_panel.paint_type(), -1, "no room type paints meanwhile")
+	assert_false(_panel.way_down_armed(), "nor a way down")
+	_panel.set_level(LevelBar.LEVEL_SURFACE)
+	assert_false(_panel.piece_armed(), "on the surface it is disarmed")
+	assert_equal(_panel.armed_item(), -1, "nothing")
+	assert_null(_panel.chosen_card(), "the choice dropped: locked there")
+
+
+func test_an_item_choice_survives_a_change_of_underground_level() -> void:
+	"""A piece armed on level 1 stays armed on level 2 (its own tab's cards are read, not the Rooms tab's)."""
+	_furnish_kitchen()
+	_panel.choose_card(_card_named("Kitchen bench"))
+	_panel.set_level(2)
+	assert_true(_panel.piece_armed(), "still armed")
+	_panel.clear_choice()
+	assert_false(_panel.piece_armed(), "put down")
+
+
+func test_the_rooms_lines_show_on_the_furnish_tab_only() -> void:
+	"""set_room_lines: under the info card on Furnish and Decor; not on Rooms."""
+	_furnish_kitchen()
+	_panel.choose_card(_card_named("Hearth"))
+	_panel.set_room_lines("! Kitchen: Needs 1 hearth")
+	assert_true(_panel.info_text().ends_with("! Kitchen: Needs 1 hearth"), _panel.info_text())
+	_panel.set_room_lines("✓ Kitchen ready")
+	assert_true(_panel.info_text().ends_with("✓ Kitchen ready"), "updated live: %s" % _panel.info_text())
+	_panel.clear_choice()
+	_panel.select_tab(BuildCatalog.TAB_DECOR)
+	assert_equal(_panel.info_text(), "Choose a piece to place\n✓ Kitchen ready", "nothing chosen on Decor: still shown")
+	_panel.select_tab(BuildCatalog.TAB_ROOMS)
+	assert_false(_panel.info_text().contains("Kitchen ready"), "not on Rooms: %s" % _panel.info_text())
+
+
+func test_the_ledger_lists_each_piece_and_the_furnitures_bill() -> void:
+	"""A pending bed and bench: their lines, their whole bill in their own goods, free; wood and stone in the short
+	ledger."""
+	_batch.bind_furniture_host(func(_l: int, _c: Vector2i) -> int: return 0, func(_l: int, _c: Vector2i) -> int: return -1,
+		func(_l: int, _e: Vector3i) -> int: return -1)
+	assert_equal(_batch.place_piece(1, Vector2i(0, 0), 1, 0), Validity.KIND_CAN_BUILD, "a bed, turned once")
+	_panel.refresh(true)
+	var lines: String = _panel.ledger_lines("summary").replace("\n", " | ")
+	assert_true(lines.contains("Level 1 · Bed, turned once (free for now): ✓ Can build"), lines)
+	assert_true(lines.contains("Furniture needs 2 logs, 2 lengths of cloth; work about 20 minutes"), lines)
+	assert_true(lines.contains("(free for now: nothing is taken from the stores)"), lines)
+	var short: String = (_panel.controls()[&"ledger"] as Button).text
+	assert_true(short.begins_with("Plan: 2 logs") and short.contains("work about 20 minutes"), short)
+	_batch.undo()
+	_panel.refresh(true)
+	assert_false(_panel.ledger_lines("s").contains("Furniture needs"), "no piece: no bill line")
+
+
+func test_a_piece_that_no_longer_fits_names_itself_in_confirm_alls_reason() -> void:
+	"""A pending piece whose floor was taken since holds Confirm all back in its own words."""
+	var taken: Array = [false]
+	_batch.bind_furniture_host(func(_l: int, _c: Vector2i) -> int: return 0,
+		func(_l: int, _c: Vector2i) -> int: return 0 if taken[0] else -1, func(_l: int, _e: Vector3i) -> int: return -1)
+	_batch.place_piece(1, Vector2i(0, 0), 0, 0)
+	assert_equal(_panel.confirm_blocked(), "", "fits")
+	taken[0] = true
+	assert_equal(_panel.confirm_blocked(), "X 1 of 1 not ready: Bed: Overlaps a Bed: place it clear of other furniture",
+		_panel.confirm_blocked())

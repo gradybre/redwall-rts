@@ -36,6 +36,7 @@ const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
+const Furniture := preload("res://scripts/ui/build_furniture.gd")
 
 ## SET-BUILD-001 §3: one cell is 1 m, 1024 u.
 const PITCH_U: int = 1024
@@ -52,8 +53,10 @@ const VERB_PAINT: int = 0
 const VERB_ERASE: int = 1
 const VERB_PLACE: int = 2
 const VERBS: Array[String] = ["Paint", "Erase", "Place"]
-## A step entry at or past ITEM_TAG names a way down (build_items.gd row = entry - ITEM_TAG), not an operation.
+## A step entry at or past ITEM_TAG names a way down (build_items.gd row = entry - ITEM_TAG), not an operation; at or
+## past PIECE_TAG, a piece of furniture (build_furniture.gd row = entry - PIECE_TAG; decision 1921).
 const ITEM_TAG: int = 1 << 24
+const PIECE_TAG: int = 2 << 24
 ## A refusal that came back without words.
 const UNCHECKED: String = "the order could not be checked; review it and try again"
 const SHAPE_WORDS: Dictionary = {
@@ -103,6 +106,7 @@ var _targets: PackedInt32Array = PackedInt32Array()
 var _stroke_codes: PackedByteArray = PackedByteArray()
 var _last_dropped: String = ""
 var _items: Items = Items.new()
+var _pieces: Furniture = Furniture.new()
 var _host_landings: Callable = Callable()
 
 
@@ -117,6 +121,7 @@ func configure(catalog: BuildCatalog, bounds: Rect2i, capacity: int) -> StringNa
 	if code != &"":
 		return code
 	_cells.bind_landings(_all_landings)
+	_pieces.bind_ways(_way_cells)
 	_catalog = catalog
 	_bounds = bounds
 	_capacity = capacity
@@ -147,6 +152,16 @@ func _all_landings(level: int) -> PackedInt32Array:
 	var out: PackedInt32Array = _items.landings(level)
 	if _host_landings.is_valid():
 		out.append_array(PackedInt32Array(_host_landings.call(level)))
+	return out
+
+
+func _way_cells(level: int) -> PackedInt32Array:
+	"""The cells pending ways down take on `level`: where they stand, and where they land (decision 1921: furniture
+	keeps clear of them)."""
+	var out: PackedInt32Array = _items.landings(level)
+	for row: int in _items.count():
+		if _items.is_live(row) and _items.level_of(row) == level:
+			out.append_array(Items.footprint(_items.cell_of(row)))
 	return out
 
 
@@ -590,6 +605,9 @@ func judge_item(level: int, cell: Vector2i, own_row: int) -> Array:
 	var landing: String = _landing_refusal(level + 1, cells)
 	if not landing.is_empty():
 		return [Validity.KIND_NOT_POSSIBLE, landing]
+	var piece: int = maxi(_pieces.floor_taken(level, cells), _pieces.floor_taken(level + 1, cells))
+	if piece >= 0:
+		return [Validity.KIND_NOT_POSSIBLE, Validity.piece_overlaps(Furniture.name_of(piece))]
 	if level > 0 and not _stands_on_rooms(level, cells):
 		return [Validity.KIND_BLOCKED, Validity.needs_floor(name)]
 	return [Validity.KIND_CAN_BUILD, ""]
@@ -637,6 +655,54 @@ func first_invalid_item() -> int:
 	"""The first pending way down that holds Confirm all back; -1 when none."""
 	for row: int in _items.count():
 		if _items.is_live(row) and item_kind(row) != Validity.KIND_CAN_BUILD:
+			return row
+	return -1
+
+
+# --- the furniture (decision 1921) -----------------------------------------------------------------------------------
+
+func furniture() -> Furniture:
+	"""The pending pieces of furniture (read only for hosts: drawing, the ledger, checks)."""
+	return _pieces
+
+
+func bind_furniture_host(room_at: Callable, occupant: Callable, edge_occupant: Callable,
+		piece_at: Callable = Callable()) -> void:
+	"""The host's readers for judging furniture (build_furniture.gd THE HOST'S READERS)."""
+	_pieces.bind_host(room_at, occupant, edge_occupant, piece_at)
+	revision += 1
+
+
+func place_piece(level: int, anchor: Vector2i, turn: int, item: int) -> int:
+	"""Place `item` on `level` at `anchor` (its north-west cell; an edge item's cursor cell) turned `turn` quarter
+	turns: one step; an "X" one is dropped with its words in `last_dropped`. Returns its validity kind, or -1 with a
+	stroke in progress or no planning area."""
+	if _catalog == null or _stroke.active():
+		return -1
+	var judged: Array = _pieces.judge(level, anchor, turn, item, -1)
+	if int(judged[0]) != Validity.KIND_CAN_BUILD:
+		_last_dropped = Validity.line(int(judged[0]), String(judged[1]))
+		revision += 1
+		return int(judged[0])
+	_last_dropped = ""
+	_record(PackedInt32Array([VERB_PLACE, PIECE_TAG + _pieces.add(level, anchor, turn, item)]))
+	return Validity.KIND_CAN_BUILD
+
+
+func piece_kind(row: int) -> int:
+	"""Pending piece `row`'s validity kind now."""
+	return int(_pieces.row_judgement(row)[0])
+
+
+func piece_reason(row: int) -> String:
+	"""Why pending piece `row` cannot be built ("" when it can)."""
+	return String(_pieces.row_judgement(row)[1])
+
+
+func first_invalid_piece() -> int:
+	"""The first pending piece that holds Confirm all back; -1 when none."""
+	for row: int in _pieces.count():
+		if _pieces.is_live(row) and piece_kind(row) != Validity.KIND_CAN_BUILD:
 			return row
 	return -1
 
@@ -716,7 +782,10 @@ func redo() -> bool:
 
 
 func _replay(entry: int, forward: bool) -> void:
-	"""One step entry undone (`forward` false) or redone: an operation's draft, or a way down's placement."""
+	"""One step entry undone (`forward` false) or redone: an operation's draft, a way down's or a piece's placement."""
+	if entry >= PIECE_TAG:
+		_pieces.set_live(entry - PIECE_TAG, forward)
+		return
 	if entry >= ITEM_TAG:
 		_items.set_live(entry - ITEM_TAG, forward)
 		return
@@ -750,8 +819,10 @@ func redo_label() -> String:
 
 
 func _step_words(step: PackedInt32Array) -> String:
-	"""A step in words: its verb and its first operation's room type ("Paint Kitchen"), or the way down ("Place
-	Entrance")."""
+	"""A step in words: its verb and its first operation's room type ("Paint Kitchen"), the way down ("Place
+	Entrance") or the piece ("Place Hearth")."""
+	if step[1] >= PIECE_TAG:
+		return "%s %s" % [VERBS[step[0]], Furniture.name_of(_pieces.item_of(step[1] - PIECE_TAG))]
 	if step[1] >= ITEM_TAG:
 		return "%s %s" % [VERBS[step[0]], Items.name_of(_items.level_of(step[1] - ITEM_TAG))]
 	return "%s %s" % [VERBS[step[0]], BuildCatalog.type_name(_types[step[1]])]
@@ -779,6 +850,7 @@ func discard_all() -> int:
 	_drafts.clear()
 	_codes.clear()
 	_items.clear()
+	_pieces.clear()
 	_undo.clear()
 	_redo.clear()
 	_level_judged.clear()
@@ -870,8 +942,8 @@ func operation_count() -> int:
 
 
 func pending_count() -> int:
-	"""How many changes would be ordered: rooms with at least one cell, and pending ways down."""
-	var count: int = _items.live_count()
+	"""How many changes would be ordered: rooms with at least one cell, pending ways down and pieces."""
+	var count: int = _items.live_count() + _pieces.live_count()
 	for cells: int in _counts:
 		if cells > 0:
 			count += 1
@@ -936,8 +1008,12 @@ func first_invalid() -> int:
 
 
 func invalid_count() -> int:
-	"""How many pending changes hold Confirm all back (BUILD-REQ-021; see `first_invalid`), ways down included."""
+	"""How many pending changes hold Confirm all back (BUILD-REQ-021; see `first_invalid`), ways down and pieces
+	included."""
 	var count: int = 0
+	for row: int in _pieces.count():
+		if _pieces.is_live(row) and piece_kind(row) != Validity.KIND_CAN_BUILD:
+			count += 1
 	for row: int in _items.count():
 		if _items.is_live(row) and item_kind(row) != Validity.KIND_CAN_BUILD:
 			count += 1
@@ -1071,12 +1147,13 @@ func type_cells_into(types_out: PackedInt32Array, cells_out: PackedInt32Array) -
 
 # --- Confirm all ------------------------------------------------------------------------------------------------------
 
-func confirm_all(submit: Callable, submit_item: Callable = Callable()) -> PackedInt32Array:
+func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_piece: Callable = Callable()) -> PackedInt32Array:
 	"""BUILD-REQ-019 through the host's order route: first each pending way down (`submit_item(level, cell) ->
 	Dictionary`; the ways in come first, SET-BUILD-001 §10), then `submit(draft, level, room_type) -> Dictionary` with
 	`ok` and `error` (words) for each pending "✓" room in batch order. Ordered changes leave the batch, out of Undo's
 	reach; a refused room stays with its reason. Nothing is deducted here. Returns [ordered, refused]; [0, 0] while a
-	stroke is in progress or any change is invalid (Confirm all is disabled then)."""
+	stroke is in progress or any change is invalid (Confirm all is disabled then). Last, each pending piece of
+	furniture through `submit_piece(level, anchor, turn, item) -> Dictionary` (decision 1921)."""
 	if _stroke.active() or invalid_count() > 0:
 		return PackedInt32Array([0, 0])
 	var gone: PackedInt32Array = _confirm_items(submit_item)
@@ -1091,6 +1168,8 @@ func confirm_all(submit: Callable, submit_item: Callable = Callable()) -> Packed
 		else:
 			refused += 1
 			_keep_refusal(k, answer)
+	gone.append_array(_confirm_pieces(submit_piece))
+	refused += _pieces.live_count()
 	_forget(ordered, gone)
 	revision += 1
 	return PackedInt32Array([ordered.size() + gone.size(), refused])
@@ -1106,6 +1185,20 @@ func _confirm_items(submit_item: Callable) -> PackedInt32Array:
 		if answer is Dictionary and bool((answer as Dictionary).get("ok", false)):
 			_items.set_live(row, false)
 			gone.append(ITEM_TAG + row)
+	return gone
+
+
+func _confirm_pieces(submit_piece: Callable) -> PackedInt32Array:
+	"""Each pending piece through `submit_piece`; the step entries of those it ordered (no longer pending)."""
+	var gone: PackedInt32Array = PackedInt32Array()
+	for row: int in _pieces.count():
+		if not _pieces.is_live(row) or not submit_piece.is_valid():
+			continue
+		var answer: Variant = submit_piece.call(_pieces.level_of(row), _pieces.anchor_of(row), _pieces.turn_of(row),
+			_pieces.item_of(row))
+		if answer is Dictionary and bool((answer as Dictionary).get("ok", false)):
+			_pieces.set_live(row, false)
+			gone.append(PIECE_TAG + row)
 	return gone
 
 

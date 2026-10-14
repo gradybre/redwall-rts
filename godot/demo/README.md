@@ -1083,8 +1083,8 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
   there are any. While it shows, the HUD's command strip and detail, the right column, the Map layer picker and the
   news strip step aside (their place is the panel's) and come back on close.
 - **Tabs** Rooms · Furnish · Decor (Ctrl+Tab / Ctrl+Shift+Tab). Furnish and Decor wait, saying "Choose a room type
-  first", until a room type or Passage is chosen; their items are locked in this slice ("Not yet: furnishing comes in a
-  later update"), but every card stays inspectable.
+  first", until a room type or Passage is chosen; then they list that type's furniture, placed on dug rooms below
+  (decision 1921: see "The Furnish tab" below); on the surface and Overview the cards are locked and say why.
 - **Rooms** (decision 1912): the eight GDD room types -- Dormitory, Bedroom, Kitchen, Dining room, Common room,
   Infirmary, Pantry and **Passage** (CORRIDOR, at least 2 cells wide) -- to paint on levels 1-4; the **Entrance** on the
   Surface and a **Way down** on levels 1-3. The old Passage / Burrow home / Root cellar tool cards are gone (Brendan's
@@ -1132,6 +1132,30 @@ Slice C3 replaces all of this with the settlement's own room foreman, excavation
 Checks: `test_build_*.gd` (batch, stroke, cell validity, items, validity, catalog, panel, ledger, layout),
 `test_demo_build_panel.gd`, `test_demo_build_works.gd`, `test_demo_build_dig.gd`, `test_demo_build_orders.gd`, and
 the live harnesses `test/live/demo_input_live.gd` (build steps) and `test/live/demo_build_dig_live.gd` (the whole loop).
+
+### The Furnish tab: a resident fits it (decision 1921)
+
+Brendan's rulings of 2026-10-13 ("A resident fits it", "Room becomes valid", "Footprint + rotation"). With a room type
+chosen, **Furnish** lists the furniture that type uses (GDD §5.9 through `scripts/core/room_catalog.gd`): bed, patient
+bed, seat, kitchen bench, hearth, shelf, door, partition; **Decor** holds the decoration. On levels 1-4 a card arms
+the piece: its ghost follows the pointer on the dug pits' floor, **R / Shift+R** turn it (a door or partition goes on
+the cursor cell's north, east, south or west side), and the label beside the pointer says ✓ or why not, in words. A
+**click** places it in the pending batch (Undo, Redo, Discard all, the ledger's line and the bill: free for now);
+**Shift+click** keeps the card; a **right click** puts it down. A piece must stand on dug cells of one room whose type
+uses it and overlap no other piece (`scripts/ui/build_furniture.gd`): refused otherwise ("Wrong room: Kitchen bench
+belongs in Kitchen", "Overlaps a Hearth: ...", "Not dug yet: ..."). No access tiles or wall-behind yet (slice E).
+**Confirm all** hands the pieces to `build_panel/demo_build_fittings.gd` and sends a resident (the selected one, else
+the first free one who is not a mole): it walks in through the Entrance, stands on each piece for 1.5 s ("Fitting"),
+and the piece appears (`demo_build_below_task.gd` MODE_FIT). Fitted pieces are the demo's staged models where it has
+them (bed, hearth, table and stools, pantry shelf, rag rug), else named blocks (`demo_build_furnish.gd`). Each room's
+line stands over its far wall and on the Furnish tab, updated as pieces are fitted -- "! Kitchen: Needs 1 hearth and 1
+kitchen bench", then "✓ Kitchen ready" (`demo_build_rooms.gd`: counts, area, a Bedroom's walls or doors, an
+Infirmary's heat from a joined hearth). Fitted beds count in the HUD's **Beds** ("· 2 built" on its ledger line).
+Nobody sleeps or cooks there yet, and nothing here is saved.
+
+Checks: `test_build_furniture.gd`, `test_demo_build_furnish.gd`, `test_build_panel.gd`, `test_build_catalog.gd`, and
+the live harness `test/live/demo_build_furnish_live.gd` (the whole loop; run by `test_demo_build_furnish_live.gd`,
+slow tier).
 
 ## Digging tunnels
 

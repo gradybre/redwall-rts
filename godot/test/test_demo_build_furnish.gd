@@ -164,6 +164,13 @@ func test_occupants_answer_the_batchs_overlap_reads() -> void:
 	assert_equal(_fittings.fitted_count(BENCH), 1, "one fitted")
 
 
+func test_a_cell_two_waiting_pieces_share_goes_to_the_lower_row() -> void:
+	"""A bed and a door beside it share a cell to stand on: the earlier order is fitted first."""
+	_fittings.order(1, Vector2i(6, 9), 0, BED)
+	_fittings.order(1, Vector2i(6, 9), 0, DOOR)
+	assert_equal(_fittings.next_fit(_works, Vector3i(1, 6, 9))["row"], 0, "the bed, ordered first")
+
+
 func test_the_fitter_walks_to_the_nearest_piece_waiting() -> void:
 	"""next_fit: the nearest waiting piece's cell from where the fitter stands; a door's side cells; none: {}."""
 	assert_equal(_fittings.next_fit(_works, Vector3i(1, 4, 4)), {}, "nothing waits")
@@ -195,6 +202,10 @@ func test_a_kitchen_reads_being_dug_then_its_needs_then_ready() -> void:
 	waiting.open_cell(1, Vector2i(0, 0))
 	_rooms.refresh(waiting, _fittings, 1)
 	assert_equal(_rooms.line_of(0), "! Kitchen: Being dug (3 cells to go)", "being dug")
+	waiting.open_cell(1, Vector2i(1, 0))
+	waiting.open_cell(1, Vector2i(0, 1))
+	_rooms.refresh(waiting, _fittings, 1)
+	assert_equal(_rooms.line_of(0), "! Kitchen: Being dug (1 cell to go)", "one cell to go")
 	assert_false(_rooms.is_ready(0), "not ready")
 	assert_equal(_line(KITCHEN), "! Kitchen: Needs 1 hearth and 1 kitchen bench", "bare")
 	_fittings.order(1, Vector2i(6, 4), 0, HEARTH)
@@ -251,8 +262,16 @@ func test_a_bedroom_beside_a_landing_names_it() -> void:
 	_dig_all()
 	_fitted(1, Vector2i(8, 4), 0, BED)
 	assert_equal(_line(BEDROOM), "! Bedroom: Needs walls, partitions or doors where it meets the landing", "landing")
-	_fitted(1, Vector2i(6, 4), 3, DOOR)
+	var batch: Batch = _batch()
+	assert_equal(batch.place_piece(1, Vector2i(6, 4), 3, DOOR), Validity.KIND_CAN_BUILD, "a door may stand there")
+	assert_equal(batch.confirm_all(Callable(), Callable(), _submit_piece), PackedInt32Array([1, 0]), "ordered")
+	_fittings.fit(_fittings.count() - 1)
 	assert_equal(_line(BEDROOM), "✓ Bedroom ready", "a door onto the landing")
+
+
+func _submit_piece(level: int, anchor: Vector2i, turn: int, item: int) -> Dictionary:
+	"""The demo's route for a piece: into this suite's store."""
+	return {"ok": _fittings.order(level, anchor, turn, item)}
 
 
 func test_an_infirmary_is_heated_by_a_hearth_joined_to_it() -> void:
@@ -334,11 +353,11 @@ func test_a_fit_trip_fits_each_piece_after_a_short_wait_and_comes_out() -> void:
 		if trip.stage == BelowTask.STAGE_DIG:
 			break
 	assert_equal(trip.fitting_row(), 0, "fitting the hearth")
-	assert_equal(trip.digging_cell(), Vector3i(-1, 0, 0), "never digging")
-	assert_equal(trip.dig_share(), 0.0, "no dig share")
+	assert_equal([trip.digging_cell(), trip.dig_share()], [Vector3i(-1, 0, 0), 0.0], "never digging")
 	assert_equal(trip.label(), "Fitting the furniture (2 pieces waiting)", "says so")
 	trip.step(walker, BelowTask.FIT_SECONDS / 2.0)
 	assert_equal(trip.fitted, 0, "not yet")
+	assert_equal(trip.dig_share(), 0.0, "half fitted is no dig")
 	trip.step(walker, BelowTask.FIT_SECONDS)
 	assert_equal([trip.fitted, _fittings.state_of(0)], [1, Fittings.FITTED], "the hearth appears")
 	for frame: int in 400:
@@ -375,7 +394,7 @@ func _batch() -> Batch:
 	"""A batch whose furniture reads this suite's works and store."""
 	var batch: Batch = Batch.new()
 	batch.configure(BuildCatalog.new(), BOUNDS, 4096)
-	batch.bind_furniture_host(_room_at, _fittings.occupant, _fittings.edge_occupant)
+	batch.bind_furniture_host(_room_at, _fittings.occupant, _fittings.edge_occupant, _fittings.row_at)
 	return batch
 
 
@@ -385,7 +404,7 @@ func _room_at(level: int, cell: Vector2i) -> int:
 	if state != Works.OPEN:
 		return Furniture.ROOM_WAITING if state == Works.ORDERED else Furniture.ROOM_EARTH
 	var type: int = _works.type_of(level, cell)
-	return Furniture.ROOM_BARE if type == Works.TYPE_NONE else type
+	return Furniture.ROOM_BARE if type == Works.TYPE_NONE or _works.on_way(level, cell) else type
 
 
 func test_the_cursor_ghost_says_its_validity_in_words() -> void:
@@ -400,6 +419,34 @@ func test_the_cursor_ghost_says_its_validity_in_words() -> void:
 	assert_equal(view.ghost_words(1)[0], "✓ Door, north side", "a door's side")
 	view.refresh(-1, DOOR, Vector2i(6, 9), 0, -1)
 	assert_equal(view.ghost_words(1).size(), 0, "no level shown: nothing")
+
+
+func test_a_new_pending_piece_redraws_and_a_door_turned_runs_south() -> void:
+	"""A piece placed after a frame is drawn on the next; a door on an east side covers its cell and the one south."""
+	var batch: Batch = _batch()
+	var view: Furnish = _view(batch)
+	view.refresh(1, -1, Vector2i.ZERO, 0, -1)
+	batch.place_piece(1, Vector2i(6, 9), 0, BED)
+	view.refresh(1, -1, Vector2i.ZERO, 0, -1)
+	assert_true(view.ghost_words(1).has("✓ Bed"), ", ".join(view.ghost_words(1)))
+	assert_equal(Furnish.drawn_cells(_fittings.shapes, DOOR, 1, Vector2i(3, 3)), PackedInt32Array([3, 3, 3, 4]), "east")
+	assert_equal(Furnish.drawn_cells(_fittings.shapes, DOOR, 2, Vector2i(3, 3)), PackedInt32Array([3, 3, 4, 3]), "south")
+
+
+func test_a_rooms_east_edge_is_the_furnitures() -> void:
+	"""The rooms' cell edges are build_furniture.gd's, side by side."""
+	for side: int in 4:
+		assert_equal(Rooms.edge_of(Vector2i(3, 3), side), Furniture.edges_of(side, Vector2i(3, 3))[0], "side %d" % side)
+
+
+func test_a_way_downs_cells_are_no_room_floor() -> void:
+	"""A way down dug into the Kitchen: its cells read bare, where it stands and where it lands."""
+	_mount()
+	_build.works.order_way_down(1, Vector2i(8, 6))
+	assert_equal(_build.room_at(1, Vector2i(8, 6)), Furniture.ROOM_BARE, "where it stands")
+	assert_equal(_build.room_at(1, Vector2i(10, 6)), KITCHEN, "beside it")
+	assert_true(_build.works.on_way(2, Vector2i(9, 7)), "where it lands")
+	assert_false(_build.works.on_way(0, Vector2i(4, 4)), "the surface's Entrance is no floor")
 
 
 func test_pending_waiting_and_fitted_pieces_and_the_room_lines_are_drawn() -> void:
@@ -451,9 +498,9 @@ func test_a_fitted_piece_stands_turned_in_its_footprint_on_the_pit_floor() -> vo
 
 # --- the loop through the demo's build panel ----------------------------------------------------------------------
 
-func _mount() -> Node:
+func _mount(entrance: bool = true) -> Node:
 	"""A placeholder cast with a mole first, its command layer, and the build panel over them; the suite's works dug
-	into the panel's own. Returns the cast."""
+	into the panel's own (with its Entrance unless `entrance` is false). Returns the cast."""
 	var cast := DemoCastScript.new()
 	_nodes.append(cast)
 	cast.build({}, [] as Array[Dictionary], [Vector3(0.0, 1.0, 0.0)] as Array[Vector3])
@@ -470,7 +517,8 @@ func _mount() -> Node:
 		func(text: String) -> void: _said.append(text), [] as Array[Node], null)
 	_command.set_build_hooks(_build.takes_before_gui, _build.handle_input)
 	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
-	_build.works.order_way_down(0, Vector2i(4, 4))
+	if entrance:
+		_build.works.order_way_down(0, Vector2i(4, 4))
 	var ordered: PackedInt32Array = PackedInt32Array()
 	_works.cells_into(1, Works.OPEN, ordered)
 	for at: int in range(0, ordered.size(), 2):
@@ -621,6 +669,57 @@ func test_nobody_is_sent_with_nothing_waiting_or_no_entrance() -> void:
 	_build.panel.select_tab(BuildCatalog.TAB_FURNISH)
 	_choose("Hearth")
 	assert_true(_build.put_down_piece() and not _build.piece_armed(), "put down")
+
+
+func test_no_entrance_sends_nobody() -> void:
+	"""With no Entrance, pieces wait and nobody is sent."""
+	_mount(false)
+	_build.fittings.order(1, Vector2i(6, 4), 0, HEARTH)
+	assert_false(_build._send_fitter(), "no Entrance")
+	assert_false(_build.fitting(), "nobody")
+
+
+func test_a_cut_off_or_unstaffed_piece_says_why_once_and_the_tick_sends_again() -> void:
+	"""A piece no Entrance reaches: said once, nobody sent; with everyone below on a visit: "Nobody can fit", once;
+	once someone is free, the tick sends a fitter again within SEND_EVERY_S."""
+	var cast: Node = _mount()
+	_build.fittings.order(1, Vector2i(30, 30), 0, BED)
+	assert_false(_build._send_fitter(), "cut off")
+	assert_false(_build._send_fitter(), "again")
+	assert_equal(_said.count(BuildScript.FIT_CUT_OFF), 1, "said once")
+	_build.fittings.fit(0)
+	_build.fittings.order(1, Vector2i(6, 4), 0, HEARTH)
+	var everyone: PackedInt32Array = PackedInt32Array(range(int(cast.call(&"actor_count"))))
+	_build.bind_cast(cast, func() -> PackedInt32Array: return everyone)
+	_build.bar.choose(1)
+	assert_true(_build.send_visitors(Vector2i(6, 5)) > 0, "everyone goes down to look")
+	assert_false(_build._send_fitter() or _build._send_fitter(), "nobody free")
+	assert_equal(_said.count(BuildScript.NO_FITTER), 1, "said once")
+	(cast.call(&"actor", 3) as Node).get(&"brain").call(&"release")
+	_build._tick_works(BuildScript.SEND_EVERY_S + 0.1)
+	assert_true(_build.fitting(), "the tick sends the free one")
+
+
+func test_the_label_follows_the_dig_and_the_level() -> void:
+	"""H1: the pointer's words over cells still waiting read "Not dug yet"; once dug, ✓; on another level, its own."""
+	_mount()
+	_build.works.order_room(1, PackedInt32Array([14, 4, 15, 4, 14, 5, 15, 5]), KITCHEN)
+	_build.open_panel()
+	_press(KEY_PAGEDOWN)
+	_choose("Kitchen")
+	_build.panel.select_tab(BuildCatalog.TAB_FURNISH)
+	_choose("Seat")
+	_build.paint.set_cursor(Vector2i(14, 4), 1, -1)
+	_build._process(0.0)
+	assert_true(_build.label_text().ends_with(Validity.not_dug()), _build.label_text())
+	for cell: Vector2i in [Vector2i(14, 4), Vector2i(15, 4), Vector2i(14, 5), Vector2i(15, 5)]:
+		_build.works.open_cell(1, cell)
+	_build._process(0.0)
+	assert_true(_build.label_text().ends_with("✓ Can build"), "dug: %s" % _build.label_text())
+	_press(KEY_PAGEDOWN)
+	_build._process(0.0)
+	assert_true(_build.piece_armed() and _build.label_text().ends_with(Validity.not_on_room()),
+		"level 2: %s" % _build.label_text())
 
 
 class _Walker:

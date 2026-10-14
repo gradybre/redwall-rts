@@ -26,6 +26,7 @@ const Rooms := preload("res://demo/build_panel/demo_build_rooms.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
 const Props := preload("res://demo/props/demo_props.gd")
+const Catalog := preload("res://scripts/core/catalog.gd")
 
 const LAYER: int = 256
 const UNITS_PER_M: float = 1024.0
@@ -36,9 +37,12 @@ const TAG_PRIORITY: int = 5
 const ROOM_TAG_M: float = 0.8
 const PIECE_TAG_M: float = 1.3
 ## The staged model each item is drawn with, where the demo has one (demo_props.gd keys).
-const PROP_KEYS: Dictionary = {0: &"bed", 1: &"rag_rug", 2: &"hearth", 6: &"bed", 7: &"table_stools", 8: &"pantry_shelf"}
+## Keyed by FurnitureDefinition key (catalog.gd), never by a number written here.
+const PROP_KEYS: Dictionary = {"bed": &"bed", "decoration": &"rag_rug", "hearth": &"hearth", "patient_bed": &"bed",
+	"seat": &"table_stools", "shelf": &"pantry_shelf"}
 ## A plain block's height per item type (m): the stand-in where no model is staged.
-const BLOCK_M: Array[float] = [0.4, 0.06, 0.9, 0.95, 0.9, 0.8, 0.4, 0.5, 1.2]
+const BLOCK_M: Dictionary = {"bed": 0.4, "decoration": 0.06, "hearth": 0.9, "interior_door": 0.95,
+	"interior_partition": 0.9, "kitchen_bench": 0.8, "patient_bed": 0.4, "seat": 0.5, "shelf": 1.2}
 ## A block stands this far inside its footprint's sides (m); a door or partition is this thick.
 const BLOCK_INSET_M: float = 0.15
 const EDGE_THICK_M: float = 0.14
@@ -48,9 +52,9 @@ const STONE: Color = Color(0.5, 0.48, 0.44)
 const WAITING: String = "Waiting to be fitted: %d pieces"
 const WAITING_ONE: String = "Waiting to be fitted: 1 piece"
 const FITTING: String = "Fitting"
-const HEARTH: int = 2
-const DOOR: int = 3
-const PARTITION: int = 4
+const HEARTH: int = Catalog.FURNITURE_DEFINITION["hearth"]
+const DOOR: int = Catalog.FURNITURE_DEFINITION["interior_door"]
+const PARTITION: int = Catalog.FURNITURE_DEFINITION["interior_partition"]
 
 var rooms: Rooms = Rooms.new()
 var _batch: Batch = null
@@ -68,6 +72,7 @@ var _meshes: Dictionary = {}
 var _wood: StandardMaterial3D = null
 var _stone: StandardMaterial3D = null
 var _seen: PackedInt64Array = PackedInt64Array()
+var _key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0])
 ## Rebuilds since configure (checks: nothing is rebuilt on a still frame).
 var rebuilds: int = 0
 
@@ -105,11 +110,8 @@ func use_props(props: Props) -> void:
 func refresh(level: int, item: int, cursor: Vector2i, turn: int, fitting_row: int) -> void:
 	"""Redraw when anything drawn changed: the level shown (-1: none), the armed item (-1: none) at `cursor` turned
 	`turn`, the batch, the works, the furniture, or the piece being fitted (-1: none)."""
-	var key: PackedInt64Array = PackedInt64Array([level, item, cursor.x, cursor.y, turn, fitting_row, _batch.revision,
-		_works.revision, _fittings.revision])
-	if key == _seen:
+	if not _moved(level, item, cursor, turn, fitting_row):
 		return
-	_seen = key
 	rebuilds += 1
 	rooms.refresh(_works, _fittings, level)
 	var shown: bool = level >= 1 and level < _ghosts.size()
@@ -121,6 +123,24 @@ func refresh(level: int, item: int, cursor: Vector2i, turn: int, fitting_row: in
 	_hide_from(level, used)
 	_place_pieces(level if shown else -1)
 	_place_tags(level if shown else -1, fitting_row)
+
+
+func _moved(level: int, item: int, cursor: Vector2i, turn: int, fitting_row: int) -> bool:
+	"""Whether anything drawn changed since the last rebuild: the nine values written into `_key` in place (no
+	allocation on a still frame) and compared with the last ones seen."""
+	_key[0] = level
+	_key[1] = item
+	_key[2] = cursor.x
+	_key[3] = cursor.y
+	_key[4] = turn
+	_key[5] = fitting_row
+	_key[6] = _batch.revision
+	_key[7] = _works.revision
+	_key[8] = _fittings.revision
+	if _key == _seen:
+		return false
+	_seen = _key.duplicate()
+	return true
 
 
 func _draw_cursor(level: int, item: int, cursor: Vector2i, turn: int) -> int:
@@ -223,7 +243,18 @@ func _place_pieces(level: int) -> void:
 
 func staged(item: int) -> bool:
 	"""Whether `item` is drawn with a staged model (else a plain block, named by its tag)."""
-	return _props != null and PROP_KEYS.has(item) and _props.is_staged(PROP_KEYS[item])
+	return _props != null and PROP_KEYS.has(key_of(item)) and _props.is_staged(PROP_KEYS[key_of(item)])
+
+
+static func key_of(item: int) -> String:
+	"""An item's FurnitureDefinition key ("hearth"), or "" for none."""
+	var key: Variant = Catalog.FURNITURE_DEFINITION.find_key(item)
+	return String(key) if key != null else ""
+
+
+static func block_m(item: int) -> float:
+	"""A plain block's height for `item` (m)."""
+	return float(BLOCK_M.get(key_of(item), 0.5))
 
 
 func mesh_of(item: int) -> Mesh:
@@ -232,7 +263,7 @@ func mesh_of(item: int) -> Mesh:
 		return _meshes[item]
 	var mesh: Mesh = null
 	if staged(item):
-		var key: StringName = PROP_KEYS[item]
+		var key: StringName = PROP_KEYS[key_of(item)]
 		mesh = Props.transformed(_props.mesh_of(key), _props.fit_of(key))
 	elif item == DOOR:
 		mesh = _doorway_mesh()
@@ -249,19 +280,19 @@ func _block_mesh(item: int) -> Mesh:
 	var size: Vector2i = shapes.size_of(item, 0)
 	var box: BoxMesh = BoxMesh.new()
 	if shapes.is_edge(item):
-		box.size = Vector3(2.0, BLOCK_M[item], EDGE_THICK_M)
+		box.size = Vector3(2.0, block_m(item), EDGE_THICK_M)
 	else:
-		box.size = Vector3(size.x - 2.0 * BLOCK_INSET_M, BLOCK_M[item], size.y - 2.0 * BLOCK_INSET_M)
+		box.size = Vector3(size.x - 2.0 * BLOCK_INSET_M, block_m(item), size.y - 2.0 * BLOCK_INSET_M)
 	box.material = _stone if item == HEARTH else _wood
 	var tool: SurfaceTool = SurfaceTool.new()
-	tool.append_from(box, 0, Transform3D(Basis.IDENTITY, Vector3(0.0, BLOCK_M[item] / 2.0, 0.0)))
+	tool.append_from(box, 0, Transform3D(Basis.IDENTITY, Vector3(0.0, block_m(item) / 2.0, 0.0)))
 	tool.set_material(box.material)
 	return tool.commit()
 
 
 func _doorway_mesh() -> Mesh:
 	"""A doorway 2 cells wide along x: two posts and a lintel, open between them."""
-	var height: float = BLOCK_M[DOOR]
+	var height: float = block_m(DOOR)
 	var tool: SurfaceTool = SurfaceTool.new()
 	var post: BoxMesh = BoxMesh.new()
 	post.size = Vector3(POST_M, height, EDGE_THICK_M)

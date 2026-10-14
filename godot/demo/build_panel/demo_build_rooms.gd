@@ -40,14 +40,15 @@ const SIDES: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1),
 const READY: String = "✓ %s ready"
 const NOT_READY: String = "! %s: %s"
 const BEING_DUG: String = "Being dug (%d cells to go)"
+const BEING_DUG_ONE: String = "Being dug (1 cell to go)"
 const TOO_MANY: String = "Has %d %s: a %s takes at most %d"
 const OPEN_SIDE: String = "Needs walls, partitions or doors where it meets the %s"
 const COLD: String = "Needs heat: a hearth in it or in a room joined to it"
 const LANDING: String = "landing"
 const PLURALS: Dictionary = {"shelf": "shelves"}
-const BED: int = 0
-const HEARTH: int = 2
-const PARTITION: int = 4
+const BED: int = Catalog.FURNITURE_DEFINITION["bed"]
+const HEARTH: int = Catalog.FURNITURE_DEFINITION["hearth"]
+const PARTITION: int = Catalog.FURNITURE_DEFINITION["interior_partition"]
 
 var _rooms: RoomCatalog = RoomCatalog.new()
 var _seen: Vector3i = Vector3i(-1, -1, -1)
@@ -64,6 +65,8 @@ var _firsts: Array[Vector2i] = []
 ## Per room: its fitted pieces by item type.
 var _counts: Array[PackedInt32Array] = []
 var _lines: PackedStringArray = PackedStringArray()
+## Every line joined, kept from the last recount (read every frame by the panel: no allocation then).
+var _text: String = ""
 var _ready: PackedByteArray = PackedByteArray()
 ## The level's fitted doors and partitions: cell edge (build_furniture.gd) → item type.
 var _edges: Dictionary = {}
@@ -85,8 +88,9 @@ func refresh(works: Works, fittings: Fittings, level: int) -> bool:
 		_label_rooms(works, level)
 		_count_pieces(fittings, level)
 		for room: int in _types.size():
-			_ready.append(1 if _reason(room).is_empty() and _waiting[room] == 0 else 0)
 			_lines.append(_line(room))
+			_ready.append(1 if _lines[room].begins_with("✓") else 0)
+	_text = "\n".join(_lines)
 	return true
 
 
@@ -179,7 +183,7 @@ func _line(room: int) -> String:
 	"""Room `room`'s line (see the header)."""
 	var name: String = BuildCatalog.type_name(_types[room])
 	if _waiting[room] > 0:
-		return NOT_READY % [name, BEING_DUG % _waiting[room]]
+		return NOT_READY % [name, BEING_DUG_ONE if _waiting[room] == 1 else BEING_DUG % _waiting[room]]
 	var reason: String = _reason(room)
 	return READY % name if reason.is_empty() else NOT_READY % [name, reason]
 
@@ -368,8 +372,8 @@ func room_at(cell: Vector2i) -> int:
 
 
 func lines_text() -> String:
-	"""Every room's line, one a line ("" with none)."""
-	return "\n".join(_lines)
+	"""Every room's line, one a line ("" with none), as the last recount joined them."""
+	return _text
 
 
 static func beds(fittings: Fittings) -> int:

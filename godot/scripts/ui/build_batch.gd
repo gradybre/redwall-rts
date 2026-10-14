@@ -121,6 +121,7 @@ func configure(catalog: BuildCatalog, bounds: Rect2i, capacity: int) -> StringNa
 	if code != &"":
 		return code
 	_cells.bind_landings(_all_landings)
+	_pieces.bind_ways(_way_cells)
 	_catalog = catalog
 	_bounds = bounds
 	_capacity = capacity
@@ -151,6 +152,16 @@ func _all_landings(level: int) -> PackedInt32Array:
 	var out: PackedInt32Array = _items.landings(level)
 	if _host_landings.is_valid():
 		out.append_array(PackedInt32Array(_host_landings.call(level)))
+	return out
+
+
+func _way_cells(level: int) -> PackedInt32Array:
+	"""The cells pending ways down take on `level`: where they stand, and where they land (decision 1921: furniture
+	keeps clear of them)."""
+	var out: PackedInt32Array = _items.landings(level)
+	for row: int in _items.count():
+		if _items.is_live(row) and _items.level_of(row) == level:
+			out.append_array(Items.footprint(_items.cell_of(row)))
 	return out
 
 
@@ -594,6 +605,9 @@ func judge_item(level: int, cell: Vector2i, own_row: int) -> Array:
 	var landing: String = _landing_refusal(level + 1, cells)
 	if not landing.is_empty():
 		return [Validity.KIND_NOT_POSSIBLE, landing]
+	var piece: int = maxi(_pieces.floor_taken(level, cells), _pieces.floor_taken(level + 1, cells))
+	if piece >= 0:
+		return [Validity.KIND_NOT_POSSIBLE, Validity.piece_overlaps(Furniture.name_of(piece))]
 	if level > 0 and not _stands_on_rooms(level, cells):
 		return [Validity.KIND_BLOCKED, Validity.needs_floor(name)]
 	return [Validity.KIND_CAN_BUILD, ""]
@@ -652,9 +666,10 @@ func furniture() -> Furniture:
 	return _pieces
 
 
-func bind_furniture_host(room_at: Callable, occupant: Callable, edge_occupant: Callable) -> void:
+func bind_furniture_host(room_at: Callable, occupant: Callable, edge_occupant: Callable,
+		piece_at: Callable = Callable()) -> void:
 	"""The host's readers for judging furniture (build_furniture.gd THE HOST'S READERS)."""
-	_pieces.bind_host(room_at, occupant, edge_occupant)
+	_pieces.bind_host(room_at, occupant, edge_occupant, piece_at)
 	revision += 1
 
 

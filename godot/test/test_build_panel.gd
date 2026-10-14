@@ -490,7 +490,7 @@ func test_the_ledger_lists_each_piece_and_the_furnitures_bill() -> void:
 	assert_true(lines.contains("Furniture needs 2 logs, 2 lengths of cloth; work about 20 minutes"), lines)
 	assert_true(lines.contains("(free for now: nothing is taken from the stores)"), lines)
 	var short: String = (_panel.controls()[&"ledger"] as Button).text
-	assert_true(short.begins_with("Plan: 2 logs"), short)
+	assert_true(short.begins_with("Plan: 2 logs") and short.contains("work about 20 minutes"), short)
 	_batch.undo()
 	_panel.refresh(true)
 	assert_false(_panel.ledger_lines("s").contains("Furniture needs"), "no piece: no bill line")

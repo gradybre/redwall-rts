@@ -169,6 +169,17 @@ func entrance() -> int:
 	return _way_levels.find(0)
 
 
+func on_way(level: int, cell: Vector2i) -> bool:
+	"""Whether `cell` on `level` is under a confirmed way down: where one stands (below the surface) or where one lands
+	(decision 1921: furniture keeps clear of the stairs)."""
+	for row: int in _way_levels.size():
+		var top: int = _way_levels[row]
+		if (top == level and level > 0) or top + 1 == level:
+			if Rect2i(Vector2i(_way_xs[row], _way_zs[row]), Vector2i(SIDE, SIDE)).has_point(cell):
+				return true
+	return false
+
+
 func landing_of(row: int) -> Vector3i:
 	"""Where way down `row` lands: (level below, its north-west cell)."""
 	return Vector3i(_way_levels[row] + 1, _way_xs[row], _way_zs[row])

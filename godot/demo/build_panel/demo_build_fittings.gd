@@ -107,12 +107,18 @@ func edges_of(row: int) -> Array[Vector3i]:
 func occupant(level: int, cell: Vector2i) -> int:
 	"""The item type of the confirmed floor piece covering `cell` on `level`, or -1 (build_furniture.gd's host
 	reader)."""
+	var row: int = row_at(level, cell)
+	return _items[row] if row >= 0 else -1
+
+
+func row_at(level: int, cell: Vector2i) -> int:
+	"""The row of the confirmed floor piece covering `cell` on `level`, or -1 (build_furniture.gd's `piece_at`)."""
 	for row: int in _levels.size():
 		if _levels[row] != level or shapes.is_edge(_items[row]):
 			continue
 		var size: Vector2i = shapes.size_of(_items[row], _turns[row])
 		if Rect2i(anchor_of(row), size).has_point(cell):
-			return _items[row]
+			return row
 	return -1
 
 

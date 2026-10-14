@@ -12,15 +12,19 @@ extends RefCounted
 ##
 ## WHERE A PIECE MAY STAND (Brendan's "Footprint + rotation"): on DUG cells of ONE room whose type uses it
 ## (room_catalog.gd `compatibility_error`), overlapping no other piece -- pending here, or confirmed and waiting to be
-## fitted or fitted already (the host's). An edge item needs a dug room floor on both sides of each of its cell edges
-## and shares no cell edge with another edge item; edge items take no floor (GDD: "no floor occupation"). Every refusal
+## fitted or fitted already (the host's) -- and no way down's cells (pending: the batch's `bind_ways`; confirmed: the
+## host reads them as ROOM_BARE). An edge item needs dug floor on both sides of each of its cell edges, a room that uses
+## it on at least one (the other may be a landing: SET-BUILD-001 §6 asks walk cells either side of a door), shares no
+## cell edge with another edge item, and never cuts through one floor piece; edge items take no floor (GDD: "no floor
+## occupation"). Every refusal
 ## is "X Not possible" in words (build_validity.gd). NOT HERE, knowingly: access tiles and the wall-behind rule
 ## (SET-BUILD-001 §6, BUILD-REQ-010's full rule: slice E), and any payment ("Free for now": the ledger shows the bill).
 ##
 ## THE HOST'S READERS (`bind_host`): `room_at(level, cell) -> int` -- a dug room cell's RoomType ordinal, else
 ## ROOM_EARTH, ROOM_WAITING (ordered, not dug yet) or ROOM_BARE (dug, but no room: a way's landing);
 ## `occupant(level, cell) -> int` -- the item type of the confirmed piece covering a floor cell, or -1;
-## `edge_occupant(level, edge: Vector3i) -> int` -- the item type of the confirmed edge item on a cell edge, or -1.
+## `edge_occupant(level, edge: Vector3i) -> int` -- the item type of the confirmed edge item on a cell edge, or -1;
+## `piece_at(level, cell) -> int` -- which confirmed floor piece covers a cell (any id, the same for all its cells), or -1.
 ## With none bound, every cell reads as earth and every piece is refused (the off-tree suites bind their own).
 
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
@@ -54,6 +58,8 @@ var _live: PackedByteArray = PackedByteArray()
 var _room_at: Callable = Callable()
 var _occupant: Callable = Callable()
 var _edge_occupant: Callable = Callable()
+var _piece_at: Callable = Callable()
+var _ways: Callable = Callable()
 
 
 func _init() -> void:
@@ -65,11 +71,18 @@ func _init() -> void:
 		_sizes.append(Vector2i.ZERO if facts.edge_placement else Vector2i(x, z))
 
 
-func bind_host(room_at: Callable, occupant: Callable, edge_occupant: Callable) -> void:
+func bind_host(room_at: Callable, occupant: Callable, edge_occupant: Callable, piece_at: Callable = Callable()) -> void:
 	"""The host's readers (see THE HOST'S READERS)."""
 	_room_at = room_at
 	_occupant = occupant
 	_edge_occupant = edge_occupant
+	_piece_at = piece_at
+
+
+func bind_ways(ways: Callable) -> void:
+	"""`ways(level) -> PackedInt32Array`: the cells (pairs) pending ways down take on `level` -- where they stand and
+	where they land (the batch's own; confirmed ones are the host's ROOM_BARE)."""
+	_ways = ways
 
 
 static func name_of(item: int) -> String:
@@ -226,6 +239,8 @@ func _judge_floor(level: int, cells: PackedInt32Array, item: int, own_row: int) 
 		room = here
 	if _rooms.compatibility_error(room, item) != &"":
 		return [Validity.KIND_NOT_POSSIBLE, Validity.wrong_room(name_of(item), allowed_words(item))]
+	if _ways.is_valid() and _shares(cells, PackedInt32Array(_ways.call(level))):
+		return [Validity.KIND_NOT_POSSIBLE, Validity.on_way_down()]
 	var other: int = _floor_clash(level, cells, own_row)
 	if other >= 0:
 		return [Validity.KIND_NOT_POSSIBLE, Validity.piece_overlaps(name_of(other))]
@@ -233,18 +248,56 @@ func _judge_floor(level: int, cells: PackedInt32Array, item: int, own_row: int) 
 
 
 func _judge_edge(level: int, edges: Array[Vector3i], item: int, own_row: int) -> Array:
-	"""An edge item: a dug room floor on both sides of each edge, rooms that use it, no other edge item there."""
+	"""An edge item: each edge between dug floors with a room that uses it on one side at least, cutting no piece; no
+	other edge item there."""
 	for edge: Vector3i in edges:
-		for side: Vector2i in edge_sides(edge):
-			var here: int = _room(level, side)
-			if here < 0:
-				return [Validity.KIND_NOT_POSSIBLE, Validity.not_between_floors(name_of(item))]
-			if _rooms.compatibility_error(here, item) != &"":
-				return [Validity.KIND_NOT_POSSIBLE, Validity.wrong_room(name_of(item), allowed_words(item))]
+		var refusal: String = _edge_refusal(level, edge, item)
+		if not refusal.is_empty():
+			return [Validity.KIND_NOT_POSSIBLE, refusal]
 	var other: int = _edge_clash(level, edges, own_row)
 	if other >= 0:
 		return [Validity.KIND_NOT_POSSIBLE, Validity.piece_overlaps(name_of(other))]
 	return [Validity.KIND_CAN_BUILD, ""]
+
+
+func _edge_refusal(level: int, edge: Vector3i, item: int) -> String:
+	"""Why `item` cannot stand on `edge` ("" when it can): earth or undug floor on a side, no room on either side, a
+	room that does not use it, or one floor piece on both sides."""
+	var sides: Array[Vector2i] = edge_sides(edge)
+	var rooms_seen: int = 0
+	for side: Vector2i in sides:
+		var here: int = _room(level, side)
+		if here < 0 and here != ROOM_BARE:
+			return Validity.not_between_floors(name_of(item))
+		if here >= 0 and _rooms.compatibility_error(here, item) != &"":
+			return Validity.wrong_room(name_of(item), allowed_words(item))
+		rooms_seen += 1 if here >= 0 else 0
+	if rooms_seen == 0:
+		return Validity.not_between_floors(name_of(item))
+	var cut: int = _piece_across(level, sides[0], sides[1])
+	return Validity.cuts_piece(name_of(cut)) if cut >= 0 else ""
+
+
+func _piece_across(level: int, a: Vector2i, b: Vector2i) -> int:
+	"""The item type of a floor piece (pending, then the host's) covering both `a` and `b`, or -1."""
+	var pair: PackedInt32Array = PackedInt32Array([a.x, a.y])
+	var other: PackedInt32Array = PackedInt32Array([b.x, b.y])
+	for row: int in _levels.size():
+		if _live[row] == 0 or _levels[row] != level or is_edge(_items[row]):
+			continue
+		var cells: PackedInt32Array = cells_of(_items[row], _turns[row], anchor_of(row))
+		if _shares(pair, cells) and _shares(other, cells):
+			return _items[row]
+	if not _piece_at.is_valid():
+		return -1
+	var piece: int = int(_piece_at.call(level, a))
+	return int(_occupant.call(level, a)) if piece >= 0 and piece == int(_piece_at.call(level, b)) else -1
+
+
+func floor_taken(level: int, cells: PackedInt32Array) -> int:
+	"""The item type of the first piece, pending or confirmed, on any of `cells` on `level`, or -1 (a way down placed
+	over furniture is refused by it: the batch's `judge_item`)."""
+	return _floor_clash(level, cells, -1)
 
 
 func _room(level: int, cell: Vector2i) -> int:

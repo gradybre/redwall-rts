@@ -99,6 +99,7 @@ const Rooms := preload("res://demo/build_panel/demo_build_rooms.gd")
 const Furniture := preload("res://scripts/ui/build_furniture.gd")
 const FITTER_SENT: String = "%s goes to the Entrance to fit the furniture"
 const NO_FITTER: String = "Nobody can fit the furniture: it waits"
+const FIT_CUT_OFF: String = "The waiting furniture cannot be reached from an Entrance: it waits"
 const PIECE_LABEL: String = "Place %s%s\n%s"
 
 var panel: BuildPanel = null
@@ -159,6 +160,9 @@ var fitter: BelowTask = null
 var _turn: int = 0
 var _fit_in: float = 0.0
 var _piece_label: Vector4i = Vector4i(0, 0, -1, -1)
+var _piece_label_moved: Vector2i = Vector2i(-1, -1)
+## The last thing said about why no fitter went (said once, apart from the mole's words).
+var _said_fit: String = ""
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -212,7 +216,7 @@ func _configure_ground() -> void:
 func _configure_furnish() -> void:
 	"""The Furnish tab's store, its readers bound to the batch, and its drawing (decision 1921)."""
 	fittings = Fittings.new()
-	batch.bind_furniture_host(room_at, fittings.occupant, fittings.edge_occupant)
+	batch.bind_furniture_host(room_at, fittings.occupant, fittings.edge_occupant, fittings.row_at)
 	furnish = Furnish.new()
 	add_child(furnish)
 	furnish.configure(batch, works, fittings, _floors, _datum_xz(), orders.cell_bounds())
@@ -220,12 +224,12 @@ func _configure_furnish() -> void:
 
 func room_at(level: int, cell: Vector2i) -> int:
 	"""build_furniture.gd's room reader: a dug room cell's type, else ROOM_EARTH, ROOM_WAITING (ordered, not dug) or
-	ROOM_BARE (dug, no room: a landing)."""
+	ROOM_BARE (dug, no room: a way down's cells, where it stands or lands, even when dug into a room)."""
 	var state: int = works.state(level, cell)
 	if state != Works.OPEN:
 		return Furniture.ROOM_WAITING if state == Works.ORDERED else Furniture.ROOM_EARTH
 	var type: int = works.type_of(level, cell)
-	return Furniture.ROOM_BARE if type == Works.TYPE_NONE else type
+	return Furniture.ROOM_BARE if type == Works.TYPE_NONE or works.on_way(level, cell) else type
 
 
 func built_beds() -> int:
@@ -561,10 +565,12 @@ func _sync_piece_label() -> void:
 	"""The armed piece's words beside the pointer: "Place Hearth, turned once" and its validity at the cursor; worded
 	again only when the cursor, the turn, the item or the batch moved."""
 	var cursor: Vector2i = paint.cursor()
-	var key: Vector4i = Vector4i(cursor.x, cursor.y, _turn * 64 + armed_item(), batch.revision + fittings.revision * 4096)
-	if key == _piece_label:
+	var key: Vector4i = Vector4i(cursor.x, cursor.y, (bar.shown_level() * 4 + _turn) * 64 + armed_item(), batch.revision)
+	var moved: Vector2i = Vector2i(works.revision, fittings.revision)
+	if key == _piece_label and moved == _piece_label_moved:
 		return
 	_piece_label = key
+	_piece_label_moved = moved
 	_seen_label = -1
 	var item: int = armed_item()
 	var pieces: Furniture = batch.furniture()
@@ -801,19 +807,29 @@ func fitting() -> bool:
 
 
 func _send_fitter() -> bool:
-	"""A resident to the Entrance to fit the waiting furniture (see `_pick_fitter`) -- only when nobody is fitting and
-	an Entrance exists; why not is said once (decision 1921)."""
+	"""A resident to the Entrance to fit the waiting furniture (see `_pick_fitter`) -- only when nobody is fitting, an
+	Entrance exists and a waiting piece can be reached from it; why not is said once (decision 1921)."""
 	if fitting() or works.entrance() < 0 or _cast == null or fittings.waiting() == 0:
+		return false
+	if fittings.next_fit(works, works.landing_of(works.entrance())).is_empty():
+		_say_fit_once(FIT_CUT_OFF)
 		return false
 	var who: int = _pick_fitter()
 	var trip: BelowTask = _send(who, BelowTask.MODE_FIT, Vector3i.ZERO) if who >= 0 else null
 	if not _still_on(trip):
-		_say_once(NO_FITTER)
+		_say_fit_once(NO_FITTER)
 		return false
 	fitter = trip
-	_said = ""
+	_said_fit = ""
 	_say.call(FITTER_SENT % _name_of(who))
 	return true
+
+
+func _say_fit_once(words: String) -> void:
+	"""Say `words` unless they were the last thing said about fitting."""
+	if words != _said_fit:
+		_said_fit = words
+		_say.call(words)
 
 
 func _pick_fitter() -> int:

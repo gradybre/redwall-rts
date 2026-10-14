@@ -26,6 +26,8 @@ var _batch: Batch = null
 ## The fake host: level-1 cell → room reading; floor cell → confirmed item; edge → confirmed item.
 var _rooms: Dictionary = {}
 var _taken: Dictionary = {}
+## The fake host's confirmed pieces' ids per floor cell (piece_at).
+var _ids: Dictionary = {}
 var _edges: Dictionary = {}
 var _orders: Array = []
 
@@ -35,6 +37,7 @@ func before_each() -> void:
 	a landing (dug, no room) at (14..15, 0..1)."""
 	_rooms.clear()
 	_taken.clear()
+	_ids.clear()
 	_edges.clear()
 	_orders.clear()
 	_fill(Rect2i(0, 0, 8, 6), KITCHEN)
@@ -42,10 +45,10 @@ func before_each() -> void:
 	_fill(Rect2i(0, 6, 8, 1), Furniture.ROOM_WAITING)
 	_fill(Rect2i(14, 0, 2, 2), Furniture.ROOM_BARE)
 	_pieces = Furniture.new()
-	_pieces.bind_host(_room_at, _occupant, _edge_occupant)
+	_pieces.bind_host(_room_at, _occupant, _edge_occupant, _piece_at)
 	_batch = Batch.new()
 	assert_equal(_batch.configure(BuildCatalog.new(), BOUNDS, 4096), &"", "configured")
-	_batch.bind_furniture_host(_room_at, _occupant, _edge_occupant)
+	_batch.bind_furniture_host(_room_at, _occupant, _edge_occupant, _piece_at)
 
 
 func after_each() -> void:
@@ -64,6 +67,11 @@ func _fill(box: Rect2i, reading: int) -> void:
 func _room_at(level: int, cell: Vector2i) -> int:
 	"""The fake room reader: level 1 only."""
 	return int(_rooms.get(cell, Furniture.ROOM_EARTH)) if level == 1 else Furniture.ROOM_EARTH
+
+
+func _piece_at(_level: int, cell: Vector2i) -> int:
+	"""The fake confirmed floor pieces' ids."""
+	return int(_ids.get(cell, -1))
 
 
 func _occupant(_level: int, cell: Vector2i) -> int:
@@ -139,6 +147,14 @@ func test_a_piece_off_dug_room_floor_is_refused_in_words() -> void:
 	assert_equal(_pieces.judge(1, Vector2i(0, 0), 0, 42, -1)[0], Validity.KIND_NOT_POSSIBLE, "no such item")
 
 
+func test_a_piece_whose_first_cell_alone_is_another_room_spans_two() -> void:
+	"""Two rooms under one footprint, however its cells fall: here only its first cell is the Kitchen's."""
+	_rooms[Vector2i(20, 20)] = KITCHEN
+	for cell: Vector2i in [Vector2i(21, 20), Vector2i(20, 21), Vector2i(21, 21)]:
+		_rooms[cell] = DORMITORY
+	assert_equal(_pieces.judge(1, Vector2i(20, 20), 0, SEAT, -1)[1], Validity.two_rooms(), "two rooms")
+
+
 func test_a_piece_the_room_does_not_use_is_refused_naming_its_rooms() -> void:
 	"""X: a kitchen bench in the Dormitory, a bed in the Kitchen (room_catalog.gd's palette)."""
 	var bench: Array = _pieces.judge(1, Vector2i(8, 0), 0, BENCH, -1)
@@ -164,19 +180,51 @@ func test_pieces_cannot_overlap_pending_or_confirmed() -> void:
 
 
 func test_a_door_needs_dug_room_floor_on_both_sides_and_its_own_edges() -> void:
-	"""An edge item: ✓ between the Kitchen and the Dormitory; X with earth on one side; X on a pending or confirmed
-	edge item's edge; a floor piece does not block it."""
+	"""An edge item: ✓ between the Kitchen and the Dormitory, and between a room and a landing; X with earth or undug
+	floor on one side, or with no room on either; X on a pending or confirmed edge item's edge; a floor piece beside
+	it does not block it."""
 	assert_equal(_pieces.judge(1, Vector2i(8, 0), 3, DOOR, -1)[0], Validity.KIND_CAN_BUILD, "Kitchen | Dormitory")
 	assert_equal(_pieces.judge(1, Vector2i(0, 0), 0, DOOR, -1)[1], Validity.not_between_floors("Door"), "earth north")
-	assert_equal(_pieces.judge(1, Vector2i(14, 0), 3, DOOR, -1)[1], Validity.not_between_floors("Door"),
-		"a landing is no room floor")
+	assert_equal(_pieces.judge(1, Vector2i(0, 6), 0, DOOR, -1)[1], Validity.not_between_floors("Door"), "undug south")
+	assert_equal(_pieces.judge(1, Vector2i(14, 0), 3, DOOR, -1)[0], Validity.KIND_CAN_BUILD, "Dormitory | landing")
+	assert_equal(_pieces.judge(1, Vector2i(15, 0), 3, DOOR, -1)[1], Validity.not_between_floors("Door"),
+		"landing | landing: no room")
 	_pieces.add(1, Vector2i(8, 1), 3, PARTITION)
 	assert_equal(_pieces.judge(1, Vector2i(8, 0), 3, DOOR, -1)[1], Validity.piece_overlaps("Partition"),
 		"shares an edge with a pending partition")
 	_edges[Vector3i(Furniture.EDGE_ACROSS, 2, 3)] = DOOR
 	assert_equal(_pieces.judge(1, Vector2i(2, 3), 0, PARTITION, -1)[1], Validity.piece_overlaps("Door"), "confirmed")
 	_taken[Vector2i(4, 3)] = BED
-	assert_equal(_pieces.judge(1, Vector2i(4, 3), 0, PARTITION, -1)[0], Validity.KIND_CAN_BUILD, "floor is no edge")
+	assert_equal(_pieces.judge(1, Vector2i(4, 3), 0, PARTITION, -1)[0], Validity.KIND_CAN_BUILD,
+		"beside a piece: floor is no edge")
+
+
+func test_a_door_or_partition_never_cuts_through_one_piece() -> void:
+	"""X: an edge whose two sides are one pending or confirmed piece; ✓ between two pieces side by side."""
+	_pieces.add(1, Vector2i(8, 0), 0, BED)
+	assert_equal(_pieces.judge(1, Vector2i(8, 0), 1, PARTITION, -1)[1], Validity.cuts_piece("Bed"), "a pending bed")
+	assert_equal(_pieces.judge(1, Vector2i(9, 0), 1, PARTITION, -1)[0], Validity.KIND_CAN_BUILD, "along its side")
+	for cell: Vector2i in [Vector2i(2, 2), Vector2i(3, 2), Vector2i(2, 3), Vector2i(3, 3)]:
+		_taken[cell] = SEAT
+		_ids[cell] = 4
+	for cell: Vector2i in [Vector2i(4, 2), Vector2i(5, 2), Vector2i(4, 3), Vector2i(5, 3)]:
+		_taken[cell] = SEAT
+		_ids[cell] = 5
+	assert_equal(_pieces.judge(1, Vector2i(2, 2), 1, DOOR, -1)[1], Validity.cuts_piece("Seat"), "a confirmed seat")
+	assert_equal(_pieces.judge(1, Vector2i(3, 2), 1, DOOR, -1)[0], Validity.KIND_CAN_BUILD, "between two seats")
+
+
+func test_furniture_keeps_clear_of_pending_ways_down_and_they_of_it() -> void:
+	"""X: a piece over a pending Way down's cells or a landing below one; a way down over a piece, or landing on one."""
+	_batch.place_item(1, Vector2i(2, 2))
+	assert_equal(_batch.place_piece(1, Vector2i(0, 2), 0, HEARTH), Validity.KIND_NOT_POSSIBLE, "over its stairs")
+	assert_equal(_batch.last_dropped(), Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.on_way_down()), "words")
+	_batch.place_item(0, Vector2i(4, 4))
+	assert_equal(_batch.place_piece(1, Vector2i(4, 4), 0, SEAT), Validity.KIND_NOT_POSSIBLE, "on the landing")
+	assert_equal(_batch.place_piece(1, Vector2i(6, 0), 0, SEAT), Validity.KIND_CAN_BUILD, "clear of them")
+	assert_equal(_batch.judge_item(1, Vector2i(6, 0), -1)[1], Validity.piece_overlaps("Seat"), "a way down over it")
+	assert_equal(_batch.judge_item(0, Vector2i(7, 1), -1)[1], Validity.piece_overlaps("Seat"), "landing on it")
+	assert_equal(_pieces.floor_taken(1, PackedInt32Array([0, 0])), -1, "nothing there")
 
 
 func test_with_no_host_every_piece_is_refused() -> void:

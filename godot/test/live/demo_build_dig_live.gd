@@ -2,9 +2,12 @@ extends "res://test/live/demo_input_live.gd"
 ## THE PROOF OF CONCEPT'S WHOLE LOOP, live (decision 1912): on the real village through the real input gate -- B, the
 ## Entrance placed on the surface by a click, a Passage and a Kitchen painted by drags on underground level 1,
 ## Confirm all clicked, a mole walking to the Entrance and digging every cell, the rooms drawn open, and a resident
-## sent down by a right click on a dug cell. Optional: -- --capture <directory> for its frames.
+## sent down by a right click on a dug cell; the look (decision 1913): the rooms are pits with stairs out of the
+## landing, no two tags sit on each other, and the Entrance is a burrow mouth on the surface. Optional: -- --capture
+## <directory> for its frames.
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
+const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
 
 ## Level 1 is under the stream's water up to z 31 m (decision 1912); the loop is laid on dry ground beyond it.
 const ENTRANCE: Vector2i = Vector2i(10, 36)
@@ -19,6 +22,15 @@ const ORDERED_CELLS: int = 40
 ## Steps (of STEP_FRAMES frames) a wait may take before it fails.
 const WAIT_STEPS: int = 3000
 const MAX_RESENDS: int = 2
+## Steps the surface is left to settle before its frame (a crown over the Entrance fades out over a few frames).
+const SETTLE_STEPS: int = 30
+## Where the camera looks at the Entrance's mouth from (demo_camera.gd `aim`). The mouth's arch faces the default
+## heading (yaw 0, from the south; decision 1913), but at this Entrance an oak's trunk and a fallen log stand south of
+## it, and no view the camera allows (7 m and 30 degrees at the least) sees into the arch: from the west, the clearest
+## side, the frame shows the mound whole.
+const MOUTH_YAW_DEG: float = 270.0
+const MOUTH_PITCH_DEG: float = 38.0
+const MOUTH_M: float = 7.0
 
 var _visitor: int = -1
 ## Times the visit was ordered again after the resident dropped it (a walk to the Entrance that got lost ends the
@@ -31,8 +43,9 @@ func _initialize() -> void:
 	super()
 	_steps = [_open_on_the_surface, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
 		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage, _scroll_to.bind("Kitchen"),
-		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _wait_for_the_rooms, _send_a_visitor,
-		_wait_for_the_visitor, _report_resends, _close_the_panel]
+		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _tags_apart, _wait_for_the_rooms,
+		_rooms_drawn_as_pits, _send_a_visitor, _wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance,
+		_close_the_panel]
 
 
 func _open_on_the_surface() -> void:
@@ -141,6 +154,40 @@ func _wait_for_the_rooms() -> void:
 		"loop_rooms_open", WAIT_STEPS)
 
 
+func _tags_apart() -> void:
+	"""Decision 1913: the names over the figures and the level's tags never sit on each other."""
+	var pairs: int = int(_build().call(&"tag_overlaps"))
+	_check("no two tags sit on each other", pairs == 0, "%d pairs: %s" % [pairs, _build().get("dug").call(&"tags")])
+
+
+func _rooms_drawn_as_pits() -> void:
+	"""Decision 1913: the dug cells are pits in the earth (walls drawn), and the Entrance's landing has its stairs up."""
+	var dug: Object = _build().get("dug")
+	_check("the dug rooms are pits with walls", int(dug.get("earth").get("wall_quads")) > 0)
+	_check("stairs rise out of the Entrance's landing", int(dug.call(&"stairs_shown")) == 1)
+
+
+func _up_to_the_entrance() -> void:
+	"""Page Up: the surface, where the Entrance is a burrow mouth (the camera low over it from the west: see
+	MOUTH_YAW_DEG)."""
+	_key(KEY_PAGEUP)
+	var camera: Node = _village.get("_camera")
+	camera.call(&"aim", Vector3(ENTRANCE.x + 1.0, 0.0, ENTRANCE.y + 1.0), MOUTH_YAW_DEG, MOUTH_PITCH_DEG, MOUTH_M)
+	camera.call(&"snap")
+	_check("the Entrance is a burrow mouth on the surface", int(_build().get("bar").call(&"shown_level")) == 0
+		and int(_build().get("dug").call(&"mouths_shown")) == 1)
+	_steps.push_front(_capture_after.bind("loop_entrance_open", SETTLE_STEPS))
+
+
+func _capture_after(capture_name: String, steps_left: int) -> void:
+	"""Capture `capture_name` after `steps_left` more steps (the tree crowns over the camera's line thin out gradually:
+	canopy_clear.gd)."""
+	if steps_left <= 0:
+		_capture(capture_name)
+		return
+	_steps.push_front(_capture_after.bind(capture_name, steps_left - 1))
+
+
 func _send_a_visitor() -> void:
 	"""A resident who is not a mole, selected, and a right click on a dug Kitchen cell: down they go."""
 	_visitor = _first_not_mole()
@@ -191,7 +238,7 @@ func _wait_until(check_name: String, done: Callable, capture_name: String, steps
 func _order_the_visit() -> void:
 	"""Select the visitor and right-click the dug Kitchen cell."""
 	_command().call(&"select", PackedInt32Array([_visitor]))
-	_right_click(_screen_of(KITCHEN_FROM + Vector2i(2, 1), 1))
+	_right_click(_screen_of(KITCHEN_FROM + Vector2i(2, 1), 1, -Earth.DEPTH_U))
 
 
 func _visitor_state() -> String:
@@ -213,9 +260,10 @@ func _first_not_mole() -> int:
 	return -1
 
 
-func _screen_of(cell: Vector2i, level: int) -> Vector2:
-	"""Where `cell`'s middle is on screen on `level` (the painter's own projection)."""
-	return _build().get("paint").call(&"screen_of", cell, level)
+func _screen_of(cell: Vector2i, level: int, lift_u: int = 0) -> Vector2:
+	"""Where `cell`'s middle is on screen on `level`, or `lift_u` above its floor plane (a dug pit's floor is 1 m below
+	it: decision 1913), by the painter's own projection."""
+	return _build().get("paint").call(&"screen_of", cell, level, lift_u)
 
 
 func _right_click(at: Vector2) -> void:

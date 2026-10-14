@@ -70,6 +70,7 @@ const ARROW_KEYS: Array[int] = [KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT]
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Dug := preload("res://demo/build_panel/demo_build_dug.gd")
 const Figure := preload("res://demo/build_panel/demo_build_figure.gd")
+const Tags := preload("res://demo/build_panel/demo_build_tags.gd")
 const BelowTask := preload("res://demo/build_panel/demo_build_below_task.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -125,6 +126,8 @@ var _selection: Callable = Callable()
 var digger: BelowTask = null
 var _trips: Array[BelowTask] = []
 var _figures: Array[Figure] = []
+var _spacer: Tags = Tags.new()
+var _tag_list: Array[Label3D] = []
 var _trip_actors: PackedInt32Array = PackedInt32Array()
 var _send_in: float = 0.0
 ## The last thing said about why no mole went (said once, review M6).
@@ -189,6 +192,11 @@ func bind_cast(cast: Node, selection: Callable) -> void:
 	"""The village's residents (moles dig; anyone visits) and `selection() -> PackedInt32Array`, the selected ones."""
 	_cast = cast
 	_selection = selection
+
+
+func bind_props(props: Object) -> void:
+	"""The demo's staged props table (demo_props.gd): the build art drawn where it is staged (decision 1913)."""
+	dug.use_props(props)
 
 
 func _configure_world(session: Object) -> void:
@@ -414,8 +422,10 @@ func _apply_build_view() -> void:
 		world.hide_view()
 		return
 	world_refusal = world.show_level(level)
-	# With no World to draw (review M4), the ghosts and dug rooms still show on the marks layer.
-	_tunnels.view.set_override_mask(BuildWorld.SHOWN_MASK if world_refusal == &"" else BuildWorld.MARKS_LAYER)
+	if world_refusal == &"" and not dug.has_kinds():
+		dug.set_kinds(world.section_kinds())
+	# The earth, the dug rooms and the ghosts (decision 1913); with no World to draw (review M4) the earth is plain.
+	_tunnels.view.set_override_mask(BuildWorld.SHOWN_MASK)
 
 
 func _leave_build_view() -> void:
@@ -596,18 +606,60 @@ func _submit_way_down(level: int, cell: Vector2i) -> Dictionary:
 # --- the proof of concept's mole and visitors (decision 1912) -----------------------------------------------------
 
 func _tick_works(delta: float) -> void:
-	"""Every frame: the dug rooms drawn for the level shown, each figure shown only on its own level, and -- every
-	SEND_EVERY_S while cells wait and no mole is digging -- a mole sent again."""
+	"""Every frame: the dug rooms drawn for the level shown (the cell being dug deepening), each figure shown only on
+	its own level, the tags kept off each other, and -- every SEND_EVERY_S while cells wait and no mole is digging -- a
+	mole sent again."""
 	var shown: int = bar.shown_level() if panel.is_open() else -1
-	dug.refresh(shown)
+	var dig_cell: Vector3i = digger.digging_cell() if digging() else Dug.Earth.NO_CELL
+	dug.refresh(shown, dig_cell)
+	if digging():
+		_show_dig(dig_cell)
 	if works.revision != _marked_at:
 		_mark_reachable()
 	for k: int in _trips.size():
 		_figures[k].visible = _trips[k].below() and shown >= 1 and _trips[k].at().x == shown and _still_on(_trips[k])
+	_space_tags(shown)
 	_send_in -= delta
 	if _send_in <= 0.0 and works.waiting() > 0 and not digging():
 		_send_in = SEND_EVERY_S
 		_send_mole()
+
+
+func _show_dig(dig_cell: Vector3i) -> void:
+	"""The cell being dug (none: x < 1) deepens, and a mole standing on it stands on its floor so far (review M2);
+	anywhere else the mole stands on a dug floor."""
+	var share: float = digger.dig_share()
+	if dig_cell.x >= 1:
+		dug.set_progress(share)
+	var row: int = _trips.find(digger)
+	var on_it: bool = row >= 0 and dig_cell.x >= 1 and digger.at() == dig_cell
+	if row >= 0:
+		_figures[row].set_sink(Dug.Earth.dug_depth_m(share) if on_it else Figure.SINK_M)
+
+
+func _space_tags(shown: int) -> void:
+	"""The level's tags and the figures' names kept off each other on screen (demo_build_tags.gd; names first)."""
+	if shown < 1 or not is_instance_valid(_camera) or not _camera.is_inside_tree():
+		return
+	_collect_tags()
+	_spacer.space(_camera, _tag_list)
+
+
+func _collect_tags() -> void:
+	"""The shown figures' names, then the level's shown tags, into `_tag_list` (reused)."""
+	_tag_list.clear()
+	for figure: Figure in _figures:
+		if figure.visible:
+			_tag_list.append(figure.tag())
+	dug.shown_tags(_tag_list)
+
+
+func tag_overlaps() -> int:
+	"""How many pairs of the level's tags and names sit on each other on screen now (checks)."""
+	if not is_instance_valid(_camera) or not _camera.is_inside_tree():
+		return 0
+	_collect_tags()
+	return Tags.overlaps(_camera, _tag_list)
 
 
 func digging() -> bool:
@@ -903,10 +955,11 @@ func _panel_click(button: InputEventMouseButton) -> bool:
 
 
 func _visit_at(screen: Vector2) -> bool:
-	"""A right click on a dug cell of the level shown sends the selected residents down into it."""
+	"""A right click on a dug cell of the level shown sends the selected residents down into it (picked on the dug
+	pit's floor, where the player sees it: decision 1913)."""
 	if bar.shown_level() < 1:
 		return false
-	var hit: Paint.WorldTool.Pick = paint.pick(screen, bar.shown_level())
+	var hit: Paint.WorldTool.Pick = paint.pick(screen, bar.shown_level(), -Dug.Earth.DEPTH_U)
 	return hit.ok and send_visitors(hit.cell) > 0
 
 

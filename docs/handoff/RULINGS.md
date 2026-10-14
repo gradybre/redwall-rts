@@ -171,6 +171,7 @@ Every row was checked against the record named.
 | The proof of concept's PROPOSALS (1912 P-1912-1–4) | **"Approve all four"**, all (a) as built: the new refusal words as worded; a Way down stands on a planned or dug passage or room; a mole is taken from its routine when none is free, and any resident digs when the village has no mole; nothing about the works is saved for the proof of concept. (Relayed by the coordinator) | 1912 |
 | The proof of concept's look (1913 P-1913-1, P-1913-2), 2026-10-13 | **P-1913-1: "Keep the earth view"**, (a) as built: the level is drawn as cut-away earth with the dug rooms as pits, in place of the World view's section plane. **P-1913-2: "Yes, all three (78 credits)"**: the burrow-mouth prop (30), the stair flight (30) and the two earth textures (18); hard cap 78 credits including retries. (Relayed by the coordinator) | 1913 |
 | The proof of concept's art (ART-BUILD-POC), 2026-10-13 | **"accept ART-BUILD-POC and merge when green"**: the burrow mouth, the stair flight and the earth floor and wall textures are accepted; recorded in `docs/planning/art_approvals.json`. (Relayed by the coordinator) | 1913; art_approvals.json |
+| EG2 features added to the plan | "Add in slice H - automatic decoration, move by click hold, automatic pause." Decor auras, copy with C and repaint-to-cancel were offered and not chosen | DEC-061 addendum; study slice H |
 
 ## Standing rules (not dated rulings)
 

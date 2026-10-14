@@ -206,6 +206,20 @@ painted rooms. Its surface costs follow Brendan's ruling on OPEN-01 (b): key ite
 any refusal (EG2's Cancel → camera); bulk select/remove; no "crew abandons the build" — keep the existing per-digger
 job queues and show who is assigned on the blueprint.
 
+**H additions — EG2 features Brendan added on 2026-10-12** (DEC-061 addendum):
+1. **Automatic decoration.** A finished room dresses itself to suit its type, filling the space around the
+   player-placed items, as EG2 rooms do. This is cosmetic dressing only: it carries no cost, comfort or other
+   gameplay effect unless a later ruling gives it one. Lights and fittings along generated walls are placed the
+   same way. Player-placed items always take precedence: auto-dressing moves aside or is removed, never blocks.
+2. **Move an item by click-and-hold.** Click-and-hold a placed or pending item to pick it up and move it, keeping
+   its rotation; R rotates it while held. Moving a pending (unbuilt) item is free. Moving a built item is
+   re-placement work under the existing construction rules: no new cost model without a ruling.
+3. **Automatic pause in build mode.** An option, as in EG2's "Build Mode Auto-Pause": opening the build panel
+   pauses the game, and closing it restores the previous speed. The speeds are 0, 1, 2 and 4, with no 3x. The
+   option stays off unless a later ruling or the UI owner sets the default.
+
+Not added (offered, not chosen): decor auras, copy item with C, repainting a pending tile to cancel it.
+
 **Dependencies per slice** (added by slice A, 2026-10-11; updated the same day after Brendan ruled all eleven OPEN items of decision 1851; updated 2026-10-12 by Brendan's “Budget now, rest later” ruling, [decision 1880](../../decisions/1880-painted-room-memory-budget.md); C and D re-ordered 2026-10-12 by his ruling on [decision 1911](../../decisions/1911-slice-c-scoping-paint-equals-dig.md) P-C1). “Needs” means the slice cannot finish without it.
 
 | Slice | Needs (slices) | Needs (other work and rulings) |

@@ -174,6 +174,12 @@ Every row was checked against the record named.
 | The Furnish tab (three questions), 2026-10-13 | "start the Furnish tab". 1. **Installing: "A resident fits it"**: after Confirm all a resident walks to the spot and the piece appears after a short wait, like the mole digging; free, like the rooms (the ledger shows the bill, nothing is deducted). 2. **Function: "Room becomes valid"**: the room's line updates live ("Kitchen: needs a hearth" → "✓ Kitchen ready"); placed beds count in the HUD's Beds; no new resident behaviour yet (nobody sleeps or cooks there). 3. **Placement: "Footprint + rotation"**: each piece has a footprint and rotates with R / Shift+R; it must sit on dug cells of a room whose type uses it, and pieces can't overlap; no access tiles yet (slice E's full rule). (Relayed by the coordinator) | [1921](../decisions/1921-the-furnish-tab-proof-of-concept.md) |
 | The Furnish tab's PROPOSALS (1921 P-1921-1–10), 2026-10-14 | **"Approve as recommended"**: P-1921-1–6 and 8–10 (a) as built (refusal and room-line words; who fits; doors and partitions on the rotated cell edge with a landing counting as a side; a fitted hearth counts as lit and heats up to 480 cells; "wall behind" left for slice E; right click puts the armed card down; Beds counts every fitted bed, not patient beds; decoration stays on the Decor tab); **P-1921-7 (c)**: no paid kitchen-bench model, the named blocks stay until slice E. (Relayed by the coordinator) | [1921](../decisions/1921-the-furnish-tab-proof-of-concept.md) |
 
+## 2026-10-14
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Slice C2's 1932 (the down stroke cannot open a room) | **"General motion"**: rooms dug with a general claw motion, exact contact not required, safety proofs kept (DEC-060 precedent). **"Full 4 m clear height"** for underground rooms (amends DEC-054; how the mole reaches it is the lane's PROPOSAL). **"Not yet diggable"** shown until rooms can be dug. Test leave on the retired pick rows not ruled ("I will manually start this shortly"). (Relayed by the coordinator) | DEC-062; 1932 on `feat/room-foreman-slice-c2` |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

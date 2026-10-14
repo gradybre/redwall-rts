@@ -1621,3 +1621,36 @@ questions in chat:
 
 Not ruled, so the study's proposals stand: the slice order A–H and everything in study §4 (things not copied from
 EG2). These include research-gated rock and gold veins.
+
+
+### DEC-062 — Rooms are dug with a general claw motion to the full 4 m clear height
+
+On 2026-10-14, Brendan answered the question that slice C2's [decision 1932](decisions/) raises. That record is on
+branch `feat/room-foreman-slice-c2` at `70462eaa`, not yet on master. It found that the downward claw stroke (M1)
+cannot open an underground room. The coordinator relayed his answers, given in chat through multiple-choice
+questions:
+
+- **How moles open a room: "General motion".** Rooms are dug with a general claw digging motion into the face,
+  following DEC-060's tread precedent:
+  - exact contact with the struck face is **not required**;
+  - the physical safety proofs stay (feet supported, no body or limb through solid earth or structure);
+  - the work is counted by the Job/Work model as usual.
+
+  This replaces P-C2-1's "dig rooms with the down stroke" (decision 1931) and settles 1932's options. It is none of
+  1932's (a)–(d): no new exact-contact stroke has to be authored before rooms can be dug.
+- **Room height: "Full 4 m clear height".** An underground room is dug to its level's full clear height: 4 m, four
+  quanta per cell (SET-BUILD-001 §3; level pack `clear_height` 4096 u). **This amends DEC-054.** A room's height
+  no longer follows the reach of the published dig strokes, and its upper volume is no longer left as protected
+  earth.
+  - DEC-054's "no earth benches, steps or climbing" is not re-ruled here. How a 0.9 m mole works a 4 m face is for
+    the lane to propose. Examples are a temporary bench removed afterwards, top-down from a cut access, or a lifted
+    stance. The lane brings it back as a PROPOSAL; it is not invented silently.
+  - Per-cell bills scale with the four quanta (BAL-UG-001 / DEC-059): wood 1000, stone 1000 milli-U; 16,920 milli-WU;
+    8,000 milli-U `excavated_earth`.
+- **The panel until rooms can be dug: "Not yet diggable".** Until the room foreman can actually dig on active
+  content, the build panel says in words that underground rooms cannot be dug yet, and shows no price.
+- **Test leave for the foreman's job logic on the retired pick rows: not ruled.** Brendan answered "I will manually
+  start this shortly", meaning he is starting the C2 session himself. Ask him there.
+
+Engineering records: decision 1932 and decision 1931 on `feat/room-foreman-slice-c2`. The C2 lane records this
+ruling in 1932 and points to here.

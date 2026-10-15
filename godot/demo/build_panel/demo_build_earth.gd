@@ -1,37 +1,40 @@
 extends Node3D
-## THE LEVEL'S EARTH, CUT AWAY (decision 1913; decision 1912's proof of concept; the EG2 study's readable cutaway).
-## The level shown is drawn as a block of earth whose top is the level's floor plane -- the plane the player paints
-## on and picks cells from (demo_build_paint.gd), so nothing painted floats -- with every dug cell a PIT DEPTH_M deep
-## cut into it: a floor of packed earth and earth walls where dug space meets earth, in the planner's own surface
-## materials (modular_materials.gd: the unexcavated top darker, the dug faces as dug), with a soft shade along each
-## wall's foot and a dark lip along each cut edge. The top is on its own layer (TOP_LAYER) so the dug view's sun
-## (demo_build_dug.gd) lights only what was dug and the earth's top takes a dim fill: the rooms stand out of the mass.
+## THE LEVEL'S EARTH, CUT AWAY (decision 1913; its walls rounded and hand-dug, decision 1914; decision 1912's proof of
+## concept). The level shown is drawn as a block of earth whose top is the level's floor plane -- the plane the player
+## paints on and picks cells from (demo_build_paint.gd), so nothing painted floats -- with the dug space a DEPTH_M
+## pit in it. Rooms stay on the 1 m grid for every rule; only the drawing of dug space is rounded:
+##   THE FLOORS  every dug cell's whole floor, flat at DEPTH_M (rule a: never hide a usable cell);
+##   THE WALLS   the earth round the dug cells as patches of a smooth heightfield (demo_build_burrow_field.gd): the
+##               outline smoothed and carried outward, convex corners rounding into the earth and passage mouths
+##               flaring, the section coved, the contour wobbled by fixed noise;
+##   THE TOP     plain quads everywhere else, and APRON_M past the planning area so its edge never reads as a hole.
+## One surface (build_burrow.gdshader) draws all three in world metres, the bought floor and wall textures where staged
+## (`set_textures`) and the procedural packed earth where not (CI); the dug view's sun lights what is cut and its fill
+## the uncut top. The mesh is on the dug layer and the top's (LAYER | TOP_LAYER) so both lights reach it.
 ##
 ## THE ACTUAL WORLD. The top is the World's ground as the World view's section draws it at a level
 ## (modular_world_view.gd `_kind_at`: land, or the deep protected water columns in their own flat marks), read once per
 ## tile from the settlement's World (demo_build_world.gd `section_kinds`); with no World it is all earth. It replaces
 ## the section's own plane in the build view, which cannot be cut (decision 1913 E1).
 ##
-## THE TEXTURES (decision 1913, Brendan's "Yes, all three"): where the bought packed-earth and dug-wall textures are
-## staged (`set_textures`, demo_props.gd `build_texture`), the floors and the top wear the first and the walls the
-## second, tiled in metres; the top darkened as the unexcavated mass. Where they are not (CI), the procedural surfaces.
-##
 ## THE CELLS (demo_build_works.gd), told apart by shape and by words, never by colour alone:
-##   EARTH     the top, plain;
-##   ORDERED   the top, each cell pegged out in chalk (and named "Waiting for the mole" by the dug view);
-##   DIGGING   the one cell being dug: a pit that deepens as the dig goes on (`set_progress`), named "Digging";
-##   OPEN      a pit.
-## Rebuilt when the works, the level or the cell being dug change; per frame only the digging pit's scale moves.
-## Presentation only.
+##   EARTH     the top, plain (rounded into beside a dug cell);
+##   ORDERED   the top, square, each cell pegged out in chalk (rule b: plan in squares; never rounded into);
+##   DIGGING   the one cell being dug: it deepens as the dig goes on (`set_progress`: a uniform, no rebuild), and the
+##             rounding round it grows with it;
+##   OPEN      dug: floor, the rounded walls round it.
+## Rebuilt only when the works, the level or the cell being dug change; never per frame. Presentation only.
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Quads := preload("res://demo/build_panel/demo_build_quads.gd")
-const Materials := preload("res://demo/burrow/modular_materials.gd")
 const WorldView := preload("res://demo/burrow/modular_world_view.gd")
 const World := preload("res://scripts/core/world_init.gd")
+const Field := preload("res://demo/build_panel/demo_build_burrow_field.gd")
+const Burrow := preload("res://demo/build_panel/demo_build_burrow.gd")
+const BurrowShader := preload("res://demo/build_panel/build_burrow.gdshader")
 
 const LAYER: int = 256
-## The earth's top: drawn with the marks layer (demo_build_world.gd SHOWN_MASK), lit apart from it.
+## The earth's top: drawn with the marks layer (demo_build_world.gd SHOWN_MASK), lit by the fill.
 const TOP_LAYER: int = 512
 ## How deep a dug cell is drawn (decision 1912 E10: rooms are 1 m, decision 1932's one quantum).
 const DEPTH_M: float = 1.0
@@ -39,14 +42,6 @@ const DEPTH_U: int = 1024
 ## A cell's side (u): the planner's 1 m grid.
 const CELL_U: int = 1024
 const UNITS_PER_M: float = 1024.0
-## modular_surface.gdshader reads the vertex colour: red is a dug (finished) face, anything else the unexcavated earth.
-const DUG: Color = Color(1.0, 0.0, 0.0)
-const UNDUG: Color = Color(1.0, 1.0, 1.0)
-## The shade at a wall's foot (SHADE_M wide, fading out) and the lip along a cut edge (LIP_M wide).
-const SHADE: Color = Color(0.03, 0.02, 0.01, 0.5)
-const SHADE_M: float = 0.42
-const LIP: Color = Color(0.05, 0.035, 0.02, 0.75)
-const LIP_M: float = 0.07
 ## An ordered cell's chalk: a square CHALK_M wide, CHALK_INSET_M inside the cell's edges.
 const CHALK: Color = Color(0.93, 0.88, 0.74, 0.32)
 const CHALK_M: float = 0.06
@@ -56,57 +51,113 @@ const LIFT_M: float = 0.006
 ## cap's water hue (underground_cap.gdshader `water_colour`), darkened to sit below the earth (unshaded, it glared).
 const APRON_M: float = 96.0
 const WATER: Color = Color(0.085, 0.12, 0.155)
-## The staged textures' tiling (metres a texture spans: each holds two repeats) and the unexcavated top's darkening.
+## The staged textures' tiling (metres a texture spans: each holds two repeats) and the unexcavated top's darkening;
+## with no floor texture, modular_surface.gdshader's own darkening of undug earth.
 const FLOOR_TILE_M: float = 4.0
 const WALL_TILE_M: float = 2.0
 const TOP_TINT: Color = Color(0.72, 0.68, 0.64)
-const SIDES: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+const PROCEDURAL_TOP_TINT: Color = Color(0.66, 0.66, 0.66)
+## The floor grid's strength while the Rooms or Furnish tab is open: fainter than the ghosts' own grid lines
+## (demo_build_ghost.gd LINE_ALPHA 0.23), as it is lit with the floor; enough that the dug floor still reads in cells.
+const GRID_ALPHA: float = 0.15
+## Where the dug view's fill shines from (demo_build_dug.gd): the surface tells it from the sun by this.
+const FILL_TOWARD: Vector3 = Vector3(0.0, 1.0, 0.01)
+## How far round the works the field holds cells: a wall patch is within one cell of a dug cell and reads its own
+## neighbours' neighbours (demo_build_burrow_field.gd REACH).
+const REACH_CELLS: int = Field.REACH + 1
 const NO_CELL: Vector3i = Vector3i(-1, 0, 0)
+## No level's top: far above any (the patch cache is kept for one top at a time).
+const NO_TOP_M: float = 1.0e9
+## Points a check samples across a cell, each way (its edges and corners included).
+const CHECK_POINTS: int = 5
 
 var _datum_u: Vector2i = Vector2i.ZERO
-var _bounds: Rect2i = Rect2i()
-## Per row of cells: [x from, x to, kind] triples of the World's section kinds (one run of LAND with no World).
+## The planning area and a cell round it: the top is drawn over this, the rounding may reach into its rim.
+var _drawn: Rect2i = Rect2i()
+## Per row of `_drawn`: [x from, x to, kind] triples of the World's section kinds (one run of LAND with no World).
 var _runs: Array[PackedInt32Array] = []
-var _surfaces: Materials = Materials.new()
+var _surface: ShaderMaterial = null
 var _wet: Dictionary = {}
-## The surfaces drawn: [top, dug floor, dug wall] (the procedural ones until `set_textures`).
-var _looks: Array[Material] = []
 var _marks_material: StandardMaterial3D = null
-var _top: MeshInstance3D = null
-var _dug: MeshInstance3D = null
+var _ground: MeshInstance3D = null
 var _marks: MeshInstance3D = null
-## The cell being dug: its walls and floor on the earth's sides (scaled by the dig's progress), and its steps down to
-## dug neighbours (scaled by what is left).
-var _pit: MeshInstance3D = null
-var _step: MeshInstance3D = null
 var _digging: Vector3i = NO_CELL
-## Rebuilds since configure, and the last one's quads: the top, the dug floors, the walls, the marks (checks).
+var _top_y: float = 0.0
+## The fields of the last draw: the cells as they are, and with the cell being dug dug (null when none).
+var _fields: Array = []
+## The surfaces of the last draw (checks): the top, the floors, the walls.
+var _built: Array[Burrow] = []
+## Which cells are wet (1) and which are drawn by a wall patch (1), over the last draw's field box.
+var _wet_cells: PackedByteArray = PackedByteArray()
+var _patched: PackedByteArray = PackedByteArray()
+## Each wall patch made, by cell: [its neighbourhood's signature, the patch]. A patch depends only on the kinds of the
+## 5 × 5 cells round it (and where the cell being dug is among them), so a dig remakes only the patches round it.
+## Forgotten when the level's top moves (NO_TOP_M: none drawn yet).
+var _patch_cache: Dictionary = {}
+var _cache_top: float = NO_TOP_M
+## THE REBUILD (decision 1914 E6). `draw` reads the works on the main thread (`_prepare`: the level's states as a
+## copy on write, its box, the ways), builds the fields, the surfaces' arrays and the chalk (`_build`) and shows them
+## (`_commit`). With `threaded` (the live demo) `request` runs `_build` on a WorkerThreadPool task and `poll` shows it
+## when done; `_build` touches only what `_prepare` set and the patch cache, which nothing else touches while it runs.
+## What `_prepare` read, what `_build` made, and what is shown: the surfaces and the cell being dug.
+var threaded: bool = false
+var _task: int = -1
+var _wanted: Array = []
+var _held_share: bool = false
+var _level: int = -1
+var _states: PackedByteArray = PackedByteArray()
+var _area: Rect2i = Rect2i()
+var _box: Rect2i = Rect2i()
+var _stairs: Array[Rect2i] = []
+var _heads: Array[Vector2i] = []
+var _built_arrays: Array = []
+var _chalk_quads: Quads = Quads.new()
+var _wet_quads: Dictionary = {}
+var _shown: Array[Burrow] = []
+var _shown_digging: Vector3i = NO_CELL
+## The floor grid shown, and how far down the cell being dug is drawn (the shader's `dig_share`).
+var _grid: bool = false
+var _share: float = 0.0
+## Rebuilds since configure, the last one's quads and patches, how long the build took, and how long the main thread
+## spent on it (checks; decision 1914 times them).
+var last_main_usec: int = 0
 var rebuilds: int = 0
 var top_quads: int = 0
 var floor_quads: int = 0
-var wall_quads: int = 0
+var patch_count: int = 0
 var mark_quads: int = 0
+var last_build_usec: int = 0
+## Wall patches made (not taken from the cache) by the last draw (checks).
+var patches_made: int = 0
 
 
 func configure(datum_u: Vector2i, bounds: Rect2i) -> void:
 	"""Cells from `datum_u` (x, z in u) over `bounds`; all earth until `set_kinds`."""
 	name = "BuildEarth"
 	_datum_u = datum_u
-	_bounds = bounds
+	_drawn = bounds.grow(1)
 	_marks_material = StandardMaterial3D.new()
 	_marks_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_marks_material.vertex_color_use_as_albedo = true
 	_marks_material.vertex_color_is_srgb = true
 	_marks_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_marks_material.render_priority = 1
-	_looks = [_surfaces.material(Materials.EARTH, Materials.FLOOR), _surfaces.material(Materials.EARTH, Materials.FLOOR),
-		_surfaces.material(Materials.EARTH, Materials.WALL)]
-	_top = _node(TOP_LAYER, true)
-	_dug = _node(LAYER, true)
+	_surface = ShaderMaterial.new()
+	_surface.shader = BurrowShader
+	_surface.set_shader_parameter(&"top_tint", PROCEDURAL_TOP_TINT)
+	_surface.set_shader_parameter(&"floor_tile_m", FLOOR_TILE_M)
+	_surface.set_shader_parameter(&"wall_tile_m", WALL_TILE_M)
+	_surface.set_shader_parameter(&"datum_m", Vector2(datum_u) / UNITS_PER_M)
+	_surface.set_shader_parameter(&"water", WATER)
+	_surface.set_shader_parameter(&"fill_toward", FILL_TOWARD)
+	_surface.set_shader_parameter(&"grid_alpha", 0.0)
+	_surface.set_shader_parameter(&"floor_textured", false)
+	_surface.set_shader_parameter(&"wall_textured", false)
+	_set_share(0.0)
+	_ground = _node(LAYER | TOP_LAYER, true)
 	_marks = _node(LAYER, false)
-	_pit = _node(LAYER, true)
-	_step = _node(LAYER, true)
 	set_kinds(PackedByteArray())
+	Field.wobble(0, 0)
 
 
 func _node(layer: int, shadows: bool) -> MeshInstance3D:
@@ -120,34 +171,39 @@ func _node(layer: int, shadows: bool) -> MeshInstance3D:
 
 
 func set_textures(floor_texture: Texture2D, wall_texture: Texture2D) -> void:
-	"""Wear the staged textures (null: keep that surface procedural); the next `draw` uses them."""
+	"""Wear the staged textures (null: keep that surface procedural): a uniform each, no rebuild."""
 	if floor_texture != null:
-		_looks[0] = textured(floor_texture, FLOOR_TILE_M, TOP_TINT)
-		_looks[1] = textured(floor_texture, FLOOR_TILE_M, Color.WHITE)
+		_surface.set_shader_parameter(&"floor_texture", floor_texture)
+		_surface.set_shader_parameter(&"floor_textured", true)
+		_surface.set_shader_parameter(&"top_tint", TOP_TINT)
 	if wall_texture != null:
-		_looks[2] = textured(wall_texture, WALL_TILE_M, Color.WHITE)
+		_surface.set_shader_parameter(&"wall_texture", wall_texture)
+		_surface.set_shader_parameter(&"wall_textured", true)
 
 
-static func textured(texture: Texture2D, tile_m: float, tint: Color) -> StandardMaterial3D:
-	"""A matte, lit surface wearing `texture` once every `tile_m` metres of the quads' metre UVs (a wall's v runs up,
-	the image's down: flipped)."""
-	var look: StandardMaterial3D = StandardMaterial3D.new()
-	look.albedo_texture = texture
-	look.albedo_color = tint
-	look.roughness = 1.0
-	look.uv1_scale = Vector3(1.0 / tile_m, -1.0 / tile_m, 1.0)
-	return look
+func surface() -> ShaderMaterial:
+	"""The one surface the earth is drawn in (checks)."""
+	return _surface
 
 
-func looks() -> Array[Material]:
-	"""The surfaces drawn: top, dug floor, dug wall (checks)."""
-	return _looks
+func set_grid(shown: bool) -> void:
+	"""Show the faint cell grid on the dug floors (the Rooms and Furnish tabs) or not: a uniform, no rebuild."""
+	if shown != _grid:
+		_grid = shown
+		_surface.set_shader_parameter(&"grid_alpha", GRID_ALPHA if shown else 0.0)
+
+
+func grid_shown() -> bool:
+	"""Whether the floor grid is shown (checks)."""
+	return _grid
 
 
 func set_kinds(tile_kinds: PackedByteArray) -> void:
-	"""The World's section kind per tile (World.TILE_COUNT bytes; empty: all earth): the rows' runs, worked out once."""
+	"""The World's section kind per tile (World.TILE_COUNT bytes; empty: all earth): the rows' runs, worked out once
+	(after any build in flight, which reads them)."""
+	finish()
 	_runs.clear()
-	for z: int in range(_bounds.position.y, _bounds.end.y):
+	for z: int in range(_drawn.position.y, _drawn.end.y):
 		_runs.append(_row_runs(tile_kinds, z))
 
 
@@ -158,7 +214,7 @@ func _row_runs(tile_kinds: PackedByteArray, z: int) -> PackedInt32Array:
 	var known: bool = tile_kinds.size() == World.TILE_COUNT and tile_z >= 0 and tile_z < World.MAP_TILES_Z
 	var last_tile: int = -1
 	var kind: int = World.TERRAIN_LAND
-	for x: int in range(_bounds.position.x, _bounds.end.x):
+	for x: int in range(_drawn.position.x, _drawn.end.x):
 		var tile_x: int = _tile_of(_datum_u.x, x)
 		if tile_x != last_tile:
 			last_tile = tile_x
@@ -176,68 +232,309 @@ static func _tile_of(datum_u: int, cell: int) -> int:
 	return floori(float(datum_u + cell * CELL_U) / float(World.TILE_SIZE_UNITS))
 
 
+func _wet_at(cell: Vector2i) -> bool:
+	"""Whether `cell` (in the last draw's field) is under one of the World's wet kinds: never dug, never rounded into."""
+	if _fields.is_empty():
+		return false
+	var field: Field = _fields[0]
+	var local: Vector2i = cell - field.origin
+	if local.x < 0 or local.y < 0 or local.x >= field.size.x or local.y >= field.size.y:
+		return false
+	return _wet_cells[local.y * field.size.x + local.x] == 1
+
+
 func draw(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
-	"""Rebuild `level`'s earth with its top at `top_m`, `dig_cell` (level, x, z; NO_CELL: none) the cell being dug."""
+	"""Rebuild `level`'s earth now with its top at `top_m`, `dig_cell` (level, x, z; NO_CELL: none) the cell being dug
+	(any build in flight is finished first and any request waiting dropped: this one is newer)."""
+	_wanted = []
+	finish()
+	var started: int = Time.get_ticks_usec()
+	_prepare(works, level, top_m, dig_cell)
+	_build()
+	_commit()
+	last_main_usec = Time.get_ticks_usec() - started
+
+
+func request(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
+	"""Rebuild as `draw` does; when `threaded`, the surfaces are built on a worker and `poll` shows them a frame or two
+	later (one build in flight: a request made meanwhile waits, and only the newest is built after it)."""
+	if not threaded:
+		draw(works, level, top_m, dig_cell)
+		return
+	if _task >= 0:
+		_wanted = [works, level, top_m, dig_cell]
+		_held_share = _held_share or dig_cell != _shown_digging
+		return
+	var started: int = Time.get_ticks_usec()
+	_prepare(works, level, top_m, dig_cell)
+	_held_share = _digging != _shown_digging
+	_task = WorkerThreadPool.add_task(_build, false, "BuildEarth")
+	last_main_usec = Time.get_ticks_usec() - started
+
+
+func poll() -> void:
+	"""Each frame: show a build that has finished, and start the request waiting for it."""
+	if _task < 0 or not WorkerThreadPool.is_task_completed(_task):
+		return
+	var started: int = Time.get_ticks_usec()
+	_settle()
+	last_main_usec += Time.get_ticks_usec() - started
+	if not _wanted.is_empty():
+		var wanted: Array = _wanted
+		_wanted = []
+		request(wanted[0], wanted[1], wanted[2], wanted[3])
+
+
+func finish() -> void:
+	"""Wait for the build in flight and show it, then build any request waiting at once (checks; a harness reads the
+	earth as it now stands)."""
+	if _task >= 0:
+		_settle()
+	if not _wanted.is_empty():
+		draw(_wanted[0], _wanted[1], _wanted[2], _wanted[3])
+
+
+func busy() -> bool:
+	"""Whether a build is in flight or waiting (checks)."""
+	return _task >= 0 or not _wanted.is_empty()
+
+
+func _settle() -> void:
+	"""Wait for the task in flight (returns at once when it is done) and show what it built."""
+	WorkerThreadPool.wait_for_task_completion(_task)
+	_task = -1
+	_commit()
+
+
+func _notification(what: int) -> void:
+	"""Freed with a build in flight: wait for it, so the worker never reads what is gone."""
+	if what == NOTIFICATION_PREDELETE and _task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_task = -1
+
+
+func _prepare(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
+	"""On the main thread: all the build reads from the works -- the level's states (a copy on write), its box, the
+	stairs down and the cells the stairs up rise into -- so the mole may go on digging while it builds."""
 	rebuilds += 1
 	_digging = dig_cell if dig_cell.x == level else NO_CELL
-	var box: Rect2i = works.box_of(level)
-	var top: Quads = Quads.new()
-	var wet: Dictionary = {}
+	_top_y = top_m
+	_level = level
+	if _cache_top != top_m:
+		_patch_cache.clear()
+		_cache_top = top_m
+	_states = works.level_states(level)
+	_area = works.area()
+	_box = works.box_of(level)
+	_stairs.clear()
+	_heads.clear()
+	for row: int in works.way_count():
+		if not way_open(works, row):
+			continue
+		if works.way_level(row) == level:
+			_stairs.append(Rect2i(works.way_cell(row), Vector2i(Works.SIDE, Works.SIDE)))
+		if works.landing_of(row).x == level:
+			_heads.append_array([works.way_cell(row) + Vector2i(0, -1), works.way_cell(row) + Vector2i(1, -1)])
+
+
+func _build() -> void:
+	"""The surfaces, their arrays and the chalk from what `_prepare` read (on a worker when threaded: nothing here is
+	touched by the main thread while it runs)."""
+	var started: int = Time.get_ticks_usec()
+	patches_made = 0
+	_fields = _fields_of()
+	_built = [Burrow.new(DEPTH_M), Burrow.new(DEPTH_M), Burrow.new(DEPTH_M)]
+	_wet_quads = {}
+	_walls_and_floors()
 	for row: int in _runs.size():
-		_row(works, level, _bounds.position.y + row, box, top, wet, top_m)
-	_apron(top, top_m)
-	var cut: Array[Quads] = [Quads.new(), Quads.new(), Quads.new()]
-	_cuts(works, level, box, top_m, cut)
-	var top_drawn: ArrayMesh = ArrayMesh.new()
-	top.commit(top_drawn, _looks[0])
-	for kind: int in wet:
-		(wet[kind] as Quads).commit(top_drawn, _wet_material(kind))
-	_top.mesh = top_drawn
-	var dug_mesh: ArrayMesh = ArrayMesh.new()
-	cut[0].commit(dug_mesh, _looks[1])
-	cut[1].commit(dug_mesh, _looks[2])
-	_dug.mesh = dug_mesh
-	var marks_mesh: ArrayMesh = ArrayMesh.new()
-	cut[2].commit(marks_mesh, _marks_material)
-	_marks.mesh = marks_mesh
-	top_quads = top.count()
-	floor_quads = cut[0].count()
-	wall_quads = cut[1].count()
-	mark_quads = cut[2].count()
-	_draw_digging(works, level, top_m)
+		_row(_drawn.position.y + row, _wet_quads)
+	_apron(_built[0])
+	_built_arrays = [_built[0].arrays(), _built[1].arrays(), _built[2].arrays()]
+	_chalk_quads = _chalk()
+	last_build_usec = Time.get_ticks_usec() - started
 
 
-func _row(works: Works, level: int, z: int, box: Rect2i, top: Quads, wet: Dictionary, y: float) -> void:
-	"""Row `z`'s top: each run whole outside the works' box, cell by cell inside it (a dug cell is a hole)."""
-	var runs: PackedInt32Array = _runs[z - _bounds.position.y]
+func _commit() -> void:
+	"""On the main thread: the built surfaces shown, the cell being dug starting again from the top."""
+	var mesh: ArrayMesh = ArrayMesh.new()
+	for surface_arrays: Array in _built_arrays:
+		Burrow.add_to(mesh, surface_arrays, _surface)
+	for kind: int in _wet_quads:
+		(_wet_quads[kind] as Quads).commit(mesh, _wet_material(kind))
+	_ground.mesh = mesh
+	var marks: ArrayMesh = ArrayMesh.new()
+	_chalk_quads.commit(marks, _marks_material)
+	_marks.mesh = marks
+	mark_quads = _chalk_quads.count()
+	top_quads = _built[0].count()
+	floor_quads = _built[1].count()
+	patch_count = _built[2].count()
+	_shown = _built
+	_shown_digging = _digging
+	_held_share = false
+	_surface.set_shader_parameter(&"top_y", _top_y)
+	_set_share(0.0)
+
+
+func _state_at(cell: Vector2i) -> int:
+	"""A cell's state in the copy `_prepare` took (EARTH off the planning area)."""
+	if not _area.has_point(cell) or _states.is_empty():
+		return Works.EARTH
+	return _states[(cell.y - _area.position.y) * _area.size.x + cell.x - _area.position.x]
+
+
+func _fields_of() -> Array:
+	"""The field round the works' box -- dug cells DUG; ordered, wet and stair-head cells HARD (the earth a dug way's
+	stairs rise into stays square, so the top tread meets the top, neither floating over a rounded wall nor buried in
+	one) -- and, with a cell being dug, a second with it dug (empty: nothing ordered or dug)."""
+	_wet_cells = PackedByteArray()
+	if _box.size == Vector2i.ZERO:
+		return []
+	var field: Field = Field.new()
+	field.setup(_box.grow(REACH_CELLS).intersection(_drawn))
+	_wet_cells.resize(field.size.x * field.size.y)
+	for z: int in range(field.origin.y, field.origin.y + field.size.y):
+		_fill_row(field, z)
+	for head: Vector2i in _heads:
+		if field.kind_of(head) == Field.EARTH:
+			field.set_kind(head, Field.HARD)
+	if _digging == NO_CELL:
+		return [field]
+	var dug: Field = Field.new()
+	dug.copy_from(field)
+	dug.set_kind(Vector2i(_digging.y, _digging.z), Field.DUG)
+	return [field, dug]
+
+
+func _fill_row(field: Field, z: int) -> void:
+	"""Row `z`'s kinds in `field`: dug, planned (ordered, being dug) or wet kept square, or plain earth."""
+	var runs: PackedInt32Array = _runs[z - _drawn.position.y]
+	var at: int = 0
+	var local: int = (z - field.origin.y) * field.size.x - field.origin.x
+	for x: int in range(field.origin.x, field.origin.x + field.size.x):
+		while x >= runs[at + 1]:
+			at += 3
+		var wet: bool = runs[at + 2] != World.TERRAIN_LAND
+		_wet_cells[local + x] = 1 if wet else 0
+		var state: int = _state_at(Vector2i(x, z))
+		if state == Works.OPEN:
+			field.set_kind(Vector2i(x, z), Field.DUG)
+		elif state == Works.ORDERED or wet:
+			field.set_kind(Vector2i(x, z), Field.HARD)
+
+
+func _walls_and_floors() -> void:
+	"""Each dug cell's floor and each cell the rounding reaches as a wall patch."""
+	_patched = PackedByteArray()
+	if _fields.is_empty():
+		return
+	var field: Field = _fields[0]
+	_patched.resize(field.size.x * field.size.y)
+	for z: int in range(field.origin.y, field.origin.y + field.size.y):
+		_floor_row(field, z, _stairs)
+		_wall_row(field, z, _level)
+
+
+func _floor_row(field: Field, z: int, stairs: Array[Rect2i]) -> void:
+	"""Row `z`'s dug floors, as runs (none under a way's stairs down, nor for the cell being dug: it is a patch)."""
+	var floor_y: float = _top_y - DEPTH_M
+	var from: int = -1
+	for x: int in range(field.origin.x, field.origin.x + field.size.x + 1):
+		var floor_here: bool = field.kind_of(Vector2i(x, z)) == Field.DUG
+		for rect: Rect2i in stairs:
+			floor_here = floor_here and not rect.has_point(Vector2i(x, z))
+		if floor_here and from < 0:
+			from = x
+		elif not floor_here and from >= 0:
+			_built[1].flat(_corner_xz(Vector2i(from, z)), _corner_xz(Vector2i(x, z + 1)), floor_y, 1.0)
+			from = -1
+
+
+func _wall_row(field: Field, z: int, level: int) -> void:
+	"""Row `z`'s wall patches: each cell not dug with a dug neighbour once the cell being dug is dug, and that cell."""
+	var last: Field = _fields[_fields.size() - 1]
+	for x: int in range(field.origin.x, field.origin.x + field.size.x):
+		var cell: Vector2i = Vector2i(x, z)
+		if field.kind_of(cell) != Field.DUG and (Vector3i(level, x, z) == _digging or last.near_dug(cell)):
+			_patched[(z - field.origin.y) * field.size.x + x - field.origin.x] = 1
+			_built[2].add(_patch_of(cell))
+
+
+func _patch_of(cell: Vector2i) -> Burrow:
+	"""Cell `cell`'s wall patch: the one made before if its neighbourhood is the same, else made now."""
+	var signature: int = _signature(cell)
+	var kept: Array = _patch_cache.get(cell, [])
+	if not kept.is_empty() and kept[0] == signature:
+		return kept[1]
+	var piece: Burrow = Burrow.new(DEPTH_M)
+	piece.patch(_fields, cell, _corner(cell, _top_y), _wet_at(cell))
+	_patch_cache[cell] = [signature, piece]
+	patches_made += 1
+	return piece
+
+
+func _signature(cell: Vector2i) -> int:
+	"""What `cell`'s patch depends on: the field's kinds round it, where the cell being dug is among them, and whether
+	it is wet."""
+	var dug_at: Vector2i = Vector2i(_digging.y, _digging.z) if _fields.size() > 1 else cell + Vector2i(99, 99)
+	return ((_fields[0] as Field).signature(cell, dug_at) << 1) | (1 if _wet_at(cell) else 0)
+
+
+func _hole(cell: Vector2i) -> bool:
+	"""Whether the top is not drawn at `cell`: it is dug, or a wall patch draws it."""
+	if _fields.is_empty():
+		return false
+	var field: Field = _fields[0]
+	var local: Vector2i = cell - field.origin
+	if local.x < 0 or local.y < 0 or local.x >= field.size.x or local.y >= field.size.y:
+		return false
+	return field.kind_of(cell) == Field.DUG or _patched[local.y * field.size.x + local.x] == 1
+
+
+func _row(z: int, wet: Dictionary) -> void:
+	"""Row `z`'s top: each run whole outside the field's box, split round the cells drawn dug or as walls inside it."""
+	var runs: PackedInt32Array = _runs[z - _drawn.position.y]
+	var box: Rect2i = _field_box()
 	var inside: bool = z >= box.position.y and z < box.end.y
 	for at: int in range(0, runs.size(), 3):
-		var target: Quads = top if runs[at + 2] == World.TERRAIN_LAND else _wet_quads(wet, runs[at + 2])
 		if not inside:
-			_strip(target, runs[at], runs[at + 1], z, y)
+			_strip(runs[at + 2], runs[at], runs[at + 1], z, wet)
 			continue
-		_strip(target, runs[at], mini(runs[at + 1], box.position.x), z, y)
-		_strip(target, maxi(runs[at], box.end.x), runs[at + 1], z, y)
+		_strip(runs[at + 2], runs[at], mini(runs[at + 1], box.position.x), z, wet)
+		_strip(runs[at + 2], maxi(runs[at], box.end.x), runs[at + 1], z, wet)
+		var end: int = mini(runs[at + 1], box.end.x)
 		var from: int = -1
-		for x: int in range(maxi(runs[at], box.position.x), mini(runs[at + 1], box.end.x) + 1):
-			var hole: bool = x >= mini(runs[at + 1], box.end.x) or _is_hole(works, level, Vector2i(x, z))
+		for x: int in range(maxi(runs[at], box.position.x), end + 1):
+			var hole: bool = x >= end or _hole(Vector2i(x, z))
 			if hole and from >= 0:
-				_strip(target, from, x, z, y)
+				_strip(runs[at + 2], from, x, z, wet)
 				from = -1
 			elif not hole and from < 0:
 				from = x
 
 
-func _is_hole(works: Works, level: int, cell: Vector2i) -> bool:
-	"""Whether the top is cut away at `cell`: dug, or being dug."""
-	return works.state(level, cell) == Works.OPEN or Vector3i(level, cell.x, cell.y) == _digging
+func _field_box() -> Rect2i:
+	"""The cells the last draw's field holds (empty: none)."""
+	if _fields.is_empty():
+		return Rect2i()
+	var field: Field = _fields[0]
+	return Rect2i(field.origin, field.size)
 
 
-static func _wet_quads(wet: Dictionary, kind: int) -> Quads:
-	"""The quads of one wet kind (made on first use)."""
+func _strip(kind: int, from: int, to: int, z: int, wet: Dictionary) -> void:
+	"""Cells `from` to `to` (not included) of row `z` as one quad of the top: earth, or a wet kind's mark (nothing when
+	empty)."""
+	if to <= from:
+		return
+	if kind == World.TERRAIN_LAND:
+		_built[0].flat(_corner_xz(Vector2i(from, z)), _corner_xz(Vector2i(to, z + 1)), _top_y, 0.0)
+		return
 	if not wet.has(kind):
 		wet[kind] = Quads.new()
-	return wet[kind]
+	var west: Vector3 = _corner(Vector2i(from, z), _top_y)
+	var east: Vector3 = _corner(Vector2i(to, z + 1), _top_y)
+	(wet[kind] as Quads).quad(west, Vector3(east.x, _top_y, west.z), east, Vector3(west.x, _top_y, east.z), Vector3.UP,
+		Color.WHITE)
 
 
 func _wet_material(kind: int) -> Material:
@@ -251,80 +548,30 @@ func _wet_material(kind: int) -> Material:
 	return _wet[kind]
 
 
-func _apron(top: Quads, y: float) -> void:
-	"""The earth's top carried APRON_M past each edge of the planning area, so the map's edge never reads as a hole in
-	the cutaway (nothing is painted or picked there: the cells stop at the edge)."""
-	var low: Vector3 = _corner(_bounds.position, y)
-	var high: Vector3 = _corner(_bounds.end, y)
-	var out_low: Vector3 = low - Vector3(APRON_M, 0.0, APRON_M)
-	var out_high: Vector3 = high + Vector3(APRON_M, 0.0, APRON_M)
-	var bands: Array = [[out_low, Vector3(out_high.x, y, low.z)], [Vector3(out_low.x, y, high.z), out_high],
-		[Vector3(out_low.x, y, low.z), Vector3(low.x, y, high.z)],
-		[Vector3(high.x, y, low.z), Vector3(out_high.x, y, high.z)]]
-	for band: Array in bands:
-		var a: Vector3 = band[0]
-		var c: Vector3 = band[1]
-		top.quad(a, Vector3(c.x, y, a.z), c, Vector3(a.x, y, c.z), Vector3.UP, UNDUG)
+func _apron(top: Burrow) -> void:
+	"""The earth's top carried APRON_M past each edge of what is drawn, so the map's edge never reads as a hole in the
+	cutaway (nothing is painted or picked there: the cells stop at the edge)."""
+	var low: Vector2 = _corner_xz(_drawn.position)
+	var high: Vector2 = _corner_xz(_drawn.end)
+	var out_low: Vector2 = low - Vector2(APRON_M, APRON_M)
+	var out_high: Vector2 = high + Vector2(APRON_M, APRON_M)
+	top.flat(out_low, Vector2(out_high.x, low.y), _top_y, 0.0)
+	top.flat(Vector2(out_low.x, high.y), out_high, _top_y, 0.0)
+	top.flat(Vector2(out_low.x, low.y), Vector2(low.x, high.y), _top_y, 0.0)
+	top.flat(Vector2(high.x, low.y), Vector2(out_high.x, high.y), _top_y, 0.0)
 
 
-func _strip(quads: Quads, from: int, to: int, z: int, y: float) -> void:
-	"""Cells `from` to `to` (not included) of row `z` as one quad of the top at `y` (nothing when empty)."""
-	if to <= from:
-		return
-	var west: Vector3 = _corner(Vector2i(from, z), y)
-	var east: Vector3 = _corner(Vector2i(to, z + 1), y)
-	quads.quad(west, Vector3(east.x, y, west.z), east, Vector3(west.x, y, east.z), Vector3.UP, UNDUG)
+func _chalk() -> Quads:
+	"""Each ordered cell but the one being dug, pegged out in chalk on the top (square: rule b)."""
+	var marks: Quads = Quads.new()
+	for z: int in range(_box.position.y, _box.end.y):
+		for x: int in range(_box.position.x, _box.end.x):
+			if _state_at(Vector2i(x, z)) == Works.ORDERED and Vector3i(_level, x, z) != _digging:
+				_peg(marks, Vector2i(x, z), _top_y + LIFT_M)
+	return marks
 
 
-func _cuts(works: Works, level: int, box: Rect2i, y: float, into: Array[Quads]) -> void:
-	"""Each dug cell's floor, walls, shade and lips, and each ordered cell's chalk (`into`: floors, walls, marks)."""
-	for z: int in range(box.position.y, box.end.y):
-		for x: int in range(box.position.x, box.end.x):
-			var cell: Vector2i = Vector2i(x, z)
-			var state: int = works.state(level, cell)
-			if state == Works.ORDERED and Vector3i(level, x, z) != _digging:
-				_chalk(into[2], cell, y + LIFT_M)
-			elif state == Works.OPEN:
-				_dug_cell(works, level, cell, y, into)
-
-
-func _dug_cell(works: Works, level: int, cell: Vector2i, y: float, into: Array[Quads]) -> void:
-	"""One dug cell: its floor (unless a way goes down through it), and a wall, shade and lip on each earth side."""
-	var floor_y: float = y - DEPTH_M
-	if not stairs_down_at(works, level, cell):
-		var low: Vector3 = _corner(cell, floor_y)
-		var high: Vector3 = _corner(cell + Vector2i.ONE, floor_y)
-		into[0].quad(low, Vector3(high.x, floor_y, low.z), high, Vector3(low.x, floor_y, high.z), Vector3.UP, DUG)
-	for side: int in SIDES.size():
-		var beside: Vector2i = cell + SIDES[side]
-		if _is_hole(works, level, beside):
-			continue
-		var ends: Array[Vector3] = _edge(cell, side, y)
-		var inward: Vector3 = -Vector3(SIDES[side].x, 0.0, SIDES[side].y)
-		var down: Vector3 = Vector3(0.0, -DEPTH_M, 0.0)
-		into[1].quad(ends[0] + down, ends[1] + down, ends[1], ends[0], inward, DUG)
-		_shade(into[2], ends, inward, floor_y - y + LIFT_M)
-		var lip: Vector3 = -inward * LIP_M + Vector3(0.0, LIFT_M, 0.0)
-		into[2].quad(ends[0] + Vector3(0.0, LIFT_M, 0.0), ends[1] + Vector3(0.0, LIFT_M, 0.0), ends[1] + lip,
-			ends[0] + lip, Vector3.UP, LIP)
-
-
-func _edge(cell: Vector2i, side: int, y: float) -> Array[Vector3]:
-	"""The two top corners of `cell`'s edge on `side` (SIDES order: north, east, south, west)."""
-	var corners: Array[Vector2i] = [cell, cell + Vector2i(1, 0), cell + Vector2i.ONE, cell + Vector2i(0, 1)]
-	return [_corner(corners[side], y), _corner(corners[(side + 1) % 4], y)]
-
-
-static func _shade(marks: Quads, ends: Array[Vector3], inward: Vector3, drop: float) -> void:
-	"""The shade along a wall's foot, `drop` below its top ends, fading out SHADE_M into the room."""
-	var a: Vector3 = ends[0] + Vector3(0.0, drop, 0.0)
-	var b: Vector3 = ends[1] + Vector3(0.0, drop, 0.0)
-	var clear: Color = Color(SHADE, 0.0)
-	marks.shaded(a, b, b + inward * SHADE_M, a + inward * SHADE_M, Vector3.UP,
-		PackedColorArray([SHADE, SHADE, clear, clear]))
-
-
-func _chalk(marks: Quads, cell: Vector2i, y: float) -> void:
+func _peg(marks: Quads, cell: Vector2i, y: float) -> void:
 	"""An ordered cell pegged out: a chalk square inside its edges."""
 	var low: Vector3 = _corner(cell, y) + Vector3(CHALK_INSET_M, 0.0, CHALK_INSET_M)
 	var high: Vector3 = _corner(cell + Vector2i.ONE, y) - Vector3(CHALK_INSET_M, 0.0, CHALK_INSET_M)
@@ -365,59 +612,17 @@ static func way_dug(works: Works, row: int) -> bool:
 	return true
 
 
-func _draw_digging(works: Works, level: int, y: float) -> void:
-	"""The cell being dug: its earth-side walls and floor (`_pit`), and its steps down to dug neighbours (`_step`)."""
-	_pit.visible = _digging != NO_CELL
-	_step.visible = _pit.visible
-	if not _pit.visible:
-		return
-	var cell: Vector2i = Vector2i(_digging.y, _digging.z)
-	var pit: Quads = Quads.new()
-	var step: Quads = Quads.new()
-	pit.quad(Vector3(0, -1, 0), Vector3(1, -1, 0), Vector3(1, -1, 1), Vector3(0, -1, 1), Vector3.UP, DUG)
-	for side: int in SIDES.size():
-		var ends: Array[Vector3] = _unit_edge(side)
-		var inward: Vector3 = -Vector3(SIDES[side].x, 0.0, SIDES[side].y)
-		var dug: bool = works.state(level, cell + SIDES[side]) == Works.OPEN
-		var up: Vector3 = Vector3(0.0, 1.0, 0.0)
-		if dug:
-			step.quad(ends[0], ends[1], ends[1] + up, ends[0] + up, -inward, DUG)
-		else:
-			pit.quad(ends[0] - up, ends[1] - up, ends[1], ends[0], inward, DUG)
-	_pit.mesh = _commit(pit)
-	_step.mesh = _commit(step)
-	_pit.position = _corner(cell, y)
-	_step.position = _pit.position - Vector3(0.0, DEPTH_M, 0.0)
-
-
-static func _unit_edge(side: int) -> Array[Vector3]:
-	"""The two corners of a 1 m cell's edge on `side` in the cell's own frame, at its top."""
-	var corners: Array[Vector3] = [Vector3.ZERO, Vector3(1, 0, 0), Vector3(1, 0, 1), Vector3(0, 0, 1)]
-	return [corners[side], corners[(side + 1) % 4]]
-
-
-func _commit(quads: Quads) -> ArrayMesh:
-	"""`quads` as a mesh in the dug wall's surface."""
-	var mesh: ArrayMesh = ArrayMesh.new()
-	quads.commit(mesh, _looks[2])
-	return mesh
-
-
 func set_progress(share: float) -> void:
-	"""How far the cell being dug has gone (0-1): its pit deepens, its steps down shrink. A transform, no rebuild."""
-	var dug: float = dug_depth_m(share)
-	_pit.scale = Vector3(1.0, dug, 1.0)
-	_step.scale = Vector3(1.0, DEPTH_M - dug, 1.0)
+	"""How far the cell being dug has gone (0-1): it deepens, the rounding round it grows. A uniform, no rebuild. While
+	a build for another cell is in flight the cell shown stays as it was (it was just dug, or the dig stopped)."""
+	if not _held_share:
+		_set_share(share)
 
 
-func top_mesh() -> ArrayMesh:
-	"""The earth's top as last drawn (checks)."""
-	return _top.mesh as ArrayMesh
-
-
-func digging_nodes() -> Array[MeshInstance3D]:
-	"""The cell being dug's pit and its steps down (checks)."""
-	return [_pit, _step]
+func _set_share(share: float) -> void:
+	"""The shader's `dig_share`: how far down the cell being dug is drawn, as a share of DEPTH_M."""
+	_share = dug_depth_m(share) / DEPTH_M
+	_surface.set_shader_parameter(&"dig_share", _share)
 
 
 static func dug_depth_m(share: float) -> float:
@@ -427,9 +632,66 @@ static func dug_depth_m(share: float) -> float:
 
 func digging() -> Vector3i:
 	"""The cell drawn as being dug (checks; NO_CELL: none)."""
-	return _digging
+	return _shown_digging
+
+
+func ground_mesh() -> ArrayMesh:
+	"""The earth as last drawn: its top, floors, walls and water marks (checks)."""
+	return _ground.mesh as ArrayMesh
+
+
+func built() -> Array[Burrow]:
+	"""The surfaces shown: the top, the floors, the walls (checks)."""
+	return _shown
+
+
+func height_at(point: Vector2) -> float:
+	"""The drawn earth's height under `point` (x, z in m) as the dig stands, read from the built vertices: a wall
+	patch's, else a floor's, else the top's (NAN: off what is drawn; checks)."""
+	var share: float = _share
+	if _shown.is_empty():
+		return NAN
+	for k: int in [2, 1, 0]:
+		var y: float = _shown[k].height_at(point, share) if k == 2 else _shown[k].height_at(point)
+		if not is_nan(y):
+			return y
+	return NAN
+
+
+func cells_off_the_floor(cells: PackedInt32Array) -> int:
+	"""How many of `cells` (canonical pairs) are drawn anywhere but at the floor's depth over their closed square,
+	sampled CHECK_POINTS each way (checks: rule a, never hide a usable cell)."""
+	var off: int = 0
+	for at: int in range(0, cells.size(), 2):
+		var whole: bool = true
+		for k: int in CHECK_POINTS * CHECK_POINTS:
+			@warning_ignore("integer_division") var step: Vector2 = Vector2(k % CHECK_POINTS, k / CHECK_POINTS)
+			var y: float = height_at(_corner_xz(Vector2i(cells[at], cells[at + 1])) + step / (CHECK_POINTS - 1))
+			whole = whole and absf(y - (_top_y - DEPTH_M)) < 0.0001
+		off += 0 if whole else 1
+	return off
+
+
+func cells_rounded(cells: PackedInt32Array) -> int:
+	"""How many of `cells` are drawn below the top anywhere under their chalk square (checks: rule b, what is planned
+	stays square)."""
+	var rounded: int = 0
+	for at: int in range(0, cells.size(), 2):
+		var low: Vector2 = _corner_xz(Vector2i(cells[at], cells[at + 1])) + Vector2.ONE * CHALK_INSET_M
+		var flat: bool = true
+		for k: int in CHECK_POINTS * CHECK_POINTS:
+			@warning_ignore("integer_division") var step: Vector2 = Vector2(k % CHECK_POINTS, k / CHECK_POINTS)
+			var y: float = height_at(low + step * (1.0 - 2.0 * CHALK_INSET_M) / (CHECK_POINTS - 1))
+			flat = flat and absf(y - _top_y) < 0.0001
+		rounded += 0 if flat else 1
+	return rounded
 
 
 func _corner(cell: Vector2i, y: float) -> Vector3:
 	"""A cell corner in metres at height `y`."""
 	return Vector3(_datum_u.x / UNITS_PER_M + cell.x, y, _datum_u.y / UNITS_PER_M + cell.y)
+
+
+func _corner_xz(cell: Vector2i) -> Vector2:
+	"""A cell corner's x and z in metres."""
+	return Vector2(_datum_u.x / UNITS_PER_M + cell.x, _datum_u.y / UNITS_PER_M + cell.y)

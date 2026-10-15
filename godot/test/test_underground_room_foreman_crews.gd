@@ -1,0 +1,168 @@
+extends "res://test/framework/test_case.gd"
+## Decision 1931 (C2.1): the room foreman with a crew of two (ECON-001), a builder sent on from its station, and a
+## full spoil pile. Kitchen fixture from test_underground_room_foreman.gd (retired content-6 pick rows, tests only).
+
+const ForemanTests := preload("res://test/test_underground_room_foreman.gd")
+const Phase := preload("res://test/test_underground_room_world_phases.gd")
+const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
+const Builder := preload("res://scripts/core/underground_room_builder.gd")
+const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const KITCHEN_SITES: int = ForemanTests.KITCHEN_SITES
+const TICK_BOUND: int = ForemanTests.TICK_BOUND
+## In the widened Corridor: clear of the first parking's line and of every station chain the Kitchen publishes, and
+## inside the Corridor by the all-yaw ground row's widest box (1,256 u), so its span is certified for that row.
+const SECOND_PARKING: Vector3i = Vector3i(Phase.X - 1024, Phase.FLOOR, Phase.Z - 3072)
+const WIDE_SOUTH: int = 4096
+
+
+class WideKitchen extends ForemanTests.Kitchen:
+	## The same Kitchen and access, with the old Corridor bootstrap reaching 4 m further south: room for a second
+	## builder to park clear of the first one's line and of every Kitchen station chain (the held pick reaches 910 u
+	## sideways). Test geometry only; it changes no rule.
+
+	func _bootstrap_corridor() -> void:
+		"""The explicit old Corridor rows, widened to the south by WIDE_SOUTH."""
+		var token: int = _owner.begin_stage(_owner.revision()).token
+		assert_equal(_owner.stage_source(token, corridor), &"", "old Room source")
+		var low_z: int = Phase.Z - 2048 - WIDE_SOUTH
+		_floor = _bootstrap_region(token, PackedInt32Array([Phase.X - 4096, Phase.FLOOR, low_z, Phase.X + 2048, Phase.FLOOR + 1, Phase.Z + 4096]), Phase.Space.FLOOR_DATUM)
+		_bootstrap_region(token, PackedInt32Array([Phase.X - 4096, Phase.FLOOR, low_z, Phase.X + 2048, Phase.FLOOR + 4096, Phase.Z + 4096]), Phase.Space.SUPPORTED_VOID)
+		_bootstrap_region(token, PackedInt32Array([Phase.X - 4096, Phase.FLOOR - 1024, low_z, Phase.X + 2048, Phase.FLOOR, Phase.Z + 4096]), Phase.Space.SUPPORT)
+		assert_equal(_owner.seal(token), &"", "widened old corridor geometry")
+		_owner.publish(token)
+		@warning_ignore("integer_division") var south: int = -2 - WIDE_SOUTH / 1024
+		for x: int in range(-4, 2):
+			for z: int in range(south, 4):
+				assert_true(sites.claim_quantum(Vector3i(Phase.X + x * 1024, Phase.FLOOR, Phase.Z + z * 1024), corridor).ok, "bootstrap Site")
+
+	func _endpoint(point: Vector3i, role: int) -> Vector2i:
+		"""As the base fixture's endpoint, with the widened Corridor as its body air."""
+		var row: Locations.Record = Locations.Record.new()
+		row.point = point; row.section = _floor; row.room = corridor; row.level = 1
+		row.role = Locations.ROLE_STORAGE if role == Locations.ROLE_TRANSIT else role
+		row.envelope = PackedInt32Array([Phase.X - 4096, Phase.FLOOR, Phase.Z - 2048 - WIDE_SOUTH, Phase.X + 2048, Phase.FLOOR + 4096, Phase.Z + 4096])
+		row.support = PackedInt32Array([point.x - 406, Phase.FLOOR - 1, point.z - 406, point.x + 406, Phase.FLOOR, point.z + 406])
+		var cold: int = _budget.acquire(Phase.Budget.COLD_BYTES)
+		var token: int = endpoints.begin_prepare(cold).token
+		var result: Locations.Result = endpoints.stage_add(token, row)
+		assert_equal(result.error, &"", "supported endpoint")
+		assert_equal(endpoints.seal(token), &"", "current endpoint")
+		assert_true(endpoints.publish(token), "endpoint published")
+		assert_equal(_budget.release(cold), &"", "same lease returned")
+		return result.location
+
+
+var _h: ForemanTests.Kitchen = null
+
+
+func after_each() -> void:
+	"""Propagate the fixture's own assertions and free every owner."""
+	if _h != null:
+		_h.after_each()
+		assert_true(_h.failures.is_empty(), "actual fixture: %s" % _h.failures)
+	_h = null
+
+
+func _started() -> Foreman:
+	"""A confirmed Kitchen and a one-builder foreman, or null with the fixture's failures."""
+	_h = ForemanTests.Kitchen.new()
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return null
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, [_h.crew_member()]), &"", "configured")
+	return foreman
+
+
+func _assert_paid(cubes: int) -> void:
+	"""Exact bills, earth and support for the paid cubes, no live Project and no cold lease left."""
+	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), (KITCHEN_SITES - cubes) * Contract.BRACE_WOOD_MILLI, "wood")
+	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_stone), (KITCHEN_SITES - cubes) * Contract.BRACE_STONE_MILLI, "stone")
+	assert_equal(_h.sites.virgin_sourced_milli(), cubes * Contract.EARTH_MILLI, "only CUT made earth")
+	assert_equal(_h.sites.support_conservation_refusal(), &"", "support conserved")
+	assert_equal(_h.sites.earth_conservation_refusal(), &"", "earth conserved")
+	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
+	assert_true(_h._budget.is_quiescent(), "no cold lease outlives the dig")
+
+
+func _assert_parked(worker: Vector2i, parking: Vector2i) -> void:
+	"""The builder ends on its own parking endpoint by real travel."""
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_h._routes.read_actor_into(worker, actor), &"", "actual worker")
+	assert_equal(actor.location, parking, "parked by real travel")
+
+
+func test_two_builders_share_the_kitchen_without_sharing_a_cube() -> void:
+	"""ECON-001: two builders, one worker per cube face; the room is dug exactly once, each builder parks again."""
+	_h = WideKitchen.new()
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var crew: Array[Builder.Crew] = [_h.crew_member(), _h.second_member(SECOND_PARKING)]
+	if not _h.failures.is_empty(): return
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, crew), &"", "configured")
+	var code: StringName = _h.run(foreman, TICK_BOUND)
+	assert_equal(code, &"", "no refusal")
+	assert_equal(foreman.state(), Foreman.STATE_DONE, "the room is done")
+	var first: Builder = foreman.builders()[0]
+	var second: Builder = foreman.builders()[1]
+	assert_equal(first.cubes() + second.cubes(), KITCHEN_SITES, "each cube finished exactly once")
+	print("ROOM-FOREMAN-TWO ticks=%d first=%d second=%d" % [_h.tick, first.cubes(), second.cubes()])
+	_assert_paid(KITCHEN_SITES)
+	_assert_parked(crew[0].worker, crew[0].parking)
+	_assert_parked(crew[1].worker, crew[1].parking)
+
+
+func test_a_builder_at_its_station_cannot_publish_a_new_chain_and_goes_home() -> void:
+	"""ADR1213 "Parking": a chain cannot be published while a worker stands on it. Sent on from READY at a finished
+	cube's station to a cube that needs new stations, the builder is refused, stays at its station, and the foreman
+	then walks it home; the cube is dug later from parking. (Under painted height an upper cube is paid from its
+	column's floor station, decision 1971, and needs no new chain.)"""
+	var foreman: Foreman = _started()
+	if foreman == null: return
+	var builder: Builder = foreman.builders()[0]
+	var order: DigOrder.Order = foreman.order()
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "no refusal")
+		if builder.at_column_end() and builder.last_index() == 1: break
+	assert_true(builder.at_column_end(), "READY at the upper near cube's station")
+	var site: Vector2i = Vector2i(order.rows[3], Sites.SITE_GENERATION)
+	assert_equal(builder.continue_column(3, site, order.keys[3], _h.tick), &"ROUTE_OCCUPIED", "its own body blocks the chain")
+	assert_true(builder.at_column_end(), "still READY at its station, nothing opened")
+	assert_equal(builder.column_cubes(), 0, "nothing taken")
+	assert_equal(_h._construction.live_project_count(), 0, "no phase opened")
+	var code: StringName = _h.run(foreman, TICK_BOUND)
+	assert_equal(code, &"", "no refusal")
+	assert_equal(foreman.state(), Foreman.STATE_DONE, "the room is done from parking")
+	_assert_paid(KITCHEN_SITES)
+
+
+func test_a_full_spoil_pile_stops_the_room_before_any_unpaid_cut() -> void:
+	"""ECON-003: CUT reserves its earth's room in the bound spoil pile before starting. Earth has no certified carry
+	yet (grip certificate: wood and stone only), so a full pile stops the room with its refusal; the BRACE stays paid,
+	nothing is cut, and no cube is counted done. The spoil pile here is its own container, apart from the stock."""
+	_h = ForemanTests.Kitchen.new()
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var made: Inventory.OpResult = _h._inventory.create_spatial_ground_staging(_h.parking)
+	assert_true(made.ok, "a second, separate pile: %s" % made.error)
+	if not made.ok: return
+	var pile: Vector2i = made.ref
+	var earth: Inventory.OpResult = _h._inventory.create_lot(pile, _h._items.compiled_id(&"excavated_earth"),
+		_h._inventory.container_free_mass_g(pile) - 1000, 1, 0, -1, 0, 0)
+	assert_true(earth.ok, "the pile is all but full: %s" % earth.error)
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, pile, [_h.crew_member()]), &"", "configured")
+	var code: StringName = _h.run(foreman, TICK_BOUND)
+	assert_equal(code, Inventory.REFUSE_CAPACITY_EXCEEDED, "the pile's own refusal, named")
+	assert_equal(foreman.state(), Foreman.STATE_FAILED, "the room stops")
+	assert_equal(foreman.error(), Inventory.REFUSE_CAPACITY_EXCEEDED, "kept for the alert")
+	assert_equal(foreman.done_cubes(), 0, "no cube shown done")
+	assert_equal(_h.sites.virgin_sourced_milli(), 0, "nothing was cut")
+	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), (KITCHEN_SITES - 1) * Contract.BRACE_WOOD_MILLI, "one BRACE paid")

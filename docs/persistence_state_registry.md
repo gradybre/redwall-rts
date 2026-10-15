@@ -2210,6 +2210,34 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Static Room-station plan | -- | -- | -- | No retained planner, Query or Request at quiescence | 3 | -- | ADR1213. Stateless module; one private Query (fixed region, fragment, candidate and chain scratch; declared logical CONTROL_BYTES 45,752 including ADR1215 station air, not a native measurement) lives only inside the caller's original cold lease and dies before publish_into allocates. Output is the caller's ADR1161 Request; a plan is not a route, contact or paid permission. |
 
+### `godot/scripts/core/underground_room_dig_order.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless dig order | -- | -- | -- | No members; the Order and Cells packets are caller-owned or per-call | 3 | -- | Decision 1931 (C2.1), BUILD-REQ-012. Breadth-first cell order from the cells beside open space, ties by cell index, layers upward inside a cell. Cold: runs once when a room's dig starts; its scratch is sized to the room's Sites and dies with the call. Derived from Sites keys and the Space owner's regions, so it is never saved. |
+
+### `godot/scripts/core/underground_room_builder.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Planned legs and footprint | `_legs`, `_leg_profiles`, `_claim` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges; six ints per footprint box) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1931 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
+
+### `godot/scripts/core/underground_room_foreman.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Set-off check scratch | `_mine`, `_theirs` | 4 | never allocated | Refilled per check, never kept | 3 | -- | Decision 1931 (C2.1). Per-call scratch for comparing two builders' footprints; derived, not saved. |
+| Blocked-builder epochs | `_blocked_at` | 4 | `made.size()` runtime | -1 until a builder is found blocked | 3 | -- | Decision 1931 (C2.1). One int per builder (at most 4): the set-off/park epoch at which it was last found blocked, so the footprint check reruns only after something moved. Derived, not saved. |
+| Cube dispatch marks | `_cube` | 1 | `planned.keys.size()` runtime | One byte per Site of the room: open, taken, done, refused | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1931 (C2.1). Done is re-read from Sites (SUPPORTED_VOID, no live phase); taken and refused are dispatch state. Not saved yet (C2.3). Re-derived from Sites on load, with refused cubes reopened? |
+
+### `godot/scripts/core/underground_room_runtime.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Room dig record: generation | `_generation` | 4 | `ROOM_CAPACITY` = 16384 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1931, P-C2-4 (a): one small packed record per room, indexed by the room's directory row. Not composed in production in C2.1 (only tests construct the runtime), so nothing is allocated in the game yet. C2.3 composes it, ledgers its 344,064 B and saves it. Saved in §6 AUXILIARY_STATE by C2.3? |
+| Room dig record: state | `_state` | 1 | `ROOM_CAPACITY` = 16384 | RECORD_NONE | UNRESOLVED | §6 AUXILIARY_STATE | Same record: none, queued, digging, done, stopped. Saved by C2.3? |
+| Room dig record: containers | `_storage`, `_output` | 4 | `2 * ROOM_CAPACITY` = 32768 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Same record: the input staging container and the spoil container, each a (slot, generation) pair. Saved by C2.3? |
+
 ### `godot/scripts/core/underground_room_composition.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

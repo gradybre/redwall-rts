@@ -590,6 +590,7 @@ const HaulPlannerScript := preload("res://scripts/core/haul_planner.gd")
 const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const UndergroundSession := preload("res://scripts/core/underground_session.gd")
 const UndergroundEntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
+const UndergroundRoomRuntime := preload("res://scripts/core/underground_room_runtime.gd")
 const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
@@ -919,6 +920,8 @@ var _store_policy: StorePolicyScript = null
 ## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
 var _underground_session: UndergroundSession = null
 var _underground_entry: UndergroundEntryRuntime = null
+## Decision 1931 (C2.1): the room digs. Adopted by C2.3's composer (and by tests); null in the game until then.
+var _underground_rooms: UndergroundRoomRuntime = null
 ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
 var _underground_reset_phase: int = 0 # 0 idle, 1 preparing, 2 prepared, 3 clearing.
 ## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
@@ -1864,6 +1867,7 @@ func mount_underground(content: UndergroundContent) -> bool:
 		return _refuse(&"UNDERGROUND_SESSION_ALREADY_BOUND")
 	_underground_session = UndergroundSession.new()
 	_underground_entry = null
+	_underground_rooms = null
 	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
 		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
 		_transforms, _gear, _haul_carry, _ground_piles, content)
@@ -1955,6 +1959,21 @@ func begin_underground_entry(near: Vector3i) -> bool:
 	if code != &"":
 		_alert_underground_entry(code)
 		return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func underground_rooms() -> UndergroundRoomRuntime:
+	"""Borrow the room-dig runtime for status and alerts; null until one is adopted (decision 1931)."""
+	return _underground_rooms
+
+
+func adopt_underground_rooms(runtime: UndergroundRoomRuntime) -> bool:
+	"""Decision 1931 (C2.1): take the one room-dig runtime the fixed tick advances, into a host that has none yet.
+	C2.3 composes it from the mounted Session; until then only tests adopt one. A new mount or a release drops it."""
+	if _underground_mutations_stopped() or runtime == null or _underground_rooms != null:
+		return _refuse(&"UNDERGROUND_ROOMS_ADOPT_TARGET")
+	_underground_rooms = runtime
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -2090,6 +2109,7 @@ func _release_underground_after_clear() -> bool:
 	if code != &"": return _refuse(code)
 	_underground_session = null
 	_underground_entry = null
+	_underground_rooms = null
 	return true
 
 
@@ -2237,6 +2257,7 @@ func _run_stages(tick_index: int) -> bool:
 	_select_jobs(tick_index)
 	_run_productive_work()
 	_advance_underground_entry(tick_index)
+	_advance_underground_rooms(tick_index)
 	_extract_presentation(tick_index)
 	return true
 
@@ -2248,6 +2269,21 @@ func _advance_underground_entry(tick_index: int) -> void:
 	if _underground_entry == null or not _underground_entry.is_running(): return
 	var code: StringName = _underground_entry.advance(tick_index)
 	if code != &"": _alert_underground_entry(code)
+
+
+func _advance_underground_rooms(tick_index: int) -> void:
+	"""Decision 1931 (C2.1): every room being dug takes one fixed tick after the first entry; its BUILD Jobs resolve to
+	no removal Project, so their Work is earned only there. A refusal stops that room and raises its alert once; it
+	never fails the settlement tick."""
+	if _underground_rooms == null or not _underground_rooms.is_running(): return
+	var code: StringName = _underground_rooms.advance(tick_index)
+	if code != &"": _alert_underground_room(code)
+
+
+func _alert_underground_room(code: StringName) -> void:
+	"""The exact refusal code, then what stopped (the room's record keeps it; decision 1931)."""
+	UIManager.push_refusal(code)
+	UIManager.push_alert("An underground room stopped being dug: %s" % code)
 
 
 func _alert_underground_entry(code: StringName) -> void:

@@ -57,8 +57,8 @@ func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, outp
 	"""Plan the dig order and bind 1-4 builders; nothing is opened, claimed or published here. `staging` (or null)
 	is the same-level container a BRACE's missing inputs are hauled from when a Delivery is bound (decision 1934)."""
 	if _state == STATE_DIGGING: return REFUSE_STATE
-	if not _owners_complete(owners) or target == NULL_REF or storage == NULL_REF or output == NULL_REF:
-		return REFUSE_SCOPE
+	if not _owners_complete(owners) or target == NULL_REF or storage == NULL_REF or output == NULL_REF \
+			or staging == storage: return REFUSE_SCOPE
 	var code: StringName = _crew_refusal(crew)
 	if code != &"": return code
 	var ctx: Builder.Context = _context(owners, storage, output)

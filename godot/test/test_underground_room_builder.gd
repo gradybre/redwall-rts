@@ -172,7 +172,7 @@ func test_a_lost_builder_stops_the_room_with_its_code() -> void:
 		if builder.in_motion(): break
 	assert_true(builder.in_motion(), "on its way")
 	var row: int = _h._residents.directory().get_typed_row(_h._worker)
-	assert_true(_h._work.release_tool_claim(row).ok, "departure: its tool claim released")
+	assert_equal(_h._work.tool_lot_of(row), NULL_REF, "no tool claimed on the way (it is claimed at the station)")
 	assert_true(_h._jobs.release_worker(row).ok, "departure: its Job released first (decision 0017)")
 	assert_true(_h._residents.despawn(_h._worker).ok, "the mole leaves")
 	_h.tick += 1
@@ -293,3 +293,26 @@ func test_a_raw_departure_that_skips_jobs_is_reported_not_hidden() -> void:
 	_h.tick += 1
 	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
 	assert_equal(foreman.abandon_error(), Sites.REFUSE_WORKER, "the release refusal is kept")
+
+
+func test_a_brace_reserves_its_inputs_when_the_builder_sets_off() -> void:
+	"""Decision 1934: the inputs are claimed for the BRACE Job at dispatch, before the walk, so a second builder never
+	plans against stock the first one will use at START."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var wood: int = _h._items.compiled_id(&"wood")
+	var before: int = _free(wood)
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), &"", "dispatched")
+	assert_equal(foreman.builders()[0].stage(), Builder.STAGE_TRAVEL, "on its way")
+	assert_equal(_free(wood), before - Phase.Contract.BRACE_WOOD_MILLI, "the BRACE's wood is reserved")
+
+
+func _free(item: int) -> int:
+	"""Unreserved quantity of one item in the room's storage."""
+	var total: int = 0
+	var lot: Vector2i = _h._inventory.container_first_lot(_h.material)
+	while lot != NULL_REF:
+		if _h._inventory.lot_item_id(lot) == item: total += _h._inventory.lot_available_milli(lot)
+		lot = _h._inventory.container_next_lot(lot)
+	return total

@@ -44645,7 +44645,7 @@
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
     "godot/scripts/core/underground_connector_contacts.gd": "d45d58aa5c24fb1da5429de74719862713f0716d3d20c37ef8f1b3b055d46db0",
-    "godot/scripts/core/underground_connector_delivery.gd": "c97d3ce24ac861b41c0efd3aa8d09f154df1ed3c41fe910634907ce03a037b08",
+    "godot/scripts/core/underground_connector_delivery.gd": "bacdef42da2a61f3886038b2b3fe703153c3ac027aa4c832688ad4b51286267f",
     "godot/scripts/core/underground_connector_placements.gd": "401ad48c51225a514876bc9e1017d78a6dda96ac34ff2717e25742d1a3f7db30",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",

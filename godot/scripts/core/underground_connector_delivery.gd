@@ -304,11 +304,11 @@ static func _site_room(a: RefCounted, row: int) -> Vector2i:
 
 
 static func _entry_room(a: RefCounted, room: Vector2i) -> bool:
-	"""Some live Placement names this room as its corridor: its cuts are the entry's."""
+	"""Some present Placement names this room as its corridor: its cuts are the entry's. The phase authority's own
+	rule (`underground_room_world_bindings.gd` `_ordinary_entry_room`), so the two never disagree about a room."""
 	var p: Placements = a._placements
 	for row: int in p._capacity:
-		var ref: Vector2i = Vector2i(row, p._live.i32[Placements.GENERATION * p._capacity + row])
-		if p._is_live(p._live, ref) and p._pair(p._live, Placements.ROOM_SLOT, row) == room: return true
+		if p._live.present[row] == 1 and p._pair(p._live, Placements.ROOM_SLOT, row) == room: return true
 	return false
 
 

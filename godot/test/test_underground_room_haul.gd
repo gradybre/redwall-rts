@@ -296,6 +296,7 @@ func _set_off(foreman: Foreman) -> Builder:
 	assert_equal(foreman.advance(_h.tick), &"", "dispatched")
 	var builder: Builder = foreman.builders()[0]
 	assert_equal(builder.stage(), Builder.STAGE_TO_STORE, "to the storage first")
+	assert_false(builder.in_motion(), "with no leg to walk it has not set off: the footprint check comes first")
 	return builder
 
 
@@ -318,6 +319,8 @@ func test_the_builder_hauls_the_first_brace_inputs_and_the_room_is_dug() -> void
 		code = foreman.advance(_h.tick)
 		if not armed and builder.stage() == Builder.STAGE_TRAVEL and builder.haul_trips() == 2:
 			armed = true
+			assert_true(builder.in_motion(), "still set off after the haul")
+			assert_equal(builder.occupied(), builder.claim(), "the cube's claim stays occupied, not the body")
 			_after_the_haul()
 		if not foreman.is_running(): break
 	assert_equal(code, &"", "no refusal")
@@ -332,11 +335,12 @@ func test_the_builder_hauls_the_first_brace_inputs_and_the_room_is_dug() -> void
 
 
 func _after_the_haul() -> void:
-	"""Back on M under the BRACE Job: the inputs are there and unclaimed. Fixture step: the resting mole turns to the
-	pick travel row's heading, takes the pick back and selects that row (as it stood when it arrived); the other cubes'
-	inputs are put into M, so no further haul is needed (the pick fixture cannot haul twice)."""
-	assert_equal(_h.free_milli(_h.material, &"wood"), Grip.QUANTITY_MILLI, "one wood unit in M")
-	assert_equal(_h.free_milli(_h.material, &"stone"), Grip.QUANTITY_MILLI, "one stone unit in M")
+	"""Back on M under the BRACE Job: the BRACE's inputs are already reserved out of the hauled units, so no other
+	builder can plan against them. Fixture step: the resting mole turns to the pick travel row's heading, takes the
+	pick back and selects that row (as it stood when it arrived); the other cubes' inputs are put into M, so no further
+	haul is needed (the pick fixture cannot haul twice)."""
+	assert_equal(_h.free_milli(_h.material, &"wood"), Grip.QUANTITY_MILLI - Contract.BRACE_WOOD_MILLI, "reserved")
+	assert_equal(_h.free_milli(_h.material, &"stone"), Grip.QUANTITY_MILLI - Contract.BRACE_STONE_MILLI, "reserved")
 	var job: Vector2i = _h._jobs.job_of(_h._residents.directory().get_typed_row(_h._worker))
 	assert_equal(Phase.WorldFixture.Binding.turn_actor(_h._binding, _h._worker, job, StationTests.YAW_PLUS_X,
 		Space.MAX_CHECKS), &"", "turned empty-handed")
@@ -476,3 +480,34 @@ func test_delivery_takes_a_room_dig_by_its_site_not_by_an_entry_placement() -> v
 	assert_true(admitted.ok, "room branch admits: %s" % admitted.error)
 	assert_equal(admitted.value, Grip.QUANTITY_MILLI, "one whole unit")
 	assert_true(_h.delivery.cancel(made.ref).ok, "claim returned")
+
+
+func test_a_crew_lost_on_the_way_home_from_the_haul_cancels_the_brace() -> void:
+	"""ADR1225 at the haul's last stage: the BRACE Job already holds the builder (the hauler's walk back onto M), so
+	the release goes through Jobs and the unstarted BRACE is cancelled; the delivered units stay in M."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _foreman(_h.staging)
+	var builder: Builder = _set_off(foreman)
+	_put_pick_down()
+	for step: int in 4000:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "hauling")
+		if builder._hauler != null and builder._hauler.stage() == Hauler.STAGE_HOME: break
+	assert_equal(builder._hauler.stage(), Hauler.STAGE_HOME, "walking back onto M under the BRACE Job")
+	var row: int = _h._residents.directory().get_typed_row(_h._worker)
+	_h._jobs.needs()._status[row] = Needs.STATUS_DEAD # Negative-only: death on the way home.
+	_h._jobs.needs()._health[row] = 0
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
+	assert_equal(foreman.abandon_error(), &"", "released cleanly")
+	assert_equal(_h._jobs.job_of(row), NULL_REF, "no Job held")
+	assert_equal(_h._construction.live_project_count(), 0, "BRACE cancelled")
+	assert_equal(_h.free_milli(_h.material, &"wood"), Grip.QUANTITY_MILLI, "the hauled unit stays in M, free")
+
+
+func test_the_staging_container_cannot_be_the_storage() -> void:
+	"""Hauling from M into M would move nothing; the foreman refuses the scope."""
+	if _room == NULL_REF: return
+	var crew: Array[Builder.Crew] = [_h.store_member()]
+	assert_equal(Foreman.new().configure(_h.haul_owners(), _room, _h.material, _h.material, _h.material, crew),
+		Foreman.REFUSE_SCOPE, "staging is storage")

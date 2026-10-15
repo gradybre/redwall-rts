@@ -14,7 +14,7 @@ proven on the ADR 1161/1213 Kitchen fixture.
 claw row qualifies against a room wall until decision 1971's universal stroke lands. So in the game it is claw-only
 and digs nothing until then. Nothing in the game constructs it yet: C2.3 composes it from the mounted Session. The
 proof runs on the retired content-6 pick rows, by Brendan's leave ("Yes, tests only"). It takes no height and no
-price from them: the Kitchen's 8 Sites are the fixture's own DEC-054 clamp, and the foreman prices nothing.
+price from them: the Kitchen's 16 Sites are its painted 4,096 u (decision 1971), and the foreman prices nothing.
 
 ### What was built (`godot/scripts/core/`)
 
@@ -56,48 +56,42 @@ The first refusal stops the room. Every builder then releases its open phase:
 The route actor stays where it stopped. `release_room` clears the record; re-ordering digs what is left, and the
 owners refuse to reopen a phase a stopped dig had paid until C2.3 resumes it.
 
-## Proof (fixture: ADR 1161 Kitchen, 2 × 2 cells × 2 layers, retired content-6 pick rows)
+## Proof (fixture: ADR 1161 Kitchen, 2 × 2 cells × 4 layers = 16 Sites, retired content-6 pick rows; with PR #260 merged)
+
+With decision 1971's universal stroke merged (PR #260), every quantum of the painted 4,096 u is dug. WorkFace refuses
+`WORK_FACE_COLUMN_UNOPENED` unless every cube below the paid one is a finished void, and an upper cube is paid from
+its column's floor station.
 
 | Test | Result |
 |---|---|
-| One builder, `advance(tick)` only | All 8 cubes paid; the ledgers are ADR 1213's exactly (wood 2,000, stone 2,000, earth 16,000 milli-U, 33,840 milli-WU). No live Project, no cold lease, the builder parked by real travel. 2,870 ticks (ADR 1213's test loop took 3,905: the DEC-059 hand-over saves a recovery and an entry per phase). Column offers: 4, none taken (below) |
-| Two builders (corridor widened 4 m south for a second parking, test geometry only) | Each cube finished once (5 and 3); both dig; 1,008 builder-ticks of waiting for the other's footprint; never both at a station at once. On this 2 m wide room the footprints always meet, so they take turns (ECON-001: parallel faces only where geometry permits) |
+| One builder, `advance(tick)` only | All 16 cubes paid with exact ledgers: wood 4,000, stone 4,000, earth 32,000 milli-U, 67,680 milli-WU. No live Project, no cold lease, and the builder ends parked by real travel. 2,976 ticks. **Painted height:** each of the four columns offered its three upper cubes, and the builder took all 12 straight from the column's floor station without walking home |
+| Two builders (corridor widened 4 m south for a second parking, test geometry only) | 8 + 8 cubes, each finished once; both dig; 2,547 builder-ticks of waiting for the other's footprint; 4,475 ticks. Never both at a station at once: in this 2 m wide room the footprints always meet, so they take turns (ECON-001: parallel faces only where geometry permits; P-1933-3 (a)) |
 | Rest hours | Waited out between phases (twice), at a column's end and parked; nothing paid twice |
 | Spoil pile full | Stops with `CAPACITY_EXCEEDED`: one BRACE paid, nothing cut, no cube done, the unstarted CUT cancelled, no live Project, the mole holds no Job |
 | Builder lost (left mid-approach; dead before it is sent) | `ROOM_BUILDER_CREW_LOST`; the unstarted BRACE cancelled |
-| Crew that can never move again (negative-only injection) | `ROOM_FOREMAN_CREW_BLOCKED`, BRACE cancelled, nothing paid |
-| A builder at its station sent to a cube that needs a new chain | `ROUTE_OCCUPIED` (ADR 1213 "Parking": its own body blocks the publication); it stays at its station, then walks home, and the cube is dug from parking |
-| Dig order | Exact order and distances on the Kitchen; reversed when the only open space is on the far side; no way in; unreached cells last; refusals named |
-| Settlement wiring | An adopted runtime is dug to DONE by `SettlementSystem.run_tick` alone; the record is DONE, then released and re-orderable |
 | Death mid-phase | The room stops; the started BRACE keeps its paid Project (one live), the resident holds no Job |
 | Raw removal that skips decision 0017's departure | The room stops with the loss; Sites' release refusal (`EXCAVATION_WORKER_BINDING`) is kept apart rather than a clean stop claimed |
-| Contracts | A key that leads to another Site; a busy cold lease (waited out); a counter that disagrees with Sites (`ROOM_FOREMAN_SITES_NOT_DONE`); a re-configure; a tool-less member on the pick rows (Routes' `PROFILE_TOOL_REQUIRED`); a crew member already digging; a row reused by a new room; a finished room with its crew still away (finishes without bringing it in); the grid edge in the dig order; the footprint's pieces, cache and half-open overlap |
+| Crew that can never move again (negative-only injection) | `ROOM_FOREMAN_CREW_BLOCKED`, BRACE cancelled, nothing paid |
+| A builder at a finished column's floor station sent to the next column's bottom cube | `ROUTE_OCCUPIED` (ADR 1213 "Parking": its own body blocks the new chain); it stays at its station, then walks home, and the cube is dug from parking |
+| Every open cube refused (negative-only: both near columns' bottom cubes marked done in the record only) | `ROOM_STATION_GEOMETRY_CLOSED`, nothing opened |
+| Dig order | Exact order and distances on the Kitchen (every layer, bottom up); reversed when the only open space is on the far side; no way in; unreached cells last; no step across the grid's row edge; refusals named |
+| Settlement wiring | An adopted runtime is dug to DONE by `SettlementSystem.run_tick` alone; the record is DONE, then released and re-orderable |
+| Contracts | A key that leads to another Site; a busy cold lease (waited out); a counter that disagrees with Sites (`ROOM_FOREMAN_SITES_NOT_DONE`); a re-configure; a tool-less member on the pick rows (Routes' `PROFILE_TOOL_REQUIRED`); a crew member already digging; a row reused by a new room; a finished room with its crew still away (finishes without bringing it in); the footprint's pieces, cache and half-open overlap |
 
-**Column continuation is not taken on this fixture.** Every upper cube there needs its neighbours' lower cubes first
-(ADR 1213), so the offer up the column is always refused, and the builder walks home. Under painted height an upper
-cube is paid from its column's floor station (decision 1971's `_face` change). The offer then succeeds with no new
-chain and no walk home. That positive path is proved when decision 1971's branch is merged (coordinator's note).
+Before the merge, the same tests ran on the 8-Site Kitchen (DEC-054's old clamp). There, every upper cube needed its
+neighbours' lower cubes first, so no column offer was ever taken: 2,870 ticks; two builders 5 + 3.
 
-## Trial against the universal stroke (PR #260, `1eecb657`, not merged)
+## Merged with the universal stroke (PR #260)
 
-A trial merge was tested and then aborted; nothing from it is committed. The room suites ran on the merged tree.
+The trial merge recorded earlier was replaced by the real one (`701cecf0`). Conflicts were the two checkpoint
+manifests (regenerated) and the census's `REVIEWED_SHA` (renewed over the merged reviewed-delta table).
 
-**What #260 changes for C2.1.**
-- The Kitchen fixture now has 16 Sites: 4 cubes per column.
-- WorkFace refuses `WORK_FACE_COLUMN_UNOPENED` unless every cube below the paid one is a finished void.
-- An upper cube is paid from its column's floor station.
+The seven fixture expectations changed as predicted (`32c06b9d`):
+- the three dig-order lists now cover 16 Sites;
+- the station-refusal test now starts from a finished column's floor station;
+- the stuck-room injection marks both near columns' bottom cubes.
 
-**Results with this foreman unchanged.**
-- **One builder** dug all 16 cubes in 2,976 ticks. It took **12 cubes straight up their columns** (3 per column)
-  without walking home: painted height's stacked cubes, dug bottom up inside the breadth-first order.
-- **Two builders** dug 8 cubes each, all 16 cubes exactly once.
-- **Seven assertions failed, all fixture expectations that #260 changes:**
-  - the dig order's three exact lists still expect 8 Sites;
-  - the station-refusal test now meets `WORK_FACE_COLUMN_UNOPENED` before `ROUTE_OCCUPIED`, and its builder had
-    already taken a cube up its column;
-  - the stuck-room injection marks cubes that are now different cubes.
-
-  These are updated when the coordinator says to merge `origin/master`.
+The foreman itself did not change.
 
 ## Brendan's rulings (2026-10-15)
 
@@ -186,8 +180,11 @@ floor figures.
 
 | Crew | Ticks | Own p50 µs | Own p90 µs | Own p95 µs | Own p99 µs | Ticks with own < 1 ms | Whole tick p50 µs |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| 1 builder | 2,870 | 370 | 626 | 762 | 133,043 | 2,732 (95.2 %) | 2,976 |
-| 2 builders | 2,945 | 395 | 674 | 3,545 | 157,223 | 2,784 (94.5 %) | 3,229 |
+| 1 builder, 16 Sites | 2,976 | 188 | 477 | 2,225 | 107,764 | 2,816 (94.6 %) | 2,328 |
+| 2 builders, 16 Sites | 4,475 | 307 | 510 | 2,533 | 116,982 | 4,234 (94.6 %) | 2,621 |
+
+These figures are with PR #260 merged, at load average 4–5. On the 8-Site Kitchen at load 11–15, the own p50 was
+370 µs (one builder) and 395 µs (two).
 
 **The foreman's own share.**
 
@@ -260,7 +257,7 @@ source restored after each.
 - **First pass:** 63 mutants, 41 killed. For the 22 survivors, tests were added or code that could never decide
   anything was removed (commit `67298b03`). Four survivors went with their code: the seed's room-membership skip, the
   footprint's role filter, the duplicated loss check and the pre-open tool check.
-- **Second pass:** the 18 survivors still in the code plus 5 new mutants on the new code. 16 killed and 7 survived;
+- **Second pass:** before PR #260 merged, the 18 survivors still in the code plus 5 new mutants on the new code. 16 killed and 7 survived;
   one of the 7 (the record's generation check on settlement) then went with its code too (commit `2c630115`).
 - **In all:** 68 mutants, 57 killed, 5 moot because their code is gone, 6 survived.
 
@@ -276,7 +273,7 @@ source restored after each.
 SURVIVED_MUTANTS: the six above. Two are equivalent, one is outcome-equivalent, and three guard against conditions
 the fixture cannot produce.
 
-## Gates (at `2c630115`, run 2026-10-15)
+## Gates before PR #260 (at `2c630115`; the final run is below)
 
 - **Full suite, CI-style.**
   - Setup: `godot/.godot` deleted, `godot --headless --path godot --editor --quit`, no demo art in this worktree.

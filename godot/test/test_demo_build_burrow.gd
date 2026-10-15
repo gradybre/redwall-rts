@@ -292,6 +292,31 @@ func test_kept_patches_match_fresh_ones() -> void:
 			works.open_cell(1, steps[k - 1])
 
 
+func test_kept_patches_match_fresh_ones_as_a_scattered_dig_goes_on() -> void:
+	"""Across a dig wandering through scattered ordered and dug cells, every draw's kept walls are a fresh earth's."""
+	var random: RandomNumberGenerator = RandomNumberGenerator.new()
+	random.seed = 1914
+	var works: Works = Works.new()
+	works.configure(BOUNDS)
+	var ordered: Array[Vector2i] = []
+	for z: int in range(10, 20):
+		for x: int in range(10, 20):
+			if random.randi_range(0, 2) > 0:
+				works.order_room(1, PackedInt32Array([x, z]), ROOM)
+				ordered.append(Vector2i(x, z))
+	var earth: Earth = _earth(works, Earth.NO_CELL)
+	var same: int = 0
+	for step: int in 24:
+		var cell: Vector2i = ordered[random.randi_range(0, ordered.size() - 1)]
+		earth.draw(works, 1, TOP, Vector3i(1, cell.x, cell.y))
+		var fresh: Burrow = _earth(works, Vector3i(1, cell.x, cell.y)).built()[2]
+		var kept: Burrow = earth.built()[2]
+		same += 1 if kept.vertices == fresh.vertices and kept.normals == fresh.normals and kept.uv2s == fresh.uv2s \
+			and kept.colors == fresh.colors else 0
+		works.open_cell(1, cell)
+	assert_equal(same, 24, "every draw the same walls")
+
+
 func test_a_new_cell_being_dug_starts_at_the_top() -> void:
 	"""A rebuild for a new cell being dug shows it at the top again, whatever depth the last one reached."""
 	var works: Works = _works_of(_layouts()[7])
@@ -346,6 +371,34 @@ func test_a_cell_dug_while_its_build_is_in_flight_stays_down() -> void:
 	assert_true(is_equal_approx(earth.height_at(Vector2(17.5, 13.5)), FLOOR), "and is floor once shown")
 
 
+func test_a_dig_moving_on_behind_a_build_keeps_the_cell_down() -> void:
+	"""A build in flight for the same cell being dug (the works changed elsewhere) holds nothing; if that cell is dug and
+	the next one waits behind the build, the cell shown keeps its depth until the next build is shown."""
+	var works: Works = _works_of(_layouts()[1])
+	var earth: Earth = _earth(works, Vector3i(1, 16, 13))
+	earth.set_progress(1.0)
+	earth.threaded = true
+	works.order_room(1, _rect(Rect2i(20, 20, 2, 2)), ROOM)
+	earth.request(works, 1, TOP, Vector3i(1, 16, 13))
+	works.open_cell(1, Vector2i(16, 13))
+	earth.request(works, 1, TOP, Vector3i(1, 17, 13))
+	earth.set_progress(0.1)
+	assert_true(is_equal_approx(earth.height_at(Vector2(16.5, 13.5)), TOP - Earth.dug_depth_m(1.0)), "kept down")
+	_until_shown(earth)
+	assert_equal(earth.digging(), Vector3i(1, 17, 13), "the next cell shown being dug")
+
+
+func test_the_works_hand_the_build_a_copy() -> void:
+	"""Review H1: the states a build reads are a copy; the mole digging on does not change them under it."""
+	var works: Works = _works_of(_layouts()[7])
+	var states: PackedByteArray = works.level_states(1)
+	var at: int = (11 - works.area().position.y) * works.area().size.x + 14 - works.area().position.x
+	assert_equal(states[at], Works.ORDERED, "ordered when read")
+	works.open_cell(1, Vector2i(14, 11))
+	assert_equal(states[at], Works.ORDERED, "still, after the cell is dug")
+	assert_equal(works.level_states(1)[at], Works.OPEN, "a fresh read sees it dug")
+
+
 func test_an_earth_freed_or_given_kinds_mid_build_waits_for_it() -> void:
 	"""Freed with a build in flight, the earth waits for its worker; handed the World's kinds, it shows the build
 	first (the build reads them)."""
@@ -363,9 +416,10 @@ func test_an_earth_freed_or_given_kinds_mid_build_waits_for_it() -> void:
 
 
 func test_kept_patches_follow_the_level_and_the_water() -> void:
-	"""Patches kept are dropped when the level's top moves, and remade when a cell turns wet: the walls are always
-	those a fresh earth draws."""
+	"""Patches kept are dropped when the level's top moves, and remade when a cell turns wet -- an earth cell, or an
+	ordered one already kept square: the walls are always those a fresh earth draws."""
 	var works: Works = _works_of(_layouts()[0])
+	works.order_room(1, _rect(Rect2i(16, 10, 2, 2)), ROOM)
 	var earth: Earth = _earth(works, Earth.NO_CELL)
 	earth.draw(works, 1, TOP - 5.0, Earth.NO_CELL)
 	var fresh: Earth = Earth.new()
@@ -373,10 +427,12 @@ func test_kept_patches_follow_the_level_and_the_water() -> void:
 	fresh.configure(Vector2i.ZERO, BOUNDS)
 	fresh.draw(works, 1, TOP - 5.0, Earth.NO_CELL)
 	assert_true(earth.built()[2].vertices == fresh.built()[2].vertices, "another level's top: walls at its height")
+	earth.draw(works, 1, TOP, Earth.NO_CELL)
 	var kinds: PackedByteArray = PackedByteArray()
 	kinds.resize(Earth.World.TILE_COUNT)
 	kinds.fill(Earth.World.TERRAIN_LAND)
 	kinds[Earth.World.MAP_TILES_X * 4 + 4] = Earth.World.TERRAIN_LAKE
+	kinds[Earth.World.MAP_TILES_X * 5 + 8] = Earth.World.TERRAIN_LAKE
 	for each: Earth in [earth, fresh]:
 		each.set_kinds(kinds)
 		each.draw(works, 1, TOP, Earth.NO_CELL)

@@ -1,7 +1,7 @@
 # 1933 — The room foreman on the fixed tick (slice C2.1)
 
-Date: 2026-10-15 · Status: Accepted (built; Brendan's rulings in decisions 1931 and 1932). The PROPOSALS below wait
-on Brendan.
+Date: 2026-10-15 · Status: Accepted (built; Brendan's rulings in decisions 1931 and 1932, and on P-1933-1 to
+P-1933-3 below).
 
 Number range: this lane's 1931–1949 (decision 1931). C2.2 and C2.3 records take 1934 onwards.
 
@@ -99,7 +99,18 @@ A trial merge was tested and then aborted; nothing from it is committed. The roo
 
   These are updated when the coordinator says to merge `origin/master`.
 
-## PROPOSALS for Brendan
+## Brendan's rulings (2026-10-15)
+
+Relayed by the coordinator. Brendan gave it in chat on 2026-10-15: P-1933-1, P-1933-2 and P-1933-3 **"Approve"**,
+all (a) as recommended.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-1933-1 | (a) | Crews walk in as the entry crew does: ADR 1219's surface walk, then placement on the parking and registration, one builder at a time. Built in C2.3; C2.1's placement-only `register()` stays until then |
+| P-1933-2 | (a) | A stopped room keeps its paid phases for a later resume and releases only the worker; unstarted phases are cancelled (as built) |
+| P-1933-3 | (a) | Builders take turns on the whole footprint: the way there, the station and the way back (as built) |
+
+## PROPOSALS for Brendan (ruled 2026-10-15, above)
 
 **P-1933-1 — How the crew reaches its parking.**
 

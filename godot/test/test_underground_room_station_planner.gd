@@ -607,3 +607,21 @@ func test_confirmation_digs_the_painted_height() -> void:
 	assert_true(fixture.orders.confirm_room(painted).ok, "the painted Kitchen confirms")
 	assert_equal(fixture.sites._count, sites + KITCHEN_SITES, "16 Kitchen Sites, up to 4,096u")
 	assert_true(fixture.sites.site_at(Vector3i(Phase.X + 2048, Phase.FLOOR + 3072, Phase.Z)) != NULL_REF, "a level-3 Site")
+
+
+func test_a_stroke_below_the_floor_is_left_to_the_work_face() -> void:
+	"""Decision 1971: below the Room floor a body box needs actual support, while a stroke's claws (the scrape) are
+	proved by WorkFace against natural earth instead."""
+	var q: Planner.Query = Planner.Query.new()
+	q.start = Vector3i.ZERO
+	q.box.resize(6); q.other.resize(6); q.target.resize(6)
+	q.front.resize(6 * Planner.MAX_FRAGMENTS); q.back.resize(6 * Planner.MAX_FRAGMENTS)
+	q.tables.resize(4)
+	for kind: int in 4:
+		var table: PackedInt32Array = PackedInt32Array()
+		table.resize(6 * Planner.MAX_REGIONS)
+		q.tables[kind] = table
+	q.remaining = 1 << 20
+	assert_false(Planner._fits(q, Vector3i(0, -61, 0), Vector3i(64, 0, 64), false), "a body box below the floor needs support")
+	assert_true(Planner._fits(q, Vector3i(0, -61, 0), Vector3i(64, 0, 64), true), "a stroke's scrape is WorkFace's")
+

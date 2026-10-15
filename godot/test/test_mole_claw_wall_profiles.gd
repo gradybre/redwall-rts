@@ -115,3 +115,26 @@ func test_content_ten_keeps_its_legacy_band_until_activation() -> void:
 	_stairs._live.header[0] = 12
 	assert_equal(Approach.reachable_height_u(_stairs, Stairs.CLAW_DIG_ROWS[0]), 0, "no side-face row, no legacy: nothing")
 	_stairs._live.header[0] = 10
+
+
+func _set_anchor_height(row: int, height: int) -> void:
+	"""Negative-only: move one loaded row's CONTACT_POINT to another height above the stance."""
+	var first: int = _field(_wall, Profiles.F_FIRST_BOX, row)
+	for box: int in range(first, first + _field(_wall, Profiles.F_BOX_COUNT, row)):
+		if _wall._live.boxes[6 * _wall._box_capacity + box] == Profiles.CONTACT_POINT:
+			_wall._live.boxes[_wall._box_capacity + box] = height
+			_wall._live.boxes[4 * _wall._box_capacity + box] = height
+
+
+func test_only_an_anchor_inside_the_floor_band_lifts_the_limit() -> void:
+	"""An anchor on the floor plane or the band's top plane strikes no side of the floor-band cube."""
+	for row: int in Wall.CLAW_WALL_ROWS:
+		_set_anchor_height(row, 0)
+	assert_equal(Approach.reachable_height_u(_wall, Wall.CLAW_DIG_ROWS[0]), 0, "an anchor on the floor plane")
+	for row: int in Wall.CLAW_WALL_ROWS:
+		_set_anchor_height(row, 1024)
+	assert_equal(Approach.reachable_height_u(_wall, Wall.CLAW_DIG_ROWS[0]), 0, "an anchor on the band's top plane")
+	for row: int in Wall.CLAW_WALL_ROWS:
+		_set_anchor_height(row, 177)
+	assert_equal(Approach.reachable_height_u(_wall, Wall.CLAW_DIG_ROWS[0]), Approach.UNLIMITED_HEIGHT_U, "restored")
+

@@ -34,7 +34,12 @@ const REFUSE_PHASE: StringName = &"WORK_FACE_FINISH_SCOPE"
 ## Decision 1971 (P-1971-3 "Painted height"): an upper quantum is worked from its column's floor station, so the
 ## cubes of the column below it must already be finished void (a column is dug bottom-up).
 const REFUSE_COLUMN: StringName = &"WORK_FACE_COLUMN_UNOPENED"
-const QUANTUM_U: int = 1024
+const QUANTUM_U: int = Contract.QUANTUM_SIDE_U
+## A column never leaves its level: the level pack's clear_height_u (initial_level_pack.json, SET-BUILD-001 §3), checked
+## against the pack by test_underground_work_face.gd. A station on another level never strikes this level's column.
+const COLUMN_RISE_LIMIT_U: int = 4096
+## Charge per lattice quantum of the cut-history scan (a binary search), as the connector cut scans charge.
+const CUT_SCAN_CHECKS: int = 20
 
 
 class Request extends RefCounted:
@@ -259,7 +264,7 @@ class Check extends RefCounted:
 		for axis: int in 6:
 			scratch[axis] = struck[axis]
 		scratch[4] = target[1]
-		if not proof.covered(scratch, Space.SUPPORTED_VOID):
+		if proof.blocked(scratch, true) or not proof.covered(scratch, Space.SUPPORTED_VOID):
 			return proof.error if proof.error != &"" else REFUSE_COLUMN
 		return current_refusal()
 
@@ -430,7 +435,7 @@ class Check extends RefCounted:
 		for fragment: int in proof.count:
 			for axis: int in 6:
 				scratch[axis] = proof.fragments[fragment * 6 + axis]
-			if not proof.spend(Terrain.LOCAL_QUERY_CHECKS + cube_span(sites._domain, scratch)):
+			if not proof.spend(Terrain.LOCAL_QUERY_CHECKS + CUT_SCAN_CHECKS * cube_span(sites._domain, scratch)):
 				return proof.error
 			if actual.terrain.natural_support_refusal(scratch) != &"" or ever_cut(sites, scratch):
 				return REFUSE_STROKE
@@ -444,7 +449,8 @@ class Check extends RefCounted:
 		if anchor_y >= paid.y and anchor_y <= paid.y + QUANTUM_U:
 			return paid
 		var rise: int = int(paid.y) - floor_y
-		if rise > 0 and rise % QUANTUM_U == 0 and anchor_y > floor_y and anchor_y < floor_y + QUANTUM_U:
+		if rise > 0 and rise < COLUMN_RISE_LIMIT_U and rise % QUANTUM_U == 0 and anchor_y > floor_y \
+				and anchor_y < floor_y + QUANTUM_U:
 			return Vector3i(paid.x, floor_y, paid.z)
 		return paid
 
@@ -509,11 +515,16 @@ class Check extends RefCounted:
 		return sites._ordered_row[low] if low < sites._count and sites._ordered_key[low] == key else -1
 
 	func excavation_sites() -> Sites:
-		"""The bound excavation authority (the Sites owner), or null when none is bound."""
+		"""The bound excavation authority (the Sites owner) on this World's lattice, or null (no scrape is proved)."""
 		var construction: Construction = actual.sources._construction if actual.sources != null else null
 		if construction == null or construction._excavation_authority == null:
 			return null
-		return construction._excavation_authority.get_ref() as Sites
+		var sites: Sites = construction._excavation_authority.get_ref() as Sites
+		if sites == null or sites._domain == null or sites._domain.world_ref != domain._world \
+				or sites._domain.datum_u != domain._datum or sites._domain.minimum_quantum != domain._min_quantum \
+				or sites._domain.size_quanta != domain._size_quanta:
+			return null
+		return sites
 
 	func stroke_blocked() -> bool:
 		"""The solid observer keeps every unfinished/obstacle row blocking its work stroke."""

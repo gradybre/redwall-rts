@@ -94,25 +94,30 @@ class WallProof(unittest.TestCase):
     """The world proof admits paws in the target and a bounded floor scrape, nothing else."""
 
     def test_record_clear(self) -> None:
-        """Stroke and entry, bottom and column quanta: no unresolved pair; the scrape is used by the stroke only."""
+        """Every placement, stroke and entry, bottom and column quanta: no unresolved pair; only the stroke scrapes."""
         proof = json.loads(PROOF.read_text())
         self.assertTrue(proof["clear"])
         self.assertEqual(proof["rows_sha256"], D.SRC.sha(ROWS))
-        for clip in W.CLIPS:
-            for mode in ("bottom", "column"):
-                self.assertEqual(proof[clip][mode]["unresolved"], [])
-        self.assertGreater(proof["dig_stroke"]["bottom"]["paw_scrape"], 0)
-        self.assertEqual(proof["dig_entry"]["bottom"]["paw_scrape"], 0)
-        self.assertEqual(proof["dig_stroke"]["column"]["paw_target"], 0)
+        self.assertEqual([p["target_left_u"] for p in proof["placements"].values()], [-609, -544, -478])
+        for place in proof["placements"].values():
+            for clip in W.CLIPS:
+                for mode in ("bottom", "column"):
+                    self.assertEqual(place[clip][mode]["unresolved"], [])
+            self.assertGreater(place["dig_stroke"]["bottom"]["paw_scrape"], 0)
+            self.assertEqual(place["dig_entry"]["bottom"]["paw_scrape"], 0)
+            self.assertEqual(place["dig_stroke"]["column"]["paw_target"], 0)
 
-    def test_fixture_centres_the_stroke(self) -> None:
-        """The target holds the whole stroke box laterally; the neighbours meet at its edges."""
-        ground = W.fixture(json.loads(ROWS.read_text())["rows"][0], 521)
-        target, left, right = ground["solids_u"][2], ground["solids_u"][3], ground["solids_u"][4]
-        self.assertEqual(target[3] - target[0], 1024)
-        self.assertTrue(target[0] <= -478 and 415 <= target[3])
-        self.assertEqual((left[3], right[0]), (target[0], target[3]))
-        self.assertEqual(ground["scrape_u"], [[-226, -61, -561, 287, 0, -415]])
+    def test_window_holds_the_whole_stroke_box(self) -> None:
+        """The target's left edge may lie from -609 to -478 u; the neighbours meet the target at its edges."""
+        row = json.loads(ROWS.read_text())["rows"][0]
+        self.assertEqual(W.window(row), (-609, -478))
+        for left in W.window(row):
+            ground = W.fixture(row, 521, left)
+            target, near_left, near_right = ground["solids_u"][2], ground["solids_u"][3], ground["solids_u"][4]
+            self.assertEqual(target[3] - target[0], 1024)
+            self.assertTrue(target[0] <= -478 and 415 <= target[3])
+            self.assertEqual((near_left[3], near_right[0]), (target[0], target[3]))
+            self.assertEqual(ground["scrape_u"], [[-226, -61, -561, 287, 0, -415]])
 
     def test_scrape_is_bounded_by_the_stroke_box(self) -> None:
         """A triangle's below-plane part inside the box scrapes; one reaching past it does not."""
@@ -134,7 +139,7 @@ class WallProof(unittest.TestCase):
         result = W.prove(json.loads(ROWS.read_text()), D.SRC.PALETTE, GRIP)
         stored = json.loads(PROOF.read_text())
         rebuilt = json.loads(json.dumps(result, default=str))
-        for key in ("clear", "fixture", "dig_stroke", "dig_entry", "self_clearance"):
+        for key in ("clear", "placements", "self_clearance"):
             self.assertEqual(rebuilt[key], stored[key], key)
 
 

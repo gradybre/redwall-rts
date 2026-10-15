@@ -12,7 +12,7 @@ the accepted sole-support rule and `separated_box` (`prove_stair_terrain`).
 |---|---|---|
 | 0 | the open cell's floor (SUPPORT), up to the wall plane | soles rest on it (the accepted rule); paw triangles may scrape it below the plane |
 | 1 | natural earth under the target and beyond (the level's floor) | paw triangles may scrape it below the plane |
-| 2 | the target cube, laterally centred in the window where the whole stroke box fits | paw triangles may enter it, in every clip |
+| 2 | the target cube, at each end and the middle of the lateral window where the whole stroke box fits | paw triangles may enter it, in every clip |
 | 3, 4 | the cubes left and right of the target | everything separates |
 | 5 | the cube row beyond the target | everything separates |
 | 6 | the earth above the target's band (the column's upper quanta and their neighbours) | everything separates |
@@ -50,13 +50,18 @@ def require(value: bool, code: str) -> None:
     P.require(value, "CLAW_WALL_PROOF_" + code)
 
 
-def fixture(row: dict, wall: int) -> dict:
-    """The wall fixture's solids (u). The target sits in the middle of the lateral window where the whole yaw-0
-    stroke box lies inside it, the placement the room planner's box fit selects when both neighbours are earth."""
+def window(row: dict) -> tuple:
+    """The lateral window of the target's left edge where the whole yaw-0 stroke box lies inside the target: with
+    both neighbours earth, the room planner's box fit can only choose a root in it (nearest its centre first)."""
     stroke = row["canonical_roles"]["WORK_STROKE"]
     low, high = min(b[0] for b in stroke), max(b[3] for b in stroke)
     require(high - low < 1024, "STROKE_WIDER_THAN_CUBE")
-    left = (high - 1024 + low) // 2
+    return high - 1024, low
+
+
+def fixture(row: dict, wall: int, left: int) -> dict:
+    """The wall fixture's solids (u), the target's left edge at `left`."""
+    stroke = row["canonical_roles"]["WORK_STROKE"]
     near, far, right = -wall, -wall - 1024, left + 1024
     solids = [[-2048, -1024, near, 2048, 0, 2048], [-2048, -1024, far - 1024, 2048, 0, near],
               [left, 0, far, right, 1024, near], [-2048, 0, far, left, 1024, near], [right, 0, far, 2048, 1024, near],
@@ -142,11 +147,16 @@ def prove(rows: dict, palette: Path, grip: Path) -> dict:
     cases = {c["id"].split(".")[-1]: c for c in NC.cases(body)}
     require(np.array_equal(cases["dig_recovery"]["matrices"], cases["dig_entry"]["matrices"][::-1]), "REVERSE")
     sets = PAIR.classes(src)
-    ground = fixture(rows["rows"][0], rows["wall_distance_u"])
-    result = {name: {mode: world(src, cases[name], sets, ground, mode == "column") for mode in ("bottom", "column")}
-              for name in CLIPS}
-    clear = all(result[n][m]["clear"] for n in CLIPS for m in ("bottom", "column"))
-    return {"clear": clear, "fixture": ground, "wall_distance_u": rows["wall_distance_u"], **result,
+    first, last = window(rows["rows"][0])
+    placements = {"window_low": first, "window_middle": (first + last) // 2, "window_high": last}
+    result, clear = {}, True
+    for label, left in placements.items():
+        ground = fixture(rows["rows"][0], rows["wall_distance_u"], left)
+        row = {name: {mode: world(src, cases[name], sets, ground, mode == "column") for mode in ("bottom", "column")}
+               for name in CLIPS}
+        clear = clear and all(row[n][m]["clear"] for n in CLIPS for m in ("bottom", "column"))
+        result[label] = {"target_left_u": left, "fixture": ground, **row}
+    return {"clear": clear, "placements": result, "wall_distance_u": rows["wall_distance_u"],
             "dig_recovery": {"reused_exact_reverse_of": "dig_entry"}, "self_clearance": self_record()}
 
 
@@ -165,9 +175,9 @@ def main() -> int:
     result.update(schema=1, decision="1971", exact_yaw=0, production_qualified=False, rows_sha256=SRC.sha(args.rows),
                   producer_sources={str(p.resolve().relative_to(SRC.ROOT)): SRC.sha(p) for p in producers})
     args.out.write_text(json.dumps(result, indent=1, default=str) + "\n")
-    print(json.dumps({"clear": result["clear"], **{n: {m: {k: result[n][m][k] for k in
-          ("pairs", "soles", "paw_target", "paw_scrape")} | {"unresolved": len(result[n][m]["unresolved"])}
-          for m in ("bottom", "column")} for n in CLIPS}}))
+    print(json.dumps({"clear": result["clear"], **{label: {n: {m: {k: place[n][m][k] for k in
+          ("pairs", "soles", "paw_target", "paw_scrape")} | {"unresolved": len(place[n][m]["unresolved"])}
+          for m in ("bottom", "column")} for n in CLIPS} for label, place in result["placements"].items()}}))
     return 0 if result["clear"] else 2
 
 

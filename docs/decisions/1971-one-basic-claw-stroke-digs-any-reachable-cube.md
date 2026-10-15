@@ -507,13 +507,62 @@ Content 10 is bound by revision, row range or digest here:
     `test_underground_stairs_bundle_source` and `test_underground_support_clearance`;
   - plus the checkpoints (ADR 1240), the source pins and the memory census.
 
+### Review fixes (independent `code-reviewer`)
+
+The reviewer raised two HIGH findings, both fixed:
+
+- **H1.** The content-11 publisher test compared `manifest.json` byte for byte, but `renew_source_pins.py` adds
+  `consumers` and `renewals` after publication. The test now compares the manifest without those two keys, as
+  content 10's test does.
+- **H2. A column never leaves its level.** `struck_origin` had no level bound. The scans pair every WORK location
+  with every profile, so a station on the level below, under the same column, could match an upper room's quantum,
+  because the level spacing (5,120 u) is a whole number of quanta. The result was an ambiguous contact or a
+  permanent `WORK_FACE_COLUMN_UNOPENED`.
+  - **Fix:** the column rise must be less than `COLUMN_RISE_LIMIT_U` = 4,096 u, the level pack's adopted
+    `clear_height_u`.
+  - A test reads `initial_level_pack.json` and pins the constant to it.
+
+Medium findings:
+
+- **Fixed:**
+  - `column_refusal` also refuses a blocked column (an obstacle standing in the void below), with a test.
+  - The wall proof now runs at both ends and the middle of the lateral window (target left edge −609, −544 and
+    −478 u; the planner's nearest-centre root is −478). All are clear.
+  - The scrape's cut-history scan is charged 20 checks per quantum, as the connector scans are.
+  - The Sites lattice must match the World's before a scrape is proved.
+  - `_side_patch` no longer builds an array.
+- **Kept and recorded:**
+  - **The space authority's floor height.** It takes the floor from the contact approach box's low y, not the stance
+    floor. Every approach box of the wall rows starts on the floor, so the two agree. Any other row fails closed
+    (`SPACE_WORK_REACH`). Only the one call was cleared in that file.
+  - **The planner leaves a stroke's below-floor part to WorkFace.** It can therefore pick a station whose scrape
+    WorkFace later refuses, and `_try_row` keeps the first candidate. The planner's region tables do not separate
+    natural earth from other solids, so a stricter pre-filter there would refuse every wall dig.
+  - **What "unowned" means.** The scrape admits SUPPORT owned by any Room in a never-cut quantum: the Room-lifetime
+    floor protections, which are owned like timber. Tightening that to the stance's own Room is a question for the
+    coordinator.
+
+Mutation testing used a scratch runner in a separate worktree (not committed):
+
+- **35 mutants of the new guards and the cleared changes.** 26 were killed at first.
+- **5 survivors are equivalent:**
+  - W01/W02: `struck_origin`'s own-band bounds can never meet the column branch;
+  - W08/W09: on a side face the struck cube and the target share the face plane;
+  - W20: the moved pre-1971 `within_target` check, which the stroke's coverage subtraction duplicates above the
+    plane.
+- **4 survivors (W12, W14, P03, A01/A02) got tests:**
+  - non-natural footing and an unbound excavation authority refuse the scrape;
+  - the planner's `_fits` leaves a stroke's below-floor part alone but not a body's;
+  - an anchor on the floor plane or the band's top plane lifts no limit.
+
 ### Memory (ADR 1212)
 
 - `underground_work_face.gd` and `underground_space_authority.gd` became **projected census inputs**. Their
   manifest-3 bytes are archived under `underground-memory-census-2026-10-06/reviewed-sources/`, and
   `PROJECTION_SHA` and `REVIEWED_SHA` are bumped.
 - Reviewed deltas:
-  - WorkFace: one retained packet, `Check.struck`, 6 ints, 24 B, carried by its 2,048 B `CONTROL_BYTES`;
+  - WorkFace: one retained packet, `Check.struck`, 6 ints, 24 B, carried by its 2,048 B `CONTROL_BYTES`, plus the
+    constants `COLUMN_RISE_LIMIT_U` and `CUT_SCAN_CHECKS`;
   - the space authority: none.
 - The frontier and world bindings deltas are unchanged: `{}`.
 - The pack is regenerated, and only line numbers move: live with reserve is 100,250,607 B, with 49,749,393 B of

@@ -44233,8 +44233,16 @@
         "delta": {
           "int_constants_added": [
             [
+              "COLUMN_RISE_LIMIT_U",
+              "4096"
+            ],
+            [
+              "CUT_SCAN_CHECKS",
+              "20"
+            ],
+            [
               "QUANTUM_U",
-              "1024"
+              "Contract.QUANTUM_SIDE_U"
             ]
           ],
           "classes": {
@@ -44651,7 +44659,7 @@
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
     "godot/scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
-    "godot/scripts/core/underground_work_face.gd": "5c7e5d1fae1bcf202e84d3ad0f40f770963ed1eb6544141e846949b23e81841e",
+    "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
     "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"

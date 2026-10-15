@@ -2642,8 +2642,16 @@
    "delta": {
     "int_constants_added": [
      [
+      "COLUMN_RISE_LIMIT_U",
+      "4096"
+     ],
+     [
+      "CUT_SCAN_CHECKS",
+      "20"
+     ],
+     [
       "QUANTUM_U",
-      "1024"
+      "Contract.QUANTUM_SIDE_U"
      ]
     ],
     "classes": {

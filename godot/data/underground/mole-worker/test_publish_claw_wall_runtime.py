@@ -21,10 +21,16 @@ class ClawWallRuntimePublication(unittest.TestCase):
     """The published files are exactly what the publisher builds from its pinned inputs."""
 
     def test_rebuild_is_byte_identical(self) -> None:
-        """Wire, ground paces, motion bank and manifest rebuild byte for byte."""
-        for name, raw in PUB.build().items():
-            if name != "catalog_source.gd":
+        """Wire, ground paces and motion bank rebuild byte for byte; the manifest matches apart from the consumer pins
+        `tools/renew_source_pins.py` adds after publication (as for content 10)."""
+        built = PUB.build()
+        for name, raw in built.items():
+            if name not in ("catalog_source.gd", "manifest.json"):
                 self.assertEqual((PUB.OUTPUT / name).read_bytes(), raw, name)
+        stored = json.loads((PUB.OUTPUT / "manifest.json").read_text())
+        for key in ("consumers", "renewals"):
+            stored.pop(key, None)
+        self.assertEqual(stored, json.loads(built["manifest.json"]))
 
     def test_wall_rows_copy_the_derived_boxes_and_the_dig_words(self) -> None:
         """Rows 67-70 carry the derivation's boxes and M1's words at the same heading (box index and count aside)."""

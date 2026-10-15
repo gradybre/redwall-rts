@@ -705,9 +705,8 @@ static func _side_patch(profiles: Profiles, row: int) -> bool:
 	for index: int in profiles._live.fields[Profiles.F_BOX_COUNT * stride + row]:
 		var box: int = profiles._live.fields[Profiles.F_FIRST_BOX * stride + row] + index
 		if profiles._live.boxes[6 * capacity + box] != Profiles.CONTACT_PATCH: continue
-		for axis: int in [0, 2]:
-			if profiles._live.boxes[axis * capacity + box] == profiles._live.boxes[(axis + 3) * capacity + box]: return true
-		return false
+		return profiles._live.boxes[box] == profiles._live.boxes[3 * capacity + box] \
+			or profiles._live.boxes[2 * capacity + box] == profiles._live.boxes[5 * capacity + box]
 	return false
 
 

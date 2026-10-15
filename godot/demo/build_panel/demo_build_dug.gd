@@ -1,9 +1,10 @@
 extends Node3D
 ## THE DUG ROOMS, DRAWN (decision 1912's proof of concept; its look, decision 1913). On the level the build panel
 ## shows (the World view's marks layer, demo_build_world.gd), from demo_build_works.gd:
-##   THE EARTH     the level as a cutaway block of earth with each dug cell a pit in it, ordered cells pegged out in
-##                 chalk and the cell being dug deepening as it goes (demo_build_earth.gd), what was dug lit by this
-##                 view's own sun and the earth's top by a dim fill, so the rooms stand out of the mass;
+##   THE EARTH     the level as a cutaway block of earth with the dug cells a pit in it, its walls rounded and hand-dug
+##                 (decision 1914), ordered cells pegged out in chalk and the cell being dug deepening as it goes
+##                 (demo_build_earth.gd, rebuilt on a worker and shown by `refresh` when done), what was dug lit by
+##                 this view's own sun and the earth's top by a dim fill, so the rooms stand out of the mass;
 ##   WAYS DOWN     where one stands on the level, stairs cut down into the floor; where one lands, stairs rising out of
 ##                 it (demo_build_ways.gd), once the landing is dug;
 ##   TAGS          "Way down", "Way up", "Way up to the surface", "Waiting for the mole: N cells", "Digging", in words;
@@ -91,7 +92,7 @@ func configure(works: Works, floors: PackedInt32Array, datum: Vector2i, bounds: 
 	_sun.shadow_blur = 1.5
 	_sun.directional_shadow_max_distance = 80.0
 	add_child(_sun)
-	_fill = _make_light("BuildDugFill", Vector3.UP + Vector3(0.0, 0.0, 0.01), FILL_ENERGY, Earth.TOP_LAYER)
+	_fill = _make_light("BuildDugFill", Earth.FILL_TOWARD, FILL_ENERGY, Earth.TOP_LAYER)
 	add_child(_fill)
 
 
@@ -190,7 +191,9 @@ func has_kinds() -> bool:
 
 
 func refresh(level: int, digging: Vector3i = Earth.NO_CELL) -> void:
-	"""Redraw when the works, the level shown (-1: none) or the cell being dug (level, x, z) changed."""
+	"""Redraw when the works, the level shown (-1: none) or the cell being dug (level, x, z) changed; each frame, show
+	the earth's rebuild once it is done (demo_build_earth.gd `poll`)."""
+	earth.poll()
 	var below: bool = underground(level)
 	var on_level: bool = digging.x == level and below
 	var key: Vector4i = Vector4i(_works.revision, level, digging.y if on_level else -1, digging.z if on_level else -1)
@@ -202,7 +205,7 @@ func refresh(level: int, digging: Vector3i = Earth.NO_CELL) -> void:
 	_sun.visible = below
 	_fill.visible = below
 	if below:
-		earth.draw(_works, level, top_m(level), digging)
+		earth.request(_works, level, top_m(level), digging)
 	_place_mouths()
 	_place_stairs(level)
 	_place_tags(level, digging if on_level else Earth.NO_CELL)

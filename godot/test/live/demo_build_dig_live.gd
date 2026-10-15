@@ -3,7 +3,8 @@ extends "res://test/live/demo_input_live.gd"
 ## Entrance placed on the surface by a click, a Passage and a Kitchen painted by drags on underground level 1,
 ## Confirm all clicked, a mole walking to the Entrance and digging every cell, the rooms drawn open, and a resident
 ## sent down by a right click on a dug cell; the look (decision 1913): the rooms are pits with stairs out of the
-## landing, no two tags sit on each other, and the Entrance is a burrow mouth on the surface. Optional: -- --capture
+## landing, no two tags sit on each other, and the Entrance is a burrow mouth on the surface; their rounded walls
+## (decision 1914): mid-dig the ordered cells stay square, and every dug cell's floor is whole. Optional: -- --capture
 ## <directory> for its frames.
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
@@ -43,9 +44,9 @@ func _initialize() -> void:
 	super()
 	_steps = [_open_on_the_surface, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
 		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage, _scroll_to.bind("Kitchen"),
-		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _tags_apart, _wait_for_the_rooms,
-		_rooms_drawn_as_pits, _send_a_visitor, _wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance,
-		_close_the_panel]
+		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _after_the_earth.bind(_check_square_plan),
+		_tags_apart, _wait_for_the_rooms, _after_the_earth.bind(_rooms_drawn_as_pits), _send_a_visitor,
+		_wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance, _close_the_panel]
 
 
 func _open_on_the_surface() -> void:
@@ -163,8 +164,44 @@ func _tags_apart() -> void:
 func _rooms_drawn_as_pits() -> void:
 	"""Decision 1913: the dug cells are pits in the earth (walls drawn), and the Entrance's landing has its stairs up."""
 	var dug: Object = _build().get("dug")
-	_check("the dug rooms are pits with walls", int(dug.get("earth").get("wall_quads")) > 0)
+	_check("the dug rooms are pits with rounded walls (1914)", int(dug.get("earth").get("patch_count")) > 0)
 	_check("stairs rise out of the Entrance's landing", int(dug.call(&"stairs_shown")) == 1)
+	_check_whole_floors()
+
+
+func _check_whole_floors() -> void:
+	"""Decision 1914, rule (a): every dug cell on level 1 is drawn at the floor's depth over its whole square."""
+	var earth: Object = _build().get("dug").get("earth")
+	var cells: PackedInt32Array = PackedInt32Array()
+	_build().get("works").call(&"cells_into", 1, Works.OPEN, cells)
+	var off: int = int(earth.call(&"cells_off_the_floor", cells))
+	_check("every dug cell's floor is whole (rule a)", not cells.is_empty() and off == 0, "%d cells hidden" % off)
+
+
+func _after_the_earth(step: Callable, steps_left: int = WAIT_STEPS) -> void:
+	"""Run `step` once the earth's rebuild on its worker has been shown by the game's own frames (decision 1914: the
+	checks read what the player sees, never a build forced through), else wait a step; fail when the budget runs out."""
+	if not bool(_build().get("dug").get("earth").call(&"busy")):
+		step.call()
+	elif steps_left <= 0:
+		_check("the earth's rebuild is shown", false, "still in flight")
+	else:
+		_steps.push_front(_after_the_earth.bind(step, steps_left - 1))
+
+
+func _check_square_plan() -> void:
+	"""Decision 1914, rule (b): mid-dig, no ordered cell is rounded into (the one being dug aside)."""
+	var earth: Object = _build().get("dug").get("earth")
+	var cells: PackedInt32Array = PackedInt32Array()
+	_build().get("works").call(&"cells_into", 1, Works.ORDERED, cells)
+	var digging: Vector3i = earth.call(&"digging")
+	var square: PackedInt32Array = PackedInt32Array()
+	for at: int in range(0, cells.size(), 2):
+		if Vector3i(1, cells[at], cells[at + 1]) != digging:
+			square.append_array(PackedInt32Array([cells[at], cells[at + 1]]))
+	var rounded: int = int(earth.call(&"cells_rounded", square))
+	_check("mid-dig, the ordered cells stay square (rule b)", not square.is_empty() and rounded == 0,
+		"%d of %d rounded" % [rounded, square.size() >> 1])
 
 
 func _up_to_the_entrance() -> void:

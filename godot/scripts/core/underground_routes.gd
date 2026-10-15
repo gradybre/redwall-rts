@@ -44,6 +44,12 @@ const RESIDENT_CAPACITY: int = Residents.RESIDENT_CAPACITY
 ## body reaches past height plus tail, which is under twice the tallest height. Conservative: it can only over-refuse.
 const UNREGISTERED_REACH_U: int = 2 * 2611
 const REFUSE_UNREGISTERED_NEAR: StringName = &"ROUTE_UNREGISTERED_RESIDENT_NEAR"
+## Decision 1951: the unregistered standing snapshot. A row's standing is bounds-independent: nothing (absent or
+## dead), placed (a reach cube at its root), or one of these refusals. PLACED is internal and never returned.
+const STANDING_REFUSALS: Array[StringName] = [&"ROUTE_TURN_ACTOR_STALE", &"ROUTE_TURN_ACTOR_UNBOUND"]
+const STANDING_PLACED: StringName = &"ROUTE_STANDING_PLACED"
+## Residents, Needs, Directory and Transforms: each instance and its revision.
+const STANDING_KEYS: int = 8
 const MAX_EDGES: int = 1536
 const MAX_VERTICES: int = 4096
 const MAX_LINKS: int = 4096
@@ -408,8 +414,11 @@ var _occupancy_heads: PackedInt32Array = PackedInt32Array()
 var _occupancy_next: PackedInt32Array = PackedInt32Array()
 var _occupancy_cell: PackedInt32Array = PackedInt32Array()
 var _occupancy_visit: PackedInt32Array = PackedInt32Array()
-var _occupancy_bounds: PackedInt32Array = PackedInt32Array()
-var _occupancy_profile: PackedInt64Array = PackedInt64Array()
+var _standing_x: PackedInt64Array = PackedInt64Array() # Decision 1951: (root x << 10) | row, ascending.
+var _standing_refused: PackedInt32Array = PackedInt32Array() # row | (STANDING_REFUSALS index << 10), by row.
+var _standing_key: PackedInt64Array = PackedInt64Array() # The STANDING_KEYS tokens the snapshot was read at.
+var _standing_count: int = 0
+var _standing_refused_count: int = 0
 var _token: int = 0
 var _next_token: int = 1
 var _cold_token: int = 0
@@ -578,8 +587,10 @@ func _allocate() -> void:
 	_occupancy_next.resize(RESIDENT_CAPACITY)
 	_occupancy_cell.resize(3 * RESIDENT_CAPACITY)
 	_occupancy_visit.resize(RESIDENT_CAPACITY)
-	_occupancy_bounds.resize(6 * RESIDENT_CAPACITY)
-	_occupancy_profile.resize(RESIDENT_CAPACITY)
+	# Decision 1951: 12 of the 32 B a row the two removed write-only columns held.
+	_standing_x.resize(RESIDENT_CAPACITY)
+	_standing_refused.resize(RESIDENT_CAPACITY)
+	_standing_key.resize(STANDING_KEYS)
 	_occupancy_heads.fill(-1)
 	_occupancy_next.fill(-1)
 	_occupancy_expected_revision = _transforms.mutation_revision()
@@ -2847,9 +2858,6 @@ func _write_selected_fields(row: int, family: int, room: Vector2i, section: Vect
 	_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row] = _selection.profile_revision
 	_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] = _selection.content_revision
 	_motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row] = _selection.cargo_quantity_milli
-	for axis: int in 6:
-		_occupancy_bounds[axis * RESIDENT_CAPACITY + row] = _candidate_bounds[axis]
-	_occupancy_profile[row] = _selection.profile_revision
 
 
 func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> StringName:
@@ -3893,15 +3901,17 @@ func occupancy_refusal(bounds: PackedInt32Array, except_worker: Vector2i = NULL_
 
 
 func _unregistered_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
-	"""ADR1219: a living Resident with no route row is checked by its reach cube, never treated as empty air."""
+	"""ADR1219: a living Resident with no route row is checked by its reach cube, never treated as empty air.
+	Decision 1951: answered from the standing snapshot while every input it read is unchanged, else by the scan."""
 	_occupancy_remaining -= 16 * RESIDENT_CAPACITY
 	if _occupancy_remaining < 0:
 		return &"ROUTE_OCCUPANCY_QUERY_BUDGET"
+	if _standing_current() or _standing_rebuild():
+		return _standing_query(bounds, except_worker)
 	var low: Vector3i = Vector3i(bounds[0], bounds[1], bounds[2])
 	var high: Vector3i = Vector3i(bounds[3], bounds[4], bounds[5])
 	for row: int in RESIDENT_CAPACITY:
-		if _resident_ref(row) != NULL_REF or (except_worker.x == _residents._ref_slot[row]
-				and except_worker.y == _residents._ref_generation[row] and _residents._present[row] == 1):
+		if _standing_skipped(row, except_worker):
 			continue
 		var code: StringName = unregistered_occupant_refusal(self, row, low, high)
 		if code != &"":
@@ -3909,20 +3919,116 @@ func _unregistered_occupants(bounds: PackedInt32Array, except_worker: Vector2i) 
 	return &""
 
 
-static func unregistered_occupant_refusal(actual: RefCounted, row: int, low: Vector3i, high: Vector3i) -> StringName:
-	"""ADR1219: an absent or dead row occupies nothing; a living unregistered Resident occupies the half-open cube
-	of half-width UNREGISTERED_REACH_U around its own Transform root. A Resident never placed has no known position,
-	so it can never be proved clear. Direct column reads only: no Directory or Transforms observer is dispatched."""
+func _standing_skipped(row: int, except_worker: Vector2i) -> bool:
+	"""A registered row is checked by its route body; the excepted worker's own row is never its own occupant."""
+	return _resident_ref(row) != NULL_REF or (except_worker.x == _residents._ref_slot[row]
+		and except_worker.y == _residents._ref_generation[row] and _residents._present[row] == 1)
+
+
+func _standing_token(index: int) -> int:
+	"""Decision 1951: one input of the standing snapshot: each owner's instance, then its write revision."""
+	match index:
+		0: return _residents.get_instance_id()
+		1: return _residents._needs.get_instance_id()
+		2: return _ids.get_instance_id()
+		3: return _transforms.get_instance_id()
+		4: return _residents.identity_revision()
+		5: return _residents._needs.life_revision()
+		6: return _ids.mutation_revision()
+	return _transforms.mutation_revision()
+
+
+func _standing_current() -> bool:
+	"""The snapshot answers only while every owner it read is the same instance at the same revision."""
+	for index: int in STANDING_KEYS:
+		if _standing_key[index] != _standing_token(index):
+			return false
+	return true
+
+
+func _standing_rebuild() -> bool:
+	"""Read every present row's standing once; false (and no snapshot) while any revision is poisoned (zero)."""
+	_standing_key.fill(0)
+	for index: int in STANDING_KEYS:
+		if _standing_token(index) == 0:
+			return false
+	_standing_x.fill(I64_MAX)
+	_standing_count = 0
+	_standing_refused_count = 0
+	var row: int = _residents._present.find(1)
+	while row >= 0:
+		_standing_add(row)
+		row = _residents._present.find(1, row + 1)
+	_standing_x.sort()
+	for index: int in STANDING_KEYS:
+		_standing_key[index] = _standing_token(index)
+	return true
+
+
+func _standing_add(row: int) -> void:
+	"""File one present row: placed rows by root x, refusals in row order; nothing-rows are left out."""
+	var code: StringName = _unregistered_standing(self, row)
+	if code == STANDING_PLACED:
+		var x: int = _transforms._x[Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row]
+		_standing_x[_standing_count] = (x << 10) | row
+		_standing_count += 1
+	elif code != &"":
+		_standing_refused[_standing_refused_count] = row | (STANDING_REFUSALS.find(code) << 10)
+		_standing_refused_count += 1
+
+
+func _standing_query(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:
+	"""The scan's answer: the first unskipped row in row order that refuses or whose reach cube meets `bounds`.
+	Every placed row answers the same code, so only rows before the first unskipped refusal need be found."""
+	var limit: int = RESIDENT_CAPACITY
+	var code: StringName = &""
+	for index: int in _standing_refused_count:
+		var row: int = _standing_refused[index] & 1023
+		if not _standing_skipped(row, except_worker):
+			limit = row
+			code = STANDING_REFUSALS[_standing_refused[index] >> 10]
+			break
+	var at: int = _standing_x.bsearch((int(bounds[0]) - UNREGISTERED_REACH_U + 1) << 10, true)
+	var end: int = int(bounds[3]) + UNREGISTERED_REACH_U
+	while at < _standing_count and (_standing_x[at] >> 10) < end:
+		var row: int = _standing_x[at] & 1023
+		if row < limit and _standing_reaches(row, bounds) and not _standing_skipped(row, except_worker):
+			return REFUSE_UNREGISTERED_NEAR
+		at += 1
+	return code
+
+
+func _standing_reaches(row: int, bounds: PackedInt32Array) -> bool:
+	"""The y and z halves of the reach-cube test (x is the snapshot's search range)."""
+	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	var y: int = _transforms._y[at]
+	var z: int = _transforms._z[at]
+	return y - UNREGISTERED_REACH_U < bounds[4] and y + UNREGISTERED_REACH_U > bounds[1] \
+		and z - UNREGISTERED_REACH_U < bounds[5] and z + UNREGISTERED_REACH_U > bounds[2]
+
+
+static func _unregistered_standing(actual: RefCounted, row: int) -> StringName:
+	"""ADR1219: an absent or dead row occupies nothing; a Resident never placed has no known position, so it can
+	never be proved clear. Direct column reads only: no Directory or Transforms observer is dispatched."""
 	var residents: Residents = actual._residents
 	if residents._present[row] != 1: return &""
-	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
+	if residents._needs._present[row] != 1: return STANDING_REFUSALS[0]
 	if residents._needs._health[row] <= 0: return &""
 	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
 	if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row or actual._ids._persistent_id[worker.x] <= 0:
-		return &"ROUTE_TURN_ACTOR_STALE"
+		return STANDING_REFUSALS[0]
+	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	if actual._transforms._bound_persistent_id[at] != actual._ids._persistent_id[worker.x]: return STANDING_REFUSALS[1]
+	return STANDING_PLACED
+
+
+static func unregistered_occupant_refusal(actual: RefCounted, row: int, low: Vector3i, high: Vector3i) -> StringName:
+	"""ADR1219: a living unregistered Resident occupies the half-open cube of half-width UNREGISTERED_REACH_U around
+	its own Transform root; its standing (`_unregistered_standing`) decides every other case."""
+	var code: StringName = _unregistered_standing(actual, row)
+	if code != STANDING_PLACED: return code
 	var transforms: Transforms = actual._transforms
 	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
-	if transforms._bound_persistent_id[at] != actual._ids._persistent_id[worker.x]: return &"ROUTE_TURN_ACTOR_UNBOUND"
 	var root: Vector3i = Vector3i(transforms._x[at], transforms._y[at], transforms._z[at])
 	for axis: int in 3:
 		if int(root[axis]) - UNREGISTERED_REACH_U >= high[axis] or int(root[axis]) + UNREGISTERED_REACH_U <= low[axis]:

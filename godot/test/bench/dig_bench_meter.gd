@@ -20,9 +20,9 @@ func add(series: StringName, usec: int) -> void:
 	if not _series.has(series):
 		_series[series] = PackedInt64Array()
 		_order.append(series)
-	var samples: PackedInt64Array = _series[series]
-	samples.append(usec)
-	_series[series] = samples
+	var values: PackedInt64Array = _series[series]
+	values.append(usec)
+	_series[series] = values
 
 
 func samples(series: StringName) -> PackedInt64Array:

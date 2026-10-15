@@ -314,9 +314,12 @@ func test_the_builder_hauls_the_first_brace_inputs_and_the_room_is_dug() -> void
 	_put_pick_down()
 	var code: StringName = &""
 	var armed: bool = false
+	var before: int = builder.stage()
 	for step: int in TICK_BOUND:
 		_h.tick += 1
 		code = foreman.advance(_h.tick)
+		_check_set_off(builder, before)
+		before = builder.stage()
 		if not armed and builder.stage() == Builder.STAGE_TRAVEL and builder.haul_trips() == 2:
 			armed = true
 			assert_true(builder.in_motion(), "still set off after the haul")
@@ -332,6 +335,14 @@ func test_the_builder_hauls_the_first_brace_inputs_and_the_room_is_dug() -> void
 	assert_equal(_h.free_milli(_h.material, &"wood"), 0, "every hauled and added wood unit was used")
 	assert_equal(_h.free_milli(_h.material, &"stone"), 0, "every hauled and added stone unit was used")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
+
+
+func _check_set_off(builder: Builder, before: int) -> void:
+	"""A builder just sent home from its column's end has not set off; a turned or moving one has."""
+	if builder.stage() == Builder.STAGE_RETREAT and before != Builder.STAGE_RETREAT:
+		assert_false(builder.in_motion(), "sent home, not yet set off: the footprint check comes first")
+	if builder.walking_next() and builder._leg_state != Builder.LEG_NONE:
+		assert_true(builder.in_motion(), "a turn or a leg means it has set off")
 
 
 func _after_the_haul() -> void:
@@ -428,6 +439,10 @@ func test_the_claimed_footprint_covers_the_trips() -> void:
 	var offset: Vector3i = Grip.stock_offset(Grip.QUARTER)
 	assert_true(_claimed(builder.claim(), SOURCE_POINT - offset), "R's stand is claimed")
 	assert_true(_claimed(builder.claim(), _h.store_point() - offset), "M's stand is claimed")
+	assert_true(_claimed(builder.claim(), SOURCE_POINT), "the lift's reach to the stock at R")
+	assert_true(_claimed(builder.claim(), Vector3i(SOURCE_POINT.x - 2 * offset.x, 0, Phase.Z + 1536)),
+		"the loaded CARRY span's run, outside every empty walk")
+	assert_false(_claimed(builder.claim(), Vector3i(Phase.X - 3072, 0, Phase.Z - 1536)), "not the whole Corridor")
 
 
 func _claimed(boxes: PackedInt32Array, point: Vector3i) -> bool:
@@ -442,6 +457,13 @@ func test_a_haul_needs_the_locations_and_spatial_containers() -> void:
 	"""Without the Locations the hauler reads the builder refuses its scope; a staging container with no endpoint
 	has no stand (the hauler's own word). Either way the opened BRACE is cancelled."""
 	if _room == NULL_REF: return
+	var foreign: Builder.Owners = _h.haul_owners()
+	foreign.locations = Locations.new()
+	var stray: Foreman = Foreman.new()
+	var members: Array[Builder.Crew] = [_h.store_member()]
+	assert_equal(stray.configure(foreign, _room, _h.material, _h.material, _h.staging, members), &"", "configured")
+	_h.tick += 1
+	assert_equal(stray.advance(_h.tick), Builder.REFUSE_SCOPE, "Locations other than the binding's")
 	var owners: Builder.Owners = _h.haul_owners()
 	owners.locations = null
 	var foreman: Foreman = Foreman.new()
@@ -511,3 +533,21 @@ func test_the_staging_container_cannot_be_the_storage() -> void:
 	var crew: Array[Builder.Crew] = [_h.store_member()]
 	assert_equal(Foreman.new().configure(_h.haul_owners(), _room, _h.material, _h.material, _h.material, crew),
 		Foreman.REFUSE_SCOPE, "staging is storage")
+
+
+func test_the_haul_starts_only_between_the_endpoints_it_was_planned_for() -> void:
+	"""Negative-only: endpoints changed between planning and the first trip are re-proved; a staging container moved
+	to another level is the stair-carry gap, one moved on the same level is a moved target."""
+	if _room == NULL_REF: return
+	var builder: Builder = _set_off(_foreman(_h.staging))
+	builder._ctx.staging = _h.lower_staging()
+	_h.tick += 1
+	assert_equal(builder.advance(_h.tick), Builder.REFUSE_STAIR, "re-proved on the level")
+	_h.after_each()
+	assert_true(_h.failures.is_empty(), "first fixture: %s" % _h.failures)
+	_h = HaulKitchen.new()
+	_room = _h.haul_room()
+	builder = _set_off(_foreman(_h.staging))
+	builder._ctx.staging = _h._inventory.create_spatial_ground_staging(_h._first).ref
+	_h.tick += 1
+	assert_equal(builder.advance(_h.tick), Builder.REFUSE_TARGET, "another container on the same level")

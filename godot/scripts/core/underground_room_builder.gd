@@ -683,7 +683,6 @@ func _end_travel(tick: int) -> StringName:
 	if _stage == STAGE_TO_STORE: return _start_haul(tick)
 	if _stage == STAGE_RETREAT:
 		_index = -1
-		_departed = false
 		_foot.clear_claim()
 		_foot.stand(_point(_crew.parking), _ctx.forward)
 		_set_stage(STAGE_IDLE)
@@ -871,7 +870,7 @@ func abandon() -> StringName:
 	var dropped: StringName = _drop_haul() # A refused haul release is reported, but the phase is still released.
 	if _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return dropped
 	var released: Construction.OpResult = o.sites.release_worker(_site)
-	if _phase_started(): return dropped if dropped != &"" or released.ok else released.error
+	if _phase_started(): return &"" if released.ok else released.error # Never while hauling (BRACE is unstarted).
 	if not released.ok: # Sites releases a Job nobody holds as already free (TO_STORE, or a haul's own Job).
 		var code: StringName = _release_assignment(released.error)
 		if code != &"": return dropped if dropped != &"" else code

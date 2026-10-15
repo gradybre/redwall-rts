@@ -79,8 +79,8 @@ Feature numbers (#9, #18 …) are Brendan's feature-list numbers of 2026-10-01; 
 | [MEAL-CALLAWAY](#meal-callaway) | Fishery, forage and ferry workers called away keep their jobs (1900's follow-up) | demo | unnumbered |
 | [FINAL-PASS](#final-pass) | The full review and playtest pass | all | 1541–1550 |
 | [WIN-PERF](#win-perf) | The Windows performance test (GTX 1660 tiers) | all | 1551–1560 |
-| [MOUND-POC](#mound-poc) | Mound homes in the demo: a proof of concept (decision 2001; waits on P-2001-11) | demo | 2002–2009 |
-| [MOUND-TERRAIN](#mound-terrain) | Ground heights: the amendment and its data (decision 2001; waits on P-2001-1) | settlement docs + data | 2010–2014 |
+| [MOUND-POC](#mound-poc) | Mound homes in the demo: a proof of concept (decision 2001; approved, P-2001-11 (a)) | demo | 2002–2009 |
+| [MOUND-TERRAIN](#mound-terrain) | Finer ground heights, slopes for walkers and haulers, and the data (decision 2001; P-2001-1 (b) ruled; step P-2001-15 open) | settlement docs + data + movement | 2010–2014 |
 | [MOUND-REAL](#mound-real) | Mound homes in the game (decision 2001; after MOUND-TERRAIN, C3, D, E, G) | settlement | 2015–2019 |
 
 Four in-flight branches are not packets here, because they are built and only need landing (STATUS.md §2): batch 8
@@ -1459,8 +1459,10 @@ edges. The rules are [SET-BUILD-001 §12](../building_model_amendment.md#12-moun
 (BUILD-MOUND-001–031), and the slice is **M** in the
 [Evil Genius 2 study §5](../design/underground-planning/evil-genius-2-building-study.md#5-the-plan-proposal).
 
-"Into the plan" approves the design. **Each packet below still needs Brendan's go-ahead**, through the decision 2001
-question it names. Read first, for every packet in this part:
+"Into the plan" approves the design. Brendan then ruled P-2001-1 to P-2001-14 the same day: **"Finer heights"**
+(P-2001-1 (b)), **"Wall's top metre"** (P-2001-6 (a)), **"Our own, oak default"** (P-2001-8 (a)), and **"Approve
+all"** for the rest (decision 2001, "Brendan's rulings"; RULINGS.md). MOUND-POC is approved to build. The
+ground-height step (P-2001-15) is still open. Read first, for every packet in this part:
 
 - decision 2001 (the rulings, what is open, the mockups' illustrative values and where they break adopted rules);
 - SET-BUILD-001 §12, and §3, §7.2, §9 and §10;
@@ -1470,8 +1472,8 @@ question it names. Read first, for every packet in this part:
 <a id="mound-poc"></a>
 ## MOUND-POC — Mound homes in the demo: a proof of concept
 
-- **Approval:** the design, 2026-10-15 ("This looks good, let's build this into the plan", decision 2001). **Building
-  it waits on P-2001-11 (a)**, a proof of concept first, free and unsaved, as decision 1912's was.
+- **Approval:** the design, 2026-10-15 ("This looks good, let's build this into the plan", decision 2001), and
+  **P-2001-11 (a), "Approve all"**: a proof of concept first, free and unsaved, as decision 1912's was.
 - **Scope:** decision 2001's proof of concept, in `godot/demo/` and `godot/scripts/ui/`, touching no core owner.
   - **Paint.** On the Surface, the Rooms tab offers the Mound style with any room type. The Surface stays locked
     for built rooms (slice G).
@@ -1492,9 +1494,15 @@ question it names. Read first, for every packet in this part:
 - **Read first:** decisions 1912 (the proof of concept's rulings and what it knowingly bypasses), 1913 (the earth
   view), 1914 (rounded walls: the field over cells, E1; never hide a cell), 1921 (doors and partitions as edge
   items, E3), 1971 (the claw stroke; the proof of concept does not use it).
-- **Depends on:** Brendan's P-2001-11 (a). Nothing else to merge: the painted-room proof of concept is on master.
-  Rule on P-2001-2 (name), -5 (yard), -6 (window height) and -8 (door colour) first, or build the recommended options
-  so that a different ruling is a small change.
+- **Depends on:** nothing to merge: the painted-room proof of concept is on master. Build the ruled values:
+  - the name "Mound";
+  - a 1 m cover;
+  - a 3-cell berm whose first cell stands to the wall's top;
+  - a 6-cell yard;
+  - windows at the wall's top metre;
+  - our own door design with an oak default.
+
+  The hill is drawn over the unchanged ground, so the open step (P-2001-15) does not block it.
 - **Files:**
   - `godot/scripts/ui/`: `build_catalog.gd` (the style, the Surface unlocked for Mound only), `build_panel.gd`,
     `build_cell_validity.gd` (the Mound rules and words), `build_furniture.gd` (the window as a 1-edge item, doors on
@@ -1519,59 +1527,75 @@ question it names. Read first, for every packet in this part:
 - **Pitfalls:**
   - The mockup's room is 3 m deep, two of its links are one cell wide, and its heap smooth-mins whole room boxes.
     Use the adopted height, the 2 × 2 rule and a field over cells (decision 1914 E1).
-  - A window at a fixed height and a window close to the wall pull apart at a 4 m room height (decision 2001
-    P-2001-6).
+  - The window goes at the wall's top metre (P-2001-6 (a)), on the slope just past the first cell, which stands to
+    the wall's top. Do not copy the mockup's 2.2 m.
   - Do not invent costs: the ledger shows the bill as information only, as in 1912.
   - **The outside door's walk cells.** Decision 1921 E3 asks for dug floor on both sides of a door. A Mound's
     outside door has its yard on one side. Count the yard's ground cells as walk cells (P-2001-13 item 11), and do
     not loosen the rule for underground doors.
   - The mockup's window lies 0.95 m from its wall, not 0.5 m (decision 2001 §5).
-- **Open:** P-2001-2, -4, -5, -6, -8, -11, -13.
+- **Open:** none for the proof of concept (P-2001-15 does not touch it).
 
 <a id="mound-terrain"></a>
-## MOUND-TERRAIN — Ground heights: the amendment and its data
+## MOUND-TERRAIN — Finer ground heights, slopes for walkers and haulers, and the data
 
-- **Approval:** the design, 2026-10-15 (decision 2001). **The amendment waits on P-2001-1**, which recommends
-  stepped whole-metre heights drawn smooth.
-- **Scope:** the main prerequisite for every real Mound and for natural hills.
+- **Approval:** P-2001-1 (b), **"Finer heights"** (Brendan, 2026-10-15; decision 2001, "Brendan's rulings";
+  DEC-061's addendum). Ground heights finer than a metre, real slopes, and walkers and haulers must handle them.
+  **The step size is not ruled:** P-2001-15 recommends 128 u (1/8 m), with 256 u and 1 u as the options.
+- **Scope:** the main prerequisite for every real Mound and for the estuary preset's authored hills (P-2001-9 (b)).
   - **The amendment.** Amend GDD §5.1's three fixed surface heights (land 512 u, ford −128 u, water 0) so that land
-    has a height per 1 m cell. Under (a), a cell's ground is the top of its highest solid quantum, on the excavation
-    lattice (1,024 u) above the datum. Water and the ford keep theirs.
-  - **Rules that read ground.** Restate REQ-SET-122's slope (≤ 8°) and height-spread (≤ 0.5 m) rules on real
-    heights, and BUILD-REQ-009, which restates them. Add the MOVE-G01 inputs for walking steps (P-2001-7) and the MOVE-G02 memory row for a height per cell
-    (256 × 256 surface cells).
+    has an integer height per 1 m cell, in the step P-2001-15 sets. Water and the ford keep theirs. Restate
+    REQ-SET-122's slope (≤ 8°) and height-spread (≤ 0.5 m) rules on real heights, and BUILD-REQ-009, which restates
+    them.
+  - **Part-filled quanta.** With sub-metre ground, a column of earth can end part-way through a 1 m³ cut quantum.
+    State how such a quantum is braced, cut, priced and counted under ECON-002–005, and how the Mound's 1 m cover and
+    3-cell berm (P-2001-4, ruled in intent) map onto the step.
+  - **Movement on slopes.** Walkers and haulers must handle real slopes. This opens work against SET-MOVE-001's gates
+    (`docs/movement_direction_amendment.md`, which notes it):
+    - **MOVE-G01:** traversal profiles on slopes (limits by species, load and mode);
+    - **MOVE-G02:** the height table's bytes over 256 × 256 surface cells, and route costs on slopes;
+    - **MOVE-G03:** picking and ghosts on sloped ground;
+    - **MOVE-G04:** walking and carrying clips on slopes;
+    - **MOVE-G05:** slope fixtures and evidence.
+
+    No slope limit is invented: each is proposed with its source, for Brendan.
   - **The data.** Its owner and saved form, with `world_init.gd elevation_y_units_of` and the estuary base matter
     (`underground_terrain.gd`, decision 1082) reading it. The smooth drawing is presentation only.
-  - **Natural hills** in the estuary preset follow, if Brendan rules P-2001-9.
-- **Read first:** GDD §5.1 and REQ-SET-122; `docs/movement_direction_amendment.md` (MOVE-G01/G02);
-  `docs/underground_economy_hazard_amendment.md` (ECON-002–005: solid, cut and embedded earth);
+  - **Hills.** A few hills authored into the estuary preset (P-2001-9 (b)), after the amendment.
+- **Read first:** GDD §5.1 and REQ-SET-122; `docs/movement_direction_amendment.md` (MOVE-G01–G05, the readiness
+  register); `docs/underground_economy_hazard_amendment.md` (ECON-002–005: solid, cut and embedded earth);
   `godot/data/underground/initial_level_pack.json` (datum and domain: quantum −32 for 48 quanta);
-  `docs/systems_architecture.md` §2–3; decision 1082.
-- **Depends on:** Brendan's P-2001-1. Docs and data first; code after its own approval.
+  `docs/systems_architecture.md` §2–3; decision 1082; ADR 1209 (the qualified 128 u tread rise).
+- **Depends on:** Brendan's P-2001-15 (the step). Docs and data first; code after its own approval. The movement
+  half needs the traversal-profile work MOVE-G01 already lists as open, and it may be split into its own lane.
 - **Files:** `docs/game_gdd.md` §5.1 (or a terrain amendment beside SET-BUILD-001), `docs/movement_direction_amendment.md`,
-  `docs/systems_architecture.md`, `docs/validation/ready07_arithmetic.py` and the registry (the new bytes);
-  then `godot/scripts/core/world_init.gd`, `underground_terrain.gd` and their tests. Conflicts: any packet on
-  `world_init.gd` or the memory ledger.
+  `docs/underground_economy_hazard_amendment.md` (part-filled quanta), `docs/systems_architecture.md`,
+  `docs/validation/ready07_arithmetic.py` and the registry (the new bytes); then `godot/scripts/core/world_init.gd`,
+  `underground_terrain.gd`, the movement owners, and their tests. Conflicts: any packet on `world_init.gd`, the
+  movement owners or the memory ledger.
 - **Decisions:** 2010–2014.
 - **Acceptance:**
   - the amendment adopted, with every requirement that reads ground listed and restated;
+  - the part-filled-quantum rule stated, with its arithmetic;
+  - each MOVE-G slope input listed with its owner and status;
   - the memory row in the ledger, and `ready07_arithmetic.py` and `merge_gate.py` passing;
-  - if code is approved: the flat estuary gives the same heights as today (a test), and a raised cell reads its
-    height everywhere ground is read;
+  - if code is approved: the flat estuary gives the same heights as today (a test), a raised cell reads its height
+    everywhere ground is read, and walkers and haulers cross a test slope within its profile;
   - the gates.
-- **Art:** none.
+- **Art:** none for the data. Walking and carrying on slopes may need clip work (MOVE-G04).
 - **Pitfalls:**
-  - Float is presentation only: heights are integer quanta.
+  - Heights are integers in the ruled step; float is presentation only.
   - The drawn smoothing must never decide a placement or a route.
   - The excavation domain reaches 16 quanta above the datum (`underground_terrain.gd` `TOP_U`). Nothing may be
     heaped above it.
-- **Open:** P-2001-1, -7, -9.
+  - The ford's −128 u must stay expressible in the step.
+- **Open:** P-2001-15.
 
 <a id="mound-real"></a>
 ## MOUND-REAL — Mound homes in the game
 
-- **Approval:** the design, 2026-10-15 (decision 2001; DEC-061's 2026-10-15 addendum). Its values wait on P-2001-3
-  (earth and price), -4 (cover and berm), -5, -6, -7, -8, -10, -12, -13 and -14 (the build order's mapping).
+- **Approval:** the design, 2026-10-15 (decision 2001; DEC-061's 2026-10-15 addendum), with P-2001-2 to P-2001-14
+  ruled the same day. The exact berm profile follows MOUND-TERRAIN's step (P-2001-15).
 - **Scope:** BUILD-MOUND-001–031 in the settlement game.
   - **The heap.** A heap earthwork job: earth hauled and tamped into the ground data, with ECON-002/004's
     compaction and tip rows as the precedent, and each heaped quantum recorded so that cutting it returns its earth
@@ -1604,7 +1628,7 @@ question it names. Read first, for every packet in this part:
     door's yard is that open space: with the berm in place, it is the only wall face open at floor level, so the
     mole digs from there.
   - **The cover is the rooms' roof.** Nothing may dig it.
-- **Open:** P-2001-3 to -8, -10, -12 to -14.
+- **Open:** P-2001-15 (through MOUND-TERRAIN).
 
 # Deferred: do not build without asking
 

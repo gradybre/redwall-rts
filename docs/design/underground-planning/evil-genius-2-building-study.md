@@ -212,12 +212,13 @@ hill is heaped to fit the painted rooms (heap → dig → frame → top), every 
 as rooms are added, and the player places doors (2 cell edges, with a small yard and built front) and windows (1 edge,
 flush on the turf slope) on the rooms' outer edges. A Way down in a Mound room leads to level 1. Three parts:
 
-- **M0 — MOUND-TERRAIN.** The ground-heights amendment and its data: GDD §5.1's three fixed surface heights become
-  a height per cell (decision 2001 P-2001-1 recommends whole-metre steps on the excavation lattice, drawn smooth), with
-  REQ-SET-122 and the MOVE-G01/G02 rows that read ground. Docs and data first; it is the main prerequisite.
+- **M0 — MOUND-TERRAIN.** The ground-heights amendment and its data. GDD §5.1's three fixed surface heights become a
+  height per cell, finer than a metre: Brendan ruled "Finer heights" (decision 2001 P-2001-1 (b)), and the step is
+  P-2001-15. Walkers and haulers must handle real slopes, which opens movement work against MOVE-G01–G05. It also
+  covers REQ-SET-122 and how part-filled cut quanta are dug. Docs and data first; it is the main prerequisite.
 - **M1 — MOUND-POC.** A proof of concept in the demo, which can come first, like decision 1912's: paint Mound rooms on
   the Surface, a resident heaps, digs and tops them, doors and windows go on outer edges, the hill grows, a hatch leads
-  to level 1. Drawn over the unchanged ground, free and unsaved (P-2001-11).
+  to level 1. Drawn over the unchanged ground, free and unsaved. Approved (P-2001-11 (a)).
 - **M2 — MOUND-REAL.** The real pipeline: a heap earthwork job (haul and tamp earth, P-2001-3), the rooms dug by the
   room foreman and the claw stroke, the brace drawn as the frame, the cover topped up, the door, window and way-down
   items, and the hill written into the ground data.
@@ -234,7 +235,7 @@ flush on the turf slope) on the rooms' outer edges. A Way down in a Mound room l
 | F | C, E | DIG packet backfill (ECON-005); demolition D-series review (DEMO-CONTAIN-R01); room merging is ruled (OPEN-06) |
 | G | B, E, F | Authoring the nine key items' geometry from the 4 × 4 placeholder (OPEN-02 (a)); catalog fingerprint for RoomType 8–16 and items 9–17, 18-bit furniture mask and older-save refusal (ARCH-BUILD-001 obligation 2, moved from B); container owner for painted stores and `base_store_g` key items (obligation 4, moved from B); BAL §8 reruns (costs, classification, services and upgrades are ruled: OPEN-01, -03, -04, -08) |
 | H | B–G | — |
-| M | B, C (C3: real digging), D (doors and the way down as items; the entrance family), E (edge items, including the window), G (Surface rooms), H (polish) | **M0** the ground-heights amendment (decision 2001 P-2001-1; GDD §5.1, REQ-SET-122, MOVE-G01/G02 rows) blocks every real Mound; the heap earthwork job, haul and tamp (P-2001-3; ECON-002/004's compaction and tip rows as precedent); the window item's bill, art and catalog entry (P-2001-13). **M1**, the proof of concept, needs none of these: only the merged painted-room proof of concept (decisions 1912, 1913, 1914, 1921) and Brendan's P-2001-11. **M2** needs M0 and every slice listed |
+| M | B, C (C3: real digging), D (doors and the way down as items; the entrance family), E (edge items, including the window), G (Surface rooms), H (polish) | **M0** the finer ground-heights amendment (decision 2001 P-2001-1 (b); step P-2001-15; GDD §5.1, REQ-SET-122, movement on slopes against MOVE-G01–G05) blocks every real Mound; the heap earthwork job, haul and tamp (P-2001-3; ECON-002/004's compaction and tip rows as precedent); the window item's bill, art and catalog entry (P-2001-13 item 6). **M1**, the proof of concept, needs none of these: only the merged painted-room proof of concept (decisions 1912, 1913, 1914, 1921) and Brendan's P-2001-11 (a), ruled. **M2** needs M0 and every slice listed |
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Amended 2026-10-11 by [DEC-061](../../setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible) and [SET-BUILD-001](../../building_model_amendment.md).** The level count and spacing are now adopted (surface plus four underground levels, 5 m apart), and every connection family is a placed **item** with a ✓ / ! / X ghost and a “Connects to level N” card (SET-BUILD-001 §9), placed on a painted Passage or, for the entrance, on the surface. Statements below that leave the level count or spacing open are superseded; the approved families and clearance rules stand.
 
-**Amended 2026-10-15 by [decision 2001](../../decisions/2001-mound-homes.md) (SET-BUILD-001 §12, Mound homes).** Doors are edge items placed by the player between rooms and passages, never generated (BUILD-MOUND-019). A Way down placed in a Surface Mound room leads to level 1 like any Surface entrance (BUILD-MOUND-021). Windows underground only where a mound or hill face lies beyond the wall is a proposal (decision 2001 P-2001-13 item 12). D12's timing for underground room doors is unchanged.
+**Amended 2026-10-15 by [decision 2001](../../decisions/2001-mound-homes.md) (SET-BUILD-001 §12, Mound homes).** Doors are edge items placed by the player between rooms and passages, never generated (BUILD-MOUND-019). A Way down placed in a Surface Mound room leads to level 1 like any Surface entrance (BUILD-MOUND-021). A window goes underground only where a mound or hill face lies beyond the wall (BUILD-MOUND-020, ruled 2026-10-15). D12's timing for underground room doors is unchanged.
 
 2026-10-02. The user requires multiple underground levels and setting-appropriate
 ways to move between them, without a connection overlapping a wall, furnishing

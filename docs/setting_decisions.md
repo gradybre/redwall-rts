@@ -1662,10 +1662,18 @@ quoted in decision 2001 as W1–W14.
   SET-BUILD-001 §12 (BUILD-MOUND-001 onward) holds the rules.
 - **Reference images.** Brendan supplied four Bag End images: "These should be your inspirations". They are not in
   the repository and their provenance is unknown. DEC-010's provenance boundary (no copied film designs) and DEC-036's
-  provenance record still apply. Whether the approved door front reads as inspiration or as copying is decision 2001
-  P-2001-8.
-- **Not ruled.** Decision 2001's questions P-2001-1 to P-2001-14 are open. Among them: the ground-heights change to
-  GDD §5.1, the name, the earth source and price, cover and berm, the yard, the window height, and walking on the
-  mound.
+  provenance record still apply.
+- **His rulings on decision 2001, the same day.**
+  - **P-2001-1: "Finer heights"** (not the recommendation). Ground heights are finer than a metre and slopes are
+    real slopes. Walkers and haulers must handle them, which opens movement work against SET-MOVE-001's gates. GDD
+    §5.1's three fixed surface heights are to be amended (MOUND-TERRAIN).
+  - **P-2001-6: "Wall's top metre".** A window lies on the slope at the height of its wall's top metre.
+  - **P-2001-8: "Our own, oak default".** The approved door front is read as general burrow-home inspiration within
+    DEC-010's boundary: our own design, no centre knob, oak by default, green still a choice.
+  - **"Approve all"** for the rest, as recommended: P-2001-2–5, -7, -9–14. That covers the name "Mound", spoil as the
+    heap's earth, a 1 m cover and a 3-cell berm, a 6-cell yard, no walking on the mound at first, hills authored into
+    the estuary preset, daylight as presentation, a free proof of concept first, removal that backfills and keeps
+    the hill, the thirteen smaller rules, and the build order as the mockup shows it.
+  - **Still open:** the ground-height step (P-2001-15).
 
 Engineering record: [decision2001](decisions/2001-mound-homes.md).

@@ -2,7 +2,7 @@
 
 **Amended 2026-10-11 by [DEC-061](../../setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible) and [SET-BUILD-001](../../building_model_amendment.md).** Furniture now sits on the same 1 m cell grid as the painted room, and every piece has authored **access tiles** and an optional **wall-behind** rule (SET-BUILD-001 §6), shown on its ghost. The Furnish tab lists only what the chosen room type allows. Removal returns 50% through an explicit review, never a silent sale.
 
-**Amended 2026-10-15 by [decision 2001](../../decisions/2001-mound-homes.md) (SET-BUILD-001 §12, Mound homes).** Doors (2 cell edges) and windows (1 cell edge) are edge items the player places, never generated: on a Surface Mound room's outer edges, and underground (doors) between rooms and passages. Dressing never blocks a window. Where windows may go underground is a proposal (decision 2001 P-2001-13 item 12).
+**Amended 2026-10-15 by [decision 2001](../../decisions/2001-mound-homes.md) (SET-BUILD-001 §12, Mound homes).** Doors (2 cell edges) and windows (1 cell edge) are edge items the player places, never generated: on a Surface Mound room's outer edges, and underground (doors) between rooms and passages. Dressing never blocks a window. Underground, a window goes only where a mound or hill face lies beyond the wall (BUILD-MOUND-020).
 
 2026-10-02. D09 is approved as player-facing design direction: the player
 places and rotates compatible furniture on a grid, with footprint and access

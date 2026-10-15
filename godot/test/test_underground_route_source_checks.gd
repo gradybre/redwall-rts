@@ -130,9 +130,10 @@ func _set_row(profile: int, revision: int, content: int, phase: int, clock: int)
 	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY] = clock
 
 
-func _assert_clocks_match(label: String) -> void:
-	"""Rows past their automatic-policy checks give the old answer for every word and clock."""
+func _assert_clocks_match(label: String) -> int:
+	"""Rows past their automatic-policy checks give the old answer for every word and clock; returns how many passed."""
 	var live: int = _profiles.content_revision()
+	var passed: int = 0
 	var clocks: PackedInt64Array = PackedInt64Array([0, -1, SourceProgram.clock(0, 0), SourceProgram.clock(65536, 0),
 		SourceProgram.clock(3 * 65536, 65536)])
 	for profile: int in range(0, _profiles._live.header[1] + 1):
@@ -141,16 +142,19 @@ func _assert_clocks_match(label: String) -> void:
 			if (phase >= Routes.PHASE_IDLE and phase <= Routes.PHASE_HELD) or policy == Profiles.POLICY_AUTOMATIC: continue
 			for clock: int in clocks:
 				_set_row(profile, 1, live, phase, clock)
-				assert_equal(Routes._source_clock_leaf(_routes, 0), _oracle_clock(0), "%s: row %d word %d clock %d" % [
+				var expected: StringName = _oracle_clock(0)
+				passed += 1 if expected == &"" else 0
+				assert_equal(Routes._source_clock_leaf(_routes, 0), expected, "%s: row %d word %d clock %d" % [
 					label, profile, phase, clock])
+	return passed
 
 
 func test_the_clock_check_equals_the_pre_1951_code_with_the_closure_whole_or_broken() -> void:
 	"""Owned rows, step rows and parent-program rows all answer as before, whole or broken."""
 	if not _fixture(): return
-	_assert_clocks_match("whole")
+	assert_true(_assert_clocks_match("whole") > 0, "some step-program clocks pass, so the pass path is compared")
 	_profiles._live.sources[32] ^= 1 # Negative-only, restored below.
-	_assert_clocks_match("broken")
+	assert_true(_assert_clocks_match("broken") >= 0, "the broken closure compared")
 	_profiles._live.sources[32] ^= 1
 
 
@@ -166,4 +170,4 @@ func test_mounted_claw_stair_and_handling_rows_answer_as_before() -> void:
 			owned += 1
 	assert_true(owned > 0, "content 10 has owned rows: %d" % owned)
 	_assert_profiles_match("mounted")
-	_assert_clocks_match("mounted")
+	assert_true(_assert_clocks_match("mounted") > 0, "some owned-program clocks pass")

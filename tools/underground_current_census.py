@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "4e77e557e278647d693c84cd3f070c5e36db5efb6a5d0222982bb0f37125211f"
+REVIEWED_SHA = "5daa4b39610a496f9fdf63018f1cef16091da6ffb5eb35b995362ce05e278f24"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.

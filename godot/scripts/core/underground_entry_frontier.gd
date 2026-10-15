@@ -300,18 +300,10 @@ static func _digest_ranges(own: PackedByteArray, sources: PackedByteArray, sourc
 static func _digest_words_match(assemblies: PackedByteArray, recipes: PackedByteArray, own: PackedByteArray,
 		sources: PackedByteArray, source: int) -> bool:
 	"""The byte loop's seven 32-byte equalities, each read as four 64-bit words without allocating."""
-	return _same_words(assemblies, 0, own, 64) and _same_words(recipes, 0, own, 96) \
-		and _same_words(assemblies, 32, own, 32) and _same_words(recipes, 32, own, 32) \
-		and _same_words(assemblies, 64, own, 96) and _same_words(recipes, 64, own, 64) \
-		and _same_words(sources, source, own, 128)
-
-
-static func _same_words(a: PackedByteArray, a_at: int, b: PackedByteArray, b_at: int) -> bool:
-	"""Thirty-two bytes equal, compared as four little-endian 64-bit words; both ranges are known to exist."""
-	for word: int in 4:
-		if a.decode_u64(a_at + 8 * word) != b.decode_u64(b_at + 8 * word):
-			return false
-	return true
+	return SourceFacts._same_words(assemblies, 0, own, 64) and SourceFacts._same_words(recipes, 0, own, 96) \
+		and SourceFacts._same_words(assemblies, 32, own, 32) and SourceFacts._same_words(recipes, 32, own, 32) \
+		and SourceFacts._same_words(assemblies, 64, own, 96) and SourceFacts._same_words(recipes, 64, own, 64) \
+		and SourceFacts._same_words(sources, source, own, 128)
 
 
 func _semantic_refusal() -> StringName:

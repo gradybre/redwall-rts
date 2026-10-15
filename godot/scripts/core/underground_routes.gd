@@ -2369,21 +2369,35 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 		return &"" if policy <= Profiles.POLICY_AUTOMATIC else &"ROUTE_SOURCE_CLOCK"
 	if policy == Profiles.POLICY_AUTOMATIC:
 		return &"ROUTE_SOURCE_CLOCK"
-	if Handling.is_handling(profile, content) or Stair.owns(actual._profiles, profile) \
-			or Claw2.owns(actual._profiles, profile) or Claw.owns(actual._profiles, profile):
-		return _owned_clock_leaf(actual, row, phase, profile, profile_revision, content)
+	var owner: int = _source_owner(actual._profiles, profile, content)
+	if owner >= 0:
+		return _owned_clock_leaf(actual, row, phase, profile, profile_revision, content, owner)
 	return _program_clock_leaf(actual, row, phase, profile, profile_revision, content)
 
 
+static func _source_owner(profiles: Profiles, profile: int, content: int) -> int:
+	"""Decision 1951: the program that owns a row, in `_source_profile_refusal`'s order: 0 handling, 1 stair, 2 claw
+	v2, 3 claw v1, -1 none (the step or the parent program)."""
+	if Handling.is_handling(profile, content): return 0
+	if Stair.owns(profiles, profile): return 1
+	if Claw2.owns(profiles, profile): return 2
+	return 3 if Claw.owns(profiles, profile) else -1
+
+
 static func _owned_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int, profile_revision: int,
-		content: int) -> StringName:
-	"""Handling, stair and claw rows: their own source proof, then their own clock, in the original order."""
-	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
+		content: int, owner: int) -> StringName:
+	"""Handling, stair and claw rows: their owner's source proof, then its clock, as `_source_profile_refusal` and the
+	clock dispatch chose them before (the owner is read once)."""
+	var profiles: Profiles = actual._profiles
+	var code: StringName = Handling.profile_refusal(profiles, profile, profile_revision, content) if owner == 0 \
+		else Stair.profile_refusal(profiles, profile, profile_revision, content) if owner == 1 \
+		else Claw2.profile_refusal(profiles, profile, profile_revision, content) if owner == 2 \
+		else Claw.profile_refusal(profiles, profile, profile_revision, content)
 	if code != &"": return code
 	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
-	if Handling.is_handling(profile, content): return Handling.clock_refusal(phase, clock, profile, content)
-	if Stair.owns(actual._profiles, profile): return _stair_clock_leaf(actual, row, phase, profile)
-	if Claw2.owns(actual._profiles, profile): return Claw2.clock_refusal(phase, clock, profile)
+	if owner == 0: return Handling.clock_refusal(phase, clock, profile, content)
+	if owner == 1: return _stair_clock_leaf(actual, row, phase, profile)
+	if owner == 2: return Claw2.clock_refusal(phase, clock, profile)
 	return Claw.clock_refusal(phase, clock, profile)
 
 
@@ -3998,7 +4012,9 @@ func _standing_add(row: int) -> void:
 		_standing_x[_standing_count] = (x << 10) | row
 		_standing_count += 1
 	elif code != &"":
-		_standing_refused[_standing_refused_count] = row | (STANDING_REFUSALS.find(code) << 10)
+		var index: int = STANDING_REFUSALS.find(code)
+		assert(index >= 0, "a standing refusal is one of STANDING_REFUSALS")
+		_standing_refused[_standing_refused_count] = row | (index << 10)
 		_standing_refused_count += 1
 
 

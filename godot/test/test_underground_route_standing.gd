@@ -71,8 +71,7 @@ func _oracle_row(row: int, low: Vector3i, high: Vector3i) -> StringName:
 	if _residents._needs._health[row] <= 0: return &""
 	var worker: Vector2i = Vector2i(_residents._ref_slot[row], _residents._ref_generation[row])
 	var ids: Directory = _residents.directory()
-	if not ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) or ids.get_typed_row(worker) != row \
-			or ids._persistent_id[worker.x] <= 0:
+	if Routes._turn_directory_row(_routes, worker, Directory.KIND_RESIDENT) != row or ids._persistent_id[worker.x] <= 0:
 		return &"ROUTE_TURN_ACTOR_STALE"
 	var at: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
 	if _transforms._bound_persistent_id[at] != ids._persistent_id[worker.x]: return &"ROUTE_TURN_ACTOR_UNBOUND"
@@ -180,8 +179,10 @@ func test_a_query_reuses_the_snapshot_until_an_input_revision_moves() -> void:
 	assert_equal(key[5], _residents.needs().life_revision(), "keyed on the Needs revision")
 	assert_equal(key[6], _residents.directory().mutation_revision(), "keyed on the Directory revision")
 	assert_equal(key[7], _transforms.mutation_revision(), "keyed on the Transforms revision")
+	_routes._standing_x[Routes.RESIDENT_CAPACITY - 1] = 12345 # A marker a rebuild would overwrite with INT64_MAX.
 	_query(_box(5, 5, 10), NULL_REF)
-	assert_equal(_routes._standing_key, key, "an unchanged world does not rebuild")
+	assert_equal(_routes._standing_x[Routes.RESIDENT_CAPACITY - 1], 12345, "an unchanged world does not rebuild")
+	assert_equal(_routes._standing_key, key, "and keeps its key")
 	_transforms.place(_refs[0], 1, 0, 1, 0)
 	assert_false(_routes._standing_current(), "a pose write invalidates")
 	_query(_box(0, 0, 10), NULL_REF)

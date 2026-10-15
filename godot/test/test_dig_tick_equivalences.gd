@@ -83,19 +83,17 @@ func _random(size: int) -> PackedByteArray:
 
 
 func test_word_comparison_equals_the_byte_loop_at_every_differing_byte() -> void:
-	"""Equal ranges match; a change at any one of the 32 bytes (any offset, any value) does not, in both copies."""
+	"""Equal ranges match; a change at any one of the 32 bytes (any offset, any value) does not."""
 	var a: PackedByteArray = _random(160)
 	for offsets: Vector2i in [Vector2i(0, 64), Vector2i(32, 32), Vector2i(64, 128), Vector2i(7, 100)]:
 		var b: PackedByteArray = _random(160)
 		for index: int in 32: b[offsets.y + index] = a[offsets.x + index]
-		assert_true(Frontier._same_words(a, offsets.x, b, offsets.y), "frontier: equal %s" % offsets)
 		assert_true(SourceFacts._same_words(a, offsets.x, b, offsets.y), "facts: equal %s" % offsets)
 		for index: int in 32:
 			var saved: int = b[offsets.y + index]
 			b[offsets.y + index] = (saved + 1 + _rng.randi_range(0, 253)) % 256
 			var expected: bool = _bytes_equal(a, offsets.x, b, offsets.y)
 			assert_false(expected, "the byte loop sees byte %d" % index)
-			assert_equal(Frontier._same_words(a, offsets.x, b, offsets.y), expected, "frontier byte %d" % index)
 			assert_equal(SourceFacts._same_words(a, offsets.x, b, offsets.y), expected, "facts byte %d" % index)
 			b[offsets.y + index] = saved
 
@@ -170,7 +168,8 @@ func test_the_catalog_digest_match_equals_its_byte_loop() -> void:
 				"array %d byte %d" % [which, index])
 			array[index] = saved
 	levels[0] = (levels[0] + 1) % 256
-	assert_false(SourceFacts._digests_equal(digests, sources, 32, levels.slice(0, 31)), "short Level digest: the loop")
+	assert_false(SourceFacts._digests_equal(digests, sources, 32, levels.slice(0, 31)),
+		"a 31-byte Level digest takes the byte loop, which refuses at the first differing byte")
 
 
 func _owner() -> Owner:

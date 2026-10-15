@@ -74,9 +74,9 @@ Construction and Inventory scripts with inclusive and exclusive timing. Findings
 |---|---|---|
 | `f263a850` | **Unregistered standing snapshot.** Each present row's standing does not depend on the query box: absent or dead (nothing), STALE or UNBOUND (a refusal), or placed at a root. It is read once into `_standing_x`, an `(x << 10) \| row` packed column sorted by root x, plus `_standing_refused` in row order. A query binary-searches the rows whose reach cube can meet its x range, then tests y and z. | Every placed row gives the same code, so only one question matters: does a reaching row exist before the first unskipped refusal in row order? The registered and excepted skips are read live for each candidate. The 16-per-row budget charge is unchanged. A saturated (zero) revision answers by the original scan. |
 | `c4d0188f` | SpaceOwner scans walk present rows with `PackedByteArray.find(1)`. | This path is taken only when `count(0) + count(1) == size`. Otherwise every row is visited, so a corrupt presence byte (2) is still checked exactly as the scan did. |
-| `c4d0188f` | The entry Frontier's seven digest equalities, and the source facts' two, are compared with `decode_u64` (four words, no allocation). | This path is taken only when every range exists; otherwise the original byte loop runs. Equal words if and only if equal bytes. |
+| `c4d0188f`, review fix | The entry Frontier's seven digest equalities, and the source facts' two, are compared with `decode_u64` (four words, no allocation), through one helper, `SourceFacts._same_words`. | This path is taken only when every range exists; otherwise the original byte loop runs. Equal words if and only if equal bytes. |
 | `c4d0188f` | `ShortStep.is_short()` (pure, constant-time) is tested before `ShortStep.uses()` (pure) in five conjunctions. `uses()` is skipped where `ShortStep.mapped()` leaves the row unchanged. | Both are pure and total, so `A and B` equals `B and A`. Where the row maps to itself, both branches yield the same row. |
-| `13a742a6` | The profile check and the clock check call `ShortStep.profile_refusal()` first, and read `uses()` again only after a refusal. Handling, stair and claw rows keep their own proof and clock, in the original order, in `_owned_clock_leaf`. | `ShortStep.profile_refusal()` begins `if not uses(actual) or ...: return ROUTE_SOURCE_PROFILE`, so a pass proves the closure. After a refusal, the closure decides between the step and the parent program exactly as before. |
+| `13a742a6`, review fix | The profile check and the clock check call `ShortStep.profile_refusal()` first, and read `uses()` again only after a refusal. Handling, stair and claw rows keep their own proof and clock in `_owned_clock_leaf`; the review fix reads the owner once (`_source_owner`, the same first-match order as `_source_profile_refusal`) instead of three times. | `ShortStep.profile_refusal()` begins `if not uses(actual) or ...: return ROUTE_SOURCE_PROFILE`, so a pass proves the closure. After a refusal, the closure decides between the step and the parent program exactly as before. |
 
 ### The caching choice: revision counters
 
@@ -99,12 +99,14 @@ How the tokens behave:
 - Each saturates at the int64 maximum and then reads 0, which permanently disables the snapshot.
 - The snapshot key is these three tokens, plus Transforms' `mutation_revision()` (which Routes already trusts for its
   occupancy index), plus the four owners' instance ids.
-- A grep of `godot/scripts`, `godot/demo` and `godot/test` found no write to these columns outside their own owner, apart from tests that set a non-resident Directory slot's generation (the World's, or a slot in the Directory's own batch tests), which the snapshot never reads.
+- A grep of `godot/scripts`, `godot/demo` and `godot/test` found no write to these columns outside their own owner, apart from tests that poke them and restore them before any occupancy query: the Directory's own batch tests and the workpieces test set a non-resident slot's generation, and `test_underground_final_facts.gd` sets a Resident's Transforms binding and Directory row and restores both. A future test that pokes these columns and then queries occupancy must move the owner's token too.
 
 The snapshot's columns use 6,208 B of the 16,384 B that two write-only Routes columns held: `_occupancy_bounds` and
 `_occupancy_profile`, written at admission and never read. Those two columns are removed. The Routes arena formula
-`48 * RESIDENT_CAPACITY` is unchanged, so `configure`'s admission and the memory census's grep of it are unchanged;
-it now over-reserves 10,176 B. The two new int counters are charged to Routes' `HEADER_RESERVE`.
+`48 * RESIDENT_CAPACITY` is unchanged, so `configure`'s admission and the memory census's grep of it are unchanged.
+The five occupancy columns now hold 32 B a row plus the 64 B key (16,448 B) against its 24,576 B: 8,128 B of slack.
+Before this lane they held 52 B a row (26,624 B), 2,048 B more than the formula reserved, because `_occupancy_visit`
+was never in it. The two new int counters are charged to Routes' `HEADER_RESERVE`.
 
 ## 4. Behaviour proof
 
@@ -277,9 +279,31 @@ Pins, census and registry:
 
 No file of C2.1, M3 or C1 was edited, and nothing in `underground_space_authority.gd`.
 
-## Gates
+## Independent review
 
-Filled in at hand-back. See the "Gates (results)" section below.
+A `code-reviewer` subagent reviewed `c09f9297..e2220aff`. It modelled the snapshot query and the original scan in
+Python and fuzzed them against each other: 120,000 queries over 3,000 random populations, including present bytes
+0/1/2, all four standings, registered and excepted rows, int32-extreme coordinates and inverted boxes. Every answer
+agreed. It also checked every write site of the snapshot's inputs, the source-check and SpaceOwner rewrites, and the
+pins. **It found no equivalence break and no CRITICAL or HIGH finding.** Its other findings, and how each was handled:
+
+| Severity | Finding | Handling |
+|---|---|---|
+| MEDIUM | The "does not rebuild" assertion could not fail: a rebuild writes the same key. | Fixed: a marker in `_standing_x` must survive an unchanged query. The "always rebuild" mutant is now killed. |
+| MEDIUM | `_same_words` was duplicated in the Frontier and SourceFacts. | Fixed: the Frontier uses `SourceFacts._same_words`. |
+| LOW | Owned rows ran the four `owns` checks three times. | Fixed: `_source_owner` reads it once. |
+| LOW | An unknown standing code would read back as UNBOUND. | Fixed: an `assert` on the index (no such code exists today). |
+| LOW | `<<`/`>>` on negative x. | Kept: the typed-int path is used, and negative x is exercised by the suite (±20,000 crowds, every half-open face). |
+| LOW | "Over-reserves 10,176 B" was the net cut, not the slack. | Fixed to 8,128 B of slack, noting the earlier 2,048 B under-count of `_occupancy_visit`. |
+| LOW | The grep claim missed `test_underground_final_facts.gd`'s restored poke. | Fixed in §3. |
+| LOW | The three new scalars had no registry row. | Fixed: category-3 rows in the Residents, Needs and Directory sections. |
+| LOW | The census carrier "settlement store scalars" was unbacked. | Fixed: charged to `none (new)`, the existing carrier for new uncarried scalars. |
+| LOW | The short-Level-digest assertion's label overstated what it shows; SourceFacts' fallback is unreachable through `refusal()`. | Label corrected; the fallback stays as the guard for other callers. |
+| LOW | The scan oracle used `is_valid_of_kind`/`get_typed_row`, not `_turn_directory_row`; and the clock pass path might be untested. | Fixed: the oracle calls `_turn_directory_row`, and the clock tests assert that some cases pass. |
+
+## Gates (results)
+
+Filled in at hand-back.
 
 ## Source
 

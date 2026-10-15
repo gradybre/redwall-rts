@@ -1638,3 +1638,34 @@ questions in chat:
 
 Not ruled, so the study's proposals stand: the slice order A–H and everything in study §4 (things not copied from
 EG2). These include research-gated rock and gold veins.
+
+**Addendum, 2026-10-15: Mound homes, an exception to Q3's generated walls and roof (decision 2001).** Brendan asked
+how to build into hillsides and whether painting "a certain style of room" could also build "the hill that it is
+built into", with "Stairs in the home leading to underground levels". He chose "Phone mockup first" and shaped the
+mockup over ten more messages (W4–W13), relayed by the coordinator. The rules among them are:
+
+- **"pile dirt, dig into the dirt, frame the build, then fix the top"**;
+- the hill should "match the size of the build we've done, then grow as we expand more rooms";
+- "The door and windows should have to be manually placed by the user on the grid system, not auto generated";
+- the window goes "on the turf slope", sits "flat against the ground" at "a natural height", is not "blocked by
+  bushes", and gives light "from the inside too";
+- "the rooms are always on the edge of the mound".
+
+He then approved the result: **"This looks good, let's build this into the plan."** All fourteen messages are
+quoted in decision 2001 as W1–W14.
+
+- **Mound** (working name) is a construction style for rooms painted on the Surface. A hill is heaped to fit the
+  painted rooms, the rooms are dug into it, framed and topped with turf, and the player places doors and windows on
+  the rooms' outer edges.
+- **This is an exception to Q3 for Mound-style rooms only.** Their walls are braced earth and their roof is the
+  earth cover; Q3's "walls and roof are generated from the painted area" still holds for every other surface room.
+  SET-BUILD-001 §12 (BUILD-MOUND-001 onward) holds the rules.
+- **Reference images.** Brendan supplied four Bag End images: "These should be your inspirations". They are not in
+  the repository and their provenance is unknown. DEC-010's provenance boundary (no copied film designs) and DEC-036's
+  provenance record still apply. Whether the approved door front reads as inspiration or as copying is decision 2001
+  P-2001-8.
+- **Not ruled.** Decision 2001's questions P-2001-1 to P-2001-14 are open. Among them: the ground-heights change to
+  GDD §5.1, the name, the earth source and price, cover and berm, the yard, the window height, and walking on the
+  mound.
+
+Engineering record: [decision2001](decisions/2001-mound-homes.md).

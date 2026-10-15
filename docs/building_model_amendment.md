@@ -2,12 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Document | SET-BUILD-001, revision 1.0, 2026-10-11 |
-| Authorization | Brendan, [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible): “Overall, I want us to match this functionality as close as possible to EG2.” |
+| Document | SET-BUILD-001, revision 1.1, 2026-10-15 (revision 1.0, 2026-10-11; 1.1 adds §12, Mound homes, [decision 2001](decisions/2001-mound-homes.md)) |
+| Authorization | Brendan, [DEC-061](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible): “Overall, I want us to match this functionality as close as possible to EG2.” §12: DEC-061's 2026-10-15 addendum, “This looks good, let's build this into the plan” (decision 2001). |
 | Input study | [Evil Genius 2 building study](design/underground-planning/evil-genius-2-building-study.md) (DEC-061 overrides it where they differ) |
-| Amends | GDD §4.2 Building/Room/Furniture rows, §4.3 RoomType, §5.9 (tables, room validity, heat, starter layout, REQ-SET-121/122/129/136); SET-MOVE-001 level scope; UI rev 1.1 build rows; balance §4.1–4.3; architecture §2–3 room storage |
+| Amends | (§12, for Mound-style rooms only: DEC-061 Q3's and BUILD-REQ-008's generated walls and roof, §7.3's shell rate.) GDD §4.2 Building/Room/Furniture rows, §4.3 RoomType, §5.9 (tables, room validity, heat, starter layout, REQ-SET-121/122/129/136); SET-MOVE-001 level scope; UI rev 1.1 build rows; balance §4.1–4.3; architecture §2–3 room storage |
 | Keeps | REQ-SET-123–128 (paths to the hall, hauled payment, 100%/80% refunds, 50% demolition return), SET-MOVE-ECON-001 excavation economy with DEC-052/DEC-059, ADR 1081 permanent room purpose, DEMO-CONTAIN-R01 |
-| Status | Rules marked **ADOPTED** restate DEC-061 or derive exactly from existing numbers. Rules marked **ADOPTED, OPEN-nn** were this lane's proposals, adopted by Brendan's rulings of 2026-10-11 on every OPEN item of [decision 1851](decisions/1851-painted-room-contracts.md#brendans-rulings-2026-10-11). Values still to be authored (OPEN-02's per-item geometry) are marked as such. Nothing here is runtime evidence. |
+| Status | Rules marked **ADOPTED** restate DEC-061 or derive exactly from existing numbers. Rules marked **ADOPTED, OPEN-nn** were this lane's proposals, adopted by Brendan's rulings of 2026-10-11 on every OPEN item of [decision 1851](decisions/1851-painted-room-contracts.md#brendans-rulings-2026-10-11). Values still to be authored (OPEN-02's per-item geometry) are marked as such. §12 defines its own status words. Nothing here is runtime evidence. |
 | Engineering record | [decision 1851](decisions/1851-painted-room-contracts.md) |
 
 Notation: a **cell** is 1 m × 1 m (1024 u × 1024 u) on one level. A GDD **tile** (2 m) is exactly 2 × 2 cells: tile
@@ -367,3 +367,86 @@ anything. Cancelling one confirmed project never cancels the rest of its batch.
 The OPEN list (OPEN-01 … OPEN-11), with options, is in
 [decision 1851](decisions/1851-painted-room-contracts.md#open-list-for-brendan); Brendan chose the recommended option on all
 eleven on 2026-10-11 ([rulings](decisions/1851-painted-room-contracts.md#brendans-rulings-2026-10-11)).
+
+## 12. Mound homes (decision 2001)
+
+Added 2026-10-15 (revision 1.1). Brendan approved the mound mockup: “This looks good, let's build this into the plan”
+([decision 2001](decisions/2001-mound-homes.md), which quotes his fourteen messages as W1–W14;
+[DEC-061's 2026-10-15 addendum](setting_decisions.md#dec-061--building-matches-evil-genius-2-as-closely-as-possible)).
+A **Mound** is a construction style for rooms painted on the Surface. A hill is heaped to fit the rooms, and the
+rooms are dug into it, framed and topped with turf. The player places doors and windows on the rooms' outer edges.
+**For Mound-style rooms only, this is an exception to DEC-061 Q3's generated walls and roof.**
+
+**Terms.**
+
+- A **Mound room** is a room painted on level 0 with the Mound style.
+- An **outer edge** is a cell edge of a Mound room whose other side is a cell of no room.
+- **A Mound** is the Mound rooms joined under one hill.
+- The **heap** is the earth raised for a Mound. Its **cover** is the earth over a room, and its **berm** is the slope
+  from a room's outer wall down to the ground.
+
+**Status words.** These replace the header's definitions for this section.
+
+- **ADOPTED** restates Brendan's words (by W-number) or derives exactly from an adopted rule.
+- **PROPOSAL** is this record's proposal, listed in decision 2001 for his word.
+- **OPEN** names the decision 2001 question that must fix a value.
+- **BLOCKED** cannot be built until a named prerequisite is ruled.
+
+Values from the mockup are candidates only. Decision 2001 §5 lists them, and where they differ from adopted rules.
+
+| ID | EARS requirement | Status |
+|---|---|---|
+| BUILD-MOUND-001 | The system shall offer a Mound construction style, chosen with the room type, for rooms painted on the Surface level, and shall store the style as a property of the room; the room's type stays permanent (BUILD-REQ-005, ADR 1081). | ADOPTED (W2, W14). Which room types may take the style is PROPOSAL (P-2001-13 item 10: every type the Surface allows, except types whose own rule a heap defeats, such as BOATHOUSE, which must touch the shore). The name is OPEN (P-2001-2) |
+| BUILD-MOUND-002 | If a stroke of one style would touch a room of the same type in the other style, then the system shall refuse it with the words “Not possible: a Mound room cannot join a built room; leave a cell between them”. | PROPOSAL (P-2001-13 item 1). BUILD-REQ-004's merging otherwise applies unchanged |
+| BUILD-MOUND-003 | When Mound rooms are drafted, the system shall compute the heap from the painted Mound rooms alone: their cells, a cover over them, and a berm from their outer walls down to the ground, smoothed into one hill; it shall offer no separately painted heap footprint. | ADOPTED (W5). The room height is derived: 4096 u (4 quanta), DEC-054's 2026-10-15 addendum. The cover and berm values are OPEN (P-2001-4) |
+| BUILD-MOUND-004 | When a Mound room is added, the system shall raise earth only where the ground does not already reach the heap that room needs, so the hill grows as rooms are added and never covers more than its rooms need. | ADOPTED (W5) |
+| BUILD-MOUND-005 | The system shall shape the heap so that, outside every outer wall of a Mound room, the ground falls from the cover to the surrounding ground within the berm, with no earth margin beyond it. | ADOPTED (W13). A Mound room with no outer edge (enclosed by other Mound rooms) is allowed and can hold no window or outside door: PROPOSAL (P-2001-13 item 3) |
+| BUILD-MOUND-006 | When a heap's earthwork is finished, the system shall record it as ground, in the same per-cell ground data a natural hill uses, and not as a structure. | PROPOSAL, decided by P-2001-1 (option (c) is the alternative: a structure drawn as a hill). **BLOCKED** until GDD §5.1's three fixed surface heights are amended. Until then a Mound is drawn, not ground |
+| BUILD-MOUND-007 | The system shall build a Mound's project in this order: heap (haul and tamp earth), dig (each quantum braced and then cut, ECON-002/003, in BUILD-REQ-012's breadth-first order as for underground cells, by the one claw stroke and the room foreman), frame (the installed braces drawn as timber arch ribs once a cell is open; no second bill), top (top the cover up to the cover rule, then turf). | The order is ADOPTED (W4). How W4's four steps map onto the economy's phases is PROPOSAL (P-2001-14: the full heap first, as the mockup shows, or cut-and-cover) |
+| BUILD-MOUND-008 | If a drafted heap, berm included, would cover water, the ford, a resource node, a field, an item, an outdoor item or a cell of any room that is not a Mound room of that hill, then the system shall refuse the stroke with the words “Not possible: the hill would cover ”+thing. | PROPOSAL (P-2001-13 item 4; REQ-SET-122 and ECON-004's tip siting as precedent). BUILD-REQ-009's terrain rules apply to the painted cells as for any surface room |
+| BUILD-MOUND-009 | The system shall generate no wall or roof for a Mound room: its walls are braced earth and its roof is the cover. | ADOPTED (W4, W14; DEC-061's 2026-10-15 addendum). Sets aside DEC-061 Q3's generated walls and roof, BUILD-REQ-008's wall and roof, and §7.3's shell rate, for Mound rooms only |
+| BUILD-MOUND-010 | The system shall let the player place a door as a 2-cell-edge item on two neighbouring outer edges of a Mound room facing the same way, and shall generate no door. | ADOPTED (W6). The door's outside walk cells are its yard's ground cells (§6's `interior_door` rule; decision 1921 E3 asks dug floor on both sides): PROPOSAL (P-2001-13 item 11). When doors and windows may be placed is PROPOSAL (P-2001-13 item 2). A door is part of its room's project (§10) |
+| BUILD-MOUND-011 | When a door is placed on an outer edge, the system shall keep a yard in front of it, at ground height and free of heap, and shall draw a built front in it: plaster, timber posts, a curved timber eave with the turf carried over it, a round door ringed in brick, a lantern and stone steps. | ADOPTED as the approved look (W9, W14), subject to DEC-010's boundary (P-2001-8). The yard's size is OPEN (P-2001-5). “Never heaped if the door is placed before Confirm all, dug if placed later” is PROPOSAL (P-2001-5 (a), P-2001-13 item 2). The front is presentation (BUILD-MOUND-023) |
+| BUILD-MOUND-012 | While a Mound has no door on an outer edge, the system shall mark its rooms “! No way in: place a door on an outer edge” and refuse to confirm them. | ADOPTED (BUILD-REQ-009, -013, -021; the mockup's words) |
+| BUILD-MOUND-013 | The system shall let the player place a window as an item on one outer edge of a Mound room, and shall generate no window. | ADOPTED (W6). The window is a new edge item; its bill, art and catalog entry are to be authored in slice E from a placeholder, as OPEN-02 (a) did: PROPOSAL (P-2001-13 item 6) |
+| BUILD-MOUND-014 | The system shall draw each window lying flush on the turf slope outside its edge, turned to the slope's surface, and shall never cut, recess, channel or flatten the heap for a window. | ADOPTED (W7, W8, W10) |
+| BUILD-MOUND-015 | The system shall place each window at a natural height near the top of its room's wall, close enough to the wall that no gap shows between the window and its room. | ADOPTED as a rule (W11, W13). The height rule is OPEN (P-2001-6, with P-2001-4's berm). The mockup's window, where its slope is 2.2 m high, lies about 0.95 m from a 3 m wall: a candidate only |
+| BUILD-MOUND-016 | While it is day, the system shall draw daylight from each window into its room. | ADOPTED as presentation (W12). As a game rule (light or comfort) it is OPEN (P-2001-10) |
+| BUILD-MOUND-017 | The system shall keep every piece of dressing (shrubs, flowers, the tree, garden pieces) clear of each window and of the slope in front of it. | ADOPTED (W11) |
+| BUILD-MOUND-018 | If a stroke would make an outer edge holding a door or a window an inner edge, then the system shall list that door or window in the removal review (BUILD-REQ-006). | PROPOSAL (P-2001-13 item 5) |
+| BUILD-MOUND-019 | The system shall let the player place doors underground as edge items between rooms and passages, and shall generate none. | ADOPTED (W6, “Similar to underground as well”). D12 / UG-LEVEL-025's timing for underground doors is unchanged |
+| BUILD-MOUND-020 | If the player places a window on an edge that is not an outer edge of a Mound room (later, also a hill face that meets the air), then the system shall refuse it with the words “Not possible: a window needs a mound or hill face beyond this wall”. | PROPOSAL (P-2001-13 item 12; the coordinator's reading of W6, not Brendan's words). On today's flat land no underground edge has a hill face; natural hills are P-2001-9 |
+| BUILD-MOUND-021 | When a Way-down item (slice D's families) is placed on a Mound room's floor, the system shall offer “Connects to Underground level 1” and, when built, connect the room to level 1, 5120 u below, as any Surface entrance does (BUILD-REQ-015, §9). | ADOPTED as the approved design (W2's question, the mockup's section view, W14). Allowing a connector inside a room (§9 places them on Surface cells or a Passage; §5.2 allows a room only its key item and the shared fittings) is PROPOSAL (P-2001-13 item 13). A family whose geometry does not fit the room is refused with its reason (§9) |
+| BUILD-MOUND-022 | While a Mound room holds a hearth, the system shall draw a chimney on the hill above that room. | ADOPTED as presentation (the approved mockup, W14) |
+| BUILD-MOUND-023 | The system shall draw turf over the finished heap, shrubs and flowers on the slopes, a garden by each door (flower beds, a bench, a picket fence) and a tree on the crown, and shall let the player choose each door's colour; none of these carries a bill or decides an outcome. | ADOPTED as the approved look (W9, W14), subject to DEC-010's boundary (P-2001-8). “No bill” is PROPOSAL (P-2001-13 item 7). The default door colour is OPEN (P-2001-8) |
+| BUILD-MOUND-024 | The system shall price a Mound room as the cells it digs (§7.2: 4 quanta per cell) plus its heap earthwork, and shall show both in the ledger. | OPEN (P-2001-3: the earth's source and the heap's work). The proof of concept is free if P-2001-11 (a) is ruled |
+| BUILD-MOUND-025 | The system shall treat a Mound's rooms joined by open boundaries or interior doors as one room group for a hearth's heat (§4). | ADOPTED (derived: one hill is one roof, as one generated roof makes a roofed room group) |
+| BUILD-MOUND-026 | The system shall allow no digging into, and no building on, the cover of a Mound room. | PROPOSAL (P-2001-13 item 9; with P-2001-7, whether residents may walk on the mound) |
+| BUILD-MOUND-027 | When cells of a Mound room are removed, the system shall open the removal review (BUILD-REQ-006) and then backfill the removed cells' open quanta with earth. | OPEN (P-2001-12: backfill as underground, ECON-005, rather than §7.5's surface demolition; and whether the hill stays) |
+| BUILD-MOUND-028 | If the player paints the Mound style on levels 1–4, then the system shall refuse it with the words “Not possible: Mound rooms are painted on the Surface”. | PROPOSAL (P-2001-13 item 8) |
+| BUILD-MOUND-029 | If the player places a door where fewer than two free outer edges lie side by side, then the system shall refuse it with the words “A door needs two free outer edges side by side”. | ADOPTED wording (the approved mockup's) |
+| BUILD-MOUND-030 | If the player places a door or a window off an outer edge of a Mound room, then the system shall refuse it with the words “Not possible: doors and windows go on a room's outer edge”. | PROPOSAL (P-2001-13 item 8) |
+| BUILD-MOUND-031 | While a heap waits for earth, the system shall mark it “! Blocked: needs earth” with the amount in natural measures (DEC-049). | PROPOSAL (P-2001-3, P-2001-13 item 8) |
+
+**The economy (PROPOSAL, P-2001-3).** A Mound room's floor is the ground it is painted on: today land, 512 u, the
+level pack's datum. With the 4096 u room height and a one-quantum cover (P-2001-4's candidate), the heap stands 5120 u
+above the floor at the walls. That lies inside the pack's domain, which starts at quantum −32 and spans 48 quanta, so
+it reaches quantum +15 above the datum. The proposal:
+
+- **Heaping.** Each heaped quantum is tamped earth recorded as BACKFILLED, so that cutting it follows ECON-005's
+  withdrawal branch and returns its 2000 milli-U. The earth a Mound really uses is then its cover, crown and berm.
+  ECON-002's tip compaction row is the precedent for the tamping work. Earth tamped into a *tip* comes back only
+  through the reclaim row; the heap is a different source state, and it needs P-2001-3's ruling.
+- **Digging.** The mole digs from the door's yard, which leaves a wall face open at floor level, by decision 1971's
+  wall rows. So a Mound needs a door before it can be dug (BUILD-MOUND-012), and no Entrance item.
+
+**What stays open.**
+
+- **P-2001-1, ground heights**, decides BUILD-MOUND-006 and so blocks every real Mound.
+- **P-2001-2 to P-2001-14** decide the name, the earth and price, cover and berm, the yard, the window height,
+  walking on the mound, the door front and its default colour, natural hills, window daylight, the proof of
+  concept, removal, the build order's mapping and the PROPOSALS above.
+
+The slice that builds them is M in the
+[Evil Genius 2 study §5](design/underground-planning/evil-genius-2-building-study.md#5-the-plan-proposal), with
+packets MOUND-TERRAIN, MOUND-POC and MOUND-REAL in `docs/handoff/BACKLOG.md`.

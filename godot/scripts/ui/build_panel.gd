@@ -15,6 +15,12 @@ extends Control
 ## asked for -- `card_chosen`, `confirm_requested`, `closed` -- and owns nothing in the world. Opening it, choosing a
 ## card, Undo, Redo and Discard all change no store, reservation or job (BUILD-REQ-020, UX-BUILD-T04).
 ##
+## TOOLS (decision 1912; Brendan's ruling on decision 1911 P-C7 (a)): with a room type chosen, a strip of four toggles
+## along the info card's foot -- Rect · Oval · Paint · Erase (accessible names "Rectangle tool" ...) -- sets the
+## batch's tool; the info card's last line names the tool and its gesture in words (never the pressed look alone).
+## FURNISH AND DECOR (decision 1921): an item card chosen on levels 1-4 arms placing it (`piece_armed`); the host
+## places it on a dug floor (build_furniture.gd judges it) and hands the info card the dug rooms' lines in words
+## (`set_room_lines`: "✓ Kitchen ready", "! Kitchen: Needs 1 hearth"), shown under the card on those tabs.
 ## TABS. Furnish and Decor stay disabled, saying "Choose a room type first", until a room type or Passage is chosen;
 ## Ctrl+Tab / Ctrl+Shift+Tab cycle the enabled ones (`cycle_tab`). CARDS: arrow keys move along the row and Enter
 ## chooses (Godot's own focus and press); a locked card is chosen for INSPECTION only -- the info card says why it is
@@ -27,6 +33,9 @@ extends Control
 ## the panel (the connector card, UI-BUILD-012, comes with slice D).
 
 const Batch := preload("res://scripts/ui/build_batch.gd")
+const Stroke := preload("res://scripts/ui/build_stroke.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
+const Furniture := preload("res://scripts/ui/build_furniture.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
@@ -54,6 +63,11 @@ const READY: String = "%d pending changes, all ready"
 const RETRY: String = "! Refused last time, Confirm all tries again: %s: %s"
 const NONE_PENDING: String = "No pending changes"
 const PICTURE: String = "Picture (placeholder): %s"
+const TOOL_LINE: String = "Tool: %s. %s"
+const ITEM_LINE: String = "%s · %s (a way down to level %d; free for now): %s"
+const PIECE_LINE: String = "%s · %s%s (free for now): %s"
+const FURNITURE_BILL: String = "Furniture needs %s; work %s (free for now: nothing is taken from the stores)"
+const TOOL_ACCESSIBLE: String = "%s tool"
 
 ## A card was clicked or pressed with Enter (a locked one too: the host may only show it).
 signal card_chosen(card: BuildCatalog.Card)
@@ -76,9 +90,8 @@ var _scroll: ScrollContainer = null
 var _row: HBoxContainer = null
 var _card_buttons: Array[Button] = []
 var _card_size: Vector2 = Vector2(BuildLayout.CARD_MIN_WIDTH, BuildLayout.CONTENT_HEIGHT - 12.0)
-## `note(card) -> String`: more words a host has for a card (the demo: who would dig a Passage and what they would
-## stop); "" for none. Shown in the info card and the card's tooltip.
-var card_note: Callable = Callable()
+## The tool strip's four toggles, in build_stroke.gd TOOL_* order.
+var _tools: Array[Button] = []
 var _ledger: Button = null
 var _ledger_open: Panel = null
 var _ledger_scroll: ScrollContainer = null
@@ -109,6 +122,10 @@ var _widths: PackedFloat32Array = PackedFloat32Array()
 var _tally: PackedInt64Array = PackedInt64Array()
 var _types: PackedInt32Array = PackedInt32Array()
 var _type_cells: PackedInt32Array = PackedInt32Array()
+var _goods: PackedStringArray = PackedStringArray()
+var _goods_milli: PackedInt64Array = PackedInt64Array()
+## The dug rooms' lines the host hands in (decision 1921), shown on the Furnish and Decor tabs.
+var _room_lines: String = ""
 
 
 func _init() -> void:
@@ -139,6 +156,7 @@ func build() -> void:
 	add_child(_frame)
 	_build_tabs()
 	_build_info()
+	_build_tools()
 	_build_cards()
 	_build_footer()
 	_build_question()
@@ -178,6 +196,24 @@ func _build_info() -> void:
 	_info_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_info_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_info_scroll.add_child(_info_text)
+
+
+func _build_tools() -> void:
+	"""The tool strip: four toggles over the info card's foot, hidden until a room type is chosen."""
+	for tool: int in Stroke.TOOL_COUNT:
+		var button: Button = Button.new()
+		button.name = "BuildTool-%s" % Stroke.TOOL_NAMES[tool]
+		button.text = Stroke.TOOL_LABELS[tool]
+		button.toggle_mode = true
+		button.theme_type_variation = &"WoodlandToggle"
+		button.focus_mode = Control.FOCUS_ALL
+		button.add_theme_font_size_override(&"font_size", TEXT_PX)
+		button.accessibility_name = TOOL_ACCESSIBLE % Stroke.TOOL_NAMES[tool]
+		button.tooltip_text = Stroke.TOOL_GESTURES[tool]
+		button.visible = false
+		button.pressed.connect(choose_tool.bind(tool))
+		_frame.add_child(button)
+		_tools.append(button)
 
 
 func _build_cards() -> void:
@@ -327,13 +363,15 @@ func _place_tabs() -> void:
 
 
 func _place_content() -> void:
-	"""The info card and the card row."""
+	"""The info card (its words above the tool strip while the strip shows) and the card row."""
 	var info: Rect2 = BuildLayout.info_rect(_profile)
 	_info.position = info.position
 	_info.size = info.size
 	_info_scroll.position = Vector2(8.0, 6.0)
-	_info_scroll.size = info.size - Vector2(12.0, 12.0)
+	var strip: float = BuildLayout.TOOL_STRIP_HEIGHT + BuildLayout.TOOL_STRIP_INSET if _strip_shown() else 0.0
+	_info_scroll.size = info.size - Vector2(12.0, 12.0 + strip)
 	_info_text.custom_minimum_size.x = info.size.x - 32.0
+	_place_tools()
 	var cards: Rect2 = BuildLayout.cards_rect(_panel_rect.size.x, _profile)
 	_scroll.position = cards.position
 	_scroll.size = cards.size
@@ -341,6 +379,54 @@ func _place_content() -> void:
 	_card_size = Vector2(width, BuildLayout.CONTENT_HEIGHT - 12.0)
 	for card: Button in _card_buttons:
 		card.custom_minimum_size = _card_size
+
+
+func _place_tools() -> void:
+	"""The four toggles side by side along the strip, 4 px apart."""
+	var strip: Rect2 = BuildLayout.tool_strip_rect(_profile)
+	var width: float = (strip.size.x - BuildLayout.TOOL_STRIP_INSET * (_tools.size() - 1)) / _tools.size()
+	for tool: int in _tools.size():
+		_tools[tool].position = strip.position + Vector2(tool * (width + BuildLayout.TOOL_STRIP_INSET), 0.0)
+		_tools[tool].size = Vector2(width, strip.size.y)
+
+
+func _strip_shown() -> bool:
+	"""Whether the tool strip shows: a room type chosen on the Rooms tab."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_ROOM and _tab == BuildCatalog.TAB_ROOMS
+
+
+func choose_tool(tool: int) -> bool:
+	"""Set the batch's tool (build_stroke.gd TOOL_*); the strip and the info card follow. False for an unknown
+	tool."""
+	if _batch == null or not _batch.set_tool(tool):
+		_sync_tools()
+		return false
+	_sync_tools()
+	_sync_info()
+	return true
+
+
+func _sync_tools() -> void:
+	"""The strip shown with a room type chosen, the batch's tool pressed and named in its accessible state."""
+	var shown: bool = _strip_shown()
+	var current: int = _batch.tool() if _batch != null else Stroke.TOOL_RECTANGLE
+	for tool: int in _tools.size():
+		_tools[tool].visible = shown
+		_tools[tool].set_pressed_no_signal(tool == current)
+		_tools[tool].accessibility_description = "selected" if tool == current else ""
+	if _info != null and _info_scroll.size.y > 0.0:
+		_place_content_scroll(shown)
+
+
+func _place_content_scroll(shown: bool) -> void:
+	"""The info card's words make room for the strip while it shows."""
+	var strip: float = BuildLayout.TOOL_STRIP_HEIGHT + BuildLayout.TOOL_STRIP_INSET if shown else 0.0
+	_info_scroll.size = _info.size - Vector2(12.0, 12.0 + strip)
+
+
+func tool_buttons() -> Array[Button]:
+	"""The tool strip's toggles (checks)."""
+	return _tools
 
 
 func _place_footer() -> void:
@@ -382,21 +468,8 @@ func open_on(level: int, reachable: bool = true) -> void:
 
 
 func is_open() -> bool:
-	"""Whether the panel is open (suspended or not)."""
+	"""Whether the panel is open."""
 	return visible
-
-
-func suspend(value: bool) -> void:
-	"""Hide the panel's frame without closing it (the host ran one of the old tools from a card); the batch, the tab
-	and the choice stay."""
-	_frame.visible = not value
-	if value:
-		_show_ledger(false)
-
-
-func suspended() -> bool:
-	"""Whether the open panel is suspended behind an old tool."""
-	return visible and not _frame.visible
 
 
 func request_close() -> bool:
@@ -443,8 +516,10 @@ func building_level() -> int:
 
 
 func _card_still_usable() -> bool:
-	"""Whether the chosen card is usable on the level now shown (a room type is locked on the surface)."""
-	_catalog.cards_into(BuildCatalog.TAB_ROOMS, _level, _furnish_type, _cards, _reachable)
+	"""Whether the chosen card is usable on the level now shown (a room type is locked on the surface, and so is a
+	piece of furniture: its own tab's cards are read)."""
+	var tab: int = BuildCatalog.TAB_ROOMS if _chosen.kind != BuildCatalog.CARD_ITEM else _tab
+	_catalog.cards_into(tab, _level, _furnish_type, _cards, _reachable)
 	for card: BuildCatalog.Card in _cards:
 		if card.id == _chosen.id:
 			return card.usable()
@@ -489,12 +564,13 @@ func choose_card(index: int) -> void:
 	if index < 0 or index >= _cards.size():
 		return
 	var card: BuildCatalog.Card = _cards[index]
-	if card.usable() and (card.kind == BuildCatalog.CARD_ROOM or card.kind == BuildCatalog.CARD_LEGACY):
-		_chosen = card if card.kind == BuildCatalog.CARD_ROOM else null
-		if card.room_type >= 0:
+	if card.usable() and card.kind != BuildCatalog.CARD_TOOL:
+		_chosen = card
+		if card.kind == BuildCatalog.CARD_ROOM:
 			_furnish_type = card.room_type
 	_shown = card
 	_sync_tabs()
+	_sync_tools()
 	_sync_cards()
 	_sync_info()
 	card_chosen.emit(card)
@@ -506,13 +582,39 @@ func chosen_card() -> BuildCatalog.Card:
 
 
 func paint_type() -> int:
-	"""The room type a stroke paints now, or -1 (none chosen, or not paintable on this level)."""
-	return _chosen.room_type if _chosen != null and _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST else -1
+	"""The room type a stroke paints now, or -1 (none chosen, a way down chosen, or not paintable on this level)."""
+	if _chosen == null or _chosen.kind != BuildCatalog.CARD_ROOM:
+		return -1
+	return _chosen.room_type if _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST else -1
+
+
+func way_down_armed() -> bool:
+	"""Whether a click places a way down now (its card chosen on a level that has one)."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_WAY_DOWN and _level < LevelBar.LEVEL_OVERVIEW
+
+
+func piece_armed() -> bool:
+	"""Whether a click places a piece of furniture now (an item card chosen on an underground level; decision 1921)."""
+	return _chosen != null and _chosen.kind == BuildCatalog.CARD_ITEM and _level >= 1 and _level <= LevelBar.LEVEL_DEEPEST
+
+
+func armed_item() -> int:
+	"""The item a click places (-1: none armed)."""
+	return _chosen.item_type if piece_armed() else -1
+
+
+func set_room_lines(text: String) -> void:
+	"""The dug rooms' lines in words, from the host (shown under the info card on Furnish and Decor)."""
+	if text == _room_lines:
+		return
+	_room_lines = text
+	_sync_info()
 
 
 func clear_choice() -> void:
 	"""Disarm the chosen card (the host left painting)."""
 	_chosen = null
+	_sync_tools()
 	_sync_cards()
 	_sync_info()
 
@@ -534,6 +636,7 @@ func _fill_cards() -> void:
 	_catalog.cards_into(_tab, _level, _furnish_type, _cards, _reachable)
 	_shown = null
 	_sync_tabs()
+	_sync_tools()
 	_sync_cards()
 	_sync_info()
 	_scroll.scroll_horizontal = 0
@@ -563,37 +666,13 @@ func _sync_cards() -> void:
 		var mark: String = "✓ " if _chosen != null and card.id == _chosen.id else ""
 		button.text = "%s%s\n%s%s" % [mark, card.name, card.footprint, lock]
 		button.accessibility_name = card.accessible_name()
-		var note: String = _note_of(card)
-		button.tooltip_text = card.accessible_name() if note.is_empty() else "%s\n%s" % [card.accessible_name(), note]
+		button.tooltip_text = card.accessible_name()
 
 
 static func lock_head(card: BuildCatalog.Card) -> String:
 	"""A locked card's short reason, its words before the colon ("Not yet", "No way in", "Choose one level to paint
 	on"); the whole reason is in the info card and the accessible name."""
 	return card.locked.get_slice(":", 0)
-
-
-func refresh_notes() -> void:
-	"""Re-read the host's notes (the old tools' "who would dig / what they would stop", which change as residents
-	work) into the shown cards' tooltips and the info card; only what changed is written. Cold: the host calls it on
-	its own cadence."""
-	if not card_note.is_valid() or not visible:
-		return
-	for k: int in mini(_cards.size(), _card_buttons.size()):
-		var note: String = _note_of(_cards[k])
-		if note.is_empty():
-			continue
-		var tip: String = "%s\n%s" % [_cards[k].accessible_name(), note]
-		if _card_buttons[k].tooltip_text != tip:
-			_card_buttons[k].tooltip_text = tip
-	var card: BuildCatalog.Card = _shown if _shown != null else _chosen
-	if card != null and not _note_of(card).is_empty():
-		_sync_info()
-
-
-func _note_of(card: BuildCatalog.Card) -> String:
-	"""The host's extra words for `card` ("" without a host note)."""
-	return String(card_note.call(card)) if card_note.is_valid() else ""
 
 
 func _on_card_pressed(index: int) -> void:
@@ -608,19 +687,28 @@ func _show_card(index: int) -> void:
 
 
 func _sync_info() -> void:
-	"""UI-BUILD-004: picture description, purpose, cost, rules and gesture; "Choose a room type to begin" with none."""
+	"""UI-BUILD-004: picture description, purpose, cost, rules and gesture; "Choose a room type to begin" with none
+	("Choose a piece to place" on Furnish and Decor); there, the dug rooms' lines under it (decision 1921)."""
 	var card: BuildCatalog.Card = _shown if _shown != null else _chosen
+	var rooms: String = "\n%s" % _room_lines if _tab != BuildCatalog.TAB_ROOMS and not _room_lines.is_empty() else ""
 	if card == null:
-		_info_text.text = BuildCatalog.NOTHING_CHOSEN
-		_info.accessibility_name = BuildCatalog.NOTHING_CHOSEN
+		var none: String = BuildCatalog.NOTHING_CHOSEN if _tab == BuildCatalog.TAB_ROOMS else BuildCatalog.CHOOSE_PIECE
+		_info_text.text = none + rooms
+		_info.accessibility_name = none
 		return
 	var lock: String = "" if card.usable() else "\n%s" % Validity.line(Validity.KIND_BLOCKED, card.locked)
-	var note: String = _note_of(card)
-	_info_text.text = "%s\n%s\n%s\n%s%s%s" % [card.name, card.purpose, card.cost, card.rules, lock,
-		"" if note.is_empty() else "\n" + note]
+	var gesture: String = _gesture_of(card)
+	_info_text.text = "%s\n%s\n%s\n%s%s\n%s%s" % [card.name, card.purpose, card.cost, card.rules, lock, gesture, rooms]
 	_info.accessibility_name = "%s; %s; %s; %s; %s; %s" % [PICTURE % card.picture, card.name, card.purpose, card.cost,
-		card.rules, card.gesture]
-	_info.tooltip_text = "%s\n%s" % [PICTURE % card.picture, card.gesture]
+		card.rules, gesture]
+	_info.tooltip_text = "%s\n%s" % [PICTURE % card.picture, gesture]
+
+
+func _gesture_of(card: BuildCatalog.Card) -> String:
+	"""The chosen room type's tool and its gesture ("Tool: Oval. Drag the box an oval fills; ..."), else the card's."""
+	if _chosen == null or card.id != _chosen.id or _batch == null:
+		return card.gesture
+	return TOOL_LINE % [Stroke.TOOL_NAMES[_batch.tool()], Stroke.TOOL_GESTURES[_batch.tool()]]
 
 
 func info_text() -> String:
@@ -702,28 +790,38 @@ func confirm_blocked() -> String:
 	if _batch.pending_count() == 0:
 		return NOTHING_TO_CONFIRM
 	var first: int = _batch.first_invalid()
-	if first < 0:
+	if first >= 0:
+		var kind: int = _batch.operation_kind(first)
+		return NOT_READY % [Validity.glyph(kind), _batch.invalid_count(), _batch.pending_count(),
+			BuildCatalog.type_name(_batch.operation_type(first)), _batch.operation_reason(first)]
+	var item: int = _batch.first_invalid_item()
+	if item >= 0:
+		return NOT_READY % [Validity.glyph(_batch.item_kind(item)), _batch.invalid_count(), _batch.pending_count(),
+			Items.name_of(_batch.items().level_of(item)), _batch.item_reason(item)]
+	var piece: int = _batch.first_invalid_piece()
+	if piece < 0:
 		return ""
-	var kind: int = _batch.operation_kind(first)
-	return NOT_READY % [Validity.glyph(kind), _batch.invalid_count(), _batch.pending_count(),
-		BuildCatalog.type_name(_batch.operation_type(first)), _batch.operation_reason(first)]
+	return NOT_READY % [Validity.glyph(_batch.piece_kind(piece)), _batch.invalid_count(), _batch.pending_count(),
+		Furniture.name_of(_batch.furniture().item_of(piece)), _batch.piece_reason(piece)]
 
 
 func _sync_ledger() -> void:
 	"""UI-BUILD-005: the short form on the button, the full one when expanded and in the accessible name."""
 	var cells: int = _sum_tally()
+	var any: bool = cells > 0 or _batch.furniture().live_count() > 0
 	var wood: int = int(_stock.call(&"wood")) if _stock.is_valid() else 0
 	var stone: int = int(_stock.call(&"stone")) if _stock.is_valid() else 0
-	var summary: String = Ledger.summary_of(_tally, cells > 0, wood, stone)
+	var summary: String = Ledger.summary_of(_tally, any, wood, stone)
 	_ledger.accessibility_name = summary
 	_ledger.tooltip_text = summary
-	_ledger.text = _short_ledger(cells) + (" ▾" if _ledger.button_pressed else " ▴")
+	_ledger.text = _short_ledger(any) + (" ▾" if _ledger.button_pressed else " ▴")
 	_ledger_text.text = ledger_lines(summary)
 	_place_ledger_open()
 
 
 func _sum_tally() -> int:
-	"""Every pending operation's cells into `_tally`, each at its own level's clear height; returns the cells."""
+	"""Every pending operation's cells into `_tally`, each at its own level's clear height, and the pending furniture's
+	wood, stone and work (its other goods are the expanded ledger's furniture line); returns the cells."""
 	_tally.resize(Ledger.SLOTS)
 	_tally.fill(0)
 	var cells: int = 0
@@ -732,13 +830,17 @@ func _sum_tally() -> int:
 		if count > 0:
 			Ledger.add_into(count, _catalog.clear_height_of(_batch.operation_level(k)), _tally)
 			cells += count
+	_tally[Ledger.WORK] += _batch.furniture().bill_into(_goods, _goods_milli)
+	for at: int in _goods.size():
+		if _goods[at] == "wood" or _goods[at] == "stone":
+			_tally[Ledger.WOOD if _goods[at] == "wood" else Ledger.STONE] += _goods_milli[at]
 	return cells
 
 
-func _short_ledger(cells: int) -> String:
+func _short_ledger(any: bool) -> String:
 	"""The collapsed ledger (`_tally` already summed): "Plan: 24 logs · 24 blocks · work about 6.8 hours" -- all of it
 	is in the expanded view."""
-	if cells <= 0:
+	if not any:
 		return "Plan: nothing yet"
 	return "Plan: %s · %s\nwork %s" % [Measures.need_cell(&"wood", _tally[Ledger.WOOD]),
 		Measures.need_cell(&"stone", _tally[Ledger.STONE]), Ledger.work_text(int(_tally[Ledger.WORK]))]
@@ -753,8 +855,34 @@ func ledger_lines(summary: String) -> String:
 	for k: int in _batch.operation_count():
 		if _batch.operation_cell_count(k) > 0:
 			lines.append("%s · %s" % [LevelBar.SHORT_NAMES[_batch.operation_level(k)], _batch.operation_line(k)])
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		if items.is_live(row):
+			lines.append(ITEM_LINE % [LevelBar.SHORT_NAMES[items.level_of(row)], Items.name_of(items.level_of(row)),
+				items.level_of(row) + 1, Validity.line(_batch.item_kind(row), _batch.item_reason(row))])
+	_piece_lines(lines)
 	lines.append(summary)
 	return "\n".join(lines)
+
+
+func _piece_lines(lines: PackedStringArray) -> void:
+	"""Each pending piece ("L1 · Kitchen bench, turned once (free for now): ✓ Can build") and the furniture's whole
+	bill in its own goods (decision 1921: the ledger shows the bill; nothing is deducted)."""
+	var pieces: Furniture = _batch.furniture()
+	for row: int in pieces.count():
+		if not pieces.is_live(row):
+			continue
+		var item: int = pieces.item_of(row)
+		var turned: String = Furniture.turn_words(pieces.is_edge(item), pieces.turn_of(row))
+		lines.append(PIECE_LINE % [LevelBar.SHORT_NAMES[pieces.level_of(row)], Furniture.name_of(item),
+			", " + turned if not turned.is_empty() else "", Validity.line(_batch.piece_kind(row), _batch.piece_reason(row))])
+	var work: int = pieces.bill_into(_goods, _goods_milli)
+	if pieces.live_count() == 0:
+		return
+	var parts: PackedStringArray = PackedStringArray()
+	for at: int in _goods.size():
+		parts.append(Measures.need(StringName(_goods[at]), _goods_milli[at]))
+	lines.append(FURNITURE_BILL % [", ".join(parts), Ledger.work_text(work)])
 
 
 func toggle_ledger() -> void:

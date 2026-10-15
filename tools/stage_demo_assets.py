@@ -21,6 +21,8 @@ which the demo scene reads. Without it the demo still runs, on placeholder shape
                            homes' window-glow models, the bare winter oak, the hall's banner, the tunnel's timber
                            set and rock face, nine icons, and the UI art (portraits, the tapestry, the chronicle
                            page) in the manifest's "ui" section -- stage_art_passes.py (decision 0903)
+  build/<key>.png          the build panel's earth textures (floor, wall), in the manifest's "build" section --
+                           stage_build_art.py (decision 1913); its burrow mouth and stairs are props above
   props/<key>__<part>.glb  the underground pass's props with their defects fixed (the burrow door's leaf split
                            from its frame, the arch's slab cut out, ...): make_demo_derived_props.py,
                            decision 0371
@@ -75,6 +77,7 @@ import make_demo_weir  # noqa: E402
 import make_demo_derived_props  # noqa: E402
 import make_demo_food_art  # noqa: E402
 import stage_art_passes  # noqa: E402
+import stage_build_art  # noqa: E402
 import demo_texture_imports  # noqa: E402
 import stage_demo_audio  # noqa: E402
 
@@ -435,6 +438,7 @@ def main() -> int:
 		manifest["cast"] = kept.get("cast", {})
 		manifest["icons"] = kept.get("icons", {})
 		manifest["ui"] = kept.get("ui", {})
+		manifest["build"] = kept.get("build", {})
 	if args.only in (None, "world"):
 		manifest["world"] = stage_world(args.library, args.out)
 		manifest["world"].update(stage_crop_cards(args.library, args.out))
@@ -450,6 +454,10 @@ def main() -> int:
 		manifest["world"].update(passes["world"])
 		manifest["icons"].update(passes["icons"])
 		manifest["ui"] = passes["ui"]
+		build = stage_build_art.stage(args.library, args.out)
+		manifest["build"] = build["build"]
+		for reason in build["skipped"]:
+			print(f"  build art skipped: {reason}")
 	if args.only in (None, "cast"):
 		manifest["cast"] = stage_cast(args.library, args.out)
 	args.out.mkdir(parents=True, exist_ok=True)

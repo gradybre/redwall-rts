@@ -75,9 +75,11 @@ func test_each_kind_has_its_own_glyph_word_and_token() -> void:
 
 
 func test_the_proposed_reasons_carry_their_recorded_glyphs() -> void:
-	"""Decision 1871's proposals: outside and joining two are X; a shape refusal, not-yet and a route refusal are !."""
+	"""Decision 1871's proposals: outside is X; a shape refusal, not-yet and a route refusal are !. Decision 1912's:
+	nothing to erase is X; BUILD-REQ-006's removal words (slot 18, once "joins two") are X."""
 	assert_equal(Validity.kind_of(Validity.REASON_OUTSIDE), Validity.KIND_NOT_POSSIBLE, "outside: X")
-	assert_equal(Validity.kind_of(Validity.REASON_JOINS_TWO), Validity.KIND_NOT_POSSIBLE, "joins two: X")
+	assert_equal(Validity.kind_of(Validity.REASON_NARROW_REMOVAL), Validity.KIND_NOT_POSSIBLE, "narrow removal: X")
+	assert_equal(Validity.kind_of(Validity.REASON_NOTHING_TO_ERASE), Validity.KIND_NOT_POSSIBLE, "nothing to erase: X")
 	assert_equal(Validity.kind_of(Validity.REASON_SHAPE), Validity.KIND_BLOCKED, "shape: !")
 	assert_equal(Validity.kind_of(Validity.REASON_NOT_YET), Validity.KIND_BLOCKED, "not yet: !")
 	assert_equal(Validity.kind_of(Validity.REASON_REFUSED), Validity.KIND_BLOCKED, "route refusal: !")
@@ -87,7 +89,9 @@ func test_the_proposed_reasons_carry_their_recorded_glyphs() -> void:
 	assert_equal(Validity.REASON_KINDS.size(), Validity.REASON_COUNT, "one glyph per reason id")
 	assert_equal(Validity.outside(), "Outside the planning area: keep the whole room inside it", "outside")
 	assert_equal(Validity.shape("join them"), "Shape: join them", "shape")
-	assert_equal(Validity.joins_two(), "Joins two planned rooms: undo one of them first", "joins two")
+	assert_equal(Validity.narrow_removal("Kitchen"),
+		"Too narrow: this would leave part of Kitchen under 2 × 2 cells; remove those cells too", "BUILD-REQ-006's table words")
+	assert_equal(Validity.nothing_to_erase("Pantry"), "Nothing to erase: no planned Pantry cells here", "nothing to erase")
 	assert_equal(Validity.not_yet("furnishing comes in a later update"),
 		"Not yet: furnishing comes in a later update", "not yet")
 

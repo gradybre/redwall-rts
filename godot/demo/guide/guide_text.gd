@@ -29,7 +29,7 @@ const STEP_CONFIRM: Array[String] = [
 const CHOICE_TITLES: Array[String] = ["A bridge", "A dry tunnel route", "Fields made safe"]
 const CHOICE_TEACH: Array[String] = [
 	"Build a bridge at a site and see someone cross it: loaded crews never swim, and a bridge is the dry way over.",
-	"Dig a tunnel from one side to another and see someone walk it: rain and snow do not slow walkers below.",
+	"Not this way in this build: the old tunnel tool is gone, and the build panel's new passages are not counted here yet. Choose a bridge or the fields.",
 	"Drain, raise, bank or cover a bed that has a crop: a covered bed keeps 4 °C warmer through a frost night.",
 ]
 const CHOICE_CONFIRM: Array[String] = [
@@ -50,7 +50,7 @@ const HARVEST_UNDER_WAY: String = "Under way: %s is harvesting the %s."
 const DELIVERY_UNDER_WAY: String = "Under way: %s is carrying %s to store."
 const NEXT_WAIT_DELIVERY: String = "It counts once it is shelved. Speed time up (2x, 4x) to see it sooner."
 const STORE_FULL: String = "No store has room for the harvest: the crop stands uncut."
-const NEXT_MAKE_ROOM: String = "Open the Pantry (K): compost spoiled food, or rack a root cellar (build panel B, Root cellar)."
+const NEXT_MAKE_ROOM: String = "Open the Pantry (K): compost spoiled food, or rack a root cellar if the village has one."
 const NOT_RIPE_YET: String = "Nothing is ripe yet: the %s ripens in about %d h."
 const NEXT_WAIT_RIPE: String = "Speed time up (2x, 4x), or plant an empty bed meanwhile."
 const STALLED: String = "The %s has stopped growing: %s."
@@ -76,7 +76,7 @@ const BRIDGE_READY: String = "No bridge yet: a %s can be built at %s now."
 const BRIDGE_SHORT: String = "No bridge yet: %s"
 const BRIDGE_BUILDING: String = "%s: being built, %d%%."
 const BRIDGE_OPEN: String = "%s is open: waiting for someone to walk across it."
-const TUNNEL_NONE: String = "No tunnel yet: press B, choose Passage, and drag at least 8 m with a mouse, mole or squirrel selected."
+const TUNNEL_NONE: String = "No tunnel yet: the old tunnel tool is gone in this build, so choose a bridge or the fields."
 const TUNNEL_DIGGING: String = "A tunnel is being dug: %d%%."
 const TUNNEL_OPEN: String = "%d tunnel(s) open: waiting for someone to walk through one."
 const FIELD_NONE: String = "No bed is readied yet: a bed with a crop can be raised or banked now (tunnel earth)."

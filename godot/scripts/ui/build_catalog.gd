@@ -3,27 +3,34 @@ extends RefCounted
 ## SET-BUILD-001; docs/ui_ux_controls.md UI-BUILD-001). Presentation only: a card names what it would build and what
 ## it costs, and never orders, reserves or unlocks anything.
 ##
-## WHAT EACH TAB LISTS (slice B, decision 1871).
-##   Rooms, underground   the seven GDD room types to paint (Dormitory ... Pantry), then Passage, Burrow home and
-##                        Root cellar (the old tunnel and template tools, Brendan's ruling 2 of 2026-10-12), then
-##                        Earth and Remove, locked.
+## WHAT EACH TAB LISTS (slice B, decision 1871; slice C1, decision 1912).
+##   Rooms, underground   the eight GDD room types to paint (Dormitory ... Pantry, then Passage, which is CORRIDOR:
+##                        BUILD-REQ-014), then Earth and Remove, locked. A level with no way in yet is painted all the
+##                        same: each cell then says "No way in" on its ghost (BUILD-REQ-013 per cell, decision 1911
+##                        P-C4 (a)). The old Passage / Burrow home / Root cellar tool cards are gone (Brendan's ruling on
+##                        decision 1911 P-C2 (c): "remove them now").
 ##   Rooms, surface       the same room types and Outdoor, Clear ground and Remove, LOCKED (surface rooms are
-##                        slice G); Passage, Burrow home and Root cellar still open their tools.
-##   Rooms, Overview or a level with no way in yet: the room types locked, saying why ("Choose one level to paint
-##                        on" -- a PROPOSAL; "No way in: ..." -- BUILD-REQ-013's words); the old tools still open.
-##   Furnish              the items the chosen room type allows (room_catalog.gd), locked: furnishing is slice E.
-##   Decor                the decoration item, locked.
+##                        slice G).
+##   Rooms, Overview      the room types locked, saying why ("Choose one level to paint on" -- a PROPOSAL).
+## THE WAY DOWN (decision 1912, Brendan's proof-of-concept ruling "Place a simple entrance"): the surface's Rooms tab
+## offers the Entrance, levels 1-3 a Way down (level 4 shows it locked: no level below). Free for now.
+##   Furnish              the items the chosen room type allows (room_catalog.gd) but decoration, placed on the dug
+##                        floor of levels 1-4 (decision 1921: Brendan's Furnish-tab rulings of 2026-10-13, a proof of
+##                        concept slice E replaces); locked on the surface and Overview, saying why.
+##   Decor                the decoration item, placed the same way (UI-BUILD-002 keeps it on its own tab).
 ## A locked card stays inspectable: its info card gives the plain reason (`not_yet` words, a PROPOSAL).
 ##
 ## NUMBERS ARE READ, NOT RESTATED: a room type's least size is room_catalog.gd's GDD §5.9 requirement in tiles,
 ## times 4 cells a tile (SET-BUILD-001 §4); an item's bill and work are its balance §4.3 row (room_catalog.gd
-## `furniture`); a cell's cost is build_ledger.gd's.
+## `furniture`); a cell's cost is build_ledger.gd's, at the height actually dug on its level: the clear height capped
+## by DEC-054's reachable height (Brendan's ruling on decision 1911 P-C3 (a); the host sets it, `set_level_clear_height`).
 
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
+const Items := preload("res://scripts/ui/build_items.gd")
 
 const TAB_ROOMS: int = 0
 const TAB_FURNISH: int = 1
@@ -32,20 +39,17 @@ const TAB_COUNT: int = 3
 const TAB_NAMES: Array[String] = ["Rooms", "Furnish", "Decor"]
 
 const CARD_ROOM: int = 0
-const CARD_LEGACY: int = 1
+## 1 was the old tools' card (decision 1871), removed by decision 1912.
 const CARD_ITEM: int = 2
 const CARD_TOOL: int = 3
-
-const LEGACY_NONE: int = 0
-const LEGACY_PASSAGE: int = 1
-const LEGACY_HOME: int = 2
-const LEGACY_CELLAR: int = 3
+## A way down (build_items.gd): the Entrance on the surface, a Way down below (decision 1912's proof of concept).
+const CARD_WAY_DOWN: int = 4
 
 ## SET-BUILD-001 §3: one GDD tile is 2 × 2 cells.
 const CELLS_PER_TILE: int = 4
 const CORRIDOR: int = 7
-## The seven room types painted in slice B, in the GDD's RoomType order (CORRIDOR is the Passage card).
-const PAINTED_TYPES: Array[int] = [0, 1, 2, 3, 4, 5, 6]
+## The eight GDD room types painted, in RoomType order; CORRIDOR (7) is shown as Passage (BUILD-REQ-014).
+const PAINTED_TYPES: Array[int] = [0, 1, 2, 3, 4, 5, 6, 7]
 const PASSAGE_NAME: String = "Passage"
 ## Player-facing purpose of each GDD room type (GDD §5.9), by RoomType ordinal.
 const PURPOSES: Array[String] = [
@@ -71,26 +75,30 @@ const PICTURES: Array[String] = [
 	"shelves of jars and sacks", "a timbered tunnel",
 ]
 const GESTURE_PAINT: String = "Drag to paint; Esc cancels the stroke"
-const GESTURE_PLACE: String = "Click to place; R to rotate"
-const GESTURE_PASSAGE: String = "Opens the tunnel tool: drag from where it starts to where it ends"
-const GESTURE_TEMPLATE: String = "Opens the room tool: move it, R turns it, click to hold, Enter to order"
+const GESTURE_PLACE: String = "Click a dug floor to place; R / Shift+R turn it; Shift+click keeps it for another"
+const GESTURE_WAY_DOWN: String = "Click a spot to place it (2 × 2 cells); Esc cancels"
+const FREE_FOR_NOW: String = "free for now (proof of concept)"
+const WAY_DOWN_PURPOSES: Array[String] = [
+	"A way down from the ground to underground level 1: rooms and passages there connect to it",
+	"A way down to the next level, standing on a passage or room",
+]
 const NOTHING_CHOSEN: String = "Choose a room type to begin"
+## Decision 1921: the Furnish and Decor tabs with no piece chosen.
+const CHOOSE_PIECE: String = "Choose a piece to place"
 const CHOOSE_FIRST: String = "Choose a room type first"
 const LATER_SURFACE: String = "rooms on the surface come in a later update"
 const LATER_OUTDOOR: String = "outdoor items come in a later update"
-const LATER_FURNISH: String = "furnishing comes in a later update"
-const LATER_DECOR: String = "decoration comes in a later update"
+## Decision 1921: furniture stands on dug rooms below; surface rooms come later.
+const LATER_FURNISH: String = "furnishing surface rooms comes in a later update"
+const ITEM_RULES: String = "Stands on the dug floor of a room that uses it (%s), clear of other furniture"
+const EDGE_RULES: String = "Stands on 2 cell edges with a dug room floor on both sides (%s); R / Shift+R pick the side"
+const ITEM_PURPOSE: String = "Furniture for the room: a resident fits it after Confirm all; %s"
 const LATER_REMOVE: String = "removing rooms comes in a later update"
 const LATER_EARTH: String = "filling cells back in comes in a later update"
 const LATER_CLEAR: String = "clearing ground comes in a later update"
 ## The bar's Overview shows every level; painting needs one (a PROPOSAL, decision 1871).
 const OVERVIEW_LEVEL: int = 5
 const CHOOSE_A_LEVEL: String = "Choose one level to paint on: Overview shows them all"
-const LEGACY_NAMES: Array[String] = ["", "Passage", "Burrow home", "Root cellar"]
-const LEGACY_PURPOSES: Array[String] = ["",
-	"A tunnel for walking and hauling between rooms (the tunnel tool)",
-	"A round home with its own front door (the room tool)",
-	"A stone-lined cellar with a hatch, for keeping harvests (the room tool)"]
 const ITEM_NAMES: Dictionary = {
 	"bed": "Bed", "decoration": "Decoration", "hearth": "Hearth", "interior_door": "Door",
 	"interior_partition": "Partition", "kitchen_bench": "Kitchen bench", "patient_bed": "Patient bed",
@@ -105,7 +113,6 @@ class Card extends RefCounted:
 	var name: String = ""
 	var room_type: int = -1
 	var item_type: int = -1
-	var legacy: int = 0
 	var locked: String = ""
 	var cost: String = ""
 	var footprint: String = ""
@@ -129,7 +136,7 @@ class Card extends RefCounted:
 
 var _rooms: RoomCatalog = RoomCatalog.new()
 var _clear_height_u: int = Ledger.DEFAULT_CLEAR_HEIGHT_U
-## Each level's clear height (index = level; 0 and Overview unused), for a cell's cost on that level.
+## Each level's dug height (index = level; 0 and Overview unused): the clear height, capped by DEC-054.
 var _level_heights: PackedInt32Array = PackedInt32Array([4096, 4096, 4096, 4096, 4096, 4096])
 var _tally: PackedInt64Array = PackedInt64Array()
 
@@ -141,7 +148,7 @@ func set_clear_height(clear_height_u: int) -> void:
 
 
 func set_level_clear_height(level: int, clear_height_u: int) -> void:
-	"""One level's clear height (the level actually painted prices its cells)."""
+	"""One level's dug height: the clear height, or less where DEC-054 caps it (the level painted prices its cells)."""
 	if level >= 0 and level < _level_heights.size():
 		_level_heights[level] = clear_height_u
 
@@ -201,30 +208,41 @@ func cards_into(tab: int, level: int, chosen_type: int, out: Array[Card], reacha
 		TAB_ROOMS:
 			_room_cards(level, room_lock(level, reachable), out)
 		TAB_FURNISH:
-			_item_cards(chosen_type, false, out)
+			_item_cards(chosen_type, false, item_lock(level), out)
 		TAB_DECOR:
-			_item_cards(chosen_type, true, out)
+			_item_cards(chosen_type, true, item_lock(level), out)
 
 
-static func room_lock(level: int, reachable: bool) -> String:
-	"""Why the room types cannot be painted on `level` ("" when they can): the surface (a later update), Overview
-	(one level at a time), or a level with no way in yet (BUILD-REQ-013)."""
+static func room_lock(level: int, _reachable: bool = true) -> String:
+	"""Why the room types cannot be painted on `level` ("" when they can): the surface (a later update) or Overview
+	(one level at a time). A level with no way in yet is painted all the same; its cells say "No way in" (decision
+	1912)."""
 	if level <= 0:
 		return Validity.not_yet(LATER_SURFACE)
 	if level >= OVERVIEW_LEVEL:
 		return CHOOSE_A_LEVEL
-	return "" if reachable else Validity.no_way_in()
+	return ""
+
+
+static func item_lock(level: int) -> String:
+	"""Why furniture cannot be placed on `level` ("" when it can): the surface (a later update) or Overview (one level
+	at a time). Decision 1921."""
+	if level <= 0:
+		return Validity.not_yet(LATER_FURNISH)
+	if level >= OVERVIEW_LEVEL:
+		return CHOOSE_A_LEVEL
+	return ""
 
 
 func _room_cards(level: int, lock: String, out: Array[Card]) -> void:
-	"""Rooms: the painted types, then the old tools, then the locked tools (see WHAT EACH TAB LISTS)."""
+	"""Rooms: the painted types, then the locked tools (see WHAT EACH TAB LISTS)."""
 	var surface: bool = level <= 0
 	for room_type: int in PAINTED_TYPES:
 		out.append(room_card(room_type, lock, clampi(level, 1, 4)))
 	if surface:
 		out.append(_tool_card(&"tool:outdoor", "Outdoor", LATER_OUTDOOR, "Wells, fences, paths and other things built in the open"))
-	for legacy: int in [LEGACY_PASSAGE, LEGACY_HOME, LEGACY_CELLAR]:
-		out.append(legacy_card(legacy))
+	if level < OVERVIEW_LEVEL:
+		out.append(way_down_card(level))
 	if surface:
 		out.append(_tool_card(&"tool:clear", "Clear ground", LATER_CLEAR, "Paint over a surface room to take it down"))
 	else:
@@ -250,20 +268,20 @@ func room_card(room_type: int, locked_reason: String, level: int = 1) -> Card:
 	return card
 
 
-func legacy_card(legacy: int) -> Card:
-	"""The Passage, Burrow home or Root cellar card: it opens the old tool, which has its own confirm."""
+func way_down_card(level: int) -> Card:
+	"""The Entrance (surface) or Way down (levels 1-3) card; on level 4, locked: no level below."""
 	var card: Card = Card.new()
-	card.id = StringName("legacy:%d" % legacy)
-	card.kind = CARD_LEGACY
-	card.name = LEGACY_NAMES[legacy]
-	card.legacy = legacy
-	card.room_type = CORRIDOR if legacy == LEGACY_PASSAGE else -1
-	card.cost = "costs shown by its tool as you lay it"
-	card.footprint = "at least 2 cells wide" if legacy == LEGACY_PASSAGE else "a fixed room shape"
-	card.purpose = LEGACY_PURPOSES[legacy]
-	card.rules = rules_text(CORRIDOR) if legacy == LEGACY_PASSAGE else "Dug by the village's diggers; it needs a passage in"
-	card.gesture = GESTURE_PASSAGE if legacy == LEGACY_PASSAGE else GESTURE_TEMPLATE
-	card.picture = PICTURES[CORRIDOR] if legacy == LEGACY_PASSAGE else "a round door in an earth bank"
+	card.id = StringName("way_down:%d" % level)
+	card.kind = CARD_WAY_DOWN
+	card.name = Items.name_of(level)
+	card.locked = Validity.no_level_below() if level > Items.DEEPEST_TOP else ""
+	card.cost = FREE_FOR_NOW
+	card.footprint = "2 × 2 cells"
+	card.purpose = WAY_DOWN_PURPOSES[0 if level == 0 else 1]
+	card.rules = "Lands on the cells below it, which must be diggable" if level == 0 \
+		else "Stands on a passage or room; lands on the cells below it"
+	card.gesture = GESTURE_WAY_DOWN
+	card.picture = "a hole with earth steps going down"
 	return card
 
 
@@ -283,16 +301,16 @@ func _tool_card(id: StringName, title: String, later: String, purpose: String) -
 	return card
 
 
-func _item_cards(room_type: int, decor: bool, out: Array[Card]) -> void:
-	"""Furnish: the items `room_type` allows but decoration; Decor: decoration. Every one locked in slice B."""
+func _item_cards(room_type: int, decor: bool, lock: String, out: Array[Card]) -> void:
+	"""Furnish: the items `room_type` allows but decoration; Decor: decoration; each locked with `lock` ("" places
+	it)."""
 	if room_type < 0:
 		return
-	var later: String = Validity.not_yet(LATER_DECOR if decor else LATER_FURNISH)
 	for key: String in ITEM_NAMES:
 		var item: int = int(Catalog.FURNITURE_DEFINITION[key])
 		if (key == "decoration") != decor or _rooms.compatibility_error(room_type, item) != &"":
 			continue
-		out.append(item_card(item, later))
+		out.append(item_card(item, lock))
 
 
 func item_card(item: int, locked_reason: String) -> Card:
@@ -306,11 +324,26 @@ func item_card(item: int, locked_reason: String) -> Card:
 	card.locked = locked_reason
 	card.cost = "per item %s" % _bill_words(facts)
 	card.footprint = _footprint_words(facts)
-	card.purpose = "Furniture for the room"
-	card.rules = locked_reason
+	card.purpose = ITEM_PURPOSE % FREE_FOR_NOW
+	card.rules = (EDGE_RULES if facts.edge_placement else ITEM_RULES) % users_of(item) if locked_reason.is_empty() \
+		else locked_reason
 	card.gesture = GESTURE_PLACE
 	card.picture = "no picture yet"
 	return card
+
+
+func users_of(item: int) -> String:
+	"""The room types that use `item`, in words: "Dormitory or Bedroom", or "any room" for a shared fitting."""
+	return users_in(_rooms, item)
+
+
+static func users_in(rooms: RoomCatalog, item: int) -> String:
+	"""`users_of` read through `rooms` (room_catalog.gd `compatibility_error`)."""
+	var names: PackedStringArray = PackedStringArray()
+	for room_type: int in PAINTED_TYPES:
+		if rooms.compatibility_error(room_type, item) == &"":
+			names.append(type_name(room_type))
+	return " or ".join(names) if names.size() < PAINTED_TYPES.size() else "any room"
 
 
 static func _bill_words(facts: RoomCatalog.FurnitureFacts) -> String:

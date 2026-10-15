@@ -9,6 +9,8 @@ const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
+const Stroke := preload("res://scripts/ui/build_stroke.gd")
+const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 
 const KITCHEN: int = 2
 
@@ -97,20 +99,27 @@ func test_the_info_card_follows_the_shown_card_or_asks_for_a_choice() -> void:
 	assert_true(_panel.info_text().contains("per cell"), "cost")
 	var info: Control = _panel.controls()[&"info"]
 	assert_true(info.accessibility_name.begins_with("Picture (placeholder): "), "the picture described")
-	_panel.choose_card(10)
+	_panel.choose_card(9)
 	assert_true(_panel.info_text().contains("! Blocked: Not yet:"), "a locked card says why: %s" % _panel.info_text())
 	assert_equal(_panel.paint_type(), KITCHEN, "inspecting a locked card keeps the Kitchen armed")
 
 
 func test_choosing_arms_paintable_types_only() -> void:
-	"""A room type arms painting; the old tools and locked cards are only told to the host."""
+	"""A room type arms painting -- Passage too, as CORRIDOR (BUILD-REQ-014, decision 1912); a locked card is only
+	told to the host and keeps the armed type."""
 	_panel.choose_card(2)
 	assert_equal(_panel.paint_type(), KITCHEN, "Kitchen armed")
 	_panel.choose_card(7)
-	assert_equal(_panel.paint_type(), -1, "Passage opens its tool instead")
-	assert_equal(_chosen, ["Kitchen", "Passage"], "both told to the host")
+	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "Passage paints")
+	_panel.choose_card(10)
+	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "the locked Remove card keeps Passage armed")
+	_panel.choose_card(8)
+	assert_equal(_panel.paint_type(), -1, "a Way down paints nothing")
+	assert_true(_panel.way_down_armed(), "it places instead (decision 1912)")
+	assert_false(_panel.tool_buttons()[0].visible, "and shows no tool strip")
+	assert_equal(_chosen, ["Kitchen", "Passage", "Remove", "Way down"], "each told to the host")
 	_panel.choose_card(99)
-	assert_equal(_chosen.size(), 2, "a card past the row does nothing")
+	assert_equal(_chosen.size(), 4, "a card past the row does nothing")
 
 
 func test_on_the_surface_nothing_paints() -> void:
@@ -271,9 +280,9 @@ func test_card_buttons_carry_the_cards_accessible_names() -> void:
 	assert_true(first.visible, "a card")
 	assert_true(first.accessibility_name.begins_with("Dormitory; per cell "), first.accessibility_name)
 	assert_true(first.text.contains("Dormitory"), first.text)
-	var locked: Button = _panel.card_button(11)
+	var locked: Button = _panel.card_button(10)
 	assert_true(locked.text.contains("! Not yet"), "a locked card shows its glyph: %s" % locked.text)
-	assert_false(_panel.card_button(12).visible, "the pool's spare buttons are hidden")
+	assert_false(_panel.card_button(11).visible, "the pool's spare buttons are hidden")
 	assert_null(_panel.card_button(99), "none past the pool")
 
 
@@ -332,14 +341,35 @@ func test_a_stroke_alone_does_not_rebuild_the_ledger() -> void:
 	assert_equal(_panel.confirm_blocked(), "Finish or cancel the stroke first", "Confirm all followed it")
 
 
-func test_a_card_note_from_the_host_is_shown() -> void:
-	"""Review M8's hook: a host's note for a card shows in the info card and the tooltip."""
-	_panel.card_note = func(card: BuildCatalog.Card) -> String: return "NOTE %s" % card.name
-	_panel._show_card(0)
-	assert_true(_panel.info_text().ends_with("NOTE Dormitory"), _panel.info_text())
-	_panel._sync_cards()
-	assert_true(_panel.card_button(0).tooltip_text.ends_with("NOTE Dormitory"), "tooltip")
-	_panel.card_note = Callable()
+func test_the_tool_strip_shows_with_a_room_type_and_sets_the_batch_tool() -> void:
+	"""Decision 1912 (P-C7 (a)): Rect · Oval · Paint · Erase under the info card once a room type is chosen; a press
+	sets the batch's tool, the pressed one is named "selected", and the info card says the tool and its gesture."""
+	var tools: Array[Button] = _panel.tool_buttons()
+	assert_equal(tools.size(), 4, "four tools")
+	for button: Button in tools:
+		assert_false(button.visible, "hidden before a choice")
+	_panel.choose_card(2)
+	assert_true(tools[0].visible and tools[0].button_pressed, "Rectangle shown and pressed")
+	assert_equal(tools[1].accessibility_name, "Oval tool", "named in words")
+	assert_true(_panel.choose_tool(Stroke.TOOL_ERASE), "Erase")
+	assert_equal(_batch.tool(), Stroke.TOOL_ERASE, "the batch's tool")
+	assert_true(tools[3].button_pressed and not tools[0].button_pressed, "only Erase pressed")
+	assert_equal(tools[3].accessibility_description, "selected", "said, not only shown")
+	assert_true(_panel.info_text().ends_with("Tool: Erase. %s" % Stroke.TOOL_GESTURES[Stroke.TOOL_ERASE]),
+		_panel.info_text())
+	assert_false(_panel.choose_tool(9), "no ninth tool")
+	_panel.select_tab(1)
+	assert_false(tools[0].visible, "hidden on Furnish")
+
+
+func test_the_tool_strip_sits_inside_the_info_card_at_every_profile() -> void:
+	"""The strip's four toggles lie wholly inside the info card, 32 px high, never over the card row."""
+	for profile: int in [UiLayout.PROFILE_NARROW, UiLayout.PROFILE_STANDARD, UiLayout.PROFILE_WIDE]:
+		var strip: Rect2 = BuildLayout.tool_strip_rect(profile)
+		var info: Rect2 = BuildLayout.info_rect(profile)
+		assert_true(info.encloses(strip), "inside the info card at profile %d" % profile)
+		assert_equal(strip.size.y, BuildLayout.TOOL_STRIP_HEIGHT, "32 high")
+		assert_false(strip.intersects(BuildLayout.cards_rect(912.0, profile)), "clear of the cards")
 
 
 func test_the_ledger_prices_each_room_at_its_own_level() -> void:
@@ -371,29 +401,108 @@ func test_the_expanded_ledger_hides_the_tab_row_under_it() -> void:
 	_panel.open_on(1)
 	assert_true((tabs[0] as Button).visible and (_panel.controls()[&"where"] as Label).visible, "reopened: back")
 	assert_false(_panel.ledger_expanded(), "folded")
-	_panel.set_ledger_expanded(true)
-	_panel.suspend(true)
-	_panel.suspend(false)
-	assert_true((tabs[1] as Button).visible, "an old tool's turn folds it too")
 
 
 func test_a_locked_card_says_its_own_reason() -> void:
-	"""Review LOW d: on Overview a room card reads "! Choose one level to paint on", on a level with no way in
-	"! No way in"; the whole reason stays in the info card."""
+	"""Review LOW d: on Overview a room card reads "! Choose one level to paint on"; on a level with no way in it is
+	usable (its cells say "No way in" on the ghost, decision 1912); the whole reason stays in the info card."""
 	_panel.set_level(LevelBar.LEVEL_OVERVIEW)
 	assert_true(_panel.card_button(0).text.ends_with("\n! Choose one level to paint on"), _panel.card_button(0).text)
 	_panel.set_level(3, false)
-	assert_true(_panel.card_button(0).text.ends_with("\n! No way in"), _panel.card_button(0).text)
+	assert_false(_panel.card_button(0).text.contains("!"), _panel.card_button(0).text)
 
 
-func test_card_notes_are_reread_into_the_tooltips() -> void:
-	"""Review LOW c: refresh_notes writes a changed note into the card's tooltip and the info card."""
-	var note: Array[String] = ["one"]
-	_panel.card_note = func(_card: BuildCatalog.Card) -> String: return note[0]
-	_panel._show_card(0)
-	_panel._sync_cards()
-	note[0] = "two"
-	_panel.refresh_notes()
-	assert_true(_panel.card_button(0).tooltip_text.ends_with("\ntwo"), _panel.card_button(0).tooltip_text)
-	assert_true(_panel.info_text().ends_with("two"), "the info card too")
-	_panel.card_note = Callable()
+func test_a_way_down_holds_confirm_all_back_in_its_own_words() -> void:
+	"""Decision 1912: a Way down placed with nothing under it is "!" and Confirm all names it."""
+	_batch.place_item(1, Vector2i(10, 10))
+	_panel.refresh(true)
+	assert_equal(_panel.confirm_blocked(), "! 1 of 1 not ready: Way down: Way down needs a passage or room under it: paint one there first",
+		_panel.confirm_blocked())
+	assert_true(_panel.ledger_lines("").contains("Level 1 · Way down (a way down to level 2; free for now): ! Blocked"),
+		_panel.ledger_lines(""))
+
+
+# --- the Furnish tab (decision 1921) ------------------------------------------------------------------------------
+
+func _furnish_kitchen() -> void:
+	"""A Kitchen chosen, then the Furnish tab."""
+	_panel.choose_card(KITCHEN)
+	assert_true(_panel.select_tab(BuildCatalog.TAB_FURNISH), "Furnish")
+
+
+func _card_named(card_name: String) -> int:
+	"""The row's card called `card_name` (-1: none)."""
+	for k: int in _panel.row_cards().size():
+		if _panel.row_cards()[k].name == card_name:
+			return k
+	return -1
+
+
+func test_an_item_card_arms_placing_it_on_an_underground_level() -> void:
+	"""Choosing the Hearth card arms it (no room type painting meanwhile); on the surface it is locked and disarmed."""
+	_furnish_kitchen()
+	assert_false(_panel.piece_armed(), "nothing armed yet")
+	_panel.choose_card(_card_named("Hearth"))
+	assert_true(_panel.piece_armed(), "the hearth is armed")
+	assert_equal(_panel.armed_item(), 2, "item 2")
+	assert_equal(_panel.paint_type(), -1, "no room type paints meanwhile")
+	assert_false(_panel.way_down_armed(), "nor a way down")
+	_panel.set_level(LevelBar.LEVEL_SURFACE)
+	assert_false(_panel.piece_armed(), "on the surface it is disarmed")
+	assert_equal(_panel.armed_item(), -1, "nothing")
+	assert_null(_panel.chosen_card(), "the choice dropped: locked there")
+
+
+func test_an_item_choice_survives_a_change_of_underground_level() -> void:
+	"""A piece armed on level 1 stays armed on level 2 (its own tab's cards are read, not the Rooms tab's)."""
+	_furnish_kitchen()
+	_panel.choose_card(_card_named("Kitchen bench"))
+	_panel.set_level(2)
+	assert_true(_panel.piece_armed(), "still armed")
+	_panel.clear_choice()
+	assert_false(_panel.piece_armed(), "put down")
+
+
+func test_the_rooms_lines_show_on_the_furnish_tab_only() -> void:
+	"""set_room_lines: under the info card on Furnish and Decor; not on Rooms."""
+	_furnish_kitchen()
+	_panel.choose_card(_card_named("Hearth"))
+	_panel.set_room_lines("! Kitchen: Needs 1 hearth")
+	assert_true(_panel.info_text().ends_with("! Kitchen: Needs 1 hearth"), _panel.info_text())
+	_panel.set_room_lines("✓ Kitchen ready")
+	assert_true(_panel.info_text().ends_with("✓ Kitchen ready"), "updated live: %s" % _panel.info_text())
+	_panel.clear_choice()
+	_panel.select_tab(BuildCatalog.TAB_DECOR)
+	assert_equal(_panel.info_text(), "Choose a piece to place\n✓ Kitchen ready", "nothing chosen on Decor: still shown")
+	_panel.select_tab(BuildCatalog.TAB_ROOMS)
+	assert_false(_panel.info_text().contains("Kitchen ready"), "not on Rooms: %s" % _panel.info_text())
+
+
+func test_the_ledger_lists_each_piece_and_the_furnitures_bill() -> void:
+	"""A pending bed and bench: their lines, their whole bill in their own goods, free; wood and stone in the short
+	ledger."""
+	_batch.bind_furniture_host(func(_l: int, _c: Vector2i) -> int: return 0, func(_l: int, _c: Vector2i) -> int: return -1,
+		func(_l: int, _e: Vector3i) -> int: return -1)
+	assert_equal(_batch.place_piece(1, Vector2i(0, 0), 1, 0), Validity.KIND_CAN_BUILD, "a bed, turned once")
+	_panel.refresh(true)
+	var lines: String = _panel.ledger_lines("summary").replace("\n", " | ")
+	assert_true(lines.contains("Level 1 · Bed, turned once (free for now): ✓ Can build"), lines)
+	assert_true(lines.contains("Furniture needs 2 logs, 2 lengths of cloth; work about 20 minutes"), lines)
+	assert_true(lines.contains("(free for now: nothing is taken from the stores)"), lines)
+	var short: String = (_panel.controls()[&"ledger"] as Button).text
+	assert_true(short.begins_with("Plan: 2 logs") and short.contains("work about 20 minutes"), short)
+	_batch.undo()
+	_panel.refresh(true)
+	assert_false(_panel.ledger_lines("s").contains("Furniture needs"), "no piece: no bill line")
+
+
+func test_a_piece_that_no_longer_fits_names_itself_in_confirm_alls_reason() -> void:
+	"""A pending piece whose floor was taken since holds Confirm all back in its own words."""
+	var taken: Array = [false]
+	_batch.bind_furniture_host(func(_l: int, _c: Vector2i) -> int: return 0,
+		func(_l: int, _c: Vector2i) -> int: return 0 if taken[0] else -1, func(_l: int, _e: Vector3i) -> int: return -1)
+	_batch.place_piece(1, Vector2i(0, 0), 0, 0)
+	assert_equal(_panel.confirm_blocked(), "", "fits")
+	taken[0] = true
+	assert_equal(_panel.confirm_blocked(), "X 1 of 1 not ready: Bed: Overlaps a Bed: place it clear of other furniture",
+		_panel.confirm_blocked())

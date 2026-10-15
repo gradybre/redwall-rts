@@ -1,8 +1,42 @@
 # Underground integration status
 
-Last updated 2026-10-05 on branch `claude/ug-paid-start`. Read this before
-`underground-claude-handoff-2026-10-05.md`. This document supersedes that
-handoff's lane, worktree and overlay instructions (ADR 1192).
+Last updated 2026-10-12 on branch `feat/build-panel-slice-c` (decisions 1911 and 1912; the sections dated
+2026-10-05/06 below are kept as they were written). Read this before `underground-claude-handoff-2026-10-05.md`.
+This document supersedes that handoff's lane, worktree and overlay instructions (ADR 1192).
+
+## Where it stands (2026-10-12)
+
+The "Next, in order" list below (2026-10-05) is out of date. Checked in code at `5977191b` (decision 1911 §2):
+
+- **The first-entry dispatcher exists.** `SettlementSystem.run_tick` advances the entry runtime and its foreman every
+  tick after ProductiveWork (`settlement_system.gd` `_advance_underground_entry`, ADR 1210 G7). It digs only the
+  authored first-entry stair (L0, T0–T6) and ends at `ENTRY_KITCHEN_UNBUILT`. **Nothing in the game starts it**:
+  `begin_underground_entry` is called only by tests, and the demo composes the room and route owners but not the
+  surface anchor or the entry owners. Settlement stock is never staged at the entry (`ENTRY_HAUL_NO_STAGED_STOCK`).
+- **The entry stair ends 1 m below the surface; underground level 1 is 5 m down** (SET-BUILD-001 §3). Nothing can
+  reach level 1 until slice D's entrance (OPEN-10 (a)).
+- **No room is dug by anything in the game.** `RoomOrders.confirm_room` creates Sites and geometry, no project, job
+  or worker; the room loop of ADR 1213 is test-only. Slice C2 (decision 1931 and its successors) builds the
+  production room foreman.
+- **How rooms are dug in the game**: Brendan first ruled P-C2-1 on decision 1931, "Dig rooms with the down stroke"
+  (M1, no M2/M3); decision 1932 then settled one basic claw front stroke (M3) and rooms 1 quantum high (a cell: wood
+  250, stone 250, 4,230 milli-WU, earth 2,000). Until M3 lands no claw stroke cuts a room wall (0 quanta cut,
+  decision 1931 F1), although `reachable_height_u` reports 1,024 u for the claw crew from anchor heights alone.
+- **The excavation owners cost about 6.4 ms per working tick per builder** against REQ-SET-163's 2 ms (decision 1931
+  F3). The `perf/dig-tick-cost` lane is fixing it (P-C2-2 (a)).
+- **A room's planned height and its price are read with the claw crew's identity** (P-C2-3 (a)): the build ledger
+  and `modular_runtime.gd _make_plan` used "any row" (2,048 u, the retired pick's), which a claw work row refuses at
+  confirm (`ROOM_APPROACH_HEIGHT_UNREACHABLE`). Both now read `modular_runtime.gd dug_height_u` with the claw crew's
+  identity: 1,024 u on master, until C2.1 changes the rule (decision 1912).
+- **The build panel (slices B and C1)** paints rooms on the actual World's levels and judges every cell before
+  Confirm all ("No way in", "Cannot dig here", the 2 × 2 rule).
+- **The proof of concept (decision 1912, Brendan's ruling of 2026-10-12)**: in the demo, an Entrance placed on the
+  surface, rooms and passages painted, Confirm all, and a mole digs them -- demo layer only, free, unsaved. It touches
+  none of the core owners above and is replaced by C3. Nothing in the settlement simulation digs a room yet.
+- **HAUL-H3 and later have not landed**, and underground work does not need them: the entry has its own haul path
+  (`underground_entry_hauler.gd` → `underground_connector_delivery.gd`), wood and stone only, the entry Placement only.
+
+Order now (Brendan's rulings on decisions 1911 and 1931): C1 ∥ the cost lane ∥ C2.1 → C2.2 → C2.3 → slice D → C3.
 
 ## How work is done now
 

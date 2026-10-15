@@ -81,6 +81,9 @@ FINDS = ["find_flint", "find_clay", "relic_bell", "relic_key", "relic_banner"]
 ## budget.
 UNDERGROUND_PROPS = {"burrow_door": "furniture", "tunnel_arch": "furniture", "hand_lantern": "small_prop",
 	"hanging_stores": "small_prop", "root_bin": "furniture", "chimney_pot": "small_prop", "rag_rug": "small_prop"}
+## The build panel's proof of concept (decision 1913, Brendan's "Yes, all three (78 credits)"): the Entrance's burrow
+## mouth and the stair flight a dug landing gets, both at the furniture budget.
+BUILD_PROPS = {"burrow_mouth": "furniture", "dig_stairs": "furniture"}
 ## Every prop: key -> family. Most have no L0 at all. basket is rebuilt from its high-poly because its
 ## library L0 shatters (the README's "Known problems"); the older props this pass puts to use (the
 ## lantern, the chamber's bed, jars and shelf, the tools) are rebuilt too, because their library L0s
@@ -96,6 +99,7 @@ PROPS = {
 	**{key: "furniture" for key in ["boat_coracle", "boat_rowboat", "boat_raft", "jetty", "smoking_rack",
 		"bridge_plank", "bridge_log", "bridge_pier", "felled_trunk", "plank_stack", "bed", "pantry_shelf", "hearth"]},
 	**UNDERGROUND_PROPS,
+	**BUILD_PROPS,
 }
 ICONS = set(ITEMS) | set(FINDS)
 

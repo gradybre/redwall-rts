@@ -292,6 +292,23 @@ the fixture cannot produce.
 - **Review:** above.
 - **Performance:** above. Gate 6 is judged after the cost lane lands (P-C2-2 (a)).
 
+## Final gates (after merging PR #260 and PR #261, at `33a951e9`, 2026-10-15)
+
+- **Full suite, CI-style.**
+  - Setup: `godot/.godot` deleted, `godot --headless --path godot --editor --quit`, no demo art in this worktree.
+  - Run: `./tools/run_tests_parallel.sh --jobs 4` (CI's 10 shards and CI's verify).
+  - Result: `ok: 511 suite files executed exactly once across 10 shards`, 12,580 tests, 1,240,341 assertions,
+    0 failures, 0 unexpected errors, 0 unexpected warnings, 0 leaked objects or resources; every shard exited 0.
+- **Analyzer:** `python3 tools/gdscript_warnings.py --max 0 --port 6433`: `0 GDScript warning(s) in 0 of 1554 file(s)`.
+- **Contracts:** every check in CI's contracts job exited 0. They include:
+  - `decision_numbers.py`: PASS, 556 records;
+  - `ready07_arithmetic.py` PASS;
+  - `underground_memory_budget.py --check`, `test_underground_memory_budget.py` and
+    `test_underground_current_census.py` OK;
+  - `merge_gate.py` PASS;
+  - `state_registry_coverage.py`: PASS, 199 modules, 818 rows, 1,097 packed columns.
+- **Mutation testing and review:** above. Gate 6 (performance) is judged after the cost lane lands.
+
 ## Source
 
 BUILD-REQ-012, SET-BUILD-001 §3 and §10; ECON-001, ECON-003, ECON-005; DEC-052, DEC-054 (as amended by "Painted

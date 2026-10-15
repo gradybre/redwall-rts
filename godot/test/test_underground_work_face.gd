@@ -749,3 +749,15 @@ func test_an_obstructed_column_is_not_open() -> void:
 	_request.target_origin = Vector3i(X + 2048, FLOOR + 1024, Z)
 	assert_equal(_read(), Face.REFUSE_COLUMN, "the floor-band cube holds an obstacle")
 
+
+func test_scrape_needs_the_worlds_own_site_lattice() -> void:
+	"""Cut history read from another World's lattice proves nothing, so nothing is scraped."""
+	_setup()
+	_scrape_profile(3)
+	var lattice: Face.Contract.Domain = _actual.physical.sites._domain
+	var world: Vector2i = lattice.world_ref
+	lattice.world_ref = Vector2i(world.x + 1, world.y)
+	assert_equal(_read(), Face.REFUSE_STROKE, "a foreign lattice refuses the scrape")
+	lattice.world_ref = world
+	assert_equal(_read(), &"", "the World's own lattice restores it")
+

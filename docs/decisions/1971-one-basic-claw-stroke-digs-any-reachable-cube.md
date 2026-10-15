@@ -544,16 +544,17 @@ Medium findings:
 
 Mutation testing used a scratch runner in a separate worktree (not committed):
 
-- **35 mutants of the new guards and the cleared changes.** 26 were killed at first.
-- **5 survivors are equivalent:**
+- **38 mutants** of the new guards, the review fixes and the cleared changes. **33 are killed**, and the other **5 are
+  equivalent:**
   - W01/W02: `struck_origin`'s own-band bounds can never meet the column branch;
   - W08/W09: on a side face the struck cube and the target share the face plane;
   - W20: the moved pre-1971 `within_target` check, which the stroke's coverage subtraction duplicates above the
     plane.
-- **4 survivors (W12, W14, P03, A01/A02) got tests:**
-  - non-natural footing and an unbound excavation authority refuse the scrape;
+- **Six survivors of the first pass are now killed by new tests:**
+  - non-natural footing, an unbound excavation authority, and a foreign Site lattice each refuse the scrape;
   - the planner's `_fits` leaves a stroke's below-floor part alone but not a body's;
-  - an anchor on the floor plane or the band's top plane lifts no limit.
+  - anchors on the floor plane or the band's top plane lift no limit.
+- **The review fixes are killed too:** the obstructed column and the level bound.
 
 ### Memory (ADR 1212)
 

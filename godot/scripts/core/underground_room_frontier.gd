@@ -354,13 +354,20 @@ static func _face(query: Query, profile: int, location: Vector2i) -> int:
 		var box: int = _field(query, profile, Profiles.F_FIRST_BOX) + index
 		if profiles._live.boxes[6 * profiles._box_capacity + box] != Profiles.CONTACT_POINT: continue
 		if result >= 0: return -1
+		var floor_y: int = query.config.locations._get32(query.config.locations._live, Locations.Y, location.x)
+		# Decision 1971: an upper quantum's claws strike its column's floor-band cube (P-1971-3 "Painted height").
+		var origin: Vector3i = Face.struck_origin(query.origin, floor_y,
+			floor_y + int(profiles._live.boxes[profiles._box_capacity + box]))
 		for axis: int in 3:
 			var value: int = int(profiles._live.boxes[axis * profiles._box_capacity + box]) \
 				+ query.config.locations._get32(query.config.locations._live, Locations.X + axis, location.x)
-			if value < query.origin[axis] or value > int(query.origin[axis]) + Contract.QUANTUM_SIDE_U: return -1
-			if value == query.origin[axis] or value == int(query.origin[axis]) + Contract.QUANTUM_SIDE_U:
+			if value < origin[axis] or value > int(origin[axis]) + Contract.QUANTUM_SIDE_U: return -1
+			if value == origin[axis] or value == int(origin[axis]) + Contract.QUANTUM_SIDE_U:
 				if result >= 0: return -1
-				result = axis * 2 + int(value != query.origin[axis])
+				result = axis * 2 + int(value != origin[axis])
+				# Decision 1971: as WorkFace's contact rule, the station stands outside the face it strikes.
+				var station: int = query.config.locations._get32(query.config.locations._live, Locations.X + axis, location.x)
+				if (station >= value) if result % 2 == 0 else (station < value): return -1
 	return result
 
 

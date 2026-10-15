@@ -230,6 +230,12 @@ master, not a settled room height: Brendan ruled rooms are dug with the claws' d
 changes the room-digging rule in core (decision 1931 and its successor); the price follows whatever it publishes.
 (P-C3 (a) first read "2 quanta" from identity −1, which counts the retired pick's rows: decision 1931 F2.)
 
+**Superseded in part, 2026-10-15 (DEC-054 addendum, decision 1971 P-1971-3 "Painted height").** A painted
+underground cell is dug to the full clear height: the table above (4 quanta) is the price, not a ceiling. The claws
+strike the bottom quantum of each column, and the upper quanta are paid as part of the same work.
+`reachable_height_u` reports no stroke limit once the claw crew has a side-face dig row, so `dug_height_u` returns the
+clear height. That takes effect when content 11's wall rows are activated (decision 1971 §6).
+
 A 2 × 2 Passage patch is 16 quanta: wood 4000, stone 4000 milli-U, 67680 milli-WU, 32000 milli-U earth. A cell
 already open (BACKFILLED re-dig follows ECON-005's withdrawal branch) is never charged twice. Underground rooms have
 no generated-wall or roof bill: their walls are braced earth.

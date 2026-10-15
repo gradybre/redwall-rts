@@ -1412,6 +1412,23 @@ are unchanged; only the excavated part below the roof is capped.
 
 Engineering record: [decision1220](decisions/1220-kitchen-earth-benches.md).
 
+**Addendum, 2026-10-15: rooms are dug to the painted height (amends this decision).** Brendan gave two directions
+for slice C's digging, relayed by the coordinator: **"Real digging, in full"** (Confirm all must eventually dig in
+the real game), then **"I just want the basic claw stroke that digs anything."** On
+[decision1971](decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md) he then ruled:
+
+- **P-1971-3, room height: "Painted height".** Each cell's column is dug to the room's full height. The mole claws
+  the bottom, and the upper earth is dug and paid as part of the same work, without a separate stroke. Rooms must
+  fit every species. This **replaces the cap above**: a Room is no longer limited to the height the dig strokes
+  reach. The height is SET-BUILD-001's adopted clear height, 4,096 u (4 quanta per painted cell), which fits the
+  badger's 2,611 u (DEC-039).
+- **P-1971-1 (b) and P-1971-2 (a): "Approve".** The one stroke is the approved claw stroke (M1). Four wall rows are
+  derived from its own clips, so it can strike a side face. The claws may scrape the floor only into natural,
+  unowned earth inside the row's own 61 u below-floor box.
+
+Unchanged: the bill per quantum (DEC-059), the level spacing and clear height (DEC-061 Q6), and "no earth benches,
+steps or climbing are built for excavation".
+
 
 ### DEC-055 — Settlement save and load policy
 

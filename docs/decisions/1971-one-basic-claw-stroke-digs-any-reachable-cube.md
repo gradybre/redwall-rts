@@ -571,3 +571,19 @@ Mutation testing used a scratch runner in a separate worktree (not committed):
 - Content 11's profile bank (+3,472 B) is counted at activation, inside `PROFILE_BYTES` 278,528 (content 10 uses
   262,128).
 
+### Gates (phase 2)
+
+- **The full CI-style run:**
+  - set-up: art aside, `godot/.godot` deleted, a fresh import, then `./tools/run_tests_parallel.sh` (10 shards);
+  - result: **12,511 tests, 1,231,134 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks**, and verify
+    passed (504 suites, each exactly once).
+  - The first run failed only on the two stale checkpoints (`underground_entry`, `underground_spare`). After
+    regeneration their saves are byte-identical; only the fingerprints moved.
+- **The other checks:**
+  - the analyzer (`tools/gdscript_warnings.py --max 0`): 0 warnings in 1,539 files;
+  - `decision_numbers`, `setting_contract`, `merge_gate`, `lane_notes`, `state_registry_coverage`,
+    `renew_source_pins --check`, `underground_memory_budget.py --check`, and the census tool tests: pass;
+  - the Python tests: `test_claw_wall.py` (10) and `test_publish_claw_wall_runtime.py` (6) pass.
+- **Mutation testing and the independent review:** as above. The reviewer re-checked the fixes: H1 and H2 are
+  closed, with no new CRITICAL or HIGH.
+

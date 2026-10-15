@@ -150,6 +150,8 @@ separate content lane:
 real limit. `underground_locations.gd` is left alone until then. §2 above stays the plan of record, not work in
 progress.
 
+**Built:** the same-level room Delivery and the builder's haul stage, in decision 1935.
+
 ## Source
 
 Decisions 1191, 1205, 1210, 1213, 1215, 1229, 1931, 1933; ECON-004; `underground_connector_delivery.gd`,

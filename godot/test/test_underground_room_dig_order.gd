@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1933 (C2.1), BUILD-REQ-012: the dig order of a confirmed room, on the ADR1161 Kitchen (2 x 2 cells, two
-## layers) beside its old Corridor. Breadth-first across the floor from the cells touching open space, ties by cell
+## Decision 1933 (C2.1), BUILD-REQ-012: the dig order of a confirmed room, on the ADR1161 Kitchen (2 x 2 cells, four
+## layers: painted height, decision 1971) beside its old Corridor. Breadth-first across the floor from the cells touching open space, ties by cell
 ## index, bottom up within each column.
 
 const ForemanTests := preload("res://test/test_underground_room_foreman.gd")
@@ -9,6 +9,7 @@ const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+const KITCHEN_LAYERS: int = 4 # The painted 4,096 u, every quantum dug (decision 1971).
 
 var _h: ForemanTests.Kitchen = null
 var _room: Vector2i = NULL_REF
@@ -41,15 +42,23 @@ func _keys(cubes: Array[Vector3i]) -> PackedInt32Array:
 	return out
 
 
+func _columns(cells: Array[Vector2i]) -> Array[Vector3i]:
+	"""Every layer of each cell (x, z), bottom up, cell after cell."""
+	var out: Array[Vector3i] = []
+	for cell: Vector2i in cells:
+		for layer: int in KITCHEN_LAYERS:
+			out.append(Vector3i(cell.x, layer * 1024, cell.y))
+	return out
+
+
 func test_the_kitchen_opens_from_the_corridor_side_column_by_column_bottom_up() -> void:
 	"""The two cells beside the Corridor come first (distance 0, lower z first), then the two behind them."""
 	if _room == NULL_REF: return
 	var order: DigOrder.Order = DigOrder.Order.new()
 	assert_equal(DigOrder.order_into(_h.sites, _h._owner, _room, order), &"", "ordered")
-	assert_equal(order.keys, _keys([Vector3i(2048, 0, 0), Vector3i(2048, 1024, 0), Vector3i(2048, 0, 1024),
-		Vector3i(2048, 1024, 1024), Vector3i(3072, 0, 0), Vector3i(3072, 1024, 0), Vector3i(3072, 0, 1024),
-		Vector3i(3072, 1024, 1024)]), "breadth-first, ties by cell index, bottom up")
-	assert_equal(order.distance, PackedInt32Array([0, 0, 0, 0, 1, 1, 1, 1]), "distance from finished space")
+	assert_equal(order.keys, _keys(_columns([Vector2i(2048, 0), Vector2i(2048, 1024), Vector2i(3072, 0), Vector2i(3072, 1024)])),
+		"breadth-first, ties by cell index, each column bottom up")
+	assert_equal(order.distance, PackedInt32Array([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]), "distance from finished space")
 	for at: int in order.rows.size():
 		assert_equal(_h.sites._site_key[order.rows[at]], order.keys[at], "rows match keys")
 
@@ -62,9 +71,8 @@ func test_open_space_on_the_far_side_reverses_the_order() -> void:
 	var east: PackedInt32Array = PackedInt32Array([Phase.X + 4096, Phase.FLOOR, Phase.Z, Phase.X + 5120, Phase.FLOOR + 1024, Phase.Z + 2048])
 	var order: DigOrder.Order = DigOrder.Order.new()
 	assert_equal(DigOrder.order_from_into(_h.sites, cells, east, order), &"", "ordered")
-	assert_equal(order.keys, _keys([Vector3i(3072, 0, 0), Vector3i(3072, 1024, 0), Vector3i(3072, 0, 1024),
-		Vector3i(3072, 1024, 1024), Vector3i(2048, 0, 0), Vector3i(2048, 1024, 0), Vector3i(2048, 0, 1024),
-		Vector3i(2048, 1024, 1024)]), "east cells first")
+	assert_equal(order.keys, _keys(_columns([Vector2i(3072, 0), Vector2i(3072, 1024), Vector2i(2048, 0), Vector2i(2048, 1024)])),
+		"east cells first")
 
 
 func test_a_room_with_no_open_space_beside_it_has_no_way_in() -> void:
@@ -97,8 +105,9 @@ func test_a_cell_no_step_reaches_is_tried_last() -> void:
 	var west: PackedInt32Array = PackedInt32Array([Phase.X + 1024, Phase.FLOOR, Phase.Z, Phase.X + 2048, Phase.FLOOR + 1024, Phase.Z + 1024])
 	var order: DigOrder.Order = DigOrder.Order.new()
 	assert_equal(DigOrder.order_from_into(_h.sites, narrowed, west, order), &"", "ordered")
-	assert_equal(order.distance, PackedInt32Array([0, 0, DigOrder.UNREACHED, DigOrder.UNREACHED]), "reached, then unreached")
-	assert_equal(order.keys[2], _key(3072, 0, 1024), "the unreached column, bottom first")
+	var unreached: int = DigOrder.UNREACHED
+	assert_equal(order.distance, PackedInt32Array([0, 0, 0, 0, unreached, unreached, unreached, unreached]), "reached, then unreached")
+	assert_equal(order.keys[4], _key(3072, 0, 1024), "the unreached column, bottom first")
 
 
 func test_collect_reads_every_site_of_the_room_and_its_floor() -> void:
@@ -106,7 +115,7 @@ func test_collect_reads_every_site_of_the_room_and_its_floor() -> void:
 	if _room == NULL_REF: return
 	var cells: DigOrder.Cells = DigOrder.Cells.new()
 	assert_equal(DigOrder.collect_into(_h.sites, _room, cells), &"", "collected")
-	assert_equal(cells.keys.size(), ForemanTests.KITCHEN_SITES, "eight Sites")
+	assert_equal(cells.keys.size(), ForemanTests.KITCHEN_SITES, "every Site")
 	assert_equal(cells.cells.size(), 4, "four cells")
 	var sorted: PackedInt32Array = cells.keys.duplicate(); sorted.sort()
 	assert_equal(cells.keys, sorted, "ascending keys")

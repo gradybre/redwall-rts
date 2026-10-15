@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
 ## Decision 1933 (C2.1): the production room foreman, driven only by `advance(tick)` on the fixed tick, over the
-## ADR1161/1213 Kitchen fixture. P-C2-1 add-on ("Yes, tests only"): the fixture runs the retired content-6 pick rows
+## ADR1161/1213 Kitchen fixture (16 Sites: 2 x 2 cells, four layers of painted height, decision 1971). P-C2-1 add-on ("Yes, tests only"): the fixture runs the retired content-6 pick rows
 ## to test the dispatch logic only; no height or price is taken from them (the Kitchen's 8 Sites are the fixture's own
 ## DEC-054 clamp). Every owner is the real one; nothing is injected.
 
@@ -128,7 +128,8 @@ func test_one_builder_digs_the_whole_kitchen_on_the_fixed_tick() -> void:
 	_assert_paid(KITCHEN_SITES)
 	_assert_parked(_h._worker, _h.parking)
 	print("ROOM-FOREMAN ticks=%d up-column=%d tries=%d" % [_h.tick, builder.column_cubes(), foreman.column_tries()])
-	assert_true(foreman.column_tries() > 0, "a finished cube's builder was offered the cube above it first")
+	assert_equal(foreman.column_tries(), 12, "each of the four columns offered its three upper cubes in turn")
+	assert_equal(builder.column_cubes(), 12, "painted height: every upper cube taken from its column's floor station")
 	assert_equal(foreman.blocked_ticks(), 0, "one builder never waits on another")
 	var far: Builder.Crew = _h.second_member(Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z + 2560))
 	var again: Foreman = Foreman.new()

@@ -146,13 +146,13 @@ func test_registration_places_the_builder_on_its_parking_once() -> void:
 
 
 func test_a_room_whose_every_open_cube_is_refused_stops_with_the_last_refusal() -> void:
-	"""Negative-only: with the two lower near cubes marked done in the dispatch record (not in Sites), every cube
-	left is refused from parking; with all builders parked the room stops, named, and nothing is paid."""
+	"""Negative-only: with the two near columns' bottom cubes marked done in the dispatch record (not in Sites), every
+	cube left is refused from parking; with all builders parked the room stops, named, and nothing is paid."""
 	if _room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
 	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), &"", "configured")
 	foreman._cube[0] = Foreman.CUBE_DONE
-	foreman._cube[2] = Foreman.CUBE_DONE
+	foreman._cube[4] = Foreman.CUBE_DONE
 	var code: StringName = _h.run(foreman, 50)
 	assert_equal(code, &"ROOM_STATION_GEOMETRY_CLOSED", "the last refusal names why")
 	assert_equal(foreman.state(), Foreman.STATE_FAILED, "stopped")

@@ -176,14 +176,16 @@ func test_a_builder_at_its_station_cannot_publish_a_new_chain_and_goes_home() ->
 	for step: int in TICK_BOUND:
 		_h.tick += 1
 		assert_equal(foreman.advance(_h.tick), &"", "no refusal")
-		if builder.at_column_end() and builder.last_index() == 1: break
-	assert_true(builder.at_column_end(), "READY at the upper near cube's station")
-	var site: Vector2i = Vector2i(order.rows[3], Sites.SITE_GENERATION)
-	assert_equal(builder.continue_column(3, site, order.keys[3], _h.tick), &"ROUTE_OCCUPIED", "its own body blocks the chain")
+		if builder.at_column_end() and builder.last_index() == 3: break
+	assert_true(builder.at_column_end(), "READY at the first column's floor station, its top cube done")
+	assert_equal(builder.column_cubes(), 3, "the column's three upper cubes were taken from that station")
+	var site: Vector2i = Vector2i(order.rows[4], Sites.SITE_GENERATION)
+	var code: StringName = builder.continue_column(4, site, order.keys[4], _h.tick)
+	assert_equal(code, &"ROUTE_OCCUPIED", "its own body blocks the next column's chain")
 	assert_true(builder.at_column_end(), "still READY at its station, nothing opened")
-	assert_equal(builder.column_cubes(), 0, "nothing taken")
+	assert_equal(builder.column_cubes(), 3, "nothing more taken")
 	assert_equal(_h._construction.live_project_count(), 0, "no phase opened")
-	var code: StringName = _h.run(foreman, TICK_BOUND)
+	code = _h.run(foreman, TICK_BOUND)
 	assert_equal(code, &"", "no refusal")
 	assert_equal(foreman.state(), Foreman.STATE_DONE, "the room is done from parking")
 	_assert_paid(KITCHEN_SITES)

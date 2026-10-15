@@ -79,10 +79,10 @@ func test_starting_needs_a_queued_room_and_a_plan() -> void:
 	assert_equal(_runtime.start_room(_room, owners, none), Foreman.REFUSE_CREW, "a refused plan")
 	assert_equal(_runtime.state_of(_room), Runtime.RECORD_QUEUED, "still queued")
 	assert_null(_runtime.foreman_of(_room), "no foreman kept")
-	for index: int in Runtime.MAX_DIGS:
+	for index: int in Runtime.MAX_DIGS + 1:
 		_runtime._foremen.append(Foreman.new()); _runtime._foreman_rows.append(Runtime.ROOM_CAPACITY - 1)
 	assert_equal(_runtime.start_room(_room, owners, _crew()), &"", "stopped or unconfigured foremen do not count")
-	for index: int in Runtime.MAX_DIGS: _runtime._foremen[index]._state = Foreman.STATE_DIGGING # Negative-only.
+	for index: int in Runtime.MAX_DIGS + 1: _runtime._foremen[index]._state = Foreman.STATE_DIGGING # Negative-only.
 	var other: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
 	assert_equal(_runtime.order_room(other, _h.material, _h.material), &"", "a second room queued")
 	assert_equal(_runtime.start_room(other, owners, _crew()), Runtime.REFUSE_CAPACITY, "at most MAX_DIGS running digs")
@@ -157,3 +157,20 @@ func test_a_crew_member_digs_one_room_at_a_time() -> void:
 	assert_equal(_runtime.order_room(other, _h.material, _h.material), &"", "a second room queued")
 	assert_equal(_runtime.start_room(other, _h.owners(), _crew()), Runtime.REFUSE_CREW_BUSY, "the same mole is busy")
 	assert_equal(_runtime.state_of(other), Runtime.RECORD_QUEUED, "still queued")
+
+
+func test_a_record_left_by_a_deleted_room_does_not_start_the_new_room_on_its_row() -> void:
+	"""A room deleted while queued leaves its record; a new room given the same row cannot start on it, and ordering
+	the new room replaces the old record."""
+	if _room == NULL_REF: return
+	var ids: Directory = _h._residents.directory()
+	var old: Vector2i = ids.create(Directory.KIND_ROOM)
+	assert_equal(_runtime.order_room(old, _h.material, _h.material), &"", "queued")
+	var row: int = ids.get_typed_row(old)
+	assert_true(ids.destroy(old), "the room is deleted")
+	var fresh: Vector2i = ids.create(Directory.KIND_ROOM)
+	assert_equal(ids.get_typed_row(fresh), row, "the row is reused")
+	assert_equal(_runtime.state_of(fresh), Runtime.RECORD_NONE, "the old record is not the new room's")
+	assert_equal(_runtime.start_room(fresh, _h.owners(), _crew()), Runtime.REFUSE_ROOM, "not started on the old record")
+	assert_equal(_runtime.order_room(fresh, _h.material, _h.material), &"", "ordering replaces the old record")
+	assert_equal(_runtime.state_of(fresh), Runtime.RECORD_QUEUED, "queued")

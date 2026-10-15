@@ -130,12 +130,15 @@ func test_one_builder_digs_the_whole_kitchen_on_the_fixed_tick() -> void:
 	print("ROOM-FOREMAN ticks=%d up-column=%d tries=%d" % [_h.tick, builder.column_cubes(), foreman.column_tries()])
 	assert_true(foreman.column_tries() > 0, "a finished cube's builder was offered the cube above it first")
 	assert_equal(foreman.blocked_ticks(), 0, "one builder never waits on another")
+	var far: Builder.Crew = _h.second_member(Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z + 2560))
 	var again: Foreman = Foreman.new()
-	assert_equal(again.configure(_h.owners(), foreman.room(), _h.material, _h.material, [_h.crew_member()]), &"", "a dug room")
+	assert_equal(again.configure(_h.owners(), foreman.room(), _h.material, _h.material, [far]), &"", "a dug room")
 	assert_equal(again.done_cubes(), KITCHEN_SITES, "already done by Sites' record")
 	_h.tick += 1
 	assert_equal(again.advance(_h.tick), &"", "nothing to do")
 	assert_equal(again.state(), Foreman.STATE_DONE, "done at once")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_true(_h._routes.read_actor_into(far.worker, actor) != &"", "nobody was brought in for a finished room")
 
 
 func _assert_paid(cubes: int) -> void:

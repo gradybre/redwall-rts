@@ -142,3 +142,23 @@ func test_refusals_are_named() -> void:
 	assert_equal(DigOrder.order_into(_h.sites, _h._owner, Vector2i(_room.x, _room.y + 1), order), DigOrder.REFUSE_EMPTY, "no Site of that room")
 	assert_equal(DigOrder.collect_into(null, _room, DigOrder.Cells.new()), DigOrder.REFUSE_SCOPE, "collect without Sites")
 	assert_equal(order.keys.size(), 0, "nothing written")
+
+
+func test_cells_at_the_grid_edge_are_not_neighbours_across_rows() -> void:
+	"""The last cell of one row and the first of the next have consecutive indices but are not 4-connected."""
+	if _room == NULL_REF: return
+	var sx: int = _h.sites._domain.size_quanta.x
+	var sz: int = _h.sites._domain.size_quanta.z
+	var cells: DigOrder.Cells = DigOrder.Cells.new()
+	assert_equal(DigOrder.collect_into(_h.sites, _room, cells), &"", "a floor layer")
+	var edge: DigOrder.Cells = DigOrder.Cells.new()
+	edge.floor_y = cells.floor_y
+	var z: int = 5
+	edge.cells = PackedInt32Array([z * sx + sx - 1, (z + 1) * sx])
+	for cell: int in edge.cells:
+		edge.keys.append(edge.floor_y * sx * sz + cell); edge.rows.append(edge.rows.size())
+	var west: Vector3i = DigOrder.cube_origin(_h.sites, sx - 2, edge.floor_y, z)
+	var voids: PackedInt32Array = PackedInt32Array([west.x, west.y, west.z, west.x + 1024, west.y + 1024, west.z + 1024])
+	var order: DigOrder.Order = DigOrder.Order.new()
+	assert_equal(DigOrder.order_from_into(_h.sites, edge, voids, order), &"", "ordered")
+	assert_equal(order.distance, PackedInt32Array([0, DigOrder.UNREACHED]), "no step wraps to the next row")

@@ -121,7 +121,8 @@ static func cube_origin(sites: Sites, x: int, y: int, z: int) -> Vector3i:
 
 
 static func _seeds(sites: Sites, scratch: Cells, voids: PackedInt32Array) -> PackedInt32Array:
-	"""Cells (ascending index) with a horizontal neighbour outside the room whose floor-layer cube is open."""
+	"""Cells (ascending index) with a horizontal neighbour whose floor-layer cube is open: finished space outside the
+	room, or a cell of the room already dug (an unpaid room cell is a reservation marker, never open)."""
 	var seeds: PackedInt32Array = PackedInt32Array()
 	var size_x: int = sites._domain.size_quanta.x
 	var size_z: int = sites._domain.size_quanta.z
@@ -133,17 +134,10 @@ static func _seeds(sites: Sites, scratch: Cells, voids: PackedInt32Array) -> Pac
 			var nx: int = x + step.x
 			var nz: int = z + step.y
 			if nx < 0 or nz < 0 or nx >= size_x or nz >= size_z: continue
-			if _member(scratch.cells, nz * size_x + nx): continue
 			if _open(cube_origin(sites, nx, scratch.floor_y, nz), voids):
 				seeds.append(at)
 				break
 	return seeds
-
-
-static func _member(sorted: PackedInt32Array, value: int) -> bool:
-	"""Binary membership in an ascending set."""
-	var at: int = sorted.bsearch(value)
-	return at < sorted.size() and sorted[at] == value
 
 
 static func _open(origin: Vector3i, voids: PackedInt32Array) -> bool:

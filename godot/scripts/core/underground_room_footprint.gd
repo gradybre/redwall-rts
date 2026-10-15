@@ -71,8 +71,8 @@ func sweep(from: Vector3i, to: Vector3i, profile: int) -> void:
 
 
 func _extent_at(profile: int) -> int:
-	"""Offset of the row's cached extent: the union (low xyz, high xyz) of every body, recovery, approach and stroke
-	box; contact boxes and the stance support are left out."""
+	"""Offset of the row's cached extent: the union (low xyz, high xyz) of every published box of the row (a contact
+	point or patch lies inside the stroke that reaches it, so it adds nothing)."""
 	var at: int = 6 * profile
 	if _extents[at] != UNFILLED: return at
 	var stride: int = _profiles._profile_capacity
@@ -82,8 +82,6 @@ func _extent_at(profile: int) -> int:
 		_extents[at + axis + 3] = -UNFILLED
 	var first: int = _profiles._live.fields[Profiles.F_FIRST_BOX * stride + profile]
 	for box: int in range(first, first + _profiles._live.fields[Profiles.F_BOX_COUNT * stride + profile]):
-		var role: int = _profiles._live.boxes[6 * cap + box]
-		if role == Profiles.STANCE_SUPPORT or role > Profiles.WORK_STROKE: continue
 		for axis: int in 3:
 			_extents[at + axis] = mini(_extents[at + axis], _profiles._live.boxes[axis * cap + box])
 			_extents[at + axis + 3] = maxi(_extents[at + axis + 3], _profiles._live.boxes[(axis + 3) * cap + box])

@@ -146,7 +146,7 @@ func advance(tick: int) -> StringName:
 	if _state != STATE_DIGGING: return _error
 	if _done == _order.rows.size() and _all_parked(): return _finish()
 	for builder: Builder in _builders:
-		if builder.lost(): return _halt(Builder.REFUSE_LOST)
+		if builder.lost(): return _halt(Builder.REFUSE_LOST) # In every stage, before any owner is touched.
 	if not _registered:
 		var code: StringName = _register()
 		if code != &"": return _halt(code)
@@ -162,11 +162,10 @@ func advance(tick: int) -> StringName:
 
 
 func _advance_builder(index: int, tick: int) -> StringName:
-	"""One builder's tick. A lost builder stops the room in any stage; one that has not set off waits until its
-	cube's footprint is clear of the others'."""
+	"""One builder's tick (`advance` has already stopped the room for a lost builder); one that has not set off waits
+	until its cube's footprint is clear of the others'."""
 	var builder: Builder = _builders[index]
 	_blocked[index] = 0
-	if builder.lost(): return Builder.REFUSE_LOST
 	var was_idle: bool = builder.idle()
 	var before: Vector3i = Vector3i(builder.stage(), int(builder.in_motion()), builder.footprint_serial())
 	var code: StringName = &""

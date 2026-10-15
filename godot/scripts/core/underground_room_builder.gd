@@ -57,7 +57,6 @@ const REFUSE_SCOPE: StringName = &"ROOM_BUILDER_SCOPE"
 const REFUSE_STATE: StringName = &"ROOM_BUILDER_STATE"
 const REFUSE_STALL: StringName = &"ROOM_BUILDER_STALLED"
 const REFUSE_LEG: StringName = &"ROOM_BUILDER_LEG_PROFILE"
-const REFUSE_TOOL: StringName = &"ROOM_BUILDER_TOOL_REQUIRED"
 const REFUSE_TARGET: StringName = &"ROOM_BUILDER_TARGET_MOVED"
 const REFUSE_LOST: StringName = &"ROOM_BUILDER_CREW_LOST"
 const REFUSE_OCCUPIED: StringName = &"ROUTE_OCCUPIED"
@@ -344,10 +343,8 @@ static func tool_gate_of(profiles: Profiles, row: int) -> int:
 func _bind_phase_job(project: Vector2i) -> StringName:
 	"""The Job names its Project, the row's tool gate, its Site and the room's containers (output for CUT)."""
 	var o: Owners = _ctx.owners
-	var gate: int = tool_gate()
-	if gate == Jobs.GATE_SATISFIED and _crew.tool == NULL_REF: return REFUSE_TOOL
 	var result: RefCounted = o.jobs.set_requester(_job, project)
-	if result.ok: result = o.jobs.set_tool_gate(_job, gate)
+	if result.ok: result = o.jobs.set_tool_gate(_job, tool_gate())
 	if result.ok: result = o.sites.bind_job(_site, o.jobs.ref_of(_job))
 	if result.ok: result = o.sites.bind_material_container(_site, _ctx.storage)
 	if result.ok and _operation == Contract.OP_CUT: result = o.sites.bind_output(_site, _ctx.output)
@@ -638,18 +635,18 @@ func abandon() -> StringName:
 	var released: Construction.OpResult = o.sites.release_worker(_site)
 	if _phase_started(): return &"" if released.ok else released.error
 	if not released.ok:
-		var code: StringName = _release_assignment()
+		var code: StringName = _release_assignment(released.error)
 		if code != &"": return code
 	var cancelled: Construction.OpResult = o.sites.cancel_phase(_site, _ctx.storage)
 	return &"" if cancelled.ok else cancelled.error
 
 
-func _release_assignment() -> StringName:
+func _release_assignment(sites_refusal: StringName) -> StringName:
 	"""Before the worker is bound to its Site only Jobs holds it: release its tool claim, then the Job (as the entry
-	foreman's `_release_phase_job` does before START)."""
+	foreman's `_release_phase_job` does before START). When Jobs does not hold it either, Sites' refusal stands."""
 	var o: Owners = _ctx.owners
 	var row: int = _worker_row_of(_ctx, _crew)
-	if row < 0 or _job < 0 or o.jobs.job_of(row) != o.jobs.ref_of(_job): return REFUSE_LOST
+	if row < 0 or _job < 0 or o.jobs.job_of(row) != o.jobs.ref_of(_job): return sites_refusal
 	if o.work.tool_lot_of(row) != NULL_REF:
 		var tool_released: RefCounted = o.work.release_tool_claim(row)
 		if not tool_released.ok: return tool_released.error

@@ -7,7 +7,7 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const WALK: int = 42 # claw WALK, all yaws: boxes (-712, 0, -712)..(712, 930, 712) and (-402, -1, -402)..(402, 0, 402)
-const TAP: int = 63 # the paw seating tap: contact boxes and a stance support, all left out of the extent
+const TAP: int = 63 # the paw seating tap: stance support, body, recovery, approach, stroke, point and patch
 
 var _profiles: Profiles = null
 var _foot: Footprint = null
@@ -43,7 +43,7 @@ func test_standing_writes_the_rows_extent_around_the_point_in_place() -> void:
 	assert_equal(_foot.serial(), 1, "a change")
 	_foot.stand(Vector3i.ZERO, TAP)
 	var extent: PackedInt32Array = _foot.body()
-	assert_equal(extent, PackedInt32Array([-234, -1, -478, 578, 840, 443]), "row 63: no point, patch or support box")
+	assert_equal(extent, PackedInt32Array([-234, -1, -478, 578, 840, 443]), "row 63: the union of every box")
 
 
 func test_a_leg_is_swept_in_short_pieces() -> void:
@@ -75,3 +75,23 @@ func test_overlap_is_half_open_and_any_pair_counts() -> void:
 	assert_true(Footprint.overlap(many, a), "the third box meets")
 	assert_false(Footprint.overlap(many.slice(0, 12), a), "the hulls meet, no pair does")
 	assert_false(Footprint.overlap(PackedInt32Array([0, 0, 50, 10, 10, 60]), a), "hulls apart")
+	var touching: PackedInt32Array = PackedInt32Array([10, 0, 0, 20, 10, 10, -20, 0, 0, -10, 10, 10])
+	assert_false(Footprint.overlap(touching, a), "hulls meet, and the near box only touches the face")
+
+
+func test_a_rows_extent_is_read_once_and_cached() -> void:
+	"""The extent is cached on first use: a later change in the bank is not re-read (rows are immutable per content
+	revision, so the cache never goes stale in play)."""
+	_foot.stand(Vector3i.ZERO, WALK)
+	var first: PackedInt32Array = _foot.body().duplicate()
+	var cap: int = _profiles._box_capacity
+	var box: int = _profiles._live.fields[Profiles.F_FIRST_BOX * _profiles._profile_capacity + WALK]
+	var saved: int = _profiles._live.boxes[3 * cap + box]
+	_profiles._live.boxes[3 * cap + box] = 5000 # Negative-only: widen the first box's high x.
+	_foot.stand(Vector3i.ZERO, WALK)
+	_profiles._live.boxes[3 * cap + box] = saved
+	assert_equal(_foot.body(), first, "the cached extent")
+	var fresh: Footprint = Footprint.new()
+	fresh.configure(_profiles)
+	fresh.stand(Vector3i.ZERO, WALK)
+	assert_equal(fresh.body(), first, "a fresh cache reads the same rows")

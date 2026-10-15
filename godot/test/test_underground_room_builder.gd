@@ -9,6 +9,7 @@ const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Needs := preload("res://scripts/core/needs.gd")
@@ -198,3 +199,97 @@ func test_a_builder_lost_while_parked_or_dead_at_its_station_stops_the_room() ->
 	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
 	assert_equal(foreman.state(), Foreman.STATE_FAILED, "stopped")
 	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
+
+
+func _configured(crew: Array[Builder.Crew]) -> Foreman:
+	"""A configured foreman over the Kitchen."""
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, crew), &"", "configured")
+	return foreman
+
+
+func test_begin_refuses_a_site_that_is_not_the_next_unpaid_one_there() -> void:
+	"""The contact step is aimed at one Site: a key that leads elsewhere is refused, nothing is opened."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var builder: Builder = foreman.builders()[0]
+	var order: DigOrder.Order = foreman.order()
+	var other: Vector2i = Vector2i(order.rows[2], Sites.SITE_GENERATION)
+	assert_equal(builder.begin(0, other, order.keys[0], 1), Builder.REFUSE_TARGET, "a key and a Site that disagree")
+	assert_true(builder.idle(), "still idle")
+	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), Foreman.REFUSE_STATE, "no re-configure while digging")
+
+
+func test_a_row_that_needs_a_tool_is_refused_for_a_crew_member_without_one() -> void:
+	"""DEC-052's gate from the other side: the retired pick rows name the tool, so Routes refuses to register a
+	tool-less member, the room stops with Routes' own name, and nothing is opened."""
+	if _room == NULL_REF: return
+	var member: Builder.Crew = _h.crew_member()
+	member.tool = NULL_REF
+	var foreman: Foreman = _configured([member])
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), &"PROFILE_TOOL_REQUIRED", "named by the owner")
+	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
+	assert_equal(foreman.abandon_error(), &"", "nothing to release")
+
+
+func test_a_busy_cold_lease_is_waited_out_not_counted_as_a_refusal() -> void:
+	"""Another owner holding the one cold lease delays the contact step; the cube stays open and is taken next tick."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var lease: int = _h._budget.acquire(Phase.Budget.COLD_BYTES)
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), &"", "nothing refused")
+	assert_equal(foreman._cube[0], Foreman.CUBE_OPEN, "the first cube is still open")
+	assert_true(foreman.builders()[0].idle(), "the builder waits")
+	assert_equal(_h._budget.release(lease), &"", "lease returned")
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), &"", "taken")
+	assert_equal(foreman._cube[0], Foreman.CUBE_TAKEN, "the first cube is taken")
+
+
+func test_done_is_never_taken_from_the_counter_alone() -> void:
+	"""Negative-only: a count that says every cube is done while Sites says otherwise stops the room, named."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	foreman._done = foreman.total_cubes()
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), Foreman.REFUSE_NOT_DONE, "Sites decides")
+
+
+func test_a_builder_that_dies_mid_phase_keeps_the_paid_phase_for_a_resume() -> void:
+	"""A started phase is not cancelled when the room stops: its Project stays live (C2.3 resumes it) and only the
+	worker is released, so the resident holds no Job."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var builder: Builder = foreman.builders()[0]
+	for step: int in 2000:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "running")
+		if builder.stage() == Builder.STAGE_EARN: break
+	assert_equal(builder.stage(), Builder.STAGE_EARN, "earning a started BRACE")
+	var row: int = _h._residents.directory().get_typed_row(_h._worker)
+	_h._jobs.needs()._status[row] = Needs.STATUS_DEAD # Negative-only: death mid-phase.
+	_h._jobs.needs()._health[row] = 0
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
+	assert_equal(foreman.abandon_error(), &"", "released cleanly")
+	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE is kept")
+	assert_equal(_h._jobs.job_of(row), NULL_REF, "no Job held")
+
+
+func test_a_raw_departure_that_skips_jobs_is_reported_not_hidden() -> void:
+	"""A resident removed without decision 0017's departure (its Job still names it) cannot be released by Sites; the
+	room stops with the loss and keeps the release refusal apart, rather than claiming a clean stop."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var builder: Builder = foreman.builders()[0]
+	for step: int in 400:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "running")
+		if builder.in_motion(): break
+	assert_true(_h._residents.despawn(_h._worker).ok, "removed with its Job still assigned")
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
+	assert_equal(foreman.abandon_error(), Sites.REFUSE_WORKER, "the release refusal is kept")

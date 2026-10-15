@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1931 (C2.1), P-C2-4 (a): the room-dig runtime's packed record per room, and its place on the settlement's
+## Decision 1933 (C2.1), P-C2-4 (a): the room-dig runtime's packed record per room, and its place on the settlement's
 ## fixed tick (after the first entry). The digs run on the ADR1161 Kitchen fixture (retired content-6 pick rows,
 ## tests only).
 
@@ -79,8 +79,13 @@ func test_starting_needs_a_queued_room_and_a_plan() -> void:
 	assert_equal(_runtime.start_room(_room, owners, none), Foreman.REFUSE_CREW, "a refused plan")
 	assert_equal(_runtime.state_of(_room), Runtime.RECORD_QUEUED, "still queued")
 	assert_null(_runtime.foreman_of(_room), "no foreman kept")
-	for index: int in Runtime.MAX_DIGS: _runtime._foremen.append(Foreman.new())
-	assert_equal(_runtime.start_room(_room, owners, _crew()), Runtime.REFUSE_CAPACITY, "at most MAX_DIGS digs")
+	for index: int in Runtime.MAX_DIGS:
+		_runtime._foremen.append(Foreman.new()); _runtime._foreman_rows.append(Runtime.ROOM_CAPACITY - 1)
+	assert_equal(_runtime.start_room(_room, owners, _crew()), &"", "stopped or unconfigured foremen do not count")
+	for index: int in Runtime.MAX_DIGS: _runtime._foremen[index]._state = Foreman.STATE_DIGGING # Negative-only.
+	var other: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	assert_equal(_runtime.order_room(other, _h.material, _h.material), &"", "a second room queued")
+	assert_equal(_runtime.start_room(other, owners, _crew()), Runtime.REFUSE_CAPACITY, "at most MAX_DIGS running digs")
 
 
 func test_the_settlement_tick_digs_an_adopted_room_to_done() -> void:
@@ -118,16 +123,16 @@ func test_a_stopped_room_keeps_its_refusal_and_cannot_be_released_while_digging(
 	assert_equal(_runtime.order_room(_room, _h.material, pile), &"", "queued")
 	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "started")
 	assert_equal(_runtime.release_room(_room), Runtime.REFUSE_STATE, "not while digging")
-	var first: StringName = &""
+	var seen: Array[StringName] = []
 	for step: int in TICK_BOUND:
 		_h.tick += 1
-		var code: StringName = _runtime.advance(_h.tick)
-		if code != &"" and first == &"": first = code
+		seen.append_array(_runtime.advance(_h.tick))
 		if not _runtime.is_running(): break
-	assert_equal(first, Inventory.REFUSE_CAPACITY_EXCEEDED, "the refusal is returned once for the alert")
+	assert_equal(seen, [Inventory.REFUSE_CAPACITY_EXCEEDED], "the refusal is returned once for the alert")
 	assert_equal(_runtime.state_of(_room), Runtime.RECORD_STOPPED, "stopped")
 	assert_equal(_runtime.foreman_of(_room).error(), Inventory.REFUSE_CAPACITY_EXCEEDED, "kept")
-	assert_equal(_runtime.advance(_h.tick + 1), &"", "a stopped room is not advanced again")
+	assert_equal(_runtime.advance(_h.tick + 1), [] as Array[StringName], "a stopped room is not advanced again")
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), Runtime.REFUSE_STATE, "release before re-ordering")
 	assert_equal(_runtime.release_room(Vector2i(_room.x, _room.y + 1)), Runtime.REFUSE_ROOM, "stale release")
 	assert_equal(_runtime.release_room(_room), &"", "released")
 	assert_equal(_runtime.release_room(_room), Runtime.REFUSE_STATE, "nothing left to release")
@@ -140,4 +145,15 @@ func test_a_runtime_without_a_matching_directory_refuses_everything() -> void:
 	assert_equal(orphan.order_room(_room, _h.material, _h.material), Runtime.REFUSE_ROOM, "no directory")
 	assert_equal(orphan.state_of(_room), Runtime.RECORD_NONE, "unknown")
 	assert_false(orphan.is_running(), "nothing runs")
-	assert_equal(orphan.advance(1), &"", "nothing to advance")
+	assert_equal(orphan.advance(1).size(), 0, "nothing to advance")
+
+
+func test_a_crew_member_digs_one_room_at_a_time() -> void:
+	"""A mole already building a running dig cannot be put on another room's crew."""
+	if _room == NULL_REF: return
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued")
+	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "digging")
+	var other: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	assert_equal(_runtime.order_room(other, _h.material, _h.material), &"", "a second room queued")
+	assert_equal(_runtime.start_room(other, _h.owners(), _crew()), Runtime.REFUSE_CREW_BUSY, "the same mole is busy")
+	assert_equal(_runtime.state_of(other), Runtime.RECORD_QUEUED, "still queued")

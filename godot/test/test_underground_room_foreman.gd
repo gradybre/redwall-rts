@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1931 (C2.1): the production room foreman, driven only by `advance(tick)` on the fixed tick, over the
+## Decision 1933 (C2.1): the production room foreman, driven only by `advance(tick)` on the fixed tick, over the
 ## ADR1161/1213 Kitchen fixture. P-C2-1 add-on ("Yes, tests only"): the fixture runs the retired content-6 pick rows
 ## to test the dispatch logic only; no height or price is taken from them (the Kitchen's 8 Sites are the fixture's own
 ## DEC-054 clamp). Every owner is the real one; nothing is injected.
@@ -127,7 +127,9 @@ func test_one_builder_digs_the_whole_kitchen_on_the_fixed_tick() -> void:
 	assert_equal(builder.accepted_mwu(), KITCHEN_SITES * (Contract.BRACE_WORK_MWU + Contract.CUT_WORK_MWU + Contract.FINISH_WORK_MWU), "work")
 	_assert_paid(KITCHEN_SITES)
 	_assert_parked(_h._worker, _h.parking)
-	print("ROOM-FOREMAN ticks=%d up-column=%d" % [_h.tick, builder.column_cubes()])
+	print("ROOM-FOREMAN ticks=%d up-column=%d tries=%d" % [_h.tick, builder.column_cubes(), foreman.column_tries()])
+	assert_true(foreman.column_tries() > 0, "a finished cube's builder was offered the cube above it first")
+	assert_equal(foreman.blocked_ticks(), 0, "one builder never waits on another")
 	var again: Foreman = Foreman.new()
 	assert_equal(again.configure(_h.owners(), foreman.room(), _h.material, _h.material, [_h.crew_member()]), &"", "a dug room")
 	assert_equal(again.done_cubes(), KITCHEN_SITES, "already done by Sites' record")

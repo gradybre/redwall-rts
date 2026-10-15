@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1931 (C2.1), BUILD-REQ-012: the dig order of a confirmed room, on the ADR1161 Kitchen (2 x 2 cells, two
+## Decision 1933 (C2.1), BUILD-REQ-012: the dig order of a confirmed room, on the ADR1161 Kitchen (2 x 2 cells, two
 ## layers) beside its old Corridor. Breadth-first across the floor from the cells touching open space, ties by cell
 ## index, bottom up within each column.
 

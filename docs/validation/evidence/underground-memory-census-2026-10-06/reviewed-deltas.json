@@ -2560,6 +2560,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1228 restore_underground_entry(): a load's entry runtime, adopted in place of the one the first request would create; counted in first_entry_runtime"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1933 (C2.1) room-dig runtime reference; only tests adopt one until C2.3 composes it from the Session and ledgers its packed record (344,064 B)"
     }
    ],
    "delta": {
@@ -2575,6 +2580,10 @@
      [
       "_underground_entry",
       "UndergroundEntryRuntime"
+     ],
+     [
+      "_underground_rooms",
+      "UndergroundRoomRuntime"
      ]
     ],
     "allocation_sites": {

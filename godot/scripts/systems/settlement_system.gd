@@ -920,7 +920,7 @@ var _store_policy: StorePolicyScript = null
 ## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
 var _underground_session: UndergroundSession = null
 var _underground_entry: UndergroundEntryRuntime = null
-## Decision 1931 (C2.1): the room digs. Adopted by C2.3's composer (and by tests); null in the game until then.
+## Decision 1933 (C2.1): the room digs. Adopted by C2.3's composer (and by tests); null in the game until then.
 var _underground_rooms: UndergroundRoomRuntime = null
 ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
 var _underground_reset_phase: int = 0 # 0 idle, 1 preparing, 2 prepared, 3 clearing.
@@ -1964,12 +1964,12 @@ func begin_underground_entry(near: Vector3i) -> bool:
 
 
 func underground_rooms() -> UndergroundRoomRuntime:
-	"""Borrow the room-dig runtime for status and alerts; null until one is adopted (decision 1931)."""
+	"""Borrow the room-dig runtime for status and alerts; null until one is adopted (decision 1933)."""
 	return _underground_rooms
 
 
 func adopt_underground_rooms(runtime: UndergroundRoomRuntime) -> bool:
-	"""Decision 1931 (C2.1): take the one room-dig runtime the fixed tick advances, into a host that has none yet.
+	"""Decision 1933 (C2.1): take the one room-dig runtime the fixed tick advances, into a host that has none yet.
 	C2.3 composes it from the mounted Session; until then only tests adopt one. A new mount or a release drops it."""
 	if _underground_mutations_stopped() or runtime == null or _underground_rooms != null:
 		return _refuse(&"UNDERGROUND_ROOMS_ADOPT_TARGET")
@@ -2272,16 +2272,16 @@ func _advance_underground_entry(tick_index: int) -> void:
 
 
 func _advance_underground_rooms(tick_index: int) -> void:
-	"""Decision 1931 (C2.1): every room being dug takes one fixed tick after the first entry; its BUILD Jobs resolve to
+	"""Decision 1933 (C2.1): every room being dug takes one fixed tick after the first entry; its BUILD Jobs resolve to
 	no removal Project, so their Work is earned only there. A refusal stops that room and raises its alert once; it
-	never fails the settlement tick."""
+	never fails the settlement tick; several rooms stopping on one tick each raise their own."""
 	if _underground_rooms == null or not _underground_rooms.is_running(): return
-	var code: StringName = _underground_rooms.advance(tick_index)
-	if code != &"": _alert_underground_room(code)
+	for code: StringName in _underground_rooms.advance(tick_index):
+		_alert_underground_room(code)
 
 
 func _alert_underground_room(code: StringName) -> void:
-	"""The exact refusal code, then what stopped (the room's record keeps it; decision 1931)."""
+	"""The exact refusal code, then what stopped (the room's record keeps it; decision 1933)."""
 	UIManager.push_refusal(code)
 	UIManager.push_alert("An underground room stopped being dug: %s" % code)
 

@@ -1,15 +1,19 @@
 extends RefCounted
-## Decision 1931 (C2.1): the foreman of one confirmed underground room. It derives BUILD-REQ-012's dig order once,
-## then on every fixed tick advances Routes and its builders (1-4, ECON-001) and hands each idle builder the
-## first open cube in that order. A cube whose contact or station is refused waits until another cube is finished
-## (ADR1213's loop: an upper cube opens once the cubes below and beside it are paid). The room is done only when
-## every one of its Sites is SUPPORTED_VOID with no live phase, read from Sites, never from this record.
+## Decision 1933 (C2.1): the foreman of one confirmed underground room. It derives BUILD-REQ-012's dig order once,
+## then on every fixed tick advances Routes and its builders (1-4, ECON-001) and hands each idle builder the first
+## open cube in that order; a builder that finished a cube is sent up the same column first (painted height). A
+## cube whose contact or station is refused waits until another cube is finished or a builder parks (ADR1213's loop).
+## The room is done only when every one of its Sites is SUPPORTED_VOID with no live phase, re-read from Sites.
+## A refusal stops the room: each builder's open phase is then released (unpaid ones cancelled), never left holding a
+## resident.
 
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
+const Footprint := preload("res://scripts/core/underground_room_footprint.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ECON-001: a project has at most 4 builders, at most one worker at each quantum's face.
 const MAX_BUILDERS: int = 4
@@ -21,9 +25,13 @@ const STATE_DIGGING: int = 0
 const STATE_DONE: int = 1
 const STATE_FAILED: int = 2
 const REFUSE_SCOPE: StringName = &"ROOM_FOREMAN_SCOPE"
+const REFUSE_STATE: StringName = &"ROOM_FOREMAN_STATE"
 const REFUSE_CREW: StringName = &"ROOM_FOREMAN_CREW"
 const REFUSE_ROWS: StringName = &"ROOM_FOREMAN_TRAVEL_ROWS"
 const REFUSE_STUCK: StringName = &"ROOM_FOREMAN_NO_CUBE_REACHABLE"
+## Every builder that could still move waits on another's body or footprint: nothing can ever change.
+const REFUSE_BLOCKED: StringName = &"ROOM_FOREMAN_CREW_BLOCKED"
+const REFUSE_NOT_DONE: StringName = &"ROOM_FOREMAN_SITES_NOT_DONE"
 
 
 var _ctx: Builder.Context = null
@@ -33,28 +41,30 @@ var _order: DigOrder.Order = DigOrder.Order.new()
 var _cube: PackedByteArray = PackedByteArray()
 var _state: int = STATE_FAILED
 var _error: StringName = REFUSE_SCOPE
+var _abandon_error: StringName = &""
 var _last_refusal: StringName = &""
 var _done: int = 0
 var _registered: bool = false
-var _epoch: int = 0 # Counts set-offs and parkings: a blocked builder rechecks only after one.
-var _blocked_at: PackedInt32Array = PackedInt32Array()
-var _mine: PackedInt32Array = PackedInt32Array() # Scratch for the set-off check; refilled, never kept.
-var _theirs: PackedInt32Array = PackedInt32Array()
+var _epoch: int = 0 # Counts changes to any builder's stage, motion or footprint: a blocked builder rechecks after one.
+var _blocked_at: PackedInt64Array = PackedInt64Array()
+var _blocked: PackedByteArray = PackedByteArray()
+var _blocked_ticks: int = 0
+var _column_tries: int = 0
 
 
 func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, output: Vector2i,
 		crew: Array[Builder.Crew]) -> StringName:
 	"""Plan the dig order and bind 1-4 builders; nothing is opened, claimed or published here."""
-	if owners == null or owners.provider == null or owners.sites == null or target == NULL_REF \
-			or storage == NULL_REF or output == NULL_REF: return REFUSE_SCOPE
-	var code: StringName = _crew_refusal(owners, crew)
+	if _state == STATE_DIGGING: return REFUSE_STATE
+	if not _owners_complete(owners) or target == NULL_REF or storage == NULL_REF or output == NULL_REF:
+		return REFUSE_SCOPE
+	var code: StringName = _crew_refusal(crew)
 	if code != &"": return code
-	_ctx = _context(owners, storage, output)
-	if _ctx.forward < 0 or _ctx.backward < 0: return REFUSE_ROWS
+	var ctx: Builder.Context = _context(owners, storage, output)
+	if ctx.forward < 0 or ctx.backward < 0: return REFUSE_ROWS
 	var planned: DigOrder.Order = DigOrder.Order.new()
 	code = DigOrder.order_into(owners.sites, owners.owner, target, planned)
-	if code != &"": return code
-	code = _bind_builders(crew)
+	if code == &"": code = _bind_builders(ctx, crew)
 	if code != &"": return code
 	_room = target
 	_order = planned
@@ -66,14 +76,22 @@ func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, outp
 	return &""
 
 
-static func _crew_refusal(owners: Builder.Owners, crew: Array[Builder.Crew]) -> StringName:
+static func _owners_complete(o: Builder.Owners) -> bool:
+	"""Every borrowed owner is present (a missing one refuses rather than failing later)."""
+	return o != null and o.provider != null and o.sites != null and o.jobs != null and o.work != null \
+		and o.routes != null and o.binding != null and o.residents != null and o.pool != null and o.inventory != null \
+		and o.profiles != null and o.construction != null and o.items != null and o.owner != null \
+		and o.budget != null and o.transforms != null
+
+
+static func _crew_refusal(crew: Array[Builder.Crew]) -> StringName:
 	"""1-4 distinct workers with distinct parking endpoints."""
 	if crew.is_empty() or crew.size() > MAX_BUILDERS: return REFUSE_CREW
 	for index: int in crew.size():
 		if crew[index] == null: return REFUSE_CREW
 		for other: int in index:
 			if crew[other].worker == crew[index].worker or crew[other].parking == crew[index].parking: return REFUSE_CREW
-	return &"" if owners.residents != null else REFUSE_SCOPE
+	return &""
 
 
 static func _context(owners: Builder.Owners, storage: Vector2i, output: Vector2i) -> Builder.Context:
@@ -91,17 +109,20 @@ static func _context(owners: Builder.Owners, storage: Vector2i, output: Vector2i
 	return ctx
 
 
-func _bind_builders(crew: Array[Builder.Crew]) -> StringName:
+func _bind_builders(ctx: Builder.Context, crew: Array[Builder.Crew]) -> StringName:
 	"""One builder per crew member, each starting idle on its own parking."""
 	var made: Array[Builder] = []
 	for member: Builder.Crew in crew:
 		var builder: Builder = Builder.new()
-		var code: StringName = builder.configure(_ctx, member)
+		var code: StringName = builder.configure(ctx, member)
 		if code != &"": return code
 		made.append(builder)
+	_ctx = ctx
 	_builders = made
 	_blocked_at.resize(made.size())
 	_blocked_at.fill(-1)
+	_blocked.resize(made.size())
+	_blocked.fill(0)
 	return &""
 
 
@@ -123,6 +144,9 @@ func _finished(row: int) -> bool:
 func advance(tick: int) -> StringName:
 	"""One fixed tick: Routes once, then every builder; idle builders take the next open cube in order."""
 	if _state != STATE_DIGGING: return _error
+	if _done == _order.rows.size() and _all_parked(): return _finish()
+	for builder: Builder in _builders:
+		if builder.lost(): return _halt(Builder.REFUSE_LOST)
 	if not _registered:
 		var code: StringName = _register()
 		if code != &"": return _halt(code)
@@ -130,6 +154,7 @@ func advance(tick: int) -> StringName:
 	for index: int in _builders.size():
 		var code: StringName = _advance_builder(index, tick)
 		if code != &"": return _halt(code)
+	if _frozen(): return _halt(REFUSE_BLOCKED)
 	if not _all_parked(): return &""
 	if _done == _order.rows.size(): return _finish()
 	if _next_open() < 0: return _halt(_last_refusal if _last_refusal != &"" else REFUSE_STUCK)
@@ -137,48 +162,53 @@ func advance(tick: int) -> StringName:
 
 
 func _advance_builder(index: int, tick: int) -> StringName:
-	"""One builder's tick; a builder that has not set off waits until its cube's footprint is clear of the others'."""
+	"""One builder's tick. A lost builder stops the room in any stage; one that has not set off waits until its
+	cube's footprint is clear of the others'."""
 	var builder: Builder = _builders[index]
+	_blocked[index] = 0
+	if builder.lost(): return Builder.REFUSE_LOST
 	var was_idle: bool = builder.idle()
-	var was_moving: bool = builder.in_motion()
+	var before: Vector3i = Vector3i(builder.stage(), int(builder.in_motion()), builder.footprint_serial())
 	var code: StringName = &""
 	if builder.at_column_end(): code = _up_or_home(builder, tick)
 	elif was_idle: code = _dispatch(builder, tick)
 	else: code = builder.advance(tick, _may_set_off(index))
 	if code != &"": return code
-	if was_moving != builder.in_motion() or was_idle != builder.idle(): _epoch += 1
+	if before != Vector3i(builder.stage(), int(builder.in_motion()), builder.footprint_serial()): _epoch += 1
 	_collect(builder)
 	if not was_idle and builder.idle(): _reopen() # A builder off the work may have been what blocked a cube.
 	return &""
 
 
 func _may_set_off(index: int) -> bool:
-	"""ECON-001, deadlock-free: a builder sets off only when its whole footprint (way there, station, way back) meets
-	no other builder's parked body or footprint. Builders whose footprints overlap therefore take turns."""
+	"""ECON-001: a builder sets off only when its whole footprint (way there, station, way back) meets no other
+	builder's body or footprint, so builders whose footprints overlap take turns. A builder still blocked when
+	nothing can move any more is caught by `_frozen` (ROOM_FOREMAN_CREW_BLOCKED)."""
 	var builder: Builder = _builders[index]
 	if not builder.walking_next() or builder.in_motion(): return true
-	if _blocked_at[index] == _epoch: return false # Nothing has set off or parked since the last check.
-	_mine = builder.claim()
-	for other: int in _builders.size():
-		if other == index: continue
-		_builders[other].occupied_into(_theirs)
-		if _overlap(_mine, _theirs):
-			_blocked_at[index] = _epoch
-			return false
-	return true
-
-
-static func _overlap(a: PackedInt32Array, b: PackedInt32Array) -> bool:
-	"""Any half-open box of one list meets any box of the other."""
-	@warning_ignore("integer_division") var count_a: int = a.size() / 6
-	@warning_ignore("integer_division") var count_b: int = b.size() / 6
-	for i: int in count_a:
-		for j: int in count_b:
-			var meets: bool = true
-			for axis: int in 3:
-				meets = meets and a[6 * i + axis] < b[6 * j + axis + 3] and b[6 * j + axis] < a[6 * i + axis + 3]
-			if meets: return true
+	if _blocked_at[index] != _epoch:
+		_blocked_at[index] = -1
+		for other: int in _builders.size():
+			if other != index and Footprint.overlap(builder.claim(), _builders[other].occupied()):
+				_blocked_at[index] = _epoch
+				break
+	if _blocked_at[index] != _epoch: return true
+	_blocked[index] = 1
+	_blocked_ticks += 1
 	return false
+
+
+func _frozen() -> bool:
+	"""Some builder is blocked, and every builder is either blocked (by what is still there: nothing changed since its
+	check this tick) or parked with no open cube to take."""
+	var any: bool = false
+	for index: int in _builders.size():
+		if _blocked[index] == 1:
+			if _blocked_at[index] != _epoch: return false # Something moved after the check: look again next tick.
+			any = true
+		elif not _builders[index].idle() or _next_open() >= 0:
+			return false
+	return any
 
 
 func _register() -> StringName:
@@ -191,18 +221,21 @@ func _register() -> StringName:
 
 
 func _dispatch(builder: Builder, tick: int) -> StringName:
-	"""Hand the idle builder the first open cube; a refused contact marks that cube until the next finished cube.
-	A builder whose hour rests (or whose health forbids work) is not sent."""
+	"""Hand the idle builder the first open cube; a refused contact marks that cube until the next finished cube or
+	parking. A builder whose hour rests (or whose health forbids work) is not sent; a busy cold lease is retried."""
+	if not builder.may_work(): return &""
 	var at: int = _next_open()
-	if at < 0 or not builder.may_work(): return &""
-	var site: Vector2i = Vector2i(_order.rows[at], Sites.SITE_GENERATION)
-	var code: StringName = builder.begin(at, site, _order.keys[at], tick)
+	if at < 0: return &""
+	var code: StringName = builder.begin(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION), _order.keys[at], tick)
+	return _taken(builder, at, code)
+
+
+func _taken(builder: Builder, at: int, code: StringName) -> StringName:
+	"""Record what a begin or continue did to cube `at`; only the builder's own failure stops the room."""
 	if builder.failed(): return code
-	if code != &"":
-		_cube[at] = CUBE_REFUSED
-		_last_refusal = code
-		return &""
-	_cube[at] = CUBE_TAKEN
+	if code == Budget.REFUSE_BUSY: return &""
+	_cube[at] = CUBE_TAKEN if code == &"" else CUBE_REFUSED
+	if code != &"": _last_refusal = code
 	return &""
 
 
@@ -212,13 +245,11 @@ func _up_or_home(builder: Builder, tick: int) -> StringName:
 	if not builder.may_work(): return &""
 	var at: int = builder.last_index() + 1
 	if at < _cube.size() and _cube[at] == CUBE_OPEN and _same_column(at - 1, at):
-		var code: StringName = builder.continue_column(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION), _order.keys[at], tick)
-		if builder.failed(): return code
-		if code == &"":
-			_cube[at] = CUBE_TAKEN
-			return &""
-		_cube[at] = CUBE_REFUSED
-		_last_refusal = code
+		_column_tries += 1
+		var code: StringName = builder.continue_column(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION),
+			_order.keys[at], tick)
+		code = _taken(builder, at, code)
+		if code != &"" or not builder.at_column_end(): return code
 	return builder.go_home()
 
 
@@ -258,15 +289,21 @@ func _all_parked() -> bool:
 
 
 func _finish() -> StringName:
-	"""Every cube is done by Sites' own record and every builder has walked back to its parking."""
+	"""Done only when Sites' own record shows every cube finished, and every builder is parked."""
+	for row: int in _order.rows:
+		if not _finished(row): return _halt(REFUSE_NOT_DONE)
 	_state = STATE_DONE
 	return &""
 
 
 func _halt(code: StringName) -> StringName:
-	"""The first refusal stops the room for good and is kept for the alert; completed cubes stay paid."""
+	"""The first refusal stops the room for good and is kept for the alert; completed cubes stay paid. Every builder
+	then releases its open phase (unpaid ones are cancelled); the first such refusal is kept apart."""
 	_state = STATE_FAILED
 	_error = code
+	for builder: Builder in _builders:
+		var released: StringName = builder.abandon()
+		if released != &"" and _abandon_error == &"": _abandon_error = released
 	return code
 
 
@@ -285,6 +322,11 @@ func error() -> StringName:
 	return _error
 
 
+func abandon_error() -> StringName:
+	"""The first refusal met while releasing the builders' open phases after a stop, or empty."""
+	return _abandon_error
+
+
 func room() -> Vector2i:
 	"""The room being dug."""
 	return _room
@@ -298,6 +340,16 @@ func done_cubes() -> int:
 func total_cubes() -> int:
 	"""Every Site of the room."""
 	return _order.rows.size()
+
+
+func blocked_ticks() -> int:
+	"""Builder-ticks spent waiting for another builder's body or footprint (ECON-001 turns)."""
+	return _blocked_ticks
+
+
+func column_tries() -> int:
+	"""Times a builder that had just finished a cube was offered the next cube up its column."""
+	return _column_tries
 
 
 func order() -> DigOrder.Order:

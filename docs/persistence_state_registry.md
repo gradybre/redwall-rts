@@ -2214,29 +2214,38 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Stateless dig order | -- | -- | -- | No members; the Order and Cells packets are caller-owned or per-call | 3 | -- | Decision 1931 (C2.1), BUILD-REQ-012. Breadth-first cell order from the cells beside open space, ties by cell index, layers upward inside a cell. Cold: runs once when a room's dig starts; its scratch is sized to the room's Sites and dies with the call. Derived from Sites keys and the Space owner's regions, so it is never saved. |
+| Stateless dig order | -- | -- | -- | No members; the Order and Cells packets are caller-owned or per-call | 3 | -- | Decision 1933 (C2.1), BUILD-REQ-012. Breadth-first cell order from the cells beside open space, ties by cell index, layers upward inside a cell. Cold: runs once when a room's dig starts; its scratch is sized to the room's Sites and dies with the call. Derived from Sites keys and the Space owner's regions, so it is never saved. |
 
 ### `godot/scripts/core/underground_room_builder.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Planned legs and footprint | `_legs`, `_leg_profiles`, `_claim` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges; six ints per footprint box) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1931 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
+| Planned legs | `_legs`, `_leg_profiles`, `_home_legs`, `_home_profiles` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges each way) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
+
+### `godot/scripts/core/underground_room_footprint.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Claimed footprint | `_boxes` | 4 | never allocated | Empty while parked; six ints per box, refilled per cube | 3 | -- | Decision 1933 (C2.1), ECON-001. One builder's cube footprint (way there, station work, way back), swept in 256 u pieces. Derived from the planned itineraries; re-planned, never saved. |
+| Standing body | `_body` | 4 | `6` = 6 | Zero before the builder is registered | 3 | -- | Decision 1933 (C2.1). The builder's body box in its standing pose, written in place. Derived, not saved. |
+| Row extents | `_extents` | 4 | `6 * profiles._live.header[1]` runtime | UNFILLED until a row is first used | 3 | -- | Decision 1933 (C2.1). Cached union of each row's body, recovery, approach and stroke boxes (6 ints per published row). Derived from Profiles, not saved. |
 
 ### `godot/scripts/core/underground_room_foreman.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Set-off check scratch | `_mine`, `_theirs` | 4 | never allocated | Refilled per check, never kept | 3 | -- | Decision 1931 (C2.1). Per-call scratch for comparing two builders' footprints; derived, not saved. |
-| Blocked-builder epochs | `_blocked_at` | 4 | `made.size()` runtime | -1 until a builder is found blocked | 3 | -- | Decision 1931 (C2.1). One int per builder (at most 4): the set-off/park epoch at which it was last found blocked, so the footprint check reruns only after something moved. Derived, not saved. |
-| Cube dispatch marks | `_cube` | 1 | `planned.keys.size()` runtime | One byte per Site of the room: open, taken, done, refused | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1931 (C2.1). Done is re-read from Sites (SUPPORTED_VOID, no live phase); taken and refused are dispatch state. Not saved yet (C2.3). Re-derived from Sites on load, with refused cubes reopened? |
+| Blocked-builder epochs | `_blocked_at` | 8 | `made.size()` runtime | -1 until a builder is found blocked | 3 | -- | Decision 1933 (C2.1). One per builder (at most 4): the change epoch at which its footprint was last found blocked, so the check reruns only after something changed. Derived, not saved. |
+| Blocked this tick | `_blocked` | 1 | `made.size()` runtime | 0 | 3 | -- | Decision 1933 (C2.1). Per-tick flags for the frozen-crew check (ROOM_FOREMAN_CREW_BLOCKED). Derived, not saved. |
+| Cube dispatch marks | `_cube` | 1 | `planned.keys.size()` runtime | One byte per Site of the room: open, taken, done, refused | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). Done is re-read from Sites (SUPPORTED_VOID, no live phase); taken and refused are dispatch state. The foreman also keeps its `_order` packet for the dig's life: rows, keys and distances, 12 B per Site (`DigOrder.Order`, not a top-level column). Not saved yet (C2.3). Re-derived from Sites on load, with refused cubes reopened? |
 
 ### `godot/scripts/core/underground_room_runtime.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Room dig record: generation | `_generation` | 4 | `ROOM_CAPACITY` = 16384 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1931, P-C2-4 (a): one small packed record per room, indexed by the room's directory row. Not composed in production in C2.1 (only tests construct the runtime), so nothing is allocated in the game yet. C2.3 composes it, ledgers its 344,064 B and saves it. Saved in §6 AUXILIARY_STATE by C2.3? |
+| Room dig record: generation | `_generation` | 4 | `ROOM_CAPACITY` = 16384 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room, indexed by the room's directory row. Not composed in production in C2.1 (only tests construct the runtime), so nothing is allocated in the game yet. C2.3 composes it, ledgers its 344,064 B and saves it. Saved in §6 AUXILIARY_STATE by C2.3? |
 | Room dig record: state | `_state` | 1 | `ROOM_CAPACITY` = 16384 | RECORD_NONE | UNRESOLVED | §6 AUXILIARY_STATE | Same record: none, queued, digging, done, stopped. Saved by C2.3? |
 | Room dig record: containers | `_storage`, `_output` | 4 | `2 * ROOM_CAPACITY` = 32768 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Same record: the input staging container and the spoil container, each a (slot, generation) pair. Saved by C2.3? |
+| Foreman record rows | `_foreman_rows` | 4 | never allocated | One per kept foreman (at most MAX_DIGS running, plus stopped ones until released) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The record row of each kept foreman, so a room deleted mid-dig still settles its record. Saved with the foremen by C2.3? |
 
 ### `godot/scripts/core/underground_room_composition.gd`
 

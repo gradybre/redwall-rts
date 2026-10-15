@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1931 (C2.1): the room foreman with a crew of two (ECON-001), a builder sent on from its station, and a
+## Decision 1933 (C2.1): the room foreman with a crew of two (ECON-001), a builder sent on from its station, and a
 ## full spoil pile. Kitchen fixture from test_underground_room_foreman.gd (retired content-6 pick rows, tests only).
 
 const ForemanTests := preload("res://test/test_underground_room_foreman.gd")
@@ -98,24 +98,70 @@ func _assert_parked(worker: Vector2i, parking: Vector2i) -> void:
 
 
 func test_two_builders_share_the_kitchen_without_sharing_a_cube() -> void:
-	"""ECON-001: two builders, one worker per cube face; the room is dug exactly once, each builder parks again."""
-	_h = WideKitchen.new()
-	var room: Vector2i = _h.confirmed_room()
-	if room == NULL_REF: return
-	var crew: Array[Builder.Crew] = [_h.crew_member(), _h.second_member(SECOND_PARKING)]
-	if not _h.failures.is_empty(): return
-	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, crew), &"", "configured")
-	var code: StringName = _h.run(foreman, TICK_BOUND)
-	assert_equal(code, &"", "no refusal")
-	assert_equal(foreman.state(), Foreman.STATE_DONE, "the room is done")
+	"""ECON-001: two builders, one worker per cube face; both dig, they take turns where their footprints meet, the
+	room is dug exactly once, and each builder parks again."""
+	var foreman: Foreman = _two()
+	if foreman == null: return
 	var first: Builder = foreman.builders()[0]
 	var second: Builder = foreman.builders()[1]
+	var together: int = 0
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "no refusal")
+		together = maxi(together, int(_working(first)) + int(_working(second)))
+		if not foreman.is_running(): break
+	assert_equal(foreman.state(), Foreman.STATE_DONE, "the room is done")
 	assert_equal(first.cubes() + second.cubes(), KITCHEN_SITES, "each cube finished exactly once")
-	print("ROOM-FOREMAN-TWO ticks=%d first=%d second=%d" % [_h.tick, first.cubes(), second.cubes()])
+	assert_true(first.cubes() > 0 and second.cubes() > 0, "both builders dug")
+	assert_true(foreman.blocked_ticks() > 0, "they took turns where their footprints met")
+	print("ROOM-FOREMAN-TWO ticks=%d first=%d second=%d together=%d blocked=%d" % [_h.tick, first.cubes(),
+		second.cubes(), together, foreman.blocked_ticks()])
 	_assert_paid(KITCHEN_SITES)
-	_assert_parked(crew[0].worker, crew[0].parking)
-	_assert_parked(crew[1].worker, crew[1].parking)
+	_assert_parked(foreman.builders()[0].crew().worker, foreman.builders()[0].crew().parking)
+	_assert_parked(foreman.builders()[1].crew().worker, foreman.builders()[1].crew().parking)
+
+
+func _two() -> Foreman:
+	"""The widened Kitchen and a two-builder foreman, or null with the fixture's failures."""
+	_h = WideKitchen.new()
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return null
+	var crew: Array[Builder.Crew] = [_h.crew_member(), _h.second_member(SECOND_PARKING)]
+	if not _h.failures.is_empty(): return null
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, crew), &"", "configured")
+	return foreman
+
+
+static func _working(builder: Builder) -> bool:
+	"""At a station with a phase in hand (entering, starting, earning, recovering or between phases)."""
+	var stage: int = builder.stage()
+	return stage == Builder.STAGE_ENTER or stage == Builder.STAGE_START or stage == Builder.STAGE_EARN \
+		or stage == Builder.STAGE_RECOVER or stage == Builder.STAGE_BETWEEN
+
+
+func test_a_crew_that_can_never_move_again_stops_the_room_and_releases_its_phase() -> void:
+	"""Negative-only: one open cube, taken by the first builder, whose footprint is made to meet the second builder's
+	parked body; the second has nothing to take, so nothing can ever change. The room stops with
+	ROOM_FOREMAN_CREW_BLOCKED instead of waiting forever, and the unpaid BRACE is cancelled."""
+	var foreman: Foreman = _two()
+	if foreman == null: return
+	for at: int in foreman._cube.size(): foreman._cube[at] = Foreman.CUBE_DONE if at > 0 else Foreman.CUBE_OPEN
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), &"", "registered; the first builder takes the one cube")
+	var first: Builder = foreman.builders()[0]
+	assert_true(first.walking_next() and not first.in_motion(), "about to set off")
+	var body: PackedInt32Array = foreman.builders()[1]._foot.body()
+	for axis: int in 6: body[axis] = first.claim()[axis] # The second builder now stands in the first one's way.
+	foreman._epoch += 1
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), Foreman.REFUSE_BLOCKED, "named, not a silent wait")
+	assert_equal(foreman.state(), Foreman.STATE_FAILED, "stopped")
+	assert_equal(foreman.abandon_error(), &"", "released cleanly")
+	assert_equal(_h._construction.live_project_count(), 0, "the unpaid BRACE was cancelled")
+	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), KITCHEN_SITES * Contract.BRACE_WOOD_MILLI, "nothing paid")
+	var row: int = _h._residents.directory().get_typed_row(first.crew().worker)
+	assert_equal(_h._jobs.job_of(row), NULL_REF, "the resident holds no Job")
 
 
 func test_a_builder_at_its_station_cannot_publish_a_new_chain_and_goes_home() -> void:
@@ -166,3 +212,6 @@ func test_a_full_spoil_pile_stops_the_room_before_any_unpaid_cut() -> void:
 	assert_equal(foreman.done_cubes(), 0, "no cube shown done")
 	assert_equal(_h.sites.virgin_sourced_milli(), 0, "nothing was cut")
 	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), (KITCHEN_SITES - 1) * Contract.BRACE_WOOD_MILLI, "one BRACE paid")
+	assert_equal(foreman.abandon_error(), &"", "released cleanly")
+	assert_equal(_h._construction.live_project_count(), 0, "the unstarted CUT was cancelled, no Project left")
+	assert_equal(_h._jobs.job_of(_h._residents.directory().get_typed_row(_h._worker)), NULL_REF, "the mole holds no Job")

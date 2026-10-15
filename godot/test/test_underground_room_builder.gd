@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1931 (C2.1): the room foreman's and builders' contracts that need no whole dig: configuration refusals,
+## Decision 1933 (C2.1): the room foreman's and builders' contracts that need no whole dig: configuration refusals,
 ## the tool gate the bound row decides, arrival and registration on the parking, the idle builder's readings, the
 ## stuck room and a lost crew member. Kitchen fixture (retired content-6 pick rows, tests only).
 
@@ -11,6 +11,7 @@ const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Needs := preload("res://scripts/core/needs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
 var _h: ForemanTests.Kitchen = null
@@ -137,8 +138,7 @@ func test_registration_places_the_builder_on_its_parking_once() -> void:
 	assert_equal(actor.location, _h.parking, "on its parking")
 	assert_equal(actor.point, Vector3i(Phase.X - 3072, Phase.FLOOR, Phase.Z + 512), "at the parking point")
 	assert_equal(builder.register(), &"", "a second call is a no-op")
-	var body: PackedInt32Array = PackedInt32Array()
-	builder.occupied_into(body)
+	var body: PackedInt32Array = builder.occupied()
 	assert_equal(body.size(), 6, "a parked builder occupies one body box")
 	assert_true(body[0] < actor.point.x and body[3] > actor.point.x and body[2] < actor.point.z and body[5] > actor.point.z, "around its point")
 	assert_equal(builder.claim().size(), 0, "no cube claimed")
@@ -170,9 +170,31 @@ func test_a_lost_builder_stops_the_room_with_its_code() -> void:
 		assert_equal(foreman.advance(_h.tick), &"", "running")
 		if builder.in_motion(): break
 	assert_true(builder.in_motion(), "on its way")
+	var row: int = _h._residents.directory().get_typed_row(_h._worker)
+	assert_true(_h._work.release_tool_claim(row).ok, "departure: its tool claim released")
+	assert_true(_h._jobs.release_worker(row).ok, "departure: its Job released first (decision 0017)")
 	assert_true(_h._residents.despawn(_h._worker).ok, "the mole leaves")
 	_h.tick += 1
 	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
 	assert_true(builder.failed(), "the builder failed")
 	assert_equal(foreman.state(), Foreman.STATE_FAILED, "the room stopped")
 	assert_equal(_h.sites._ever_cut.count(1), 0, "nothing cut")
+	assert_equal(foreman.abandon_error(), &"", "released cleanly")
+	assert_equal(_h._construction.live_project_count(), 0, "the unstarted BRACE was cancelled")
+
+
+func test_a_builder_lost_while_parked_or_dead_at_its_station_stops_the_room() -> void:
+	"""ADR1223's crew-loss rule in every stage: a mole that leaves before its arrival, or dies, stops the room."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), &"", "configured")
+	var row: int = _h._residents.directory().get_typed_row(_h._worker)
+	var builder: Builder = foreman.builders()[0]
+	assert_false(builder.lost(), "alive and present")
+	_h._jobs.needs()._status[row] = Needs.STATUS_DEAD # Negative-only: the mole dies before it is sent.
+	_h._jobs.needs()._health[row] = 0
+	assert_true(builder.lost(), "dead counts as lost")
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
+	assert_equal(foreman.state(), Foreman.STATE_FAILED, "stopped")
+	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")

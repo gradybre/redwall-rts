@@ -1,5 +1,5 @@
 extends RefCounted
-## Decision 1931 (C2.1), BUILD-REQ-012: the order a confirmed underground room is dug in. Cells are taken
+## Decision 1933 (C2.1), BUILD-REQ-012: the order a confirmed underground room is dug in. Cells are taken
 ## breadth-first from the cells touching finished space (the access face), ties by cell index (z-major, then x, as
 ## SET-BUILD-001 §3's `z × 256 + x`), and the quanta inside a cell in the excavation contract's own key order
 ## (lowest layer first). Stateless and cold: it runs once when a room's dig starts, never per tick. It reads Sites'
@@ -46,7 +46,10 @@ static func order_into(sites: Sites, owner: Owner, room: Vector2i, out: Order) -
 
 
 static func order_from_into(sites: Sites, scratch: Cells, voids: PackedInt32Array, out: Order) -> StringName:
-	"""Seed from the cells beside any open box in `voids` (six ints per box), then order breadth-first."""
+	"""Seed from the cells beside any open box in `voids` (six ints per box), then order breadth-first. The sort key
+	holds a cell index below 2^22 and a Site index below 2^20; a larger room or grid refuses rather than mis-sorts."""
+	if scratch.keys.size() >= 1 << 20 or sites._domain.size_quanta.x * sites._domain.size_quanta.z >= 1 << 22:
+		return REFUSE_SCOPE
 	var seeds: PackedInt32Array = _seeds(sites, scratch, voids)
 	if seeds.is_empty(): return REFUSE_NO_WAY_IN
 	_spread(sites, scratch, seeds)

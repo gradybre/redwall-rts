@@ -1,5 +1,5 @@
 extends RefCounted
-## Decision 1931 (C2.1): one builder of a room dig, a fixed-tick stage machine over the real owners. For each cube
+## Decision 1933 (C2.1): one builder of a room dig, a fixed-tick stage machine over the real owners. For each cube
 ## the foreman hands it: prove (or publish) a contact, open BRACE with a real BUILD Job and assign itself, walk the
 ## real itinerary, enter WORK, START, earn, hand over to CUT and FINISH at the same station (DEC-059 P2), settle,
 ## and retreat to its own parking. Every step is an owner call whose own final guard decides; nothing is paid or
@@ -31,6 +31,8 @@ const Inventory := preload("res://scripts/core/inventory.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
+const Footprint := preload("res://scripts/core/underground_room_footprint.gd")
+const Needs := preload("res://scripts/core/needs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_IDLE: int = 0
 const STAGE_TRAVEL: int = 1
@@ -48,8 +50,6 @@ const STAGE_COLUMN: int = 9
 const STAGE_BETWEEN: int = 10
 ## The entry foreman's stall bound (ADR1196): no stage may wait longer without moving on.
 const STAGE_TICK_LIMIT: int = 1200
-## A footprint is claimed in pieces of this length along each leg (a resolution, not a rule).
-const CLAIM_STEP_U: int = 256
 const LEG_NONE: int = 0
 const LEG_TURNED: int = 1
 const LEG_MOVING: int = 2
@@ -113,7 +113,9 @@ var _station: Vector2i = NULL_REF
 var _work_profile: int = -1
 var _at: Vector2i = NULL_REF
 var _legs: PackedInt32Array = PackedInt32Array()
-var _claim: PackedInt32Array = PackedInt32Array()
+var _home_legs: PackedInt32Array = PackedInt32Array() # The way back claimed with the cube, walked as claimed.
+var _home_profiles: PackedInt32Array = PackedInt32Array()
+var _foot: Footprint = null
 var _leg_profiles: PackedInt32Array = PackedInt32Array()
 var _leg: int = 0
 var _leg_state: int = LEG_NONE
@@ -134,6 +136,8 @@ func configure(ctx: Context, member: Crew) -> StringName:
 	if _worker_row_of(ctx, member) < 0: return REFUSE_LOST
 	_ctx = ctx
 	_crew = member
+	_foot = Footprint.new()
+	_foot.configure(ctx.owners.profiles)
 	_at = member.parking
 	return &""
 
@@ -211,8 +215,10 @@ func register() -> StringName:
 	if locations == null or not locations._live_ref(locations._live, _crew.parking): return REFUSE_SCOPE
 	var point: Vector3i = _point(_crew.parking)
 	if not o.transforms.place(_crew.worker, point.x, point.y, point.z, _yaw(_ctx.forward)): return REFUSE_LOST
-	return o.routes.admit_travel_actor(_crew.worker, NULL_REF, _crew.parking, _ctx.forward,
+	var code: StringName = o.routes.admit_travel_actor(_crew.worker, NULL_REF, _crew.parking, _ctx.forward,
 		_revision(_ctx.forward), _ctx.content, 0, -1, _crew.tool)
+	if code == &"": _foot.stand(point, _ctx.forward)
+	return code
 
 
 func begin(index: int, site: Vector2i, key: int, tick: int) -> StringName:
@@ -231,61 +237,28 @@ func begin(index: int, site: Vector2i, key: int, tick: int) -> StringName:
 
 
 func _plan_claim() -> StringName:
-	"""The cube's whole footprint before setting off: the way back, the station's work and the way there. The legs
-	left planned are the approach."""
-	_claim.clear()
+	"""The cube's whole footprint before setting off: the way back (kept for going home), the station's work and the
+	way there. The legs left planned are the approach."""
+	_foot.clear_claim()
 	var code: StringName = _plan_legs(_station, _crew.parking, _ctx.backward, false)
 	if code != &"": return code
 	_claim_legs(_station)
-	_claim_body(_station, _work_profile)
+	_home_legs = _legs.duplicate()
+	_home_profiles = _leg_profiles.duplicate()
+	var point: Vector3i = _point(_station)
+	_foot.sweep(point, point, _work_profile)
 	code = _plan_legs(_at, _station, _ctx.forward, true)
 	if code == &"": _claim_legs(_at)
 	return code
 
 
 func _claim_legs(start: Vector2i) -> void:
-	"""One box per planned leg: the leg's row's boxes swept from its start point to its end point."""
+	"""Each planned leg's row swept from its start point to its end point."""
 	var from: Vector3i = _point(start)
 	for leg: int in _leg_profiles.size():
 		var to: Vector3i = _point(Vector2i(_legs[2 * leg], _legs[2 * leg + 1]))
-		_claim_sweep(from, to, _leg_profiles[leg])
+		_foot.sweep(from, to, _leg_profiles[leg])
 		from = to
-
-
-func _claim_body(at: Vector2i, profile: int) -> void:
-	"""The row's boxes standing still on one endpoint."""
-	var point: Vector3i = _point(at)
-	_claim_sweep(point, point, profile)
-
-
-func _claim_sweep(from: Vector3i, to: Vector3i, profile: int) -> void:
-	"""Append the row's boxes swept from `from` to `to`, one AABB per CLAIM_STEP_U piece of the leg, so a long or
-	diagonal leg does not claim the whole rectangle around it."""
-	var extent: PackedInt32Array = _row_extent(profile)
-	var delta: Vector3i = to - from
-	@warning_ignore("integer_division") var pieces: int = maxi(1, (maxi(absi(delta.x), absi(delta.z)) + CLAIM_STEP_U - 1) / CLAIM_STEP_U)
-	for piece: int in pieces:
-		@warning_ignore("integer_division") var a: Vector3i = from + delta * piece / pieces
-		@warning_ignore("integer_division") var b: Vector3i = from + delta * (piece + 1) / pieces
-		for axis: int in 3: _claim.append(mini(a[axis], b[axis]) + extent[axis])
-		for axis: int in 3: _claim.append(maxi(a[axis], b[axis]) + extent[axis + 3])
-
-
-func _row_extent(profile: int) -> PackedInt32Array:
-	"""The union (low xyz, high xyz) of every body, recovery, approach and stroke box of one row; contact boxes and
-	the stance support are left out."""
-	var profiles: Profiles = _ctx.owners.profiles
-	var stride: int = profiles._profile_capacity
-	var cap: int = profiles._box_capacity
-	var out: PackedInt32Array = PackedInt32Array([1 << 30, 1 << 30, 1 << 30, -(1 << 30), -(1 << 30), -(1 << 30)])
-	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * stride + profile]
-	for box: int in range(first, first + profiles._live.fields[Profiles.F_BOX_COUNT * stride + profile]):
-		var role: int = profiles._live.boxes[6 * cap + box]
-		if role == Profiles.STANCE_SUPPORT or role > Profiles.WORK_STROKE: continue
-		for axis: int in 3:
-			out[axis] = mini(out[axis], profiles._live.boxes[axis * cap + box])
-			out[axis + 3] = maxi(out[axis + 3], profiles._live.boxes[(axis + 3) * cap + box])
-	return out
 
 
 func _point(location: Vector2i) -> Vector3i:
@@ -296,22 +269,25 @@ func _point(location: Vector2i) -> Vector3i:
 		locations._live.i32[Locations.Z * cap + location.x])
 
 
-func occupied_into(out: PackedInt32Array) -> void:
-	"""What this builder may occupy from now on: its parked body until it sets off, then its cube's whole footprint
-	until it is parked again (the foreman keeps two builders' footprints apart, ECON-001)."""
-	out.clear()
-	if (_stage == STAGE_IDLE or _stage == STAGE_TRAVEL) and not in_motion():
-		var at: int = _claim.size()
-		_claim_body(_at, _ctx.forward)
-		out.append_array(_claim.slice(at))
-		_claim.resize(at)
-		return
-	out.append_array(_claim)
+func standing() -> bool:
+	"""Not on its way: parked, at a column's end, or about to set off from where it stands."""
+	return _stage == STAGE_IDLE or (walking_next() and not in_motion())
+
+
+func occupied() -> PackedInt32Array:
+	"""What this builder may occupy from now on (shared, not copied): its body in its pose while it stands still,
+	the claimed cube footprint while it is out at the work (ECON-001; the foreman keeps two builders apart)."""
+	return _foot.body() if standing() else _foot.claim()
 
 
 func claim() -> PackedInt32Array:
-	"""The cube's planned footprint (boxes of six ints), for the foreman's check before this builder sets off."""
-	return _claim
+	"""The cube's planned footprint (boxes of six ints, shared), for the foreman's check before this builder sets off."""
+	return _foot.claim()
+
+
+func footprint_serial() -> int:
+	"""Changes whenever the body or the claimed footprint changes."""
+	return _foot.serial()
 
 
 func _contact(site: Vector2i, key: int) -> StringName:
@@ -346,6 +322,9 @@ func _open_phase(tick: int) -> StringName:
 	if not made.ok: return made.error
 	_job = made.value
 	var code: StringName = _bind_phase_job(opened.ref)
+	if code != &"" and o.sites.job_of(_site) != o.jobs.ref_of(_job):
+		o.jobs.destroy_job(_job) # Never bound to the Site: no one may be offered it (the phase is cancelled on abandon).
+		_job = -1
 	if code == &"": code = _assign()
 	return code
 
@@ -423,7 +402,7 @@ func advance(tick: int, may_move: bool = true) -> StringName:
 	"""One fixed tick of this builder (the foreman has already advanced Routes this tick). Without `may_move` a builder
 	that has not set off yet waits where it stands: the foreman lets one builder walk at a time."""
 	if _stage == STAGE_IDLE or _stage == STAGE_FAILED: return _error
-	if _worker_row_of(_ctx, _crew) < 0: return _fail(REFUSE_LOST)
+	if lost(): return _fail(REFUSE_LOST)
 	if not may_move and walking_next() and not in_motion():
 		_stage_ticks = 0 # Waiting for the way to clear is not a stall.
 		return &""
@@ -535,6 +514,8 @@ func _end_travel() -> StringName:
 	"""Back at parking: idle. At the station: face the work row (its own stationary tick), then select it."""
 	if _stage == STAGE_RETREAT:
 		_index = -1
+		_foot.clear_claim()
+		_foot.stand(_point(_crew.parking), _ctx.forward)
 		_set_stage(STAGE_IDLE)
 		return &""
 	if _leg_state != LEG_TURNED and _needs_turn(_work_profile):
@@ -640,6 +621,48 @@ func _between(tick: int) -> StringName:
 	return code
 
 
+func lost() -> bool:
+	"""The crew member left (its directory row is gone) or died (ADR1223's crew-loss rule)."""
+	var row: int = _worker_row_of(_ctx, _crew)
+	if row < 0: return true
+	return _ctx.owners.jobs.needs().status_into(row, _math) and _math.value == Needs.STATUS_DEAD
+
+
+func abandon() -> StringName:
+	"""The room stopped: free the resident and the owners' records for this builder's open phase. A started phase
+	keeps its paid Project for a later resume (C2.3) and only its worker is released. An unstarted one is cancelled
+	(claims released, Project and Job retired: nothing was paid). The route actor stays where it stopped."""
+	_stage = STAGE_FAILED
+	var o: Owners = _ctx.owners
+	if _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return &""
+	var released: Construction.OpResult = o.sites.release_worker(_site)
+	if _phase_started(): return &"" if released.ok else released.error
+	if not released.ok:
+		var code: StringName = _release_assignment()
+		if code != &"": return code
+	var cancelled: Construction.OpResult = o.sites.cancel_phase(_site, _ctx.storage)
+	return &"" if cancelled.ok else cancelled.error
+
+
+func _release_assignment() -> StringName:
+	"""Before the worker is bound to its Site only Jobs holds it: release its tool claim, then the Job (as the entry
+	foreman's `_release_phase_job` does before START)."""
+	var o: Owners = _ctx.owners
+	var row: int = _worker_row_of(_ctx, _crew)
+	if row < 0 or _job < 0 or o.jobs.job_of(row) != o.jobs.ref_of(_job): return REFUSE_LOST
+	if o.work.tool_lot_of(row) != NULL_REF:
+		var tool_released: RefCounted = o.work.release_tool_claim(row)
+		if not tool_released.ok: return tool_released.error
+	var detached: RefCounted = o.jobs.release_worker(row)
+	return &"" if detached.ok else detached.error
+
+
+func _phase_started() -> bool:
+	"""The paid START already ran for this phase's Project (it is WORKING or its work is done)."""
+	if not _ctx.owners.construction.phase_into(_ctx.owners.sites.project_of(_site), _math): return false
+	return _math.value == Construction.PHASE_WORKING or _math.value == Construction.PHASE_WORK_DONE
+
+
 func may_work() -> bool:
 	"""GDD 5.3 steps 1-2, allocation-free: the hour does not rest (REQ-SET-034) and health permits work."""
 	var row: int = _worker_row_of(_ctx, _crew)
@@ -660,6 +683,7 @@ func _recover(tick: int) -> StringName:
 	_cubes += 1
 	_finished = _index
 	_at = _station
+	_foot.stand(_point(_station), _work_profile)
 	_set_stage(STAGE_COLUMN) # The foreman sends it up its column, or home.
 	return &""
 
@@ -697,8 +721,13 @@ func column_cubes() -> int:
 
 
 func go_home() -> StringName:
-	"""From the station back to its parking (the way back is part of the cube's claimed footprint)."""
+	"""From the station back to its parking, along the way back claimed with the cube (never re-planned: chains
+	published since could lead outside the claimed footprint)."""
 	if _stage != STAGE_COLUMN: return REFUSE_STATE
-	var code: StringName = _plan_legs(_station, _crew.parking, _ctx.backward, false)
-	if code == &"": _set_stage(STAGE_RETREAT)
-	return _fail(code) if code != &"" else &""
+	_legs = _home_legs.duplicate()
+	_leg_profiles = _home_profiles.duplicate()
+	_leg = 0
+	_leg_state = LEG_NONE
+	_leg_job = false
+	_set_stage(STAGE_RETREAT)
+	return &""

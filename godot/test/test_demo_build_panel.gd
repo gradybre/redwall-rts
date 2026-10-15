@@ -333,6 +333,10 @@ func test_a_still_frame_allocates_nothing() -> void:
 	_paint_kitchen_by_keys()
 	_build._process(0.016)
 	_build._process(0.016)
+	# The level's earth is rebuilt on a worker and shown by a later frame (decision 1914): that one showing makes its
+	# meshes; it is shown here, so the frames measured are still ones.
+	_build.dug.earth.finish()
+	_build._process(0.016)
 	var before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	for frame: int in 200:
 		_build._process(0.016)

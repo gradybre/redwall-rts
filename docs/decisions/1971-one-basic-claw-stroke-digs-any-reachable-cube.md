@@ -1,7 +1,7 @@
 # 1971 — One basic claw stroke digs any reachable cube: scoping, stopped for rulings
 
-Date: 2026-10-15 · Status: Proposed. Scoping only; no code, no content. Stopped for Brendan's rulings on
-P-1971-1 to P-1971-3.
+Date: 2026-10-15 · Status: Accepted. Brendan ruled P-1971-1 (b), P-1971-2 (a) and P-1971-3 (b) on 2026-10-15
+(see "Brendan's rulings"). Phase 2 (the build) follows in this record's later sections and in 1972 onwards.
 
 Number range: 1971–1989 was allocated to this lane by the coordinator, and checked free on every local and remote
 ref and with `decision_numbers.py`. This is the lane record; later records of the lane take 1972 onwards.
@@ -15,7 +15,62 @@ As relayed: one basic claw stroke, accepted for any cube within the mole's reach
 used for the entry, the tunnels and the rooms. It replaces ADR 1217's plan of separate stroke families (M1 down,
 M3 front, M2 high). No family of strokes and no long motion-review pipeline.
 
-## Decision (proposed)
+## Brendan's rulings (2026-10-15, relayed by the coordinator)
+
+| Proposal | Ruling | What it means here |
+|---|---|---|
+| P-1971-1 | **"Approve"**: (b) | The four wall rows are derived from M1's approved clips. M1 stays the one stroke |
+| P-1971-2 | **"Approve"**: (a) | The floor scrape is allowed only into natural, unowned earth, inside the row's own 61 u below-floor stroke box |
+| P-1971-3 | **"Painted height"**: (b) | Each cell's column is dug to the room's full height. The mole claws the bottom, and the upper earth is dug and paid as part of the same work, with no separate stroke. **This amends DEC-054.** Rooms must fit every species |
+
+Recorded as Brendan's ruling in `docs/setting_decisions.md` (DEC-054, addendum of 2026-10-15) with his two direction
+quotes, and indexed in `docs/handoff/RULINGS.md`.
+
+### The painted height, from adopted values only
+
+- **The height.** SET-BUILD-001 §3 and §7.2 adopt the level pack's clear height, `clear_height_u` 4,096 u
+  (`godot/data/underground/initial_level_pack.json`; DEC-061 Q6's 5 m spacing, 4 m clear and a 1 m band).
+  A painted underground cell is therefore dug to **4,096 u = 4 quanta**. No new constant is introduced.
+- **Every species fits** (DEC-039). The badger is 2,611 u, leaving 1,485 u of headroom; the otter is 1,526 u, the
+  squirrel 1,178 u, the mouse 1,024 u and the mole 922 u.
+- **The bill per painted cell**, at DEC-059's rates (BAL-UG-001), is SET-BUILD-001 §7.2's table, now the actual
+  price rather than a ceiling:
+
+| Per painted underground cell | Arithmetic | Value |
+|---|---|---|
+| Wood | 4 × 250 | 1,000 milli-U |
+| Stone | 4 × 250 | 1,000 milli-U |
+| Work | 4 × (940 + 1,880 + 1,410) | 16,920 milli-WU |
+| Earth output | 4 × 2,000 | 8,000 milli-U `excavated_earth` |
+
+  So a 2 × 2 Passage patch is 16 quanta: wood and stone 4,000 milli-U each, 67,680 milli-WU and 32,000 milli-U of
+  earth.
+
+### Column digging (engineering, derived)
+
+The ruling is implemented as a rule about **which cube the claws strike** (the struck cube) versus **which cube is
+paid** (the target):
+
+- **Direct.** When the work row's anchor lies inside the target cube's own band, the struck cube is the target. This
+  is every top-face dig, every floor-band wall dig, and the dormant pick's HIGH and FRONT digs.
+- **Column.** When the target lies above the floor band of its column, at a whole number of quanta above the stance
+  floor, and the anchor lies in the floor band, the struck cube is the column's floor-band cube. The planner places
+  the station for that cube, and WorkFace proves the contact and patch on it.
+- **Bottom-up.** The struck cube and every cube of the column below the target must already be open
+  (SUPPORTED_VOID). So a column is dug from the floor up: the claws strike the bottom cube while it is earth, and the
+  upper quanta are then worked from the same station with the same stroke. The frontier's key order is already
+  bottom-up (`key = (y·Z + z)·X + x`).
+- **What is still proved for an upper quantum.** Everything in the physical part of WorkFace: support, body,
+  approach and recovery in open air, the stroke in open air or the target, the floor scrape's limits, and the
+  protected roof band. What is not physically met is only the upper quantum itself, which is what the ruling
+  accepts ("the upper earth is dug and paid as part of the same work, without a separate stroke").
+- **`reachable_height_u`.** It returns `Space.I32_MAX` ("the stroke sets no limit") once the identity has a
+  side-face dig row whose anchor lies in the floor band. Otherwise it returns the old band height, or 0. Every caller
+  already clamps with the level's clear height (`modular_runtime.gd` `dug_height_u` = min(clear, reach)), and
+  `_level_refusal` keeps a Room inside its level, so the price and the plan follow the painted height with no caller
+  edit.
+
+## Decision (as proposed, now ruled)
 
 **The one stroke is M1, the approved two-paw claw stroke (ADR 1217 step 1b, candidate pa).** It is not
 re-authored. What changes is how it is qualified against a side face:

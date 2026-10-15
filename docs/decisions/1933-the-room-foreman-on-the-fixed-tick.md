@@ -78,6 +78,27 @@ owners refuse to reopen a phase a stopped dig had paid until C2.3 resumes it.
 cube is paid from its column's floor station (decision 1971's `_face` change). The offer then succeeds with no new
 chain and no walk home. That positive path is proved when decision 1971's branch is merged (coordinator's note).
 
+## Trial against the universal stroke (PR #260, `1eecb657`, not merged)
+
+A trial merge was tested and then aborted; nothing from it is committed. The room suites ran on the merged tree.
+
+**What #260 changes for C2.1.**
+- The Kitchen fixture now has 16 Sites: 4 cubes per column.
+- WorkFace refuses `WORK_FACE_COLUMN_UNOPENED` unless every cube below the paid one is a finished void.
+- An upper cube is paid from its column's floor station.
+
+**Results with this foreman unchanged.**
+- **One builder** dug all 16 cubes in 2,976 ticks. It took **12 cubes straight up their columns** (3 per column)
+  without walking home: painted height's stacked cubes, dug bottom up inside the breadth-first order.
+- **Two builders** dug 8 cubes each, all 16 cubes exactly once.
+- **Seven assertions failed, all fixture expectations that #260 changes:**
+  - the dig order's three exact lists still expect 8 Sites;
+  - the station-refusal test now meets `WORK_FACE_COLUMN_UNOPENED` before `ROUTE_OCCUPIED`, and its builder had
+    already taken a cube up its column;
+  - the stuck-room injection marks cubes that are now different cubes.
+
+  These are updated when the coordinator says to merge `origin/master`.
+
 ## PROPOSALS for Brendan
 
 **P-1933-1 — How the crew reaches its parking.**

@@ -276,6 +276,9 @@ static func _source_digest_refusal(actual: RefCounted) -> StringName:
 			or actual._header[7] < 0 or actual._header[7] >= actual._profiles._live.header[3] \
 			or actual._header[7] != actual._catalog._live.header[10] or actual._header[5] != actual._catalog._live.header[8]:
 		return REFUSE_SOURCE
+	if _digest_ranges(actual._digests, actual._profiles._live.sources, actual._header[7] * 32):
+		return &"" if _digest_words_match(actual._assemblies._digests, actual._recipes._digests, actual._digests,
+			actual._profiles._live.sources, actual._header[7] * 32) else REFUSE_SOURCE
 	for index: int in 32:
 		if actual._assemblies._digests[index] != actual._digests[64 + index] \
 				or actual._recipes._digests[index] != actual._digests[96 + index] \
@@ -286,6 +289,29 @@ static func _source_digest_refusal(actual: RefCounted) -> StringName:
 				or actual._profiles._live.sources[actual._header[7] * 32 + index] != actual._digests[128 + index]:
 			return REFUSE_SOURCE
 	return &""
+
+
+static func _digest_ranges(own: PackedByteArray, sources: PackedByteArray, source: int) -> bool:
+	"""Decision 1951: every compared 32-byte range exists (the caller has proved both 96-byte owner images), so the
+	word comparison reads exactly the loop's bytes."""
+	return own.size() >= 160 and source >= 0 and sources.size() >= source + 32
+
+
+static func _digest_words_match(assemblies: PackedByteArray, recipes: PackedByteArray, own: PackedByteArray,
+		sources: PackedByteArray, source: int) -> bool:
+	"""The byte loop's seven 32-byte equalities, each read as four 64-bit words without allocating."""
+	return _same_words(assemblies, 0, own, 64) and _same_words(recipes, 0, own, 96) \
+		and _same_words(assemblies, 32, own, 32) and _same_words(recipes, 32, own, 32) \
+		and _same_words(assemblies, 64, own, 96) and _same_words(recipes, 64, own, 64) \
+		and _same_words(sources, source, own, 128)
+
+
+static func _same_words(a: PackedByteArray, a_at: int, b: PackedByteArray, b_at: int) -> bool:
+	"""Thirty-two bytes equal, compared as four little-endian 64-bit words; both ranges are known to exist."""
+	for word: int in 4:
+		if a.decode_u64(a_at + 8 * word) != b.decode_u64(b_at + 8 * word):
+			return false
+	return true
 
 
 func _semantic_refusal() -> StringName:

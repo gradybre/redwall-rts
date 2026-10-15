@@ -1849,6 +1849,11 @@
      "bytes": 4322,
      "carried_by": "new contribution",
      "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view), 64 sides each"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
     }
    ],
    "delta": {
@@ -2738,6 +2743,16 @@
      ]
     ]
    }
+  },
+  "godot/scripts/core/underground_connector_source_facts.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1951: the source and level digests compared as 64-bit words through two static helpers; no member, packet or resize"
+    }
+   ],
+   "delta": {}
   }
  },
  "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."

@@ -2895,7 +2895,7 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
 
 func _short_request_refusal(row: int) -> StringName:
 	"""An interrupted finite prefix cannot replace its original path, restart key0 or acquire a successor."""
-	if not ShortStep.uses(_profiles) or not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]):
+	if not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) or not ShortStep.uses(_profiles):
 		return &""
 	if _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != ShortStep.word(PHASE_IDLE, SourceProgram.READY) \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
@@ -2905,7 +2905,7 @@ func _short_request_refusal(row: int) -> StringName:
 
 func _short_path_refusal() -> StringName:
 	"""Before replacing any route links, prove the single full immutable span and its actual unchanged rate."""
-	if not ShortStep.uses(_profiles) or not ShortStep.is_short(_checked_selection.profile_id): return &""
+	if not ShortStep.is_short(_checked_selection.profile_id) or not ShortStep.uses(_profiles): return &""
 	if _proposed_count != 1: return &"ROUTE_SOURCE_STEP_SPAN"
 	_step.edge = Vector2i(_proposed_edges[0], _proposed_edges[1])
 	if not is_live_edge(_step.edge): return &"ROUTE_EDGE_STALE"
@@ -3081,7 +3081,7 @@ func cancel_route(worker: Vector2i) -> StringName:
 	var row: int = _ids.get_typed_row(worker)
 	if _resident_ref(row) != worker or _route_count(row) < 0:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
-	if ShortStep.uses(_profiles) and ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) \
+	if ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) and ShortStep.uses(_profiles) \
 			and ((_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15) != SourceProgram.READY:
 		return &"ROUTE_SOURCE_STEP_ACTIVE"
 	_release_route(row)
@@ -3292,7 +3292,9 @@ func _stationary_next(phase: int, time: int, old: int, queued: bool) -> Vector3i
 		phase = SourceProgram.FADE_READY
 		old = time
 		time = 0
-	var profile: int = ShortStep.mapped(_selection.profile_id) if ShortStep.uses(_profiles) else _selection.profile_id
+	# Decision 1951: an unmapped row reads the same either way, so the source closure check is only needed to choose.
+	var profile: int = _selection.profile_id
+	if ShortStep.mapped(profile) != profile and ShortStep.uses(_profiles): profile = ShortStep.mapped(profile)
 	return SourceProgram.advance(phase, time, old, profile)
 
 
@@ -3339,7 +3341,7 @@ func _prepare_motion(row: int) -> StringName:
 	_step.consumed = 1 if entering else 0
 	if entering:
 		_step.cursor = _link(L_NEXT, _step.cursor)
-	if ShortStep.uses(_profiles) and ShortStep.is_short(_selection.profile_id) \
+	if ShortStep.is_short(_selection.profile_id) and ShortStep.uses(_profiles) \
 			and (_step.cursor >= 0 or _edge_i32(_live, E_PATH_COUNT, _step.edge.x) != 2):
 		return &"ROUTE_SOURCE_STEP_SPAN"
 	_copy_selection(_selection, _checked_selection)
@@ -3587,7 +3589,7 @@ func _pace_refusal() -> StringName:
 		return &"ROUTE_CALLBACK_REENTRY"
 	if code == &"" and (_number.value < 1 or _number.value > I32_MAX):
 		return &"ROUTE_PACE_UNAUTHORED"
-	if code == &"" and ShortStep.uses(_profiles) and ShortStep.is_short(_selection.profile_id) \
+	if code == &"" and ShortStep.is_short(_selection.profile_id) and ShortStep.uses(_profiles) \
 			and _number.value != ShortStep.PACE:
 		return &"ROUTE_SOURCE_STEP_PACE"
 	return code

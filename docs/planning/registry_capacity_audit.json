@@ -45,7 +45,7 @@
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "store_policy": "34e97ed22e2db9b6a7903c827125855b33b1afd76a3db50c2f838ccec95999d8",
       "transforms": "14898c3e6c782eefafd0ec9f42652ce402b3687bcfb2ac0eb81a9552cc98b505",
-      "underground_space_owner": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
+      "underground_space_owner": "bfbad4b67a7e5cb9ccecf4f5500c322610abe8f3854f5fe364a1723a5a21aa1a",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "world_init": "a899644eeded6d769a03f38d173da8a375c6117adf232c5b76b9940ebe5d8bae"
@@ -2455,7 +2455,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 2738,
+      "source_resize_line": 2760,
       "source_value": 18,
       "status": "proved_equality"
     },

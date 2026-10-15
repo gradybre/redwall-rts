@@ -232,6 +232,11 @@ Godot 4.7.2, 2026-10-15, on Brendan's Mac (load average 5 to 11 with other lanes
   - (a) Keep it by hand.
   - (b) Add it to CI's slow tier (about 2 minutes).
 
+**Brendan's ruling (2026-10-15, relayed by the coordinator):** P-1914-2 **"Keep as built"**: the wall band stays
+outside the cells, so a room's top lip may read up to about 0.85 m wider than its cells. P-1914-1, -3 and -4
+**"Approve"**, all (a): no player-facing rounding setting; a one-cell wall between two rooms keeps its crest;
+`demo_build_rounded_live.gd` is run by hand, not in CI.
+
   **Recommend (a).**
 
 ## Source

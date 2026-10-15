@@ -131,11 +131,10 @@ func advance(tick: int) -> Array[StringName]:
 
 func _settle_record(index: int) -> void:
 	"""A foreman that finished or stopped this tick leaves its record DONE or STOPPED (its row is kept, so a room
-	deleted mid-dig still releases its record)."""
+	deleted mid-dig still settles its record; the row cannot be re-ordered while the dig runs)."""
 	var foreman: Foreman = _foremen[index]
 	if foreman.is_running(): return
 	var row: int = _foreman_rows[index]
-	if _generation[row] != foreman.room().y: return
 	_state[row] = RECORD_DONE if foreman.state() == Foreman.STATE_DONE else RECORD_STOPPED
 
 

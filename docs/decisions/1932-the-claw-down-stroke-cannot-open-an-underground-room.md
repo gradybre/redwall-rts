@@ -1,7 +1,46 @@
 # 1932 — The claw down stroke (M1) cannot open an underground room
 
-Date: 2026-10-12 · Status: Proposed. A finding against Brendan's P-C2-1 ruling (decision 1931). Stopped for a new
-ruling; no code.
+Date: 2026-10-12 · Status: Ruled. Brendan replaced P-C2-1 on 2026-10-13 and again on 2026-10-15 ("Brendan's rulings"
+below); the universal stroke is decision 1971's. Two facts below are corrected by decision 1971 ("Corrections").
+
+## Corrections (2026-10-15, from decision 1971)
+
+Decision 1971 (commit `fef87161` on `feat/claw-front-stroke-m3`) read the same rows and found two mistakes here:
+
+- **Rows 57/59/61/63 are the paw seating tap, not an M1 stroke 128 u up.** Content 10's dig rows, M1, are only
+  56/58/60/62. Every statement below about "row 63" or "the two M1 strokes" describes the tap, not a second stroke.
+- **The claws' 1,024 u came from those tap rows.** `reachable_height_u` counts the tap rows (anchor 128 u, band 0).
+  It excludes the dig rows, because their anchor sits on y = 0, which is not strictly inside a band. Likewise the
+  planner would pick a tap row first for a side face, and the contact proof would then refuse it.
+
+The conclusion is unchanged, because it rests on the dig rows: M1's patch is flat at the stance plane and its
+turn-recovery air rises over the patch, so M1 as published cuts only cubes under air that is already open.
+Decision 1971 answers this by deriving wall-facing rows from M1's own clips.
+
+## Brendan's rulings (2026-10-13 and 2026-10-15)
+
+The coordinator relayed these; Brendan gave them in chat.
+
+- **2026-10-13, P-C2-1 replaced: "One basic front stroke".** Author one claw front stroke M3 (one family, made at
+  one heading and rotated to the other three, under ADR 1217's review), and dig rooms one quantum (1 m) high. Per
+  cell: wood 250, stone 250, 4,230 milli-WU and earth 2,000. M2 may add the second metre later.
+- **2026-10-13, the C2.1 add-on: "Yes, tests only".** C2.1 may test the foreman's dispatch logic on the ADR 1213
+  content-6 retired-pick fixture. It never takes a height or a price from the pick, and production stays claw-only.
+- **2026-10-15: "Real digging, in full".** Slice C goes all the way: C2.1 → C2.2 → C2.3 → slice D → C3.
+- **2026-10-15: "I just want the basic claw stroke that digs anything."** This replaces the per-face plan (M1 down,
+  M3 front, M2 high). There is one basic claw stroke, accepted for any cube within reach, for the entry, tunnels
+  and rooms. The `feat/claw-front-stroke-m3` lane (decisions 1971–1989) owns:
+  - the stroke content and its profile rows;
+  - the work-face qualification (`patch_refusal` and `box_refusal` as they apply to digging);
+  - the planner's face choice and `ROOM_STATION_VERTICAL_FACE`;
+  - `reachable_height_u`.
+- **2026-10-15, room height: "Painted height".** Each cell's column is dug to the room's full height. The mole
+  claws the bottom, and the earth above is dug and paid as part of the same work. This amends DEC-054, and rooms
+  must fit every species. The stroke lane publishes the quanta per cell and the bill; the foreman schedules a cell
+  as several stacked cubes, bottom up (decision 1931, C2.1).
+
+The per-cell table at the end of this record is therefore historical. The bill follows decision 1971's result,
+read through the one place P-C2-3 names.
 
 ## Decision
 
@@ -20,7 +59,8 @@ already cut, which needs a first cell. P-C2-1 therefore needs a new ruling (opti
 
 ## Why: the geometry, from the published boxes and the contact proof
 
-The two M1 strokes at yaw 49152 are below; rows 56–61 are the same two strokes at the other yaws. Boxes are relative
+Row 62 (M1) and row 63 (the paw seating tap, see "Corrections") at yaw 49152 are below; rows 56–61 are the same
+two rows at the other yaws. Boxes are relative
 to the stance, with +x forward and y up. They were read from the loaded content-10 rows.
 
 | Role | Row 62 (anchor at the stance plane) | Row 63 (anchor 128 u up) |

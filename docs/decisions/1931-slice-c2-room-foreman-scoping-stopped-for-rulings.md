@@ -1,7 +1,13 @@
 # 1931 — Slice C2 scoping: the room foreman is stopped for rulings (no claw stroke reaches a room wall, and the owners it drives are over the tick budget)
 
-Date: 2026-10-12 · Status: Ruled 2026-10-12 (see "Brendan's rulings"). P-C2-1 as ruled cannot be built with M1 alone
-(decision 1932), so the lane is stopped again for a new P-C2-1 ruling. Scoping only; no code.
+Date: 2026-10-12 · Status: Ruled (2026-10-12, 2026-10-13, 2026-10-15; see the two rulings sections). C2.1 is built:
+decision 1933. Corrections from decision 1971 are below.
+
+**What the game does today (C2.1, decision 1933).** The foreman follows whatever rows are bound. In the game the
+bound rows are the claws, and no claw row qualifies against a room wall until decision 1971's universal stroke
+lands. So in the game it is claw-only and digs nothing until then. No production code composes it yet (C2.3); only
+tests construct it. Its proof runs on the ADR 1213 content-6 retired-pick fixture, by Brendan's leave ("Yes, tests
+only"), and takes no height or price from the pick.
 
 Number range: 1931–1949 was allocated to this lane by the coordinator. It was checked free on every local and remote
 ref (`git ls-tree` over `refs/heads` and `refs/remotes`) and with `decision_numbers.py`. It replaces no BACKLOG range.
@@ -32,6 +38,27 @@ Relayed by the coordinator. Brendan gave them in chat on 2026-10-12.
 | P-C2-3 | **(a)**: price and plan by the identity of the crew that will dig (the claws), never "any row". `reachable_height_u` requires the face the stroke actually strikes | For M1, a room's height is 0 quanta (decision 1932). The per-cell table for C1 is in 1932 |
 | P-C2-4 | **(a)**: one small packed record per room plus the existing per-phase projects. Add the note to SET-BUILD-001 §10 | The note is added to `docs/building_model_amendment.md` §10 in this lane |
 | P-C2-5 | **(a)**: three lanes; this lane does C2.1 now (foreman on the fixture, breadth-first order, up to 4 builders, spoil, tick wiring, with M1 rooms under P-C2-1), then C2.2, then C2.3 | C2.1 as ruled depends on M1 rooms, which 1932 finds impossible. It waits on the new P-C2-1 ruling |
+
+## Brendan's rulings (2026-10-13 and 2026-10-15)
+
+Relayed by the coordinator. Brendan gave them in chat; decision 1932 quotes them in full.
+
+| Ruling | Where it lands |
+|---|---|
+| 2026-10-13, P-C2-1 replaced: **"One basic front stroke"**, rooms one quantum high | Superseded on 2026-10-15 (below) |
+| 2026-10-13, add-on: **"Yes, tests only"**. C2.1 tests its dispatch logic on the retired-pick fixture and takes no height or price from it; production stays claw-only | Decision 1933's proof |
+| 2026-10-15: **"Real digging, in full"**: C2.1 → C2.2 → C2.3 → slice D → C3 | This lane: C2.1 now |
+| 2026-10-15: **"I just want the basic claw stroke that digs anything"**. One stroke for any reachable face. Its rows, the work-face qualification, the planner's face choice and `reachable_height_u` belong to the `feat/claw-front-stroke-m3` lane (decisions 1971–1989) | The foreman binds whatever rows the planner selects. This lane edits none of those files, including the frontier's `_face`, which that lane changes |
+| 2026-10-15, room height: **"Painted height"**. Each cell's column is dug to the room's full height (DEC-054 amended); the stroke lane publishes quanta and bill | The foreman schedules a cell as stacked cubes, bottom up, and keeps a column with one builder where it can (decision 1933). It prices nothing |
+
+## Corrections (2026-10-15, from decision 1971)
+
+- **Rows 57/59/61/63 are the paw seating tap, not dig rows.** F1's tables below list "the eight dig rows 56–63".
+  The dig rows (M1) are 56/58/60/62 only; 57/59/61/63 are the tap, with its anchor 128 u up.
+- **F2's "claw identity 1,024 u" comes from the tap rows.** `reachable_height_u` excludes M1's own rows, because
+  their anchor sits on y = 0. Decision 1971 tightens that function (its lane's file).
+
+Both findings stand: no published claw dig row strikes a wall, and the pick's 2 quanta was never the claws'.
 
 ## 1. Finding F1: on the active content, no stroke can dig a room wall
 

@@ -440,8 +440,8 @@ func test_the_claimed_footprint_covers_the_trips() -> void:
 	assert_true(_claimed(builder.claim(), SOURCE_POINT - offset), "R's stand is claimed")
 	assert_true(_claimed(builder.claim(), _h.store_point() - offset), "M's stand is claimed")
 	assert_true(_claimed(builder.claim(), SOURCE_POINT), "the lift's reach to the stock at R")
-	assert_true(_claimed(builder.claim(), Vector3i(SOURCE_POINT.x - 2 * offset.x, 0, Phase.Z + 1536)),
-		"the loaded CARRY span's run, outside every empty walk")
+	assert_true(_claimed(builder.claim(), Vector3i(Phase.X - 1320, 0, Phase.Z + 1536)),
+		"the loaded CARRY span's run: beyond the empty walks (row 31 reaches 651 u) and the approach")
 	assert_false(_claimed(builder.claim(), Vector3i(Phase.X - 3072, 0, Phase.Z - 1536)), "not the whole Corridor")
 
 

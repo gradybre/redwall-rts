@@ -124,6 +124,18 @@ func open_cell(level: int, cell: Vector2i) -> bool:
 	return true
 
 
+func level_states(level: int) -> PackedByteArray:
+	"""A copy of `level`'s cell states row by row over the planning area (`area`), so a rebuild may read it on a worker
+	while the mole goes on digging (demo_build_earth.gd, decision 1914; review H1: a packed array kept in an Array is
+	shared, not copied on write)."""
+	return _state[level].duplicate() if level >= 0 and level < _state.size() else PackedByteArray()
+
+
+func area() -> Rect2i:
+	"""The planning area in cells."""
+	return _bounds
+
+
 func box_of(level: int) -> Rect2i:
 	"""The box around `level`'s ordered and dug cells (empty with none)."""
 	return _boxes[level] if level >= 0 and level < _boxes.size() else Rect2i()

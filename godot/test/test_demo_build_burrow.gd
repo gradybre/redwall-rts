@@ -34,6 +34,7 @@ func test_the_section_is_coved_from_floor_to_top() -> void:
 	"""Floor at or inside 0, top at or past BAND_M, falling all the way, flat where it meets the floor and the top."""
 	assert_equal(Field.section(-0.2), 1.0, "inside: the floor")
 	assert_equal(Field.section(0.0), 1.0, "at 0: the floor")
+	assert_equal(Field.section(-0.03), 1.0, "just inside: still the flat floor")
 	assert_equal(Field.section(Field.BAND_M), 0.0, "at the band's end: the top")
 	var last: float = 1.0
 	for k: int in range(1, 20):
@@ -144,11 +145,13 @@ func test_the_walls_have_no_cracks() -> void:
 				cracks += 1
 			seen[key] = y
 		assert_equal(cracks, 0, "at %f" % share)
-	assert_equal(_seams(earth, works), 0, "patch edges meet the floors and the top")
+	for share: float in [0.0, 1.0]:
+		assert_equal(_seams(earth, works, share), 0, "patch edges meet the floors and the top at %f" % share)
 
 
 func test_the_walls_face_into_the_room() -> void:
-	"""The rounded wall north of a dug room slopes down to the south: its normals lean south, up out of the cut."""
+	"""The rounded walls north and west of a dug room slope down into it: their normals lean south and east, up out of
+	the cut."""
 	var works: Works = _works_of(_layouts()[0])
 	var walls: Burrow = _earth(works, Earth.NO_CELL).built()[2]
 	var leaning: int = 0
@@ -159,6 +162,14 @@ func test_the_walls_face_into_the_room() -> void:
 			sloped += 1
 			leaning += 1 if walls.normals[at].z > 0.0 and walls.normals[at].y > 0.0 else 0
 	assert_true(sloped > 10 and leaning == sloped, "%d of %d sloped points lean south" % [leaning, sloped])
+	leaning = 0
+	sloped = 0
+	for at: int in walls.vertices.size():
+		var point: Vector3 = walls.vertices[at]
+		if point.z > 10.8 and point.z < 13.2 and point.x > 9.2 and point.x < 9.95 and point.y < TOP - 0.1:
+			sloped += 1
+			leaning += 1 if walls.normals[at].x > 0.0 and walls.normals[at].y > 0.0 else 0
+	assert_true(sloped > 10 and leaning == sloped, "%d of %d sloped points on the west lean east" % [leaning, sloped])
 
 
 func test_the_top_and_the_water_marks_cover_the_rest() -> void:
@@ -263,6 +274,32 @@ func test_a_rebuild_happens_only_when_the_dug_set_changes() -> void:
 	dug.refresh(1)
 	assert_equal(dug.earth.rebuilds, rebuilds + 2, "a dug cell rebuilds")
 	assert_true(dug.earth.patches_made <= 25, "only the patches round it: %d" % dug.earth.patches_made)
+
+
+func test_kept_patches_match_fresh_ones() -> void:
+	"""Patches kept from earlier draws are the very patches a fresh earth makes, as the dig moves from cell to cell and
+	cells open: positions, normals, how far each point moves while dug, and its dug normal."""
+	var works: Works = _works_of(_layouts()[7])
+	var earth: Earth = _earth(works, Earth.NO_CELL)
+	var steps: Array[Vector2i] = [Vector2i(14, 10), Vector2i(14, 11), Vector2i(15, 11), Vector2i(16, 12)]
+	for k: int in steps.size():
+		earth.draw(works, 1, TOP, Vector3i(1, steps[k].x, steps[k].y))
+		var fresh: Burrow = _earth(works, Vector3i(1, steps[k].x, steps[k].y)).built()[2]
+		var kept: Burrow = earth.built()[2]
+		assert_true(kept.vertices == fresh.vertices and kept.normals == fresh.normals and kept.uv2s == fresh.uv2s
+			and kept.colors == fresh.colors, "step %d: the same walls" % k)
+		if k % 2 == 1:
+			works.open_cell(1, steps[k - 1])
+
+
+func test_a_new_cell_being_dug_starts_at_the_top() -> void:
+	"""A rebuild for a new cell being dug shows it at the top again, whatever depth the last one reached."""
+	var works: Works = _works_of(_layouts()[7])
+	var earth: Earth = _earth(works, Vector3i(1, 14, 11))
+	earth.set_progress(0.9)
+	works.open_cell(1, Vector2i(14, 11))
+	earth.draw(works, 1, TOP, Vector3i(1, 15, 11))
+	assert_true(is_equal_approx(earth.height_at(Vector2(15.5, 11.5)), TOP - Earth.dug_depth_m(0.0)), "at the top")
 
 
 func test_the_threaded_rebuild_shows_the_same_earth() -> void:
@@ -405,8 +442,9 @@ static func _hidden_points(earth: Earth, works: Works) -> int:
 	return hidden
 
 
-static func _seams(earth: Earth, works: Works) -> int:
-	"""Patch vertices on a dug cell's edge not at the floor, or on a cell drawn as plain top not at the top."""
+static func _seams(earth: Earth, works: Works, share: float) -> int:
+	"""Patch vertices (the cell being dug `share` of the way down) on a dug cell's edge not at the floor, or on a cell
+	drawn as plain top not at the top."""
 	var walls: Burrow = earth.built()[2]
 	var drawn: Dictionary = {}
 	for cell: Vector2i in walls.patch_cells:
@@ -414,10 +452,11 @@ static func _seams(earth: Earth, works: Works) -> int:
 	var seams: int = 0
 	for at: int in walls.vertices.size():
 		var point: Vector3 = walls.vertices[at]
+		var y: float = point.y + share * walls.uv2s[at].x
 		for near: Vector2i in _cells_touching(Vector2(point.x, point.z)):
-			if works.state(1, near) == Works.OPEN and not is_equal_approx(point.y, FLOOR) and walls.uv2s[at].x == 0.0:
+			if works.state(1, near) == Works.OPEN and not is_equal_approx(y, FLOOR):
 				seams += 1
-			elif works.state(1, near) != Works.OPEN and not drawn.has(near) and not is_equal_approx(point.y, TOP):
+			elif works.state(1, near) != Works.OPEN and not drawn.has(near) and not is_equal_approx(y, TOP):
 				seams += 1
 	return seams
 

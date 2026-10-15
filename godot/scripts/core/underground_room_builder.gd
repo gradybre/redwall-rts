@@ -5,6 +5,9 @@ extends RefCounted
 ## and retreat to its own parking. Every step is an owner call whose own final guard decides; nothing is paid or
 ## shown done here. It follows whatever rows are bound: the work row decides the tool gate (DEC-052: the game's
 ## claw rows name no tool, so nothing is claimed).
+## Decision 1934 (C2.2): with a Delivery bound, a BRACE whose inputs the room's storage lacks is preceded by a haul:
+## the builder walks to the storage and the entry's hauler (unchanged) carries whole units from the level's staging
+## container through Delivery's room branch; the BRACE Job then brings it back onto the storage and on to the station.
 
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
@@ -33,6 +36,8 @@ const Locations := preload("res://scripts/core/underground_locations.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const Footprint := preload("res://scripts/core/underground_room_footprint.gd")
 const Needs := preload("res://scripts/core/needs.gd")
+const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
+const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_IDLE: int = 0
 const STAGE_TRAVEL: int = 1
@@ -48,6 +53,10 @@ const STAGE_FAILED: int = 8
 const STAGE_COLUMN: int = 9
 ## READY at the station between two phases of one cube, waiting for a working hour.
 const STAGE_BETWEEN: int = 10
+## Decision 1934: walking to the room's storage, with no Job, to haul what the BRACE lacks.
+const STAGE_TO_STORE: int = 11
+## Decision 1934: the hauler's trips from the staging container's stand to the storage's, and back onto the storage.
+const STAGE_HAUL: int = 12
 ## The entry foreman's stall bound (ADR1196): no stage may wait longer without moving on.
 const STAGE_TICK_LIMIT: int = 1200
 const LEG_NONE: int = 0
@@ -59,6 +68,8 @@ const REFUSE_STALL: StringName = &"ROOM_BUILDER_STALLED"
 const REFUSE_LEG: StringName = &"ROOM_BUILDER_LEG_PROFILE"
 const REFUSE_TARGET: StringName = &"ROOM_BUILDER_TARGET_MOVED"
 const REFUSE_LOST: StringName = &"ROOM_BUILDER_CREW_LOST"
+## Decision 1934 (P-C22-1): no certified stair row carries cargo yet, so stock is hauled only within one level.
+const REFUSE_STAIR: StringName = &"ROOM_HAUL_NO_STAIR_CARRY"
 const REFUSE_OCCUPIED: StringName = &"ROUTE_OCCUPIED"
 const WAIT: StringName = &"ROOM_BUILDER_WAIT" # Internal: still on the way; never returned to the foreman.
 
@@ -80,6 +91,8 @@ class Owners extends RefCounted:
 	var owner: Owner = null # read for the dig order's open regions
 	var budget: Budget = null
 	var transforms: Transforms = null # the crew's arrival pose on its parking (ADR1219)
+	var delivery: RefCounted = null # Decision 1934: when bound, a BRACE's missing inputs are hauled first.
+	var locations: Locations = null # The hauler finds the grip stands here (needed only with a Delivery).
 
 
 class Crew extends RefCounted:
@@ -95,6 +108,14 @@ class Context extends RefCounted:
 	var content: int = 0
 	var forward: int = -1
 	var backward: int = -1
+	var storage: Vector2i = NULL_REF
+	var output: Vector2i = NULL_REF
+	var staging: Vector2i = NULL_REF # Decision 1934: the same-level container missing BRACE inputs come from.
+
+
+class HaulCrew extends RefCounted:
+	## The hauler's view of a builder (it reads these by name): M is the room's storage, R the staging container.
+	var worker: Vector2i = NULL_REF
 	var storage: Vector2i = NULL_REF
 	var output: Vector2i = NULL_REF
 
@@ -126,6 +147,13 @@ var _accepted_mwu: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _actor: Routes.Actor = Routes.Actor.new()
 var _tick: Work.TickResult = Work.TickResult.new(false, &"")
+var _queue: PackedInt32Array = PackedInt32Array() # Whole units the cube's BRACE still lacks, in bill order.
+var _approach_legs: PackedInt32Array = PackedInt32Array() # With a haul: the claimed way from the storage on.
+var _approach_profiles: PackedInt32Array = PackedInt32Array()
+var _hauler: Hauler = null
+var _haul_marker: int = -1
+var _haul_trips: int = 0
+var _haul_mwu: int = 0
 
 
 func configure(ctx: Context, member: Crew) -> StringName:
@@ -187,12 +215,14 @@ func target_index() -> int:
 
 
 func walking_next() -> bool:
-	"""In a travel stage: on the way to a station or back to parking (or about to set off)."""
-	return _stage == STAGE_TRAVEL or _stage == STAGE_RETREAT
+	"""In a travel stage: on the way to a station, the storage or back to parking (or about to set off), or hauling."""
+	return _stage == STAGE_TRAVEL or _stage == STAGE_RETREAT or _stage == STAGE_TO_STORE or _stage == STAGE_HAUL
 
 
 func in_motion() -> bool:
-	"""Has set off on its planned legs (a leg started, or the last one done and the final turn pending)."""
+	"""Has set off on its planned legs (a leg started, or the last one done and the final turn pending); a haul is
+	always under way."""
+	if _stage == STAGE_HAUL: return true
 	return walking_next() and (_leg > 0 or _leg_state != LEG_NONE or _leg >= _leg_profiles.size())
 
 
@@ -230,14 +260,58 @@ func begin(index: int, site: Vector2i, key: int, tick: int) -> StringName:
 	_site = site
 	_operation = Contract.OP_BRACE
 	code = _open_phase(tick)
-	if code == &"": code = _plan_claim()
-	if code == &"": _set_stage(STAGE_TRAVEL)
+	if code == &"": code = _set_off(_ctx.forward)
 	return _fail(code) if code != &"" else &""
 
 
-func _plan_claim() -> StringName:
+func _set_off(store_anchor: int) -> StringName:
+	"""Claim the cube's footprint and set off for the station; or, when the BRACE lacks inputs, first for the storage
+	(along `store_anchor`'s family), where the haul's last trip hands the builder its Job. Otherwise it takes it now.
+	A tool the work row names is claimed at the station, where the work begins."""
+	var code: StringName = _haul_units(_queue)
+	if code == &"": code = _plan_claim(store_anchor)
+	if code != &"": return code
+	if not _queue.is_empty():
+		_set_stage(STAGE_TO_STORE)
+		return &""
+	var result: RefCounted = _ctx.owners.jobs.assign_worker(_worker_row_of(_ctx, _crew), _job)
+	if result.ok: _set_stage(STAGE_TRAVEL)
+	return &"" if result.ok else result.error
+
+
+func _haul_units(out: PackedInt32Array) -> StringName:
+	"""ADR1210's rule: whole units of each BRACE input beyond the storage's free stock. None without a bound Delivery
+	and a staging container; a staging container on another level is the stair-carry gap (decision 1934)."""
+	out.clear()
+	var o: Owners = _ctx.owners
+	if o.delivery == null or _ctx.staging == NULL_REF or _operation != Contract.OP_BRACE: return &""
+	var items: PackedInt32Array = PackedInt32Array()
+	var milli: PackedInt64Array = PackedInt64Array()
+	for line: int in Contract.input_count(_operation):
+		items.append(o.items.compiled_id(Contract.input_key(_operation, line)))
+		milli.append(Contract.input_milli(_operation, line))
+	var code: StringName = Hauler.units_into(o, _ctx.storage, items, milli, out)
+	return _level_refusal() if code == &"" and not out.is_empty() else code
+
+
+func _level_refusal() -> StringName:
+	"""Both containers stand on live endpoints of one level; a missing endpoint has no stand (the hauler's word)."""
+	var o: Owners = _ctx.owners
+	if o.locations == null: return REFUSE_SCOPE
+	var store: Vector2i = o.inventory.spatial_location_of(_ctx.storage)
+	var source: Vector2i = o.inventory.spatial_location_of(_ctx.staging)
+	if not o.locations._live_ref(o.locations._live, store) or not o.locations._live_ref(o.locations._live, source):
+		return Hauler.REFUSE_STAND
+	var bank: Locations.Bank = o.locations._live
+	var stride: int = o.locations._capacity
+	return &"" if bank.i32[Locations.LEVEL * stride + store.x] == bank.i32[Locations.LEVEL * stride + source.x] \
+		else REFUSE_STAIR
+
+
+func _plan_claim(store_anchor: int) -> StringName:
 	"""The cube's whole footprint before setting off: the way back (kept for going home), the station's work and the
-	way there. The legs left planned are the approach."""
+	way there; with a haul that way runs to the storage, through the trips and on from the storage. The legs left
+	planned are the first ones walked."""
 	_foot.clear_claim()
 	var code: StringName = _plan_legs(_station, _crew.parking, _ctx.backward, false)
 	if code != &"": return code
@@ -246,9 +320,42 @@ func _plan_claim() -> StringName:
 	_home_profiles = _leg_profiles.duplicate()
 	var point: Vector3i = _point(_station)
 	_foot.sweep(point, point, _work_profile)
-	code = _plan_legs(_at, _station, _ctx.forward, true)
+	if _queue.is_empty(): return _plan_approach(_at)
+	code = _plan_approach(_store())
+	if code != &"": return code
+	_approach_legs = _legs.duplicate()
+	_approach_profiles = _leg_profiles.duplicate()
+	_claim_trips()
+	code = _plan_legs(_at, _store(), store_anchor, false)
 	if code == &"": _claim_legs(_at)
 	return code
+
+
+func _plan_approach(from: Vector2i) -> StringName:
+	"""The way from `from` to the station on the forward family, claimed."""
+	var code: StringName = _plan_legs(from, _station, _ctx.forward, true)
+	if code == &"": _claim_legs(from)
+	return code
+
+
+func _store() -> Vector2i:
+	"""The room storage's endpoint."""
+	return _ctx.owners.inventory.spatial_location_of(_ctx.storage)
+
+
+func _claim_trips() -> void:
+	"""The trips' footprint: from the storage to the staging stand, carried to the storage's stand and back onto the
+	storage, swept with each hauled item's loaded row (its empty walk is claimed with the same row; Routes proves
+	every actual step)."""
+	var offset: Vector3i = Grip.stock_offset(Grip.QUARTER)
+	var store: Vector3i = _point(_store())
+	var source: Vector3i = _point(_ctx.owners.inventory.spatial_location_of(_ctx.staging)) - offset
+	for line: int in _queue.size():
+		if _queue.find(_queue[line]) != line: continue
+		var row: int = Grip.carry_row_for(_queue[line])
+		_foot.sweep(store, source, row)
+		_foot.sweep(source, store - offset, row)
+		_foot.sweep(store - offset, store, row)
 
 
 func _claim_legs(start: Vector2i) -> void:
@@ -324,7 +431,6 @@ func _open_phase(tick: int) -> StringName:
 	if code != &"" and o.sites.job_of(_site) != o.jobs.ref_of(_job):
 		o.jobs.destroy_job(_job) # Never bound to the Site: no one may be offered it (the phase is cancelled on abandon).
 		_job = -1
-	if code == &"": code = _assign()
 	return code
 
 
@@ -353,10 +459,14 @@ func _bind_phase_job(project: Vector2i) -> StringName:
 
 func _assign() -> StringName:
 	"""This builder takes the Job, and claims its tool only when the row requires one."""
-	var o: Owners = _ctx.owners
-	var row: int = _worker_row_of(_ctx, _crew)
-	var result: RefCounted = o.jobs.assign_worker(row, _job)
-	if result.ok and tool_gate() == Jobs.GATE_SATISFIED: result = o.work.claim_tool_for_work(row, _crew.tool)
+	var result: RefCounted = _ctx.owners.jobs.assign_worker(_worker_row_of(_ctx, _crew), _job)
+	return _claim_tool() if result.ok else result.error
+
+
+func _claim_tool() -> StringName:
+	"""Claim the crew member's tool for the Job only when the work row names one (DEC-052: the claw rows do not)."""
+	if tool_gate() != Jobs.GATE_SATISFIED: return &""
+	var result: RefCounted = _ctx.owners.work.claim_tool_for_work(_worker_row_of(_ctx, _crew), _crew.tool)
 	return &"" if result.ok else result.error
 
 
@@ -415,7 +525,8 @@ func advance(tick: int, may_move: bool = true) -> StringName:
 func _run_stage(tick: int) -> StringName:
 	"""Dispatch exactly one stage."""
 	match _stage:
-		STAGE_TRAVEL, STAGE_RETREAT: return _travel(tick)
+		STAGE_TRAVEL, STAGE_RETREAT, STAGE_TO_STORE: return _travel(tick)
+		STAGE_HAUL: return _haul(tick)
 		STAGE_ENTER: return _enter()
 		STAGE_START: return _start(tick)
 		STAGE_EARN: return _earn(tick)
@@ -443,8 +554,8 @@ func _job_ref() -> Vector2i:
 
 
 func _travel(tick: int) -> StringName:
-	"""Walk the planned legs one at a time; past the last one the builder either faces the work or parks."""
-	if _leg >= _leg_profiles.size(): return _end_travel()
+	"""Walk the planned legs one at a time; past the last one the builder faces the work, hauls or parks."""
+	if _leg >= _leg_profiles.size(): return _end_travel(tick)
 	if _leg_state == LEG_MOVING:
 		var arrived: StringName = _arrived()
 		if arrived != &"": return &"" if arrived == WAIT else arrived
@@ -452,7 +563,7 @@ func _travel(tick: int) -> StringName:
 		_leg += 1
 		_leg_state = LEG_NONE
 		_stage_ticks = 0
-		if _leg >= _leg_profiles.size(): return _end_travel()
+		if _leg >= _leg_profiles.size(): return _end_travel(tick)
 	return _start_leg(tick)
 
 
@@ -507,8 +618,10 @@ func _yaw(profile: int) -> int:
 	return profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + profile]
 
 
-func _end_travel() -> StringName:
-	"""Back at parking: idle. At the station: face the work row (its own stationary tick), then select it."""
+func _end_travel(tick: int) -> StringName:
+	"""Back at parking: idle. On the storage: haul. At the station: face the work row (its own stationary tick), then
+	select it."""
+	if _stage == STAGE_TO_STORE: return _start_haul(tick)
 	if _stage == STAGE_RETREAT:
 		_index = -1
 		_foot.clear_claim()
@@ -518,8 +631,62 @@ func _end_travel() -> StringName:
 	if _leg_state != LEG_TURNED and _needs_turn(_work_profile):
 		_leg_state = LEG_TURNED
 		return WorldRoutes.turn_actor(_ctx.owners.binding, _crew.worker, _job_ref(), _yaw(_work_profile), Space.MAX_CHECKS)
+	var code: StringName = _claim_tool()
+	if code != &"": return code
 	_set_stage(STAGE_ENTER)
 	return _refresh_work()
+
+
+func _start_haul(tick: int) -> StringName:
+	"""On the storage: the hauler (unchanged) carries every queued unit, then the BRACE Job takes the builder back onto
+	the storage. Its one leg is already walked, so the first trip starts at once."""
+	var o: Owners = _ctx.owners
+	_at = _store()
+	var leg: Hauler.Leg = Hauler.Leg.new()
+	leg.target = _at
+	leg.profile = _ctx.forward
+	leg.revision = _revision(_ctx.forward)
+	var legs: Array[Hauler.Leg] = [leg]
+	var haul: HaulCrew = HaulCrew.new()
+	haul.worker = _crew.worker
+	haul.storage = _ctx.storage
+	haul.output = _ctx.staging
+	_hauler = Hauler.new()
+	_haul_marker = -1
+	_set_stage(STAGE_HAUL)
+	return _hauler.begin(o, haul, o.sites.project_of(_site), _job, _queue, legs, _at, tick)
+
+
+func _haul(tick: int) -> StringName:
+	"""Delegate to the hauler (a finished trip or stage restarts the stall bound); once home on the storage under the
+	BRACE Job, set off along the claimed way to the station."""
+	var code: StringName = _hauler.advance(tick)
+	if code != &"": return code
+	var marker: int = _hauler.trips() * 16 + _hauler.stage()
+	if marker != _haul_marker: _stage_ticks = 0
+	_haul_marker = marker
+	if _hauler.stage() != Hauler.STAGE_DONE: return &""
+	_haul_trips += _hauler.trips()
+	_haul_mwu += _hauler.haul_mwu()
+	_hauler = null
+	_foot.stand(_point(_at), _ctx.forward)
+	_legs = _approach_legs.duplicate()
+	_leg_profiles = _approach_profiles.duplicate()
+	_leg = 0
+	_leg_state = LEG_NONE
+	_leg_job = true
+	_set_stage(STAGE_TRAVEL)
+	return &""
+
+
+func haul_trips() -> int:
+	"""Whole units this builder carried from the staging container to the room's storage."""
+	return _haul_trips
+
+
+func haul_mwu() -> int:
+	"""Lift and set-down Work the hauls' HAUL Jobs were paid, in milli-WU."""
+	return _haul_mwu
 
 
 func _refresh_work() -> StringName:
@@ -601,6 +768,7 @@ func _hand_over(tick: int) -> StringName:
 	if not settled.ok: return settled.error
 	_operation = Contract.OP_CUT if _operation == Contract.OP_BRACE else Contract.OP_FINISH
 	var code: StringName = _open_phase(tick)
+	if code == &"": code = _assign()
 	if code == &"": code = o.routes.hand_over_source_job(_crew.worker, old, o.jobs.ref_of(_job))
 	if code == &"": _set_stage(STAGE_START)
 	return code
@@ -613,6 +781,7 @@ func _between(tick: int) -> StringName:
 		_stage_ticks = 0 # A rest is not a stall.
 		return &""
 	var code: StringName = _open_phase(tick)
+	if code == &"": code = _assign()
 	if code == &"": code = _refresh_work()
 	if code == &"": _set_stage(STAGE_ENTER)
 	return code
@@ -631,14 +800,26 @@ func abandon() -> StringName:
 	(claims released, Project and Job retired: nothing was paid). The route actor stays where it stopped."""
 	_stage = STAGE_FAILED
 	var o: Owners = _ctx.owners
-	if _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return &""
+	var code: StringName = _drop_haul()
+	if code != &"" or _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return code
 	var released: Construction.OpResult = o.sites.release_worker(_site)
 	if _phase_started(): return &"" if released.ok else released.error
-	if not released.ok:
-		var code: StringName = _release_assignment(released.error)
+	if not released.ok and (_job < 0 or o.jobs.worker_of(_job) != NULL_REF): # A Job nobody holds needs no release.
+		code = _release_assignment(released.error)
 		if code != &"": return code
 	var cancelled: Construction.OpResult = o.sites.cancel_phase(_site, _ctx.storage)
 	return &"" if cancelled.ok else cancelled.error
+
+
+func _drop_haul() -> StringName:
+	"""A haul under way returns its admitted claims through Delivery's own cancel and retires its HAUL Job; goods
+	already lifted stay in the satchel (ADR1225, as the entry's)."""
+	if _hauler == null: return &""
+	var hauler: Hauler = _hauler
+	_hauler = null
+	_haul_trips += hauler.trips()
+	_haul_mwu += hauler.haul_mwu()
+	return hauler.release_lost(_crew.worker, _worker_row_of(_ctx, _crew))
 
 
 func _release_assignment(sites_refusal: StringName) -> StringName:
@@ -705,10 +886,8 @@ func continue_column(index: int, site: Vector2i, key: int, tick: int) -> StringN
 	_site = site
 	_operation = Contract.OP_BRACE
 	code = _open_phase(tick)
-	if code == &"": code = _plan_claim()
-	if code == &"":
-		_set_stage(STAGE_TRAVEL)
-		_column_cubes += 1
+	if code == &"": code = _set_off(_ctx.backward)
+	if code == &"": _column_cubes += 1
 	return _fail(code) if code != &"" else &""
 
 

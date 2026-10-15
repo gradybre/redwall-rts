@@ -24,14 +24,16 @@ const REFUSE_ROOM: StringName = &"ROOM_DIG_ROOM_STALE"
 const REFUSE_STATE: StringName = &"ROOM_DIG_RECORD_STATE"
 const REFUSE_CAPACITY: StringName = &"ROOM_DIG_CAPACITY"
 const REFUSE_CREW_BUSY: StringName = &"ROOM_DIG_CREW_BUSY"
-## The bytes of the packed record per room: generation, state, storage and output container references.
-const RECORD_BYTES: int = 4 + 1 + 2 * 4 + 2 * 4
+## The bytes of the packed record per room: generation, state, and the storage, output and staging container
+## references (decision 1934 added the staging one).
+const RECORD_BYTES: int = 4 + 1 + 3 * 2 * 4
 
 var _directory: Directory = null
 var _generation: PackedInt32Array = PackedInt32Array()
 var _state: PackedByteArray = PackedByteArray()
 var _storage: PackedInt32Array = PackedInt32Array()
 var _output: PackedInt32Array = PackedInt32Array()
+var _staging: PackedInt32Array = PackedInt32Array()
 var _foremen: Array[Foreman] = [] # Running ones, and stopped or done ones until their record is released.
 var _foreman_rows: PackedInt32Array = PackedInt32Array() # The record row of each foreman, in step with `_foremen`.
 var _refusals: Array[StringName] = [] # This tick's new refusals, one per room that stopped.
@@ -44,6 +46,7 @@ func _init(directory: Directory) -> void:
 	_state.resize(ROOM_CAPACITY)
 	_storage.resize(2 * ROOM_CAPACITY)
 	_output.resize(2 * ROOM_CAPACITY)
+	_staging.resize(2 * ROOM_CAPACITY)
 
 
 static func packed_bytes() -> int:
@@ -58,9 +61,10 @@ func _row(room: Vector2i) -> int:
 	return row if row >= 0 and row < ROOM_CAPACITY else -1
 
 
-func order_room(room: Vector2i, storage: Vector2i, output: Vector2i) -> StringName:
-	"""Queue a confirmed room for digging with the containers its inputs come from and its spoil goes to. A record of
-	the same room must be released first; one left by a deleted room on a reused row is replaced."""
+func order_room(room: Vector2i, storage: Vector2i, output: Vector2i, staging: Vector2i = NULL_REF) -> StringName:
+	"""Queue a confirmed room for digging with the containers its inputs come from and its spoil goes to, and (or
+	null) the same-level staging container missing inputs are hauled from (decision 1934). A record of the same room
+	must be released first; one left by a deleted room on a reused row is replaced."""
 	var row: int = _row(room)
 	if row < 0 or storage == NULL_REF or output == NULL_REF: return REFUSE_ROOM
 	if (_generation[row] == room.y and _state[row] != RECORD_NONE) or _digging(row): return REFUSE_STATE
@@ -69,6 +73,7 @@ func order_room(room: Vector2i, storage: Vector2i, output: Vector2i) -> StringNa
 	_state[row] = RECORD_QUEUED
 	_storage[2 * row] = storage.x; _storage[2 * row + 1] = storage.y
 	_output[2 * row] = output.x; _output[2 * row + 1] = output.y
+	_staging[2 * row] = staging.x; _staging[2 * row + 1] = staging.y
 	return &""
 
 
@@ -83,7 +88,7 @@ func start_room(room: Vector2i, owners: Builder.Owners, crew: Array[Builder.Crew
 	if _crew_busy(crew): return REFUSE_CREW_BUSY
 	var foreman: Foreman = Foreman.new()
 	var code: StringName = foreman.configure(owners, room, Vector2i(_storage[2 * row], _storage[2 * row + 1]),
-		Vector2i(_output[2 * row], _output[2 * row + 1]), crew)
+		Vector2i(_output[2 * row], _output[2 * row + 1]), Vector2i(_staging[2 * row], _staging[2 * row + 1]), crew)
 	if code != &"": return code
 	_foremen.append(foreman)
 	_foreman_rows.append(row)

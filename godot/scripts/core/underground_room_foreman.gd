@@ -52,15 +52,17 @@ var _blocked_ticks: int = 0
 var _column_tries: int = 0
 
 
-func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, output: Vector2i,
+func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, output: Vector2i, staging: Vector2i,
 		crew: Array[Builder.Crew]) -> StringName:
-	"""Plan the dig order and bind 1-4 builders; nothing is opened, claimed or published here."""
+	"""Plan the dig order and bind 1-4 builders; nothing is opened, claimed or published here. `staging` (or null)
+	is the same-level container a BRACE's missing inputs are hauled from when a Delivery is bound (decision 1934)."""
 	if _state == STATE_DIGGING: return REFUSE_STATE
 	if not _owners_complete(owners) or target == NULL_REF or storage == NULL_REF or output == NULL_REF:
 		return REFUSE_SCOPE
 	var code: StringName = _crew_refusal(crew)
 	if code != &"": return code
 	var ctx: Builder.Context = _context(owners, storage, output)
+	ctx.staging = staging
 	if ctx.forward < 0 or ctx.backward < 0: return REFUSE_ROWS
 	var planned: DigOrder.Order = DigOrder.Order.new()
 	code = DigOrder.order_into(owners.sites, owners.owner, target, planned)

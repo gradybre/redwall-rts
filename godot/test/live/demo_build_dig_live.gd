@@ -44,9 +44,9 @@ func _initialize() -> void:
 	super()
 	_steps = [_open_on_the_surface, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
 		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage, _scroll_to.bind("Kitchen"),
-		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _check_square_plan, _tags_apart, _wait_for_the_rooms,
-		_rooms_drawn_as_pits, _send_a_visitor, _wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance,
-		_close_the_panel]
+		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _after_the_earth.bind(_check_square_plan),
+		_tags_apart, _wait_for_the_rooms, _after_the_earth.bind(_rooms_drawn_as_pits), _send_a_visitor,
+		_wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance, _close_the_panel]
 
 
 func _open_on_the_surface() -> void:
@@ -172,17 +172,26 @@ func _rooms_drawn_as_pits() -> void:
 func _check_whole_floors() -> void:
 	"""Decision 1914, rule (a): every dug cell on level 1 is drawn at the floor's depth over its whole square."""
 	var earth: Object = _build().get("dug").get("earth")
-	earth.call(&"finish")
 	var cells: PackedInt32Array = PackedInt32Array()
 	_build().get("works").call(&"cells_into", 1, Works.OPEN, cells)
 	var off: int = int(earth.call(&"cells_off_the_floor", cells))
 	_check("every dug cell's floor is whole (rule a)", not cells.is_empty() and off == 0, "%d cells hidden" % off)
 
 
+func _after_the_earth(step: Callable, steps_left: int = WAIT_STEPS) -> void:
+	"""Run `step` once the earth's rebuild on its worker has been shown by the game's own frames (decision 1914: the
+	checks read what the player sees, never a build forced through), else wait a step; fail when the budget runs out."""
+	if not bool(_build().get("dug").get("earth").call(&"busy")):
+		step.call()
+	elif steps_left <= 0:
+		_check("the earth's rebuild is shown", false, "still in flight")
+	else:
+		_steps.push_front(_after_the_earth.bind(step, steps_left - 1))
+
+
 func _check_square_plan() -> void:
 	"""Decision 1914, rule (b): mid-dig, no ordered cell is rounded into (the one being dug aside)."""
 	var earth: Object = _build().get("dug").get("earth")
-	earth.call(&"finish")
 	var cells: PackedInt32Array = PackedInt32Array()
 	_build().get("works").call(&"cells_into", 1, Works.ORDERED, cells)
 	var digging: Vector3i = earth.call(&"digging")

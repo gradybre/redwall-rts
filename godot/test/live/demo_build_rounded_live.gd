@@ -37,7 +37,7 @@ func _initialize() -> void:
 		_steps.insert(at + k, bend[k])
 	_steps[_steps.find(_confirm_the_rooms)] = _confirm_the_rounded_rooms
 	_steps.insert(_steps.find(_wait_for_the_digging), _wait_for_mid_dig)
-	_steps.insert(_steps.find(_wait_for_the_digging), _check_square_plan)
+	_steps.insert(_steps.find(_wait_for_the_digging), _after_the_earth.bind(_check_square_plan))
 	_steps.insert(_steps.find(_close_the_panel), _frame_close_ups)
 
 

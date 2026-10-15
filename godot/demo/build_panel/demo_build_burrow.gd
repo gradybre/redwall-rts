@@ -28,15 +28,13 @@ var patches: int = 0
 ## Each patch's cell (absolute), in the order drawn (checks: `height_at`).
 var patch_cells: Array[Vector2i] = []
 var _depth: float = 1.0
-var _h0: PackedFloat32Array = PackedFloat32Array()
-var _h1: PackedFloat32Array = PackedFloat32Array()
+## The index list's guard: made on a worker, grown once for all builds.
+static var _pattern_lock: Mutex = Mutex.new()
 
 
 func _init(depth_m: float = 1.0) -> void:
 	"""A surface whose walls are `depth_m` deep."""
 	_depth = depth_m
-	_h0.resize(SPAN * SPAN)
-	_h1.resize(SPAN * SPAN)
 
 
 func flat(low: Vector2, high: Vector2, y: float, grid: float) -> void:
@@ -56,19 +54,23 @@ func patch(fields: Array, cell: Vector2i, corner: Vector3, wet: bool) -> void:
 	from `fields[0]`, and where `fields` holds a second field (the cell being dug, dug), how far each point moves."""
 	var field0: Field = fields[0]
 	var field1: Field = fields[1] if fields.size() > 1 else null
-	field0.fill_patch(cell, _h0)
+	var h0: PackedFloat32Array = PackedFloat32Array()
+	h0.resize(SPAN * SPAN)
+	field0.fill_patch(cell, h0)
+	var h1: PackedFloat32Array = h0
 	if field1 != null:
-		field1.fill_patch(cell, _h1)
+		h1 = PackedFloat32Array()
+		h1.resize(SPAN * SPAN)
+		field1.fill_patch(cell, h1)
 	for j: int in Field.ROW:
 		for i: int in Field.ROW:
 			var at: int = (j + 1) * SPAN + i + 1
-			var normal: Vector3 = _normal(_h0, at)
-			vertices.append(corner + Vector3(i * STEP_M, -_depth * _h0[at], j * STEP_M))
+			var normal: Vector3 = _normal(h0, at)
+			vertices.append(corner + Vector3(i * STEP_M, -_depth * h0[at], j * STEP_M))
 			normals.append(normal)
-			uvs.append(Vector2(0.0, 1.0 if wet and _h0[at] == 0.0 else 0.0))
-			var moved: float = 0.0 if field1 == null else -_depth * (_h1[at] - _h0[at])
-			uv2s.append(Vector2(moved, 0.0))
-			var dug: Vector3 = normal if field1 == null else _normal(_h1, at)
+			uvs.append(Vector2(0.0, 1.0 if wet and h0[at] == 0.0 else 0.0))
+			uv2s.append(Vector2(-_depth * (h1[at] - h0[at]), 0.0))
+			var dug: Vector3 = normal if field1 == null else _normal(h1, at)
 			colors.append(Color(dug.x * 0.5 + 0.5, dug.y * 0.5 + 0.5, dug.z * 0.5 + 0.5))
 	patches += 1
 	patch_cells.append(cell)
@@ -85,13 +87,6 @@ func add(piece: RefCounted) -> void:
 	patch_cells.append_array(piece.get("patch_cells"))
 
 
-static func _read(field: Field, gx: int, gz: int, into: PackedFloat32Array) -> void:
-	"""The field's depth on the SPAN × SPAN lattice from (gx, gz) into `into`."""
-	for j: int in SPAN:
-		for i: int in SPAN:
-			into[j * SPAN + i] = field.depth(gx + i, gz + j)
-
-
 func _normal(heights: PackedFloat32Array, at: int) -> Vector3:
 	"""The surface's normal at lattice index `at` of `heights`, from its four neighbours."""
 	var scale: float = _depth / (2.0 * STEP_M)
@@ -103,11 +98,6 @@ func count() -> int:
 	"""Quads (flat) or patches drawn."""
 	@warning_ignore("integer_division") var quads: int = indices.size() / 6
 	return patches if patches > 0 else quads
-
-
-func commit(mesh: ArrayMesh, material: Material) -> void:
-	"""Add what was built to `mesh` as one surface in `material` (nothing when empty)."""
-	add_to(mesh, arrays(), material)
 
 
 func arrays() -> Array:
@@ -136,6 +126,7 @@ static func add_to(mesh: ArrayMesh, surface_arrays: Array, material: Material) -
 
 static func _patch_indices(count_of: int) -> PackedInt32Array:
 	"""The triangles of `count_of` consecutive patches, each square's two facing up (the pattern grown once)."""
+	_pattern_lock.lock()
 	@warning_ignore("integer_division") var have: int = _pattern.size() / PATCH_INDICES
 	if have < count_of:
 		_pattern.resize(count_of * PATCH_INDICES)
@@ -147,7 +138,9 @@ static func _patch_indices(count_of: int) -> PackedInt32Array:
 					for corner: int in [a, a + 1, a + 1 + Field.ROW, a, a + 1 + Field.ROW, a + Field.ROW]:
 						_pattern[at] = corner
 						at += 1
-	return _pattern.slice(0, count_of * PATCH_INDICES)
+	var out: PackedInt32Array = _pattern.slice(0, count_of * PATCH_INDICES)
+	_pattern_lock.unlock()
+	return out
 
 
 func height_at(point: Vector2, share: float = 0.0) -> float:

@@ -69,7 +69,7 @@ vec3 wall_colour(vec3 at, vec3 n) {
 	if (!wall_textured) {
 		return procedural(at, 1.0);
 	}
-	vec2 side = abs(n.xz) + vec2(0.0001);
+	vec2 side = pow(abs(n.xz), vec2(4.0)) + vec2(0.0001);
 	side /= side.x + side.y;
 	vec3 across_x = texture(wall_texture, vec2(at.z, -at.y) / wall_tile_m).rgb;
 	vec3 across_z = texture(wall_texture, vec2(at.x, -at.y) / wall_tile_m).rgb;

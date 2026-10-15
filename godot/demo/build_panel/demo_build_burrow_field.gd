@@ -75,14 +75,12 @@ static var _tables: Dictionary = {}
 static var _noise: PackedByteArray = PackedByteArray()
 
 ## The cells held (absolute cell coordinates of the works) and their kinds; worked out on first read (and again after
-## a kind changes): each cell's mask and base distances, and each lattice point's depth.
+## a kind changes): each cell's mask and base distances.
 var origin: Vector2i = Vector2i.ZERO
 var size: Vector2i = Vector2i.ZERO
 var _kinds: PackedByteArray = PackedByteArray()
 var _masks: PackedInt32Array = PackedInt32Array()
 var _cell_tables: Array[PackedFloat32Array] = []
-var _depths: PackedFloat32Array = PackedFloat32Array()
-var _lattice: Vector2i = Vector2i.ZERO
 var _stale: bool = true
 ## A patch's nine cells as `fill_patch` reads them: FLOOR_G (dug), TOP_G (kept square, or out of reach), or 0 and
 ## their base distances.
@@ -110,14 +108,11 @@ func copy_from(other: RefCounted) -> void:
 
 
 func _refresh() -> void:
-	"""Forget every mask, distance and depth worked out (a kind changed)."""
+	"""Forget every mask and distance worked out (a kind changed)."""
 	_stale = false
 	_masks.resize(size.x * size.y)
 	_masks.fill(-1)
 	_cell_tables.resize(size.x * size.y)
-	_lattice = size * SAMPLES + Vector2i.ONE
-	_depths.resize(_lattice.x * _lattice.y)
-	_depths.fill(-1.0)
 
 
 func kinds() -> PackedByteArray:
@@ -191,10 +186,10 @@ func g_at(gx: int, gz: int) -> float:
 	"""The field at lattice point (gx, gz), counted from the NW corner of the cells held: FLOOR_G on any dug cell's
 	closed square (rule a), else the shallowest the cells it touches make it (a distance in m; TOP_G out of reach or
 	on a HARD cell)."""
-	@warning_ignore("integer_division") var cx: int = gx / SAMPLES
-	@warning_ignore("integer_division") var cz: int = gz / SAMPLES
-	var ix: int = gx - cx * SAMPLES
-	var iz: int = gz - cz * SAMPLES
+	var ix: int = posmod(gx, SAMPLES)
+	var iz: int = posmod(gz, SAMPLES)
+	@warning_ignore("integer_division") var cx: int = (gx - ix) / SAMPLES
+	@warning_ignore("integer_division") var cz: int = (gz - iz) / SAMPLES
 	if ix != 0 and iz != 0:
 		return _g_in(cx, cz, ix, iz)
 	var best: float = FLOOR_G
@@ -263,18 +258,6 @@ func _patch_g(i: int, j: int) -> float:
 	return best
 
 
-func depth(gx: int, gz: int) -> float:
-	"""`depth_at`, worked out once a lattice point."""
-	if _stale:
-		_refresh()
-	if gx < 0 or gz < 0 or gx >= _lattice.x or gz >= _lattice.y:
-		return depth_at(gx, gz)
-	var at: int = gz * _lattice.x + gx
-	if _depths[at] < 0.0:
-		_depths[at] = depth_at(gx, gz)
-	return _depths[at]
-
-
 func depth_at(gx: int, gz: int) -> float:
 	"""How far down the drawn earth is at lattice point (gx, gz): 0 the top, 1 the dug floor."""
 	var g: float = g_at(gx, gz)
@@ -293,6 +276,14 @@ static func section(g: float) -> float:
 	if g >= BAND_M:
 		return 0.0
 	return 0.5 + 0.5 * cos(PI * g / BAND_M)
+
+
+static func warm() -> void:
+	"""Make every mask's table and the wobble's noise now, on the main thread, so a build on a worker only reads them
+	(review M-e: the statics are never written from a worker)."""
+	for mask: int in 256:
+		table(mask)
+	wobble(0, 0)
 
 
 static func table(mask: int) -> PackedFloat32Array:

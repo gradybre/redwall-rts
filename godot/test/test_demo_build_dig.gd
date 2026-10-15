@@ -1,7 +1,7 @@
 extends "res://test/framework/test_case.gd"
 ## The proof of concept's drawing and its trips below (decision 1912; its look, decisions 1913 and 1914): the dug rooms
-## drawn per level and rebuilt only on a change, the stand-in figure, the ground reader reading ordered and dug cells as finished, and a trip's stages
-## for a visitor.
+## drawn per level and rebuilt only on a change, the stand-in figure, the ground reader reading ordered and dug cells
+## as finished, and a trip's stages for a visitor.
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Dug := preload("res://demo/build_panel/demo_build_dug.gd")

@@ -66,6 +66,8 @@ const FILL_TOWARD: Vector3 = Vector3(0.0, 1.0, 0.01)
 ## neighbours' neighbours (demo_build_burrow_field.gd REACH).
 const REACH_CELLS: int = Field.REACH + 1
 const NO_CELL: Vector3i = Vector3i(-1, 0, 0)
+## Where a patch's signature puts the cell being dug when there is none: past the reach it reads.
+const NOT_NEAR: Vector2i = Vector2i(Field.REACH + 1, 0)
 ## No level's top: far above any (the patch cache is kept for one top at a time).
 const NO_TOP_M: float = 1.0e9
 ## Points a check samples across a cell, each way (its edges and corners included).
@@ -94,9 +96,12 @@ var _patched: PackedByteArray = PackedByteArray()
 ## 5 × 5 cells round it (and where the cell being dug is among them), so a dig remakes only the patches round it.
 ## Forgotten when the level's top moves (NO_TOP_M: none drawn yet).
 var _patch_cache: Dictionary = {}
+## The patches the build in hand uses: the cache becomes these when it is done (review M-d: patches no longer drawn
+## are dropped, so a heavily dug level keeps only its walls).
+var _patches_used: Dictionary = {}
 var _cache_top: float = NO_TOP_M
-## THE REBUILD (decision 1914 E6). `draw` reads the works on the main thread (`_prepare`: the level's states as a
-## copy on write, its box, the ways), builds the fields, the surfaces' arrays and the chalk (`_build`) and shows them
+## THE REBUILD (decision 1914 E6). `draw` reads the works on the main thread (`_prepare`: a copy of the level's
+## states, its box, the ways), builds the fields, the surfaces' arrays and the chalk (`_build`) and shows them
 ## (`_commit`). With `threaded` (the live demo) `request` runs `_build` on a WorkerThreadPool task and `poll` shows it
 ## when done; `_build` touches only what `_prepare` set and the patch cache, which nothing else touches while it runs.
 ## What `_prepare` read, what `_build` made, and what is shown: the surfaces and the cell being dug.
@@ -157,7 +162,9 @@ func configure(datum_u: Vector2i, bounds: Rect2i) -> void:
 	_ground = _node(LAYER | TOP_LAYER, true)
 	_marks = _node(LAYER, false)
 	set_kinds(PackedByteArray())
-	Field.wobble(0, 0)
+	Field.warm()
+	# The cell being dug moves down in the shader, past what the mesh's box holds when nothing is dug yet.
+	_ground.extra_cull_margin = DEPTH_M
 
 
 func _node(layer: int, shadows: bool) -> MeshInstance3D:
@@ -263,7 +270,7 @@ func request(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void
 		return
 	if _task >= 0:
 		_wanted = [works, level, top_m, dig_cell]
-		_held_share = _held_share or dig_cell != _shown_digging
+		_held_share = _held_share or _on_level(dig_cell, level) != _shown_digging
 		return
 	var started: int = Time.get_ticks_usec()
 	_prepare(works, level, top_m, dig_cell)
@@ -277,7 +284,9 @@ func poll() -> void:
 	if _task < 0 or not WorkerThreadPool.is_task_completed(_task):
 		return
 	var started: int = Time.get_ticks_usec()
-	_settle()
+	# A newer request for another cell being dug: the cell this build shows as being dug is dug by now, so it keeps
+	# its depth until that request is shown (review M-a: it popped back up to the top for a frame or two).
+	_settle(not _wanted.is_empty() and _on_level(_wanted[3], _wanted[1]) != _digging)
 	last_main_usec += Time.get_ticks_usec() - started
 	if not _wanted.is_empty():
 		var wanted: Array = _wanted
@@ -299,11 +308,17 @@ func busy() -> bool:
 	return _task >= 0 or not _wanted.is_empty()
 
 
-func _settle() -> void:
-	"""Wait for the task in flight (returns at once when it is done) and show what it built."""
+func _settle(keep_hold: bool = false) -> void:
+	"""Wait for the task in flight (returns at once when it is done) and show what it built (`keep_hold`: the cell
+	being dug keeps its depth)."""
 	WorkerThreadPool.wait_for_task_completion(_task)
 	_task = -1
-	_commit()
+	_commit(keep_hold)
+
+
+static func _on_level(dig_cell: Vector3i, level: int) -> Vector3i:
+	"""`dig_cell` if it is on `level`, else NO_CELL."""
+	return dig_cell if dig_cell.x == level else NO_CELL
 
 
 func _notification(what: int) -> void:
@@ -314,10 +329,10 @@ func _notification(what: int) -> void:
 
 
 func _prepare(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> void:
-	"""On the main thread: all the build reads from the works -- the level's states (a copy on write), its box, the
+	"""On the main thread: all the build reads from the works -- a copy of the level's states, its box, the
 	stairs down and the cells the stairs up rise into -- so the mole may go on digging while it builds."""
 	rebuilds += 1
-	_digging = dig_cell if dig_cell.x == level else NO_CELL
+	_digging = _on_level(dig_cell, level)
 	_top_y = top_m
 	_level = level
 	if _cache_top != top_m:
@@ -345,7 +360,9 @@ func _build() -> void:
 	_fields = _fields_of()
 	_built = [Burrow.new(DEPTH_M), Burrow.new(DEPTH_M), Burrow.new(DEPTH_M)]
 	_wet_quads = {}
+	_patches_used = {}
 	_walls_and_floors()
+	_patch_cache = _patches_used
 	for row: int in _runs.size():
 		_row(_drawn.position.y + row, _wet_quads)
 	_apron(_built[0])
@@ -354,8 +371,9 @@ func _build() -> void:
 	last_build_usec = Time.get_ticks_usec() - started
 
 
-func _commit() -> void:
-	"""On the main thread: the built surfaces shown, the cell being dug starting again from the top."""
+func _commit(keep_hold: bool = false) -> void:
+	"""On the main thread: the built surfaces shown, the cell being dug starting again from the top (unless
+	`keep_hold`: a newer request for another cell waits, and the hold stays until it is shown)."""
 	var mesh: ArrayMesh = ArrayMesh.new()
 	for surface_arrays: Array in _built_arrays:
 		Burrow.add_to(mesh, surface_arrays, _surface)
@@ -371,9 +389,10 @@ func _commit() -> void:
 	patch_count = _built[2].count()
 	_shown = _built
 	_shown_digging = _digging
-	_held_share = false
 	_surface.set_shader_parameter(&"top_y", _top_y)
-	_set_share(0.0)
+	if not keep_hold:
+		_held_share = false
+		_set_share(0.0)
 
 
 func _state_at(cell: Vector2i) -> int:
@@ -465,10 +484,11 @@ func _patch_of(cell: Vector2i) -> Burrow:
 	var signature: int = _signature(cell)
 	var kept: Array = _patch_cache.get(cell, [])
 	if not kept.is_empty() and kept[0] == signature:
+		_patches_used[cell] = kept
 		return kept[1]
 	var piece: Burrow = Burrow.new(DEPTH_M)
 	piece.patch(_fields, cell, _corner(cell, _top_y), _wet_at(cell))
-	_patch_cache[cell] = [signature, piece]
+	_patches_used[cell] = [signature, piece]
 	patches_made += 1
 	return piece
 
@@ -476,7 +496,7 @@ func _patch_of(cell: Vector2i) -> Burrow:
 func _signature(cell: Vector2i) -> int:
 	"""What `cell`'s patch depends on: the field's kinds round it, where the cell being dug is among them, and whether
 	it is wet."""
-	var dug_at: Vector2i = Vector2i(_digging.y, _digging.z) if _fields.size() > 1 else cell + Vector2i(99, 99)
+	var dug_at: Vector2i = Vector2i(_digging.y, _digging.z) if _fields.size() > 1 else cell + NOT_NEAR
 	return ((_fields[0] as Field).signature(cell, dug_at) << 1) | (1 if _wet_at(cell) else 0)
 
 

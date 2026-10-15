@@ -87,13 +87,13 @@ func test_a_one_cell_wall_keeps_its_crest() -> void:
 
 func test_fill_patch_matches_the_field_point_by_point() -> void:
 	"""A whole patch at once gives the numbers the field gives point by point (to a float32's precision), round every
-	kind of cell."""
+	kind of cell, the field's edge cells too (review M-b: their apron lies on negative lattice points)."""
 	var field: Field = _scattered(1914)
 	var heights: PackedFloat32Array = PackedFloat32Array()
 	heights.resize(Field.SPAN * Field.SPAN)
 	var wrong: int = 0
-	for cz: int in range(2, 14):
-		for cx: int in range(2, 14):
+	for cz: int in 16:
+		for cx: int in 16:
 			field.fill_patch(Vector2i(cx, cz) + field.origin, heights)
 			for j: int in Field.SPAN:
 				for i: int in Field.SPAN:
@@ -303,24 +303,109 @@ func test_a_new_cell_being_dug_starts_at_the_top() -> void:
 
 
 func test_the_threaded_rebuild_shows_the_same_earth() -> void:
-	"""On a worker, the build is in flight until it is shown; what it shows is what a build on the spot draws; while a
-	build for another cell is in flight, the cell shown keeps its depth."""
+	"""On a worker, a build is in flight until `poll` shows it (as the dug view does each frame); a request made
+	meanwhile waits and is built after it; what is shown is what a build on the spot draws; and once shown, the dig
+	deepens again."""
 	var works: Works = _works_of(_layouts()[1])
 	var earth: Earth = _earth(works, Vector3i(1, 16, 13))
-	earth.set_progress(0.6)
-	var held: float = earth.height_at(Vector2(16.5, 13.5))
-	assert_true(is_equal_approx(held, TOP - 0.6), "six tenths dug")
 	earth.threaded = true
 	works.open_cell(1, Vector2i(16, 13))
 	earth.request(works, 1, TOP, Vector3i(1, 17, 13))
 	assert_true(earth.busy(), "in flight")
+	works.open_cell(1, Vector2i(17, 13))
+	earth.request(works, 1, TOP, Vector3i(1, 16, 14))
+	_until_shown(earth)
+	assert_false(earth.busy(), "shown, and the waiting request too")
+	assert_equal(earth.digging(), Vector3i(1, 16, 14), "the newest cell drawn as being dug")
+	var at_once: Earth = _earth(works, Vector3i(1, 16, 14))
+	assert_true(earth.built()[2].vertices == at_once.built()[2].vertices
+		and earth.built()[2].uv2s == at_once.built()[2].uv2s, "the same walls as a build on the spot")
+	earth.set_progress(0.5)
+	assert_true(is_equal_approx(earth.height_at(Vector2(16.5, 14.5)), TOP - 0.5), "and the dig deepens again")
+
+
+func test_a_cell_dug_while_its_build_is_in_flight_stays_down() -> void:
+	"""Review M-a: while a build is in flight, the cell shown being dug keeps its depth; when that build is shown with a
+	newer request for another cell waiting (the cell it shows being dug is dug by now), it is not lifted back to the
+	top."""
+	var works: Works = _works_of(_layouts()[1])
+	var earth: Earth = _earth(works, Vector3i(1, 16, 13))
+	earth.set_progress(1.0)
+	earth.threaded = true
+	works.open_cell(1, Vector2i(16, 13))
+	earth.request(works, 1, TOP, Vector3i(1, 17, 13))
 	earth.set_progress(0.1)
-	assert_true(is_equal_approx(earth.height_at(Vector2(16.5, 13.5)), held), "the cell shown keeps its depth")
-	earth.finish()
-	assert_false(earth.busy(), "shown")
-	assert_equal(earth.digging(), Vector3i(1, 17, 13), "the new cell drawn as being dug")
-	var at_once: Earth = _earth(works, Vector3i(1, 17, 13))
-	assert_true(earth.built()[2].vertices == at_once.built()[2].vertices, "the same walls as a build on the spot")
+	assert_true(is_equal_approx(earth.height_at(Vector2(16.5, 13.5)), TOP - Earth.dug_depth_m(1.0)), "held")
+	while not WorkerThreadPool.is_task_completed(int(earth.get("_task"))):
+		OS.delay_usec(200)
+	works.open_cell(1, Vector2i(17, 13))
+	earth.request(works, 1, TOP, Vector3i(1, 16, 14))
+	earth.poll()
+	assert_true(earth.height_at(Vector2(17.5, 13.5)) < TOP - 0.9, "the next cell, dug meanwhile, stays down")
+	_until_shown(earth)
+	assert_true(is_equal_approx(earth.height_at(Vector2(17.5, 13.5)), FLOOR), "and is floor once shown")
+
+
+func test_an_earth_freed_or_given_kinds_mid_build_waits_for_it() -> void:
+	"""Freed with a build in flight, the earth waits for its worker; handed the World's kinds, it shows the build
+	first (the build reads them)."""
+	var works: Works = _works_of(_layouts()[0])
+	var earth: Earth = _earth(works, Earth.NO_CELL)
+	earth.threaded = true
+	works.order_room(1, _rect(Rect2i(16, 10, 2, 2)), ROOM)
+	earth.request(works, 1, TOP, Earth.NO_CELL)
+	earth.set_kinds(PackedByteArray())
+	assert_false(earth.busy(), "the build shown before the kinds change")
+	earth.request(works, 1, TOP, Vector3i(1, 16, 10))
+	assert_true(earth.busy(), "another in flight")
+	earth.free()
+	assert_false(is_instance_valid(earth), "freed without waiting on anyone")
+
+
+func test_kept_patches_follow_the_level_and_the_water() -> void:
+	"""Patches kept are dropped when the level's top moves, and remade when a cell turns wet: the walls are always
+	those a fresh earth draws."""
+	var works: Works = _works_of(_layouts()[0])
+	var earth: Earth = _earth(works, Earth.NO_CELL)
+	earth.draw(works, 1, TOP - 5.0, Earth.NO_CELL)
+	var fresh: Earth = Earth.new()
+	_nodes.append(fresh)
+	fresh.configure(Vector2i.ZERO, BOUNDS)
+	fresh.draw(works, 1, TOP - 5.0, Earth.NO_CELL)
+	assert_true(earth.built()[2].vertices == fresh.built()[2].vertices, "another level's top: walls at its height")
+	var kinds: PackedByteArray = PackedByteArray()
+	kinds.resize(Earth.World.TILE_COUNT)
+	kinds.fill(Earth.World.TERRAIN_LAND)
+	kinds[Earth.World.MAP_TILES_X * 4 + 4] = Earth.World.TERRAIN_LAKE
+	for each: Earth in [earth, fresh]:
+		each.set_kinds(kinds)
+		each.draw(works, 1, TOP, Earth.NO_CELL)
+	assert_true(earth.built()[2].uvs == fresh.built()[2].uvs and earth.built()[2].vertices == fresh.built()[2].vertices,
+		"a cell turned wet: its walls remade")
+
+
+func test_the_dug_normal_is_the_normal_once_dug() -> void:
+	"""Each wall vertex round the cell being dug carries, as its dug normal, the normal the wall has once that cell is
+	dug (to the colour's 8-bit precision)."""
+	var works: Works = _works_of(_layouts()[7])
+	var digging: Earth = _earth(works, Vector3i(1, 14, 11))
+	works.open_cell(1, Vector2i(14, 11))
+	var dug: Burrow = _earth(works, Earth.NO_CELL).built()[2]
+	var normal_at: Dictionary = {}
+	for at: int in dug.vertices.size():
+		normal_at[Vector2i(roundi(dug.vertices[at].x * 8.0), roundi(dug.vertices[at].z * 8.0))] = dug.normals[at]
+	var walls: Burrow = digging.built()[2]
+	var compared: int = 0
+	var wrong: int = 0
+	for at: int in walls.vertices.size():
+		var key: Vector2i = Vector2i(roundi(walls.vertices[at].x * 8.0), roundi(walls.vertices[at].z * 8.0))
+		if walls.uv2s[at].x == 0.0 or not normal_at.has(key):
+			continue
+		var colour: Color = walls.colors[at]
+		var decoded: Vector3 = Vector3(colour.r, colour.g, colour.b) * 2.0 - Vector3.ONE
+		compared += 1
+		wrong += 0 if decoded.distance_to(normal_at[key]) < 0.02 else 1
+	assert_true(compared > 20 and wrong == 0, "%d of %d moving points with the wrong dug normal" % [wrong, compared])
 
 
 func test_stairs_rise_into_square_earth() -> void:
@@ -372,10 +457,13 @@ func test_wet_cells_stay_square_and_keep_their_mark() -> void:
 	earth.set_kinds(kinds)
 	earth.draw(works, 1, TOP, Earth.NO_CELL)
 	assert_true(is_equal_approx(earth.height_at(Vector2(11.5, 11.5)), TOP), "the wet cell west of the room: the top")
+	var walls: Burrow = earth.built()[2]
 	var marked: int = 0
-	for uv: Vector2 in earth.built()[2].uvs:
-		marked += 1 if uv.y == 1.0 else 0
-	assert_true(marked > 0, "its patch carries the water mark")
+	var below: int = 0
+	for at: int in walls.uvs.size():
+		marked += 1 if walls.uvs[at].y == 1.0 else 0
+		below += 1 if walls.uvs[at].y == 1.0 and not is_equal_approx(walls.vertices[at].y, TOP) else 0
+	assert_true(marked > 0 and below == 0, "its patch carries the water mark, on its top only (%d below)" % below)
 	assert_equal(_hidden_points(earth, works), 0, "and the room is whole")
 
 
@@ -470,6 +558,15 @@ static func _cells_touching(point: Vector2) -> Array[Vector2i]:
 			if Rect2(Vector2(cell), Vector2.ONE).grow(0.000001).has_point(point) and not out.has(cell):
 				out.append(cell)
 	return out
+
+
+static func _until_shown(earth: Earth) -> void:
+	"""Poll `earth` as the dug view does each frame until no build is in flight or waiting."""
+	for tries: int in 10000:
+		earth.poll()
+		if not earth.busy():
+			return
+		OS.delay_usec(500)
 
 
 static func _surface_area(mesh: ArrayMesh, surface: int) -> float:

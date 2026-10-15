@@ -51,7 +51,8 @@ func _initialize() -> void:
 		_choose_card.bind("Seat"), _refused_over_the_hearth, _put_the_seat_down, _confirm_the_furniture, _wait_for_a_fitter,
 		_wait_for_the_fitting, _the_kitchen_is_ready, _tags_apart, _beds_on_the_rooms_tab, _scroll_to.bind("Dormitory"),
 		_choose_card.bind("Dormitory"), _open_the_furnish_tab.bind("Bed"), _scroll_to.bind("Bed"), _choose_card.bind("Bed"),
-		_place_two_beds, _confirm_the_beds, _wait_for_the_beds, _the_beds_count, _pieces_on_whole_floor, _close_the_panel]
+		_place_two_beds, _confirm_the_beds, _wait_for_the_beds, _the_beds_count,
+		_after_the_earth.bind(_pieces_on_whole_floor), _close_the_panel]
 
 
 func _open_over_the_rooms() -> void:
@@ -304,7 +305,6 @@ func _pieces_on_whole_floor() -> void:
 	"""Decision 1914, rule (a): every fitted piece's footprint is drawn at the floor's depth (the rounded walls never
 	reach into a cell), and so is every dug cell."""
 	var earth: Object = _build().get("dug").get("earth")
-	earth.call(&"finish")
 	var fittings: Object = _build().get("fittings")
 	var footprints: PackedInt32Array = PackedInt32Array()
 	for row: int in int(fittings.call(&"count")):

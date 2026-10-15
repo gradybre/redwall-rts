@@ -21,6 +21,7 @@ M3 front, M2 high). No family of strokes and no long motion-review pipeline.
 |---|---|---|
 | P-1971-1 | **"Approve"**: (b) | The four wall rows are derived from M1's approved clips. M1 stays the one stroke |
 | P-1971-2 | **"Approve"**: (a) | The floor scrape is allowed only into natural, unowned earth, inside the row's own 61 u below-floor stroke box |
+| Review M6 (scope of "unowned") | **"Leave as built"** (2026-10-15) | "Unowned" means natural earth no Site has ever cut. The scrape may reach another Room's never-cut floor protection; it is not limited to the digging Room |
 | P-1971-3 | **"Painted height"**: (b) | Each cell's column is dug to the room's full height. The mole claws the bottom, and the upper earth is dug and paid as part of the same work, with no separate stroke. **This amends DEC-054.** Rooms must fit every species |
 
 Recorded as Brendan's ruling in `docs/setting_decisions.md` (DEC-054, addendum of 2026-10-15) with his two direction

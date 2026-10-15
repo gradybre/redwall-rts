@@ -179,6 +179,7 @@ Every row was checked against the record named.
 | Topic | Ruling | Recorded in |
 |---|---|---|
 | Slice C's digging direction, and the one claw stroke (1971 P-1971-1–3) | "Real digging, in full"; "I just want the basic claw stroke that digs anything." **P-1971-1 (b) and P-1971-2 (a): "Approve"**: M1 stays the one stroke, with four wall rows derived from its clips; the floor scrape only into natural, unowned earth inside the row's 61 u below-floor box. **P-1971-3: "Painted height"**: each cell's column is dug to the room's full height (4,096 u, 4 quanta: wood 1,000, stone 1,000 milli-U, 16,920 milli-WU, earth 8,000 milli-U a cell); the mole claws the bottom and the upper earth is paid as part of the same work; rooms fit every species. **Amends DEC-054.** (Relayed by the coordinator) | [1971](../decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md); DEC-054 addendum |
+| The claw floor scrape's reach (1971 review M6), 2026-10-15 | **"Leave as built"**: the 61 u floor scrape may enter any natural earth no Site has ever cut, including another Room's untouched floor protection; it is not limited to the digging Room. (Relayed by the coordinator) | [1971](../decisions/1971-one-basic-claw-stroke-digs-any-reachable-cube.md) |
 
 ## Standing rules (not dated rulings)
 

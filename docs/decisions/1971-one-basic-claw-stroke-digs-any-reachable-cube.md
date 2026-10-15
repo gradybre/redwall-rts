@@ -64,11 +64,14 @@ paid** (the target):
   approach and recovery in open air, the stroke in open air or the target, the floor scrape's limits, and the
   protected roof band. What is not physically met is only the upper quantum itself, which is what the ruling
   accepts ("the upper earth is dug and paid as part of the same work, without a separate stroke").
-- **`reachable_height_u`.** It returns `Space.I32_MAX` ("the stroke sets no limit") once the identity has a
-  side-face dig row whose anchor lies in the floor band. Otherwise it returns the old band height, or 0. Every caller
-  already clamps with the level's clear height (`modular_runtime.gd` `dug_height_u` = min(clear, reach)), and
-  `_level_refusal` keeps a Room inside its level, so the price and the plan follow the painted height with no caller
-  edit.
+- **`reachable_height_u`.** It returns `UNLIMITED_HEIGHT_U` (`Space.I32_MAX`, "the stroke sets no limit") once the
+  identity has a side-face dig row whose anchor lies strictly inside the floor band. Every caller already clamps with
+  the level's clear height (`modular_runtime.gd` `dug_height_u` = min(clear, reach)), and `_level_refusal` keeps a
+  Room inside its level, so the price and the plan follow the painted height with no caller edit. On content 10 only,
+  a branch labelled LEGACY keeps the pre-1971 band rule (see "The interim" below).
+
+Sections "Decision" to "Proposals for Brendan" below are the scoping as it was put to Brendan; "Phase 2" at the end
+records what was built.
 
 ## Decision (as proposed, now ruled)
 
@@ -342,3 +345,179 @@ did, so no demo file is edited.
   `underground_room_approach.gd`, `underground_room_world_bindings.gd` and `underground_connector_contacts.gd`.
 - Content 10's wire, decoded with a scratch reader (not committed).
 - The float probe of the approved dig clips (scratch, not committed; method in §1).
+
+## Phase 2 — what was built (2026-10-15)
+
+Scope, set by the coordinator: content 11 published but **not active**, the guards landed, and the cleared one-call
+changes B, C and D. Activating content 11 is a separate, ADR-1229-sized lane that starts after the cost lane merges
+(its inventory is below).
+
+### The wall rows (offline, `claw-work-v1/`)
+
+- `derive_claw_wall_rows.py` → `evidence/claw-wall-rows-v1/rows.json`.
+  - It applies `derive_claw_rows.py`'s accepted derivation to M1's approved clips (`stand-walk-v2/dig-pa`) and the
+    content-10 claw image.
+  - The entry's paws join `WORK_STROKE` (12 boxes per row).
+  - **W = 521 u, derived** from the narrow approach and retreat rows 43–50. The row's own non-stroke boxes reach
+    only 466 u.
+  - The contact is each claw tip's first forward crossing of the wall plane, through `contact_patch` on axis z. The
+    right tip crosses in the entry; the left, half a cycle behind, crosses in the stroke.
+  - Yaw 0: the anchor is (210, 177, −521); the patch is x −225..211, y 71..177, z −521.
+- `prove_claw_wall.py` → `evidence/claw-wall-proof-v1/proof.json`: **clear**. It uses the accepted Q24 hulls, the
+  sole rule and `separated_box`.
+  - The fixture is a wall: the target cube is centred in the lateral window that holds the whole stroke box, with
+    the cell's floor support, the earth under the target, the neighbours, the cube row beyond, and the earth above.
+  - Stroke: 11,229 pairs, of which 384 are soles, 9,024 are paw-in-target and 1,821 are paw scrape; none is
+    unresolved.
+  - Entry: 4,325 pairs, of which 484 are soles and 3,841 are paw-in-target; none is unresolved.
+  - With the target open (an upper quantum's work), the pairs are a subset and are also clear.
+  - Limb self-clearance is the approved `dig_pa` record of the same clips.
+- `test_claw_wall.py`: 10 tests, including byte-for-byte rebuilds of both records.
+
+### Content 11 (`mole-worker/qualified-claw-wall-v12/`, create-only, data only)
+
+- `publish_claw_wall_runtime.py`: content 10, plus the wall rows **67–70** (yaws 0..49152) with M1's words.
+  - The rows are appended after source 5, so no published row ID moves. Profiles orders keys within each source
+    only (ADR 1198), and source 4's same-key run is 13 of the 16 allowed.
+  - Wire `2913e9ba…`: 71 rows and 595 boxes. The paired bank is 47,684 B, 3,472 B more than content 10's.
+  - The accessor publishes `CLAW_WALL_ROWS`. The manifest says `runtime_admitted: false`.
+- Tests: `test_publish_claw_wall_runtime.py` (6), and `godot/test/test_mole_claw_wall_profiles.gd`, which runs
+  through the actual loader and validator and covers the height rule on contents 10 and 11.
+
+### The guards (this lane's files)
+
+- **`underground_work_face.gd`.**
+  - `Check.struck` and `struck_origin`: the column rule.
+  - `column_refusal` → `WORK_FACE_COLUMN_UNOPENED`: the cubes of the column below the target must be finished
+    void.
+  - Contact and patch are proved on the struck cube.
+  - `stroke_refusal` admits a stroke box lying wholly at or below the stance plane through `scrape_refusal`. What
+    the box leaves after void and the target must pass `Terrain.natural_support_refusal` (original dry footing: no
+    water, resource or foundation) and lie in quanta no Site ever cut (`ever_cut`, read directly from Sites'
+    columns). That excludes installed timber and backfill, which stand in cut quanta.
+  - "Natural, unowned" therefore means what the data can prove: never cut and naturally dry. The Room-lifetime floor
+    protections are SUPPORT rows owned by the Room, exactly like timber, so ownership alone cannot tell them apart;
+    cut history can.
+- **`underground_room_station_planner.gd`.**
+  - `_patch_on_face`: a row qualifies only if its patch is flat on the face's axis, so the seating tap is never
+    planned as a dig.
+  - `_reaches` uses the struck cube.
+  - `_fits` leaves a stroke's below-floor part to WorkFace. The face refusal is unchanged.
+- **`underground_room_approach.gd`.** `reachable_height_u` uses the side-face rule, with the LEGACY branch for
+  content 10 only.
+
+### The cleared changes in other lanes' files
+
+- **B: `underground_room_world_bindings.gd` `_ordinary_contact_face`.** The face is derived against
+  `Face.struck_origin`.
+- **C: `underground_room_frontier.gd` `_face`.** The same change.
+- **D: `underground_space_authority.gd` `_contacts_refusal`.** `_on_face` reads the struck cube.
+
+**A latent pre-1971 bug that column digging exposed.** `_face` (C) and `_ordinary_contact_face` (B) pair every WORK
+location with every WORK profile.
+- A deep cube's station stands inside the near column's dug floor and strikes the plane the two columns share.
+- Both functions read that as a strike on the near cube's far face, so a second contact appears: the refusal is
+  `ROOM_FRONTIER_AMBIGUOUS_CONTACT` or `ROOM_PHASE_CONTACT`.
+- WorkFace's `contact_refusal` would refuse such a pair, because it requires the station to stand outside the face it
+  strikes. The two face derivations never checked that.
+- It stayed hidden because the near column was always finished before any deep station existed.
+- **Fix:** both now apply WorkFace's rule. For a min face, station[axis] < plane; for a max face,
+  station[axis] ≥ plane. The coordinator cleared both.
+
+### Results on the dormant pick fixture (content 6)
+
+The only room-loop fixture is ADR 1213's pick fixture. Its FRONT rows strike a side face in the floor band, so it
+takes the painted height too.
+
+- **The Kitchen grows from 8 to 16 Sites.** It is 2 × 2 cells to 4,096 u.
+- **The loop digs all 16 cubes** with exact ledgers and no refusal: 16 × 250 wood and stone, 16 × 2,000 earth, and
+  16 × 4,230 milli-WU.
+  - Each column is dug bottom-up: the two lower levels in the old order, then levels 2–3 in key order.
+  - Every upper quantum is worked from its column's floor FRONT station. No HIGH station and no per-motion air are
+    used in the loop. ADR 1215's per-motion air is still proved by the planner-direct test.
+  - The peaks are 71,628 route checks at publication and 254,022 (24 %) at a phase, with 539 Location checks.
+- **Tests changed to follow the ruling:**
+  - `test_underground_room_station_planner.gd`: `KITCHEN_SITES` is 16. The loop's order and ledgers changed, and
+    the confirmation test is now `test_confirmation_digs_the_painted_height`. The v3 upper cube and the
+    no-step upper cube now plan the column strike from the floor.
+  - `test_underground_room_frontier.gd`: 16 claims.
+  - `test_underground_room_approach.gd` and `test_modular_access.gd`: they set their plan heights with an explicit
+    clamp, the level's 4,096 u (or one quantum for two capacity measurements), instead of the raw reach.
+
+### The interim (honest): until activation, the game prices 1 quantum
+
+Content 10 stays active, and its claw crew has no side-face row. `reachable_height_u` keeps content 10's pre-1971
+band rule in a branch labelled LEGACY, so:
+- the demo keeps pricing and drawing **1 quantum (1,024 u) per cell**, from the seating tap's band;
+- Brendan's "painted height" ruling **takes effect at activation**, when content 11's wall rows make the claw crew
+  report no stroke limit: 4 quanta, wood 1,000, stone 1,000, 16,920 milli-WU and earth 8,000 a cell. This matches
+  SET-BUILD-001 §7.2, and the 4,096 u clear height fits the badger's 2,611 u.
+
+The activation lane deletes the LEGACY branch.
+
+### Frames (gate)
+
+`scratchpad/claw_check/` holds frames at 1280×720 and 1920×1080, rendered by a scratch capture script that is not
+committed. They show the actual claw image (`b85f9195…`) on the original body, at four keys (entry middle, stroke
+start, middle and late), both opaque and with a see-through target.
+- **Top face:** the mole at the entry geometry, leaned over the cube's top face.
+- **Wall:** the mole 521 u from a wall, its paws in the wall's foot.
+
+The pose reads as clawing at the base of the wall. The step-1b squared shoulder shows a small mesh spike at the
+right shoulder in the wall views, as it does on the top face.
+
+### Activation inventory (for the activation lane; file:line at this branch)
+
+Content 10 is bound by revision, row range or digest here:
+
+- **Routes and WorldRoutes:**
+  - `scripts/core/underground_routes.gd`: 32 (Claw2 preload); dispatch at 2333, 2359, 2544, 3277, 3697 and 3707.
+    This is the **cost lane's file**, near its 262,144-character cap.
+  - `scripts/core/underground_world_routes.gd`: 1996.
+- **Entry, motion and composition:**
+  - `scripts/core/underground_entry_bindings.gd`: 1606.
+  - `scripts/core/underground_connector_contacts.gd`: 35.
+  - `scripts/core/underground_entry_foreman.gd`: 25.
+  - `scripts/core/underground_entry_site.gd`: 10.
+  - `scripts/core/underground_entry_composition.gd`: 16.
+  - `scripts/core/underground_motion_catalog.gd`: 10.
+  - `scripts/core/underground_stair_motion.gd`: 11.
+  - `scripts/core/underground_route_composition.gd`: 14 (the bundle).
+  - `scripts/core/underground_session.gd`: source digests and `Catalog.CONTENT_REVISION`.
+- **Room height:** `scripts/core/underground_room_approach.gd`: 32 and 684 (`LEGACY_CONTENT` and the legacy branch,
+  to delete).
+- **Content-10 programs and certificates** (successors needed):
+  - `data/underground/mole-worker/qualified-claw-runtime-v2/`: `claw_program.gd` (12, 13; row range 42–64),
+    `paw_program.gd` (11, 12, 14), `stair_program.gd` (14–16) and `paw_physical_certificate.gd` (23);
+  - `qualified-claw-certificate-v2/endpoint_certificate.gd`: 14, 17;
+  - `qualified-claw-runtime-v1/grip_certificate.gd`: 15;
+  - `qualified-claw-stair-motion-v1/catalog_source.gd`: 7.
+- **Catalog and presentation:**
+  - `data/underground/mole-worker/mole_profile_catalog.gd`: 13, 16;
+  - `mole_claw_program.gd`: 11;
+  - `mole_presentation.gd`: 24.
+- **Bundle:** `data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd`: 23. The bundle
+  successor `qualified-stairs-v10` needs content 11's wire and the same geometry.
+- **Demo:** `demo/burrow/modular_runtime.gd`: 20 (`ClawPins` → content 11's accessor). This is the
+  **rounded-walls lane's file**.
+- **Tests bound to content 10** (about 15):
+  - `test_claw_stair_programs`, `test_claw_tread_programs`, `test_mole_claw_stairs_profiles`,
+    `test_underground_entry_work_area`, `test_underground_haul_grip`, `test_underground_motion_catalog`,
+    `test_underground_paid_assembly_handling`, `test_underground_stair_routes`,
+    `test_underground_stairs_bundle_source` and `test_underground_support_clearance`;
+  - plus the checkpoints (ADR 1240), the source pins and the memory census.
+
+### Memory (ADR 1212)
+
+- `underground_work_face.gd` and `underground_space_authority.gd` became **projected census inputs**. Their
+  manifest-3 bytes are archived under `underground-memory-census-2026-10-06/reviewed-sources/`, and
+  `PROJECTION_SHA` and `REVIEWED_SHA` are bumped.
+- Reviewed deltas:
+  - WorkFace: one retained packet, `Check.struck`, 6 ints, 24 B, carried by its 2,048 B `CONTROL_BYTES`;
+  - the space authority: none.
+- The frontier and world bindings deltas are unchanged: `{}`.
+- The pack is regenerated, and only line numbers move: live with reserve is 100,250,607 B, with 49,749,393 B of
+  headroom.
+- Content 11's profile bank (+3,472 B) is counted at activation, inside `PROFILE_BYTES` 278,528 (content 10 uses
+  262,128).
+

@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "decision": [
+    "1971",
+    "1229",
+    "1217"
+  ],
+  "content_revision": 11,
+  "profile_count": 71,
+  "box_count": 595,
+  "source_count": 6,
+  "wire_sha256": "2913e9ba8c6a27aa7a500d2ba944014f8345b363a0b31e611764e8b2460eea0c",
+  "wire_bytes": 23850,
+  "paired_bank_bytes": 47684,
+  "rows": {
+    "0-66": "content 10",
+    "67-70": "the claw stroke's wall rows, yaws 0..49152 (M1's clips)"
+  },
+  "inputs": {
+    "godot/data/underground/mole-worker/claw-work-v1/evidence/claw-wall-rows-v1/rows.json": "924cab3bd0f08d5dd5c991d771376fe396f8f2be0741fba58af4dddbc20608ca"
+  },
+  "ground_sha256": "c83d399b9fa52e69a08a646febb085357fc6e74d3352d026dd285084bdef56e3",
+  "motion_sha256": "8e5b5bc25119245f29dc1fbe6dfb24fba216bbe256cb79b60f82f0864015fc7f",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/motion.ugmotion": "8055dd9bd31a48c71137470309bd5748e0d439a71f195aa0a5fcb0d26ca7f5d6",
+    "godot/data/underground/mole-worker/qualified-claw-wall-v12/mole-worker.ugprof": "2913e9ba8c6a27aa7a500d2ba944014f8345b363a0b31e611764e8b2460eea0c",
+    "godot/data/underground/mole-worker/publish_claw_wall_runtime.py": "22d74e6b89676262e65ab8d740a22a85e09a4dd11264d24c474b168a855588fe"
+  },
+  "runtime_admitted": false,
+  "consumers": {
+    "godot/scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
+    "godot/scripts/core/underground_work_face.gd": "5c7e5d1fae1bcf202e84d3ad0f40f770963ed1eb6544141e846949b23e81841e",
+    "godot/scripts/core/underground_connector_contacts.gd": "d45d58aa5c24fb1da5429de74719862713f0716d3d20c37ef8f1b3b055d46db0",
+    "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
+    "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
+    "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+    "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879"
+  },
+  "renewals": [
+    {
+      "path": "godot/scripts/core/underground_work_face.gd",
+      "from": "9a1b75f0bace9d1ed08441119e97e76460545f386dc918d2215041a452f59750",
+      "to": "abc8f173f7da773e12c0725eb8f3bb403e8ef8706f1113702701617b86b07b23"
+    },
+    {
+      "path": "godot/scripts/core/underground_work_face.gd",
+      "from": "abc8f173f7da773e12c0725eb8f3bb403e8ef8706f1113702701617b86b07b23",
+      "to": "5c7e5d1fae1bcf202e84d3ad0f40f770963ed1eb6544141e846949b23e81841e"
+    }
+  ]
+}

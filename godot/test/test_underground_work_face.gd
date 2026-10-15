@@ -120,6 +120,8 @@ class UndergroundFixture extends Fixture:
 		else:
 			_void = _region(token, PackedInt32Array([X, FLOOR, Z, X + 2048, FLOOR + 2048, Z + 2048]), Space.SUPPORTED_VOID)
 		_region(token, PackedInt32Array([X, FLOOR - 128, Z, X + 2048, FLOOR, Z + 2048]), Space.SUPPORT)
+		if obstruction == 2: # Decision 1971: the target column's floor-band cube is already finished void.
+			_region(token, PackedInt32Array([X + 2048, FLOOR, Z, X + 3072, FLOOR + 1024, Z + 1024]), Space.SUPPORTED_VOID)
 		assert_equal(_owner.seal(token), &"", "real owner seals explicit fixture space")
 		_owner.publish(token)
 		_finish_space(domain)
@@ -631,3 +633,72 @@ func test_finish_scope_tracks_real_start_work_terminal_and_released_worker() -> 
 	assert_true(_paid._sites.settle_phase(site).ok, "actual terminal retry completes")
 	assert_equal(Face.FinishCheck.scope_refusal(config, request, _paid._sites, site, room,
 		project, PhaseContract.STAGE_COMMIT), Face.REFUSE_PHASE, "retired Project cannot authorize another attempt")
+
+
+func test_struck_origin_is_the_target_or_its_columns_floor_band_cube() -> void:
+	"""Decision 1971: a floor-band side strike works an upper quantum; every other anchor strikes the target itself."""
+	var target: Vector3i = Vector3i(0, 2048, 0)
+	assert_equal(Face.struck_origin(target, 0, 2500), target, "an anchor in the target's own band strikes the target")
+	assert_equal(Face.struck_origin(target, 0, 512), Vector3i(0, 0, 0), "a floor-band side strike works the column")
+	assert_equal(Face.struck_origin(target, 0, 0), target, "the floor plane is never a side strike")
+	assert_equal(Face.struck_origin(target, 0, 1024), target, "the floor band's top plane is never a side strike")
+	assert_equal(Face.struck_origin(Vector3i(0, 1536, 0), 0, 512), Vector3i(0, 1536, 0), "a part-quantum rise is no column")
+	assert_equal(Face.struck_origin(Vector3i(0, -1024, 0), 0, 512), Vector3i(0, -1024, 0), "a cube below the floor is no column")
+
+
+func test_upper_quantum_needs_its_column_open_below() -> void:
+	"""An upper quantum is refused while the floor-band cube the claws strike is still earth."""
+	_setup()
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 1024, Z)
+	assert_equal(_read(), Face.REFUSE_COLUMN, "the column's floor-band cube is not dug")
+
+
+func test_upper_quantum_is_struck_at_the_open_floor_band() -> void:
+	"""With the floor-band cube finished, the same floor-band stroke works the quantum above it (P-1971-3)."""
+	_setup(2)
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 1024, Z)
+	assert_equal(_read(), &"", "the column is worked from the floor station")
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 2048, Z)
+	assert_equal(_read(), Face.REFUSE_COLUMN, "a column is dug bottom-up: the quantum below is still earth")
+
+
+func _scrape_profile(revision: int) -> void:
+	"""The test profile plus a WORK_STROKE box wholly below the stance plane, across the wall's foot."""
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.insert(5, PackedInt32Array([400, -61, -32, 560, 0, 32, Profiles.WORK_STROKE]))
+	_load_profiles(boxes, revision)
+	_request.content_revision = revision
+
+
+func test_claws_may_scrape_natural_earth_below_the_stance_plane() -> void:
+	"""P-1971-2 (a): the below-plane stroke meets the corridor's floor support and the earth under the target."""
+	_setup()
+	_scrape_profile(3)
+	assert_equal(_read(), &"", "natural, never-cut earth may be scraped")
+
+
+func test_scrape_never_enters_a_cut_cube() -> void:
+	"""Earth in a quantum some Site cut (timber, backfill, another dig) is never scraped."""
+	_setup()
+	var origin: Vector3i = Vector3i(X + 1024, FLOOR - 1024, Z)
+	assert_true(_actual.physical.sites.claim_quantum(origin, _actual.room).ok, "a Site under the corridor floor")
+	_actual.physical.sites._ever_cut[_actual.physical.sites.site_at(origin).x] = 1 # Its recorded cut history.
+	_scrape_profile(3)
+	assert_equal(_read(), Face.REFUSE_STROKE, "the cut quantum under the floor refuses the scrape")
+
+
+func test_cut_history_scan_covers_every_quantum_the_box_meets() -> void:
+	"""The lattice scan's integer floor, its charged span and the cut history it reads."""
+	_setup()
+	var sites: Face.Sites = _actual.physical.sites
+	var box: PackedInt32Array = PackedInt32Array([X + 1936, FLOOR - 61, Z - 32, X + 2096, FLOOR, Z + 32])
+	assert_equal(Face.Check.lattice_low(sites._domain, box), Vector3i(X + 1024, FLOOR - 1024, Z - 1024), "negative floor")
+	assert_equal(Face.Check.cube_span(sites._domain, box), 4, "two by one by two quanta")
+	assert_false(Face.Check.ever_cut(sites, box), "no Site has cut there")
+	var origin: Vector3i = Vector3i(X + 2048, FLOOR - 1024, Z - 1024)
+	assert_true(sites.claim_quantum(origin, _actual.room).ok, "a claimed quantum the box meets")
+	assert_false(Face.Check.ever_cut(sites, box), "claimed is not cut")
+	sites._ever_cut[sites.site_at(origin).x] = 1
+	assert_true(Face.Check.ever_cut(sites, box), "the last quantum the box meets was cut")
+	assert_equal(Face.Check.cut_row(sites, -1), -1, "an off-lattice key has no row")
+

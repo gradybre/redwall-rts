@@ -335,16 +335,30 @@ static func _anchor(q: Query, row: int) -> bool:
 		if q.profiles._live.boxes[6 * q.profiles._box_capacity + box] != Profiles.CONTACT_POINT: continue
 		found += 1
 		for axis: int in 3: q.anchor[axis] = q.profiles._live.boxes[axis * q.profiles._box_capacity + box]
-	return found == 1 and q.anchor[q.axis] * q.direction > 0
+	return found == 1 and q.anchor[q.axis] * q.direction > 0 and _patch_on_face(q, row)
+
+
+static func _patch_on_face(q: Query, row: int) -> bool:
+	"""Decision 1971: the row's CONTACT_PATCH lies flat on the struck face's axis. A patch flat in another axis (a
+	top-face dig, a seating tap) strikes some other face, and WorkFace's patch proof would refuse it later."""
+	var stride: int = q.profiles._box_capacity
+	for index: int in _field(q, row, Profiles.F_BOX_COUNT):
+		var box: int = _field(q, row, Profiles.F_FIRST_BOX) + index
+		if q.profiles._live.boxes[6 * stride + box] == Profiles.CONTACT_PATCH:
+			return q.profiles._live.boxes[q.axis * stride + box] == q.profiles._live.boxes[(q.axis + 3) * stride + box]
+	return false
 
 
 static func _reaches(q: Query) -> bool:
-	"""The anchor must lie strictly inside the cube's band above the Room floor and the root stand outside the cube."""
+	"""The anchor must lie strictly inside the struck cube's band and the root stand outside the cube. The struck cube
+	is the target, or, for a target above the floor band, its column's floor-band cube (decision 1971 column digging,
+	`Face.struck_origin`); the cubes below the target are proved open by WorkFace."""
 	var plane: int = int(q.origin[q.axis]) + (0 if q.direction > 0 else Contract.QUANTUM_SIDE_U)
 	var height: int = q.start.y + q.anchor.y
+	var band: int = Face.struck_origin(q.origin, q.start.y, height).y
 	q.root = q.start
 	q.root[q.axis] = plane - q.anchor[q.axis]
-	return height > q.origin.y and height < q.origin.y + Contract.QUANTUM_SIDE_U
+	return height > band and height < band + Contract.QUANTUM_SIDE_U
 
 
 static func _try_row(q: Query) -> bool:
@@ -700,13 +714,14 @@ static func _sweep(q: Query, profile: int, first: Vector3i, last: Vector3i) -> b
 
 
 static func _fits(q: Query, low: Vector3i, high: Vector3i, stroke: bool) -> bool:
-	"""Air above the Room floor needs void (and no blocker); anything below it needs actual support."""
+	"""Air above the Room floor needs void (and no blocker); anything below it needs actual support, except a stroke's
+	claws, whose below-floor scrape WorkFace alone proves against natural earth (decision 1971, P-1971-2 (a))."""
 	var plane: int = q.start.y
 	if high.y > plane:
 		_set_box(q.box, low, high)
 		q.box[1] = maxi(low.y, plane)
 		if _blocked(q) or not _covered(q, VOID, stroke): return false
-	if low.y < plane:
+	if low.y < plane and not stroke:
 		_set_box(q.box, low, high)
 		q.box[4] = mini(high.y, plane)
 		if not _covered(q, SUPPORT, false): return false

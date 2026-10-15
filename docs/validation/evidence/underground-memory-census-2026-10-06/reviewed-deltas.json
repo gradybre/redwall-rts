@@ -2630,6 +2630,232 @@
     }
    ],
    "delta": {}
+  },
+  "godot/scripts/core/underground_work_face.gd": {
+   "charges": [
+    {
+     "bytes": 24,
+     "carried_by": "WorkFace CONTROL_BYTES (2,048 B cold allowance, lease-bound)",
+     "store": "decision 1971: Check.struck, the struck cube's six ints, one per synchronous observation; the column, scrape and cut-history helpers allocate nothing"
+    }
+   ],
+   "delta": {
+    "int_constants_added": [
+     [
+      "COLUMN_RISE_LIMIT_U",
+      "4096"
+     ],
+     [
+      "CUT_SCAN_CHECKS",
+      "20"
+     ],
+     [
+      "QUANTUM_U",
+      "Contract.QUANTUM_SIDE_U"
+     ]
+    ],
+    "classes": {
+     "Check": [
+      [
+       [
+        "actual",
+        "Routes.Configuration"
+       ],
+       [
+        "body",
+        "Profiles.Box"
+       ],
+       [
+        "bounds",
+        "PackedInt32Array"
+       ],
+       [
+        "contact",
+        "Vector3i"
+       ],
+       [
+        "descriptor",
+        "Profiles.Descriptor"
+       ],
+       [
+        "domain",
+        "Space.Domain"
+       ],
+       [
+        "endpoint",
+        "Locations.Record"
+       ],
+       [
+        "endpoint_after",
+        "Locations.Record"
+       ],
+       [
+        "has_contact",
+        "bool"
+       ],
+       [
+        "has_patch",
+        "bool"
+       ],
+       [
+        "original",
+        "Routes.Configuration"
+       ],
+       [
+        "original_request",
+        "Request"
+       ],
+       [
+        "proof",
+        "Routes.Clearance"
+       ],
+       [
+        "request",
+        "Request"
+       ],
+       [
+        "scratch",
+        "PackedInt32Array"
+       ],
+       [
+        "section",
+        "Owner.Region"
+       ],
+       [
+        "stance",
+        "Profiles.Box"
+       ],
+       [
+        "stroke_touches_contact",
+        "bool"
+       ],
+       [
+        "support",
+        "PackedInt32Array"
+       ],
+       [
+        "target",
+        "PackedInt32Array"
+       ],
+       [
+        "token",
+        "int"
+       ],
+       [
+        "world_seed",
+        "int"
+       ]
+      ],
+      [
+       [
+        "actual",
+        "Routes.Configuration"
+       ],
+       [
+        "body",
+        "Profiles.Box"
+       ],
+       [
+        "bounds",
+        "PackedInt32Array"
+       ],
+       [
+        "contact",
+        "Vector3i"
+       ],
+       [
+        "descriptor",
+        "Profiles.Descriptor"
+       ],
+       [
+        "domain",
+        "Space.Domain"
+       ],
+       [
+        "endpoint",
+        "Locations.Record"
+       ],
+       [
+        "endpoint_after",
+        "Locations.Record"
+       ],
+       [
+        "has_contact",
+        "bool"
+       ],
+       [
+        "has_patch",
+        "bool"
+       ],
+       [
+        "original",
+        "Routes.Configuration"
+       ],
+       [
+        "original_request",
+        "Request"
+       ],
+       [
+        "proof",
+        "Routes.Clearance"
+       ],
+       [
+        "request",
+        "Request"
+       ],
+       [
+        "scratch",
+        "PackedInt32Array"
+       ],
+       [
+        "section",
+        "Owner.Region"
+       ],
+       [
+        "stance",
+        "Profiles.Box"
+       ],
+       [
+        "stroke_touches_contact",
+        "bool"
+       ],
+       [
+        "struck",
+        "PackedInt32Array"
+       ],
+       [
+        "support",
+        "PackedInt32Array"
+       ],
+       [
+        "target",
+        "PackedInt32Array"
+       ],
+       [
+        "token",
+        "int"
+       ],
+       [
+        "world_seed",
+        "int"
+       ]
+      ]
+     ]
+    },
+    "allocation_sites": {
+     "PackedInt32Array(": 1
+    }
+   }
+  },
+  "godot/scripts/core/underground_space_authority.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1971: _contacts_refusal reads the contact face through Face.struck_origin; one preload, no member, packet or resize"
+    }
+   ],
+   "delta": {}
   }
  },
  "scope": "ADR 1212 reviewed storage deltas between manifest-3 reviewed bytes and the current source."

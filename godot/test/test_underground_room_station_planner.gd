@@ -28,7 +28,7 @@ const CONTENT_6_BOXES: int = 377
 const CONTENT_6_SOURCES: int = 4
 const CONTENT_6_BANK_BYTES: int = 29664
 const CONTENT_6_WIRE: String = "res://data/underground/mole-worker/qualified-stone-v7/mole-worker.ugprof"
-const KITCHEN_SITES: int = 8 # DEC-054: 2 x 2 x the two reachable levels.
+const KITCHEN_SITES: int = 16 # DEC-054 addendum (decision 1971): 2 x 2 cells x the 4 quanta of the painted 4,096 u.
 const YAW_PLUS_X: int = 49152
 
 
@@ -413,10 +413,13 @@ func test_adr1161_v3_fixture_lateral_publishes_but_its_ground_leg_cannot_hand_of
 	candidate = _candidate(room, cold, 2048, 0, 1024)
 	assert_equal(Frontier.contact_into(_h.provider, candidate, _h._first, 5, 1, cold, Space.MAX_CHECKS, contact), &"", "actual contact")
 	assert_equal(contact.location, result.work, "the planned WORK row")
-	for cube: Vector3i in [Vector3i(2048, 1024, 0), Vector3i(3072, 0, 0)]:
-		var out: Publication.Request = _sentinel()
-		assert_equal(_plan(room, cold, cube.x, cube.y, cube.z, out), Planner.REFUSE_CLOSED, "v3 %s" % cube)
-		_assert_sentinel(out, "v3 refusal")
+	var upper: Publication.Request = Publication.Request.new()
+	assert_equal(_plan(room, cold, 2048, 1024, 0, upper), &"", "decision 1971: the upper cube is struck at its column's floor")
+	assert_equal([upper.work_profile, upper.count], [24, 1], "v3 FRONT 24 from the first cube's floor station")
+	assert_equal(_point(upper, 0), Vector3i(1280, 0, 512), "the authored bootstrap root")
+	var out: Publication.Request = _sentinel()
+	assert_equal(_plan(room, cold, 3072, 0, 0, out), Planner.REFUSE_CLOSED, "v3 (3072, 0, 0)")
+	_assert_sentinel(out, "v3 refusal")
 	candidate = null
 	assert_equal(_h._budget.release(cold), &"", "no retained lease")
 	_assert_v3_ground_handoff_refused(result)
@@ -442,8 +445,9 @@ func _assert_v3_ground_handoff_refused(result: Publication.Result) -> void:
 		&"PROFILE_VARIANT_UNAUTHORED", "the ADR1161 runtime seam stands in v3")
 
 
-func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
-	"""Content 6 with per-motion air and the DEC-054 height: all eight cubes are paid, with no refusal left."""
+func test_room_loop_digs_the_painted_kitchen_with_exact_ledgers() -> void:
+	"""Content 6 painted to 4,096 u (DEC-054 addendum, decision 1971): all sixteen cubes are paid, each column bottom-up,
+	with no refusal left. Every upper quantum is struck from its column's floor station (column digging)."""
 	var fixture: StepFixture = StepFixture.new()
 	_h = fixture
 	var room: Vector2i = fixture.confirmed_room()
@@ -457,15 +461,18 @@ func test_room_loop_digs_both_lower_levels_with_exact_ledgers() -> void:
 	for cube: Vector3i in [Vector3i(2048, 0, 0), Vector3i(2048, 0, 1024), Vector3i(2048, 1024, 0), Vector3i(2048, 1024, 1024),
 			Vector3i(3072, 0, 0), Vector3i(3072, 0, 1024), Vector3i(3072, 1024, 0), Vector3i(3072, 1024, 1024)]:
 		expected.append(_key(sites, cube.x, cube.y, cube.z))
-	assert_equal(fixture.completed, expected, "paid cubes in loop order")
-	assert_equal(fixture.refusals.size(), 0, "the whole clamped Kitchen digs")
-	_assert_ledgers(fixture, 8)
+	for y: int in [2048, 3072]:
+		for z: int in [0, 1024]:
+			for x: int in [2048, 3072]: expected.append(_key(sites, x, y, z))
+	assert_equal(fixture.completed, expected, "paid cubes in loop order: the two lower levels, then levels 2-3")
+	assert_equal(fixture.refusals.size(), 0, "the whole painted Kitchen digs")
+	_assert_ledgers(fixture, KITCHEN_SITES)
 	var stations: int = 0
 	for count: int in fixture.published: stations += count
 	print("ROOM-LOOP-PUBLISHED ", fixture.published)
 	assert_equal(fixture.endpoints._live.count, locations + stations, "every planned station published once")
 	assert_equal(fixture._routes._live.edge_count, edges + 2 * stations, "two directed spans per station")
-	assert_true(_multi_air_rows(fixture) > 0, "upper WORK stations claim per-motion air")
+	assert_equal(_multi_air_rows(fixture), 0, "decision 1971: upper quanta reuse the floor stations; no HIGH station is published")
 	print("ROOM-LOOP-PEAKS publication route=%d location=%d phase route=%d location=%d" % Array(fixture.peaks))
 	for peak: int in fixture.peaks: assert_true(peak > 0 and peak < Space.MAX_CHECKS, "measured below the cold check budget")
 
@@ -576,31 +583,45 @@ func _assert_step_rows_decide_the_upper_reason(fixture: StepFixture, room: Vecto
 	var original: PackedByteArray = flags.slice(at + 10, at + 12)
 	flags[at + 10] = Profiles.POLICY_READY_FORWARD; flags[at + 11] = Profiles.POLICY_READY_BACKWARD
 	var out: Publication.Request = _sentinel()
-	assert_equal(_plan(room, cold, 2048, 1024, 0, out), Planner.REFUSE_STEP, "full travel blocked, no finite step pair")
-	_assert_sentinel(out, "missing step")
+	assert_equal(_plan(room, cold, 2048, 1024, 0, out), &"", "decision 1971: with no step, FRONT strikes the column's floor")
+	assert_equal([out.work_profile, out.count], [27, 1], "FRONT 27 at the floor station needs no finite step")
 	flags[at + 10] = original[0]; flags[at + 11] = original[1]
 	assert_equal(_plan(room, cold, 2048, 1024, 0, out), &"", "restored rows plan the step chain")
 	assert_equal(fixture._budget.release(cold), &"", "lease released")
 
 
-func test_confirmation_refuses_a_height_no_floor_station_digs() -> void:
-	"""DEC-054: content 6 digs 2,048u from the floor; the painted 4 m refuses unclaimed, the clamp claims 8 Sites only."""
+func test_confirmation_digs_the_painted_height() -> void:
+	"""DEC-054 addendum (decision 1971): a crew that strikes a side face in the floor band digs every quantum of a
+	column, so the painted 4 m confirms whole; identities with no dig row still reach nothing."""
 	var fixture: StepFixture = StepFixture.new()
 	_h = fixture
 	fixture.location_capacity = 64; fixture.edge_capacity = 128
 	fixture._actual_fixture(); fixture.connect_source_paths(); fixture.finite_stock_and_worker()
 	if not fixture.failures.is_empty(): return
-	assert_equal(Approach.reachable_height_u(fixture._profiles, 27), 2048, "FRONT 707u and HIGH 1039u: levels 0-1")
+	assert_equal(Approach.reachable_height_u(fixture._profiles, 27), Approach.UNLIMITED_HEIGHT_U, "FRONT strikes the floor band")
 	assert_equal(Approach.reachable_height_u(fixture._profiles, 33), 0, "the haul identity publishes no dig row")
 	assert_equal(Approach.reachable_height_u(fixture._profiles, 99), 0, "an absent row reaches nothing")
 	var painted: Phase.Approach.Request = fixture.room_request()
-	assert_equal(painted.height_u, 2048, "the fixture clamps its painted 4 m")
+	assert_equal(painted.height_u, 4096, "the fixture paints the full 4 m")
 	var sites: int = fixture.sites._count
-	painted.height_u = 4096
-	var refused: Phase.Buildings.OpResult = fixture.orders.confirm_room(painted)
-	assert_false(refused.ok, "the painted 4 m is not confirmed")
-	assert_equal(refused.error, Approach.REFUSE_HEIGHT, "named: the upper band is unreachable")
-	assert_equal(fixture.sites._count, sites, "nothing above the band is claimed")
-	assert_true(fixture.orders.confirm_room(fixture.room_request()).ok, "the clamped Kitchen confirms")
-	assert_equal(fixture.sites._count, sites + KITCHEN_SITES, "8 Kitchen Sites, none above 2,048u")
-	assert_equal(fixture.sites.site_at(Vector3i(Phase.X + 2048, Phase.FLOOR + 2048, Phase.Z)), NULL_REF, "no level-2 Site")
+	assert_true(fixture.orders.confirm_room(painted).ok, "the painted Kitchen confirms")
+	assert_equal(fixture.sites._count, sites + KITCHEN_SITES, "16 Kitchen Sites, up to 4,096u")
+	assert_true(fixture.sites.site_at(Vector3i(Phase.X + 2048, Phase.FLOOR + 3072, Phase.Z)) != NULL_REF, "a level-3 Site")
+
+
+func test_a_stroke_below_the_floor_is_left_to_the_work_face() -> void:
+	"""Decision 1971: below the Room floor a body box needs actual support, while a stroke's claws (the scrape) are
+	proved by WorkFace against natural earth instead."""
+	var q: Planner.Query = Planner.Query.new()
+	q.start = Vector3i.ZERO
+	q.box.resize(6); q.other.resize(6); q.target.resize(6)
+	q.front.resize(6 * Planner.MAX_FRAGMENTS); q.back.resize(6 * Planner.MAX_FRAGMENTS)
+	q.tables.resize(4)
+	for kind: int in 4:
+		var table: PackedInt32Array = PackedInt32Array()
+		table.resize(6 * Planner.MAX_REGIONS)
+		q.tables[kind] = table
+	q.remaining = 1 << 20
+	assert_false(Planner._fits(q, Vector3i(0, -61, 0), Vector3i(64, 0, 64), false), "a body box below the floor needs support")
+	assert_true(Planner._fits(q, Vector3i(0, -61, 0), Vector3i(64, 0, 64), true), "a stroke's scrape is WorkFace's")
+

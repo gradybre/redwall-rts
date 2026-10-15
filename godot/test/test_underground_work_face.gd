@@ -90,6 +90,15 @@ class ObservedSpace extends Owner:
 		return super._snapshot_image(room, project, traversal)
 
 
+class FootingTerrain extends Fixture.ReenteringTerrain:
+	## Negative-only: names a footing refusal so the scrape's natural-earth check is observable (decision 1971).
+	var footing_code: StringName = &""
+
+	func natural_support_refusal(bounds: PackedInt32Array) -> StringName:
+		"""The actual footing check, or the configured refusal."""
+		return footing_code if footing_code != &"" else super.natural_support_refusal(bounds)
+
+
 class UndergroundFixture extends Fixture:
 	## Synthetic complete corridor at an authored underground floor; all owning stores are real.
 	var commands: OwnerFixture.SyntheticRoomCommands = null
@@ -120,6 +129,10 @@ class UndergroundFixture extends Fixture:
 		else:
 			_void = _region(token, PackedInt32Array([X, FLOOR, Z, X + 2048, FLOOR + 2048, Z + 2048]), Space.SUPPORTED_VOID)
 		_region(token, PackedInt32Array([X, FLOOR - 128, Z, X + 2048, FLOOR, Z + 2048]), Space.SUPPORT)
+		if obstruction >= 2: # Decision 1971: the target column's floor-band cube is already finished void.
+			_region(token, PackedInt32Array([X + 2048, FLOOR, Z, X + 3072, FLOOR + 1024, Z + 1024]), Space.SUPPORTED_VOID)
+		if obstruction == 3: # ...with an obstacle standing in it, clear of the stroke.
+			_region(token, PackedInt32Array([X + 2600, FLOOR, Z + 400, X + 2800, FLOOR + 200, Z + 600]), Space.OBSTACLE)
 		assert_equal(_owner.seal(token), &"", "real owner seals explicit fixture space")
 		_owner.publish(token)
 		_finish_space(domain)
@@ -138,7 +151,7 @@ class UndergroundFixture extends Fixture:
 		assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
 			_owner, _sources, _budget, 8, 228 * 8 + 256), &"", "actual endpoints")
 		assert_equal(_locations.bind_sites(physical.sites), &"", "actual physical ownership")
-		_terrain = ReenteringTerrain.new()
+		_terrain = FootingTerrain.new()
 		assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual terrain")
 		_actual_catalog(domain)
 
@@ -631,3 +644,120 @@ func test_finish_scope_tracks_real_start_work_terminal_and_released_worker() -> 
 	assert_true(_paid._sites.settle_phase(site).ok, "actual terminal retry completes")
 	assert_equal(Face.FinishCheck.scope_refusal(config, request, _paid._sites, site, room,
 		project, PhaseContract.STAGE_COMMIT), Face.REFUSE_PHASE, "retired Project cannot authorize another attempt")
+
+
+func test_struck_origin_is_the_target_or_its_columns_floor_band_cube() -> void:
+	"""Decision 1971: a floor-band side strike works an upper quantum; every other anchor strikes the target itself."""
+	var target: Vector3i = Vector3i(0, 2048, 0)
+	assert_equal(Face.struck_origin(target, 0, 2500), target, "an anchor in the target's own band strikes the target")
+	assert_equal(Face.struck_origin(target, 0, 512), Vector3i(0, 0, 0), "a floor-band side strike works the column")
+	assert_equal(Face.struck_origin(target, 0, 0), target, "the floor plane is never a side strike")
+	assert_equal(Face.struck_origin(target, 0, 1024), target, "the floor band's top plane is never a side strike")
+	assert_equal(Face.struck_origin(Vector3i(0, 1536, 0), 0, 512), Vector3i(0, 1536, 0), "a part-quantum rise is no column")
+	assert_equal(Face.struck_origin(Vector3i(0, -1024, 0), 0, 512), Vector3i(0, -1024, 0), "a cube below the floor is no column")
+	assert_equal(Face.struck_origin(Vector3i(0, 3072, 0), 0, 512), Vector3i(0, 0, 0), "the top quantum of a 4 m column")
+	assert_equal(Face.struck_origin(Vector3i(0, 5120, 0), 0, 512), Vector3i(0, 5120, 0), "a station on the level below never")
+
+
+func test_column_rise_limit_is_the_level_packs_clear_height() -> void:
+	"""The column bound is the adopted clear height, read from the level pack itself."""
+	var pack: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/underground/initial_level_pack.json"))
+	assert_equal(Face.COLUMN_RISE_LIMIT_U, int(pack["clear_height_u"]), "COLUMN_RISE_LIMIT_U is clear_height_u")
+
+
+func test_upper_quantum_needs_its_column_open_below() -> void:
+	"""An upper quantum is refused while the floor-band cube the claws strike is still earth."""
+	_setup()
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 1024, Z)
+	assert_equal(_read(), Face.REFUSE_COLUMN, "the column's floor-band cube is not dug")
+
+
+func test_upper_quantum_is_struck_at_the_open_floor_band() -> void:
+	"""With the floor-band cube finished, the same floor-band stroke works the quantum above it (P-1971-3)."""
+	_setup(2)
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 1024, Z)
+	assert_equal(_read(), &"", "the column is worked from the floor station")
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 2048, Z)
+	assert_equal(_read(), Face.REFUSE_COLUMN, "a column is dug bottom-up: the quantum below is still earth")
+
+
+func _scrape_profile(revision: int) -> void:
+	"""The test profile plus a WORK_STROKE box wholly below the stance plane, across the wall's foot."""
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.insert(5, PackedInt32Array([400, -61, -32, 560, 0, 32, Profiles.WORK_STROKE]))
+	_load_profiles(boxes, revision)
+	_request.content_revision = revision
+
+
+func test_claws_may_scrape_natural_earth_below_the_stance_plane() -> void:
+	"""P-1971-2 (a): the below-plane stroke meets the corridor's floor support and the earth under the target."""
+	_setup()
+	_scrape_profile(3)
+	assert_equal(_read(), &"", "natural, never-cut earth may be scraped")
+
+
+func test_scrape_never_enters_a_cut_cube() -> void:
+	"""Earth in a quantum some Site cut (timber, backfill, another dig) is never scraped."""
+	_setup()
+	var origin: Vector3i = Vector3i(X + 1024, FLOOR - 1024, Z)
+	assert_true(_actual.physical.sites.claim_quantum(origin, _actual.room).ok, "a Site under the corridor floor")
+	_actual.physical.sites._ever_cut[_actual.physical.sites.site_at(origin).x] = 1 # Its recorded cut history.
+	_scrape_profile(3)
+	assert_equal(_read(), Face.REFUSE_STROKE, "the cut quantum under the floor refuses the scrape")
+
+
+func test_cut_history_scan_covers_every_quantum_the_box_meets() -> void:
+	"""The lattice scan's integer floor, its charged span and the cut history it reads."""
+	_setup()
+	var sites: Face.Sites = _actual.physical.sites
+	var box: PackedInt32Array = PackedInt32Array([X + 1936, FLOOR - 61, Z - 32, X + 2096, FLOOR, Z + 32])
+	assert_equal(Face.Check.lattice_low(sites._domain, box), Vector3i(X + 1024, FLOOR - 1024, Z - 1024), "negative floor")
+	assert_equal(Face.Check.cube_span(sites._domain, box), 4, "two by one by two quanta")
+	assert_false(Face.Check.ever_cut(sites, box), "no Site has cut there")
+	var origin: Vector3i = Vector3i(X + 2048, FLOOR - 1024, Z - 1024)
+	assert_true(sites.claim_quantum(origin, _actual.room).ok, "a claimed quantum the box meets")
+	assert_false(Face.Check.ever_cut(sites, box), "claimed is not cut")
+	sites._ever_cut[sites.site_at(origin).x] = 1
+	assert_true(Face.Check.ever_cut(sites, box), "the last quantum the box meets was cut")
+	assert_equal(Face.Check.cut_row(sites, -1), -1, "an off-lattice key has no row")
+
+
+func test_scrape_needs_natural_footing() -> void:
+	"""Earth the terrain does not certify as original dry footing is never scraped."""
+	_setup()
+	_scrape_profile(3)
+	(_actual._terrain as FootingTerrain).footing_code = &"TERRAIN_NOT_NATURAL_DRY_SOLID"
+	assert_equal(_read(), Face.REFUSE_STROKE, "a non-natural footing refuses the scrape")
+	(_actual._terrain as FootingTerrain).footing_code = &""
+	assert_equal(_read(), &"", "the same scrape over natural footing")
+
+
+func test_scrape_needs_the_excavation_authority() -> void:
+	"""Without a bound Sites owner the cut history is unknown, so nothing is scraped."""
+	_setup()
+	_scrape_profile(3)
+	var authority: WeakRef = _actual._construction._excavation_authority
+	_actual._construction._excavation_authority = null
+	assert_equal(_read(), Face.REFUSE_STROKE, "no cut history, no scrape")
+	_actual._construction._excavation_authority = authority
+	assert_equal(_read(), &"", "the bound authority restores it")
+
+
+func test_an_obstructed_column_is_not_open() -> void:
+	"""Void alone is not enough: an obstacle standing in the column below the paid quantum refuses it."""
+	_setup(3)
+	_request.target_origin = Vector3i(X + 2048, FLOOR + 1024, Z)
+	assert_equal(_read(), Face.REFUSE_COLUMN, "the floor-band cube holds an obstacle")
+
+
+func test_scrape_needs_the_worlds_own_site_lattice() -> void:
+	"""Cut history read from another World's lattice proves nothing, so nothing is scraped."""
+	_setup()
+	_scrape_profile(3)
+	var lattice: Face.Contract.Domain = _actual.physical.sites._domain
+	var world: Vector2i = lattice.world_ref
+	lattice.world_ref = Vector2i(world.x + 1, world.y)
+	assert_equal(_read(), Face.REFUSE_STROKE, "a foreign lattice refuses the scrape")
+	lattice.world_ref = world
+	assert_equal(_read(), &"", "the World's own lattice restores it")
+

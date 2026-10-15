@@ -498,49 +498,49 @@
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_capacity",
-        "line": 278
+        "line": 279
       },
       "_next_i32": {
         "width": 4,
         "capacity": 11,
         "bytes": 44,
         "resize_expression": "I32_FIELDS",
-        "line": 279
+        "line": 280
       },
       "_next_i64": {
         "width": 8,
         "capacity": 2,
         "bytes": 16,
         "resize_expression": "I64_FIELDS",
-        "line": 280
+        "line": 281
       },
       "_ordered": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_capacity",
-        "line": 277
+        "line": 278
       },
       "_present": {
         "width": 1,
         "capacity": 256,
         "bytes": 256,
         "resize_expression": "_capacity",
-        "line": 274
+        "line": 275
       },
       "_proof_i32": {
         "width": 4,
         "capacity": 2816,
         "bytes": 11264,
         "resize_expression": "_capacity * I32_FIELDS",
-        "line": 275
+        "line": 276
       },
       "_proof_i64": {
         "width": 8,
         "capacity": 512,
         "bytes": 4096,
         "resize_expression": "_capacity * I64_FIELDS",
-        "line": 276
+        "line": 277
       }
     },
     "spoil_tips": {
@@ -41258,8 +41258,10 @@
       "godot/scripts/core/underground_route_composition.gd",
       "godot/scripts/core/underground_routes.gd",
       "godot/scripts/core/underground_session.gd",
+      "godot/scripts/core/underground_space_authority.gd",
       "godot/scripts/core/underground_space_owner.gd",
       "godot/scripts/core/underground_surface_anchor.gd",
+      "godot/scripts/core/underground_work_face.gd",
       "godot/scripts/core/underground_world_retirement.gd",
       "godot/scripts/core/underground_world_routes.gd",
       "godot/scripts/core/work.gd",
@@ -44219,6 +44221,232 @@
           }
         ],
         "delta": {}
+      },
+      "godot/scripts/core/underground_work_face.gd": {
+        "charges": [
+          {
+            "bytes": 24,
+            "carried_by": "WorkFace CONTROL_BYTES (2,048 B cold allowance, lease-bound)",
+            "store": "decision 1971: Check.struck, the struck cube's six ints, one per synchronous observation; the column, scrape and cut-history helpers allocate nothing"
+          }
+        ],
+        "delta": {
+          "int_constants_added": [
+            [
+              "COLUMN_RISE_LIMIT_U",
+              "4096"
+            ],
+            [
+              "CUT_SCAN_CHECKS",
+              "20"
+            ],
+            [
+              "QUANTUM_U",
+              "Contract.QUANTUM_SIDE_U"
+            ]
+          ],
+          "classes": {
+            "Check": [
+              [
+                [
+                  "actual",
+                  "Routes.Configuration"
+                ],
+                [
+                  "body",
+                  "Profiles.Box"
+                ],
+                [
+                  "bounds",
+                  "PackedInt32Array"
+                ],
+                [
+                  "contact",
+                  "Vector3i"
+                ],
+                [
+                  "descriptor",
+                  "Profiles.Descriptor"
+                ],
+                [
+                  "domain",
+                  "Space.Domain"
+                ],
+                [
+                  "endpoint",
+                  "Locations.Record"
+                ],
+                [
+                  "endpoint_after",
+                  "Locations.Record"
+                ],
+                [
+                  "has_contact",
+                  "bool"
+                ],
+                [
+                  "has_patch",
+                  "bool"
+                ],
+                [
+                  "original",
+                  "Routes.Configuration"
+                ],
+                [
+                  "original_request",
+                  "Request"
+                ],
+                [
+                  "proof",
+                  "Routes.Clearance"
+                ],
+                [
+                  "request",
+                  "Request"
+                ],
+                [
+                  "scratch",
+                  "PackedInt32Array"
+                ],
+                [
+                  "section",
+                  "Owner.Region"
+                ],
+                [
+                  "stance",
+                  "Profiles.Box"
+                ],
+                [
+                  "stroke_touches_contact",
+                  "bool"
+                ],
+                [
+                  "support",
+                  "PackedInt32Array"
+                ],
+                [
+                  "target",
+                  "PackedInt32Array"
+                ],
+                [
+                  "token",
+                  "int"
+                ],
+                [
+                  "world_seed",
+                  "int"
+                ]
+              ],
+              [
+                [
+                  "actual",
+                  "Routes.Configuration"
+                ],
+                [
+                  "body",
+                  "Profiles.Box"
+                ],
+                [
+                  "bounds",
+                  "PackedInt32Array"
+                ],
+                [
+                  "contact",
+                  "Vector3i"
+                ],
+                [
+                  "descriptor",
+                  "Profiles.Descriptor"
+                ],
+                [
+                  "domain",
+                  "Space.Domain"
+                ],
+                [
+                  "endpoint",
+                  "Locations.Record"
+                ],
+                [
+                  "endpoint_after",
+                  "Locations.Record"
+                ],
+                [
+                  "has_contact",
+                  "bool"
+                ],
+                [
+                  "has_patch",
+                  "bool"
+                ],
+                [
+                  "original",
+                  "Routes.Configuration"
+                ],
+                [
+                  "original_request",
+                  "Request"
+                ],
+                [
+                  "proof",
+                  "Routes.Clearance"
+                ],
+                [
+                  "request",
+                  "Request"
+                ],
+                [
+                  "scratch",
+                  "PackedInt32Array"
+                ],
+                [
+                  "section",
+                  "Owner.Region"
+                ],
+                [
+                  "stance",
+                  "Profiles.Box"
+                ],
+                [
+                  "stroke_touches_contact",
+                  "bool"
+                ],
+                [
+                  "struck",
+                  "PackedInt32Array"
+                ],
+                [
+                  "support",
+                  "PackedInt32Array"
+                ],
+                [
+                  "target",
+                  "PackedInt32Array"
+                ],
+                [
+                  "token",
+                  "int"
+                ],
+                [
+                  "world_seed",
+                  "int"
+                ]
+              ]
+            ]
+          },
+          "allocation_sites": {
+            "PackedInt32Array(": 1
+          }
+        }
+      },
+      "godot/scripts/core/underground_space_authority.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1971: _contacts_refusal reads the contact face through Face.struck_origin; one preload, no member, packet or resize"
+          }
+        ],
+        "delta": {}
       }
     },
     "charged_by_carrier": {
@@ -44241,7 +44469,8 @@
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "entry structure reservation (decision1122, 384 B)": 0,
       "WorldRoutes CONTROL_RESERVE (recounted)": 58,
-      "base ledger (decisions 1023, 1031)": 0
+      "base ledger (decisions 1023, 1031)": 0,
+      "WorkFace CONTROL_BYTES (2,048 B cold allowance, lease-bound)": 24
     },
     "geometry_journals": {
       "packed_bytes_per_instance": 2136,
@@ -44422,15 +44651,15 @@
     "godot/scripts/core/underground_motion_clock.gd": "ffe6340027f5d6adf0d0b416539423102a586f0e402091af3dcbfab70be1d0ed",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
-    "godot/scripts/core/underground_room_world_bindings.gd": "d012c526a267fc7aecb365e7a6afa40d00d931f2b710b1122fc19705f556f8b1",
+    "godot/scripts/core/underground_room_world_bindings.gd": "4648625c6c0e6223097c604a1ebc0f6d0c0cda198d92e3b7992481b44c94f95b",
     "godot/scripts/core/underground_route_composition.gd": "d4599f84ce86f95d4d54dee4193c27d6f85ad59e6be000d05419017b04bf811a",
     "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
     "godot/scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
-    "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+    "godot/scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
     "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
     "godot/scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
-    "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
+    "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
     "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"

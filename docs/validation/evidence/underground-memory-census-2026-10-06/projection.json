@@ -140,6 +140,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_session.gd-f3026b276973.txt",
       "sha256": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712"
     },
+    "godot/scripts/core/underground_space_authority.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_space_authority.gd-3377e00f509e.txt",
+      "sha256": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b"
+    },
     "godot/scripts/core/underground_space_owner.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_space_owner.gd-6e7390a07d80.txt",
       "sha256": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158"
@@ -147,6 +151,10 @@
     "godot/scripts/core/underground_surface_anchor.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_surface_anchor.gd-ac38160fbfd6.txt",
       "sha256": "ac38160fbfd6f64adfda8d4ea7fcde61df635af560774e4f60cb4d2505b27b12"
+    },
+    "godot/scripts/core/underground_work_face.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_work_face.gd-2e6848174412.txt",
+      "sha256": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26"
     },
     "godot/scripts/core/underground_world_retirement.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_world_retirement.gd-d44232dfaa95.txt",

@@ -1,7 +1,7 @@
 # 1934 — Slice C2.2 scoping: Delivery's room pin, and retiring a room's station chains
 
-Date: 2026-10-15 · Status: Proposed. Scoping only; no code. Stopped for Brendan's ruling on P-C22-1 and for the
-coordinator's sequencing of P-C22-2 against the cost lane (`perf/dig-tick-cost`).
+Date: 2026-10-15 · Status: Accepted (rulings below). Scoping written before any code; P-C22-1 was ruled by Brendan
+and P-C22-2 sequenced by the coordinator against the cost lane (`perf/dig-tick-cost`) on 2026-10-15.
 
 Number range: this lane's 1931–1949 (decision 1931). The branch is `feat/room-foreman-c2-2`, from `00b30c0e` (C2.1,
 PR #262).
@@ -131,6 +131,24 @@ a second or third Kitchen-sized room on a level, unless the cost lane changes th
   public calls.
 
 **Recommendation: (a), then (b).** The Locations edit is small, but it sits on the path every route proof reads.
+
+## Rulings (2026-10-15)
+
+**P-C22-1 — Brendan, 2026-10-15, in chat: "Same-level now + basic stair carry".** That is (c) now and (a) as a
+separate content lane:
+
+- **This lane** builds the same-level room Delivery now, proven on the fixture between two containers on one level.
+  The stair leg is the named gap `ROOM_HAUL_NO_STAIR_CARRY` until stair-carry rows exist.
+- **`feat/stair-carry`** (a separate lane) owns the basic stair-carry motion content. This lane does not author
+  carry rows or touch that lane's files.
+- The coordinator cleared this lane for `underground_connector_delivery.gd` (the room branch),
+  `underground_room_builder.gd` (the haul stage), the room record's +8 B (a staging-container column) and ADR 1212's
+  census update for Delivery's retained flag.
+
+**P-C22-2 — the coordinator's call: (a).** Station-chain retirement **follows the cost lane**: once
+`perf/dig-tick-cost` lands, re-measure the cost per edge on the 16-Site Kitchen, then build retirement against the
+real limit. `underground_locations.gd` is left alone until then. §2 above stays the plan of record, not work in
+progress.
 
 ## Source
 

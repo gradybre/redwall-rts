@@ -49,7 +49,7 @@
     "godot/scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
     "godot/scripts/core/underground_work_face.gd": "2e68481744124bc9aa56667112de2d223796069fd1966090f69fad37d63b9b26",
     "godot/scripts/core/underground_connector_contacts.gd": "d45d58aa5c24fb1da5429de74719862713f0716d3d20c37ef8f1b3b055d46db0",
-    "godot/scripts/core/underground_routes.gd": "3167617d713bfe281fac984498babe1879dbf03b67f7738be37583230755758d",
+    "godot/scripts/core/underground_routes.gd": "d29ee5282a139e3a2030ce335bc3567ac4f89d2e6d6f83dd5d6477de94b0b4c6",
     "godot/scripts/core/underground_world_routes.gd": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
     "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
@@ -142,6 +142,11 @@
       "path": "godot/scripts/core/underground_world_routes.gd",
       "from": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
       "to": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8"
+    },
+    {
+      "path": "godot/scripts/core/underground_routes.gd",
+      "from": "3167617d713bfe281fac984498babe1879dbf03b67f7738be37583230755758d",
+      "to": "d29ee5282a139e3a2030ce335bc3567ac4f89d2e6d6f83dd5d6477de94b0b4c6"
     }
   ]
 }

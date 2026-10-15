@@ -2343,8 +2343,16 @@ static func _source_profile_refusal(profiles: Profiles, profile: int, profile_re
 	if Stair.owns(profiles, profile): return Stair.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw2.owns(profiles, profile): return Claw2.profile_refusal(profiles, profile, profile_revision, content)
 	if Claw.owns(profiles, profile): return Claw.profile_refusal(profiles, profile, profile_revision, content)
-	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
-		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
+	return _program_profile_refusal(profiles, profile, profile_revision, content)
+
+
+static func _program_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
+	"""The step program's refusal when its closure holds, else the parent program's. Decision 1951: the step refusal
+	begins with that closure check, so a pass proves it; the closure is read again only after a refusal, to choose."""
+	var code: StringName = ShortStep.profile_refusal(profiles, profile, profile_revision, content)
+	if code == &"" or ShortStep.uses(profiles):
+		return code
+	return SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
 
 
 static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
@@ -2361,22 +2369,37 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 		return &"" if policy <= Profiles.POLICY_AUTOMATIC else &"ROUTE_SOURCE_CLOCK"
 	if policy == Profiles.POLICY_AUTOMATIC:
 		return &"ROUTE_SOURCE_CLOCK"
+	if Handling.is_handling(profile, content) or Stair.owns(actual._profiles, profile) \
+			or Claw2.owns(actual._profiles, profile) or Claw.owns(actual._profiles, profile):
+		return _owned_clock_leaf(actual, row, phase, profile, profile_revision, content)
+	return _program_clock_leaf(actual, row, phase, profile, profile_revision, content)
+
+
+static func _owned_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int, profile_revision: int,
+		content: int) -> StringName:
+	"""Handling, stair and claw rows: their own source proof, then their own clock, in the original order."""
 	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
 	if code != &"": return code
-	if Handling.is_handling(profile, content):
-		return Handling.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
-			profile, content)
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	if Handling.is_handling(profile, content): return Handling.clock_refusal(phase, clock, profile, content)
 	if Stair.owns(actual._profiles, profile): return _stair_clock_leaf(actual, row, phase, profile)
-	if Claw2.owns(actual._profiles, profile):
-		return Claw2.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
-	if Claw.owns(actual._profiles, profile):
-		return Claw.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
-	if not ShortStep.uses(actual._profiles):
-		return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
-	code = ShortStep.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
+	if Claw2.owns(actual._profiles, profile): return Claw2.clock_refusal(phase, clock, profile)
+	return Claw.clock_refusal(phase, clock, profile)
+
+
+static func _program_clock_leaf(actual: RefCounted, row: int, phase: int, profile: int, profile_revision: int,
+		content: int) -> StringName:
+	"""The step or the parent program. Decision 1951: as in `_program_profile_refusal`, a passing step refusal proves
+	the step closure, which is read again only after a refusal."""
+	var code: StringName = ShortStep.profile_refusal(actual._profiles, profile, profile_revision, content)
+	var short: bool = code == &"" or ShortStep.uses(actual._profiles)
+	if not short: code = SourceProgram.profile_refusal(actual._profiles, profile, profile_revision, content)
+	if code != &"": return code
+	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	if not short: return SourceProgram.clock_refusal(phase, clock, profile)
+	code = ShortStep.clock_refusal(phase, clock, profile)
 	if code == &"" and ShortStep.is_short(profile):
-		code = ShortStep.progress_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row],
-			actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
+		code = ShortStep.progress_refusal(phase, clock, actual._motion.resident_long[R_PROGRESS * RESIDENT_CAPACITY + row],
 			actual._motion.resident_long[R_REMAINDER * RESIDENT_CAPACITY + row],
 			actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] >= 0)
 	return code

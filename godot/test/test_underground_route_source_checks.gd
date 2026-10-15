@@ -1,0 +1,169 @@
+extends "res://test/underground_host_case.gd"
+## Decision 1951: Routes' source-program checks read the step closure (`ShortStep.uses`) once instead of up to three
+## times. Both rewritten checks are compared with the pre-1951 code, copied here as the oracle, over every profile
+## row, revision and content of the content-6 step rows and of the mounted content-10 claw, stair and handling rows,
+## every program phase word and several clocks, with the step closure intact and broken.
+
+const StationTests := preload("res://test/test_underground_room_station_planner.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Stair := Routes.Stair
+const ShortStep := Routes.ShortStep
+const SourceProgram := Routes.SourceProgram
+
+var _h: StationTests.StepFixture = null
+var _routes: Routes = null
+var _profiles: Profiles = null
+
+
+func after_each() -> void:
+	"""Free the fixture's owners, then the host case's."""
+	_routes = null
+	_profiles = null
+	if _h != null:
+		_h.after_each()
+		assert_true(_h.failures.is_empty(), "fixture: %s" % _h.failures)
+	_h = null
+	super.after_each()
+
+
+func _fixture() -> bool:
+	"""The content-6 step rows, and a Routes whose row 0 the cases write directly."""
+	_h = StationTests.StepFixture.new()
+	_h._actual_fixture()
+	if not _h.failures.is_empty(): return false
+	_routes = Routes.new(_h._residents, _h._transforms)
+	_routes._allocate()
+	_routes._edge_capacity = 1
+	_profiles = _h._profiles
+	_routes._profiles = _profiles
+	return true
+
+
+func _mounted_fixture() -> bool:
+	"""The mounted content-10 rows (claw, stair, handling) of an actual Session, with its stair tables."""
+	var session: Session = _generate_and_mount()
+	if not failures.is_empty(): return false
+	var o: Session.Retirement.Owners = session._retirement_owners
+	_routes = Routes.new(o.residents, o.transforms)
+	_routes._allocate()
+	_routes._edge_capacity = 1
+	_profiles = session._profiles if session._profiles != null else o.profiles
+	_routes._profiles = _profiles
+	if o.routes != null: _routes._stair_motion = o.routes._stair_motion
+	return _profiles != null and _profiles.content_revision() > 0
+
+
+static func _oracle_profile(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
+	"""Pre-1951 `_source_profile_refusal`."""
+	if Routes.Handling.is_handling(profile, content):
+		return Routes.Handling.profile_refusal(profiles, profile, profile_revision, content)
+	if Routes.Stair.owns(profiles, profile): return Routes.Stair.profile_refusal(profiles, profile, profile_revision, content)
+	if Routes.Claw2.owns(profiles, profile): return Routes.Claw2.profile_refusal(profiles, profile, profile_revision, content)
+	if Routes.Claw.owns(profiles, profile): return Routes.Claw.profile_refusal(profiles, profile, profile_revision, content)
+	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
+		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
+
+
+func _oracle_clock(row: int) -> StringName:
+	"""Pre-1951 `_source_clock_leaf` past its automatic-policy checks (which are unchanged)."""
+	var profiles: Profiles = _routes._profiles
+	var profile: int = _routes._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row]
+	var revision: int = _routes._motion.resident_long[Routes.R_PROFILE_REVISION * Routes.RESIDENT_CAPACITY + row]
+	var content: int = _routes._motion.resident_long[Routes.R_CONTENT_REVISION * Routes.RESIDENT_CAPACITY + row]
+	var phase: int = _routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row]
+	var clock: int = _routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY + row]
+	var code: StringName = _oracle_profile(profiles, profile, revision, content)
+	if code != &"": return code
+	if Routes.Handling.is_handling(profile, content): return Routes.Handling.clock_refusal(phase, clock, profile, content)
+	if Routes.Stair.owns(profiles, profile): return Routes._stair_clock_leaf(_routes, row, phase, profile)
+	if Routes.Claw2.owns(profiles, profile): return Routes.Claw2.clock_refusal(phase, clock, profile)
+	if Routes.Claw.owns(profiles, profile): return Routes.Claw.clock_refusal(phase, clock, profile)
+	if not ShortStep.uses(profiles): return SourceProgram.clock_refusal(phase, clock, profile)
+	code = ShortStep.clock_refusal(phase, clock, profile)
+	if code == &"" and ShortStep.is_short(profile):
+		code = ShortStep.progress_refusal(phase, clock,
+			_routes._motion.resident_long[Routes.R_PROGRESS * Routes.RESIDENT_CAPACITY + row],
+			_routes._motion.resident_long[Routes.R_REMAINDER * Routes.RESIDENT_CAPACITY + row],
+			_routes._motion.resident[Routes.R_EDGE_SLOT * Routes.RESIDENT_CAPACITY + row] >= 0)
+	return code
+
+
+func _assert_profiles_match(label: String) -> void:
+	"""Every row (and two past the end), revisions 0-2 and contents around the live one."""
+	var live: int = _profiles.content_revision()
+	for profile: int in range(-1, _profiles._live.header[1] + 2):
+		for revision: int in 3:
+			for content: int in [0, live, live + 1]:
+				assert_equal(Routes._source_profile_refusal(_profiles, profile, revision, content),
+					_oracle_profile(_profiles, profile, revision, content), "%s: %d/%d/%d" % [label, profile, revision, content])
+
+
+func test_the_profile_check_equals_the_pre_1951_code_with_the_closure_whole_or_broken() -> void:
+	"""Rows the step program owns pass as before; with the closure broken the parent program decides, as before."""
+	if not _fixture(): return
+	assert_true(ShortStep.uses(_profiles), "content 6 extends the step program")
+	_assert_profiles_match("whole")
+	_profiles._live.sources[32] ^= 1 # Negative-only: the appended handling source digest no longer matches.
+	assert_false(ShortStep.uses(_profiles), "the closure is broken")
+	_assert_profiles_match("broken")
+	_profiles._live.sources[32] ^= 1
+
+
+func _words() -> PackedInt64Array:
+	"""Every route phase with every source phase of both programs, and the bare route phases."""
+	var out: PackedInt64Array = PackedInt64Array()
+	for route: int in 4:
+		out.append(route)
+		for source: int in 10:
+			out.append(ShortStep.word(route, source))
+			out.append(SourceProgram.word(route, source))
+	return out
+
+
+func _set_row(profile: int, revision: int, content: int, phase: int, clock: int) -> void:
+	"""Write row 0's source columns."""
+	_routes._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY] = profile
+	_routes._motion.resident_long[Routes.R_PROFILE_REVISION * Routes.RESIDENT_CAPACITY] = revision
+	_routes._motion.resident_long[Routes.R_CONTENT_REVISION * Routes.RESIDENT_CAPACITY] = content
+	_routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY] = phase
+	_routes._motion.resident_long[Routes.R_REQUEST_TICK * Routes.RESIDENT_CAPACITY] = clock
+
+
+func _assert_clocks_match(label: String) -> void:
+	"""Rows past their automatic-policy checks give the old answer for every word and clock."""
+	var live: int = _profiles.content_revision()
+	var clocks: PackedInt64Array = PackedInt64Array([0, -1, SourceProgram.clock(0, 0), SourceProgram.clock(65536, 0),
+		SourceProgram.clock(3 * 65536, 65536)])
+	for profile: int in range(0, _profiles._live.header[1] + 1):
+		var policy: int = Profiles.selection_policy_leaf(_profiles, profile, 1, live)
+		for phase: int in _words():
+			if (phase >= Routes.PHASE_IDLE and phase <= Routes.PHASE_HELD) or policy == Profiles.POLICY_AUTOMATIC: continue
+			for clock: int in clocks:
+				_set_row(profile, 1, live, phase, clock)
+				assert_equal(Routes._source_clock_leaf(_routes, 0), _oracle_clock(0), "%s: row %d word %d clock %d" % [
+					label, profile, phase, clock])
+
+
+func test_the_clock_check_equals_the_pre_1951_code_with_the_closure_whole_or_broken() -> void:
+	"""Owned rows, step rows and parent-program rows all answer as before, whole or broken."""
+	if not _fixture(): return
+	_assert_clocks_match("whole")
+	_profiles._live.sources[32] ^= 1 # Negative-only, restored below.
+	_assert_clocks_match("broken")
+	_profiles._live.sources[32] ^= 1
+
+
+func test_mounted_claw_stair_and_handling_rows_answer_as_before() -> void:
+	"""Content 10's owned rows go through their own programs and the step rows through the step program, as before."""
+	if not _mounted_fixture():
+		assert_true(false, "mounted content 10")
+		return
+	var owned: int = 0
+	for profile: int in _profiles._live.header[1]:
+		if Routes.Handling.is_handling(profile, _profiles.content_revision()) or Stair.owns(_profiles, profile) \
+				or Routes.Claw2.owns(_profiles, profile) or Routes.Claw.owns(_profiles, profile):
+			owned += 1
+	assert_true(owned > 0, "content 10 has owned rows: %d" % owned)
+	_assert_profiles_match("mounted")
+	_assert_clocks_match("mounted")

@@ -303,7 +303,46 @@ pins. **It found no equivalence break and no CRITICAL or HIGH finding.** Its oth
 
 ## Gates (results)
 
-Filled in at hand-back.
+Code at `cfa99272`. The worktree has no staged demo assets.
+
+**Full suite, CI-style.** `godot/.godot` was deleted, the project re-imported with
+`godot --headless --path godot --editor --quit`, and then `./tools/run_tests.sh` was run in one process (1 h 14 min).
+It printed:
+
+```text
+12515 test(s), 1281209 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 278 expected, 448 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+One earlier attempt is discounted. Its re-import crashed inside the engine (`handle_crash: signal 11` while reimporting
+a font, from `propagate_notification` called off the main thread). The `demo_lens_live.gd` harness then hung on the
+broken cache. That run was stopped (only this lane's processes were killed, after checking their working directory)
+and repeated from a clean import, which completed without a crash. The pre-review state `e2220aff` had also passed the
+full suite: 12,515 tests, 0 failures, 0 unexpected diagnostics, 0 leaks.
+
+**Other gates:**
+
+- Analyzer: `python3 tools/gdscript_warnings.py --max 0 --port 6451` printed `0 GDScript warning(s) in 0 of 1543 file(s)`.
+- `python3 docs/validation/decision_numbers.py`: `PASS -- 552 records, 0 problem(s)`.
+- CI contracts: every `python3` contract command in `.github/workflows/tests.yml` that needs no Godot, 59 commands,
+  ran with 0 failures. That includes `underground_memory_budget.py --check`, `state_registry_coverage.py`,
+  `audit_registry_capacities.py --check` and `renew_source_pins.py --check`.
+- **Mutation testing: 69 mutants, 68 killed.** A scratch script applies one mutant at a time, runs the focused suites
+  through the shard runner, and restores the file. It counts a failure, a script error or an unexpected error as a kill.
+  The mutants covered:
+  - the snapshot, the key tokens and the three revision counters: 24;
+  - the SpaceOwner walk and the digest compares: 14 + 4;
+  - the source and clock checks: 10;
+  - the review fixes: 8;
+  - re-runs after test additions.
+
+  The one survivor (`levels.size() >= 31` in SourceFacts' range guard) is equivalent within defined behaviour. Both
+  forms fault on a 31-byte Level digest whose first 31 bytes match, and SourceFacts' only callers already require 32
+  bytes.
+- **Behaviour.** The per-tick traces at `cfa99272` are byte-identical to the baseline, and both checkpoints' save bytes
+  are unchanged.
+- **Independent review.** The `code-reviewer` subagent found no CRITICAL or HIGH finding (see above).
 
 ## Source
 

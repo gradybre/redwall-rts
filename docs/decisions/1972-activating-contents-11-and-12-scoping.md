@@ -656,8 +656,9 @@ that ruling. WorldRoutes stays at its +33 / −2 lines, and no Sites binding is 
 
 ### Why it blocks no planned dig (the coordinator asked for this analysis)
 
-- **Rooms are cut above their floor, never below it.** A room on the Kitchen level digs y −1024..0 cubes; the strip
-  lies at −1152..−1024.
+- **No room is dug at the flight's floor today, and a room on level 1 does not reach the strip except by overlapping
+  the stair itself.** (Corrected below, "What the stair carry supplies"; the first draft said "a room on the Kitchen
+  level digs y −1024..0 cubes", which was wrong.) Rooms are cut above their own floor, never below it.
 - **The claw floor scrape** (decision 1971, P-1971-2 (a)) may enter never-cut natural earth whoever owns it (review
   M6, "Leave as built"). So a wall dig beside the trench may scrape into the stair Room's strip.
 - **Only a future dig under the stair (slice D) would meet it,** and that is earth the stair stands on. Refusing to
@@ -690,3 +691,45 @@ Log: `scratchpad/activate_m1/m1-all-edges-publish.log`.
   `test_underground_host_whole_chain.gd`:
   - the retained SUPPORT under the trench;
   - the floor and CARRY edges published after the sill.
+
+## What the stair carry supplies, and what waits for slice D (2026-10-16)
+
+The slice D session (decision 2041 §1, branch `docs/slice-d-flight`) raised a level mismatch. It is checked here
+against the code at `c11da82e`.
+
+### The flight's floor is not a room level
+
+- The first-entry flight ends at the trench floor: local y −1024, which is world −512 with the domain datum at 512.
+- Room admission (`underground_room_bindings.gd _level_refusal`, through `underground_level_catalog.gd level_into`)
+  accepts a Room only at a roofed level's authored floor. Level 1's floor is the datum less the 5,120 u spacing,
+  −4,608, with the section offsets −1,024, 0 and +1,024: so **−5,632, −4,608 or −3,584**.
+- A room painted at the flight's floor (−512) is therefore refused `ROOM_AUTHORED_LEVEL_REQUIRED`.
+- **The "Kitchen level" this record and decision 1981 speak of is the trench floor, and it serves no C2.3 room dig.**
+  Room digs on level 1 need slice D's full-level flight (F40).
+
+### So the stair carry activated here supplies the entry and its trench floor
+
+- A loaded mole can carry wood or stone from H on L0 down the stair to the floor (F, F′), turn, and carry it back up.
+  The empty mole can reach the floor and climb from it.
+- That is the stair and its floor. **It is not yet room supply.** C2.3's leg-wise Delivery reach and the hauler's leg
+  list have no room destination on that floor to serve.
+- Room supply on level 1 waits for F40, which will need the same rooted rows on a longer flight.
+
+### Phase 2e, corrected
+
+- The retained trench-floor strip lies at world −640..−512.
+- **Level 1's rooms** stand at floors −5,632 to −3,584, with 4,096 u of clear height. Only a level-1 room at the
+  +1,024 section offset reaches as high as the strip, and only directly under the trench. Such a room would already
+  meet the stair's own Space there (its void and timber), so the strip adds no new conflict.
+- **The claw floor scrape** still admits never-cut earth whoever owns it (review M6).
+- **Slice D's digs under the stair** meet earth the stair stands on.
+- The committed test (`test_a_retained_trench_floor_never_blocks_a_room_dig_beside_it`) shows the general rule on a
+  corridor fixture: another Room's retained strip under a target cube neither blocks the cube's dig nor its scrape.
+
+### File handoff (2026-10-16, from the coordinator)
+
+Slice D will not edit this lane's files until activation merges:
+- the stair path, entry bindings, connector catalog, Contacts, Locations, Profiles, the stair motion owner and the
+  entry foreman.
+
+This lane keeps its edits to what activation needs.

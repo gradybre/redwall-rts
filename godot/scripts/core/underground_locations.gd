@@ -826,15 +826,22 @@ func _resolve_source_row(ref: Vector2i) -> int:
 			and _owner._o_generation[_resolve_source_hint] == ref.y:
 		return _resolve_source_hint
 	var found: int = -1
-	for row: int in _owner._source_capacity:
-		if _owner._o_present[row] == 0 or _owner._o_slot[row] != ref.x:
-			continue
-		if _owner._o_present[row] != 1 or _owner._o_generation[row] != ref.y or found >= 0:
-			return -1
-		found = row
+	var row: int = _next_slot_row(ref.x, 0) # Decision 1952: only the rows whose slot is ref.x, which the scan reads.
+	while row >= 0:
+		if _owner._o_present[row] != 0:
+			if _owner._o_present[row] != 1 or _owner._o_generation[row] != ref.y or found >= 0:
+				return -1
+			found = row
+		row = _next_slot_row(ref.x, row + 1)
 	_resolve_source_ref = ref
 	_resolve_source_hint = found
 	return found
+
+
+func _next_slot_row(slot: int, from: int) -> int:
+	"""Decision 1952: the first source row at or after `from`, below the source capacity, whose slot is `slot`; else -1."""
+	var row: int = _owner._o_slot.find(slot, from) if from < _owner._source_capacity else -1
+	return row if row < _owner._source_capacity else -1
 
 
 func _resolve_room_source_refusal(room: Vector2i, source: int) -> StringName:

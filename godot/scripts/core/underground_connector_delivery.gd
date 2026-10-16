@@ -1055,7 +1055,10 @@ static func _occupants_leaf(a: RefCounted) -> StringName:
 	var graph: Routes = a._placements._routes
 	if not _spend(a, 16 * Routes.RESIDENT_CAPACITY): return REFUSE_BUDGET
 	var worker_row: int = _full_row(a._placements._ids, a._worker, Directory.KIND_RESIDENT)
-	for row: int in Routes.RESIDENT_CAPACITY:
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
+		if row >= Routes.RESIDENT_CAPACITY: break
 		if row == worker_row: continue
 		if graph._resident_ref(row) == NULL_REF:
 			var missing: StringName = Routes.unregistered_body_refusal(graph, row,

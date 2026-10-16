@@ -8,11 +8,18 @@ const TRACE_ENV: String = "REDWALL_DIG_TRACE"
 ## Written when set: the report lines, appended, so several benchmark suites can share one file.
 const REPORT_ENV: String = "REDWALL_DIG_REPORT"
 const PERCENTILES: PackedInt32Array = [50, 95, 99]
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
 
 var _series: Dictionary = {} # StringName -> PackedInt64Array of microseconds.
 var _order: Array[StringName] = []
 var _trace: PackedStringArray = PackedStringArray()
 var _tracing: bool = OS.get_environment(TRACE_ENV) != ""
+
+
+static func time_answered_caches() -> void:
+	"""Decision 1952: the suite framework checks every runtime cache against a live read; the benchmark times what the
+	game runs, so it turns that off for its own process."""
+	Profiles.CacheChecks.enabled = false
 
 
 func add(series: StringName, usec: int) -> void:

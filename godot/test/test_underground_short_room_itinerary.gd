@@ -162,11 +162,14 @@ func test_payload_revision_digest_and_policy_drift_refuse_without_partial_output
 	assert_false(Itinerary._compatible(profiles, Step.SHORT_FORWARD, Step.GROUND), "quantity mismatch")
 	profiles._live.quantities[quantity] -= 1
 	profiles._live.sources[0] ^= 1
+	profiles.invalidate_runtime_caches() # Decision 1952: an in-place bank edit announces itself.
 	assert_true(_query() != &"", "actor digest drift")
 	profiles._live.sources[0] ^= 1
 	profiles._live.quantities[Step.SHORT_FORWARD] += 1
+	profiles.invalidate_runtime_caches()
 	assert_equal(_query(), &"WORLD_ROUTE_PROFILE_STALE", "exact profile revision")
 	profiles._live.quantities[Step.SHORT_FORWARD] -= 1
+	profiles.invalidate_runtime_caches()
 	assert_equal(_remaining[0], 123, "refusal preserves output")
 	assert_equal(_query(), &"", "unmodified source retries")
 

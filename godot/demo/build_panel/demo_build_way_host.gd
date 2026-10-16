@@ -8,6 +8,7 @@ extends RefCounted
 ##             or on a Mound room's floor joins its top cells to its foot (the works' own links)
 ##   doors     each confirmed front door joins the outside to its Mound's room behind it
 ##   targets   each room by type and level ("Kitchen (level 1)", "Bedroom (surface)"), and each resident below by name
+##             (one on a run counted at its way's landing: the run is part of its way)
 ## Stored lots and reservations: the proof of concept has none (decision 1912 ruling 2, "Free for now"), so none are
 ## named. Cold: built on each ask, which the batch makes once per revision.
 
@@ -63,7 +64,7 @@ func graph() -> Graph:
 	_add_ways(out)
 	if _below.is_valid():
 		for resident: Array in _below.call():
-			out.add_target(resident[1] as Vector3i, String(resident[0]))
+			out.add_target(_works.run_foot(resident[1] as Vector3i), String(resident[0]))
 	return out
 
 

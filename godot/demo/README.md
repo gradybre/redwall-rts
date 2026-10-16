@@ -1160,6 +1160,39 @@ Checks: `test_build_furniture.gd`, `test_demo_build_furnish.gd`, `test_build_pan
 the live harness `test/live/demo_build_furnish_live.gd` (the whole loop; run by `test_demo_build_furnish_live.gd`,
 slow tier).
 
+### Ways in and out, per family (decision 2022; slice D1)
+
+Brendan's rulings of 2026-10-16 on decision 2021 (all twelve (a); "Use the table, marked", "All three types", "Real
+check now"). The Rooms tab on every level offers three ways -- **Burrow mouth** (a ramp), **Hatch with ladder** and
+**Stair-head** (earth/timber stairs) -- then Stone stairs and Spiral stair locked ("Not yet: ..."). Every size and
+cost they show is a **placeholder** awaiting review (`scripts/ui/build_connector_families.gd`, where each number's
+source is written): the hatch is the old 2 × 2; the ramp takes 2 × 9 cells where it stands and 2 × 12 below; the
+stair-head is decision 2041's F40 flight, 2 × 23 cells open to the land and 2 × 18 below, placed descending north
+only ("No qualified stair for this direction yet" when turned). With a
+way's card chosen, **R / Shift+R** turn it, and a **click** (or Enter at the cursor) pins its ghost -- its cells on the
+level shown, judged in words, with its access pair -- and opens the **connector card** (UI-BUILD-012, above the
+panel; in NARROW in the card row): **Down** / **Up** (the impossible one disabled with its reason: "No level above
+the surface", "No level below level 4"), "✓ Connects to Underground level N" or why not, the placeholder's notes
+("Climbers only: loads need a stair or ramp" on a hatch; "Proof of concept: free; not yet a qualified descent"),
+**Add to plan** (Enter; Shift keeps the card) and **Cancel** (Escape). Below the Surface a way stands on a Passage; on
+the Surface it may stand on open ground or wholly on a Mound room's floor, never over water or a placed thing. A
+ramp's or stair's run below must be untouched earth. **Confirm all** orders each way's cells below -- its landing (a
+way in for the rooms beside it) and its run (walked only along itself, never a way in: `demo_build_works.gd`
+TYPE_WAY) -- and the mole digs them, free, as it digs rooms. Each is drawn turned as placed: on the surface a burrow
+mouth, a hatch or a stair-head; below, a ramp, a ladder or stairs rising out of its foot, and going down where one
+stands on a passage (`demo_build_ways.gd`, `demo_build_dug.gd`). A **click on a confirmed way** with a way's card
+chosen asks for its removal (one step; click again to withdraw); it is **refused** in words while it is the only way
+in to anything -- "X Not possible: Would cut off Kitchen (level 1), Passage (level 1): build another way in first" --
+and so is a Mound's only front door's removal (BUILD-REQ-017: `scripts/ui/build_way_graph.gd` over the works, the
+Mounds and the residents below, `build_panel/demo_build_way_host.gd`). A removed way's dug cells stay dug; its
+waiting ones go back to earth. Nothing reaches the settlement and nothing is saved; slice D2 binds a qualified
+connector to the real room digs.
+
+Checks: `test_build_connector_families.gd`, `test_build_way_graph.gd`, `test_build_batch_ways.gd`,
+`test_build_connector_card.gd`, `test_build_items.gd`, `test_demo_build_works.gd`, `test_demo_build_way_host.gd`,
+`test_demo_build_panel.gd`, and the live harness `test/live/demo_build_dig_live.gd` (the five cards, the connector
+card, a burrow mouth and a stair-head placed, dug and drawn, the refused removal; its frames with `--capture`).
+
 ### Rounded, hand-dug walls (decision 1914)
 
 Brendan approved the burrow-walls mockup on 2026-10-15 ("Let's build this"). Rooms stay on the 1 m grid for every

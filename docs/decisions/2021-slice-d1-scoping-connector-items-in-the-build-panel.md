@@ -349,6 +349,16 @@ option on **all twelve** proposals. The nine routine ones were approved together
 | P-D1-11 | **(a)**, **"All three types"**: the mole digs the Burrow mouth, Hatch and Stair-head, free |
 | P-D1-12 | **(a)**: the new words as worded |
 
+**Note (2026-10-16, decision 2041).** Brendan approved D-flight's record
+2041 (`2041-slice-d-flight-scoping-a-full-level-earth-timber-flight.md`, on `docs/slice-d-flight`, `003c69f4`) as
+recommended, relayed by the coordinator; two rulings change D1's Stair-head. **P-DF-2 (a)**: the full-level stair is
+the straight F40 flight, **2 × 23 cells** (40 steps of 128 u on 512 u, 39 treads; SET-BUILD-001 §9's "40 treads over
+20,480 u" is 39 treads over 19,968 u). **P-DF-6 (a)**: it is offered at rotation 0 only, descending toward −Z; the
+other rotations read "No qualified stair for this direction yet". Brendan also approved D1's Stair-head placeholder
+taking F40's numbers (2041 §2.4–2.5): 142 cut cubes; wood 78,500 and stone 35,500 milli-U; 858,980 milli-WU; earth
+out 284,000 milli-U. It stays labelled "placeholder". The table above keeps its first proposal (2 × 16 cells, 112 quanta) as
+history; decision 2022 builds the F40 row.
+
 ## Gates (this record)
 
 Docs only: `python3 docs/validation/decision_numbers.py` run after writing (summary in the lane report). No GDScript

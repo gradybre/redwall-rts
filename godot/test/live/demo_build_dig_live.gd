@@ -10,6 +10,7 @@ extends "res://test/live/demo_input_live.gd"
 ## dug by the mole, drawn on level 1 and on the surface, and removing the hatch refused in words while it is the only
 ## way in to the Kitchen (BUILD-REQ-017). Optional: -- --capture <directory> for its frames.
 
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
 
@@ -35,21 +36,22 @@ const SETTLE_STEPS: int = 30
 const MOUTH_YAW_DEG: float = 270.0
 const MOUTH_PITCH_DEG: float = 38.0
 const MOUTH_M: float = 7.0
-## Decision 2021's two more entrances, on dry ground south-east of the loop (level 1 is dry from z 32 m), each turned
-## once (R) to descend east, their tops at x 24-25, the stair-head north of the Kitchen and the ramp south of it.
+## Decision 2021's two more entrances, on dry ground south-east of the loop (level 1 is dry from z 32 m): the burrow
+## mouth turned once (R) to descend east, the stair-head at turn 0 descending north.
 ## The first spot of each list whose ground is open (the surface's stream and placements refuse a way: decision 2022).
 const RAMP_SPOTS: Array[Vector2i] = [Vector2i(24, 40), Vector2i(26, 40), Vector2i(28, 40)]
-const STAIR_SPOTS: Array[Vector2i] = [Vector2i(24, 32), Vector2i(26, 32), Vector2i(28, 32), Vector2i(30, 32),
-	Vector2i(32, 32), Vector2i(26, 33), Vector2i(30, 33)]
-## Their cells below: the ramp's 2 × 12 and the stair's 2 × 16 (build_connector_families.gd, placeholders).
-const WAYS_CELLS: int = 56
+## The stair-head descends north only (decision 2041 P-DF-6 (a)): its 2 × 23 strip from z 33, its landing at the north.
+const STAIR_SPOTS: Array[Vector2i] = [Vector2i(38, 33), Vector2i(40, 33), Vector2i(42, 33), Vector2i(44, 33),
+	Vector2i(46, 33), Vector2i(48, 33), Vector2i(50, 33), Vector2i(38, 34), Vector2i(42, 34)]
+## Their cells below: the ramp's 2 × 12 and the stair's 2 × 18 (build_connector_families.gd, placeholders; 2041's F40).
+const WAYS_CELLS: int = 60
 ## Where the camera looks at level 1's two new ways from (the hatch is in the loop's own frames), and how far; and at
 ## the two new entrances' tops on the surface, low from the west as at the hatch (MOUTH_YAW_DEG).
 const WAYS_LOOK_AT: Vector3 = Vector3(36.0, 0.0, 44.0)
 const WAYS_PITCH_DEG: float = 64.0
 const WAYS_M: float = 34.0
-const TOPS_LOOK_AT: Vector3 = Vector3(25.0, 0.0, 37.0)
-const TOPS_M: float = 11.0
+const TOPS_LOOK_AT: Vector3 = Vector3(28.0, 0.0, 47.0)
+const TOPS_M: float = 20.0
 const REFUSED: String = "X Not possible: Would cut off Kitchen (level 1), Passage (level 1): build another way in first"
 
 var _visitor: int = -1
@@ -67,8 +69,8 @@ func _initialize() -> void:
 		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _after_the_earth.bind(_check_square_plan),
 		_tags_apart, _wait_for_the_rooms, _after_the_earth.bind(_rooms_drawn_as_pits), _send_a_visitor,
 		_wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance]
-	_steps.append_array([_back_to_the_surface, _scroll_to.bind("Burrow mouth"), _place_way.bind("Burrow mouth", RAMP_SPOTS),
-		_add_way.bind("Burrow mouth"), _scroll_to.bind("Stair-head"), _place_way.bind("Stair-head", STAIR_SPOTS),
+	_steps.append_array([_back_to_the_surface, _scroll_to.bind("Burrow mouth"), _place_way.bind("Burrow mouth", RAMP_SPOTS, 1),
+		_add_way.bind("Burrow mouth"), _scroll_to.bind("Stair-head"), _place_way.bind("Stair-head", STAIR_SPOTS, 0),
 		_add_way.bind("Stair-head"), _confirm_the_ways, _ways_on_the_surface, _wait_for_the_ways, _ways_below,
 		_after_the_earth.bind(_ways_drawn), _up_for_the_removal, _scroll_to.bind("Hatch with ladder"),
 		_refuse_the_hatchs_removal, _refusal_beside_the_pointer, _close_the_panel])
@@ -311,24 +313,29 @@ func _aim_at_the_ways() -> void:
 	camera.call(&"snap")
 
 
-func _open_spot(family: int, spots: Array[Vector2i]) -> Vector2i:
-	"""The first of `spots` where a way of `family` turned once can be built (the first, to be refused, if none)."""
+func _open_spot(family: int, spots: Array[Vector2i], turn: int) -> Vector2i:
+	"""The first of `spots` where a way of `family` turned `turn` times can be built (the first, to be refused, if
+	none)."""
+	var why: PackedStringArray = PackedStringArray()
 	for spot: Vector2i in spots:
-		if int(_build().get("batch").call(&"judge_item", 0, spot, -1, family, 1)[0]) == 0:
+		var judged: Array = _build().get("batch").call(&"judge_item", 0, spot, -1, family, turn)
+		if int(judged[0]) == 0:
 			return spot
+		why.append("%s %s" % [spot, judged[1]])
+	_check("an open spot for %s" % Families.name_of(family), false, "; ".join(why))
 	return spots[0]
 
 
-func _place_way(card_name: String, spots: Array[Vector2i]) -> void:
-	"""`card_name`'s card clicked, R turns it to descend east (the turn is kept from the last way), then the ground at `at`: the connector card opens saying
-	where it leads."""
+func _place_way(card_name: String, spots: Array[Vector2i], turn: int) -> void:
+	"""`card_name`'s card clicked, R turns it `turn` times (the turn is kept from the last way), then the ground at the
+	first open spot: the connector card opens saying where it leads."""
 	_click(_card_centre(card_name))
 	root.gui_release_focus()
 	for press: int in 4:
-		if int(_build().get("panel").call(&"way_turn")) != 1:
+		if int(_build().get("panel").call(&"way_turn")) != turn:
 			_key(KEY_R)
-	_check("%s turned once" % card_name, int(_build().get("panel").call(&"way_turn")) == 1)
-	var at: Vector2i = _open_spot(int(_build().get("panel").call(&"armed_family")), spots)
+	_check("%s turned %d times" % [card_name, turn], int(_build().get("panel").call(&"way_turn")) == turn)
+	var at: Vector2i = _open_spot(int(_build().get("panel").call(&"armed_family")), spots, turn)
 	_click(_screen_of(at, 0))
 	var words: String = String(_build().get("panel").call(&"connector_words"))
 	_check("%s: the card says where it leads" % card_name, words.begins_with("✓ Connects to Underground level 1")

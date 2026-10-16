@@ -48,8 +48,14 @@ var _way_zs: PackedInt32Array = PackedInt32Array()
 var _way_families: PackedByteArray = PackedByteArray()
 var _way_turns: PackedByteArray = PackedByteArray()
 var _way_live: PackedByteArray = PackedByteArray()
-## Each live way's links, rebuilt when the ways change: cell (level, x, z) -> the cells (or SURFACE) it reaches.
+## Each live way's links, rebuilt when the ways change: cell (level, x, z) -> the cells (or SURFACE) it reaches; and
+## which live way owns each cell (level, x, z) it stands on, takes below, cuts as its run, or opens onto as its landing
+## (review H4: a run is left only onto its own landing; M: `on_way` reads them, never building sets).
 var _links: Dictionary = {}
+var _standing_owner: Dictionary = {}
+var _lower_owner: Dictionary = {}
+var _run_owner: Dictionary = {}
+var _foot_owner: Dictionary = {}
 var _ordered: int = 0
 ## Per level: the box around its non-earth cells (an empty Rect2i: none yet).
 var _boxes: Array[Rect2i] = []
@@ -74,7 +80,7 @@ func configure(bounds: Rect2i) -> void:
 	_way_families.clear()
 	_way_turns.clear()
 	_way_live.clear()
-	_links.clear()
+	_relink()
 	_ordered = 0
 	_boxes.clear()
 	for level: int in LEVELS:
@@ -135,20 +141,23 @@ func remove_way_at(level: int, cell: Vector2i) -> bool:
 	for row: int in _way_levels.size():
 		if way_live(row) and _way_levels[row] == level and way_anchor(row) == cell:
 			_way_live[row] = 0
-			_unorder_way(row)
 			_relink()
+			_unorder_way(row)
 			revision += 1
 			return true
 	return false
 
 
 func _unorder_way(row: int) -> void:
-	"""Way `row`'s lower cells: waiting ones back to earth, dug ones bare (no room type)."""
+	"""Way `row`'s lower cells: waiting ones back to earth, dug ones bare (no room type) -- but never a cell another
+	standing way still takes (review H2)."""
 	var lower: PackedInt32Array = Families.lower_cells(_way_families[row], _way_turns[row], way_anchor(row))
 	var below: int = _way_levels[row] + 1
 	for at: int in range(0, lower.size(), 2):
 		var index: int = _index(below, Vector2i(lower[at], lower[at + 1]))
 		var type: int = _type[below][index]
+		if _lower_owner.has(Vector3i(below, lower[at], lower[at + 1])):
+			continue
 		if type != TYPE_NONE and type != TYPE_WAY:
 			continue
 		if _state[below][index] == ORDERED:
@@ -329,17 +338,10 @@ func entrance() -> int:
 func on_way(level: int, cell: Vector2i) -> bool:
 	"""Whether `cell` on `level` is under a confirmed way down: where one stands (below the surface, or on a Mound room's
 	floor: decision 2002) or where one lands (decision 1921: furniture keeps clear of the stairs)."""
-	for row: int in _way_levels.size():
-		var top: int = _way_levels[row]
-		if not way_live(row):
-			continue
-		if top == level and (level > 0 or state(0, cell) != EARTH):
-			if _set_of(Families.standing_cells(_way_families[row], _way_turns[row], way_anchor(row))).has(cell):
-				return true
-		elif top + 1 == level:
-			if _set_of(Families.lower_cells(_way_families[row], _way_turns[row], way_anchor(row))).has(cell):
-				return true
-	return false
+	var at: Vector3i = Vector3i(level, cell.x, cell.y)
+	if _lower_owner.has(at):
+		return true
+	return _standing_owner.has(at) and (level > 0 or state(0, cell) != EARTH)
 
 
 func down_dir(row: int) -> Vector2i:
@@ -425,29 +427,40 @@ func _neighbours(at: Vector3i) -> Array[Vector3i]:
 	from the surface)."""
 	var out: Array[Vector3i] = []
 	if at != SURFACE:
-		var on_run: bool = type_of(at.x, Vector2i(at.y, at.z)) == TYPE_WAY
 		for side: Vector2i in SIDES:
 			var next: Vector3i = Vector3i(at.x, at.y + side.x, at.z + side.y)
-			var next_run: bool = type_of(next.x, Vector2i(next.y, next.z)) == TYPE_WAY
-			if on_run == next_run or _landing_type(next if on_run else at):
+			if _side_step(at, next):
 				out.append(next)
-	for linked: Vector3i in _links.get(at, []):
-		out.append(linked)
+	if _links.has(at):
+		for linked: Vector3i in _links[at]:
+			out.append(linked)
 	return out
 
 
-func _landing_type(cell: Vector3i) -> bool:
-	"""Whether `cell` is a way's landing or bare dug space (no room type: a run may open onto it)."""
-	return type_of(cell.x, Vector2i(cell.y, cell.z)) == TYPE_NONE
+func _side_step(at: Vector3i, next: Vector3i) -> bool:
+	"""Whether a walker may step from `at` to `next` beside it: off the runs; along one run; or between a run and its
+	own way's landing (review H4: never sideways out of a run, nor from one run to another)."""
+	var mine: int = int(_run_owner.get(at, -1))
+	var theirs: int = int(_run_owner.get(next, -1))
+	if mine == theirs:
+		return true
+	if mine >= 0 and theirs >= 0:
+		return false
+	return int(_foot_owner.get(next if mine >= 0 else at, -2)) == maxi(mine, theirs)
 
 
 func _relink() -> void:
 	"""Every standing way's links: each top 2 × 2 cell (below the Surface) to the foot cell in its place, or the
 	surface to an entrance's foot."""
 	_links.clear()
+	_standing_owner.clear()
+	_lower_owner.clear()
+	_run_owner.clear()
+	_foot_owner.clear()
 	for row: int in _way_levels.size():
 		if not way_live(row):
 			continue
+		_own_cells(row)
 		var family: int = _way_families[row]
 		var turn: int = _way_turns[row]
 		var top: int = _way_levels[row]
@@ -462,6 +475,32 @@ func _relink() -> void:
 			var to: Vector2i = Families.paired_landing(family, turn, way_anchor(row), from)
 			if to != from or not Families.sloped(family):
 				_link(Vector3i(top, from.x, from.y), Vector3i(top + 1, to.x, to.y))
+
+
+func _own_cells(row: int) -> void:
+	"""Record live way `row`'s cells in the owner maps."""
+	var family: int = _way_families[row]
+	var turn: int = _way_turns[row]
+	var anchor: Vector2i = way_anchor(row)
+	var top: int = _way_levels[row]
+	var sets: Array = [[_standing_owner, Families.standing_cells(family, turn, anchor), top],
+		[_lower_owner, Families.lower_cells(family, turn, anchor), top + 1],
+		[_run_owner, Families.run_cells(family, turn, anchor), top + 1],
+		[_foot_owner, Families.landing_cells(family, turn, anchor), top + 1]]
+	for entry: Array in sets:
+		var cells: PackedInt32Array = entry[1]
+		for at: int in range(0, cells.size(), 2):
+			(entry[0] as Dictionary)[Vector3i(int(entry[2]), cells[at], cells[at + 1])] = row
+
+
+func run_foot(cell: Vector3i) -> Vector3i:
+	"""For a cell of a standing way's run, that way's first landing cell (where one walking it comes out); else `cell`
+	(the cut-off check's residents on a run: review M)."""
+	var row: int = int(_run_owner.get(cell, -1))
+	if row < 0:
+		return cell
+	var foot: PackedInt32Array = Families.landing_cells(_way_families[row], _way_turns[row], way_anchor(row))
+	return Vector3i(cell.x, foot[0], foot[1])
 
 
 func _link(a: Vector3i, b: Vector3i) -> void:

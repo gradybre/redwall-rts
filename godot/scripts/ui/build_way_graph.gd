@@ -81,7 +81,9 @@ func _next_of(at: Vector3i, removed: PackedInt32Array) -> Array[Vector3i]:
 			var beside: Vector3i = Vector3i(at.x, at.y + side.x, at.z + side.y)
 			if _cells.has(beside):
 				out.append(beside)
-	for link: Array in _links.get(at, []):
+	if not _links.has(at):
+		return out
+	for link: Array in _links[at]:
 		var to: Vector3i = link[0]
 		if not removed.has(int(link[1])) and (to == OUTSIDE or _cells.has(to)):
 			out.append(to)

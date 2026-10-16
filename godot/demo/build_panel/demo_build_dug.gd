@@ -354,7 +354,7 @@ func _way_tags(used: int, level: int) -> int:
 			continue
 		var way_name: String = Families.name_of(_works.way_family(row))
 		var at: Vector3 = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
-		if top == 0 and not on_mound(row):
+		if top == 0 and not (on_mound(row) and _works.way_family(row) == Families.LADDER_HATCH):
 			used = _tag(used, way_name, at + Vector3(0.0, ENTRANCE_TAG_M, 0.0), Layers.SURFACE_MARKS)
 		if underground(level) and (top == level or top + 1 == level):
 			var landing: Vector3i = _works.landing_of(row)

@@ -173,14 +173,16 @@ func test_a_run_is_walked_only_along_itself() -> void:
 
 
 func test_a_way_below_links_its_top_to_its_foot() -> void:
-	"""A stair standing on level 1 leads from its top 2 × 2 to its landing row on level 2, both ways."""
+	"""A stair standing on level 1 leads from its top 2 × 2 to its landing row on level 2, both ways (2041's F40:
+	2 × 23, its landing 22 rows on)."""
+	_works.configure(Rect2i(0, 0, 64, 64))
 	_works.order_way_down(0, Vector2i(10, 10))
 	_works.order_room(1, PackedInt32Array([10, 12, 11, 12, 10, 13, 11, 13]), 7)
 	assert_true(_works.order_way_down(1, Vector2i(10, 12), Families.EARTH_TIMBER, 2), "a stair on level 1, turned south")
-	assert_equal(_works.landing_of(1), Vector3i(2, 10, 30), "its foot 18 rows south")
+	assert_equal(_works.landing_of(1), Vector3i(2, 10, 33), "its foot 21 rows south")
 	assert_true(_dig_all(_works.landing_of(0)).size() >= 6, "dug from the entrance down")
-	assert_equal(_works.state(2, Vector2i(10, 31)), Works.OPEN, "its landing dug")
-	assert_false(_works.path_to(Vector3i(2, 10, 31), Vector3i(1, 11, 13)).is_empty(), "walked back up")
+	assert_equal(_works.state(2, Vector2i(10, 34)), Works.OPEN, "its landing dug")
+	assert_false(_works.path_to(Vector3i(2, 10, 34), Vector3i(1, 11, 13)).is_empty(), "walked back up")
 
 
 func test_removing_a_way_returns_its_waiting_cells_and_keeps_dug_ones() -> void:
@@ -216,3 +218,42 @@ func test_the_drawn_directions_and_the_stair_heads() -> void:
 	assert_equal(_works.head_cells(1), [Vector2i(foot.y - 1, foot.z), Vector2i(foot.y - 1, foot.z + 1)], "heads west")
 	assert_true(_works.on_way(1, Vector2i(15, 3)), "its run is on the way")
 	assert_false(_works.on_way(0, Vector2i(15, 3)), "the Surface's open ground is not")
+
+
+func test_removing_a_ramp_returns_its_waiting_run_to_earth() -> void:
+	"""Mutation W8: a removed ramp's waiting run cells (TYPE_WAY) go back to earth, its landing too, and nothing waits."""
+	_works.order_way_down(0, Vector2i(4, 2), Families.RAMP, 0)
+	assert_true(_works.remove_way_at(0, Vector2i(4, 2)), "removed")
+	assert_equal(_works.state(1, Vector2i(4, 9)), Works.EARTH, "its run")
+	assert_equal(_works.type_of(1, Vector2i(4, 9)), Works.TYPE_NONE, "no longer a run")
+	assert_equal(_works.state(1, Vector2i(4, 2)), Works.EARTH, "its landing")
+	assert_equal(_works.waiting(), 0, "nothing waits")
+
+
+func test_a_run_is_left_only_onto_its_own_landing_and_never_onto_another_run() -> void:
+	"""Review H4: from a ramp's run, a hatch's landing beside it is no step; two runs side by side do not join."""
+	_works.order_way_down(0, Vector2i(10, 2), Families.RAMP, 0)
+	_works.order_way_down(0, Vector2i(12, 8), Families.LADDER_HATCH, 0)
+	_works.order_way_down(0, Vector2i(14, 2), Families.RAMP, 0)
+	for cell: Vector2i in [Vector2i(11, 8), Vector2i(12, 8), Vector2i(11, 9), Vector2i(13, 8), Vector2i(14, 8)]:
+		_works.open_cell(1, cell)
+	assert_true(_works.path_to(Vector3i(1, 11, 8), Vector3i(1, 12, 8)).is_empty(), "no step sideways to the hatch")
+	assert_true(_works.path_to(Vector3i(1, 13, 8), Vector3i(1, 14, 8)).is_empty(), "no step from the hatch to a run")
+	assert_false(_works.path_to(Vector3i(1, 11, 9), Vector3i(1, 11, 8)).is_empty(), "along the run")
+
+
+func test_removing_one_way_keeps_cells_another_still_takes() -> void:
+	"""Review H2: a removed way's cells that another standing way takes are left as they are."""
+	_works.order_way_down(0, Vector2i(4, 4))
+	_works.order_way_down(0, Vector2i(4, 4), Families.LADDER_HATCH, 1)
+	assert_true(_works.remove_way_at(0, Vector2i(4, 4)), "the first removed")
+	assert_equal(_works.state(1, Vector2i(4, 4)), Works.ORDERED, "still waiting for the other")
+
+
+func test_two_runs_side_by_side_never_join() -> void:
+	"""Mutation H4a: two ramps' runs in neighbouring columns are two ways, not one floor."""
+	_works.order_way_down(0, Vector2i(10, 2), Families.RAMP, 0)
+	_works.order_way_down(0, Vector2i(12, 2), Families.RAMP, 0)
+	_works.open_cell(1, Vector2i(11, 8))
+	_works.open_cell(1, Vector2i(12, 8))
+	assert_true(_works.path_to(Vector3i(1, 11, 8), Vector3i(1, 12, 8)).is_empty(), "no step across")

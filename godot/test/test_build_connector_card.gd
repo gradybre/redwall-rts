@@ -179,3 +179,18 @@ func test_the_card_stands_in_its_rectangle_and_in_narrow_replaces_the_cards() ->
 	assert_false((_panel.controls()[&"cards"] as Control).visible, "the card row gives way")
 	_panel.cancel_pin()
 	assert_true((_panel.controls()[&"cards"] as Control).visible, "and comes back")
+
+
+func test_choosing_another_card_closes_the_card() -> void:
+	"""Review H5: the pinned way never outlives its card: choosing another way's card or a room type closes it."""
+	_choose("Hatch with ladder")
+	_panel.pin_way(Vector2i(10, 10))
+	_choose("Burrow mouth")
+	assert_false(_panel.pinned(), "another way's card")
+	_panel.pin_way(Vector2i(10, 10))
+	assert_equal(_panel.connector().title(), "Burrow mouth", "the new way named")
+	_panel.set_level(1)
+	_choose("Hatch with ladder")
+	_panel.pin_way(Vector2i(10, 10))
+	_choose("Kitchen")
+	assert_false(_panel.pinned() or _panel.connector().visible, "a room type")

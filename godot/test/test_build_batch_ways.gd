@@ -84,7 +84,10 @@ func test_each_offered_family_is_placed_on_the_surface_and_named() -> void:
 	assert_equal(_batch.place_item(0, Vector2i(10, 10), RAMP, 0), Validity.KIND_CAN_BUILD, "a burrow mouth")
 	assert_equal(_batch.undo_label(), "Undo Place Burrow mouth", "the step named")
 	assert_equal(_batch.place_item(0, Vector2i(30, 10), HATCH, 1), Validity.KIND_CAN_BUILD, "a hatch, turned")
-	assert_equal(_batch.place_item(0, Vector2i(50, 10), STAIR, 2), Validity.KIND_CAN_BUILD, "a stair-head")
+	assert_equal(_batch.place_item(0, Vector2i(50, 10), STAIR, 2), Validity.KIND_NOT_POSSIBLE,
+		"a stair-head turned: no qualified stair that way (2041 P-DF-6 (a))")
+	assert_equal(_batch.last_dropped(), "X Not possible: No qualified stair for this direction yet", "in words")
+	assert_equal(_batch.place_item(0, Vector2i(50, 10), STAIR, 0), Validity.KIND_CAN_BUILD, "a stair-head at turn 0")
 	assert_equal(_batch.items().family_of(1), HATCH, "its family kept")
 	assert_equal(_batch.items().turn_of(1), 1, "its turn kept")
 	assert_equal(_batch.items().name_of_row(2), "Stair-head", "its name")
@@ -263,7 +266,7 @@ func _edge_at(_level: int, edge: Vector3i) -> Vector4i:
 
 
 func test_confirm_all_hands_family_turn_and_removal_to_the_route() -> void:
-	"""BUILD-REQ-019: each way (and removal) first, with its family, turn and whether it is a removal."""
+	"""BUILD-REQ-019: the ways first -- removals before placements (review H2) -- with family, turn and removal."""
 	_confirm_way(0, Vector2i(60, 60), HATCH, 0)
 	_batch.place_item(0, Vector2i(10, 10), RAMP, 3)
 	_batch.toggle_way_removal(0, Vector2i(60, 60))
@@ -272,7 +275,8 @@ func test_confirm_all_hands_family_turn_and_removal_to_the_route() -> void:
 		func(level: int, cell: Vector2i, family: int, turn: int, removal: bool) -> Dictionary:
 			routed.append([level, cell, family, turn, removal])
 			return {"ok": true})
-	assert_equal(routed, [[0, Vector2i(10, 10), RAMP, 3, false], [0, Vector2i(60, 60), HATCH, 0, true]], "routed")
+	assert_equal(routed, [[0, Vector2i(60, 60), HATCH, 0, true], [0, Vector2i(10, 10), RAMP, 3, false]],
+		"removals first (review H2), then ways")
 	assert_equal(result, PackedInt32Array([2, 0]), "both ordered")
 	assert_equal(_batch.pending_count(), 0, "none pending")
 
@@ -317,3 +321,62 @@ func test_on_the_surface_a_way_over_water_or_a_thing_cannot_be_dug() -> void:
 	assert_equal(_batch.judge_item(0, Vector2i(20, 20), -1, HATCH, 0)[0], Validity.KIND_CAN_BUILD, "open ground")
 	assert_equal(_batch.judge_item(0, Vector2i(50, 50), -1, HATCH, 0)[0], Validity.KIND_CAN_BUILD,
 		"a Mound room's floor is not asked")
+
+
+func test_a_new_runs_cells_may_not_cross_a_pending_hatchs_landing() -> void:
+	"""Mutation I2: the new way's own run below meets another's landing there (the other has no run): a clash."""
+	_batch.place_item(0, Vector2i(11, 12), HATCH, 0)
+	assert_equal(_batch.judge_item(0, Vector2i(10, 10), -1, RAMP, 0),
+		[Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down("Hatch with ladder")], "the ramp's run meets its landing")
+
+
+func test_level_three_is_the_deepest_a_way_stands_on() -> void:
+	"""Mutation B1: standing on level 3 it lands on level 4 (it needs its passage); on level 4 there is no level below."""
+	assert_equal(_batch.judge_item(3, Vector2i(10, 10), -1, HATCH, 0),
+		[Validity.KIND_BLOCKED, Validity.needs_passage("Hatch with ladder")], "level 3: needs its passage only")
+	assert_equal(_batch.judge_item(4, Vector2i(10, 10), -1, HATCH, 0)[1], Validity.no_level_below(), "level 4")
+
+
+func test_confirm_all_checks_the_cut_off_afresh() -> void:
+	"""Review H1: a removal judged ✓ is checked again at Confirm all; if the host now says it would cut something off,
+	nothing is ordered."""
+	_confirm_way(0, Vector2i(20, 20), HATCH, 0)
+	_batch.toggle_way_removal(0, Vector2i(20, 20))
+	assert_equal(_batch.item_kind(0), Validity.KIND_CAN_BUILD, "fine when asked")
+	_cut_words = "Basil"
+	var result: PackedInt32Array = _batch.confirm_all(func(_d: Object, _l: int, _t: int) -> Dictionary: return {"ok": true},
+		func(_level: int, _cell: Vector2i, _family: int, _turn: int, _removal: bool) -> Dictionary: return {"ok": true})
+	assert_equal(result, PackedInt32Array([0, 0]), "held back")
+	assert_equal(_batch.item_reason(0), Validity.cut_off("Basil"), "and says why")
+
+
+func test_a_pending_removal_makes_its_dug_landing_no_way_in() -> void:
+	"""Review H3: the removed way's dug landing reads occupied, not finished space, so a room beside it has no way in."""
+	_confirm_way(0, Vector2i(20, 20), HATCH, 0)
+	_dig(1, PackedInt32Array([20, 20, 21, 20, 20, 21, 21, 21]), -1)
+	assert_true(_batch.begin_stroke(KITCHEN, 1, Vector2i(22, 20)), "a room beside the dug landing")
+	_batch.extend_stroke(Vector2i(27, 23))
+	assert_equal(_batch.finish_stroke(), Validity.KIND_CAN_BUILD, "reached through dug space")
+	_batch.toggle_way_removal(0, Vector2i(20, 20))
+	assert_equal(_batch.operation_reason(0), Validity.no_way_in(), "no way in once the way is going")
+	assert_equal(_batch.undo_label(), "Undo Remove Hatch with ladder", "named")
+	_batch.toggle_way_removal(0, Vector2i(20, 20))
+	assert_equal(_batch.undo_label(), "Undo Keep Hatch with ladder", "withdrawn: kept")
+	assert_equal(_batch.operation_kind(0), Validity.KIND_CAN_BUILD, "reached again")
+
+
+func test_two_ways_never_share_a_landing() -> void:
+	"""Two ramps meeting foot to foot on one landing row clash (removing one would strip the other's), though neither
+	stands on nor runs through the other."""
+	_batch.place_item(0, Vector2i(10, 20), RAMP, 0)
+	assert_equal(_batch.items().landings(1), PackedInt32Array([10, 20, 11, 20]), "its landing row")
+	assert_equal(_batch.judge_item(0, Vector2i(10, 7), -1, RAMP, 2)[0], Validity.KIND_NOT_POSSIBLE, "foot to foot")
+	assert_equal(_batch.judge_item(0, Vector2i(10, 6), -1, RAMP, 2)[0], Validity.KIND_CAN_BUILD, "a row short of it")
+
+
+func test_a_new_runs_cells_may_not_pass_under_a_way_standing_below() -> void:
+	"""Mutation I2: a hatch standing on level 1 where a new ramp's run would cut: a clash (my run, its standing cells)."""
+	_dig(1, PackedInt32Array([10, 15, 11, 15, 10, 16, 11, 16]), BuildCatalog.CORRIDOR)
+	_batch.place_item(1, Vector2i(10, 15), HATCH, 0)
+	assert_equal(_batch.judge_item(0, Vector2i(10, 10), -1, RAMP, 0),
+		[Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down("Hatch with ladder")], "its run under the hatch")

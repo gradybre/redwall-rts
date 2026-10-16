@@ -85,3 +85,15 @@ func test_names_are_listed_then_counted() -> void:
 	assert_equal(Graph.names_text(PackedStringArray(["A", "B", "C", "D"])), "A, B, C, D", "four")
 	assert_equal(Graph.names_text(PackedStringArray(["A", "B", "C", "D", "E", "F"])), "A, B, C, D and 2 more", "six")
 	assert_equal(Graph.names_text(PackedStringArray()), "", "none")
+
+
+func test_a_way_is_walked_up_as_well_as_down() -> void:
+	"""Mutation G6: a level reached only from below, up a way whose top stands on it, is cut off when that way goes."""
+	_graph.add_cells(2, PackedInt32Array([30, 30, 31, 30]))
+	_graph.add_link(Graph.OUTSIDE, Vector3i(2, 30, 30), SECOND)
+	_graph.add_cells(3, PackedInt32Array([31, 30, 32, 30]))
+	_graph.add_cells(1, PackedInt32Array([50, 50]))
+	_graph.add_link(Vector3i(1, 50, 50), Vector3i(2, 31, 30), DOOR)
+	_graph.add_target(Vector3i(1, 50, 50), "Pantry (level 1)")
+	assert_true(_graph.reached(PackedInt32Array()).has(Vector3i(1, 50, 50)), "reached by going up")
+	assert_equal(_graph.cut_off(PackedInt32Array([DOOR])), PackedStringArray(["Pantry (level 1)"]), "cut off without it")

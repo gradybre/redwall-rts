@@ -157,8 +157,8 @@ func taken(level: int) -> PackedInt32Array:
 
 func clashes(level: int, cell: Vector2i, own_row: int = -1, family: int = DEFAULT_FAMILY, turn: int = 0) -> int:
 	"""The first pending way (not `own_row`) sharing a cell with a way of `family` turned `turn` at `cell` standing on
-	`level`: where both stand, or where either's run cuts (a run is solid earth only its way may take); -1 when none. A
-	way may stand on a hatch's landing (open floor below it: a shaft of hatches)."""
+	`level`: where both stand, where both come down, or where either's run cuts (a run is solid earth only its way may
+	take); -1 when none. A way may stand on a hatch's landing (open floor below it)."""
 	var mine: Array = taken_sets(level, family, turn, cell)
 	for row: int in _levels.size():
 		if row != own_row and _placed(row) and meets(mine, taken_sets(_levels[row], _families[row], _turns[row],
@@ -174,7 +174,8 @@ static func taken_sets(level: int, family: int, turn: int, cell: Vector2i) -> Ar
 
 
 static func meets(mine: Array, theirs: Array) -> bool:
-	"""Whether two ways' cells clash: a cell both stand on, or one on a level where either's run cuts it."""
+	"""Whether two ways' cells clash: a cell both stand on, or both come down onto (no two ways share a landing:
+	removing one would strip the other's), or one where either's run cuts it."""
 	for ours: int in [0, 2]:
 		for other: int in [0, 2]:
 			if int(mine[ours]) != int(theirs[other]):
@@ -182,7 +183,7 @@ static func meets(mine: Array, theirs: Array) -> bool:
 			var a: Dictionary = mine[ours + 1]
 			var b: Dictionary = theirs[other + 1]
 			for at: Vector2i in a:
-				if b.has(at) and ((ours == 0 and other == 0) or (ours == 2 and (mine[4] as Dictionary).has(at)) \
+				if b.has(at) and (ours == other or (ours == 2 and (mine[4] as Dictionary).has(at)) \
 						or (other == 2 and (theirs[4] as Dictionary).has(at))):
 					return true
 	return false

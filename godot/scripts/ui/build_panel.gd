@@ -639,6 +639,7 @@ func choose_card(index: int) -> void:
 		return
 	var card: BuildCatalog.Card = _cards[index]
 	if card.usable() and card.kind != BuildCatalog.CARD_TOOL:
+		cancel_pin()
 		_chosen = card
 		if card.kind == BuildCatalog.CARD_ROOM:
 			_furnish_type = card.room_type
@@ -1305,8 +1306,8 @@ func _answer(yes: bool) -> void:
 
 
 func escape() -> bool:
-	"""Escape, one layer: the stroke in progress, an open question, the expanded ledger, then the panel (asking about
-	pending changes). False when the panel was not open."""
+	"""Escape, one layer: the stroke in progress, the connector card, an open question, the expanded ledger, then the
+	panel (asking about pending changes). False when the panel was not open."""
 	if not visible:
 		return false
 	if _batch.cancel_stroke():

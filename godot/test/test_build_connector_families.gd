@@ -10,11 +10,13 @@ const ALL: Array[int] = [0, 1, 2, 3, 4]
 
 
 func test_the_runs_derive_from_their_sources() -> void:
-	"""The ramp 1:2.5 plus its eased ends (decision 0212, RAMP_FILLET_U 896); the stair 40 of ADR 1209's 512 u treads;
-	the stone stair 20 of decision 0212's 256 u risers on 320 u treads; one level's 5120 u drop (SET-BUILD-001 §3)."""
+	"""The ramp 1:2.5 plus its eased ends (decision 0212, RAMP_FILLET_U 896); the stair decision 2041's F40 (its top
+	landing, 38 more treads of 512 u, the run-out); the stone stair 20 of decision 0212's 256 u risers on 320 u treads;
+	one level's 5120 u drop (SET-BUILD-001 §3)."""
 	assert_equal(Families.DROP_U, 5120, "one level")
 	assert_equal(Families.RUN_U[Families.RAMP] * 2, Families.DROP_U * 5 + 2 * 896, "the ramp's run")
-	assert_equal(Families.RUN_U[Families.EARTH_TIMBER] * 128, Families.DROP_U * 512, "40 treads of 512 u")
+	assert_equal(Families.RUN_U[Families.EARTH_TIMBER], 2560 + 512 * 38 + 1536, "F40: the sill's far edge and run-out")
+	assert_equal(Families.STAIR_ROW_DEPTHS.size(), Families.ALONG[Families.EARTH_TIMBER], "one depth a row")
 	assert_equal(Families.RUN_U[Families.STONE] * 256, Families.DROP_U * 320, "20 risers on 320 u treads")
 	assert_equal(Families.HEADROOM_U, 3 * Families.QUANTUM_U, "the badger's 2611 u in whole quanta")
 	assert_true(Families.HEADROOM_U >= 2611 and Families.HEADROOM_U - Families.QUANTUM_U < 2611, "the least that fits")
@@ -26,7 +28,7 @@ func test_the_runs_derive_from_their_sources() -> void:
 func test_the_quanta_are_the_counted_cubes() -> void:
 	"""`count_quanta` agrees with the table, and with a brute-force cube-by-cube count; a vertical family cuts its own
 	cells all the way down: one quantum between the levels and the landing's 4096 u clear height."""
-	for family: int in [Families.EARTH_TIMBER, Families.STONE, Families.RAMP]:
+	for family: int in [Families.STONE, Families.RAMP]:
 		var per_width: int = Families.count_quanta(Families.RUN_U[family], Families.HEADROOM_U, Families.DROP_U)
 		assert_equal(per_width * Families.ACROSS[family], Families.QUANTA[family], "%s: the table" % Families.name_of(family))
 		assert_equal(per_width, _brute_quanta(Families.RUN_U[family]), "%s: counted cube by cube" % Families.name_of(family))
@@ -34,7 +36,11 @@ func test_the_quanta_are_the_counted_cubes() -> void:
 		assert_equal(Families.QUANTA[family], Families.ACROSS[family] * Families.ALONG[family] * 5,
 			"%s: 1 + 4 quanta a cell" % Families.name_of(family))
 	assert_equal(Families.count_quanta(13696, 4096, 5120) * 2, 90, "the ramp at 4 quanta of headroom (decision 2021)")
-	assert_equal(Families.count_quanta(20480, 4096, 5120) * 2, 120, "the stair at 4 quanta")
+	var depths: int = 0
+	for depth: int in Families.STAIR_ROW_DEPTHS:
+		depths += depth
+	assert_equal(depths, 71, "decision 2041 §2.4: 71 cubes a column")
+	assert_equal(Families.QUANTA[Families.EARTH_TIMBER], 2 * depths, "F40's 142 cubes")
 
 
 func _brute_quanta(run_u: int) -> int:
@@ -56,7 +62,7 @@ func _brute_quanta(run_u: int) -> int:
 func test_the_cells_on_each_level_derive_from_the_void() -> void:
 	"""A column is standing (open to its level) where the void reaches its level's floor, and lower where it reaches the
 	clear height below the one quantum between the levels."""
-	for family: int in [Families.EARTH_TIMBER, Families.STONE, Families.RAMP]:
+	for family: int in [Families.STONE, Families.RAMP]:
 		var run: int = Families.RUN_U[family]
 		var open: int = 0
 		var low_from: int = -1
@@ -71,6 +77,24 @@ func test_the_cells_on_each_level_derive_from_the_void() -> void:
 		assert_equal(Families.LOW_FROM[family], low_from, "%s: first lower column" % Families.name_of(family))
 
 
+func test_the_stairs_cells_follow_its_row_depths() -> void:
+	"""Decision 2041 §2.4: every row an open slot to the land (all 23 standing); a row reaches level 1's clear height
+	once it is 2 cubes deep."""
+	assert_equal(Families.TOP_OPEN[Families.EARTH_TIMBER], Families.STAIR_ROW_DEPTHS.size(), "all open to the land")
+	assert_equal(Families.LOW_FROM[Families.EARTH_TIMBER], Families.STAIR_ROW_DEPTHS.find(2), "below from row 5")
+	assert_equal(Families.box(Families.EARTH_TIMBER, 0, Vector2i(0, 0)), Rect2i(0, 0, 2, 23), "2 × 23 (P-DF-2 (a))")
+
+
+func test_the_stair_head_turns_only_to_zero() -> void:
+	"""Decision 2041 P-DF-6 (a): rotation 0 only, for the Stair-head; the others turn freely."""
+	assert_equal(Families.turn_refusal(Families.EARTH_TIMBER, 0), "", "turn 0")
+	for turn: int in [1, 2, 3, 4 + 1]:
+		assert_equal(Families.turn_refusal(Families.EARTH_TIMBER, turn), "No qualified stair for this direction yet",
+			"turn %d" % turn)
+	assert_equal(Families.turn_refusal(Families.EARTH_TIMBER, 4), "", "four turns are none")
+	assert_equal(Families.turn_refusal(Families.RAMP, 1) + Families.turn_refusal(Families.LADDER_HATCH, 3), "", "others")
+
+
 func test_every_family_is_at_least_two_by_two() -> void:
 	"""Decision 1880's [NEW constraint]: the item bound holds while every item covers at least 2 × 2 cells."""
 	for family: int in ALL:
@@ -79,12 +103,15 @@ func test_every_family_is_at_least_two_by_two() -> void:
 
 
 func test_the_fixture_bills_are_l0_and_treads() -> void:
-	"""ADR 1202's L0 and ADR 1209 D3's tread at DEC-059's work: the hatch L0 + 5 treads, the stair L0 + 40, the ramp
-	none; stone and spiral not proposed."""
+	"""ADR 1202's L0, T0 at its own bill and ADR 1209 D3's tread at DEC-059's work: the hatch L0 + 5 treads, the stair
+	L0 + T0 + 38 treads (decision 2041 §2.5), the ramp none; stone and spiral not proposed."""
 	assert_equal(Families.fixture_wood(Families.LADDER_HATCH), 9000, "hatch wood")
 	assert_equal(Families.fixture_work(Families.LADDER_HATCH), 60200, "hatch work")
-	assert_equal(Families.fixture_wood(Families.EARTH_TIMBER), 44000, "stair wood")
-	assert_equal(Families.fixture_work(Families.EARTH_TIMBER), 257600, "stair work")
+	assert_equal(Families.fixture_wood(Families.EARTH_TIMBER), 43000, "stair wood (2041 §2.5)")
+	assert_equal(Families.fixture_work(Families.EARTH_TIMBER), 258320, "stair work (2041 §2.5)")
+	var stair: PackedInt64Array = PackedInt64Array()
+	Families.bill_into(Families.EARTH_TIMBER, stair)
+	assert_equal(stair, PackedInt64Array([78500, 35500, 858980, 284000]), "F40's whole bill, 2041 §2.5")
 	assert_equal(Families.fixture_wood(Families.RAMP) + Families.fixture_work(Families.RAMP), 0, "the ramp: none")
 	assert_false(Families.fixtures_priced(Families.STONE) or Families.fixtures_priced(Families.SPIRAL), "not proposed")
 	assert_equal(Families.fixture_wood(Families.STONE), 0, "nothing shown")
@@ -124,6 +151,9 @@ func test_a_ramp_descends_north_at_turn_zero_and_turns_clockwise() -> void:
 	assert_equal(Families.cell_at(Families.RAMP, 0, anchor, 0, 0), Vector2i(10, 33), "turn 0: top at the south")
 	assert_equal(Families.cell_at(Families.RAMP, 0, anchor, 13, 0), Vector2i(10, 20), "foot at the north")
 	assert_equal(Families.cell_at(Families.RAMP, 1, anchor, 0, 0), Vector2i(10, 20), "turn 1: top at the west")
+	assert_equal(Families.cell_at(Families.RAMP, 1, anchor, 13, 1), Vector2i(23, 21), "turn 1: foot at the east")
+	assert_equal(Families.cell_at(Families.RAMP, 2, anchor, 13, 0), Vector2i(11, 33), "turn 2: foot at the south")
+	assert_equal(Families.cell_at(Families.RAMP, 3, anchor, 13, 1), Vector2i(10, 20), "turn 3: foot at the west")
 	assert_equal(Families.cell_at(Families.RAMP, 2, anchor, 0, 1), Vector2i(10, 20), "turn 2: top at the north")
 	assert_equal(Families.cell_at(Families.RAMP, 3, anchor, 0, 0), Vector2i(23, 21), "turn 3: top at the east")
 	for turn: int in 4:

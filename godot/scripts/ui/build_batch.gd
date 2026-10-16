@@ -147,6 +147,10 @@ var _host_cut_off: Callable = Callable()
 var _host_type: Callable = Callable()
 var _cut_at: int = -1
 var _cut_words: String = ""
+## The host's own ground reader, and the cells pending removals take away, worked out once a revision.
+var _host_ground: Callable = Callable()
+var _removed_at: int = -1
+var _removed_cells: Dictionary = {}
 ## The Surface's Mound cells, their footprint and the hill's refusal, worked out once per layout (`_mound_layout`).
 var _mound_seen: int = -1
 var _mound_cells: PackedInt32Array = PackedInt32Array()
@@ -181,9 +185,34 @@ func configured() -> bool:
 
 
 func bind_ground(ground: Callable, ground_revision: Callable) -> void:
-	"""The host's ground reader for the per-cell judgement (build_cell_validity.gd `bind_ground`)."""
-	_cells.bind_ground(ground, ground_revision)
+	"""The host's ground reader for the per-cell judgement (build_cell_validity.gd `bind_ground`), read through
+	`_ground_less_removed` (decision 2022, review H3)."""
+	_host_ground = ground
+	_cells.bind_ground(_ground_less_removed, ground_revision)
 	_changed()
+
+
+func _ground_less_removed(level: int, cell: Vector2i) -> int:
+	"""The host's ground, except that a confirmed way's cells below which a pending removal takes away are no longer
+	finished space -- never a way in, and "occupied" under a stroke (BUILD-REQ-013 with BUILD-REQ-017's removal)."""
+	var code: int = int(_host_ground.call(level, cell))
+	if code != Cells.CELL_FINISHED or _items.live_count() == 0:
+		return code
+	if _removed_at != revision:
+		_removed_at = revision
+		_removed_cells = _removed_lower_cells()
+	return Cells.CELL_OCCUPIED if _removed_cells.has(Vector3i(level, cell.x, cell.y)) else code
+
+
+func _removed_lower_cells() -> Dictionary:
+	"""Every lower cell (level, x, z) of the confirmed ways pending removals name."""
+	var out: Dictionary = {}
+	for row: int in _items.count():
+		if _items.is_live(row) and _items.is_removal(row):
+			var cells: PackedInt32Array = _items.lower(row)
+			for at: int in range(0, cells.size(), 2):
+				out[Vector3i(_items.level_of(row) + 1, cells[at], cells[at + 1])] = true
+	return out
 
 
 func bind_landings(landings: Callable) -> void:
@@ -752,21 +781,25 @@ func _confirmed_clash(level: int, cell: Vector2i, family: int, turn: int) -> int
 	for top: int in [level - 1, level, level + 1]:
 		var shapes: PackedInt32Array = _shapes_on(top)
 		for at: int in range(0, shapes.size(), 4):
-			if _items.removal_row(top, Vector2i(shapes[at], shapes[at + 1])) < 0 and Items.meets(mine, Items.taken_sets(top, shapes[at + 2], shapes[at + 3], Vector2i(shapes[at],
-					shapes[at + 1]))):
+			var anchor: Vector2i = Vector2i(shapes[at], shapes[at + 1])
+			if _items.removal_row(top, anchor) < 0 \
+					and Items.meets(mine, Items.taken_sets(top, shapes[at + 2], shapes[at + 3], anchor)):
 				return shapes[at + 2]
 	return -1
 
 
 func _fixed_refusal(level: int, cell: Vector2i, family: int, turn: int) -> String:
-	"""What makes a way impossible whatever else is planned: no level above or below, a family not offered yet, or a
-	cell outside the planning area ("" when none)."""
+	"""What makes a way impossible whatever else is planned: no level above or below, a family not offered yet or not
+	at this turn (decision 2041 P-DF-6 (a)), or a cell outside the planning area ("" when none)."""
 	if level < 0:
 		return Validity.no_level_above()
 	if level > Items.DEEPEST_TOP:
 		return Validity.no_level_below()
 	if not Families.offered(family):
 		return Validity.not_yet(Families.LATER)
+	var turned: String = Families.turn_refusal(family, turn)
+	if not turned.is_empty():
+		return turned
 	for cells: PackedInt32Array in [Families.standing_cells(family, turn, cell), Families.lower_cells(family, turn, cell)]:
 		for at: int in range(0, cells.size(), 2):
 			if not _bounds.has_point(Vector2i(cells[at], cells[at + 1])):
@@ -1460,7 +1493,9 @@ func _step_words(step: PackedInt32Array) -> String:
 		return "%s %s" % [VERBS[step[0]], Furniture.name_of(_pieces.item_of(step[1] - PIECE_TAG))]
 	if step[1] >= ITEM_TAG:
 		var item: int = step[1] - ITEM_TAG
-		return "%s %s" % [VERBS[VERB_REMOVE if _items.is_removal(item) else step[0]], _items.name_of_row(item)]
+		if _items.is_removal(item):
+			return "%s %s" % ["Keep" if step[0] == VERB_REMOVE else VERBS[VERB_REMOVE], _items.name_of_row(item)]
+		return "%s %s" % [VERBS[step[0]], _items.name_of_row(item)]
 	return "%s %s" % [VERBS[step[0]], BuildCatalog.type_name(_types[step[1]])]
 
 
@@ -1827,6 +1862,7 @@ func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_pi
 	stroke is in progress or any change is invalid (Confirm all is disabled then). Then each pending piece of
 	furniture through `submit_piece(level, anchor, turn, item) -> Dictionary` (decision 1921); last each door, window
 	and removal through `submit_edge(level, cell, side, kind, colour, removal) -> Dictionary` (decision 2002)."""
+	_cut_at = -1
 	if _stroke.active() or invalid_count() > 0:
 		return PackedInt32Array([0, 0])
 	var gone: PackedInt32Array = _confirm_items(submit_item)
@@ -1851,10 +1887,19 @@ func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_pi
 
 
 func _confirm_items(submit_item: Callable) -> PackedInt32Array:
-	"""Each pending way down through `submit_item`; the step entries of those it ordered (no longer pending)."""
+	"""Each pending removal, then each pending way, through `submit_item` (review H2: a way placed where a removed one
+	stood is ordered after the removal); the step entries of those it ordered (no longer pending)."""
+	var gone: PackedInt32Array = PackedInt32Array()
+	for removals: bool in [true, false]:
+		gone.append_array(_confirm_rows(submit_item, removals))
+	return gone
+
+
+func _confirm_rows(submit_item: Callable, removals: bool) -> PackedInt32Array:
+	"""The pending removals (or ways) through `submit_item`; the step entries of those it ordered."""
 	var gone: PackedInt32Array = PackedInt32Array()
 	for row: int in _items.count():
-		if not _items.is_live(row) or not submit_item.is_valid():
+		if not _items.is_live(row) or _items.is_removal(row) != removals or not submit_item.is_valid():
 			continue
 		var answer: Variant = submit_item.call(_items.level_of(row), _items.cell_of(row), _items.family_of(row),
 			_items.turn_of(row), _items.is_removal(row))

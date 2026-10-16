@@ -82,3 +82,10 @@ func test_a_mounds_only_door_cuts_off_its_rooms_and_the_hatch_below() -> void:
 	assert_true(_mounds.order_edge(Vector2i(20, 20), 0, Mound.KIND_DOOR, Mound.COLOUR_OAK), "a second door")
 	assert_equal(_host.cut_off(PackedInt32Array(), [door]), "", "the other door serves")
 	assert_equal(_host.cut_off(PackedInt32Array([0, 20, 20]), []), "Kitchen (level 1)", "the hatch serves the Kitchen")
+
+
+func test_a_resident_on_a_run_counts_at_its_ways_landing() -> void:
+	"""Mutation H6: someone walking a burrow mouth's run is cut off with the way's landing."""
+	_works.order_way_down(0, Vector2i(30, 2), Families.RAMP, 0)
+	_below.append(["Basil", Vector3i(1, 30, 8)])
+	assert_equal(_host.cut_off(PackedInt32Array([0, 30, 2]), []), "Basil", "named")

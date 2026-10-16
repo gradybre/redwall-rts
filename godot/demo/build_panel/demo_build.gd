@@ -590,7 +590,7 @@ func _sync_label(open: bool) -> void:
 	_label_box.visible = type >= 0 or placing or (open and (piece_armed() or edge_armed()))
 	if not _label_box.visible:
 		return
-	var label_key: int = batch.stroke_revision * 4096 + ((((bar.shown_level() * 8 + panel.armed_family() + 2) * 2
+	var label_key: int = batch.stroke_revision * 8192 + ((((bar.shown_level() * 8 + panel.armed_family() + 2) * 2
 		+ int(panel.pinned())) * 64 + (_way_note_rev & 63)) if placing else 0)
 	if open and edge_armed():
 		_sync_edge_label()

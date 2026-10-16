@@ -1674,6 +1674,7 @@ quoted in decision 2001 as W1–W14.
     heap's earth, a 1 m cover and a 3-cell berm, a 6-cell yard, no walking on the mound at first, hills authored into
     the estuary preset, daylight as presentation, a free proof of concept first, removal that backfills and keeps
     the hill, the thirteen smaller rules, and the build order as the mockup shows it.
-  - **Still open:** the ground-height step (P-2001-15).
+  - **P-2001-15: "1/8 m"**, ruled later the same day. Ground heights are integers in steps of 128 u, so today's
+    512, −128 and 0 convert exactly.
 
 Engineering record: [decision2001](decisions/2001-mound-homes.md).

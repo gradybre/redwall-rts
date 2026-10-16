@@ -2,7 +2,7 @@
 
 Date: 2026-10-15 · Status: Accepted as the plan. Brendan approved the mound mockup, "This looks good, let's build this
 into the plan", relayed by the coordinator on 2026-10-15. He ruled P-2001-1 to P-2001-14 the same day ("Brendan's
-rulings" below). P-2001-15, the ground-height step, awaits his word. Docs only: no code.
+rulings" below), and P-2001-15, the ground-height step, as "1/8 m" (a 128 u step). Docs only: no code.
 
 Number range: 2001–2019, allocated to this lane by the coordinator. It was checked free on every local and remote ref
 (`git ls-tree` over `refs/heads` and `refs/remotes`), and `docs/validation/decision_numbers.py` accepts four-digit
@@ -43,10 +43,15 @@ Given in chat to the coordinator and relayed, on the questions of §6.
 
 | Question | Ruling | What it means |
 |---|---|---|
-| P-2001-1, ground heights | **"Finer heights"**: (b), not the recommendation | Ground heights are finer than a metre, and slopes are real slopes. Walkers and haulers must handle them. The hill becomes real ground (BUILD-MOUND-006 adopted), blocked until MOUND-TERRAIN amends GDD §5.1. The step size is not ruled: P-2001-15 proposes one |
+| P-2001-1, ground heights | **"Finer heights"**: (b), not the recommendation | Ground heights are finer than a metre, and slopes are real slopes. Walkers and haulers must handle them. The hill becomes real ground (BUILD-MOUND-006 adopted), blocked until MOUND-TERRAIN amends GDD §5.1. The step was ruled later the same day: 128 u (P-2001-15 (a), below) |
 | P-2001-6, window height | **"Wall's top metre"**: (a) | A window lies on the slope just outside its wall, at the height of the wall's top metre, and lights the room through it (BUILD-MOUND-015) |
 | P-2001-8, door front and colour | **"Our own, oak default"**: (a) | The approved elements stay as general burrow-home vocabulary. The art is our own: no centre knob, our own proportions, Redwall materials. Oak is the default colour; green, red and blue stay as choices |
 | P-2001-2, -3, -4, -5, -7, -9, -10, -11, -12, -13 (all 13 items) and -14 | **"Approve all"**, as recommended | The name "Mound"; spoil as the heap's earth (free in the proof of concept); a 1 m cover and a 3-cell berm (see below); a 6-cell yard; no walking on the mound for the first slices; hills authored into the estuary preset; window daylight as presentation only for now; the proof of concept first; removal backfills and keeps the hill; the thirteen smaller rules, including windows underground only where a mound or hill face lies beyond the wall; and the build order as the mockup shows it |
+
+**P-2001-15, the ground-height step: "1/8 m"**, (a), ruled later the same day (relayed by the coordinator). Ground
+heights are integers in steps of 128 u. Today's land 512 u, ford −128 u and water 0 convert exactly. The step is ADR
+1209's tread rise and the rounded walls' drawing step, and eight steps make one 1,024 u cut quantum. BUILD-MOUND-006
+is unblocked as far as the step goes; it still waits for MOUND-TERRAIN's amendment of GDD §5.1.
 
 **P-2001-4 under finer heights (reconciled at the coordinator's direction).** The recommendation was written for
 whole-quantum ground: a 1 m cover, and a berm stepped 5 → 4 → 2 → 0 over 3 cells. Under P-2001-1 (b) the berm can be a
@@ -56,7 +61,7 @@ true slope. So P-2001-4 is recorded as **approved in intent**:
 - a berm footprint of 3 cells beyond each outer wall;
 - the first cell outside a wall stands to the wall's top (4,096 u above the floor), so a wall is never open to the air.
 
-The exact profile follows the step size MOUND-TERRAIN adopts (P-2001-15). It is drawn smooth.
+The exact profile is drawn in the ruled 128 u step (P-2001-15 (a)) by MOUND-TERRAIN. It is drawn smooth.
 
 **P-2001-6 checked under finer heights.** The recommendation's reasoning was that whole quanta force the first
 outside cell to the wall's full height, so a window sits at least a cell out. Under finer heights that is no longer
@@ -81,7 +86,7 @@ mockup's 2.2 m window would sit about two cells out.
 - **Part-filled quanta.** With sub-metre ground, the top of a column of earth can end part-way through a 1 m³ cut
   quantum. MOUND-TERRAIN must state how such a quantum is dug, priced and counted, under ECON-002–005. That is
   engineering, with no ruling yet.
-- **The step size** (P-2001-15, below).
+- **The step size** (P-2001-15, below; ruled "1/8 m", 128 u).
 - **MOUND-POC is approved to build** (P-2001-11 (a)).
 
 ## Decision
@@ -165,9 +170,9 @@ As of Brendan's rulings of 2026-10-15.
 | The hill matches the rooms and grows as rooms are added | Ruled | W5 |
 | Every Mound room at the hill's edge (no earth margin) | Ruled | W13 |
 | Room height 4,096 u | Derived | DEC-054's 2026-10-15 addendum ("Rooms must fit every species") |
-| A 1 m cover, a 3-cell berm, the first outside cell to the wall's top | Ruled in intent; the exact profile follows the step size | P-2001-4 (a); P-2001-15 |
+| A 1 m cover, a 3-cell berm, the first outside cell to the wall's top | Ruled in intent; the exact profile in 128 u steps is MOUND-TERRAIN's | P-2001-4 (a); P-2001-15 (a) |
 | The finished heap is real ground, at heights finer than a metre | Ruled; blocked until MOUND-TERRAIN amends GDD §5.1 | W2; P-2001-1 (b) |
-| The ground-height step | **Open** | P-2001-15 |
+| The ground-height step: 128 u (1/8 m) | Ruled | P-2001-15 (a), "1/8 m" |
 | Doors and windows are placed by the player as edge items, never generated | Ruled | W6 |
 | Underground doors placed by the player, never generated | Ruled | W6 ("Similar to underground as well") |
 | Underground windows only where a mound or hill face lies beyond the wall | Ruled | W6; P-2001-13 item 12 |
@@ -312,7 +317,7 @@ Production must not copy these values.
 ## 6. Questions for Brendan
 
 P-2001-1 to P-2001-14 were ruled on 2026-10-15 ("Brendan's rulings" above); they are kept here as asked.
-P-2001-15 is new and open.
+P-2001-15 was added after those rulings and ruled the same day (below).
 
 Each question gives options and a recommendation. **Do not invent the values.** Where the mockup has a number, it is
 the candidate to test, not a ruling.
@@ -518,6 +523,8 @@ integers (AGENTS.md: integer authoritative state), so they need a step.
 
 Whatever the step, MOUND-TERRAIN budgets the height table (MOVE-G02) and states how part-filled quanta are dug.
 
+**Ruled 2026-10-15: "1/8 m"**, (a), 128 u ("Brendan's rulings" above).
+
 ## 7. The slice
 
 The Evil Genius 2 study §5 adds slice **M — Mound homes**, with three parts:
@@ -541,13 +548,13 @@ It also needs the ground-heights amendment and a heap earthwork job (haul and ta
 | Packet | What | Needs | Decisions |
 |---|---|---|---|
 | MOUND-POC | Demo proof of concept: paint, heap, dig, top, doors and windows, growth, hatch to level 1. Drawn first, free, unsaved | Approved (P-2001-11 (a)); the merged painted-room proof of concept (1912, 1913, 1914, 1921) | 2002–2009 |
-| MOUND-TERRAIN | The finer ground-heights amendment (GDD §5.1, REQ-SET-122 and BUILD-REQ-009), movement on slopes against MOVE-G01–G05, part-filled quanta, and the data | P-2001-1 (b) ruled; P-2001-15 (the step) | 2010–2014 |
+| MOUND-TERRAIN | The finer ground-heights amendment (GDD §5.1, REQ-SET-122 and BUILD-REQ-009) in 128 u steps, movement on slopes against MOVE-G01–G05, part-filled quanta, and the data | P-2001-1 (b) and P-2001-15 (a) ruled | 2010–2014 |
 | MOUND-REAL | The real pipeline: heap earthwork job, dig through the room foreman, frame, top, doors, windows and the way down | MOUND-TERRAIN; slices C3, D, E and G (its rulings are in) | 2015–2019 (more from the coordinator if needed) |
 
 ## Consequences
 
-- MOUND-POC is approved to build (P-2001-11 (a)). MOUND-TERRAIN is ruled in direction (P-2001-1 (b)); its step
-  waits on P-2001-15. MOUND-REAL waits on MOUND-TERRAIN and slices C3, D, E and G.
+- MOUND-POC is approved to build (P-2001-11 (a)). MOUND-TERRAIN is ruled: finer heights in 128 u steps (P-2001-1
+  (b), P-2001-15 (a)). MOUND-REAL waits on MOUND-TERRAIN and slices C3, D, E and G.
 - No Mound may be built as real ground until MOUND-TERRAIN amends GDD §5.1. Until then a Mound is drawn, not ground.
 - Finer heights open movement work on slopes against MOVE-G01–G05. No slope limit may be invented to close it.
 - The mockup's numbers are candidates. A lane that uses one must cite the question that fixes it.

@@ -157,7 +157,7 @@ only: it adopts no slope limit, profile or value. The work is owned by BACKLOG p
 - **MOVE-G04:** walking and carrying clips on slopes.
 - **MOVE-G05:** slope fixtures and evidence.
 
-The height step is decision 2001 P-2001-15, which is open.
+The height step is 128 u (1/8 m): decision 2001 P-2001-15, ruled "1/8 m" the same day.
 
 Tunnels are now painted Passage (`CORRIDOR`) rooms and the entrance is a placed item, so the three interoperable
 underground methods of §1 become one painting tool over one excavation ledger; by Brendan's ruling on decision 1851 OPEN-11 (DEC-031's placed burrows), MOVE-TEST-01's “placed burrow,

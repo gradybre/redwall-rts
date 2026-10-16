@@ -11,6 +11,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
 const BuildLayout := preload("res://scripts/ui/build_layout.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 
 const KITCHEN: int = 2
 
@@ -122,15 +123,19 @@ func test_choosing_arms_paintable_types_only() -> void:
 	assert_equal(_chosen.size(), 4, "a card past the row does nothing")
 
 
-func test_on_the_surface_nothing_paints() -> void:
-	"""Room types are locked on the surface; a chosen type is disarmed on the way up."""
+func test_on_the_surface_only_the_mound_style_paints() -> void:
+	"""Decision 2002: on the way up the style turns to Mound and a chosen type stays armed; in the Built style the
+	room types are locked there and a chosen type is disarmed."""
 	_panel.choose_card(2)
 	_panel.set_level(0)
-	assert_equal(_panel.paint_type(), -1, "no surface painting")
+	assert_equal(_panel.style(), Mound.STYLE_MOUND, "the surface's style")
+	assert_equal(_panel.paint_type(), 2, "a Mound Kitchen paints")
+	_panel.choose_style(Mound.STYLE_BUILT)
+	assert_equal(_panel.paint_type(), -1, "no built surface painting")
 	assert_null(_panel.chosen_card(), "disarmed")
 	_panel.choose_card(2)
 	assert_equal(_panel.paint_type(), -1, "a locked type does not arm")
-	assert_true(_panel.info_text().contains("rooms on the surface"), _panel.info_text())
+	assert_true(_panel.info_text().contains("built rooms on the surface"), _panel.info_text())
 	var where: Label = _panel.controls()[&"where"]
 	assert_equal(where.text, "Building on: Surface", "the words follow the level")
 
@@ -448,8 +453,10 @@ func test_an_item_card_arms_placing_it_on_an_underground_level() -> void:
 	assert_equal(_panel.paint_type(), -1, "no room type paints meanwhile")
 	assert_false(_panel.way_down_armed(), "nor a way down")
 	_panel.set_level(LevelBar.LEVEL_SURFACE)
-	assert_false(_panel.piece_armed(), "on the surface it is disarmed")
-	assert_equal(_panel.armed_item(), -1, "nothing")
+	assert_true(_panel.piece_armed(), "decision 2002: on the surface it stays armed, for a Mound room's floor")
+	assert_equal(_panel.armed_item(), 2, "still the hearth")
+	_panel.set_level(LevelBar.LEVEL_OVERVIEW)
+	assert_false(_panel.piece_armed(), "on Overview it is disarmed")
 	assert_null(_panel.chosen_card(), "the choice dropped: locked there")
 
 

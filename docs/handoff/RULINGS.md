@@ -208,6 +208,13 @@ Every row was checked against the record named.
 | Room-dig memory (1937 P-1937-1), the builder cap, 2026-10-16 | **"No cap for now"**: no 64-builder cap; room digs keep up to 256 builders. (Relayed by the coordinator) | [1937](../decisions/1937-room-digs-composed-saved-and-ledgered.md) §10 |
 | Decision 1880 Q1's store containers (1937 P-1937-1), 2026-10-16 | **"Size it when G is designed"**: Q1's "up to" 8,110,080 B for painted store containers is no longer charged now; slice G must fit its store containers into the headroom left when G is designed. Room digs ship now. (Relayed by the coordinator) | [1937](../decisions/1937-room-digs-composed-saved-and-ledgered.md) §10; [1880](../decisions/1880-painted-room-memory-budget.md) |
 
+## 2026-10-16
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Mound homes: the hill's shape (2002, on the proof of concept's frames) | **"Rounder, like the mockup"**. The finished hill read as a flat-topped ridge with steep sides. Give it the mockup's domed crown and a smoother, wider fall-off of about 4 cells (`heapH`, `edgeFall`, the crown's `q` term). Keep the rules: the first cell outside a wall stands to the wall's top, so no wall is ever open; windows stay at the wall's top metre; the yard is 6 wide. **Amends P-2001-4's 3-cell berm to about 4 cells.** (Relayed by the coordinator) | [2002](../decisions/2002-mound-homes-proof-of-concept.md) "Brendan's rulings"; [2001](../decisions/2001-mound-homes.md) note; BUILD-MOUND-003 note |
+| Mound homes: the proof of concept's PROPOSALS (2002 P-2002-1–9) | **"Approve all"**, as recommended: built rooms on the Surface wait for slice G; the lane's door, window and yard words; scenery heaped over and hidden; the turf over the eave; decision 1921's builder rule; two Mounds whose berms meet drawn as one hill; framing each dug cell before the next is dug; a door may span two rooms of one Mound; no room within 2 cells of a yard's side and no window within 3, with no cheek walls. (Relayed by the coordinator) | [2002](../decisions/2002-mound-homes-proof-of-concept.md) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

@@ -146,6 +146,19 @@ height, 1024 u roof band and 1024 u footing; level 4's footing ends at quantum �
 | MOVE-G04 | Open. |
 | MOVE-G05 | Open. |
 
+**Slopes (2026-10-15, [decision 2001](decisions/2001-mound-homes.md)).** Brendan ruled ground heights finer than a metre
+for Mound homes and authored hills: **"Finer heights"**, decision 2001 P-2001-1 (b), recorded in DEC-061's 2026-10-15
+addendum. So walkers and haulers must handle real slopes, and each gate gains slope work. This note records open work
+only: it adopts no slope limit, profile or value. The work is owned by BACKLOG packet MOUND-TERRAIN.
+
+- **MOVE-G01:** traversal profiles and modes on slopes, by species, load and mode.
+- **MOVE-G02:** the per-cell ground-height table's bytes, and route costs on slopes.
+- **MOVE-G03:** picking and ghosts on sloped ground.
+- **MOVE-G04:** walking and carrying clips on slopes.
+- **MOVE-G05:** slope fixtures and evidence.
+
+The height step is 128 u (1/8 m): decision 2001 P-2001-15, ruled "1/8 m" the same day.
+
 Tunnels are now painted Passage (`CORRIDOR`) rooms and the entrance is a placed item, so the three interoperable
 underground methods of §1 become one painting tool over one excavation ledger; by Brendan's ruling on decision 1851 OPEN-11 (DEC-031's placed burrows), MOVE-TEST-01's “placed burrow,
 planned tunnel and freely excavated room” reads as a surface entrance, a painted Passage and a painted room on a

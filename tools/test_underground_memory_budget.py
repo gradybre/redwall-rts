@@ -564,9 +564,9 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(haul["reserved_bytes"], 3072)
         self.assertEqual(result["contributions"]["guarded_haul_transfers"], 3072)
         delivery = result["connector_delivery_reservation"]
-        self.assertEqual(delivery["fixed_numeric_and_packed_bytes"], 834)
+        self.assertEqual(delivery["fixed_numeric_and_packed_bytes"], 835) # +1 decision 1934 _room_haul
         self.assertEqual(delivery["work_new_numeric_bytes"], 1)
-        self.assertEqual(delivery["declared_bytes"], 3907)
+        self.assertEqual(delivery["declared_bytes"], 3908)
         self.assertEqual(delivery["reserved_bytes"], 4096)
         self.assertEqual(result["contributions"]["connector_delivery"], 4096)
         recipes = result["connector_recipe_reservation"]

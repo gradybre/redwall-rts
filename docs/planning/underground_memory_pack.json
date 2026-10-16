@@ -1459,6 +1459,7 @@
       "_poisoned": "bool",
       "_work_tick": "bool",
       "_excavation": "bool",
+      "_room_haul": "bool",
       "_job": "Vector2i",
       "_worker": "Vector2i",
       "_project": "Vector2i",
@@ -1490,7 +1491,7 @@
       "box": 32,
       "number": 9
     },
-    "fixed_numeric_and_packed_bytes": 834,
+    "fixed_numeric_and_packed_bytes": 835,
     "work_new_numeric_bytes": 1,
     "work_bindings": {
       "_delivery_script": "Script",
@@ -1499,7 +1500,7 @@
     },
     "logical_helper_allowance_bytes": 1024,
     "native_reserve_bytes": 2048,
-    "declared_bytes": 3907,
+    "declared_bytes": 3908,
     "reserved_bytes": 4096,
     "scope": "Separate ADR1140 per-world contribution. Reviewed coupled logical helper census817 fits1024; the borrowed216-byte Transfer is already charged in1141. No new gameplay bank; runtime memory remains unqualified."
   },
@@ -6831,7 +6832,7 @@
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
       "godot/scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
-      "godot/scripts/systems/settlement_system.gd": "c1a6b14bdb229de0a5de4baa81c347f266daba04f845c452d77c9669f7cfe8bf"
+      "godot/scripts/systems/settlement_system.gd": "9ecd9ccc09df64e7bcf76f4d148c3d7996f1cb23dbc1a3ddc533cffa36da4147"
     },
     "current_composition_source_sha256": {
       "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
@@ -44167,6 +44168,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "ADR 1228 restore_underground_entry(): a load's entry runtime, adopted in place of the one the first request would create; counted in first_entry_runtime"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1933 (C2.1) room-dig runtime reference; only tests adopt one until C2.3 composes it from the Session and ledgers its packed record (475,136 B since decision 1934)"
           }
         ],
         "delta": {
@@ -44182,6 +44188,10 @@
             [
               "_underground_entry",
               "UndergroundEntryRuntime"
+            ],
+            [
+              "_underground_rooms",
+              "UndergroundRoomRuntime"
             ]
           ],
           "allocation_sites": {
@@ -44643,7 +44653,7 @@
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
-    "godot/scripts/systems/settlement_system.gd": "c1a6b14bdb229de0a5de4baa81c347f266daba04f845c452d77c9669f7cfe8bf",
+    "godot/scripts/systems/settlement_system.gd": "9ecd9ccc09df64e7bcf76f4d148c3d7996f1cb23dbc1a3ddc533cffa36da4147",
     "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
@@ -44651,7 +44661,7 @@
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
     "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
     "godot/scripts/core/underground_connector_contacts.gd": "d45d58aa5c24fb1da5429de74719862713f0716d3d20c37ef8f1b3b055d46db0",
-    "godot/scripts/core/underground_connector_delivery.gd": "7cbdb906be067d3d45473c2fabfb414f7ca5f0c358bc58b1fabe04947b0b12ea",
+    "godot/scripts/core/underground_connector_delivery.gd": "bacdef42da2a61f3886038b2b3fe703153c3ac027aa4c832688ad4b51286267f",
     "godot/scripts/core/underground_connector_placements.gd": "401ad48c51225a514876bc9e1017d78a6dda96ac34ff2717e25742d1a3f7db30",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",

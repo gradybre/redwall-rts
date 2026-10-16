@@ -68,6 +68,10 @@ contents together, with one pin renewal, one checkpoint regeneration and one cen
 
 ### C. Profiles selection (`scripts/core/underground_profiles.gd`, shared core; the cost lane also edits it)
 
+**The mount depends on this.** `mole_profile_catalog.gd:212-214` re-hashes every row's policy through
+`selection_policy_of`, which returns −1 for rows 71–84 today (`MOLE_CATALOG_DESCRIPTOR`). So content 12 cannot load
+until the leaf returns 10–13.
+
 - `selection_policy_leaf` (623–631): the bound `<= POLICY_STAIR_TURN` → `<= POLICY_ROOTED_TURN`.
 - `query_travel_profile_into` (633–646): admit the rooted words; use the row's own mode (`_policy_mode`), so a CARRY
   row is selected with the actor's actual cargo through `_read_dynamic`.
@@ -101,15 +105,34 @@ Routes is 244,295 characters at master and 246,841 on the cost lane's branch, ag
 - **The bundle successor** `first-entry-prefix-v1/qualified-stairs-v10/` (create-only, from
   `publish_qualified_stairs.py`):
   - content 12's wire (revision 12, `fa96acbe…`) and rebound ground caps;
-  - DEC-050's authored paces on the stair Placement's variant 0: 30 ticks a tread (528 u/s), 45 the turn
-    (116 u/s over 174 u), 90 each handoff (343 u → 115 u/s; the 169 u retreat → 57 u/s, exactly 90 ticks; checked
-    at build);
+  - DEC-050's authored paces on the stair Placement's variant 0 (`STAIR_PACES`, publisher 71–72): 30 ticks a tread
+    (528 u/s), 45 the turn (116 u/s over 174 u), and 90 for the 343 u handoffs (115 u/s). **The 169 u retreat (rows
+    77/83) cannot take 90 ticks** (P-1972-6);
+  - `GROUND_PACE_COUNT` 29 → 43 (`underground_route_composition.gd:27`); `FRONTIER_REVISION` 9; `PROFILE_SHA`
+    `fa96acbe…`, `GROUND_SHA` `3234f2d2…` (content 12's ground caps still name the v1 claw image, so `rebound_ground`
+    stays). The publisher is edited in place, as v8 and v9 were (create-only output);
+  - new LANDINGs for T6 (y −896) and the floor (y −1024, z −6318..−5801), appended; appending moves the OPENING's
+    region ordinal, so every reader that indexes regions by ordinal is checked;
+  - new endpoints appended after the 44 existing ones, so `stair_first + 4 + 3·level + 1` does not move. A stop must
+    name a source-4 travel row (`underground_entry_frontier.gd:480-484`), so the floor stops name 53/54/55, never
+    71–84;
+  - `underground_entry_contact_retirement_scope.gd:18-30`: the hard-coded census 8/22/6/38/44/14 follows v10;
+  - `tools/underground_current_census.py:99-100`: `FRONTIER` and `FRONTIER_SHA`;
   - the stops H (L0, z −1536), F (−5975), F′ (−6318) and the floor ascent start (−5801);
   - the T6 and floor stops' footing (M-1).
-- **`underground_connector_catalog.gd` `_pace_row_refusal` (532–553):** admit an authored pace for a source-6/7
-  row that is a loaded twin of a source-4 stair row, on the WALK variant (1981 §3's narrowing).
-- **`underground_entry_stair_path.gd`:** the floor stops and their edges below T5 (53 to the floor, 54 up from it,
-  55 and 71/72 on the floor), the CARRY edges, and a mode-aware `_joined`.
+- **`underground_connector_catalog.gd` `_pace_row_refusal` (532–553):** rows 71–84 fail at 540 (the source is not
+  `header[10]`), and rows 73–84 also fail at 551 (CARRY on the WALK variant). The edit: when the row's policy is
+  rooted, skip the source clause and let a CARRY row pace the WALK variant. The content stays bound, because
+  `header[8]` must equal the pinned Profiles revision.
+- **`underground_entry_stair_path.gd`:**
+  - `LEVELS` (20, 61) grows to T6 and the floor; the new kinds are H (L0, 512 behind) and F′ (floor, −174). F and the
+    floor ascent start classify as A and U of level 7;
+  - the edge plan gains a mode word, with the empty WALK edges below T5 and the CARRY edges (1981's list). It plans no
+    edge that no row qualifies (`WORLD_ROUTE_NO_FITTING_PROFILE` fails the whole publish);
+  - `_stage_edge` (146–147) takes mode and family from the plan; `_joined` and `_missing_count` compare mode;
+  - a publish after T6 commits, since nothing publishes the floor stops' edges today;
+  - the floor and T6 stop footing (`underground_entry_bindings.gd:1609-1630`) against Locations' installed-contact
+    proof is unconfirmed (M-1).
 - **The stair motion owner** `underground_stair_motion.gd`: it also loads `qualified-stair-carry-motion-v1/` (14
   programs, revision 12, bound to content 12's wire). The claw tables stay bound to content 10's wire digest
   (`:73`). That is sound because rows 51–55 are byte-identical, and the owner checks the binding against the
@@ -241,6 +264,17 @@ Routes is 244,295 characters at master and 246,841 on the cost lane's branch, ag
 **P-1972-4 — `demo/burrow/modular_runtime.gd` (for the coordinator).** Only the `ClawPins` path and a docstring
 change, and the height follows the mount without it. Recommended: edit those two lines in this lane, sequenced after
 the Mound PR if it touches the file.
+
+**P-1972-6 — The 169 u retreat's pace (for Brendan; P-1981-3 ruled 90 ticks for each handoff).** A crossing takes
+ceil(length × 30 / rate) ticks, and the ticks must divide the clip's 90 intervals. For 169 u, rate 56 gives 91
+ticks and 57 gives 89, so no integer u/s rate gives 90. Rows 77/83 would refuse `WORLD_ROUTE_STAIR_PACE`.
+
+- **(a) Recommended:** keep 90 ticks with a finer unit for authored stair paces (milli-u/s). This is a connector
+  catalog format extension and `Stair.ticks_for`, with the bundle's existing stair paces rescaled (528,000 and
+  116,000) and their ticks unchanged. It honours the ruling. It costs one more format change and its tests, and no
+  Routes characters if the unit is applied inside `ticks_for`; that is checked at build.
+- **(b)** 45 ticks (rate 113–115): the three retreat steps play at twice the approach's speed.
+- **(c)** 30 ticks (rate 169).
 
 **P-1972-5 — Profiles edits before the cost lane merges (for the coordinator).** The hunks are disjoint from the
 cost lane's. Recommended: build them now and take the one pin renewal after the merge.

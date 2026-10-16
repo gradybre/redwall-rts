@@ -144,11 +144,12 @@ EXPLAINED_SINCE_CENSUS = {
 	# record length and the bounded room-dig record, two canonical non-capacity records, and
 	# declares the room dig's ten category-1 packed columns (hash=false, carried inside the
 	# record, as decision 1218 declared the hauler's `_queue`): ten packed source fields; decision 1937 adds
-	# the foreman's `_blocked_at` and the footprint's `_body`, also carried inside the record: twelve.
+	# the foreman's `_blocked_at` and the footprint's `_body`, also carried inside the record: twelve; and
+	# the record pool's `_room_row` (P-1937-1 D): thirteen.
 	"prose_records": 105,
 	"equality": 65,
 	"upper_bound": 40,
-	"packed_source_fields": 153,
+	"packed_source_fields": 154,
 	"canonical_records": 213,
 	"other_canonical_shapes": 108,
 	"distinct_expressions": 10,

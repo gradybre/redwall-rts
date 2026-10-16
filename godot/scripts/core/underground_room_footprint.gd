@@ -13,19 +13,36 @@ const UNFILLED: int = 1 << 30
 ## longer plan is refused. The 16-Site Kitchen's longest is 306.
 const MAX_BOXES: int = 512
 
+
+class RowExtents extends RefCounted:
+	## Decision 1937 (P-1937-1 B): the per-row extents, derived from Profiles alone and the same for every builder, so
+	## the runtime keeps one table that all its builders' footprints share.
+	var table: PackedInt32Array = PackedInt32Array()
+	var revision: int = -1 # The Profiles content revision the table was sized for.
+
+	func fit(profiles: Profiles) -> void:
+		"""One unfilled extent per published row; a table of other content or size is reset."""
+		var size: int = 6 * profiles._live.header[1]
+		if revision == profiles.content_revision() and table.size() == size: return
+		table.resize(size)
+		table.fill(UNFILLED)
+		revision = profiles.content_revision()
+
+
 var _profiles: Profiles = null
 var _boxes: PackedInt32Array = PackedInt32Array()
 var _body: PackedInt32Array = PackedInt32Array()
-var _extents: PackedInt32Array = PackedInt32Array()
+var _rows: RowExtents = null
 var _serial: int = 0
 var _overflow: bool = false # A sweep met MAX_BOXES: the claim is incomplete and must be refused.
 
 
-func configure(profiles: Profiles) -> void:
-	"""One cached extent per published row, filled on first use."""
+func configure(profiles: Profiles, shared: RowExtents = null) -> void:
+	"""The row extents are cached once per row, filled on first use, in the table the builders share (or this
+	footprint's own when none is given)."""
 	_profiles = profiles
-	_extents.resize(6 * profiles._live.header[1])
-	_extents.fill(UNFILLED)
+	_rows = shared if shared != null else RowExtents.new()
+	_rows.fit(profiles)
 	_body.resize(6)
 	_body.fill(0)
 
@@ -61,8 +78,8 @@ func stand(point: Vector3i, profile: int) -> void:
 	"""The body standing still on `point` in `profile`'s pose, written in place (no allocation)."""
 	var at: int = _extent_at(profile)
 	for axis: int in 3:
-		_body[axis] = point[axis] + _extents[at + axis]
-		_body[axis + 3] = point[axis] + _extents[at + axis + 3]
+		_body[axis] = point[axis] + _rows.table[at + axis]
+		_body[axis + 3] = point[axis] + _rows.table[at + axis + 3]
 	_serial += 1
 
 
@@ -79,8 +96,8 @@ func sweep(from: Vector3i, to: Vector3i, profile: int) -> void:
 			break
 		@warning_ignore("integer_division") var a: Vector3i = from + delta * piece / pieces
 		@warning_ignore("integer_division") var b: Vector3i = from + delta * (piece + 1) / pieces
-		for axis: int in 3: _boxes.append(mini(a[axis], b[axis]) + _extents[at + axis])
-		for axis: int in 3: _boxes.append(maxi(a[axis], b[axis]) + _extents[at + axis + 3])
+		for axis: int in 3: _boxes.append(mini(a[axis], b[axis]) + _rows.table[at + axis])
+		for axis: int in 3: _boxes.append(maxi(a[axis], b[axis]) + _rows.table[at + axis + 3])
 	_serial += 1
 
 
@@ -88,17 +105,17 @@ func _extent_at(profile: int) -> int:
 	"""Offset of the row's cached extent: the union (low xyz, high xyz) of every published box of the row (a contact
 	point or patch lies inside the stroke that reaches it, so it adds nothing)."""
 	var at: int = 6 * profile
-	if _extents[at] != UNFILLED: return at
+	if _rows.table[at] != UNFILLED: return at
 	var stride: int = _profiles._profile_capacity
 	var cap: int = _profiles._box_capacity
 	for axis: int in 3:
-		_extents[at + axis] = UNFILLED - 1
-		_extents[at + axis + 3] = -UNFILLED
+		_rows.table[at + axis] = UNFILLED - 1
+		_rows.table[at + axis + 3] = -UNFILLED
 	var first: int = _profiles._live.fields[Profiles.F_FIRST_BOX * stride + profile]
 	for box: int in range(first, first + _profiles._live.fields[Profiles.F_BOX_COUNT * stride + profile]):
 		for axis: int in 3:
-			_extents[at + axis] = mini(_extents[at + axis], _profiles._live.boxes[axis * cap + box])
-			_extents[at + axis + 3] = maxi(_extents[at + axis + 3], _profiles._live.boxes[(axis + 3) * cap + box])
+			_rows.table[at + axis] = mini(_rows.table[at + axis], _profiles._live.boxes[axis * cap + box])
+			_rows.table[at + axis + 3] = maxi(_rows.table[at + axis + 3], _profiles._live.boxes[(axis + 3) * cap + box])
 	return at
 
 

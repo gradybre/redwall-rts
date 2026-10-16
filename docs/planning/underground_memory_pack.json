@@ -44739,14 +44739,15 @@
     },
     "room_dig_runtime": {
       "rows": {
-        "runtime_record": 475136,
+        "runtime_record": 16896,
         "runtime_numeric": 2075,
         "foremen_numeric": 49664,
-        "orders_and_marks": 960817,
-        "builders": 5279488,
-        "progress_record": 2397082
+        "orders_and_marks": 369545,
+        "row_extents": 6144,
+        "builders": 3706624,
+        "progress_record": 1198546
       },
-      "bytes": 9164262,
+      "bytes": 5349494,
       "wire": {
         "HEADER_BYTES": 12,
         "CODE_BYTES": 64,
@@ -44773,7 +44774,7 @@
         "boxes": 512,
         "profile_rows": 256
       },
-      "scope": "Numeric and packed payload only, at every bound at once (MAX_KEPT foremen, every Site in an order, 256 builders each with a full plan, footprint and haul). Object, Array and Variant headers are native overhead, unmeasured, as in every other row. The record image is charged twice, as ADR 1218's."
+      "scope": "Numeric and packed payload only, at every bound at once (MAX_KEPT foremen, every Site in an order, 256 builders each with a full plan, footprint and haul). Object, Array and Variant headers are native overhead, unmeasured, as in every other row. The record is one image (decision 1937): a capture writes into the caller's buffer and a restore checks its re-encode against the record in place."
     },
     "new_retained_bytes": {
       "geometry_journals": 4322,
@@ -44781,9 +44782,9 @@
       "first_entry_runtime_chain": 15131,
       "cold_load_images": 196694,
       "claw_stair_tables": 9580,
-      "room_dig_runtime": 9164262
+      "room_dig_runtime": 5349494
     },
-    "new_contribution_bytes": 9396351,
+    "new_contribution_bytes": 5581583,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -44795,7 +44796,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 9396351,
+    "current_census_new_retained": 5581583,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -44810,12 +44811,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 14420032,
-  "declaration_bytes": 26374,
-  "declaration_delta_bytes": 5189,
-  "live_with_reserve_bytes": 109415598,
+  "new_mutable_and_reserved_bytes": 10605264,
+  "declaration_bytes": 26428,
+  "declaration_delta_bytes": 5243,
+  "live_with_reserve_bytes": 105600884,
   "gate_bytes": 150000000,
-  "headroom_bytes": 40584402,
+  "headroom_bytes": 44399116,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
@@ -44870,7 +44871,7 @@
     "godot/scripts/core/underground_world_routes.gd": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "f7fc565179f29c12db0248288515f1d9795135c8989b3be3e81d055df5f0e180",
+  "registry_sha256": "98d39f8ba92ea9f50aeef039ecb58e09cda79f39b4ddccd134607db6d13024a7",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

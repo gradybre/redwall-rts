@@ -422,7 +422,7 @@ def cold_load_images(memory, index: dict) -> dict:
     return {"rows": {"contact_scope": contacts, "haul_admissions": planner}, "bytes": contacts + planner}
 
 
-ROOM_RUNTIME = {"_directory": "Directory", "_generation": "PackedInt32Array", "_state": "PackedByteArray",
+ROOM_RUNTIME = {"_directory": "Directory", "_room_row": "PackedInt32Array", "_generation": "PackedInt32Array", "_state": "PackedByteArray",
                 "_storage": "PackedInt32Array", "_output": "PackedInt32Array", "_staging": "PackedInt32Array",
                 "_foremen": "Array", "_foreman_rows": "PackedInt32Array", "_refusals": "Array", "_owners": "Builder.Owners",
                 "_math": "IntMath.IntResult", "_face": "WorkFace", "_contact_access": "Vector2i", "_contact_travel": "int"}
@@ -446,7 +446,13 @@ ROOM_CLAIM = {"home_legs": "PackedInt32Array", "home_profiles": "PackedInt32Arra
               "carries": "PackedInt32Array"}
 ROOM_WALK = {"ticks_left": "int", "leaving": "bool", "origin": "Vector3i", "_math": "IntMath.IntResult"}
 ROOM_FOOTPRINT = {"_profiles": "Profiles", "_boxes": "PackedInt32Array", "_body": "PackedInt32Array",
-                  "_extents": "PackedInt32Array", "_serial": "int", "_overflow": "bool"}
+                  "_rows": "RowExtents", "_serial": "int", "_overflow": "bool"}
+ROOM_ROW_EXTENTS = {"table": "PackedInt32Array", "revision": "int"}
+# Decision 1937 (P-1937-1): the source facts the four engineering cuts rest on.
+ROOM_SHARED_EXTENTS = ("if owners.extents == null: owners.extents = Builder.Footprint.RowExtents.new()",
+                       "_foot.configure(ctx.owners.profiles, ctx.owners.extents)")
+ROOM_ORDER_ROWS_ONLY = ("planned.keys.clear()", "planned.distance.clear()")
+ROOM_ONE_IMAGE = ("w.bytes = out", "var c: Progress.Checker = Progress.check(bytes)")
 ROOM_DISPATCH = {"_entry": "Callable", "_rooms": "Callable"}
 ROOM_STATELESS = ("underground_room_composer", "underground_room_parking", "underground_room_progress",
                   "underground_room_dig_order")
@@ -494,7 +500,8 @@ def room_wire_bound(memory, index: dict) -> dict:
 
 def room_dig_runtime(memory, index: dict) -> dict:
     """Decision 1936: the room-dig runtime the host composes with the Session's room owners and retains while it is
-    mounted, at its worst case for 256 residents. The record is allocated whole; at most MAX_KEPT foremen are kept,
+    mounted, at its worst case for 256 residents. The record pool (MAX_KEPT slots) is allocated whole; at most
+    MAX_KEPT foremen are kept,
     their orders together cover each Site at most once (one foreman a room) and each resident builds in one dig: a
     finished or stopped dig forgets each builder once it is out (`shed_crew`, decision 1937), so no resident is held
     by two foremen."""
@@ -507,6 +514,15 @@ def room_dig_runtime(memory, index: dict) -> dict:
     exact_members(memory, index, CORE + "underground_room_claim.gd", ROOM_CLAIM)
     walk = exact_members(memory, index, CORE + "underground_room_walk.gd", ROOM_WALK)
     foot = exact_members(memory, index, CORE + "underground_room_footprint.gd", ROOM_FOOTPRINT)
+    require(memory.explicit_members(memory.class_body(foot, "RowExtents"), "\t") == ROOM_ROW_EXTENTS,
+            "unreconciled retained member: RowExtents")
+    texts = {name: module(index, CORE + name + ".gd").text for name in
+             ("underground_room_runtime", "underground_room_builder", "underground_room_foreman", "underground_room_progress")}
+    require(ROOM_SHARED_EXTENTS[0] in texts["underground_room_runtime"]
+            and texts["underground_room_builder"].count(ROOM_SHARED_EXTENTS[1]) == 2, "one shared row-extent table")
+    require(all(fact in texts["underground_room_foreman"] for fact in ROOM_ORDER_ROWS_ONLY), "dig orders keep rows only")
+    require(ROOM_ONE_IMAGE[0] in texts["underground_room_progress"] and ROOM_ONE_IMAGE[1] in texts["underground_room_runtime"],
+            "one record image")
     exact_members(memory, index, CORE + "underground_dispatch.gd", ROOM_DISPATCH)
     hauler = exact_members(memory, index, CORE + "underground_entry_hauler.gd", ENTRY_HAULER)
     r = lambda name, key: memory.resolve(index, name, key)
@@ -516,9 +532,9 @@ def room_dig_runtime(memory, index: dict) -> dict:
         r("underground_room_claim", "MAX_TRIP_EDGES")
     boxes, profiles = r("underground_room_footprint", "MAX_BOXES"), r("underground_profiles", "MAX_PROFILES")
     queue, haul_legs = r("underground_entry_progress", "MAX_QUEUE"), r("underground_entry_progress", "MAX_LEGS")
-    columns = memory.columns(index, "underground_room_runtime", 5, {}, {"_generation", "_state", "_storage", "_output",
-                                                                       "_staging"})
-    require(memory.payload(columns) == 29 * rooms, "the room record is 29 B a row")
+    columns = memory.columns(index, "underground_room_runtime", 6, {}, {"_room_row", "_generation", "_state", "_storage",
+                                                                       "_output", "_staging"})
+    require(memory.payload(columns) == 33 * kept, "the record pool is 33 B a kept record")
     result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
     actor = packet(memory, index, CORE + "underground_routes.gd", "Actor")
     b = CORE + "underground_room_builder.gd"
@@ -527,8 +543,8 @@ def room_dig_runtime(memory, index: dict) -> dict:
         "runtime_numeric": memory.numeric_fields(runtime, "") + result + 4 * kept
             + memory.numeric_fields(module(index, CORE + "underground_work_face.gd").text, ""),
         "foremen_numeric": kept * (memory.numeric_fields(foreman, "") + packet(memory, index, b, "Context")),
-        # The dig order (row, key and distance, 12 B) and the dispatch mark (1 B) of each Site.
-        "orders_and_marks": 13 * sites,
+            "orders_and_marks": 5 * sites, # Decision 1937 (P-1937-1 E): each Site's row and mark.
+        "row_extents": 24 * profiles, # P-1937-1 B: one table the builders share.
         "builders": builders * (memory.numeric_fields(builder, "") + packet(memory, index, b, "Context")
             + packet(memory, index, b, "Crew") + packet(memory, index, b, "HaulCrew") + result + actor
             + packet(memory, index, CORE + "work.gd", "TickResult", "")
@@ -536,7 +552,7 @@ def room_dig_runtime(memory, index: dict) -> dict:
             + 4 * (3 * legs + legs) + 4 * queue # its current legs and profiles, and its haul queue
             + memory.numeric_fields(module(index, CORE + "underground_room_claim.gd").text, "")
             + 4 * (3 * 3 * legs + 3 * trips + 4 + 2) # the cube plan's three leg lists, trip edges, stands, carries
-            + memory.numeric_fields(foot, "") + 24 * boxes + 24 + 24 * profiles # footprint, body, row extents
+            + memory.numeric_fields(foot, "") + 24 * boxes + 24 # footprint and body
             + memory.numeric_fields(walk, "") + result
             + memory.numeric_fields(hauler, "") + actor
             + haul_legs * packet(memory, index, CORE + "underground_entry_hauler.gd", "Leg")),
@@ -545,13 +561,14 @@ def room_dig_runtime(memory, index: dict) -> dict:
     require(wire["MAX_BUILDERS"] == builders, "the record's builder bound is the living cap")
     packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
         + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
-    rows["progress_record"] = 2 * wire["MAX_WIRE_BYTES"] + packets
+    rows["progress_record"] = wire["MAX_WIRE_BYTES"] + packets # P-1937-1 C: one image, checked in place.
     return {"rows": rows, "bytes": sum(rows.values()), "wire": wire,
             "bounds": {"rooms": rooms, "kept_foremen": kept, "sites": sites, "builders": builders, "boxes": boxes,
                        "profile_rows": profiles},
             "scope": "Numeric and packed payload only, at every bound at once (MAX_KEPT foremen, every Site in an order, "
                      "256 builders each with a full plan, footprint and haul). Object, Array and Variant headers are "
-                     "native overhead, unmeasured, as in every other row. The record image is charged twice, as ADR 1218's."}
+                     "native overhead, unmeasured, as in every other row. The record is one image (decision 1937): a capture "
+                     "writes into the caller's buffer and a restore checks its re-encode against the record in place."}
 
 
 def reviewed_table() -> dict:

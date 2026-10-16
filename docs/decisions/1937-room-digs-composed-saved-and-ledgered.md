@@ -1,6 +1,6 @@
 # 1937 — Room digs composed, saved and ledgered (slice C2.3)
 
-Date: 2026-10-16 · Status: Built, with three named gaps for the coordinator (§6). Build record of decision 1936
+Date: 2026-10-16 · Status: Built, with the named gaps of §6; P-1937-1 ruled 2026-10-16 (§10). Build record of decision 1936
 (Brendan, 2026-10-15: "Approve all").
 
 Branch `feat/room-foreman-c2-3`, from `114e4acf`. Number range 1931–1949 (decision 1931).
@@ -91,6 +91,9 @@ state.
   with the owner canonical-empty.
 
 ## 5. Memory (DEC-053 gate, 150,000,000 B)
+
+**Superseded by §10's rulings (2026-10-16):** the row is now 5,349,494 B, live 105,600,884 B, headroom 44,399,116 B.
+The figures below are the first build's.
 
 The current-source census counts `room_dig_runtime` from exact member sets at every bound at once:
 
@@ -229,6 +232,23 @@ spare), or **40 builders with 256 boxes** (row 1,406,030 B, 9,834 B spare). Both
 Brendan wants it. Revisit Q1's projection rather than squeezing digs to fit it: its 8,110,080 B allowance for
 painted store containers is an "up to" figure that slice G has not yet designed. The engineering options are about
 a day of work with their own parity proof. The cap is a gameplay constant, so it is Brendan's to choose.
+
+### Rulings (2026-10-16)
+
+- **The coordinator: build B, C, D and E now.** Built: one row-extent table shared by every builder
+  (`Footprint.RowExtents`, given by the runtime through `Builder.Owners.extents`); one record image (a capture writes
+  into the caller's buffer, and a restore compares its re-encode in place with `Progress.Checker`); a 512-slot record
+  pool, each slot naming its room's directory row (`_room_row`, declared category 1); and dig orders that keep each
+  Site's row and mark only (its key is read from Sites). Every-tick restore parity holds on all six Kitchen digs.
+  `room_dig_runtime` is now **5,349,494 B** (record pool 16,896; controls 2,075; foremen 49,664; orders and marks
+  369,545; row extents 6,144; builders 3,706,624; one record image 1,198,546). With the declaration's +783 B, live is
+  **105,600,884 B** and the **headroom is exactly 44,399,116 B**.
+- **Brendan, the builder cap: "No cap for now".** Option A is not taken; up to 256 builders.
+- **Brendan, Q1: "Size it when G is designed".** Decision 1880 Q1's "up to" 8,110,080 B for painted store
+  containers is replaced by a rule: slice G must fit its store containers into the headroom left when G is designed.
+  Folded, decision 1880's budget leaves 27,441,676 B. C+G's projection without the store containers (that budget and
+  Q1's 23,265,280 B of projects and containers) leaves **4,176,396 B for slice G**. `ready07_arithmetic.py` pins it
+  as a figure, not an allowance; decision 1880 carries a note.
 
 ## Source
 

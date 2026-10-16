@@ -125,8 +125,8 @@ def validate_source(data, source):
     # ADR 1222 Q7(a) resolves sixteen UNRESOLVED packed columns as category 1 in section 6 (the
     # construction_extension owner re-carries construction's own columns and adds none).
     # Decision 1936 declares the room dig's ten category-1 packed columns, carried inside its record;
-    # decision 1937 adds the foreman's blocked epochs and the footprint's standing body.
-    assert len(actual)==data['packed_source_field_count']==706
+    # decision 1937 adds the foreman's blocked epochs, the footprint's standing body and the record pool's rows.
+    assert len(actual)==data['packed_source_field_count']==707
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

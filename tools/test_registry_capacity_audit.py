@@ -637,7 +637,7 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 	check("P05 86 upper bounds", observed["upper_bound"] == 86)
 	check("P05 188 other canonical shapes (decision 1936 +2)", observed["other_canonical_shapes"] == 188)
 	check("P05 66 distinct expressions (ADR 1222 Q7 adds POLICY_CELLS)", observed["distinct_expressions"] == 66)
-	check("P05 812 canonical records and 34 non-hash (decisions 1936/1937 +24)", observed["canonical_records"] == 812 and observed["non_hash_fields"] == 34)
+	check("P05 812 canonical records and 36 non-hash (decisions 1936/1937 +26)", observed["canonical_records"] == 812 and observed["non_hash_fields"] == 36)
 	check("P05 no non-hash row was swept in", observed["non_hash_fields_admitted_to_audit"] == 0)
 	# The census no longer equals Astra's 388f4f4 snapshot, and must not be made to. Decision
 	# 0142 removed three packed fields; 0157 added three packed fields and three scalars.

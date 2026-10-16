@@ -111,7 +111,8 @@ func test_a_configured_foreman_reads_its_plan_and_its_idle_builders() -> void:
 	assert_equal(foreman.room(), _room, "its room")
 	assert_equal(foreman.total_cubes(), ForemanTests.KITCHEN_SITES, "eight cubes")
 	assert_equal(foreman.done_cubes(), 0, "none done")
-	assert_equal(foreman.order().keys.size(), ForemanTests.KITCHEN_SITES, "the dig order")
+	assert_equal(foreman.order().rows.size(), ForemanTests.KITCHEN_SITES, "the dig order")
+	assert_true(foreman.order().keys.is_empty() and foreman.order().distance.is_empty(), "only the rows are kept")
 	var builder: Builder = foreman.builders()[0]
 	assert_true(builder.idle() and not builder.failed(), "idle")
 	assert_equal(builder.stage(), Builder.STAGE_IDLE, "stage")
@@ -222,7 +223,7 @@ func test_begin_refuses_a_site_that_is_not_the_next_unpaid_one_there() -> void:
 	var builder: Builder = foreman.builders()[0]
 	var order: DigOrder.Order = foreman.order()
 	var other: Vector2i = Vector2i(order.rows[2], Sites.SITE_GENERATION)
-	assert_equal(builder.begin(0, other, order.keys[0], 1), Builder.REFUSE_TARGET, "a key and a Site that disagree")
+	assert_equal(builder.begin(0, other, foreman._key(0), 1), Builder.REFUSE_TARGET, "a key and a Site that disagree")
 	assert_true(builder.idle(), "still idle")
 	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
 	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_STATE, "no re-configure while digging")

@@ -124,8 +124,8 @@ func test_generated_table_matches_the_registry_json() -> void:
 func test_table_rules_and_pinned_lengths() -> void:
 	"""The compiled table is coherent and its rules are the proved ones; unproved stays zero-only."""
 	assert_true(Schema.table_refusal().is_ok(), "table_refusal accepts the compiled table")
-	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446719, "the empty section length (decisions 1936/1937: +309)")
-	assert_equal(Schema.MAX_SECTION_BYTES, 26744394, "the maximum section length (ADR1229 6b: +1,948; DEC-059: +84; decisions 1936/1937: +1,750,218)")
+	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446739, "the empty section length (decisions 1936/1937: +329)")
+	assert_equal(Schema.MAX_SECTION_BYTES, 26286174, "the maximum section length (ADR1229 6b: +1,948; DEC-059: +84; decisions 1936/1937: +1,291,998)")
 	assert_equal(Schema.rule_kind_of(0, 0), Schema.RULE_FIXED, "buildings._r_spatial_kind FIXED")
 	assert_equal(Schema.rule_value_of(0, 0), 16384, "at ROOM_CAPACITY")
 	assert_equal(Schema.rule_kind_of(ECOLOGY, 0), Schema.RULE_SCALAR, "ecology._last_day")
@@ -136,8 +136,8 @@ func test_table_rules_and_pinned_lengths() -> void:
 	assert_equal(Schema.OWNER_KEYS[ROOM_PROGRESS], "underground_room_progress", "decision 1936's owner")
 	assert_equal(Schema.rule_kind_of(ROOM_PROGRESS, 1), Schema.RULE_BOUNDED, "the room-dig record is bounded")
 	assert_equal(Schema.rule_value_of(ROOM_PROGRESS, 1), 1198536, "at the codec's MAX_WIRE_BYTES")
-	assert_equal(Schema.field_count_of(ROOM_PROGRESS), 26, "the record and twelve declared columns, each with its length")
-	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 25), "_body", "the footprint's standing body, declared last")
+	assert_equal(Schema.field_count_of(ROOM_PROGRESS), 28, "the record and thirteen declared columns, each with its length")
+	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 27), "_room_row", "the record pool's rows, declared last")
 	assert_equal(Schema.rule_kind_of(INVENTORY, 3), Schema.RULE_BOUNDED, "ADR 1228: the spatial arena is bounded")
 	assert_equal(Schema.rule_value_of(INVENTORY, 3), 1024, "at SPATIAL_ENDPOINT_CAPACITY")
 	assert_equal(Schema.UNPROVED_FIELDS.size(), 14, "the 14 spoil_tips fields")

@@ -111,8 +111,8 @@ const NAME_CAP_BYTES: int = 128
 ## ADR 1222 step 5: chronicle's already-declared `_rolling_digest` gains contract C197: +1 packed.
 ## ADR 1222 Q7(a) adds five section6 owners: +32 records, +16 packed (the extension owner adds none).
 ## Decision 1936 adds section6 owner underground_room_progress: +2 records, and declares the room dig's ten
-## category-1 packed columns (hash=false, inside the record): +10 packed; decision 1937 two more: +12.
-const REGISTRY_PACKED_FIELD_COUNT: int = 706
+## category-1 packed columns (hash=false, inside the record): +10 packed; decision 1937 three more: +13.
+const REGISTRY_PACKED_FIELD_COUNT: int = 707
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
 ## assertion in this suite compares the compiled table against the registry it was generated
@@ -126,7 +126,7 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 706
 ## did, and leaving the name still would let a stricter codec ship under the old identity while
 ## every self-referential check in this file stayed green.
 const REGISTRY_RECORD_COUNT: int = 812
-const REGISTRY_FIELD_COUNT: int = 846
+const REGISTRY_FIELD_COUNT: int = 848
 const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-15-RD1"
 ## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
 ## The version is independent of the opaque identity suffix; commands owner becomes 2.
@@ -455,7 +455,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""812 canonical records over76 owners,706 persisted packed fields, release_save_ready false."""
+	"""812 canonical records over76 owners,707 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,

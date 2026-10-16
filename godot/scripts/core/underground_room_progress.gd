@@ -58,13 +58,65 @@ const REFUSE_CONTACTS: StringName = &"ROOM_SAVE_CONTACTS"
 const REFUSE_BUSY: StringName = &"ROOM_SAVE_BUSY"
 
 
-static func begin() -> EntryProgress.Writer:
-	"""A record header: magic, version and kind."""
+class Checker extends EntryProgress.Writer:
+	## Decision 1937 (P-1937-1 C): the re-encode a restore must match, compared scalar by scalar against the record
+	## itself instead of written into a second image.
+	var expect: PackedByteArray = PackedByteArray()
+	var at: int = 0
+	var differs: bool = false
+
+	func i32(value: int) -> void:
+		"""One signed 32-bit scalar, compared in place."""
+		if value < -2147483648 or value > 2147483647: overflow = true
+		differs = differs or at + 4 > expect.size() or expect.decode_s32(at) != value
+		at += 4
+
+	func i64(value: int) -> void:
+		"""One signed 64-bit scalar, compared in place."""
+		differs = differs or at + 8 > expect.size() or expect.decode_s64(at) != value
+		at += 8
+
+	func flag(value: bool) -> void:
+		"""One byte, 0 or 1, compared in place."""
+		differs = differs or at >= expect.size() or expect[at] != (1 if value else 0)
+		at += 1
+
+	func code(value: StringName) -> void:
+		"""A zero-padded ASCII code, compared byte by byte."""
+		var raw: PackedByteArray = String(value).to_ascii_buffer()
+		if raw.size() > CODE_BYTES: overflow = true
+		for index: int in CODE_BYTES:
+			var byte: int = raw[index] if index < raw.size() else 0
+			differs = differs or at + index >= expect.size() or expect[at + index] != byte
+		at += CODE_BYTES
+
+	func matches() -> bool:
+		"""Every scalar equal, and the whole record consumed."""
+		return not differs and not overflow and at == expect.size()
+
+
+static func begin(out: PackedByteArray) -> EntryProgress.Writer:
+	"""A record header written straight into the caller's buffer (one image, P-1937-1 C): magic, version, kind."""
 	var w: EntryProgress.Writer = EntryProgress.Writer.new()
+	out.clear()
+	w.bytes = out
+	_header(w)
+	return w
+
+
+static func check(bytes: PackedByteArray) -> Checker:
+	"""A checker over a decoded record, past its header."""
+	var c: Checker = Checker.new()
+	c.expect = bytes
+	_header(c)
+	return c
+
+
+static func _header(w: EntryProgress.Writer) -> void:
+	"""Magic, version and kind."""
 	w.i32(MAGIC)
 	w.i32(VERSION)
 	w.i32(KIND_RUNTIME)
-	return w
 
 
 static func open(bytes: PackedByteArray, out: EntryProgress.Reader) -> StringName:
@@ -82,9 +134,11 @@ static func close(reader: EntryProgress.Reader) -> StringName:
 	return &"" if not reader.bad and reader.at == reader.bytes.size() else REFUSE_SHAPE
 
 
-static func finish(w: EntryProgress.Writer) -> PackedByteArray:
-	"""The finished record, or empty when a value overflowed its field."""
-	return PackedByteArray() if w.overflow or w.bytes.size() > MAX_WIRE_BYTES else w.bytes
+static func finish(w: EntryProgress.Writer) -> bool:
+	"""The record in the caller's buffer is whole; one that overflowed a field or the bound is emptied."""
+	if not w.overflow and w.bytes.size() <= MAX_WIRE_BYTES: return true
+	w.bytes.clear()
+	return false
 
 
 static func write_list(w: EntryProgress.Writer, values: PackedInt32Array) -> void:

@@ -185,7 +185,7 @@ func test_a_builder_at_its_station_cannot_publish_a_new_chain_and_goes_home() ->
 	assert_true(builder.at_column_end(), "READY at the first column's floor station, its top cube done")
 	assert_equal(builder.column_cubes(), 3, "the column's three upper cubes were taken from that station")
 	var site: Vector2i = Vector2i(order.rows[4], Sites.SITE_GENERATION)
-	var code: StringName = builder.continue_column(4, site, order.keys[4], _h.tick)
+	var code: StringName = builder.continue_column(4, site, foreman._key(4), _h.tick)
 	assert_equal(code, &"ROUTE_OCCUPIED", "its own body blocks the next column's chain")
 	assert_true(builder.at_column_end(), "still READY at its station, nothing opened")
 	assert_equal(builder.column_cubes(), 3, "nothing more taken")

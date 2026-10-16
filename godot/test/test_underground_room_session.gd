@@ -34,7 +34,7 @@ func test_the_room_runtime_is_built_with_the_room_owners_and_bound_with_the_entr
 	assert_true(_host.compose_underground_room_owners(), "room owners")
 	var runtime: RoomRuntime = _host.underground_rooms()
 	assert_not_null(runtime, "built with the room owners")
-	assert_equal(runtime._generation.size(), RoomRuntime.ROOM_CAPACITY, "its record allocated")
+	assert_equal(runtime._generation.size(), RoomRuntime.MAX_KEPT, "its record pool allocated (decision 1937)")
 	assert_null(runtime.bound_owners(), "no owners borrowed yet")
 	var order: Composer.Order = Composer.Order.new()
 	assert_false(_host.order_underground_room(order), "refused before the owners")

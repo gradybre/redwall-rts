@@ -101,6 +101,7 @@ class Owners extends RefCounted:
 	var transforms: Transforms = null # the crew's arrival pose on its parking (ADR1219)
 	var delivery: RefCounted = null # Decision 1934: when bound, a BRACE's missing inputs are hauled first.
 	var locations: Locations = null # The hauler finds the grip stands here (needed only with a Delivery).
+	var extents: Footprint.RowExtents = null # Decision 1937 (P-1937-1 B): the row extents all builders share.
 
 
 class Crew extends RefCounted:
@@ -176,7 +177,7 @@ func configure(ctx: Context, member: Crew) -> StringName:
 	_ctx = ctx
 	_crew = member
 	_foot = Footprint.new()
-	_foot.configure(ctx.owners.profiles)
+	_foot.configure(ctx.owners.profiles, ctx.owners.extents)
 	_at = member.parking
 	return &""
 
@@ -1186,7 +1187,7 @@ func read_state(r: EntryProgress.Reader, ctx: Context) -> StringName:
 	_ctx = ctx
 	_crew = member
 	_foot = Footprint.new()
-	_foot.configure(ctx.owners.profiles)
+	_foot.configure(ctx.owners.profiles, ctx.owners.extents)
 	var job: Vector2i = _read_cursor(r)
 	_read_plan(r)
 	_read_tail(r)

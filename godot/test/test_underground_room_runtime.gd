@@ -46,10 +46,12 @@ func _crew() -> Array[Builder.Crew]:
 
 
 func test_the_record_is_one_small_row_per_room() -> void:
-	"""Generation, state and three container references (decision 1934 added staging): 29 bytes per room row."""
+	"""Generation, state and three container references (decision 1934 added staging): 29 bytes per record, kept in
+	a pool of MAX_KEPT slots that each name their room's row (decision 1937, P-1937-1 D): 33 bytes a slot."""
 	assert_equal(Runtime.RECORD_BYTES, 29, "4 + 1 + 8 + 8 + 8")
-	assert_equal(Runtime.packed_bytes(), Runtime.ROOM_CAPACITY * 29, "one row per possible room")
-	assert_equal(Runtime.packed_bytes(), 475136, "the ledger figure")
+	assert_equal(Runtime.SLOT_BYTES, 33, "and the room row")
+	assert_equal(Runtime.packed_bytes(), Runtime.MAX_KEPT * 33, "one slot per kept record")
+	assert_equal(Runtime.packed_bytes(), 16896, "the ledger figure")
 	assert_equal(Runtime.ROOM_CAPACITY, Directory.KIND_CAPACITY[Directory.KIND_ROOM], "the directory's room rows")
 
 
@@ -75,8 +77,9 @@ func test_the_record_keeps_the_staging_container_for_the_foreman() -> void:
 	if _room == NULL_REF: return
 	var row: int = _h._residents.directory().get_typed_row(_room)
 	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued without one")
-	assert_equal(Vector2i(_runtime._staging[2 * row], _runtime._staging[2 * row + 1]), NULL_REF, "none named")
-	_runtime._state[row] = Runtime.RECORD_STOPPED # Negative-only: re-order the same room.
+	var slot: int = _runtime._slot(row)
+	assert_equal(Vector2i(_runtime._staging[2 * slot], _runtime._staging[2 * slot + 1]), NULL_REF, "none named")
+	_runtime._state[slot] = Runtime.RECORD_STOPPED # Negative-only: re-order the same room.
 	assert_equal(_runtime.release_room(_room), &"", "released")
 	var pile: Vector2i = _h._inventory.create_spatial_ground_staging(_h.parking).ref
 	assert_equal(_runtime.order_room(_room, _h.material, _h.material, pile), &"", "queued with one")
@@ -222,7 +225,7 @@ func test_a_reused_row_waits_for_the_stopped_crew_to_walk_out() -> void:
 func test_a_queued_record_no_foreman_took_can_be_cancelled() -> void:
 	"""`cancel_queued` forgets only a QUEUED record of the same room."""
 	if _room == NULL_REF: return
-	assert_equal(_runtime.cancel_queued(_room), Runtime.REFUSE_ROOM, "never ordered")
+	assert_equal(_runtime.cancel_queued(_room), Runtime.REFUSE_STATE, "never ordered: no record")
 	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued")
 	assert_equal(_runtime.cancel_queued(Vector2i(_room.x, _room.y + 1)), Runtime.REFUSE_ROOM, "stale")
 	assert_equal(_runtime.cancel_queued(_room), &"", "cancelled")

@@ -227,3 +227,33 @@ func test_a_dig_heals_a_stale_routes_occupancy_while_its_crew_walks_out() -> voi
 	_runtime.advance(_h.tick)
 	assert_true(builder.walking(), "still walking out")
 	assert_equal(_h._routes._occupancy_context_refusal(), &"", "healed by the runtime")
+
+
+func test_builders_share_one_row_extent_table_and_a_record_is_checked_in_place() -> void:
+	"""P-1937-1 B: a bound runtime gives every builder one row-extent table; C: a capture writes into the caller's
+	buffer and a restore's re-encode is compared against the record itself, so a single changed byte is caught."""
+	if _room == NULL_REF: return
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued")
+	assert_equal(_runtime.start_room(_room, _runtime.bound_owners(), [_h.crew_member()] as Array[Builder.Crew]), &"", "started")
+	var builder: Builder = _runtime.foreman_of(_room).builders()[0]
+	assert_not_null(_runtime.bound_owners().extents, "the runtime's table")
+	assert_true(builder._foot._rows == _runtime.bound_owners().extents, "shared by its builders")
+	var own: Footprint = Footprint.new(); own.configure(_h._profiles)
+	assert_false(own._rows == _runtime.bound_owners().extents, "a footprint given none keeps its own")
+	for tick: int in 50:
+		_h.tick += 1
+		_runtime.advance(_h.tick)
+	var out: PackedByteArray = PackedByteArray([1, 2, 3])
+	assert_equal(_runtime.capture(out), &"", "captured")
+	assert_equal(out.decode_s32(0), Progress.MAGIC, "into the caller's buffer, from its start")
+	var check: Progress.Checker = Progress.check(out)
+	_runtime._write_state(check)
+	assert_true(check.matches(), "the re-encode matches the record in place")
+	var changed: PackedByteArray = out.duplicate()
+	changed[changed.size() - 1] = changed[changed.size() - 1] ^ 1
+	var differ: Progress.Checker = Progress.check(changed)
+	_runtime._write_state(differ)
+	assert_false(differ.matches(), "one changed byte is caught")
+	var longer: Progress.Checker = Progress.check(out + PackedByteArray([0]))
+	_runtime._write_state(longer)
+	assert_false(longer.matches(), "a record with bytes left over is caught")

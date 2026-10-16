@@ -71,8 +71,10 @@ func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, outp
 	if code == &"": code = _bind_builders(ctx, crew)
 	if code != &"": return code
 	_room = target
+	planned.keys.clear() # Decision 1937 (P-1937-1 E): a key is read from Sites when needed, and only the planning
+	planned.distance.clear() # sort reads the distance, so each Site keeps 5 B (its row and mark).
 	_order = planned
-	_cube.resize(planned.keys.size())
+	_cube.resize(planned.rows.size())
 	_cube.fill(CUBE_OPEN)
 	_mark_finished()
 	_state = STATE_DIGGING
@@ -270,7 +272,7 @@ func _dispatch(builder: Builder, tick: int) -> StringName:
 	if not builder.may_work(): return &""
 	var at: int = _next_open()
 	if at < 0: return &""
-	var code: StringName = builder.begin(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION), _order.keys[at], tick)
+	var code: StringName = builder.begin(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION), _key(at), tick)
 	return _taken(builder, at, code)
 
 
@@ -291,7 +293,7 @@ func _up_or_home(builder: Builder, tick: int) -> StringName:
 	if at < _cube.size() and _cube[at] == CUBE_OPEN and _same_column(at - 1, at):
 		_column_tries += 1
 		var code: StringName = builder.continue_column(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION),
-			_order.keys[at], tick)
+			_key(at), tick)
 		code = _taken(builder, at, code)
 		if code != &"" or not builder.at_column_end(): return code
 	return builder.go_home()
@@ -300,7 +302,12 @@ func _up_or_home(builder: Builder, tick: int) -> StringName:
 func _same_column(a: int, b: int) -> bool:
 	"""Two order entries in one cell (the dig order keeps a column's cubes consecutive, bottom up)."""
 	var plane: int = _ctx.owners.sites._domain.size_quanta.x * _ctx.owners.sites._domain.size_quanta.z
-	return _order.keys[a] % plane == _order.keys[b] % plane
+	return _key(a) % plane == _key(b) % plane
+
+
+func _key(at: int) -> int:
+	"""One order entry's Site key, Sites' own lattice rank of the cube (decision 1937: not kept in the order)."""
+	return _ctx.owners.sites._site_key[_order.rows[at]]
 
 
 func _next_open() -> int:
@@ -492,7 +499,7 @@ static func _read_context(r: EntryProgress.Reader, owners: Builder.Owners) -> Bu
 
 
 func _read_order(r: EntryProgress.Reader, owners: Builder.Owners) -> StringName:
-	"""The running dig's Site rows and marks; each key is the Site's own lattice rank, read again from Sites."""
+	"""The running dig's Site rows and marks (each key is read from Sites when needed, as in play)."""
 	var sites: Sites = owners.sites
 	_order = DigOrder.Order.new()
 	for at: int in r.ranged(0, Progress.MAX_SITES):
@@ -501,7 +508,5 @@ func _read_order(r: EntryProgress.Reader, owners: Builder.Owners) -> StringName:
 		var site: Vector2i = Vector2i(row, Sites.SITE_GENERATION)
 		if not sites.is_live_site(site): return Progress.REFUSE_SHAPE
 		_order.rows.append(row)
-		_order.keys.append(sites._key_at(sites.origin_of(site)))
-		_order.distance.append(0) # Only the planning sort reads it.
 		_cube.append(mark)
 	return &""

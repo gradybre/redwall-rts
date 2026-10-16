@@ -1,0 +1,44 @@
+{
+  "clip_frames": [
+    2,
+    91,
+    91,
+    91,
+    271,
+    91,
+    91
+  ],
+  "clips": [
+    "hold",
+    "approach",
+    "descent",
+    "ascent",
+    "turn",
+    "retreat",
+    "back_up"
+  ],
+  "coefficient_mismatches": 0,
+  "decision": "1981",
+  "exact_rational_two_hand_witnesses": 17346,
+  "floor_rule": "every visible part of every clip except the root-local descent and ascent, whose support is proved on the terrain, flight and bottom fixtures",
+  "image": "stone",
+  "joins": {
+    "cross_image_joins_per_view": 1,
+    "hub_joins": 42,
+    "v10_capture_sha256": "2b0c3f475dd6a94dd4062fc63ae9e45aaac332e3f1d267ff3f64d8f561efe0fa",
+    "views": 3
+  },
+  "max_source_to_native_input_vertex_error_u": [
+    7.745731909380993e-05,
+    0.0008639137922727969
+  ],
+  "minimum_visible_floor_gap_u": {
+    "body": 0.0009523871449346188,
+    "stock": 448.0019657379071
+  },
+  "native_capture_sha256": "ceef6583b37b1a8164c5b385d2645208671596c713c6f257bfe42226910e17a5",
+  "production_qualified": false,
+  "rows": 8673,
+  "runtime_admitted": false,
+  "schema": 1
+}

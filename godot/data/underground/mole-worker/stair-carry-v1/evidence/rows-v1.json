@@ -1,0 +1,788 @@
+{
+ "schema": 1,
+ "decision": "1981",
+ "rows": [
+  {
+   "name": "empty_walk_off",
+   "group": "empty",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -478,
+      -1,
+      -672,
+      415,
+      840,
+      234
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -478,
+      -1,
+      -672,
+      415,
+      127,
+      234
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -478,
+      -1,
+      -672,
+      415,
+      840,
+      234
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    -343
+   ]
+  },
+  {
+   "name": "empty_back_up",
+   "group": "empty",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -478,
+      -1,
+      -329,
+      415,
+      840,
+      577
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -478,
+      -1,
+      -329,
+      415,
+      127,
+      577
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -478,
+      -1,
+      -329,
+      415,
+      840,
+      577
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    343
+   ]
+  },
+  {
+   "name": "approach",
+   "group": "wood",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -423,
+      -1,
+      -779,
+      433,
+      849,
+      234
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -423,
+      -1,
+      -779,
+      433,
+      127,
+      234
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -423,
+      -1,
+      -779,
+      433,
+      849,
+      234
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    -343
+   ]
+  },
+  {
+   "name": "descent",
+   "group": "wood",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -424,
+      -130,
+      -949,
+      434,
+      850,
+      235
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -275,
+      -130,
+      -682,
+      300,
+      243,
+      175
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -424,
+      -130,
+      -949,
+      434,
+      850,
+      235
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    -128,
+    -512
+   ]
+  },
+  {
+   "name": "ascent",
+   "group": "wood",
+   "yaw": 32768,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -434,
+      -2,
+      -235,
+      424,
+      978,
+      949
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -300,
+      -2,
+      -176,
+      275,
+      336,
+      682
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -434,
+      -2,
+      -235,
+      424,
+      978,
+      949
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    128,
+    512
+   ]
+  },
+  {
+   "name": "turn",
+   "group": "wood",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -607,
+      -1,
+      -568,
+      433,
+      849,
+      694
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -607,
+      -1,
+      -568,
+      433,
+      127,
+      694
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -607,
+      -1,
+      -568,
+      433,
+      849,
+      694
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    174
+   ]
+  },
+  {
+   "name": "retreat",
+   "group": "wood",
+   "yaw": 32768,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -433,
+      -1,
+      -234,
+      423,
+      849,
+      605
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -433,
+      -1,
+      -234,
+      423,
+      127,
+      605
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -433,
+      -1,
+      -234,
+      423,
+      849,
+      605
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    169
+   ]
+  },
+  {
+   "name": "back_up",
+   "group": "wood",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -423,
+      -1,
+      -436,
+      433,
+      849,
+      577
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -423,
+      -1,
+      -436,
+      433,
+      127,
+      577
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -423,
+      -1,
+      -436,
+      433,
+      849,
+      577
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    343
+   ]
+  },
+  {
+   "name": "approach",
+   "group": "stone",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -317,
+      -1,
+      -882,
+      317,
+      860,
+      234
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -317,
+      -1,
+      -882,
+      317,
+      127,
+      234
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -317,
+      -1,
+      -882,
+      317,
+      860,
+      234
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    -343
+   ]
+  },
+  {
+   "name": "descent",
+   "group": "stone",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -318,
+      -130,
+      -1052,
+      318,
+      861,
+      235
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -275,
+      -130,
+      -682,
+      300,
+      243,
+      175
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -318,
+      -130,
+      -1052,
+      318,
+      861,
+      235
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    -128,
+    -512
+   ]
+  },
+  {
+   "name": "ascent",
+   "group": "stone",
+   "yaw": 32768,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -318,
+      -2,
+      -235,
+      318,
+      989,
+      1052
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -300,
+      -2,
+      -176,
+      275,
+      336,
+      682
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -318,
+      -2,
+      -235,
+      318,
+      989,
+      1052
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    128,
+    512
+   ]
+  },
+  {
+   "name": "turn",
+   "group": "stone",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -543,
+      -1,
+      -539,
+      317,
+      860,
+      713
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -543,
+      -1,
+      -539,
+      317,
+      127,
+      713
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -543,
+      -1,
+      -539,
+      317,
+      860,
+      713
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    174
+   ]
+  },
+  {
+   "name": "retreat",
+   "group": "stone",
+   "yaw": 32768,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -317,
+      -1,
+      -234,
+      317,
+      860,
+      708
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -317,
+      -1,
+      -234,
+      317,
+      127,
+      708
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -317,
+      -1,
+      -234,
+      317,
+      860,
+      708
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    169
+   ]
+  },
+  {
+   "name": "back_up",
+   "group": "stone",
+   "yaw": 0,
+   "family_mask": 1,
+   "roles": {
+    "BODY_HELD_LOAD": [
+     [
+      -317,
+      -1,
+      -539,
+      317,
+      860,
+      577
+     ]
+    ],
+    "STANCE_SUPPORT": [
+     [
+      -317,
+      -1,
+      -539,
+      317,
+      127,
+      577
+     ]
+    ],
+    "TURN_RECOVERY": [
+     [
+      -317,
+      -1,
+      -539,
+      317,
+      860,
+      577
+     ]
+    ]
+   },
+   "root_end_u": [
+    0,
+    0,
+    343
+   ]
+  }
+ ],
+ "basis": {
+  "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+  "heading_count": 65536,
+  "exact_norm_squared": {
+   "numerator": 281475000105385,
+   "denominator": 281474976710656
+  },
+  "max_norm_yaw": 40791,
+  "max_component": {
+   "numerator": 1,
+   "denominator": 1
+  },
+  "metadata": {
+   "api_version": "4.1 Metal - 90.5",
+   "coefficient_order": [
+    "basis.x.x",
+    "basis.z.x"
+   ],
+   "display_server": "macOS",
+   "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+   },
+   "heading_count": 65536,
+   "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+   "orientation": "0=-Z,+quarter=-X; +Y remains up",
+   "rendering_driver": "opengl3",
+   "rendering_method": "gl_compatibility",
+   "schema": 1,
+   "source": {
+    "path": "res://../tools/bake_underground_world_basis.gd",
+    "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+   }
+  },
+  "backend_certificate": {
+   "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+   },
+   "driver": "opengl3",
+   "api_version": "4.1 Metal - 90.5",
+   "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+   "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+   "sections": [
+    "4.5",
+    "4.5.1"
+   ],
+   "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+   "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+  },
+  "inverse_norm": {
+   "numerator": 398065705943040,
+   "denominator": 281474953696313
+  },
+  "cardinals": [
+   {
+    "yaw": 0,
+    "native_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 0,
+      "denominator": 1
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 0,
+      "denominator": 1
+     }
+    ]
+   },
+   {
+    "yaw": 16384,
+    "native_c_s": [
+     {
+      "numerator": -6151831,
+      "denominator": 140737488355328
+     },
+     {
+      "numerator": 1,
+      "denominator": 1
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 6151831,
+      "denominator": 140737488355328
+     }
+    ]
+   },
+   {
+    "yaw": 32768,
+    "native_c_s": [
+     {
+      "numerator": -1,
+      "denominator": 1
+     },
+     {
+      "numerator": -6151831,
+      "denominator": 70368744177664
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 6151831,
+      "denominator": 70368744177664
+     }
+    ]
+   },
+   {
+    "yaw": 49152,
+    "native_c_s": [
+     {
+      "numerator": 6713111,
+      "denominator": 562949953421312
+     },
+     {
+      "numerator": -1,
+      "denominator": 1
+     }
+    ],
+    "canonical_c_s": [
+     {
+      "numerator": 1,
+      "denominator": 1
+     },
+     {
+      "numerator": 6713111,
+      "denominator": 562949953421312
+     }
+    ]
+   }
+  ]
+ },
+ "world_root_bounds_u": [
+  0,
+  -32256,
+  0,
+  262144,
+  16896,
+  262144
+ ],
+ "proof_sha256": "c327da3fd3e4cbd115ef6f08b4b6efe656cf9e73555125ea17bd50a0f8637070",
+ "production_qualified": false,
+ "producer_sources": {
+  "godot/data/underground/mole-worker/stair-carry-v1/derive_stair_carry_rows.py": "c8c80c11ba379fbbcd2966e29113d921dd9b836ca00b7beb9494c55bce23cc8d",
+  "godot/data/underground/mole-worker/claw-work-v1/derive_stair_rows.py": "4e4a6067db277e14fb19d9775c4d7309f9c68ba8fb9f33547162103303100c1d",
+  "godot/data/underground/mole-worker/claw-work-v1/derive_claw_rows.py": "716ff1466e4f538ed4c14e0e9b59ee26bfdd91258171e831fbac6c3f85de5ccc",
+  "godot/data/underground/mole-worker/stair-carry-v1/author_stair_carry.py": "cd0fc65a3282dafcb552841f33e9fb5d553c2c449efb8e83538be1a35a89c35e"
+ }
+}

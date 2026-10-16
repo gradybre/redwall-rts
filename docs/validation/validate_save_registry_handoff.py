@@ -65,7 +65,9 @@ def validate_registry(data):
     # ledger (2), demolition admissions (7), demolition work (4) and store policy (3): +32 records.
     # ADR 1228 adds seven section6 owners: the underground mount record (3) and six ADR 1221
     # wire owners (a length and a bounded image each): +15 records.
-    assert records == data['record_count'] == 810
+    # Decision 1936 adds section6 owner underground_room_progress: a length and the bounded
+    # room-dig record: +2 records.
+    assert records == data['record_count'] == 812
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -122,7 +124,8 @@ def validate_source(data, source):
     # ADR 1222 step 5 implements chronicle.gd: its category-1 `_rolling_digest` gains contract C197.
     # ADR 1222 Q7(a) resolves sixteen UNRESOLVED packed columns as category 1 in section 6 (the
     # construction_extension owner re-carries construction's own columns and adds none).
-    assert len(actual)==data['packed_source_field_count']==694
+    # Decision 1936 declares the room dig's ten category-1 packed columns, carried inside its record.
+    assert len(actual)==data['packed_source_field_count']==704
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

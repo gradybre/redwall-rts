@@ -4,9 +4,9 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "bbf672710c11e6174412abc4268d557ce841ba5e1a851861272a5e080b26da7f",
-    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG2",
-    "registry_version": 16
+    "registry_canonical_json_sha256": "f35bad6fa6b953f00b773576f1c953f1e5ba6b929b655763aeb969fa4420a968",
+    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-15-RD1",
+    "registry_version": 17
   },
   "audited_source": {
     "module_sha256": {
@@ -67,27 +67,27 @@
     "astra_cycle_03_taken_at": "388f4f4",
     "disagreements": [],
     "explained_since_census": [
-      "canonical_records: this audit 810, Astra Cycle 3 599 (+211) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "distinct_expressions: this audit 66, Astra Cycle 3 56 (+10) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "equality: this audit 538, Astra Cycle 3 473 (+65) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "other_canonical_shapes: this audit 186, Astra Cycle 3 80 (+106) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "owners: this audit 75, Astra Cycle 3 52 (+23) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "packed_source_fields: this audit 694, Astra Cycle 3 553 (+141) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "prose_records: this audit 624, Astra Cycle 3 519 (+105) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners",
-      "upper_bound: this audit 86, Astra Cycle 3 46 (+40) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners"
+      "canonical_records: this audit 812, Astra Cycle 3 599 (+213) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "distinct_expressions: this audit 66, Astra Cycle 3 56 (+10) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "equality: this audit 538, Astra Cycle 3 473 (+65) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "other_canonical_shapes: this audit 188, Astra Cycle 3 80 (+108) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "owners: this audit 76, Astra Cycle 3 52 (+24) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "packed_source_fields: this audit 704, Astra Cycle 3 553 (+151) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "prose_records: this audit 624, Astra Cycle 3 519 (+105) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record",
+      "upper_bound: this audit 86, Astra Cycle 3 46 (+40) -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record"
     ],
     "observed": {
-      "canonical_records": 810,
+      "canonical_records": 812,
       "distinct_expressions": 66,
       "equality": 538,
-      "non_hash_fields": 10,
+      "non_hash_fields": 30,
       "non_hash_fields_admitted_to_audit": 0,
       "non_hash_fields_carrying_declared_capacity": 0,
-      "other_canonical_shapes": 186,
-      "owners": 75,
-      "packed_source_fields": 694,
+      "other_canonical_shapes": 188,
+      "owners": 76,
+      "packed_source_fields": 704,
       "prose_records": 624,
-      "registry_listed_fields": 820,
+      "registry_listed_fields": 842,
       "upper_bound": 86
     }
   },
@@ -1234,6 +1234,27 @@
       "section_id": 6,
       "shape_keys": [
         "count",
+        "order"
+      ]
+    },
+    {
+      "field_key": "progress_length",
+      "ordinal": 0,
+      "owner_key": "underground_room_progress",
+      "section_id": 6,
+      "shape_keys": [
+        "count",
+        "order"
+      ]
+    },
+    {
+      "field_key": "progress_record",
+      "ordinal": 1,
+      "owner_key": "underground_room_progress",
+      "section_id": 6,
+      "shape_keys": [
+        "count_field",
+        "max_count",
         "order"
       ]
     },

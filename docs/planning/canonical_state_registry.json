@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-08-UG2",
- "registry_version": 16,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-15-RD1",
+ "registry_version": 17,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -66,8 +66,8 @@
   "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 810,
- "packed_source_field_count": 694,
+ "record_count": 812,
+ "packed_source_field_count": 704,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -8803,6 +8803,362 @@
   },
   {
    "section_id": 6,
+   "owner_key": "underground_room_progress",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "progress_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": true,
+     "source_module": "underground_room_progress",
+     "source_member": "capture",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "ordinal": 0
+    },
+    {
+     "field_key": "progress_record",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_room_progress",
+     "source_member": "capture",
+     "shape": {
+      "count_field": "progress_length",
+      "max_count": 1198536,
+      "order": "decision1936_v1_wire"
+     },
+     "scalar": false,
+     "ordinal": 1
+    },
+    {
+     "field_key": "generation_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_generation",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 2
+    },
+    {
+     "field_key": "_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_generation",
+     "shape": {
+      "count_field": "generation_length",
+      "max_count": 16384,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 3,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "state_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_state",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 4
+    },
+    {
+     "field_key": "_state",
+     "type": "u8",
+     "type_code": 0,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_state",
+     "shape": {
+      "count_field": "state_length",
+      "max_count": 16384,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 5,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "storage_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_storage",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 6
+    },
+    {
+     "field_key": "_storage",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_storage",
+     "shape": {
+      "count_field": "storage_length",
+      "max_count": 32768,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 7,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "output_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_output",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 8
+    },
+    {
+     "field_key": "_output",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_output",
+     "shape": {
+      "count_field": "output_length",
+      "max_count": 32768,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 9,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "staging_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_staging",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 10
+    },
+    {
+     "field_key": "_staging",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_staging",
+     "shape": {
+      "count_field": "staging_length",
+      "max_count": 32768,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 11,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "foreman_rows_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_foreman_rows",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 12
+    },
+    {
+     "field_key": "_foreman_rows",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_foreman_rows",
+     "shape": {
+      "count_field": "foreman_rows_length",
+      "max_count": 512,
+      "order": "kept_foreman_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
+     "ordinal": 13,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "cube_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_foreman",
+     "source_member": "_cube",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 foreman block, each running dig's Site rows and marks)",
+     "ordinal": 14
+    },
+    {
+     "field_key": "_cube",
+     "type": "u8",
+     "type_code": 0,
+     "hash": false,
+     "source_module": "underground_room_foreman",
+     "source_member": "_cube",
+     "shape": {
+      "count_field": "cube_length",
+      "max_count": 73909,
+      "order": "dig_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 foreman block, each running dig's Site rows and marks)",
+     "ordinal": 15,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "legs_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_builder",
+     "source_member": "_legs",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
+     "ordinal": 16
+    },
+    {
+     "field_key": "_legs",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_builder",
+     "source_member": "_legs",
+     "shape": {
+      "count_field": "legs_length",
+      "max_count": 32,
+      "order": "leg_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
+     "ordinal": 17,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "leg_profiles_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_builder",
+     "source_member": "_leg_profiles",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
+     "ordinal": 18
+    },
+    {
+     "field_key": "_leg_profiles",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_builder",
+     "source_member": "_leg_profiles",
+     "shape": {
+      "count_field": "leg_profiles_length",
+      "max_count": 16,
+      "order": "leg_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
+     "ordinal": 19,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "queue_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_builder",
+     "source_member": "_queue",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
+     "ordinal": 20
+    },
+    {
+     "field_key": "_queue",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_builder",
+     "source_member": "_queue",
+     "shape": {
+      "count_field": "queue_length",
+      "max_count": 8,
+      "order": "bill_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
+     "ordinal": 21,
+     "source_contract": "C202"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
    "owner_key": "underground_routes",
    "owner_schema_version": 1,
    "fields": [
@@ -12955,6 +13311,10 @@
   "C201": {
    "unused": "Allowed 1 and minimum 0 in every cell of an unbound row; stamp 0 (UNBOUND).",
    "notes": "ADR 1222 DEC-055 Q7(a): decision 1031's store filters and minimums are a section 6 owner, owner-major at stride ITEM_CAPACITY, with the persistent-ID binding stamp."
+  },
+  "C202": {
+   "unused": "No record while nothing is bound, kept or digging; record rows in use only (state not NONE); an order's rows and marks and a builder's legs and queue only while its dig runs; null handles are exactly (-1,0).",
+   "notes": "Decision 1936 (P-1936-4 (a), Brendan 2026-10-15: \"Approve all\"). The room-dig runtime's record rows, each kept foreman's order marks and each builder's cursor, legs, cube plan, walk and haul queue are one versioned little-endian record (underground_room_progress.gd frames it), written by their owners' write_state and restored only into a fresh runtime whose owners the re-mount bound; every handle is re-proved against the restored owners with exact ROOM_SAVE_* refusals, and a decoded record must re-encode byte-identically. Footprints, row extents, the order's keys and the per-tick block flags are re-derived. Save only at a quiescent tick boundary."
   }
  },
  "section_schema_versions": [
@@ -12963,7 +13323,7 @@
   1,
   2,
   1,
-  10,
+  11,
   6,
   2,
   2,

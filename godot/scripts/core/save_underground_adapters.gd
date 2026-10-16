@@ -388,3 +388,42 @@ class EntryAdapter:
 	func apply(_block: Section.Block) -> SaveHeader.Refusal:
 		"""Nothing here: the orchestrator restores the record after every other section."""
 		return SaveUnderground._ok()
+
+
+class RoomsAdapter:
+	"""`underground_room_progress`: decision 1936's room-dig record (P-1936-4 (a)), the runtime's own
+	canonical codec. Empty while nothing is bound, kept or digging."""
+	var _world: SaveWorld.World = null
+
+	func _init(p_world: SaveWorld.World) -> void:
+		"""Bind the world."""
+		_world = p_world
+
+	func capture(block: Section.Block) -> SaveHeader.Refusal:
+		"""The runtime's record, or the canonical empty block when it has nothing to keep."""
+		block.reset_to_empty()
+		if _world.rooms == null or _world.rooms.is_empty():
+			return SaveUnderground._ok()
+		var bytes: PackedByteArray = PackedByteArray()
+		var code: StringName = _world.rooms.capture(bytes)
+		if code != &"":
+			return SaveUnderground._no(REFUSE_BUSY, "the room-dig runtime refused its capture: %s" % code)
+		var length: SaveHeader.Refusal = block.set_scalar(0, bytes.size())
+		return length if not length.is_ok() else block.set_u8_column(1, bytes)
+
+	func validate(block: Section.Block) -> SaveHeader.Refusal:
+		"""Shape, the record length, and no declared column outside the record (decision 1936
+		declared the ten carried columns hash-free, as ADR 1218 declared the hauler queue)."""
+		var shape: SaveHeader.Refusal = SaveUnderground.shape_refusal(block, "underground_room_progress")
+		if not shape.is_ok():
+			return shape
+		var outside: bool = false
+		for ordinal: int in range(2, Schema.field_count_of(Schema.OWNER_KEYS.find("underground_room_progress")), 2):
+			outside = outside or block.scalar(ordinal) != 0 or block.element_count(ordinal + 1) != 0
+		if block.scalar(0) != block.element_count(1) or outside:
+			return SaveUnderground._no(SaveAux.REFUSE_OWNER_STATE, "the room-dig record is malformed")
+		return shape
+
+	func apply(_block: Section.Block) -> SaveHeader.Refusal:
+		"""Nothing here: the orchestrator restores the record after the entry's."""
+		return SaveUnderground._ok()

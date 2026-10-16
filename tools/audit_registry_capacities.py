@@ -140,14 +140,18 @@ EXPLAINED_SINCE_CENSUS = {
 	# ADR 1228 adds seven section6 owners with no capacity rows: the underground mount record
 	# (three fixed-count fields) and six ADR 1221 wire owners (a length and a bounded image each),
 	# so fifteen canonical non-capacity records and no packed source field.
+	# Decision 1936 adds one section6 owner (underground_room_progress) with no capacity row: a
+	# record length and the bounded room-dig record, two canonical non-capacity records, and
+	# declares the room dig's ten category-1 packed columns (hash=false, carried inside the
+	# record, as decision 1218 declared the hauler's `_queue`): ten packed source fields.
 	"prose_records": 105,
 	"equality": 65,
 	"upper_bound": 40,
-	"packed_source_fields": 141,
-	"canonical_records": 211,
-	"other_canonical_shapes": 106,
+	"packed_source_fields": 151,
+	"canonical_records": 213,
+	"other_canonical_shapes": 108,
 	"distinct_expressions": 10,
-	"owners": 23,
+	"owners": 24,
 }
 
 RELATION_EQ = "eq"
@@ -643,7 +647,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222 and 1228: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071, 1072, 1218, 1221, 1222, 1228 and 1936: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records, plus the entry progress record, the haul admission record, the Chronicle digest, the five Q7 section-6 owners and ADR 1228's underground mount and wire owners, and decision 1936's room-dig record")
 		else:
 			unexplained.append(line)
 	return {

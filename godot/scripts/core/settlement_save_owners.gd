@@ -58,14 +58,15 @@ const DECLARED_AUX_KEYS: Array[String] = ["excavation_inventory", "excavation_si
 ## installed endpoints are proved from the Placements' installed prefixes; the Placements' anchors are
 ## proved by `SaveUnderground.cross_audit_refusal()` once Locations is restored); Locations; the
 ## spatial endpoints that read them; Routes; WorldRoutes; Contacts; the Planner, whose admissions may
-## name a spatial store. The entry record is applied by the orchestrator after every section.
+## name a spatial store. The entry record is applied by the orchestrator after every section, and the
+## room-dig record after it (decision 1936).
 const AUX_APPLY_ORDER: Array[String] = ["buildings", "command_dispatch", "construction_extension",
 	"construction_paid_ledger", "crop_weather", "demolition_admissions", "demolition_work", "ecology",
 	"room_layout", "room_projects", "spoil_tips", "store_policy", "underground_mount",
 	"excavation_inventory", "excavation_sites", "modular_projects", "underground_connector_placements",
 	"underground_connector_workpieces", "underground_locations", "inventory", "underground_routes",
 	"underground_world_routes", "underground_connector_contacts", "haul_planner",
-	"underground_entry_progress"]
+	"underground_entry_progress", "underground_room_progress"]
 const UNDERGROUND_FIRST_AUX_KEY: String = "excavation_inventory"
 const JOINT_AUX_KEYS: Array[String] = ["buildings", "construction_extension",
 	"construction_paid_ledger"]
@@ -188,6 +189,7 @@ static func _aux_adapter_for(world: SaveWorld.World, key: String, owner: int) ->
 		"demolition_work": return SaveAux.ColumnsAdapter.new(world.demolition_work, key)
 		"underground_mount": return SaveUnderground.MountAdapter.new(world)
 		"underground_entry_progress": return SaveUnderground.EntryAdapter.new(world)
+		"underground_room_progress": return SaveUnderground.RoomsAdapter.new(world)
 		"spoil_tips": return S06.UnsupportedAdapter.new(owner,
 			func() -> bool: return world.underground != null and world.underground.tips != null)
 	# room_layout, room_projects: no production instance exists, so nothing can hold their state.

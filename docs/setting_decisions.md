@@ -1324,6 +1324,14 @@ runtime activation. Stair material and work costs are unchanged. The original
 alternatives and implementation constraints are retained in
 [decision1145](decisions/1145-proposed-initial-timber-stair-timing.md).
 
+**Addendum (2026-10-15): laden workers.** Brendan approved decision 1981's P-1981-3 (a) ("Approve all", relayed
+by the coordinator). The same pace applies to a mole carrying one unit of wood or stone on the stair: 30 fixed ticks
+a tread, ascending or descending, and 45 a supported half-turn. The stair carry's on-and-off handoffs (the approach,
+the retreat and the back-up, three steps each) take this decision's "1 second per step": 90 ticks. The laden clips
+have the same keys, feet and root tracks as the unladen ones, and on level ground carrying already moves at the
+walking cap (decision 1198). No new balance number is introduced. Engineering record:
+[decision1981](decisions/1981-one-basic-stair-carry-scoping.md).
+
 
 ### DEC-051 — Simulation-owned memory gate raised to 100.1 MB
 

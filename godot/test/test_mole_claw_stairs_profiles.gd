@@ -128,6 +128,6 @@ func test_a_tread_fit_with_anchor_contact_is_refused() -> void:
 
 
 func test_an_unknown_policy_is_refused() -> void:
-	"""Policies above POLICY_STAIR_TURN stay uncertified, and the turn under the descent's policy is ambiguous."""
-	_negative(Stairs.CLAW_TURN_ROW, POLICY_BYTE, Profiles.POLICY_STAIR_TURN + 1, &"PROFILE_CERTIFICATE_REQUIRED")
+	"""Policies above POLICY_ROOTED_TURN (decision 1981) stay uncertified, and the turn under the descent's policy is ambiguous."""
+	_negative(Stairs.CLAW_TURN_ROW, POLICY_BYTE, Profiles.POLICY_ROOTED_TURN + 1, &"PROFILE_CERTIFICATE_REQUIRED")
 	_negative(Stairs.CLAW_TURN_ROW, POLICY_BYTE, Profiles.POLICY_STAIR, &"PROFILE_AMBIGUOUS_KEY")

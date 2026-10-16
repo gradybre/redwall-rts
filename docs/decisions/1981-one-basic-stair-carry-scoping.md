@@ -315,3 +315,73 @@ floor today, empty or loaded.
 - Content 11's wire, decoded with a scratch reader (not committed).
 - The hold-versus-stand comparison: a read-only NumPy measurement of the committed `haul-handling-v1` and
   `stand-walk-v2` clips (scratch, not committed).
+
+## Phase 2 — first proofs (2026-10-15): stopped at the loaded handoffs
+
+Following the rulings, the accepted authors were run on the holds, and every proof of §1 was tried before any
+content was built. The runs used scratch scripts (`scratchpad/staircarry_probe/`, not committed), with the
+palettes staged from the frozen `redwall-rts-codex-ug-space` worktree against their pins, as in ADR 1217.
+
+### Clear
+
+- **The loaded gaits** (wood and stone, M7's recipes unchanged on the hold):
+  - Bones 0 and 9–23 and the load column equal the hold bit for bit on every key, and both endpoints equal the
+    hold.
+  - Terrain: clear.
+  - Flight L0 ↔ T5: descent 4,128 pairs, ascent 4,788 pairs; 0 unresolved.
+  - Bottom: descent T5 → T6 → floor 1,376 pairs; **ascent floor → T6 → T5** (new run) 1,596 pairs; 0 unresolved.
+  - Arm self-clearance: clear.
+  - Body against load: wood 0 broad-phase pairs; stone 4,500 pairs, 0 unresolved.
+  - Two-hand grip: continuous on every interval.
+- **The empty floor end:**
+  - E1 (the approach on the closed-paw stand) on the floor fixture: 869 checks, clear, and self-clear.
+  - Claw row 55 (the half-turn) on the floor: 2,190 checks, clear.
+  - Claw row 54 (the ascent) floor → T6 → T5: 1,562 pairs, clear.
+- **The loaded handoffs, against the load and the body:** self-clearance, body-against-load separation and the
+  grip all clear.
+
+### Refused: the loaded handoffs against the deck
+
+The approach and retreat on L0, and the approach and turn on the floor, each refuse for wood and stone:
+
+- 14 unresolved SOLID pairs at interval 0, all **right-foot** triangles against the standing deck;
+- approach 1,156 checks, retreat 1,161, turn 2,485.
+
+**The cause.** `author_stair_handoffs.frame_track` hard-codes the support program at the two endpoint keys as
+"left foot only" (`mask = 1`). It records the reason: "Exact ready has the right foot slightly raised; no invented
+second contact". That is true of the stand ready. It is not true of the hold:
+
+- the lift ends with both feet down, the left foot's lowest vertex 1.87 u and the right foot's 2.0 u above the
+  floor (wood and stone holds alike);
+- so the right foot lies inside the prover's conservative padding;
+- it is not excused, because it is not declared planted.
+
+There is no penetration in the source.
+
+**Diagnostic only (not adopted).** Declaring both feet planted at the two endpoint keys, which is what the hold is,
+makes all eight handoff runs clear (wood and stone):
+
+| Handoff | Checks | Unresolved |
+|---|---:|---:|
+| Approach on L0 | 883 | 0 |
+| Approach on the floor | 883 | 0 |
+| Retreat on L0 | 888 | 0 |
+| Turn on the floor | 2,212 | 0 |
+
+Each planted foot still had to show the prover's continuous contact witness.
+
+Nothing was published. Per the coordinator's instruction ("If a proof refuses … stop and report"), the lane stops
+here for a ruling (P-1981-7, below).
+
+### P-1981-7 — The handoffs' endpoint support on the hold (for the coordinator, or for Brendan)
+
+- **(a) Recommended:** derive each endpoint's planted feet from the ready pose instead of the stand-specific
+  constant. A foot is planted at an endpoint when its lowest source vertex lies in the prover's contact cell.
+  - The stand ready gives "left only", exactly as today. The hold gives both feet.
+  - It is applied by a wrapper in the stair-carry author; the accepted `author_stair_handoffs.py` is not edited.
+  - The prover is unchanged, and still requires a continuous contact witness for every planted foot.
+  - No pose, recipe value, foot track or root track changes.
+- **(b)** Treat the refusal as final. The loaded mole then cannot step on or off the stair at the top or the
+  floor. The gaits alone cannot supply a room (P-1981-1 (c)).
+- **(c)** A new on/off motion for the loaded mole, or a re-posed hold. This is new motion with a review, against
+  "keep it basic".

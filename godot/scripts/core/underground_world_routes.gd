@@ -1597,8 +1597,8 @@ func _selection_refusal(selection: Profiles.Selection) -> StringName:
 			or _descriptor.rig != selection.rig or _descriptor.mode != selection.mode \
 			or _descriptor.posture != selection.posture or _descriptor.yaw_kind != selection.orientation \
 			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw \
-				and Profiles.selection_policy_leaf(_profiles, selection.profile_id, selection.profile_revision,
-					selection.content_revision) != Profiles.POLICY_STAIR_TURN) \
+				and not Profiles.is_table_turn(Profiles.selection_policy_leaf(_profiles, selection.profile_id,
+					selection.profile_revision, selection.content_revision))) \
 			or _descriptor.certificate_flags != Profiles.CERT_REQUIRED:
 		return &"WORLD_ROUTE_PROFILE_STALE"
 	return &""

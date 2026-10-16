@@ -87,9 +87,9 @@ class ObservedBinding extends Binding:
 		if _in_residual and residual_terrain != &"": return residual_terrain
 		return super._timber_terrain(proof, bounds, purpose, space_token)
 
-	func _timber_natural_support(proof: TimberClearance) -> StringName:
+	func _timber_natural_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
 		"""Record each decision 1972 natural-earth verdict without replacing it."""
-		var code: StringName = super._timber_natural_support(proof)
+		var code: StringName = super._timber_natural_support(proof, bounds)
 		natural_support.append(code)
 		return code
 

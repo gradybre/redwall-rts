@@ -733,3 +733,56 @@ Slice D will not edit this lane's files until activation merges:
   entry foreman.
 
 This lane keeps its edits to what activation needs.
+
+## Phase 3a — after the cost lane (2026-10-16): M-2 still overflows; stopped for options
+
+### Done
+
+- **Master merged** with #269 (the cost lane, `353706cd`). Conflicts were the census `REVIEWED_SHA` (recomputed), the
+  two checkpoint manifests and the memory pack (master's, then regenerated), content 10's pins (master's, then
+  renewed), and `RULINGS.md` (both sides' rows kept).
+- **The two gated lines are applied**, with the held-back loaded tests (`test_underground_stair_carry_routes.gd`,
+  11 + 6 tests pass):
+  - Routes `_actor_profile_into`: WALK or CARRY, +33 characters;
+  - WorldRoutes' stale-selection heading exemption through `Profiles.is_table_turn`, −2 characters.
+- **Retention proofs:** a trench-floor slab, which lies wholly below a cut floor, is proved at once, not fragment by
+  fragment. The cut-floor footing is observed slab by slab. A landing's footprint, which may hold timber in a dug
+  cube, is still proved fragment by fragment.
+
+### M-2, re-measured on master after the cost lane (the mount in scratch, `Space.MAX_CHECKS` not raised)
+
+- **The live descent still stops on tick 7,093** with `WORLD_ROUTE_CHECK_CAPACITY`. The same preparation still needs
+  more than 1,048,576 checks (`scratchpad/activate_m1/m2-overflow-tick7093.log`). The cost lane's memos did not
+  reach it.
+- **Where:** a tread installation's completion:
+  - `Installer._recover` → `complete_order` → `Placements.prepare_completion` → `_prepare_routes` → WorldRoutes
+    requalifies every live edge;
+  - the extra spend is content 12's 18 rows in `_carry_eligible`'s per-profile loop.
+  - The empty rooted rows 71/72 kind-match every ground (family −1) WALK edge, so each is swept against every change
+    since the certificate. Yet a rooted row can never serve a ground edge, since its certificate is span-exact.
+- **One candidate measured (scratch only, not kept).** In `_carry_eligible`, skip a rooted stair row on a ground
+  edge: `if edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile): continue`, about +95
+  characters in WorldRoutes. The descent's peak falls to **1,000,378 (95.4 %)**, below content 10's own 1,038,133.
+- **A second overflow behind it: the sill's commit.**
+  - With the trench retained (48 SUPPORT rows: the floor slabs less the 26 retained bearings), the sill's completion
+    requalification needs **1,687,943** checks (161 %). Each retained row is a Space change every live edge's carried
+    certificate must be swept against.
+  - The republish of all 33 floor and CARRY edges after the sill, in one preparation, needs 544,031 (52 %).
+
+### Options (for the coordinator)
+
+- **(a)** Admit the +95-character `_carry_eligible` skip (the cost lane's file).
+  - For the sill commit, retain only what the floor end needs: the cut cubes under the floor stops and the sill, a
+    handful of rows.
+  - Republish decision 1981's stair-carry tables with each floor deck clipped to the floor its proof stood on, so no
+    deck reaches under the treads. This is a data successor from that lane's own tooling, with the proofs re-run.
+- **(b)** Keep the whole-trench retention and make the requalification cost independent of how many rows a commit
+  adds: a WorldRoutes change in the cost lane's domain (for example, sweeping a carried certificate against the union
+  bounds of a commit's changes). Its size is not yet measured.
+- **(c)** Raise `Space.MAX_CHECKS` (a budget ruling; the gate forbids it without one). 2,097,152 holds every
+  preparation measured above.
+- **(d)** Mount without the floor end. The stair carry then works from H to T6 and back, and the floor end waits for
+  slice D's F40, which needs the floor anyway. Only the `_carry_eligible` skip is needed.
+
+**Recommendation: (a).** It keeps every budget, all three parts are bounded, and the clipped decks also remove an
+over-wide fixture artifact from the runtime proof.

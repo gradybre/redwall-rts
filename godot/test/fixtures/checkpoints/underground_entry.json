@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "70ae373363ca2ce40ddc2bc27b54113c39b7d3dc83428bb40dbf9eda9cf06202",
+	"fingerprint": "a80bfaf92bfca1cd9c00b37670a462fedb81655e705504ec15e517393b78239b",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -60,7 +60,7 @@
 		"res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd": "496231c3141f63cf1b1d5159072724f4f1d86391bcfbfd04ce0ceb7e7c0f80f5",
 		"res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd": "343b97f6c4e7952135cdd4ca0f46cb7bdf4c356bbf3d86dbf967e2421a4277fc",
 		"res://data/underground/mole-worker/qualified-claw-stair-motion-v1/stair-motion.ugstair": "e7840c7babc9bbe21c8f8c36a3d3a313172bc4a3adff9f13dcd6f4a99c25a58b",
-		"res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "173139da8f0a0ab09e39eb7428fe0d8694e82cc5f152400ed6004998830d0adb",
+		"res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "bc18853f3de4e8b2151c3020119c20bcffe8de52c4002cd553ae319e34f0979f",
 		"res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
 		"res://data/underground/mole-worker/qualified-stair-carry-motion-v1/catalog_source.gd": "af3626029831a8fff7a24504599fd25a32d0712a27e659fda0741cf68d4f18dc",
 		"res://data/underground/mole-worker/qualified-stair-carry-motion-v1/stair-motion.ugstair": "e039b6c8124b2b5c7e6d23cccc02c67f2c1260fd788fe48500c3280ccabd1f60",
@@ -210,7 +210,7 @@
 		"res://scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
 		"res://scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
 		"res://scripts/core/underground_dispatch.gd": "f77718342e7b65a45ca7dbd500205fd6aef7609735bd5cba51e8541833dfc49d",
-		"res://scripts/core/underground_entry_bindings.gd": "603efcb8878890c647ed17aa3547aed7e5c69d37e7812733891e3c4c3e0953c0",
+		"res://scripts/core/underground_entry_bindings.gd": "a8daf34719c79b61ef0ed7bf97ae943005f872ca9378c5e7601e38a40616382c",
 		"res://scripts/core/underground_entry_composition.gd": "2d65875785d5e69f7c6861573b17fb90e65b4f8a999e2634b013a75cbae20d29",
 		"res://scripts/core/underground_entry_contact_path.gd": "a8ba918d5825a65b1a31754fc72bcf0b14e5a10ed5438010845d76148e183765",
 		"res://scripts/core/underground_entry_contact_retirement.gd": "907fc15d9e6eb95fbeda072306aa70eaff12d3fda302e7e2f1d41dc15a296aac",
@@ -256,7 +256,7 @@
 		"res://scripts/core/underground_room_walk.gd": "dcb882c08fe1d87d14685479207d7ea22bfa59b5daead10b1b30e8ec925d0e5f",
 		"res://scripts/core/underground_room_world_bindings.gd": "4648625c6c0e6223097c604a1ebc0f6d0c0cda198d92e3b7992481b44c94f95b",
 		"res://scripts/core/underground_route_composition.gd": "d4599f84ce86f95d4d54dee4193c27d6f85ad59e6be000d05419017b04bf811a",
-		"res://scripts/core/underground_routes.gd": "93641de14ece4dd6fbbfbe4079053f56ba6b42cd08d9ab7567ef888ce0df8f41",
+		"res://scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
 		"res://scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
 		"res://scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
 		"res://scripts/core/underground_space_owner.gd": "bfbad4b67a7e5cb9ccecf4f5500c322610abe8f3854f5fe364a1723a5a21aa1a",
@@ -266,7 +266,7 @@
 		"res://scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
 		"res://scripts/core/underground_world_bindings.gd": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7",
 		"res://scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-		"res://scripts/core/underground_world_routes.gd": "04cec51d1aa8a99aff9fee22c5ff6c8a61d560be45b0e489561095cace3bd1b7",
+		"res://scripts/core/underground_world_routes.gd": "b6514e8e5571ea7f042de6b4ae8391723f2b111e4a8b282baff4fc71ccaf8395",
 		"res://scripts/core/underground_world_structure_scope.gd": "bce7c50627fb80689681a43543669c93688e3f1309b5570d958f144aafbdd57a",
 		"res://scripts/core/weather.gd": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
 		"res://scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",

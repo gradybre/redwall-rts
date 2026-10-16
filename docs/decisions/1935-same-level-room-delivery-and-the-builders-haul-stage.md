@@ -134,6 +134,19 @@ transitions are (decision 1933); the cost lane owns those paths.
   settlement delta's text updated, `REVIEWED_SHA` renewed).
 - Per hauling builder: the queue (one int per unit, at most 2 per BRACE) and the approach legs.
 
+## Final gates (after merging `origin/master` with PR #262, at `f54fc52e`, 2026-10-15)
+
+- **Full suite, CI-style:** `godot/.godot` deleted, `godot --headless --path godot --editor --quit`, then
+  `./tools/run_tests_parallel.sh`: `ok: 512 suite files executed exactly once across 10 shards`, 12,593 tests,
+  1,241,500 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaked objects or resources; every shard and
+  CI's verify passed. The two underground checkpoints were regenerated for the new sources (manifests only).
+- **Analyzer:** `python3 tools/gdscript_warnings.py --max 0 --port 6433`: 0 warnings in 1,555 files.
+- **Contracts:** every command of CI's contracts job exited 0 (`decision_numbers.py` 558 records,
+  `underground_memory_budget.py --check` and its tests, `test_underground_current_census.py`, `merge_gate.py`,
+  `state_registry_coverage`, the registry and schema generators' checks, among them).
+- **Boundaries:** no edit to `work.gd`, the routes modules, `excavation_sites.gd`, `underground_locations.gd`,
+  `underground_room_world_bindings.gd`, the hauler, the stroke lane's or the stair-carry lane's files.
+
 ## Source
 
 Decisions 1210, 1217, 1225, 1229, 1933, 1934; `underground_connector_delivery.gd`, `underground_entry_hauler.gd`,

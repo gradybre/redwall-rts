@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "aa2cce17a5f2df3b71761460e11aa110cdf9d815ec42fb2cf80b6680e0882696",
+	"fingerprint": "665bbdf8e77a22247038fe226e2d940a727123be5235e47694389bd624bedf93",
 	"name": "underground_spare",
 	"points": {
 		"install_0_stage_10": {
@@ -90,7 +90,7 @@
 		"res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd": "496231c3141f63cf1b1d5159072724f4f1d86391bcfbfd04ce0ceb7e7c0f80f5",
 		"res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd": "343b97f6c4e7952135cdd4ca0f46cb7bdf4c356bbf3d86dbf967e2421a4277fc",
 		"res://data/underground/mole-worker/qualified-claw-stair-motion-v1/stair-motion.ugstair": "e7840c7babc9bbe21c8f8c36a3d3a313172bc4a3adff9f13dcd6f4a99c25a58b",
-		"res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "da2e57815fbef0f8461e1c68cf4c9ce21e0168bcf69fb51531eab46e345afddf",
+		"res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "e3cf0a4b5161f1e35f7354d538761190a31c242e21cff39058eaca9abd2ae91e",
 		"res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
 		"res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd": "ddd48b8fedc78dac0b1c2a541f0e9781634e6f9261a25ff78893ef116274ad95",
 		"res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd": "3797ac7d4312e45217257380df1475d5d6d0732a41a2b0327c381e1af2876f87",
@@ -270,7 +270,7 @@
 		"res://scripts/core/underground_room_foreman.gd": "407ca892a08ae39ba79d89b0dc861c3d430617e11410c3b7e5f16b1ef5872ced",
 		"res://scripts/core/underground_room_frontier.gd": "98cf725833953a1d58aaec78fed926e99b9e3aeceb9e77096c739a013c9cb4ad",
 		"res://scripts/core/underground_room_frontier_publication.gd": "907de730afafdc624c7efd83156c0faf5adbcbb7b6c8d628b71ed7cc974f74f2",
-		"res://scripts/core/underground_room_itinerary.gd": "4d887a5d1eeac7072308f561617d4631e2ead74f9ca8ea70c2862a19e2db6417",
+		"res://scripts/core/underground_room_itinerary.gd": "5e8b9947c4ffd7ee5f12ed39d7116c0e5f78a14bb0d5b36b146b11092d11031c",
 		"res://scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
 		"res://scripts/core/underground_room_runtime.gd": "e85bc1da398f87105956b6742ed06ab2a6fa96c3b4d6f70cc5bbd10576328112",
 		"res://scripts/core/underground_room_station_planner.gd": "697987583a24b9cde6cffb00fa9465575fdb9b848350edf6dd8006b33a7ae0c1",
@@ -286,7 +286,7 @@
 		"res://scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
 		"res://scripts/core/underground_world_bindings.gd": "f7c3b9ca5202ef758d9697ca4bd692580f3dc4b58557701c4192323143ff4cf7",
 		"res://scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-		"res://scripts/core/underground_world_routes.gd": "654069b33b073d6bacc0a7562342ba4d5002118b99fb8eaed025b2a70f70c4ee",
+		"res://scripts/core/underground_world_routes.gd": "9078fdd7db0b5783fa52a400582a78b623fe00cd5cb2eadb4b118afa1f386243",
 		"res://scripts/core/underground_world_structure_scope.gd": "bce7c50627fb80689681a43543669c93688e3f1309b5570d958f144aafbdd57a",
 		"res://scripts/core/weather.gd": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
 		"res://scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",

@@ -688,3 +688,17 @@ bytes are identical apart from the two source digests.
   the room branch's storage.
 - **`underground_entry_hauler.gd`:** the loaded leg list and the empty return list, from a stateless helper over the
   live graph. The save record changes: `Progress.MAX_WIRE_BYTES`, the section-6 `max_count`, and a census row.
+
+### Gates (phase 2)
+
+- **The full CI-style run** (art aside, `godot/.godot` deleted, a fresh import, `./tools/run_tests_parallel.sh`, 10
+  shards, at `86a11d5c`): **12,556 tests, 1,232,892 assertions, 0 failures, 0 unexpected errors or warnings, 0
+  leaks**. Verify passed: 506 suites, each exactly once.
+- **The analyzer** (`tools/gdscript_warnings.py --max 0`): 0 warnings in 1,549 files.
+- **The contracts:** `decision_numbers`, `ready07_arithmetic`, `merge_gate`, `state_registry_coverage`,
+  `lane_notes`, `dispatch_plan --validate`, `generate_canonical_state_table --check`, `astra_inbox --check`,
+  `setting_contract`, `renew_source_pins --check` (contents 10, 11 and 12), and `underground_memory_budget.py --check`
+  with the census tool tests: all pass.
+- **The Python tests:** `test_stair_carry.py` (14, including the byte-for-byte rebuilds),
+  `test_publish_stair_carry_runtime.py` (10) and `test_publish_stair_carry_motion.py` (8): all pass.
+- **Mutation testing:** 25 of 25 killed. **The independent review:** no CRITICAL or HIGH (above).

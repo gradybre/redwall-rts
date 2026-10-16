@@ -45,17 +45,18 @@ func test_the_dug_rooms_are_drawn_per_level_and_rebuilt_only_on_a_change() -> vo
 	assert_equal(dug.rebuilds, 1, "drawn once")
 	assert_true(dug.earth.visible and dug.earth.top_quads >= BOUNDS.size.y, "the level's earth drawn")
 	assert_true(dug.tags().has("Waiting for the mole: 8 cells"), "waiting cells said in words")
-	assert_true(dug.tags().has("Entrance") and dug.tags().has("Way up to the surface"), ", ".join(dug.tags()))
+	assert_true(dug.tags().has("Hatch with ladder") and dug.tags().has("Hatch with ladder: way up to the surface"),
+		", ".join(dug.tags()))
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 1, "a still frame rebuilds nothing")
 	_works.open_cell(1, Vector2i(4, 4))
 	dug.refresh(1)
 	assert_equal(dug.rebuilds, 2, "a dug cell redraws")
 	dug.refresh(-1)
-	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "no level shown: only the surface's name")
+	assert_equal(dug.tags(), PackedStringArray(["Hatch with ladder"]), "no level shown: only the surface's name")
 	dug.refresh(5)
 	assert_false(dug.earth.visible, "the bar's Overview is no underground level")
-	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "and shows only the surface's name")
+	assert_equal(dug.tags(), PackedStringArray(["Hatch with ladder"]), "and shows only the surface's name")
 
 
 func test_the_figure_shows_its_name_and_digging_state() -> void:
@@ -124,7 +125,7 @@ func test_a_hatch_on_a_mound_floor_is_gone_down_from_its_doors_yard() -> void:
 	assert_false(dug.on_mound(0), "the Entrance is on open ground")
 	assert_true(dug.on_mound(1), "the hatch is on a Mound's floor")
 	dug.refresh(-1)
-	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "only the Entrance named on the surface")
+	assert_equal(dug.tags(), PackedStringArray(["Hatch with ladder"]), "only the entrance named on the surface")
 	var figure: Figure = Figure.new()
 	_nodes.append(figure)
 	var trip: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_VISIT, Vector3i(1, 10, 10),

@@ -35,7 +35,10 @@ extends Control
 ## discard; Confirm all is disabled while a stroke is in progress or any operation is invalid, naming the first reason
 ## and the count. CLOSING with pending changes asks "Keep N pending changes?" (Keep / Discard). The questions sit in the
 ## footer's place. ESCAPE (`escape`): the stroke in progress, then an open question, then the expanded ledger, then
-## the panel (the connector card, UI-BUILD-012, comes with slice D).
+## the panel. THE CONNECTOR CARD (UI-BUILD-012; decision 2021, P-D1-3 (a)): with a way's card chosen, the host pins
+## its ghost at a cell (`pin_way`); the card offers Down / Up (P-D1-4 (a)), says where it leads or why not, and "Add to
+## plan" (Enter: `add_pinned`) puts it in the batch -- the card chosen is put down unless Shift keeps it; Cancel or
+## Escape (after the stroke, before the rest) closes it. R / Shift+R turn the way (`rotate_way`).
 
 const Batch := preload("res://scripts/ui/build_batch.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
@@ -48,6 +51,8 @@ const BuildLayout := preload("res://scripts/ui/build_layout.gd")
 const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
+const ConnectorCard := preload("res://scripts/ui/build_connector_card.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
@@ -71,7 +76,8 @@ const RETRY: String = "! Refused last time, Confirm all tries again: %s: %s"
 const NONE_PENDING: String = "No pending changes"
 const PICTURE: String = "Picture (placeholder): %s"
 const TOOL_LINE: String = "Tool: %s. %s"
-const ITEM_LINE: String = "%s · %s (a way down to level %d; free for now): %s"
+const ITEM_LINE: String = "%s · %s (%s; placeholder, free for now): %s"
+const REMOVAL_LINE: String = "%s · Remove %s: %s"
 const PIECE_LINE: String = "%s · %s%s (free for now): %s"
 const FURNITURE_BILL: String = "Furniture needs %s; work %s (free for now: nothing is taken from the stores)"
 const TOOL_ACCESSIBLE: String = "%s tool"
@@ -89,6 +95,8 @@ signal card_chosen(card: BuildCatalog.Card)
 signal confirm_requested
 ## The panel closed: `kept` false when its pending changes were discarded on the way.
 signal closed(kept: bool)
+## The connector card's way went into the batch (or was dropped, kind "X"): the batch's kind (decision 2021).
+signal way_added(kind: int)
 
 var _batch: Batch = null
 var _catalog: BuildCatalog = null
@@ -145,6 +153,13 @@ var _style_buttons: Array[Button] = []
 ## The panel starts on the Surface, so in the Mound style.
 var _style: int = Mound.STYLE_MOUND
 var _door_colour: int = Mound.COLOUR_OAK
+## Decision 2021: the connector card, the armed way's quarter turns, and the way pinned on the card (its cell, whether
+## it goes up).
+var _connector: ConnectorCard = null
+var _way_turn: int = 0
+var _pinned: bool = false
+var _pin_cell: Vector2i = Vector2i.ZERO
+var _pin_up: bool = false
 
 
 func _init() -> void:
@@ -181,6 +196,16 @@ func build() -> void:
 	_build_footer()
 	_build_question()
 	_build_ledger_open()
+	_build_connector()
+
+
+func _build_connector() -> void:
+	"""UI-BUILD-012, hidden until a way is pinned."""
+	_connector = ConnectorCard.new()
+	_connector.direction_chosen.connect(set_way_up)
+	_connector.add_pressed.connect(_on_add_pressed)
+	_connector.cancel_pressed.connect(cancel_pin)
+	add_child(_connector)
 
 
 # --- construction --------------------------------------------------------------------------------------------------
@@ -376,6 +401,7 @@ func place(geometry: UiLayout.Geometry) -> void:
 	_place_content()
 	_place_footer()
 	_place_ledger_open()
+	_connector.place_in(BuildLayout.connector_rect(geometry))
 
 
 func _place_tabs() -> void:
@@ -532,6 +558,7 @@ func _finish_close(kept: bool) -> void:
 	if _batch != null:
 		_batch.cancel_stroke()
 	visible = false
+	cancel_pin()
 	_chosen = null
 	_furnish_type = -1
 	_tab = BuildCatalog.TAB_ROOMS
@@ -549,6 +576,7 @@ func set_level(level: int, reachable: bool = true) -> void:
 		_style = Mound.STYLE_MOUND if level == Mound.SURFACE else Mound.STYLE_BUILT
 	_level = level
 	_reachable = reachable
+	cancel_pin()
 	_where.text = WHERE % LevelBar.level_name(level)
 	if _chosen != null and not _card_still_usable():
 		_chosen = null
@@ -677,6 +705,139 @@ func way_down_armed() -> bool:
 	return _chosen != null and _chosen.kind == BuildCatalog.CARD_WAY_DOWN and _level < LevelBar.LEVEL_OVERVIEW
 
 
+func armed_family() -> int:
+	"""The connector family a click places (build_connector_families.gd; -1: no way armed)."""
+	return _chosen.item_type if way_down_armed() else -1
+
+
+func way_turn() -> int:
+	"""The armed way's quarter turns, 0-3."""
+	return _way_turn
+
+
+func rotate_way(by: int) -> int:
+	"""R (+1) / Shift+R (-1): turn the armed (or pinned) way; its turns now."""
+	_way_turn = posmod(_way_turn + by, 4)
+	if _pinned:
+		_sync_connector()
+	return _way_turn
+
+
+func default_up(level: int) -> bool:
+	"""The direction a way placed on `level` starts with: down, except from level 4 (only up there)."""
+	return level >= LevelBar.LEVEL_DEEPEST
+
+
+static func direction_refusal(level: int, up: bool) -> String:
+	"""Why a way placed on `level` cannot go `up` (or down): "No level above the surface" / "No level below level 4";
+	"" when it can (BUILD-REQ-016, -018)."""
+	if up and level <= LevelBar.LEVEL_SURFACE:
+		return Validity.no_level_above()
+	if not up and level >= LevelBar.LEVEL_DEEPEST:
+		return Validity.no_level_below()
+	return ""
+
+
+func standing_level() -> int:
+	"""The level the pinned way stands on: the level shown going down, the one above going up."""
+	return _level - 1 if _pin_up else _level
+
+
+func pin_way(cell: Vector2i) -> bool:
+	"""Pin the armed way's ghost at `cell` on the level shown and open its card (direction: `default_up`). False with
+	no way armed."""
+	if not way_down_armed():
+		return false
+	_pinned = true
+	_pin_cell = cell
+	_pin_up = default_up(_level)
+	_sync_connector()
+	return true
+
+
+func pinned() -> bool:
+	"""Whether a way is pinned on the card."""
+	return _pinned
+
+
+func pinned_cell() -> Vector2i:
+	"""Where the pinned way's north-west cell is."""
+	return _pin_cell
+
+
+func pinned_up() -> bool:
+	"""Whether the pinned way goes up."""
+	return _pin_up
+
+
+func set_way_up(up: bool) -> bool:
+	"""Down or Up on the card; an impossible direction is refused (false) and the card stays as it was."""
+	if not _pinned or not direction_refusal(_level, up).is_empty():
+		_sync_connector()
+		return false
+	_pin_up = up
+	_sync_connector()
+	return true
+
+
+func add_pinned(keep: bool = false) -> int:
+	"""Add to plan: the pinned way into the batch (build_batch.gd `place_item`); the card closes and, unless `keep`
+	(Shift), the way's card is put down. Returns the batch's kind (-1: nothing pinned or nothing tried)."""
+	if not _pinned:
+		return -1
+	var kind: int = _batch.place_item(standing_level(), _pin_cell, armed_family(), _way_turn)
+	if kind >= 0 and kind != Validity.KIND_NOT_POSSIBLE:
+		cancel_pin()
+		if not keep:
+			clear_choice()
+	way_added.emit(kind)
+	refresh(true)
+	return kind
+
+
+func _on_add_pressed() -> void:
+	"""The card's Add to plan, clicked (Shift held keeps the way's card)."""
+	add_pinned(Input.is_key_pressed(KEY_SHIFT))
+
+
+func cancel_pin() -> void:
+	"""Close the card; nothing is added."""
+	if _connector == null:
+		return
+	_pinned = false
+	_connector.visible = false
+	if _scroll != null:
+		_scroll.visible = true
+
+
+func connector() -> ConnectorCard:
+	"""The connector card (checks)."""
+	return _connector
+
+
+func connector_words() -> String:
+	"""What the card says now ("" while it is closed)."""
+	return _connector.words() if _connector.visible else ""
+
+
+func _sync_connector() -> void:
+	"""The card from the pinned way's judgement now (cold: on a pin, a turn, a direction or a batch change)."""
+	var family: int = armed_family()
+	var judged: Array = _batch.judge_item(standing_level(), _pin_cell, -1, family, _way_turn)
+	var kind: int = int(judged[0])
+	var target: int = _level - 1 if _pin_up else _level + 1
+	var result: String = "%s %s" % [Validity.glyph(kind), Validity.connects(LevelBar.level_name(target))] \
+		if kind == Validity.KIND_CAN_BUILD else Validity.line(kind, String(judged[1]))
+	var notes: PackedStringArray = PackedStringArray([Families.PLACEHOLDER])
+	if family == Families.LADDER_HATCH:
+		notes.append(Families.CLIMBERS_ONLY)
+	notes.append(Families.NOT_QUALIFIED)
+	var reasons: PackedStringArray = PackedStringArray([direction_refusal(_level, false), direction_refusal(_level, true)])
+	_connector.show_way(Families.name_of(family), reasons, _pin_up, kind, result, "\n".join(notes))
+	# NARROW: the card stands in the content row in the card grid's place (UI-BUILD's geometry).
+	_scroll.visible = _profile != UiLayout.PROFILE_NARROW
+
+
 func piece_armed() -> bool:
 	"""Whether a click places a piece of furniture now (an item card chosen on an underground level, decision 1921, or
 	on the Surface for a Mound room's floor, decision 2002)."""
@@ -728,6 +889,7 @@ func set_room_lines(text: String) -> void:
 
 func clear_choice() -> void:
 	"""Disarm the chosen card (the host left painting)."""
+	cancel_pin()
 	_chosen = null
 	_sync_tools()
 	_sync_cards()
@@ -855,6 +1017,8 @@ func refresh(force: bool) -> void:
 	if batch_changed:
 		_sync_ledger()
 	_frame.accessibility_name = ACCESSIBLE % [LevelBar.level_name(_level), _batch.pending_count()]
+	if _pinned and batch_changed:
+		_sync_connector()
 	_question.visible = _question_kind != QUESTION_NONE
 	for control: Button in _footer:
 		control.visible = not _question.visible
@@ -916,7 +1080,7 @@ func confirm_blocked() -> String:
 	var item: int = _batch.first_invalid_item()
 	if item >= 0:
 		return NOT_READY % [Validity.glyph(_batch.item_kind(item)), _batch.invalid_count(), _batch.pending_count(),
-			Items.name_of(_batch.items().level_of(item)), _batch.item_reason(item)]
+			_batch.items().name_of_row(item), _batch.item_reason(item)]
 	var piece: int = _batch.first_invalid_piece()
 	if piece >= 0:
 		return NOT_READY % [Validity.glyph(_batch.piece_kind(piece)), _batch.invalid_count(), _batch.pending_count(),
@@ -931,7 +1095,8 @@ func confirm_blocked() -> String:
 func _sync_ledger() -> void:
 	"""UI-BUILD-005: the short form on the button, the full one when expanded and in the accessible name."""
 	var cells: int = _sum_tally()
-	var any: bool = cells > 0 or _batch.furniture().live_count() > 0 or _batch.mound_edges().live_count() > 0
+	var any: bool = cells > 0 or _batch.furniture().live_count() > 0 or _batch.mound_edges().live_count() > 0 \
+		or _batch.items().live_count() > 0
 	var wood: int = int(_stock.call(&"wood")) if _stock.is_valid() else 0
 	var stone: int = int(_stock.call(&"stone")) if _stock.is_valid() else 0
 	var summary: String = Ledger.summary_of(_tally, any, wood, stone)
@@ -953,6 +1118,10 @@ func _sum_tally() -> int:
 		if count > 0:
 			Ledger.add_into(count, _catalog.clear_height_of(_batch.operation_level(k)), _tally)
 			cells += count
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		if items.is_live(row) and not items.is_removal(row):
+			Families.bill_into(items.family_of(row), _tally)
 	_tally[Ledger.WORK] += _batch.furniture().bill_into(_goods, _goods_milli)
 	for at: int in _goods.size():
 		if _goods[at] == "wood" or _goods[at] == "stone":
@@ -978,15 +1147,27 @@ func ledger_lines(summary: String) -> String:
 	for k: int in _batch.operation_count():
 		if _batch.operation_cell_count(k) > 0:
 			lines.append("%s · %s" % [LevelBar.SHORT_NAMES[_batch.operation_level(k)], _batch.operation_line(k)])
-	var items: Items = _batch.items()
-	for row: int in items.count():
-		if items.is_live(row):
-			lines.append(ITEM_LINE % [LevelBar.SHORT_NAMES[items.level_of(row)], Items.name_of(items.level_of(row)),
-				items.level_of(row) + 1, Validity.line(_batch.item_kind(row), _batch.item_reason(row))])
+	_item_lines(lines)
 	_piece_lines(lines)
 	_mound_lines(lines)
 	lines.append(summary)
 	return "\n".join(lines)
+
+
+func _item_lines(lines: PackedStringArray) -> void:
+	"""Each pending way ("Surface · Burrow mouth (down to Underground level 1; placeholder, free for now): ✓ Can build")
+	and removal ("Level 1 · Remove Hatch with ladder: X Not possible: Would cut off ...")."""
+	var items: Items = _batch.items()
+	for row: int in items.count():
+		if not items.is_live(row):
+			continue
+		var where: String = LevelBar.SHORT_NAMES[items.level_of(row)]
+		var result: String = Validity.line(_batch.item_kind(row), _batch.item_reason(row))
+		if items.is_removal(row):
+			lines.append(REMOVAL_LINE % [where, items.name_of_row(row), result])
+		else:
+			lines.append(ITEM_LINE % [where, items.name_of_row(row), "down to %s" % LevelBar.level_name(
+				items.level_of(row) + 1), result])
 
 
 func _mound_lines(lines: PackedStringArray) -> void:
@@ -1130,6 +1311,8 @@ func escape() -> bool:
 		return false
 	if _batch.cancel_stroke():
 		refresh(true)
+	elif _pinned:
+		cancel_pin()
 	elif _question_kind != QUESTION_NONE:
 		_question_kind = QUESTION_NONE
 		refresh(true)
@@ -1161,4 +1344,4 @@ func controls() -> Dictionary:
 	"""The panel's named controls (checks and the host's focus region)."""
 	return {&"tabs": _tabs, &"ledger": _ledger, &"undo": _undo, &"redo": _redo, &"discard": _discard,
 		&"confirm": _confirm, &"yes": _question_yes, &"no": _question_no, &"status": _status, &"where": _where,
-		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll}
+		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll, &"cards": _scroll, &"connector": _connector}

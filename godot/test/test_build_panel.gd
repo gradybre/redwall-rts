@@ -100,7 +100,7 @@ func test_the_info_card_follows_the_shown_card_or_asks_for_a_choice() -> void:
 	assert_true(_panel.info_text().contains("per cell"), "cost")
 	var info: Control = _panel.controls()[&"info"]
 	assert_true(info.accessibility_name.begins_with("Picture (placeholder): "), "the picture described")
-	_panel.choose_card(9)
+	_panel.choose_card(13)
 	assert_true(_panel.info_text().contains("! Blocked: Not yet:"), "a locked card says why: %s" % _panel.info_text())
 	assert_equal(_panel.paint_type(), KITCHEN, "inspecting a locked card keeps the Kitchen armed")
 
@@ -112,13 +112,13 @@ func test_choosing_arms_paintable_types_only() -> void:
 	assert_equal(_panel.paint_type(), KITCHEN, "Kitchen armed")
 	_panel.choose_card(7)
 	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "Passage paints")
-	_panel.choose_card(10)
+	_panel.choose_card(14)
 	assert_equal(_panel.paint_type(), BuildCatalog.CORRIDOR, "the locked Remove card keeps Passage armed")
-	_panel.choose_card(8)
-	assert_equal(_panel.paint_type(), -1, "a Way down paints nothing")
+	_panel.choose_card(9)
+	assert_equal(_panel.paint_type(), -1, "a Hatch with ladder paints nothing")
 	assert_true(_panel.way_down_armed(), "it places instead (decision 1912)")
 	assert_false(_panel.tool_buttons()[0].visible, "and shows no tool strip")
-	assert_equal(_chosen, ["Kitchen", "Passage", "Remove", "Way down"], "each told to the host")
+	assert_equal(_chosen, ["Kitchen", "Passage", "Remove", "Hatch with ladder"], "each told to the host")
 	_panel.choose_card(99)
 	assert_equal(_chosen.size(), 4, "a card past the row does nothing")
 
@@ -285,9 +285,9 @@ func test_card_buttons_carry_the_cards_accessible_names() -> void:
 	assert_true(first.visible, "a card")
 	assert_true(first.accessibility_name.begins_with("Dormitory; per cell "), first.accessibility_name)
 	assert_true(first.text.contains("Dormitory"), first.text)
-	var locked: Button = _panel.card_button(10)
+	var locked: Button = _panel.card_button(14)
 	assert_true(locked.text.contains("! Not yet"), "a locked card shows its glyph: %s" % locked.text)
-	assert_false(_panel.card_button(11).visible, "the pool's spare buttons are hidden")
+	assert_false(_panel.card_button(15).visible, "the pool's spare buttons are hidden")
 	assert_null(_panel.card_button(99), "none past the pool")
 
 
@@ -418,12 +418,15 @@ func test_a_locked_card_says_its_own_reason() -> void:
 
 
 func test_a_way_down_holds_confirm_all_back_in_its_own_words() -> void:
-	"""Decision 1912: a Way down placed with nothing under it is "!" and Confirm all names it."""
+	"""Decision 1912, per family since decision 2021: a way placed with no passage under it is "!" and Confirm all names
+	it; the ledger names it, where it leads, and that its sizes and costs are placeholders."""
 	_batch.place_item(1, Vector2i(10, 10))
 	_panel.refresh(true)
-	assert_equal(_panel.confirm_blocked(), "! 1 of 1 not ready: Way down: Way down needs a passage or room under it: paint one there first",
+	assert_equal(_panel.confirm_blocked(),
+		"! 1 of 1 not ready: Hatch with ladder: Hatch with ladder needs a passage under it: paint one there first",
 		_panel.confirm_blocked())
-	assert_true(_panel.ledger_lines("").contains("Level 1 · Way down (a way down to level 2; free for now): ! Blocked"),
+	assert_true(_panel.ledger_lines("").contains(
+		"Level 1 · Hatch with ladder (down to Underground level 2; placeholder, free for now): ! Blocked"),
 		_panel.ledger_lines(""))
 
 

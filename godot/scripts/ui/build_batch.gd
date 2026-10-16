@@ -51,6 +51,7 @@ const Items := preload("res://scripts/ui/build_items.gd")
 const Furniture := preload("res://scripts/ui/build_furniture.gd")
 const Mound := preload("res://scripts/ui/build_mound.gd")
 const MoundEdges := preload("res://scripts/ui/build_mound_edges.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
 ## SET-BUILD-001 §3: one cell is 1 m, 1024 u.
 const PITCH_U: int = 1024
@@ -75,6 +76,8 @@ const ITEM_TAG: int = 1 << 24
 const PIECE_TAG: int = 2 << 24
 ## At or past MOUND_TAG, a Mound's door or window (build_mound_edges.gd row = entry - MOUND_TAG; decision 2002).
 const MOUND_TAG: int = 3 << 24
+## Decision 2021: a pending removal whose confirmed way is no longer there (a PROPOSAL, decision 2022).
+const NO_WAY_THERE: String = "no built way stands there now"
 ## A refusal that came back without words.
 const UNCHECKED: String = "the order could not be checked; review it and try again"
 const SHAPE_WORDS: Dictionary = {
@@ -137,6 +140,13 @@ var _host_surface: Callable = Callable()
 var _host_doors: Callable = Callable()
 var _host_edges: Callable = Callable()
 var _host_listed: Callable = Callable()
+## Decision 2021 (slice D1): the host's confirmed ways by shape, its cut-off check and its dug rooms' types
+## (`bind_way_host`), and the cut-off words worked out once a revision for the pending removals.
+var _host_shapes: Callable = Callable()
+var _host_cut_off: Callable = Callable()
+var _host_type: Callable = Callable()
+var _cut_at: int = -1
+var _cut_words: String = ""
 ## The Surface's Mound cells, their footprint and the hill's refusal, worked out once per layout (`_mound_layout`).
 var _mound_seen: int = -1
 var _mound_cells: PackedInt32Array = PackedInt32Array()
@@ -177,8 +187,9 @@ func bind_ground(ground: Callable, ground_revision: Callable) -> void:
 
 
 func bind_landings(landings: Callable) -> void:
-	"""The host's built connector landings per level, `landings(level) -> PackedInt32Array` (slice D's); the batch adds
-	its own pending ways down to them for the per-cell way in."""
+	"""The host's confirmed connector landings per level, `landings(level) -> PackedInt32Array` (decision 2021: built,
+	or confirmed and waiting to be dug, P-D1-7 (a)); the batch adds its own pending ways to them for the per-cell way
+	in, less those a pending removal takes away."""
 	_host_landings = landings
 	_changed()
 
@@ -204,18 +215,39 @@ func _all_landings(level: int) -> PackedInt32Array:
 	"""Every landing on `level`: the host's built ones and the batch's pending ways down (OPEN-07 (a))."""
 	var out: PackedInt32Array = _items.landings(level)
 	if _host_landings.is_valid():
-		out.append_array(PackedInt32Array(_host_landings.call(level)))
+		out.append_array(_without(PackedInt32Array(_host_landings.call(level)), _items.removed_landings(level)))
 	return out
+
+
+static func _without(cells: PackedInt32Array, gone: PackedInt32Array) -> PackedInt32Array:
+	"""`cells` (pairs) less any of `gone` (pairs)."""
+	if gone.is_empty():
+		return cells
+	var drop: Dictionary = {}
+	for at: int in range(0, gone.size(), 2):
+		drop[Vector2i(gone[at], gone[at + 1])] = true
+	var out: PackedInt32Array = PackedInt32Array()
+	for at: int in range(0, cells.size(), 2):
+		if not drop.has(Vector2i(cells[at], cells[at + 1])):
+			out.append_array(PackedInt32Array([cells[at], cells[at + 1]]))
+	return out
+
+
+func bind_way_host(shapes: Callable, cut_off: Callable, room_type: Callable = Callable()) -> void:
+	"""Decision 2021's host readers: `shapes(level) -> PackedInt32Array`, the confirmed ways standing on `level` as
+	(x, z, family, turn) quads; `cut_off(ways: PackedInt32Array, doors: Array) -> String`, the names a removal of those
+	confirmed ways ((level, x, z) triples) and Mound doors (first edges, Vector3i) would cut off ("" for none:
+	BUILD-REQ-017, build_way_graph.gd); `room_type(level, cell) -> int`, the room type dug or ordered there (-1 none)."""
+	_host_shapes = shapes
+	_host_cut_off = cut_off
+	_host_type = room_type
+	_changed()
 
 
 func _way_cells(level: int) -> PackedInt32Array:
 	"""The cells pending ways down take on `level`: where they stand, and where they land (decision 1921: furniture
 	keeps clear of them)."""
-	var out: PackedInt32Array = _items.landings(level)
-	for row: int in _items.count():
-		if _items.is_live(row) and _items.level_of(row) == level:
-			out.append_array(Items.footprint(_items.cell_of(row)))
-	return out
+	return _items.taken(level)
 
 
 func cell_judge() -> Cells:
@@ -662,102 +694,285 @@ static func _piece_from(cells: PackedInt32Array, start: Vector2i, seen: Dictiona
 	return Footprint.combine(PackedInt32Array(), piece, false, Footprint.MAX_OPERATION_CELLS).cells
 
 
-# --- the ways down (decision 1912) ----------------------------------------------------------------------------------
+# --- the ways down (decision 1912; per family, decision 2021) -------------------------------------------------------
 
 func items() -> Items:
-	"""The pending ways down (read only for hosts: drawing, the ledger, checks)."""
+	"""The pending ways down and removals (read only for hosts: drawing, the ledger, checks)."""
 	return _items
 
 
-func place_item(level: int, cell: Vector2i) -> int:
-	"""Place a way down on `level` at `cell` (its north-west cell): one step; an "X" one is dropped with its words in
-	`last_dropped`. Returns its validity kind, or -1 with a stroke in progress or no planning area."""
+func place_item(level: int, cell: Vector2i, family: int = Items.DEFAULT_FAMILY, turn: int = 0) -> int:
+	"""Place a way of `family` turned `turn` standing on `level` at `cell` (its north-west cell): one step; an "X" one
+	is dropped with its words in `last_dropped`. Returns its validity kind, or -1 with a stroke in progress or no
+	planning area."""
 	if _catalog == null or _stroke.active():
 		return -1
-	var judged: Array = judge_item(level, cell, -1)
+	var judged: Array = judge_item(level, cell, -1, family, turn)
 	if int(judged[0]) == Validity.KIND_NOT_POSSIBLE:
 		_last_dropped = Validity.line(Validity.KIND_NOT_POSSIBLE, String(judged[1]))
 		revision += 1
 		return Validity.KIND_NOT_POSSIBLE
 	_last_dropped = ""
-	_record(PackedInt32Array([VERB_PLACE, ITEM_TAG + _items.add(level, cell)]))
+	_record(PackedInt32Array([VERB_PLACE, ITEM_TAG + _items.add(level, cell, family, turn)]))
 	return int(judged[0])
 
 
-func judge_item(level: int, cell: Vector2i, own_row: int) -> Array:
-	"""[kind, reason] for a way down on `level` at `cell` (`own_row`: its own pending row, -1 for a new one): it needs a
-	level below, room for itself, on levels 1-3 a planned or dug passage or room under it, and diggable ground where it
-	lands. Cold: on placement and once per judgement of the batch."""
-	var name: String = Items.name_of(level)
-	if level < 0 or level > Items.DEEPEST_TOP:
-		return [Validity.KIND_NOT_POSSIBLE, Validity.no_level_below()]
-	var cells: PackedInt32Array = Items.footprint(cell)
-	for at: int in range(0, cells.size(), 2):
-		if not _bounds.has_point(Vector2i(cells[at], cells[at + 1])):
-			return [Validity.KIND_NOT_POSSIBLE, Validity.outside()]
-	var clash: int = _items.clashes(level, cell)
-	if clash >= 0 and clash != own_row:
-		return [Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down(Items.name_of(level))]
-	var landing: String = _landing_refusal(level + 1, cells)
-	if not landing.is_empty():
-		return [Validity.KIND_NOT_POSSIBLE, landing]
-	var piece: int = maxi(_pieces.floor_taken(level, cells), _pieces.floor_taken(level + 1, cells))
-	if piece >= 0:
-		return [Validity.KIND_NOT_POSSIBLE, Validity.piece_overlaps(Furniture.name_of(piece))]
-	if level == Mound.SURFACE:
-		_mound_cache()
-		var hill: String = _way_clear_of(cells, _mound_lookup, _mound_footprint)
-		if not hill.is_empty():
-			return [Validity.KIND_NOT_POSSIBLE, hill]
-	if level > 0 and not _stands_on_rooms(level, cells):
-		return [Validity.KIND_BLOCKED, Validity.needs_floor(name)]
+func judge_item(level: int, cell: Vector2i, own_row: int, family: int = Items.DEFAULT_FAMILY, turn: int = 0) -> Array:
+	"""[kind, reason] for a way of `family` turned `turn` standing on `level` at `cell` (`own_row`: its own pending row,
+	-1 for a new one): a level on each side, its cells inside the area and clear of other ways and furniture, ground
+	below that can be dug (a run through solid earth), off a Mound's hill or wholly on one Mound room's floor, and below
+	the Surface a passage under it (P-D1-5 (a)). Cold: on placement and once per judgement of the batch."""
+	var name: String = Families.name_of(family)
+	var fixed: String = _fixed_refusal(level, cell, family, turn)
+	if not fixed.is_empty():
+		return [Validity.KIND_NOT_POSSIBLE, fixed]
+	var clash: int = _items.clashes(level, cell, own_row, family, turn)
+	if clash >= 0:
+		return [Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down(_items.name_of_row(clash))]
+	var built: int = _confirmed_clash(level, cell, family, turn)
+	if built >= 0:
+		return [Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down(Families.name_of(built))]
+	var below: String = _below_refusal(level + 1, family, turn, cell)
+	if below.is_empty():
+		below = _piece_refusal(level, family, turn, cell)
+	if below.is_empty() and level == Mound.SURFACE:
+		below = _surface_refusal(family, turn, cell)
+	if not below.is_empty():
+		return [Validity.KIND_NOT_POSSIBLE, below]
+	if level > 0 and not _on_passage(level, Families.standing_cells(family, turn, cell)):
+		return [Validity.KIND_BLOCKED, Validity.needs_passage(name)]
 	return [Validity.KIND_CAN_BUILD, ""]
 
 
-func _landing_refusal(level: int, cells: PackedInt32Array) -> String:
-	"""Why the cells a way down lands on cannot be dug ("" when they can, or are dug already)."""
-	if not _cells.ground_bound():
-		return ""
-	for at: int in range(0, cells.size(), 2):
-		var code: int = _cells.ground_of(level, Vector2i(cells[at], cells[at + 1]))
+func _confirmed_clash(level: int, cell: Vector2i, family: int, turn: int) -> int:
+	"""The family of the first confirmed way (the host's, standing on the level above, this one or the one below) whose
+	cells clash with this way's as two pending ways' would (build_items.gd `meets`), unless a pending removal takes it
+	away; -1 when none."""
+	var mine: Array = Items.taken_sets(level, family, turn, cell)
+	for top: int in [level - 1, level, level + 1]:
+		var shapes: PackedInt32Array = _shapes_on(top)
+		for at: int in range(0, shapes.size(), 4):
+			if _items.removal_row(top, Vector2i(shapes[at], shapes[at + 1])) < 0 and Items.meets(mine, Items.taken_sets(top, shapes[at + 2], shapes[at + 3], Vector2i(shapes[at],
+					shapes[at + 1]))):
+				return shapes[at + 2]
+	return -1
+
+
+func _fixed_refusal(level: int, cell: Vector2i, family: int, turn: int) -> String:
+	"""What makes a way impossible whatever else is planned: no level above or below, a family not offered yet, or a
+	cell outside the planning area ("" when none)."""
+	if level < 0:
+		return Validity.no_level_above()
+	if level > Items.DEEPEST_TOP:
+		return Validity.no_level_below()
+	if not Families.offered(family):
+		return Validity.not_yet(Families.LATER)
+	for cells: PackedInt32Array in [Families.standing_cells(family, turn, cell), Families.lower_cells(family, turn, cell)]:
+		for at: int in range(0, cells.size(), 2):
+			if not _bounds.has_point(Vector2i(cells[at], cells[at + 1])):
+				return Validity.outside()
+	return ""
+
+
+func _below_refusal(level: int, family: int, turn: int, cell: Vector2i) -> String:
+	"""Why a way cannot come down onto `level` ("" when it can): its landing on ground that cannot be dug (dug already
+	is fine), or its run through anything but untouched earth -- a planned or dug room is "occupied"."""
+	var landing: PackedInt32Array = Families.landing_cells(family, turn, cell)
+	for at: int in range(0, landing.size(), 2):
+		var code: int = _ground_code(level, Vector2i(landing[at], landing[at + 1]))
 		if code != Cells.CELL_OK and code != Cells.CELL_FINISHED:
+			return Cells.words_of(code)
+	var run: PackedInt32Array = Families.run_cells(family, turn, cell)
+	for at: int in range(0, run.size(), 2):
+		var at_cell: Vector2i = Vector2i(run[at], run[at + 1])
+		var code: int = _ground_code(level, at_cell)
+		if code == Cells.CELL_FINISHED or _in_any_operation(level, at_cell):
+			return Validity.cannot_dig(Cells.DIG_WORDS[Cells.CELL_FINISHED])
+		if code != Cells.CELL_OK:
 			return Cells.words_of(code)
 	return ""
 
 
-func _stands_on_rooms(level: int, cells: PackedInt32Array) -> bool:
-	"""Whether every cell lies in a pending room on `level` or in dug (or ordered) space."""
+func _ground_code(level: int, cell: Vector2i) -> int:
+	"""The host's ground reading for a cell (CELL_OK with no ground reader: nothing is claimed)."""
+	return _cells.ground_of(level, cell) if _cells.ground_bound() else Cells.CELL_OK
+
+
+func _piece_refusal(level: int, family: int, turn: int, cell: Vector2i) -> String:
+	"""A piece of furniture, pending or confirmed, on any cell the way takes, on either level ("" when none)."""
+	var piece: int = maxi(_pieces.floor_taken(level, Families.standing_cells(family, turn, cell)),
+		_pieces.floor_taken(level + 1, Families.lower_cells(family, turn, cell)))
+	return Validity.piece_overlaps(Furniture.name_of(piece)) if piece >= 0 else ""
+
+
+func _surface_refusal(family: int, turn: int, cell: Vector2i) -> String:
+	"""On the Surface: a way partly on a Mound room's floor does not fit it (BUILD-MOUND-021); one on a Mound's hill is
+	refused in BUILD-MOUND-008's words; one off the Mounds over water or a placed thing cannot be dug ("" when none)."""
+	_mound_cache()
+	var cells: PackedInt32Array = Families.standing_cells(family, turn, cell)
+	var hill: String = _way_clear_of(cells, _mound_lookup, _mound_footprint)
+	if hill == Mound.TEXT_SPLIT_WAY:
+		return Validity.not_in_room(Families.name_of(family), Families.ACROSS[family], Families.TOP_OPEN[family])
+	if not hill.is_empty() or _mound_lookup.has(Vector2i(cells[0], cells[1])):
+		return hill
+	return _ground_covered(cells)
+
+
+func _ground_covered(cells: PackedInt32Array) -> String:
+	"""Off a Mound room's floor: water or a placed thing on any standing cell ("Cannot dig here: water", "... a tree":
+	the host's reader, decision 2002's; decision 2022) -- "" when the ground is open or there is no reader."""
+	if not _host_surface.is_valid():
+		return ""
+	for at: int in range(0, cells.size(), 2):
+		var thing: String = String(_host_surface.call(Vector2i(cells[at], cells[at + 1])))
+		if not thing.is_empty():
+			return Validity.cannot_dig(thing)
+	return ""
+
+
+func _on_passage(level: int, cells: PackedInt32Array) -> bool:
+	"""Whether every cell lies in a pending Passage on `level` or in dug (or ordered) passage space (P-D1-5 (a); with no
+	host type reader, dug space of any kind: a host that knows no types claims nothing about them)."""
 	for at: int in range(0, cells.size(), 2):
 		var cell: Vector2i = Vector2i(cells[at], cells[at + 1])
-		if not _in_any_operation(level, cell) and _cells.ground_of(level, cell) != Cells.CELL_FINISHED:
+		if _in_any_operation(level, cell, BuildCatalog.CORRIDOR):
+			continue
+		if _cells.ground_of(level, cell) != Cells.CELL_FINISHED:
+			return false
+		if _host_type.is_valid() and int(_host_type.call(level, cell)) != BuildCatalog.CORRIDOR:
 			return false
 	return true
 
 
-func _in_any_operation(level: int, cell: Vector2i) -> bool:
-	"""Whether a pending room on `level` holds `cell`."""
+func _in_any_operation(level: int, cell: Vector2i, room_type: int = -1) -> bool:
+	"""Whether a pending room on `level` (of `room_type`, or of any type for -1) holds `cell`."""
 	for k: int in _drafts.size():
-		if _levels[k] == level and _counts[k] > 0 and Footprint.contains_cell(_drafts[k].visible_cells(), cell.x, cell.y):
+		if _levels[k] == level and _counts[k] > 0 and (room_type < 0 or _types[k] == room_type) \
+				and Footprint.contains_cell(_drafts[k].visible_cells(), cell.x, cell.y):
 			return true
 	return false
 
 
+func item_judgement(row: int) -> Array:
+	"""[kind, reason] for pending row `row` now: a placement where it stands, or a removal (`_removal_judgement`)."""
+	if _items.is_removal(row):
+		return _removal_judgement(row)
+	return judge_item(_items.level_of(row), _items.cell_of(row), row, _items.family_of(row), _items.turn_of(row))
+
+
 func item_kind(row: int) -> int:
-	"""Pending way down `row`'s validity kind now."""
-	return int(judge_item(_items.level_of(row), _items.cell_of(row), row)[0])
+	"""Pending way `row`'s validity kind now."""
+	return int(item_judgement(row)[0])
 
 
 func item_reason(row: int) -> String:
-	"""Why pending way down `row` is blocked or not possible ("" when it can be built)."""
-	return String(judge_item(_items.level_of(row), _items.cell_of(row), row)[1])
+	"""Why pending way `row` is blocked or not possible ("" when it can be built)."""
+	return String(item_judgement(row)[1])
 
 
 func first_invalid_item() -> int:
-	"""The first pending way down that holds Confirm all back; -1 when none."""
+	"""The first pending way or removal that holds Confirm all back; -1 when none."""
 	for row: int in _items.count():
 		if _items.is_live(row) and item_kind(row) != Validity.KIND_CAN_BUILD:
 			return row
 	return -1
+
+
+# --- removing a confirmed way (decision 2021: BUILD-REQ-017, Brendan's "Real check now") ---------------------------
+
+func toggle_way_removal(level: int, cell: Vector2i) -> int:
+	"""A click, with a way's card armed, on `cell` of a confirmed way on `level` (where it stands, or where it comes
+	down from the level above): its removal is asked for, or a pending one withdrawn (one step each). A removal that
+	would cut something off is dropped with "Would cut off ...: build another way in first" in `last_dropped`. Returns
+	the validity kind; -1 when no confirmed way is there (or a stroke is in progress, or no planning area)."""
+	if _catalog == null or _stroke.active():
+		return -1
+	var way: PackedInt32Array = confirmed_way_at(level, cell)
+	if way.is_empty():
+		return -1
+	_last_dropped = ""
+	var row: int = _items.removal_row(way[0], Vector2i(way[1], way[2]))
+	if row >= 0:
+		_items.set_live(row, false)
+		_record(PackedInt32Array([VERB_REMOVE, ITEM_TAG + row]))
+		return Validity.KIND_CAN_BUILD
+	var names: String = _cut_off_text(way.slice(0, 3), [])
+	if not names.is_empty():
+		_last_dropped = Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.cut_off(names))
+		revision += 1
+		return Validity.KIND_NOT_POSSIBLE
+	_record(PackedInt32Array([VERB_PLACE, ITEM_TAG + _items.add(way[0], Vector2i(way[1], way[2]), way[3], way[4], true)]))
+	return Validity.KIND_CAN_BUILD
+
+
+func confirmed_way_at(level: int, cell: Vector2i) -> PackedInt32Array:
+	"""The confirmed way taking `cell` on `level` -- standing there, or coming down onto it from the level above -- as
+	(level it stands on, x, z, family, turn); empty for none."""
+	for top: int in [level, level - 1]:
+		var shapes: PackedInt32Array = _shapes_on(top)
+		for at: int in range(0, shapes.size(), 4):
+			var anchor: Vector2i = Vector2i(shapes[at], shapes[at + 1])
+			var cells: PackedInt32Array = Families.standing_cells(shapes[at + 2], shapes[at + 3], anchor) if top == level \
+				else Families.lower_cells(shapes[at + 2], shapes[at + 3], anchor)
+			if Footprint.contains_cell(cells, cell.x, cell.y):
+				return PackedInt32Array([top, anchor.x, anchor.y, shapes[at + 2], shapes[at + 3]])
+	return PackedInt32Array()
+
+
+func _shapes_on(level: int) -> PackedInt32Array:
+	"""The host's confirmed ways standing on `level` (quads; empty with no host or off the levels)."""
+	if not _host_shapes.is_valid() or level < 0:
+		return PackedInt32Array()
+	return PackedInt32Array(_host_shapes.call(level))
+
+
+func _removal_judgement(row: int) -> Array:
+	"""A pending removal: "X" when its way is gone or the pending removals together would cut something off."""
+	if _way_still_there(row).is_empty():
+		return [Validity.KIND_NOT_POSSIBLE, NO_WAY_THERE]
+	var names: String = _cut_off_now()
+	return [Validity.KIND_NOT_POSSIBLE, Validity.cut_off(names)] if not names.is_empty() else [Validity.KIND_CAN_BUILD, ""]
+
+
+func _way_still_there(row: int) -> PackedInt32Array:
+	"""The confirmed way removal row `row` names, if the host still has it (else empty)."""
+	var shapes: PackedInt32Array = _shapes_on(_items.level_of(row))
+	for at: int in range(0, shapes.size(), 4):
+		if Vector2i(shapes[at], shapes[at + 1]) == _items.cell_of(row):
+			return shapes.slice(at, at + 4)
+	return PackedInt32Array()
+
+
+func _cut_off_now() -> String:
+	"""What the pending removals together would cut off, worked out once a revision ("" for nothing)."""
+	if _cut_at != revision:
+		_cut_at = revision
+		_cut_words = _cut_off_text(PackedInt32Array(), [])
+	return _cut_words
+
+
+func _cut_off_text(extra_ways: PackedInt32Array, extra_doors: Array) -> String:
+	"""The host's names for what the pending removals of ways and Mound doors, plus `extra_ways` ((level, x, z)
+	triples) and `extra_doors` (first edges), would cut off ("" for nothing, or with no host check)."""
+	if not _host_cut_off.is_valid():
+		return ""
+	var ways: PackedInt32Array = PackedInt32Array()
+	_items.removals_into(ways)
+	ways.append_array(extra_ways)
+	var doors: Array = _removed_doors()
+	doors.append_array(extra_doors)
+	if ways.is_empty() and doors.is_empty():
+		return ""
+	return String(_host_cut_off.call(ways, doors))
+
+
+func _removed_doors() -> Array:
+	"""The first edges of the confirmed front doors pending removals take away."""
+	var out: Array = []
+	for row: int in _edges.count():
+		if _edges.is_live(row) and _edges.is_removal(row) and _edges.kind_of(row) == Mound.KIND_DOOR:
+			out.append(_edges.edges_of(row)[0])
+	return out
 
 
 # --- the furniture (decision 1921) -----------------------------------------------------------------------------------
@@ -888,9 +1103,8 @@ func _hill_refusal(rooms: PackedInt32Array) -> String:
 		var thing: String = String(_host_surface.call(cell)) if _host_surface.is_valid() else ""
 		if not thing.is_empty():
 			return Mound.hill_covers(thing)
-	var tops: PackedInt32Array = _way_tops(Mound.SURFACE)
-	for at: int in range(0, tops.size(), 2):
-		if not _way_clear_of(Items.footprint(Vector2i(tops[at], tops[at + 1])), lookup, footprint).is_empty():
+	for cells: PackedInt32Array in _way_footprints(Mound.SURFACE):
+		if not _way_clear_of(cells, lookup, footprint).is_empty():
 			return Mound.hill_covers("an %s" % Items.name_of(Mound.SURFACE))
 	return ""
 
@@ -904,20 +1118,26 @@ static func _way_clear_of(cells: PackedInt32Array, rooms: Dictionary, footprint:
 		var cell: Vector2i = Vector2i(cells[at], cells[at + 1])
 		on_rooms += 1 if rooms.has(cell) else 0
 		on_hill += 1 if footprint.has(cell) else 0
-	if on_rooms > 0 and on_rooms < 4:
+	if on_rooms > 0 and on_rooms * 2 < cells.size():
 		return Mound.TEXT_SPLIT_WAY
 	return Mound.TEXT_ON_HILL if on_hill > 0 else ""
 
 
-func _way_tops(level: int) -> PackedInt32Array:
-	"""The north-west cells of every way down standing on `level`, pending and confirmed (pairs)."""
-	var out: PackedInt32Array = PackedInt32Array()
+func _way_footprints(level: int) -> Array[PackedInt32Array]:
+	"""The standing cells of every way standing on `level`, pending and confirmed, one set each (decision 2021: by
+	family; a host with no shape reader gives its ways' north-west cells, each a 2 × 2 as decision 2002 had them)."""
+	var out: Array[PackedInt32Array] = []
 	for row: int in _items.count():
-		if _items.is_live(row) and _items.level_of(row) == level:
-			out.append(_items.cell_of(row).x)
-			out.append(_items.cell_of(row).y)
-	if _host_ways.is_valid():
-		out.append_array(PackedInt32Array(_host_ways.call(level)))
+		if _items.is_live(row) and not _items.is_removal(row) and _items.level_of(row) == level:
+			out.append(_items.standing(row))
+	if _host_shapes.is_valid():
+		var shapes: PackedInt32Array = _shapes_on(level)
+		for at: int in range(0, shapes.size(), 4):
+			out.append(Families.standing_cells(shapes[at + 2], shapes[at + 3], Vector2i(shapes[at], shapes[at + 1])))
+	elif _host_ways.is_valid():
+		var tops: PackedInt32Array = PackedInt32Array(_host_ways.call(level))
+		for at: int in range(0, tops.size(), 2):
+			out.append(Items.footprint(Vector2i(tops[at], tops[at + 1])))
 	return out
 
 
@@ -1047,11 +1267,26 @@ func toggle_mound_edge(level: int, cell: Vector2i, side: int, kind: int, colour:
 			_record(PackedInt32Array([VERB_REMOVE, MOUND_TAG + row]))
 			return Validity.KIND_CAN_BUILD
 	var there: Vector4i = _edges.confirmed_at(level, edge)
+	if there.x >= 0 and _door_cuts_off(there):
+		return Validity.KIND_NOT_POSSIBLE
 	if there.x >= 0:
 		var removal: int = _edges.add(level, Vector2i(there.y, there.z), there.w, there.x, Mound.COLOUR_OAK, true)
 		_record(PackedInt32Array([VERB_PLACE, MOUND_TAG + removal]))
 		return Validity.KIND_CAN_BUILD
 	return _place_mound_edge(level, cell, side, kind, colour)
+
+
+func _door_cuts_off(there: Vector4i) -> bool:
+	"""Whether removing the confirmed door `there` (kind, x, z, side), with the pending removals, would cut something
+	off (BUILD-REQ-017): then the click is dropped with the names in `last_dropped`. A window cuts nothing off."""
+	if there.x != Mound.KIND_DOOR:
+		return false
+	var names: String = _cut_off_text(PackedInt32Array(), [Vector3i(there.y, there.z, there.w)])
+	if names.is_empty():
+		return false
+	_last_dropped = Validity.line(Validity.KIND_NOT_POSSIBLE, Validity.cut_off(names))
+	revision += 1
+	return true
 
 
 func _place_mound_edge(level: int, cell: Vector2i, side: int, kind: int, colour: int) -> int:
@@ -1067,12 +1302,22 @@ func _place_mound_edge(level: int, cell: Vector2i, side: int, kind: int, colour:
 
 func edge_kind(row: int) -> int:
 	"""Pending door or window `row`'s validity kind now."""
-	return int(_edges.row_judgement(row)[0])
+	return int(_edge_judgement(row)[0])
 
 
 func edge_reason(row: int) -> String:
 	"""Why pending door or window `row` cannot be built ("" when it can)."""
-	return String(_edges.row_judgement(row)[1])
+	return String(_edge_judgement(row)[1])
+
+
+func _edge_judgement(row: int) -> Array:
+	"""build_mound_edges.gd's judgement, and for a front door's removal BUILD-REQ-017's: "X" while the pending removals
+	together would cut something off (decision 2021, P-D1-6 (a))."""
+	var judged: Array = _edges.row_judgement(row)
+	if int(judged[0]) != Validity.KIND_CAN_BUILD or not _edges.is_removal(row) or _edges.kind_of(row) != Mound.KIND_DOOR:
+		return judged
+	var names: String = _cut_off_now()
+	return [Validity.KIND_NOT_POSSIBLE, Validity.cut_off(names)] if not names.is_empty() else judged
 
 
 func first_invalid_edge() -> int:
@@ -1214,7 +1459,8 @@ func _step_words(step: PackedInt32Array) -> String:
 	if step[1] >= PIECE_TAG:
 		return "%s %s" % [VERBS[step[0]], Furniture.name_of(_pieces.item_of(step[1] - PIECE_TAG))]
 	if step[1] >= ITEM_TAG:
-		return "%s %s" % [VERBS[step[0]], Items.name_of(_items.level_of(step[1] - ITEM_TAG))]
+		var item: int = step[1] - ITEM_TAG
+		return "%s %s" % [VERBS[VERB_REMOVE if _items.is_removal(item) else step[0]], _items.name_of_row(item)]
 	return "%s %s" % [VERBS[step[0]], BuildCatalog.type_name(_types[step[1]])]
 
 
@@ -1574,8 +1820,8 @@ func type_cells_into(types_out: PackedInt32Array, cells_out: PackedInt32Array) -
 
 func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_piece: Callable = Callable(),
 		submit_edge: Callable = Callable()) -> PackedInt32Array:
-	"""BUILD-REQ-019 through the host's order route: first each pending way down (`submit_item(level, cell) ->
-	Dictionary`; the ways in come first, SET-BUILD-001 §10), then `submit(draft, level, room_type) -> Dictionary` with
+	"""BUILD-REQ-019 through the host's order route: first each pending way down or removal (`submit_item(level, cell,
+	family, turn, removal) -> Dictionary`; the ways in come first, SET-BUILD-001 §10), then `submit(draft, level, room_type) -> Dictionary` with
 	`ok` and `error` (words) for each pending "✓" room in batch order. Ordered changes leave the batch, out of Undo's
 	reach; a refused room stays with its reason. Nothing is deducted here. Returns [ordered, refused]; [0, 0] while a
 	stroke is in progress or any change is invalid (Confirm all is disabled then). Then each pending piece of
@@ -1610,7 +1856,8 @@ func _confirm_items(submit_item: Callable) -> PackedInt32Array:
 	for row: int in _items.count():
 		if not _items.is_live(row) or not submit_item.is_valid():
 			continue
-		var answer: Variant = submit_item.call(_items.level_of(row), _items.cell_of(row))
+		var answer: Variant = submit_item.call(_items.level_of(row), _items.cell_of(row), _items.family_of(row),
+			_items.turn_of(row), _items.is_removal(row))
 		if answer is Dictionary and bool((answer as Dictionary).get("ok", false)):
 			_items.set_live(row, false)
 			gone.append(ITEM_TAG + row)

@@ -4,6 +4,7 @@ extends "res://test/framework/test_case.gd"
 
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
 var _works: Works = null
 
@@ -137,3 +138,81 @@ func test_cells_into_scans_the_box_of_ordered_cells() -> void:
 	_works.cells_into(1, Works.OPEN, out)
 	assert_true(out.is_empty(), "none dug")
 	assert_equal(_works.box_of(2), Rect2i(), "level 2 has none")
+
+
+# --- per family (decision 2021) -------------------------------------------------------------------------------------
+
+func test_a_burrow_mouth_orders_its_run_and_landing_and_is_dug_up_from_its_foot() -> void:
+	"""A ramp from the Surface: its 2 × 12 lower cells wait (the last row its landing, the rest its run); the mole lands
+	at its foot and digs the run back toward the top along itself; it is found by its shape, landing and family."""
+	assert_true(_works.order_way_down(0, Vector2i(4, 2), Families.RAMP, 0), "ordered")
+	assert_equal(_works.waiting(), 24, "2 × 12 cells below")
+	assert_equal(_works.type_of(1, Vector2i(4, 2)), Works.TYPE_NONE, "the landing row")
+	assert_equal(_works.type_of(1, Vector2i(4, 9)), Works.TYPE_WAY, "the run")
+	assert_equal(_works.landing_of(0), Vector3i(1, 4, 2), "its foot 2 × 2")
+	assert_equal(_works.way_cell(0), Vector2i(4, 14), "its top 2 × 2")
+	assert_equal(_works.shapes_on(0), PackedInt32Array([4, 2, Families.RAMP, 0]), "its shape")
+	assert_equal(_works.landings_on(1), PackedInt32Array([4, 2, 5, 2]), "its landing")
+	assert_true(_works.hatches_on(0).is_empty(), "no hatch")
+	assert_equal(_works.way_row_at(0, Vector2i(4, 2)), 0, "found by its anchor")
+	var opened: Array[Vector3i] = _dig_all(_works.landing_of(0))
+	assert_equal(opened.size(), 24, "all of it dug")
+	assert_equal(opened[0], Vector3i(1, 4, 2), "the foot first")
+	assert_true(opened.find(Vector3i(1, 4, 13)) > opened.find(Vector3i(1, 4, 3)), "up the run from the foot")
+
+
+func test_a_run_is_walked_only_along_itself() -> void:
+	"""A dug room beside a dug run is not entered from the run's side, only through the landing."""
+	_works.order_way_down(0, Vector2i(4, 2), Families.RAMP, 0)
+	_works.order_room(1, PackedInt32Array([6, 8, 7, 8, 6, 9, 7, 9]), 2)
+	_dig_all(_works.landing_of(0))
+	assert_equal(_works.state(1, Vector2i(6, 8)), Works.ORDERED, "the room beside the run is never reached")
+	_works.order_room(1, PackedInt32Array([6, 2, 7, 2, 6, 3, 7, 3]), 2)
+	assert_equal(_dig_all(_works.landing_of(0)).size(), 4, "beside the landing it is; the first still is not")
+	assert_false(_works.path_to(Vector3i(1, 4, 12), Vector3i(1, 6, 2)).is_empty(), "walked down the run and out")
+
+
+func test_a_way_below_links_its_top_to_its_foot() -> void:
+	"""A stair standing on level 1 leads from its top 2 × 2 to its landing row on level 2, both ways."""
+	_works.order_way_down(0, Vector2i(10, 10))
+	_works.order_room(1, PackedInt32Array([10, 12, 11, 12, 10, 13, 11, 13]), 7)
+	assert_true(_works.order_way_down(1, Vector2i(10, 12), Families.EARTH_TIMBER, 2), "a stair on level 1, turned south")
+	assert_equal(_works.landing_of(1), Vector3i(2, 10, 30), "its foot 18 rows south")
+	assert_true(_dig_all(_works.landing_of(0)).size() >= 6, "dug from the entrance down")
+	assert_equal(_works.state(2, Vector2i(10, 31)), Works.OPEN, "its landing dug")
+	assert_false(_works.path_to(Vector3i(2, 10, 31), Vector3i(1, 11, 13)).is_empty(), "walked back up")
+
+
+func test_removing_a_way_returns_its_waiting_cells_and_keeps_dug_ones() -> void:
+	"""P-D1-6 (a): a removed way stops standing; its cells still waiting go back to earth, its dug ones stay, bare."""
+	_works.order_way_down(0, Vector2i(4, 4))
+	_works.order_way_down(0, Vector2i(20, 4), Families.RAMP, 0)
+	_works.open_cell(1, Vector2i(4, 4))
+	var waiting: int = _works.waiting()
+	assert_true(_works.remove_way_at(0, Vector2i(4, 4)), "removed")
+	assert_false(_works.way_live(0), "no longer standing")
+	assert_equal(_works.state(1, Vector2i(4, 4)), Works.OPEN, "a dug cell stays dug")
+	assert_equal(_works.state(1, Vector2i(5, 5)), Works.EARTH, "a waiting one goes back")
+	assert_equal(_works.waiting(), waiting - 3, "three fewer wait")
+	assert_equal(_works.entrance(), 1, "the other entrance now")
+	assert_true(_works.shapes_on(0).size() == 4 and _works.ways_on(0) == PackedInt32Array([20, 4]), "only the ramp")
+	assert_false(_works.remove_way_at(0, Vector2i(4, 4)), "not twice")
+	assert_equal(_works.way_row_at(0, Vector2i(4, 4)), -1, "not found")
+	assert_false(_works.order_way_down(0, Vector2i(30, 30), Families.RAMP, 0), "off the area: refused")
+	assert_false(_works.order_way_down(0, Vector2i(1, 1), 9, 0), "no family: refused")
+
+
+func test_the_drawn_directions_and_the_stair_heads() -> void:
+	"""Stairs go down the way it descends; a hatch's rise the same way, a run's back toward its top; the head cells lie
+	just past the foot 2 × 2 that way."""
+	_works.order_way_down(0, Vector2i(4, 4))
+	_works.order_way_down(0, Vector2i(10, 2), Families.RAMP, 1)
+	assert_equal(_works.down_dir(0), Vector2i(0, -1), "a hatch at turn 0 goes north")
+	assert_equal(_works.rise_dir(0), Vector2i(0, -1), "and rises north at its landing")
+	assert_equal(_works.head_cells(0), [Vector2i(4, 3), Vector2i(5, 3)], "its heads north of the landing")
+	assert_equal(_works.down_dir(1), Vector2i(1, 0), "a ramp turned once descends east")
+	assert_equal(_works.rise_dir(1), Vector2i(-1, 0), "its foot rises back west")
+	var foot: Vector3i = _works.landing_of(1)
+	assert_equal(_works.head_cells(1), [Vector2i(foot.y - 1, foot.z), Vector2i(foot.y - 1, foot.z + 1)], "heads west")
+	assert_true(_works.on_way(1, Vector2i(15, 3)), "its run is on the way")
+	assert_false(_works.on_way(0, Vector2i(15, 3)), "the Surface's open ground is not")

@@ -9,6 +9,7 @@ const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
+const Transforms := preload("res://scripts/core/transforms.gd")
 const SettlementSystemScript := preload("res://scripts/systems/settlement_system.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const TICK_BOUND: int = 20000
@@ -227,3 +228,28 @@ func test_a_queued_record_no_foreman_took_can_be_cancelled() -> void:
 	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "orderable again")
 	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "started")
 	assert_equal(_runtime.cancel_queued(_room), Runtime.REFUSE_STATE, "not while digging")
+
+
+func test_a_builder_still_walking_in_when_the_dig_stops_never_arrives() -> void:
+	"""Decision 1937: the walk in is cancelled at the stop (the body never left where it stood), so the builder is
+	never registered, is forgotten at once and is reserved no longer."""
+	if _room == NULL_REF: return
+	var crew: Array[Builder.Crew] = _crew()
+	var far: Vector3i = Vector3i(60000, 512, 60000)
+	assert_true(_h._transforms.place(_h._worker, far.x, far.y, far.z, 0), "far off on the surface")
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued")
+	assert_equal(_runtime.start_room(_room, _h.owners(), crew), &"", "started")
+	_h.tick += 1
+	_runtime.advance(_h.tick)
+	var builder: Builder = _runtime.foreman_of(_room).builders()[0]
+	assert_true(builder.walking(), "walking in")
+	_runtime.foreman_of(_room)._halt(&"TEST_STOP") # Negative-only: the dig stops mid-walk.
+	for step: int in 3:
+		_h.tick += 1
+		_runtime.advance(_h.tick)
+	assert_true(_runtime.foreman_of(_room).builders().is_empty(), "forgotten")
+	assert_equal(_h._routes._lost_actor_row(_h._worker), -1, "never registered")
+	assert_false(_runtime.reserves_resident(_h._residents.directory().get_typed_row(_h._worker)), "not reserved")
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	assert_true(_h._transforms.read_into(_h._worker, pose), "its pose")
+	assert_equal(Vector3i(pose.x, pose.y, pose.z), far, "still where it stood")

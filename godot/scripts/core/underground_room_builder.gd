@@ -983,7 +983,8 @@ func _release_phase() -> StringName:
 	if _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return dropped
 	var released: Construction.OpResult = o.sites.release_worker(_site)
 	if not released.ok: # Sites releases a Job nobody holds as already free (TO_STORE, a haul's own Job, or a paid
-		var code: StringName = _release_assignment(released.error) # phase taken over but not yet bound).
+		if _phase_started() and released.error != Sites.REFUSE_WORKER: return released.error # phase taken over
+		var code: StringName = _release_assignment(released.error) # but not yet bound: only Jobs holds it).
 		if code != &"": return dropped if dropped != &"" else code
 	if _phase_started(): return dropped # A started phase keeps its paid Project (never while hauling).
 	var cancelled: Construction.OpResult = o.sites.cancel_phase(_site, _ctx.storage)

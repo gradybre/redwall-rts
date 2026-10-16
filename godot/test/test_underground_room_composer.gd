@@ -143,3 +143,24 @@ func test_the_composite_answers_for_the_room_runtime() -> void:
 	var opened: Jobs.OpResult = _h._jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, tick)
 	assert_false(dispatch.owns_job(opened.value), "a Job no excavation Project requests is not")
 	_h._jobs.clear_dispatcher()
+
+
+func test_a_mole_holding_a_job_digging_or_reserved_elsewhere_is_not_picked() -> void:
+	"""P-1936-2 (a)'s rule: a mole with a Job, one already building a dig, or one another dispatcher reserves (the
+	entry's crew) is passed over; with no other idle toolless mole the order is refused, named."""
+	if _room == NULL_REF: return
+	var mole: Vector2i = _idle_mole()
+	var row: int = _h._residents.directory().get_typed_row(mole)
+	var empty: Composer.Order = _order(_h._first)
+	empty.room = _h._residents.directory().create(Directory.KIND_ROOM) # Picked before its (missing) Sites are read.
+	var reserving: Callable = func(slot: int) -> bool: return slot == row
+	var owning: Callable = func(_slot: int) -> bool: return false
+	assert_true(_h._jobs.bind_dispatcher(owning, reserving).ok, "another dispatcher reserves the mole")
+	assert_equal(Composer.order(_runtime, _h.placements, empty), Composer.REFUSE_NO_MOLE, "reserved elsewhere")
+	_h._jobs.clear_dispatcher()
+	var held: Jobs.OpResult = _h._jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(_h._jobs.assign_worker(row, held.value).ok, "the mole takes another Job")
+	assert_equal(Composer.order(_runtime, _h.placements, empty), Composer.REFUSE_NO_MOLE, "holding a Job")
+	assert_true(_h._jobs.release_worker(row).ok, "released")
+	assert_equal(Composer.order(_runtime, _h.placements, _order(_h._first)), &"", "now it digs the Kitchen")
+	assert_equal(Composer.order(_runtime, _h.placements, empty), Composer.REFUSE_NO_MOLE, "already building a dig")

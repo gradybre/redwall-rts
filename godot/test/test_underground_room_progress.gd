@@ -22,6 +22,7 @@ const TICK_BOUND: int = 20000
 var _a: ForemanTests.Kitchen = null # Restored before every tick.
 var _b: ForemanTests.Kitchen = null # Uninterrupted.
 var _final: Runtime = null # The last restored runtime of a pair run.
+var _seen: Array[StringName] = [] # Every refusal the uninterrupted runtime returned in a pair run.
 
 
 func after_each() -> void:
@@ -151,11 +152,14 @@ func test_the_wire_bound_covers_the_largest_record() -> void:
 func _run_pair(owners_a: Builder.Owners, a: Runtime, b: Runtime, hook: Callable) -> int:
 	"""Advance both digs to the end, A saved and restored before every tick, comparing their records after every
 	tick; `hook` runs the same fixture step on both worlds when it is due. Returns the ticks run."""
+	_seen.clear()
 	var ticks: int = 0
 	for step: int in TICK_BOUND:
 		a = _swap(_a, a, owners_a)
 		_a.tick += 1; _b.tick += 1
-		assert_equal(a.advance(_a.tick).duplicate(), b.advance(_b.tick).duplicate(), "same refusals")
+		var codes: Array[StringName] = b.advance(_b.tick).duplicate()
+		assert_equal(a.advance(_a.tick).duplicate(), codes, "same refusals")
+		_seen.append_array(codes)
 		if hook.is_valid(): hook.call(a, b)
 		if not _same_record(a, b): break
 		ticks += 1
@@ -246,6 +250,14 @@ func test_a_stopped_dig_restored_before_every_tick_recovers_and_walks_out_as_uni
 	var ticks: int = _run_pair(owners_a, a, b, Callable())
 	assert_equal(_final.state_of(rooms[0]), Runtime.RECORD_STOPPED, "stopped, its crew out")
 	assert_true(ticks > 100, "restored before every one of %d ticks" % ticks)
+	var record: PackedByteArray = PackedByteArray()
+	assert_equal(_final.capture(record), &"", "the stopped dig's record")
+	var at: int = Progress.HEADER_BYTES + Progress.RUNTIME_FIXED_BYTES + Progress.ROW_BYTES + 4 + 8
+	assert_equal(record.decode_s32(at), Foreman.STATE_FAILED, "the foreman's state, FAILED")
+	for index: int in Progress.CODE_BYTES: record[at + 4 + index] = 0 # Its kept code erased.
+	var fresh: Runtime = Runtime.new(_a._residents.directory())
+	assert_true(fresh.bind_owners(owners_a), "owners")
+	assert_equal(fresh.restore(record), Progress.REFUSE_SHAPE, "a stopped dig with no code is refused")
 
 
 func test_a_stopped_pair_restored_before_every_tick_walks_out_one_by_one_as_uninterrupted() -> void:
@@ -277,4 +289,6 @@ func test_a_stopped_pair_restored_before_every_tick_walks_out_one_by_one_as_unin
 	assert_equal(_final.state_of(rooms[0]), Runtime.RECORD_STOPPED, "stopped, its crew out")
 	assert_true(sizes.has(1), "one builder was out before the other: %s" % sizes)
 	assert_equal(sizes[sizes.size() - 1], 0, "both forgotten once out")
+	assert_equal(_seen, [Inventory.REFUSE_CAPACITY_EXCEEDED] as Array[StringName],
+		"the stop's code once; a builder not yet at rest waits to leave, silently")
 	assert_true(ticks > 100, "restored before every one of %d ticks" % ticks)

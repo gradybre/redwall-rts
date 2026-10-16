@@ -6,6 +6,7 @@ extends "res://test/framework/test_case.gd"
 const ForemanTests := preload("res://test/test_underground_room_foreman.gd")
 const Phase := preload("res://test/test_underground_room_world_phases.gd")
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
+const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
@@ -337,3 +338,20 @@ func test_a_builder_sent_home_from_its_column_has_not_set_off() -> void:
 	assert_equal(builder.go_home(), &"", "sent home")
 	assert_false(builder.in_motion(), "not yet set off")
 
+
+
+func test_only_a_started_phase_is_taken_over() -> void:
+	"""P-1933-2 (a): Frontier's resume contact takes a Site's live phase only once it is WORKING or done; a BRACE
+	opened but not yet started (its builder still on the way) is refused as active, as before."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), &"", "configured")
+	var builder: Builder = foreman.builders()[0]
+	for step: int in 400:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "running")
+		if builder.in_motion(): break
+	var site: Vector2i = builder._site
+	assert_true(site != NULL_REF and _h.sites.project_of(site) != NULL_REF, "its BRACE is open")
+	assert_false(builder._phase_started(), "and not started")
+	assert_equal(builder._contact(site, _h.sites._site_key[site.x]), Frontier.REFUSE_ACTIVE, "not taken over")

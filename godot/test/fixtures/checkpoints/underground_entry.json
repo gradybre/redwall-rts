@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "33f4dd5445a9e25308fad7413eb205af9653e723d9fcd7570a65fb3e4f873f72",
+	"fingerprint": "987012b18aa0a2480dcb43adc537e15fa5b6693f36511608911eba7d1a8169ec",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -233,7 +233,7 @@
 		"res://scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
 		"res://scripts/core/underground_room_approach.gd": "e91c201435c81d6baf9f84dda87c817cf0bdd5b799167e55e5986798fade4404",
 		"res://scripts/core/underground_room_bindings.gd": "599a60a94cfc369c3e0c7ec0d0c8321d5048975c7aa77272a78db6fd8b161b28",
-		"res://scripts/core/underground_room_builder.gd": "30b2a7fe927f34256e0ab6e1ba1cc72004d04d200d3afe7ff3d8145de8992658",
+		"res://scripts/core/underground_room_builder.gd": "5907d718a70954d565cc221833db750c243f1e29ced8ada2775e94774766cf75",
 		"res://scripts/core/underground_room_claim.gd": "fa19049ec3f481ea91f673482363e2910f5f2311d0feb540971362715dd2d159",
 		"res://scripts/core/underground_room_composer.gd": "52f4083412cf5a01aaefcf59b0accefbea86efae57b2b8f734943a2b743a686b",
 		"res://scripts/core/underground_room_composition.gd": "fe9e3bd89b64290309520c54f7ea1c353de10e414b926f9979ca8f84fc91beff",

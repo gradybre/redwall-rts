@@ -138,6 +138,59 @@ cannot ledger that bound as it stands without a ruling (§6).
   bound (16 legs, 32 trip edges), is refused `ROOM_BUILDER_FOOTPRINT_CAPACITY` before it sets off.
 - **`release_room` waits** while the crew is out (`ROOM_DIG_CREW_OUT`).
 
+## 8. Review and mutation testing
+
+**Independent review** (code-reviewer agent, adversarial, on `2dbcb5c0`; re-checked on `b773173b`). No CRITICAL.
+Seven HIGH, all fixed and confirmed:
+
+| Finding | Fix |
+|---|---|
+| H1: a stopped dig's kept builder could unregister and move a resident another dig had picked | `shed_crew` (§3) |
+| H2: re-ordering a reused row dropped a foreman whose crew was still underground | `ROOM_DIG_CREW_OUT` |
+| H3: every resume leaked the taker's Job assignment | a refused Sites release first frees the Jobs assignment; only a `REFUSE_WORKER` refusal does so for a started phase (review M-c) |
+| H4: a stopped two-builder dig could save a record that does not load | `shed_crew`: the save holds only builders still underground |
+| H5: a departed builder's route actor was never removed | `_lost_actor_row` |
+| H6: the census undercounted builders kept by stopped digs | `shed_crew` makes 256 a true bound |
+| H7: a refused start left the room QUEUED for good | the composer's order is atomic (`cancel_queued`) |
+
+Fixed with them: M2 (a builder walking in at the stop never arrives), M4 (a swapped-row record is refused
+`ROOM_SAVE_NONCANONICAL`), M6 (`_blocked_at` and `_body` declared). The hang that the two-builder stop test exposed
+(`ROUTE_OCCUPANCY_STALE` after the arrival out) is fixed by `refresh_occupancy` (§3).
+
+**Open, MEDIUM and LOW (recorded, not fixed here):**
+
+- **M-a.** A refused occupancy refresh at an arrival out is not retried, so Routes stays stale until the next
+  admission refreshes it. The refusal is raised once.
+- **M-b, a C3 obligation.** No production code calls `release_room`, so DONE and STOPPED records stay. A re-order of
+  the same room is refused, and 512 kept records refuse every order. C3 must release finished rooms, or let a
+  re-order replace a DONE record.
+- **M1.** A stop between a hand-over and its source READY can leave the actor in WORK under another Job. `leave`
+  then waits with no stall bound.
+- **M3.** Load range-checks only some cursor fields (`_index`, `_operation`, profile rows). The cross-record
+  invariants (a DIGGING row has a foreman, foreman state matches record state) are not re-proved.
+- **M5.** A parking whose spans publish but never join adds two spans on every later order.
+- **M7.** `reserves_resident` scans every kept foreman for each resident Jobs evaluates.
+- **LOWs:** the contacts bind before the builder is picked; walk-out codes alert every tick; the haul queue's bound
+  is implicit in today's bill; stale comments.
+
+**Mutation testing.** A scratch runner applies one mutant at a time and runs its focused suites. 78 mutants over
+the dispatcher, the runtime, the foreman, the builder, the walk, the cube plan, the parking, the composer, the codec,
+the save adapter and apply, the host and the Frontier's resume contact. **68 are killed.** The first pass left 33
+survivors; 23 of them were killed by new focused tests (`test_underground_room_parts.gd`, plus additions to the
+composer, session, runtime, builder, crews and progress suites). **4 are equivalent and 6 deferred:**
+
+| Mutant | Verdict |
+|---|---|
+| R9: `_crew_busy` without its skip of builders that are out | **Equivalent.** `shed_crew` runs on the tick a builder goes out, so a kept builder that is not underground belongs to a running dig |
+| F2: `_all_parked` without its walking check | **Equivalent.** Walks happen only before the first cube, when `advance` returns before any other `_all_parked` call; on the first tick nobody walks yet |
+| B2: `begin_walk_in` without its registered check | **Equivalent.** A registered builder's walk is then measured from its parking (no ticks), and `register()` returns at once for a registered builder |
+| S2: `close` without its whole-record check | **Equivalent.** Trailing bytes fail the canonical re-encode |
+| B5: a not-at-rest builder's leave reported, not awaited | **Deferred:** needs a builder travelling when its partner stops the dig; the Kitchen pair always waits at rest |
+| B9: a resume beginning the phase instead of resuming it | **Deferred:** behind the room bindings' `ROOM_PHASE_WORKER` (§6 gap 1, the cost lane) |
+| B13, B14: the 512-box and plan-list caps not enforced at set-off | **Deferred:** no Kitchen plan reaches either cap (the plan's bounds are unit-tested) |
+| S3: `finish` without its overflow check | **Deferred:** no fixture writes a record near `MAX_WIRE_BYTES` |
+| S7: the host's restore without its contact rebind | **Deferred:** no host fixture has a way in until slice D |
+
 ## Source
 
 Decisions 1218, 1219, 1221, 1223, 1228, 1880, 1933, 1935, 1936; `underground_dispatch.gd`,

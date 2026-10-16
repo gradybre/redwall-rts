@@ -7,6 +7,7 @@ extends "res://test/underground_host_case.gd"
 const Dispatch := preload("res://scripts/core/underground_dispatch.gd")
 const RoomRuntime := preload("res://scripts/core/underground_room_runtime.gd")
 const Composer := preload("res://scripts/core/underground_room_composer.gd")
+const Construction := preload("res://scripts/core/construction.gd")
 
 
 func _compose_all() -> void:
@@ -67,3 +68,22 @@ func test_the_entry_crew_is_reserved_through_the_composite() -> void:
 	var row: int = _host.directory().get_typed_row(live[2])
 	assert_true(_host._underground_dispatch.reserves_resident(row), "the entry crew is reserved")
 	assert_true(entry.reserves_resident(row), "as the entry itself says")
+	var tick: int = 1
+	while _host._jobs.job_of(row) == Vector2i(-1, 0) and tick < 4000:
+		assert_true(_host.run_tick(tick), "tick %d" % tick)
+		tick += 1
+	var job: int = _host._jobs.directory().get_typed_row(_host._jobs.job_of(row))
+	assert_true(job >= 0 and entry.owns_job(job), "the crew holds an entry Job")
+	assert_true(_host._underground_dispatch.owns_job(job), "which the composite owns through the entry runtime")
+	var o: Session.Retirement.Owners = _host.underground_session()._retirement_owners
+	var purpose: IntMath.IntResult = IntMath.IntResult.new()
+	var other: int = -1
+	while other < 0 and tick < 3000:
+		assert_true(_host.run_tick(tick), "tick %d" % tick)
+		tick += 1
+		var held: int = _host._jobs.directory().get_typed_row(_host._jobs.job_of(row))
+		if held >= 0 and o.construction.purpose_into(_host._jobs.requester_of(held), purpose) \
+				and purpose.value != Construction.PURPOSE_EXCAVATION: other = held
+	assert_true(other >= 0, "the crew reaches a Job no excavation Project requests (the installation)")
+	assert_false(_host.underground_rooms().owns_job(other), "the room runtime does not own it")
+	assert_true(_host._underground_dispatch.owns_job(other), "the composite owns it through the entry alone")

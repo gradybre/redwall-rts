@@ -56,6 +56,16 @@ const EDGE_MEMO_STRIDE: int = 19
 const EDGE_MEMO_INPUTS: int = 11
 const EDGE_MEMO_STAMP: int = 6
 const EDGE_MEMO_MISS: int = -2
+## Decision 1952: the endpoint-proof memo. `_profile_endpoint_refusal`'s per-box containment checks are a pure function
+## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
+## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
+## each entry has one result word per profile row: (entry generation << 16) | (boxes checked << 4) | answer index.
+const ENDPOINT_MEMO_ENTRIES: int = 64
+const ENDPOINT_ENTRY_WORDS: int = 34
+const ENDPOINT_MEMO_STAMP: int = 9
+const ENDPOINT_SERIAL_MAX: int = 1 << 46
+const ENDPOINT_ANSWERS: Array[StringName] = [&"", &"WORLD_ROUTE_ENDPOINT_SUPPORT", &"WORLD_ROUTE_ENDPOINT_BODY",
+	&"WORLD_ROUTE_PROFILE_BOUNDS"]
 const REFUSE_COVERAGE: StringName = &"WORLD_ROUTE_COVERAGE"
 
 
@@ -333,6 +343,12 @@ var _edge_memo_stamp: PackedInt64Array = PackedInt64Array() # Graph, its publica
 var _edge_memo_epoch: int = 1
 var _certificate_revision: int = 1 # Decision 1952: moves on every certificate bank swap; never saved.
 var _descriptor_writes: int = 0 # Decision 1952: successful `_reach_descriptor` writes.
+var _endpoint_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: ENTRIES x MAX_PROFILES result words.
+var _endpoint_entries: PackedInt32Array = PackedInt32Array() # ENTRIES x ENDPOINT_ENTRY_WORDS observed boxes.
+var _endpoint_entry_tags: PackedInt64Array = PackedInt64Array() # ENTRIES x (epoch, generation).
+var _endpoint_memo_stamp: PackedInt64Array = PackedInt64Array() # Bank, load revision, content, Domain bounds.
+var _endpoint_memo_epoch: int = 1
+var _endpoint_memo_serial: int = 0
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
 var _endpoint: Locations.Record = Locations.Record.new()
@@ -424,6 +440,10 @@ func _allocate_scratch() -> void:
 	_envelope.resize(6)
 	_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)
 	_edge_memo_stamp.resize(EDGE_MEMO_STAMP)
+	_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)
+	_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)
+	_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)
+	_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
 	_endpoint.support.resize(6)
 	_section.box.resize(6)
@@ -1135,13 +1155,65 @@ func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> Strin
 func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:
 	"""A source mask never promises arrival at an endpoint which cannot contain its full body and held tool."""
 	var code: StringName = _endpoint_observation_refusal(location, point)
-	if code != &"": return code
+	return code if code != &"" else _endpoint_boxes_refusal(location, point)
+
+
+func _endpoint_boxes_refusal(location: Vector2i, point: Vector3i) -> StringName:
+	"""Decision 1952: the per-box checks, answered from the endpoint memo with their exact spend (and the exact failure
+	state of a budget that runs out part way); with the framework's cache checks on, read live and compared."""
+	var entry: int = _endpoint_entry(location, point)
+	var word: int = _endpoint_word(entry)
+	if word != 0 and not Profiles.check_runtime_caches: return _replay_endpoint_boxes(word)
+	var before: int = _proof.remaining
+	var code: StringName = _endpoint_boxes_live(point)
+	var answer: int = _endpoint_answer(code, before - _proof.remaining)
+	if word != 0 and not _endpoint_replay_agrees(word, before, code, answer):
+		Profiles.report_stale_cache("endpoint proof", "location %d: an input changed without moving its token" % location.x)
+	if entry >= 0 and answer != 0:
+		_endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id] = (_endpoint_entry_tags[2 * entry + 1] << 16) | answer
+	return code
+
+
+func _endpoint_boxes_live(point: Vector3i) -> StringName:
+	"""Every profile box against the observed endpoint's air and support, one chunk of spend per box."""
+	var code: StringName = &""
 	for ordinal: int in _descriptor.box_count:
 		if not _proof.spend(1 + _descriptor.box_count): return _proof.error
 		code = _profile_box_into(ordinal, _body)
 		if code == &"": code = _compiled_endpoint_box_refusal(point)
 		if code != &"": return code
 	return &""
+
+
+func _endpoint_answer(code: StringName, spent: int) -> int:
+	"""Decision 1952: (boxes checked << 4) | answer index, or 0 when the answer is not one the memo keeps (a budget
+	fault or a Profiles refusal)."""
+	var chunk: int = 1 + _descriptor.box_count
+	var index: int = ENDPOINT_ANSWERS.find(code)
+	@warning_ignore("integer_division") var boxes: int = spent / chunk
+	if index < 0 or spent < 0 or spent % chunk != 0 or boxes > _descriptor.box_count or boxes >= 4096: return 0
+	return (boxes << 4) | (index + 1)
+
+
+func _endpoint_replay_agrees(word: int, before: int, code: StringName, answer: int) -> bool:
+	"""Decision 1952, checks on: whether replaying `word` from budget `before` would have left what the live checks left."""
+	var chunk: int = 1 + _descriptor.box_count
+	if ((word >> 4) & 0xFFF) * chunk <= before: return (word & 0xFFFF) == answer
+	@warning_ignore("integer_division") var whole: int = before / chunk
+	return _proof.error != &"" and code == _proof.error and _proof.remaining == before - whole * chunk
+
+
+func _replay_endpoint_boxes(word: int) -> StringName:
+	"""Decision 1952: spend what the checks spent, chunk by chunk as they did, and answer as they did."""
+	var chunk: int = 1 + _descriptor.box_count
+	var spent: int = ((word >> 4) & 0xFFF) * chunk
+	if spent <= _proof.remaining:
+		_proof.remaining -= spent
+		return ENDPOINT_ANSWERS[(word & 0xF) - 1]
+	@warning_ignore("integer_division") var whole: int = _proof.remaining / chunk
+	_proof.remaining -= whole * chunk
+	_proof.spend(chunk) # Fails exactly as the live check's next chunk would, and records the same fault.
+	return _proof.error
 
 
 static func _prepared_endpoint_into(actual: RefCounted, location: Vector2i, out: Locations.Record) -> StringName:
@@ -1835,6 +1907,81 @@ static func _reach_descriptor(actual: RefCounted, row: int, revision: int, conte
 	descriptor.posture = bank.fields[Profiles.F_POSTURE * capacity + row]
 	actual._descriptor_writes += 1
 	return &""
+
+
+func _endpoint_entry(location: Vector2i, point: Vector3i) -> int:
+	"""Decision 1952: the memo entry holding exactly the observed endpoint's boxes (refilled when they differ), or -1."""
+	if _endpoint_memo.size() != ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES or not _endpoint_epoch_current() \
+			or _endpoint.air_count < 0 or _endpoint.air_count > Locations.MAX_AIR_EXTRA or _endpoint.point != point \
+			or not _endpoint_descriptor_current(): return -1
+	var entry: int = posmod(location.x, ENDPOINT_MEMO_ENTRIES)
+	if _endpoint_entry_tags[2 * entry] == _endpoint_memo_epoch and _endpoint_entry_matches(entry * ENDPOINT_ENTRY_WORDS):
+		return entry
+	_endpoint_memo_serial = _endpoint_memo_serial + 1 if _endpoint_memo_serial < ENDPOINT_SERIAL_MAX else 0
+	if _endpoint_memo_serial == 0: return -1
+	_endpoint_entry_fill(entry * ENDPOINT_ENTRY_WORDS)
+	_endpoint_entry_tags[2 * entry] = _endpoint_memo_epoch
+	_endpoint_entry_tags[2 * entry + 1] = _endpoint_memo_serial
+	return entry
+
+
+func _endpoint_descriptor_current() -> bool:
+	"""Decision 1952: the descriptor is the bank's own current row for the compiled content (as `descriptor_into` left
+	it), so its profile row identifies the boxes the checks read."""
+	var row: int = _descriptor.profile_id
+	return row >= 0 and row < Profiles.MAX_PROFILES and row < _profiles._profile_capacity \
+		and _descriptor.content_revision == _content_revision and _descriptor.content_revision == _profiles._live.header[0] \
+		and _descriptor.profile_revision == _profiles._live.quantities[row]
+
+
+func _endpoint_word(entry: int) -> int:
+	"""Decision 1952: the profile's result word in `entry` when it belongs to the entry's generation, else 0."""
+	if entry < 0: return 0
+	var word: int = _endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id]
+	return word if word != 0 and (word >> 16) == _endpoint_entry_tags[2 * entry + 1] else 0
+
+
+func _endpoint_epoch_current() -> bool:
+	"""Decision 1952: the Profiles bank and load revision, the compiled content and the Domain bounds the memo was
+	filled under; a change starts a new epoch, which retires every entry. False while any of them is unusable."""
+	if _profiles == null or _profiles._loading or _profiles._live == null or _profiles.load_revision() == 0 \
+			or _domain == null or _endpoint_memo_epoch == 0: return false
+	var stamp: PackedInt64Array = _endpoint_memo_stamp
+	var same: bool = stamp[0] == _profiles._live.get_instance_id() and stamp[1] == _profiles.load_revision() \
+		and stamp[2] == _content_revision
+	for axis: int in 6: same = same and stamp[3 + axis] == _domain._bounds[axis]
+	if same: return true
+	stamp[0] = _profiles._live.get_instance_id()
+	stamp[1] = _profiles.load_revision()
+	stamp[2] = _content_revision
+	for axis: int in 6: stamp[3 + axis] = _domain._bounds[axis]
+	_endpoint_memo_epoch = _next_revision(_endpoint_memo_epoch)
+	return _endpoint_memo_epoch != 0
+
+
+func _endpoint_entry_matches(at: int) -> bool:
+	"""Decision 1952: the entry holds exactly the boxes the checks read: point, envelope, support and the live air."""
+	var words: PackedInt32Array = _endpoint_entries
+	if words[at] != _endpoint.point.x or words[at + 1] != _endpoint.point.y or words[at + 2] != _endpoint.point.z \
+			or words[at + 15] != _endpoint.air_count: return false
+	for axis: int in 6:
+		if words[at + 3 + axis] != _endpoint.envelope[axis] or words[at + 9 + axis] != _endpoint.support[axis]: return false
+	for index: int in 6 * _endpoint.air_count:
+		if words[at + 16 + index] != _endpoint.air[index]: return false
+	return true
+
+
+func _endpoint_entry_fill(at: int) -> void:
+	"""Decision 1952: copy the observed boxes into an entry (unused air words zero)."""
+	_endpoint_entries[at] = _endpoint.point.x
+	_endpoint_entries[at + 1] = _endpoint.point.y
+	_endpoint_entries[at + 2] = _endpoint.point.z
+	_endpoint_entries[at + 15] = _endpoint.air_count
+	for axis: int in 6:
+		_endpoint_entries[at + 3 + axis] = _endpoint.envelope[axis]
+		_endpoint_entries[at + 9 + axis] = _endpoint.support[axis]
+	for index: int in 18:
+		_endpoint_entries[at + 16 + index] = _endpoint.air[index] if index < 6 * _endpoint.air_count else 0
 
 
 static func _swap_certificates(actual: RefCounted, catalog_revision: int) -> void:

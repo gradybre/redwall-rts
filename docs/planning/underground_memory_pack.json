@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "c53fcbe31994c6c6cfa1acc1004113f00b6047f69dd941a85ec09c28bbd96158",
         "godot/scripts/core/underground_routes.gd": "34c47508b3afd6e5a1b5cbffea6212e430acf8e19017132ada2531d8ca9e2950",
-        "godot/scripts/core/underground_world_routes.gd": "fc33d2e03cc493d004399eca207a133c3249077e6ae3957c04bd3adf33969077"
+        "godot/scripts/core/underground_world_routes.gd": "654069b33b073d6bacc0a7562342ba4d5002118b99fb8eaed025b2a70f70c4ee"
       }
     },
     "current_profile_control": {
@@ -43911,14 +43911,19 @@
             "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
           },
           {
-            "bytes": 2888,
-            "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
-            "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[352] and its input stamp I64[6], plus three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
-          },
-          {
             "bytes": 2504,
             "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
             "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[16 x 19] with each edge's own certificate inputs, its input stamp I64[6], and three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
+          },
+          {
+            "bytes": 140872,
+            "carried_by": "new retained (world_routes_endpoint_memo)",
+            "store": "decision 1952 (P-1952-2): the endpoint-proof memo: results I64[64 x 256] (131,072 B), entries I32[64 x 34] (8,704 B), entry tags I64[64 x 2] (1,024 B) and stamp I64[9] (72 B), allocated once with WorldRoutes' fixed scratch; never saved"
+          },
+          {
+            "bytes": 16,
+            "carried_by": "none (new)",
+            "store": "decision 1952: two int64 runtime tokens of the endpoint memo (_endpoint_memo_epoch, _endpoint_memo_serial); never saved"
           }
         ],
         "delta": {
@@ -43956,6 +43961,30 @@
               "PackedInt64Array"
             ],
             [
+              "_endpoint_entries",
+              "PackedInt32Array"
+            ],
+            [
+              "_endpoint_entry_tags",
+              "PackedInt64Array"
+            ],
+            [
+              "_endpoint_memo",
+              "PackedInt64Array"
+            ],
+            [
+              "_endpoint_memo_epoch",
+              "int"
+            ],
+            [
+              "_endpoint_memo_serial",
+              "int"
+            ],
+            [
+              "_endpoint_memo_stamp",
+              "PackedInt64Array"
+            ],
+            [
               "_envelope",
               "PackedInt32Array"
             ],
@@ -43975,6 +44004,10 @@
           "resizes_added": [
             "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
             "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
+            "_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)",
+            "_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)",
+            "_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)",
+            "_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)",
             "_envelope.resize(6)",
             "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
             "out.resize(CERT_WIRE_BYTES)"
@@ -44027,6 +44060,22 @@
             [
               "EDGE_MEMO_STRIDE",
               "19"
+            ],
+            [
+              "ENDPOINT_ENTRY_WORDS",
+              "34"
+            ],
+            [
+              "ENDPOINT_MEMO_ENTRIES",
+              "64"
+            ],
+            [
+              "ENDPOINT_MEMO_STAMP",
+              "9"
+            ],
+            [
+              "ENDPOINT_SERIAL_MAX",
+              "1 << 46"
             ]
           ],
           "int_constants_removed": [
@@ -44140,8 +44189,9 @@
             ]
           },
           "allocation_sites": {
-            "PackedInt32Array(": 2,
-            "PackedInt64Array(": 3,
+            "=[": 1,
+            "PackedInt32Array(": 3,
+            "PackedInt64Array(": 6,
             "range(": 1
           }
         }
@@ -44709,7 +44759,7 @@
       "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 12801861,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
-      "none (new)": 124,
+      "none (new)": 140,
       "new contribution": 10684,
       "Profiles CONTROL_RESERVE": 384,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
@@ -44720,7 +44770,8 @@
       "presentation (outside the REQ-SET-163 simulation gate)": 0,
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "entry structure reservation (decision1122, 384 B)": 0,
-      "WorldRoutes CONTROL_RESERVE (recounted)": 5450,
+      "WorldRoutes CONTROL_RESERVE (recounted)": 2562,
+      "new retained (world_routes_endpoint_memo)": 140872,
       "base ledger (decisions 1023, 1031)": 0,
       "WorkFace CONTROL_BYTES (2,048 B cold allowance, lease-bound)": 24
     },
@@ -44764,7 +44815,7 @@
       "scope": "Numeric and packed payload only. Object, Array and Variant headers (about 30 RefCounted packets and the task and endpoint arrays) are native overhead, unmeasured, as in every other row."
     },
     "world_routes_controls": {
-      "numeric_bytes": 263,
+      "numeric_bytes": 279,
       "small_packed_bytes": 120,
       "edge_memo_bytes": 2480,
       "packet_numeric_bytes": {
@@ -44775,7 +44826,7 @@
         "Routes.Edge": 120,
         "IntMath.IntResult": 9
       },
-      "fixed_bytes": 3508,
+      "fixed_bytes": 3524,
       "control_reserve_bytes": 4096,
       "added_by_adr_1205_bytes": 58
     },
@@ -44823,14 +44874,25 @@
       },
       "bytes": 9580
     },
+    "world_routes_endpoint_memo": {
+      "rows": {
+        "results": 131072,
+        "entries": 8704,
+        "entry_tags": 1024,
+        "stamp": 72
+      },
+      "bytes": 140872,
+      "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch."
+    },
     "new_retained_bytes": {
       "geometry_journals": 4322,
       "locations_carry_and_retirement_controls": 6362,
       "first_entry_runtime_chain": 15131,
       "cold_load_images": 196694,
-      "claw_stair_tables": 9580
+      "claw_stair_tables": 9580,
+      "world_routes_endpoint_memo": 140872
     },
-    "new_contribution_bytes": 232089,
+    "new_contribution_bytes": 372961,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -44842,7 +44904,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 232089,
+    "current_census_new_retained": 372961,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -44857,12 +44919,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 5255770,
+  "new_mutable_and_reserved_bytes": 5396642,
   "declaration_bytes": 25645,
   "declaration_delta_bytes": 4460,
-  "live_with_reserve_bytes": 100250607,
+  "live_with_reserve_bytes": 100391479,
   "gate_bytes": 150000000,
-  "headroom_bytes": 49749393,
+  "headroom_bytes": 49608521,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
@@ -44914,7 +44976,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "fc33d2e03cc493d004399eca207a133c3249077e6ae3957c04bd3adf33969077",
+    "godot/scripts/core/underground_world_routes.gd": "654069b33b073d6bacc0a7562342ba4d5002118b99fb8eaed025b2a70f70c4ee",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "a4190ded1406f501a7b4851f53f667f00a13031bba3063c62b639d46aec4d8fa",

@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "2f45dc55b9e41e67aaf73dc941de00b9a169ff8dbc5564ccd872bbebd05457f9"
+REVIEWED_SHA = "fc908e9936aa8fa816ae6f34b70de53ee921e640e44482e7eeda6b2fe10671e7"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -201,6 +201,24 @@ def world_routes_controls(memory, index: dict) -> dict:
             "edge_memo_bytes": memo,
             "packet_numeric_bytes": packets, "fixed_bytes": fixed, "control_reserve_bytes": reserve,
             "added_by_adr_1205_bytes": 24 + 4 * 8 + 2}
+
+
+def world_routes_endpoint_memo(memory, index: dict) -> dict:
+    """Decision 1952: WorldRoutes' endpoint-proof memo, four fixed packed columns retained for the World's life."""
+    source = module(index, CORE + "underground_world_routes.gd").text
+    require(re.findall(r"^\t(_endpoint_(?:memo|entr)\w*)\.resize\((.+)\)$", source, re.M)
+            == [("_endpoint_memo", "ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES"),
+                ("_endpoint_entries", "ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS"),
+                ("_endpoint_entry_tags", "2 * ENDPOINT_MEMO_ENTRIES"),
+                ("_endpoint_memo_stamp", "ENDPOINT_MEMO_STAMP")], "WorldRoutes endpoint memo packets")
+    entries = memory.resolve(index, "underground_world_routes", "ENDPOINT_MEMO_ENTRIES")
+    words = memory.resolve(index, "underground_world_routes", "ENDPOINT_ENTRY_WORDS")
+    stamp = memory.resolve(index, "underground_world_routes", "ENDPOINT_MEMO_STAMP")
+    profiles = memory.resolve(index, "underground_profiles", "MAX_PROFILES")
+    rows = {"results": 8 * entries * profiles, "entries": 4 * entries * words, "entry_tags": 8 * 2 * entries,
+            "stamp": 8 * stamp}
+    return {"rows": rows, "bytes": sum(rows.values()),
+            "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch."}
 
 
 def world_routes_cold(memory, index: dict) -> dict:
@@ -481,9 +499,10 @@ def build(index: dict, projected: list, motion: dict) -> dict:
     planner = room_planner_cold(memory, index)
     images = cold_load_images(memory, index)
     stairs = stair_tables(memory, index)
+    endpoint = world_routes_endpoint_memo(memory, index)
     new = {"geometry_journals": journals["bytes"], "locations_carry_and_retirement_controls": locations["bytes"],
            "first_entry_runtime_chain": entry["bytes"], "cold_load_images": images["bytes"],
-           "claw_stair_tables": stairs["bytes"]}
+           "claw_stair_tables": stairs["bytes"], "world_routes_endpoint_memo": endpoint["bytes"]}
     charged = {}
     for relative, row in rows.items():
         for charge in row["charges"]:
@@ -497,6 +516,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,
             "location_air_pool": pool, "room_publication_controls": publication,
             "room_planner_cold": planner, "cold_load_images": images, "claw_stair_tables": stairs,
+            "world_routes_endpoint_memo": endpoint,
             "new_retained_bytes": new, "new_contribution_bytes": sum(new.values()),
             "runtime_qualified": False, "native_measured": False}
 

@@ -347,3 +347,129 @@ func test_the_anchor_memo_answers_as_the_live_check_and_reads_afresh_on_a_new_to
 	profiles._loading = true
 	assert_equal(Itinerary._anchor_memo_at(profiles, 5, 1, content), -1, "a loading store is never answered")
 	profiles._loading = false
+
+
+func _endpoint_ready(location: Vector2i, checks: int) -> bool:
+	"""Observe `location` into WorldRoutes' endpoint record under a fresh proof budget and the compiled content."""
+	var binding: WorldRoutes = _h._binding
+	binding._content_revision = _h._profiles._live.header[0]
+	binding._proof = WorldRoutes.Clearance.new()
+	binding._proof.allocate(Space.Snapshot.new(), checks)
+	return binding._locations().read_location_into(location, binding._endpoint) == &""
+
+
+func _endpoint_run(location: Vector2i, profile: int, checks: int) -> Array:
+	"""One endpoint box proof for `profile` at budget `checks`: its answer, remaining budget and fault."""
+	var binding: WorldRoutes = _h._binding
+	binding._proof.remaining = checks
+	binding._proof.error = &""
+	var code: StringName = binding._endpoint_boxes_refusal(location, binding._endpoint.point)
+	return [code, binding._proof.remaining, binding._proof.error]
+
+
+func _endpoint_memo(on: bool) -> void:
+	"""Turn the endpoint memo off (no results: unusable) or on (empty)."""
+	_h._binding._endpoint_memo = PackedInt64Array()
+	_h._binding._endpoint_memo.resize(WorldRoutes.ENDPOINT_MEMO_ENTRIES * WorldRoutes.Profiles.MAX_PROFILES if on else 0)
+
+
+func _endpoint_profiles() -> PackedInt32Array:
+	"""Every profile row the bank describes at the compiled content."""
+	var rows: PackedInt32Array = PackedInt32Array()
+	for profile: int in _h._profiles._live.header[1]:
+		if _h._profiles.descriptor_into(profile, _h._profiles._live.header[0], _h._binding._descriptor) == &"":
+			rows.append(profile)
+	return rows
+
+
+func test_endpoint_proofs_answer_as_the_live_checks_at_every_budget() -> void:
+	"""Decision 1952: for every station endpoint and profile, a filling and an answered proof leave the answer, budget
+	and fault a plain proof leaves, at the full budget and at every budget that runs out part way."""
+	if not _fixture(): return
+	var answered: int = 0
+	for location: Vector2i in [_h._first, _h.parking, _h.contact_location]:
+		assert_true(_endpoint_ready(location, Space.MAX_CHECKS), "observed %s" % location)
+		for profile: int in _endpoint_profiles():
+			_h._profiles.descriptor_into(profile, _h._profiles._live.header[0], _h._binding._descriptor)
+			_endpoint_memo(false)
+			var plain: Array = _endpoint_run(location, profile, Space.MAX_CHECKS)
+			var spent: int = Space.MAX_CHECKS - int(plain[1])
+			_endpoint_memo(true)
+			assert_equal(_endpoint_run(location, profile, Space.MAX_CHECKS), plain, "filling %s/%d" % [location, profile])
+			assert_equal(_endpoint_run(location, profile, Space.MAX_CHECKS), plain, "answered %s/%d" % [location, profile])
+			answered += 1 if _h._binding._endpoint_word(_h._binding._endpoint_entry(location, _h._binding._endpoint.point)) != 0 else 0
+			for checks: int in range(0, spent + 1, maxi(1, spent >> 3)):
+				_endpoint_memo(false)
+				var short: Array = _endpoint_run(location, profile, checks)
+				_endpoint_memo(true)
+				_endpoint_run(location, profile, Space.MAX_CHECKS)
+				assert_equal(_endpoint_run(location, profile, checks), short, "budget %d %s/%d" % [checks, location, profile])
+	assert_true(answered > 0, "proofs were remembered and answered")
+
+
+func _endpoint_filled() -> Array:
+	"""Observe the parking endpoint, prove its first profile with the memo off (plain) and on (filling)."""
+	var binding: WorldRoutes = _h._binding
+	if not _endpoint_ready(_h.parking, Space.MAX_CHECKS): return []
+	var rows: PackedInt32Array = _endpoint_profiles()
+	_h._profiles.descriptor_into(rows[0], _h._profiles._live.header[0], binding._descriptor)
+	_endpoint_memo(false)
+	var plain: Array = _endpoint_run(_h.parking, rows[0], Space.MAX_CHECKS)
+	_endpoint_memo(true)
+	_endpoint_run(_h.parking, rows[0], Space.MAX_CHECKS)
+	return [rows[0], plain]
+
+
+func _endpoint_poison(profile: int) -> void:
+	"""Make the remembered word for `profile` at the parking endpoint give another answer."""
+	var binding: WorldRoutes = _h._binding
+	var at: int = binding._endpoint_entry(_h.parking, binding._endpoint.point) * WorldRoutes.Profiles.MAX_PROFILES + profile
+	binding._endpoint_memo[at] = (binding._endpoint_memo[at] & ~0xF) | (4 if (binding._endpoint_memo[at] & 0xF) != 4 else 1)
+
+
+func _endpoint_remembered() -> bool:
+	"""Whether the parking endpoint's current profile has a live word."""
+	var binding: WorldRoutes = _h._binding
+	return binding._endpoint_word(binding._endpoint_entry(_h.parking, binding._endpoint.point)) != 0
+
+
+func test_endpoint_memo_answers_from_its_words_and_reports_a_stale_one() -> void:
+	"""Decision 1952: an answered proof follows a poisoned word; another observed box reads afresh and retires the old
+	word; with the framework's checks on a stale word is reported and never followed."""
+	if not _fixture(): return
+	var filled: Array = _endpoint_filled()
+	assert_equal(filled.size(), 2, "observed and filled")
+	if filled.size() != 2: return
+	assert_true(_endpoint_remembered(), "remembered")
+	_endpoint_poison(filled[0])
+	assert_true(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS) != filled[1], "answered from the memo")
+	_h._binding._endpoint.support[0] -= 1
+	assert_false(_endpoint_remembered(), "other boxes: refilled")
+	_h._binding._endpoint.support[0] += 1
+	assert_false(_endpoint_remembered(), "and the old word retired")
+	_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
+	_endpoint_poison(filled[0])
+	WorldRoutes.Profiles.check_runtime_caches = true
+	expect_diagnostic("RUNTIME_CACHE_STALE endpoint proof")
+	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "checks on: reported, answered live")
+	_h._binding._proof = null
+
+
+func test_endpoint_memo_retires_on_every_stamped_input() -> void:
+	"""Decision 1952: a moved Profiles token, other Domain bounds and another content revision each read afresh."""
+	if not _fixture(): return
+	var filled: Array = _endpoint_filled()
+	assert_equal(filled.size(), 2, "observed and filled")
+	if filled.size() != 2: return
+	var binding: WorldRoutes = _h._binding
+	for change: int in 3:
+		_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
+		assert_true(_endpoint_remembered(), "refilled before change %d" % change)
+		match change:
+			0: _h._profiles.invalidate_runtime_caches()
+			1: binding._domain._bounds[3] += 1
+			2: binding._descriptor.content_revision += 1
+		assert_false(_endpoint_remembered(), "input %d moved" % change)
+		if change == 1: binding._domain._bounds[3] -= 1
+		if change == 2: binding._descriptor.content_revision -= 1
+	binding._proof = null

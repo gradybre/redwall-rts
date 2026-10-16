@@ -2315,14 +2315,19 @@
      "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
     },
     {
-     "bytes": 2888,
-     "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
-     "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[352] and its input stamp I64[6], plus three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
-    },
-    {
      "bytes": 2504,
      "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
      "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[16 x 19] with each edge's own certificate inputs, its input stamp I64[6], and three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
+    },
+    {
+     "bytes": 140872,
+     "carried_by": "new retained (world_routes_endpoint_memo)",
+     "store": "decision 1952 (P-1952-2): the endpoint-proof memo: results I64[64 x 256] (131,072 B), entries I32[64 x 34] (8,704 B), entry tags I64[64 x 2] (1,024 B) and stamp I64[9] (72 B), allocated once with WorldRoutes' fixed scratch; never saved"
+    },
+    {
+     "bytes": 16,
+     "carried_by": "none (new)",
+     "store": "decision 1952: two int64 runtime tokens of the endpoint memo (_endpoint_memo_epoch, _endpoint_memo_serial); never saved"
     }
    ],
    "delta": {
@@ -2360,6 +2365,30 @@
       "PackedInt64Array"
      ],
      [
+      "_endpoint_entries",
+      "PackedInt32Array"
+     ],
+     [
+      "_endpoint_entry_tags",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_memo_epoch",
+      "int"
+     ],
+     [
+      "_endpoint_memo_serial",
+      "int"
+     ],
+     [
+      "_endpoint_memo_stamp",
+      "PackedInt64Array"
+     ],
+     [
       "_envelope",
       "PackedInt32Array"
      ],
@@ -2379,6 +2408,10 @@
     "resizes_added": [
      "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
      "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
+     "_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)",
+     "_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)",
+     "_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)",
+     "_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)",
      "_envelope.resize(6)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
      "out.resize(CERT_WIRE_BYTES)"
@@ -2431,6 +2464,22 @@
      [
       "EDGE_MEMO_STRIDE",
       "19"
+     ],
+     [
+      "ENDPOINT_ENTRY_WORDS",
+      "34"
+     ],
+     [
+      "ENDPOINT_MEMO_ENTRIES",
+      "64"
+     ],
+     [
+      "ENDPOINT_MEMO_STAMP",
+      "9"
+     ],
+     [
+      "ENDPOINT_SERIAL_MAX",
+      "1 << 46"
      ]
     ],
     "int_constants_removed": [
@@ -2544,8 +2593,9 @@
      ]
     },
     "allocation_sites": {
-     "PackedInt32Array(": 2,
-     "PackedInt64Array(": 3,
+     "=[": 1,
+     "PackedInt32Array(": 3,
+     "PackedInt64Array(": 6,
      "range(": 1
     }
    }

@@ -198,6 +198,12 @@ func test_the_step_closure_is_remembered_per_bank_and_load_revision() -> void:
 	_profiles._live.sources[32] ^= 1
 	_profiles.invalidate_runtime_caches()
 	assert_true(Routes._step_closure(_profiles), "and its repair")
+
+
+func test_another_bank_or_a_poisoned_token_reads_the_step_closure_afresh() -> void:
+	"""Decision 1952: a substituted bank and a saturated (zero) load revision are never answered from the memo."""
+	if not _fixture(): return
+	assert_true(Routes._step_closure(_profiles), "the whole closure, remembered")
 	var bank: Profiles.Bank = _profiles._live
 	_profiles._live = Profiles.Bank.new() # Negative-only bank substitution, restored below.
 	assert_false(Routes._step_closure(_profiles), "another bank is read afresh")

@@ -1,7 +1,7 @@
 # 1981 — One basic stair carry: scoping, stopped for rulings
 
-Date: 2026-10-15 · Status: Proposed. Scoping only; no code or content. Stopped for Brendan's rulings on P-1981-1 to
-P-1981-6 and the coordinator's sequencing.
+Date: 2026-10-15 · Status: Accepted. Brendan ruled P-1981-1, -2, -3 and -6, and the coordinator P-1981-4 and -5, on
+2026-10-15 (see "Rulings"). Phase 2 (the build) follows in this record's later sections.
 
 Number range: 1981–1989 was allocated to this lane by the coordinator, and checked free on every local and remote
 ref. This is the lane record; later records of the lane take 1982 onwards. Branch `feat/stair-carry`, from
@@ -13,6 +13,19 @@ ref. This is the lane record; later records of the lane take 1982 onwards. Branc
 - On decision 1934's P-C22-1: **"Same-level now + basic stair carry"**. The C2 lane builds the same-level room
   Delivery. This lane is the basic stair carry: one carry motion family, in the spirit of the one claw stroke, derived
   from existing clips and rows rather than through a long motion-review pipeline.
+
+## Rulings (2026-10-15, relayed by the coordinator)
+
+| Proposal | Ruling | What it means here |
+|---|---|---|
+| P-1981-1 | Brendan, **"Approve all"**: (b) | Down and up: all 14 rows, 71–84 |
+| P-1981-2 | Brendan: (a) | This lane derives the floor end of the stair: F, F′, E1/E2 and the floor proofs of rows 54/55 |
+| P-1981-3 | Brendan: (a) | DEC-050's pace applies laden: 30 ticks a tread, 45 a half-turn, 90 per three-step handoff. Recorded as DEC-050's addendum of 2026-10-15 |
+| P-1981-6 | Brendan: (a) | No review packet; the phase-2 frames are the review |
+| P-1981-4 | Coordinator: (a) | The content-11 activation lane takes content 12's engine admission; C2.3 takes Delivery's leg-by-leg reach and the hauler's leg list. The inventory is in "Activation inventory" below |
+| P-1981-5 | Coordinator: (a) | `POLICY_ROOTED_TRAVEL` = 10 lands in `underground_profiles.gd` in this lane, with its consumer pins renewed in the same commit; the edit is limited to the policy word and what loading content 12 needs |
+
+Indexed in `docs/handoff/RULINGS.md`. Sections "Decision" to "Proposals" below are the scoping as it was put.
 
 ## Decision (as proposed)
 

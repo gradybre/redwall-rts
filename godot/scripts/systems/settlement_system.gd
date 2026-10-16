@@ -1993,6 +1993,20 @@ func adopt_underground_rooms(runtime: UndergroundRoomRuntime) -> bool:
 	return true
 
 
+func restore_underground_rooms(record: PackedByteArray) -> StringName:
+	"""Decision 1936: a load's last step after the entry's. The composed room runtime (empty, its owners bound when
+	the entry owners were composed again) is rebuilt from its saved record, then its contacts are bound again. A
+	refusal leaves it empty."""
+	if _underground_mutations_stopped() or _underground_session == null or _underground_rooms == null \
+			or not _underground_rooms.is_empty():
+		return &"UNDERGROUND_ROOMS_RESTORE_TARGET"
+	var code: StringName = _underground_rooms.restore(record)
+	if code == &"":
+		code = UndergroundRoomComposer.rebind(_underground_rooms, _underground_session._retirement_owners.placements)
+		if code != &"": _underground_rooms._drop_restored()
+	return code
+
+
 func underground_entry() -> UndergroundEntryRuntime:
 	"""Borrow the entry runtime for status and alerts; null before the first request."""
 	return _underground_entry

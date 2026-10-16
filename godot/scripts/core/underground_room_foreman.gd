@@ -14,6 +14,8 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
+const Progress := preload("res://scripts/core/underground_room_progress.gd")
+const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ECON-001: a project has at most 4 builders, at most one worker at each quantum's face.
 const MAX_BUILDERS: int = 4
@@ -396,3 +398,99 @@ func order() -> DigOrder.Order:
 func builders() -> Array[Builder]:
 	"""The bound builders (read-only for status and tests)."""
 	return _builders
+
+
+# --- Decision 1936: save and load (section 6 `underground_room_progress`) -------------------------------------------
+
+func write_state(w: EntryProgress.Writer) -> void:
+	"""This dig: room, state, codes, ledgers and latch, epoch, context, then (while it runs) its order and marks, and
+	(while it runs or its crew is out) each builder after its blocked epoch."""
+	w.ref(_room)
+	w.i32(_state)
+	for value: StringName in [_error, _abandon_error, _last_refusal]:
+		w.code(value)
+	w.i32(_done)
+	w.flag(_registered)
+	w.i64(_epoch)
+	w.i64(_blocked_ticks)
+	w.i32(_column_tries)
+	_write_context(w)
+	var running: bool = is_running()
+	w.i32(_order.rows.size() if running else 0)
+	if running:
+		for at: int in _order.rows.size():
+			w.i32(_order.rows[at])
+			w.i32(_cube[at])
+	var kept: bool = running or crew_out()
+	w.i32(_builders.size() if kept else 0)
+	if not kept: return
+	for index: int in _builders.size():
+		w.i64(_blocked_at[index])
+		_builders[index].write_state(w)
+
+
+func _write_context(w: EntryProgress.Writer) -> void:
+	"""The pinned content, the two travel rows and the three containers."""
+	w.i64(_ctx.content)
+	w.i32(_ctx.forward)
+	w.i32(_ctx.backward)
+	w.ref(_ctx.storage)
+	w.ref(_ctx.output)
+	w.ref(_ctx.staging)
+
+
+func read_state(r: EntryProgress.Reader, owners: Builder.Owners) -> StringName:
+	"""Decode a saved dig into this fresh foreman under the restored owners; the order's keys are read again from
+	Sites and each builder's footprint is swept again from its plan."""
+	if _ctx != null or owners == null: return Progress.REFUSE_TARGET
+	_room = r.ref()
+	_state = r.ranged(STATE_DIGGING, STATE_FAILED)
+	_error = r.code()
+	_abandon_error = r.code()
+	_last_refusal = r.code()
+	_done = r.ranged(0, Progress.MAX_SITES)
+	_registered = r.flag()
+	_epoch = r.i64()
+	_blocked_ticks = r.i64()
+	_column_tries = r.i32()
+	_ctx = _read_context(r, owners)
+	var code: StringName = _read_order(r, owners)
+	if code != &"": return code
+	for index: int in r.ranged(0, MAX_BUILDERS):
+		_blocked_at.append(r.i64())
+		var builder: Builder = Builder.new()
+		code = builder.read_state(r, _ctx)
+		if code != &"": return code
+		_builders.append(builder)
+	_blocked.resize(_builders.size())
+	_blocked.fill(0)
+	return &"" if (_state == STATE_FAILED) == (_error != &"") else Progress.REFUSE_SHAPE
+
+
+static func _read_context(r: EntryProgress.Reader, owners: Builder.Owners) -> Builder.Context:
+	"""The saved context, under the restored owners."""
+	var ctx: Builder.Context = Builder.Context.new()
+	ctx.owners = owners
+	ctx.content = r.i64()
+	ctx.forward = r.i32()
+	ctx.backward = r.i32()
+	ctx.storage = r.ref()
+	ctx.output = r.ref()
+	ctx.staging = r.ref()
+	return ctx
+
+
+func _read_order(r: EntryProgress.Reader, owners: Builder.Owners) -> StringName:
+	"""The running dig's Site rows and marks; each key is the Site's own lattice rank, read again from Sites."""
+	var sites: Sites = owners.sites
+	_order = DigOrder.Order.new()
+	for at: int in r.ranged(0, Progress.MAX_SITES):
+		var row: int = r.i32()
+		var mark: int = r.ranged(CUBE_OPEN, CUBE_REFUSED)
+		var site: Vector2i = Vector2i(row, Sites.SITE_GENERATION)
+		if not sites.is_live_site(site): return Progress.REFUSE_SHAPE
+		_order.rows.append(row)
+		_order.keys.append(sites._key_at(sites.origin_of(site)))
+		_order.distance.append(0) # Only the planning sort reads it.
+		_cube.append(mark)
+	return &""

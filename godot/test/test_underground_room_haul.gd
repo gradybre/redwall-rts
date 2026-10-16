@@ -244,7 +244,6 @@ class HaulKitchen extends ForemanTests.Kitchen:
 		"""The fixture's owners with the Delivery and the Locations the hauler reads."""
 		var o: Builder.Owners = owners()
 		o.delivery = delivery
-		o.locations = endpoints
 		return o
 
 	func store_member() -> Builder.Crew:

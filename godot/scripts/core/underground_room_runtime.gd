@@ -3,8 +3,9 @@ extends RefCounted
 ## the room's directory row; each quantum keeps its own short-lived per-phase Construction projects (Sites). Rooms
 ## being dug have a foreman (bounded by the crews, at most MAX_DIGS at once). SettlementSystem advances this
 ## runtime once per fixed tick after the first entry. Nothing here pays or claims: the foremen's owner calls do.
-## Not composed in production yet: C2.3 builds the runtime from the mounted Session and saves it. Until then the
-## game never constructs one, so none of these columns is allocated outside tests.
+## Decision 1936 (C2.3): SettlementSystem builds it when the Session's room owners are composed (so its record is
+## allocated in every mounted game), binds the owners it borrows, and saves it as `underground_room_progress`. A
+## finished dig's record is cleared once its crew has walked out; a stopped one is kept until it is released.
 
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
@@ -12,12 +13,17 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const WorkFace := preload("res://scripts/core/underground_work_face.gd")
+const Progress := preload("res://scripts/core/underground_room_progress.gd")
+const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## One record per room row; `_init` refuses a directory whose room capacity differs (as Buildings asserts).
 const ROOM_CAPACITY: int = 16384
 ## A dig needs at least one builder and the living population caps at 256 (AGENTS.md), so at most 256 rooms are
 ## dug at once; queued rooms keep only their record.
 const MAX_DIGS: int = 256
+## Decision 1936: records in use (queued, digging, stopped awaiting release, or done with the crew still out) are
+## bounded, so the save's bound is: the running digs plus as many stopped ones.
+const MAX_KEPT: int = 2 * MAX_DIGS
 const RECORD_NONE: int = 0
 const RECORD_QUEUED: int = 1
 const RECORD_DIGGING: int = 2
@@ -45,6 +51,8 @@ var _refusals: Array[StringName] = [] # This tick's new refusals, one per room t
 var _owners: Builder.Owners = null # Decision 1936: the composed owners every dig borrows (null until composed).
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _face: WorkFace = null # Decision 1936: the work face the room phases' contacts borrow (held here, bound weakly).
+var _contact_access: Vector2i = NULL_REF # Decision 1936: the access and retreat row the contacts were bound to.
+var _contact_travel: int = -1
 
 
 func _init(directory: Directory) -> void:
@@ -121,6 +129,7 @@ func order_room(room: Vector2i, storage: Vector2i, output: Vector2i, staging: Ve
 	var row: int = _row(room)
 	if row < 0 or storage == NULL_REF or output == NULL_REF: return REFUSE_ROOM
 	if (_generation[row] == room.y and _state[row] != RECORD_NONE) or _digging(row): return REFUSE_STATE
+	if _state[row] == RECORD_NONE and kept() >= MAX_KEPT: return REFUSE_CAPACITY
 	_drop_foremen(row)
 	_generation[row] = room.y
 	_state[row] = RECORD_QUEUED
@@ -147,6 +156,23 @@ func start_room(room: Vector2i, owners: Builder.Owners, crew: Array[Builder.Crew
 	_foreman_rows.append(row)
 	_state[row] = RECORD_DIGGING
 	return &""
+
+
+func kept() -> int:
+	"""Records in use."""
+	return ROOM_CAPACITY - _state.count(RECORD_NONE)
+
+
+func note_contacts(access: Vector2i, travel: int) -> void:
+	"""P-1936-1 (a): the access and retreat row the room phases' contacts were bound to, kept so a load binds them
+	again."""
+	_contact_access = access
+	_contact_travel = travel
+
+
+func contacts_access() -> Vector2i:
+	"""The access the room phases' contacts are bound to, or null."""
+	return _contact_access
 
 
 func _digging(row: int) -> bool:
@@ -187,7 +213,19 @@ func advance(tick: int) -> Array[StringName]:
 		elif foreman.crew_out():
 			code = foreman.advance_out(tick) # P-1936-3 (a): the crew walks back out.
 		if code != &"": _refusals.append(code)
+	_clear_finished()
 	return _refusals
+
+
+func _clear_finished() -> void:
+	"""A finished dig whose crew is out leaves nothing to keep: Sites hold the dug room. Its record is cleared and
+	its foreman dropped."""
+	for index: int in range(_foremen.size() - 1, -1, -1):
+		var foreman: Foreman = _foremen[index]
+		if foreman.state() != Foreman.STATE_DONE or foreman.crew_out(): continue
+		_state[_foreman_rows[index]] = RECORD_NONE
+		_foremen.remove_at(index)
+		_foreman_rows.remove_at(index)
 
 
 func _settle_record(index: int) -> void:
@@ -239,3 +277,87 @@ func _drop_foremen(row: int) -> void:
 		if _foreman_rows[index] == row:
 			_foremen.remove_at(index)
 			_foreman_rows.remove_at(index)
+
+
+# --- Decision 1936, P-1936-4 (a): save and load (section 6 `underground_room_progress`) -----------------------------
+
+func is_empty() -> bool:
+	"""Nothing to save: no contacts bound, no record in use and no foreman kept (a save writes an empty block)."""
+	return _contact_access == NULL_REF and kept() == 0 and _foremen.is_empty()
+
+
+func capture(out: PackedByteArray) -> StringName:
+	"""The whole room-dig record at a quiescent tick boundary, digs in flight or not."""
+	out.clear()
+	if _owners != null and EntryProgress.busy_refusal(_owners) != &"": return Progress.REFUSE_BUSY
+	var w: EntryProgress.Writer = Progress.begin()
+	_write_state(w)
+	out.append_array(Progress.finish(w))
+	return &"" if not out.is_empty() else Progress.REFUSE_SHAPE
+
+
+func _write_state(w: EntryProgress.Writer) -> void:
+	"""The contacts, every record row in use, then every kept foreman after its record row."""
+	w.ref(_contact_access)
+	w.i32(_contact_travel)
+	w.i32(kept())
+	for row: int in ROOM_CAPACITY:
+		if _state[row] == RECORD_NONE: continue
+		w.i32(row)
+		w.i32(_generation[row])
+		w.i32(_state[row])
+		for column: PackedInt32Array in [_storage, _output, _staging]:
+			w.ref(Vector2i(column[2 * row], column[2 * row + 1]))
+	w.i32(_foremen.size())
+	for index: int in _foremen.size():
+		w.i32(_foreman_rows[index])
+		_foremen[index].write_state(w)
+
+
+func restore(bytes: PackedByteArray) -> StringName:
+	"""Rebuild this fresh runtime exactly from its record under its bound owners; a decoded record must re-encode to
+	the same bytes. A refused record leaves the runtime empty. The contacts are bound again by the composer."""
+	if not is_empty() or _owners == null: return Progress.REFUSE_TARGET
+	var r: EntryProgress.Reader = EntryProgress.Reader.new()
+	var code: StringName = Progress.open(bytes, r)
+	if code == &"": code = _read_state(r)
+	if code == &"": code = Progress.close(r)
+	if code == &"":
+		var w: EntryProgress.Writer = Progress.begin()
+		_write_state(w)
+		code = &"" if Progress.finish(w) == bytes else Progress.REFUSE_NONCANONICAL
+	if code != &"": _drop_restored()
+	return code
+
+
+func _read_state(r: EntryProgress.Reader) -> StringName:
+	"""Decode the contacts, the rows and the foremen in wire order."""
+	_contact_access = r.ref()
+	_contact_travel = r.i32()
+	for index: int in r.ranged(0, MAX_KEPT):
+		var row: int = r.ranged(0, ROOM_CAPACITY - 1)
+		_generation[row] = r.i32()
+		_state[row] = r.ranged(RECORD_QUEUED, RECORD_STOPPED)
+		var at: Vector2i = r.ref()
+		_storage[2 * row] = at.x; _storage[2 * row + 1] = at.y
+		at = r.ref()
+		_output[2 * row] = at.x; _output[2 * row + 1] = at.y
+		at = r.ref()
+		_staging[2 * row] = at.x; _staging[2 * row + 1] = at.y
+	for index: int in r.ranged(0, MAX_KEPT):
+		var row: int = r.ranged(0, ROOM_CAPACITY - 1)
+		var foreman: Foreman = Foreman.new()
+		var code: StringName = foreman.read_state(r, _owners)
+		if code != &"": return code
+		_foremen.append(foreman)
+		_foreman_rows.append(row)
+	return Progress.REFUSE_SHAPE if r.bad else &""
+
+
+func _drop_restored() -> void:
+	"""Undo a refused restore: no contacts, no record, no foreman."""
+	_contact_access = NULL_REF
+	_contact_travel = -1
+	_state.fill(RECORD_NONE)
+	_foremen.clear()
+	_foreman_rows.clear()

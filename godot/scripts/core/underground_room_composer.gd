@@ -61,12 +61,21 @@ static func _contacts(runtime: Runtime, owners: Builder.Owners, placements: RefC
 	the work face they borrow alive); a later order on another access is refused."""
 	var provider: Provider = owners.provider
 	if provider._ordinary_routes != null:
-		return &"" if provider._ordinary_retreat == request.access and provider._ordinary_travel == request.travel \
-			else REFUSE_OTHER_ACCESS
+		if provider._ordinary_retreat != request.access or provider._ordinary_travel != request.travel:
+			return REFUSE_OTHER_ACCESS
+		runtime.note_contacts(request.access, request.travel)
+		return &""
 	if request.travel < 0 or request.travel >= owners.profiles._live.header[1]: return REFUSE_SCOPE
-	var face: WorkFace = runtime.work_face()
-	return provider.bind_room_phase_contacts(owners.binding, face, placements, request.access, request.travel,
-		owners.profiles._live.quantities[request.travel], Provider.ROOM_CONTROL_BYTES)
+	var code: StringName = bind_contacts(runtime, owners, placements, request.access, request.travel)
+	if code == &"": runtime.note_contacts(request.access, request.travel)
+	return code
+
+
+static func bind_contacts(runtime: Runtime, owners: Builder.Owners, placements: RefCounted, access: Vector2i,
+		travel: int) -> StringName:
+	"""Bind the room phases' contacts to one access and retreat row, with the runtime's work face."""
+	return owners.provider.bind_room_phase_contacts(owners.binding, runtime.work_face(), placements, access, travel,
+		owners.profiles._live.quantities[travel], Provider.ROOM_CONTROL_BYTES)
 
 
 static func _builder_into(runtime: Runtime, owners: Builder.Owners, out: Array[Builder.Crew]) -> StringName:
@@ -112,3 +121,18 @@ static func _room_box(sites: Sites, room: Vector2i) -> PackedInt32Array:
 		box[0] = mini(box[0], origin.x); box[1] = mini(box[1], origin.z)
 		box[2] = maxi(box[2], origin.x + side); box[3] = maxi(box[3], origin.z + side)
 	return box
+
+
+static func rebind(runtime: Runtime, placements: RefCounted) -> StringName:
+	"""After a load: bind the room phases' contacts again to the saved access and row (P-1936-1 (a)), unless the
+	provider is already bound to them; bound to another, the record is refused."""
+	var owners: Builder.Owners = runtime.bound_owners()
+	var access: Vector2i = runtime.contacts_access()
+	if access == NULL_REF: return &""
+	if owners == null or placements == null: return REFUSE_SCOPE
+	var provider: Provider = owners.provider
+	if provider._ordinary_routes != null:
+		return &"" if provider._ordinary_retreat == access and provider._ordinary_travel == runtime._contact_travel \
+			else REFUSE_OTHER_ACCESS
+	if runtime._contact_travel < 0 or runtime._contact_travel >= owners.profiles._live.header[1]: return REFUSE_SCOPE
+	return bind_contacts(runtime, owners, placements, access, runtime._contact_travel)

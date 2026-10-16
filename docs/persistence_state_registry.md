@@ -2272,6 +2272,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 |---|---|---:|---|---|:-:|---|---|
 | Stateless parking planner | -- | -- | -- | No members; the Request packet is caller-owned | 3 | -- | Decision 1936: finds or publishes a builder's TRANSIT endpoint off the access and its two spans. What it publishes is Locations' and Routes' own saved state. |
 
+### `godot/scripts/core/underground_room_progress.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless codec | -- | -- | -- | No members; framing and bounds only | 3 | -- | Decision 1936, P-1936-4 (a): the canonical wire of section 6 owner `underground_room_progress` (magic, version, the block bounds). The runtime, foremen, builders, their walks and plans and the entry hauler write and check their own fields with ADR1218's Writer and Reader. |
+
 ### `godot/scripts/core/underground_room_walk.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

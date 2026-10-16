@@ -40,6 +40,8 @@ const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const Walk := preload("res://scripts/core/underground_room_walk.gd")
 const Claim := preload("res://scripts/core/underground_room_claim.gd")
+const Progress := preload("res://scripts/core/underground_room_progress.gd")
+const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_IDLE: int = 0
 const STAGE_TRAVEL: int = 1
@@ -1081,3 +1083,168 @@ func go_home() -> StringName:
 	_departed = false
 	_set_stage(STAGE_RETREAT)
 	return &""
+
+
+# --- Decision 1936: save and load (inside `underground_room_progress`) ----------------------------------------------
+
+func _job_in_use() -> bool:
+	"""Stages that still read the current phase's Job (a released Job slot may be reused)."""
+	return _release_pending or _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER,
+		STAGE_TO_STORE, STAGE_HAUL]
+
+
+func write_state(w: EntryProgress.Writer) -> void:
+	"""The crew, the cursor, the cube plan, the haul ledgers, the walk, the standing body and any haul in flight."""
+	for at: Vector2i in [_crew.worker, _crew.tool, _crew.parking]:
+		w.ref(at)
+	_write_cursor(w)
+	Progress.write_legs(w, _legs, _leg_profiles)
+	Progress.write_legs(w, _plan.home_legs, _plan.home_profiles)
+	Progress.write_legs(w, _plan.approach_legs, _plan.approach_profiles)
+	Progress.write_legs(w, _plan.store_legs, _plan.store_profiles)
+	Progress.write_list(w, _plan.trips)
+	Progress.write_list(w, _plan.stands)
+	Progress.write_list(w, _plan.carries)
+	Progress.write_list(w, _queue)
+	_write_tail(w)
+	w.flag(_hauler != null)
+	if _hauler != null: _hauler.write_state(w)
+
+
+func _write_cursor(w: EntryProgress.Writer) -> void:
+	"""Stage, stall count, refusal, the cube in hand and where the builder stands."""
+	w.i32(_stage)
+	w.i32(_stage_ticks)
+	w.code(_error)
+	w.i32(_failed_from)
+	w.i32(_index)
+	w.ref(_site)
+	w.i32(_operation)
+	w.i32(_job)
+	w.ref(EntryProgress.job_ref(_ctx.owners.jobs, _job, _job_in_use()))
+	w.ref(_station)
+	w.i32(_work_profile)
+	w.ref(_at)
+	w.ref(_plan.start)
+	w.ref(_plan.store)
+
+
+func _write_tail(w: EntryProgress.Writer) -> void:
+	"""The leg cursor and flags, the ledgers, the haul endpoints and ledgers, the walk and the standing body."""
+	w.i32(_leg)
+	w.i32(_leg_state)
+	w.flag(_leg_job)
+	w.flag(_departed)
+	w.i32(_finished)
+	w.i32(_cubes)
+	w.i32(_column_cubes)
+	w.i64(_accepted_mwu)
+	w.ref(_haul_store)
+	w.ref(_haul_source)
+	w.i32(_haul_marker)
+	w.i32(_haul_trips)
+	w.i64(_haul_mwu)
+	w.flag(_resuming)
+	w.flag(_release_pending)
+	w.i32(_walk.ticks_left)
+	w.flag(_walk.leaving)
+	for axis: int in 3:
+		w.i32(_walk.origin[axis])
+	Progress.write_box(w, _foot.body())
+
+
+func read_state(r: EntryProgress.Reader, ctx: Context) -> StringName:
+	"""Decode a saved builder under the restored context, re-prove the handles it will still read and sweep its
+	footprint again from its plan."""
+	var member: Crew = Crew.new()
+	member.worker = r.ref()
+	member.tool = r.ref()
+	member.parking = r.ref()
+	_ctx = ctx
+	_crew = member
+	_foot = Footprint.new()
+	_foot.configure(ctx.owners.profiles)
+	var job: Vector2i = _read_cursor(r)
+	_read_plan(r)
+	_read_tail(r)
+	if r.bad: return Progress.REFUSE_SHAPE
+	var code: StringName = _restored_refusal(job)
+	if code == &"" and r.flag(): code = _read_hauler(r)
+	if code == &"": _sweep_claim()
+	return code
+
+
+func _read_cursor(r: EntryProgress.Reader) -> Vector2i:
+	"""The cursor in wire order; returns the saved Job handle."""
+	_stage = r.ranged(STAGE_IDLE, STAGE_HAUL)
+	_stage_ticks = r.ranged(0, STAGE_TICK_LIMIT + 1)
+	_error = r.code()
+	_failed_from = r.ranged(STAGE_IDLE, STAGE_HAUL)
+	_index = r.i32()
+	_site = r.ref()
+	_operation = r.i32()
+	_job = r.i32()
+	var job: Vector2i = r.ref()
+	_station = r.ref()
+	_work_profile = r.i32()
+	_at = r.ref()
+	_plan.start = r.ref()
+	_plan.store = r.ref()
+	return job
+
+
+func _read_plan(r: EntryProgress.Reader) -> void:
+	"""The current legs and the cube plan."""
+	Progress.read_legs(r, _legs, _leg_profiles)
+	Progress.read_legs(r, _plan.home_legs, _plan.home_profiles)
+	Progress.read_legs(r, _plan.approach_legs, _plan.approach_profiles)
+	Progress.read_legs(r, _plan.store_legs, _plan.store_profiles)
+	Progress.read_list(r, 3 * Claim.MAX_TRIP_EDGES, _plan.trips)
+	Progress.read_list(r, 4, _plan.stands)
+	Progress.read_list(r, 2, _plan.carries)
+	Progress.read_list(r, EntryProgress.MAX_QUEUE, _queue)
+
+
+func _read_tail(r: EntryProgress.Reader) -> void:
+	"""The tail in wire order."""
+	_leg = r.ranged(0, Claim.MAX_LEGS)
+	_leg_state = r.ranged(LEG_NONE, LEG_MOVING)
+	_leg_job = r.flag()
+	_departed = r.flag()
+	_finished = r.i32()
+	_cubes = r.i32()
+	_column_cubes = r.i32()
+	_accepted_mwu = r.i64()
+	_haul_store = r.ref()
+	_haul_source = r.ref()
+	_haul_marker = r.i32()
+	_haul_trips = r.i32()
+	_haul_mwu = r.i64()
+	_resuming = r.flag()
+	_release_pending = r.flag()
+	_walk.ticks_left = r.i32()
+	_walk.leaving = r.flag()
+	_walk.origin = Vector3i(r.i32(), r.i32(), r.i32())
+	Progress.read_box(r, _foot._body)
+
+
+func _restored_refusal(job: Vector2i) -> StringName:
+	"""The Job it still reads, its parking and every endpoint it stands on or walks to must be live; a builder
+	underground and not walking must be a registered route actor (a lost one may already be gone)."""
+	var o: Owners = _ctx.owners
+	var code: StringName = EntryProgress.job_refusal(o.jobs, _job, job, _job_in_use())
+	if code != &"": return code
+	for at: Vector2i in [_crew.parking, _station, _at, _plan.start, _plan.store, _haul_store, _haul_source]:
+		if at != NULL_REF and not o.locations.is_live_location(at): return EntryProgress.REFUSE_LOCATION
+	if _walk.walking() or lost() or _stage == STAGE_IDLE and not _registered(): return &""
+	return &"" if _registered() else EntryProgress.REFUSE_ACTOR
+
+
+func _read_hauler(r: EntryProgress.Reader) -> StringName:
+	"""The entry hauler's own block (ADR1218), under the builder's own Job and its storage and staging."""
+	var haul: HaulCrew = HaulCrew.new()
+	haul.worker = _crew.worker
+	haul.storage = _ctx.storage
+	haul.output = _ctx.staging
+	_hauler = Hauler.new()
+	return _hauler.read_state(r, _ctx.owners, haul, _job)

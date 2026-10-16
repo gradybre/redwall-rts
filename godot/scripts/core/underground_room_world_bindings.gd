@@ -348,11 +348,16 @@ func _ordinary_contact_face(profile: int, location: Vector2i) -> int:
 		var role: int = _ordinary_box(profile, ordinal, location)
 		if role < 0: return -1
 		if role != EntryProfiles.CONTACT_POINT: continue
+		# Decision 1971: an upper quantum's claws strike its column's floor-band cube (P-1971-3 "Painted height").
+		var origin: Vector3i = RoomFace.struck_origin(_entry_origin, _ordinary_location(location, RoomLocations.Y), _entry_box[1])
 		for axis: int in 3:
-			if _entry_box[axis] < _entry_origin[axis] or _entry_box[axis] > int(_entry_origin[axis]) + 1024: return -1
-			if _entry_box[axis] == _entry_origin[axis] or _entry_box[axis] == int(_entry_origin[axis]) + 1024:
+			if _entry_box[axis] < origin[axis] or _entry_box[axis] > int(origin[axis]) + 1024: return -1
+			if _entry_box[axis] == origin[axis] or _entry_box[axis] == int(origin[axis]) + 1024:
 				if result >= 0: return -1
-				result = axis * 2 + int(_entry_box[axis] != _entry_origin[axis])
+				result = axis * 2 + int(_entry_box[axis] != origin[axis])
+				# Decision 1971: as WorkFace's contact rule, the station stands outside the face it strikes.
+				var station: int = _ordinary_location(location, RoomLocations.X + axis)
+				if (station >= _entry_box[axis]) if result % 2 == 0 else (station < _entry_box[axis]): return -1
 	return result
 
 

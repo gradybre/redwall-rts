@@ -230,6 +230,12 @@ master, not a settled room height: Brendan ruled rooms are dug with the claws' d
 changes the room-digging rule in core (decision 1931 and its successor); the price follows whatever it publishes.
 (P-C3 (a) first read "2 quanta" from identity −1, which counts the retired pick's rows: decision 1931 F2.)
 
+**Superseded in part, 2026-10-15 (DEC-054 addendum, decision 1971 P-1971-3 "Painted height").** A painted
+underground cell is dug to the full clear height: the table above (4 quanta) is the price, not a ceiling. The claws
+strike the bottom quantum of each column, and the upper quanta are paid as part of the same work.
+`reachable_height_u` reports no stroke limit once the claw crew has a side-face dig row, so `dug_height_u` returns the
+clear height. That takes effect when content 11's wall rows are activated (decision 1971 §6).
+
 A 2 × 2 Passage patch is 16 quanta: wood 4000, stone 4000 milli-U, 67680 milli-WU, 32000 milli-U earth. A cell
 already open (BACKFILLED re-dig follows ECON-005's withdrawal branch) is never charged twice. Underground rooms have
 no generated-wall or roof bill: their walls are braced earth.
@@ -339,6 +345,14 @@ Nothing is deducted at Confirm all (DEC-061, “don't deduct at confirm, keep as
 **One project per room** (ADOPTED, decision 1880 Q1): a room's painted cells, partitions and doors are built as one
 project, and painting more cells or edge pieces onto a room still under construction extends that project rather than
 starting a second one. A room therefore has at most one unfinished construction project; items keep their own.
+
+**Underground rooms: one dispatch record, paid per phase** (ADOPTED, P-C2-4 (a), Brendan 2026-10-12;
+[decision 1931](decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md) F5). Underground, "one project
+per room" is one small packed dispatch record per room: room, access, crew, frontier position and refusal. Each
+quantum keeps the existing per-phase payment: every BRACE, CUT or FINISH of a Site is its own short-lived
+Construction project (`Sites.open_phase`), at most one per worked face and at most 4 per room (ECON-001). No
+room-level Construction project or container row is allocated, so decision 1880's per-room project and container
+bound (81,920 × 284 B) does not apply to underground rooms. Surface rooms keep the reading above (slice G).
 
 Dependencies inside a batch run in order: an entrance before the level-1 rooms it opens, a room's cells before its
 items. The ledger shows what the batch will need (natural measures, DEC-049) beside what stores hold, without reserving

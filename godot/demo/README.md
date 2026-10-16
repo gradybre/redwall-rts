@@ -1122,7 +1122,8 @@ nothing reaches the settlement's simulation -- and sends a **mole** (the first s
 it walks to the Entrance, goes in, and a stand-in figure with its name (`demo_build_figure.gd`) digs the ordered cells
 one by one below, nearest first, each opening after a short wait (`demo_build_below_task.gd`). **The look (decision
 1913)**: the level is a cutaway block of earth whose top is the plane you paint on (`demo_build_earth.gd`); each dug
-cell is a pit 1 m deep in it, lit packed-earth floor and walls against the darker mass; an ordered cell is pegged out in
+cell is a pit 1 m deep in it (its walls rounded since decision 1914, below), lit packed-earth floor and walls against
+the darker mass; an ordered cell is pegged out in
 chalk ("Waiting for the mole: N cells"); the cell being dug deepens as the mole works ("Digging"). The Entrance is a
 burrow mouth on the surface, and its landing below has stairs rising out of it; a Way down whose landing is dug has
 stairs going down into the dark (`demo_build_ways.gd`). The tags and the names over the figures never sit on each other
@@ -1156,6 +1157,25 @@ Nobody sleeps or cooks there yet, and nothing here is saved.
 Checks: `test_build_furniture.gd`, `test_demo_build_furnish.gd`, `test_build_panel.gd`, `test_build_catalog.gd`, and
 the live harness `test/live/demo_build_furnish_live.gd` (the whole loop; run by `test_demo_build_furnish_live.gd`,
 slow tier).
+
+### Rounded, hand-dug walls (decision 1914)
+
+Brendan approved the burrow-walls mockup on 2026-10-15 ("Let's build this"). Rooms stay on the 1 m grid for every
+rule -- painting, validity, footprints, digging, cost -- and only the drawing of dug space changes
+(`build_panel/demo_build_burrow_field.gd`, `demo_build_burrow.gd`, `build_burrow.gdshader`). The outline is smoothed
+and carried outward into the earth: a room's outer corners round, and where a passage meets a room the earth corner is
+filleted so the mouth flares. The walls are coved -- rounded over at the top lip, curving into the floor -- and the
+contour wobbles a little, the same every frame and every run. Two rules hold: **every dug cell's whole floor stays dug
+and visible** (the curves carve into the earth, never into a cell, so furniture always stands on flat floor), and
+**what is planned stays square** (ghosts, chalk and the ordered cells are never rounded; the rounding grows as cells are
+dug). A cell being dug deepens and the rounding round it grows with it. A one-cell wall between two rooms keeps its
+crest. The bought earth textures wrap the curved walls from the side they face; with nothing staged, the procedural
+earth. While the Rooms or Furnish tab is open, a faint cell grid shows on the dug floor. The earth is rebuilt only when
+the dug cells change, on a worker thread, and only the wall patches round a change are remade.
+
+Checks: `test_demo_build_burrow.gd` (the field, both rules, the wobble, cracks, the rebuild), `test_demo_build_dig.gd`,
+the rules on the drawn earth in `test/live/demo_build_dig_live.gd` and `demo_build_furnish_live.gd`, and
+`test/live/demo_build_rounded_live.gd` (the furnish loop with a bent passage, and its frames; run by hand).
 
 ## Digging tunnels
 

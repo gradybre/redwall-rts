@@ -211,6 +211,7 @@ func _configure_ground() -> void:
 	dug = Dug.new()
 	add_child(dug)
 	dug.configure(works, _floors, _datum_xz(), orders.cell_bounds())
+	dug.earth.threaded = true
 
 
 func _configure_furnish() -> void:
@@ -711,6 +712,7 @@ func _tick_works(delta: float) -> void:
 	var shown: int = bar.shown_level() if panel.is_open() else -1
 	var dig_cell: Vector3i = digger.digging_cell() if digging() else Dug.Earth.NO_CELL
 	dug.refresh(shown, dig_cell)
+	dug.earth.set_grid(shown >= 1 and panel.shown_tab() != BuildCatalog.TAB_DECOR)
 	if digging():
 		_show_dig(dig_cell)
 	if works.revision != _marked_at:

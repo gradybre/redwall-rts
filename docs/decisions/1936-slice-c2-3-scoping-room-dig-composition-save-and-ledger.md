@@ -1,7 +1,7 @@
 # 1936 — Slice C2.3 scoping: composing, saving and ledgering room digs
 
-Date: 2026-10-15 · Status: Proposed. Scoping only; no code. Stopped for Brendan's rulings on P-1936-1 to P-1936-6,
-and for the coordinator's clearance of the files outside this lane (§3).
+Date: 2026-10-15 · Status: Accepted (Brendan's rulings and the coordinator's clearances below). Scoping written before
+any code.
 
 Number range: this lane's 1931–1949 (decision 1931). Branch `feat/room-foreman-c2-3`, from `114e4acf` (C2.2,
 PR #264).
@@ -220,6 +220,26 @@ one-builder dig), and the footprint rule already lets more builders take turns w
   lanes have not built.
 
 **Recommendation: (a).** No new constant, and ADR 1219's own rule.
+
+## Rulings and clearances (2026-10-15)
+
+**Brendan, in chat: "Approve all".** Every proposal is (a) as recommended:
+
+- P-1936-1 (a), contacts from the first ordered room's access;
+- P-1936-2 (a) now, then (c) when C3 lands;
+- P-1936-3 (a), the walk-out;
+- P-1936-4 (a), save and load now;
+- P-1936-5 (a), the 512-box cap;
+- P-1936-6 (a), ADR 1219's walk-in rule.
+
+**The coordinator's clearances.**
+
+- **`underground_entry_runtime.gd` `_bind_dispatcher`:** the one-function edit that binds the entry through the
+  composite.
+- **The shared save files and registry listed in §3.** No other running lane touches them: the Mound proof of
+  concept is demo-only and unsaved, and the cost lane's revision counters are runtime-only.
+
+The save registry's handoff rules apply, and next-tick parity (ARCH-SAVE-006) is proved on this lane's fixtures.
 
 ## Source
 

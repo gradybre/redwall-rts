@@ -191,6 +191,18 @@ composer, session, runtime, builder, crews and progress suites). **4 are equival
 | S3: `finish` without its overflow check | **Deferred:** no fixture writes a record near `MAX_WIRE_BYTES` |
 | S7: the host's restore without its contact rebind | **Deferred:** no host fixture has a way in until slice D |
 
+## 9. Final gates (at `d5bb446a`, after merging `origin/master` with #265 and #266, 2026-10-16)
+
+- **Full suite, CI-style:** `godot/.godot` deleted, `godot --headless --path godot --editor --quit`, then
+  `./tools/run_tests_parallel.sh`: 522 suite files executed exactly once across 10 shards, 12,677 tests,
+  1,421,683 assertions, 0 failures, 0 unexpected errors or warnings, nothing leaked.
+- **Analyzer:** `tools/gdscript_warnings.py --max 0 --port 6433`, 0 warnings in 1,576 files.
+- **Contracts:** every validator CI runs passes, including the decision numbers, ledger arithmetic, joint memory
+  pack and its tests, the merge gate, the save registry handoff, the generated tables, the capacity audit, both
+  section schemas, the state registry coverage and the setting contract.
+- **The resume gap stands after #265:** the room bindings still refuse a new worker on a started phase
+  (`ROOM_PHASE_WORKER`, §6 gap 1).
+
 ## Source
 
 Decisions 1218, 1219, 1221, 1223, 1228, 1880, 1933, 1935, 1936; `underground_dispatch.gd`,

@@ -346,6 +346,14 @@ Nothing is deducted at Confirm all (DEC-061, “don't deduct at confirm, keep as
 project, and painting more cells or edge pieces onto a room still under construction extends that project rather than
 starting a second one. A room therefore has at most one unfinished construction project; items keep their own.
 
+**Underground rooms: one dispatch record, paid per phase** (ADOPTED, P-C2-4 (a), Brendan 2026-10-12;
+[decision 1931](decisions/1931-slice-c2-room-foreman-scoping-stopped-for-rulings.md) F5). Underground, "one project
+per room" is one small packed dispatch record per room: room, access, crew, frontier position and refusal. Each
+quantum keeps the existing per-phase payment: every BRACE, CUT or FINISH of a Site is its own short-lived
+Construction project (`Sites.open_phase`), at most one per worked face and at most 4 per room (ECON-001). No
+room-level Construction project or container row is allocated, so decision 1880's per-room project and container
+bound (81,920 × 284 B) does not apply to underground rooms. Surface rooms keep the reading above (slice G).
+
 Dependencies inside a batch run in order: an entrance before the level-1 rooms it opens, a room's cells before its
 items. The ledger shows what the batch will need (natural measures, DEC-049) beside what stores hold, without reserving
 anything. Cancelling one confirmed project never cancels the rest of its batch.

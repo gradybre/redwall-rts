@@ -63,7 +63,7 @@ var _resends: int = 0
 func _initialize() -> void:
 	"""The real village; only the loop's steps."""
 	super()
-	_steps = [_open_on_the_surface, _scroll_to.bind("Stone stairs"), _five_way_cards, _scroll_to.bind("Hatch with ladder"),
+	_steps = [_open_on_the_surface, _scroll_to.bind("Stair-head"), _five_way_cards, _scroll_to.bind("Hatch with ladder"),
 		_choose_the_entrance, _place_the_entrance, _add_the_entrance,
 		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage, _scroll_to.bind("Kitchen"),
 		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _after_the_earth.bind(_check_square_plan),

@@ -4224,7 +4224,7 @@
         "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
-        "godot/scripts/core/underground_profiles.gd": "326d280310d26ecb8eb69a963fc6245d8f67c1f85b66b164a39c371a3f4974ec",
+        "godot/scripts/core/underground_profiles.gd": "0bcf7880bdd11935987b4e5358964a9ef5b7bc44e993e4e68cd957b64cf4d097",
         "godot/scripts/core/underground_routes.gd": "4d59d52611336af5baa13621265e39aa02937f4463c111c2ea160933c7ec3672",
         "godot/scripts/core/underground_world_routes.gd": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8"
       }
@@ -42263,10 +42263,21 @@
           {
             "bytes": 0,
             "carried_by": "none",
-            "store": "no retained-storage change"
+            "store": "decision 1972: two constants (a milli-u/s stair pace kind and its scale), no retained storage"
           }
         ],
-        "delta": {}
+        "delta": {
+          "int_constants_added": [
+            [
+              "MILLI",
+              "1000"
+            ],
+            [
+              "RATE_AUTHORED_MILLI",
+              "2"
+            ]
+          ]
+        }
       },
       "godot/scripts/core/underground_connector_contacts.gd": {
         "charges": [
@@ -44787,14 +44798,14 @@
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "7319d3e2479436bb1bcdb28b1d70d094b9f820b378f9167cd32f2c0a024b8641",
     "godot/scripts/core/underground_connector_assemblies.gd": "3199049decf5b6ca95da09bb416196d82a96e89af194166b196df29f1cf7b73c",
-    "godot/scripts/core/underground_connector_catalog.gd": "bab9c370eb6253d65c12cb330ee90e06f4fb7f02493a47ef27784ad2fdd1cbdb",
-    "godot/scripts/core/underground_connector_contacts.gd": "d45d58aa5c24fb1da5429de74719862713f0716d3d20c37ef8f1b3b055d46db0",
+    "godot/scripts/core/underground_connector_catalog.gd": "6bc1f91d3a79c440891fd3309ca7145f7a393b19b43b526560f21c7da77e3061",
+    "godot/scripts/core/underground_connector_contacts.gd": "d78b492691be9e67e5c7b1ce81d8750577a5dc281d1870eb4b7cbfcf890c7488",
     "godot/scripts/core/underground_connector_delivery.gd": "bacdef42da2a61f3886038b2b3fe703153c3ac027aa4c832688ad4b51286267f",
     "godot/scripts/core/underground_connector_placements.gd": "401ad48c51225a514876bc9e1017d78a6dda96ac34ff2717e25742d1a3f7db30",
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
     "godot/scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
-    "godot/scripts/core/underground_entry_bindings.gd": "fcdedc1072568dae50d3c3e69cfedde2ecaf60c016433bd64c717f5ecc4e08eb",
+    "godot/scripts/core/underground_entry_bindings.gd": "5dd6d372951dd1a80ebe10cc3d7e19261ec64c32e404b69c0028949de8ff38d6",
     "godot/scripts/core/underground_entry_frontier.gd": "49315ddcda00a91910077d70fb7e5b123ca5d40f5590ca038cc0967069697c8e",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
@@ -44804,7 +44815,7 @@
     "godot/scripts/core/underground_motion_catalog.gd": "8b9fb7a07770a7ad670cc47872046f9df01e24c17298903fbd3ee9ad7c7ff9d8",
     "godot/scripts/core/underground_motion_clock.gd": "ffe6340027f5d6adf0d0b416539423102a586f0e402091af3dcbfab70be1d0ed",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
-    "godot/scripts/core/underground_profiles.gd": "326d280310d26ecb8eb69a963fc6245d8f67c1f85b66b164a39c371a3f4974ec",
+    "godot/scripts/core/underground_profiles.gd": "0bcf7880bdd11935987b4e5358964a9ef5b7bc44e993e4e68cd957b64cf4d097",
     "godot/scripts/core/underground_room_world_bindings.gd": "4648625c6c0e6223097c604a1ebc0f6d0c0cda198d92e3b7992481b44c94f95b",
     "godot/scripts/core/underground_route_composition.gd": "d4599f84ce86f95d4d54dee4193c27d6f85ad59e6be000d05419017b04bf811a",
     "godot/scripts/core/underground_routes.gd": "4d59d52611336af5baa13621265e39aa02937f4463c111c2ea160933c7ec3672",

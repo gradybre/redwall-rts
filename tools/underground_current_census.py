@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "38214268d960fb66574067b7df65b8bf8bb09f4293f9e83db45bdd48ad4c8a04"
+REVIEWED_SHA = "3440b961882e2d242d77a7d5e3379040b4b56ec765ec9cfb4cb726787ebce8d1"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -393,8 +393,10 @@ def contact_retirement_cold(memory, index: dict) -> dict:
                      "owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."}
 
 
+# Decision 1972: `_carry_loaded` and `_program_count` track the optional stair-carry bank, appended into the same three
+# columns; until the route composition loads it (the activation mount) no Session retains it.
 STAIR_MOTION = {"_programs": "PackedInt32Array", "_keys": "PackedInt32Array", "_decks": "PackedInt32Array",
-                "_digest": "PackedByteArray", "_loaded": "bool"}
+                "_digest": "PackedByteArray", "_loaded": "bool", "_carry_loaded": "bool", "_program_count": "int"}
 
 
 def stair_tables(memory, index: dict) -> dict:

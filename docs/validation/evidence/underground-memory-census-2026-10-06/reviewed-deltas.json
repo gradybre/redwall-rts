@@ -667,10 +667,21 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "decision 1972: two constants (a milli-u/s stair pace kind and its scale), no retained storage"
     }
    ],
-   "delta": {}
+   "delta": {
+    "int_constants_added": [
+     [
+      "MILLI",
+      "1000"
+     ],
+     [
+      "RATE_AUTHORED_MILLI",
+      "2"
+     ]
+    ]
+   }
   },
   "godot/scripts/core/underground_connector_contacts.gd": {
    "charges": [

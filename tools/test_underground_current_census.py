@@ -38,7 +38,8 @@ class CurrentCensusTests(unittest.TestCase):
         result = census.build(self.index, self.projected, self.motion)
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
                          "locations_carry_and_retirement_controls": 6362, "first_entry_runtime_chain": 15131,
-                         "cold_load_images": 196694, "claw_stair_tables": 9580}) # ADR1229: the T1-T6 plan and tables
+                         "cold_load_images": 196694, "claw_stair_tables": 9580, # ADR1229: the T1-T6 plan and tables
+                         "room_dig_runtime": 5349494}) # decision 1936: the room-dig runtime at every bound
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
@@ -62,6 +63,41 @@ class CurrentCensusTests(unittest.TestCase):
         text = self.index["underground_entry_progress"].text.replace("+ HAULER_FIXED_BYTES + MAX_QUEUE", "+ 2 * HAULER_FIXED_BYTES + MAX_QUEUE")
         with self.assertRaises((AssertionError, ValueError)):
             census.build(self.changed("underground_entry_progress", text), self.projected, self.motion)
+
+    def test_room_dig_runtime_is_charged_at_every_bound(self):
+        """Decisions 1936/1937: the record pool, kept foremen, orders, one shared extent table, 256 builders and one
+        record image at MAX_WIRE_BYTES."""
+        result = census.build(self.index, self.projected, self.motion)["room_dig_runtime"]
+        self.assertEqual(result["rows"], {"runtime_record": 16896, "runtime_numeric": 2075, "foremen_numeric": 49664,
+                                          "orders_and_marks": 369545, "row_extents": 6144, "builders": 3706624,
+                                          "progress_record": 1198546}) # Decision 1937 (P-1937-1 B-E)
+        self.assertEqual(result["wire"]["MAX_WIRE_BYTES"], 1198536)
+        self.assertEqual(result["rows"]["progress_record"], 1198536 + 10) # one image
+        text = self.index["underground_room_footprint"].text.replace("const MAX_BOXES: int = 512", "const MAX_BOXES: int = 1024")
+        grown = census.room_dig_runtime(memory, self.changed("underground_room_footprint", text))
+        self.assertEqual(grown["rows"]["builders"] - result["rows"]["builders"], 256 * 512 * 24)
+
+    def test_room_wire_bound_refuses_an_unknown_term(self):
+        """The record bound is read from the codec's own expressions; a term it cannot resolve refuses."""
+        text = self.index["underground_room_progress"].text.replace("const SITE_BYTES: int = 8", "const SITE_BYTES: int = Other.WIDTH")
+        with self.assertRaisesRegex(ValueError, "room wire term SITE_BYTES"):
+            census.room_wire_bound(memory, self.changed("underground_room_progress", text))
+        text = self.index["underground_room_progress"].text.replace("const MAX_KEPT: int = 512", "const MAX_KEPT: int = 256")
+        with self.assertRaisesRegex(ValueError, "room wire bounds follow the runtime and Sites"):
+            census.room_wire_bound(memory, self.changed("underground_room_progress", text))
+
+    def test_new_room_dig_member_refuses(self):
+        for name, anchor in (("underground_room_runtime", "var _contact_travel: int = -1\n"),
+                             ("underground_room_foreman", "var _done: int = 0\n")):
+            text = self.index[name].text.replace(anchor, anchor + "var _log: PackedInt64Array = PackedInt64Array()\n", 1)
+            self.assertNotEqual(text, self.index[name].text)
+            with self.assertRaisesRegex(ValueError, "unreconciled retained member"):
+                census.room_dig_runtime(memory, self.changed(name, text))
+
+    def test_stateless_room_module_cannot_gain_state(self):
+        text = self.index["underground_room_parking"].text + "\nvar _cache: PackedInt32Array = PackedInt32Array()\n"
+        with self.assertRaisesRegex(ValueError, "stateless room module"):
+            census.room_dig_runtime(memory, self.changed("underground_room_parking", text))
 
     def test_new_member_in_projected_source_refuses(self):
         text = self.index["underground_locations"].text + "\nvar _hidden: PackedInt64Array = PackedInt64Array()\n"
@@ -99,7 +135,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (100250607, 150000000, 49749393)) # ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs
+                         (105600884, 150000000, 44399116)) # ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

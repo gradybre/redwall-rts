@@ -4,14 +4,15 @@ extends RefCounted
 ##
 ## THE FORMAT (decided by the integration lead for step 4a; little-endian, no padding):
 ##
-##   store_count:u32, exactly OWNER_COUNT (25 since ADR 1228), then one block per declared owner in
-##   strict ASCII key order: buildings, command_dispatch, construction_extension,
+##   store_count:u32, exactly OWNER_COUNT (26 since decision 1936), then one block per declared
+##   owner in strict ASCII key order: buildings, command_dispatch, construction_extension,
 ##   construction_paid_ledger, crop_weather, demolition_admissions, demolition_work, ecology,
 ##   excavation_inventory, excavation_sites, haul_planner, inventory, modular_projects,
 ##   room_layout, room_projects, spoil_tips, store_policy, underground_connector_contacts,
 ##   underground_connector_placements, underground_connector_workpieces,
-##   underground_entry_progress, underground_locations, underground_mount, underground_routes,
-##   underground_world_routes. EVERY block is always present.
+##   underground_entry_progress, underground_locations, underground_mount,
+##   underground_room_progress, underground_routes, underground_world_routes. EVERY block is
+##   always present.
 ##
 ##   block   = key_len:u32, key (UTF-8), owner_schema_version:u32, primary_count:u64,
 ##             payload_length:u64, payload

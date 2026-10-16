@@ -1345,10 +1345,14 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "decision 1936 resume_contact_into(): one per-call Query packet, as contact_into's; dies with the call"
     }
    ],
-   "delta": {}
+   "delta": {
+    "allocation_sites": {
+     ".new(": 1
+    }
+   }
   },
   "godot/scripts/core/underground_room_frontier_publication.gd": {
    "charges": [
@@ -2647,7 +2651,12 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "decision 1933 (C2.1) room-dig runtime reference; only tests adopt one until C2.3 composes it from the Session and ledgers its packed record (475,136 B since decision 1934)"
+     "store": "decision 1933 (C2.1) room-dig runtime reference; decision 1936 composes it with the Session's room owners (UndergroundRoomRuntime.new) and counts it in room_dig_runtime"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1936 (review H4): the composite Jobs dispatcher (UndergroundDispatch.new), bound at each mount; two Callables of native overhead, counted in room_dig_runtime's exact member set"
     }
    ],
    "delta": {
@@ -2661,6 +2670,10 @@
       "StorePolicyScript"
      ],
      [
+      "_underground_dispatch",
+      "UndergroundDispatch"
+     ],
+     [
       "_underground_entry",
       "UndergroundEntryRuntime"
      ],
@@ -2670,7 +2683,7 @@
      ]
     ],
     "allocation_sites": {
-     ".new(": 4
+     ".new(": 6
     }
    }
   },

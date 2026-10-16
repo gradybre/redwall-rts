@@ -6,6 +6,7 @@ extends "res://test/framework/test_case.gd"
 const ForemanTests := preload("res://test/test_underground_room_foreman.gd")
 const Phase := preload("res://test/test_underground_room_world_phases.gd")
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
+const Frontier := preload("res://scripts/core/underground_room_frontier.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const DigOrder := preload("res://scripts/core/underground_room_dig_order.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
@@ -110,7 +111,8 @@ func test_a_configured_foreman_reads_its_plan_and_its_idle_builders() -> void:
 	assert_equal(foreman.room(), _room, "its room")
 	assert_equal(foreman.total_cubes(), ForemanTests.KITCHEN_SITES, "eight cubes")
 	assert_equal(foreman.done_cubes(), 0, "none done")
-	assert_equal(foreman.order().keys.size(), ForemanTests.KITCHEN_SITES, "the dig order")
+	assert_equal(foreman.order().rows.size(), ForemanTests.KITCHEN_SITES, "the dig order")
+	assert_true(foreman.order().keys.is_empty() and foreman.order().distance.is_empty(), "only the rows are kept")
 	var builder: Builder = foreman.builders()[0]
 	assert_true(builder.idle() and not builder.failed(), "idle")
 	assert_equal(builder.stage(), Builder.STAGE_IDLE, "stage")
@@ -182,6 +184,12 @@ func test_a_lost_builder_stops_the_room_with_its_code() -> void:
 	assert_equal(_h.sites._ever_cut.count(1), 0, "nothing cut")
 	assert_equal(foreman.abandon_error(), &"", "released cleanly")
 	assert_equal(_h._construction.live_project_count(), 0, "the unstarted BRACE was cancelled")
+	var gone: Vector2i = _h._worker
+	assert_true(foreman.crew_out(), "the departed resident's route actor is still registered (decision 1937)")
+	_h.tick += 1
+	assert_equal(foreman.advance_out(_h.tick), &"", "it leaves")
+	assert_equal(_h._routes._lost_actor_row(gone), -1, "its actor removed (ADR1225), so its body blocks nothing")
+	assert_false(foreman.crew_out(), "nobody left underground")
 
 
 func test_a_builder_lost_while_parked_or_dead_at_its_station_stops_the_room() -> void:
@@ -215,7 +223,7 @@ func test_begin_refuses_a_site_that_is_not_the_next_unpaid_one_there() -> void:
 	var builder: Builder = foreman.builders()[0]
 	var order: DigOrder.Order = foreman.order()
 	var other: Vector2i = Vector2i(order.rows[2], Sites.SITE_GENERATION)
-	assert_equal(builder.begin(0, other, order.keys[0], 1), Builder.REFUSE_TARGET, "a key and a Site that disagree")
+	assert_equal(builder.begin(0, other, foreman._key(0), 1), Builder.REFUSE_TARGET, "a key and a Site that disagree")
 	assert_true(builder.idle(), "still idle")
 	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
 	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_STATE, "no re-configure while digging")
@@ -331,3 +339,20 @@ func test_a_builder_sent_home_from_its_column_has_not_set_off() -> void:
 	assert_equal(builder.go_home(), &"", "sent home")
 	assert_false(builder.in_motion(), "not yet set off")
 
+
+
+func test_only_a_started_phase_is_taken_over() -> void:
+	"""P-1933-2 (a): Frontier's resume contact takes a Site's live phase only once it is WORKING or done; a BRACE
+	opened but not yet started (its builder still on the way) is refused as active, as before."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = Foreman.new()
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), &"", "configured")
+	var builder: Builder = foreman.builders()[0]
+	for step: int in 400:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "running")
+		if builder.in_motion(): break
+	var site: Vector2i = builder._site
+	assert_true(site != NULL_REF and _h.sites.project_of(site) != NULL_REF, "its BRACE is open")
+	assert_false(builder._phase_started(), "and not started")
+	assert_equal(builder._contact(site, _h.sites._site_key[site.x]), Frontier.REFUSE_ACTIVE, "not taken over")

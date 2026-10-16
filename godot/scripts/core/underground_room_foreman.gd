@@ -14,6 +14,8 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
+const Progress := preload("res://scripts/core/underground_room_progress.gd")
+const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ECON-001: a project has at most 4 builders, at most one worker at each quantum's face.
 const MAX_BUILDERS: int = 4
@@ -69,8 +71,10 @@ func configure(owners: Builder.Owners, target: Vector2i, storage: Vector2i, outp
 	if code == &"": code = _bind_builders(ctx, crew)
 	if code != &"": return code
 	_room = target
+	planned.keys.clear() # Decision 1937 (P-1937-1 E): a key is read from Sites when needed, and only the planning
+	planned.distance.clear() # sort reads the distance, so each Site keeps 5 B (its row and mark).
 	_order = planned
-	_cube.resize(planned.keys.size())
+	_cube.resize(planned.rows.size())
 	_cube.fill(CUBE_OPEN)
 	_mark_finished()
 	_state = STATE_DIGGING
@@ -149,9 +153,9 @@ func advance(tick: int) -> StringName:
 	if _done == _order.rows.size() and _all_parked(): return _finish()
 	for builder: Builder in _builders:
 		if builder.lost(): return _halt(Builder.REFUSE_LOST) # In every stage, before any owner is touched.
-	if not _registered:
-		var code: StringName = _register()
-		if code != &"": return _halt(code)
+	var arrived: StringName = _arrive()
+	if arrived != &"": return _halt(arrived)
+	if _walking_in(): return &"" # ADR1219: no work moves before the whole crew has arrived.
 	_ctx.owners.routes.advance_tick(tick)
 	for index: int in _builders.size():
 		var code: StringName = _advance_builder(index, tick)
@@ -168,6 +172,7 @@ func _advance_builder(index: int, tick: int) -> StringName:
 	until its cube's footprint is clear of the others'."""
 	var builder: Builder = _builders[index]
 	_blocked[index] = 0
+	if builder.walking(): return &"" # Still on its walk in: no cube yet.
 	var was_idle: bool = builder.idle()
 	var before: Vector3i = Vector3i(builder.stage(), int(builder.in_motion()), builder.footprint_serial())
 	var code: StringName = &""
@@ -212,12 +217,52 @@ func _frozen() -> bool:
 	return any
 
 
-func _register() -> StringName:
-	"""Every builder becomes a route actor on its parking before the first cube is dispatched."""
+func _arrive() -> StringName:
+	"""P-1933-1 (a): on the first tick every builder sets off on its walk in; each tick the walks advance and a
+	builder arriving is registered on its parking, in crew order, so each occupancy proof sees the ones already
+	registered. No cube is given before the whole crew has arrived (as ADR1219 registers before any work moves)."""
 	for builder: Builder in _builders:
-		var code: StringName = builder.register()
+		var code: StringName = builder.begin_walk_in() if not _registered else builder.advance_walk()
 		if code != &"": return code
 	_registered = true
+	return &""
+
+
+func _walking_in() -> bool:
+	"""Some builder is still on its walk in."""
+	for builder: Builder in _builders:
+		if builder.walking(): return true
+	return false
+
+
+func crew_out() -> bool:
+	"""Some builder is still underground (registered, or walking in or out)."""
+	for builder: Builder in _builders:
+		if builder.underground(): return true
+	return false
+
+
+func shed_crew() -> void:
+	"""After the dig (done or stopped), a builder that is out (no actor, no walk) is forgotten, so the dig keeps only
+	the builders still underground, as the save writes them (decision 1937): nothing it keeps can act on a resident
+	another dig may pick next."""
+	if is_running(): return
+	for index: int in range(_builders.size() - 1, -1, -1):
+		if not _builders[index].underground():
+			_builders.remove_at(index)
+			_blocked_at.remove_at(index)
+	_blocked.resize(_builders.size())
+	_blocked.fill(0)
+
+
+func advance_out(tick: int) -> StringName:
+	"""P-1936-3 (a): after the dig (done or stopped) each builder leaves from rest and walks back out; one walking
+	out advances. Routes still runs for an actor finishing the step it was on."""
+	if is_running() or not crew_out(): return &""
+	_ctx.owners.routes.advance_tick(tick)
+	for builder: Builder in _builders:
+		var code: StringName = builder.advance_walk() if builder.walking() else builder.leave()
+		if code != &"": return code
 	return &""
 
 
@@ -227,7 +272,7 @@ func _dispatch(builder: Builder, tick: int) -> StringName:
 	if not builder.may_work(): return &""
 	var at: int = _next_open()
 	if at < 0: return &""
-	var code: StringName = builder.begin(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION), _order.keys[at], tick)
+	var code: StringName = builder.begin(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION), _key(at), tick)
 	return _taken(builder, at, code)
 
 
@@ -248,7 +293,7 @@ func _up_or_home(builder: Builder, tick: int) -> StringName:
 	if at < _cube.size() and _cube[at] == CUBE_OPEN and _same_column(at - 1, at):
 		_column_tries += 1
 		var code: StringName = builder.continue_column(at, Vector2i(_order.rows[at], Sites.SITE_GENERATION),
-			_order.keys[at], tick)
+			_key(at), tick)
 		code = _taken(builder, at, code)
 		if code != &"" or not builder.at_column_end(): return code
 	return builder.go_home()
@@ -257,7 +302,12 @@ func _up_or_home(builder: Builder, tick: int) -> StringName:
 func _same_column(a: int, b: int) -> bool:
 	"""Two order entries in one cell (the dig order keeps a column's cubes consecutive, bottom up)."""
 	var plane: int = _ctx.owners.sites._domain.size_quanta.x * _ctx.owners.sites._domain.size_quanta.z
-	return _order.keys[a] % plane == _order.keys[b] % plane
+	return _key(a) % plane == _key(b) % plane
+
+
+func _key(at: int) -> int:
+	"""One order entry's Site key, Sites' own lattice rank of the cube (decision 1937: not kept in the order)."""
+	return _ctx.owners.sites._site_key[_order.rows[at]]
 
 
 func _next_open() -> int:
@@ -285,7 +335,7 @@ func _reopen() -> void:
 func _all_parked() -> bool:
 	"""Every builder is idle on its parking: the room can only finish, or be found stuck, then."""
 	for builder: Builder in _builders:
-		if not builder.idle(): return false
+		if not builder.idle() or builder.walking(): return false
 	return true
 
 
@@ -306,6 +356,13 @@ func _halt(code: StringName) -> StringName:
 		var released: StringName = builder.abandon()
 		if released != &"" and _abandon_error == &"": _abandon_error = released
 	return code
+
+
+func reserves_resident(resident_slot: int) -> bool:
+	"""One of this dig's builders, while the dig runs or while that builder is still underground."""
+	for builder: Builder in _builders:
+		if builder.worker_row() == resident_slot and (is_running() or builder.underground()): return true
+	return false
 
 
 func state() -> int:
@@ -361,3 +418,95 @@ func order() -> DigOrder.Order:
 func builders() -> Array[Builder]:
 	"""The bound builders (read-only for status and tests)."""
 	return _builders
+
+
+# --- Decision 1936: save and load (section 6 `underground_room_progress`) -------------------------------------------
+
+func write_state(w: EntryProgress.Writer) -> void:
+	"""This dig: room, state, codes, ledgers and latch, epoch, context, then (while it runs) its order and marks, and
+	each builder it keeps after its blocked epoch (after the dig, only those still underground: `shed_crew`)."""
+	w.ref(_room)
+	w.i32(_state)
+	for value: StringName in [_error, _abandon_error, _last_refusal]:
+		w.code(value)
+	w.i32(_done)
+	w.flag(_registered)
+	w.i64(_epoch)
+	w.i64(_blocked_ticks)
+	w.i32(_column_tries)
+	_write_context(w)
+	var running: bool = is_running()
+	w.i32(_order.rows.size() if running else 0)
+	if running:
+		for at: int in _order.rows.size():
+			w.i32(_order.rows[at])
+			w.i32(_cube[at])
+	w.i32(_builders.size())
+	for index: int in _builders.size():
+		w.i64(_blocked_at[index])
+		_builders[index].write_state(w)
+
+
+func _write_context(w: EntryProgress.Writer) -> void:
+	"""The pinned content, the two travel rows and the three containers."""
+	w.i64(_ctx.content)
+	w.i32(_ctx.forward)
+	w.i32(_ctx.backward)
+	w.ref(_ctx.storage)
+	w.ref(_ctx.output)
+	w.ref(_ctx.staging)
+
+
+func read_state(r: EntryProgress.Reader, owners: Builder.Owners) -> StringName:
+	"""Decode a saved dig into this fresh foreman under the restored owners; the order's keys are read again from
+	Sites and each builder's footprint is swept again from its plan."""
+	if _ctx != null or owners == null: return Progress.REFUSE_TARGET
+	_room = r.ref()
+	_state = r.ranged(STATE_DIGGING, STATE_FAILED)
+	_error = r.code()
+	_abandon_error = r.code()
+	_last_refusal = r.code()
+	_done = r.ranged(0, Progress.MAX_SITES)
+	_registered = r.flag()
+	_epoch = r.i64()
+	_blocked_ticks = r.i64()
+	_column_tries = r.i32()
+	_ctx = _read_context(r, owners)
+	var code: StringName = _read_order(r, owners)
+	if code != &"": return code
+	for index: int in r.ranged(0, MAX_BUILDERS):
+		_blocked_at.append(r.i64())
+		var builder: Builder = Builder.new()
+		code = builder.read_state(r, _ctx)
+		if code != &"": return code
+		_builders.append(builder)
+	_blocked.resize(_builders.size())
+	_blocked.fill(0)
+	return &"" if (_state == STATE_FAILED) == (_error != &"") else Progress.REFUSE_SHAPE
+
+
+static func _read_context(r: EntryProgress.Reader, owners: Builder.Owners) -> Builder.Context:
+	"""The saved context, under the restored owners."""
+	var ctx: Builder.Context = Builder.Context.new()
+	ctx.owners = owners
+	ctx.content = r.i64()
+	ctx.forward = r.i32()
+	ctx.backward = r.i32()
+	ctx.storage = r.ref()
+	ctx.output = r.ref()
+	ctx.staging = r.ref()
+	return ctx
+
+
+func _read_order(r: EntryProgress.Reader, owners: Builder.Owners) -> StringName:
+	"""The running dig's Site rows and marks (each key is read from Sites when needed, as in play)."""
+	var sites: Sites = owners.sites
+	_order = DigOrder.Order.new()
+	for at: int in r.ranged(0, Progress.MAX_SITES):
+		var row: int = r.i32()
+		var mark: int = r.ranged(CUBE_OPEN, CUBE_REFUSED)
+		var site: Vector2i = Vector2i(row, Sites.SITE_GENERATION)
+		if not sites.is_live_site(site): return Progress.REFUSE_SHAPE
+		_order.rows.append(row)
+		_cube.append(mark)
+	return &""

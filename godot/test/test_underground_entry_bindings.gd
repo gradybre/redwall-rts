@@ -947,7 +947,7 @@ func test_shared_landing_stages_support_once_but_proves_every_contact() -> void:
 	assert_true(result.ok, "all distinct actual contacts publish: %s" % result.error)
 	assert_equal(_bindings.datum_support_checks, 1, "one exact assembly/LANDING support union")
 	assert_equal(_bindings.natural_support, [] as Array[StringName], "a landing on its deck needs no natural earth")
-	assert_equal(_bindings.residual_footing.max(), 0, "and leaves no residual at the sealed footing proof")
+	assert_equal(_bindings.residual_footing, [] as Array[int], "and no natural strip for the sealed footing proof")
 	assert_equal(_bindings.staged_contact_checks, 4, "every complete endpoint envelope checked separately")
 	assert_equal(_f._locations._live.count, 6, "two original and four installed full endpoints")
 	_timber_conservation()

@@ -18,6 +18,7 @@ Number range 1972–1980 was allocated by the coordinator and checked free on ev
 | P-1972-5 | Coordinator: yes | Build the Profiles edits now, clear of the cost lane's hunks; one pin renewal after its merge |
 | P-1972-7 | Brendan, **"Natural earth counts"**: (a) (2026-10-16) | Dry, never-cut natural earth counts as support under a landing, by 1971's natural-earth test; the WorldRoutes deck half waits with the cost lane's lines ("Phase 2b") |
 | P-1972-8 | Coordinator: (a) (2026-10-16) | This lane edits `underground_locations.gd` `_installed_row_site` only (the cost lane edits another function there), with a floor-stop and a natural-stop test; the terrain-footing refusal gets a negative test through a test double |
+| P-1972-9 | Coordinator: (a) (2026-10-16), the coordinator's call under P-1972-7 | Retain the trench floor: natural earth 128 u deep under the Placement's cut set at a natural landing's floor, as the Room's SUPPORT, less the bearings kept; WorldRoutes stays at +33 / −2 |
 | P-1972-6 | Brendan, **"Keep 90 ticks"**: (a) | Authored stair paces move to milli-u/s. Every existing authored pace is rescaled ×1,000, so its ticks stay identical; the 169 u retreat takes exactly 90 ticks |
 
 Indexed in `docs/handoff/RULINGS.md`. Sections "The brief" to "Proposals" are the scoping as it was put.
@@ -634,3 +635,58 @@ Logs are in `scratchpad/activate_m1/`.
 - **(b) The WorldRoutes rule.** Admit natural earth (Space rows plus Terrain footing, without Sites) in both
   `_stair_decks_refusal` and `_stair_covered_refusal`. That is now about 900 characters, because the bodies need it
   too.
+
+## Phase 2e — the trench floor is retained (P-1972-9 (a), 2026-10-16)
+
+**The coordinator's call under P-1972-7 (Brendan, "Natural earth counts").** The retention follows directly from
+that ruling. WorldRoutes stays at its +33 / −2 lines, and no Sites binding is added.
+
+### Built (`underground_entry_bindings.gd`)
+
+- `_stage_natural_support` retains two things, when a landing stands partly on natural earth, 128 u deep, less what
+  is already SUPPORT (the posts' and the sill's bearings):
+  - the natural earth under the landing's footprint;
+  - **every cut cube of the Placement's Frontier cut set whose floor is the landing's floor.** For this bundle that is
+    the whole trench, x ±1024, z −7168..0: the prefix's cubes and rows 4–7.
+- Each part is proved by `_retain_natural`, with the same staging proofs: no Site ever cut it, and only natural
+  matter or support stands in it.
+- `_cut_floor_footing` adds the dry-footing proof at the final pass, under the sealed candidate, over what the
+  installed timber prisms leave of each cut-floor slab.
+- A landing on timber alone is neither retained nor observed.
+
+### Why it blocks no planned dig (the coordinator asked for this analysis)
+
+- **Rooms are cut above their floor, never below it.** A room on the Kitchen level digs y −1024..0 cubes; the strip
+  lies at −1152..−1024.
+- **The claw floor scrape** (decision 1971, P-1971-2 (a)) may enter never-cut natural earth whoever owns it (review
+  M6, "Leave as built"). So a wall dig beside the trench may scrape into the stair Room's strip.
+- **Only a future dig under the stair (slice D) would meet it,** and that is earth the stair stands on. Refusing to
+  undermine it is right.
+
+### Measured (scratch mount, every planned edge published alone after the live descent)
+
+Log: `scratchpad/activate_m1/m1-all-edges-publish.log`.
+
+- **All 33 planned edges past the descent publish:**
+  - the floor end's seven WALK edges, including rows 53, 54 and 55 to and on the floor;
+  - the walk-off and back-up F ↔ F′;
+  - every CARRY edge: H → A(L0), eight descents to F, F ↔ F′, the floor half-turn, eight ascents to U(L0), and
+    U(L0) → H.
+- This was with the gated Routes and WorldRoutes lines applied, and the check bound raised in scratch only (M-2
+  stays open until the cost lane).
+- The descent still ends on tick 8,348 with `ENTRY_KITCHEN_UNBUILT`.
+
+### Tests
+
+- **`test_underground_work_face.gd`:** `test_a_retained_trench_floor_never_blocks_a_room_dig_beside_it`. Another
+  Room's 128 u SUPPORT strip lies under the target cube:
+  - the cube above it is dug as before;
+  - the floor scrape into the strip is admitted;
+  - with the strip's quantum marked cut, the same scrape refuses, which shows it does reach the strip.
+- **`test_underground_entry_bindings.gd`:** 45 pass. A landing on timber alone has no natural strip and no sealed
+  footing observation.
+- **Not yet covered by a committed test:** the cut-set retention itself. Its fixture has one LANDING and no cut floor
+  at a landing's level. It is proved on the live chain above. Its committed assertions land with the mount in
+  `test_underground_host_whole_chain.gd`:
+  - the retained SUPPORT under the trench;
+  - the floor and CARRY edges published after the sill.

@@ -718,9 +718,11 @@ func _unique_datum() -> Vector2i:
 	var owner: Owner = _placements._space
 	if not _fragments.spend(owner._region_capacity):
 		return NULL_REF
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1:
-			continue
+	var row: int = -1
+	while true:
+		row = _next_region(owner, row + 1) # Decision 1952: exactly the rows the `present != 1` test admits.
+		if row >= owner._region_capacity:
+			break
 		if not _fragments.spend(PRESENT_DATUM_CHECKS): # ADR1227: a slot costs 1, a present row 16 in all.
 			return NULL_REF
 		if owner._r_role[row] != Space.FLOOR_DATUM \
@@ -814,9 +816,11 @@ func _retained_earth_refusal(bounds: PackedInt32Array) -> StringName:
 	var owner: Owner = _placements._space
 	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1:
-			continue
+	var row: int = -1
+	while true:
+		row = _next_region(owner, row + 1) # Decision 1952: exactly the rows the `present != 1` test admits.
+		if row >= owner._region_capacity:
+			break
 		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
 			return REFUSE_CAPACITY
 		if owner._r_role[row] == Space.FLOOR_DATUM:
@@ -914,9 +918,11 @@ func _installed_bearing_obstacles(bounds: PackedInt32Array) -> StringName:
 	var owner: Owner = _placements._space
 	if not _fragments.spend(owner._region_capacity):
 		return REFUSE_CAPACITY
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] != 1:
-			continue
+	var row: int = -1
+	while true:
+		row = _next_region(owner, row + 1) # Decision 1952: exactly the rows the `present != 1` test admits.
+		if row >= owner._region_capacity:
+			break
 		if not _fragments.spend(PRESENT_REGION_CHECKS): # ADR1227: a slot costs 1, a present row 12 in all.
 			return REFUSE_CAPACITY
 		if owner._r_role[row] == Space.FLOOR_DATUM or _installed_solid_row(row):
@@ -927,6 +933,12 @@ func _installed_bearing_obstacles(bounds: PackedInt32Array) -> StringName:
 		if Space.overlaps(bounds, _scratch):
 			return REFUSE_BEARING
 	return &""
+
+
+static func _next_region(owner: Owner, from: int) -> int:
+	"""Decision 1952: the first Region row at or after `from` whose present byte is 1, else the region capacity."""
+	var row: int = owner._r_present.find(1, from) if from < owner._region_capacity else -1
+	return row if row >= 0 and row < owner._region_capacity else owner._region_capacity
 
 
 func _installed_solid_row(row: int) -> bool:
@@ -2336,7 +2348,11 @@ func _occupancy_leaf(worker: Vector2i, source_profile: int = -1) -> StringName:
 	var graph: Routes = _placements._routes
 	if not _fragments.spend(16 * Routes.RESIDENT_CAPACITY):
 		return REFUSE_CAPACITY
-	for row: int in Routes.RESIDENT_CAPACITY:
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
+		if row >= Routes.RESIDENT_CAPACITY:
+			break
 		var other: Vector2i = graph._resident_ref(row)
 		if other == NULL_REF:
 			var missing: StringName = Routes.unregistered_body_refusal(graph, row, _location.point) # ADR1219

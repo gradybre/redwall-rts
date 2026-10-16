@@ -39,7 +39,8 @@ class CurrentCensusTests(unittest.TestCase):
         self.assertEqual(result["new_retained_bytes"], {"geometry_journals": 4322,
                          "locations_carry_and_retirement_controls": 6362, "first_entry_runtime_chain": 15131,
                          "cold_load_images": 196694, "claw_stair_tables": 9580, # ADR1229: the T1-T6 plan and tables
-                         "room_dig_runtime": 5349494}) # decision 1936: the room-dig runtime at every bound
+                         "room_dig_runtime": 5349494, # decision 1936: the room-dig runtime at every bound
+                         "world_routes_endpoint_memo": 140872}) # decision 1952: the endpoint-proof memo
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
@@ -135,7 +136,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (105600884, 150000000, 44399116)) # ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration
+                         (105741756, 150000000, 44258244)) # ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "56956202daac675f98b920708be4a9dcaba20b3f3d3c9d4203fb52b9f236d71a",
+	"fingerprint": "c6805b71adf7bb7fe287bed2a41fda4e7cc58ba087fa809b8332076a61a33d50",
 	"name": "underground_spare",
 	"points": {
 		"install_0_stage_10": {
@@ -90,7 +90,7 @@
 		"res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd": "496231c3141f63cf1b1d5159072724f4f1d86391bcfbfd04ce0ceb7e7c0f80f5",
 		"res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd": "343b97f6c4e7952135cdd4ca0f46cb7bdf4c356bbf3d86dbf967e2421a4277fc",
 		"res://data/underground/mole-worker/qualified-claw-stair-motion-v1/stair-motion.ugstair": "e7840c7babc9bbe21c8f8c36a3d3a313172bc4a3adff9f13dcd6f4a99c25a58b",
-		"res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "5f05ae1594fdbc16cc430428dc8188db8444f236bc64205675c5bc7a772d44de",
+		"res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "a72988fa3653b2b69b856f96b0de84a7d2037a3ece49e3bbb92e1b3845e5e57d",
 		"res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof": "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317",
 		"res://data/underground/mole-worker/qualified-stone-v7/catalog_source.gd": "ddd48b8fedc78dac0b1c2a541f0e9781634e6f9261a25ff78893ef116274ad95",
 		"res://data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd": "3797ac7d4312e45217257380df1475d5d6d0732a41a2b0327c381e1af2876f87",
@@ -259,7 +259,7 @@
 		"res://scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
 		"res://scripts/core/underground_locations.gd": "a83a17fe5c8eac8f362a8a4ecbef71c2c6b118396c05eecabad53b7f205332e0",
 		"res://scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
-		"res://scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
+		"res://scripts/core/underground_profiles.gd": "326d280310d26ecb8eb69a963fc6245d8f67c1f85b66b164a39c371a3f4974ec",
 		"res://scripts/core/underground_room_approach.gd": "e91c201435c81d6baf9f84dda87c817cf0bdd5b799167e55e5986798fade4404",
 		"res://scripts/core/underground_room_bindings.gd": "599a60a94cfc369c3e0c7ec0d0c8321d5048975c7aa77272a78db6fd8b161b28",
 		"res://scripts/core/underground_room_composition.gd": "fe9e3bd89b64290309520c54f7ea1c353de10e414b926f9979ca8f84fc91beff",

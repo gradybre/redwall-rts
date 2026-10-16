@@ -1,7 +1,8 @@
 # 1981 — One basic stair carry: scoping, stopped for rulings
 
-Date: 2026-10-15 · Status: Accepted. Brendan ruled P-1981-1, -2, -3 and -6, and the coordinator P-1981-4 and -5, on
-2026-10-15 (see "Rulings"). Phase 2 (the build) follows in this record's later sections.
+Date: 2026-10-15 · Status: Accepted. Brendan ruled P-1981-1, -2, -3 and -6, and the coordinator P-1981-4, -5 and -7,
+on 2026-10-15 (see "Rulings" and "The coordinator's ruling on P-1981-7"). Phase 2 is built: content 12 is published,
+data only and not active ("Phase 2 — what was built").
 
 Number range: 1981–1989 was allocated to this lane by the coordinator, and checked free on every local and remote
 ref. This is the lane record; later records of the lane take 1982 onwards. Branch `feat/stair-carry`, from
@@ -385,3 +386,235 @@ here for a ruling (P-1981-7, below).
   floor. The gaits alone cannot supply a room (P-1981-1 (c)).
 - **(c)** A new on/off motion for the loaded mole, or a re-posed hold. This is new motion with a review, against
   "keep it basic".
+
+### The coordinator's ruling on P-1981-7 (2026-10-15)
+
+**(a).** The planted feet at each handoff's first and last keys are decided from the starting pose: a foot is
+planted when its lowest point lies within the checker's contact distance. This is done in a wrapper inside the
+stair-carry author. `author_stair_handoffs.py` and the checker are left unchanged, and every planted foot must still
+show continuous contact.
+
+The coordinator's reason: it changes no pose, recipe, foot path or body path. It corrects the proof's configuration,
+reproduces "left only" for the standing pose, and keeps the check as strict as before.
+
+**Where the failure came from.** It came from the approved author's single-planted-foot assumption at its endpoints,
+not from the motion. The diagnostic table above is the evidence.
+
+## Phase 2 — what was built (2026-10-15)
+
+Everything below is data only and **not active**. The activation inventory is at the end.
+
+### The clips (`mole-worker/stair-carry-v1/`)
+
+**`stair_carry_source.py`: the pinned closure.**
+- The closed-paw body.
+- The log, and the stone exactly as the stone image draws it.
+- Each item's approved `hold` key, pinned by the digests the v10 haul images record.
+- The corrected stand key 8.
+- Each item's certified grip witnesses.
+
+**`author_stair_carry.py`: the accepted authors, unchanged, on the hold.**
+- M7's descent and ascent recipes.
+- ADR 1142's approach, retreat and turn.
+- The back-up is the approach exactly reversed.
+- The empty walk-off and back-up are the same handoffs on the stand.
+
+The P-1981-7 wrapper (`endpoint_support`) only records the derived endpoint mask. Its rule (`planted_mask`) is: a foot
+is planted when its lowest exact source vertex lies in [0, 1) u of the floor. That gives both feet for each hold and
+the left foot alone for the stand, which is the author's own value.
+
+Results:
+- Hips, bones 9–23 and the load column equal the hold bit for bit on every key of every loaded clip.
+- No arm swing.
+- Clips: 6 per item (91 keys each, the turn 271) and the empty pair (91 each), in `evidence/clips-v1/`.
+
+**`prove_stair_carry.py` → `evidence/proof-v1.json`: clear, all 52 proof rows.**
+
+| Proof | Wood | Stone |
+|---|---|---|
+| Descent: terrain, flight L0 → T5, bottom T5 → T6 → floor | 688, 4,128 and 1,376 pairs | the same |
+| Ascent: terrain, flight T5 → L0, **bottom floor → T6 → T5** | 798, 4,788 and 1,596 pairs | the same |
+| Approach on L0 and on the floor; retreat on L0; turn on the floor (handoff prover) | 883, 883, 888 and 2,212 checks | the same |
+| Arm self-clearance, every clip | clear | clear |
+| Body against load, every clip | 0 broad-phase pairs | 4,500 pairs (turn 13,500), 0 unresolved; star containment: no key |
+| Continuous two-hand grip, every interval of every clip | clear | clear |
+
+- **Back-ups.** Each back-up is proved by its approach's runs: every rendered interval is the same pair of keys.
+- **The empty floor end:**
+  - the walk-off on the floor: 869 checks, and self-clear;
+  - claw row 55 on the floor: 2,190 checks;
+  - claw row 54 from the floor up to T5: 781 terrain pairs and 1,562 bottom pairs.
+  - The claw clips were rebuilt from their own authors and checked against their stored bytes.
+
+The handoff fixtures are the bottom fixture (L0, T0–T5, the sill, the floor and the seventh row):
+- translated so that F stands at the approach's start, or at T0's A for the turn;
+- with the floor slab swapped in as the standing deck;
+- the turn is translated as step 5b translated it per tread.
+
+**`native_stair_carry.py`: two images.** It uses the accepted encoder, runner, capture scripts and verifier equations.
+Both ran on the real Metal backend:
+
+| Image (source) | Clips | Content | Rows | Mismatches | Max vertex error (u) |
+|---|---|---|---:|---:|---|
+| wood (6) | hold, the six loaded clips, the empty pair (mask body only, the S fixture stock hidden) | `3f0765ed…` (1,096,408 B) | 10,839 | 0 | 0.00013 body, 0.00087 log |
+| stone (7) | hold, the six loaded clips | `53f4a5c4…` (877,184 B) | 8,673 | 0 | 0.00008 body, 0.00086 stone |
+
+Each image's verification also covered:
+- 17,346 exact two-hand witnesses;
+- every clip's ends on its hub;
+- the back-ups as exact reversals;
+- cross-image joins with the v10 haul images (the hold, and stand key 8 for the empty pair);
+- a floor gap of at least 0.00095 u on every flat clip.
+
+The descent and ascent are root-local: their support is proved on the terrain, flight and bottom fixtures.
+
+**`derive_stair_carry_rows.py` → `evidence/rows-v1.json`: rows 71–84.** Each row has 3 boxes (body and load,
+stance, recovery). The derivations follow `derive_stair_rows`:
+- the gaits: `rooted_row` over the body and the load, each with its native cardinal residual;
+- the handoffs: `turn_row`, from the prover's interval enclosures of every part;
+- the back-ups: the approach rebased to its end.
+
+For example, the wood descent's body box is [−424, −130, −949, 434, 850, 235].
+
+**`derive_stair_carry_tables.py` → `evidence/tables-v1.json`: root, heading and deck per key.** The loaded gaits and
+the turn equal content 10's rows 53, 54 and 55 key for key; the tool refuses otherwise.
+
+### Engineering choices (recorded so they are not undone by accident)
+
+1. **Four rooted words, not one.** Profiles' `_overlap_keys` makes two rows ambiguous when they share policy, physical
+   key and heading.
+   - At yaw 0 a loaded item has four rows: approach, descent, turn and back-up. At yaw 32768 it has two: ascent and
+     retreat.
+   - So one word cannot hold them. The family is `POLICY_ROOTED_TRAVEL` (10, the forward handoffs, the name the
+     coordinator cleared), `POLICY_ROOTED_BACKWARD` (11), `POLICY_ROOTED_STAIR` (12) and `POLICY_ROOTED_TURN` (13),
+     mirroring the short-step, stair and stair-turn split.
+   - The edit stays within "the policy word and what loading content 12 needs".
+2. **Every new row names connector family 0 (EARTH_TIMBER), the approach and back-ups included.**
+   - DEC-050's 90 ticks for a handoff (P-1981-3) can only be an authored connector pace.
+   - A ground edge (family −1) takes Movement's cap, which would cross 343 u in 4 ticks.
+   - So the stair carry's edges belong to the stair's Placement.
+3. **`selection_policy_leaf` is unchanged.** Rooted rows read as policy −1, unselectable, until activation, so no live
+   caller can select them even if content 12 were loaded.
+4. **New sources rather than successor haul images.** No published image digest moves.
+5. **The images carry the hold.** It is the loaded rows' READY hub and the target of the cross-image join.
+6. **The tables keep the claw tables' wire, version 1.** Their last program field is the clip ordinal in the row's
+   own image (source 6 or 7).
+
+### Content 12 (`mole-worker/qualified-stair-carry-v13/`) and its tables
+
+- **`publish_stair_carry_runtime.py`.** Content 11 plus sources 6 and 7 and rows 71–84:
+  - the empty pair takes row 31's words, wood row 32's and stone row 37's;
+  - each row's yaw is exact, its family is EARTH_TIMBER, and its policy word is 10–13;
+  - wire `12c0160a…`: 85 rows, 637 boxes, 8 sources;
+  - the paired bank is 52,908 B, 5,224 B more than content 11's;
+  - the ground caps are content 11's at revision 12, and the motion bank is rebound;
+  - the manifest says `runtime_admitted: false`.
+- **`publish_stair_carry_motion.py` → `qualified-stair-carry-motion-v1/`:** 14 programs, 1,634 keys and 18 decks,
+  33,856 B. The claw tables stay as they are.
+- **`underground_profiles.gd`** (cleared, P-1981-5):
+  - the four constants;
+  - `is_rooted_policy` and `_policy_mode`;
+  - the policy checks move into `_policy_refusal`, which shortens `_profile_refusal`;
+  - a rooted row is YAW_EXACT, holds no tool, and carries a cargo exactly when its mode is CARRY;
+  - the uncertified bound moves from 9 to 13;
+  - no other rule changes.
+- **Consumer pins renewed** (`renew_source_pins.py --write`, contents 10 and 11). Two tests that used 10 as "the first
+  unknown policy" now use `POLICY_ROOTED_TURN + 1`.
+- **The memory census.**
+  - Profiles' reviewed row records the four constants (no storage), and `REVIEWED_SHA` is bumped.
+  - The pack is regenerated: live with reserve is still 100,250,607 B.
+  - Content 12's profile bank (+5,224 B) is charged at activation: 270,824 of `PROFILE_BYTES` 278,528, leaving 7,704 B.
+- **Checkpoints.** The two ADR 1240 checkpoints (`underground_entry`, `underground_spare`) were regenerated. Only
+  their fingerprints moved.
+
+### Tests
+
+- `godot/test/test_mole_stair_carry_profiles.gd` (17 tests) loads content 12 through the actual loader and validator.
+  - Rows 0–70 are unchanged.
+  - The new rows' words, units, headings, families and policy words.
+  - The derived load box.
+  - Rooted rows are not selectable.
+  - The predicates.
+  - Ten negative edits through the real loader: no cargo; cargo when walking; a tool; free heading; WORK mode; a
+    loaded row under POLICY_STAIR or a short-step word; an ambiguous key; policy 14; and item 0 admitted.
+- Python tests:
+  - `test_publish_stair_carry_runtime.py` (8);
+  - `test_publish_stair_carry_motion.py` (8);
+  - `stair-carry-v1/test_stair_carry.py` (13). Its rebuild tests re-author every clip and re-derive the rows and
+    tables byte for byte.
+
+### Frames (gate)
+
+`scratchpad/staircarry_check/{1280x720,1920x1080}/` holds ten frames each. They come from a scratch capture script,
+not committed: the actual wood image on the actual body, posed by the actual Actor at the derived roots over the
+bottom fixture's boxes, with the near trench wall hidden so the camera sees in.
+
+- **Down:** the approach on L0, the descent L0 → T0, T2 → T3, T6 → floor, and the walk-off.
+- **Up:** the back-up, the turn on the floor, the ascent floor → T6, T3 → T2, and the retreat on L0.
+
+They read as a mole walking the stair with the log held across its chest in both paws. The feet are on the treads
+and the log is clear of the steps both ways.
+
+### Mutation testing
+
+**22 mutants, 22 killed** (scratch runner, one mutant per run; the Godot suites run without the pin preflight, which
+would otherwise refuse every mutated consumer).
+- **Profiles (13):** the bound, the predicate's ends, the tool, cargo and mode rules, the WORK modes, the constant.
+- **The two publishers (5):** ambiguity, key order, row grouping, deck index, root frame.
+- **The author (4):** the contact cell, the floor and support refusals, the wrapper's restore.
+
+The first pass left A01, the contact cell widened to 3 u, alive. A boundary test now lifts a hold 1.5 u and requires
+the refusal.
+
+## Activation inventory for content 12 (P-1981-4 (a))
+
+**The content-11 activation lane** switches content 12 on with content 11:
+
+- **Catalog and Session:**
+  - `mole_profile_catalog.gd`: content 12's accessor; `SOURCE_COUNT` 8;
+  - the image census and pins of sources 6 and 7;
+  - `PROFILE_BYTES` accounting (+5,224 B).
+- **Presentation:**
+  - `mole_presentation.gd` / ContentSet: load the two images;
+  - a stair presenter for sources 6/7 (today `present_stair` refuses any source but the claw's);
+  - the empty pair's body-only mask;
+  - stage the images for the demo pack (decision 1841).
+- **Profiles selection:**
+  - `selection_policy_leaf` returns 10–13;
+  - `query_travel_profile_into` admits the rooted words with the mode the caller asks for: WALK, or CARRY with the
+    actor's committed cargo.
+- **Routes** (cost lane's file):
+  - dispatch rows 71–84 to a rooted stair program (`qualified-stair-carry-runtime-v1/stair_program.gd`, the twin of
+    runtime-v2's);
+  - `refresh_travel_actor` for CARRY;
+  - the switch at rest at the hold hub (loaded) and at the stand hub (empty).
+- **The stair motion owner:** a successor of `underground_stair_motion.gd` that also loads
+  `qualified-stair-carry-motion-v1/` (14 programs; census +33,856 B).
+- **WorldRoutes:** qualify CARRY stair edges for rooted rows from the tables, as for rows 51–55:
+  - `_kind_matches` already compares modes;
+  - the floor stops' decks are the trench floor's, not installed timber.
+- **The connector catalog** (`_pace_row_refusal`):
+  - authored paces for rows on sources 6/7, which today must be on `header[10]` (source 4);
+  - CARRY rows on the stair's WALK variant (P-1981 §3's narrowing, or a second variant).
+- **The bundle successor** (`qualified-stairs-v10`):
+  - DEC-050's paces for rows 71–84: 30 ticks a tread, 45 the turn, 90 each handoff;
+  - the stops H (L0, −1536), F (−5975), F′ (−6318) and the floor's ascent start (−5801);
+  - the T6 and floor stops' footing.
+- **`underground_entry_stair_path.gd`:**
+  - the new stops and CARRY edges;
+  - the edges below T5 (empty: 53 down to the floor, 54 up from it, 55 on the floor, rows 71/72);
+  - a mode-aware `_joined`.
+- **The grip certificate:** admits content 12 and the rooted CARRY rows at the hold (the grip is the hold's).
+- **Tests and fixtures:**
+  - the stair route fixtures;
+  - pins (`renew_source_pins.py`);
+  - checkpoints;
+  - the memory census row for the tables.
+
+**C2.3** binds Delivery and the hauler, and retires `ROOM_HAUL_NO_STAIR_CARRY`:
+
+- **`underground_connector_delivery.gd`:** the leg-by-leg reach. Ground carry (32/37) to H, the rooted stair-carry
+  legs by a static per-leg edge certificate check, then ground carry from F′ to the room's stand. The destination is
+  the room branch's storage.
+- **`underground_entry_hauler.gd`:** the loaded leg list and the empty return list, from a stateless helper over the
+  live graph. The save record changes: `Progress.MAX_WIRE_BYTES`, the section-6 `max_count`, and a census row.

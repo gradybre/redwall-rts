@@ -1,6 +1,7 @@
-# 2021 — Slice D1 scoping: entrances and ways down as per-family items in the build panel (stopped for rulings)
+# 2021 — Slice D1 scoping: entrances and ways down as per-family items in the build panel
 
-Date: 2026-10-16 · Status: Proposed. Scoping only; no code is changed. The PROPOSALS at the end wait for Brendan.
+Date: 2026-10-16 · Status: Accepted. Brendan ruled all twelve PROPOSALS (a) on 2026-10-16 (below); the build follows
+in decision 2022.
 
 Number range: 2021–2039 (slice D1's, given by the slice D coordinator, session `dbd322db`); 2021 is this scoping
 record. It replaces no BACKLOG range. Branch `feat/build-slice-d1` from origin/master `c11da82e`.
@@ -327,6 +328,26 @@ Each has a recommendation; one answer per line is enough.
   way in first" (X) used as written; on the card, "Climbers only: loads need a stair or ramp" and "Placeholder: sizes
   and costs await review"; (b) other words.
   **Recommend (a)**.
+
+## Brendan's rulings (2026-10-16)
+
+Relayed by the coordinator: on 2026-10-16, in chat, using the AskUserQuestion tool, Brendan chose the recommended
+option on **all twelve** proposals. The nine routine ones were approved together; three were asked on their own.
+
+| Item | Ruling |
+|---|---|
+| P-D1-1 | **(a)**: Burrow mouth, Hatch with ladder and Stair-head on every level that has them; Stone and Spiral locked |
+| P-D1-2 | **(a)**, **"Use the table, marked"**: the placeholder table is used, every size and cost labelled "placeholder" on the card and ledger; nothing goes into SET-BUILD-001 §9 (D-flight's 2041 may still replace the Stair-head row) |
+| P-D1-3 | **(a)**: the connector card as UI-BUILD-012 |
+| P-D1-4 | **(a)**: ways Up now; level 4 gets an Up-only card |
+| P-D1-5 | **(a)**: below the Surface, a way stands on a Passage only |
+| P-D1-6 | **(a)**, **"Real check now"**: the connectivity check on Mound door removal and on a new removal of a confirmed way down |
+| P-D1-7 | **(a)**: a confirmed but unbuilt way counts as a way in |
+| P-D1-8 | **(a)**: a hatch is a way in in the proof of concept; its card says "Climbers only" |
+| P-D1-9 | **(a)**: the landings reader bound in the demo; the game's with D2 and slice G |
+| P-D1-10 | **(a)**: `begin_underground_entry` is not wired in D1 |
+| P-D1-11 | **(a)**, **"All three types"**: the mole digs the Burrow mouth, Hatch and Stair-head, free |
+| P-D1-12 | **(a)**: the new words as worded |
 
 ## Gates (this record)
 

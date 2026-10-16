@@ -1,6 +1,7 @@
 # 1951 — Dig-tick cost: a benchmark, four exact speed-ups, and what still exceeds REQ-SET-163
 
-Date: 2026-10-15 · Status: Accepted for the engineering changes; P-1951-1 to P-1951-4 are proposals awaiting Brendan.
+Date: 2026-10-15 · Status: Accepted. Brendan approved P-1951-1 (a), P-1951-2 (c) then (a) and P-1951-3 (a) on 2026-10-15
+(see "Brendan's rulings"); P-1951-4 was not proposed.
 
 Lane DIG-TICK-COST, branch `perf/dig-tick-cost`. It was ruled by Brendan on 2026-10-12 as P-C2-2 (a) of decision 1931
 ("a separate cost lane ... fixes the 6.4 ms per working tick the excavation owners cost"), with **no rule changes**.
@@ -350,3 +351,51 @@ full suite: 12,515 tests, 0 failures, 0 unexpected diagnostics, 0 leaks.
 - Decisions 1205, 1212, 1213, 1219 and 1931 (`a0da1dce`), and P-C2-2 (a) (`docs/handoff/RULINGS.md`).
 - The coordinator's 2026-10-15 brief, which allowed revision counters on Residents, Needs and Directory.
 - The benchmark and traces described in §1 and §4.
+
+## Brendan's rulings (2026-10-15)
+
+Brendan's ruling, in chat on 2026-10-15 and relayed by the coordinator, was **"Approve"** for this record's
+recommendations:
+
+- **P-1951-1 (a).** Productive Work's worker and contact re-check becomes event-driven, keyed on owner revisions, with
+  no rule change.
+- **P-1951-2 (c) then (a).** First an exact spatial index of the proof's volume rows. Then refused profiles are also
+  skipped when unchanged, which needs a revision on the surface exclusions.
+- **P-1951-3 (a).** `ShortStep.uses()` and `Assembly.uses()` are cached against a Profiles load revision.
+- **P-1951-4** was not proposed, so it is not taken.
+
+The work continues on `perf/dig-tick-cost-2`, cut from this branch's merged head, with decisions 1952–1969. The
+coordinator cleared that lane for the following files:
+
+- `underground_room_world_bindings.gd` `worker_refusal` and `output_refusal` (C2.1 has merged);
+- the routes and proof files;
+- the Profiles load revision in `underground_profiles.gd`, kept separate from the stair-carry lane's
+  `POLICY_ROOTED_TRAVEL`.
+
+## Merge with master (2026-10-15)
+
+The branch was merged with `origin/master` `a29d285c`, which adds:
+
+- #260: the universal claw stroke (content 11, inactive), plus guards in `underground_work_face.gd`, the room frontier
+  and world bindings, and `underground_space_authority.gd`;
+- #261: rounded walls (demo only);
+- #262: the C2.1 room foreman.
+
+**Conflicts.** All the conflicts were in generated files: the source-pin manifest, the census pins, the census pack and
+the checkpoint manifests. They were resolved to master's side, and then:
+
+- the pins were renewed;
+- the ADR 1212 projection was re-run, re-adding this record's four reviewed-delta rows and charges;
+- the pack, the capacity audit and both checkpoints were regenerated. The checkpoint save bytes equal master's.
+
+**`underground_routes.gd`** is now 244,295 characters, against the 262,144-character cap that `mole_profile_catalog.gd`
+applies to pinned consumers. That leaves 17,849 characters of headroom for the activation lane's Claw3 dispatch and
+later work.
+
+**Behaviour on the merged tree.** The benchmark was run, traced, on a worktree of master `a29d285c` (with the benchmark
+files copied in) and on the merged branch. On master the room fixture now digs 16 cubes in 7,869 ticks, because C2.1
+changed the Kitchen; the benchmark follows `KITCHEN_SITES`. The traces are 11,453 lines, with 11,331 distinct
+per-tick hashes. **They are byte-identical between master and this branch.**
+
+The other merge gates are recorded at hand-back, in the coordinator's report.
+

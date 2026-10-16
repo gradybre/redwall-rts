@@ -550,6 +550,9 @@ func _contact(site: Vector2i, key: int) -> StringName:
 	result.edges.resize(4 * Publication.MAX_STATIONS)
 	var code: StringName = Planner.next_contact_into(o.provider, o.sites.room_of(site), key - 1, cold, Space.MAX_CHECKS,
 		candidate, contact, request, result)
+	if code == Frontier.REFUSE_ACTIVE and candidate.site == site: # P-1933-2 (a): a paid phase is taken over.
+		code = Frontier.resume_contact_into(o.provider, candidate, o.provider._ordinary_retreat, _ctx.forward,
+			_revision(_ctx.forward), cold, Space.MAX_CHECKS, contact)
 	if code == &"" and (candidate.key != key or candidate.site != site): code = REFUSE_TARGET
 	if code == &"":
 		_station = contact.location

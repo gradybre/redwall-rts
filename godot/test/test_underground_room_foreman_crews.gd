@@ -12,6 +12,8 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
+const Runtime := preload("res://scripts/core/underground_room_runtime.gd")
+const Needs := preload("res://scripts/core/needs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const KITCHEN_SITES: int = ForemanTests.KITCHEN_SITES
 const TICK_BOUND: int = ForemanTests.TICK_BOUND
@@ -226,3 +228,49 @@ func test_a_full_spoil_pile_stops_the_room_before_any_unpaid_cut() -> void:
 	assert_equal(_h._construction.live_project_count(), 0, "the unstarted CUT was cancelled, no Project left")
 	assert_equal(_h._jobs.job_of(_h._residents.directory().get_typed_row(_h._worker)), NULL_REF, "the mole holds no Job")
 	assert_equal(_h._routes.read_actor_into(_h._worker, Routes.Actor.new()), &"ROUTE_ACTOR_NOT_REGISTERED", "no route actor")
+
+
+func test_a_paid_phase_left_by_a_lost_builder_is_taken_over_up_to_the_room_bindings() -> void:
+	"""P-1933-2 (a): the first builder dies earning its BRACE; the dig stops and keeps the paid phase (its actor is
+	removed, ADR1225). Re-ordered with another mole, the new builder takes that phase over: the frontier's resume
+	contact proves its station, it takes the Site's own Job and walks there, and no second input is claimed. The room
+	bindings then refuse to bind a new worker to a started phase (`ROOM_PHASE_WORKER`: their worker check needs the
+	worker already registered once work has begun), so the paid phase stays kept: the named gap of decision 1937."""
+	_h = WideKitchen.new()
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var runtime: Runtime = Runtime.new(_h._residents.directory())
+	assert_true(runtime.bind_owners(_h.owners()), "owners")
+	assert_equal(runtime.order_room(room, _h.material, _h.material), &"", "ordered")
+	assert_equal(runtime.start_room(room, _h.owners(), [_h.crew_member()] as Array[Builder.Crew]), &"", "started")
+	var first: Builder = runtime.foreman_of(room).builders()[0]
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		runtime.advance(_h.tick)
+		if first.stage() == Builder.STAGE_EARN and first.accepted_mwu() > 0: break
+	var row: int = _h._residents.directory().get_typed_row(_h._worker)
+	_h._jobs.needs()._status[row] = Needs.STATUS_DEAD # Negative-only: death mid-phase.
+	_h._jobs.needs()._health[row] = 0
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		runtime.advance(_h.tick)
+		if not runtime.is_running(): break
+	assert_equal(runtime.state_of(room), Runtime.RECORD_STOPPED, "stopped, the dead builder's actor removed")
+	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE kept")
+	assert_equal(runtime.release_room(room), &"", "released")
+	var wood: int = _h._inventory.lot_quantity_milli(_h.stock_wood)
+	var second: Builder.Crew = _h.second_member(SECOND_PARKING)
+	assert_equal(runtime.order_room(room, _h.material, _h.material), &"", "ordered again")
+	assert_equal(runtime.start_room(room, _h.owners(), [second] as Array[Builder.Crew]), &"", "started again")
+	var taker: Builder = runtime.foreman_of(room).builders()[0]
+	var seen: Array[StringName] = []
+	var reached: bool = false
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		seen.append_array(runtime.advance(_h.tick))
+		reached = reached or (taker._resuming and taker.stage() == Builder.STAGE_START)
+		if not seen.is_empty(): break
+	assert_true(reached, "the paid phase taken over, the builder at its station")
+	assert_equal(seen, [&"ROOM_PHASE_WORKER"] as Array[StringName], "the room bindings' worker check, named")
+	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), wood, "no second input claimed")
+	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE still kept")

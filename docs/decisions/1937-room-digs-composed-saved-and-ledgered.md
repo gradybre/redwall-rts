@@ -254,6 +254,10 @@ a day of work with their own parity proof. The cap is a gameplay constant, so it
   killed. 2 are **equivalent**: the in-place i64 comparison and the per-byte code comparison. An i64 decodes and
   re-encodes losslessly, and the Reader accepts only canonical codes (printable ASCII, then zero padding), so neither
   can differ from the record it was read from.
+- **Gates after the rulings (at `24a41d85`):** CI-style full suite, 522 suite files once across 10 shards, 12,682
+  tests, 0 failures, nothing leaked; analyzer 0 warnings; all 26 contract checks pass. Live 105,600,884 B, headroom
+  exactly **44,399,116 B**; C+G's projection leaves 4,176,396 B for slice G. The resume gap stays pinned
+  (`ROOM_PHASE_WORKER`) until `perf/dig-tick-cost-2` lands.
 
 ## Source
 

@@ -231,7 +231,7 @@ func test_a_column_s_next_cube_hauls_from_its_station_on_the_retreat_family() ->
 	_run_until(foreman, func() -> bool: return builder.column_cubes() == 1)
 	assert_equal(builder.stage(), Builder.STAGE_TO_STORE, "to M from the station")
 	assert_false(builder._leg_profiles.is_empty(), "real legs to walk")
-	assert_equal(Vector2i(builder._approach_legs[0], builder._approach_legs[1]), _h._first, "the approach starts at M")
+	assert_equal(Vector2i(builder._plan.approach_legs[0], builder._plan.approach_legs[1]), _h._first, "the approach starts at M")
 	var code: StringName = &""
 	for step: int in 3000:
 		_h.tick += 1

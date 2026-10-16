@@ -2220,8 +2220,8 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Planned legs | `_legs`, `_leg_profiles`, `_home_legs`, `_home_profiles` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges each way) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
-| Haul plan | `_queue`, `_approach_legs`, `_approach_profiles` | 4 | never allocated | Empty unless a BRACE lacks inputs; refilled by each plan | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1934 (C2.2). The whole units the cube's BRACE lacks (compiled item ids, one per trip) and the claimed way from the storage to the station, walked after the haul. The hauler itself (`underground_entry_hauler.gd`, unchanged) keeps the trip cursor. Not saved yet: C2.3 owns the room dig's save, as ADR1218 saves the entry's haul. Saved with the builder's cursor by C2.3? |
+| Planned legs | `_legs`, `_leg_profiles` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges each way) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
+| Haul plan | `_queue` | 4 | never allocated | Empty unless a BRACE lacks inputs; refilled by each plan | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1934 (C2.2). The whole units the cube's BRACE lacks (compiled item ids, one per trip) and the claimed way from the storage to the station, walked after the haul. The hauler itself (`underground_entry_hauler.gd`, unchanged) keeps the trip cursor. Not saved yet: C2.3 owns the room dig's save, as ADR1218 saves the entry's haul. Saved with the builder's cursor by C2.3? |
 
 ### `godot/scripts/core/underground_room_footprint.gd`
 
@@ -2253,6 +2253,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Composite dispatcher | -- | -- | -- | No members but the host's two runtime readers | 3 | -- | Decision 1936 (review H4). Jobs' one dispatcher: it owns what either the entry or the room runtime owns, and reserves whom either reserves. Its answers are the runtimes', derived from saved Jobs, Construction and Routes state; it is bound again at every mount, so nothing is saved. |
+
+### `godot/scripts/core/underground_room_claim.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Cube plan | -- | -- | -- | Public packet lists (home, approach and storage legs, trip edges, stands, carried rows), empty while idle; at most `MAX_LEGS` = 16 legs per list, `MAX_TRIP_EDGES` = 32 trip edges, 2 stands and 2 carried rows | 1 | §6 AUXILIARY_STATE | Decision 1936: a builder's cube plan (the way back, the way there, the walk to the storage, each trip's searched edges and the stands). The footprint is swept from it at planning and again after a load, so the boxes are never saved. Saved with the builder's cursor inside `underground_room_progress`'s record. |
 
 ### `godot/scripts/core/underground_room_composer.gd`
 

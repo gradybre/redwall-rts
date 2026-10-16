@@ -39,6 +39,7 @@ const Needs := preload("res://scripts/core/needs.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
 const Walk := preload("res://scripts/core/underground_room_walk.gd")
+const Claim := preload("res://scripts/core/underground_room_claim.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_IDLE: int = 0
 const STAGE_TRAVEL: int = 1
@@ -136,8 +137,7 @@ var _station: Vector2i = NULL_REF
 var _work_profile: int = -1
 var _at: Vector2i = NULL_REF
 var _legs: PackedInt32Array = PackedInt32Array()
-var _home_legs: PackedInt32Array = PackedInt32Array() # The way back claimed with the cube, walked as claimed.
-var _home_profiles: PackedInt32Array = PackedInt32Array()
+var _plan: Claim = Claim.new() # Decision 1936: the cube's planned legs and trips, its footprint swept from them.
 var _foot: Footprint = null
 var _leg_profiles: PackedInt32Array = PackedInt32Array()
 var _leg: int = 0
@@ -151,8 +151,6 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _actor: Routes.Actor = Routes.Actor.new()
 var _tick: Work.TickResult = Work.TickResult.new(false, &"")
 var _queue: PackedInt32Array = PackedInt32Array() # Whole units the cube's BRACE still lacks, in bill order.
-var _approach_legs: PackedInt32Array = PackedInt32Array() # With a haul: the claimed way from the storage on.
-var _approach_profiles: PackedInt32Array = PackedInt32Array()
 var _hauler: Hauler = null
 var _departed: bool = false # Set off for the cube (or home): the claimed footprint, not the body, is occupied.
 var _haul_store: Vector2i = NULL_REF # The storage and staging endpoints the haul was planned between.
@@ -410,33 +408,35 @@ func _level_refusal() -> StringName:
 
 
 func _plan_claim(store_anchor: int) -> StringName:
-	"""The cube's whole footprint before setting off: the way back (kept for going home), the station's work and the
-	way there; with a haul that way runs to the storage, through the trips and on from the storage. The legs left
-	planned are the first ones walked."""
-	_foot.clear_claim()
+	"""The cube's whole plan before setting off: the way back (kept for going home), the way there and, with a haul,
+	the walk to the storage (along `store_anchor`'s family) and the trips; then its footprint is swept from the plan.
+	The legs left planned are the first ones walked."""
+	_plan.clear()
+	_plan.start = _at
 	var code: StringName = _plan_legs(_station, _crew.parking, _ctx.backward, false)
 	if code != &"": return code
-	_claim_legs(_station)
-	_home_legs = _legs.duplicate()
-	_home_profiles = _leg_profiles.duplicate()
-	var point: Vector3i = _point(_station)
-	_foot.sweep(point, point, _work_profile)
-	if _queue.is_empty(): return _plan_approach(_at)
-	code = _plan_approach(_store())
+	_plan.home_legs = _legs.duplicate()
+	_plan.home_profiles = _leg_profiles.duplicate()
+	if not _queue.is_empty():
+		_plan.store = _store()
+		code = _plan_trips()
+	if code == &"": code = _plan_legs(_plan.store if _plan.hauls() else _at, _station, _ctx.forward, true)
 	if code != &"": return code
-	_approach_legs = _legs.duplicate()
-	_approach_profiles = _leg_profiles.duplicate()
-	code = _claim_trips()
-	if code == &"": code = _plan_legs(_at, _store(), store_anchor, false)
-	if code == &"": _claim_legs(_at)
+	_plan.approach_legs = _legs.duplicate()
+	_plan.approach_profiles = _leg_profiles.duplicate()
+	if _plan.hauls():
+		code = _plan_legs(_at, _plan.store, store_anchor, false)
+		_plan.store_legs = _legs.duplicate()
+		_plan.store_profiles = _leg_profiles.duplicate()
+	if code == &"" and not _plan.bounded(): code = REFUSE_FOOTPRINT
+	if code == &"": _sweep_claim()
 	return code
 
 
-func _plan_approach(from: Vector2i) -> StringName:
-	"""The way from `from` to the station on the forward family, claimed."""
-	var code: StringName = _plan_legs(from, _station, _ctx.forward, true)
-	if code == &"": _claim_legs(from)
-	return code
+func _sweep_claim() -> void:
+	"""The footprint swept from the plan (the same at planning and after a load)."""
+	_plan.sweep_into(_foot, _ctx.owners.locations if _ctx.owners.locations != null \
+		else _ctx.owners.binding._locations_ref.get_ref(), _ctx.owners.routes, _station, _work_profile)
 
 
 func _store() -> Vector2i:
@@ -444,29 +444,29 @@ func _store() -> Vector2i:
 	return _ctx.owners.inventory.spatial_location_of(_ctx.storage)
 
 
-func _claim_trips() -> StringName:
-	"""The trips' footprint along the routes Routes would take: empty on the haul WALK row from the storage to the
-	staging stand, between the stands and back onto the storage; loaded on each item's CARRY row between the stands;
-	and the item's lift and set-down rows standing at the two stands (ADR1206: lift +2, set-down +4)."""
+func _plan_trips() -> StringName:
+	"""The trips along the routes Routes would take: empty on the haul WALK row from the storage to the staging stand,
+	between the stands and back onto the storage; loaded on each item's CARRY row between the stands. Each searched
+	edge is kept, with the two stands and the carried rows (ADR1206: lift +2, set-down +4, swept at the stands)."""
 	var store: Vector2i = _haul_store
 	var stand_store: Vector2i = _stand_of(store)
 	var stand_source: Vector2i = _stand_of(_haul_source)
 	var walk: int = _walk_row()
 	if stand_store == NULL_REF or stand_source == NULL_REF or walk < 0: return Hauler.REFUSE_STAND
-	var code: StringName = _claim_path(store, stand_source, walk)
-	if code == &"": code = _claim_path(stand_store, stand_source, walk)
-	if code == &"": code = _claim_path(stand_store, store, walk)
+	_plan.stands = PackedInt32Array([stand_source.x, stand_source.y, stand_store.x, stand_store.y])
+	var code: StringName = _trip_path(store, stand_source, walk)
+	if code == &"": code = _trip_path(stand_store, stand_source, walk)
+	if code == &"": code = _trip_path(stand_store, store, walk)
 	for line: int in _queue.size():
 		if code != &"" or _queue.find(_queue[line]) != line: continue
 		var carry: int = Grip.carry_row_for(_queue[line])
-		code = _claim_path(stand_source, stand_store, carry)
-		_foot.sweep(_point(stand_source), _point(stand_source), carry + 2)
-		_foot.sweep(_point(stand_store), _point(stand_store), carry + 4)
+		_plan.carries.append(carry)
+		code = _trip_path(stand_source, stand_store, carry)
 	return code
 
 
-func _claim_path(from: Vector2i, to: Vector2i, row: int) -> StringName:
-	"""Search the graph as Routes would for one row and sweep every polyline segment of the edges it takes."""
+func _trip_path(from: Vector2i, to: Vector2i, row: int) -> StringName:
+	"""Search the graph as Routes would for one row and keep every edge it takes."""
 	var o: Owners = _ctx.owners
 	var remaining: PackedInt32Array = PackedInt32Array([0])
 	var code: StringName = WorldRoutes.profile_reachability_refusal(o.binding, from, to, row, _revision(row),
@@ -474,9 +474,8 @@ func _claim_path(from: Vector2i, to: Vector2i, row: int) -> StringName:
 	if code != &"": return code
 	var graph: Routes = o.routes
 	for index: int in graph._proposed_count:
-		var edge: int = graph._proposed_edges[2 * index]
-		for at: int in range(1, graph._edge_i32(graph._live, Routes.E_PATH_COUNT, edge)):
-			_foot.sweep(graph._vertex(edge, at - 1), graph._vertex(edge, at), row)
+		_plan.trips.append_array(PackedInt32Array([graph._proposed_edges[2 * index], graph._proposed_edges[2 * index + 1],
+			row]))
 	return &""
 
 
@@ -505,15 +504,6 @@ func _walk_row() -> int:
 				and profiles._live.fields[Profiles.F_TOOL * stride + row] == -1 \
 				and profiles._live.fields[Profiles.F_CARGO * stride + row] == -1: return row
 	return -1
-
-
-func _claim_legs(start: Vector2i) -> void:
-	"""Each planned leg's row swept from its start point to its end point."""
-	var from: Vector3i = _point(start)
-	for leg: int in _leg_profiles.size():
-		var to: Vector3i = _point(Vector2i(_legs[2 * leg], _legs[2 * leg + 1]))
-		_foot.sweep(from, to, _leg_profiles[leg])
-		from = to
 
 
 func _point(location: Vector2i) -> Vector3i:
@@ -837,8 +827,8 @@ func _haul(tick: int) -> StringName:
 	_haul_mwu += _hauler.haul_mwu()
 	_hauler = null
 	_foot.stand(_point(_at), _walk_row())
-	_legs = _approach_legs.duplicate()
-	_leg_profiles = _approach_profiles.duplicate()
+	_legs = _plan.approach_legs.duplicate()
+	_leg_profiles = _plan.approach_profiles.duplicate()
 	_leg = 0
 	_leg_state = LEG_NONE
 	_leg_job = true
@@ -1083,8 +1073,8 @@ func go_home() -> StringName:
 	"""From the station back to its parking, along the way back claimed with the cube (never re-planned: chains
 	published since could lead outside the claimed footprint)."""
 	if _stage != STAGE_COLUMN: return REFUSE_STATE
-	_legs = _home_legs.duplicate()
-	_leg_profiles = _home_profiles.duplicate()
+	_legs = _plan.home_legs.duplicate()
+	_leg_profiles = _plan.home_profiles.duplicate()
 	_leg = 0
 	_leg_state = LEG_NONE
 	_leg_job = false

@@ -4108,11 +4108,12 @@ static func occupancy_extent_fresh(actual: RefCounted) -> bool:
 	return actual._extent_revision > 0 and actual._extent_revision == actual._profiles.content_revision()
 
 
-static func next_occupancy_row(actual: RefCounted, from: int, fresh: bool) -> int:
-	"""Decision 1952: the first row at or after `from` an occupancy scan cannot pass over. With `fresh` (the
-	unregistered test reaches standing), an unregistered row whose Resident is not present answers "" there, its
-	standing's first test, and is skipped; otherwise no row is. RESIDENT_CAPACITY when none is left."""
-	if not fresh: return from
+static func next_occupancy_row(actual: RefCounted, from: int, extent: bool = true) -> int:
+	"""Decision 1952: the first row at or after `from` an occupancy scan cannot pass over. Once the unregistered test
+	reaches standing (always, or with `extent` only while the catalog extent is current), an unregistered row whose
+	Resident is not present answers "" there, its standing's first test, and is skipped; otherwise no row is.
+	RESIDENT_CAPACITY when none is left."""
+	if extent and not occupancy_extent_fresh(actual): return from
 	var present: PackedByteArray = actual._residents._present
 	var bank: PackedInt32Array = actual._motion.resident
 	var row: int = from

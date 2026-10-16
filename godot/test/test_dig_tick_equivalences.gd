@@ -297,9 +297,8 @@ func _random_graph() -> FakeGraph:
 	for row: int in capacity:
 		var roll: int = _rng.randi_range(0, 99)
 		graph._residents._present[row] = 1 if roll < 4 else (2 if roll < 6 else 0)
-		var ref: int = _rng.randi_range(0, 99)
-		graph._motion.resident[Routes.R_SLOT * capacity + row] = 3 if ref < 3 else -1
-		graph._motion.resident[Routes.R_GENERATION * capacity + row] = 1 if ref < 5 else 0
+		graph._motion.resident[Routes.R_SLOT * capacity + row] = 3 if _rng.randi_range(0, 99) < 4 else -1
+		graph._motion.resident[Routes.R_GENERATION * capacity + row] = 1 if _rng.randi_range(0, 99) < 4 else 0
 	return graph
 
 
@@ -315,12 +314,12 @@ func _occupancy_oracle(graph: FakeGraph, fresh: bool) -> PackedInt32Array:
 	return rows
 
 
-func _occupancy_walk(graph: FakeGraph, fresh: bool) -> PackedInt32Array:
+func _occupancy_walk(graph: FakeGraph, extent: bool) -> PackedInt32Array:
 	"""The rows `next_occupancy_row` yields from row 0, the way the four occupancy scans call it."""
 	var rows: PackedInt32Array = PackedInt32Array()
 	var row: int = -1
 	while true:
-		row = Routes.next_occupancy_row(graph, row + 1, fresh)
+		row = Routes.next_occupancy_row(graph, row + 1, extent)
 		if row >= Routes.RESIDENT_CAPACITY: break
 		rows.append(row)
 	return rows
@@ -328,20 +327,27 @@ func _occupancy_walk(graph: FakeGraph, fresh: bool) -> PackedInt32Array:
 
 func test_the_occupancy_walk_passes_over_exactly_the_rows_answering_nothing() -> void:
 	"""Decision 1952: fresh, only unregistered rows whose Resident is not present are passed over (a presence
-	byte of 2 and a slot -1 with a generation are both still acted on); stale, no row is."""
+	byte of 2, a slot -1 with a generation and a slot with generation 0 are all still acted on); with a stale
+	extent no row is, unless the scan makes no extent test."""
 	for trial: int in 24:
 		var graph: FakeGraph = _random_graph()
+		graph._extent_revision = 3
+		graph._profiles.revision = 3
 		assert_equal(_occupancy_walk(graph, true), _occupancy_oracle(graph, true), "fresh walk %d" % trial)
-		assert_equal(_occupancy_walk(graph, false), _occupancy_oracle(graph, false), "stale walk %d" % trial)
+		assert_equal(_occupancy_walk(graph, false), _occupancy_oracle(graph, true), "no extent test %d" % trial)
+		graph._profiles.revision = 4
+		assert_equal(_occupancy_walk(graph, true), _occupancy_oracle(graph, false), "stale walk %d" % trial)
+		assert_equal(_occupancy_walk(graph, false), _occupancy_oracle(graph, true), "stale, no test %d" % trial)
 	var empty: FakeGraph = _random_graph()
 	empty._residents._present.fill(0)
 	var capacity: int = Routes.RESIDENT_CAPACITY
 	for row: int in capacity:
 		empty._motion.resident[Routes.R_SLOT * capacity + row] = -1
 		empty._motion.resident[Routes.R_GENERATION * capacity + row] = 0
-	assert_equal(Routes.next_occupancy_row(empty, 0, true), capacity, "an empty graph has no row to check")
+	assert_equal(Routes.next_occupancy_row(empty, 0, false), capacity, "an empty graph has no row to check")
+	assert_equal(Routes.next_occupancy_row(empty, 0), 0, "nor any skipped while the extent is unset")
 	empty._residents._present[capacity - 1] = 1
-	assert_equal(Routes.next_occupancy_row(empty, 0, true), capacity - 1, "the last row is reached")
+	assert_equal(Routes.next_occupancy_row(empty, 0, false), capacity - 1, "the last row is reached")
 
 
 func test_the_occupancy_extent_is_fresh_exactly_when_the_body_test_reaches_standing() -> void:

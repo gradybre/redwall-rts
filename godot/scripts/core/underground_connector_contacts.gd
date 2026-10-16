@@ -2348,10 +2348,9 @@ func _occupancy_leaf(worker: Vector2i, source_profile: int = -1) -> StringName:
 	var graph: Routes = _placements._routes
 	if not _fragments.spend(16 * Routes.RESIDENT_CAPACITY):
 		return REFUSE_CAPACITY
-	var fresh: bool = Routes.occupancy_extent_fresh(graph)
 	var row: int = -1
 	while true:
-		row = Routes.next_occupancy_row(graph, row + 1, fresh) # Decision 1952: rows answering "" are passed over.
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
 		if row >= Routes.RESIDENT_CAPACITY:
 			break
 		var other: Vector2i = graph._resident_ref(row)

@@ -556,7 +556,7 @@ static func workpiece_occupancy_refusal(actual: RefCounted, bounds: PackedInt32A
 	if workpiece_occupancy_checks(actual) > checks: return REFUSE_BUDGET
 	var row: int = -1
 	while true:
-		row = Routes.next_occupancy_row(graph, row + 1, true) # Decision 1952: no extent test precedes standing here.
+		row = Routes.next_occupancy_row(graph, row + 1, false) # Decision 1952: no extent test precedes standing.
 		if row >= Routes.RESIDENT_CAPACITY: break
 		if graph._resident_ref(row) == Routes.NULL_REF:
 			code = Routes.unregistered_occupant_refusal(graph, row, Vector3i(bounds[0], bounds[1], bounds[2]),
@@ -2621,10 +2621,9 @@ static func _turn_box_into(profiles: Profiles, selection: Profiles.Selection, or
 static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations, except_row: int) -> StringName:
 	"""Direct final actor facts prevent a late observer from hiding a changed occupant profile or pose."""
 	if not graph._spend(16 * Routes.RESIDENT_CAPACITY): return graph._operation_error
-	var fresh: bool = Routes.occupancy_extent_fresh(graph)
 	var row: int = -1
 	while true:
-		row = Routes.next_occupancy_row(graph, row + 1, fresh) # Decision 1952: rows answering "" are passed over.
+		row = Routes.next_occupancy_row(graph, row + 1) # Decision 1952: rows answering "" are passed over.
 		if row >= Routes.RESIDENT_CAPACITY: break
 		if row == except_row: continue
 		if graph._resident_ref(row) == NULL_REF:

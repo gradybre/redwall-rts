@@ -1,11 +1,23 @@
 # 2043 — D-flight phase 2a: the flight geometry, the 160 u probe, and why F40 cannot be built in place
 
-Date: 2026-10-16 · Status: Proposed. Phase 2a is built: the geometry module, its tests and the probe. P-2043-1 and
-P-2043-2 wait for Brendan; P-2043-2 is the coordinator's call.
+Date: 2026-10-16 · Status: Accepted. Phase 2a is built: the geometry module, its tests and the probe. Brendan ruled
+P-2043-1 and P-2043-2, both (a), on 2026-10-16 (see "Brendan's rulings"): M5 replaces F40 as the flight phase 2b
+builds.
 
 Number range: 2041–2049, the D-flight lane's. This record follows Brendan's rulings on
 [decision 2041](2041-slice-d-flight-scoping-a-full-level-earth-timber-flight.md#brendans-rulings-2026-10-16). The
 earth carry is scoped separately in [decision 2042](2042-one-basic-earth-carry-scoping.md).
+
+## Brendan's rulings (2026-10-16)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2043-1 | **(a)**, "M5: today's module ×5" | Phase 2b builds M5: today's qualified 1 m module five times in a straight line, joined by natural landings, 2 × 27 cells. This revisits P-DF-2 (a)'s F40. The D1 lane's Stair-head placeholder becomes 2 × 27 |
+| P-2043-2 | **(a)**, "Approve all" | `flight_geometry.gd` gains M5 as a layout argument; the F40 functions and their tests stay as the record |
+
+Indexed in `docs/handoff/RULINGS.md`.
 
 ## Decision
 

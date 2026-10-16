@@ -1,10 +1,26 @@
 # 2042 — One basic earth carry: scoping, stopped for rulings
 
-Date: 2026-10-16 · Status: Proposed. This is a scoping record only. It changes no code and no data. PROPOSALS
-P-2042-1 to P-2042-6 are waiting for Brendan's rulings.
+Date: 2026-10-16 · Status: Accepted. Brendan ruled P-2042-1 to P-2042-6, all the recommended option (a), on
+2026-10-16 (see "Brendan's rulings"). The scoping itself (sections 1–5) changed no code and no data; phase 2c (the
+inactive data) follows in this record's later sections.
 
 Number range: 2041–2049, the D-flight lane's ([decision 2041](2041-slice-d-flight-scoping-a-full-level-earth-timber-flight.md)).
 Branch `docs/slice-d-flight`, from origin/master `c11da82e`.
+
+## Brendan's rulings (2026-10-16)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2042-1 | **(a)**, "Stone lump, earth colour" | Earth is carried as the approved stone lump drawn in an earth colour: no new model, asset or motion |
+| P-2042-2 | **(a)**, "Approve all" | 5,000 milli-U a trip, the 5,000 g every certified trip weighs |
+| P-2042-3 | **(a)**, "Approve all" | Eleven derived rows (content 13) and a grip-certificate successor with three families |
+| P-2042-4 | **(a)**, "Approve all" | Underground piles first; otherwise up the stair to a surface pile or tip |
+| P-2042-5 | **(a)**, "Approve all" | One frames review, no packet |
+| P-2042-6 | **(a)**, "Approve all" | The inactive data now in new files; activation after the activation lane and cost-2 merge |
+
+Indexed in `docs/handoff/RULINGS.md`.
 
 ## Brendan's direction (2026-10-16, relayed by the coordinator)
 

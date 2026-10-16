@@ -28,11 +28,23 @@ Indexed in `docs/handoff/RULINGS.md`.
 
 ### Pending SET-BUILD-001 §9 amendment (for the phase 2b lane to apply)
 
-§9's Stair-head row (line 314) says "a full 5120 u level needs 40 treads over 20480 u". Under P-DF-2 (a) the derived
-figures are: **40 steps, 39 treads (T0–T37 and the sill T38), 39 × 512 = 19,968 u of treads, and 23 rows (23,552 u)
-including L0's 2,048 u and the 1,536 u run-out.** The row should also name F40 as the qualified first entrance
-(rotation 0 only, P-DF-6) and give its bill (P-DF-4). This record does not edit §9: the phase 2b lane applies it with
-the runtime, so the contract and the code change together.
+§9's Stair-head row (line 314) says "a full 5120 u level needs 40 treads over 20480 u".
+
+**Amended 2026-10-16 by P-2043-1 (a), "M5: today's module ×5"
+([decision 2043](2043-d-flight-phase-2a-geometry-probe-and-buildability.md)).** The row should name **M5** as the
+qualified first entrance:
+
+- **The flight.** Today's qualified 1 m module (L0 for the first, a natural landing for the others; T0–T5 and the
+  sill T6) five times in a straight line. Module j is translated by (0, −1,024j, −5,120j).
+- **Its size.** 40 steps and 35 treads in **2 × 27 cells** (27 rows, 27,648 u).
+- **Its cut.** **154 cubes**, 100 of them below the top metre.
+- **Its bill** (P-DF-4 (a): L0, five T0s each installed from a landing, 30 other treads, and §7.2 per cube): **wood
+  77,500, stone 38,500, 912,620 milli-WU, earth out 308,000 milli-U**.
+- **Rotation.** Rotation 0 only (P-DF-6).
+
+The earlier F40 figures (40 steps, 39 treads, 19,968 u of treads, 23 rows) remain only as the record of P-DF-2 (a).
+This record does not edit §9: the phase 2b lane applies it with the runtime, so the contract and the code change
+together.
 
 ## The question
 

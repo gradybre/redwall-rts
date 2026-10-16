@@ -15,6 +15,12 @@ extends RefCounted
 ## cubes cut per column, counted down from the stair top (P-DF-3 (a): open to the sky). A tread row's floor is the
 ## least whole number of quanta that keeps every post in it at least 64 u long (decision 2041 §2.1); the last tread is
 ## the sill, resting on the level floor (D1). Phase 2b's runtime reads this module; it never edits it.
+##
+## Decision 2043 P-2043-1 (a), ruled 2026-10-16: the flight phase 2b builds is **M5**, not F40, because F40 cannot be
+## built in place with qualified motion (2043 §3). M5 is today's 1 m module (`steps` = 8) five times in a straight line:
+## module j is that module translated by (0, -1024j, -5120j), and module j >= 1 has no L0, its landing being module
+## j-1's natural run-out. The `layout_*` functions (P-2043-2 (a)) serve both layouts, M5 and F40; the `steps`
+## functions above them stay as the record of the F40 derivation and as the one-module geometry M5 repeats.
 
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const RISE: int = 128
@@ -48,6 +54,11 @@ const BILL_STONE: int = 1
 const BILL_WORK: int = 2
 const BILL_EARTH: int = 3
 const BILL_FIELDS: int = 4
+const LAYOUT_F40: int = 0
+const LAYOUT_M5: int = 1
+const M5_MODULES: int = 5
+const MODULE_ROWS: int = 5 # A module's pitch: 3,584 u of treads and 1,536 u of run-out, 5,120 u.
+const MODULE_DROP: int = 1024
 
 
 static func valid(steps: int) -> bool:
@@ -237,18 +248,192 @@ static func fixture_bill_into(steps: int, out: PackedInt64Array) -> bool:
 static func excavation_bill_into(steps: int, out: PackedInt64Array) -> bool:
 	"""SET-BUILD-001 §7.2 per cube: brace wood and stone, brace + cut + finish work, earth out."""
 	if not valid(steps) or out.size() != BILL_FIELDS: return false
-	var cubes: int = cube_count(steps)
+	_price_cubes(cube_count(steps), out)
+	return true
+
+
+static func _price_cubes(cubes: int, out: PackedInt64Array) -> void:
+	"""SET-BUILD-001 §7.2's price of `cubes` cut cubes into a checked packet."""
 	out[BILL_WOOD] = cubes * Contract.BRACE_WOOD_MILLI
 	out[BILL_STONE] = cubes * Contract.BRACE_STONE_MILLI
 	out[BILL_WORK] = cubes * (Contract.BRACE_WORK_MWU + Contract.CUT_WORK_MWU + Contract.FINISH_WORK_MWU)
 	out[BILL_EARTH] = cubes * Contract.EARTH_MILLI
-	return true
 
 
 static func total_bill_into(steps: int, out: PackedInt64Array) -> bool:
 	"""The connector's whole bill (SET-BUILD-001 §9): the excavation plus the fixture recipe."""
 	var fixtures: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
 	if not fixture_bill_into(steps, fixtures) or not excavation_bill_into(steps, out): return false
+	for field: int in BILL_FIELDS:
+		out[field] += fixtures[field]
+	return true
+
+
+static func layout_valid(layout: int) -> bool:
+	"""M5 (ruled, P-2043-1 (a)) or F40 (the record of P-DF-2 (a))."""
+	return layout == LAYOUT_M5 or layout == LAYOUT_F40
+
+
+static func module_count(layout: int) -> int:
+	"""Five modules for M5; F40 is one continuous flight; -1 for no layout."""
+	if not layout_valid(layout): return -1
+	return M5_MODULES if layout == LAYOUT_M5 else 1
+
+
+static func module_translation(layout: int, module: int) -> Vector3i:
+	"""Where module `module` sits relative to the first: (0, -1024j, -5120j) for M5; (0, 1, 0) for no module."""
+	if module < 0 or module >= module_count(layout): return Vector3i(0, 1, 0)
+	return Vector3i(0, -MODULE_DROP * module, -QUANTUM * MODULE_ROWS * module)
+
+
+static func layout_row_count(layout: int) -> int:
+	"""M5: L0's two rows and five modules of five rows (27); F40: 23; -1 for no layout."""
+	if layout == LAYOUT_F40: return row_count(F40_STEPS)
+	return LANDING_ROWS + M5_MODULES * MODULE_ROWS if layout == LAYOUT_M5 else -1
+
+
+static func layout_floor_depth(layout: int, row: int) -> int:
+	"""Cubes cut per column in `row`, open to the sky: M5's module j cuts its five rows to depth j + 1, L0's rows one;
+	-1 outside the flight."""
+	if layout == LAYOUT_F40: return floor_depth(F40_STEPS, row)
+	if layout != LAYOUT_M5 or row < 0 or row >= layout_row_count(layout): return -1
+	if row < LANDING_ROWS: return 1
+	@warning_ignore("integer_division") var module: int = (row - LANDING_ROWS) / MODULE_ROWS
+	return module + 1
+
+
+static func layout_tread_count(layout: int) -> int:
+	"""M5: seven treads (T0-T5 and the sill) a module, 35; F40: 39; -1 for no layout."""
+	if layout == LAYOUT_F40: return tread_count(F40_STEPS)
+	return M5_MODULES * tread_count(FIRST_ENTRY_STEPS) if layout == LAYOUT_M5 else -1
+
+
+static func tread_module(layout: int, tread: int) -> int:
+	"""The module holding the layout's tread `tread` (0-based along the flight); -1 for no tread."""
+	if tread < 0 or tread >= layout_tread_count(layout): return -1
+	@warning_ignore("integer_division") var module: int = tread / tread_count(FIRST_ENTRY_STEPS)
+	return module if layout == LAYOUT_M5 else 0
+
+
+static func tread_k(layout: int, tread: int) -> int:
+	"""The tread's index inside its module (T_k of `tread_geometry.gd`); -1 for no tread."""
+	if tread_module(layout, tread) < 0: return -1
+	return tread % tread_count(FIRST_ENTRY_STEPS) if layout == LAYOUT_M5 else tread
+
+
+static func _module_steps(layout: int) -> int:
+	"""The `steps` of one module's geometry: 8 for M5, 40 for F40."""
+	return FIRST_ENTRY_STEPS if layout == LAYOUT_M5 else F40_STEPS
+
+
+static func layout_is_sill(layout: int, tread: int) -> bool:
+	"""M5 ends each module with a sill (D1); F40 has one, at its foot. No tread (`tread_k` -1) is no sill."""
+	return is_sill(_module_steps(layout), tread_k(layout, tread))
+
+
+static func layout_is_t0(layout: int, tread: int) -> bool:
+	"""A T0, installed from L0 or a natural landing and priced at T0's bill (P-DF-4 (a)): one a module."""
+	return tread_k(layout, tread) == 0
+
+
+static func layout_post_length(layout: int, tread: int) -> int:
+	"""The tread's post (0 for a sill: read `layout_is_sill` first); -1 for no tread."""
+	if tread_module(layout, tread) < 0: return -1
+	return post_length(_module_steps(layout), tread_k(layout, tread))
+
+
+static func layout_tread_top_y(layout: int, tread: int) -> int:
+	"""The tread's walking surface, source-local; 1 for no tread."""
+	if tread_module(layout, tread) < 0: return 1
+	return top_y(tread_k(layout, tread)) + module_translation(layout, tread_module(layout, tread)).y
+
+
+static func layout_tread_far_z(layout: int, tread: int) -> int:
+	"""The tread's far (downhill) edge, source-local; 1 for no tread."""
+	if tread_module(layout, tread) < 0: return 1
+	return far_z(tread_k(layout, tread)) + module_translation(layout, tread_module(layout, tread)).z
+
+
+static func layout_end_wall_z(layout: int) -> int:
+	"""The last run-out's end; 1 for no layout."""
+	return -QUANTUM * layout_row_count(layout) if layout_valid(layout) else 1
+
+
+static func layout_floor_stop_into(layout: int, beyond: int, out: PackedInt32Array) -> bool:
+	"""A stop on the level floor `beyond` u past the last sill's far edge (U 169, F 343, F' 686), as [x, y, z]: the
+	last module's own floor stop moved by its translation. False, `out` untouched, on any refusal."""
+	if not layout_valid(layout) or out.size() != 3: return false
+	var local: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	if not floor_stop_into(_module_steps(layout), beyond, local): return false
+	var moved: Vector3i = module_translation(layout, module_count(layout) - 1)
+	for axis: int in 3:
+		out[axis] = local[axis] + moved[axis]
+	return true
+
+
+static func landing_stop_into(layout: int, module: int, behind: int, out: PackedInt32Array) -> bool:
+	"""A stop on module `module`'s natural landing (module >= 1: the previous module's run-out), `behind` u behind
+	its T0's near edge, as [x, y, z]; the landing is RUN_OUT long. False, `out` untouched, otherwise."""
+	if layout != LAYOUT_M5 or module < 1 or module >= M5_MODULES or out.size() != 3: return false
+	if behind <= 0 or behind >= RUN_OUT: return false
+	var at: Vector3i = stop(-1, behind) + module_translation(layout, module)
+	for axis: int in 3:
+		out[axis] = at[axis]
+	return true
+
+
+static func layout_cube_count(layout: int) -> int:
+	"""Every cut cube of the slot, two columns; -1 for no layout."""
+	if not layout_valid(layout): return -1
+	var total: int = 0
+	for row: int in layout_row_count(layout):
+		total += layout_floor_depth(layout, row)
+	return WIDTH_CUBES * total
+
+
+static func layout_deep_cube_count(layout: int) -> int:
+	"""Cubes below the top metre (decision 2041 F7): every cube but one a column a row."""
+	return layout_cube_count(layout) - WIDTH_CUBES * layout_row_count(layout) if layout_valid(layout) else -1
+
+
+static func layout_cubes_into(layout: int, out: PackedInt32Array) -> bool:
+	"""Every cut cube as a box, in the same storage order as `cubes_into` (not a dig order). False, `out` untouched,
+	for no layout."""
+	if not layout_valid(layout): return false
+	out.resize(6 * layout_cube_count(layout))
+	var at: int = 0
+	for row: int in layout_row_count(layout):
+		for column: int in WIDTH_CUBES:
+			for layer: int in layout_floor_depth(layout, row):
+				_write_cube(out, at, -HALF_WIDTH + QUANTUM * column, layer, row)
+				at += 6
+	return true
+
+
+static func layout_part_count(layout: int) -> int:
+	"""L0's seven parts, seven a tread and three a sill: M5 7 + 5 x (6 x 7 + 3) = 232; F40 276; -1 for no layout."""
+	if layout == LAYOUT_F40: return part_count(F40_STEPS)
+	if layout != LAYOUT_M5: return -1
+	return PARTS_PER_ASSEMBLY + M5_MODULES * (PARTS_PER_ASSEMBLY * (tread_count(FIRST_ENTRY_STEPS) - 1) + SILL_PARTS)
+
+
+static func layout_fixture_bill_into(layout: int, out: PackedInt64Array) -> bool:
+	"""One L0, one T0 a module at T0's bill, every other tread at D3 / DEC-059's (P-DF-4 (a))."""
+	if not layout_valid(layout) or out.size() != BILL_FIELDS: return false
+	var t0s: int = module_count(layout)
+	var others: int = layout_tread_count(layout) - t0s
+	out[BILL_WOOD] = L0_WOOD_MILLI + T0_WOOD_MILLI * t0s + TREAD_WOOD_MILLI * others
+	out[BILL_STONE] = 0
+	out[BILL_WORK] = L0_WORK_MWU + T0_WORK_MWU * t0s + TREAD_WORK_MWU * others
+	out[BILL_EARTH] = 0
+	return true
+
+
+static func layout_total_bill_into(layout: int, out: PackedInt64Array) -> bool:
+	"""The connector's whole bill: §7.2 per cube plus the fixture recipe. False, `out` untouched, on refusal."""
+	var fixtures: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	if out.size() != BILL_FIELDS or not layout_fixture_bill_into(layout, fixtures): return false
+	_price_cubes(layout_cube_count(layout), out)
 	for field: int in BILL_FIELDS:
 		out[field] += fixtures[field]
 	return true

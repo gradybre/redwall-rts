@@ -195,6 +195,13 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _candidate: Selection = Selection.new()
 var _query_values: PackedInt64Array = PackedInt64Array() # tool, variant, cargo, variant, kind
 var _loading: bool = false
+## Decision 1952 (P-1951-3): a runtime token that moves whenever a bank may have changed (configure, every load_file
+## swap, invalidate_runtime_caches). Never saved; zero (saturated) permanently poisons readers' caches.
+var _load_revision: int = 1
+## Decision 1952: the step-program closure (`ShortStep.uses`) as last read, and the bank and revision it was read at.
+var _step_closure: bool = false
+var _step_closure_revision: int = 0
+var _step_closure_bank: int = 0
 var _worker_row: int = -1
 
 
@@ -219,7 +226,19 @@ func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> Str
 	_source_capacity = sources
 	_live.allocate(profiles, boxes, sources)
 	_stage.allocate(profiles, boxes, sources)
+	invalidate_runtime_caches()
 	return &""
+
+
+func load_revision() -> int:
+	"""Decision 1952: changes on every bank write this store makes; zero poisons caches."""
+	return _load_revision if _load_revision < IntMath.INT64_MAX else 0
+
+
+func invalidate_runtime_caches() -> void:
+	"""Move the load token. Every bank write here calls it; so must anything that edits a bank in place."""
+	if _load_revision < IntMath.INT64_MAX:
+		_load_revision += 1
 
 
 func packed_memory_bytes() -> int:
@@ -290,6 +309,7 @@ func load_file(path: String, expected_sha256: String, revision: int) -> StringNa
 		var old: Bank = _live
 		_live = _stage
 		_stage = old
+		invalidate_runtime_caches()
 	_loading = false
 	return code
 

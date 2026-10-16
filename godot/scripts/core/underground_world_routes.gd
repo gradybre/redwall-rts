@@ -996,7 +996,7 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		edge.family, edge.variant, _catalog_revision, _pace)
 	if code != &"":
 		return code
-	if Routes.ShortStep.is_short(profile) and Routes.ShortStep.uses(_profiles): # Decision 1951: the pure, cheap test first.
+	if Routes.ShortStep.is_short(profile) and Routes._step_closure(_profiles): # Decisions 1951 and 1952.
 		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
 		if code != &"": return code
 	if not _carried:

@@ -2332,9 +2332,23 @@ static func _source_word_known(value: int) -> bool:
 	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG or (value & ~63) == Assembly.TAG
 
 
+static func _step_closure(profiles: Profiles) -> bool:
+	"""Decision 1952 (P-1951-3): `ShortStep.uses()`, read once per Profiles bank and load revision. A loading store,
+	a missing bank or a poisoned (zero) revision reads it afresh every time."""
+	var revision: int = 0
+	if profiles != null and profiles._live != null and not profiles._loading: revision = profiles.load_revision()
+	if revision == 0:
+		return ShortStep.uses(profiles)
+	if profiles._step_closure_revision != revision or profiles._step_closure_bank != profiles._live.get_instance_id():
+		profiles._step_closure = ShortStep.uses(profiles)
+		profiles._step_closure_revision = revision
+		profiles._step_closure_bank = profiles._live.get_instance_id()
+	return profiles._step_closure
+
+
 static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) -> int:
 	"""Publication uses the selected immutable source version, never a caller-selected clock tag."""
-	return ShortStep.word(phase, source_phase) if ShortStep.uses(profiles) else SourceProgram.word(phase, source_phase)
+	return ShortStep.word(phase, source_phase) if _step_closure(profiles) else SourceProgram.word(phase, source_phase)
 
 
 static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
@@ -2350,7 +2364,7 @@ static func _program_profile_refusal(profiles: Profiles, profile: int, profile_r
 	"""The step program's refusal when its closure holds, else the parent program's. Decision 1951: the step refusal
 	begins with that closure check, so a pass proves it; the closure is read again only after a refusal, to choose."""
 	var code: StringName = ShortStep.profile_refusal(profiles, profile, profile_revision, content)
-	if code == &"" or ShortStep.uses(profiles):
+	if code == &"" or _step_closure(profiles):
 		return code
 	return SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
 
@@ -2406,7 +2420,7 @@ static func _program_clock_leaf(actual: RefCounted, row: int, phase: int, profil
 	"""The step or the parent program. Decision 1951: as in `_program_profile_refusal`, a passing step refusal proves
 	the step closure, which is read again only after a refusal."""
 	var code: StringName = ShortStep.profile_refusal(actual._profiles, profile, profile_revision, content)
-	var short: bool = code == &"" or ShortStep.uses(actual._profiles)
+	var short: bool = code == &"" or _step_closure(actual._profiles)
 	if not short: code = SourceProgram.profile_refusal(actual._profiles, profile, profile_revision, content)
 	if code != &"": return code
 	var clock: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
@@ -2932,7 +2946,7 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
 
 func _short_request_refusal(row: int) -> StringName:
 	"""An interrupted finite prefix cannot replace its original path, restart key0 or acquire a successor."""
-	if not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) or not ShortStep.uses(_profiles):
+	if not ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) or not _step_closure(_profiles):
 		return &""
 	if _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != ShortStep.word(PHASE_IDLE, SourceProgram.READY) \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
@@ -2942,7 +2956,7 @@ func _short_request_refusal(row: int) -> StringName:
 
 func _short_path_refusal() -> StringName:
 	"""Before replacing any route links, prove the single full immutable span and its actual unchanged rate."""
-	if not ShortStep.is_short(_checked_selection.profile_id) or not ShortStep.uses(_profiles): return &""
+	if not ShortStep.is_short(_checked_selection.profile_id) or not _step_closure(_profiles): return &""
 	if _proposed_count != 1: return &"ROUTE_SOURCE_STEP_SPAN"
 	_step.edge = Vector2i(_proposed_edges[0], _proposed_edges[1])
 	if not is_live_edge(_step.edge): return &"ROUTE_EDGE_STALE"
@@ -3118,7 +3132,7 @@ func cancel_route(worker: Vector2i) -> StringName:
 	var row: int = _ids.get_typed_row(worker)
 	if _resident_ref(row) != worker or _route_count(row) < 0:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
-	if ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) and ShortStep.uses(_profiles) \
+	if ShortStep.is_short(_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]) and _step_closure(_profiles) \
 			and ((_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15) != SourceProgram.READY:
 		return &"ROUTE_SOURCE_STEP_ACTIVE"
 	_release_route(row)
@@ -3331,7 +3345,7 @@ func _stationary_next(phase: int, time: int, old: int, queued: bool) -> Vector3i
 		time = 0
 	# Decision 1951: an unmapped row reads the same either way, so the source closure check is only needed to choose.
 	var profile: int = _selection.profile_id
-	if ShortStep.mapped(profile) != profile and ShortStep.uses(_profiles): profile = ShortStep.mapped(profile)
+	if ShortStep.mapped(profile) != profile and _step_closure(_profiles): profile = ShortStep.mapped(profile)
 	return SourceProgram.advance(phase, time, old, profile)
 
 
@@ -3378,7 +3392,7 @@ func _prepare_motion(row: int) -> StringName:
 	_step.consumed = 1 if entering else 0
 	if entering:
 		_step.cursor = _link(L_NEXT, _step.cursor)
-	if ShortStep.is_short(_selection.profile_id) and ShortStep.uses(_profiles) \
+	if ShortStep.is_short(_selection.profile_id) and _step_closure(_profiles) \
 			and (_step.cursor >= 0 or _edge_i32(_live, E_PATH_COUNT, _step.edge.x) != 2):
 		return &"ROUTE_SOURCE_STEP_SPAN"
 	_copy_selection(_selection, _checked_selection)
@@ -3626,7 +3640,7 @@ func _pace_refusal() -> StringName:
 		return &"ROUTE_CALLBACK_REENTRY"
 	if code == &"" and (_number.value < 1 or _number.value > I32_MAX):
 		return &"ROUTE_PACE_UNAUTHORED"
-	if code == &"" and ShortStep.is_short(_selection.profile_id) and ShortStep.uses(_profiles) \
+	if code == &"" and ShortStep.is_short(_selection.profile_id) and _step_closure(_profiles) \
 			and _number.value != ShortStep.PACE:
 		return &"ROUTE_SOURCE_STEP_PACE"
 	return code

@@ -1248,9 +1248,32 @@
      "bytes": 336,
      "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
      "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage"
+    },
+    {
+     "bytes": 25,
+     "carried_by": "none (new)",
+     "store": "decision 1952 (P-1951-3): _load_revision, _step_closure_revision and _step_closure_bank (int64) and _step_closure (bool), runtime-only, never saved"
     }
    ],
    "delta": {
+    "members_added": [
+     [
+      "_load_revision",
+      "int"
+     ],
+     [
+      "_step_closure",
+      "bool"
+     ],
+     [
+      "_step_closure_bank",
+      "int"
+     ],
+     [
+      "_step_closure_revision",
+      "int"
+     ]
+    ],
     "resizes_added": [
      "last_of.resize(_stage.header[3])",
      "same_key.resize(_stage.header[3])"

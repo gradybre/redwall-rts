@@ -2787,8 +2787,11 @@ static func _assembly_occupants_leaf(actual: RefCounted, mine: int) -> StringNam
 	"""Every living actual resident retains a complete current body; an unregistered occupant cannot disappear from proof."""
 	actual._remaining -= 16 * RESIDENT_CAPACITY
 	if actual._remaining < 0: return &"ROUTE_OPERATION_BUDGET"
-	for row: int in RESIDENT_CAPACITY:
-		if row == mine or actual._residents._present[row] != 1 or actual._residents._needs._present[row] != 1 \
+	var row: int = -1
+	while true:
+		row = actual._residents._present.find(1, row + 1) if row + 1 < RESIDENT_CAPACITY else -1 # Decision 1952:
+		if row < 0 or row >= RESIDENT_CAPACITY: break # exactly the rows the `present != 1` test would not skip.
+		if row == mine or actual._residents._needs._present[row] != 1 \
 				or actual._residents._needs._health[row] <= 0: continue
 		var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
 		if _resident_ref_leaf(actual, row) == NULL_REF: # ADR1219 (sixth proof): unregistered = reach cube.
@@ -4098,6 +4101,25 @@ static func unregistered_body_refusal(actual: RefCounted, row: int, point: Vecto
 	var extent: PackedInt32Array = actual._catalog_extent
 	return unregistered_occupant_refusal(actual, row, point + Vector3i(extent[0], extent[1], extent[2]),
 		point + Vector3i(extent[3], extent[4], extent[5]))
+
+
+static func occupancy_extent_fresh(actual: RefCounted) -> bool:
+	"""Decision 1952: `unregistered_body_refusal` passes its stale-extent test (so may answer from standing)."""
+	return actual._extent_revision > 0 and actual._extent_revision == actual._profiles.content_revision()
+
+
+static func next_occupancy_row(actual: RefCounted, from: int, fresh: bool) -> int:
+	"""Decision 1952: the first row at or after `from` an occupancy scan cannot pass over. With `fresh` (the
+	unregistered test reaches standing), an unregistered row whose Resident is not present answers "" there, its
+	standing's first test, and is skipped; otherwise no row is. RESIDENT_CAPACITY when none is left."""
+	if not fresh: return from
+	var present: PackedByteArray = actual._residents._present
+	var bank: PackedInt32Array = actual._motion.resident
+	var row: int = from
+	while row < RESIDENT_CAPACITY and present[row] != 1 and bank[R_SLOT * RESIDENT_CAPACITY + row] == NULL_REF.x \
+			and bank[R_GENERATION * RESIDENT_CAPACITY + row] == NULL_REF.y:
+		row += 1
+	return row
 
 
 func _query_occupants(bounds: PackedInt32Array, except_worker: Vector2i) -> StringName:

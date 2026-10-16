@@ -11,6 +11,8 @@ const Construction := preload("res://scripts/core/construction.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Contacts := preload("res://scripts/core/underground_connector_contacts.gd")
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _world: Vector2i = Vector2i(-1, 0)
@@ -257,3 +259,120 @@ func test_final_facts_source_walk_reads_exactly_the_scanned_rows() -> void:
 	owner._o_present[2] = 0
 	assert_equal(FinalFacts._sources_refusal(owner, null, null), &"SPACE_SOURCE_FORMAT", "then the unknown presence byte")
 
+
+
+class FakeRevision extends RefCounted:
+	## Decision 1952: stands in for Profiles in the extent test.
+	var revision: int = 0
+
+	func content_revision() -> int:
+		"""The fake catalog content revision."""
+		return revision
+
+
+class FakeResidents extends RefCounted:
+	## Decision 1952: the one Residents column the occupancy walk reads.
+	var _present: PackedByteArray = PackedByteArray()
+
+
+class FakeMotion extends RefCounted:
+	## Decision 1952: the one route bank the occupancy walk reads.
+	var resident: PackedInt32Array = PackedInt32Array()
+
+
+class FakeGraph extends RefCounted:
+	## Decision 1952: the fields `occupancy_extent_fresh` and `next_occupancy_row` read from a Routes.
+	var _residents: FakeResidents = FakeResidents.new()
+	var _motion: FakeMotion = FakeMotion.new()
+	var _profiles: FakeRevision = FakeRevision.new()
+	var _extent_revision: int = 0
+
+
+func _random_graph() -> FakeGraph:
+	"""Random presence bytes (0, 1, 2) and route refs (null, slot -1 with a generation, a real pair)."""
+	var graph: FakeGraph = FakeGraph.new()
+	var capacity: int = Routes.RESIDENT_CAPACITY
+	graph._residents._present.resize(capacity)
+	graph._motion.resident.resize(Routes.R_GENERATION * capacity + capacity + capacity)
+	for row: int in capacity:
+		var roll: int = _rng.randi_range(0, 99)
+		graph._residents._present[row] = 1 if roll < 4 else (2 if roll < 6 else 0)
+		var ref: int = _rng.randi_range(0, 99)
+		graph._motion.resident[Routes.R_SLOT * capacity + row] = 3 if ref < 3 else -1
+		graph._motion.resident[Routes.R_GENERATION * capacity + row] = 1 if ref < 5 else 0
+	return graph
+
+
+func _occupancy_oracle(graph: FakeGraph, fresh: bool) -> PackedInt32Array:
+	"""The rows the scan acts on: every row when stale, else all but unregistered rows whose Resident is absent."""
+	var rows: PackedInt32Array = PackedInt32Array()
+	var capacity: int = Routes.RESIDENT_CAPACITY
+	for row: int in capacity:
+		var unregistered: bool = graph._motion.resident[Routes.R_SLOT * capacity + row] == -1 \
+			and graph._motion.resident[Routes.R_GENERATION * capacity + row] == 0
+		if fresh and unregistered and graph._residents._present[row] != 1: continue
+		rows.append(row)
+	return rows
+
+
+func _occupancy_walk(graph: FakeGraph, fresh: bool) -> PackedInt32Array:
+	"""The rows `next_occupancy_row` yields from row 0, the way the four occupancy scans call it."""
+	var rows: PackedInt32Array = PackedInt32Array()
+	var row: int = -1
+	while true:
+		row = Routes.next_occupancy_row(graph, row + 1, fresh)
+		if row >= Routes.RESIDENT_CAPACITY: break
+		rows.append(row)
+	return rows
+
+
+func test_the_occupancy_walk_passes_over_exactly_the_rows_answering_nothing() -> void:
+	"""Decision 1952: fresh, only unregistered rows whose Resident is not present are passed over (a presence
+	byte of 2 and a slot -1 with a generation are both still acted on); stale, no row is."""
+	for trial: int in 24:
+		var graph: FakeGraph = _random_graph()
+		assert_equal(_occupancy_walk(graph, true), _occupancy_oracle(graph, true), "fresh walk %d" % trial)
+		assert_equal(_occupancy_walk(graph, false), _occupancy_oracle(graph, false), "stale walk %d" % trial)
+	var empty: FakeGraph = _random_graph()
+	empty._residents._present.fill(0)
+	var capacity: int = Routes.RESIDENT_CAPACITY
+	for row: int in capacity:
+		empty._motion.resident[Routes.R_SLOT * capacity + row] = -1
+		empty._motion.resident[Routes.R_GENERATION * capacity + row] = 0
+	assert_equal(Routes.next_occupancy_row(empty, 0, true), capacity, "an empty graph has no row to check")
+	empty._residents._present[capacity - 1] = 1
+	assert_equal(Routes.next_occupancy_row(empty, 0, true), capacity - 1, "the last row is reached")
+
+
+func test_the_occupancy_extent_is_fresh_exactly_when_the_body_test_reaches_standing() -> void:
+	"""Decision 1952: the same test `unregistered_body_refusal` makes before reading standing."""
+	var graph: FakeGraph = FakeGraph.new()
+	assert_false(Routes.occupancy_extent_fresh(graph), "an unset extent is stale")
+	graph._extent_revision = 4
+	graph._profiles.revision = 4
+	assert_true(Routes.occupancy_extent_fresh(graph), "matching revisions are fresh")
+	graph._profiles.revision = 5
+	assert_false(Routes.occupancy_extent_fresh(graph), "a changed catalog is stale")
+	graph._extent_revision = -5
+	graph._profiles.revision = -5
+	assert_false(Routes.occupancy_extent_fresh(graph), "a poisoned revision is stale")
+
+
+func test_the_contact_region_walk_visits_exactly_the_present_rows() -> void:
+	"""Decision 1952: the `present != 1` test admits only 1 bytes, so `find(1)` is exact for any byte values,
+	and the walk stops at the region capacity."""
+	var owner: Owner = _owner()
+	for trial: int in 8:
+		var expected: PackedInt32Array = PackedInt32Array()
+		for row: int in owner._region_capacity:
+			var roll: int = _rng.randi_range(0, 9)
+			owner._r_present[row] = 1 if roll < 3 else (2 if roll == 3 else 0)
+			if owner._r_present[row] == 1: expected.append(row)
+		var visited: PackedInt32Array = PackedInt32Array()
+		var row: int = Contacts._next_region(owner, 0)
+		while row < owner._region_capacity:
+			visited.append(row)
+			row = Contacts._next_region(owner, row + 1)
+		assert_equal(row, owner._region_capacity, "the walk ends at the capacity")
+		assert_equal(visited, expected, "region walk %d" % trial)
+	assert_equal(Contacts._next_region(owner, owner._region_capacity), owner._region_capacity, "from the end")

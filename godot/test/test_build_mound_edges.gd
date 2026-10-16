@@ -126,16 +126,16 @@ func test_an_edge_holding_one_is_taken() -> void:
 
 
 func test_a_doors_yard_must_be_clear_of_rooms() -> void:
-	"""A door with a room in or beside its yard -- the yard, a cell past its foot, two cells either side -- is refused
-	(that room's wall would open onto the cut); a room further off is fine."""
-	_rooms[Vector2i(3, -2)] = true
+	"""A door with a room in or beside its yard -- the yard (four cells out), a cell past its foot, two cells either
+	side -- is refused (that room's wall would open onto the cut); a room further off is fine."""
+	_rooms[Vector2i(3, -3)] = true
 	assert_equal(_edges.judge(0, Vector2i(3, 2), 0, Mound.KIND_DOOR, -1),
 		[Validity.KIND_NOT_POSSIBLE, Mound.TEXT_YARD_BLOCKED], "a room a cell past the yard's foot")
-	assert_equal(_kind(_edges.judge(0, Vector2i(3, 2), 0, Mound.KIND_WINDOW, -1)), Validity.KIND_CAN_BUILD,
-		"a window has no yard")
-	_rooms.erase(Vector2i(3, -2))
-	_rooms[Vector2i(3, -3)] = true
+	_rooms.erase(Vector2i(3, -3))
+	_rooms[Vector2i(3, -4)] = true
 	assert_equal(_kind(_edges.judge(0, Vector2i(3, 2), 0, Mound.KIND_DOOR, -1)), Validity.KIND_CAN_BUILD, "two past")
+	assert_equal(_kind(_edges.judge(0, Vector2i(3, 2), 0, Mound.KIND_WINDOW, -1)), Validity.KIND_CAN_BUILD,
+		"a window has no yard (the room is past the berm)")
 	_rooms[Vector2i(8, 1)] = true
 	assert_equal(String(_edges.judge(0, Vector2i(3, 2), 0, Mound.KIND_DOOR, -1)[1]), Mound.TEXT_YARD_BLOCKED,
 		"two cells beside the yard")

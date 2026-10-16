@@ -89,11 +89,13 @@ func test_the_wall_is_never_open() -> void:
 
 
 func test_nothing_lies_past_the_berm_and_every_room_is_at_the_hills_edge() -> void:
-	"""P-2001-4 (a), W13: the shoulder at the wall's foot, the ground three metres out, nothing beyond."""
-	assert_true(is_equal_approx(_field.height_m(_at(Vector2(15.0, 14.2))), Field.ROOM_TOP_M + Field.COVER_M),
-		"the shoulder, just past the south wall")
-	assert_equal(_field.height_m(_at(Vector2(15.0, 17.0))), 0.0, "three metres out: the ground")
-	assert_equal(_field.height_m(_at(Vector2(7.0, 12.0))), 0.0, "three metres west")
+	"""P-2001-4 as amended, W13: the cover's height at the wall's foot, the ground four metres out, nothing beyond."""
+	var foot: float = _field.height_m(_at(Vector2(15.0, 14.05)))
+	assert_true(foot > Field.ROOM_TOP_M + Field.COVER_M - 0.03 and foot < Field.ROOM_TOP_M + Field.COVER_M,
+		"just under the cover's height at the south wall's foot: %f" % foot)
+	assert_equal(_field.height_m(_at(Vector2(15.0, 18.0))), 0.0, "four metres out: the ground")
+	assert_true(_field.height_m(_at(Vector2(15.0, 17.0))) > 0.0, "three metres out: still the berm's tail")
+	assert_equal(_field.height_m(_at(Vector2(6.0, 12.0))), 0.0, "four metres west")
 	assert_equal(_field.height_m(_at(Vector2(40.0, 40.0))), 0.0, "far off")
 	for q: Vector2 in _samples(Rect2(4.0, 4.0, 22.0, 16.0)):
 		if _field.room_distance(_at(q)) >= Field.BERM_M:
@@ -151,7 +153,7 @@ func test_a_windows_place_is_on_the_slope_at_the_walls_top_metre() -> void:
 	assert_false(spot.is_empty(), "found")
 	var point: Vector3 = spot["point"]
 	assert_true(absf(point.y - Field.WINDOW_HEIGHT_M) < 0.05, "3.5 m up: %f" % point.y)
-	assert_true(float(spot["out_m"]) > Field.SHOULDER_M and float(spot["out_m"]) < Field.BERM_M, "out on the slope")
+	assert_true(float(spot["out_m"]) > 1.0 and float(spot["out_m"]) < 1.5, "just past the first cell: %s" % spot["out_m"])
 	assert_true(is_equal_approx(point.x, DATUM.x + 17.5) and point.z > DATUM.y + 14.0, "outside the edge's middle")
 	var normal: Vector3 = spot["normal"]
 	assert_true(normal.z > 0.2 and normal.y > 0.0, "facing south and up: %s" % normal)
@@ -179,10 +181,15 @@ func test_the_nearest_room_cell_and_distances() -> void:
 
 func test_the_static_helpers() -> void:
 	"""`berm`, `ring_cell`, `to_square`, `wobble`, `edge_middle`, `front_start` and `normal_at`."""
-	assert_equal([Field.berm(0.0), Field.berm(Field.SHOULDER_M), Field.berm(Field.BERM_M), Field.berm(9.0)],
-		[1.0, 1.0, 0.0, 0.0], "level, then down to nothing")
+	assert_equal([Field.berm(-1.0), Field.berm(0.0), Field.berm(Field.BERM_M), Field.berm(9.0)],
+		[1.0, 1.0, 0.0, 0.0], "full at the wall, nothing at the foot")
+	assert_true(Field.berm(1.0) * (Field.ROOM_TOP_M + Field.COVER_M) > Field.ROOM_TOP_M, "a metre out: over the wall")
+	assert_true(Field.berm(2.0) > 0.4 and Field.berm(2.0) < 0.5, "rounded, not straight: %f" % Field.berm(2.0))
+	assert_true(Field.berm(0.2) > 0.97 and Field.berm(0.2) < 1.0, "already falling gently at the wall: %f" % Field.berm(0.2))
+	assert_true(Field.berm(3.8) < 0.01, "easing out to the foot")
+	assert_equal(Field.berm(Field.BERM_M + 0.5), 0.0, "nothing just past the foot (the curve would rise again)")
 	var last: float = 1.0
-	for k: int in 30:
+	for k: int in 41:
 		var b: float = Field.berm(k * 0.1)
 		assert_true(b <= last, "never rising")
 		last = b
@@ -200,3 +207,10 @@ func test_the_static_helpers() -> void:
 	assert_equal(Field.front_start(Vector3i(3, 4, 2)), Vector2(3.0, 5.0), "a south door's front")
 	assert_equal(Field.front_start(Vector3i(3, 4, 3)), Vector2(3.0, 4.0), "a west door's front")
 	assert_equal(_field.normal_at(_at(Vector2(40.0, 40.0))), Vector3.UP, "flat ground")
+
+
+func test_the_crown_rises_from_the_wall() -> void:
+	"""The 2026-10-16 ruling: the crown eases out from the wall itself to its reach, so a narrow Mound's top is a dome."""
+	assert_equal([Field.crown(-1.0), Field.crown(0.0), Field.crown(Field.CROWN_REACH_M), Field.crown(9.0)],
+		[0.0, 0.0, 1.0, 1.0], "the crown: from the wall to its reach")
+	assert_true(Field.crown(1.0) > 0.45 and Field.crown(2.0) > 0.8, "rising from the wall, a dome even 2 m in")

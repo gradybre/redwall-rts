@@ -86,11 +86,12 @@ func test_one_edge_named_from_either_side() -> void:
 
 
 func test_the_yard_is_six_cells_wide_to_the_berms_foot() -> void:
-	"""P-2001-5 (a): the door's two cells and two more each side, out three cells."""
+	"""P-2001-5 (a): the door's two cells and two more each side, out to the berm's foot (four cells, the 2026-10-16
+	ruling)."""
 	var yard: Dictionary = Mound.set_of(Mound.yard_cells(Vector2i(3, 2), 0))
-	assert_equal(yard.size(), (Mound.DOOR_EDGES + 2 * Mound.YARD_SIDE_CELLS) * Mound.BERM_CELLS, "6 × 3 cells")
+	assert_equal(yard.size(), (Mound.DOOR_EDGES + 2 * Mound.YARD_SIDE_CELLS) * Mound.BERM_CELLS, "6 × 4 cells")
 	assert_true(yard.has(Vector2i(1, 1)) and yard.has(Vector2i(6, 1)), "two cells past each end of the door")
-	assert_true(yard.has(Vector2i(3, -1)) and not yard.has(Vector2i(3, -2)), "out to the berm's foot, no further")
+	assert_true(yard.has(Vector2i(3, -2)) and not yard.has(Vector2i(3, -3)), "out to the berm's foot, no further")
 	assert_false(yard.has(Vector2i(0, 1)) or yard.has(Vector2i(7, 1)), "no wider")
 	assert_false(yard.has(Vector2i(3, 2)), "never the room's own cell")
 	var east: Dictionary = Mound.set_of(Mound.yard_cells(Vector2i(7, 2), 1))
@@ -103,20 +104,20 @@ func test_a_yard_must_be_clear_of_rooms() -> void:
 	assert_false(Mound.yard_clear(Vector2i(3, 4), 0, _is_room), "a door facing into the rooms")
 
 
-func test_the_heaps_footprint_rolls_three_cells_out() -> void:
-	"""BUILD-MOUND-003 / P-2001-4 (a): covered while gx² + gz² < 9, never a room cell, rounded at the corners."""
+func test_the_heaps_footprint_rolls_four_cells_out() -> void:
+	"""BUILD-MOUND-003 / P-2001-4 as amended (about 4 cells): covered while gx² + gz² < 16, never a room cell, rounded at
+	the corners."""
 	var cover: Dictionary = {Vector2i(99, 99): true}
 	Mound.footprint_into(_cells(Rect2i(2, 2, 6, 2)), cover)
 	assert_false(cover.has(Vector2i(99, 99)), "cleared first")
 	assert_false(cover.has(Vector2i(3, 2)), "no room cell")
-	assert_true(cover.has(Vector2i(3, 1)) and cover.has(Vector2i(3, -1)), "the first and third cells out")
-	assert_false(cover.has(Vector2i(3, -2)), "not the fourth")
+	assert_true(cover.has(Vector2i(3, 1)) and cover.has(Vector2i(3, -2)), "the first and fourth cells out")
+	assert_false(cover.has(Vector2i(3, -3)), "not the fifth")
 	assert_true(cover.has(Vector2i(0, 0)), "beyond the corner, gap (1, 1)")
-	assert_true(cover.has(Vector2i(-1, 0)), "gap (2, 1): 5 < 9")
-	assert_true(cover.has(Vector2i(-1, -1)), "gap (2, 2): 8 < 9")
-	assert_false(cover.has(Vector2i(-2, -1)), "gap (3, 2): rounded off at the corner")
-	assert_true(Mound.covered(Vector2i(2, 2)), "gap (2, 2): 8 < 9")
-	assert_false(Mound.covered(Vector2i(3, 0)), "gap (3, 0): 9 is not < 9")
+	assert_true(cover.has(Vector2i(-2, -1)), "gap (3, 2): 13 < 16")
+	assert_false(cover.has(Vector2i(-2, -2)), "gap (3, 3): rounded off at the corner")
+	assert_true(Mound.covered(Vector2i(3, 2)), "gap (3, 2): 13 < 16")
+	assert_false(Mound.covered(Vector2i(4, 0)), "gap (4, 0): 16 is not < 16")
 	assert_true(Mound.covered(Vector2i(0, 0)), "touching")
 
 

@@ -1,13 +1,16 @@
 extends RefCounted
-## THE HILL'S SHAPE (decision 2002; BUILD-MOUND-003, -004, -005, -011, -014, -015; P-2001-4 (a), P-2001-5 (a),
-## P-2001-6 (a)). Presentation heights in metres over the Surface's unchanged ground (y = 0: the hill is drawn, not
+## THE HILL'S SHAPE (decision 2002; BUILD-MOUND-003, -004, -005, -011, -014, -015; P-2001-4 (a) as Brendan amended it
+## on 2026-10-16, "Rounder, like the mockup"; P-2001-5 (a), P-2001-6 (a)). Presentation heights in metres over the Surface's unchanged ground (y = 0: the hill is drawn, not
 ## ground, until MOUND-TERRAIN), from the HEAPED Mound room cells and the yards cut before their doors:
 ##   OVER A ROOM    the wall's top (ROOM_TOP_M, DEC-054's 4096 u) and the ruled 1 m cover (COVER_M), plus the approved
-##                  look's crown, rising CROWN_M more over the CROWN_REACH_M inside the outer walls, with a fixed
-##                  wobble on the crown only (so the cover is never thinner than the rule);
-##   BEYOND A WALL  the berm, rolling straight down: level for SHOULDER_M, then a smoothstep to the ground BERM_M out
-##                  (P-2001-4 (a)'s 3 cells). So every room sits at the hill's edge (W13), the first cell outside a wall
-##                  stands above the wall's top (P-2001-4: a wall is never open), and no earth lies beyond the berm;
+##                  mockup's crown, CROWN_M more over the CROWN_REACH_M inside the outer walls, eased out so it rises
+##                  from the wall itself (`crown`: the mockup's rooms are wide enough for its smoothstep to reach the
+##                  crown; a 4-cell-deep Mound's never would, and its top would read flat), with a fixed wobble on the
+##                  crown only (so the cover is never thinner than the rule);
+##   BEYOND A WALL  the berm (`berm`): half a cosine from a top BERM_LEAD_M inside the wall to the ground BERM_M out
+##                  (about 4 cells, the ruling), so it already falls at the wall, continuing the crown's dome, and eases
+##                  out at its foot. So every room sits at the hill's edge (W13), the first metre outside a wall stands
+##                  above the wall's top (P-2001-4: a wall is never open), and no earth lies beyond the berm;
 ##   IN A YARD      the ground, the yard's cells exactly; its sides, past the first cell out, sloped down to it at
 ##                  YARD_SLOPE (the first cell's cheeks stand behind the door's built front). Behind the front, across
 ##                  the yard's width, the turf is carried down over the eave (BUILD-MOUND-011): within EAVE_BACK_M of the
@@ -27,8 +30,10 @@ const CROWN_M: float = 1.0
 const CROWN_REACH_M: float = 3.5
 const WOBBLE_M: float = 0.12
 const BERM_M: float = float(Mound.BERM_CELLS)
-## How far the berm stays level before it rolls down (so the first cell out stands above the wall's top).
-const SHOULDER_M: float = 0.35
+## The berm's curve, half a cosine from its top to the ground BERM_M out, its top this far inside the wall: so the hill
+## already falls at the wall, continuing the crown's dome, yet a metre out still stands over the wall's top (4.04 m of
+## the 5 m at the wall), and a window's height is reached 1.34 m out, just past the first cell (P-2001-6 (a)).
+const BERM_LEAD_M: float = 0.25
 ## Where a window lies: the middle of the wall's top metre (P-2001-6 (a), "Wall's top metre").
 const WINDOW_HEIGHT_M: float = ROOM_TOP_M - 0.5
 ## The rise a metre of a yard's sides past its first cell.
@@ -50,6 +55,8 @@ const NONE: Vector2i = Vector2i(-1048576, -1048576)
 ## A cell's neighbours' offsets each way (and itself).
 const AROUND: Array[int] = [-1, 0, 1]
 
+## The berm's curve at the wall, which it is divided by so that it is 1 there.
+static var _head: float = 1.0 + cos(PI * BERM_LEAD_M / (BERM_M + BERM_LEAD_M))
 var datum_m: Vector2 = Vector2.ZERO
 var _origin: Vector2i = Vector2i.ZERO
 var _size: Vector2i = Vector2i.ZERO
@@ -227,11 +234,21 @@ func inside_distance(point: Vector2) -> float:
 	return _nearest(point - datum_m, false)
 
 
+static func crown(inside: float) -> float:
+	"""The crown's share `inside` metres in from the outer walls: rising from the wall and easing out to 1 at
+	CROWN_REACH_M, so even a narrow Mound's top is a dome."""
+	var t: float = clampf(inside / CROWN_REACH_M, 0.0, 1.0)
+	return 1.0 - (1.0 - t) * (1.0 - t)
+
+
 static func berm(d: float) -> float:
-	"""The berm's height as a share of the hill's at the walls, `d` metres out: 1 over the shoulder, a smoothstep down
-	to 0 at BERM_M."""
-	var t: float = clampf((d - SHOULDER_M) / (BERM_M - SHOULDER_M), 0.0, 1.0)
-	return 1.0 - t * t * (3.0 - 2.0 * t)
+	"""The berm's height as a share of the hill's at the walls, `d` metres out: 1 at the wall, falling along half a cosine
+	to 0 at BERM_M (see BEYOND A WALL)."""
+	if d <= 0.0:
+		return 1.0
+	if d >= BERM_M:
+		return 0.0
+	return (1.0 + cos(PI * (d + BERM_LEAD_M) / (BERM_M + BERM_LEAD_M))) / _head
 
 
 static func wobble(q: Vector2) -> float:
@@ -248,8 +265,7 @@ func height_m(point: Vector2) -> float:
 	var d: float = _nearest(q, true)
 	var h: float = 0.0
 	if d <= 0.0:
-		var s: float = smoothstep(0.0, CROWN_REACH_M, _nearest(q, false))
-		h = ROOM_TOP_M + COVER_M + (CROWN_M + wobble(q)) * s
+		h = ROOM_TOP_M + COVER_M + (CROWN_M + wobble(q)) * crown(_nearest(q, false))
 	elif d < BERM_M:
 		h = (ROOM_TOP_M + COVER_M) * berm(d)
 	return _yard_sides(q, h)

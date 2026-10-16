@@ -10,9 +10,10 @@ extends RefCounted
 ## its cell along the side (east for north and south, south for east and west, as an edge item's two edges are); a
 ## WINDOW takes one. Both are placed by the player, never generated (BUILD-MOUND-010, -013).
 ##
-## THE HEAP'S FOOTPRINT (BUILD-MOUND-003, P-2001-4 (a)): every cell within BERM_CELLS of a Mound room cell, measured
-## between the cells' squares (a cell is covered when its gap to some room cell, in whole cells each way, has
-## gx² + gz² < BERM_CELLS²): the berm rolls straight down from the outer walls, so no earth margin is left beyond it.
+## THE HEAP'S FOOTPRINT (BUILD-MOUND-003, P-2001-4 (a) as amended by Brendan on 2026-10-16: "Rounder, like the mockup",
+## about 4 cells): every cell within BERM_CELLS of a Mound room cell, measured between the cells' squares (a cell is
+## covered when its gap to some room cell, in whole cells each way, has gx² + gz² < BERM_CELLS²): the berm falls in a
+## rounded curve from the outer walls to the ground there, so no earth margin is left beyond it.
 ## THE YARD (P-2001-5 (a)): in front of a door, its two cells and YARD_SIDE_CELLS more each side (6 cells wide), out
 ## BERM_CELLS cells to the berm's foot, kept at ground height and never heaped. Round it the ground falls to the yard:
 ## its sides slope down to it past its first cell, and the cell beyond its foot looks onto it. So no room stands in a
@@ -29,8 +30,9 @@ const SURFACE: int = 0
 ## DEC-054's 2026-10-15 addendum: a dug room is 4096 u high; P-2001-4 (a): a 1024 u cover over it.
 const ROOM_HEIGHT_U: int = 4096
 const COVER_U: int = 1024
-## P-2001-4 (a): the berm's footprint, in cells beyond an outer wall.
-const BERM_CELLS: int = 3
+## The berm's footprint, in cells beyond an outer wall: P-2001-4 (a)'s 3, widened to about 4 by Brendan's ruling of
+## 2026-10-16 ("Rounder, like the mockup"; decision 2002).
+const BERM_CELLS: int = 4
 ## P-2001-5 (a): a door's yard is its 2 cells and this many more each side.
 const YARD_SIDE_CELLS: int = 2
 ## A yard's sides slope 2 m a metre past its first cell (demo_build_mound_field.gd), so the hill there stands below the

@@ -17,17 +17,17 @@ const Mounds := preload("res://demo/build_panel/demo_build_mounds.gd")
 const Field := preload("res://demo/build_panel/demo_build_mound_field.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 
-const BEDROOM: Rect2i = Rect2i(2, 22, 6, 4)
-const HALL: Rect2i = Rect2i(8, 22, 4, 4)
-const KITCHEN: Rect2i = Rect2i(12, 22, 6, 4)
-const PANTRY: Rect2i = Rect2i(6, 26, 4, 8)
-## The door on the hall's north wall, two edges from x 9; the windows on the Bedroom's and the Kitchen's north walls.
-const DOOR: Vector3i = Vector3i(9, 22, 0)
-const WINDOWS: Array[Vector3i] = [Vector3i(3, 22, 0), Vector3i(16, 22, 0)]
-const HATCH: Vector2i = Vector2i(6, 32)
+const BEDROOM: Rect2i = Rect2i(1, 22, 6, 4)
+const HALL: Rect2i = Rect2i(7, 22, 4, 4)
+const KITCHEN: Rect2i = Rect2i(11, 22, 6, 4)
+const PANTRY: Rect2i = Rect2i(1, 26, 2, 8)
+## The door on the hall's north wall, two edges from x 8; the windows on the Bedroom's and the Kitchen's north walls.
+const DOOR: Vector3i = Vector3i(8, 22, 0)
+const WINDOWS: Array[Vector3i] = [Vector3i(2, 22, 0), Vector3i(15, 22, 0)]
+const HATCH: Vector2i = Vector2i(1, 32)
 const Catalog := preload("res://scripts/core/catalog.gd")
 const HEARTH: int = Catalog.FURNITURE_DEFINITION["hearth"]
-const LOOK_AT: Vector3 = Vector3(10.0, 0.0, 26.0)
+const LOOK_AT: Vector3 = Vector3(9.0, 0.0, 26.0)
 const FIRST_CELLS: int = 64
 const WAIT_STEPS: int = 6000
 const SETTLE_STEPS: int = 20
@@ -265,9 +265,9 @@ func _hour() -> int:
 func _finished_frames() -> void:
 	"""The finished home: B closes the panel; frames from the front and the side."""
 	_key(KEY_B)
-	_aim(Vector3(10.0, 0.0, 22.0), 180.0, 26.0, 20.0)
+	_aim(Vector3(9.0, 0.0, 22.0), 180.0, 26.0, 20.0)
 	_steps.push_front(_capture_after.bind("mound_finished_side", SETTLE_STEPS))
-	_steps.push_front(_aim_after.bind(Vector3(12.0, 0.0, 27.0), 270.0, 28.0, 24.0))
+	_steps.push_front(_aim_after.bind(Vector3(11.0, 0.0, 27.0), 270.0, 28.0, 24.0))
 	_steps.push_front(_capture_after.bind("mound_finished_front", SETTLE_STEPS))
 
 
@@ -287,8 +287,8 @@ func _capture_after(capture_name: String, steps_left: int) -> void:
 func _grow_open() -> void:
 	"""B on the Surface, the camera over the ground behind the hall; the hill's height there now."""
 	_key(KEY_B)
-	_aim(Vector3(8.0, 0.0, 31.0), 0.0, 64.0, 30.0)
-	_before_growth = _field().height_m(Vector2(PANTRY.position.x + 1.5, PANTRY.end.y - 1.5))
+	_aim(Vector3(5.0, 0.0, 31.0), 0.0, 64.0, 30.0)
+	_before_growth = _field().height_m(Vector2(PANTRY.position.x + 1.0, PANTRY.end.y - 1.5))
 
 
 func _pantry_ready() -> void:
@@ -323,7 +323,7 @@ func _wait_grown() -> void:
 
 func _hill_grew() -> void:
 	"""BUILD-MOUND-004: the hill now rises over the Pantry, where there was none."""
-	var after: float = _field().height_m(Vector2(PANTRY.position.x + 1.5, PANTRY.end.y - 1.5))
+	var after: float = _field().height_m(Vector2(PANTRY.position.x + 1.0, PANTRY.end.y - 1.5))
 	_check("the hill grew round the Pantry", _before_growth <= 0.0 and after >= Field.ROOM_TOP_M + Field.COVER_M,
 		"%.2f -> %.2f" % [_before_growth, after])
 
@@ -389,7 +389,7 @@ func _wait_hearth() -> void:
 func _chimney_shown() -> void:
 	"""BUILD-MOUND-022: a chimney on the hill over the Kitchen's hearth; the finished home once more from the front."""
 	_key(KEY_B)
-	_aim(Vector3(12.0, 0.0, 24.0), 200.0, 30.0, 24.0)
+	_aim(Vector3(11.0, 0.0, 24.0), 200.0, 30.0, 24.0)
 	_steps.push_front(_capture_after.bind("mound_chimney", SETTLE_STEPS))
 
 

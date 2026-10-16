@@ -202,12 +202,12 @@ func test_the_join_rule_between_styles() -> void:
 
 func test_the_hill_may_not_cover_water_or_things() -> void:
 	"""BUILD-MOUND-008: a thing under a room or its berm refuses the stroke in words; past the berm it does not."""
-	_things[Vector2i(12, 7)] = "a tree"
-	assert_equal(_paint(KITCHEN, 0, Vector2i(10, 10), Vector2i(15, 13)), Validity.KIND_NOT_POSSIBLE, "three cells out")
+	_things[Vector2i(12, 6)] = "a tree"
+	assert_equal(_paint(KITCHEN, 0, Vector2i(10, 10), Vector2i(15, 13)), Validity.KIND_NOT_POSSIBLE, "four cells out")
 	assert_equal(_batch.last_dropped(), "X Not possible: the hill would cover a tree", "in words")
 	_things.clear()
-	_things[Vector2i(12, 6)] = "water"
-	assert_equal(_paint(KITCHEN, 0, Vector2i(10, 10), Vector2i(15, 13)), Validity.KIND_BLOCKED, "four cells out: fine")
+	_things[Vector2i(12, 5)] = "water"
+	assert_equal(_paint(KITCHEN, 0, Vector2i(10, 10), Vector2i(15, 13)), Validity.KIND_BLOCKED, "five cells out: fine")
 	_things[Vector2i(14, 12)] = "water"
 	_batch.host_changed()
 	assert_equal(_batch.operation_kind(0), Validity.KIND_NOT_POSSIBLE, "water under the room now: the room says so")
@@ -257,7 +257,7 @@ func test_no_room_stands_in_or_beside_a_doors_yard() -> void:
 	_batch.host_changed()
 	assert_equal(_paint(BEDROOM, 0, Vector2i(16, 6), Vector2i(21, 9)), Validity.KIND_NOT_POSSIBLE, "beside the yard")
 	assert_equal(_batch.last_dropped(), "X Not possible: %s" % Mound.TEXT_IN_YARD, "in words")
-	assert_equal(_paint(BEDROOM, 0, Vector2i(10, 2), Vector2i(15, 5)), Validity.KIND_BLOCKED, "two cells past its foot")
+	assert_equal(_paint(BEDROOM, 0, Vector2i(10, 1), Vector2i(15, 4)), Validity.KIND_BLOCKED, "two cells past its foot")
 	assert_equal(_paint(BEDROOM, 0, Vector2i(30, 10), Vector2i(35, 13)), Validity.KIND_BLOCKED, "far off: kept")
 	_batch.toggle_mound_edge(0, Vector2i(31, 13), 2, Mound.KIND_DOOR, 0)
 	assert_equal(_paint(BEDROOM, 0, Vector2i(30, 15), Vector2i(35, 18)), Validity.KIND_NOT_POSSIBLE, "a pending door's")

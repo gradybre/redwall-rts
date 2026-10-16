@@ -381,7 +381,7 @@ is a consequence for balance, not a proposal of this lane.
 
 **Can be built before activation merges (new files only; no collision):**
 
-1. **The derivation.** A derivation module and its Python tests under `godot/data/underground/full-level-flight-v1/`
+1. **The derivation.** A derivation module under `godot/data/underground/full-level-flight-v1/` and its tests (as built in phase 2a: GDScript, `godot/test/test_full_level_flight_geometry.gd`)
    (new directory): rows, floors, posts, cut set, stops, bills, checked against §2.4–2.5 and against today's flight
    (F5).
 2. **The offline proofs.** New scripts under `mole-worker/contact-qualification/` running the accepted provers on F40
@@ -527,7 +527,7 @@ Brendan should know.
 - **Gates.**
   - The offline proofs: 0 unresolved, support rows all inside, self-clearance clear, with segment and solid
     capacities recorded.
-  - The derivation's Python tests reproduce §2.4–2.5 and today's ledger (F5).
+  - The derivation's tests (GDScript, as built) reproduce §2.4–2.5 and today's ledger (F5).
   - `decision_numbers.py`; Godot fixture tests and the analyzer on port 6503 for any new `.gd`.
 - **Stop.** Report the proofs and the 160 u probe to Brendan with the measured numbers. Decision 2043 records them.
 
@@ -552,6 +552,17 @@ Brendan should know.
   run-out through `order_underground_room`.
 - **Owed by D2.** The game checkpoint recipe (P-1936-4) and the S7 host restore fixture (decision 1937).
 - **Gate.** A room seeded from the run-out digs on the live chain.
+
+## Phase 2a (2026-10-16)
+
+- **Built.** The geometry module `godot/data/underground/full-level-flight-v1/flight_geometry.gd` and its tests, and
+  the 160 u probe. Both are recorded in [decision 2043](2043-d-flight-phase-2a-geometry-probe-and-buildability.md).
+- **The probe fails** with the accepted recipe. The legs reach the step, but the right shin meets the deck in both
+  gaits, so qualifying 160 u is new authoring.
+- **Correction to P-DF-8 (a).** Its station assumption does not hold for F40: treads fill the slot from wall to wall,
+  and no qualified motion reaches a lower plateau's floor (2043 §3). Decision 2043 P-2043-1 proposes the modular
+  straight flight M5, five copies of today's module, which is buildable with qualified motion only.
+- **The earth carry** (P-DF-7) is scoped in [decision 2042](2042-one-basic-earth-carry-scoping.md).
 
 ## Consequences
 

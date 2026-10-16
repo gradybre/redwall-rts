@@ -2643,7 +2643,7 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "decision 1933 (C2.1) room-dig runtime reference; only tests adopt one until C2.3 composes it from the Session and ledgers its packed record (344,064 B)"
+     "store": "decision 1933 (C2.1) room-dig runtime reference; only tests adopt one until C2.3 composes it from the Session and ledgers its packed record (475,136 B since decision 1934)"
     }
    ],
    "delta": {

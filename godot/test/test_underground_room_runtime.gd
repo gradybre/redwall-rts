@@ -45,10 +45,10 @@ func _crew() -> Array[Builder.Crew]:
 
 
 func test_the_record_is_one_small_row_per_room() -> void:
-	"""Generation, state and two container references: 21 bytes per room row."""
-	assert_equal(Runtime.RECORD_BYTES, 21, "4 + 1 + 8 + 8")
-	assert_equal(Runtime.packed_bytes(), Runtime.ROOM_CAPACITY * 21, "one row per possible room")
-	assert_equal(Runtime.packed_bytes(), 344064, "the ledger figure")
+	"""Generation, state and three container references (decision 1934 added staging): 29 bytes per room row."""
+	assert_equal(Runtime.RECORD_BYTES, 29, "4 + 1 + 8 + 8 + 8")
+	assert_equal(Runtime.packed_bytes(), Runtime.ROOM_CAPACITY * 29, "one row per possible room")
+	assert_equal(Runtime.packed_bytes(), 475136, "the ledger figure")
 	assert_equal(Runtime.ROOM_CAPACITY, Directory.KIND_CAPACITY[Directory.KIND_ROOM], "the directory's room rows")
 
 
@@ -66,6 +66,21 @@ func test_ordering_validates_the_room_and_its_containers() -> void:
 	assert_equal(_runtime.order_room(_room, _h.material, _h.material), Runtime.REFUSE_STATE, "only once")
 	assert_equal(_runtime.state_of(Vector2i(_room.x, _room.y + 1)), Runtime.RECORD_NONE, "stale reads nothing")
 	assert_false(_runtime.is_running(), "queued is not digging")
+
+
+func test_the_record_keeps_the_staging_container_for_the_foreman() -> void:
+	"""Decision 1934: the staging container missing inputs are hauled from is kept in the record (null when none
+	is named) and handed to the foreman's builders when the dig starts."""
+	if _room == NULL_REF: return
+	var row: int = _h._residents.directory().get_typed_row(_room)
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued without one")
+	assert_equal(Vector2i(_runtime._staging[2 * row], _runtime._staging[2 * row + 1]), NULL_REF, "none named")
+	_runtime._state[row] = Runtime.RECORD_STOPPED # Negative-only: re-order the same room.
+	assert_equal(_runtime.release_room(_room), &"", "released")
+	var pile: Vector2i = _h._inventory.create_spatial_ground_staging(_h.parking).ref
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material, pile), &"", "queued with one")
+	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "started")
+	assert_equal(_runtime.foreman_of(_room)._ctx.staging, pile, "handed to the builders")
 
 
 func test_starting_needs_a_queued_room_and_a_plan() -> void:

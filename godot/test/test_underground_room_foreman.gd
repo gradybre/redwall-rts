@@ -110,7 +110,7 @@ func _started(crew: Array[Builder.Crew]) -> Foreman:
 	if room == NULL_REF: return null
 	if crew.is_empty(): crew.append(_h.crew_member())
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, crew), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, NULL_REF, crew), &"", "configured")
 	return foreman
 
 
@@ -133,7 +133,7 @@ func test_one_builder_digs_the_whole_kitchen_on_the_fixed_tick() -> void:
 	assert_equal(foreman.blocked_ticks(), 0, "one builder never waits on another")
 	var far: Builder.Crew = _h.second_member(Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z + 2560))
 	var again: Foreman = Foreman.new()
-	assert_equal(again.configure(_h.owners(), foreman.room(), _h.material, _h.material, [far]), &"", "a dug room")
+	assert_equal(again.configure(_h.owners(), foreman.room(), _h.material, _h.material, NULL_REF, [far]), &"", "a dug room")
 	assert_equal(again.done_cubes(), KITCHEN_SITES, "already done by Sites' record")
 	_h.tick += 1
 	assert_equal(again.advance(_h.tick), &"", "nothing to do")

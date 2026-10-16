@@ -473,3 +473,27 @@ func test_endpoint_memo_retires_on_every_stamped_input() -> void:
 		if change == 1: binding._domain._bounds[3] -= 1
 		if change == 2: binding._descriptor.content_revision -= 1
 	binding._proof = null
+
+
+func test_endpoint_memo_keeps_no_fault_and_reads_only_its_own_descriptor_and_boxes() -> void:
+	"""Decision 1952: a proof that ran out of budget leaves nothing a full proof could borrow; a descriptor that is not
+	the bank's current row is never answered; another envelope refills the entry."""
+	if not _fixture(): return
+	var filled: Array = _endpoint_filled()
+	assert_equal(filled.size(), 2, "observed and filled")
+	if filled.size() != 2: return
+	var binding: WorldRoutes = _h._binding
+	var spent: int = Space.MAX_CHECKS - int(filled[1][1])
+	assert_true(spent > 1, "the proof spends")
+	_endpoint_memo(true)
+	var starved: Array = _endpoint_run(_h.parking, filled[0], spent - 1)
+	assert_true(starved[2] != &"", "a starved proof faults")
+	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "then a full proof is the plain one")
+	binding._descriptor.profile_revision += 1
+	assert_equal(binding._endpoint_entry(_h.parking, binding._endpoint.point), -1, "a stale descriptor row is not answered")
+	binding._descriptor.profile_revision -= 1
+	assert_true(_endpoint_remembered(), "remembered")
+	binding._endpoint.envelope[0] -= 1
+	assert_false(_endpoint_remembered(), "another envelope: refilled")
+	binding._endpoint.envelope[0] += 1
+	binding._proof = null

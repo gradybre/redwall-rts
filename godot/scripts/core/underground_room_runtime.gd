@@ -205,6 +205,7 @@ func advance(tick: int) -> Array[StringName]:
 	"""One fixed tick of every digging room. Returns this tick's new refusals, one per room that stopped, each for
 	its own alert (the array is the runtime's, refilled every tick)."""
 	_refusals.clear()
+	_heal_occupancy()
 	for index: int in _foremen.size():
 		var foreman: Foreman = _foremen[index]
 		var code: StringName = &""
@@ -215,7 +216,26 @@ func advance(tick: int) -> Array[StringName]:
 			code = foreman.advance_out(tick) # P-1936-3 (a): the crew walks back out.
 		foreman.shed_crew()
 		if code != &"": _refusals.append(code)
+	_release_done()
 	return _refusals
+
+
+func _heal_occupancy() -> void:
+	"""Review M-a: an arrival out whose occupancy refresh was refused left Routes stale, and stale Routes moves
+	nobody; while a dig runs, one refresh is retried each tick until it holds."""
+	if _owners == null or _foremen.is_empty() or _owners.routes._occupancy_context_refusal() == &"": return
+	_owners.routes.refresh_occupancy()
+
+
+func _release_done() -> void:
+	"""Review M-b: a finished dig whose crew is out releases its record by itself (Sites keep the dug room), so kept
+	records are only digs under way, stopped ones and finished ones still walking out."""
+	for index: int in range(_foremen.size() - 1, -1, -1):
+		var foreman: Foreman = _foremen[index]
+		if foreman.state() != Foreman.STATE_DONE or foreman.crew_out(): continue
+		_state[_foreman_rows[index]] = RECORD_NONE
+		_foremen.remove_at(index)
+		_foreman_rows.remove_at(index)
 
 
 func _settle_record(index: int) -> void:

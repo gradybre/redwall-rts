@@ -191,3 +191,39 @@ func test_kept_records_are_bounded_and_a_kept_runtime_is_not_a_restore_target() 
 	noted.note_contacts(_h._first, _h.provider._ordinary_travel)
 	assert_false(noted.is_empty(), "noted contacts are state to save")
 	assert_equal(noted.restore(record), Progress.REFUSE_TARGET, "and not a restore target")
+
+
+func test_a_stopped_builder_waiting_to_leave_is_named_once_at_the_stall_bound() -> void:
+	"""Review M1: waiting to leave from rest is counted; the stall bound names it once and the wait goes on."""
+	var builder: Builder = Builder.new()
+	for tick: int in Builder.STAGE_TICK_LIMIT - 1:
+		assert_equal(builder._wait_out(), &"", "waiting %d" % tick)
+	assert_equal(builder._wait_out(), Builder.REFUSE_STUCK, "named at the bound")
+	assert_equal(builder._wait_out(), &"", "once")
+
+
+func test_a_dig_heals_a_stale_routes_occupancy_while_its_crew_walks_out() -> void:
+	"""Review M-a: a foreign pose change (here a resident placed on the surface) leaves Routes' occupancy stale, and
+	stale Routes moves nobody. While a kept dig's crew is still walking out (no actor edit refreshes it), the runtime
+	refreshes it on its next tick."""
+	if _room == NULL_REF: return
+	var crew: Array[Builder.Crew] = [_h.crew_member()]
+	assert_true(_h._transforms.place(_h._worker, 60000, 512, 60000, 0), "far off on the surface")
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued")
+	assert_equal(_runtime.start_room(_room, _runtime.bound_owners(), crew), &"", "started")
+	var builder: Builder = _runtime.foreman_of(_room).builders()[0]
+	for tick: int in 4000:
+		_h.tick += 1
+		_runtime.advance(_h.tick)
+		if not builder.walking(): break
+	_runtime.foreman_of(_room)._halt(&"TEST_STOP") # Negative-only: the dig stops with its builder parked.
+	_h.tick += 1
+	_runtime.advance(_h.tick)
+	assert_true(builder.walking() and builder._walk.leaving, "walking back out")
+	var other: Vector2i = _h._residents.ref_of(_h._residents.spawn(&"mole").value)
+	assert_true(_h._transforms.place(other, 90000, 512, 90000, 0), "a foreign pose change")
+	assert_false(_h._routes._occupancy_context_refusal() == &"", "stale")
+	_h.tick += 1
+	_runtime.advance(_h.tick)
+	assert_true(builder.walking(), "still walking out")
+	assert_equal(_h._routes._occupancy_context_refusal(), &"", "healed by the runtime")

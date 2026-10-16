@@ -76,6 +76,8 @@ const REFUSE_LOST: StringName = &"ROOM_BUILDER_CREW_LOST"
 const REFUSE_STAIR: StringName = &"ROOM_HAUL_NO_STAIR_CARRY"
 ## Decision 1936, P-1936-5 (a): the cube's plan needs more than the footprint's MAX_BOXES boxes.
 const REFUSE_FOOTPRINT: StringName = &"ROOM_BUILDER_FOOTPRINT_CAPACITY"
+## Decision 1937 (review M1): a stopped builder still not at rest after STAGE_TICK_LIMIT ticks is named once.
+const REFUSE_STUCK: StringName = &"ROOM_BUILDER_STUCK_UNDERGROUND"
 const REFUSE_OCCUPIED: StringName = &"ROUTE_OCCUPIED"
 const WAIT: StringName = &"ROOM_BUILDER_WAIT" # Internal: still on the way; never returned to the foreman.
 
@@ -228,20 +230,34 @@ func leave() -> StringName:
 	if _walk.walking() or not underground(): return &""
 	var o: Owners = _ctx.owners
 	if _release_pending:
-		if Routes.source_ready_leaf_refusal(o.routes, _crew.worker, o.jobs.ref_of(_job), _work_profile,
-				_revision(_work_profile), _ctx.content) != &"" and not lost(): return &""
+		if not lost() and not _at_source_ready(): return _wait_out()
 		_release_pending = false
 		var released: StringName = _release_phase()
 		if released != &"": return released
 	if lost(): return o.routes.unregister_lost_actor(_crew.worker)
 	var code: StringName = o.routes.unregister_resting_actor(_crew.worker)
-	if code == &"ROUTE_UNREGISTER_NOT_AT_REST": return &""
+	if code == &"ROUTE_UNREGISTER_NOT_AT_REST": return _wait_out()
 	if code != &"": return code
 	var pose: Transforms.Pose = Transforms.Pose.new()
 	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_LOST
 	code = _walk.begin(o.residents, worker_row(), Vector3i(pose.x, pose.y, pose.z), _walk.origin, true)
 	if code == &"" and not _walk.walking(): code = _arrive_out()
 	return code
+
+
+func _at_source_ready() -> bool:
+	"""The actor stands at READY in the source it actually holds, under its own Job and row (after a hand-over these
+	are not the builder's `_job` and work row any more: review M1)."""
+	var o: Owners = _ctx.owners
+	if o.routes.read_actor_into(_crew.worker, _actor) != &"": return false
+	return Routes.source_ready_leaf_refusal(o.routes, _crew.worker, _actor.job, _actor.profile_id,
+		_actor.profile_revision, _actor.content_revision) == &""
+
+
+func _wait_out() -> StringName:
+	"""One more tick waiting to leave from rest; named once at the stall bound (the wait goes on, reserved)."""
+	_stage_ticks += 1
+	return REFUSE_STUCK if _stage_ticks == STAGE_TICK_LIMIT else &""
 
 
 func _arrive_out() -> StringName:
@@ -967,10 +983,12 @@ func abandon() -> StringName:
 	(decision 1936); otherwise the route actor stays where it stopped."""
 	var was: int = _failed_from if _stage == STAGE_FAILED else _stage
 	_stage = STAGE_FAILED
+	_stage_ticks = 0
 	if _walk.walking() and not _walk.leaving: _walk.ticks_left = 0 # Its body never left where it stood.
 	var o: Owners = _ctx.owners
 	if was >= STAGE_ENTER and was <= STAGE_RECOVER and _job >= 0 and not lost() \
-			and o.routes.request_source_ready(_crew.worker, o.jobs.ref_of(_job)) == &"":
+			and o.routes.read_actor_into(_crew.worker, _actor) == &"" \
+			and o.routes.request_source_ready(_crew.worker, _actor.job) == &"": # Under the Job it holds (M1).
 		_release_pending = true
 		return &""
 	return _release_phase()

@@ -58,7 +58,9 @@ state.
   underground was held (`ROUTE_OCCUPANCY_STALE`) and never reached READY: a two-builder stop hung for good.
 - **A finished or stopped dig forgets each builder once it is out** (`shed_crew`). It keeps only the builders still
   underground, exactly as the save writes them, so nothing it keeps can act on a resident another dig picks next.
-  The record stays DONE or STOPPED until `release_room`, as in C2.1. A re-order, including a new room on the same
+  A STOPPED record stays until `release_room` (its code is the alert's, and a re-order resumes its paid phase). A
+  DONE record releases itself once its crew is out (review M-b, the coordinator, 2026-10-16), so finished rooms
+  never fill the 512 kept records. A re-order, including a new room on the same
   directory row, is refused `ROOM_DIG_CREW_OUT` while a builder is still underground.
 - **Resume (P-1933-2 (a)).** A re-ordered room's cube with a live, started phase is taken first: the builder takes
   the Site's bound Job, walks to the station, and continues the paid work through Sites' `resume_phase_work`
@@ -159,13 +161,12 @@ Fixed with them: M2 (a builder walking in at the stop never arrives), M4 (a swap
 
 **Open, MEDIUM and LOW (recorded, not fixed here):**
 
-- **M-a.** A refused occupancy refresh at an arrival out is not retried, so Routes stays stale until the next
-  admission refreshes it. The refusal is raised once.
-- **M-b, a C3 obligation.** No production code calls `release_room`, so DONE and STOPPED records stay. A re-order of
-  the same room is refused, and 512 kept records refuse every order. C3 must release finished rooms, or let a
-  re-order replace a DONE record.
-- **M1.** A stop between a hand-over and its source READY can leave the actor in WORK under another Job. `leave`
-  then waits with no stall bound.
+- **Fixed afterwards (the coordinator, 2026-10-16):** M-a (while a dig is kept the runtime retries one occupancy
+  refresh each tick until Routes is current), M-b (a DONE record releases itself once its crew is out; STOPPED
+  records still wait for `release_room`, and 512 of them would still refuse orders) and M1 (READY is requested and
+  awaited under the Job and row the actor actually holds, and a wait to leave is named once,
+  `ROOM_BUILDER_STUCK_UNDERGROUND`, at `STAGE_TICK_LIMIT`). Mutants N1-N3 are killed. The actor-Job change
+  itself is deferred: it needs a stop between a hand-over and READY.
 - **M3.** Load range-checks only some cursor fields (`_index`, `_operation`, profile rows). The cross-record
   invariants (a DIGGING row has a foreman, foreman state matches record state) are not re-proved.
 - **M5.** A parking whose spans publish but never join adds two spans on every later order.
@@ -202,6 +203,32 @@ composer, session, runtime, builder, crews and progress suites). **4 are equival
   section schemas, the state registry coverage and the setting contract.
 - **The resume gap stands after #265:** the room bindings still refuse a new worker on a started phase
   (`ROOM_PHASE_WORKER`, §6 gap 1).
+
+## 10. Memory options for Brendan (P-1937-1)
+
+The coordinator holds the PR until Brendan rules. `room_dig_runtime` is 9,164,262 B. Decision 1880 Q1's projection
+is 7,748,398 B over the gate, so this row would have to fall to **1,415,864 B** or less for Q1 to fit. All figures
+below come from the census's own formulas.
+
+| Option | Saved | Cost in play |
+|---|---:|---|
+| **B. One row-extent table shared by all builders.** The extents are a per-profile-row cache derived from Profiles and identical for every builder; one 256-row table instead of 256 | 1,566,720 | None |
+| **C. One record image instead of two.** The codec writes into, and checks against, the caller's buffer, with no second full copy | 1,198,536 | None (the codec gets a streaming compare) |
+| **D. A 512-row record pool instead of a 16,384-row record.** Index kept records by room; `MAX_KEPT` already bounds them | 458,240 | None |
+| **E. 5 B per Site in a dig order instead of 13.** Drop each Site's distance (only the planning sort reads it) and its key (read from Sites when needed) | 591,272 | None |
+| B + C + D + E together | **3,814,768** | None. The row falls to 5,349,494 B and the headroom rises to 44,399,170 B. Q1 is still 3,933,630 B over |
+| **A. Cap concurrent builders at 64** (`MAX_DIGS` 64, `MAX_KEPT` 128), alone | 4,909,248 | At most 64 builders digging at once: 64 one-builder rooms, or 16 rooms of 4. With 256 residents, a quarter of the settlement |
+| **A + B + C + D + E** | **7,101,616** | The 64-builder cap. The row falls to 2,062,646 B and the headroom rises to 47,686,018 B. **Q1 is still 646,782 B over** |
+| F. Footprint cap 256 boxes instead of 512 (P-1936-5), alone | 1,572,864 | Larger cube plans refused `ROOM_BUILDER_FOOTPRINT_CAPACITY` (the Kitchen's plans have not been measured against 256) |
+
+Fitting Q1 by shrinking this row alone needs B through E plus a cap of **24 builders** (row 1,377,886 B, 37,978 B
+spare), or **40 builders with 256 boxes** (row 1,406,030 B, 9,834 B spare). Both are severe in play. Q1 was tight
+(1.42 MB) before any dig existed; any working dig runtime overshoots it.
+
+**Recommendation:** build B, C, D and E now (3.81 MB, no play cost), and take A, the 64-builder cap, only if
+Brendan wants it. Revisit Q1's projection rather than squeezing digs to fit it: its 8,110,080 B allowance for
+painted store containers is an "up to" figure that slice G has not yet designed. The engineering options are about
+a day of work with their own parity proof. The cap is a gameplay constant, so it is Brendan's to choose.
 
 ## Source
 

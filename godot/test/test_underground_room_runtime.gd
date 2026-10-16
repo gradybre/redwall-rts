@@ -105,7 +105,7 @@ func test_starting_needs_a_queued_room_and_a_plan() -> void:
 
 
 func test_the_settlement_tick_digs_an_adopted_room_to_done() -> void:
-	"""SettlementSystem advances the adopted runtime once per fixed tick, after the entry; the record ends DONE."""
+	"""SettlementSystem advances the adopted runtime once per fixed tick, after the entry; the record is DONE while its crew walks out, then releases itself."""
 	if _room == NULL_REF: return
 	_settlement = SettlementSystemScript.new()
 	assert_null(_settlement.underground_rooms(), "none until adopted")
@@ -117,16 +117,20 @@ func test_the_settlement_tick_digs_an_adopted_room_to_done() -> void:
 	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "started")
 	assert_equal(_runtime.state_of(_room), Runtime.RECORD_DIGGING, "digging")
 	assert_true(_runtime.is_running(), "running")
+	var foreman: Foreman = _runtime.foreman_of(_room)
+	var done_seen: bool = false
 	for step: int in TICK_BOUND:
 		_h.tick += 1
 		_settlement.run_tick(_h.tick)
+		done_seen = done_seen or _runtime.state_of(_room) == Runtime.RECORD_DONE
 		if not _runtime.is_running(): break
-	assert_equal(_runtime.state_of(_room), Runtime.RECORD_DONE, "done")
-	assert_equal(_runtime.foreman_of(_room).done_cubes(), ForemanTests.KITCHEN_SITES, "every cube, by Sites' record")
+	assert_true(done_seen, "DONE while its crew walked out")
+	assert_equal(foreman.done_cubes(), ForemanTests.KITCHEN_SITES, "every cube, by Sites' record")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
-	assert_equal(_runtime.release_room(_room), &"", "released")
-	assert_equal(_runtime.state_of(_room), Runtime.RECORD_NONE, "cleared")
+	assert_equal(_runtime.state_of(_room), Runtime.RECORD_NONE, "released by itself once out (review M-b)")
 	assert_null(_runtime.foreman_of(_room), "foreman dropped")
+	assert_equal(_runtime.kept(), 0, "nothing kept")
+	assert_equal(_runtime.release_room(_room), Runtime.REFUSE_STATE, "nothing left to release")
 	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "orderable again")
 
 

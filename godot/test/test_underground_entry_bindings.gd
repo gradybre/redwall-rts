@@ -982,9 +982,10 @@ func test_a_landing_over_natural_earth_is_supported() -> void:
 	assert_equal(_bindings.natural_support, [&""] as Array[StringName], "one natural-earth proof, clear")
 	assert_true(_bindings.residual_footing.size() >= 1 and _bindings.residual_footing.max() == 1,
 		"the sealed candidate's terrain footing observed the one natural fragment")
-	var natural: PackedInt32Array = PackedInt32Array([WorldTests.X, 511, WorldTests.Z - 1536, WorldTests.X + 1024, 512,
-		WorldTests.Z - 1024])
-	assert_equal(_retained_support(natural), 1, "the natural earth under the landing is retained as the Room's SUPPORT")
+	var natural: PackedInt32Array = PackedInt32Array([WorldTests.X, 512 - Binding.NATURAL_DEPTH_U, WorldTests.Z - 1536,
+		WorldTests.X + 1024, 512, WorldTests.Z - 1024])
+	assert_equal(_retained_support(natural), 1,
+		"the natural earth under the landing's natural part is retained as the Room's SUPPORT, 128 u deep")
 	assert_equal(_f._locations._live.count, 3, "two original and the installed endpoint")
 
 

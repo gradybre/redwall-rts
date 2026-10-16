@@ -583,3 +583,54 @@ The floor end's first refused edge is the claw descent from the sill to the floo
   the cost lane's lines.
 - Its design question for then: WorldRoutes binds Terrain but not Sites, so "never cut" has to come from the Space
   rows and Terrain's footing, or Sites has to be bound.
+
+## Phase 2d — can retained natural earth replace the WorldRoutes deck rule? (2026-10-16)
+
+The coordinator asked whether retaining natural earth as the Room's SUPPORT could stand in for the WorldRoutes deck
+rule. With that, WorldRoutes' existing rule (Room or World SUPPORT) would accept the decks unchanged.
+
+### Built
+
+When a landing stands partly on natural earth, the natural earth under its **whole footprint, 128 u deep**
+(`NATURAL_DEPTH_U`, the natural bearings' depth in ADR 1209: y −1152..−1024 under a floor at −1024) is:
+- proved by the cut history and matter (`_timber_virgin_keys`, `_timber_natural_rows`), once, at that depth;
+- retained as the Room's SUPPORT;
+- checked at the final pass for dry original footing over the same depth.
+
+A landing on timber alone has no natural strip and is not observed.
+
+### Measured on the scratch mount (each planned edge published alone after the live descent)
+
+Logs are in `scratchpad/activate_m1/`.
+
+- **Published:**
+  - every CARRY edge on the stair: H → A(L0), each tread descent to T6, each ascent from T6 to U(L0), and U(L0) → H;
+  - the sill's WALK edges (T5 → T6 and T6 → T5).
+- **The decks under the floor landing now pass.** These are rows 53, 54 and 55 and their loaded twins (74–76,
+  80–82). Their next refusal is their **body cover** (`WORLD_ROUTE_COVERAGE`):
+  - the bodies at a floor root reach 1–2 u below the floor plane (y −1..−2 lows), and 512 u past the floor landing
+    under the sill (z −5632..−5120);
+  - there the earth is natural but not retained;
+  - `_stair_covered_refusal` accepts only void, the Room's SUPPORT or exterior air.
+- **The handoff rows' floor slabs still refuse** (`WORLD_ROUTE_STAIR_SUPPORT`). These are rows 71, 72 and 78/84, and
+  73/79 as the walk-off. Decision 1981's tables give them the bottom fixture's whole floor slab, 128 u deep under the
+  entire stair (to z 0, or to −4439 for the walk-off), far outside the floor landing.
+
+### So landing-sized retention is not enough. Two ways to finish
+
+- **(a) Recommended: retain the trench floor.** When a group's landing stands on natural earth at a cut floor,
+  retain, 128 u deep, the natural earth under every cut cube of the Placement's Frontier cut set at that floor (for
+  this bundle the whole trench, x ±1024, z −7168..0) as the Room's SUPPORT, less the bearings already retained.
+  - Proof, retention and the final footing check are the same three steps as above.
+  - It covers both the bodies' sub-floor sliver and the handoff slabs. **WorldRoutes needs nothing beyond the +33 /
+    −2 lines, and nothing new needs Sites.**
+  - The footprint comes from the bundle's own cut set, not a new constant.
+  - Cost: about 30 subtracted bearing boxes, so a few dozen staged rows inside `REGION_CAPACITY` 6,144, once, at
+    the sill's commit.
+  - It blocks no planned dig:
+    - rooms cut above their floor, never below it;
+    - the 1971 floor scrape admits never-cut earth whoever owns it (review M6, "Leave as built");
+    - only a future dig *under* the stair (slice D) would meet it, and that is earth the stair stands on.
+- **(b) The WorldRoutes rule.** Admit natural earth (Space rows plus Terrain footing, without Sites) in both
+  `_stair_decks_refusal` and `_stair_covered_refusal`. That is now about 900 characters, because the bodies need it
+  too.

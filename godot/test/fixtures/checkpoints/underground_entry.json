@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "49c0fe766867030747845e44b3ecc8ece8497991de5329dfaebc9a6a42a49168",
+	"fingerprint": "c6ab5f322bac6ca03b1e8f426ab7e237e0d59ba18358e4deaaf8fb81fb850118",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -208,7 +208,7 @@
 		"res://scripts/core/underground_connector_source_facts.gd": "ca85f6c1ad32ed2a28f55e1fceeec91a76e398180e5b938c8043707f41dd7940",
 		"res://scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
 		"res://scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
-		"res://scripts/core/underground_entry_bindings.gd": "ae9af111189e261aec11381d45d4ba64fa56cf8503fc8672715806c40d3be28a",
+		"res://scripts/core/underground_entry_bindings.gd": "dbda1c614cc9edb9fe605acebd838849385f89831eaeb24b318f0bf41cdc09f0",
 		"res://scripts/core/underground_entry_composition.gd": "2d65875785d5e69f7c6861573b17fb90e65b4f8a999e2634b013a75cbae20d29",
 		"res://scripts/core/underground_entry_contact_path.gd": "a8ba918d5825a65b1a31754fc72bcf0b14e5a10ed5438010845d76148e183765",
 		"res://scripts/core/underground_entry_contact_retirement.gd": "907fc15d9e6eb95fbeda072306aa70eaff12d3fda302e7e2f1d41dc15a296aac",

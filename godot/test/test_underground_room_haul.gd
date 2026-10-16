@@ -248,7 +248,9 @@ class HaulKitchen extends ForemanTests.Kitchen:
 		return o
 
 	func store_member() -> Builder.Crew:
-		"""The fixture's mole with its pick, parked on M itself so the haul starts where it stands."""
+		"""The fixture's mole with its pick, standing on M itself (its parking) so it has no walk in and the haul starts
+		where it stands."""
+		assert_true(_transforms.place(_worker, Phase.X - 3072, Phase.FLOOR, Phase.Z + 512, StationTests.YAW_PLUS_X), "on M")
 		var member: Builder.Crew = Builder.Crew.new()
 		member.worker = _worker; member.tool = tool; member.parking = parking
 		return member

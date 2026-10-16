@@ -2248,6 +2248,30 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Room dig record: containers | `_storage`, `_output`, `_staging` | 4 | `2 * ROOM_CAPACITY` = 32768 | Zero for a room never ordered; a null staging pair when none is named | UNRESOLVED | §6 AUXILIARY_STATE | Same record: the room's input storage, the spoil container and (decision 1934) the same-level staging container missing inputs are hauled from, each a (slot, generation) pair. Saved by C2.3? |
 | Foreman record rows | `_foreman_rows` | 4 | never allocated | One per kept foreman (at most MAX_DIGS running, plus stopped ones until released) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The record row of each kept foreman, so a room deleted mid-dig still settles its record. Saved with the foremen by C2.3? |
 
+### `godot/scripts/core/underground_dispatch.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Composite dispatcher | -- | -- | -- | No members but the host's two runtime readers | 3 | -- | Decision 1936 (review H4). Jobs' one dispatcher: it owns what either the entry or the room runtime owns, and reserves whom either reserves. Its answers are the runtimes', derived from saved Jobs, Construction and Routes state; it is bound again at every mount, so nothing is saved. |
+
+### `godot/scripts/core/underground_room_composer.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless room-dig composition | -- | -- | -- | No members; the Order packet is caller-owned | 3 | -- | Decision 1936: binds the room phases' contacts to the first order's access (P-1936-1 (a)), picks the builder (P-1936-2 (a)), parks it and starts the dig. Everything it produces is the owners' or the runtime's own state. |
+
+### `godot/scripts/core/underground_room_parking.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless parking planner | -- | -- | -- | No members; the Request packet is caller-owned | 3 | -- | Decision 1936: finds or publishes a builder's TRANSIT endpoint off the access and its two spans. What it publishes is Locations' and Routes' own saved state. |
+
+### `godot/scripts/core/underground_room_walk.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Walk cursor | -- | -- | -- | No packed columns; zero ticks when no walk is under way | 1 | §6 AUXILIARY_STATE | Decision 1936, P-1933-1 (a) and P-1936-3 (a): a builder's timed walk in to its parking or back out (ticks left, direction, the origin it walks back to). Saved with the builder's cursor inside `underground_room_progress`'s record. |
+
 ### `godot/scripts/core/underground_room_composition.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

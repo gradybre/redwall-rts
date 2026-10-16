@@ -149,9 +149,9 @@ func advance(tick: int) -> StringName:
 	if _done == _order.rows.size() and _all_parked(): return _finish()
 	for builder: Builder in _builders:
 		if builder.lost(): return _halt(Builder.REFUSE_LOST) # In every stage, before any owner is touched.
-	if not _registered:
-		var code: StringName = _register()
-		if code != &"": return _halt(code)
+	var arrived: StringName = _arrive()
+	if arrived != &"": return _halt(arrived)
+	if _walking_in(): return &"" # ADR1219: no work moves before the whole crew has arrived.
 	_ctx.owners.routes.advance_tick(tick)
 	for index: int in _builders.size():
 		var code: StringName = _advance_builder(index, tick)
@@ -168,6 +168,7 @@ func _advance_builder(index: int, tick: int) -> StringName:
 	until its cube's footprint is clear of the others'."""
 	var builder: Builder = _builders[index]
 	_blocked[index] = 0
+	if builder.walking(): return &"" # Still on its walk in: no cube yet.
 	var was_idle: bool = builder.idle()
 	var before: Vector3i = Vector3i(builder.stage(), int(builder.in_motion()), builder.footprint_serial())
 	var code: StringName = &""
@@ -212,12 +213,39 @@ func _frozen() -> bool:
 	return any
 
 
-func _register() -> StringName:
-	"""Every builder becomes a route actor on its parking before the first cube is dispatched."""
+func _arrive() -> StringName:
+	"""P-1933-1 (a): on the first tick every builder sets off on its walk in; each tick the walks advance and a
+	builder arriving is registered on its parking, in crew order, so each occupancy proof sees the ones already
+	registered. No cube is given before the whole crew has arrived (as ADR1219 registers before any work moves)."""
 	for builder: Builder in _builders:
-		var code: StringName = builder.register()
+		var code: StringName = builder.begin_walk_in() if not _registered else builder.advance_walk()
 		if code != &"": return code
 	_registered = true
+	return &""
+
+
+func _walking_in() -> bool:
+	"""Some builder is still on its walk in."""
+	for builder: Builder in _builders:
+		if builder.walking(): return true
+	return false
+
+
+func crew_out() -> bool:
+	"""Some builder is still underground (registered, or walking in or out)."""
+	for builder: Builder in _builders:
+		if builder.underground(): return true
+	return false
+
+
+func advance_out(tick: int) -> StringName:
+	"""P-1936-3 (a): after the dig (done or stopped) each builder leaves from rest and walks back out; one walking
+	out advances. Routes still runs for an actor finishing the step it was on."""
+	if is_running() or not crew_out(): return &""
+	_ctx.owners.routes.advance_tick(tick)
+	for builder: Builder in _builders:
+		var code: StringName = builder.advance_walk() if builder.walking() else builder.leave()
+		if code != &"": return code
 	return &""
 
 
@@ -285,7 +313,7 @@ func _reopen() -> void:
 func _all_parked() -> bool:
 	"""Every builder is idle on its parking: the room can only finish, or be found stuck, then."""
 	for builder: Builder in _builders:
-		if not builder.idle(): return false
+		if not builder.idle() or builder.walking(): return false
 	return true
 
 
@@ -306,6 +334,13 @@ func _halt(code: StringName) -> StringName:
 		var released: StringName = builder.abandon()
 		if released != &"" and _abandon_error == &"": _abandon_error = released
 	return code
+
+
+func reserves_resident(resident_slot: int) -> bool:
+	"""One of this dig's builders, while the dig runs or while that builder is still underground."""
+	for builder: Builder in _builders:
+		if builder.worker_row() == resident_slot and (is_running() or builder.underground()): return true
+	return false
 
 
 func state() -> int:

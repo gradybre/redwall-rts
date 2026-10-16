@@ -9,6 +9,9 @@ extends RefCounted
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const Construction := preload("res://scripts/core/construction.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const WorkFace := preload("res://scripts/core/underground_work_face.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## One record per room row; `_init` refuses a directory whose room capacity differs (as Buildings asserts).
 const ROOM_CAPACITY: int = 16384
@@ -24,6 +27,8 @@ const REFUSE_ROOM: StringName = &"ROOM_DIG_ROOM_STALE"
 const REFUSE_STATE: StringName = &"ROOM_DIG_RECORD_STATE"
 const REFUSE_CAPACITY: StringName = &"ROOM_DIG_CAPACITY"
 const REFUSE_CREW_BUSY: StringName = &"ROOM_DIG_CREW_BUSY"
+## Decision 1936: a dig's record is kept until its crew has walked back out (P-1936-3 (a)).
+const REFUSE_CREW_OUT: StringName = &"ROOM_DIG_CREW_OUT"
 ## The bytes of the packed record per room: generation, state, and the storage, output and staging container
 ## references (decision 1934 added the staging one).
 const RECORD_BYTES: int = 4 + 1 + 3 * 2 * 4
@@ -37,6 +42,9 @@ var _staging: PackedInt32Array = PackedInt32Array()
 var _foremen: Array[Foreman] = [] # Running ones, and stopped or done ones until their record is released.
 var _foreman_rows: PackedInt32Array = PackedInt32Array() # The record row of each foreman, in step with `_foremen`.
 var _refusals: Array[StringName] = [] # This tick's new refusals, one per room that stopped.
+var _owners: Builder.Owners = null # Decision 1936: the composed owners every dig borrows (null until composed).
+var _math: IntMath.IntResult = IntMath.IntResult.new()
+var _face: WorkFace = null # Decision 1936: the work face the room phases' contacts borrow (held here, bound weakly).
 
 
 func _init(directory: Directory) -> void:
@@ -52,6 +60,51 @@ func _init(directory: Directory) -> void:
 static func packed_bytes() -> int:
 	"""The runtime's packed record columns, in bytes (decision 1933's memory row)."""
 	return ROOM_CAPACITY * RECORD_BYTES
+
+
+func bind_owners(owners: Builder.Owners) -> bool:
+	"""Decision 1936: borrow the composed owners once; the dispatcher's answers read Jobs and Construction through
+	them."""
+	if _owners != null or owners == null or owners.jobs == null or owners.construction == null: return false
+	_owners = owners
+	return true
+
+
+func bound_owners() -> Builder.Owners:
+	"""The bound owners, or null."""
+	return _owners
+
+
+func work_face() -> WorkFace:
+	"""The one work face the room phases' contacts are bound with (P-1936-1 (a)); this runtime keeps it alive."""
+	if _face == null: _face = WorkFace.new()
+	return _face
+
+
+func parkings() -> Array[Vector2i]:
+	"""The parking endpoints of builders still digging or still underground: a new builder parks elsewhere."""
+	var out: Array[Vector2i] = []
+	for foreman: Foreman in _foremen:
+		for builder: Builder in foreman.builders():
+			if foreman.is_running() or builder.underground(): out.append(builder.crew().parking)
+	return out
+
+
+func owns_job(job_slot: int) -> bool:
+	"""Decision 1936 (review H4): every Job an excavation phase Project requests, read from saved Jobs and Construction
+	alone, so a dig's Jobs stay off the JobSelector between cubes, after a stop (its paid phases wait for a resume)
+	and across a load. The entry's own cuts are the entry's too; the composite asks both."""
+	if _owners == null: return false
+	return _owners.construction.purpose_into(_owners.jobs.requester_of(job_slot), _math) \
+		and _math.value == Construction.PURPOSE_EXCAVATION
+
+
+func reserves_resident(resident_slot: int) -> bool:
+	"""Decision 1936: a builder is reserved while its dig runs, between cubes too, and afterwards for as long as it is
+	still underground (a registered route actor, or walking in or out)."""
+	for foreman: Foreman in _foremen:
+		if foreman.reserves_resident(resident_slot): return true
+	return false
 
 
 func _row(room: Vector2i) -> int:
@@ -112,10 +165,10 @@ func _running() -> int:
 
 
 func _crew_busy(crew: Array[Builder.Crew]) -> bool:
-	"""Some crew member is a builder of a room still being dug."""
+	"""Some crew member is a builder of a room still being dug, or still underground after one."""
 	for foreman: Foreman in _foremen:
-		if not foreman.is_running(): continue
 		for builder: Builder in foreman.builders():
+			if not foreman.is_running() and not builder.underground(): continue
 			for member: Builder.Crew in crew:
 				if member != null and member.worker == builder.crew().worker: return true
 	return false
@@ -127,10 +180,13 @@ func advance(tick: int) -> Array[StringName]:
 	_refusals.clear()
 	for index: int in _foremen.size():
 		var foreman: Foreman = _foremen[index]
-		if not foreman.is_running(): continue
-		var code: StringName = foreman.advance(tick)
+		var code: StringName = &""
+		if foreman.is_running():
+			code = foreman.advance(tick)
+			_settle_record(index)
+		elif foreman.crew_out():
+			code = foreman.advance_out(tick) # P-1936-3 (a): the crew walks back out.
 		if code != &"": _refusals.append(code)
-		_settle_record(index)
 	return _refusals
 
 
@@ -144,8 +200,11 @@ func _settle_record(index: int) -> void:
 
 
 func is_running() -> bool:
-	"""True while any room is being dug."""
-	return _running() > 0
+	"""True while any room is being dug or a finished dig's crew is still walking out."""
+	if _running() > 0: return true
+	for foreman: Foreman in _foremen:
+		if foreman.crew_out(): return true
+	return false
 
 
 func state_of(room: Vector2i) -> int:
@@ -167,6 +226,8 @@ func release_room(room: Vector2i) -> StringName:
 	var row: int = _row(room)
 	if row < 0 or _generation[row] != room.y: return REFUSE_ROOM
 	if _state[row] != RECORD_DONE and _state[row] != RECORD_STOPPED: return REFUSE_STATE
+	for index: int in _foremen.size():
+		if _foreman_rows[index] == row and _foremen[index].crew_out(): return REFUSE_CREW_OUT
 	_state[row] = RECORD_NONE
 	_drop_foremen(row)
 	return &""

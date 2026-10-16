@@ -147,8 +147,10 @@ func test_a_crew_that_can_never_move_again_stops_the_room_and_releases_its_phase
 	var foreman: Foreman = _two()
 	if foreman == null: return
 	for at: int in foreman._cube.size(): foreman._cube[at] = Foreman.CUBE_DONE if at > 0 else Foreman.CUBE_OPEN
-	_h.tick += 1
-	assert_equal(foreman.advance(_h.tick), &"", "registered; the first builder takes the one cube")
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "walking in; on the tick both have arrived the first takes the cube")
+		if not foreman._walking_in(): break
 	var first: Builder = foreman.builders()[0]
 	assert_true(first.walking_next() and not first.in_motion(), "about to set off")
 	var body: PackedInt32Array = foreman.builders()[1]._foot.body()
@@ -215,5 +217,12 @@ func test_a_full_spoil_pile_stops_the_room_before_any_unpaid_cut() -> void:
 	assert_equal(_h.sites.virgin_sourced_milli(), 0, "nothing was cut")
 	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), (KITCHEN_SITES - 1) * Contract.BRACE_WOOD_MILLI, "one BRACE paid")
 	assert_equal(foreman.abandon_error(), &"", "released cleanly")
+	assert_true(foreman.crew_out(), "stopped in its CUT's work source, the mole recovers before its phase is released")
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		assert_equal(foreman.advance_out(_h.tick), &"", "recovering, then walking out")
+		if not foreman.crew_out(): break
+	assert_false(foreman.crew_out(), "out of the underground (decision 1936)")
 	assert_equal(_h._construction.live_project_count(), 0, "the unstarted CUT was cancelled, no Project left")
 	assert_equal(_h._jobs.job_of(_h._residents.directory().get_typed_row(_h._worker)), NULL_REF, "the mole holds no Job")
+	assert_equal(_h._routes.read_actor_into(_h._worker, Routes.Actor.new()), &"ROUTE_ACTOR_NOT_REGISTERED", "no route actor")

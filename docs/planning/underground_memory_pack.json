@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "c53fcbe31994c6c6cfa1acc1004113f00b6047f69dd941a85ec09c28bbd96158",
         "godot/scripts/core/underground_routes.gd": "34c47508b3afd6e5a1b5cbffea6212e430acf8e19017132ada2531d8ca9e2950",
-        "godot/scripts/core/underground_world_routes.gd": "654069b33b073d6bacc0a7562342ba4d5002118b99fb8eaed025b2a70f70c4ee"
+        "godot/scripts/core/underground_world_routes.gd": "9078fdd7db0b5783fa52a400582a78b623fe00cd5cb2eadb4b118afa1f386243"
       }
     },
     "current_profile_control": {
@@ -44046,10 +44046,6 @@
               "11"
             ],
             [
-              "EDGE_MEMO_MISS",
-              "-2"
-            ],
-            [
               "EDGE_MEMO_SLOTS",
               "16"
             ],
@@ -44191,7 +44187,7 @@
           "allocation_sites": {
             "=[": 1,
             "PackedInt32Array(": 3,
-            "PackedInt64Array(": 6,
+            "PackedInt64Array(": 7,
             "range(": 1
           }
         }
@@ -44976,7 +44972,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "654069b33b073d6bacc0a7562342ba4d5002118b99fb8eaed025b2a70f70c4ee",
+    "godot/scripts/core/underground_world_routes.gd": "9078fdd7db0b5783fa52a400582a78b623fe00cd5cb2eadb4b118afa1f386243",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "a4190ded1406f501a7b4851f53f667f00a13031bba3063c62b639d46aec4d8fa",

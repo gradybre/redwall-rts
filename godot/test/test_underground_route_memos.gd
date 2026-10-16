@@ -10,6 +10,7 @@ const Routes := StationTests.Routes
 const Space := StationTests.Space
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+const MISS: int = -2
 
 var _h: StationTests.StepFixture = null
 
@@ -166,6 +167,12 @@ func _memo_call_done() -> void:
 	_h._routes._searching = false
 
 
+func _memo_answer(actual: WorldRoutes, graph: Routes, edge: int, anchor: int) -> int:
+	"""The production pair: the slot that answers (edge_memo_hit), then its replay; MISS when no slot answers."""
+	var at: int = WorldRoutes.edge_memo_hit(actual, graph, edge, anchor)
+	return WorldRoutes.replay_edge_profile(actual, graph, at) if at >= 0 else MISS
+
+
 func test_the_memo_answers_only_its_own_edge_anchor_and_a_clean_search() -> void:
 	"""Same slot, other anchor: miss. A recorded fault: miss, and a faulted choice is never remembered."""
 	if not _fixture(): return
@@ -173,16 +180,16 @@ func test_the_memo_answers_only_its_own_edge_anchor_and_a_clean_search() -> void
 	_memo_call_ready()
 	var epoch: int = WorldRoutes.edge_memo_epoch(_h._binding, _h._routes)
 	WorldRoutes.remember_edge_profile(_h._binding, _h._routes, 3, 5, 7, 100, false, epoch)
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 3, 5), 7, "its own edge and anchor")
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 3, 5 + WorldRoutes.EDGE_MEMO_SLOTS),
-		WorldRoutes.EDGE_MEMO_MISS, "the same slot for another anchor")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 3, 5), 7, "its own edge and anchor")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 3, 5 + WorldRoutes.EDGE_MEMO_SLOTS),
+		MISS, "the same slot for another anchor")
 	_h._routes._operation_error = &"ROUTE_OPERATION_BUDGET"
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 3, 5), WorldRoutes.EDGE_MEMO_MISS, "a recorded fault")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 3, 5), MISS, "a recorded fault")
 	WorldRoutes.remember_edge_profile(_h._binding, _h._routes, 4, 5, 9, 100, false, epoch)
 	_h._routes._operation_error = &""
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 4, 5), WorldRoutes.EDGE_MEMO_MISS, "not remembered")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 4, 5), MISS, "not remembered")
 	_h._routes._remaining = 99
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 3, 5), WorldRoutes.EDGE_MEMO_MISS, "budget short")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 3, 5), MISS, "budget short")
 	_memo_call_done()
 
 
@@ -196,7 +203,7 @@ func test_a_choice_that_wrote_no_descriptor_leaves_the_descriptor_alone() -> voi
 	descriptor.profile_id = 11
 	WorldRoutes.remember_edge_profile(_h._binding, _h._routes, 3, 5, -1, 10, false, epoch)
 	descriptor.profile_id = 12
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 3, 5), -1, "answered")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 3, 5), -1, "answered")
 	assert_equal(descriptor.profile_id, 12, "no write replayed")
 	descriptor.posture = 3
 	descriptor.mode = 2
@@ -204,7 +211,7 @@ func test_a_choice_that_wrote_no_descriptor_leaves_the_descriptor_alone() -> voi
 	descriptor.profile_id = 13
 	descriptor.posture = 4
 	descriptor.mode = 1
-	assert_equal(WorldRoutes.edge_profile_memo(_h._binding, _h._routes, 3, 5), 6, "answered")
+	assert_equal(_memo_answer(_h._binding, _h._routes, 3, 5), 6, "answered")
 	assert_equal([descriptor.profile_id, descriptor.posture, descriptor.mode], [12, 3, 2], "the remembered write replayed")
 	_memo_call_done()
 
@@ -382,6 +389,15 @@ func _endpoint_profiles() -> PackedInt32Array:
 	return rows
 
 
+func _endpoint_budgets(spent: int, chunk: int) -> PackedInt64Array:
+	"""Every chunk boundary up to the whole spend and one check either side of it, plus zero."""
+	var budgets: PackedInt64Array = PackedInt64Array([0, maxi(spent - 1, 0), spent, spent + 1])
+	for boundary: int in range(chunk, spent + 1, chunk):
+		budgets.append(boundary - 1)
+		budgets.append(boundary)
+	return budgets
+
+
 func test_endpoint_proofs_answer_as_the_live_checks_at_every_budget() -> void:
 	"""Decision 1952: for every station endpoint and profile, a filling and an answered proof leave the answer, budget
 	and fault a plain proof leaves, at the full budget and at every budget that runs out part way."""
@@ -398,13 +414,14 @@ func test_endpoint_proofs_answer_as_the_live_checks_at_every_budget() -> void:
 			assert_equal(_endpoint_run(location, profile, Space.MAX_CHECKS), plain, "filling %s/%d" % [location, profile])
 			assert_equal(_endpoint_run(location, profile, Space.MAX_CHECKS), plain, "answered %s/%d" % [location, profile])
 			answered += 1 if _h._binding._endpoint_word(_h._binding._endpoint_entry(location, _h._binding._endpoint.point)) != 0 else 0
-			for checks: int in range(0, spent + 1, maxi(1, spent >> 3)):
+			for checks: int in _endpoint_budgets(spent, 1 + _h._binding._descriptor.box_count):
 				_endpoint_memo(false)
 				var short: Array = _endpoint_run(location, profile, checks)
 				_endpoint_memo(true)
 				_endpoint_run(location, profile, Space.MAX_CHECKS)
 				assert_equal(_endpoint_run(location, profile, checks), short, "budget %d %s/%d" % [checks, location, profile])
 	assert_true(answered > 0, "proofs were remembered and answered")
+	_h._binding._proof = null
 
 
 func _endpoint_filled() -> Array:
@@ -472,6 +489,11 @@ func test_endpoint_memo_retires_on_every_stamped_input() -> void:
 		assert_false(_endpoint_remembered(), "input %d moved" % change)
 		if change == 1: binding._domain._bounds[3] -= 1
 		if change == 2: binding._descriptor.content_revision -= 1
+	binding._endpoint_memo_serial = WorldRoutes.ENDPOINT_SERIAL_MAX
+	binding._endpoint.support[0] -= 1
+	assert_equal(binding._endpoint_entry(_h.parking, binding._endpoint.point), -1, "a saturated serial fills nothing")
+	binding._endpoint.support[0] += 1
+	assert_true(binding._endpoint_entry(_h.parking, binding._endpoint.point) >= 0, "the unchanged entry still matches")
 	binding._proof = null
 
 
@@ -492,8 +514,62 @@ func test_endpoint_memo_keeps_no_fault_and_reads_only_its_own_descriptor_and_box
 	binding._descriptor.profile_revision += 1
 	assert_equal(binding._endpoint_entry(_h.parking, binding._endpoint.point), -1, "a stale descriptor row is not answered")
 	binding._descriptor.profile_revision -= 1
+	binding._descriptor.box_count += 1
+	assert_equal(binding._endpoint_entry(_h.parking, binding._endpoint.point), -1, "a stale box count is not answered")
+	binding._descriptor.box_count -= 1
 	assert_true(_endpoint_remembered(), "remembered")
 	binding._endpoint.envelope[0] -= 1
 	assert_false(_endpoint_remembered(), "another envelope: refilled")
 	binding._endpoint.envelope[0] += 1
+	binding._proof = null
+
+
+func test_every_observed_word_retires_an_endpoint_entry() -> void:
+	"""Decision 1952: each of the entry's words (point, envelope, support, air count, each air word) is compared."""
+	if not _fixture(): return
+	var filled: Array = _endpoint_filled()
+	assert_equal(filled.size(), 2, "observed and filled")
+	if filled.size() != 2: return
+	var record: WorldRoutes.Locations.Record = _h._binding._endpoint
+	record.air_count = 3
+	_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
+	for word: int in 34:
+		assert_true(_endpoint_remembered(), "filled before word %d" % word)
+		_shift_endpoint_word(record, word, 1)
+		assert_false(_endpoint_remembered(), "word %d is compared" % word)
+		_shift_endpoint_word(record, word, -1)
+		_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
+	_h._binding._proof = null
+
+
+func _shift_endpoint_word(record: WorldRoutes.Locations.Record, word: int, step: int) -> void:
+	"""Move one of the 34 entry words of `record` by `step` (point 0-2, envelope 3-8, support 9-14, air count 15, air
+	16-33)."""
+	if word < 3: record.point[word] += step
+	elif word < 9: record.envelope[word - 3] += step
+	elif word < 15: record.support[word - 9] += step
+	elif word == 15: record.air_count += -step # 3 -> 2 and back: still a legal count.
+	else: record.air[word - 16] += step
+
+
+func test_with_checks_on_a_short_budget_answer_is_checked_without_a_false_report() -> void:
+	"""Decision 1952: with checks on, a remembered word replayed at a budget that runs out part way agrees with the
+	live checks (no report); a poisoned word that refuses at its first box is reported."""
+	if not _fixture(): return
+	var filled: Array = _endpoint_filled()
+	assert_equal(filled.size(), 2, "observed and filled")
+	if filled.size() != 2: return
+	var spent: int = Space.MAX_CHECKS - int(filled[1][1])
+	assert_true(spent >= 2 * (1 + _h._binding._descriptor.box_count), "the proof checks at least two boxes")
+	_endpoint_memo(false)
+	var plain: Array = _endpoint_run(_h.parking, filled[0], spent - 1)
+	_endpoint_memo(true)
+	_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
+	WorldRoutes.Profiles.check_runtime_caches = true
+	assert_equal(_endpoint_run(_h.parking, filled[0], spent - 1), plain, "short budget, agreeing: silent")
+	var binding: WorldRoutes = _h._binding
+	var at: int = binding._endpoint_entry(_h.parking, binding._endpoint.point) * WorldRoutes.Profiles.MAX_PROFILES + filled[0]
+	binding._endpoint_memo[at] = (binding._endpoint_memo[at] & ~0xFFFF) | (1 << 4) | 3 # One box checked, then BODY.
+	expect_diagnostic("RUNTIME_CACHE_STALE endpoint proof")
+	assert_equal(_endpoint_run(_h.parking, filled[0], spent - 1), plain, "short budget, stale: reported, live used")
 	binding._proof = null

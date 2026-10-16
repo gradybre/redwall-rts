@@ -55,7 +55,6 @@ const EDGE_MEMO_SLOTS: int = 16
 const EDGE_MEMO_STRIDE: int = 19
 const EDGE_MEMO_INPUTS: int = 11
 const EDGE_MEMO_STAMP: int = 6
-const EDGE_MEMO_MISS: int = -2
 ## Decision 1952: the endpoint-proof memo. `_profile_endpoint_refusal`'s per-box containment checks are a pure function
 ## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
 ## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
@@ -1164,11 +1163,10 @@ func _endpoint_boxes_refusal(location: Vector2i, point: Vector3i) -> StringName:
 	var entry: int = _endpoint_entry(location, point)
 	var word: int = _endpoint_word(entry)
 	if word != 0 and not Profiles.check_runtime_caches: return _replay_endpoint_boxes(word)
+	if word != 0: return _checked_endpoint_boxes(entry, word, point)
 	var before: int = _proof.remaining
 	var code: StringName = _endpoint_boxes_live(point)
 	var answer: int = _endpoint_answer(code, before - _proof.remaining)
-	if word != 0 and not _endpoint_replay_agrees(word, before, code, answer):
-		Profiles.report_stale_cache("endpoint proof", "location %d: an input changed without moving its token" % location.x)
 	if entry >= 0 and answer != 0:
 		_endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id] = (_endpoint_entry_tags[2 * entry + 1] << 16) | answer
 	return code
@@ -1195,12 +1193,23 @@ func _endpoint_answer(code: StringName, spent: int) -> int:
 	return (boxes << 4) | (index + 1)
 
 
-func _endpoint_replay_agrees(word: int, before: int, code: StringName, answer: int) -> bool:
-	"""Decision 1952, checks on: whether replaying `word` from budget `before` would have left what the live checks left."""
-	var chunk: int = 1 + _descriptor.box_count
-	if ((word >> 4) & 0xFFF) * chunk <= before: return (word & 0xFFFF) == answer
-	@warning_ignore("integer_division") var whole: int = before / chunk
-	return _proof.error != &"" and code == _proof.error and _proof.remaining == before - whole * chunk
+func _checked_endpoint_boxes(entry: int, word: int, point: Vector3i) -> StringName:
+	"""Decision 1952, checks on: run the replay the game would run and keep what it leaves, put the proof budget back,
+	then run the live checks (whose answer is used) and report any difference. The word is then refreshed."""
+	var before: int = _proof.remaining
+	var fault: StringName = _proof.error
+	var replayed: StringName = _replay_endpoint_boxes(word)
+	var replayed_remaining: int = _proof.remaining
+	var replayed_fault: StringName = _proof.error
+	_proof.remaining = before
+	_proof.error = fault
+	var code: StringName = _endpoint_boxes_live(point)
+	if code != replayed or _proof.remaining != replayed_remaining or _proof.error != replayed_fault:
+		Profiles.report_stale_cache("endpoint proof", "entry %d: an input changed without moving its token" % entry)
+	var answer: int = _endpoint_answer(code, before - _proof.remaining)
+	if answer != 0:
+		_endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id] = (_endpoint_entry_tags[2 * entry + 1] << 16) | answer
+	return code
 
 
 func _replay_endpoint_boxes(word: int) -> StringName:
@@ -1917,8 +1926,8 @@ func _endpoint_entry(location: Vector2i, point: Vector3i) -> int:
 	var entry: int = posmod(location.x, ENDPOINT_MEMO_ENTRIES)
 	if _endpoint_entry_tags[2 * entry] == _endpoint_memo_epoch and _endpoint_entry_matches(entry * ENDPOINT_ENTRY_WORDS):
 		return entry
-	_endpoint_memo_serial = _endpoint_memo_serial + 1 if _endpoint_memo_serial < ENDPOINT_SERIAL_MAX else 0
-	if _endpoint_memo_serial == 0: return -1
+	if _endpoint_memo_serial < 0 or _endpoint_memo_serial >= ENDPOINT_SERIAL_MAX: return -1 # Saturated: unusable.
+	_endpoint_memo_serial += 1
 	_endpoint_entry_fill(entry * ENDPOINT_ENTRY_WORDS)
 	_endpoint_entry_tags[2 * entry] = _endpoint_memo_epoch
 	_endpoint_entry_tags[2 * entry + 1] = _endpoint_memo_serial
@@ -1931,7 +1940,8 @@ func _endpoint_descriptor_current() -> bool:
 	var row: int = _descriptor.profile_id
 	return row >= 0 and row < Profiles.MAX_PROFILES and row < _profiles._profile_capacity \
 		and _descriptor.content_revision == _content_revision and _descriptor.content_revision == _profiles._live.header[0] \
-		and _descriptor.profile_revision == _profiles._live.quantities[row]
+		and _descriptor.profile_revision == _profiles._live.quantities[row] \
+		and _descriptor.box_count == _profiles._live.fields[Profiles.F_BOX_COUNT * _profiles._profile_capacity + row]
 
 
 func _endpoint_word(entry: int) -> int:
@@ -2019,12 +2029,6 @@ static func edge_memo_epoch(actual: RefCounted, graph: Routes) -> int:
 	return actual._edge_memo_epoch
 
 
-static func edge_profile_memo(actual: RefCounted, graph: Routes, edge: int, anchor: int) -> int:
-	"""Decision 1952: the remembered choice with its exact spend and descriptor write replayed, or EDGE_MEMO_MISS."""
-	var at: int = edge_memo_hit(actual, graph, edge, anchor)
-	return replay_edge_profile(actual, graph, at) if at >= 0 else EDGE_MEMO_MISS
-
-
 static func edge_memo_hit(actual: RefCounted, graph: Routes, edge: int, anchor: int) -> int:
 	"""Decision 1952: the offset of the slot that answers this choice, or -1. Only inside the original search, with no
 	recorded fault and enough budget for the whole remembered spend. It writes nothing but the epoch stamp."""
@@ -2047,18 +2051,22 @@ static func replay_edge_profile(actual: RefCounted, graph: Routes, at: int) -> i
 	return memo[at + 3]
 
 
-static func check_edge_profile(actual: RefCounted, graph: Routes, at: int, row: int, spent: int, wrote: bool) -> void:
-	"""Decision 1952, checking on: report a slot that would have answered other than the live choice just made."""
-	var memo: PackedInt64Array = actual._edge_memo
-	var descriptor: Profiles.Descriptor = actual._descriptor
-	var same: bool = graph._operation_error == &"" and memo[at + 3] == row and memo[at + 4] == spent \
-		and memo[at + 5] == (1 if wrote else 0)
-	if same and wrote:
-		same = memo[at + 6] == descriptor.profile_id and memo[at + 7] == descriptor.profile_revision \
-			and memo[at + 8] == descriptor.content_revision and memo[at + 9] == descriptor.mode \
-			and memo[at + 10] == descriptor.posture
-	if not same:
-		Profiles.report_stale_cache("itinerary edge profile", "edge %d: an input changed without moving its token" % memo[at + 1])
+static func search_state(actual: RefCounted, graph: Routes) -> PackedInt64Array:
+	"""Decision 1952, checks on only (never on the game's path): what a choice can leave behind, the search budget and
+	the five search-descriptor fields, as one comparable packet."""
+	var d: Profiles.Descriptor = actual._descriptor
+	return PackedInt64Array([graph._remaining, d.profile_id, d.profile_revision, d.content_revision, d.mode, d.posture])
+
+
+static func restore_search_state(actual: RefCounted, graph: Routes, state: PackedInt64Array) -> void:
+	"""Decision 1952, checks on only: put back a packet from `search_state`."""
+	var d: Profiles.Descriptor = actual._descriptor
+	graph._remaining = state[0]
+	d.profile_id = state[1]
+	d.profile_revision = state[2]
+	d.content_revision = state[3]
+	d.mode = state[4]
+	d.posture = state[5]
 
 
 static func _edge_inputs_match(actual: RefCounted, graph: Routes, edge: int, memo: PackedInt64Array, at: int) -> bool:

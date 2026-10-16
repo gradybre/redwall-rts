@@ -160,14 +160,31 @@ static func _edge_profile(actual: WorldRoutes, edge: int, anchor: int) -> int:
 	var graph: Routes = actual._routes_ref.get_ref() as Routes
 	var at: int = WorldRoutes.edge_memo_hit(actual, graph, edge, anchor)
 	if at >= 0 and not Profiles.check_runtime_caches: return WorldRoutes.replay_edge_profile(actual, graph, at)
+	if at >= 0: return _checked_edge_profile(actual, graph, edge, anchor, at)
+	return _remembered_edge_profile(actual, graph, edge, anchor)
+
+
+static func _remembered_edge_profile(actual: WorldRoutes, graph: Routes, edge: int, anchor: int) -> int:
+	"""Decision 1952: the live choice, then remembered with its spend and whether it wrote the descriptor."""
 	var epoch: int = WorldRoutes.edge_memo_epoch(actual, graph)
 	var before: int = graph._remaining
 	var writes: int = actual._descriptor_writes
 	var row: int = _edge_profile_live(actual, graph, edge, anchor)
-	if at >= 0:
-		WorldRoutes.check_edge_profile(actual, graph, at, row, before - graph._remaining, writes != actual._descriptor_writes)
 	WorldRoutes.remember_edge_profile(actual, graph, edge, anchor, row, before - graph._remaining,
 		writes != actual._descriptor_writes, epoch)
+	return row
+
+
+static func _checked_edge_profile(actual: WorldRoutes, graph: Routes, edge: int, anchor: int, at: int) -> int:
+	"""Decision 1952, checks on: run the replay the game would run and keep what it leaves (budget and descriptor),
+	put both back, then choose live (the choice used) and report any difference."""
+	var before: PackedInt64Array = WorldRoutes.search_state(actual, graph)
+	var replayed: int = WorldRoutes.replay_edge_profile(actual, graph, at)
+	var after_replay: PackedInt64Array = WorldRoutes.search_state(actual, graph)
+	WorldRoutes.restore_search_state(actual, graph, before)
+	var row: int = _remembered_edge_profile(actual, graph, edge, anchor)
+	if row != replayed or graph._operation_error != &"" or WorldRoutes.search_state(actual, graph) != after_replay:
+		Profiles.report_stale_cache("itinerary edge profile", "edge %d: an input changed without moving its token" % edge)
 	return row
 
 

@@ -2450,10 +2450,6 @@
       "11"
      ],
      [
-      "EDGE_MEMO_MISS",
-      "-2"
-     ],
-     [
       "EDGE_MEMO_SLOTS",
       "16"
      ],
@@ -2595,7 +2591,7 @@
     "allocation_sites": {
      "=[": 1,
      "PackedInt32Array(": 3,
-     "PackedInt64Array(": 6,
+     "PackedInt64Array(": 7,
      "range(": 1
     }
    }

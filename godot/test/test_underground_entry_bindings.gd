@@ -64,6 +64,9 @@ class ObservedBinding extends Binding:
 	var staged_contact_checks: int = 0
 	var natural_support: Array[StringName] = []
 	var residual_footing: Array[int] = []
+	## Decision 1972: a test double for the sealed terrain's footing verdict on a landing's natural residual only.
+	var residual_terrain: StringName = &""
+	var _in_residual: bool = false
 
 	func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
 		"""Count real complete LANDING support proofs without replacing any physical decision."""
@@ -73,7 +76,16 @@ class ObservedBinding extends Binding:
 	func _timber_residual_footing(proof: TimberClearance, token: int) -> StringName:
 		"""Record how many natural fragments each sealed footing proof observes, without replacing it."""
 		residual_footing.append(proof.count)
-		return super._timber_residual_footing(proof, token)
+		_in_residual = true
+		var code: StringName = super._timber_residual_footing(proof, token)
+		_in_residual = false
+		return code
+
+	func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: int, space_token: int) -> StringName:
+		"""The actual terrain verdict, except that a set `residual_terrain` stands in for it on a landing's natural
+		residual (non-dry or non-original footing there), so the final pass's refusal is exercised."""
+		if _in_residual and residual_terrain != &"": return residual_terrain
+		return super._timber_terrain(proof, bounds, purpose, space_token)
 
 	func _timber_natural_support(proof: TimberClearance) -> StringName:
 		"""Record each decision 1972 natural-earth verdict without replacing it."""
@@ -970,7 +982,22 @@ func test_a_landing_over_natural_earth_is_supported() -> void:
 	assert_equal(_bindings.natural_support, [&""] as Array[StringName], "one natural-earth proof, clear")
 	assert_true(_bindings.residual_footing.size() >= 1 and _bindings.residual_footing.max() == 1,
 		"the sealed candidate's terrain footing observed the one natural fragment")
+	var natural: PackedInt32Array = PackedInt32Array([WorldTests.X, 511, WorldTests.Z - 1536, WorldTests.X + 1024, 512,
+		WorldTests.Z - 1024])
+	assert_equal(_retained_support(natural), 1, "the natural earth under the landing is retained as the Room's SUPPORT")
 	assert_equal(_f._locations._live.count, 3, "two original and the installed endpoint")
+
+
+func _retained_support(box: PackedInt32Array) -> int:
+	"""Live SUPPORT rows of exactly `box` in the actual Space owner."""
+	var owner: RefCounted = _f._owner
+	var count: int = 0
+	for row: int in owner._region_capacity:
+		if owner._r_present[row] != 1 or owner._r_role[row] != Space.SUPPORT: continue
+		if [owner._r_lo_x[row], owner._r_lo_y[row], owner._r_lo_z[row], owner._r_hi_x[row], owner._r_hi_y[row],
+				owner._r_hi_z[row]] == Array(box):
+			count += 1
+	return count
 
 
 func test_a_landing_over_a_dug_cube_is_not_supported() -> void:
@@ -987,6 +1014,43 @@ func test_a_landing_over_a_dug_cube_is_not_supported() -> void:
 	assert_equal(_bindings.natural_support, [Binding.REFUSE_TIMBER_CONTACT] as Array[StringName], "refused as cut")
 	assert_equal(_image(), before, "no partial physical or endpoint publication")
 	assert_equal(_router._funding.state_bytes(), funding, "all paid receipts retained for retry")
+
+
+func test_a_landing_whose_natural_earth_is_not_dry_footing_is_refused() -> void:
+	"""Decision 1972: the sealed candidate's terrain must report dry original footing under the natural residual; a
+	wet or non-original verdict there refuses the order at the final pass, with nothing published."""
+	after_each(); _catalog_mode = 6; before_each()
+	_bindings.residual_terrain = &"TERRAIN_DRY_REQUIRED"
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	assert_true(paid.failures.is_empty(), "real paid phase and work setup")
+	if project == NULL_REF or not failures.is_empty(): return
+	var before: Array = _image()
+	var funding: PackedByteArray = _router._funding.state_bytes()
+	var result: Construction.OpResult = _router.complete_order(project)
+	assert_false(result.ok, "not dry footing under the natural part")
+	assert_equal(result.error, String(Binding.REFUSE_TIMBER_CONTACT), "refused as an unsupported contact")
+	assert_equal(_bindings.natural_support, [&""] as Array[StringName], "staging's cut and matter proof was clear")
+	assert_equal(_image(), before, "no partial physical or endpoint publication")
+	assert_equal(_router._funding.state_bytes(), funding, "all paid receipts retained for retry")
+
+
+func test_a_stop_over_natural_earth_outside_any_paid_cube_is_refused() -> void:
+	"""Decision 1972 (P-1972-8): a stop no installed prism holds is witnessed only by the paid cube whose floor it
+	stands on; a stop on the LANDING's natural part, above unpaid ground, has none and is refused."""
+	after_each()
+	_catalog_mode = 6
+	_extra_transit_points = [Vector3i(512, 0, -1280)]
+	before_each()
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	assert_true(paid.failures.is_empty(), "real paid phase and work setup")
+	if project == NULL_REF or not failures.is_empty(): return
+	var before: Array = _image()
+	var result: Construction.OpResult = _router.complete_order(project)
+	assert_false(result.ok, "no paid cube under the natural stop")
+	assert_equal(result.error, "LOCATION_PAID_SITE_MISSING", "refused for its missing paid witness")
+	assert_equal(_image(), before, "no partial physical or endpoint publication")
 
 
 func test_datum_and_profile_budget_exhaustion_stays_distinct_from_physical_refusal() -> void:

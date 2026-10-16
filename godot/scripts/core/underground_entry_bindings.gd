@@ -1514,6 +1514,7 @@ func _stage_timber_datums(proof: TimberClearance, token: int) -> StringName:
 		proof.box[4] = _cube[1]
 		proof.box[1] = int(_cube[1]) - 1
 		code = _timber_staged_support(proof, proof.box)
+		if code == &"": code = _stage_natural_support(proof, token)
 		if code == &"": code = _timber_create_datum(proof, token)
 		if code != &"": return code
 	return _timber_contact_air(proof, token, true)
@@ -1568,9 +1569,30 @@ func _timber_natural_support(proof: TimberClearance) -> StringName:
 	return &""
 
 
+func _stage_natural_support(proof: TimberClearance, token: int) -> StringName:
+	"""Decision 1972: the proved natural earth under a landing is retained as the Room's SUPPORT, as a natural bearing
+	is, so the Space records the floor a stop stands on (Locations' support coverage, a stair deck's floor)."""
+	var box: PackedInt32Array = PackedInt32Array()
+	box.resize(6)
+	for fragment: int in proof.count:
+		if not proof.spend(_entry_placements._space._source_capacity + 16): return REFUSE_MASK_BUDGET
+		for axis: int in 6: box[axis] = proof.fragments[fragment * 6 + axis]
+		_region.owner = _timber_room()
+		_region.section = NULL_REF
+		_region.level = _entry_contact.level
+		_region.role = Space.SUPPORT
+		_region.claim_kind = Owner.CLAIM_NONE
+		_region.claim_ref = NULL_REF
+		for axis: int in 6: _region.box[axis] = box[axis]
+		var code: StringName = _entry_placements._space.stage_add(token, _region).error
+		if code == &"": code = _timber_scope_leaf(proof)
+		if code != &"": return code
+	return &""
+
+
 func _timber_landing_footing(proof: TimberClearance, token: int) -> StringName:
 	"""Decision 1972: under the sealed candidate, every landing of this group that stands partly on natural earth
-	stands on the terrain's dry original footing there (no water); a landing on installed solid alone has no residual."""
+	stands on the terrain's dry original footing there (no water); a landing on installed timber alone has none."""
 	var box: PackedInt32Array = PackedInt32Array()
 	box.resize(6)
 	for endpoint: int in _entry_frontier._header[8 + Frontier.ENDPOINT]:
@@ -1584,9 +1606,22 @@ func _timber_landing_footing(proof: TimberClearance, token: int) -> StringName:
 		for axis: int in 6: box[axis] = _cube[axis]
 		box[4] = _cube[1]
 		box[1] = int(_cube[1]) - 1
-		if code == &"": code = _timber_support_residual(proof, box)
+		if code == &"": code = _timber_prism_residual(proof, box)
 		if code == &"": code = _timber_residual_footing(proof, token)
 		if code != &"": return code
+	return &""
+
+
+func _timber_prism_residual(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""What of `bounds` no installed timber prism of this Placement's groups up to this one covers: natural earth,
+	whether retained by staging or as a natural bearing (both are SUPPORT rows, so only the prisms tell them apart)."""
+	proof.start(bounds)
+	var groups: Placements.Assemblies = _entry_placements._assemblies
+	for group: int in _timber_assembly + 1:
+		for part: int in range(groups._first_part[group], groups._first_part[group] + groups._part_count[group]):
+			if not proof.spend(96): return REFUSE_MASK_BUDGET
+			if Locations.installed_prism_into(_entry_placements, _timber_placement.x, part, proof.cover) != &"": continue
+			if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
 	return &""
 
 

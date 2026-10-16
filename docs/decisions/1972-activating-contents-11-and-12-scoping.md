@@ -17,6 +17,7 @@ Number range 1972–1980 was allocated by the coordinator and checked free on ev
 | P-1972-4 | Coordinator | The two `demo/burrow/modular_runtime.gd` lines are cleared, but only after PR #267 (Mound POC) merges |
 | P-1972-5 | Coordinator: yes | Build the Profiles edits now, clear of the cost lane's hunks; one pin renewal after its merge |
 | P-1972-7 | Brendan, **"Natural earth counts"**: (a) (2026-10-16) | Dry, never-cut natural earth counts as support under a landing, by 1971's natural-earth test; the WorldRoutes deck half waits with the cost lane's lines ("Phase 2b") |
+| P-1972-8 | Coordinator: (a) (2026-10-16) | This lane edits `underground_locations.gd` `_installed_row_site` only (the cost lane edits another function there), with a floor-stop and a natural-stop test; the terrain-footing refusal gets a negative test through a test double |
 | P-1972-6 | Brendan, **"Keep 90 ticks"**: (a) | Authored stair paces move to milli-u/s. Every existing authored pace is rescaled ×1,000, so its ticks stay identical; the 169 u retreat takes exactly 90 ticks |
 
 Indexed in `docs/handoff/RULINGS.md`. Sections "The brief" to "Proposals" are the scoping as it was put.
@@ -532,3 +533,53 @@ commit then refuses `LOCATION_PAID_SITE_MISSING`:
 - **(a) Recommended:** clear the edit in this lane, with tests (a floor stop witnessed by its cut cube; a stop over
   natural earth outside any paid cube refused).
 - **(b)** The cost lane's owner makes it.
+
+## Phase 2c — the floor stops stand (P-1972-8 (a), 2026-10-16)
+
+### Built
+
+- **`underground_locations.gd` `_installed_row_site` (the one cleared hunk).**
+  - It still witnesses a LANDING stop through the prism top it stands on.
+  - New: when no installed prism top holds the point at all, the stop stands on natural earth. It is witnessed only by
+    the completed (`SUPPORTED_VOID`) same-Room paid cube whose floor it stands on: the point's y is that cube's
+    floor. For the trench floor, that is its own cut cube.
+  - A prism that holds the point but fails its witness still refuses, as before. So does an uninstalled prefix, and so
+    does a fractional root inside a cube (its y is not the floor).
+- **`underground_entry_bindings.gd`.** Two more pieces were needed beside the cleared support edit:
+  - **`_stage_natural_support`.** The proved natural earth under a landing is retained as the Room's SUPPORT, staged
+    beside the landing's datum, exactly as the posts' natural bearings already are (Room-owned SUPPORT at
+    y −1152..−1024).
+    - Locations covers a stop's footing only with SUPPORT rows, and the natural ground under the trench floor has no
+      Space row. Measured: only the posts' bearings are rows there.
+    - So without this, a floor stop refuses `LOCATION_COVERAGE_MISSING`.
+  - **`_timber_prism_residual`.** The final pass now finds the natural part as what this Placement's installed timber
+    prisms leave, not what SUPPORT rows leave. Once the natural earth is retained as SUPPORT, rows can no longer tell
+    it apart; prisms can.
+- **The terrain-footing negative test, through a test double.** `ObservedBinding._timber_terrain` stands in a
+  non-dry verdict only on a landing's natural residual (`residual_terrain`), so the final pass's refusal is
+  exercised: `test_a_landing_whose_natural_earth_is_not_dry_footing_is_refused`.
+
+### Tests (`test_underground_entry_bindings.gd` and `test_underground_locations.gd`: 113 pass)
+
+- **The natural-landing test** now also asserts that the natural strip under the landing is a live SUPPORT row of
+  exactly its box.
+- **`test_a_stop_over_natural_earth_outside_any_paid_cube_is_refused`.** A stop on the landing's natural part, above
+  unpaid ground, refuses `LOCATION_PAID_SITE_MISSING`.
+- **The positive witness (a floor stop accepted through its cut cube)** is proved on the live chain: this fixture has
+  one LANDING and no cut cube with a bare natural floor.
+  - On the scratch mount the whole descent finishes on tick 8,348 with `ENTRY_KITCHEN_UNBUILT`, the normal end. The
+    sill's stops A(T6) and U(T6) and the floor's F, U and F′ all stand (`scratchpad/activate_m1/m1-floor-stops-created.log`).
+  - Its committed assertion lands with the mount, in `test_underground_host_whole_chain.gd`: the five stops exist
+    after the sill, each witnessed by its cut cube or the sill.
+
+### M-1, re-measured with everything above
+
+The floor end's first refused edge is the claw descent from the sill to the floor (row 53, A(T6) → F), with
+`WORLD_ROUTE_NO_FITTING_PROFILE`. This is with Routes' and WorldRoutes' gated lines applied in scratch.
+
+- Row 53's lower fixture deck (64 u of floor), and the carry rows' floor slab (128 u, reaching under the whole stair),
+  are deeper and wider than the 1 u strip retained under the landing.
+- So the WorldRoutes deck half of P-1972-7 (natural earth under a stair deck) is needed, as expected. It waits with
+  the cost lane's lines.
+- Its design question for then: WorldRoutes binds Terrain but not Sites, so "never cut" has to come from the Space
+  rows and Terrain's footing, or Sites has to be bound.

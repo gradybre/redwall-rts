@@ -2446,20 +2446,29 @@ func _installed_row_source(p: RefCounted, row: int, room: Vector2i) -> bool:
 
 
 func _installed_row_site(issuer: RefCounted, row: int, prefix: int, record: Record, physical: Sites) -> Vector2i:
-	"""The exact stored FLOOR_DATUM must equal one authored landing of this full live Placement."""
+	"""The exact stored FLOOR_DATUM must equal one authored landing of this full live Placement. Decision 1972
+	(P-1972-7, "Natural earth counts"; P-1972-8): a stop no installed prism top holds stands on natural earth, and is
+	witnessed only by the completed same-Room paid cube whose floor it stands on (the trench floor's cut cube)."""
 	if not _installed_row_source(issuer, row, record.room) or _installed_landing_count(issuer, row, record) != 1: return NULL_REF
 	var parts: int = _installed_prefix_prisms(issuer, row, prefix)
 	if parts < 0: return NULL_REF
 	var found: Vector2i = NULL_REF
+	var held: bool = false
 	for index: int in parts:
 		if not _spend(4): return NULL_REF
 		for axis: int in 6: _region.box[axis] = _prism_boxes[index * 6 + axis]
 		if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
 				or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
+		held = true
 		var site: Vector2i = _installed_part_site(record, physical)
 		if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
 		found = site
-	return found
+	if held: return found
+	var origin: Vector3i = _cube_origin(record.point)
+	var floor_row: int = _installed_site_row(physical, origin) if origin.y == record.point.y else -1
+	if floor_row < 0 or physical._phase[floor_row] != Sites.SUPPORTED_VOID or physical._room_slot[floor_row] != record.room.x \
+			or physical._room_generation[floor_row] != record.room.y: return NULL_REF
+	return Vector2i(floor_row, Sites.SITE_GENERATION)
 
 
 func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:

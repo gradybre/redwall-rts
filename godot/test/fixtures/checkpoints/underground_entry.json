@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "29d2447ac267a8b30ca1a5dbc883fa41070dac0f246f91f38f04de4f7e225657",
+	"fingerprint": "49c0fe766867030747845e44b3ecc8ece8497991de5329dfaebc9a6a42a49168",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -208,7 +208,7 @@
 		"res://scripts/core/underground_connector_source_facts.gd": "ca85f6c1ad32ed2a28f55e1fceeec91a76e398180e5b938c8043707f41dd7940",
 		"res://scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
 		"res://scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
-		"res://scripts/core/underground_entry_bindings.gd": "3071197651d8013ac45657129c2f7f372910b24959cc771d1c70a556221e72aa",
+		"res://scripts/core/underground_entry_bindings.gd": "ae9af111189e261aec11381d45d4ba64fa56cf8503fc8672715806c40d3be28a",
 		"res://scripts/core/underground_entry_composition.gd": "2d65875785d5e69f7c6861573b17fb90e65b4f8a999e2634b013a75cbae20d29",
 		"res://scripts/core/underground_entry_contact_path.gd": "a8ba918d5825a65b1a31754fc72bcf0b14e5a10ed5438010845d76148e183765",
 		"res://scripts/core/underground_entry_contact_retirement.gd": "907fc15d9e6eb95fbeda072306aa70eaff12d3fda302e7e2f1d41dc15a296aac",
@@ -230,7 +230,7 @@
 		"res://scripts/core/underground_furniture_work.gd": "b3adf99266cb8659afe55eedd73a3fade96b5554873696726ee558a8d3bdbac8",
 		"res://scripts/core/underground_geometry_journal.gd": "27808020d08e2050fbe0b379e045615dc751931a445f6a0590c6e3b8a4025159",
 		"res://scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-		"res://scripts/core/underground_locations.gd": "a83a17fe5c8eac8f362a8a4ecbef71c2c6b118396c05eecabad53b7f205332e0",
+		"res://scripts/core/underground_locations.gd": "d268203d33777c57875f32613b4665cde5f49d3c160d4eb4fff46028052f5b81",
 		"res://scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
 		"res://scripts/core/underground_profiles.gd": "0bcf7880bdd11935987b4e5358964a9ef5b7bc44e993e4e68cd957b64cf4d097",
 		"res://scripts/core/underground_room_approach.gd": "e91c201435c81d6baf9f84dda87c817cf0bdd5b799167e55e5986798fade4404",

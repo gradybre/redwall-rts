@@ -54,22 +54,22 @@ func test_configuration_refuses_bad_scope_and_crews() -> void:
 	if _room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
 	var o: Builder.Owners = _h.owners()
-	assert_equal(foreman.configure(null, _room, _h.material, _h.material, _one()), Foreman.REFUSE_SCOPE, "no owners")
-	assert_equal(foreman.configure(o, NULL_REF, _h.material, _h.material, _one()), Foreman.REFUSE_SCOPE, "no room")
-	assert_equal(foreman.configure(o, _room, NULL_REF, _h.material, _one()), Foreman.REFUSE_SCOPE, "no storage")
-	assert_equal(foreman.configure(o, _room, _h.material, NULL_REF, _one()), Foreman.REFUSE_SCOPE, "no spoil container")
+	assert_equal(foreman.configure(null, _room, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_SCOPE, "no owners")
+	assert_equal(foreman.configure(o, NULL_REF, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_SCOPE, "no room")
+	assert_equal(foreman.configure(o, _room, NULL_REF, _h.material, NULL_REF, _one()), Foreman.REFUSE_SCOPE, "no storage")
+	assert_equal(foreman.configure(o, _room, _h.material, NULL_REF, NULL_REF, _one()), Foreman.REFUSE_SCOPE, "no spoil container")
 	var none: Array[Builder.Crew] = []
-	assert_equal(foreman.configure(o, _room, _h.material, _h.material, none), Foreman.REFUSE_CREW, "nobody")
+	assert_equal(foreman.configure(o, _room, _h.material, _h.material, NULL_REF, none), Foreman.REFUSE_CREW, "nobody")
 	var member: Builder.Crew = _h.crew_member()
 	var twice: Array[Builder.Crew] = [member, member]
-	assert_equal(foreman.configure(o, _room, _h.material, _h.material, twice), Foreman.REFUSE_CREW, "the same worker twice")
+	assert_equal(foreman.configure(o, _room, _h.material, _h.material, NULL_REF, twice), Foreman.REFUSE_CREW, "the same worker twice")
 	var five: Array[Builder.Crew] = []
 	for index: int in Foreman.MAX_BUILDERS + 1: five.append(_member(Vector2i(index + 100, 1), Vector2i(index, 1)))
-	assert_equal(foreman.configure(o, _room, _h.material, _h.material, five), Foreman.REFUSE_CREW, "more than four")
+	assert_equal(foreman.configure(o, _room, _h.material, _h.material, NULL_REF, five), Foreman.REFUSE_CREW, "more than four")
 	var holes: Array[Builder.Crew] = [member, null]
-	assert_equal(foreman.configure(o, _room, _h.material, _h.material, holes), Foreman.REFUSE_CREW, "an empty place")
+	assert_equal(foreman.configure(o, _room, _h.material, _h.material, NULL_REF, holes), Foreman.REFUSE_CREW, "an empty place")
 	var shared: Array[Builder.Crew] = [member, _member(Vector2i(99, 1), member.parking)]
-	assert_equal(foreman.configure(o, _room, _h.material, _h.material, shared), Foreman.REFUSE_CREW, "one parking for two")
+	assert_equal(foreman.configure(o, _room, _h.material, _h.material, NULL_REF, shared), Foreman.REFUSE_CREW, "one parking for two")
 	assert_false(foreman.is_running(), "nothing configured")
 	assert_equal(foreman.state(), Foreman.STATE_FAILED, "unconfigured")
 
@@ -86,15 +86,15 @@ func test_configuration_passes_on_the_owners_own_refusals() -> void:
 	if _room == NULL_REF: return
 	var o: Builder.Owners = _h.owners()
 	var stale: Array[Builder.Crew] = [_member(Vector2i(_h._worker.x, _h._worker.y + 1), _h.parking)]
-	assert_equal(Foreman.new().configure(o, _room, _h.material, _h.material, stale), Builder.REFUSE_LOST, "stale worker")
-	assert_equal(Foreman.new().configure(o, Vector2i(_room.x, _room.y + 1), _h.material, _h.material, _one()),
+	assert_equal(Foreman.new().configure(o, _room, _h.material, _h.material, NULL_REF, stale), Builder.REFUSE_LOST, "stale worker")
+	assert_equal(Foreman.new().configure(o, Vector2i(_room.x, _room.y + 1), _h.material, _h.material, NULL_REF, _one()),
 		DigOrder.REFUSE_EMPTY, "a room with no Sites")
 	o.residents = null
-	assert_equal(Foreman.new().configure(o, _room, _h.material, _h.material, _one()), Foreman.REFUSE_SCOPE, "no residents")
+	assert_equal(Foreman.new().configure(o, _room, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_SCOPE, "no residents")
 	o = _h.owners()
 	var travel: int = _h.provider._ordinary_travel
 	_h.provider._ordinary_travel = -1 # Negative-only: an unbound retreat row.
-	assert_equal(Foreman.new().configure(o, _room, _h.material, _h.material, _one()), Foreman.REFUSE_ROWS, "no travel rows")
+	assert_equal(Foreman.new().configure(o, _room, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_ROWS, "no travel rows")
 	_h.provider._ordinary_travel = travel
 	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
 
@@ -103,7 +103,7 @@ func test_a_configured_foreman_reads_its_plan_and_its_idle_builders() -> void:
 	"""Digging, eight cubes planned and none done; the builder is parked and idle with nothing taken."""
 	if _room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), &"", "configured")
 	assert_true(foreman.is_running(), "digging")
 	assert_equal(foreman.state(), Foreman.STATE_DIGGING, "state")
 	assert_equal(foreman.error(), &"", "no refusal")
@@ -131,7 +131,7 @@ func test_registration_places_the_builder_on_its_parking_once() -> void:
 	member.worker = _h._worker; member.tool = _h.tool; member.parking = _h.parking
 	var foreman: Foreman = Foreman.new()
 	var crew: Array[Builder.Crew] = [member]
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, crew), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, crew), &"", "configured")
 	var builder: Builder = foreman.builders()[0]
 	assert_equal(builder.register(), &"", "arrived and registered")
 	var actor: Routes.Actor = Routes.Actor.new()
@@ -150,7 +150,7 @@ func test_a_room_whose_every_open_cube_is_refused_stops_with_the_last_refusal() 
 	cube left is refused from parking; with all builders parked the room stops, named, and nothing is paid."""
 	if _room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), &"", "configured")
 	foreman._cube[0] = Foreman.CUBE_DONE
 	foreman._cube[4] = Foreman.CUBE_DONE
 	var code: StringName = _h.run(foreman, 50)
@@ -164,7 +164,7 @@ func test_a_lost_builder_stops_the_room_with_its_code() -> void:
 	"""The crew member leaves mid-approach: the builder fails, the room stops, the open BRACE stays unpaid."""
 	if _room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), &"", "configured")
 	var builder: Builder = foreman.builders()[0]
 	for step: int in 400:
 		_h.tick += 1
@@ -172,7 +172,7 @@ func test_a_lost_builder_stops_the_room_with_its_code() -> void:
 		if builder.in_motion(): break
 	assert_true(builder.in_motion(), "on its way")
 	var row: int = _h._residents.directory().get_typed_row(_h._worker)
-	assert_true(_h._work.release_tool_claim(row).ok, "departure: its tool claim released")
+	assert_equal(_h._work.tool_lot_of(row), NULL_REF, "no tool claimed on the way (it is claimed at the station)")
 	assert_true(_h._jobs.release_worker(row).ok, "departure: its Job released first (decision 0017)")
 	assert_true(_h._residents.despawn(_h._worker).ok, "the mole leaves")
 	_h.tick += 1
@@ -188,7 +188,7 @@ func test_a_builder_lost_while_parked_or_dead_at_its_station_stops_the_room() ->
 	"""ADR1223's crew-loss rule in every stage: a mole that leaves before its arrival, or dies, stops the room."""
 	if _room == NULL_REF: return
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), &"", "configured")
 	var row: int = _h._residents.directory().get_typed_row(_h._worker)
 	var builder: Builder = foreman.builders()[0]
 	assert_false(builder.lost(), "alive and present")
@@ -204,7 +204,7 @@ func test_a_builder_lost_while_parked_or_dead_at_its_station_stops_the_room() ->
 func _configured(crew: Array[Builder.Crew]) -> Foreman:
 	"""A configured foreman over the Kitchen."""
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, crew), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, crew), &"", "configured")
 	return foreman
 
 
@@ -218,7 +218,7 @@ func test_begin_refuses_a_site_that_is_not_the_next_unpaid_one_there() -> void:
 	assert_equal(builder.begin(0, other, order.keys[0], 1), Builder.REFUSE_TARGET, "a key and a Site that disagree")
 	assert_true(builder.idle(), "still idle")
 	assert_equal(_h._construction.live_project_count(), 0, "nothing opened")
-	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, _one()), Foreman.REFUSE_STATE, "no re-configure while digging")
+	assert_equal(foreman.configure(_h.owners(), _room, _h.material, _h.material, NULL_REF, _one()), Foreman.REFUSE_STATE, "no re-configure while digging")
 
 
 func test_a_row_that_needs_a_tool_is_refused_for_a_crew_member_without_one() -> void:
@@ -293,3 +293,41 @@ func test_a_raw_departure_that_skips_jobs_is_reported_not_hidden() -> void:
 	_h.tick += 1
 	assert_equal(foreman.advance(_h.tick), Builder.REFUSE_LOST, "named")
 	assert_equal(foreman.abandon_error(), Sites.REFUSE_WORKER, "the release refusal is kept")
+
+
+func test_a_brace_reserves_its_inputs_when_the_builder_sets_off() -> void:
+	"""Decision 1934: the inputs are claimed for the BRACE Job at dispatch, before the walk, so a second builder never
+	plans against stock the first one will use at START."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var wood: int = _h._items.compiled_id(&"wood")
+	var before: int = _free(wood)
+	_h.tick += 1
+	assert_equal(foreman.advance(_h.tick), &"", "dispatched")
+	assert_equal(foreman.builders()[0].stage(), Builder.STAGE_TRAVEL, "on its way")
+	assert_equal(_free(wood), before - Phase.Contract.BRACE_WOOD_MILLI, "the BRACE's wood is reserved")
+
+
+func _free(item: int) -> int:
+	"""Unreserved quantity of one item in the room's storage."""
+	var total: int = 0
+	var lot: Vector2i = _h._inventory.container_first_lot(_h.material)
+	while lot != NULL_REF:
+		if _h._inventory.lot_item_id(lot) == item: total += _h._inventory.lot_available_milli(lot)
+		lot = _h._inventory.container_next_lot(lot)
+	return total
+
+
+func test_a_builder_sent_home_from_its_column_has_not_set_off() -> void:
+	"""Going home starts a new walk: until it takes its first step the foreman's footprint check comes first."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var builder: Builder = foreman.builders()[0]
+	for step: int in 4000:
+		if builder.at_column_end(): break
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "running")
+	assert_true(builder.at_column_end() and builder._departed, "at the first cube's end, having walked there")
+	assert_equal(builder.go_home(), &"", "sent home")
+	assert_false(builder.in_motion(), "not yet set off")
+

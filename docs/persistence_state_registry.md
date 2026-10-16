@@ -2225,6 +2225,7 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Planned legs | `_legs`, `_leg_profiles`, `_home_legs`, `_home_profiles` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges each way) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
+| Haul plan | `_queue`, `_approach_legs`, `_approach_profiles` | 4 | never allocated | Empty unless a BRACE lacks inputs; refilled by each plan | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1934 (C2.2). The whole units the cube's BRACE lacks (compiled item ids, one per trip) and the claimed way from the storage to the station, walked after the haul. The hauler itself (`underground_entry_hauler.gd`, unchanged) keeps the trip cursor. Not saved yet: C2.3 owns the room dig's save, as ADR1218 saves the entry's haul. Saved with the builder's cursor by C2.3? |
 
 ### `godot/scripts/core/underground_room_footprint.gd`
 
@@ -2246,9 +2247,9 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Room dig record: generation | `_generation` | 4 | `ROOM_CAPACITY` = 16384 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room, indexed by the room's directory row. Not composed in production in C2.1 (only tests construct the runtime), so nothing is allocated in the game yet. C2.3 composes it, ledgers its 344,064 B and saves it. Saved in §6 AUXILIARY_STATE by C2.3? |
+| Room dig record: generation | `_generation` | 4 | `ROOM_CAPACITY` = 16384 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room, indexed by the room's directory row. Not composed in production in C2.1 (only tests construct the runtime), so nothing is allocated in the game yet. C2.3 composes it, ledgers its 475,136 B (29 B a row since decision 1934) and saves it. Saved in §6 AUXILIARY_STATE by C2.3? |
 | Room dig record: state | `_state` | 1 | `ROOM_CAPACITY` = 16384 | RECORD_NONE | UNRESOLVED | §6 AUXILIARY_STATE | Same record: none, queued, digging, done, stopped. Saved by C2.3? |
-| Room dig record: containers | `_storage`, `_output` | 4 | `2 * ROOM_CAPACITY` = 32768 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Same record: the input staging container and the spoil container, each a (slot, generation) pair. Saved by C2.3? |
+| Room dig record: containers | `_storage`, `_output`, `_staging` | 4 | `2 * ROOM_CAPACITY` = 32768 | Zero for a room never ordered; a null staging pair when none is named | UNRESOLVED | §6 AUXILIARY_STATE | Same record: the room's input storage, the spoil container and (decision 1934) the same-level staging container missing inputs are hauled from, each a (slot, generation) pair. Saved by C2.3? |
 | Foreman record rows | `_foreman_rows` | 4 | never allocated | One per kept foreman (at most MAX_DIGS running, plus stopped ones until released) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The record row of each kept foreman, so a room deleted mid-dig still settles its record. Saved with the foremen by C2.3? |
 
 ### `godot/scripts/core/underground_room_composition.gd`

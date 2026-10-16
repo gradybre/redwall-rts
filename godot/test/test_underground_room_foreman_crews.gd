@@ -75,7 +75,7 @@ func _started() -> Foreman:
 	var room: Vector2i = _h.confirmed_room()
 	if room == NULL_REF: return null
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, [_h.crew_member()]), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, NULL_REF, [_h.crew_member()]), &"", "configured")
 	return foreman
 
 
@@ -129,7 +129,7 @@ func _two() -> Foreman:
 	var crew: Array[Builder.Crew] = [_h.crew_member(), _h.second_member(SECOND_PARKING)]
 	if not _h.failures.is_empty(): return null
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, crew), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, _h.material, NULL_REF, crew), &"", "configured")
 	return foreman
 
 
@@ -206,7 +206,7 @@ func test_a_full_spoil_pile_stops_the_room_before_any_unpaid_cut() -> void:
 		_h._inventory.container_free_mass_g(pile) - 1000, 1, 0, -1, 0, 0)
 	assert_true(earth.ok, "the pile is all but full: %s" % earth.error)
 	var foreman: Foreman = Foreman.new()
-	assert_equal(foreman.configure(_h.owners(), room, _h.material, pile, [_h.crew_member()]), &"", "configured")
+	assert_equal(foreman.configure(_h.owners(), room, _h.material, pile, NULL_REF, [_h.crew_member()]), &"", "configured")
 	var code: StringName = _h.run(foreman, TICK_BOUND)
 	assert_equal(code, Inventory.REFUSE_CAPACITY_EXCEEDED, "the pile's own refusal, named")
 	assert_equal(foreman.state(), Foreman.STATE_FAILED, "the room stops")

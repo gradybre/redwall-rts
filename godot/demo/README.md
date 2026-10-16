@@ -1084,12 +1084,14 @@ are game UI the demo mounts, and the settlement game's own Build button stays lo
   news strip step aside (their place is the panel's) and come back on close.
 - **Tabs** Rooms · Furnish · Decor (Ctrl+Tab / Ctrl+Shift+Tab). Furnish and Decor wait, saying "Choose a room type
   first", until a room type or Passage is chosen; then they list that type's furniture, placed on dug rooms below
-  (decision 1921: see "The Furnish tab" below); on the surface and Overview the cards are locked and say why.
+  (decision 1921: see "The Furnish tab" below), or on a Mound room's dug floor on the Surface, with the Mound's Front
+  door and Windows (decision 2002: see "Mound homes" below); on Overview the cards are locked and say why.
 - **Rooms** (decision 1912): the eight GDD room types -- Dormitory, Bedroom, Kitchen, Dining room, Common room,
   Infirmary, Pantry and **Passage** (CORRIDOR, at least 2 cells wide) -- to paint on levels 1-4; the **Entrance** on the
   Surface and a **Way down** on levels 1-3. The old Passage / Burrow home / Root cellar tool cards are gone (Brendan's
-  ruling on decision 1911 P-C2 (c)). On the surface and on Overview the room types are locked with the reason in words;
-  Earth, Remove, Outdoor and Clear ground are locked "Not yet".
+  ruling on decision 1911 P-C2 (c)). Two toggles after the tabs choose the **style**: **Built** below, **Mound** on the
+  Surface (decision 2002); the other style's room types are locked with the reason in words, as on Overview; Earth,
+  Remove, Outdoor and Clear ground are locked "Not yet".
 - **The info card** follows the hovered or focused card: a described placeholder picture, its purpose, its cost per
   cell in natural measures -- the claw crew's dig height, read in one place (`burrow/modular_runtime.gd
   dug_height_u`; 1 quantum on master: a quarter log, 1.25 kg of stone, about 5 minutes of work, a basket of earth) --
@@ -1176,6 +1178,40 @@ the dug cells change, on a worker thread, and only the wall patches round a chan
 Checks: `test_demo_build_burrow.gd` (the field, both rules, the wobble, cracks, the rebuild), `test_demo_build_dig.gd`,
 the rules on the drawn earth in `test/live/demo_build_dig_live.gd` and `demo_build_furnish_live.gd`, and
 `test/live/demo_build_rounded_live.gd` (the furnish loop with a bent passage, and its frames; run by hand).
+
+### Mound homes (decision 2002)
+
+Brendan's rulings of 2026-10-15 (decision 2001; P-2001-11 (a): a proof of concept first, in the demo, free, drawn over
+unchanged ground, unsaved). On the **Surface** the Rooms tab paints the room types in the **Mound** style: rooms dug
+into a hill heaped to fit them (`scripts/ui/build_mound.gd`, the batch's MOUND HOMES). Each Mound -- its rooms joined
+cell to cell -- says **"! No way in: place a door on an outer edge"** on every cell until it has a door, and Confirm all
+waits for it. On the **Furnish** tab the **Front door** card (two outer edges side by side; its colour on the tool
+strip: Oak first, Green, Red, Blue) and the **Window** card (one outer edge) place them: every outer edge shows as a
+slot, the one nearest the pointer is judged in words, a **click** places one or takes it back, **Enter** places one at
+the cursor cell's side that **R / Shift+R** names. A hill may not cover water, a tree, a building, an item or a way down
+that is not wholly on one room's floor ("Not possible: the hill would cover water"); the woods' rocks, logs and stumps
+are heaped over and hidden. No room stands in or beside a door's yard, and no window looks out beside one. The
+**Entrance** card on a Mound room's floor is its hatch: "Way down, connects to
+Underground level 1".
+
+**Confirm all** hands the rooms, doors and windows to `build_panel/demo_build_mounds.gd` and sends a resident (the
+selected one, else the first free one who is not a mole) to the door's yard (`demo_build_mound_task.gd`): it heaps the
+whole hill a cell at a time from the yard, goes in at the door to dig, bracing each cell as the frame's timber ribs,
+comes out to top and turf it, then fits the doors and windows and the furniture on the floor. The hill
+(`demo_build_mound_field.gd`, `_hill.gd`, `_view.gd`) stands a metre over the walls' tops, rolls to the ground three
+metres out and is cut to the ground in each door's yard; it only grows as rooms are added. The door's built front
+(`demo_build_mound_front.gd`): plaster, timber posts, a curved eave with the turf over it, a brick-ringed round door of
+our own design (no knob in its middle), a lantern, steps, flower beds, a bench and a picket fence. Windows lie flush on
+the turf slope at the wall's top metre; by day each lights its room with a beam and a pool of light. A finished hill
+grows turf, shrubs, a tree on its crown and a chimney over a fitted hearth, none by a window or on a door's path. While
+the panel shows the Surface the hill is drawn cut away at the walls' top so the rooms show. Residents walk round a hill
+and in only at a door's yard. A way down on a Mound's floor lands on level 1 and is reached through the door. Nothing is
+charged or saved; MOUND-TERRAIN and MOUND-REAL replace the drawing with ground and the settlement's own work.
+
+Checks: `test_build_mound.gd`, `test_build_mound_edges.gd`, `test_build_batch_mound.gd`, `test_build_panel_mound.gd`,
+`test_demo_build_mounds.gd`, `test_demo_build_mound_field.gd`, `_mesh.gd`, `_parts.gd`, `_view.gd`, `_host.gd`, and the
+live harness `test/live/demo_build_mound_live.gd` (the whole loop, with `--capture <directory>` for its frames; run by
+`test_demo_build_mound_live.gd`, slow tier).
 
 ## Digging tunnels
 

@@ -84,7 +84,7 @@ func refresh(works: Works, fittings: Fittings, level: int) -> bool:
 	_fittings = fittings
 	_level = level
 	_clear()
-	if level >= 1 and level < Works.LEVELS:
+	if level >= 0 and level < Works.LEVELS:
 		_label_rooms(works, level)
 		_count_pieces(fittings, level)
 		for room: int in _types.size():

@@ -5,7 +5,9 @@ extends RefCounted
 ## room foreman, excavation and payment.
 ##
 ## THE CELLS. Per underground level (1-4), one byte a cell of the planning area: EARTH, ORDERED (confirmed, waiting
-## for the mole) or OPEN (dug), and the room type painted there (TYPE_NONE for a way down's landing).
+## for the mole) or OPEN (dug), and the room type painted there (TYPE_NONE for a way down's landing). On the Surface
+## (level 0) the same for MOUND rooms (decision 2002): ORDERED until dug into their hill, then OPEN; how far each is
+## heaped, framed and topped is demo_build_mounds.gd's, and the mole's searches never walk them.
 ## THE WAYS DOWN. Each confirmed way down: the level it stands on (0 for the Entrance) and its north-west cell; it
 ## lands on the same 2 × 2 cells one level down. Those landing cells are ordered with it.
 ##
@@ -49,10 +51,9 @@ func configure(bounds: Rect2i) -> void:
 	for level: int in LEVELS:
 		var states: PackedByteArray = PackedByteArray()
 		var types: PackedByteArray = PackedByteArray()
-		if level > 0:
-			states.resize(bounds.size.x * bounds.size.y)
-			types.resize(bounds.size.x * bounds.size.y)
-			types.fill(TYPE_NONE)
+		states.resize(bounds.size.x * bounds.size.y)
+		types.resize(bounds.size.x * bounds.size.y)
+		types.fill(TYPE_NONE)
 		_state.append(states)
 		_type.append(types)
 	_way_levels.clear()
@@ -66,7 +67,7 @@ func configure(bounds: Rect2i) -> void:
 
 
 func state(level: int, cell: Vector2i) -> int:
-	"""EARTH, ORDERED or OPEN (EARTH off the area or on the surface)."""
+	"""EARTH, ORDERED or OPEN (EARTH off the area; on the surface, a Mound room's cell or EARTH)."""
 	var index: int = _index(level, cell)
 	return _state[level][index] if index >= 0 else EARTH
 
@@ -106,11 +107,22 @@ func _order(level: int, cell: Vector2i, room_type: int) -> void:
 	var index: int = _index(level, cell)
 	if _state[level][index] == EARTH:
 		_state[level][index] = ORDERED
-		_ordered += 1
+		_ordered += 1 if level > 0 else 0
 		var box: Rect2i = _boxes[level]
 		_boxes[level] = Rect2i(cell, Vector2i.ONE) if box.size == Vector2i.ZERO else box.expand(cell).expand(cell + Vector2i.ONE)
 	if room_type != TYPE_NONE or _type[level][index] == TYPE_NONE:
 		_type[level][index] = room_type
+
+
+func ways_on(level: int) -> PackedInt32Array:
+	"""The north-west cells of the confirmed ways down standing on `level` (pairs): the batch's reader (decision
+	2002)."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for row: int in _way_levels.size():
+		if _way_levels[row] == level:
+			out.append(_way_xs[row])
+			out.append(_way_zs[row])
+	return out
 
 
 func open_cell(level: int, cell: Vector2i) -> bool:
@@ -119,7 +131,7 @@ func open_cell(level: int, cell: Vector2i) -> bool:
 	if index < 0 or _state[level][index] != ORDERED:
 		return false
 	_state[level][index] = OPEN
-	_ordered -= 1
+	_ordered -= 1 if level > 0 else 0
 	revision += 1
 	return true
 
@@ -145,7 +157,7 @@ func cells_into(level: int, wanted: int, out: PackedInt32Array) -> void:
 	"""Every cell of `level` in state `wanted`, canonical pairs, into `out` (cleared first): a scan of its box only."""
 	out.clear()
 	var box: Rect2i = box_of(level)
-	if level <= 0 or level >= LEVELS:
+	if level < 0 or level >= LEVELS:
 		return
 	var states: PackedByteArray = _state[level]
 	for z: int in range(box.position.y, box.end.y):
@@ -157,7 +169,7 @@ func cells_into(level: int, wanted: int, out: PackedInt32Array) -> void:
 
 
 func waiting() -> int:
-	"""How many ordered cells wait for the mole."""
+	"""How many ordered cells wait for the mole (underground: a Mound's wait for its own builder, decision 2002)."""
 	return _ordered
 
 
@@ -182,11 +194,11 @@ func entrance() -> int:
 
 
 func on_way(level: int, cell: Vector2i) -> bool:
-	"""Whether `cell` on `level` is under a confirmed way down: where one stands (below the surface) or where one lands
-	(decision 1921: furniture keeps clear of the stairs)."""
+	"""Whether `cell` on `level` is under a confirmed way down: where one stands (below the surface, or on a Mound room's
+	floor: decision 2002) or where one lands (decision 1921: furniture keeps clear of the stairs)."""
 	for row: int in _way_levels.size():
 		var top: int = _way_levels[row]
-		if (top == level and level > 0) or top + 1 == level:
+		if (top == level and (level > 0 or state(0, cell) != EARTH)) or top + 1 == level:
 			if Rect2i(Vector2i(_way_xs[row], _way_zs[row]), Vector2i(SIDE, SIDE)).has_point(cell):
 				return true
 	return false
@@ -291,7 +303,7 @@ static func _walk(came: Dictionary, end: Vector3i) -> PackedVector3Array:
 
 
 func _index(level: int, cell: Vector2i) -> int:
-	"""The column index of `cell` on underground `level`, or -1 (the surface, or off the area)."""
-	if level <= 0 or level >= LEVELS or not _bounds.has_point(cell):
+	"""The column index of `cell` on `level` (the surface's for its Mound rooms), or -1 off the area."""
+	if level < 0 or level >= LEVELS or not _bounds.has_point(cell):
 		return -1
 	return (cell.y - _bounds.position.y) * _bounds.size.x + cell.x - _bounds.position.x

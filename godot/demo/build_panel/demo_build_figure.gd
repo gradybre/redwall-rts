@@ -70,6 +70,12 @@ func set_sink(depth_m: float) -> void:
 	_name.position.y = HEIGHT_M + 0.35 - depth_m
 
 
+func set_layer(layer: int) -> void:
+	"""Draw the body and name on `layer` (decision 2002: a Mound's builder inside its hill is on the village's)."""
+	_body.layers = layer
+	_name.layers = layer
+
+
 func move_to(at: Vector3) -> void:
 	"""Stand at `at` (metres)."""
 	position = at

@@ -1,10 +1,11 @@
 {
   "version": 1,
-  "note": "The slow tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full parallel run at bf49943a (10 shards, 4 at a time; decision 1895); the suites decision 1895 changed (test_settlement_save_parity_1-6, which replace test_settlement_save_parity.gd, test_underground_host_crew_loss.gd and test_checkpoint_equivalence.gd) measured in focused runs three at a time. Re-measure and edit this list when a suite crosses the threshold either way. test_demo_build_furnish_live.gd (decision 1921) measured in a focused run: 102 s.",
+  "note": "The slow tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full parallel run at bf49943a (10 shards, 4 at a time; decision 1895); the suites decision 1895 changed (test_settlement_save_parity_1-6, which replace test_settlement_save_parity.gd, test_underground_host_crew_loss.gd and test_checkpoint_equivalence.gd) measured in focused runs three at a time. Re-measure and edit this list when a suite crosses the threshold either way. test_demo_build_furnish_live.gd (decision 1921) measured in a focused run: 102 s. test_demo_build_mound_live.gd (decision 2002) measured in a focused run: 152 s.",
   "threshold_seconds": 60,
   "slow": {
     "test_checkpoint_equivalence.gd": 105,
     "test_demo_build_furnish_live.gd": 102,
+    "test_demo_build_mound_live.gd": 152,
     "test_demo_care_live.gd": 169,
     "test_demo_feast_live.gd": 81,
     "test_demo_orchard_remainders_live.gd": 87,

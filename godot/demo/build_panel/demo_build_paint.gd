@@ -26,8 +26,11 @@ const Validity := preload("res://scripts/ui/build_validity.gd")
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 const WorldTool := preload("res://demo/burrow/modular_world_tool.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 
+## A way down on a Mound room's floor (decision 2002, BUILD-MOUND-021).
+const HATCH_NAME: String = Mound.TEXT_HATCH
 ## The underground levels painted on (DEC-061 Q6: levels 1-4).
 const LEVELS: Array[int] = [1, 2, 3, 4]
 ## Every level drawn on: the surface too, where the Entrance is placed.
@@ -93,7 +96,8 @@ func floor_u(level: int) -> int:
 
 
 static func paintable(level: int) -> bool:
-	"""Whether `level` is painted on (underground levels 1-4)."""
+	"""Whether `level` is painted on (underground levels 1-4; the Surface only in the Mound style, which the host
+	checks: decision 2002)."""
 	return LEVELS.has(level)
 
 
@@ -196,11 +200,24 @@ func _draw_items(level: int, pool: Array, used: int) -> int:
 		if ghost == null:
 			return used
 		var kind: int = _batch.item_kind(row)
-		var words: String = Items.name_of(top) if top == level else "%s lands here" % Items.name_of(top)
+		var name_words: String = way_name(top, items.cell_of(row))
+		var words: String = name_words if top == level else "%s lands here" % name_words
 		ghost.show_cells(Items.footprint(items.cell_of(row)), kind, "%s %s" % [Validity.glyph(kind), words])
 		ghost.visible = true
 		used += 1
 	return used
+
+
+func way_name(level: int, cell: Vector2i) -> String:
+	"""A way down's name at `cell` on `level`: on a Mound room's floor, what it is (BUILD-MOUND-021: "Way down,
+	connects to Underground level 1"); else the Entrance or Way down (build_items.gd)."""
+	var cells: PackedInt32Array = Items.footprint(cell)
+	if level != 0:
+		return Items.name_of(level)
+	for at: int in range(0, cells.size(), 2):
+		if not _batch.is_surface_room(Vector2i(cells[at], cells[at + 1])):
+			return Items.name_of(level)
+	return HATCH_NAME
 
 
 static func tag_words(kind: int, code: int, name_words: String, number: int) -> String:
@@ -208,7 +225,8 @@ static func tag_words(kind: int, code: int, name_words: String, number: int) -> 
 	stroke's), "" for ✓ and the words alone otherwise."""
 	if kind == Validity.KIND_CAN_BUILD:
 		return "%s %s" % [Validity.glyph(kind), name_words] if not name_words.is_empty() else ""
-	var head: String = Cells.words_of(code).get_slice(":", 0) if code == Cells.CELL_NO_WAY_IN else Cells.words_of(code)
+	var no_way: bool = code == Cells.CELL_NO_WAY_IN or code == Cells.CELL_NO_DOOR
+	var head: String = Cells.words_of(code).get_slice(":", 0) if no_way else Cells.words_of(code)
 	var who: String = "%s: " % name_words if not name_words.is_empty() else ""
 	if kind == Validity.KIND_NOT_POSSIBLE:
 		return "%s%d %s%s" % [Validity.glyph(kind), number, who, head]
@@ -257,7 +275,7 @@ func _stroke_groups(level: int, pool: Array) -> int:
 		var judged: Array = _batch.judge_item(level, _cursor, -1)
 		var words: String = Validity.line(int(judged[0]), String(judged[1]))
 		(pool[0] as Ghost).show_cells(Items.footprint(_cursor) if _bounds.has_point(_cursor) else PackedInt32Array(),
-			int(judged[0]), "%s: %s" % [Items.name_of(level), words])
+			int(judged[0]), "%s: %s" % [way_name(level, _cursor), words])
 		return 1
 	if not _batch.stroke_active() or _batch.stroke_level() != level:
 		var cursor_cells: PackedInt32Array = PackedInt32Array([_cursor.x, _cursor.y]) if _bounds.has_point(_cursor) \

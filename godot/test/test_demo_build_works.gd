@@ -70,16 +70,34 @@ func test_a_way_down_is_dug_from_above_and_walked_both_ways() -> void:
 	assert_true(_works.path_to(Vector3i(1, 4, 4), Vector3i(1, 30, 30)).is_empty(), "no way to earth")
 
 
-func test_orders_off_the_area_or_on_the_surface_are_refused() -> void:
-	"""Nothing is ordered past the area, below level 4 or on the surface; a cell not ordered does not open."""
+func test_orders_off_the_area_are_refused() -> void:
+	"""Nothing is ordered past the area or below level 4; a cell not ordered does not open; the surface reads earth
+	until a Mound room is ordered there."""
 	assert_false(_works.order_room(1, PackedInt32Array([40, 40]), 2), "off the area")
 	assert_false(_works.order_way_down(4, Vector2i(1, 1)), "nothing below level 4")
 	assert_false(_works.order_way_down(0, Vector2i(31, 31)), "its landing past the area")
-	assert_false(_works.order_room(0, PackedInt32Array([1, 1]), 2), "not on the surface")
 	assert_false(_works.open_cell(1, Vector2i(1, 1)), "earth does not open")
 	assert_equal(_works.state(0, Vector2i(1, 1)), Works.EARTH, "the surface reads earth")
 	assert_equal(_works.entrance(), -1, "no Entrance")
 	assert_true(_works.next_dig(Vector3i(1, 1, 1)).is_empty(), "nothing to dig")
+
+
+func test_a_mound_room_is_ordered_on_the_surface_and_waits_for_its_builder() -> void:
+	"""Decision 2002: a Mound room's cells are ordered on the surface with their type; the mole's count leaves them out;
+	dug, they open; a way down standing on them is on its way there, and `ways_on` names its north-west cell."""
+	assert_true(_works.order_room(0, PackedInt32Array([1, 1, 2, 1]), 2), "a Mound Kitchen")
+	assert_equal([_works.state(0, Vector2i(1, 1)), _works.type_of(0, Vector2i(2, 1))], [Works.ORDERED, 2], "ordered")
+	assert_equal(_works.waiting(), 0, "not the mole's")
+	assert_true(_works.open_cell(0, Vector2i(1, 1)), "dug by its builder")
+	assert_equal(_works.waiting(), 0, "still none of the mole's")
+	var cells: PackedInt32Array = PackedInt32Array()
+	_works.cells_into(0, Works.OPEN, cells)
+	assert_equal(cells, PackedInt32Array([1, 1]), "the surface's box is scanned")
+	assert_true(_works.order_way_down(0, Vector2i(1, 1)), "a hatch on its floor")
+	assert_true(_works.on_way(0, Vector2i(2, 2)) or _works.on_way(0, Vector2i(1, 1)), "its floor is a way's")
+	assert_false(_works.on_way(0, Vector2i(9, 9)), "elsewhere on the surface: no")
+	assert_equal(_works.ways_on(0), PackedInt32Array([1, 1]), "its north-west cell")
+	assert_equal(_works.ways_on(1), PackedInt32Array(), "none stands below")
 
 
 func test_a_repaint_keeps_cells_ordered_once() -> void:

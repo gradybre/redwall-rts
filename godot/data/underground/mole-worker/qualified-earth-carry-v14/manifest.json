@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "decision": [
+    "2042",
+    "1981",
+    "1206"
+  ],
+  "content_revision": 13,
+  "profile_count": 96,
+  "box_count": 698,
+  "source_count": 10,
+  "wire_sha256": "fdfcf8751338185b00f12d9561535042111c406ac126ef6c9e40e36d207ab450",
+  "wire_bytes": 29312,
+  "paired_bank_bytes": 58608,
+  "sources": {
+    "8": "source 3's digest (stone haul image v10)",
+    "9": "source 7's digest (stone stair image)"
+  },
+  "rows": {
+    "0-84": "content 12",
+    "85-89": "earth level carry: rows 37-41 with cargo 11 and 5,000 milli-U",
+    "90-95": "earth stair carry: rows 79-84 with cargo 11 and 5,000 milli-U"
+  },
+  "earth_item": 11,
+  "earth_quantity_milli": 5000,
+  "inputs": {
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/ground-pace.ugconn": "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd": "5d1d4cd897780bd339fdc77f26bbd40c858fc2e107fe43f1ee7abef9d0e82ff7",
+    "godot/data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab"
+  },
+  "ground_sha256": "ad60a1c8a8300a529b3622744d58f07b6edd87a641f7295d610fee58695a3477",
+  "motion_sha256": "9331ed1666e2482b063d8486e4d36f3a35ff11fe8ba5613a959bf20e99b60e7e",
+  "motion_inputs": {
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/motion.ugmotion": "05e4c692eed1a4eef778e99c16f9866e8a78c52abea9c2276fb4f577401c5598",
+    "godot/data/underground/mole-worker/qualified-earth-carry-v14/mole-worker.ugprof": "fdfcf8751338185b00f12d9561535042111c406ac126ef6c9e40e36d207ab450",
+    "godot/data/underground/mole-worker/publish_earth_carry_runtime.py": "ae5e5b8d9f5615820ad3c72686523d2ea69ca3e874dcb918ff476fc49b0bd0db"
+  },
+  "runtime_admitted": false
+}

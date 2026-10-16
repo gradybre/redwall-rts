@@ -281,7 +281,8 @@ static func module_count(layout: int) -> int:
 
 
 static func module_translation(layout: int, module: int) -> Vector3i:
-	"""Where module `module` sits relative to the first: (0, -1024j, -5120j) for M5; (0, 1, 0) for no module."""
+	"""Where module `module` sits relative to the first: (0, -1024j, -5120j) for M5. (0, 1, 0) means no module and is
+	never a placement: a caller placing parts checks `module < module_count(layout)` first."""
 	if module < 0 or module >= module_count(layout): return Vector3i(0, 1, 0)
 	return Vector3i(0, -MODULE_DROP * module, -QUANTUM * MODULE_ROWS * module)
 

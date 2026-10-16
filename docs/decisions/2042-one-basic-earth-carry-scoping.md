@@ -232,6 +232,194 @@ motion.
 
 **Recommendation: (a).**
 
+## Phase 2c — the inactive data (2026-10-16)
+
+Built under P-2042-6 (a), in new files only. Nothing is mounted or activated, and no held file was edited.
+
+### Content 13, `mole-worker/qualified-earth-carry-v14/` (create-only, `publish_earth_carry_runtime.py`)
+
+- **The wire:** 96 rows, 698 boxes, 10 sources, `fdfcf875…`.
+  - Rows 0–84 and sources 0–7 are content 12's, byte for byte.
+  - Rows 85–89 are stone's level rows 37–41 (CARRY, two loads, two unloads). Rows 90–95 are stone's stair-carry
+    rows 79–84.
+  - In each, the cargo becomes `excavated_earth` (compiled item 11) and a carried unit becomes 5,000 milli-U
+    (P-2042-2). The load rows keep 0..0. Every other word and every box is the template's.
+- **Two new sources, not one: a change from §2.**
+  - **Why.** Profiles keys rows within each source and refuses a source whose rows are out of key order
+    (`underground_profiles.gd` `_validate_stage`, `PROFILE_KEY_ORDER`). Item 11 sorts before stone's 53, so an earth
+    row appended to source 3 or 7 would be refused.
+  - **What was done.** Source 8 (level) repeats source 3's digest, the stone haul image v10. Source 9 (stair)
+    repeats source 7's, the stone stair-carry image. The images carry geometry, never a material
+    (`compile_native_program_v9.stone_part`), so the same image serves; the earth colour is presentation's.
+  - **The test.** `test_earth_rows_cannot_share_the_stone_sources` shows the loader refusing both alternatives.
+- **Ground paces:** content 12's 26 caps, plus row 85 with row 37's cap, at revision 13.
+- **Motion bank:** content 12's, rebound to revision 13 and the new wire.
+- **The accessor** names `EARTH_ITEM` 11, `EARTH_QUANTITY_MILLI` 5,000, `EARTH_LEVEL_ROWS` 85–89 and
+  `EARTH_STAIR_ROWS` 90–95. The manifest says `runtime_admitted: false`.
+- **Not built as separate scripts.** §3 named `earth-carry-v1/derive_earth_rows.py` and `derive_earth_tables.py`. The
+  publishers derive the copies themselves, because there is nothing to author: the identity to stone is checked
+  inside them and in their tests.
+
+### The stair tables, `mole-worker/qualified-earth-carry-motion-v1/` (create-only, `publish_earth_carry_motion.py`)
+
+- **The wire:** content 12's 14 programs (rows 71–84), then rows 90–95, which are stone's programs 79–84 with only
+  the row, source (9) and group changed.
+- **The format:** `UGSTRM01` at revision 13 and the content-13 wire's digest; 20 programs, 2,360 keys, 26 decks,
+  48,856 B.
+
+### The certificate successor, `qualified-earth-carry-v14/grip_certificate.gd` (new file)
+
+- **Three families:**
+  - wood, rows 32–36, source 2;
+  - stone, rows 37–41, source 3;
+  - earth, rows 85–89, source 8.
+- **Trips:** 1,000, 1,000 and 5,000 milli-U a trip (`quantity_of(item)`; the table is `FAMILY_QUANTITY_MILLI`).
+- **Drop-in names.** `QUANTITY_MILLI` stays the int 1,000 that every caller reads today, and `stock_offset` and `turn`
+  pass through. So the successor can replace `qualified-claw-runtime-v1/grip_certificate.gd` where it is preloaded.
+- **Any other content is handed on.** A bank of content 6, 9 or 10 goes to `qualified-claw-runtime-v1`, as that
+  certificate hands content 6 to its own parent. The certificate follows the loaded content, and switching the preload
+  before content 13 is mounted changes nothing.
+- **The earth family** repeats stone's words, with the source, the cargo and its own first boxes (637, 644, 662). It
+  also repeats stone's boxes, contact cells and transform S = R + (0, 0, −576). Its source digest must be the stone
+  image's.
+- **Not preloaded.** Nothing loads it until phase 2b.
+
+### Tests
+
+- **`godot/test/test_mole_earth_carry_profiles.gd`:** 8 tests, through the real Profiles loader and validator. It
+  covers:
+  - content 12's rows unchanged;
+  - the earth rows against their templates;
+  - item 11 being `excavated_earth`, with 5,000 milli-U equal to 5,000 g;
+  - the rooted earth rows not being selectable;
+  - all fifteen certified rows;
+  - six certificate refusals, each on a wire that still loads: trip, revision, max quantity, source, a widened box,
+    content 12;
+  - the key-order seam;
+  - the station transform at both headings.
+- **`mole-worker/test_publish_earth_carry_runtime.py`:** 13 tests. Both publishers rebuild byte for byte. The identity
+  to stone, the item ids, the ground and motion rebinding, the accessor, the manifest and five refusals are checked
+  on what the publishers build now.
+
+### Frames (P-2042-5 (a), for Brendan's review)
+
+- **The capture.** A scratch capture adapted from decision 1981's. It is not committed:
+  `scratchpad/earthcarry_frames/run_frames.py` and `capture_frames.gd`.
+- **What it shows.** The actual stone stair-carry image on the actual body, posed by the actual Actor over the derived
+  stair fixture. The stone lump is drawn in an earth colour (`4a3527`); the carried solid is unchanged.
+- **The frames.** Eleven at each size, in
+  `/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/dbd322db-eba7-4c50-8879-3d1bb8099e65/scratchpad/earthcarry_check/{1280x720,1920x1080}/`:
+  - `01_down_approach_on_L0` and `02_down_approach_on_L0_mid` (level ground);
+  - `03`–`05`: descents L0 → T0, T2 → T3 and T6 → floor;
+  - `06_down_walk_off_floor` and `07_up_back_up_floor` (level floor);
+  - `08_up_turn_floor`;
+  - `09`–`10`: ascents floor → T6 and T3 → T2;
+  - `11_up_retreat_on_L0`.
+- **How they read.** A mole holds a dark-brown clod across its chest in both paws, on the level and on the treads,
+  with its feet on the decks.
+
+### The seams phase 2b must cross (held files; nothing here edits them)
+
+1. **Mounting content 13.** Today the activation lane mounts content 12 at revision 12. Phase 2b needs:
+   - `underground_session.gd` and `underground_route_composition.gd`: the revision, and `GROUND_PACE_COUNT` + 1 for
+     row 85's cap;
+   - `runtime_files.gd`: the paths.
+2. **Programs and certificates admitting revision 13.** P-1972-1's "content 10 or its successor 12" predicate becomes
+   "… or 13". It lives in `qualified-claw-runtime-v2/claw_program.gd`, `stair_program.gd` and `paw_program.gd`, and in
+   the runtime-v1/v2 endpoint and grip certificates (activation lane).
+   - `stair_program.gd` must also own rows 90–95 on source 9.
+3. **The grip certificate.** Callers switch their `Grip` preload to `qualified-earth-carry-v14/grip_certificate.gd`.
+   Each place that reads the per-trip quantity must read `quantity_of(item)` for earth's 5,000:
+   - `underground_entry_hauler.gd` `units_into` and its trips (`Grip.QUANTITY_MILLI`), lines 74, 229 and 242, and `stock_offset` at
+     347;
+   - `underground_connector_delivery.gd` (cost-2): `Grip.QUANTITY_MILLI` at 440, 444 and 695, `stock_offset` at 724,
+     and `_reach_stands`;
+   - `underground_room_builder.gd`: `stock_offset` at 505.
+
+   Line numbers are at master `c11da82e`. The names are kept, so the switch compiles. Only the quantity reads change
+   behaviour.
+4. **Connector paces for rows 90–95.**
+   - `underground_connector_catalog.gd` `_pace_row_refusal` ties authored paces to source 4. Decision 1981 already
+     lists narrowing it for sources 6 and 7, and the bundle's DEC-050 paces for rows 71–84, as activation work.
+   - Phase 2b extends both to source 9 and rows 90–95: 30 ticks a tread, 45 the half-turn, 90 a handoff.
+5. **The stair motion owner.** `underground_stair_motion.gd` `load_carry_file` (activation lane) loads
+   `qualified-earth-carry-motion-v1` for content 13, whose pins it does not yet know.
+6. **The budget.**
+   - Content 13's profile bank is 2 × (98 × 96 + 28 × 698 + 32 × 10 + 32) + 32,768 = 91,376 B, which is 5,700 B more
+     than content 12's 85,676. That is beyond the 2,072 B left under `Budget.PROFILE_BYTES` 282,624 (decision 1972),
+     so it needs a `PROFILE_BYTES` row through ADR 1212.
+   - The stair tables grow from 33,856 to 48,856 B.
+   - The census and pack are re-run, as is M-2's check-bound measurement, because 11 more rows enter every
+     per-profile loop.
+7. **Presentation.**
+   - `mole_haul_program.gd` `program_into` serves sources 2 and 3 only; source 8 must map to the stone haul clips.
+   - `mole_presentation.gd` `present_stair` (activation lane): source 9.
+   - `demo/cast/underground_content_set.gd` `MAX_SOURCES`: 8 → 10.
+   - The earth material for the lump.
+8. **Delivery's upward legs and the earth destination** (P-2042-4): `underground_connector_delivery.gd` (cost-2), and
+   C2.3's `underground_room_builder.gd` haul stage and the hauler's leg list.
+9. **Pins, census and checkpoints,** in one pass with the above.
+
+### Mutation testing
+
+**GDScript certificate.** 44 single-site mutants: 31 in the first pass, 6 rerun after fixes, and 7 on the review's
+fixes.
+
+- **First pass, 8 survived.**
+  - Four were killed after tests were added: `uses()`'s row offset, the max-quantity check, the source word and the
+    boxes check.
+  - `is_load`'s guard was redundant and has been removed (its replacement mutant is killed).
+- **The review found a non-equivalent survivor the first record missed:** the source-digest check (`return true`
+  passed every test). `test_the_earth_source_must_be_the_stone_image` now kills it. It swaps the wood image into
+  source 8, which still loads, and checks that every earth row is refused.
+- **The review's fixes.** All of them are killed: the delegation to the previous certificate, the allocation-free hex
+  decode, the per-family quantity and the digest choice.
+  - One survivor, an earth-row guard in the delegation, was redundant (the previous certificate refuses rows 85–89),
+    and the guard has been removed.
+- **Three survivors remain, each with a reason:**
+  - **The source-count bound** in `profile_refusal`. A defensive bound: a revision-13 wire with fewer than nine
+    sources cannot carry rows 85–89, which name source 8, so the loader already refuses it.
+  - **The heading check in `station_refusal`.** Equivalent by geometry: at the wrong heading the turned contact cells
+    leave the row's boxes, so the contact check refuses anyway. The templates keep the same line.
+  - **The final stock-in-stroke check.** Equivalent under the exact transform: S is fixed relative to R, and S lies in
+    every certified row's stroke box. The template's line is the same.
+  - **Note:** the review found the contact loop of `station_refusal` equivalent for the same reason.
+
+**Python publishers.** The rebuild tests are set aside, as decision 1981 did, because a publisher pins its own bytes.
+The other tests judge what the publishers build now.
+
+- `publish_earth_carry_runtime.py`: 13 mutants, 12 killed.
+  - The one survivor is equivalent: the item-id sort. For wood, stone and `excavated_earth` the catalog's file order
+    and its ascending-ASCII order give the same ids (60, 53, 11).
+- `publish_earth_carry_motion.py`: 4 mutants, 4 killed.
+
+### Review (independent `code-reviewer`)
+
+No CRITICAL, 1 HIGH and 4 MEDIUM.
+
+**HIGH, fixed: no test exercised the certificate's source-digest check.** See the mutation testing above.
+
+**MEDIUM.**
+
+- **Fixed.** The successor's names are now a drop-in replacement; every caller is listed in seam 3.
+- **Fixed.** Other contents are handed to the previous certificate.
+- **Fixed.** `_digest_matches` no longer allocates a String per byte.
+- **Added as seam 4.** The connector paces for rows 90–95.
+
+**LOW, fixed.**
+
+- The stair-table publisher now parses the content-13 wire and checks that rows 90–95 are source-9 copies of 79–84.
+- The motion rebind refuses any byte changed outside its four ranges (`MOTION_FOREIGN_DELTA`), and the test checks
+  the I64 revisions.
+- The certificate reads `Pins.EARTH_LEVEL_SOURCE` and `Pins.EARTH_QUANTITY_MILLI` instead of retyping them.
+- `module_translation` documents that its (0, 1, 0) means no module.
+
+**LOW, answered, not changed.**
+
+- `landing_stop_into` keeps its name. It exists only for M5's landings, and the `layout` argument is its first.
+- Both publishers were republished after these edits, because each pins its own bytes. The content-13 wire is
+  byte-identical (`fdfcf875…`).
+
 ## Consequences
 
 - **Not this lane's.** The earth carry serves the flight's deep spoil and every level-1 room past its first pile.
@@ -254,4 +442,23 @@ motion.
 
 ## Gates run (this record)
 
-- `python3 docs/validation/decision_numbers.py`: see decision 2043's gates.
+Phase 2c, on the final code after the review's fixes:
+
+- **Full suite, CI-style.** `godot/demo/assets` was moved aside and `godot/.godot` deleted. The import ran (exit 0),
+  then `./tools/run_tests.sh`, then the assets were restored. The result was `ok: 12838 tests, 1437865 assertions,
+  0 failures`:
+  - `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 278 expected, 456 tolerated; leaked at exit: 0
+    object(s), 0 resource(s)`;
+  - `log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)`.
+- **Analyzer:** `python3 tools/gdscript_warnings.py --max 0 --port 6503`, `0 GDScript warning(s) in 0 of 1609
+  file(s)`.
+- **Movement:** `test_movement_profile_policy: PASS -- 148 check(s)` and `test_movement_envelopes: PASS -- 191
+  check(s)`.
+- **Python:** `test_publish_earth_carry_runtime.py` 13 OK. Decision 1981's `test_publish_stair_carry_runtime.py` and
+  `test_publish_stair_carry_motion.py` are unchanged and OK. `test_probe_rise_160.py` 7 OK.
+- **Contracts:**
+  - `decision_numbers: PASS -- 567 records`;
+  - `lane_notes`, `dispatch_plan`, `astra_inbox`, `merge_gate`, `ready07_arithmetic`, `state_registry_coverage` and
+    the canonical state table: PASS;
+  - `underground_memory_budget.py --check`: unchanged, because nothing new is mounted.
+- **Mutation and review:** above.

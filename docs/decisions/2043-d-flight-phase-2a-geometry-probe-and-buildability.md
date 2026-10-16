@@ -289,6 +289,43 @@ M5 is decision 2041 §2.3's M5: today's 1 m module five times, each a natural-la
 **Both**, in one pass: pins, the census (`PROFILE_BYTES` for content 13), checkpoints, and the Frontier byte bound
 (per-module Frontiers if needed, P-DF-8 (c)).
 
+## Phase 2c — M5 in the geometry module (2026-10-16, P-2043-2 (a))
+
+**`flight_geometry.gd` gains `layout_*` functions** for two layouts: `LAYOUT_M5`, the ruled flight, and `LAYOUT_F40`.
+
+- **F40.** These functions delegate to the `steps` functions, which stay unchanged as the record.
+- **M5.** Module j is the 8-step geometry translated by (0, −1,024j, −5,120j). Module j ≥ 1 has no L0; its landing is
+  module j − 1's natural run-out.
+- **What the functions derive:**
+  - modules and their translations;
+  - rows, and each row's open-slot depth (module j's five rows at j + 1);
+  - treads: their module and index, sills, T0s, posts, tops and far edges;
+  - the end wall, the floor stops and each landing's stops;
+  - cubes and deep cubes, and the cube boxes;
+  - parts;
+  - the fixture bill and the total bill.
+- **How they refuse.** Packets go through bool `_into` calls that leave the packet untouched on refusal, as in
+  phase 2a.
+
+**The test, `godot/test/test_full_level_flight_m5_geometry.gd`:** 9 tests, 2043 §3's arithmetic number by number.
+
+- 27 rows; 35 treads with today's posts; the sills at 6, 13, 20, 27 and 34; the T0s at 0, 7, 14, 21 and 28.
+- F at (0, −5,120, −26,455); module 1's H′ at (0, −1,024, −6,656); the end wall at −27,648.
+- 154 cubes (100 deep), with module 0's boxes equal to today's trench.
+- 232 parts.
+- The bill: wood 77,500, stone 38,500, 912,620 milli-WU and earth 308,000.
+- F40 through the layout functions equal to its record.
+- Every refusal.
+
+**Mutation testing.**
+
+- **First pass:** 44 single-site mutants, 40 killed.
+  - Two survivors were F40 tread indices; tests were added and they are now killed.
+  - Two were redundant guards in `layout_is_sill` and `layout_is_t0`. They were removed, because `tread_k` already
+    refuses.
+- **Rerun of the four:** all killed.
+- **Result:** no survivors.
+
 ## Gates (phase 2a)
 
 - **Focused suite:** `./tools/run_tests.sh --suite test_full_level_flight_geometry.gd`, `ok: 13 tests, 708

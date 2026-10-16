@@ -24,7 +24,7 @@ ref. This is the lane record; later records of the lane take 1982 onwards. Branc
 | P-1981-3 | Brendan: (a) | DEC-050's pace applies laden: 30 ticks a tread, 45 a half-turn, 90 per three-step handoff. Recorded as DEC-050's addendum of 2026-10-15 |
 | P-1981-6 | Brendan: (a) | No review packet; the phase-2 frames are the review |
 | P-1981-4 | Coordinator: (a) | The content-11 activation lane takes content 12's engine admission; C2.3 takes Delivery's leg-by-leg reach and the hauler's leg list. The inventory is in "Activation inventory" below |
-| P-1981-5 | Coordinator: (a) | `POLICY_ROOTED_TRAVEL` = 10 lands in `underground_profiles.gd` in this lane, with its consumer pins renewed in the same commit; the edit is limited to the policy word and what loading content 12 needs |
+| P-1981-5 | Coordinator: (a) | `POLICY_ROOTED_TRAVEL` = 10 lands in `underground_profiles.gd` in this lane, with its consumer pins renewed in the same commit; the edit is limited to the policy word and what loading content 12 needs. Implemented as four words, 10–13 ("Engineering choices"); **acknowledged by the coordinator, 2026-10-15**: Profiles requires each (policy, key, heading) to be unique, and selection treats the words as unknown until activation |
 
 Indexed in `docs/handoff/RULINGS.md`. Sections "Decision" to "Proposals" below are the scoping as it was put.
 
@@ -608,8 +608,8 @@ Survivors of earlier passes, now killed by new tests:
    deck, read from the fixture, and the L0 literal is gone.
 5. The fixture shifts were hand-entered. They are now derived from the floor arrival and each handoff's first
    control, and the dead constants are removed.
-6. The four-word departure from P-1981-5 was not surfaced. It is now noted in `RULINGS.md` and reported to the
-   coordinator.
+6. The four-word departure from P-1981-5 was not surfaced. It is now noted in `RULINGS.md`; the coordinator
+   acknowledged it on 2026-10-15.
 7. The activation inventory lacked three seams. They are added below.
 
 **LOW, fixed:**

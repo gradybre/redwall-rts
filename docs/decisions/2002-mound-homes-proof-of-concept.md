@@ -349,6 +349,23 @@ Left as they are, with reasons:
   - the hatch landing on level 1 with "Way up to the surface";
   - the hearth fitted, and the chimney over it.
 
+## CI follow-up (2026-10-16): the live loop and a stall
+
+PR #267's CI failed the live loop at the hearth in shard 5. These three checks failed:
+- "a hearth placed on the Kitchen's floor", with no refusal words;
+- "the hearth is ordered", which said "Nothing to confirm yet";
+- "the hearth is fitted by the Mound's builder".
+
+**The cause.**
+1. The first drawing of level 1 is a long frame: 198 ms on Brendan's Mac, and that frame is level 1's own drawing, not the Mound's.
+2. On CI's slower runner, with the clock at 4x, that hitch put the clock into its overload pause (REQ-SET-008).
+3. The stall banner then holds the build panel's world input until the player presses Resume, as `demo_village.gd`'s `_build_blocked` intends.
+4. The harness never pressed Resume, so the hearth's click was held.
+
+**Reproduced locally.** A scratch copy of the harness forced a 1.5 s hitch after level 1 is drawn, and the same three checks failed with the same words.
+
+**The fix is in the harness, not the game.** Before each frame's step, if the banner shows while the clock is paused, the harness presses Resume for the player with `acknowledge_overload`, the banner's own call, and prints a NOTE saying so. The feast and hall harnesses already do the same. With the forced hitch the loop then passes 45/0 and prints one NOTE.
+
 ## Source
 
 Brendan's rulings on decision 2001 (2026-10-15), relayed by the coordinator. MOUND-POC's brief (2026-10-15), from the

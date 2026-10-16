@@ -309,3 +309,169 @@ cost lane's. Recommended: build them now and take the one pin renewal after the 
   (2026-10-15 addendum), DEC-059.
 - The code at `a0daf1ab`, read directly and by three read-only research passes (not committed).
 - The cost lane's worktree, read only (`git diff --stat` and hunk headers against its merge base `fd1c6d70`).
+
+## Phase 2a — what was built outside the cost lane's files (2026-10-16)
+
+Nothing is mounted: the Session still loads content 10 and `qualified-stairs-v9`, and the live entry chain is
+unchanged (tick 8,348, the same ledgers).
+
+### The programs and certificates (P-1972-1 (a))
+
+- **`qualified-claw-runtime-v2/claw_program.gd`.**
+  - `serves(content)` (10, or its successor `SUCCESSOR_CONTENT` 12) is the one content predicate.
+  - `in_block` adds the wall rows 67–70 (`is_wall`): WORK, `POLICY_SOURCE_WORK`, yaws 0..49152, M1's dig clips.
+  - Pins move to v13's accessor (its constants for rows 0–66 are v11's).
+- **`stair_program.gd`.** It owns rows 71–84 by the source 6/7 image digests:
+  - `source_of`, `policy_of`, `yaw_of`, `mode_of` and `_cargo_matches`: a loaded row repeats row 32's or 37's cargo
+    words;
+  - a rooted row qualifies only on content 12;
+  - `ticks_for` takes milli-u/s (P-1972-6).
+- **`paw_program.gd`.** `census_matches` admits content 10's census or content 12's (85/637/8).
+- **The other consumers read `serves`:**
+  - `paw_physical_certificate.gd` (the tap now passes the loaded revision);
+  - `qualified-claw-certificate-v2/endpoint_certificate.gd`;
+  - runtime-v1's `endpoint_certificates.gd` and `handling_programs.gd` (through `_v2`);
+  - `mole_claw_program.gd`, `mole_presentation.gd`;
+  - Contacts' two Frontier checks (1019, 2036).
+- **`grip_certificate.gd`** admits content 12. Its rooted CARRY rows hold the hold's grip by identity (1981's proof).
+- **`underground_entry_bindings.gd`.** A stair stop faces up for any stair row at yaw 32768.
+- **`underground_entry_foreman.gd`, Contacts.** Their Pins move to v13.
+
+### Profiles (P-1972-5)
+
+- `selection_policy_leaf` returns 10–13.
+- `query_travel_profile_into` admits the rooted words and selects with the row's own mode, so a CARRY row needs the
+  actor's actual cargo.
+- `is_table_turn` (9 and 13) replaces `_matches`' half-turn exemption.
+
+### Stair timings in milli-u/s (P-1972-6, "Keep 90 ticks")
+
+- **`underground_connector_catalog.gd`:**
+  - `RATE_AUTHORED_MILLI` = 2 is admitted only for a row the stair program owns;
+  - its cap check is ×1,000;
+  - `pace_into` reports every stair-program row's pace in milli-u/s: a u/s authored rate or ground cap ×1,000, so v9's
+    rows and the short steps keep their ticks;
+  - a rooted row (policy 10–13) may pace the stair Placement's variant from its own source 6/7, and a rooted CARRY
+    row may pace the WALK variant.
+- **`Stair.ticks_for`** = ceil(length × 30,000 / pace). The 169 u retreat at 56,334 milli-u/s takes exactly 90
+  ticks (56,333 gives 91).
+
+### The stair motion owner, the stair path and the bundle
+
+- **`underground_stair_motion.gd`.** `load_carry_file` appends the stair-carry tables after the claw tables:
+  - programs, keys and decks are rebased, and every reader serves both;
+  - a refusal restores the claw bank;
+  - the carry columns retain 33,784 B (its profile digest is checked, not kept; the record above said 33,816).
+- **`underground_entry_stair_path.gd`.**
+  - Levels reach the sill (6) and the floor (7). The new kinds are H (343 u before A on L0) and F′ (343 u behind F).
+  - Plans are six words with a mode: 7 floor-end WALK edges and 21 CARRY edges, both gated on F existing, so the
+    entry chain is unchanged until the sill is in.
+  - `_joined` compares the mode.
+- **`qualified-stairs-v10`** (create-only; publisher edited in place as v8 and v9 were):
+  - content 12, Frontier revision 9;
+  - all 17 stair timings as milli rows from ceil(length × 30,000 / ticks);
+  - LANDINGs for the sill and the floor;
+  - five stops appended after v9's 44: A and U on the sill, and F, U and F′ on the floor;
+  - `entry_source_constants.py` admits kind 2.
+  - **H is not a new stop:** it is claw-v6's L0 station at (0, 0, −1536), already endpoint 3. A first draft added a
+    duplicate, which was removed before any use.
+
+### Tests
+
+- `test_content_twelve_programs.gd` (11): the predicate, the wall rows, the rooted rows and six edited-word
+  refusals, the paw and certificate admission, the carry bank, and the stair path's classes, plan and gate.
+- `test_underground_stair_routes.gd` is parameterised by content. Its subclass `test_underground_stair_carry_routes.gd`
+  reruns the five claw stair tests on content 12 with milli paces and adds:
+  - the empty walk-off in 90 ticks;
+  - the milli reporting;
+  - the refusal of a milli pace on row 43;
+  - the rooted source rule.
+- Updated: `test_claw_stair_programs` (milli `ticks_for`), `test_mole_stair_carry_profiles` (rooted rows now
+  selectable), `test_underground_stairs_bundle_source` (v9's rates reported ×1,000), the bundle's Python tests (7).
+- Census: the catalog's two constants (reviewed delta, `REVIEWED_SHA`) and the stair motion owner's two members. The
+  pack is regenerated with live totals unchanged (100,250,607 B). The checkpoints are regenerated, with saves
+  byte-identical.
+- **Gates run so far:**
+  - focused suites: 143 tests, 0 failures, 0 unexpected diagnostics, 0 leaks;
+  - `test_underground_host` and the entry suites on content 10: 94 tests pass, ticks unchanged;
+  - the analyzer: 0 warnings in 1,568 files;
+  - contracts: decision numbers, merge gate, registry, lane notes, pins, census and `ready07`, dispatch, state table,
+    inbox: pass.
+  - The full CI-style run, mutation testing and the independent review are for the final phase.
+
+## Measurement M-1 (2026-10-16), on a scratch mount (not committed)
+
+The mount (section A plus the LEGACY deletion, `PROFILE_BYTES` 282,624 and the retirement scope's 49 endpoints) was
+applied in the worktree, the live descent run, and the change reverted. The patch is
+`scratchpad/activate_mount/mount-v2.patch`.
+
+### M-2: content 12 overflows the shared check bound on master's WorldRoutes
+
+- With content 12 mounted, the live descent stops on **tick 7,093** with `WORLD_ROUTE_CHECK_CAPACITY`. A WorldRoutes
+  preparation needs more than `Space.MAX_CHECKS` (1,048,576).
+- On content 10 the same chain's largest preparation spends **1,038,133 (99.0 %)**.
+- Content 12's 18 more rows enter every per-profile loop (`_compile_profiles`, `_carry_eligible`). With the bound
+  raised in scratch only, the peak is 1,067,179 and the chain reaches tick 8,348 with unchanged ticks.
+- No budget was raised. This is the cost lane's ground (P-1951-2 (a), skip unchanged refused profiles), so the mount
+  is re-measured on master after that merge. If it still overflows, it comes back as a proposal.
+
+### M-1: the floor end cannot stand on natural earth as the engine is written
+
+With the bound raised in scratch, the sill commit refuses `ENTRY_INSTALLED_CONTACT_REQUIRED`:
+
+- **The sill's stops (A and U on T6) qualify.** The sill deck is installed solid under its LANDING.
+- **The floor stops do not** (endpoint 46, F first). `underground_entry_bindings.gd _timber_staged_support` requires
+  the whole LANDING to have *installed* SUPPORT owned by the installation under it. The trench floor is natural,
+  never-cut earth, so the 2,048 × 1,536 u floor LANDING is uncovered.
+- **The floor decks have the same gap.** Decision 1981's tables give the floor rows (71, 72, 78, 84) the bottom
+  fixture's whole floor slab as their deck: y −128..0 under the start, from 1,193 u ahead to 5,975 u behind, that is
+  under the whole stair. WorldRoutes' `_stair_decks_refusal` covers decks only with SUPPORT owned by the edge's Room
+  or, outside a Room, the World's. Natural earth under the treads is neither, so those edges would refuse
+  `WORLD_ROUTE_STAIR_SUPPORT` once the stops exist.
+- **Consequence.** Until this is ruled, the floor stops, the floor end's edges and every CARRY edge (which waits for
+  F) do not exist in the game. Routes itself carries rooted rows: the fixture suite crosses them on World-owned
+  SUPPORT.
+
+### Two gated lines in the cost lane's files, measured
+
+They were tried in scratch and then reverted. The patch is `scratchpad/activate_mount/gated-routes-lines.patch`, and
+the tests that need them are in `scratchpad/activate_mount/test_underground_stair_carry_routes.full.gd`.
+
+- **`underground_routes.gd` `_actor_profile_into`: +33 characters.** `mode == MODE_WALK` becomes WALK or CARRY.
+  - A CARRY actor's every later re-selection reads its committed mode, CARRY, which otherwise falls to automatic
+    lookup and refuses `ROUTE_CONTACT_PROFILE_STALE`.
+  - This corrects §D's "0 characters".
+- **`underground_world_routes.gd` (1503): −2 characters.** The stale-selection heading exemption reads
+  `Profiles.is_table_turn`.
+- **With both lines:**
+  - a loaded descent crosses in 30 ticks, its row admitted only with the wood;
+  - the loaded 169 u retreat takes exactly 90 ticks;
+  - the loaded floor half-turn ends on heading 32768 in 45 ticks;
+  - 17 tests, 0 failures.
+
+### What else the mount needs (re-checked on the scratch mount)
+
+- `underground_entry_contact_retirement_scope.gd`: `ENDPOINTS` 44 → 49, which moves its registry sizes: `_source32`
+  1,356 → 1,392 (8 × 5 endpoints = 40, less the 4 B rounding the registry records) and `_source64` 158 → 163.
+- `underground_route_composition.gd`: `GROUND_PACE_COUNT` 29 → 43, and the carry bank loaded beside the claw tables.
+- A publish of the floor end and the carry edges after the sill commits. Today the stair path publishes only before
+  each tread's installation.
+- The presentation of sources 6/7 (`mole_presentation.gd present_stair`) and the ContentSet's `MAX_SOURCES` 6 → 8
+  (`demo/cast/underground_content_set.gd`, demo side).
+
+## P-1972-7 — The floor end's footing (for Brendan, via the coordinator)
+
+The trench floor is natural ground (ADR 1209). The engine accepts only installed, Room-owned solid under a stop's
+LANDING and under a stair deck.
+
+- **(a) Recommended: natural footing counts.** Under a LANDING and under a stair deck, never-cut, dry, natural earth
+  counts as support: 1971's scrape test, `Terrain.natural_support_refusal` and no Site ever cut it.
+  - The LANDING half is in `underground_entry_bindings.gd` (not the cost lane's).
+  - The deck half is in WorldRoutes `_stair_decks_refusal` (the cost lane's file, about +600 characters).
+  - No content changes.
+- **(b) Data only.** The bundle retains the floor as a natural bearing of the sill's assembly (Room-owned SUPPORT,
+  as the posts' bearings are), and the stair-carry tables are republished with each floor deck clipped to the floor
+  the proof's contacts actually stood on. That is a successor of decision 1981's tables from its own tooling, with
+  the proofs re-run.
+- **(c)** Leave the floor end out of this lane. Loaded travel then ends on T6, which is not the room level, and C2.3
+  cannot supply a room.

@@ -19,6 +19,7 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
 | P-2042-4 | **(a)**, "Approve all" | Underground piles first; otherwise up the stair to a surface pile or tip |
 | P-2042-5 | **(a)**, "Approve all" | One frames review, no packet |
 | P-2042-6 | **(a)**, "Approve all" | The inactive data now in new files; activation after the activation lane and cost-2 merge |
+| P-2042-5's review | **"Approve"** (2026-10-16) | Brendan reviewed the phase 2c frames (`earthcarry_check/`, the stone lump drawn earth-brown `4a3527`, down and back up the qualified stair) and approved the earth carry's look |
 
 Indexed in `docs/handoff/RULINGS.md`.
 

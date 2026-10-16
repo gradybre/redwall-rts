@@ -44,6 +44,14 @@ extends Node
 ## else the first one free who is not a mole) down to fit them one by one (demo_build_below_task.gd MODE_FIT). Each
 ## room's line ("✓ Kitchen ready") is drawn over it and shown on the Furnish tab, and fitted beds count in the HUD's
 ## Beds (`built_beds`). Slice E replaces it with install crews, access tiles and payment.
+##
+## MOUND HOMES (decision 2002, the proof of concept of decision 2001; P-2001-11 (a): free, drawn over unchanged ground,
+## unsaved). On the Surface the Rooms tab paints room types in the Mound style; the Furnish tab places a Mound's Front
+## door (its colour on the tool strip, oak first) and Windows on its rooms' outer edges -- a click on the edge nearest the
+## pointer, again to take one away; Enter at the cursor cell on the side R / Shift+R names -- and furniture on its dug
+## floor; the Entrance card placed on a Mound room's floor is its hatch to level 1. Confirm all hands the rooms, doors and
+## windows to demo_build_mound_host.gd, whose resident heaps, digs, frames and tops the hill; while the panel shows the
+## Surface the hill is drawn cut away. The mole goes down a hatch through its Mound's door.
 
 const BuildPanel := preload("res://scripts/ui/build_panel.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
@@ -101,6 +109,9 @@ const FITTER_SENT: String = "%s goes to the Entrance to fit the furniture"
 const NO_FITTER: String = "Nobody can fit the furniture: it waits"
 const FIT_CUT_OFF: String = "The waiting furniture cannot be reached from an Entrance: it waits"
 const PIECE_LABEL: String = "Place %s%s\n%s"
+const MoundHost := preload("res://demo/build_panel/demo_build_mound_host.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
+const EDGE_HINT: String = "Place %s: click a Mound room's outer edge"
 
 var panel: BuildPanel = null
 var bar: LevelBar = null
@@ -163,6 +174,8 @@ var _piece_label: Vector4i = Vector4i(0, 0, -1, -1)
 var _piece_label_moved: Vector2i = Vector2i(-1, -1)
 ## The last thing said about why no fitter went (said once, apart from the mole's words).
 var _said_fit: String = ""
+## Decision 2002: the Mound homes' store, drawing and builder.
+var mound: MoundHost = null
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -184,6 +197,7 @@ func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked
 	take_setup(batch.configure(catalog, orders.cell_bounds(), orders.cell_capacity()))
 	_configure_ground()
 	_configure_furnish()
+	_configure_mounds()
 	_configure_world(session)
 	_build_layer()
 	unlock_build_command()
@@ -223,6 +237,19 @@ func _configure_furnish() -> void:
 	furnish.configure(batch, works, fittings, _floors, _datum_xz(), orders.cell_bounds())
 
 
+func _configure_mounds() -> void:
+	"""The Mound homes (decision 2002): their store, its readers bound to the batch, and their drawing."""
+	mound = MoundHost.new()
+	add_child(mound)
+	mound.configure(batch, works, fittings, orders.cell_bounds(), Vector2(_datum_xz()) / 1024.0)
+
+
+func bind_village(village_world: Object, water: Object, is_day: Callable) -> void:
+	"""The village's placements and water (what a Mound's hill would cover) and `is_day() -> bool` (its windows'
+	daylight; decision 2002)."""
+	mound.bind_village(village_world, water, is_day)
+
+
 func room_at(level: int, cell: Vector2i) -> int:
 	"""build_furniture.gd's room reader: a dug room cell's type, else ROOM_EARTH, ROOM_WAITING (ordered, not dug) or
 	ROOM_BARE (dug, no room: a way down's cells, where it stands or lands, even when dug into a room)."""
@@ -247,6 +274,7 @@ func bind_cast(cast: Node, selection: Callable) -> void:
 	"""The village's residents (moles dig; anyone visits) and `selection() -> PackedInt32Array`, the selected ones."""
 	_cast = cast
 	_selection = selection
+	mound.bind_cast(cast, _pick_fitter, _say)
 
 
 func bind_props(props: Object) -> void:
@@ -254,6 +282,7 @@ func bind_props(props: Object) -> void:
 	furniture's models (decision 1921)."""
 	dug.use_props(props)
 	furnish.use_props(props)
+	mound.use_props(props)
 
 
 func _configure_world(session: Object) -> void:
@@ -447,6 +476,7 @@ func _refresh_furnish(open: bool) -> void:
 	the panel."""
 	var level: int = bar.shown_level() if open else -1
 	var fitting_row: int = fitter.fitting_row() if fitting() else -1
+	furnish.lines_shown = level >= 1 or panel.shown_tab() != BuildCatalog.TAB_ROOMS
 	furnish.refresh(level, armed_item(), paint.cursor(), _turn, fitting_row)
 	if open:
 		panel.set_room_lines(furnish.rooms.lines_text())
@@ -541,11 +571,13 @@ func _sync_label(open: bool) -> void:
 	"""The paint label beside the pointer (or the cursor cell): the stroke's size and validity, or how to begin."""
 	var type: int = armed_type() if open else -1
 	var placing: bool = open and way_down_armed()
-	_label_box.visible = type >= 0 or placing or (open and piece_armed())
+	_label_box.visible = type >= 0 or placing or (open and (piece_armed() or edge_armed()))
 	if not _label_box.visible:
 		return
 	var label_key: int = batch.stroke_revision * 8 + (bar.shown_level() + 1 if placing else 0)
-	if open and piece_armed():
+	if open and edge_armed():
+		_sync_edge_label()
+	elif open and piece_armed():
 		_sync_piece_label()
 	elif label_key != _seen_label:
 		_seen_label = label_key
@@ -646,7 +678,8 @@ func armed_type() -> int:
 	Confirm all then says nothing can be ordered.)"""
 	if _setup_refusal != &"" or not panel.is_open():
 		return -1
-	return panel.paint_type() if Paint.paintable(bar.shown_level()) else -1
+	var level: int = bar.shown_level()
+	return panel.paint_type() if Paint.paintable(level) or level == Mound.SURFACE else -1
 
 
 func _begin_at(cell: Vector2i) -> bool:
@@ -655,7 +688,7 @@ func _begin_at(cell: Vector2i) -> bool:
 	if type < 0:
 		return false
 	paint.set_cursor(cell, bar.shown_level(), type)
-	return batch.begin_stroke(type, bar.shown_level(), cell)
+	return batch.begin_stroke(type, bar.shown_level(), cell, panel.style())
 
 
 func _finish() -> void:
@@ -672,10 +705,11 @@ func confirm_all() -> void:
 	1912); then a mole is sent to dig them."""
 	if _blocked.is_valid() and bool(_blocked.call()):
 		return
-	var result: PackedInt32Array = batch.confirm_all(_submit_room, _submit_way_down, _submit_piece)
+	var result: PackedInt32Array = batch.confirm_all(_submit_room, _submit_way_down, _submit_piece, _submit_edge)
 	if result[0] > 0 and works.waiting() > 0:
 		_send_mole()
-	if fittings.waiting() > 0:
+	mound.send_worker()
+	if fittings.waiting_below() > 0:
 		_send_fitter()
 	var first: int = batch.first_invalid()
 	if first < 0:
@@ -690,12 +724,19 @@ func confirm_all() -> void:
 func _submit_room(draft: Object, level: int, room_type: int) -> Dictionary:
 	"""The proof of concept's order route for a room: its cells wait for the mole (free for now)."""
 	var cells: PackedInt32Array = (draft.call(&"snapshot") as Dictionary).cells
+	if level == Mound.SURFACE:
+		return {"ok": mound.submit_room(cells, room_type), "error": Validity.outside()}
 	return {"ok": works.order_room(level, cells, room_type), "error": Validity.outside()}
 
 
 func _submit_way_down(level: int, cell: Vector2i) -> Dictionary:
 	"""The proof of concept's order route for a way down: it and its landing wait for the mole."""
 	return {"ok": works.order_way_down(level, cell), "error": Validity.outside()}
+
+
+func _submit_edge(_level: int, cell: Vector2i, side: int, kind: int, colour: int, removal: bool) -> Dictionary:
+	"""Decision 2002's order route for a Mound's door, window or removal (free for now)."""
+	return mound.submit_edge(cell, side, kind, colour, removal)
 
 
 func _submit_piece(level: int, anchor: Vector2i, turn: int, item: int) -> Dictionary:
@@ -725,9 +766,10 @@ func _tick_works(delta: float) -> void:
 		_send_in = SEND_EVERY_S
 		_send_mole()
 	_fit_in -= delta
-	if _fit_in <= 0.0 and fittings.waiting() > 0 and not fitting():
+	if _fit_in <= 0.0 and fittings.waiting_below() > 0 and not fitting():
 		_fit_in = SEND_EVERY_S
 		_send_fitter()
+	mound.tick(delta, panel.is_open() and bar.shown_level() == Mound.SURFACE, armed_edge_kind())
 
 
 func _show_dig(dig_cell: Vector3i) -> void:
@@ -743,8 +785,9 @@ func _show_dig(dig_cell: Vector3i) -> void:
 
 
 func _space_tags(shown: int) -> void:
-	"""The level's tags and the figures' names kept off each other on screen (demo_build_tags.gd; names first)."""
-	if shown < 1 or not is_instance_valid(_camera) or not _camera.is_inside_tree():
+	"""The level's tags and the figures' names kept off each other on screen (demo_build_tags.gd; names first); on the
+	Surface, the Mounds' and the furniture's words (decision 2002)."""
+	if shown < 0 or not is_instance_valid(_camera) or not _camera.is_inside_tree():
 		return
 	_collect_tags()
 	_spacer.space(_camera, _tag_list)
@@ -756,7 +799,10 @@ func _collect_tags() -> void:
 	for figure: Figure in _figures:
 		if figure.visible:
 			_tag_list.append(figure.tag())
-	dug.shown_tags(_tag_list)
+	if bar.shown_level() == Mound.SURFACE:
+		mound.shown_tags(_tag_list)
+	else:
+		dug.shown_tags(_tag_list)
 	furnish.shown_tags(_tag_list)
 
 
@@ -784,9 +830,9 @@ func _still_on(trip: BelowTask) -> bool:
 func _send_mole() -> bool:
 	"""A mole to the Entrance to dig (see `_pick_mole`) -- only when no mole is digging, an Entrance exists and an
 	ordered cell can be reached from it (review H4); each reason not to is said once, not every SEND_EVERY_S (M6)."""
-	if digging() or works.entrance() < 0 or _cast == null:
+	if digging() or way_in() < 0 or _cast == null:
 		return false
-	if works.next_dig(works.landing_of(works.entrance())).is_empty():
+	if works.next_dig(works.landing_of(way_in())).is_empty():
 		_say_once(CUT_OFF % works.waiting())
 		return false
 	var mole: int = _pick_mole()
@@ -811,9 +857,9 @@ func fitting() -> bool:
 func _send_fitter() -> bool:
 	"""A resident to the Entrance to fit the waiting furniture (see `_pick_fitter`) -- only when nobody is fitting, an
 	Entrance exists and a waiting piece can be reached from it; why not is said once (decision 1921)."""
-	if fitting() or works.entrance() < 0 or _cast == null or fittings.waiting() == 0:
+	if fitting() or way_in() < 0 or _cast == null or fittings.waiting_below() == 0:
 		return false
-	if fittings.next_fit(works, works.landing_of(works.entrance())).is_empty():
+	if fittings.next_fit(works, works.landing_of(way_in())).is_empty():
 		_say_fit_once(FIT_CUT_OFF)
 		return false
 	var who: int = _pick_fitter()
@@ -890,9 +936,9 @@ func _has_mole() -> bool:
 
 
 func _below_now(i: int) -> bool:
-	"""Whether resident `i` is on one of the build panel's trips below."""
+	"""Whether resident `i` is on one of the build panel's trips below, or building a Mound (decision 2002)."""
 	var row: int = _trip_actors.find(i)
-	return row >= 0 and _still_on(_trips[row])
+	return (row >= 0 and _still_on(_trips[row])) or mound.works_with(i)
 
 
 func _is_mole(i: int) -> bool:
@@ -908,7 +954,9 @@ func _name_of(i: int) -> String:
 func _send(i: int, mode: int, goal: Vector3i) -> BelowTask:
 	"""Resident `i` on a trip below (a figure made for it, or reused from a finished trip)."""
 	var row: int = _free_trip_row()
-	var trip: BelowTask = BelowTask.new(works, _figures[row], _floors, _datum_xz(), mode, goal, _name_of(i))
+	var way: int = way_in()
+	var site: Vector2 = mound.hatch_site(works.way_cell(way)) if way >= 0 else Vector2.INF
+	var trip: BelowTask = BelowTask.new(works, _figures[row], _floors, _datum_xz(), mode, goal, _name_of(i), way, site)
 	trip.use_fittings(fittings)
 	_trips[row] = trip
 	_trip_actors[row] = i
@@ -933,7 +981,7 @@ func send_visitors(cell: Vector2i) -> int:
 	"""The selected residents down into the dug cell `cell` on the level shown; how many were sent."""
 	var level: int = bar.shown_level()
 	var selected: PackedInt32Array = PackedInt32Array(_selection.call()) if _selection.is_valid() else PackedInt32Array()
-	if _cast == null or works.entrance() < 0 or works.state(level, cell) != Works.OPEN:
+	if _cast == null or way_in() < 0 or works.state(level, cell) != Works.OPEN:
 		return 0
 	for i: int in selected:
 		_send(i, BelowTask.MODE_VISIT, Vector3i(level, cell.x, cell.y))
@@ -942,9 +990,80 @@ func send_visitors(cell: Vector2i) -> int:
 	return selected.size()
 
 
+func way_in() -> int:
+	"""The confirmed Entrance residents go down by: the first whose way can be reached -- off the Mounds, or a hatch
+	on a dug Mound room's floor whose door is fitted (decision 2002) -- or -1."""
+	for row: int in works.way_count():
+		if works.way_level(row) == 0 and mound.hatch_ready(works.way_cell(row)):
+			return row
+	return -1
+
+
 func piece_armed() -> bool:
-	"""Whether a click places a piece of furniture now (the panel open, an item card chosen, levels 1-4 shown)."""
-	return _setup_refusal == &"" and panel.is_open() and panel.piece_armed() and Paint.paintable(bar.shown_level())
+	"""Whether a click places a piece of furniture now (the panel open, an item card chosen, the Surface -- a Mound
+	room's floor, decision 2002 -- or levels 1-4 shown)."""
+	var level: int = bar.shown_level()
+	return _setup_refusal == &"" and panel.is_open() and panel.piece_armed() \
+		and (Paint.paintable(level) or level == Mound.SURFACE)
+
+
+func edge_armed() -> bool:
+	"""Whether a click places a Mound's front door or window now (decision 2002: its card chosen, a level shown)."""
+	return _setup_refusal == &"" and panel.is_open() and panel.edge_armed() \
+		and bar.shown_level() <= LevelBar.LEVEL_DEEPEST
+
+
+func armed_edge_kind() -> int:
+	"""The door or window a click places now (build_mound.gd KIND_*; -1: none)."""
+	return panel.armed_edge_kind() if edge_armed() else -1
+
+
+func ground_point(screen: Vector2) -> Vector2:
+	"""Where the view ray through `screen` meets the ground (world x, z; INF off it)."""
+	if not is_instance_valid(_camera) or not _camera.is_inside_tree():
+		return Vector2.INF
+	var origin: Vector3 = _camera.project_ray_origin(screen)
+	var direction: Vector3 = _camera.project_ray_normal(screen)
+	if direction.y >= -0.000001:
+		return Vector2.INF
+	var hit: Vector3 = origin + direction * (-origin.y / direction.y)
+	return Vector2(hit.x, hit.z)
+
+
+func _edge_at_screen(screen: Vector2) -> Vector3i:
+	"""The edge a click at `screen` names: on the Surface the Mound's outer edge nearest the ground point; below it the
+	nearest side of the cell under the pointer (a window there is refused in words)."""
+	var level: int = bar.shown_level()
+	if level == Mound.SURFACE:
+		var at: Vector2 = ground_point(screen)
+		return mound.edge_near(at) if at.is_finite() else MoundHost.NO_EDGE
+	var hit: Paint.WorldTool.Pick = paint.pick(screen, level, pick_lift())
+	return Vector3i(hit.cell.x, hit.cell.y, 0) if hit.ok else MoundHost.NO_EDGE
+
+
+func _place_edge(edge: Vector3i, at: Vector2, keep: bool = false) -> bool:
+	"""A click with a door or window armed on `edge` (see the header); said in words. False with nothing to place."""
+	if edge == MoundHost.NO_EDGE:
+		return false
+	var kind: int = mound.place(bar.shown_level(), edge, armed_edge_kind(), panel.door_colour(), at)
+	if kind == Validity.KIND_CAN_BUILD:
+		_say.call("%s %s" % [Validity.glyph(kind), batch.last_step_words()])
+		if not keep:
+			panel.clear_choice()
+	elif kind >= 0:
+		_say.call(batch.last_dropped())
+	return kind >= 0
+
+
+func _sync_edge_label() -> void:
+	"""The armed door's or window's words beside the pointer: its judgement on the edge under it, or how to begin."""
+	var words: String = mound.hover_words if mound.hover != MoundHost.NO_EDGE \
+		else EDGE_HINT % Mound.kind_name(armed_edge_kind())
+	if words != _label.text:
+		_label.text = words
+		_label_box.accessibility_name = words.replace("\n", "; ")
+		_label_box.reset_size()
+	_seen_label = -1
 
 
 func armed_item() -> int:
@@ -1053,11 +1172,15 @@ func _stroke_pointer(event: InputEvent) -> bool:
 func _world_enter(event: InputEvent) -> bool:
 	"""Enter with a type armed and no control focused: the first corner, then the second (the keyboard's paint)."""
 	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo or (armed_type() < 0 and not way_down_armed() and not piece_armed()) \
-			or _focused():
+	if key == null or not key.pressed or key.echo or _focused() \
+			or (armed_type() < 0 and not way_down_armed() and not piece_armed() and not edge_armed()):
 		return false
 	if key.keycode != KEY_ENTER and key.keycode != KEY_KP_ENTER:
 		return false
+	if edge_armed():
+		var at: Vector2i = paint.cursor()
+		return _place_edge(Vector3i(at.x, at.y, _turn), Vector2(_datum_xz()) / 1024.0 + Vector2(at) + Vector2(0.5, 0.5),
+			key.shift_pressed)
 	if piece_armed():
 		return _place_piece(paint.cursor(), key.shift_pressed)
 	if way_down_armed():
@@ -1110,7 +1233,7 @@ func _panel_key(key: InputEventKey) -> bool:
 	if key.is_action_pressed(&"tool_undo", true, true):
 		batch.undo()
 		return true
-	if piece_armed() and key.is_action_pressed(&"placement_rotate", false, true):
+	if (piece_armed() or edge_armed()) and key.is_action_pressed(&"placement_rotate", false, true):
 		rotate_piece(-1 if key.shift_pressed else 1)
 		return true
 	return _arrow(key)
@@ -1119,7 +1242,8 @@ func _panel_key(key: InputEventKey) -> bool:
 func _arrow(key: InputEventKey) -> bool:
 	"""With a type armed, an arrow moves the cell cursor one cell relative to the camera and drags a keyboard stroke
 	with it."""
-	if (armed_type() < 0 and not piece_armed()) or not ARROW_KEYS.has(key.keycode) or key.shift_pressed \
+	if (armed_type() < 0 and not piece_armed() and not edge_armed()) or not ARROW_KEYS.has(key.keycode) \
+			or key.shift_pressed \
 			or key.ctrl_pressed or key.alt_pressed:
 		return false
 	_pointer = Vector2.INF
@@ -1154,8 +1278,11 @@ func _panel_click(button: InputEventMouseButton) -> bool:
 		return false
 	if button.button_index == MOUSE_BUTTON_RIGHT:
 		return batch.cancel_stroke() or put_down_piece() or _visit_at(button.position)
+	if button.button_index == MOUSE_BUTTON_LEFT and edge_armed():
+		_pointer = button.position
+		return _place_edge(_edge_at_screen(button.position), ground_point(button.position), button.shift_pressed)
 	if button.button_index == MOUSE_BUTTON_LEFT and piece_armed():
-		var on_floor: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level(), -Dug.Earth.DEPTH_U)
+		var on_floor: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level(), pick_lift())
 		_pointer = button.position
 		return on_floor.ok and _place_piece(on_floor.cell, button.shift_pressed)
 	if button.button_index != MOUSE_BUTTON_LEFT or (armed_type() < 0 and not way_down_armed()):
@@ -1179,7 +1306,9 @@ func _visit_at(screen: Vector2) -> bool:
 func _hover(at: Vector2) -> void:
 	"""The cursor cell follows the pointer over the floor (not taken: the hover ring still follows too)."""
 	_pointer = at
-	if armed_type() < 0 and not way_down_armed() and not piece_armed():
+	if edge_armed():
+		mound.set_hover(bar.shown_level(), _edge_at_screen(at), armed_edge_kind(), panel.door_colour(), ground_point(at))
+	if armed_type() < 0 and not way_down_armed() and not piece_armed() and not edge_armed():
 		return
 	var hit: Paint.WorldTool.Pick = paint.pick(at, bar.shown_level(), pick_lift())
 	if hit.ok:
@@ -1200,7 +1329,7 @@ func centre_cursor() -> void:
 func pick_lift() -> int:
 	"""Where the cursor is picked: on the dug pits' floor while a piece is armed (where it will stand), else on the
 	paint plane."""
-	return -Dug.Earth.DEPTH_U if piece_armed() else 0
+	return -Dug.Earth.DEPTH_U if piece_armed() and bar.shown_level() >= 1 else 0
 
 
 # --- the cards -----------------------------------------------------------------------------------------------------

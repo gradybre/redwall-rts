@@ -9,8 +9,10 @@ extends RefCounted
 ##                        same: each cell then says "No way in" on its ghost (BUILD-REQ-013 per cell, decision 1911
 ##                        P-C4 (a)). The old Passage / Burrow home / Root cellar tool cards are gone (Brendan's ruling on
 ##                        decision 1911 P-C2 (c): "remove them now").
-##   Rooms, surface       the same room types and Outdoor, Clear ground and Remove, LOCKED (surface rooms are
-##                        slice G).
+##   Rooms, surface       the same room types and Outdoor, Clear ground and Remove; the room types are painted in the
+##                        MOUND style (decision 2002: dug into a hill heaped to fit them, BUILD-MOUND-001) and LOCKED
+##                        in the Built style (built surface rooms are slice G); underground, the Mound style locks
+##                        them "X Not possible: Mound rooms are painted on the Surface" (BUILD-MOUND-028).
 ##   Rooms, Overview      the room types locked, saying why ("Choose one level to paint on" -- a PROPOSAL).
 ## THE WAY DOWN (decision 1912, Brendan's proof-of-concept ruling "Place a simple entrance"): the surface's Rooms tab
 ## offers the Entrance, levels 1-3 a Way down (level 4 shows it locked: no level below). Free for now.
@@ -18,6 +20,9 @@ extends RefCounted
 ##                        floor of levels 1-4 (decision 1921: Brendan's Furnish-tab rulings of 2026-10-13, a proof of
 ##                        concept slice E replaces); locked on the surface and Overview, saying why.
 ##   Decor                the decoration item, placed the same way (UI-BUILD-002 keeps it on its own tab).
+## MOUND DOORS AND WINDOWS (decision 2002; BUILD-MOUND-010, -013): the Furnish tab offers the Front door on the Surface
+## and the Window everywhere (underground it is refused in words, BUILD-MOUND-020), placed on a Mound room's outer
+## edge before or after its rooms are dug; Mound rooms' own furniture is placed on their dug floor on the Surface.
 ## A locked card stays inspectable: its info card gives the plain reason (`not_yet` words, a PROPOSAL).
 ##
 ## NUMBERS ARE READ, NOT RESTATED: a room type's least size is room_catalog.gd's GDD §5.9 requirement in tiles,
@@ -31,6 +36,7 @@ const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 
 const TAB_ROOMS: int = 0
 const TAB_FURNISH: int = 1
@@ -44,6 +50,8 @@ const CARD_ITEM: int = 2
 const CARD_TOOL: int = 3
 ## A way down (build_items.gd): the Entrance on the surface, a Way down below (decision 1912's proof of concept).
 const CARD_WAY_DOWN: int = 4
+## A Mound's front door or window (decision 2002; build_mound.gd KIND_*).
+const CARD_EDGE: int = 5
 
 ## SET-BUILD-001 §3: one GDD tile is 2 × 2 cells.
 const CELLS_PER_TILE: int = 4
@@ -86,10 +94,24 @@ const NOTHING_CHOSEN: String = "Choose a room type to begin"
 ## Decision 1921: the Furnish and Decor tabs with no piece chosen.
 const CHOOSE_PIECE: String = "Choose a piece to place"
 const CHOOSE_FIRST: String = "Choose a room type first"
-const LATER_SURFACE: String = "rooms on the surface come in a later update"
+const LATER_SURFACE: String = Mound.LATER_BUILT_SURFACE
 const LATER_OUTDOOR: String = "outdoor items come in a later update"
 ## Decision 1921: furniture stands on dug rooms below; surface rooms come later.
-const LATER_FURNISH: String = "furnishing surface rooms comes in a later update"
+const LATER_FURNISH: String = "furnishing built surface rooms comes in a later update"
+## Decision 2002: the Mound style on a room card, the doors' and windows' cards.
+const MOUND_RULES: String = "; Mound: dug into a hill heaped to fit it, its door and windows placed by you"
+const MOUND_COST: String = " and its heap's earth (free for now)"
+const EDGE_GESTURE: String = "Click a Mound room's outer edge; click a placed one to remove it"
+const EDGE_PURPOSES: Array[String] = [
+	"A round front door, oak by default, in a built front: plaster, timber posts, a turfed eave, a lantern and steps; a yard stays clear before it",
+	"A round window lying flush on the turf slope at the wall's top metre; it lights its room",
+]
+const MOUND_EDGE_RULES: Array[String] = [
+	"On two outer edges of a Mound room side by side, with a clear yard 6 cells wide in front of it",
+	"On one outer edge of a Mound room; only where a hill face lies beyond the wall",
+]
+const EDGE_FOOTPRINTS: Array[String] = ["2 cell edges", "1 cell edge"]
+const EDGE_PICTURES: Array[String] = ["a round oak door under a turfed timber eave", "a round window set in turf"]
 const ITEM_RULES: String = "Stands on the dug floor of a room that uses it (%s), clear of other furniture"
 const EDGE_RULES: String = "Stands on 2 cell edges with a dug room floor on both sides (%s); R / Shift+R pick the side"
 const ITEM_PURPOSE: String = "Furniture for the room: a resident fits it after Confirm all; %s"
@@ -120,6 +142,10 @@ class Card extends RefCounted:
 	var rules: String = ""
 	var gesture: String = ""
 	var picture: String = ""
+	## Decision 2002: a door's or window's kind (build_mound.gd KIND_*; -1 for any other card), and the kind of a
+	## lock's words: "! Blocked" for a later update, "X Not possible" for the Mound style underground.
+	var edge_kind: int = -1
+	var lock_kind: int = Validity.KIND_BLOCKED
 
 	func usable() -> bool:
 		"""Whether choosing the card does something now (an unlocked card)."""
@@ -127,7 +153,7 @@ class Card extends RefCounted:
 
 	func unlock_state() -> String:
 		"""The card's unlock state in words: "available", or the validity line of why not."""
-		return "available" if locked.is_empty() else Validity.line(Validity.KIND_BLOCKED, locked)
+		return "available" if locked.is_empty() else Validity.line(lock_kind, locked)
 
 	func accessible_name() -> String:
 		"""UI-BUILD-003's binding: name; cost per cell or per item; footprint in cells; unlock state."""
@@ -199,46 +225,54 @@ func cell_cost_text(level: int = 1) -> String:
 	return "per cell %s" % Ledger.cost_words(_tally)
 
 
-func cards_into(tab: int, level: int, chosen_type: int, out: Array[Card], reachable: bool = true) -> void:
+func cards_into(tab: int, level: int, chosen_type: int, out: Array[Card], reachable: bool = true,
+		style: int = Mound.STYLE_BUILT) -> void:
 	"""The cards a tab shows on `level` (0: the surface; 1-4 underground; 5: Overview), given the chosen room type
-	(-1: none) and whether the level has a way in, into `out` (cleared first). Cold path: called when the tab, the level
-	or the chosen type changes."""
+	(-1: none), whether the level has a way in and the style chosen (build_mound.gd STYLE_*), into `out` (cleared
+	first). Cold path: called when the tab, the level, the style or the chosen type changes."""
 	out.clear()
 	match tab:
 		TAB_ROOMS:
-			_room_cards(level, room_lock(level, reachable), out)
+			_room_cards(level, room_lock(level, reachable, style), out, style)
 		TAB_FURNISH:
+			_edge_cards(chosen_type, level, out)
 			_item_cards(chosen_type, false, item_lock(level), out)
 		TAB_DECOR:
 			_item_cards(chosen_type, true, item_lock(level), out)
 
 
-static func room_lock(level: int, _reachable: bool = true) -> String:
-	"""Why the room types cannot be painted on `level` ("" when they can): the surface (a later update) or Overview
-	(one level at a time). A level with no way in yet is painted all the same; its cells say "No way in" (decision
-	1912)."""
-	if level <= 0:
-		return Validity.not_yet(LATER_SURFACE)
+static func room_lock(level: int, _reachable: bool = true, style: int = Mound.STYLE_BUILT) -> String:
+	"""Why the room types cannot be painted on `level` in `style` ("" when they can): built rooms on the surface (a
+	later update), Mound rooms below it (BUILD-MOUND-028), or Overview (one level at a time). A level with no way in yet
+	is painted all the same; its cells say "No way in" (decision 1912)."""
 	if level >= OVERVIEW_LEVEL:
 		return CHOOSE_A_LEVEL
-	return ""
+	if level <= 0:
+		return "" if style == Mound.STYLE_MOUND else Validity.not_yet(LATER_SURFACE)
+	return Mound.TEXT_SURFACE_ONLY if style == Mound.STYLE_MOUND else ""
+
+
+static func lock_kind_of(level: int, style: int) -> int:
+	"""The kind of `room_lock`'s words: "X" for the Mound style below the Surface, else "!"."""
+	return Validity.KIND_NOT_POSSIBLE if style == Mound.STYLE_MOUND and level >= 1 and level < OVERVIEW_LEVEL \
+		else Validity.KIND_BLOCKED
 
 
 static func item_lock(level: int) -> String:
-	"""Why furniture cannot be placed on `level` ("" when it can): the surface (a later update) or Overview (one level
-	at a time). Decision 1921."""
-	if level <= 0:
-		return Validity.not_yet(LATER_FURNISH)
+	"""Why furniture cannot be placed on `level` ("" when it can): Overview (one level at a time). Decision 1921; on
+	the surface it stands on a Mound room's dug floor (decision 2002)."""
 	if level >= OVERVIEW_LEVEL:
 		return CHOOSE_A_LEVEL
 	return ""
 
 
-func _room_cards(level: int, lock: String, out: Array[Card]) -> void:
-	"""Rooms: the painted types, then the locked tools (see WHAT EACH TAB LISTS)."""
+func _room_cards(level: int, lock: String, out: Array[Card], style: int = Mound.STYLE_BUILT) -> void:
+	"""Rooms: the painted types in `style`, then the locked tools (see WHAT EACH TAB LISTS)."""
 	var surface: bool = level <= 0
 	for room_type: int in PAINTED_TYPES:
-		out.append(room_card(room_type, lock, clampi(level, 1, 4)))
+		var card: Card = room_card(room_type, lock, clampi(level, 0, 4), style)
+		card.lock_kind = lock_kind_of(level, style)
+		out.append(card)
 	if surface:
 		out.append(_tool_card(&"tool:outdoor", "Outdoor", LATER_OUTDOOR, "Wells, fences, paths and other things built in the open"))
 	if level < OVERVIEW_LEVEL:
@@ -250,9 +284,9 @@ func _room_cards(level: int, lock: String, out: Array[Card]) -> void:
 	out.append(_tool_card(&"tool:remove", "Remove", LATER_REMOVE, "Click a placed room or item to review its removal"))
 
 
-func room_card(room_type: int, locked_reason: String, level: int = 1) -> Card:
-	"""A room type's card on `level`: paint it there, priced at that level's clear height (or locked with
-	`locked_reason`)."""
+func room_card(room_type: int, locked_reason: String, level: int = 1, style: int = Mound.STYLE_BUILT) -> Card:
+	"""A room type's card on `level` in `style`: paint it there, priced at that level's clear height (a Mound's with
+	its heap, free for now), or locked with `locked_reason`."""
 	var card: Card = Card.new()
 	card.id = StringName("room:%d" % room_type)
 	card.kind = CARD_ROOM
@@ -265,6 +299,9 @@ func room_card(room_type: int, locked_reason: String, level: int = 1) -> Card:
 	card.rules = rules_text(room_type)
 	card.gesture = GESTURE_PAINT
 	card.picture = PICTURES[room_type]
+	if style == Mound.STYLE_MOUND:
+		card.rules += MOUND_RULES
+		card.cost += MOUND_COST
 	return card
 
 
@@ -298,6 +335,32 @@ func _tool_card(id: StringName, title: String, later: String, purpose: String) -
 	card.rules = card.locked
 	card.gesture = GESTURE_PAINT
 	card.picture = "no picture yet"
+	return card
+
+
+func _edge_cards(room_type: int, level: int, out: Array[Card]) -> void:
+	"""Furnish's Mound edge items (decision 2002): the Front door on the Surface, the Window on any level up to the
+	deepest (refused in words below the Surface); none before a room type is chosen, nor on Overview."""
+	if room_type < 0 or level >= OVERVIEW_LEVEL:
+		return
+	if level == Mound.SURFACE:
+		out.append(edge_card(Mound.KIND_DOOR))
+	out.append(edge_card(Mound.KIND_WINDOW))
+
+
+func edge_card(kind: int) -> Card:
+	"""A Mound front door's or window's card: free for now, placed on outer edges (see the header)."""
+	var card: Card = Card.new()
+	card.id = StringName("edge:%d" % kind)
+	card.kind = CARD_EDGE
+	card.edge_kind = kind
+	card.name = Mound.kind_name(kind)
+	card.cost = FREE_FOR_NOW
+	card.footprint = EDGE_FOOTPRINTS[kind]
+	card.purpose = EDGE_PURPOSES[kind]
+	card.rules = MOUND_EDGE_RULES[kind]
+	card.gesture = EDGE_GESTURE
+	card.picture = EDGE_PICTURES[kind]
 	return card
 
 

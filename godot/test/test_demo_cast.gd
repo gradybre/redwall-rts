@@ -1456,6 +1456,30 @@ func test_the_cast_s_frames_carry_the_rebuilds_on() -> void:
 	assert_equal(space.nav.builds_pending(), 0, "done in %d frames" % frames)
 
 
+func test_the_build_panels_mound_hills_stand_as_obstacles() -> void:
+	"""Decision 2002: a Mound's circles join the obstacles, rebuilt only when they change, at most
+	BUILD_MOUND_CIRCLES; none: gone."""
+	_cast = DemoCastScript.new()
+	var circles: Array[Vector3] = [Vector3(0.0, 1.5, 0.0)]
+	_cast.build({"world": {}, "cast": {}}, _village(), circles)
+	var space: CastSpaceScript = _cast.space()
+	var builds: int = space.obstacle_builds
+	var hill: PackedVector3Array = PackedVector3Array([Vector3(20.0, 2.1, 20.0), Vector3(23.0, 2.1, 20.0)])
+	space.set_build_mounds(hill)
+	assert_true(space.obstacles.has(hill[0]) and space.obstacles.has(hill[1]), "standing")
+	assert_equal(space.obstacle_builds, builds + 1, "rebuilt once")
+	space.set_build_mounds(hill.duplicate())
+	assert_equal(space.obstacle_builds, builds + 1, "unchanged: not again")
+	var many: PackedVector3Array = PackedVector3Array()
+	for k: int in CastSpaceScript.BUILD_MOUND_CIRCLES + 5:
+		many.append(Vector3(30.0 + k, 2.1, 30.0))
+	space.set_build_mounds(many)
+	assert_true(space.obstacles.has(many[CastSpaceScript.BUILD_MOUND_CIRCLES - 1]), "the last kept")
+	assert_false(space.obstacles.has(many[CastSpaceScript.BUILD_MOUND_CIRCLES]), "the rest dropped")
+	space.set_build_mounds(PackedVector3Array())
+	assert_false(space.obstacles.has(many[0]) or space.obstacles.has(hill[0]), "none: gone")
+
+
 func test_a_plan_made_while_its_graph_is_rebuilt_keeps_off_the_new_circles() -> void:
 	"""A wall along x 0 with a gap at z 0: the route goes through the gap. A heap plugging the gap: while the
 	graph is rebuilt, the plan still finds a way -- round the wall's end, never through the heap -- as it does

@@ -11,14 +11,16 @@ extends RefCounted
 ## side of a door's or partition's edges -- breadth first through dug cells from where the fitter stands
 ## (demo_build_works.gd `path_to_any`); a cell two waiting pieces share goes to the lower row. A piece is a handful of
 ## rows; reads scan them.
+## ON THE SURFACE (decision 2002): a piece on a Mound room's dug floor is fitted by the Mound's own builder, who walks in
+## at its door (demo_build_mound_jobs.gd); the walk below never looks for one (`next_fit`, `waiting_below`).
 
 const Furniture := preload("res://scripts/ui/build_furniture.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 
 const ORDERED: int = 1
 const FITTED: int = 2
-## Levels a piece can be ordered on (the underground levels).
-const FIRST_LEVEL: int = 1
+## Levels a piece can be ordered on (the Surface's Mound rooms, decision 2002, and the underground levels).
+const FIRST_LEVEL: int = 0
 const LAST_LEVEL: int = 4
 
 ## Bumped by every change; readers redraw when it moves.
@@ -35,7 +37,7 @@ var _waiting: int = 0
 
 
 func order(level: int, anchor: Vector2i, turn: int, item: int) -> bool:
-	"""Confirm all ordered a piece: it waits for a fitter. False off the underground levels or for no item."""
+	"""Confirm all ordered a piece: it waits for a fitter. False off the levels pieces stand on or for no item."""
 	if level < FIRST_LEVEL or level > LAST_LEVEL or not shapes.is_item(item):
 		return false
 	_levels.append(level)
@@ -67,6 +69,14 @@ func count() -> int:
 func waiting() -> int:
 	"""Pieces waiting for a fitter."""
 	return _waiting
+
+
+func waiting_below() -> int:
+	"""Pieces waiting for a fitter underground (the Surface's wait for their Mound's builder, decision 2002)."""
+	var below: int = 0
+	for row: int in _levels.size():
+		below += 1 if _levels[row] >= 1 and _states[row] == ORDERED else 0
+	return below
 
 
 func level_of(row: int) -> int:
@@ -144,8 +154,8 @@ func next_fit(works: Works, from: Vector3i) -> Dictionary:
 	from and the dug cells it walks there -- or {} when none can be reached (or none waits)."""
 	var goals: Dictionary = {}
 	for row: int in range(_levels.size() - 1, -1, -1):
-		if _states[row] == ORDERED:
-			for cell: Vector2i in _work_cells(row):
+		if _states[row] == ORDERED and _levels[row] >= 1:
+			for cell: Vector2i in work_cells(row):
 				goals[Vector3i(_levels[row], cell.x, cell.y)] = row
 	if goals.is_empty():
 		return {}
@@ -157,7 +167,7 @@ func next_fit(works: Works, from: Vector3i) -> Dictionary:
 	return {"row": goals[found["goal"]], "goal": found["goal"], "path": found["path"]}
 
 
-func _work_cells(row: int) -> Array[Vector2i]:
+func work_cells(row: int) -> Array[Vector2i]:
 	"""Where a fitter may stand to fit row `row`: its floor cells, or the cells either side of its edges."""
 	var out: Array[Vector2i] = []
 	if not shapes.is_edge(_items[row]):

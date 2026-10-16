@@ -28,6 +28,18 @@ extends RefCounted
 ##
 ## PER CELL (build_cell_validity.gd): every operation's cells are judged per level -- the ground the crew can dig, the
 ## 2 × 2 rule, the way in -- and cached until a cell of that level or the ground reader's revision changes.
+##
+## MOUND HOMES (decision 2002, the proof of concept of decision 2001; build_mound.gd). An operation has a STYLE: Built
+## (dug underground) or Mound (painted on the Surface, dug into a hill heaped to fit it). A stroke keeps one style: a
+## Mound stroke off the Surface is "X" (BUILD-MOUND-028), and a stroke touching a same-type room of the other style is
+## "X" (BUILD-MOUND-002); rooms merge only with their own type AND style. On the Surface the way in is a door, not a
+## connector: a Mound (its rooms joined cell to cell, pending or confirmed) with no door on an outer edge has every
+## pending cell "! No way in: place a door on an outer edge" (BUILD-MOUND-012), and a stroke whose hill -- the rooms
+## and their berm (build_mound.gd `footprint_into`) -- would cover water, a tree, an item or a way down that is not
+## wholly on one room's floor is "X" in BUILD-MOUND-008's words, as is one that would bury a confirmed door or window
+## (BUILD-MOUND-018's review, stood in for). DOORS AND WINDOWS (build_mound_edges.gd) are pending rows of their own
+## (`MOUND_TAG`): a click on a free outer edge places one, on a pending one takes it back, on a confirmed one asks for
+## its removal -- each one step. Confirm all orders them after the rooms (`submit_edge`).
 
 const Draft := preload("res://demo/burrow/modular_draft.gd")
 const Footprint := preload("res://scripts/core/room_footprint.gd")
@@ -37,6 +49,8 @@ const Stroke := preload("res://scripts/ui/build_stroke.gd")
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
 const Furniture := preload("res://scripts/ui/build_furniture.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
+const MoundEdges := preload("res://scripts/ui/build_mound_edges.gd")
 
 ## SET-BUILD-001 §3: one cell is 1 m, 1024 u.
 const PITCH_U: int = 1024
@@ -52,11 +66,15 @@ const NOTHING_TO_REDO: String = "Nothing to redo"
 const VERB_PAINT: int = 0
 const VERB_ERASE: int = 1
 const VERB_PLACE: int = 2
-const VERBS: Array[String] = ["Paint", "Erase", "Place"]
+## A pending door or window taken back by a click (decision 2002): its row's live flag is turned the other way round.
+const VERB_REMOVE: int = 3
+const VERBS: Array[String] = ["Paint", "Erase", "Place", "Remove"]
 ## A step entry at or past ITEM_TAG names a way down (build_items.gd row = entry - ITEM_TAG), not an operation; at or
 ## past PIECE_TAG, a piece of furniture (build_furniture.gd row = entry - PIECE_TAG; decision 1921).
 const ITEM_TAG: int = 1 << 24
 const PIECE_TAG: int = 2 << 24
+## At or past MOUND_TAG, a Mound's door or window (build_mound_edges.gd row = entry - MOUND_TAG; decision 2002).
+const MOUND_TAG: int = 3 << 24
 ## A refusal that came back without words.
 const UNCHECKED: String = "the order could not be checked; review it and try again"
 const SHAPE_WORDS: Dictionary = {
@@ -79,6 +97,8 @@ var _tool: int = Stroke.TOOL_RECTANGLE
 var _cells: Cells = Cells.new()
 var _drafts: Array[Draft] = []
 var _types: PackedInt32Array = PackedInt32Array()
+## Each operation's style (build_mound.gd STYLE_*: Built or Mound).
+var _styles: PackedByteArray = PackedByteArray()
 var _levels: PackedInt32Array = PackedInt32Array()
 var _counts: PackedInt32Array = PackedInt32Array()
 var _refusals: PackedStringArray = PackedStringArray()
@@ -108,6 +128,21 @@ var _last_dropped: String = ""
 var _items: Items = Items.new()
 var _pieces: Furniture = Furniture.new()
 var _host_landings: Callable = Callable()
+## Decision 2002: the stroke's style, the pending doors and windows, and the host's Mound readers (`bind_mound_host`).
+var _stroke_style: int = Mound.STYLE_BUILT
+var _edges: MoundEdges = MoundEdges.new()
+var _host_mound_cells: Callable = Callable()
+var _host_ways: Callable = Callable()
+var _host_surface: Callable = Callable()
+var _host_doors: Callable = Callable()
+var _host_edges: Callable = Callable()
+var _host_listed: Callable = Callable()
+## The Surface's Mound cells, their footprint and the hill's refusal, worked out once per layout (`_mound_layout`).
+var _mound_seen: int = -1
+var _mound_cells: PackedInt32Array = PackedInt32Array()
+var _mound_lookup: Dictionary = {}
+var _mound_footprint: Dictionary = {}
+var _hill_words: Dictionary = {}
 
 
 func configure(catalog: BuildCatalog, bounds: Rect2i, capacity: int) -> StringName:
@@ -122,6 +157,7 @@ func configure(catalog: BuildCatalog, bounds: Rect2i, capacity: int) -> StringNa
 		return code
 	_cells.bind_landings(_all_landings)
 	_pieces.bind_ways(_way_cells)
+	_edges.bind_host(_mound_room_at, _confirmed_edge, _listed_edges)
 	_catalog = catalog
 	_bounds = bounds
 	_capacity = capacity
@@ -144,6 +180,23 @@ func bind_landings(landings: Callable) -> void:
 	"""The host's built connector landings per level, `landings(level) -> PackedInt32Array` (slice D's); the batch adds
 	its own pending ways down to them for the per-cell way in."""
 	_host_landings = landings
+	_changed()
+
+
+func bind_mound_host(cells: Callable, ways: Callable, surface: Callable, doors: Callable, edges: Callable,
+		listed: Callable = Callable()) -> void:
+	"""Decision 2002's host readers: `cells() -> PackedInt32Array`, the confirmed Mound room cells on the Surface
+	(pairs); `ways(level) -> PackedInt32Array`, the cells confirmed ways down stand on; `surface(cell) -> String`, what
+	the hill would cover there ("water", "a tree" ...; "" for nothing); `doors() -> PackedInt32Array`, the first cells
+	of the confirmed front doors (pairs); `edges(level, edge) -> Vector4i`, the confirmed door or window on an edge
+	(build_mound_edges.gd THE HOST'S READERS); `listed(kind) -> Array`, the first edges of the confirmed doors or
+	windows of `kind`."""
+	_host_listed = listed
+	_host_mound_cells = cells
+	_host_ways = ways
+	_host_surface = surface
+	_host_doors = doors
+	_host_edges = edges
 	_changed()
 
 
@@ -187,13 +240,15 @@ func tool() -> int:
 
 # --- the stroke in progress ----------------------------------------------------------------------------------------
 
-func begin_stroke(room_type: int, level: int, cell: Vector2i) -> bool:
-	"""Start a stroke of the chosen tool for `room_type` on `level` at `cell`; false when one is already in progress,
-	the batch has no planning area, or the planner refuses the room identity."""
-	if _catalog == null or _stroke.active():
+func begin_stroke(room_type: int, level: int, cell: Vector2i, style: int = Mound.STYLE_BUILT) -> bool:
+	"""Start a stroke of the chosen tool for `room_type` in `style` (build_mound.gd STYLE_*) on `level` at `cell`; false
+	when one is already in progress, the batch has no planning area, the style is unknown, or the planner refuses the
+	room identity."""
+	if _catalog == null or _stroke.active() or not Mound.valid_style(style):
 		return false
 	if not _stroke.begin(_tool, room_type, level, cell, PITCH_U, _capacity, _bounds):
 		return false
+	_stroke_style = style
 	_judge_stroke()
 	return true
 
@@ -284,6 +339,11 @@ func stroke_level() -> int:
 	return _stroke.level
 
 
+func stroke_style() -> int:
+	"""The style being painted (build_mound.gd STYLE_*)."""
+	return _stroke_style
+
+
 static func size_text(size: Vector2i) -> String:
 	"""SET-BUILD-001 §3's size label: "17 × 6 cells (17 m × 6 m)"."""
 	return SIZE_FORMAT % [size.x, size.y, size.x, size.y]
@@ -319,12 +379,23 @@ func _judge_stroke() -> void:
 		_stroke_reason = Validity.outside()
 	elif error != &"" or stamp.is_empty():
 		_stroke_reason = Validity.shape(shape_words(error))
+	elif not _style_refusal().is_empty():
+		_stroke_reason = _style_refusal()
 	elif _stroke.erasing():
 		_judge_erase(stamp)
 	elif not _cells.all_in_blocks(stamp):
 		_stroke_reason = Validity.too_narrow()
 	else:
 		_judge_paint(stamp)
+
+
+func _style_refusal() -> String:
+	"""Why the stroke's style cannot be painted on its level ("" when it can): a Mound off the Surface
+	(BUILD-MOUND-028), a built room on it (slice G)."""
+	var surface: bool = _stroke.level == Mound.SURFACE
+	if _stroke_style == Mound.STYLE_MOUND and not surface:
+		return Mound.TEXT_SURFACE_ONLY
+	return Mound.LATER_BUILT_SURFACE if _stroke_style == Mound.STYLE_BUILT and surface else ""
 
 
 func _set_stroke(kind: int, reason: String) -> void:
@@ -334,10 +405,14 @@ func _set_stroke(kind: int, reason: String) -> void:
 
 
 func _judge_paint(stamp: PackedInt32Array) -> void:
-	"""A drawable paint stroke against its level: another type under it, the rooms it joins, the room it makes."""
+	"""A drawable paint stroke against its level: another type (or style) under it, a same-type room of the other style
+	beside it, the rooms it joins, the room it makes."""
 	var other: int = _covered_other(stamp)
 	if other >= 0:
 		_stroke_reason = Validity.overlaps(BuildCatalog.type_name(_types[other]))
+		return
+	if _joins_other_style(stamp):
+		_stroke_reason = Mound.TEXT_NO_JOIN
 		return
 	_targets = _touching_same(stamp)
 	var union: PackedInt32Array = _union_with_targets(stamp)
@@ -352,6 +427,7 @@ func _judge_paint(stamp: PackedInt32Array) -> void:
 	else:
 		_set_size_kind(_stroke.room_type, cells)
 		_judge_union(union, stamp)
+		_judge_hill(union)
 
 
 func _union_with_targets(stamp: PackedInt32Array) -> PackedInt32Array:
@@ -378,16 +454,23 @@ func _judge_union(union: PackedInt32Array, stamp: PackedInt32Array) -> void:
 		_set_stroke(Validity.KIND_NOT_POSSIBLE, Cells.words_of(_stroke_codes[dug]))
 	elif _stroke_kind == Validity.KIND_CAN_BUILD and codes.has(Cells.CELL_NO_WAY_IN):
 		_set_stroke(Validity.KIND_BLOCKED, Validity.no_way_in())
+	elif _stroke_kind == Validity.KIND_CAN_BUILD and codes.has(Cells.CELL_NO_DOOR):
+		_set_stroke(Validity.KIND_BLOCKED, Mound.TEXT_NO_DOOR)
 
 
 func _judge_with(level: int, made: PackedInt32Array) -> PackedByteArray:
 	"""`made` judged per cell on `level` among the pending rooms there the stroke leaves alone."""
 	var sets: Array[PackedInt32Array] = []
+	var styles: PackedByteArray = PackedByteArray()
 	for k: int in _drafts.size():
 		if _levels[k] == level and _counts[k] > 0 and not _targets.has(k):
 			sets.append(_drafts[k].visible_cells())
+			styles.append(_styles[k])
 	sets.append(made)
-	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets)
+	styles.append(_stroke_style)
+	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets, level != Mound.SURFACE)
+	if level == Mound.SURFACE:
+		_mark_doorless(sets, styles, judged)
 	return judged[judged.size() - 1]
 
 
@@ -408,7 +491,8 @@ static func _first_code(codes: PackedByteArray, dig_only: bool) -> int:
 	"""The first "X" cell's slot (only ground refusals with `dig_only`), or -1."""
 	for slot: int in codes.size():
 		var code: int = codes[slot]
-		if code == Cells.CELL_OK or code == Cells.CELL_NO_WAY_IN or (dig_only and code == Cells.CELL_TOO_NARROW):
+		if code == Cells.CELL_OK or code == Cells.CELL_NO_WAY_IN or code == Cells.CELL_NO_DOOR \
+				or (dig_only and code == Cells.CELL_TOO_NARROW):
 			continue
 		return slot
 	return -1
@@ -438,12 +522,22 @@ func _set_size_kind(room_type: int, cells: int) -> void:
 
 
 func _covered_other(stamp: PackedInt32Array) -> int:
-	"""The first pending room of ANOTHER type on the stroke's level with a cell under the stamp, or -1."""
+	"""The first pending room of ANOTHER type or style on the stroke's level with a cell under the stamp, or -1."""
 	for k: int in _drafts.size():
-		if _levels[k] == _stroke.level and _types[k] != _stroke.room_type and _counts[k] > 0 \
+		var other: bool = _types[k] != _stroke.room_type or _styles[k] != _stroke_style
+		if _levels[k] == _stroke.level and other and _counts[k] > 0 \
 				and _shares_cell(_drafts[k].visible_cells(), stamp, false):
 			return k
 	return -1
+
+
+func _joins_other_style(stamp: PackedInt32Array) -> bool:
+	"""Whether the stamp shares an edge with a pending room of its type in the other style (BUILD-MOUND-002)."""
+	for k: int in _drafts.size():
+		if _levels[k] == _stroke.level and _types[k] == _stroke.room_type and _styles[k] != _stroke_style \
+				and _counts[k] > 0 and _shares_cell(_drafts[k].visible_cells(), stamp, true):
+			return true
+	return false
 
 
 func _touching_same(stamp: PackedInt32Array) -> PackedInt32Array:
@@ -466,8 +560,9 @@ func _covered_same(stamp: PackedInt32Array) -> PackedInt32Array:
 
 
 func _same_room_kind(k: int) -> bool:
-	"""Whether operation `k` is a pending room of the stroke's type on its level."""
-	return _levels[k] == _stroke.level and _types[k] == _stroke.room_type and _counts[k] > 0
+	"""Whether operation `k` is a pending room of the stroke's type and style on its level."""
+	return _levels[k] == _stroke.level and _types[k] == _stroke.room_type and _styles[k] == _stroke_style \
+		and _counts[k] > 0
 
 
 static func _shares_cell(cells: PackedInt32Array, stamp: PackedInt32Array, or_side: bool) -> bool:
@@ -497,7 +592,8 @@ func _apply_paint(stamp: PackedInt32Array, kind: int) -> int:
 	"""Paint: the stamp and every other joined room into the oldest joined room (or a new one), the others emptied;
 	one step. Returns `kind`, or "X" when the planner refused after all (nothing changed)."""
 	var targets: PackedInt32Array = _targets.duplicate()
-	var target: int = targets[0] if not targets.is_empty() else _new_operation(_stroke.room_type, _stroke.level)
+	var target: int = targets[0] if not targets.is_empty() \
+		else _new_operation(_stroke.room_type, _stroke.level, _stroke_style)
 	if target < 0:
 		return _drop(Validity.shape(shape_words(&"")))
 	var paint: PackedInt32Array = stamp
@@ -531,7 +627,7 @@ func _apply_erase(stamp: PackedInt32Array) -> void:
 		_recount(k)
 		step.append(k)
 		for piece: PackedInt32Array in pieces.slice(1):
-			var made: int = _new_operation(_types[k], _levels[k])
+			var made: int = _new_operation(_types[k], _levels[k], _styles[k])
 			_drafts[made].apply_cells(piece, false)
 			_recount(made)
 			step.append(made)
@@ -608,6 +704,11 @@ func judge_item(level: int, cell: Vector2i, own_row: int) -> Array:
 	var piece: int = maxi(_pieces.floor_taken(level, cells), _pieces.floor_taken(level + 1, cells))
 	if piece >= 0:
 		return [Validity.KIND_NOT_POSSIBLE, Validity.piece_overlaps(Furniture.name_of(piece))]
+	if level == Mound.SURFACE:
+		_mound_cache()
+		var hill: String = _way_clear_of(cells, _mound_lookup, _mound_footprint)
+		if not hill.is_empty():
+			return [Validity.KIND_NOT_POSSIBLE, hill]
 	if level > 0 and not _stands_on_rooms(level, cells):
 		return [Validity.KIND_BLOCKED, Validity.needs_floor(name)]
 	return [Validity.KIND_CAN_BUILD, ""]
@@ -707,15 +808,296 @@ func first_invalid_piece() -> int:
 	return -1
 
 
+# --- Mound homes (decision 2002) -------------------------------------------------------------------------------------
+
+func _is_mound_op(k: int) -> bool:
+	"""Whether operation `k` is a pending Mound room on the Surface."""
+	return _styles[k] == Mound.STYLE_MOUND and _levels[k] == Mound.SURFACE and _counts[k] > 0
+
+
+func operation_style(k: int) -> int:
+	"""Operation `k`'s style (build_mound.gd STYLE_*)."""
+	return _styles[k]
+
+
+func _host_cells() -> PackedInt32Array:
+	"""The host's confirmed Mound room cells (pairs; none with no host)."""
+	return PackedInt32Array(_host_mound_cells.call()) if _host_mound_cells.is_valid() else PackedInt32Array()
+
+
+func _mound_cache() -> void:
+	"""The Surface's Mound room cells (pending and confirmed), their lookup, the hill's footprint and each Mound's
+	refusal by cell, worked out once per layout."""
+	_sync_ground()
+	if _mound_seen == _layout:
+		return
+	_mound_seen = _layout
+	_mound_cells = _host_cells()
+	for k: int in _drafts.size():
+		if _is_mound_op(k):
+			_mound_cells.append_array(_drafts[k].visible_cells())
+	_mound_lookup = Mound.set_of(_mound_cells)
+	Mound.footprint_into(_mound_cells, _mound_footprint)
+	_hill_words.clear()
+	for group: PackedInt32Array in Mound.components(_mound_cells):
+		var words: String = _hill_refusal(group)
+		for at: int in range(0, group.size(), 2):
+			_hill_words[Vector2i(group[at], group[at + 1])] = words
+
+
+func mound_cells() -> PackedInt32Array:
+	"""Every Mound room cell on the Surface, pending and confirmed (pairs; read only)."""
+	_mound_cache()
+	return _mound_cells
+
+
+func is_mound_room(level: int, cell: Vector2i) -> bool:
+	"""Whether `cell` on `level` is a Mound room's, pending or confirmed."""
+	return _mound_room_at(level, cell)
+
+
+func is_surface_room(cell: Vector2i) -> bool:
+	"""Whether `cell` on the Surface is a Mound room's, pending or confirmed (an `is_room` reader, build_mound.gd)."""
+	return _mound_room_at(Mound.SURFACE, cell)
+
+
+func _mound_room_at(level: int, cell: Vector2i) -> bool:
+	"""build_mound_edges.gd's room reader: whether `cell` is a Mound room's, pending or confirmed."""
+	if level != Mound.SURFACE:
+		return false
+	_mound_cache()
+	return _mound_lookup.has(cell)
+
+
+func _listed_edges(kind: int) -> Array:
+	"""build_mound_edges.gd's list reader: the host's confirmed doors or windows (first edges)."""
+	return _host_listed.call(kind) if _host_listed.is_valid() else []
+
+
+func _confirmed_edge(level: int, edge: Vector3i) -> Vector4i:
+	"""build_mound_edges.gd's confirmed reader, through the host (none with no host)."""
+	return Vector4i(_host_edges.call(level, edge)) if _host_edges.is_valid() else MoundEdges.NONE
+
+
+func _hill_refusal(rooms: PackedInt32Array) -> String:
+	"""Why one Mound's hill -- `rooms` and its berm -- cannot stand where it is (BUILD-MOUND-008; "" when it can)."""
+	var lookup: Dictionary = Mound.set_of(rooms)
+	var footprint: Dictionary = {}
+	Mound.footprint_into(rooms, footprint)
+	for cell: Vector2i in lookup.keys() + footprint.keys():
+		var thing: String = String(_host_surface.call(cell)) if _host_surface.is_valid() else ""
+		if not thing.is_empty():
+			return Mound.hill_covers(thing)
+	var tops: PackedInt32Array = _way_tops(Mound.SURFACE)
+	for at: int in range(0, tops.size(), 2):
+		if not _way_clear_of(Items.footprint(Vector2i(tops[at], tops[at + 1])), lookup, footprint).is_empty():
+			return Mound.hill_covers("an %s" % Items.name_of(Mound.SURFACE))
+	return ""
+
+
+static func _way_clear_of(cells: PackedInt32Array, rooms: Dictionary, footprint: Dictionary) -> String:
+	"""Why a way down on `cells` cannot stand with a hill of `rooms` and `footprint` ("" when it stands wholly on the
+	rooms' floor or wholly off the hill): across a room's edge, or on the hill."""
+	var on_rooms: int = 0
+	var on_hill: int = 0
+	for at: int in range(0, cells.size(), 2):
+		var cell: Vector2i = Vector2i(cells[at], cells[at + 1])
+		on_rooms += 1 if rooms.has(cell) else 0
+		on_hill += 1 if footprint.has(cell) else 0
+	if on_rooms > 0 and on_rooms < 4:
+		return Mound.TEXT_SPLIT_WAY
+	return Mound.TEXT_ON_HILL if on_hill > 0 else ""
+
+
+func _way_tops(level: int) -> PackedInt32Array:
+	"""The north-west cells of every way down standing on `level`, pending and confirmed (pairs)."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for row: int in _items.count():
+		if _items.is_live(row) and _items.level_of(row) == level:
+			out.append(_items.cell_of(row).x)
+			out.append(_items.cell_of(row).y)
+	if _host_ways.is_valid():
+		out.append_array(PackedInt32Array(_host_ways.call(level)))
+	return out
+
+
+func _judge_hill(union: PackedInt32Array) -> void:
+	"""A Mound stroke's hill (BUILD-MOUND-008) and the doors and windows it would bury (BUILD-MOUND-018): "X"."""
+	if _stroke_style != Mound.STYLE_MOUND or _stroke_kind == Validity.KIND_NOT_POSSIBLE:
+		return
+	var refusal: String = _beside_edge_items(union)
+	if refusal.is_empty():
+		refusal = _hill_refusal(_joined_mound(union))
+	if not refusal.is_empty():
+		_set_stroke(Validity.KIND_NOT_POSSIBLE, refusal)
+
+
+func _joined_mound(union: PackedInt32Array) -> PackedInt32Array:
+	"""The Mound the stroke's room would stand in: the union and every Mound room it joins cell to cell."""
+	var rooms: PackedInt32Array = union.duplicate()
+	rooms.append_array(_host_cells())
+	for k: int in _drafts.size():
+		if _is_mound_op(k) and not _targets.has(k):
+			rooms.append_array(_drafts[k].visible_cells())
+	var mine: Dictionary = Mound.set_of(union)
+	var out: PackedInt32Array = PackedInt32Array()
+	for group: PackedInt32Array in Mound.components(rooms):
+		if _group_has(group, mine):
+			out.append_array(group)
+	return out
+
+
+func _beside_edge_items(cells: PackedInt32Array) -> String:
+	"""Why Mound room `cells` cannot stand by the doors and windows ("" when they can): over a confirmed one's slope
+	(BUILD-MOUND-018's stand-in), or in or beside the yard of a door that will stand (its walls would open onto it)."""
+	var buried: String = _buried_edge_item(cells)
+	if not buried.is_empty():
+		return buried
+	var mine: Dictionary = Mound.set_of(cells)
+	for door: Vector3i in _edges.placed(Mound.SURFACE, Mound.KIND_DOOR, -1):
+		if _group_has(Mound.yard_keep(Mound.cell_of(door), door.z), mine):
+			return Mound.TEXT_IN_YARD
+	return ""
+
+
+func _buried_edge_item(union: PackedInt32Array) -> String:
+	"""The words for a confirmed door or window whose outer edge the stroke would make an inner one ("" for none)."""
+	for at: int in range(0, union.size(), 2):
+		var cell: Vector2i = Vector2i(union[at], union[at + 1])
+		for side: int in Mound.SIDES:
+			var beside: Vector2i = cell + Mound.step_of(side)
+			var there: Vector4i = _edges.confirmed_at(Mound.SURFACE, Vector3i(beside.x, beside.y, posmod(side + 2, 4)))
+			if there.x >= 0:
+				return Mound.covers_edge_item(there.x)
+	return ""
+
+
+func _mark_doorless(sets: Array[PackedInt32Array], styles: PackedByteArray, judged: Array[PackedByteArray]) -> void:
+	"""BUILD-MOUND-012: every cell CELL_OK of a Mound set whose Mound (its rooms joined cell to cell, with the confirmed
+	ones) has no door that can be built becomes CELL_NO_DOOR."""
+	var rooms: PackedInt32Array = _host_cells()
+	for at: int in sets.size():
+		if styles[at] == Mound.STYLE_MOUND:
+			rooms.append_array(sets[at])
+	var doors: Dictionary = _door_cells()
+	var doorless: Dictionary = {}
+	for group: PackedInt32Array in Mound.components(rooms):
+		if not _group_has(group, doors):
+			for at: int in range(0, group.size(), 2):
+				doorless[Vector2i(group[at], group[at + 1])] = true
+	for at: int in sets.size():
+		if styles[at] == Mound.STYLE_MOUND:
+			_mark_cells(sets[at], judged[at], doorless)
+
+
+static func _mark_cells(cells: PackedInt32Array, codes: PackedByteArray, doorless: Dictionary) -> void:
+	"""Each CELL_OK cell of `cells` in `doorless` marked CELL_NO_DOOR."""
+	for at: int in range(0, cells.size(), 2):
+		@warning_ignore("integer_division") var slot: int = at / 2
+		if codes[slot] == Cells.CELL_OK and doorless.has(Vector2i(cells[at], cells[at + 1])):
+			codes[slot] = Cells.CELL_NO_DOOR
+
+
+static func _group_has(group: PackedInt32Array, cells: Dictionary) -> bool:
+	"""Whether a cell of `group` (pairs) is in `cells`."""
+	for at: int in range(0, group.size(), 2):
+		if cells.has(Vector2i(group[at], group[at + 1])):
+			return true
+	return false
+
+
+func _door_cells() -> Dictionary:
+	"""The first cells of the doors a Mound will have: the pending ones that can be built, and the confirmed ones no
+	pending removal takes away."""
+	var out: Dictionary = {}
+	var pending: PackedInt32Array = PackedInt32Array()
+	_edges.doors_into(Mound.SURFACE, pending)
+	for at: int in range(0, pending.size(), 2):
+		out[Vector2i(pending[at], pending[at + 1])] = true
+	var confirmed: Array = _host_doors.call() if _host_doors.is_valid() else []
+	for edge: Vector3i in confirmed:
+		if not _edges.removed(Mound.SURFACE, edge):
+			out[Vector2i(edge.x, edge.y)] = true
+	return out
+
+
+func host_changed() -> void:
+	"""The host's confirmed Mounds, doors or windows changed: every level is judged again when read."""
+	_changed()
+
+
+func mound_edges() -> MoundEdges:
+	"""The pending doors and windows (read only for hosts: drawing, the ledger, checks)."""
+	return _edges
+
+
+func toggle_mound_edge(level: int, cell: Vector2i, side: int, kind: int, colour: int) -> int:
+	"""A click with a door or window armed on `cell`'s `side` (one step each): a pending door or window there is taken
+	back, a pending removal there is withdrawn, a confirmed one there is marked for removal, else `kind` is placed (an
+	"X" one dropped with its words in `last_dropped`). Returns the validity kind, or -1 with a stroke in progress or no
+	planning area."""
+	if _catalog == null or _stroke.active():
+		return -1
+	var edge: Vector3i = Vector3i(cell.x, cell.y, posmod(side, Mound.SIDES))
+	_last_dropped = ""
+	for removals: bool in [false, true]:
+		var row: int = _edges.row_at(level, edge, removals)
+		if row >= 0:
+			_edges.set_live(row, false)
+			_record(PackedInt32Array([VERB_REMOVE, MOUND_TAG + row]))
+			return Validity.KIND_CAN_BUILD
+	var there: Vector4i = _edges.confirmed_at(level, edge)
+	if there.x >= 0:
+		var removal: int = _edges.add(level, Vector2i(there.y, there.z), there.w, there.x, Mound.COLOUR_OAK, true)
+		_record(PackedInt32Array([VERB_PLACE, MOUND_TAG + removal]))
+		return Validity.KIND_CAN_BUILD
+	return _place_mound_edge(level, cell, side, kind, colour)
+
+
+func _place_mound_edge(level: int, cell: Vector2i, side: int, kind: int, colour: int) -> int:
+	"""Place a new door or window: one step, or "X" dropped with its words kept."""
+	var judged: Array = _edges.judge(level, cell, side, kind, -1)
+	if int(judged[0]) != Validity.KIND_CAN_BUILD:
+		_last_dropped = Validity.line(int(judged[0]), String(judged[1]))
+		revision += 1
+		return int(judged[0])
+	_record(PackedInt32Array([VERB_PLACE, MOUND_TAG + _edges.add(level, cell, side, kind, colour, false)]))
+	return Validity.KIND_CAN_BUILD
+
+
+func edge_kind(row: int) -> int:
+	"""Pending door or window `row`'s validity kind now."""
+	return int(_edges.row_judgement(row)[0])
+
+
+func edge_reason(row: int) -> String:
+	"""Why pending door or window `row` cannot be built ("" when it can)."""
+	return String(_edges.row_judgement(row)[1])
+
+
+func first_invalid_edge() -> int:
+	"""The first pending door or window that holds Confirm all back; -1 when none."""
+	for row: int in _edges.count():
+		if _edges.is_live(row) and edge_kind(row) != Validity.KIND_CAN_BUILD:
+			return row
+	return -1
+
+
+func last_step_words() -> String:
+	"""The newest step in words ("Place Front door", "Remove Window"; "" with none)."""
+	return _step_words(_undo[_undo.size() - 1]) if not _undo.is_empty() else ""
+
+
 # --- the operations ------------------------------------------------------------------------------------------------
 
-func _new_operation(room_type: int, level: int) -> int:
-	"""Append an empty operation (its own planner draft); its index, or -1 if the planner refuses it."""
+func _new_operation(room_type: int, level: int, style: int = Mound.STYLE_BUILT) -> int:
+	"""Append an empty operation (its own planner draft) of `style`; its index, or -1 if the planner refuses it."""
 	var draft: Draft = Draft.new()
 	if draft.configure(room_type, level, PITCH_U, _capacity, _bounds, false) != &"":
 		return -1
 	_drafts.append(draft)
 	_types.append(room_type)
+	_styles.append(style)
 	_levels.append(level)
 	_counts.append(0)
 	_refusals.append("")
@@ -763,7 +1145,7 @@ func undo() -> bool:
 		return false
 	var step: PackedInt32Array = _undo.pop_back()
 	for at: int in range(1, step.size()):
-		_replay(step[at], false)
+		_replay(step[at], step[0] == VERB_REMOVE)
 	_redo.append(step)
 	_changed()
 	return true
@@ -775,14 +1157,18 @@ func redo() -> bool:
 		return false
 	var step: PackedInt32Array = _redo.pop_back()
 	for at: int in range(1, step.size()):
-		_replay(step[at], true)
+		_replay(step[at], step[0] != VERB_REMOVE)
 	_undo.append(step)
 	_changed()
 	return true
 
 
 func _replay(entry: int, forward: bool) -> void:
-	"""One step entry undone (`forward` false) or redone: an operation's draft, a way down's or a piece's placement."""
+	"""One step entry undone (`forward` false) or redone: an operation's draft, a way down's, a piece's or a door's or
+	window's placement (`forward`: live; a taken-back door's step passes it the other way round)."""
+	if entry >= MOUND_TAG:
+		_edges.set_live(entry - MOUND_TAG, forward)
+		return
 	if entry >= PIECE_TAG:
 		_pieces.set_live(entry - PIECE_TAG, forward)
 		return
@@ -820,7 +1206,11 @@ func redo_label() -> String:
 
 func _step_words(step: PackedInt32Array) -> String:
 	"""A step in words: its verb and its first operation's room type ("Paint Kitchen"), the way down ("Place
-	Entrance") or the piece ("Place Hearth")."""
+	Entrance"), the piece ("Place Hearth") or the door or window ("Place Front door", "Remove Window")."""
+	if step[1] >= MOUND_TAG:
+		var row: int = step[1] - MOUND_TAG
+		var verb: int = VERB_REMOVE if _edges.is_removal(row) else step[0]
+		return "%s %s" % [VERBS[verb], Mound.kind_name(_edges.kind_of(row))]
 	if step[1] >= PIECE_TAG:
 		return "%s %s" % [VERBS[step[0]], Furniture.name_of(_pieces.item_of(step[1] - PIECE_TAG))]
 	if step[1] >= ITEM_TAG:
@@ -838,6 +1228,8 @@ func discard_all() -> int:
 	var dropped: int = pending_count()
 	_stroke.clear()
 	_types.clear()
+	_styles.clear()
+	_edges.clear()
 	_levels.clear()
 	_counts.clear()
 	_refusals.clear()
@@ -907,6 +1299,7 @@ func _keep_only(keep: PackedInt32Array) -> void:
 	_drafts = drafts
 	_codes = codes
 	_types = _picked(_types, keep)
+	_styles = _picked_bytes(_styles, keep)
 	_levels = _picked(_levels, keep)
 	_counts = _picked(_counts, keep)
 	_refused_at = _picked(_refused_at, keep)
@@ -921,6 +1314,14 @@ func _keep_only(keep: PackedInt32Array) -> void:
 static func _picked(column: PackedInt32Array, keep: PackedInt32Array) -> PackedInt32Array:
 	"""The entries of `column` at the indices in `keep`, in order (a new array)."""
 	var out: PackedInt32Array = PackedInt32Array()
+	for k: int in keep:
+		out.append(column[k])
+	return out
+
+
+static func _picked_bytes(column: PackedByteArray, keep: PackedInt32Array) -> PackedByteArray:
+	"""The entries of `column` at the indices in `keep`, in order (a new array)."""
+	var out: PackedByteArray = PackedByteArray()
 	for k: int in keep:
 		out.append(column[k])
 	return out
@@ -942,8 +1343,9 @@ func operation_count() -> int:
 
 
 func pending_count() -> int:
-	"""How many changes would be ordered: rooms with at least one cell, pending ways down and pieces."""
-	var count: int = _items.live_count() + _pieces.live_count()
+	"""How many changes would be ordered: rooms with at least one cell, pending ways down, pieces, doors and
+	windows."""
+	var count: int = _items.live_count() + _pieces.live_count() + _edges.live_count()
 	for cells: int in _counts:
 		if cells > 0:
 			count += 1
@@ -1011,6 +1413,9 @@ func invalid_count() -> int:
 	"""How many pending changes hold Confirm all back (BUILD-REQ-021; see `first_invalid`), ways down and pieces
 	included."""
 	var count: int = 0
+	for row: int in _edges.count():
+		if _edges.is_live(row) and edge_kind(row) != Validity.KIND_CAN_BUILD:
+			count += 1
 	for row: int in _pieces.count():
 		if _pieces.is_live(row) and piece_kind(row) != Validity.KIND_CAN_BUILD:
 			count += 1
@@ -1058,16 +1463,32 @@ func _judge(k: int) -> void:
 	var least: int = _catalog.minimum_cells(_types[k])
 	var dug: int = _first_code(_codes[k], true)
 	var narrow: int = _first_code(_codes[k], false)
+	var hill: String = _op_hill(k)
 	if dug >= 0 or narrow >= 0:
 		_set_judgement(k, Validity.KIND_NOT_POSSIBLE, Cells.words_of(_codes[k][dug if dug >= 0 else narrow]))
+	elif not hill.is_empty():
+		_set_judgement(k, Validity.KIND_NOT_POSSIBLE, hill)
 	elif draft.confirmation_error() != &"":
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.shape(shape_words(draft.confirmation_error())))
 	elif _counts[k] < least:
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.too_small(BuildCatalog.type_name(_types[k]), least, _counts[k]))
 	elif _codes[k].has(Cells.CELL_NO_WAY_IN):
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.no_way_in())
+	elif _codes[k].has(Cells.CELL_NO_DOOR):
+		_set_judgement(k, Validity.KIND_BLOCKED, Mound.TEXT_NO_DOOR)
 	elif _refused_at[k] == draft.revision and not _refusals[k].is_empty():
 		_set_judgement(k, _refused_kind[k], _refusals[k])
+
+
+func _op_hill(k: int) -> String:
+	"""A pending Mound room's refusal by its doors and windows (`_beside_edge_items`: a door placed or a removal
+	withdrawn since it was painted) or by its hill (BUILD-MOUND-008); "" for none, or for a Built room."""
+	if not _is_mound_op(k):
+		return ""
+	_mound_cache()
+	var cells: PackedInt32Array = _drafts[k].visible_cells()
+	var beside: String = _beside_edge_items(cells)
+	return beside if not beside.is_empty() else String(_hill_words.get(Vector2i(cells[0], cells[1]), ""))
 
 
 func _judge_level(level: int) -> void:
@@ -1078,11 +1499,15 @@ func _judge_level(level: int) -> void:
 	_level_judged[level] = _layout
 	var ops: PackedInt32Array = PackedInt32Array()
 	var sets: Array[PackedInt32Array] = []
+	var styles: PackedByteArray = PackedByteArray()
 	for k: int in _drafts.size():
 		if _levels[k] == level and _counts[k] > 0:
 			ops.append(k)
 			sets.append(_drafts[k].visible_cells())
-	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets)
+			styles.append(_styles[k])
+	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets, level != Mound.SURFACE)
+	if level == Mound.SURFACE:
+		_mark_doorless(sets, styles, judged)
 	for at: int in ops.size():
 		_codes[ops[at]] = judged[at]
 
@@ -1147,13 +1572,15 @@ func type_cells_into(types_out: PackedInt32Array, cells_out: PackedInt32Array) -
 
 # --- Confirm all ------------------------------------------------------------------------------------------------------
 
-func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_piece: Callable = Callable()) -> PackedInt32Array:
+func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_piece: Callable = Callable(),
+		submit_edge: Callable = Callable()) -> PackedInt32Array:
 	"""BUILD-REQ-019 through the host's order route: first each pending way down (`submit_item(level, cell) ->
 	Dictionary`; the ways in come first, SET-BUILD-001 §10), then `submit(draft, level, room_type) -> Dictionary` with
 	`ok` and `error` (words) for each pending "✓" room in batch order. Ordered changes leave the batch, out of Undo's
 	reach; a refused room stays with its reason. Nothing is deducted here. Returns [ordered, refused]; [0, 0] while a
-	stroke is in progress or any change is invalid (Confirm all is disabled then). Last, each pending piece of
-	furniture through `submit_piece(level, anchor, turn, item) -> Dictionary` (decision 1921)."""
+	stroke is in progress or any change is invalid (Confirm all is disabled then). Then each pending piece of
+	furniture through `submit_piece(level, anchor, turn, item) -> Dictionary` (decision 1921); last each door, window
+	and removal through `submit_edge(level, cell, side, kind, colour, removal) -> Dictionary` (decision 2002)."""
 	if _stroke.active() or invalid_count() > 0:
 		return PackedInt32Array([0, 0])
 	var gone: PackedInt32Array = _confirm_items(submit_item)
@@ -1170,6 +1597,8 @@ func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_pi
 			_keep_refusal(k, answer)
 	gone.append_array(_confirm_pieces(submit_piece))
 	refused += _pieces.live_count()
+	gone.append_array(_confirm_edges(submit_edge))
+	refused += _edges.live_count()
 	_forget(ordered, gone)
 	revision += 1
 	return PackedInt32Array([ordered.size() + gone.size(), refused])
@@ -1199,6 +1628,20 @@ func _confirm_pieces(submit_piece: Callable) -> PackedInt32Array:
 		if answer is Dictionary and bool((answer as Dictionary).get("ok", false)):
 			_pieces.set_live(row, false)
 			gone.append(PIECE_TAG + row)
+	return gone
+
+
+func _confirm_edges(submit_edge: Callable) -> PackedInt32Array:
+	"""Each pending door, window and removal through `submit_edge`; the step entries of those it ordered."""
+	var gone: PackedInt32Array = PackedInt32Array()
+	for row: int in _edges.count():
+		if not _edges.is_live(row) or not submit_edge.is_valid():
+			continue
+		var answer: Variant = submit_edge.call(_edges.level_of(row), _edges.cell_of(row), _edges.side_of(row),
+			_edges.kind_of(row), _edges.colour_of(row), _edges.is_removal(row))
+		if answer is Dictionary and bool((answer as Dictionary).get("ok", false)):
+			_edges.set_live(row, false)
+			gone.append(MOUND_TAG + row)
 	return gone
 
 

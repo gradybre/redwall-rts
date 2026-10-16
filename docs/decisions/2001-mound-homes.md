@@ -63,6 +63,11 @@ true slope. So P-2001-4 is recorded as **approved in intent**:
 
 The exact profile is drawn in the ruled 128 u step (P-2001-15 (a)) by MOUND-TERRAIN. It is drawn smooth.
 
+**Amended 2026-10-16: the berm is about 4 cells** (Brendan, "Rounder, like the mockup", on the proof of concept's
+frames; recorded in [decision 2002](2002-mound-homes-proof-of-concept.md)). The hill takes the mockup's domed crown and
+a smoother, wider fall-off of about 4 cells in place of the 3-cell berm above. The cover, the first cell outside a wall
+standing to the wall's top, the window at the wall's top metre and the 6-wide yard are unchanged.
+
 **P-2001-6 checked under finer heights.** The recommendation's reasoning was that whole quanta force the first
 outside cell to the wall's full height, so a window sits at least a cell out. Under finer heights that is no longer
 forced by the ground's resolution. It is still forced by P-2001-4's approved intent: the first cell stands to the
@@ -170,7 +175,7 @@ As of Brendan's rulings of 2026-10-15.
 | The hill matches the rooms and grows as rooms are added | Ruled | W5 |
 | Every Mound room at the hill's edge (no earth margin) | Ruled | W13 |
 | Room height 4,096 u | Derived | DEC-054's 2026-10-15 addendum ("Rooms must fit every species") |
-| A 1 m cover, a 3-cell berm, the first outside cell to the wall's top | Ruled in intent; the exact profile in 128 u steps is MOUND-TERRAIN's | P-2001-4 (a); P-2001-15 (a) |
+| A 1 m cover, a 3-cell berm (about 4 cells since 2026-10-16), the first outside cell to the wall's top | Ruled in intent; the exact profile in 128 u steps is MOUND-TERRAIN's | P-2001-4 (a); P-2001-15 (a); 2002 "Rounder, like the mockup" |
 | The finished heap is real ground, at heights finer than a metre | Ruled; blocked until MOUND-TERRAIN amends GDD §5.1 | W2; P-2001-1 (b) |
 | The ground-height step: 128 u (1/8 m) | Ruled | P-2001-15 (a), "1/8 m" |
 | Doors and windows are placed by the player as edge items, never generated | Ruled | W6 |

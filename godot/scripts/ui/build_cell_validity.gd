@@ -6,6 +6,8 @@ extends RefCounted
 ##   X  Cannot dig here: water / protected ground / occupied / protected route   the host's ground reader (ECON-003)
 ##   X  Too narrow: rooms need at least 2 × 2 cells       the cell lies in no 2 × 2 block of its own room
 ##   !  No way in: connect to a finished Passage or entrance   no route to finished space (BUILD-REQ-013)
+##   !  No way in: place a door on an outer edge   a Mound room on the Surface whose Mound has no door
+##      (BUILD-MOUND-012; decision 2002): set by the batch, which knows the doors (`judge_level`'s `way_in` off there)
 ##
 ## THE WAY IN (Brendan's ruling on decision 1911 P-C4 (a), 2026-10-12): a drafted cell has a way in when a 4-connected
 ## chain of drafted cells on its level -- of ANY room type, the stroke in progress included -- links it to a cell
@@ -20,6 +22,7 @@ extends RefCounted
 ## WITH NO GROUND READER BOUND only the 2 × 2 rule is judged (a host that knows no ground claims nothing about it).
 
 const Validity := preload("res://scripts/ui/build_validity.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 
 const CELL_OK: int = 0
 const CELL_TOO_NARROW: int = 1
@@ -30,7 +33,9 @@ const CELL_OCCUPIED: int = 5
 const CELL_ROUTE: int = 6
 ## A ground reading only: the space is dug and finished (a way in for its neighbours; occupied for a drafted cell).
 const CELL_FINISHED: int = 7
-const CELL_CODES: int = 8
+## Decision 2002: a Mound room's cell whose Mound has no door (BUILD-MOUND-012).
+const CELL_NO_DOOR: int = 8
+const CELL_CODES: int = 9
 ## What the canonical "Cannot dig here: " reason names for each ground code (docs/ui_ux_controls.md).
 const DIG_WORDS: Dictionary = {CELL_WATER: "water", CELL_PROTECTED: "protected ground", CELL_OCCUPIED: "occupied",
 	CELL_ROUTE: "protected route", CELL_FINISHED: "occupied"}
@@ -119,7 +124,7 @@ static func kind_of(code: int) -> int:
 	"""A cell code's validity kind (build_validity.gd KIND_*): 0 can build, 1 blocked (No way in), 2 not possible."""
 	if code == CELL_OK:
 		return 0
-	return 1 if code == CELL_NO_WAY_IN else 2
+	return 1 if code == CELL_NO_WAY_IN or code == CELL_NO_DOOR else 2
 
 
 static func words_of(code: int) -> String:
@@ -128,20 +133,23 @@ static func words_of(code: int) -> String:
 		return Validity.too_narrow()
 	if code == CELL_NO_WAY_IN:
 		return Validity.no_way_in()
+	if code == CELL_NO_DOOR:
+		return Mound.TEXT_NO_DOOR
 	return Validity.cannot_dig(DIG_WORDS[code]) if DIG_WORDS.has(code) else ""
 
 
-func judge_level(level: int, sets: Array[PackedInt32Array]) -> Array[PackedByteArray]:
+func judge_level(level: int, sets: Array[PackedInt32Array], way_in: bool = true) -> Array[PackedByteArray]:
 	"""Each drafted set on `level` (canonical cell pairs; one set per room, the stroke as its own) judged per cell:
 	the codes, aligned with each set's cells. A set with a cell outside the planning area is judged as it can be
-	(that cell CELL_PROTECTED: no ground there)."""
+	(that cell CELL_PROTECTED: no ground there). Without `way_in` (the Surface, decision 2002: its way in is a door
+	the batch judges) no cell is judged for a way in."""
 	judgements += 1
 	var out: Array[PackedByteArray] = []
 	for index: int in sets.size():
 		out.append(_mark(sets[index], index + 1))
 	for index: int in sets.size():
 		_judge_set(level, sets[index], index + 1, out[index])
-	if _ground.is_valid():
+	if _ground.is_valid() and way_in:
 		_way_in(level, sets, out)
 	for cells: PackedInt32Array in sets:
 		_unmark(cells)

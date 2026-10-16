@@ -14,6 +14,7 @@ const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const Orders := preload("res://demo/build_panel/demo_build_orders.gd")
+const Mound := preload("res://scripts/ui/build_mound.gd")
 const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
 
 const KITCHEN_CARD: int = 2
@@ -538,3 +539,47 @@ func test_cells_cut_off_from_every_entrance_are_said_once_and_send_nobody() -> v
 	assert_false(_build._send_mole(), "nor the next time")
 	assert_equal(_said.size(), before + 1, "said once")
 	assert_true(_said[-1].ends_with("cannot be reached from an Entrance: they wait"), _said[-1])
+
+
+func test_on_the_surface_a_mound_room_and_its_door_are_placed_by_keys() -> void:
+	"""Decision 2002: on the Surface a Kitchen paints in the Mound style, "! No way in" until a door; the Front door
+	card arms a door, Enter places it at the cursor cell's north side; with no way down nobody goes below."""
+	_build.open_panel()
+	assert_equal(_build.bar.shown_level(), LevelBar.LEVEL_SURFACE, "the Surface")
+	_build.panel.choose_card(KITCHEN_CARD)
+	assert_equal(_build.armed_type(), 2, "a Mound Kitchen armed")
+	_build.paint.set_cursor(Vector2i(2, 2), 0, 2)
+	assert_true(_press(KEY_ENTER), "Enter: the first corner")
+	for k: int in 5:
+		_press(KEY_RIGHT)
+	for k: int in 3:
+		_press(KEY_DOWN)
+	assert_true(_press(KEY_ENTER), "Enter: the second corner")
+	assert_equal(_build.batch.operation_style(0), Mound.STYLE_MOUND, "a Mound room")
+	assert_equal(_build.batch.operation_reason(0), Mound.TEXT_NO_DOOR, "no way in yet")
+	assert_true(_build.panel.select_tab(BuildCatalog.TAB_FURNISH), "Furnish")
+	assert_false(_build.edge_armed(), "nothing armed yet")
+	_build.panel.choose_card(_card("Front door"))
+	assert_true(_build.edge_armed(), "the door armed")
+	assert_equal(_build.armed_edge_kind(), Mound.KIND_DOOR, "a door")
+	_build.paint.set_cursor(Vector2i(3, 2), 0, -1)
+	assert_true(_press(KEY_ENTER), "Enter places it")
+	assert_equal(_build.batch.mound_edges().live_count(), 1, "pending")
+	assert_equal(_build.batch.operation_kind(0), Validity.KIND_CAN_BUILD, "the room ✓ with its door")
+	assert_equal(_said[-1], "✓ Place Front door", "said")
+	assert_false(_build.edge_armed(), "put down after placing")
+	assert_equal(_build.armed_edge_kind(), -1, "none")
+	assert_equal(_build.ground_point(Vector2(10.0, 10.0)), Vector2.INF, "off-tree: no ground point")
+	assert_equal(_build.way_in(), -1, "no way down: nobody goes below")
+
+
+func test_a_way_down_on_a_mound_rooms_floor_is_named_where_it_leads() -> void:
+	"""BUILD-MOUND-021: wholly on a Mound room's floor it is "Way down, connects to Underground level 1"; elsewhere on
+	the Surface the Entrance; below, its own name."""
+	_build.batch.begin_stroke(2, 0, Vector2i(10, 10), Mound.STYLE_MOUND)
+	_build.batch.extend_stroke(Vector2i(15, 13))
+	_build.batch.finish_stroke()
+	assert_equal(_build.paint.way_name(0, Vector2i(11, 11)), _build.paint.HATCH_NAME, "on the floor")
+	assert_equal(_build.paint.way_name(0, Vector2i(15, 11)), "Entrance", "half off it")
+	assert_equal(_build.paint.way_name(0, Vector2i(30, 30)), "Entrance", "on open ground")
+	assert_equal(_build.paint.way_name(2, Vector2i(11, 11)), "Way down", "below")

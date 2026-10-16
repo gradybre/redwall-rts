@@ -324,6 +324,27 @@ func test_with_checks_on_a_stale_slot_is_reported_and_the_search_runs_live() -> 
 	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "a stale slot is reported, never followed")
 
 
+func test_with_checks_on_a_slot_with_the_wrong_spend_is_reported() -> void:
+	"""Decision 1952: a slot with the right choice but another spend is reported with checks on."""
+	if not _fixture(): return
+	_memo(false)
+	var plain: Array = _search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+	_memo(true)
+	_search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+	var memo: PackedInt64Array = _h._binding._edge_memo
+	var spent: int = 0
+	for slot: int in WorldRoutes.EDGE_MEMO_SLOTS:
+		var at: int = slot * WorldRoutes.EDGE_MEMO_STRIDE
+		if memo[at] == _h._binding._edge_memo_epoch and memo[at + 4] > 0:
+			memo[at + 4] -= 1
+			spent += 1
+	_h._binding._edge_memo = memo
+	assert_true(spent > 0, "slots with a spend to change")
+	WorldRoutes.Profiles.check_runtime_caches = true
+	expect_diagnostic("RUNTIME_CACHE_STALE itinerary edge profile")
+	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "same choice, other spend: reported")
+
+
 func test_the_anchor_memo_answers_as_the_live_check_and_reads_afresh_on_a_new_token() -> void:
 	"""Decision 1952: every anchor and revision answers as the live check, filling and answered; an answered check
 	really comes from the memo; a moved token or another bank is read afresh; with checks on a stale slot is reported."""
@@ -469,7 +490,25 @@ func test_endpoint_memo_answers_from_its_words_and_reports_a_stale_one() -> void
 	WorldRoutes.Profiles.check_runtime_caches = true
 	expect_diagnostic("RUNTIME_CACHE_STALE endpoint proof")
 	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "checks on: reported, answered live")
+	WorldRoutes.Profiles.check_runtime_caches = false
+	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "the checked word was refreshed")
 	_h._binding._proof = null
+
+
+func test_with_checks_on_a_word_with_the_wrong_spend_is_reported() -> void:
+	"""Decision 1952: a remembered word with the right answer but another number of boxes checked is reported."""
+	if not _fixture(): return
+	var filled: Array = _endpoint_filled()
+	assert_equal(filled.size(), 2, "observed and filled")
+	if filled.size() != 2: return
+	var binding: WorldRoutes = _h._binding
+	var at: int = binding._endpoint_entry(_h.parking, binding._endpoint.point) * WorldRoutes.Profiles.MAX_PROFILES + filled[0]
+	var boxes: int = (binding._endpoint_memo[at] >> 4) & 0xFFF
+	binding._endpoint_memo[at] = (binding._endpoint_memo[at] & ~0xFFF0) | (((boxes + 1) & 0xFFF) << 4)
+	WorldRoutes.Profiles.check_runtime_caches = true
+	expect_diagnostic("RUNTIME_CACHE_STALE endpoint proof")
+	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "same answer, other spend: reported")
+	binding._proof = null
 
 
 func test_endpoint_memo_retires_on_every_stamped_input() -> void:

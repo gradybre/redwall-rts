@@ -451,8 +451,8 @@ the tests that need them are in `scratchpad/activate_mount/test_underground_stai
 
 ### What else the mount needs (re-checked on the scratch mount)
 
-- `underground_entry_contact_retirement_scope.gd`: `ENDPOINTS` 44 → 49, which moves its registry sizes: `_source32`
-  1,356 → 1,392 (8 × 5 endpoints = 40, less the 4 B rounding the registry records) and `_source64` 158 → 163.
+- `underground_entry_contact_retirement_scope.gd`: `ENDPOINTS` 44 → 49, which moves its registry sizes (8 and 1 words
+  per endpoint): `_source32` 1,356 → 1,396 and `_source64` 158 → 163, with their registry rows.
 - `underground_route_composition.gd`: `GROUND_PACE_COUNT` 29 → 43, and the carry bank loaded beside the claw tables.
 - A publish of the floor end and the carry edges after the sill commits. Today the stair path publishes only before
   each tread's installation.

@@ -1198,8 +1198,9 @@ Underground level 1".
 selected one, else the first free one who is not a mole) to the door's yard (`demo_build_mound_task.gd`): it heaps the
 whole hill a cell at a time from the yard, goes in at the door to dig, bracing each cell as the frame's timber ribs,
 comes out to top and turf it, then fits the doors and windows and the furniture on the floor. The hill
-(`demo_build_mound_field.gd`, `_hill.gd`, `_view.gd`) stands a metre over the walls' tops, rolls to the ground three
-metres out and is cut to the ground in each door's yard; it only grows as rooms are added. The door's built front
+(`demo_build_mound_field.gd`, `_hill.gd`, `_view.gd`) stands a metre over the walls' tops under a domed crown,
+falls in a rounded curve to the ground four metres out (Brendan's 2026-10-16 ruling, "Rounder, like the mockup") and
+is cut to the ground in each door's yard; it only grows as rooms are added. The door's built front
 (`demo_build_mound_front.gd`): plaster, timber posts, a curved eave with the turf over it, a brick-ringed round door of
 our own design (no knob in its middle), a lantern, steps, flower beds, a bench and a picket fence. Windows lie flush on
 the turf slope at the wall's top metre; by day each lights its room with a beam and a pool of light. A finished hill

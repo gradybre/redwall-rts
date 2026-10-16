@@ -1,7 +1,7 @@
 # 2002 — Mound homes: the proof of concept in the demo
 
-Date: 2026-10-15 · Status: Accepted (Brendan, 2026-10-15: "yes, start the Mound proof of concept"; P-2001-11 (a)); the
-PROPOSALS at the end await his word
+Date: 2026-10-15, amended 2026-10-16 · Status: Accepted (Brendan, 2026-10-15: "yes, start the Mound proof of
+concept"; P-2001-11 (a)). His rulings of 2026-10-16 are below: the hill's shape, and every PROPOSAL approved
 
 Number range: 2002–2009, allocated to this lane (MOUND-POC) by the coordinator; checked with `decision_numbers.py` and
 over every ref. This is the lane record; 2003–2009 are unused.
@@ -36,6 +36,15 @@ The rules and words are in `godot/scripts/ui/`: `build_mound.gd`, `build_mound_e
 The store, the builder and the drawing are in `godot/demo/build_panel/demo_build_mound*.gd` and `build_mound.gdshader`.
 No core simulation owner is touched: `scripts/core/` and the settlement systems are unchanged. MOUND-TERRAIN and
 MOUND-REAL replace the drawing with real ground and the settlement's own work.
+
+## Brendan's rulings (2026-10-16)
+
+Given in chat to the coordinator on the proof of concept's frames, and relayed.
+
+| Question | Ruling | What it means |
+|---|---|---|
+| The hill's shape | **"Rounder, like the mockup"** | The finished side view read as a flat-topped ridge with steep sides, from the 3-cell berm (5 m over 3 m). The hill takes the approved mockup's domed crown and a smoother, wider fall-off of about 4 cells (its `heapH`, `edgeFall` and the crown's `q` term). The rules stay: the first cell outside a wall stands to the wall's top, so no wall is ever open; windows stay at the wall's top metre; the yard is 6 wide. **This amends P-2001-4's 3-cell berm to about 4 cells** (noted in decision 2001, BUILD-MOUND-003 and `docs/handoff/RULINGS.md`). Built as E6 and E8 now describe |
+| P-2002-1 to P-2002-9 | **"Approve all"**, as recommended | Each (a) below, including P-2002-9 (a): no room within 2 cells of a yard's side and no window within 3; no cheek walls |
 
 ## What was built
 
@@ -87,10 +96,12 @@ MOUND-REAL replace the drawing with real ground and the settlement's own work.
     below the window's height, and the garden and fence stand there (P-2002-2).
   - A window with another room within the berm beyond it: the hill never falls to the window's height in so narrow a
     gap, so there is no slope to lie on (BUILD-MOUND-020's words).
-- **E5 — The yard** (P-2001-5 (a)): the door's two cells and two more each side, three cells out to the berm's foot.
+- **E5 — The yard** (P-2001-5 (a)): the door's two cells and two more each side, out to the berm's foot: four cells
+  since the 2026-10-16 ruling.
   - A door confirmed with its rooms (EARLY) has its yard never heaped.
   - A door added to a heaped hill has its yard cut when it is fitted (P-2001-13 item 2).
-- **E6 — The heap's footprint**: every cell within the berm, gx² + gz² < 9 (3 cells, rounded at the corners). Each
+- **E6 — The heap's footprint**: every cell within the berm, gx² + gz² < 16 (4 cells, rounded at the corners; 3 cells
+  and gx² + gz² < 9 before the 2026-10-16 ruling). Each
   Mound's rooms and footprint are checked against the village (`demo_build_mound_ground.gd`):
   - water, read at the cell's middle and at four points 0.2 m inside its corners, so a shoreline cell is judged by
     what lies in it;
@@ -109,9 +120,19 @@ MOUND-REAL replace the drawing with real ground and the settlement's own work.
 - **E8 — The hill's heights** (`demo_build_mound_field.gd`, presentation over unchanged ground):
   - **Cover:** the wall's top (4 m, 4,096 u) and the ruled 1 m cover. The mockup's crown adds 1 m over the 3.5 m
     inside the outer walls, with a fixed wobble of ±0.12 m on the crown only, so the cover is never thinner than the
-    rule.
-  - **Berm:** level for 0.35 m beyond the wall, then a smoothstep to the ground 3 m out. The first metre out stands
-    above the wall's top (P-2001-4's intent: a wall is never open), and no earth lies past the berm (W13).
+    rule. Since the 2026-10-16 ruling the crown is eased out, 1 − (1 − t)², so it rises from the wall itself. The
+    mockup's smoothstep (its `q` term) suits its wide rooms. A 4-cell-deep Mound never gets past 0.65 m of it, and that
+    is what made the top read flat; eased out, the same room's crown reaches 0.82 m in a dome.
+  - **Berm** (the 2026-10-16 ruling, "Rounder, like the mockup"): a smooth fall over about 4 cells. It is half a
+    cosine, from a top 0.25 m inside the wall to the ground 4 m out, so it is already falling at the wall, continuing
+    the crown's dome, and eases out at its foot. The heights a metre apart are 5.0, 4.04, 2.29, 0.66 and 0 m, and the
+    cross-section reads as one dome from foot to foot.
+    - The first metre out stands above the wall's top (P-2001-4's intent: a wall is never open), and no earth lies
+      past the berm (W13).
+    - The mockup's own curve, exp(−(d / 1.25 m)^1.6), would leave a wall's top metre open a metre out on a 5 m hill,
+      so the fall is widened.
+    - A bell curve level at the wall was tried first. It kept a flat band along the walls, so the top still read flat.
+    - Before the ruling the berm was level for 0.35 m, then a smoothstep to the ground 3 m out.
   - **Distances** are exact to the union of the cells' squares (decision 1914 E1), searched ring by ring from cached
     ring maps.
   - **The yard:** at the ground. Past its first cell its sides rise at 2 m per metre (so the yard keep of E4).
@@ -170,9 +191,12 @@ MOUND-REAL replace the drawing with real ground and the settlement's own work.
   - `test/live/demo_build_mound_live.gd` runs the whole loop in 152 s at 1280×720, through `test_demo_build_mound_live.gd`.
   - Its `--capture <directory>` option writes the frames.
   - The site it paints, south of the clearing, is the demo's only free ground near the village on both levels: the
-    Bedroom at (2, 22), the Hall at (8, 22), the Kitchen at (12, 22), the door on the Hall's north wall at (9, 22), the
-    windows on the Bedroom's and the Kitchen's north walls at (3, 22) and (16, 22), and the Pantry grown on at (6, 26)
-    with its hatch at (6, 32). Under the village, level 1 is under the stream up to z 31.
+    Bedroom at (1, 22), the Hall at (7, 22), the Kitchen at (11, 22), the door on the Hall's north wall at (8, 22), the
+    windows on the Bedroom's and the Kitchen's north walls at (2, 22) and (15, 22), and a Pantry 2 cells wide grown
+    on at (1, 26) with its hatch at (1, 32). Under the village, level 1 is under the stream up to z 31.
+  - The wider berm moved the site. A probe of every placement over the build host's own surface reader found only this
+    one, near the village and in the camera's bounds, where the 4-cell hill covers no water and no tree and the hatch
+    lands on dry level 1. The Pantry is the old 4 × 8 cut to 2 wide, so that its berm clears the trees south of it.
 
 ## Where P-2001-13's thirteen items fit
 
@@ -201,6 +225,8 @@ MOUND-REAL replace the drawing with real ground and the settlement's own work.
 - **The scenery** under a hill is covered and hidden (P-2002-3).
 
 ## PROPOSALS for Brendan
+
+All nine were **approved as recommended** on 2026-10-16 ("Approve all"; each (a)).
 
 - **P-2002-1 — Built rooms on the Surface.**
   - (a) As built: the style follows the level. Built rooms on the Surface wait for slice G, and -002's refusal waits
@@ -291,11 +317,11 @@ Left as they are, with reasons:
   - The field's suite checks, at a quarter-metre spacing, that the cover lies over every room point, that no wall is
     open, that nothing lies past the berm, that the hill only grows, that the yard is cut, and where windows go.
 - **The full CI-style run**: demo art moved aside, `godot/.godot` deleted, a clean import, then
-  `./tools/run_tests_parallel.sh`. Result: 522 suites, 12,703 tests, 1,252,995 assertions, 0 failures, 0 unexpected
-  errors or warnings, 0 leaks, verify passed. The art was put back and imported again, and
+  `./tools/run_tests_parallel.sh`. Result, run again after the 2026-10-16 ruling: 522 suites, 12,704 tests,
+  1,252,217 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks, verify passed. The art was put back and imported again, and
   `demo_texture_imports.py --check` passed.
   - The first run failed two checks in `test/live/demo_input_live.gd`. They expected surface room types to be locked;
-    they now check the Mound style and the Built toggle's reason. The second run is the one counted above.
+    they now check the Mound style and the Built toggle's reason. Every run since has passed.
 - **Analyzer**: `tools/gdscript_warnings.py --max 0` reports 0 warnings in 1,580 files. `decision_numbers.py`
   passes.
 - **Mutation testing**: 66 hand-written mutants of the heap, edge, door, window, yard, field, store, job and dressing
@@ -306,8 +332,14 @@ Left as they are, with reasons:
 
   Three earlier survivors were killed by new tests: a water cell kept under "No way in", a way down at an inner
   corner, and a stroke's hill judged with its own Mound only.
+- **Mutation testing again, after the 2026-10-16 ruling.** The heap, footprint, yard, edge and field mutants were run
+  again: 38 of them, 11 written for the new berm and crown. Two were retired, because the old berm and crown lines they
+  changed are gone. 34 were killed. The two that survive are the equivalent ones above (the berm bound and the ring
+  search's stop). One more, the berm's own bound (`d >= BERM_M` → `d >= BERM_M + 1`), survived at first: the cosine
+  rises again past its foot, and no test looked there. A new assertion now kills it.
 - **The live loop** (`test/live/demo_build_mound_live.gd`, 45 checks) passes headless at 1280×720 in the slow tier
-  (152 s), and windowed with its frames at 1280×720 and 1920×1080. It covers:
+  (141 s on the new site), and windowed with its frames at 1280×720 and 1920×1080, before and after the ruling. It
+  covers:
   - painting the Bedroom, Hall and Kitchen, and the cells' "No way in";
   - the door and two windows, and a window refused in words;
   - Confirm all, then each stage in turn: heap, dig, frame and top;

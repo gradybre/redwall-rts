@@ -680,7 +680,10 @@ func _yaw(profile: int) -> int:
 func _end_travel(tick: int) -> StringName:
 	"""Back at parking: idle. On the storage: haul. At the station: face the work row (its own stationary tick), then
 	select it."""
-	if _stage == STAGE_TO_STORE: return _start_haul(tick)
+	if _stage == STAGE_TO_STORE:
+		if may_work(): return _start_haul(tick)
+		_stage_ticks = 0 # Arrived in a rest hour: the haul starts when the hour allows work.
+		return &""
 	if _stage == STAGE_RETREAT:
 		_index = -1
 		_foot.clear_claim()
@@ -723,9 +726,13 @@ func _start_haul(tick: int) -> StringName:
 
 
 func _haul(tick: int) -> StringName:
-	"""Delegate to the hauler (a finished trip or stage restarts the stall bound); once home on the storage under the
-	BRACE Job, reserve the inputs and go on along the claimed way to the station (still set off: the claim stays
+	"""Delegate to the hauler (a finished trip or stage restarts the stall bound); during a rest hour it is not
+	advanced, so no trip takes its Job then (Jobs refuses an assignment in a rest hour). Once home on the storage under
+	the BRACE Job, reserve the inputs and go on along the claimed way to the station (still set off: the claim stays
 	occupied)."""
+	if not may_work():
+		_stage_ticks = 0 # ADR1226: a rest hour is waited out where the haul stands (each trip takes a new Job).
+		return &""
 	var code: StringName = _hauler.advance(tick)
 	if code != &"": return code
 	var marker: int = _hauler.trips() * 16 + _hauler.stage()

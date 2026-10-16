@@ -316,3 +316,18 @@ func _free(item: int) -> int:
 		if _h._inventory.lot_item_id(lot) == item: total += _h._inventory.lot_available_milli(lot)
 		lot = _h._inventory.container_next_lot(lot)
 	return total
+
+
+func test_a_builder_sent_home_from_its_column_has_not_set_off() -> void:
+	"""Going home starts a new walk: until it takes its first step the foreman's footprint check comes first."""
+	if _room == NULL_REF: return
+	var foreman: Foreman = _configured(_one())
+	var builder: Builder = foreman.builders()[0]
+	for step: int in 4000:
+		if builder.at_column_end(): break
+		_h.tick += 1
+		assert_equal(foreman.advance(_h.tick), &"", "running")
+	assert_true(builder.at_column_end() and builder._departed, "at the first cube's end, having walked there")
+	assert_equal(builder.go_home(), &"", "sent home")
+	assert_false(builder.in_motion(), "not yet set off")
+

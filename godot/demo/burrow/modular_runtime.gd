@@ -17,7 +17,7 @@ const Access := preload("res://demo/burrow/modular_access.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 ## The mounted content's claw crew rows (decision 1912; Brendan's ruling P-C2-3 (a) on decision 1931).
-const ClawPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const ClawPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"MODULAR_VIEW_OWNER_BINDING"
 const REFUSE_DRAFT: StringName = &"MODULAR_VIEW_DRAFT_CHANGED"
@@ -404,9 +404,10 @@ static func dug_height_u(profiles: Object, clear_height_u: int, identity_row: in
 	"""THE ONE PLACE a painted underground room's height is read (DEC-054; decision 1911 P-C3 (a) as corrected by
 	P-C2-3 (a)): the clear height capped at the band the claw crew's published dig rows reach from the floor
 	(`underground_room_approach.gd reachable_height_u` with `crew_identity_row`), in whole quanta; the clear height
-	when no such row is published. The planner's plan (`_make_plan`) and the build ledger's price both read it. On
-	master the claw rows reach 1,024 u; slice C2.1 changes the room-digging rule in core (decision 1931 and its
-	successor), and this follows whatever it publishes. `identity_row` names another crew (-2: the claw crew). A crew
+	when no such row is published. The planner's plan (`_make_plan`) and the build ledger's price both read it. It
+	follows the mounted content: content 10's claw rows reach 1,024 u; content 12's wall rows (decisions 1971 and 1972,
+	"Painted height") set no limit, so a room is dug to the level's clear height. `identity_row` names another crew
+	(-2: the claw crew). A crew
 	whose rows are published but reach nothing digs 0 (review M2); only profiles without that crew's row at all fall
 	back to the clear height."""
 	var row: int = crew_identity_row() if identity_row == -2 else identity_row

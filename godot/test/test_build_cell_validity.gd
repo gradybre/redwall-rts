@@ -76,6 +76,15 @@ func test_a_room_with_nothing_finished_near_has_no_way_in() -> void:
 	assert_equal(Cells.words_of(Cells.CELL_NO_WAY_IN), Validity.no_way_in(), "the canonical words")
 
 
+func test_on_the_surface_the_way_in_is_a_door_the_batch_judges() -> void:
+	"""Decision 2002: with `way_in` off (the Surface) no cell is judged for a way in; a Mound room's doorless cell is
+	"! No way in: place a door on an outer edge" (BUILD-MOUND-012), set by the batch."""
+	var codes: Array[PackedByteArray] = _cells.judge_level(0, [_rect(4, 2, 4, 3)], false)
+	assert_equal(codes[0], _all(12, Cells.CELL_OK), "not judged for a way in")
+	assert_equal(Cells.kind_of(Cells.CELL_NO_DOOR), Validity.KIND_BLOCKED, "!")
+	assert_equal(Cells.words_of(Cells.CELL_NO_DOOR), "No way in: place a door on an outer edge", "its words")
+
+
 func test_the_way_in_runs_through_a_drafted_passage_of_another_type() -> void:
 	"""P-C4 (a): a room reached through a drafted Passage (another set) has a way in; one beyond a gap has none."""
 	_finished_column(0, 0, 4)

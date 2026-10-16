@@ -112,6 +112,29 @@ func test_a_visit_walks_through_dug_cells_and_stays() -> void:
 	assert_false(walker.indoors, "and the resident out")
 
 
+func test_a_hatch_on_a_mound_floor_is_gone_down_from_its_doors_yard() -> void:
+	"""Decision 2002: a trip down a given way starts where it is told (a Mound's door yard), its landing the way's;
+	that way has no burrow mouth or Entrance name on the surface (the Mound's drawing has it)."""
+	_works.order_room(0, PackedInt32Array([10, 10, 11, 10, 10, 11, 11, 11]), 2)
+	_works.open_cell(0, Vector2i(10, 10))
+	assert_true(_works.order_way_down(0, Vector2i(10, 10)), "a hatch on the Mound's floor")
+	var dug: Dug = Dug.new()
+	_nodes.append(dug)
+	dug.configure(_works, FLOORS, Vector2i.ZERO, BOUNDS)
+	assert_false(dug.on_mound(0), "the Entrance is on open ground")
+	assert_true(dug.on_mound(1), "the hatch is on a Mound's floor")
+	dug.refresh(-1)
+	assert_equal(dug.tags(), PackedStringArray(["Entrance"]), "only the Entrance named on the surface")
+	var figure: Figure = Figure.new()
+	_nodes.append(figure)
+	var trip: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_VISIT, Vector3i(1, 10, 10),
+		"Wenna", 1, Vector2(11.0, 7.0))
+	assert_equal(trip.site(null), Vector2(11.0, 7.0), "the door's yard")
+	var first: BelowTask = BelowTask.new(_works, figure, FLOORS, Vector2i.ZERO, BelowTask.MODE_VISIT, Vector3i(1, 6, 4),
+		"Wenna")
+	assert_equal(first.site(null), Vector2(5.0, 5.0), "no way given: the first Entrance")
+
+
 func test_a_dig_waits_before_the_cell_opens() -> void:
 	"""M1: a cell opens only after DIG_SECONDS of digging."""
 	var figure: Figure = Figure.new()
@@ -230,6 +253,28 @@ func test_tags_spread_upward_only_as_far_as_they_must() -> void:
 	assert_equal(Tags.first_hit(Rect2(0, 76, 100, 20), [Rect2(0, 100, 100, 20)], gap), -1, "exactly gap apart: clear")
 	assert_equal(Tags.first_hit(Rect2(0, 77, 100, 20), [Rect2(0, 100, 100, 20)], gap), 0, "closer: meets")
 	assert_equal(Tags.first_hit(Rect2(0, 0, 10, 10), [Rect2()], gap), -1, "an empty rect is never met")
+
+
+func test_a_fixed_size_tags_drawn_size_grows_with_its_depth() -> void:
+	"""Decision 2002: a tag drawn at a constant screen size (the Surface's) is measured at its drawn size -- its world
+	size grows with its depth, so it stays the same on screen; a plain tag's world size is its own at any depth."""
+	var fixed: Label3D = _tag(true)
+	var near: Vector2 = Tags.world_size(fixed, 10.0)
+	assert_true(near.x > 0.0 and near.y > 0.0, "measured")
+	assert_true(Tags.world_size(fixed, 20.0).is_equal_approx(near * 2.0), "twice as far: twice the size")
+	var plain: Label3D = _tag(false)
+	assert_true(Tags.world_size(plain, 20.0).is_equal_approx(Tags.world_size(plain, 10.0)), "plain: its own size")
+
+
+func _tag(fixed: bool) -> Label3D:
+	"""A tag reading "Way down", fixed size or not."""
+	var tag: Label3D = Label3D.new()
+	_nodes.append(tag)
+	tag.text = "Way down"
+	tag.font_size = 36
+	tag.pixel_size = 0.0006 if fixed else 0.01
+	tag.fixed_size = fixed
+	return tag
 
 
 func test_a_trip_says_which_cell_it_digs_and_how_far() -> void:

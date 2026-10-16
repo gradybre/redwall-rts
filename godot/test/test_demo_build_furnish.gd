@@ -11,6 +11,7 @@ const Fittings := preload("res://demo/build_panel/demo_build_fittings.gd")
 const Rooms := preload("res://demo/build_panel/demo_build_rooms.gd")
 const Furnish := preload("res://demo/build_panel/demo_build_furnish.gd")
 const Figure := preload("res://demo/build_panel/demo_build_figure.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 const BelowTask := preload("res://demo/build_panel/demo_build_below_task.gd")
 const Batch := preload("res://scripts/ui/build_batch.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
@@ -130,14 +131,16 @@ func test_the_walk_finds_the_nearest_of_several_goals() -> void:
 # --- the store -----------------------------------------------------------------------------------------------------
 
 func test_the_store_orders_fits_and_reads_its_pieces() -> void:
-	"""order (underground levels and real items only), fit (only a waiting piece), the reads, and the revision."""
+	"""order (the surface's Mound rooms and the underground levels, real items only), fit (only a waiting piece), the
+	reads, and the revision."""
 	var revision: int = _fittings.revision
-	assert_false(_fittings.order(0, Vector2i.ZERO, 0, BED), "not on the surface")
+	assert_false(_fittings.order(-1, Vector2i.ZERO, 0, BED), "not above the surface")
 	assert_false(_fittings.order(5, Vector2i.ZERO, 0, BED), "not on Overview")
 	assert_false(_fittings.order(1, Vector2i.ZERO, 0, 40), "no such item")
 	assert_true(_fittings.order(1, Vector2i(6, 4), 5, BENCH), "a bench")
 	assert_true(_fittings.revision > revision, "a change moves the revision")
 	assert_equal([_fittings.count(), _fittings.waiting(), _fittings.turn_of(0)], [1, 1, 1], "waiting, turn wrapped")
+	assert_equal(_fittings.waiting_below(), 1, "underground")
 	assert_equal(_fittings.state_of(0), Fittings.ORDERED, "ordered")
 	assert_true(_fittings.fit(0), "fitted")
 	assert_false(_fittings.fit(0) or _fittings.fit(3) or _fittings.fit(-1), "only a waiting piece fits")
@@ -146,6 +149,34 @@ func test_the_store_orders_fits_and_reads_its_pieces() -> void:
 		"read back")
 	assert_equal(_fittings.cells_of(0).size(), 16, "a turned bench's 8 cells")
 	assert_equal(_fittings.edges_of(0), [] as Array[Vector3i], "no edges")
+
+
+func test_a_mound_rooms_piece_waits_for_its_mounds_builder() -> void:
+	"""Decision 2002: a piece on the surface (a Mound room's floor) is ordered and waits, but not for the fitter who
+	goes down: `waiting_below` leaves it out and `next_fit` never names it."""
+	assert_true(_fittings.order(0, Vector2i(3, 3), 0, BED), "on a Mound room's floor")
+	assert_equal([_fittings.waiting(), _fittings.waiting_below()], [1, 0], "waiting, but not below")
+	assert_true(_fittings.next_fit(_works, Vector3i(0, 3, 3)).is_empty(), "the walk below never names it")
+	assert_equal(_fittings.work_cells(0).size(), 4, "its own four cells to stand on")
+	_fittings.order(1, Vector2i(6, 4), 0, BED)
+	assert_equal(_fittings.waiting_below(), 1, "the one below counts")
+	_fittings.fit(1)
+	assert_equal(_fittings.waiting_below(), 0, "fitted: none")
+
+
+func test_a_mound_rooms_floor_is_furnished_on_the_surface() -> void:
+	"""Decision 2002: on the Surface a piece stands on the ground and its marks are the village's; a dug Mound room is
+	counted and lined like a room below."""
+	var view: Furnish = _view(_batch())
+	assert_equal(view.floor_u(0), FLOORS[0], "on the ground")
+	assert_equal(view.floor_u(1), FLOORS[1] - Furnish.Earth.DEPTH_U, "below: the pit's floor")
+	assert_equal(Furnish.marks_layer(0), Layers.SURFACE_MARKS, "the village's marks")
+	assert_equal(Furnish.marks_layer(1), Furnish.LAYER, "the dug view's")
+	_works.order_room(0, PackedInt32Array([20, 20, 21, 20, 20, 21, 21, 21]), KITCHEN)
+	for cell: Vector2i in [Vector2i(20, 20), Vector2i(21, 20), Vector2i(20, 21), Vector2i(21, 21)]:
+		_works.open_cell(0, cell)
+	assert_true(_rooms.refresh(_works, _fittings, 0), "the Surface counted")
+	assert_equal([_rooms.count(), _rooms.type_of(0), _rooms.read_level()], [1, KITCHEN, 0], "the Mound Kitchen")
 
 
 func test_occupants_answer_the_batchs_overlap_reads() -> void:

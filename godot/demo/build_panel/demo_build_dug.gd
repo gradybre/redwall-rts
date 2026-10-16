@@ -227,15 +227,21 @@ func top_m(level: int) -> float:
 
 
 func _place_mouths() -> void:
-	"""A burrow mouth on the surface for each confirmed Entrance."""
+	"""A burrow mouth on the surface for each confirmed Entrance (not a hatch on a Mound room's floor: the Mound's
+	drawing has it, decision 2002)."""
 	var used: int = 0
 	for row: int in _works.way_count():
-		if _works.way_level(row) == 0:
+		if _works.way_level(row) == 0 and not on_mound(row):
 			var mouth: MeshInstance3D = _pooled(_mouths, used, _mouth, Layers.SURFACE)
 			mouth.position = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
 			used += 1
 	for k: int in range(used, _mouths.size()):
 		_mouths[k].visible = false
+
+
+func on_mound(row: int) -> bool:
+	"""Whether way down `row` stands on a Mound room's floor (decision 2002: the works' Surface cells)."""
+	return _works.way_level(row) == 0 and _works.state(0, _works.way_cell(row)) != Works.EARTH
 
 
 func _place_stairs(level: int) -> void:
@@ -288,7 +294,7 @@ func _way_tags(used: int, level: int) -> int:
 	for row: int in _works.way_count():
 		var top: int = _works.way_level(row)
 		var at: Vector3 = _corner(_works.way_cell(row) + Vector2i.ONE, 0.0)
-		if top == 0:
+		if top == 0 and not on_mound(row):
 			used = _tag(used, "Entrance", at + Vector3(0.0, ENTRANCE_TAG_M, 0.0), Layers.SURFACE_MARKS)
 		if underground(level) and (top == level or top + 1 == level):
 			var words: String = "Way down" if top == level else "Way up to the surface" if top == 0 else "Way up"

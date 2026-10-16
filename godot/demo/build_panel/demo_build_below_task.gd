@@ -59,9 +59,10 @@ var _who: String = ""
 
 
 func _init(works: Works, figure: Figure, floors: PackedInt32Array, datum: Vector2i, task_mode: int,
-		goal: Vector3i, who: String) -> void:
-	"""Down through the first Entrance into `works`' dug rooms, drawn as `figure`, on `floors` (u per level) from
-	`datum` (u): to dig (`goal` unused), or to visit `goal` (level, x, z)."""
+		goal: Vector3i, who: String, way: int = -1, site_m: Vector2 = Vector2.INF) -> void:
+	"""Down through Entrance row `way` (-1: the first) into `works`' dug rooms, drawn as `figure`, on `floors` (u per
+	level) from `datum` (u): to dig (`goal` unused), or to visit `goal` (level, x, z). `site_m` is where it goes in on
+	the surface when that is not the Entrance itself (a hatch on a Mound's floor: its door's yard; decision 2002)."""
 	_works = works
 	_figure = figure
 	_floors = floors
@@ -69,9 +70,11 @@ func _init(works: Works, figure: Figure, floors: PackedInt32Array, datum: Vector
 	mode = task_mode
 	_goal = goal
 	_who = who
-	var row: int = works.entrance()
+	var row: int = way if way >= 0 else works.entrance()
 	var cell: Vector2i = works.way_cell(row) if row >= 0 else Vector2i.ZERO
 	_entrance = Vector2(_datum.x / UNITS_PER_M + cell.x + 1.0, _datum.y / UNITS_PER_M + cell.y + 1.0)
+	if site_m.is_finite():
+		_entrance = site_m
 	_start = works.landing_of(row) if row >= 0 else Vector3i.ZERO
 
 

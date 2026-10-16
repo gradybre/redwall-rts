@@ -8,9 +8,10 @@ carries content 10's rows 0-66 byte for byte), with the stair's floor end and th
   ceil(length x 30,000 / ticks) from DEC-050's ticks: 30 a tread, 45 a half-turn, 90 a three-step handoff. v9's
   rows 53-55 are the same ticks (528,000 and 116,000 milli-u/s); rows 71-84 follow them;
 - two more LANDINGs, the sill's top (T6) and the floor, so the sill's and the floor's stops can stand;
-- six more stops, appended after v9's: H on L0 (343 u before A), A and U on T6, and on the floor F (its arrival A),
-  its ascent start U and F' (343 u behind F); each names a claw stair row as its travel row (the Frontier binds
-  source 4), and each stands when the sill is installed (H when T0 is).
+- five more stops, appended after v9's: A and U on T6, and on the floor F (its arrival A), its ascent start U and F'
+  (343 u behind F); each names a claw stair row as its travel row (the Frontier binds source 4), and each stands
+  when the sill is installed. H, where a loaded carrier steps on 343 u before A on L0, is the prefix's L0 station
+  (0, 0, -1536), already a stop.
 
 ADR 1209's descent past T0 (D1 the sill, D2 the seventh row, D3 T0's bill per tread), fitted by paw (DEC-060), on
 content 10's rows. Nothing is chosen: every number below is read from a pinned input or derived by ADR 1209's
@@ -322,11 +323,11 @@ def stair_endpoints() -> list:
 
 
 def floor_endpoints() -> list:
-    """Decision 1972, appended so v9's stop indices stay: H on L0 (T0's), then the sill's A and U and the floor's F, U
-    and F' (all the sill's, assembly 7, on the two new LANDINGs 8 and 9)."""
+    """Decision 1972, appended so v9's stop indices stay: the sill's A and U and the floor's F, U and F' (all the sill's,
+    assembly 7, on the two new LANDINGs 8 and 9). H needs no new stop: it is the prefix's L0 station, 343 u before A
+    (claw-v6's endpoint 3, (0, 0, -1536))."""
     sill, floor_landing, sill_landing = TREADS + 1, 2 + TREADS + 1, 2 + TREADS
-    return [[INSTALLED_CONTACT, 1, 1, ROLE_TRANSIT] + stop(-1, ARRIVAL + HANDOFF_EDGE_U) + [DESCENT],
-            [INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ARRIVAL) + [DESCENT],
+    return [[INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ARRIVAL) + [DESCENT],
             [INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ASCENT_START) + [ASCENT],
             [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ARRIVAL) + [DESCENT],
             [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ASCENT_START) + [ASCENT],

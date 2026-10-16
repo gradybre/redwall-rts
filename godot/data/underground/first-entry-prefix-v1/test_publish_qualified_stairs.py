@@ -52,12 +52,15 @@ class QualifiedStairsBundle(unittest.TestCase):
         self.assertEqual(dict(PUB.STAIR_PACES)[77], 56334)
 
     def test_floor_stops_are_appended_after_v9s(self) -> None:
-        """Decision 1972: H, the sill's A and U, and the floor's F, U and F' follow v9's 44 stops, on the new LANDINGs."""
+        """Decision 1972: the sill's A and U, and the floor's F, U and F' follow v9's 44 stops, on the new LANDINGs; H
+        is the prefix's L0 station at (0, 0, -1536), 343 u before A, already a stop."""
         stops = PUB.stair_endpoints()
-        self.assertEqual(len(stops), 4 + 18 + 6)
-        self.assertEqual([s[1:3] + s[4:8] for s in stops[-6:]],
-                         [[1, 1, 0, 0, -1536, 53], [7, 8, 0, -896, -5463, 53], [7, 8, 0, -896, -5289, 54],
+        self.assertEqual(len(stops), 4 + 18 + 5)
+        self.assertEqual([s[1:3] + s[4:8] for s in stops[-5:]],
+                         [[7, 8, 0, -896, -5463, 53], [7, 8, 0, -896, -5289, 54],
                           [7, 9, 0, -1024, -5975, 53], [7, 9, 0, -1024, -5801, 54], [7, 9, 0, -1024, -6318, 53]])
+        old = PUB.read_frontier((PUB.OLD / "frontier.ugfront").read_bytes())[4]
+        self.assertEqual(old[3][4:7], [0, 0, PUB.L0_FAR + PUB.ARRIVAL + PUB.HANDOFF_EDGE_U], "H is claw-v6's L0 station")
         landings = PUB.landings()
         self.assertEqual(landings[7], [-1024, -896, -5632, 1024, -895, -5120])
         self.assertEqual(landings[8], [-1024, -1024, -7168, 1024, -1023, -5632])

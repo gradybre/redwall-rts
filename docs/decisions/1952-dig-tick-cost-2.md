@@ -1,7 +1,8 @@
 # 1952 — Dig-tick cost, part 2: the approved P-1951 work, what it bought, and what the stalls are made of
 
 Date: 2026-10-16 · Status: Accepted. It implements Brendan's 2026-10-15 rulings on decision 1951, with P-1951-2's
-method replaced by the coordinator's call of 2026-10-16 (§4).
+method replaced by the coordinator's call of 2026-10-16 (§4). Brendan ruled on this record's proposals on 2026-10-16
+(see "Brendan's rulings (2026-10-16)"): P-1952-2 "Spread it out" and P-1952-1 "Later, if needed".
 
 Lane DIG-TICK-COST, branch `perf/dig-tick-cost-2`, cut from `perf/dig-tick-cost` at its merged head `3cb7b60c` (master
 `95d41cbf`), and merged with master `fd1c6d70` (PR #265) and `c11da82e` (PRs #267 and #268) on 2026-10-16. Brendan approved these items of decision 1951
@@ -444,6 +445,21 @@ The final code is at `5918d11a`, the merge with master `c11da82e`. The worktree 
     master's.
 - **Independent review.** Two `code-reviewer` passes found no equivalence break and no open CRITICAL or HIGH item (see
   above).
+
+## Brendan's rulings (2026-10-16)
+
+Brendan ruled in chat on 2026-10-16, and the coordinator relayed the rulings:
+
+- **P-1952-2: "Spread it out".**
+  - Phase preparation will run across several ticks, so a phase opens a few ticks later than it does now. That is a
+    small timing change, and it will be recorded.
+  - It is **not byte-identical**, so it is **not** part of this lane. It will be its own lane, which starts after the
+    activation lane has mounted content 12, because both lanes touch the phase-start and route paths.
+  - This branch does not begin it.
+- **P-1952-1: "Later, if needed".**
+  - The per-row write tokens wait.
+  - After activation and phase spreading, the cost is re-measured with `tools/benchmark_dig_tick.gd`.
+  - The tokens are built only if the 2 ms target of REQ-SET-163 is still not met.
 
 ## Source
 

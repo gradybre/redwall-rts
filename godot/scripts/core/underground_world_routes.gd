@@ -46,6 +46,13 @@ const REFUSE_BINDING: StringName = &"WORLD_ROUTE_BINDING"
 const REFUSE_CONTEXT: StringName = &"WORLD_ROUTE_CONTEXT"
 const REFUSE_BUDGET: StringName = &"WORLD_ROUTE_COLD_LEASE"
 const REFUSE_BUSY: StringName = &"WORLD_ROUTE_BUSY"
+## Decision 1952 (P-1951-1): the room itinerary's per-edge profile choice is remembered per (edge, anchor) while every
+## input it reads is unchanged. A slot: epoch, edge, anchor, chosen row (-1 none), spent checks, descriptor written,
+## then that descriptor's profile, revision, content, mode and posture.
+const EDGE_MEMO_SLOTS: int = 32
+const EDGE_MEMO_STRIDE: int = 11
+const EDGE_MEMO_STAMP: int = 6
+const EDGE_MEMO_MISS: int = -2
 const REFUSE_COVERAGE: StringName = &"WORLD_ROUTE_COVERAGE"
 
 
@@ -318,6 +325,11 @@ var _witness_content: int = 0
 @warning_ignore("unused_private_class_variable")
 var _witness_work: int = 0
 var _descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+var _edge_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: EDGE_MEMO_SLOTS slots of EDGE_MEMO_STRIDE.
+var _edge_memo_stamp: PackedInt64Array = PackedInt64Array() # Graph, its publication, certificates, geometry, bank, load.
+var _edge_memo_epoch: int = 1
+var _certificate_revision: int = 1 # Decision 1952: moves on every certificate bank swap; never saved.
+var _descriptor_writes: int = 0 # Decision 1952: successful `_reach_descriptor` writes.
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
 var _endpoint: Locations.Record = Locations.Record.new()
@@ -407,6 +419,8 @@ func _allocate_scratch() -> void:
 	_first_point.resize(3)
 	_last_point.resize(3)
 	_envelope.resize(6)
+	_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)
+	_edge_memo_stamp.resize(EDGE_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
 	_endpoint.support.resize(6)
 	_section.box.resize(6)
@@ -733,6 +747,7 @@ static func _commit_preflighted_certificates(actual: RefCounted, catalog_revisio
 	var previous: Certificates = actual._live
 	actual._live = actual._stage
 	actual._stage = previous
+	actual._certificate_revision = _next_revision(actual._certificate_revision)
 	actual._live_catalog_revision = catalog_revision
 	actual._proof = null
 	actual._route_token = 0
@@ -1458,6 +1473,7 @@ func publish(token: int) -> StringName:
 	var previous: Certificates = _live
 	_live = _stage
 	_stage = previous
+	_certificate_revision = _next_revision(_certificate_revision)
 	_live_catalog_revision = _catalog_revision
 	_clear_preparation()
 	return &""
@@ -1819,7 +1835,84 @@ static func _reach_descriptor(actual: RefCounted, row: int, revision: int, conte
 	descriptor.content_revision = content
 	descriptor.mode = mode
 	descriptor.posture = bank.fields[Profiles.F_POSTURE * capacity + row]
+	actual._descriptor_writes += 1
 	return &""
+
+
+static func _next_revision(revision: int) -> int:
+	"""Decision 1952: a runtime token's next value; it saturates and then reads as unusable (zero)."""
+	return revision + 1 if revision > 0 and revision < 9223372036854775807 else 0
+
+
+static func edge_memo_epoch(actual: RefCounted, graph: Routes) -> int:
+	"""Decision 1952: the memo epoch for the current inputs (a changed input starts a new one); zero when unusable."""
+	var profiles: Profiles = actual._profiles
+	if actual._edge_memo.size() != EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE or graph == null or graph._owner == null \
+			or graph._last_published_token <= 0 or actual._certificate_revision <= 0 or profiles == null \
+			or profiles._loading or profiles._live == null or profiles.load_revision() == 0: return 0
+	var stamp: PackedInt64Array = actual._edge_memo_stamp
+	if stamp[0] != graph.get_instance_id() or stamp[1] != graph._last_published_token \
+			or stamp[2] != actual._certificate_revision or stamp[3] != graph._owner._header[17] \
+			or stamp[4] != profiles._live.get_instance_id() or stamp[5] != profiles.load_revision():
+		stamp[0] = graph.get_instance_id()
+		stamp[1] = graph._last_published_token
+		stamp[2] = actual._certificate_revision
+		stamp[3] = graph._owner._header[17]
+		stamp[4] = profiles._live.get_instance_id()
+		stamp[5] = profiles.load_revision()
+		actual._edge_memo_epoch = _next_revision(actual._edge_memo_epoch)
+	return actual._edge_memo_epoch
+
+
+static func edge_profile_memo(actual: RefCounted, graph: Routes, edge: int, anchor: int) -> int:
+	"""Decision 1952: the remembered choice with its exact spend and descriptor write replayed, or EDGE_MEMO_MISS. Only
+	inside the original search, with no recorded fault and enough budget for the whole remembered spend."""
+	if graph == null or graph._operation_error != &"" or graph._bindings != actual or not actual._reading \
+			or not graph._searching: return EDGE_MEMO_MISS
+	var epoch: int = edge_memo_epoch(actual, graph)
+	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
+	var memo: PackedInt64Array = actual._edge_memo
+	if epoch == 0 or memo[at] != epoch or memo[at + 1] != edge or memo[at + 2] != anchor or memo[at + 4] > graph._remaining:
+		return EDGE_MEMO_MISS
+	graph._remaining -= memo[at + 4]
+	if memo[at + 5] == 1: _replay_descriptor(actual, memo, at)
+	return memo[at + 3]
+
+
+static func _edge_memo_slot(edge: int, anchor: int) -> int:
+	"""A direct-mapped slot; a collision is only a miss."""
+	return posmod(edge * 7 + anchor, EDGE_MEMO_SLOTS)
+
+
+static func _replay_descriptor(actual: RefCounted, memo: PackedInt64Array, at: int) -> void:
+	"""Write the five search fields exactly as the remembered last `_reach_descriptor` call did."""
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	descriptor.profile_id = memo[at + 6]
+	descriptor.profile_revision = memo[at + 7]
+	descriptor.content_revision = memo[at + 8]
+	descriptor.mode = memo[at + 9]
+	descriptor.posture = memo[at + 10]
+	actual._descriptor_writes += 1
+
+
+static func remember_edge_profile(actual: RefCounted, graph: Routes, edge: int, anchor: int, row: int, spent: int,
+		wrote: bool, epoch: int) -> void:
+	"""Keep one completed choice computed at `epoch` (unchanged since), with no fault; a fault is never remembered."""
+	if epoch == 0 or graph._operation_error != &"" or spent < 0 or edge_memo_epoch(actual, graph) != epoch: return
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	var memo: PackedInt64Array = actual._edge_memo
+	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
+	memo[at] = epoch
+	memo[at + 1] = edge
+	memo[at + 2] = anchor
+	memo[at + 3] = row
+	memo[at + 4] = spent
+	memo[at + 5] = 1 if wrote else 0
+	memo[at + 6] = descriptor.profile_id
+	memo[at + 7] = descriptor.profile_revision
+	memo[at + 8] = descriptor.content_revision
+	memo[at + 9] = descriptor.mode
+	memo[at + 10] = descriptor.posture
 
 
 static func _reach_sources_refusal(actual: RefCounted, graph: Routes, owner: Owner,
@@ -2660,6 +2753,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	var previous: Certificates = _live
 	_live = _stage
 	_stage = previous
+	_certificate_revision = _next_revision(_certificate_revision)
 	_live_catalog_revision = catalog_revision
 	_witness_work = 0 # A fresh World has no remembered reachability search; neither does a loaded one.
 	_owner()._location_journal.read_from(bytes, _owner()._journal.read_from(bytes, at))

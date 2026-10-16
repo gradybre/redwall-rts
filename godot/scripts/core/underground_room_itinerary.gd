@@ -118,8 +118,22 @@ static func _relax(actual: WorldRoutes, origin: Vector2i, anchor: int) -> String
 
 
 static func _edge_profile(actual: WorldRoutes, edge: int, anchor: int) -> int:
-	"""Choose the first exact compatible bit in the original mask, spending every attempted row and source check."""
+	"""Choose the first exact compatible bit in the original mask, spending every attempted row and source check.
+	Decision 1952: answered from WorldRoutes' memo, spend and descriptor write replayed, while every input is unchanged."""
 	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	var row: int = WorldRoutes.edge_profile_memo(actual, graph, edge, anchor)
+	if row != WorldRoutes.EDGE_MEMO_MISS: return row
+	var epoch: int = WorldRoutes.edge_memo_epoch(actual, graph)
+	var before: int = graph._remaining
+	var writes: int = actual._descriptor_writes
+	row = _edge_profile_live(actual, graph, edge, anchor)
+	WorldRoutes.remember_edge_profile(actual, graph, edge, anchor, row, before - graph._remaining,
+		writes != actual._descriptor_writes, epoch)
+	return row
+
+
+static func _edge_profile_live(actual: WorldRoutes, graph: Routes, edge: int, anchor: int) -> int:
+	"""The choice itself, read from the current certificates and Profiles bank."""
 	var profiles: Profiles = actual._profiles
 	for row: int in profiles._live.header[1]:
 		if not graph._spend(16): return -1

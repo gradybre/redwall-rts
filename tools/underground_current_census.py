@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "19960e83d6b1f9a69b252a5a77115f2335cefeed3ffb4369398671815ca37d50"
+REVIEWED_SHA = "2a65f1e0ceb21894348bff1359b2c6f9ab8beea8f1065f9992b75a82741e1f67"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -187,10 +187,18 @@ def world_routes_controls(memory, index: dict) -> dict:
                "Owner.Region": packet(memory, index, CORE + "underground_space_owner.gd", "Region") + 24,
                "Routes.Edge": packet(memory, index, CORE + "underground_routes.gd", "Edge"),
                "IntMath.IntResult": packet(memory, index, CORE + "int_math.gd", "IntResult", "")}
-    fixed = memory.numeric_fields(source, "") + 4 * sum(int(count) for _, count in small) + sum(packets.values())
+    # Decision 1952: the itinerary edge-profile memo and its input stamp, two fixed int64 packets.
+    require(re.findall(r"^\t(_edge_memo\w*)\.resize\((\w+(?: \* \w+)?)\)$", source, re.M)
+            == [("_edge_memo", "EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE"), ("_edge_memo_stamp", "EDGE_MEMO_STAMP")],
+            "WorldRoutes edge memo packets")
+    memo = 8 * (memory.resolve(index, "underground_world_routes", "EDGE_MEMO_SLOTS")
+                * memory.resolve(index, "underground_world_routes", "EDGE_MEMO_STRIDE")
+                + memory.resolve(index, "underground_world_routes", "EDGE_MEMO_STAMP"))
+    fixed = memory.numeric_fields(source, "") + 4 * sum(int(count) for _, count in small) + sum(packets.values()) + memo
     reserve = memory.resolve(index, "underground_world_routes", "CONTROL_RESERVE")
     require(fixed <= reserve, "WorldRoutes controls exceed CONTROL_RESERVE")
     return {"numeric_bytes": memory.numeric_fields(source, ""), "small_packed_bytes": 4 * sum(int(c) for _, c in small),
+            "edge_memo_bytes": memo,
             "packet_numeric_bytes": packets, "fixed_bytes": fixed, "control_reserve_bytes": reserve,
             "added_by_adr_1205_bytes": 24 + 4 * 8 + 2}
 

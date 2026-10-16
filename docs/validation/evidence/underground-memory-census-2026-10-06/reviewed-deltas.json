@@ -1474,6 +1474,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "one range() iterator in a cold path; no retained storage"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1952: _edge_profile consults WorldRoutes' memo; the live choice moves to _edge_profile_live; no member, packet or resize"
     }
    ],
    "delta": {
@@ -2275,6 +2280,11 @@
      "bytes": 0,
      "carried_by": "Budget.COLD_BYTES shared cold lease",
      "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
+    },
+    {
+     "bytes": 2888,
+     "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+     "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[352] and its input stamp I64[6], plus three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
     }
    ],
    "delta": {
@@ -2290,6 +2300,26 @@
      [
       "_carry_edge",
       "bool"
+     ],
+     [
+      "_certificate_revision",
+      "int"
+     ],
+     [
+      "_descriptor_writes",
+      "int"
+     ],
+     [
+      "_edge_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_edge_memo_epoch",
+      "int"
+     ],
+     [
+      "_edge_memo_stamp",
+      "PackedInt64Array"
      ],
      [
       "_envelope",
@@ -2309,6 +2339,8 @@
      ]
     ],
     "resizes_added": [
+     "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
+     "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
      "_envelope.resize(6)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
      "out.resize(CERT_WIRE_BYTES)"
@@ -2341,6 +2373,22 @@
      [
       "COLD_BYTES",
       "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+     ],
+     [
+      "EDGE_MEMO_MISS",
+      "-2"
+     ],
+     [
+      "EDGE_MEMO_SLOTS",
+      "32"
+     ],
+     [
+      "EDGE_MEMO_STAMP",
+      "6"
+     ],
+     [
+      "EDGE_MEMO_STRIDE",
+      "11"
      ]
     ],
     "int_constants_removed": [
@@ -2455,7 +2503,7 @@
     },
     "allocation_sites": {
      "PackedInt32Array(": 2,
-     "PackedInt64Array(": 1,
+     "PackedInt64Array(": 3,
      "range(": 1
     }
    }

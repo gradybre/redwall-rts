@@ -189,3 +189,41 @@ func test_a_record_left_by_a_deleted_room_does_not_start_the_new_room_on_its_row
 	assert_equal(_runtime.start_room(fresh, _h.owners(), _crew()), Runtime.REFUSE_ROOM, "not started on the old record")
 	assert_equal(_runtime.order_room(fresh, _h.material, _h.material), &"", "ordering replaces the old record")
 	assert_equal(_runtime.state_of(fresh), Runtime.RECORD_QUEUED, "queued")
+
+
+func test_a_reused_row_waits_for_the_stopped_crew_to_walk_out() -> void:
+	"""Decision 1937: a room deleted while its stopped crew is still underground leaves its row's foreman walking the
+	crew out; a new room on the same directory row is refused until it has (ROOM_DIG_CREW_OUT), so no builder is
+	dropped underground still reserved by nobody."""
+	if _room == NULL_REF: return
+	var pile: Vector2i = _h._inventory.create_spatial_ground_staging(_h.parking).ref
+	assert_true(_h._inventory.create_lot(pile, _h._items.compiled_id(&"excavated_earth"),
+		_h._inventory.container_free_mass_g(pile) - 1000, 1, 0, -1, 0, 0).ok, "a nearly full pile")
+	assert_equal(_runtime.order_room(_room, _h.material, pile), &"", "queued")
+	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "started")
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		_runtime.advance(_h.tick)
+		if _runtime.state_of(_room) == Runtime.RECORD_STOPPED: break
+	assert_true(_runtime.foreman_of(_room).crew_out(), "stopped with its builder still underground")
+	assert_equal(_runtime.release_room(_room), Runtime.REFUSE_CREW_OUT, "not released while the crew is out")
+	assert_true(_h._residents.directory().destroy(_room), "the room deleted")
+	var reused: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	assert_equal(reused.x, _room.x, "the same directory row, a new generation")
+	assert_equal(_runtime.order_room(reused, _h.material, _h.material), Runtime.REFUSE_CREW_OUT, "refused, named")
+	assert_true(_runtime.reserves_resident(_h._residents.directory().get_typed_row(_h._worker)), "still reserved")
+
+
+func test_a_queued_record_no_foreman_took_can_be_cancelled() -> void:
+	"""`cancel_queued` forgets only a QUEUED record of the same room."""
+	if _room == NULL_REF: return
+	assert_equal(_runtime.cancel_queued(_room), Runtime.REFUSE_ROOM, "never ordered")
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "queued")
+	assert_equal(_runtime.cancel_queued(Vector2i(_room.x, _room.y + 1)), Runtime.REFUSE_ROOM, "stale")
+	assert_equal(_runtime.cancel_queued(_room), &"", "cancelled")
+	assert_equal(_runtime.state_of(_room), Runtime.RECORD_NONE, "forgotten")
+	assert_equal(_runtime.cancel_queued(_room), Runtime.REFUSE_STATE, "nothing queued")
+	assert_equal(_runtime.kept(), 0, "nothing kept")
+	assert_equal(_runtime.order_room(_room, _h.material, _h.material), &"", "orderable again")
+	assert_equal(_runtime.start_room(_room, _h.owners(), _crew()), &"", "started")
+	assert_equal(_runtime.cancel_queued(_room), Runtime.REFUSE_STATE, "not while digging")

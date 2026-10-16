@@ -190,11 +190,9 @@ func worker_row() -> int:
 
 
 func underground() -> bool:
-	"""Still underground: a registered route actor (Routes keeps it until it leaves from rest), or walking in or
-	out."""
-	if _walk.walking(): return true
-	var row: int = worker_row()
-	return row >= 0 and _ctx.owners.routes._resident_ref(row) != NULL_REF
+	"""Still underground: a registered route actor (Routes keeps it until it leaves from rest, or until a lost one's
+	actor is removed, as the entry foreman's `_lost_actor_row` check), or walking in or out."""
+	return _walk.walking() or _ctx.owners.routes._lost_actor_row(_crew.worker) >= 0
 
 
 func walking() -> bool:
@@ -247,12 +245,14 @@ func leave() -> StringName:
 
 
 func _arrive_out() -> StringName:
-	"""Back where it came from, facing as it stood."""
+	"""Back where it came from, facing as it stood. The placement is a foreign pose change to Routes, which every
+	builder still underground must see: its occupancy roots are rebuilt at once (decision 1937), or no actor could
+	move again."""
 	var o: Owners = _ctx.owners
 	var pose: Transforms.Pose = Transforms.Pose.new()
 	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_LOST
-	return &"" if o.transforms.place(_crew.worker, _walk.origin.x, _walk.origin.y, _walk.origin.z, pose.yaw) \
-		else REFUSE_LOST
+	if not o.transforms.place(_crew.worker, _walk.origin.x, _walk.origin.y, _walk.origin.z, pose.yaw): return REFUSE_LOST
+	return o.routes.refresh_occupancy()
 
 
 func idle() -> bool:
@@ -967,6 +967,7 @@ func abandon() -> StringName:
 	(decision 1936); otherwise the route actor stays where it stopped."""
 	var was: int = _failed_from if _stage == STAGE_FAILED else _stage
 	_stage = STAGE_FAILED
+	if _walk.walking() and not _walk.leaving: _walk.ticks_left = 0 # Its body never left where it stood.
 	var o: Owners = _ctx.owners
 	if was >= STAGE_ENTER and was <= STAGE_RECOVER and _job >= 0 and not lost() \
 			and o.routes.request_source_ready(_crew.worker, o.jobs.ref_of(_job)) == &"":
@@ -981,10 +982,10 @@ func _release_phase() -> StringName:
 	var dropped: StringName = _drop_haul() # A refused haul release is reported, but the phase is still released.
 	if _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return dropped
 	var released: Construction.OpResult = o.sites.release_worker(_site)
-	if _phase_started(): return &"" if released.ok else released.error # Never while hauling (BRACE is unstarted).
-	if not released.ok: # Sites releases a Job nobody holds as already free (TO_STORE, or a haul's own Job).
-		var code: StringName = _release_assignment(released.error)
+	if not released.ok: # Sites releases a Job nobody holds as already free (TO_STORE, a haul's own Job, or a paid
+		var code: StringName = _release_assignment(released.error) # phase taken over but not yet bound).
 		if code != &"": return dropped if dropped != &"" else code
+	if _phase_started(): return dropped # A started phase keeps its paid Project (never while hauling).
 	var cancelled: Construction.OpResult = o.sites.cancel_phase(_site, _ctx.storage)
 	return dropped if dropped != &"" or cancelled.ok else cancelled.error
 

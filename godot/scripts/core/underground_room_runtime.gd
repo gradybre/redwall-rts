@@ -129,6 +129,7 @@ func order_room(room: Vector2i, storage: Vector2i, output: Vector2i, staging: Ve
 	var row: int = _row(room)
 	if row < 0 or storage == NULL_REF or output == NULL_REF: return REFUSE_ROOM
 	if (_generation[row] == room.y and _state[row] != RECORD_NONE) or _digging(row): return REFUSE_STATE
+	if _crew_out_on(row): return REFUSE_CREW_OUT # A deleted room's crew is still walking out.
 	if _state[row] == RECORD_NONE and kept() >= MAX_KEPT: return REFUSE_CAPACITY
 	_drop_foremen(row)
 	_generation[row] = room.y
@@ -212,20 +213,9 @@ func advance(tick: int) -> Array[StringName]:
 			_settle_record(index)
 		elif foreman.crew_out():
 			code = foreman.advance_out(tick) # P-1936-3 (a): the crew walks back out.
+		foreman.shed_crew()
 		if code != &"": _refusals.append(code)
-	_clear_finished()
 	return _refusals
-
-
-func _clear_finished() -> void:
-	"""A finished dig whose crew is out leaves nothing to keep: Sites hold the dug room. Its record is cleared and
-	its foreman dropped."""
-	for index: int in range(_foremen.size() - 1, -1, -1):
-		var foreman: Foreman = _foremen[index]
-		if foreman.state() != Foreman.STATE_DONE or foreman.crew_out(): continue
-		_state[_foreman_rows[index]] = RECORD_NONE
-		_foremen.remove_at(index)
-		_foreman_rows.remove_at(index)
 
 
 func _settle_record(index: int) -> void:
@@ -260,15 +250,31 @@ func foreman_of(room: Vector2i) -> Foreman:
 
 func release_room(room: Vector2i) -> StringName:
 	"""Clear a DONE or STOPPED record and drop its foreman. Re-ordering the room afterwards digs only what is left;
-	a phase a stopped dig had paid stays open until C2.3's resume, and the owners refuse to open it again."""
+	a phase a stopped dig had paid stays open, and the re-ordered dig takes it over (P-1933-2 (a)). Refused while a
+	builder is still underground."""
 	var row: int = _row(room)
 	if row < 0 or _generation[row] != room.y: return REFUSE_ROOM
 	if _state[row] != RECORD_DONE and _state[row] != RECORD_STOPPED: return REFUSE_STATE
-	for index: int in _foremen.size():
-		if _foreman_rows[index] == row and _foremen[index].crew_out(): return REFUSE_CREW_OUT
+	if _crew_out_on(row): return REFUSE_CREW_OUT
 	_state[row] = RECORD_NONE
 	_drop_foremen(row)
 	return &""
+
+
+func cancel_queued(room: Vector2i) -> StringName:
+	"""Forget a QUEUED record no foreman took (decision 1937: an order whose start was refused leaves nothing)."""
+	var row: int = _row(room)
+	if row < 0 or _generation[row] != room.y: return REFUSE_ROOM
+	if _state[row] != RECORD_QUEUED: return REFUSE_STATE
+	_state[row] = RECORD_NONE
+	return &""
+
+
+func _crew_out_on(row: int) -> bool:
+	"""A foreman kept for the row still has a builder underground."""
+	for index: int in _foremen.size():
+		if _foreman_rows[index] == row and _foremen[index].crew_out(): return true
+	return false
 
 
 func _drop_foremen(row: int) -> void:

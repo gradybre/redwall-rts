@@ -44667,11 +44667,11 @@
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
   "new_mutable_and_reserved_bytes": 14420032,
-  "declaration_bytes": 26270,
-  "declaration_delta_bytes": 5085,
-  "live_with_reserve_bytes": 109415494,
+  "declaration_bytes": 26374,
+  "declaration_delta_bytes": 5189,
+  "live_with_reserve_bytes": 109415598,
   "gate_bytes": 150000000,
-  "headroom_bytes": 40584506,
+  "headroom_bytes": 40584402,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
@@ -44726,7 +44726,7 @@
     "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "aa41a31960fe7bfeb2ef3eff060f777b3b9a94d39b17e08df33cbd5fda174048",
+  "registry_sha256": "f7fc565179f29c12db0248288515f1d9795135c8989b3be3e81d055df5f0e180",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

@@ -495,7 +495,9 @@ def room_wire_bound(memory, index: dict) -> dict:
 def room_dig_runtime(memory, index: dict) -> dict:
     """Decision 1936: the room-dig runtime the host composes with the Session's room owners and retains while it is
     mounted, at its worst case for 256 residents. The record is allocated whole; at most MAX_KEPT foremen are kept,
-    their orders together cover each Site at most once (one foreman a room) and each resident builds in one dig."""
+    their orders together cover each Site at most once (one foreman a room) and each resident builds in one dig: a
+    finished or stopped dig forgets each builder once it is out (`shed_crew`, decision 1937), so no resident is held
+    by two foremen."""
     index = room_index(index)
     for name in ROOM_STATELESS:
         require(not memory.explicit_members(module(index, CORE + name + ".gd").text), "stateless room module: " + name)

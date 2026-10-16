@@ -274,3 +274,14 @@ func test_a_paid_phase_left_by_a_lost_builder_is_taken_over_up_to_the_room_bindi
 	assert_equal(seen, [&"ROOM_PHASE_WORKER"] as Array[StringName], "the room bindings' worker check, named")
 	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), wood, "no second input claimed")
 	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE still kept")
+	var taker_row: int = _h._residents.directory().get_typed_row(second.worker)
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		runtime.advance(_h.tick)
+		if not runtime.is_running(): break
+	assert_false(runtime.is_running(), "the taker walked out")
+	assert_equal(_h._jobs.job_of(taker_row), NULL_REF, "the taken-over Job it was assigned is released, not kept")
+	assert_true(runtime.foreman_of(room).builders().is_empty(), "the stopped dig forgets the builder once it is out")
+	assert_false(runtime.reserves_resident(taker_row), "and reserves it no longer")
+	assert_equal(runtime.release_room(room), &"", "released again")
+	assert_equal(runtime.order_room(room, _h.material, _h.material), &"", "and orderable a third time")

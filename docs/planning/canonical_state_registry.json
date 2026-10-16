@@ -67,7 +67,7 @@
  },
  "canonical_stream": "RWL-STATE-1",
  "record_count": 812,
- "packed_source_field_count": 704,
+ "packed_source_field_count": 706,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -9153,6 +9153,70 @@
      "scalar": false,
      "hash_location": "inside progress_record (decision 1936 builder block, count-prefixed)",
      "ordinal": 21,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "blocked_at_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_foreman",
+     "source_member": "_blocked_at",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 foreman block, one blocked epoch before each builder)",
+     "ordinal": 22
+    },
+    {
+     "field_key": "_blocked_at",
+     "type": "i64",
+     "type_code": 4,
+     "hash": false,
+     "source_module": "underground_room_foreman",
+     "source_member": "_blocked_at",
+     "shape": {
+      "count_field": "blocked_at_length",
+      "max_count": 4,
+      "order": "builder_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 foreman block, one blocked epoch before each builder)",
+     "ordinal": 23,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "body_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_footprint",
+     "source_member": "_body",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1936 builder block, the standing body box)",
+     "ordinal": 24
+    },
+    {
+     "field_key": "_body",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_footprint",
+     "source_member": "_body",
+     "shape": {
+      "count_field": "body_length",
+      "max_count": 6,
+      "order": "box_axes"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1936 builder block, the standing body box)",
+     "ordinal": 25,
      "source_contract": "C202"
     }
    ]

@@ -182,6 +182,12 @@ func test_a_lost_builder_stops_the_room_with_its_code() -> void:
 	assert_equal(_h.sites._ever_cut.count(1), 0, "nothing cut")
 	assert_equal(foreman.abandon_error(), &"", "released cleanly")
 	assert_equal(_h._construction.live_project_count(), 0, "the unstarted BRACE was cancelled")
+	var gone: Vector2i = _h._worker
+	assert_true(foreman.crew_out(), "the departed resident's route actor is still registered (decision 1937)")
+	_h.tick += 1
+	assert_equal(foreman.advance_out(_h.tick), &"", "it leaves")
+	assert_equal(_h._routes._lost_actor_row(gone), -1, "its actor removed (ADR1225), so its body blocks nothing")
+	assert_false(foreman.crew_out(), "nobody left underground")
 
 
 func test_a_builder_lost_while_parked_or_dead_at_its_station_stops_the_room() -> void:

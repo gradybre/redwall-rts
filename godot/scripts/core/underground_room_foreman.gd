@@ -240,6 +240,19 @@ func crew_out() -> bool:
 	return false
 
 
+func shed_crew() -> void:
+	"""After the dig (done or stopped), a builder that is out (no actor, no walk) is forgotten, so the dig keeps only
+	the builders still underground, as the save writes them (decision 1937): nothing it keeps can act on a resident
+	another dig may pick next."""
+	if is_running(): return
+	for index: int in range(_builders.size() - 1, -1, -1):
+		if not _builders[index].underground():
+			_builders.remove_at(index)
+			_blocked_at.remove_at(index)
+	_blocked.resize(_builders.size())
+	_blocked.fill(0)
+
+
 func advance_out(tick: int) -> StringName:
 	"""P-1936-3 (a): after the dig (done or stopped) each builder leaves from rest and walks back out; one walking
 	out advances. Routes still runs for an actor finishing the step it was on."""
@@ -404,7 +417,7 @@ func builders() -> Array[Builder]:
 
 func write_state(w: EntryProgress.Writer) -> void:
 	"""This dig: room, state, codes, ledgers and latch, epoch, context, then (while it runs) its order and marks, and
-	(while it runs or its crew is out) each builder after its blocked epoch."""
+	each builder it keeps after its blocked epoch (after the dig, only those still underground: `shed_crew`)."""
 	w.ref(_room)
 	w.i32(_state)
 	for value: StringName in [_error, _abandon_error, _last_refusal]:
@@ -421,9 +434,7 @@ func write_state(w: EntryProgress.Writer) -> void:
 		for at: int in _order.rows.size():
 			w.i32(_order.rows[at])
 			w.i32(_cube[at])
-	var kept: bool = running or crew_out()
-	w.i32(_builders.size() if kept else 0)
-	if not kept: return
+	w.i32(_builders.size())
 	for index: int in _builders.size():
 		w.i64(_blocked_at[index])
 		_builders[index].write_state(w)

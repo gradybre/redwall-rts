@@ -29,7 +29,8 @@ across a load. It reserves a builder while its dig runs and for as long as the b
   until a per-access binding exists;
 - picks the first living adult mole by slot that holds no Job and no tool, is not seeking food or rest (DEC-059)
   and is reserved by no dispatcher (the entry's `_idle_mole` rule);
-- parks it, then orders and starts the dig.
+- queues the room, parks the builder and starts the dig. An order whose parking or start is refused forgets the
+  queued record (`cancel_queued`), so no room is left QUEUED for good.
 
 **No level has a way in yet (slice D),** so in the running game an order is refused by the contacts' own binding,
 named and alerted, and nothing is bound or recorded. The demo mounts through the same host and needs no edit.
@@ -48,9 +49,17 @@ state.
   builder's Movement speed, then placement on its parking and registration. No work moves until the whole crew has
   arrived: registering a second builder on a started phase is refused `ROOM_PHASE_WORKER`.
 - **Walk-out (P-1936-3 (a)).** A finished or stopped dig's builders leave once they rest on an endpoint
-  (`unregister_resting_actor`, or `unregister_lost_actor` for a lost one), then walk the timed walk in reverse. A
-  builder stopped inside a WORK source first asks the source for READY and leaves when it gets there; until then
-  it stays reserved. A DONE record whose crew is out clears itself and drops its foreman.
+  (`unregister_resting_actor`, or `unregister_lost_actor` for one that died or left: underground-ness is Routes'
+  own `_lost_actor_row`, as the entry foreman reads it), then walk the timed walk in reverse. A builder stopped
+  inside a WORK source first asks the source for READY and leaves when it gets there; until then it stays
+  reserved. A builder still walking in when the dig stops never arrives (its body never moved).
+- **Arrival out is a foreign pose change.** Placing the walked-out resident bumps Transforms' mutation revision, so
+  the builder rebuilds Routes' occupancy roots at once (`refresh_occupancy`). Without it every builder still
+  underground was held (`ROUTE_OCCUPANCY_STALE`) and never reached READY: a two-builder stop hung for good.
+- **A finished or stopped dig forgets each builder once it is out** (`shed_crew`). It keeps only the builders still
+  underground, exactly as the save writes them, so nothing it keeps can act on a resident another dig picks next.
+  The record stays DONE or STOPPED until `release_room`, as in C2.1. A re-order, including a new room on the same
+  directory row, is refused `ROOM_DIG_CREW_OUT` while a builder is still underground.
 - **Resume (P-1933-2 (a)).** A re-ordered room's cube with a live, started phase is taken first: the builder takes
   the Site's bound Job, walks to the station, and continues the paid work through Sites' `resume_phase_work`
   without a second payment. Frontier refuses a live project (`ROOM_FRONTIER_EXISTING_PROJECT`), so
@@ -62,18 +71,20 @@ state.
 - Section 6 owner `underground_room_progress`: registry v17 (`RWL-CANONICAL-REGISTRY-2026-10-15-RD1`), section 6
   schema 11, 26 owners, 812 canonical records. `progress_length` (u32) and `progress_record` (u8, at most
   `MAX_WIRE_BYTES` = 1,198,536) are hashed.
-- **The ten category-1 packed columns** (the runtime's five record columns and `_foreman_rows`, the foreman's
-  `_cube`, the builder's `_legs`, `_leg_profiles` and `_queue`) are declared hash-free inside the record, with a
-  length each, as decision 1218 declared the hauler's `_queue`. Source contract C202; 704 packed source fields.
-  The adapter refuses a block that carries any of them.
+- **The twelve category-1 packed columns** (the runtime's five record columns and `_foreman_rows`, the foreman's
+  `_cube` and `_blocked_at`, the builder's `_legs`, `_leg_profiles` and `_queue`, the footprint's `_body`) are
+  declared hash-free inside the record, with a length each, as decision 1218 declared the hauler's `_queue`.
+  Source contract C202; 706 packed source fields. The adapter refuses a block that carries any of them.
 - The codec (`underground_room_progress.gd`, "RMDP" v1) writes only rows in use, each kept foreman (state, codes,
-  ledgers, latch, epoch, context; while running its order rows and marks) and each builder (crew, cursor, the four
+  ledgers, latch, epoch, context; while running its order rows and marks; the builders it keeps, each after its
+  blocked epoch) and each builder (crew, cursor, the four
   leg lists, the cube plan, the walk, the haul plan and ADR 1218's unchanged hauler block). Footprints are swept
   again from the saved cube plan, so no box is saved; keys, extents and per-tick flags are re-derived.
 - A decoded record must re-encode to the same bytes (`ROOM_SAVE_NONCANONICAL`). Restore goes into a fresh runtime
   whose owners the re-mount bound, after the entry's record, and then binds the contacts again.
 - **Parity (ARCH-SAVE-006).** On the Kitchen, restoring before every tick ends byte-identical to the uninterrupted
-  run for one builder, a haul, two builders and a stopped dig. Through the real save path, a queued record
+  run for one builder, a haul, two builders, a stopped dig and a stopped pair whose builders leave one by one. Two
+  row blocks swapped (each in range) are refused `ROOM_SAVE_NONCANONICAL`. Through the real save path, a queued record
   round-trips and the loaded settlement saves byte-identically. No migration (DEC-055 item 1): an older save loads
   with the owner canonical-empty.
 
@@ -91,14 +102,15 @@ The current-source census counts `room_dig_runtime` from exact member sets at ev
 | Two record images at `MAX_WIRE_BYTES` | 2,397,082 |
 | **Total** | **9,164,262** |
 
-With the declaration's +625 B, live is **109,415,494 B** and the **headroom is exactly 40,584,506 B** (it was
-49,749,393). Decision 1936 estimated about 5.26 MB; the difference is the two record images (2.4 MB, charged as
+With the declaration's +729 B, live is **109,415,598 B** and the **headroom is exactly 40,584,402 B** (it was
+49,749,393). The 256 builders are a true bound because a resident builds in one dig and a finished or stopped dig
+forgets each builder once it is out (§3). Decision 1936 estimated about 5.26 MB; the difference is the two record images (2.4 MB, charged as
 ADR 1218's are) and extents charged at `MAX_PROFILES` = 256 rows rather than one content's 67.
 
 **Decision 1880's columns are not folded:** this lane allocates none of them. Folded, the headroom would be
-23,627,066 B. **Decision 1880 Q1's projection now overshoots.** It left 1,416,593 B after the painted-room budget
+23,626,962 B. **Decision 1880 Q1's projection now overshoots.** It left 1,416,593 B after the painted-room budget
 and the adopted projects and containers (23,265,280 + 8,110,080). With this runtime counted, that projection is over
-the gate by **7,748,294 B**. `ready07_arithmetic.py` pins the shortfall; it is not an allowance. Slices C and G
+the gate by **7,748,398 B**. `ready07_arithmetic.py` pins the shortfall; it is not an allowance. Slices C and G
 cannot ledger that bound as it stands without a ruling (§6).
 
 ## 6. Named gaps for the coordinator

@@ -2228,14 +2228,14 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Claimed footprint | `_boxes` | 4 | never allocated | Empty while parked; six ints per box, refilled per cube | 3 | -- | Decision 1933 (C2.1), ECON-001. One builder's cube footprint (way there, station work, way back), swept in 256 u pieces. Derived from the planned itineraries; re-planned, never saved. |
-| Standing body | `_body` | 4 | `6` = 6 | Zero before the builder is registered | 3 | -- | Decision 1933 (C2.1). The builder's body box in its standing pose, written in place. Derived, not saved. |
+| Standing body | `_body` | 4 | `6` = 6 | Zero before the builder is registered | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The builder's body box in its standing pose, written in place. Decision 1937: saved with the builder inside `underground_room_progress`'s record (the occupancy proofs read it). |
 | Row extents | `_extents` | 4 | `6 * profiles._live.header[1]` runtime | UNFILLED until a row is first used | 3 | -- | Decision 1933 (C2.1). Cached union of each row's body, recovery, approach and stroke boxes (6 ints per published row). Derived from Profiles, not saved. |
 
 ### `godot/scripts/core/underground_room_foreman.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Blocked-builder epochs | `_blocked_at` | 8 | `made.size()` runtime | -1 until a builder is found blocked | 3 | -- | Decision 1933 (C2.1). One per builder (at most 4): the change epoch at which its footprint was last found blocked, so the check reruns only after something changed. Derived, not saved. |
+| Blocked-builder epochs | `_blocked_at` | 8 | `made.size()` runtime | -1 until a builder is found blocked | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One per builder (at most 4): the change epoch at which its footprint was last found blocked, so the check reruns only after something changed. Decision 1937: saved before each builder inside `underground_room_progress`'s record, since the turn-taking ledger depends on when the check reruns. |
 | Blocked this tick | `_blocked` | 1 | `made.size()` runtime | 0 | 3 | -- | Decision 1933 (C2.1). Per-tick flags for the frozen-crew check (ROOM_FOREMAN_CREW_BLOCKED). Derived, not saved. |
 | Cube dispatch marks | `_cube` | 1 | `planned.keys.size()` runtime | One byte per Site of the room: open, taken, done, refused | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). Done is re-read from Sites (SUPPORTED_VOID, no live phase); taken and refused are dispatch state. The foreman also keeps its `_order` packet for the dig's life: rows, keys and distances, 12 B per Site (`DigOrder.Order`, not a top-level column). Decision 1936: while the dig runs, each Site's row and mark are saved inside `underground_room_progress`'s record; the keys are read again from Sites on load. |
 

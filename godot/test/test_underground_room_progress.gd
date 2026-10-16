@@ -11,6 +11,7 @@ const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Progress := preload("res://scripts/core/underground_room_progress.gd")
 const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
 const Claim := preload("res://scripts/core/underground_room_claim.gd")
 const CrewTests := preload("res://test/test_underground_room_foreman_crews.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
@@ -105,6 +106,9 @@ func test_a_record_is_refused_unless_it_is_exactly_canonical() -> void:
 	for step: int in 400:
 		_a.tick += 1
 		runtime.advance(_a.tick)
+	for extra: int in 2: # Two more queued rows, so a row block can be out of order.
+		var queued: Vector2i = _a._residents.directory().create(Directory.KIND_ROOM)
+		assert_equal(runtime.order_room(queued, _a.material, _a.material), &"", "queued")
 	var bytes: PackedByteArray = PackedByteArray()
 	assert_equal(runtime.capture(bytes), &"", "captured mid-dig")
 	var cases: Dictionary = {"truncated": bytes.slice(0, bytes.size() - 1), "extended": bytes + PackedByteArray([0]),
@@ -113,11 +117,18 @@ func test_a_record_is_refused_unless_it_is_exactly_canonical() -> void:
 	cases["versioned"] = versioned
 	var staged: PackedByteArray = bytes.duplicate(); staged.encode_s32(Progress.HEADER_BYTES + 16 + 8, 99) # The row's state.
 	cases["a state out of range"] = staged
+	var first: int = Progress.HEADER_BYTES + 16
+	var swapped: PackedByteArray = bytes.slice(0, first) + bytes.slice(first + Progress.ROW_BYTES, first + 2 * Progress.ROW_BYTES) \
+		+ bytes.slice(first, first + Progress.ROW_BYTES) + bytes.slice(first + 2 * Progress.ROW_BYTES)
 	for name: String in cases:
 		var fresh: Runtime = Runtime.new(_a._residents.directory())
 		fresh.bind_owners(owners)
 		assert_false(fresh.restore(cases[name]) == &"", "%s refused" % name)
 		assert_true(fresh.is_empty(), "%s leaves it empty" % name)
+	var reordered: Runtime = Runtime.new(_a._residents.directory())
+	reordered.bind_owners(owners)
+	assert_equal(reordered.restore(swapped), Progress.REFUSE_NONCANONICAL, "two row blocks swapped: in range, not canonical")
+	assert_true(reordered.is_empty(), "and left empty")
 	var empty: Runtime = Runtime.new(_a._residents.directory())
 	var nothing: PackedByteArray = PackedByteArray()
 	assert_equal(empty.capture(nothing), &"", "an empty runtime saves")
@@ -234,4 +245,36 @@ func test_a_stopped_dig_restored_before_every_tick_recovers_and_walks_out_as_uni
 		assert_equal(pair[0].start_room(pair[3], pair[2], [pair[1].crew_member()] as Array[Builder.Crew]), &"", "started")
 	var ticks: int = _run_pair(owners_a, a, b, Callable())
 	assert_equal(_final.state_of(rooms[0]), Runtime.RECORD_STOPPED, "stopped, its crew out")
+	assert_true(ticks > 100, "restored before every one of %d ticks" % ticks)
+
+
+func test_a_stopped_pair_restored_before_every_tick_walks_out_one_by_one_as_uninterrupted() -> void:
+	"""Decision 1937 (review H4): two builders stop together but leave apart; the one already out is forgotten
+	(`shed_crew`), so every record saved while the other is still underground restores."""
+	var ha: CrewTests.WideKitchen = CrewTests.WideKitchen.new()
+	var hb: CrewTests.WideKitchen = CrewTests.WideKitchen.new()
+	_a = ha; _b = hb
+	var rooms: Array[Vector2i] = [ha.confirmed_room(), hb.confirmed_room()]
+	if rooms.has(NULL_REF): return
+	var piles: Array[Vector2i] = []
+	for h: CrewTests.WideKitchen in [ha, hb]:
+		var pile: Vector2i = h._inventory.create_spatial_ground_staging(h.parking).ref
+		assert_true(h._inventory.create_lot(pile, h._items.compiled_id(&"excavated_earth"),
+			h._inventory.container_free_mass_g(pile) - 1000, 1, 0, -1, 0, 0).ok, "a nearly full pile")
+		piles.append(pile)
+	var owners_a: Builder.Owners = ha.owners()
+	var a: Runtime = Runtime.new(ha._residents.directory())
+	var b: Runtime = Runtime.new(hb._residents.directory())
+	for pair: Array in [[a, ha, owners_a, rooms[0], piles[0]], [b, hb, hb.owners(), rooms[1], piles[1]]]:
+		var crew: Array[Builder.Crew] = [pair[1].crew_member(), pair[1].second_member(CrewTests.SECOND_PARKING)]
+		assert_true(pair[0].bind_owners(pair[2]), "owners")
+		assert_equal(pair[0].order_room(pair[3], pair[1].material, pair[4]), &"", "ordered")
+		assert_equal(pair[0].start_room(pair[3], pair[2], crew), &"", "started")
+	var sizes: PackedInt32Array = PackedInt32Array()
+	var ticks: int = _run_pair(owners_a, a, b, func(x: Runtime, _y: Runtime) -> void:
+		var kept: int = x._foremen[0].builders().size()
+		if sizes.is_empty() or sizes[sizes.size() - 1] != kept: sizes.append(kept))
+	assert_equal(_final.state_of(rooms[0]), Runtime.RECORD_STOPPED, "stopped, its crew out")
+	assert_true(sizes.has(1), "one builder was out before the other: %s" % sizes)
+	assert_equal(sizes[sizes.size() - 1], 0, "both forgotten once out")
 	assert_true(ticks > 100, "restored before every one of %d ticks" % ticks)

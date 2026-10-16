@@ -44,15 +44,18 @@ static func owners_of(o: RefCounted) -> Builder.Owners:
 
 
 static func order(runtime: Runtime, placements: RefCounted, request: Order) -> StringName:
-	"""Bind or check the way in, pick the builder, park it and start the dig."""
+	"""Bind or check the way in, pick the builder, queue the room, park the builder and start the dig. An order whose
+	parking or start is refused leaves no record behind (decision 1937)."""
 	var owners: Builder.Owners = runtime.bound_owners() if runtime != null else null
 	if owners == null or placements == null or request == null or owners.locations == null: return REFUSE_SCOPE
 	var code: StringName = _contacts(runtime, owners, placements, request)
 	var crew: Array[Builder.Crew] = []
 	if code == &"": code = _builder_into(runtime, owners, crew)
-	if code == &"": code = _park(runtime, owners, request, crew[0])
 	if code == &"": code = runtime.order_room(request.room, request.storage, request.output, request.staging)
+	if code != &"": return code
+	code = _park(runtime, owners, request, crew[0])
 	if code == &"": code = runtime.start_room(request.room, owners, crew)
+	if code != &"": runtime.cancel_queued(request.room)
 	return code
 
 

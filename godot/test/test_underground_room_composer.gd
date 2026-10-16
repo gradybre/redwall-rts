@@ -106,6 +106,11 @@ func test_another_access_no_idle_mole_and_no_sites_are_refused() -> void:
 	empty.room = _h._residents.directory().create(Directory.KIND_ROOM)
 	assert_equal(Composer.order(_runtime, _h.placements, empty), Composer.REFUSE_NO_CELLS, "no Sites")
 	assert_equal(_runtime.kept(), 0, "nothing recorded")
+	var refused: Composer.Order = _order(_h._first)
+	refused.staging = _h.material # The same container as the storage: the foreman's configure refuses it.
+	assert_false(Composer.order(_runtime, _h.placements, refused) == &"", "a start refused after parking")
+	assert_equal(_runtime.kept(), 0, "leaves no queued record behind (decision 1937)")
+	assert_equal(Composer.order(_runtime, _h.placements, _order(_h._first)), &"", "so the room can be ordered again")
 	assert_equal(Composer.order(Runtime.new(_h._residents.directory()), _h.placements, _order(_h._first)),
 		Composer.REFUSE_SCOPE, "no owners bound")
 

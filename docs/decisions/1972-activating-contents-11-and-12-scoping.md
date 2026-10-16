@@ -1,10 +1,24 @@
 # 1972 — Activating contents 11 and 12: scoping, stopped for the coordinator
 
-Date: 2026-10-16 · Status: Scoping (phase 1). No production file is edited until the coordinator replies.
+Date: 2026-10-16 · Status: Accepted. Brendan ruled P-1972-3 and P-1972-6, and the coordinator P-1972-1, -2, -4 and -5,
+on 2026-10-16 (see "Rulings"). Phase 2 (the build of everything outside the cost lane's files) follows.
 
 Number range 1972–1980 was allocated by the coordinator and checked free on every local and remote ref. Branch
 `feat/activate-content-11-12`, from origin/master `a0daf1ab` (#260 content 11, #262 C2.1, #264 C2.2, #265 dig cost,
 #266 content 12). Line numbers below are at `a0daf1ab`; 1971's inventory numbers in Routes have moved since.
+
+## Rulings (2026-10-16, relayed by the coordinator)
+
+| Proposal | Ruling | What it means here |
+|---|---|---|
+| P-1972-1 | Coordinator: (a) | Widen the runtime-v2 programs and the certificates in place, with one predicate for "content 10 or its successor 12" |
+| P-1972-2 | Coordinator: (a) | `Budget.PROFILE_BYTES` +4,096, to 282,624, with its own ledger row through ADR 1212. C2.3 and the cost lane also move the census, so master's figures are taken at merge time and re-projected |
+| P-1972-3 | Brendan, **"Refuse them, recorded"**: (a) | Saves made before activation that hold an underground Session are refused at load (`SAVE_UNDERGROUND_RESTORE_REFUSED`). This record is where it is recorded |
+| P-1972-4 | Coordinator | The two `demo/burrow/modular_runtime.gd` lines are cleared, but only after PR #267 (Mound POC) merges |
+| P-1972-5 | Coordinator: yes | Build the Profiles edits now, clear of the cost lane's hunks; one pin renewal after its merge |
+| P-1972-6 | Brendan, **"Keep 90 ticks"**: (a) | Authored stair paces move to milli-u/s. Every existing authored pace is rescaled ×1,000, so its ticks stay identical; the 169 u retreat takes exactly 90 ticks |
+
+Indexed in `docs/handoff/RULINGS.md`. Sections "The brief" to "Proposals" are the scoping as it was put.
 
 ## The brief (relayed by the coordinator)
 

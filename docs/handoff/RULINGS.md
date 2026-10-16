@@ -204,6 +204,12 @@ Every row was checked against the record named.
 | Slice C2.2's scoping (1934 P-C22-1, P-C22-2), 2026-10-15 | **P-C22-1: "Same-level now + basic stair carry"**: the same-level room Delivery is built now in C2.2, with the stair leg named as the gap `ROOM_HAUL_NO_STAIR_CARRY`; basic stair-carry motion content is a separate lane (`feat/stair-carry`). **P-C22-2 (a)** (the coordinator's sequencing): station-chain retirement follows the cost lane (`perf/dig-tick-cost`) and is built against the re-measured cost per edge; `underground_locations.gd` is left alone until then. (Relayed by the coordinator) | [1934](../decisions/1934-slice-c2-2-scoping-room-delivery-and-station-retirement.md) |
 | The dig-tick cost proposals (1951 P-1951-1–4), 2026-10-15 | **"Approve"** for decision 1951's recommendations: **P-1951-1 (a)**: productive Work's worker/contact re-check becomes event-driven, keyed on owner revisions, with no rule change. **P-1951-2 (c) then (a)**: an exact spatial index of the proof's volume rows, then also skip unchanged refused profiles, with a revision on the surface exclusions. **P-1951-3 (a)**: cache `ShortStep.uses()` / `Assembly.uses()` against a Profiles load revision. **P-1951-4** (cadence) was not proposed, so not taken. Follow-up branch `perf/dig-tick-cost-2`, decisions 1952-1969. (Relayed by the coordinator) | [1951](../decisions/1951-dig-tick-cost.md) |
 
+## 2026-10-16
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Activating contents 11 and 12 (1972 P-1972-1 to -6), 2026-10-16 | Brendan: **P-1972-3 "Refuse them, recorded"**: (a). Saves made before activation that hold an underground Session are refused at load, and this is recorded. **P-1972-6 "Keep 90 ticks"**: (a). The 169 u retreat keeps DEC-050's 90 ticks through a finer authored pace unit (milli-u/s); the existing paces are rescaled with their ticks unchanged. Coordinator: **P-1972-1 (a)**: widen runtime-v2 in place. **P-1972-2 (a)**: `PROFILE_BYTES` +4,096, to 282,624, with its own ledger row; master's census figures are taken at merge time. **P-1972-4**: the two `modular_runtime.gd` lines are cleared after PR #267 merges. **P-1972-5**: the Profiles edits are built now; one pin renewal follows the cost lane's merge. (Relayed by the coordinator) | [1972](../decisions/1972-activating-contents-11-and-12-scoping.md) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

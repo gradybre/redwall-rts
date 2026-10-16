@@ -249,6 +249,11 @@ a day of work with their own parity proof. The cap is a gameplay constant, so it
   Folded, decision 1880's budget leaves 27,441,676 B. C+G's projection without the store containers (that budget and
   Q1's 23,265,280 B of projects and containers) leaves **4,176,396 B for slice G**. `ready07_arithmetic.py` pins it
   as a figure, not an allowance; decision 1880 carries a note.
+- **Mutation testing on B-E:** 17 mutants (the shared table, its content reset, the one-image capture, each
+  in-place comparison, the pool's slots, order, duplicate refusal and capacity, and the order's key reads). 15 are
+  killed. 2 are **equivalent**: the in-place i64 comparison and the per-byte code comparison. An i64 decodes and
+  re-encodes losslessly, and the Reader accepts only canonical codes (printable ASCII, then zero padding), so neither
+  can differ from the record it was read from.
 
 ## Source
 

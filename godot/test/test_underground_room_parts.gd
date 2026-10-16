@@ -257,3 +257,51 @@ func test_builders_share_one_row_extent_table_and_a_record_is_checked_in_place()
 	var longer: Progress.Checker = Progress.check(out + PackedByteArray([0]))
 	_runtime._write_state(longer)
 	assert_false(longer.matches(), "a record with bytes left over is caught")
+
+
+func test_the_record_pool_saves_in_room_row_order_and_refuses_a_row_kept_twice() -> void:
+	"""P-1937-1 D: whichever slots the records hold, the record lists them in room row order (canonical); a record
+	naming one room row twice is refused, even when both copies are the same."""
+	if _room == NULL_REF: return
+	var first: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	var second: Vector2i = _h._residents.directory().create(Directory.KIND_ROOM)
+	var low: int = _h._residents.directory().get_typed_row(first)
+	var high: int = _h._residents.directory().get_typed_row(second)
+	assert_true(high > low, "the second room has the higher row")
+	assert_equal(_runtime.order_room(second, _h.material, _h.material), &"", "the higher row takes slot 0")
+	assert_equal(_runtime.order_room(first, _h.material, _h.material), &"", "the lower row slot 1")
+	assert_equal(_runtime._slot(high), 0, "slot 0")
+	var record: PackedByteArray = PackedByteArray()
+	assert_equal(_runtime.capture(record), &"", "captured")
+	var rows_at: int = Progress.HEADER_BYTES + 16
+	assert_equal(record.decode_s32(rows_at), low, "the lower row first")
+	assert_equal(record.decode_s32(rows_at + Progress.ROW_BYTES), high, "then the higher")
+	var twice: PackedByteArray = record.slice(0, rows_at - 4)
+	twice.resize(twice.size() + 4); twice.encode_s32(rows_at - 4, 3)
+	var block: PackedByteArray = record.slice(rows_at, rows_at + Progress.ROW_BYTES)
+	twice += block + record.slice(rows_at)
+	var fresh: Runtime = Runtime.new(_h._residents.directory())
+	assert_true(fresh.bind_owners(_h.owners()), "owners")
+	assert_equal(fresh.restore(twice), Progress.REFUSE_SHAPE, "one row kept twice is refused")
+	assert_true(fresh.is_empty(), "and leaves it empty")
+	assert_equal(fresh.restore(record), &"", "the canonical record restores")
+	assert_equal(fresh.state_of(first), Runtime.RECORD_QUEUED, "both rooms queued again")
+	assert_equal(fresh.state_of(second), Runtime.RECORD_QUEUED, "in their own slots")
+
+
+func test_a_shared_row_extent_table_is_reset_for_other_content() -> void:
+	"""P-1937-1 B: the shared table is kept while the Profiles content is the same, and reset (every row unfilled)
+	when a footprint is configured for other content, even of the same size."""
+	if _room == NULL_REF: return
+	var rows: Footprint.RowExtents = Footprint.RowExtents.new()
+	rows.fit(_h._profiles)
+	assert_equal(rows.revision, _h._profiles.content_revision(), "sized for this content")
+	rows.table[0] = 7 # A filled entry.
+	rows.fit(_h._profiles)
+	assert_equal(rows.table[0], 7, "kept for the same content")
+	rows.revision = -5 # Negative-only: the table was filled for other content of the same size.
+	var foot: Footprint = Footprint.new()
+	foot.configure(_h._profiles, rows)
+	assert_true(foot._rows == rows, "the shared table")
+	assert_equal(rows.table[0], Footprint.UNFILLED, "reset for this content")
+	assert_equal(rows.revision, _h._profiles.content_revision(), "and marked")

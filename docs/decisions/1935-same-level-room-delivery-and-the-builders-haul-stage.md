@@ -47,6 +47,10 @@ nothing in the game constructs the room runtime until C2.3. The proof runs on th
 7. **Abandon.** A haul under way returns its admitted claim through Delivery's cancel and retires its HAUL Job
    (ADR 1225, as the entry's); goods already lifted stay in the satchel. The phase is released even when that
    release refuses.
+8. **A rest hour during a haul is waited out** (found by the focused tests). Jobs refuses any assignment in a
+   rest hour, and every trip takes a new HAUL Job, so a rest falling mid-haul stopped the room
+   (`STEP2_ACTIVITY_FORBIDS_WORK`). The builder now neither starts a haul nor advances one while the hour rests,
+   and the wait is not a stall (as `STAGE_BETWEEN`'s). The route actor finishes the step it is on.
 
 ## Proof (fixture: ADR 1161 Kitchen, 16 Sites, retired content-6 pick rows; `test_underground_room_haul.gd`)
 
@@ -77,10 +81,11 @@ access. C2.3 should place crew parking off the access.
 ## Not proven here (named)
 
 - **`ROOM_HAUL_NO_STAIR_CARRY`** stands until `feat/stair-carry`'s rows exist.
-- **A haul from a station up a column** (`continue_column`, retreat-family legs to the storage) and **a walk to a
-  storage that is not the parking**: the pick fixture cannot travel without its pick or haul with it. The claw
-  fixture (C2.3) proves them.
-- **Two builders hauling at once:** the claim keeps them apart; untested for the same reason.
+- **A whole haul from a station up a column.** The focused test proves the plan and the walk back to M on real legs
+  (`test_underground_room_haul_leaves.gd`); the trips themselves cannot run there, since the pick fixture cannot
+  carry while holding the pick. C2.3's claw Kitchen runs the whole case.
+- **Two builders hauling at once:** the claim keeps them apart (its boxes are pinned); a two-builder haul needs
+  the claw fixture too (C2.3).
 - **Save and load of a haul in progress:** C2.3 (registry rows UNRESOLVED, as the entry's ADR 1218).
 
 ## Review and mutation testing
@@ -98,19 +103,34 @@ access. C2.3 should place crew parking off the access.
 - **M2** the endpoints are re-proved when the haul starts (`ROOM_HAUL_NO_STAIR_CARRY`, or `ROOM_BUILDER_TARGET_MOVED`
   for a different container); **M3** abandon releases the phase even when the haul's release refuses; **M5** the
   hauler's Locations must be the binding's; **M6** staging = storage is refused. LOWs fixed (docstring, pose row).
-- Not changed: **M5**'s duplication of the entry foreman's `_phase_units` (eight lines; the entry foreman is not
-  this lane's) and of the hauler's stand rule (`_stand_of`, an instance method there).
+- **LOW notes (kept):** M5's two small duplications. `_haul_units` repeats the entry foreman's `_phase_units`
+  (eight lines; the entry foreman is not this lane's file), and `_stand_of` repeats the hauler's stand rule (an
+  instance method there, so not callable without a hauler).
 
 **Mutation testing** (scratch runner, one mutant per run, focused suites; rounds on `224b01e1`, `0af57424`,
-`95ce10e7` and `fff1b9ad`): 55 mutants. 7 are moot (their code was replaced or removed by the review fixes). Of the
-48 that apply to the final code, 25 are killed and 23 survive:
+`95ce10e7`, `fff1b9ad` and, for every survivor, `44da48a1`): 57 mutants. 7 are moot (their code was replaced or
+removed by the review fixes). Of the 50 that apply to the final code, **46 are killed**, **3 are equivalent** and
+**1 is deferred to C2.3**.
 
-| Survivors | Why |
+The survivors of the first pass were killed by focused tests (`test_underground_room_haul_leaves.gd`, plus two
+in `test_underground_room_builder.gd`):
+
+- Delivery's room leaves are called on a real pinned operation while the world changes under them: a Location
+  and a route published after the pin; a present Placement naming the room; the Site holding another Project; a
+  stale room generation; a non-Site subject; the leaf's budget one check short.
+- The trip claim is checked box by box: each item's lift and set-down box at the stands, and, on a hand-built
+  variant with a direct span from M to R's stand, the empty walk between the stands.
+- The builder's stage machine is driven directly: the next cube up a column hauls from its station (real legs back
+  to M, the approach claimed from M); the stall bound restarts on the hauler's progress; a rest hour at a stand and
+  on arrival at M (choice 8); the post-haul pose row and the BRACE Job on the legs; the trip ledgers counted once;
+  only a BRACE is hauled for; two stands at one point are no stand; a builder sent home has not set off.
+
+| Survivor | Verdict |
 |---|---|
-| Delivery (8): `_site_room`'s Project, live-room and Site-generation checks; `_room_source_leaf`'s receipts, its re-check of the room and its budget; `_clear`'s reset of `_room_haul` | Defence in depth: within one synchronous operation they equal the pin's own checks unless a callback changes the world mid-operation, which these tests do not inject (the entry branch's equivalents are pinned by the Delivery suite's callback probes). The flag is recomputed at every pin |
-| Trip claim (3): the empty walk between the stands, the lift and the set-down sweeps | Equivalent on the fixture: the haul WALK row's 651 u reach already covers them there. The CARRY span's own claim is pinned |
-| Fixture limits (6): `continue_column`'s retreat anchor; the approach planned from the storage; the haul start re-reading the storage; `_departed`'s reset at `go_home` and its set at a turn; the stand's uniqueness | The pick fixture cannot travel without its pick or haul twice, so the storage is the parking; its upper column cubes need no leg; no turn happens before a leg |
-| Unobservable (6): the haul's stall reset; the post-haul pose row; the leg Job after the haul; `_hauler` cleared on landing; `_drop_haul`'s ledgers; `_operation != BRACE` | A two-trip haul fits the stall bound; the pose is the same point; the travel row and Job are re-read at the station; a finished hauler releases nothing; only BRACE reaches `_haul_units` |
+| `_clear`'s reset of `_room_haul` | **Equivalent.** Every reader (`_material_leaf`, `_source_leaf`, `_world_of`) runs inside `_operation_leaf`, which is reached only after `_pin_project` has assigned the flag in the same operation; `cancel` takes `_cancel_leaf` first, and a Work leaf whose observation failed is refused on its cleared Job |
+| `_start_haul`'s `_at = _store()` | **Equivalent.** TO_STORE ends only past its last leg: its legs were planned from `_at` to the storage, so either the walk set `_at` to the storage at each arrival, or there was no leg because `_at` already was the storage |
+| `continue_column` planning the walk to M on the retreat row instead of the forward row | **Equivalent.** The foreman's forward row is `Itinerary.family_row` of the retreat row: same identity fields and quantities, so `Itinerary._compatible` admits the same rows for either anchor and the search returns the same legs (the column test passes either way) |
+| `_departed` set when the first step is a turn | **Deferred to C2.3.** It needs a builder whose first leg starts facing away from an exact-heading travel row. In the game that is the leg after every haul: the hauler's last walk ends on the haul WALK row facing the stand's heading. The pick fixture cannot turn with its pick at the parking (`ROUTE_TURN_UNCERTIFIED`), so its test turns the body itself. Covered by C2.3's claw Kitchen haul-and-dig case, in which the builder turns after the haul |
 
 ## Performance (judged after the cost lane, P-C2-2 (a))
 
@@ -134,13 +154,13 @@ transitions are (decision 1933); the cost lane owns those paths.
   settlement delta's text updated, `REVIEWED_SHA` renewed).
 - Per hauling builder: the queue (one int per unit, at most 2 per BRACE) and the approach legs.
 
-## Final gates (after merging `origin/master` with PR #262, at `f54fc52e`, 2026-10-15)
+## Final gates (at `7309fb25`, after merging `origin/master` with PR #262, 2026-10-15)
 
 - **Full suite, CI-style:** `godot/.godot` deleted, `godot --headless --path godot --editor --quit`, then
-  `./tools/run_tests_parallel.sh`: `ok: 512 suite files executed exactly once across 10 shards`, 12,593 tests,
-  1,241,500 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaked objects or resources; every shard and
+  `./tools/run_tests_parallel.sh`: `ok: 513 suite files executed exactly once across 10 shards`, 12,608 tests,
+  1,245,478 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaked objects or resources; every shard and
   CI's verify passed. The two underground checkpoints were regenerated for the new sources (manifests only).
-- **Analyzer:** `python3 tools/gdscript_warnings.py --max 0 --port 6433`: 0 warnings in 1,555 files.
+- **Analyzer:** `python3 tools/gdscript_warnings.py --max 0 --port 6433`: 0 warnings in 1,556 files.
 - **Contracts:** every command of CI's contracts job exited 0 (`decision_numbers.py` 558 records,
   `underground_memory_budget.py --check` and its tests, `test_underground_current_census.py`, `merge_gate.py`,
   `state_registry_coverage`, the registry and schema generators' checks, among them).

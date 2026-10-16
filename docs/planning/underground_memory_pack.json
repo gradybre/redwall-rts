@@ -20,476 +20,476 @@
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2741
+        "line": 2763
       },
       "_changed_rows": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2740
+        "line": 2762
       },
       "_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2738
+        "line": 2760
       },
       "_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2806
+        "line": 2828
       },
       "_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2807
+        "line": 2829
       },
       "_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2808
+        "line": 2830
       },
       "_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2809
+        "line": 2831
       },
       "_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2802
+        "line": 2824
       },
       "_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2800
+        "line": 2822
       },
       "_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2805
+        "line": 2827
       },
       "_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2804
+        "line": 2826
       },
       "_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2799
+        "line": 2821
       },
       "_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2803
+        "line": 2825
       },
       "_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2801
+        "line": 2823
       },
       "_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2770
+        "line": 2792
       },
       "_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2755
+        "line": 2777
       },
       "_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2769
+        "line": 2791
       },
       "_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2756
+        "line": 2778
       },
       "_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2760
+        "line": 2782
       },
       "_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2761
+        "line": 2783
       },
       "_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2762
+        "line": 2784
       },
       "_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2763
+        "line": 2785
       },
       "_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2757
+        "line": 2779
       },
       "_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2758
+        "line": 2780
       },
       "_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2759
+        "line": 2781
       },
       "_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2767
+        "line": 2789
       },
       "_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2768
+        "line": 2790
       },
       "_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2766
+        "line": 2788
       },
       "_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2752
+        "line": 2774
       },
       "_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2753
+        "line": 2775
       },
       "_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2754
+        "line": 2776
       },
       "_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2765
+        "line": 2787
       },
       "_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2764
+        "line": 2786
       },
       "_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2742
+        "line": 2764
       },
       "_s_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2739
+        "line": 2761
       },
       "_s_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2822
+        "line": 2844
       },
       "_s_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2823
+        "line": 2845
       },
       "_s_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2824
+        "line": 2846
       },
       "_s_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2825
+        "line": 2847
       },
       "_s_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2818
+        "line": 2840
       },
       "_s_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2816
+        "line": 2838
       },
       "_s_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2821
+        "line": 2843
       },
       "_s_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2820
+        "line": 2842
       },
       "_s_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2815
+        "line": 2837
       },
       "_s_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2819
+        "line": 2841
       },
       "_s_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2817
+        "line": 2839
       },
       "_s_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2794
+        "line": 2816
       },
       "_s_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2779
+        "line": 2801
       },
       "_s_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2793
+        "line": 2815
       },
       "_s_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2780
+        "line": 2802
       },
       "_s_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2784
+        "line": 2806
       },
       "_s_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2785
+        "line": 2807
       },
       "_s_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2786
+        "line": 2808
       },
       "_s_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2787
+        "line": 2809
       },
       "_s_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2781
+        "line": 2803
       },
       "_s_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2782
+        "line": 2804
       },
       "_s_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2783
+        "line": 2805
       },
       "_s_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2791
+        "line": 2813
       },
       "_s_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2792
+        "line": 2814
       },
       "_s_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2790
+        "line": 2812
       },
       "_s_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2776
+        "line": 2798
       },
       "_s_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2777
+        "line": 2799
       },
       "_s_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2778
+        "line": 2800
       },
       "_s_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2789
+        "line": 2811
       },
       "_s_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2788
+        "line": 2810
       },
       "_s_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2743
+        "line": 2765
       },
       "_s_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2745
+        "line": 2767
       },
       "_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2744
+        "line": 2766
       }
     },
     "underground_space_authority": {
@@ -4225,8 +4225,8 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
-        "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
-        "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531"
+        "godot/scripts/core/underground_routes.gd": "4d59d52611336af5baa13621265e39aa02937f4463c111c2ea160933c7ec3672",
+        "godot/scripts/core/underground_world_routes.gd": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8"
       }
     },
     "current_profile_control": {
@@ -41230,6 +41230,7 @@
       "godot/data/underground/mole-worker/work-step-v1/source_program.gd",
       "godot/scripts/core/buildings.gd",
       "godot/scripts/core/construction.gd",
+      "godot/scripts/core/entity_directory.gd",
       "godot/scripts/core/excavation_contract.gd",
       "godot/scripts/core/excavation_inventory.gd",
       "godot/scripts/core/excavation_sites.gd",
@@ -41237,12 +41238,15 @@
       "godot/scripts/core/jobs.gd",
       "godot/scripts/core/modular_projects.gd",
       "godot/scripts/core/movement.gd",
+      "godot/scripts/core/needs.gd",
+      "godot/scripts/core/residents.gd",
       "godot/scripts/core/resource_nodes.gd",
       "godot/scripts/core/transforms.gd",
       "godot/scripts/core/underground_budget.gd",
       "godot/scripts/core/underground_connector_catalog.gd",
       "godot/scripts/core/underground_connector_contacts.gd",
       "godot/scripts/core/underground_connector_placements.gd",
+      "godot/scripts/core/underground_connector_source_facts.gd",
       "godot/scripts/core/underground_entry_world_bindings.gd",
       "godot/scripts/core/underground_final_facts.gd",
       "godot/scripts/core/underground_locations.gd",
@@ -43158,6 +43162,16 @@
             "bytes": 8,
             "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
             "store": "ADR 1229 increment 3: MotionStep.stair_key (one int in the single step packet) and the borrowed `_stair_motion` reference (native header, uncounted like every reference); the claw stair tables themselves are charged when the Session mounts them (increment 6)"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)",
+            "store": "decision 1951: the unregistered standing snapshot (_standing_x I64[512], _standing_refused I32[512], _standing_key I64[8]: 6,208 B) replaces the write-only _occupancy_bounds I32[3072] and _occupancy_profile I64[512] (16,384 B), which nothing read; the five occupancy columns now total 16,448 B inside the arena formula's 48 * RESIDENT_CAPACITY = 24,576 B"
+          },
+          {
+            "bytes": 16,
+            "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
+            "store": "decision 1951: _standing_count and _standing_refused_count"
           }
         ],
         "delta": {
@@ -43165,12 +43179,53 @@
             [
               "_stair_motion",
               "StairMotion"
+            ],
+            [
+              "_standing_count",
+              "int"
+            ],
+            [
+              "_standing_key",
+              "PackedInt64Array"
+            ],
+            [
+              "_standing_refused",
+              "PackedInt32Array"
+            ],
+            [
+              "_standing_refused_count",
+              "int"
+            ],
+            [
+              "_standing_x",
+              "PackedInt64Array"
+            ]
+          ],
+          "members_removed": [
+            [
+              "_occupancy_bounds",
+              "PackedInt32Array"
+            ],
+            [
+              "_occupancy_profile",
+              "PackedInt64Array"
             ]
           ],
           "resizes_added": [
+            "_standing_key.resize(STANDING_KEYS)",
+            "_standing_refused.resize(RESIDENT_CAPACITY)",
+            "_standing_x.resize(RESIDENT_CAPACITY)",
             "out.resize(wire_bytes()"
           ],
+          "resizes_removed": [
+            "_occupancy_bounds.resize(6 * RESIDENT_CAPACITY)",
+            "_occupancy_profile.resize(RESIDENT_CAPACITY)"
+          ],
           "int_constants_added": [
+            [
+              "STANDING_KEYS",
+              "8"
+            ],
             [
               "UNREGISTERED_REACH_U",
               "2 * 2611"
@@ -43321,8 +43376,8 @@
             ]
           },
           "allocation_sites": {
-            "=[": 2,
-            "PackedInt64Array(": 2,
+            "=[": 3,
+            "PackedInt64Array(": 3,
             "range(": 3
           }
         }
@@ -43390,6 +43445,11 @@
             "bytes": 4322,
             "carried_by": "new contribution",
             "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view), 64 sides each"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
           }
         ],
         "delta": {
@@ -44457,6 +44517,73 @@
           }
         ],
         "delta": {}
+      },
+      "godot/scripts/core/entity_directory.gd": {
+        "charges": [
+          {
+            "bytes": 8,
+            "carried_by": "none (new)",
+            "store": "decision 1951: _mutation_revision, a runtime-only int64 token (never saved)"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_mutation_revision",
+              "int"
+            ]
+          ],
+          "int_constants_added": [
+            [
+              "REVISION_MAX",
+              "9223372036854775807"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/needs.gd": {
+        "charges": [
+          {
+            "bytes": 8,
+            "carried_by": "none (new)",
+            "store": "decision 1951: _life_revision, a runtime-only int64 token (never saved)"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_life_revision",
+              "int"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/residents.gd": {
+        "charges": [
+          {
+            "bytes": 8,
+            "carried_by": "none (new)",
+            "store": "decision 1951: _identity_revision, a runtime-only int64 token (never saved)"
+          }
+        ],
+        "delta": {
+          "members_added": [
+            [
+              "_identity_revision",
+              "int"
+            ]
+          ]
+        }
+      },
+      "godot/scripts/core/underground_connector_source_facts.gd": {
+        "charges": [
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1951: the source and level digests compared as 64-bit words through two static helpers; no member, packet or resize"
+          }
+        ],
+        "delta": {}
       }
     },
     "charged_by_carrier": {
@@ -44469,12 +44596,13 @@
       "ADR 1228 save/load working set (transient at a save or load boundary, never resident between ticks; task 09.3 ledger)": 12801861,
       "joint pack (the reserve is a pack contribution)": 256,
       "BINDINGS_AND_GROWTH_BYTES (fully assigned, 524,544)": 256,
-      "none (new)": 74,
+      "none (new)": 98,
       "new contribution": 10684,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
       "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES": 920,
       "Budget.COLD_BYTES shared cold lease": 1792,
-      "Routes HEADER_RESERVE (fixed numeric controls)": 8,
+      "Routes HEADER_RESERVE (fixed numeric controls)": 24,
+      "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)": 0,
       "presentation (outside the REQ-SET-163 simulation gate)": 0,
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "entry structure reservation (decision1122, 384 B)": 0,
@@ -44622,7 +44750,7 @@
   "headroom_bytes": 49749393,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
-    "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
     "godot/scripts/core/excavation_inventory.gd": "79c603c39b4b0cd9e1bba3243b5dd21d4a397d65f71d64baedf21bd86e4d0c68",
     "godot/scripts/core/excavation_sites.gd": "e552c220f04460c61f40ec17bf79e474be667d29353d8a92ce27321e2f3f2a10",
     "godot/scripts/core/haul_planner.gd": "ff125c7c0a1a9ab3c23be832ceec77b54354e4b87c0b7fe8ebc482fee0a400e4",
@@ -44651,7 +44779,7 @@
     "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
     "godot/scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
     "godot/scripts/core/underground_entry_bindings.gd": "fcdedc1072568dae50d3c3e69cfedde2ecaf60c016433bd64c717f5ecc4e08eb",
-    "godot/scripts/core/underground_entry_frontier.gd": "aaca634525533b158a9926bd7899466d55365e885e860ea1394710ba7989fddb",
+    "godot/scripts/core/underground_entry_frontier.gd": "49315ddcda00a91910077d70fb7e5b123ca5d40f5590ca038cc0967069697c8e",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
@@ -44663,15 +44791,15 @@
     "godot/scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
     "godot/scripts/core/underground_room_world_bindings.gd": "4648625c6c0e6223097c604a1ebc0f6d0c0cda198d92e3b7992481b44c94f95b",
     "godot/scripts/core/underground_route_composition.gd": "d4599f84ce86f95d4d54dee4193c27d6f85ad59e6be000d05419017b04bf811a",
-    "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",
+    "godot/scripts/core/underground_routes.gd": "4d59d52611336af5baa13621265e39aa02937f4463c111c2ea160933c7ec3672",
     "godot/scripts/core/underground_session.gd": "054e63c7b16b10c6f929c81c62c0fd0124c21cd7e83b491cb6d1be68f5588e06",
     "godot/scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
-    "godot/scripts/core/underground_space_owner.gd": "c5aea1c3904c621552f67537f303799d51c7ab1adbe2478cef2fbdfd81e955d5",
+    "godot/scripts/core/underground_space_owner.gd": "bfbad4b67a7e5cb9ccecf4f5500c322610abe8f3854f5fe364a1723a5a21aa1a",
     "godot/scripts/core/underground_surface_anchor.gd": "00f2ba73e64a50e4d6236a9c0c99a11391f192255c309d554d8b4a976ddfe2f5",
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "602f20d30812f4da61d624d3d42ade7eb1fe44729b751942b9d64dee1b4ee531",
+    "godot/scripts/core/underground_world_routes.gd": "69f078099a1f74ff9e442b6d06d0b251cf9937dbb335d288201c6ace0eb46fa8",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "a4190ded1406f501a7b4851f53f667f00a13031bba3063c62b639d46aec4d8fa",

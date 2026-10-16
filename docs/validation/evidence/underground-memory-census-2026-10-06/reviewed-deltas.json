@@ -1566,6 +1566,16 @@
      "bytes": 8,
      "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
      "store": "ADR 1229 increment 3: MotionStep.stair_key (one int in the single step packet) and the borrowed `_stair_motion` reference (native header, uncounted like every reference); the claw stair tables themselves are charged when the Session mounts them (increment 6)"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)",
+     "store": "decision 1951: the unregistered standing snapshot (_standing_x I64[512], _standing_refused I32[512], _standing_key I64[8]: 6,208 B) replaces the write-only _occupancy_bounds I32[3072] and _occupancy_profile I64[512] (16,384 B), which nothing read; the five occupancy columns now total 16,448 B inside the arena formula's 48 * RESIDENT_CAPACITY = 24,576 B"
+    },
+    {
+     "bytes": 16,
+     "carried_by": "Routes HEADER_RESERVE (fixed numeric controls)",
+     "store": "decision 1951: _standing_count and _standing_refused_count"
     }
    ],
    "delta": {
@@ -1573,12 +1583,53 @@
      [
       "_stair_motion",
       "StairMotion"
+     ],
+     [
+      "_standing_count",
+      "int"
+     ],
+     [
+      "_standing_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_standing_refused",
+      "PackedInt32Array"
+     ],
+     [
+      "_standing_refused_count",
+      "int"
+     ],
+     [
+      "_standing_x",
+      "PackedInt64Array"
+     ]
+    ],
+    "members_removed": [
+     [
+      "_occupancy_bounds",
+      "PackedInt32Array"
+     ],
+     [
+      "_occupancy_profile",
+      "PackedInt64Array"
      ]
     ],
     "resizes_added": [
+     "_standing_key.resize(STANDING_KEYS)",
+     "_standing_refused.resize(RESIDENT_CAPACITY)",
+     "_standing_x.resize(RESIDENT_CAPACITY)",
      "out.resize(wire_bytes()"
     ],
+    "resizes_removed": [
+     "_occupancy_bounds.resize(6 * RESIDENT_CAPACITY)",
+     "_occupancy_profile.resize(RESIDENT_CAPACITY)"
+    ],
     "int_constants_added": [
+     [
+      "STANDING_KEYS",
+      "8"
+     ],
      [
       "UNREGISTERED_REACH_U",
       "2 * 2611"
@@ -1729,8 +1780,8 @@
      ]
     },
     "allocation_sites": {
-     "=[": 2,
-     "PackedInt64Array(": 2,
+     "=[": 3,
+     "PackedInt64Array(": 3,
      "range(": 3
     }
    }
@@ -1798,6 +1849,11 @@
      "bytes": 4322,
      "carried_by": "new contribution",
      "store": "two geometry journals (ADR 1205 route view, ADR 1207 full view), 64 sides each"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1951: the region and source scans walk present rows with PackedByteArray.find/count (two static helpers); no member, packet or resize"
     }
    ],
    "delta": {
@@ -2862,6 +2918,73 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1971: _contacts_refusal reads the contact face through Face.struck_origin; one preload, no member, packet or resize"
+    }
+   ],
+   "delta": {}
+  },
+  "godot/scripts/core/entity_directory.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "none (new)",
+     "store": "decision 1951: _mutation_revision, a runtime-only int64 token (never saved)"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_mutation_revision",
+      "int"
+     ]
+    ],
+    "int_constants_added": [
+     [
+      "REVISION_MAX",
+      "9223372036854775807"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/needs.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "none (new)",
+     "store": "decision 1951: _life_revision, a runtime-only int64 token (never saved)"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_life_revision",
+      "int"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/residents.gd": {
+   "charges": [
+    {
+     "bytes": 8,
+     "carried_by": "none (new)",
+     "store": "decision 1951: _identity_revision, a runtime-only int64 token (never saved)"
+    }
+   ],
+   "delta": {
+    "members_added": [
+     [
+      "_identity_revision",
+      "int"
+     ]
+    ]
+   }
+  },
+  "godot/scripts/core/underground_connector_source_facts.gd": {
+   "charges": [
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1951: the source and level digests compared as 64-bit words through two static helpers; no member, packet or resize"
     }
    ],
    "delta": {}

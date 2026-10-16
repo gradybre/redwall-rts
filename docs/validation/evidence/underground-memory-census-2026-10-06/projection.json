@@ -24,6 +24,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/construction.gd-da07d55eb1a2.txt",
       "sha256": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a"
     },
+    "godot/scripts/core/entity_directory.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/entity_directory.gd-34303821a59f.txt",
+      "sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e"
+    },
     "godot/scripts/core/excavation_contract.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/excavation_contract.gd-9957fa1531ba.txt",
       "sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e"
@@ -52,6 +56,14 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/movement.gd-4121be883c9f.txt",
       "sha256": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69"
     },
+    "godot/scripts/core/needs.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/needs.gd-9ceeb2fc155e.txt",
+      "sha256": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190"
+    },
+    "godot/scripts/core/residents.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/residents.gd-bced7363caad.txt",
+      "sha256": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da"
+    },
     "godot/scripts/core/resource_nodes.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/resource_nodes.gd-d225ad67828e.txt",
       "sha256": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de"
@@ -75,6 +87,10 @@
     "godot/scripts/core/underground_connector_placements.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_connector_placements.gd-9f34160f9994.txt",
       "sha256": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae"
+    },
+    "godot/scripts/core/underground_connector_source_facts.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_connector_source_facts.gd-2acb5aac8231.txt",
+      "sha256": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160"
     },
     "godot/scripts/core/underground_entry_world_bindings.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_entry_world_bindings.gd-dcc07743ea14.txt",

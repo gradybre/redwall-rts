@@ -1247,7 +1247,7 @@
     {
      "bytes": 336,
      "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
-     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage"
+     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage; decision 1981 adds four integer constants (the rooted-travel words 10-13) and no storage"
     }
    ],
    "delta": {
@@ -1271,6 +1271,22 @@
      [
       "POLICY_ASSEMBLY_HANDLING",
       "7"
+     ],
+     [
+      "POLICY_ROOTED_BACKWARD",
+      "11"
+     ],
+     [
+      "POLICY_ROOTED_STAIR",
+      "12"
+     ],
+     [
+      "POLICY_ROOTED_TRAVEL",
+      "10"
+     ],
+     [
+      "POLICY_ROOTED_TURN",
+      "13"
      ],
      [
       "POLICY_STAIR",

@@ -84,7 +84,8 @@ def image_digests() -> dict:
     for (source, path), verification in zip(IMAGES.items(), VERIFICATIONS):
         compiled, checked = json.loads(path.read_text()), json.loads(verification.read_text())
         require(checked["coefficient_mismatches"] == 0 and checked["clips"] == compiled["clip_names"] and
-                checked["runtime_admitted"] is False, "IMAGE_VERIFICATION")
+                checked["content_sha256"] == compiled["content_sha256"] and checked["runtime_admitted"] is False,
+                "IMAGE_VERIFICATION")
         result[source] = bytes.fromhex(compiled["content_sha256"])
     return result
 
@@ -94,9 +95,9 @@ def new_rows(fields: list, derived: list) -> list:
     result, at = [], 0
     for group, source, template in GROUPS:
         words = list(fields[template])
-        mode, cargo = (MODE_WALK, -1) if group == "empty" else (MODE_CARRY, words[F_CARGO])
+        mode = MODE_WALK if group == "empty" else MODE_CARRY
         require(words[F_SOURCE] in (2, 3) and words[F_MODE] == mode and words[F_POLICY] == 0 and
-                (cargo == -1) == (group == "empty") and words[6] == -1, "TEMPLATE_" + group)
+                (words[F_CARGO] == -1) == (group == "empty") and words[6] == -1, "TEMPLATE_" + group)
         count = 2 if group == "empty" else 6
         for row in derived[at:at + count]:
             require(row["group"] == group and row["family_mask"] == 1, "ROW_GROUP")

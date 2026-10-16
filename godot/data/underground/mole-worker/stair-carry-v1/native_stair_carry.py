@@ -272,22 +272,24 @@ def joins(image: str, rows: np.ndarray, counts: list) -> dict:
     v10 = C.read_json(IMAGES[image]["v10"] / "compiled/compilation.json")
     v10_rows = capture(IMAGES[image]["v10"] / "native.bin", 3 * sum(4 * (n - 1) + 1 for n in v10["clip_frames"]))
     other, others = table_of(v10_rows), list(IMAGES[image]["v10_clips"])
-    checked = 0
+    checked = crossed = 0
     for view in range(3):
         hold = table[view, 0, 0]
         require(np.array_equal(hold, other[view, others.index("hold"), 0]), "V10_HOLD_JOIN")
+        crossed += 1
         for clip, name in enumerate(names):
             hub = hold if name not in EMPTY else other[view, others.index("stand"), V8.READY * 65536]
             for at in (0, end(clip)):
                 require(np.array_equal(table[view, clip, at], hub), "HUB_JOIN:" + name)
                 checked += 1
+                crossed += int(name in EMPTY)
         for back, forward in (("back_up", "approach"), ("empty_back_up", "empty_walk_off")):
             if back not in names:
                 continue
             a, b = names.index(back), names.index(forward)
             for elapsed in range(0, end(a) + 1, 16384):
                 require(np.array_equal(table[view, a, elapsed], table[view, b, end(a) - elapsed]), "REVERSAL:" + back)
-    return {"hub_joins": checked, "cross_image_joins_per_view": 1 + int("empty_walk_off" in names),
+    return {"hub_joins": checked, "cross_image_joins": crossed,
             "v10_capture_sha256": C.digest(IMAGES[image]["v10"] / "native.bin"), "views": 3}
 
 
@@ -338,7 +340,8 @@ def verify(args: argparse.Namespace) -> dict:
     geometry = parts(args.image, args.palette, args.grip_palette)
     clips = cases(args.image, geometry)
     rows = capture(folder / "native.bin", rows_expected)
-    result = {"schema": 1, "decision": "1981", "image": args.image, "rows": rows_expected,
+    result = {"schema": 1, "decision": "1981", "image": args.image, "content_sha256": compiled["content_sha256"],
+              "rows": rows_expected,
               "clips": list(IMAGES[args.image]["clips"]), "clip_frames": counts, "coefficient_mismatches": 0,
               **verify_rows(args.image, rows, clips, geometry, counts), "joins": joins(args.image, rows, counts),
               "floor_rule": "every visible part of every clip except the root-local descent and ascent, whose "

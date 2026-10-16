@@ -7,9 +7,9 @@ its proofs stood on is installed (ADR 1229 increment 3). For each row, in the fr
 | Rows | Keys | Decks |
 |---|---|---|
 | descent, ascent | the M7 recipe's integer root track (the ascent turned by the exact half turn, as row 54) and the deck of the first support of each interval in the terrain proof | the terrain fixture's two decks (turned for the ascent) |
-| approach, walk-off, retreat | the handoff recipe's root and heading per key | L0's deck, the deck both L0 runs stood on (the floor slab covers it at the stair's foot) |
+| approach, retreat | the handoff recipe's root and heading per key | the standing deck of their L0 runs: L0's deck (the approach is also used on the floor, whose slab covers that deck in the approach's frame) |
+| walk-off, back-ups | likewise (a back-up's keys are its approach's, reversed) | used only at the stair's foot: the floor slab of the floor run, in the row's start frame |
 | turn | likewise | the deck row 55's table records (the floor slab covers it) |
-| back-ups | the approach's keys reversed | the approach's deck, in the back-up's start frame |
 
 **Cross-check.** The loaded gaits and the half-turn use the same recipes as content 10's rows 53, 54 and 55, so their
 keys and decks must equal `qualified-claw-stair-motion-v1`'s programs for those rows exactly; this tool refuses
@@ -33,7 +33,7 @@ SRC, W, AH = SC.SRC, SC.W, AUTHOR.AH
 HALF = 32768
 CLAW_TABLES = SC.MOLE / "qualified-claw-stair-motion-v1/stair-motion.ugstair"
 CLAW_TABLES_SHA = "e7840c7babc9bbe21c8f8c36a3d3a313172bc4a3adff9f13dcd6f4a99c25a58b"  # Content 10's published stair tables (ADR 1229 increment 3).
-L0_DECK = [-1024, -64, -2048, 1024, 0, 0]
+FLOOR_ONLY = ("empty_walk_off", "empty_back_up", "back_up")  # Rows used only at the stair's foot.
 TURN_DECK = [-1024, -64, -169, 1024, 0, 343]  # Row 55's recorded standing deck (T0 in the frame of A).
 IMAGE_CLIPS = {"wood": ("hold", "approach", "descent", "ascent", "turn", "retreat", "back_up", "empty_walk_off",
                         "empty_back_up"),
@@ -100,7 +100,8 @@ def table_of(name: str, case: dict, proofs: dict) -> dict:
     if name == "turn":
         start = case["handoff_recipe"]["keys"][0]["root_u"]
         return handoff_table(case, [TURN_DECK[a] + start[a % 3] for a in range(6)])
-    return handoff_table(case, L0_DECK)
+    run = PROVE.fixture("floor_approach" if name in FLOOR_ONLY else "L0")
+    return handoff_table(case, run["solids_u"][case["handoff_recipe"]["keys"][0]["support_primitive"]])
 
 
 def derive(clips_dir: Path, proof_path: Path) -> dict:

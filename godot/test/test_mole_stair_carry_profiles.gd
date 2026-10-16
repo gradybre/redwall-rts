@@ -139,7 +139,8 @@ func test_empty_floor_rows_walk_empty() -> void:
 
 
 func test_the_descent_row_holds_the_load_box() -> void:
-	"""The derived wood descent box: one pitch down, the log 504 u ahead of the start root plus the 512 u advance."""
+	"""The derived wood descent box (`rows-v1.json`): from 130 u below the start floor to the held log's top, and
+	949 u ahead: the log reaches 437 u ahead of the root at the hold, plus the 512 u advance of one tread."""
 	var row: int = Carry.STAIR_CARRY_WOOD_ROWS[1]
 	var first: int = _field(_carry, Profiles.F_FIRST_BOX, row)
 	assert_equal(_field(_carry, Profiles.F_BOX_COUNT, row), 3, "body, stance, recovery")
@@ -194,7 +195,9 @@ func test_a_rooted_row_in_work_mode_is_refused() -> void:
 
 
 func test_the_stair_policy_still_refuses_cargo() -> void:
-	"""The live stair rule is unchanged: a loaded row under POLICY_STAIR is refused."""
+	"""The live stair rule is unchanged: content 10's descent (a WALK POLICY_STAIR row) naming a cargo is refused by
+	the stair clause itself, and a loaded row moved under POLICY_STAIR by the mode rule."""
+	_negative(Wall.CLAW_DESCENT_ROW, Profiles.F_CARGO * 4, 60, &"PROFILE_POLICY_FORMAT")
 	_negative(Carry.STAIR_CARRY_WOOD_ROWS[1], POLICY_BYTE, Profiles.POLICY_STAIR, &"PROFILE_POLICY_FORMAT")
 
 

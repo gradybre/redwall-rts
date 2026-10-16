@@ -651,11 +651,11 @@
    "decks": [
     [
      -1024,
-     -64,
-     -512,
+     -128,
+     -1193,
      1024,
      0,
-     1536
+     5975
     ]
    ],
    "end": [
@@ -1317,11 +1317,11 @@
    "decks": [
     [
      -1024,
-     -64,
-     -169,
+     -128,
+     -850,
      1024,
      0,
-     1879
+     6318
     ]
    ],
    "end": [
@@ -6589,11 +6589,11 @@
    "decks": [
     [
      -1024,
-     -64,
-     -169,
+     -128,
+     -850,
      1024,
      0,
-     1879
+     6318
     ]
    ],
    "end": [
@@ -11861,11 +11861,11 @@
    "decks": [
     [
      -1024,
-     -64,
-     -169,
+     -128,
+     -850,
      1024,
      0,
-     1879
+     6318
     ]
    ],
    "end": [
@@ -11880,11 +11880,11 @@
   }
  ],
  "claw_tables_sha256": "e7840c7babc9bbe21c8f8c36a3d3a313172bc4a3adff9f13dcd6f4a99c25a58b",
- "proof_sha256": "c327da3fd3e4cbd115ef6f08b4b6efe656cf9e73555125ea17bd50a0f8637070",
+ "proof_sha256": "56127099eec852edb1b30bd036ba3f78ffbb9d76858b8515da8667e49df01766",
  "production_qualified": false,
  "producer_sources": {
-  "godot/data/underground/mole-worker/stair-carry-v1/derive_stair_carry_tables.py": "e362f3832206b157f8815d7d3662ff6f07653d05015dcb4a54cabedcb4e761bb",
+  "godot/data/underground/mole-worker/stair-carry-v1/derive_stair_carry_tables.py": "a55b37b86d6fad337782eb432a66dcca85b09135be2a661eefa8cff2905c6148",
   "godot/data/underground/mole-worker/stair-carry-v1/author_stair_carry.py": "cd0fc65a3282dafcb552841f33e9fb5d553c2c449efb8e83538be1a35a89c35e",
-  "godot/data/underground/mole-worker/stair-carry-v1/prove_stair_carry.py": "bd026a1f20f7d801d037ca041132077295743fd7fb697c2516f29b2b87cc14d6"
+  "godot/data/underground/mole-worker/stair-carry-v1/prove_stair_carry.py": "4e274f4ad2be9ce278ccfabdc837eaf5a012acfa5baa0fad132bcf0545f68598"
  }
 }

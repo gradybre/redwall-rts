@@ -32,22 +32,22 @@
         "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood/compiled"
       ],
       "diagnostics": [],
-      "elapsed_seconds": 10.425641540903598,
+      "elapsed_seconds": 10.692332333885133,
       "exit_code": 0,
       "log": "compile.log",
-      "log_sha256": "dfb10328eab57d00a75174f0df850c213509e98a6537fd1a62616980b7ddf49e"
+      "log_sha256": "8c0dcf17cd9e3553106e79b8535d6aac11bbd830469b0b8bf707e86fe2b13d64"
     },
     {
       "command": [
         "/opt/homebrew/bin/godot",
         "--headless",
         "--path",
-        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-_i4j0_cw",
+        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-wjinbedd",
         "--editor",
         "--quit"
       ],
       "diagnostics": [],
-      "elapsed_seconds": 8.211215416900814,
+      "elapsed_seconds": 8.61894791573286,
       "exit_code": 0,
       "log": "import.log",
       "log_sha256": "839f0032db217c79f5ee0f9c1fea0a34a878d429e087a9e493995a315e93e235"
@@ -58,17 +58,17 @@
         "-B",
         "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/tools/gdscript_warnings.py",
         "--project",
-        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-_i4j0_cw",
+        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-wjinbedd",
         "--port",
         "6481",
         "--godot",
         "/opt/homebrew/bin/godot",
         "--json",
         "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood/analyzer.json",
-        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-_i4j0_cw/capture_native_program.gd"
+        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-wjinbedd/capture_native_program.gd"
       ],
       "diagnostics": [],
-      "elapsed_seconds": 9.50933950021863,
+      "elapsed_seconds": 10.024541957769543,
       "exit_code": 0,
       "log": "analyzer.log",
       "log_sha256": "4149412bf2bc9a0c789283f8568f060c85bc89a8abcac221bba1a021b522df15"
@@ -77,7 +77,7 @@
       "command": [
         "/opt/homebrew/bin/godot",
         "--path",
-        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-_i4j0_cw",
+        "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/native-replay-wjinbedd",
         "--script",
         "res://capture_native_program.gd",
         "--",
@@ -85,14 +85,14 @@
         "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/789aecf0-9a56-446d-b26e-f0c850eb006d/scratchpad/wt-staircarry/godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood"
       ],
       "diagnostics": [],
-      "elapsed_seconds": 3.7401719582267106,
+      "elapsed_seconds": 3.6843682089820504,
       "exit_code": 0,
       "log": "native.log",
       "log_sha256": "b17752a388e29f71b297fb6c72a3b3e7ac89c5ef95459a86ada7f5a72cccf4e6"
     }
   ],
   "custom_user_directory": "Redwall-ug-haul-native-1144",
-  "elapsed_seconds": 31.962993750348687,
+  "elapsed_seconds": 33.098908291663975,
   "error": null,
   "production_qualified": false,
   "runtime_admitted": false,
@@ -128,10 +128,10 @@
     "godot/data/underground/mole-worker/qualified-claw-runtime-v2/stair_program.gd": "22348c605399b435865db1f8110bf0376589bedd68a217837ffd208e92993975",
     "godot/data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd": "496231c3141f63cf1b1d5159072724f4f1d86391bcfbfd04ce0ceb7e7c0f80f5",
     "godot/data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd": "343b97f6c4e7952135cdd4ca0f46cb7bdf4c356bbf3d86dbf967e2421a4277fc",
-    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "5f05ae1594fdbc16cc430428dc8188db8444f236bc64205675c5bc7a772d44de",
+    "godot/data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd": "a72988fa3653b2b69b856f96b0de84a7d2037a3ece49e3bbb92e1b3845e5e57d",
     "godot/data/underground/mole-worker/qualified-stone-v7/catalog_source.gd": "ddd48b8fedc78dac0b1c2a541f0e9781634e6f9261a25ff78893ef116274ad95",
     "godot/data/underground/mole-worker/qualified-stone-v7/grip_certificate.gd": "3797ac7d4312e45217257380df1475d5d6d0732a41a2b0327c381e1af2876f87",
-    "godot/data/underground/mole-worker/stair-carry-v1/native_stair_carry.py": "4d9b4ae75ce88d36c7a30fa3b7c9673900603060f10c9a4c16e9a90d66bf0ca5",
+    "godot/data/underground/mole-worker/stair-carry-v1/native_stair_carry.py": "a29500a48fb5209085f0a3c2cd60844943b9373819c328921b32836cb9731d99",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
     "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
@@ -205,7 +205,7 @@
     "godot/scripts/core/underground_geometry_journal.gd": "27808020d08e2050fbe0b379e045615dc751931a445f6a0590c6e3b8a4025159",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
     "godot/scripts/core/underground_locations.gd": "a83a17fe5c8eac8f362a8a4ecbef71c2c6b118396c05eecabad53b7f205332e0",
-    "godot/scripts/core/underground_profiles.gd": "e056f6822733bf332f95d968bf1ea46cc7ad1e0262ee1fa7caa58e420fce21eb",
+    "godot/scripts/core/underground_profiles.gd": "326d280310d26ecb8eb69a963fc6245d8f67c1f85b66b164a39c371a3f4974ec",
     "godot/scripts/core/underground_room_cut_map.gd": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5",
     "godot/scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
     "godot/scripts/core/underground_routes.gd": "e16a8392a9d469af43d3adf2410db5a7cdc41cb51c3b5d590c572fd1bd9c2146",

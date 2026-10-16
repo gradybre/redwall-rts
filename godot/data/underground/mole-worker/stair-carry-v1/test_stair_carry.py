@@ -66,12 +66,25 @@ class Records(unittest.TestCase):
         record = load("proof-v1.json")["proofs"]
         self.assertTrue(record["clear"])
         rows = walk({k: v for k, v in record.items() if k != "clear"})
-        self.assertEqual(len(rows), 52)  # 23 per item (self, load and every fixture run) and 6 at the floor end.
+        self.assertEqual(len(rows), 62)  # 27 per item (self, load, every fixture run and its endpoints), 8 at the foot.
         self.assertTrue(all(clear for _, clear in rows), [path for path, clear in rows if not clear])
         for item in ("wood", "stone"):
             self.assertEqual(set(record[item]["descent"]), {"self", "load", "terrain", "flight", "bottom"})
-            self.assertEqual(set(record[item]["approach"]), {"self", "load", "L0", "floor_approach"})
-            self.assertEqual(set(record[item]["turn"]), {"self", "load", "floor_turn"})
+            self.assertEqual(set(record[item]["approach"]), {"self", "load", "L0", "L0_endpoints", "floor_approach",
+                                                             "floor_approach_endpoints"})
+            self.assertEqual(set(record[item]["turn"]), {"self", "load", "floor_turn", "floor_turn_endpoints"})
+
+    def test_endpoint_feet_are_supported(self) -> None:
+        """P-1981-7: the hold's two feet are checked at both endpoint keys of every loaded handoff run (the prover
+        witnesses a foot only where it is planted at both keys of an interval): in the contact cell, over the deck."""
+        record = load("proof-v1.json")["proofs"]
+        for item in ("wood", "stone"):
+            for clip, run in (("approach", "L0"), ("approach", "floor_approach"), ("retreat", "L0"),
+                              ("turn", "floor_turn")):
+                feet = record[item][clip][run + "_endpoints"]["feet"]
+                self.assertEqual(sorted((f["key"] > 0, f["foot"]) for f in feet),
+                                 [(False, 0), (False, 1), (True, 0), (True, 1)], f"{item}.{clip}.{run}")
+                self.assertTrue(all(0 <= f["min_gap_u"] < 1 and f["margin_u"] > 0 for f in feet))
         self.assertEqual(set(record["floor_end"]), {"empty_walk_off", "empty_back_up", "claw_turn_55", "claw_ascent_54"})
 
     def test_rows_census(self) -> None:

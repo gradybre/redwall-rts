@@ -2095,6 +2095,39 @@
       ]
      }
     },
+    "L0_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 343.6983049118562,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 448.3287715665383,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 0.6983049118562121,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 105.32877156653831,
+       "clear": true
+      }
+     ]
+    },
     "floor_approach": {
      "clear": true,
      "unresolved": [],
@@ -4101,6 +4134,39 @@
        77
       ]
      }
+    },
+    "floor_approach_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 750.9539162829171,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287921416766,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 681.6983049118562,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287921416766,
+       "clear": true
+      }
+     ]
     }
    },
    "descent": {
@@ -20066,6 +20132,39 @@
        77
       ]
      }
+    },
+    "floor_turn_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 750.9539162829171,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287921416766,
+       "clear": true
+      },
+      {
+       "key": 270,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 750.9539059060123,
+       "clear": true
+      },
+      {
+       "key": 270,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287910845733,
+       "clear": true
+      }
+     ]
     }
    },
    "retreat": {
@@ -22093,6 +22192,39 @@
        0
       ]
      }
+    },
+    "L0_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 254.0879441991342,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 170.28497582140426,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 423.0879441991342,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 339.28497582140426,
+       "clear": true
+      }
+     ]
     }
    },
    "back_up": {
@@ -24148,6 +24280,39 @@
       ]
      }
     },
+    "L0_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 343.6983049118562,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 448.3287715665383,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 0.6983049118562121,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 105.32877156653831,
+       "clear": true
+      }
+     ]
+    },
     "floor_approach": {
      "clear": true,
      "unresolved": [],
@@ -26154,6 +26319,39 @@
        77
       ]
      }
+    },
+    "floor_approach_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 750.9539162829171,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287921416766,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 681.6983049118562,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287921416766,
+       "clear": true
+      }
+     ]
     }
    },
    "descent": {
@@ -42122,6 +42320,39 @@
        77
       ]
      }
+    },
+    "floor_turn_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 750.9539162829171,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287921416766,
+       "clear": true
+      },
+      {
+       "key": 270,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 750.9539059060123,
+       "clear": true
+      },
+      {
+       "key": 270,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 726.3287910845733,
+       "clear": true
+      }
+     ]
     }
    },
    "retreat": {
@@ -44150,6 +44381,39 @@
        0
       ]
      }
+    },
+    "L0_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 254.0879441991342,
+       "clear": true
+      },
+      {
+       "key": 0,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 170.28497582140426,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0018262678545420436,
+       "margin_u": 423.0879441991342,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 1,
+       "min_gap_u": 0.0019531507062873488,
+       "margin_u": 339.28497582140426,
+       "clear": true
+      }
+     ]
     }
    },
    "back_up": {
@@ -45474,6 +45738,25 @@
        77
       ]
      }
+    },
+    "floor_approach_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0019531193049778417,
+       "margin_u": 750.9539162829171,
+       "clear": true
+      },
+      {
+       "key": 90,
+       "foot": 0,
+       "min_gap_u": 0.0019531193049778417,
+       "margin_u": 681.6983049118562,
+       "clear": true
+      }
+     ]
     }
    },
    "empty_back_up": {
@@ -49287,6 +49570,25 @@
        77
       ]
      }
+    },
+    "floor_turn_endpoints": {
+     "clear": true,
+     "feet": [
+      {
+       "key": 0,
+       "foot": 0,
+       "min_gap_u": 0.0019531193049778417,
+       "margin_u": 750.9539162829171,
+       "clear": true
+      },
+      {
+       "key": 270,
+       "foot": 0,
+       "min_gap_u": 0.0019531193049778417,
+       "margin_u": 750.9539059060123,
+       "clear": true
+      }
+     ]
     }
    },
    "claw_ascent_54": {
@@ -51015,7 +51317,7 @@
   "clear": true
  },
  "producer_sources": {
-  "godot/data/underground/mole-worker/stair-carry-v1/prove_stair_carry.py": "bd026a1f20f7d801d037ca041132077295743fd7fb697c2516f29b2b87cc14d6",
+  "godot/data/underground/mole-worker/stair-carry-v1/prove_stair_carry.py": "4e274f4ad2be9ce278ccfabdc837eaf5a012acfa5baa0fad132bcf0545f68598",
   "godot/data/underground/mole-worker/stair-carry-v1/author_stair_carry.py": "cd0fc65a3282dafcb552841f33e9fb5d553c2c449efb8e83538be1a35a89c35e",
   "godot/data/underground/mole-worker/stair-carry-v1/stair_carry_source.py": "ec05dd89dcb94935234834faa19be1bb9d3ad7c33303b98f9d22d6ef833d9c36",
   "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "72e07b93d40b6d8fe6b0738f85bce35c7a6d5fe5cc932dbcf3324547cf5caf78",

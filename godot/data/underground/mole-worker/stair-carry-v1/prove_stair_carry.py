@@ -41,19 +41,26 @@ import prove_loaded_gait as LGP  # noqa: E402  (haul-handling-v1, on the path th
 import prove_stone_star as STAR  # noqa: E402
 import stone_geometry as STONE_GEOMETRY  # noqa: E402
 
-FLOOR_SLAB, SILL, T5_DECK = 77, 82, 66
-FIXTURES = {"L0": ((0, 0, 0), (0, 0)), "floor_approach": ((0, 1024, 4439), (0, FLOOR_SLAB)),
-            "floor_turn": ((0, 896, 3584), (7, FLOOR_SLAB))}
+FLOOR_SLAB, SILL = 77, 82
+# The floor arrival F: the last descent's end, one pitch past the sill (`prove_descent_flight.bottom`'s second
+# segment origin plus the descent's root advance).
+FLOOR_ARRIVAL = (0, -1024, -5975)
+# (the handoff whose controls the fixture is translated under, and the standing-deck index swapped with the slab):
+# on the floor, F is moved to that handoff's first control, so the motion runs unchanged from F.
+FIXTURES = {"L0": (None, 0), "floor_approach": ("approach", 0), "floor_turn": ("turn", 7)}
 HANDOFF_RUNS = {"approach": ("L0", "floor_approach"), "retreat": ("L0",), "turn": ("floor_turn",)}
-FLOOR_ARRIVAL, FLOOR_ASCENT_START = (0, -1024, -5975), (0, -1024, -5801)
 
 
 def fixture(name: str) -> dict:
     """The bottom fixture (L0 ... T5, the sill, the floor and the seventh row), translated, standing deck swapped."""
-    solids, _ = CS.FLIGHT.bottom(CS.FLIGHT.read_prefix(), 7)
-    W.require(solids[FLOOR_SLAB] == [-1024, -1152, -7168, 1024, -1024, 0] and solids[SILL][4] == -896,
+    solids, segments = CS.FLIGHT.bottom(CS.FLIGHT.read_prefix(), 7)
+    W.require(solids[FLOOR_SLAB] == [-1024, -1152, -7168, 1024, -1024, 0] and solids[SILL][4] == -896 and
+              [segments[-1]["origin_u"][a] + (0, -128, -512)[a] for a in range(3)] == list(FLOOR_ARRIVAL),
               "STAIR_CARRY_BOTTOM_FIXTURE")
-    shift, (a, b) = FIXTURES[name]
+    handoff, deck = FIXTURES[name]
+    start = AH.episode_controls(handoff)[0][0] if handoff else FLOOR_ARRIVAL
+    shift = [start[a] - FLOOR_ARRIVAL[a] for a in range(3)] if handoff else [0, 0, 0]
+    a, b = (deck, FLOOR_SLAB) if handoff else (0, 0)
     moved = [[v + shift[k % 3] for k, v in enumerate(box)] for box in solids]
     moved[a], moved[b] = moved[b], moved[a]
     return {"solids_u": moved, "name": name, "shift_u": list(shift), "swapped_indices": [a, b]}
@@ -105,14 +112,40 @@ def gait_proofs(case: dict, parts: list, topology: list, gait: str, one_part: bo
 
 
 def handoff_proofs(case: dict, parts: list, topology: list, runs: tuple, table: np.ndarray) -> dict:
-    """The handoff prover on each named fixture."""
+    """The handoff prover on each named fixture, and the endpoint support it does not witness."""
     rows = {}
     for name in runs:
         ground = fixture(name)
         with TURN.claw_guards(case, ground):
             result = PH.prove(case, case["handoff_recipe"], parts, topology, SRC.ROOT_BOUNDS, ground, table)
         rows[name] = dict(compact(result), fixture={k: v for k, v in ground.items() if k != "solids_u"})
+        rows[name + "_endpoints"] = endpoint_support(case, parts[0], topology[0][0], ground, table)
     return rows
+
+
+def endpoint_support(case: dict, body: dict, triangles: np.ndarray, ground: dict, table: np.ndarray) -> dict:
+    """The prover witnesses a foot only over intervals where it is planted at both keys, so a foot planted at an
+    endpoint key alone (P-1981-7) is checked here at that key: an exact source vertex in the [0, 1) u contact cell of
+    the standing deck's top, and every vertex of the foot strictly over the deck's extent (binary64 positions; the
+    margins are recorded: the endpoint-only right foot clears by 105 u or more, and the left foot, which the prover
+    already covers exactly, sits 0.7 u inside L0's edge at A)."""
+    keys, rows = case["handoff_recipe"]["keys"], []
+    deck = ground["solids_u"][keys[0]["support_primitive"]]
+    for at in (0, case["frames"] - 1):
+        palette = case["matrices"][at]
+        points = AH.program_points(AH.A.source_positions(body, palette, case["grounding"][at]), keys[at]["root_u"],
+                                   keys[at]["yaw"], table)
+        for side, members in enumerate(CS.TERRAIN.foot_membership(body, triangles)):
+            if not keys[at]["planted_mask"] & (1 << side):
+                continue
+            vertices = np.unique(triangles[members])
+            gaps = [CS.TERRAIN.exact_source_y(body, case, at, int(v)) + keys[at]["root_u"][1] - deck[4]
+                    for v in vertices]
+            inside = float(min((points[vertices, 0] - deck[0]).min(), (deck[3] - points[vertices, 0]).min(),
+                               (points[vertices, 2] - deck[2]).min(), (deck[5] - points[vertices, 2]).min()))
+            rows.append({"key": at, "foot": side, "min_gap_u": float(min(gaps)), "margin_u": inside,
+                         "clear": bool(0 <= min(gaps) < AUTHOR.CONTACT_CELL_U and inside > 0)})
+    return {"clear": all(r["clear"] for r in rows) and len(rows) > 0, "feet": rows}
 
 
 def load_proofs(case: dict, closure: dict, item: str) -> dict:

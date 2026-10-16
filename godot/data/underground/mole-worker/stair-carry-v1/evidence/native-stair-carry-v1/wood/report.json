@@ -2,7 +2,7 @@
 	"api_version": "4.0",
 	"assertions": 43435,
 	"basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
-	"content_sha256": "3f0765ed5f70bd0ba8cb228158e125ad2d143ba9bb33d9bf6eef410ac7d468f3",
+	"content_sha256": "b7092e0c653143fd2a6fb15311934f312d732c835029509788b75b1bd1f2f945",
 	"display_server": "macOS",
 	"engine": {
 		"build": "official",

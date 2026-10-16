@@ -10,12 +10,12 @@
   "profile_count": 85,
   "box_count": 637,
   "source_count": 8,
-  "wire_sha256": "12c0160a79bd5455ebd6313a9440aed617b7b5e0877a349e61e71a5c650b7a2a",
+  "wire_sha256": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
   "wire_bytes": 26462,
   "paired_bank_bytes": 52908,
   "sources": {
-    "6": "3f0765ed5f70bd0ba8cb228158e125ad2d143ba9bb33d9bf6eef410ac7d468f3",
-    "7": "53f4a5c406d40295fcd76c1cb0cb73ea4214957ac06d6246ed7e08b1c67aadf8"
+    "6": "b7092e0c653143fd2a6fb15311934f312d732c835029509788b75b1bd1f2f945",
+    "7": "606936a142f755059a283d8cb8f2688fad87f65a93e577583e0c916dd5f2097e"
   },
   "rows": {
     "0-70": "content 11",
@@ -24,18 +24,18 @@
     "79-84": "the stone stair carry, the same six (source 7)"
   },
   "inputs": {
-    "godot/data/underground/mole-worker/stair-carry-v1/evidence/rows-v1.json": "e12d8eb8b81495c3619b0d3e8140763a649865aa2cb14d65cbc4dd434714c40e",
-    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood/compiled/compilation.json": "2fb457aed652b43d9b071838b02659c57a993102b199c2560a4960a69b9d7bd0",
-    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone/compiled/compilation.json": "4c93a9990a203eb470c7b7c504ab0e612ef79501248e0666699f2896a1511c1c",
-    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood-verification.json": "80885b8100f5dc24293c7e18a87221c5d0dff3f4cccbfd75abd2ae10dc29d45e",
-    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone-verification.json": "6d92b24d388f8bde99db61c24f578463e770b46dcd98e1ed20a119b4a0bc935d"
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/rows-v1.json": "d7a85f76331840b331cf2577cbfddd7c438a0e13593616055f05194a247ffbcd",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood/compiled/compilation.json": "7fe9bce015b6a5bc69434dbe7dd63f37e2435d356e43745c4ef0edfb381d5045",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone/compiled/compilation.json": "9c4c59a2c6d0fb1560f29cb9fcd7fbd81118a5ddf2f84754fd7e4f7786333cd1",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood-verification.json": "fffb7fb0d8d190a8497abdf7299de8134c3e1da2ff38841db7b175e0448fa5ec",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone-verification.json": "48cfd5fbbdbe45f96f38daed7d350f49108e8457262036cbe26a4e4264653a7d"
   },
   "ground_sha256": "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c",
-  "motion_sha256": "d9306bbeb4f9fce5204cca465634f1177de93e1e2c159449866f819ea4e311d0",
+  "motion_sha256": "05e4c692eed1a4eef778e99c16f9866e8a78c52abea9c2276fb4f577401c5598",
   "motion_inputs": {
     "godot/data/underground/mole-worker/qualified-claw-wall-v12/motion.ugmotion": "8e5b5bc25119245f29dc1fbe6dfb24fba216bbe256cb79b60f82f0864015fc7f",
-    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "12c0160a79bd5455ebd6313a9440aed617b7b5e0877a349e61e71a5c650b7a2a",
-    "godot/data/underground/mole-worker/publish_stair_carry_runtime.py": "44dc6dd6554acca42b515a73952f0f1525b1be8c7fedd9695ea8e3b78c87f6df"
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
+    "godot/data/underground/mole-worker/publish_stair_carry_runtime.py": "b32eb40f5f08a9dce5cc19bbfb80b22004a1b688574196f64c9e27d985528ca7"
   },
   "runtime_admitted": false
 }

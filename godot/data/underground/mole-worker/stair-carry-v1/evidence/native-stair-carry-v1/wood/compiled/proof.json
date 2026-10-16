@@ -14,7 +14,7 @@
     "godot/data/underground/mole-worker/stair-carry-v1/evidence/clips-v1/wood/descent.npz": "3d3a7ddd97d9b52ca03ade6d9230373489dd59922865bcf86156559ac79d6acf",
     "godot/data/underground/mole-worker/stair-carry-v1/evidence/clips-v1/wood/retreat.npz": "4a17a8fcea0757120735ea92556cf8ff36aa4aec6ac17acb5d01af37e9818da6",
     "godot/data/underground/mole-worker/stair-carry-v1/evidence/clips-v1/wood/turn.npz": "451238a669ba39f0f15aa5e5a6f5a4935a15e64af830ddb9e6ebc7b6185be211",
-    "godot/data/underground/mole-worker/stair-carry-v1/native_stair_carry.py": "4d9b4ae75ce88d36c7a30fa3b7c9673900603060f10c9a4c16e9a90d66bf0ca5"
+    "godot/data/underground/mole-worker/stair-carry-v1/native_stair_carry.py": "a29500a48fb5209085f0a3c2cd60844943b9373819c328921b32836cb9731d99"
   },
   "world_basis": {
     "sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1"

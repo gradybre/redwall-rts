@@ -777,7 +777,7 @@
   16896,
   262144
  ],
- "proof_sha256": "c327da3fd3e4cbd115ef6f08b4b6efe656cf9e73555125ea17bd50a0f8637070",
+ "proof_sha256": "56127099eec852edb1b30bd036ba3f78ffbb9d76858b8515da8667e49df01766",
  "production_qualified": false,
  "producer_sources": {
   "godot/data/underground/mole-worker/stair-carry-v1/derive_stair_carry_rows.py": "c8c80c11ba379fbbcd2966e29113d921dd9b836ca00b7beb9494c55bce23cc8d",

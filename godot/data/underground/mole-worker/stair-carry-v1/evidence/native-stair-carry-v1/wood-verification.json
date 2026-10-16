@@ -22,12 +22,13 @@
     "empty_back_up"
   ],
   "coefficient_mismatches": 0,
+  "content_sha256": "b7092e0c653143fd2a6fb15311934f312d732c835029509788b75b1bd1f2f945",
   "decision": "1981",
   "exact_rational_two_hand_witnesses": 17346,
   "floor_rule": "every visible part of every clip except the root-local descent and ascent, whose support is proved on the terrain, flight and bottom fixtures",
   "image": "wood",
   "joins": {
-    "cross_image_joins_per_view": 2,
+    "cross_image_joins": 15,
     "hub_joins": 54,
     "v10_capture_sha256": "44e5461d365499305b7f2fcff564e70d9772431052b5c7cf07487abfe71487a3",
     "views": 3

@@ -6,7 +6,10 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+import re
 import struct
+import tempfile
 import unittest
 
 import publish_stair_carry_runtime as PUB
@@ -30,12 +33,15 @@ class StairCarryRuntimePublication(unittest.TestCase):
     """The published files are exactly what the publisher builds from its pinned inputs."""
 
     def test_rebuild_is_byte_identical(self) -> None:
-        """Wire, ground paces and motion bank rebuild byte for byte; the manifest matches apart from the consumer
-        pins `tools/renew_source_pins.py` may add after publication."""
+        """Wire, ground paces and motion bank rebuild byte for byte; the accessor and the manifest match apart from
+        the consumer pins `tools/renew_source_pins.py` may renew after publication."""
         built = PUB.build()
         for name, raw in built.items():
             if name not in ("catalog_source.gd", "manifest.json"):
                 self.assertEqual((PUB.OUTPUT / name).read_bytes(), raw, name)
+        digests = re.compile(r"const DIGESTS: PackedStringArray = \[\n.*?\n\]", re.S)
+        self.assertEqual(digests.sub("", (PUB.OUTPUT / "catalog_source.gd").read_text()),
+                         digests.sub("", built["catalog_source.gd"].decode()), "accessor, consumer digests aside")
         stored = json.loads((PUB.OUTPUT / "manifest.json").read_text())
         for key in ("consumers", "renewals"):
             stored.pop(key, None)
@@ -92,7 +98,7 @@ class StairCarryRuntimePublication(unittest.TestCase):
         wire, _ = PUB.build_wire(PUB.read_rows())
         _, digests, fields, rows = PUB.PUB7.parse(wire)
         fields[73][1] = -1
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "KEY_ORDER"):
             PUB.check(old, encode(digests, fields, rows))
 
     def test_ambiguous_key_refusal(self) -> None:
@@ -103,6 +109,27 @@ class StairCarryRuntimePublication(unittest.TestCase):
         fields[78][PUB.F_POLICY] = PUB.ROOTED_TRAVEL
         with self.assertRaisesRegex(ValueError, "AMBIGUOUS_KEY"):
             PUB.check(old, encode(digests, fields, rows))
+
+    def test_a_verification_of_another_image_is_refused(self) -> None:
+        """A native verification must name the compiled image's own digest."""
+        record = json.loads(PUB.VERIFICATIONS[0].read_text())
+        record["content_sha256"] = "0" * 64
+        with tempfile.TemporaryDirectory() as folder:
+            forged = Path(folder) / "verification.json"
+            forged.write_text(json.dumps(record))
+            saved, PUB.VERIFICATIONS = PUB.VERIFICATIONS, (forged, PUB.VERIFICATIONS[1])
+            try:
+                with self.assertRaisesRegex(ValueError, "IMAGE_VERIFICATION"):
+                    PUB.image_digests()
+            finally:
+                PUB.VERIFICATIONS = saved
+
+    def test_a_template_carrying_the_wrong_unit_is_refused(self) -> None:
+        """The empty pair's template must carry nothing, the loaded templates their unit."""
+        _, _, fields, _ = PUB.PUB7.parse((PUB.OLD / "mole-worker.ugprof").read_bytes())
+        fields[31][PUB.F_CARGO] = 60
+        with self.assertRaisesRegex(ValueError, "TEMPLATE_empty"):
+            PUB.new_rows(fields, PUB.read_rows())
 
     def test_row_census_refusal(self) -> None:
         """A rows record out of publication order is refused."""

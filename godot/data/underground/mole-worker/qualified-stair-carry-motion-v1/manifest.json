@@ -5,7 +5,7 @@
     "1229"
   ],
   "content_revision": 12,
-  "wire_sha256": "998e70fa11669deffa70b96f339aab744ea800377cbe47c79c669956dc228541",
+  "wire_sha256": "e039b6c8124b2b5c7e6d23cccc02c67f2c1260fd788fe48500c3280ccabd1f60",
   "wire_bytes": 33856,
   "programs": [
     {
@@ -16,11 +16,11 @@
       "decks": [
         [
           -1024,
-          -64,
-          -512,
+          -128,
+          -1193,
           1024,
           0,
-          1536
+          5975
         ]
       ],
       "end_u": [
@@ -42,11 +42,11 @@
       "decks": [
         [
           -1024,
-          -64,
-          -169,
+          -128,
+          -850,
           1024,
           0,
-          1879
+          6318
         ]
       ],
       "end_u": [
@@ -214,11 +214,11 @@
       "decks": [
         [
           -1024,
-          -64,
-          -169,
+          -128,
+          -850,
           1024,
           0,
-          1879
+          6318
         ]
       ],
       "end_u": [
@@ -386,11 +386,11 @@
       "decks": [
         [
           -1024,
-          -64,
-          -169,
+          -128,
+          -850,
           1024,
           0,
-          1879
+          6318
         ]
       ],
       "end_u": [
@@ -406,8 +406,8 @@
     }
   ],
   "inputs": {
-    "godot/data/underground/mole-worker/stair-carry-v1/evidence/tables-v1.json": "3669ea084ac370fb045ab38138ab0a20c4edf158471efe8743aed5e4552bbfe8",
-    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "12c0160a79bd5455ebd6313a9440aed617b7b5e0877a349e61e71a5c650b7a2a",
+    "godot/data/underground/mole-worker/stair-carry-v1/evidence/tables-v1.json": "ded6dba0bddb9e162b45f575358bb536ffee6e69d6acaf0d77631a5a48bcdd46",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
     "godot/data/underground/mole-worker/publish_stair_carry_motion.py": "4b3613d5b1491cb50fbe9a278cbccf93c5cda97da600df91ca095d3eb08d9387"
   },
   "runtime_admitted": false

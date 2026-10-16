@@ -352,7 +352,7 @@ The approach and retreat on L0, and the approach and turn on the floor, each ref
 "left foot only" (`mask = 1`). It records the reason: "Exact ready has the right foot slightly raised; no invented
 second contact". That is true of the stand ready. It is not true of the hold:
 
-- the lift ends with both feet down, the left foot's lowest vertex 1.87 u and the right foot's 2.0 u above the
+- the lift ends with both feet down, the left foot's lowest exact vertex 0.0018 u and the right foot's 0.0020 u above the
   floor (wood and stone holds alike);
 - so the right foot lies inside the prover's conservative padding;
 - it is not excused, because it is not declared planted.
@@ -400,6 +400,21 @@ reproduces "left only" for the standing pose, and keeps the check as strict as b
 **Where the failure came from.** It came from the approved author's single-planted-foot assumption at its endpoints,
 not from the motion. The diagnostic table above is the evidence.
 
+**A correction found by the independent review: the prover alone does not witness an endpoint-only foot.**
+`prove_stair_handoffs` requires a contact witness only for a foot planted at both keys of an interval
+(`mask = pair[0] & pair[1]`), but excuses deck contact for a foot planted at either key. The hold's right foot is
+planted at the two endpoint keys only, so in the first and last intervals it was excused but never witnessed: the
+check was not "as strict as before" for that foot.
+- **What closes it.** `prove_stair_carry.endpoint_support` checks every planted foot at both endpoint keys of every
+  handoff run:
+  - an exact source vertex in the [0, 1) u contact cell of the standing deck's top;
+  - every vertex of the foot strictly over the deck's extent.
+- **Results** (`*_endpoints` rows in `proof-v1.json`, all clear):
+  - the hold's feet are 0.0018 u (left) and 0.0020 u (right) above the deck;
+  - the right foot, the endpoint-only one, lies at least 105 u inside the deck's edges in every run;
+  - the left foot, which the prover already covers exactly, is 0.7 u inside L0's edge at A.
+- `source_above_plane` still forbids any penetration.
+
 ## Phase 2 — what was built (2026-10-15)
 
 Everything below is data only and **not active**. The activation inventory is at the end.
@@ -428,7 +443,7 @@ Results:
 - No arm swing.
 - Clips: 6 per item (91 keys each, the turn 271) and the empty pair (91 each), in `evidence/clips-v1/`.
 
-**`prove_stair_carry.py` → `evidence/proof-v1.json`: clear, all 52 proof rows.**
+**`prove_stair_carry.py` → `evidence/proof-v1.json`: clear, all 62 proof rows.**
 
 | Proof | Wood | Stone |
 |---|---|---|
@@ -440,6 +455,8 @@ Results:
 | Continuous two-hand grip, every interval of every clip | clear | clear |
 
 - **Back-ups.** Each back-up is proved by its approach's runs: every rendered interval is the same pair of keys.
+- **Endpoint support** (P-1981-7, see the correction above): every planted foot at both endpoint keys of every handoff
+  run, ten runs, clear.
 - **The empty floor end:**
   - the walk-off on the floor: 869 checks, and self-clear;
   - claw row 55 on the floor: 2,190 checks;
@@ -456,8 +473,8 @@ Both ran on the real Metal backend:
 
 | Image (source) | Clips | Content | Rows | Mismatches | Max vertex error (u) |
 |---|---|---|---:|---:|---|
-| wood (6) | hold, the six loaded clips, the empty pair (mask body only, the S fixture stock hidden) | `3f0765ed…` (1,096,408 B) | 10,839 | 0 | 0.00013 body, 0.00087 log |
-| stone (7) | hold, the six loaded clips | `53f4a5c4…` (877,184 B) | 8,673 | 0 | 0.00008 body, 0.00086 stone |
+| wood (6) | hold, the six loaded clips, the empty pair (mask body only, the S fixture stock hidden) | `b7092e0c…` (1,096,408 B) | 10,839 | 0 | 0.00013 body, 0.00087 log |
+| stone (7) | hold, the six loaded clips | `606936a1…` (877,184 B) | 8,673 | 0 | 0.00008 body, 0.00086 stone |
 
 Each image's verification also covered:
 - 17,346 exact two-hand witnesses;
@@ -505,7 +522,7 @@ the turn equal content 10's rows 53, 54 and 55 key for key; the tool refuses oth
 - **`publish_stair_carry_runtime.py`.** Content 11 plus sources 6 and 7 and rows 71–84:
   - the empty pair takes row 31's words, wood row 32's and stone row 37's;
   - each row's yaw is exact, its family is EARTH_TIMBER, and its policy word is 10–13;
-  - wire `12c0160a…`: 85 rows, 637 boxes, 8 sources;
+  - wire `fa96acbe…`: 85 rows, 637 boxes, 8 sources;
   - the paired bank is 52,908 B, 5,224 B more than content 11's;
   - the ground caps are content 11's at revision 12, and the motion bank is rebound;
   - the manifest says `runtime_admitted: false`.
@@ -524,8 +541,9 @@ the turn equal content 10's rows 53, 54 and 55 key for key; the tool refuses oth
   - Profiles' reviewed row records the four constants (no storage), and `REVIEWED_SHA` is bumped.
   - The pack is regenerated: live with reserve is still 100,250,607 B.
   - Content 12's profile bank (+5,224 B) is charged at activation: 270,824 of `PROFILE_BYTES` 278,528, leaving 7,704 B.
-- **Checkpoints.** The two ADR 1240 checkpoints (`underground_entry`, `underground_spare`) were regenerated. Only
-  their fingerprints moved.
+- **Checkpoints.** The two ADR 1240 checkpoints (`underground_entry`, `underground_spare`) were regenerated. Their
+  saves are byte-identical; only their manifests moved (the fingerprint and the source digests of
+  `underground_profiles.gd` and content 10's renewed `catalog_source.gd`).
 
 ### Tests
 
@@ -538,9 +556,9 @@ the turn equal content 10's rows 53, 54 and 55 key for key; the tool refuses oth
   - Ten negative edits through the real loader: no cargo; cargo when walking; a tool; free heading; WORK mode; a
     loaded row under POLICY_STAIR or a short-step word; an ambiguous key; policy 14; and item 0 admitted.
 - Python tests:
-  - `test_publish_stair_carry_runtime.py` (8);
+  - `test_publish_stair_carry_runtime.py` (10);
   - `test_publish_stair_carry_motion.py` (8);
-  - `stair-carry-v1/test_stair_carry.py` (13). Its rebuild tests re-author every clip and re-derive the rows and
+  - `stair-carry-v1/test_stair_carry.py` (14). Its rebuild tests re-author every clip and re-derive the rows and
     tables byte for byte.
 
 ### Frames (gate)
@@ -557,14 +575,60 @@ and the log is clear of the steps both ways.
 
 ### Mutation testing
 
-**22 mutants, 22 killed** (scratch runner, one mutant per run; the Godot suites run without the pin preflight, which
-would otherwise refuse every mutated consumer).
-- **Profiles (13):** the bound, the predicate's ends, the tool, cargo and mode rules, the WORK modes, the constant.
-- **The two publishers (5):** ambiguity, key order, row grouping, deck index, root frame.
+**25 mutants, 25 killed** (scratch runner, one mutant per run).
+- The Godot suites run without the pin preflight, which would otherwise refuse every mutated consumer before a test
+  ran.
+- A publisher pins its own bytes into its outputs, so its rebuild test fails for any edit. Publisher mutants are
+  therefore judged by the other tests only.
+
+The mutants:
+- **Profiles (14):** the bound, the predicate's ends, the tool, cargo and mode rules, the WORK modes, the constant,
+  and the moved stair cargo clause.
+- **The publishers (7):** ambiguity, key order, row grouping, deck index, root frame, the verification's image digest
+  and the template's unit.
 - **The author (4):** the contact cell, the floor and support refusals, the wrapper's restore.
 
-The first pass left A01, the contact cell widened to 3 u, alive. A boundary test now lifts a hold 1.5 u and requires
-the refusal.
+Survivors of earlier passes, now killed by new tests:
+- A01, the contact cell widened to 3 u: a boundary test lifts a hold 1.5 u and requires the refusal.
+- The stair cargo clause, which the review found: a test now edits content 10's descent to name a cargo.
+- The publishers' image-digest and template checks, once the self-pin was set aside: two refusal tests.
+
+### Review (independent `code-reviewer`)
+
+**No CRITICAL or HIGH.** The reviewer confirmed:
+- live safety: rooted rows are inert to automatic lookup, selection and admission;
+- the four-word reasoning;
+- the fixture translations, the reversal argument, the ascent orientation and the record's numbers.
+
+**MEDIUM, all fixed:**
+1. The stair-cargo test could not fail for its clause. It now edits a WALK stair row.
+2. The P-1981-7 strictness claim: the endpoint support check above, and this record corrected.
+3. A unit error in this record (1.87 u for 0.0018 u).
+4. The tables gave floor-only rows (71, 72, 78, 84) L0's deck. Each handoff row's deck is now its own run's standing
+   deck, read from the fixture, and the L0 literal is gone.
+5. The fixture shifts were hand-entered. They are now derived from the floor arrival and each handoff's first
+   control, and the dead constants are removed.
+6. The four-word departure from P-1981-5 was not surfaced. It is now noted in `RULINGS.md` and reported to the
+   coordinator.
+7. The activation inventory lacked three seams. They are added below.
+
+**LOW, fixed:**
+- the native verification now carries and must match the image digest;
+- the template cargo check reads the template;
+- a test docstring;
+- `assertRaisesRegex`;
+- the accessor is rebuild-compared with its consumer digests masked;
+- the cross-image join count is a real counter;
+- the checkpoint wording.
+
+**LOW, kept:**
+- Rooted stair and turn words accept family mask 0, unlike POLICY_STAIR. Every published rooted row names family 1;
+  ground handoffs remain possible if activation wants them.
+- `stair_carry_source.CARGO` stays as a documented closure field.
+
+The images were recaptured and re-verified after the verifier change. Their compile records pin the verifier, so
+their digests moved. Content 12 and its tables were republished from the re-run proofs, rows and tables. The wire
+bytes are identical apart from the two source digests.
 
 ## Activation inventory for content 12 (P-1981-4 (a))
 
@@ -581,6 +645,12 @@ the refusal.
   - stage the images for the demo pack (decision 1841).
 - **Profiles selection:**
   - `selection_policy_leaf` returns 10–13;
+  - `_matches`' heading exemption covers `POLICY_ROOTED_TURN` as it covers `POLICY_STAIR_TURN`
+    (`underground_profiles.gd`, the heading test in `_matches`);
+  - WorldRoutes' backward-heading rule (`underground_world_routes.gd` about l. 1205) adds `POLICY_ROOTED_BACKWARD`
+    beside `READY_BACKWARD` and `SHORT_BACKWARD`, or the back-up edges fail `WORLD_ROUTE_PROFILE_HEADING`;
+  - Routes' `policy <= POLICY_AUTOMATIC` legacy branch (`underground_routes.gd` about l. 2350) must not take rooted
+    rows;
   - `query_travel_profile_into` admits the rooted words with the mode the caller asks for: WALK, or CARRY with the
     actor's committed cargo.
 - **Routes** (cost lane's file):

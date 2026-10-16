@@ -18,12 +18,13 @@
     "back_up"
   ],
   "coefficient_mismatches": 0,
+  "content_sha256": "606936a142f755059a283d8cb8f2688fad87f65a93e577583e0c916dd5f2097e",
   "decision": "1981",
   "exact_rational_two_hand_witnesses": 17346,
   "floor_rule": "every visible part of every clip except the root-local descent and ascent, whose support is proved on the terrain, flight and bottom fixtures",
   "image": "stone",
   "joins": {
-    "cross_image_joins_per_view": 1,
+    "cross_image_joins": 3,
     "hub_joins": 42,
     "v10_capture_sha256": "2b0c3f475dd6a94dd4062fc63ae9e45aaac332e3f1d267ff3f64d8f561efe0fa",
     "views": 3

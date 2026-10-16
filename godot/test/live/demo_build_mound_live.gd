@@ -59,6 +59,25 @@ func _initialize() -> void:
 		_scroll.bind("Hearth"), _furnish_a_hearth, _confirm_the_hearth, _wait_hearth, _chimney_shown, _close_the_panel]
 
 
+func _process(delta: float) -> bool:
+	"""Each frame: past a stall's pause first (`_past_a_stall`), then the steps."""
+	_past_a_stall()
+	return super(delta)
+
+
+func _past_a_stall() -> void:
+	"""On a slow machine a hitch -- a level's first drawing, a screenshot -- can put the clock into its overload pause
+	(REQ-SET-008), and the stall banner then holds the build panel's world input, as it should, until the player
+	presses Resume. CI's runner hit one after level 1 was first drawn, and the hearth's click was held. The harness
+	presses Resume for the player (`acknowledge_overload`, the banner's own call) and says so: this loop tests the
+	Mound, not the clock."""
+	var banner: Node = _village.get("_stall_banner") if _village != null else null
+	if banner == null or not bool(banner.call(&"is_shown")) or not bool(_manager().call(&"is_paused")):
+		return
+	print("NOTE a stall paused the clock; Resume pressed for the player")
+	_manager().call(&"acknowledge_overload")
+
+
 func _open_on_the_surface() -> void:
 	"""The guide put away; the camera over the site; B opens the panel on the Surface in the Mound style."""
 	var hide: Button = _village.get("_guide").get("card").call(&"button", "Hide guide")

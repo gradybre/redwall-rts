@@ -105,6 +105,8 @@ const SENT: String = "%s goes to the Entrance to dig"
 const VISIT: String = "%s goes down to the dug room"
 const PLACE_HINT: String = "Place %s: click a spot, or Enter at the cursor; R turns it"
 const PINNED_HINT: String = "%s: choose Down or Up on its card, then Add to plan (Enter)"
+const REMOVE_HINT: String = "✓ Remove %s: click to ask for its removal"
+const KEEP_HINT: String = "✓ Keep %s: click to withdraw its removal"
 const WayHost := preload("res://demo/build_panel/demo_build_way_host.gd")
 const Fittings := preload("res://demo/build_panel/demo_build_fittings.gd")
 const Furnish := preload("res://demo/build_panel/demo_build_furnish.gd")
@@ -181,11 +183,10 @@ var _piece_label_moved: Vector2i = Vector2i(-1, -1)
 var _said_fit: String = ""
 ## Decision 2002: the Mound homes' store, drawing and builder.
 var mound: MoundHost = null
-## Decision 2021: what a removal would cut off (the batch's cut-off reader), and the last refusal said beside the
-## pointer while a way is armed (its words, and a count that moves when they change).
+## Decision 2021: what a removal would cut off (the batch's cut-off reader), and what the pointer's words were last
+## worked out for while a way is armed (cursor, batch revision, level, family, turn and pin).
 var ways: WayHost = null
-var _way_note: String = ""
-var _way_note_rev: int = 0
+var _way_label: Vector4i = Vector4i(0, 0, -1, -1)
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -590,9 +591,10 @@ func _sync_label(open: bool) -> void:
 	_label_box.visible = type >= 0 or placing or (open and (piece_armed() or edge_armed()))
 	if not _label_box.visible:
 		return
-	var label_key: int = batch.stroke_revision * 8192 + ((((bar.shown_level() * 8 + panel.armed_family() + 2) * 2
-		+ int(panel.pinned())) * 64 + (_way_note_rev & 63)) if placing else 0)
-	if open and edge_armed():
+	var label_key: int = batch.stroke_revision * 8 + (bar.shown_level() + 1 if placing else 0)
+	if placing and not batch.stroke_active():
+		_sync_way_label()
+	elif open and edge_armed():
 		_sync_edge_label()
 	elif open and piece_armed():
 		_sync_piece_label()
@@ -600,7 +602,7 @@ func _sync_label(open: bool) -> void:
 		_seen_label = label_key
 		_piece_label = Vector4i(0, 0, -1, -1)
 		_label.text = batch.stroke_line().replace("; ", "\n") if batch.stroke_active() \
-			else _way_hint() if placing else ARMED_HINT % BuildCatalog.type_name(type)
+			else ARMED_HINT % BuildCatalog.type_name(type)
 		_label_box.accessibility_name = batch.stroke_line() if batch.stroke_active() else _label.text
 		_label_box.reset_size()
 	var at: Vector2 = _pointer if _pointer.is_finite() else paint.screen_of(paint.cursor(), bar.shown_level(),
@@ -1146,7 +1148,6 @@ func _place_way_down(cell: Vector2i, keep: bool = false) -> bool:
 	asked for or withdrawn (BUILD-REQ-017: refused in words when it would cut something off); with the card open on
 	that cell, Add to plan (`keep`: Shift keeps the way's card); else its ghost is pinned there and the card opens."""
 	var removal: int = batch.toggle_way_removal(bar.shown_level(), cell)
-	_note_way(batch.last_dropped() if removal == Validity.KIND_NOT_POSSIBLE else "")
 	if removal == Validity.KIND_NOT_POSSIBLE:
 		_say.call(batch.last_dropped())
 		return true
@@ -1158,19 +1159,39 @@ func _place_way_down(cell: Vector2i, keep: bool = false) -> bool:
 	return panel.pin_way(cell)
 
 
-func _way_hint() -> String:
-	"""The pointer's words while a way is armed: the last refusal, else how to go on (pinned: the card's choice)."""
-	if not _way_note.is_empty():
-		return _way_note
+func _sync_way_label() -> void:
+	"""The armed way's words beside the pointer (the one place its judgement is spelled out; the ghost carries only a
+	short tag, decision 2022): over a built way, its removal's judgement alone; pinned, how to finish; else how to
+	place it, with why not when it cannot stand here. Worded again only when the cursor, the batch or the way moved."""
+	var cursor: Vector2i = paint.cursor() if not panel.pinned() else panel.pinned_cell()
+	var key: Vector4i = Vector4i(cursor.x, cursor.y, batch.revision,
+		((bar.shown_level() * 8 + panel.armed_family() + 1) * 4 + panel.way_turn()) * 2 + int(panel.pinned()))
+	if key == _way_label:
+		return
+	_way_label = key
+	_seen_label = -1
+	_label.text = _way_hint(cursor)
+	_label_box.accessibility_name = _label.text.replace("\n", "; ")
+	_label_box.reset_size()
+
+
+func _way_hint(cursor: Vector2i) -> String:
+	"""See `_sync_way_label`."""
 	var way_name: String = Families.name_of(panel.armed_family())
-	return PINNED_HINT % way_name if panel.pinned() else PLACE_HINT % way_name
-
-
-func _note_way(words: String) -> void:
-	"""Keep `words` beside the pointer ("" clears them)."""
-	if words != _way_note:
-		_way_note = words
-		_way_note_rev += 1
+	if panel.pinned():
+		return PINNED_HINT % way_name
+	var removal: Array = batch.removal_preview(bar.shown_level(), cursor)
+	if not removal.is_empty():
+		var built: String = Families.name_of((removal[2] as PackedInt32Array)[3])
+		if int(removal[0]) == Validity.KIND_NOT_POSSIBLE:
+			return Validity.line(Validity.KIND_NOT_POSSIBLE, String(removal[1]))
+		return (KEEP_HINT if bool(removal[3]) else REMOVE_HINT) % built
+	var up: bool = panel.default_up(bar.shown_level())
+	var judged: Array = batch.judge_item(bar.shown_level() - (1 if up else 0), cursor, -1, panel.armed_family(),
+		panel.way_turn())
+	var hint: String = PLACE_HINT % way_name
+	return hint if int(judged[0]) == Validity.KIND_CAN_BUILD else "%s\n%s" % [hint, Validity.line(int(judged[0]),
+		String(judged[1]))]
 
 
 func _on_way_added(kind: int) -> void:

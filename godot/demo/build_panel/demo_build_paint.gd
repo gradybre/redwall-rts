@@ -317,20 +317,26 @@ func _stroke_groups(level: int, pool: Array) -> int:
 
 
 func _way_ghost(level: int, pool: Array) -> int:
-	"""The way being placed, on the level shown: its cells there (standing, or coming down from the level above) judged
-	where it stands, and its access pair there as a second ghost ("access")."""
+	"""The way being placed, on the level shown: over a built way (a click removes it), that way's cells with its
+	removal's judgement only; else its own cells there (standing, or coming down from the level above) judged where it
+	stands, and its access pair as a second ghost ("access"). The way's own ghost carries no tag: its judgement is
+	spelled out once, in the pointer's label, which stays clear of the HUD (decision 2022)."""
 	var anchor: Vector2i = _way_pin if _way_pinned else _cursor
-	if not Families.valid(_way_family) or not _bounds.has_point(anchor) or (level != _way_standing
-			and level != _way_standing + 1):
+	if not Families.valid(_way_family) or not _bounds.has_point(anchor):
+		(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
+		return 1
+	var removal: Array = [] if _way_pinned else _batch.removal_preview(level, anchor)
+	if not removal.is_empty():
+		_removal_ghost(level, pool[0] as Ghost, removal)
+		return 1
+	if level != _way_standing and level != _way_standing + 1:
 		(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
 		return 1
 	var standing: bool = level == _way_standing
-	var judged: Array = _batch.judge_item(_way_standing, anchor, -1, _way_family, _way_turn)
+	var kind: int = int(_batch.judge_item(_way_standing, anchor, -1, _way_family, _way_turn)[0])
 	var cells: PackedInt32Array = Families.standing_cells(_way_family, _way_turn, anchor) if standing \
 		else Families.lower_cells(_way_family, _way_turn, anchor)
-	var name_words: String = way_name(_way_standing, Families.standing_cells(_way_family, _way_turn, anchor), _way_family)
-	(pool[0] as Ghost).show_cells(cells, int(judged[0]), "%s: %s" % [name_words,
-		Validity.line(int(judged[0]), String(judged[1]))])
+	(pool[0] as Ghost).show_cells(cells, kind, "")
 	var access: Ghost = _pooled(level, pool, 1)
 	if access == null:
 		return 1
@@ -338,6 +344,15 @@ func _way_ghost(level: int, pool: Array) -> int:
 		ACCESS_WORDS)
 	access.visible = true
 	return 2
+
+
+func _removal_ghost(level: int, ghost: Ghost, removal: Array) -> void:
+	"""The built way under the pointer, on `level`, drawn as its removal is judged (its words are the pointer's)."""
+	var way: PackedInt32Array = removal[2]
+	var anchor: Vector2i = Vector2i(way[1], way[2])
+	var cells: PackedInt32Array = Families.standing_cells(way[3], way[4], anchor) if way[0] == level \
+		else Families.lower_cells(way[3], way[4], anchor)
+	ghost.show_cells(cells, int(removal[0]), "")
 
 
 func operation_ghosts(level: int) -> Array:

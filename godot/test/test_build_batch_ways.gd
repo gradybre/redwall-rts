@@ -390,3 +390,20 @@ func test_a_way_may_replace_a_removed_one_on_its_dug_landing() -> void:
 	_batch.toggle_way_removal(0, Vector2i(20, 20))
 	assert_equal(_batch.place_item(0, Vector2i(20, 20), HATCH, 0), Validity.KIND_CAN_BUILD, "replaced in the same batch")
 	assert_equal(_batch.items().landings(1), PackedInt32Array([20, 20, 21, 20, 20, 21, 21, 21]), "its landing")
+
+
+func test_the_removal_preview_judges_a_click_on_a_built_way() -> void:
+	"""Decision 2022: off a built way, nothing (a click places); on one, its removal's judgement -- ✓, or X naming what
+	it would cut off -- and once asked for, a click would withdraw it; nothing is added by looking."""
+	_confirm_way(0, Vector2i(20, 20), HATCH, 0)
+	assert_true(_batch.removal_preview(0, Vector2i(5, 5)).is_empty(), "no way there")
+	var fine: Array = _batch.removal_preview(0, Vector2i(21, 21))
+	assert_equal([fine[0], fine[1], fine[3]], [Validity.KIND_CAN_BUILD, "", false], "nothing cut off")
+	assert_equal(fine[2], PackedInt32Array([0, 20, 20, HATCH, 0]), "the way")
+	_cut_words = "Kitchen (level 1)"
+	_batch.host_changed()
+	assert_equal(_batch.removal_preview(1, Vector2i(20, 20))[1], Validity.cut_off("Kitchen (level 1)"), "from below")
+	assert_equal(_batch.items().count(), 0, "nothing added by looking")
+	_cut_words = ""
+	_batch.toggle_way_removal(0, Vector2i(20, 20))
+	assert_true(bool(_batch.removal_preview(0, Vector2i(20, 20))[3]), "pending: a click withdraws it")

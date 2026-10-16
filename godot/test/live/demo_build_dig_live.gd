@@ -408,8 +408,14 @@ func _refuse_the_hatchs_removal() -> void:
 
 
 func _refusal_beside_the_pointer() -> void:
-	"""The refusal's words stay beside the pointer while the way's card is chosen."""
+	"""The refusal's words stay beside the pointer while the way's card is chosen, and only that judgement shows: the
+	ghost over the hatch carries no tag, so no placement refusal shows beside it (decision 2022)."""
 	_check("said beside the pointer", String(_build().call(&"label_text")) == REFUSED, String(_build().call(&"label_text")))
+	var tags: PackedStringArray = PackedStringArray()
+	for ghost: Object in _build().get("paint").call(&"stroke_ghosts", 0):
+		if bool(ghost.get(&"visible")) and not String(ghost.call(&"tag_text")).is_empty():
+			tags.append(String(ghost.call(&"tag_text")))
+	_check("only the removal's judgement shows", tags.is_empty(), ", ".join(tags))
 
 
 func _ways_on_the_surface() -> void:

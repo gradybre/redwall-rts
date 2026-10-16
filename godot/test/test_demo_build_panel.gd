@@ -652,3 +652,26 @@ func test_a_click_pins_then_the_same_cell_adds_and_another_moves_the_pin() -> vo
 	assert_equal(_build.batch.items().cell_of(0), Vector2i(30, 10), "where it was pinned")
 	assert_equal(_build.batch.items().family_of(0), Families.EARTH_TIMBER, "a stair-head")
 	assert_true(_build.ways.cut_off(PackedInt32Array(), []).is_empty(), "the cut-off reader answers nothing removed")
+
+
+func test_over_a_built_way_only_the_removal_judgement_shows() -> void:
+	"""Decision 2022 (the coordinator's defect): hovering a built hatch with a way's card chosen shows one judgement --
+	the removal's -- in words beside the pointer; the ghost over it carries no tag, so no placement "Overlaps" refusal
+	and no access ghost shows."""
+	_build.works.order_way_down(0, Vector2i(4, 4))
+	_build.works.order_room(1, PackedInt32Array([6, 4, 7, 4, 6, 5, 7, 5]), 2)
+	_build.batch.host_changed()
+	_build.open_panel()
+	_build.panel.choose_card(_card("Hatch with ladder"))
+	_build.paint.set_cursor(Vector2i(5, 5), 0, -1)
+	_build._process(0.016)
+	assert_equal(_build.label_text(), "X Not possible: Would cut off Kitchen (level 1): build another way in first",
+		_build.label_text())
+	var tags: PackedStringArray = PackedStringArray()
+	for ghost: Object in _build.paint.stroke_ghosts(0):
+		if bool(ghost.get(&"visible")) and not String(ghost.call(&"tag_text")).is_empty():
+			tags.append(String(ghost.call(&"tag_text")))
+	assert_true(tags.is_empty(), "no ghost tag to compete with it: %s" % ", ".join(tags))
+	_build.paint.set_cursor(Vector2i(20, 20), 0, -1)
+	_build._process(0.016)
+	assert_true(_build.label_text().begins_with("Place Hatch with ladder"), "off it: placing again")

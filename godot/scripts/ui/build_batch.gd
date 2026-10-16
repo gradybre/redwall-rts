@@ -149,6 +149,9 @@ var _cut_at: int = -1
 var _cut_words: String = ""
 ## The host's own ground reader, and the cells pending removals take away, worked out once a revision.
 var _host_ground: Callable = Callable()
+## The removal judged under the pointer (`removal_preview`), worked out once a revision and way.
+var _preview_key: Vector4i = Vector4i(-1, 0, 0, 0)
+var _preview_words: String = ""
 var _removed_at: int = -1
 var _removed_cells: Dictionary = {}
 ## The Surface's Mound cells, their footprint and the hill's refusal, worked out once per layout (`_mound_layout`).
@@ -937,6 +940,26 @@ func toggle_way_removal(level: int, cell: Vector2i) -> int:
 		return Validity.KIND_NOT_POSSIBLE
 	_record(PackedInt32Array([VERB_PLACE, ITEM_TAG + _items.add(way[0], Vector2i(way[1], way[2]), way[3], way[4], true)]))
 	return Validity.KIND_CAN_BUILD
+
+
+func removal_preview(level: int, cell: Vector2i) -> Array:
+	"""What a click at `cell` on `level` would do to the confirmed way there, judged without asking anything:
+	[kind, reason, the way as `confirmed_way_at` gives it, whether its removal is pending (the click withdraws it)];
+	empty when no confirmed way is there (a click places instead). For the pointer's words and the hover ghost, so that
+	only the removal's judgement shows over a built way (decision 2022)."""
+	var way: PackedInt32Array = confirmed_way_at(level, cell)
+	if way.is_empty():
+		return []
+	var pending: bool = _items.removal_row(way[0], Vector2i(way[1], way[2])) >= 0
+	if pending:
+		return [Validity.KIND_CAN_BUILD, "", way, true]
+	var key: Vector4i = Vector4i(revision, way[0], way[1], way[2])
+	if key != _preview_key:
+		_preview_key = key
+		_preview_words = _cut_off_text(way.slice(0, 3), [])
+	if _preview_words.is_empty():
+		return [Validity.KIND_CAN_BUILD, "", way, false]
+	return [Validity.KIND_NOT_POSSIBLE, Validity.cut_off(_preview_words), way, false]
 
 
 func confirmed_way_at(level: int, cell: Vector2i) -> PackedInt32Array:

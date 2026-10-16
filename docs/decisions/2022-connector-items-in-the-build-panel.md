@@ -81,6 +81,18 @@ marked", P-D1-6 "Real check now", P-D1-11 "All three types"):
   the removed one's dug landing), fixed: a way's own landing and run read the host's raw ground. Also: a refused
   Confirm all moves the revision so the row shows its new "X"; choosing the Stair-head resets a turn it cannot take.
 
+- **E10 — One judgement over a built way** (the coordinator's defect on the removal frame, 2026-10-16). Hovering a
+  built way with a way's card chosen showed two refusals at once: the placement ghost's "Overlaps another ..." on its
+  3D tag, running off under the HUD, and the removal's "Would cut off ..." beside the pointer. Now a way's moving
+  ghost carries no tag; its judgement is spelled out once, in the pointer's label, which `label_position` keeps inside
+  the window and above the panel. Over a built way (a click removes it) the ghost draws that way, judged as its removal
+  (`build_batch.gd removal_preview`: nothing asked, cached a revision), and the label says "✓ Remove <Item>: click to
+  ask for its removal", "✓ Keep <Item>: click to withdraw its removal", or the X line with what it would cut off; off
+  one, "Place <Item>: ..." and, when it cannot stand, the reason on a second line. Every ghost tag also wraps at
+  about 40 characters (`demo_build_ghost.gd TAG_WRAP_PX`) rather than running across the screen. Checked by
+  `test_demo_build_panel.gd` (one judgement, no ghost tag), `test_build_batch_ways.gd` (`removal_preview`) and the
+  live harness's "only the removal's judgement shows" (47 checks at both sizes).
+
 ## PROPOSALS for Brendan
 
 - **P-2022-1 — A way on the Surface over water or a placed thing** is refused "Cannot dig here: water" / "... a tree"
@@ -92,6 +104,8 @@ marked", P-D1-6 "Real check now", P-D1-11 "All three types"):
   worded; (b) other words. **Recommend (a).**
 - **P-2022-3 — The turn is kept between ways** (E6). (a) as built; (b) every new card starts at turn 0.
   **Recommend (a)**, as furniture does.
+- **P-2022-5 — The pointer's words over a built way** (E10): "✓ Remove <Item>: click to ask for its removal" and
+  "✓ Keep <Item>: click to withdraw its removal". (a) as worded; (b) other words. **Recommend (a).**
 - **P-2022-4 — "Keep" for a withdrawn removal**: Undo after withdrawing a removal reads "Undo Keep Hatch with ladder"
   (review LOW). (a) as worded; (b) other words. **Recommend (a).**
 

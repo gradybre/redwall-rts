@@ -1165,7 +1165,7 @@ func _endpoint_boxes_refusal(location: Vector2i, point: Vector3i) -> StringName:
 	state of a budget that runs out part way); with the framework's cache checks on, read live and compared."""
 	var entry: int = _endpoint_entry(location, point)
 	var word: int = _endpoint_word(entry)
-	if word != 0 and not Profiles.check_runtime_caches: return _replay_endpoint_boxes(word)
+	if word != 0 and not Profiles.CacheChecks.enabled: return _replay_endpoint_boxes(word)
 	if word != 0: return _checked_endpoint_boxes(entry, word, point)
 	var before: int = _proof.remaining
 	var code: StringName = _endpoint_boxes_live(point)
@@ -1208,7 +1208,7 @@ func _checked_endpoint_boxes(entry: int, word: int, point: Vector3i) -> StringNa
 	_proof.error = fault
 	var code: StringName = _endpoint_boxes_live(point)
 	if code != replayed or _proof.remaining != replayed_remaining or _proof.error != replayed_fault:
-		Profiles.report_stale_cache("endpoint proof", "entry %d: an input changed without moving its token" % entry)
+		Profiles.CacheChecks.report("endpoint proof", "entry %d: an input changed without moving its token" % entry)
 	var answer: int = _endpoint_answer(code, before - _proof.remaining)
 	if answer != 0:
 		_endpoint_memo[entry * Profiles.MAX_PROFILES + _descriptor.profile_id] = (_endpoint_entry_tags[2 * entry + 1] << 16) | answer

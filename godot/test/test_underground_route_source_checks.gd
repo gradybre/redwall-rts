@@ -186,9 +186,9 @@ func test_the_step_closure_is_remembered_per_bank_and_load_revision() -> void:
 	var revision: int = _profiles.load_revision()
 	assert_equal(_profiles._step_closure_revision, revision, "remembered at this revision")
 	_profiles._live.sources[32] ^= 1 # Negative-only, restored below.
-	Profiles.check_runtime_caches = false
+	Profiles.CacheChecks.enabled = false
 	assert_true(Routes._step_closure(_profiles), "the contract: an edit that does not announce itself is not seen")
-	Profiles.check_runtime_caches = true
+	Profiles.CacheChecks.enabled = true
 	expect_diagnostic("RUNTIME_CACHE_STALE step closure")
 	assert_false(Routes._step_closure(_profiles), "with checking on (every suite) it is answered live and reported")
 	assert_false(Routes._step_closure(_profiles), "the reported memo now holds the live answer")

@@ -465,3 +465,8 @@ func test_the_source_row_lookup_reads_only_rows_naming_the_slot() -> void:
 	owner._o_generation[owner._source_capacity - 1] = 1
 	locations._resolve_source_ref = Vector2i(-1, 0)
 	assert_equal(locations._resolve_source_row(Vector2i(4, 1)), owner._source_capacity - 1, "the last row is reached")
+
+
+func test_the_framework_runs_every_suite_with_the_cache_checks_on() -> void:
+	"""Decision 1952: test_case.gd's static initializer turns Profiles.CacheChecks.enabled on for the test process."""
+	assert_true(Routes.Profiles.CacheChecks.enabled, "the runtime-cache checks are on")

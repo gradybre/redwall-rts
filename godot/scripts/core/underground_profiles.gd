@@ -12,6 +12,7 @@ const Reservations := preload("res://scripts/core/reservations.gd")
 const Piles := preload("res://scripts/core/ground_piles.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd") # Decision 1952.
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_PROFILES: int = 256
 const MAX_BOXES: int = 3072
@@ -212,16 +213,6 @@ var _step_closure_bank: int = 0
 ## Decision 1952: `Itinerary._anchor_refusal` answers as last read, with the revision and bank they were read at.
 var _anchor_memo: PackedInt64Array = PackedInt64Array()
 var _worker_row: int = -1
-## Decision 1952: while true (the test framework sets it; the game and the dig benchmark leave it false) the caches
-## keyed on this store's load revision also compute their answer live, answer live, and report a remembered answer
-## that differs as RUNTIME_CACHE_STALE. A bank edited in place without invalidate_runtime_caches() is then caught by
-## the suite that does it instead of being read stale. Never saved.
-static var check_runtime_caches: bool = false
-
-
-static func report_stale_cache(cache: String, detail: String) -> void:
-	"""Decision 1952: a remembered answer differed from the live one while checking is on."""
-	push_error("RUNTIME_CACHE_STALE %s: %s (decision 1952)" % [cache, detail])
 
 
 func _init() -> void:

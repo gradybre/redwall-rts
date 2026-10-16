@@ -17,12 +17,12 @@ var _h: StationTests.StepFixture = null
 
 func before_each() -> void:
 	"""Decision 1952: this suite tests the answered path itself, so the framework's live cross-check is off here."""
-	WorldRoutes.Profiles.check_runtime_caches = false
+	WorldRoutes.Profiles.CacheChecks.enabled = false
 
 
 func after_each() -> void:
 	"""Free the fixture's owners; the framework's cache checks are back on for the next suite."""
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	if _h != null:
 		_h.after_each()
 		assert_true(_h.failures.is_empty(), "fixture: %s" % _h.failures)
@@ -317,7 +317,7 @@ func test_with_checks_on_a_stale_slot_is_reported_and_the_search_runs_live() -> 
 	var plain: Array = _search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
 	_memo(true)
 	_search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "agreeing slots: checked and silent")
 	assert_true(_poison_filled_slots() > 0, "slots to poison")
 	expect_diagnostic("RUNTIME_CACHE_STALE itinerary edge profile")
@@ -340,7 +340,7 @@ func test_with_checks_on_a_slot_with_the_wrong_spend_is_reported() -> void:
 			spent += 1
 	_h._binding._edge_memo = memo
 	assert_true(spent > 0, "slots with a spend to change")
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	expect_diagnostic("RUNTIME_CACHE_STALE itinerary edge profile")
 	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "same choice, other spend: reported")
 
@@ -369,7 +369,7 @@ func test_the_anchor_memo_answers_as_the_live_check_and_reads_afresh_on_a_new_to
 	assert_equal(Itinerary._anchor_memo_at(profiles, 5, 1, content), -1, "another bank is not answered")
 	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), &"", "refilled")
 	profiles._anchor_memo[Itinerary._anchor_memo_at(profiles, 5, 1, content) + 5] = 1
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	expect_diagnostic("RUNTIME_CACHE_STALE anchor check")
 	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), &"", "checks on: reported and answered live")
 	profiles._loading = true
@@ -487,10 +487,10 @@ func test_endpoint_memo_answers_from_its_words_and_reports_a_stale_one() -> void
 	assert_false(_endpoint_remembered(), "and the old word retired")
 	_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
 	_endpoint_poison(filled[0])
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	expect_diagnostic("RUNTIME_CACHE_STALE endpoint proof")
 	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "checks on: reported, answered live")
-	WorldRoutes.Profiles.check_runtime_caches = false
+	WorldRoutes.Profiles.CacheChecks.enabled = false
 	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "the checked word was refreshed")
 	_h._binding._proof = null
 
@@ -505,7 +505,7 @@ func test_with_checks_on_a_word_with_the_wrong_spend_is_reported() -> void:
 	var at: int = binding._endpoint_entry(_h.parking, binding._endpoint.point) * WorldRoutes.Profiles.MAX_PROFILES + filled[0]
 	var boxes: int = (binding._endpoint_memo[at] >> 4) & 0xFFF
 	binding._endpoint_memo[at] = (binding._endpoint_memo[at] & ~0xFFF0) | (((boxes + 1) & 0xFFF) << 4)
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	expect_diagnostic("RUNTIME_CACHE_STALE endpoint proof")
 	assert_equal(_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS), filled[1], "same answer, other spend: reported")
 	binding._proof = null
@@ -604,7 +604,7 @@ func test_with_checks_on_a_short_budget_answer_is_checked_without_a_false_report
 	var plain: Array = _endpoint_run(_h.parking, filled[0], spent - 1)
 	_endpoint_memo(true)
 	_endpoint_run(_h.parking, filled[0], Space.MAX_CHECKS)
-	WorldRoutes.Profiles.check_runtime_caches = true
+	WorldRoutes.Profiles.CacheChecks.enabled = true
 	assert_equal(_endpoint_run(_h.parking, filled[0], spent - 1), plain, "short budget, agreeing: silent")
 	var binding: WorldRoutes = _h._binding
 	var at: int = binding._endpoint_entry(_h.parking, binding._endpoint.point) * WorldRoutes.Profiles.MAX_PROFILES + filled[0]

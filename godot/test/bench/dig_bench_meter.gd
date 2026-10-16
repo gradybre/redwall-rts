@@ -19,7 +19,7 @@ var _tracing: bool = OS.get_environment(TRACE_ENV) != ""
 static func time_answered_caches() -> void:
 	"""Decision 1952: the suite framework checks every runtime cache against a live read; the benchmark times what the
 	game runs, so it turns that off for its own process."""
-	Profiles.check_runtime_caches = false
+	Profiles.CacheChecks.enabled = false
 
 
 func add(series: StringName, usec: int) -> void:

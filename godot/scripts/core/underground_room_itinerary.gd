@@ -66,11 +66,11 @@ static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, cont
 	"""Decision 1952: the anchor check, answered from Profiles' anchor memo while its bank and load revision are the ones
 	it was read at (with the framework's cache checks on, read live and compared)."""
 	var at: int = _anchor_memo_at(profiles, anchor, revision, content)
-	if at >= 0 and not Profiles.check_runtime_caches:
+	if at >= 0 and not Profiles.CacheChecks.enabled:
 		return REFUSE_FAMILY if profiles._anchor_memo[at + 5] == 1 else &""
 	var code: StringName = _anchor_refusal_live(profiles, anchor, revision, content)
 	if at >= 0 and (profiles._anchor_memo[at + 5] == 1) != (code != &""):
-		Profiles.report_stale_cache("anchor check", "anchor %d: Profiles bank edited in place" % anchor)
+		Profiles.CacheChecks.report("anchor check", "anchor %d: Profiles bank edited in place" % anchor)
 	_remember_anchor(profiles, anchor, revision, content, code)
 	return code
 
@@ -159,7 +159,7 @@ static func _edge_profile(actual: WorldRoutes, edge: int, anchor: int) -> int:
 	Decision 1952: answered from WorldRoutes' memo, spend and descriptor write replayed, while every input is unchanged."""
 	var graph: Routes = actual._routes_ref.get_ref() as Routes
 	var at: int = WorldRoutes.edge_memo_hit(actual, graph, edge, anchor)
-	if at >= 0 and not Profiles.check_runtime_caches: return WorldRoutes.replay_edge_profile(actual, graph, at)
+	if at >= 0 and not Profiles.CacheChecks.enabled: return WorldRoutes.replay_edge_profile(actual, graph, at)
 	if at >= 0: return _checked_edge_profile(actual, graph, edge, anchor, at)
 	return _remembered_edge_profile(actual, graph, edge, anchor)
 
@@ -184,7 +184,7 @@ static func _checked_edge_profile(actual: WorldRoutes, graph: Routes, edge: int,
 	WorldRoutes.restore_search_state(actual, graph, before)
 	var row: int = _remembered_edge_profile(actual, graph, edge, anchor)
 	if row != replayed or graph._operation_error != &"" or WorldRoutes.search_state(actual, graph) != after_replay:
-		Profiles.report_stale_cache("itinerary edge profile", "edge %d: an input changed without moving its token" % edge)
+		Profiles.CacheChecks.report("itinerary edge profile", "edge %d: an input changed without moving its token" % edge)
 	return row
 
 

@@ -1,11 +1,38 @@
 # 2041 — Slice D-flight scoping: an earth/timber flight down a full level, stopped for rulings
 
-Date: 2026-10-16 · Status: Proposed. This is a scoping record only. It changes no code and no data. PROPOSALS P-DF-1
-to P-DF-9 are waiting for Brendan's rulings.
+Date: 2026-10-16 · Status: Accepted. Brendan ruled every PROPOSAL, P-DF-1 to P-DF-9, the recommended option on
+2026-10-16 (see "Brendan's rulings"). The scoping itself (sections 1–7) changed no code and no data; phase 2a
+follows under this record and decisions 2042–2043.
 
 Number range: 2041–2049, allocated to the D-flight lane by the slice D coordinator (session `dbd322db`). This is the
 lane record; later records of the lane take 2042 onwards. The numbers were checked free on every local and remote ref
 and with `decision_numbers.py`. Branch `docs/slice-d-flight`, from origin/master `c11da82e`.
+
+## Brendan's rulings (2026-10-16)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion. Every ruling is the recommended option.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-DF-1 | **(b)**, "Build F40, probe 1:3.2" | F40 (128/512, 40 steps) is built with qualified motion only. The 160 u gait is probed offline; no 160 u authoring before Brendan sees the probe |
+| P-DF-2 | **(a)**, "Approve all" | Straight, 2 × 23 cells |
+| P-DF-3 | **(a)**, "Approve all" | Open to the sky (or to the clear space of the Passage or Mound room); 142 cubes |
+| P-DF-4 | **(a)**, "Approve all" | D3 / DEC-059 per tread, long-post treads included; T0's and L0's bills; §7.2 per cube. F40 = wood 78,500, stone 35,500, 858,980 milli-WU, earth out 284,000 milli-U |
+| P-DF-5 | **(a)**, "Moles now" | Qualified for the claw crew; every other species' way to level 1 stays open MOVE-G01/G04 work |
+| P-DF-6 | **(a)**, "Approve all" | Rotation 0 only. D1's Stair-head placeholder becomes F40's 2 × 23 cells at rotation 0 (the D1 lane has been told) |
+| P-DF-7 | **(a)**, "Qualify an earth carry" | One basic earth carry, level and stair, before the deep layers are cut: decision 2042 |
+| P-DF-8 | **(a)**, "Approve all" | Bench down by plateau; per-plateau Frontiers (c) if the Frontier byte bound is met |
+| P-DF-9 | **(a)**, "Approve all" | DEC-050's 1 s per step for any later 160 u tread |
+
+Indexed in `docs/handoff/RULINGS.md`.
+
+### Pending SET-BUILD-001 §9 amendment (for the phase 2b lane to apply)
+
+§9's Stair-head row (line 314) says "a full 5120 u level needs 40 treads over 20480 u". Under P-DF-2 (a) the derived
+figures are: **40 steps, 39 treads (T0–T37 and the sill T38), 39 × 512 = 19,968 u of treads, and 23 rows (23,552 u)
+including L0's 2,048 u and the 1,536 u run-out.** The row should also name F40 as the qualified first entrance
+(rotation 0 only, P-DF-6) and give its bill (P-DF-4). This record does not edit §9: the phase 2b lane applies it with
+the runtime, so the contract and the code change together.
 
 ## The question
 

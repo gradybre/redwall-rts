@@ -750,11 +750,7 @@ static func publish_installation(actual: RefCounted, context: Locations.Installa
 
 static func _commit_preflighted_certificates(actual: RefCounted, catalog_revision: int) -> void:
 	"""The matching concrete graph receipt has already published; this tail only exchanges banks and clears pins."""
-	var previous: Certificates = actual._live
-	actual._live = actual._stage
-	actual._stage = previous
-	actual._certificate_revision = _next_revision(actual._certificate_revision)
-	actual._live_catalog_revision = catalog_revision
+	_swap_certificates(actual, catalog_revision)
 	actual._proof = null
 	actual._route_token = 0
 	actual._space_token = 0
@@ -1476,11 +1472,7 @@ func publish(token: int) -> StringName:
 	if code != &"":
 		return code
 	assert(_routes().last_published_token() == token, "Only this exact actual route swap promotes its certificates")
-	var previous: Certificates = _live
-	_live = _stage
-	_stage = previous
-	_certificate_revision = _next_revision(_certificate_revision)
-	_live_catalog_revision = _catalog_revision
+	_swap_certificates(self, _catalog_revision)
 	_clear_preparation()
 	return &""
 
@@ -1845,9 +1837,19 @@ static func _reach_descriptor(actual: RefCounted, row: int, revision: int, conte
 	return &""
 
 
+static func _swap_certificates(actual: RefCounted, catalog_revision: int) -> void:
+	"""Promote the private bank, keeping the old live one as the next private bank; decision 1952: every swap moves
+	`_certificate_revision`, which the itinerary memo's epoch reads."""
+	var previous: Certificates = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._certificate_revision = _next_revision(actual._certificate_revision)
+	actual._live_catalog_revision = catalog_revision
+
+
 static func _next_revision(revision: int) -> int:
 	"""Decision 1952: a runtime token's next value; it saturates and then reads as unusable (zero)."""
-	return revision + 1 if revision > 0 and revision < 9223372036854775807 else 0
+	return revision + 1 if revision > 0 and revision < Routes.I64_MAX else 0
 
 
 static func edge_memo_epoch(actual: RefCounted, graph: Routes) -> int:
@@ -1871,19 +1873,45 @@ static func edge_memo_epoch(actual: RefCounted, graph: Routes) -> int:
 
 
 static func edge_profile_memo(actual: RefCounted, graph: Routes, edge: int, anchor: int) -> int:
-	"""Decision 1952: the remembered choice with its exact spend and descriptor write replayed, or EDGE_MEMO_MISS. Only
-	inside the original search, with no recorded fault and enough budget for the whole remembered spend."""
+	"""Decision 1952: the remembered choice with its exact spend and descriptor write replayed, or EDGE_MEMO_MISS."""
+	var at: int = edge_memo_hit(actual, graph, edge, anchor)
+	return replay_edge_profile(actual, graph, at) if at >= 0 else EDGE_MEMO_MISS
+
+
+static func edge_memo_hit(actual: RefCounted, graph: Routes, edge: int, anchor: int) -> int:
+	"""Decision 1952: the offset of the slot that answers this choice, or -1. Only inside the original search, with no
+	recorded fault and enough budget for the whole remembered spend. It writes nothing but the epoch stamp."""
 	if graph == null or graph._operation_error != &"" or graph._bindings != actual or not actual._reading \
-			or not graph._searching: return EDGE_MEMO_MISS
+			or not graph._searching: return -1
 	var epoch: int = edge_memo_epoch(actual, graph)
 	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
 	var memo: PackedInt64Array = actual._edge_memo
 	if epoch == 0 or memo[at] != epoch or memo[at + 1] != edge or memo[at + 2] != anchor or memo[at + 4] > graph._remaining \
 			or not _edge_inputs_match(actual, graph, edge, memo, at + EDGE_MEMO_INPUTS):
-		return EDGE_MEMO_MISS
+		return -1
+	return at
+
+
+static func replay_edge_profile(actual: RefCounted, graph: Routes, at: int) -> int:
+	"""Decision 1952: answer from slot `at` (from `edge_memo_hit`): its spend, its descriptor write, its row."""
+	var memo: PackedInt64Array = actual._edge_memo
 	graph._remaining -= memo[at + 4]
 	if memo[at + 5] == 1: _replay_descriptor(actual, memo, at)
 	return memo[at + 3]
+
+
+static func check_edge_profile(actual: RefCounted, graph: Routes, at: int, row: int, spent: int, wrote: bool) -> void:
+	"""Decision 1952, checking on: report a slot that would have answered other than the live choice just made."""
+	var memo: PackedInt64Array = actual._edge_memo
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	var same: bool = graph._operation_error == &"" and memo[at + 3] == row and memo[at + 4] == spent \
+		and memo[at + 5] == (1 if wrote else 0)
+	if same and wrote:
+		same = memo[at + 6] == descriptor.profile_id and memo[at + 7] == descriptor.profile_revision \
+			and memo[at + 8] == descriptor.content_revision and memo[at + 9] == descriptor.mode \
+			and memo[at + 10] == descriptor.posture
+	if not same:
+		Profiles.report_stale_cache("itinerary edge profile", "edge %d: an input changed without moving its token" % memo[at + 1])
 
 
 static func _edge_inputs_match(actual: RefCounted, graph: Routes, edge: int, memo: PackedInt64Array, at: int) -> bool:
@@ -2787,11 +2815,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	if code == &"": code = _owner()._location_journal.image_refusal(bytes, at + Journal.WIRE_BYTES, _owner().revision())
 	if code != &"":
 		return code
-	var previous: Certificates = _live
-	_live = _stage
-	_stage = previous
-	_certificate_revision = _next_revision(_certificate_revision)
-	_live_catalog_revision = catalog_revision
+	_swap_certificates(self, catalog_revision)
 	_witness_work = 0 # A fresh World has no remembered reachability search; neither does a loaded one.
 	_owner()._location_journal.read_from(bytes, _owner()._journal.read_from(bytes, at))
 	return &""

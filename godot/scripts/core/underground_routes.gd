@@ -2343,7 +2343,18 @@ static func _step_closure(profiles: Profiles) -> bool:
 		profiles._step_closure = ShortStep.uses(profiles)
 		profiles._step_closure_revision = revision
 		profiles._step_closure_bank = profiles._live.get_instance_id()
+	elif Profiles.check_runtime_caches:
+		return _checked_step_closure(profiles)
 	return profiles._step_closure
+
+
+static func _checked_step_closure(profiles: Profiles) -> bool:
+	"""Decision 1952, checking on: the live closure; a remembered one that differs is reported, then replaced."""
+	var live: bool = ShortStep.uses(profiles)
+	if live != profiles._step_closure:
+		Profiles.report_stale_cache("step closure", "Profiles bank edited in place without invalidate_runtime_caches()")
+		profiles._step_closure = live
+	return live
 
 
 static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) -> int:

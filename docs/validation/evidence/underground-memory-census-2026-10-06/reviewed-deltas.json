@@ -1258,6 +1258,11 @@
      "bytes": 25,
      "carried_by": "none (new)",
      "store": "decision 1952 (P-1951-3): _load_revision, _step_closure_revision and _step_closure_bank (int64) and _step_closure (bool), runtime-only, never saved"
+    },
+    {
+     "bytes": 1,
+     "carried_by": "none (new)",
+     "store": "decision 1952: the static check_runtime_caches (bool, one per class, not per store), set only by the test framework, never saved"
     }
    ],
    "delta": {
@@ -1277,6 +1282,10 @@
      [
       "_step_closure_revision",
       "int"
+     ],
+     [
+      "check_runtime_caches",
+      "bool"
      ]
     ],
     "resizes_added": [

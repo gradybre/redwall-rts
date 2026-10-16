@@ -203,6 +203,16 @@ var _step_closure: bool = false
 var _step_closure_revision: int = 0
 var _step_closure_bank: int = 0
 var _worker_row: int = -1
+## Decision 1952: while true (the test framework sets it; the game and the dig benchmark leave it false) the caches
+## keyed on this store's load revision also compute their answer live, answer live, and report a remembered answer
+## that differs as RUNTIME_CACHE_STALE. A bank edited in place without invalidate_runtime_caches() is then caught by
+## the suite that does it instead of being read stale. Never saved.
+static var check_runtime_caches: bool = false
+
+
+static func report_stale_cache(cache: String, detail: String) -> void:
+	"""Decision 1952: a remembered answer differed from the live one while checking is on."""
+	push_error("RUNTIME_CACHE_STALE %s: %s (decision 1952)" % [cache, detail])
 
 
 func _init() -> void:

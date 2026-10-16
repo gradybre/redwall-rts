@@ -186,7 +186,12 @@ func test_the_step_closure_is_remembered_per_bank_and_load_revision() -> void:
 	var revision: int = _profiles.load_revision()
 	assert_equal(_profiles._step_closure_revision, revision, "remembered at this revision")
 	_profiles._live.sources[32] ^= 1 # Negative-only, restored below.
-	assert_true(Routes._step_closure(_profiles), "an unannounced edit is not seen")
+	Profiles.check_runtime_caches = false
+	assert_true(Routes._step_closure(_profiles), "the contract: an edit that does not announce itself is not seen")
+	Profiles.check_runtime_caches = true
+	expect_diagnostic("RUNTIME_CACHE_STALE step closure")
+	assert_false(Routes._step_closure(_profiles), "with checking on (every suite) it is answered live and reported")
+	assert_false(Routes._step_closure(_profiles), "the reported memo now holds the live answer")
 	_profiles.invalidate_runtime_caches()
 	assert_true(_profiles.load_revision() > revision, "the token moved")
 	assert_false(Routes._step_closure(_profiles), "an announced edit is read afresh")
@@ -198,7 +203,7 @@ func test_the_step_closure_is_remembered_per_bank_and_load_revision() -> void:
 	assert_false(Routes._step_closure(_profiles), "another bank is read afresh")
 	_profiles._live = bank
 	assert_true(Routes._step_closure(_profiles), "and the original again")
-	_profiles._load_revision = 9223372036854775807
+	_profiles._load_revision = Routes.I64_MAX
 	assert_equal(_profiles.load_revision(), 0, "saturated is zero")
 	_profiles._live.sources[32] ^= 1
 	assert_false(Routes._step_closure(_profiles), "a poisoned token always reads afresh")
@@ -228,4 +233,5 @@ func test_configure_and_every_load_move_the_profiles_token() -> void:
 		"a refused reload")
 	assert_equal(fresh.load_revision(), configured, "a refused load leaves the bank and the token")
 	assert_true(before > 0, "the fixture's store is live")
+	assert_equal(_h._profiles.load_revision(), before, "another store's loads leave this store's token alone")
 

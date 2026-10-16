@@ -14,8 +14,14 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 var _h: StationTests.StepFixture = null
 
 
+func before_each() -> void:
+	"""Decision 1952: this suite tests the answered path itself, so the framework's live cross-check is off here."""
+	WorldRoutes.Profiles.check_runtime_caches = false
+
+
 func after_each() -> void:
-	"""Free the fixture's owners."""
+	"""Free the fixture's owners; the framework's cache checks are back on for the next suite."""
+	WorldRoutes.Profiles.check_runtime_caches = true
 	if _h != null:
 		_h.after_each()
 		assert_true(_h.failures.is_empty(), "fixture: %s" % _h.failures)
@@ -267,3 +273,45 @@ func _edit_edge(edge: int, change: int, sign: int) -> void:
 		3: bank.content[edge] += sign
 		4: _h._routes._live.fields[Routes.E_GENERATION * _h._routes._edge_capacity + edge] += sign
 
+
+
+func _poison_filled_slots() -> int:
+	"""Make every slot of the current epoch answer "no profile" (row -1) for its edge; returns how many there were."""
+	var memo: PackedInt64Array = _h._binding._edge_memo
+	var epoch: int = _h._binding._edge_memo_epoch
+	var filled: int = 0
+	for slot: int in WorldRoutes.EDGE_MEMO_SLOTS:
+		var at: int = slot * WorldRoutes.EDGE_MEMO_STRIDE
+		if epoch > 0 and memo[at] == epoch:
+			memo[at + 3] = -1
+			filled += 1
+	_h._binding._edge_memo = memo
+	return filled
+
+
+func test_answered_searches_read_their_choices_from_the_memo() -> void:
+	"""A filled memo really answers: with every remembered choice poisoned and no input changed, the next search
+	follows the poisoned answers, so it no longer equals the plain search."""
+	if not _fixture(): return
+	_memo(false)
+	var plain: Array = _search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+	assert_equal(plain[0], &"", "the reference search succeeds")
+	_memo(true)
+	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "filling")
+	assert_true(_poison_filled_slots() > 0, "the filling search remembered its chain's choices")
+	assert_true(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS) != plain, "the answers came from the memo")
+
+
+func test_with_checks_on_a_stale_slot_is_reported_and_the_search_runs_live() -> void:
+	"""Decision 1952: with the framework's checks on, every slot that would answer is compared with a live choice; a
+	slot that disagrees is reported, and the search leaves exactly what a plain search leaves."""
+	if not _fixture(): return
+	_memo(false)
+	var plain: Array = _search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+	_memo(true)
+	_search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+	WorldRoutes.Profiles.check_runtime_caches = true
+	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "agreeing slots: checked and silent")
+	assert_true(_poison_filled_slots() > 0, "slots to poison")
+	expect_diagnostic("RUNTIME_CACHE_STALE itinerary edge profile")
+	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "a stale slot is reported, never followed")

@@ -2684,3 +2684,36 @@ func test_a_lost_actor_is_unregistered_and_its_row_reads_blank_on_the_wire() -> 
 	WorldRouteTests.wipe_routes(_routes)
 	assert_equal(_restore_route_image(image), &"", "the blank row restores")
 	assert_equal(_route_image(), image, "and writes back exactly")
+
+
+class FakeDeliveryQuery extends RefCounted:
+	## Decision 1952: the fields Delivery's `_occupants_leaf` reads before its first row's answer.
+	var _placements: RefCounted = null
+	var _worker: Vector2i = Vector2i(-1, 0)
+	var _checks: int = 1 << 40
+	var _selection: Vector3i = Vector3i.ZERO
+
+
+func test_the_three_extent_scans_answer_a_stale_extent_at_their_first_free_row() -> void:
+	"""Decision 1952: with the catalog extent stale, the scans that test it pass over nothing, so the first free row
+	(unregistered, its Resident absent) answers ROUTE_OCCUPANCY_STALE in Contacts, Delivery and the turn scan."""
+	var Contacts: GDScript = load("res://scripts/core/underground_connector_contacts.gd")
+	var Delivery: GDScript = load("res://scripts/core/underground_connector_delivery.gd")
+	var Placements: GDScript = load("res://scripts/core/underground_connector_placements.gd")
+	var placements: RefCounted = Placements.new()
+	placements._routes = _routes
+	placements._ids = _residents.directory()
+	_routes._extent_revision = 0
+	_routes._remaining = 1 << 40
+	_routes._operation_error = &""
+	assert_equal(WorldRoutes._turn_occupants(null, _routes, null, null, 0), &"ROUTE_OCCUPANCY_STALE", "turn: row 1")
+	var query: FakeDeliveryQuery = FakeDeliveryQuery.new()
+	query._placements = placements
+	query._worker = _worker
+	assert_equal(Delivery._occupants_leaf(query), &"ROUTE_OCCUPANCY_STALE", "Delivery: the worker's row 0 is excepted")
+	var contacts: RefCounted = Contacts.new()
+	contacts._placements = placements
+	contacts._fragments.remaining = 1 << 40
+	_residents._present[0] = 0 # Negative-only: row 0 free as well, restored below.
+	assert_equal(contacts._occupancy_leaf(_worker), &"ROUTE_OCCUPANCY_STALE", "Contacts: row 0")
+	_residents._present[0] = 1

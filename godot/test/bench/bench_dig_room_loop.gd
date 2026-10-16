@@ -176,6 +176,7 @@ func after_each() -> void:
 
 func test_room_loop_one_builder() -> void:
 	"""The whole clamped Kitchen with one builder; the loop still pays all eight cubes exactly."""
+	Meter.time_answered_caches()
 	_h = TimedFixture.new()
 	var room: Vector2i = _h.confirmed_room()
 	if room == NULL_REF: return

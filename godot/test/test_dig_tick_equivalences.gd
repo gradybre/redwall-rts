@@ -260,6 +260,50 @@ func test_final_facts_source_walk_reads_exactly_the_scanned_rows() -> void:
 	assert_equal(FinalFacts._sources_refusal(owner, null, null), &"SPACE_SOURCE_FORMAT", "then the unknown presence byte")
 
 
+func _required_oracle(owner: Owner) -> int:
+	"""The pre-1952 precharge: both full scans."""
+	var required: int = FinalFacts.BINDING_CHECKS + 2 * (owner._region_capacity + owner._source_capacity)
+	for row: int in owner._source_capacity:
+		if owner._o_present[row] != 0:
+			required += FinalFacts.RESIDENT_CHECKS if owner._o_kind[row] == Directory.KIND_RESIDENT else FinalFacts.SOURCE_CHECKS
+	for row: int in owner._region_capacity:
+		if owner._r_present[row] != 0 and owner._r_claim_kind[row] != Owner.CLAIM_NONE:
+			required += FinalFacts.SOURCE_CHECKS
+	return required
+
+
+func test_final_facts_precharge_equals_both_full_scans() -> void:
+	"""Decision 1952: random presence bytes 0/1/2, kinds and claims; binary and non-binary columns alike."""
+	var owner: Owner = _owner()
+	for trial: int in 16:
+		for row: int in owner._source_capacity:
+			var roll: int = _rng.randi_range(0, 9)
+			owner._o_present[row] = 1 if roll < 4 else (2 if roll == 4 and trial % 2 == 1 else 0)
+			owner._o_kind[row] = Directory.KIND_RESIDENT if _rng.randi_range(0, 1) == 0 else Directory.KIND_ROOM
+		for row: int in owner._region_capacity:
+			var roll: int = _rng.randi_range(0, 9)
+			owner._r_present[row] = 1 if roll < 4 else (3 if roll == 4 and trial % 4 == 3 else 0)
+			owner._r_claim_kind[row] = Owner.CLAIM_ROOM if _rng.randi_range(0, 2) == 0 else Owner.CLAIM_NONE
+		assert_equal(FinalFacts._required_checks(owner), _required_oracle(owner), "trial %d" % trial)
+
+
+func test_final_facts_claim_walk_reads_exactly_the_scanned_rows() -> void:
+	"""Decision 1952: with a non-binary region presence column the claim walk still skips absent and unclaimed rows and
+	refuses the first present row in row order: a stale Room claim before a presence byte of 2 answers STALE."""
+	var owner: Owner = _owner()
+	assert_equal(FinalFacts._claims_refusal(owner), &"", "no claims")
+	owner._r_present[1] = 1
+	owner._r_claim_kind[1] = Owner.CLAIM_NONE
+	owner._r_present[2] = 1
+	owner._r_claim_kind[2] = Owner.CLAIM_ROOM
+	owner._r_claim_slot[2] = 7
+	owner._r_claim_generation[2] = 3
+	owner._r_present[3] = 2
+	assert_equal(FinalFacts._claims_refusal(owner), &"SPACE_SOURCE_STALE", "row 2 before row 3; unclaimed row 1 passed")
+	owner._r_present[2] = 0
+	assert_equal(FinalFacts._claims_refusal(owner), &"SPACE_REGION_FORMAT", "then the unknown presence byte")
+
+
 
 class FakeRevision extends RefCounted:
 	## Decision 1952: stands in for Profiles in the extent test.

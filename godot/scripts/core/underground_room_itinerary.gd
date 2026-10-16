@@ -63,6 +63,43 @@ static func _search(actual: WorldRoutes, first: Vector2i, last: Vector2i,
 
 
 static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
+	"""Decision 1952: the anchor check, answered from Profiles' anchor memo while its bank and load revision are the ones
+	it was read at (with the framework's cache checks on, read live and compared)."""
+	var at: int = _anchor_memo_at(profiles, anchor, revision, content)
+	if at >= 0 and not Profiles.check_runtime_caches:
+		return REFUSE_FAMILY if profiles._anchor_memo[at + 5] == 1 else &""
+	var code: StringName = _anchor_refusal_live(profiles, anchor, revision, content)
+	if at >= 0 and (profiles._anchor_memo[at + 5] == 1) != (code != &""):
+		Profiles.report_stale_cache("anchor check", "anchor %d: Profiles bank edited in place" % anchor)
+	_remember_anchor(profiles, anchor, revision, content, code)
+	return code
+
+
+static func _anchor_memo_at(profiles: Profiles, anchor: int, revision: int, content: int) -> int:
+	"""Decision 1952: the offset of the slot that answers this check, or -1 (also for a loading or poisoned store)."""
+	var token: int = profiles.load_revision() if profiles._live != null and not profiles._loading else 0
+	var at: int = posmod(anchor, Profiles.ANCHOR_MEMO_SLOTS) * Profiles.ANCHOR_MEMO_STRIDE
+	var memo: PackedInt64Array = profiles._anchor_memo
+	if token == 0 or memo.size() != Profiles.ANCHOR_MEMO_SLOTS * Profiles.ANCHOR_MEMO_STRIDE or memo[at] != token \
+			or memo[at + 1] != profiles._live.get_instance_id() or memo[at + 2] != anchor or memo[at + 3] != revision \
+			or memo[at + 4] != content: return -1
+	return at
+
+
+static func _remember_anchor(profiles: Profiles, anchor: int, revision: int, content: int, code: StringName) -> void:
+	"""Decision 1952: keep one answer, keyed on the store's current token and bank."""
+	var token: int = profiles.load_revision() if profiles._live != null and not profiles._loading else 0
+	if token == 0 or profiles._anchor_memo.size() != Profiles.ANCHOR_MEMO_SLOTS * Profiles.ANCHOR_MEMO_STRIDE: return
+	var at: int = posmod(anchor, Profiles.ANCHOR_MEMO_SLOTS) * Profiles.ANCHOR_MEMO_STRIDE
+	profiles._anchor_memo[at] = token
+	profiles._anchor_memo[at + 1] = profiles._live.get_instance_id()
+	profiles._anchor_memo[at + 2] = anchor
+	profiles._anchor_memo[at + 3] = revision
+	profiles._anchor_memo[at + 4] = content
+	profiles._anchor_memo[at + 5] = 1 if code != &"" else 0
+
+
+static func _anchor_refusal_live(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
 	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors."""
 	if Routes._step_closure(profiles):
 		return &"" if anchor >= 2 and anchor < StepProgram.GROUND \

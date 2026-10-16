@@ -20,6 +20,10 @@ const MAX_SELECTION_BOXES: int = 12
 const MAX_KEY_VARIANTS: int = 16
 const ARENA_BYTES: int = 262144
 const CONTROL_RESERVE: int = 32768
+## Decision 1952: the itinerary anchor-check memo, ANCHOR_MEMO_SLOTS direct-mapped slots of ANCHOR_MEMO_STRIDE words:
+## load revision, bank instance, anchor, profile revision, content revision, refused (1) or not (0).
+const ANCHOR_MEMO_SLOTS: int = 8
+const ANCHOR_MEMO_STRIDE: int = 6
 const I32_FIELDS: int = 18
 const I64_FIELDS: int = 3
 const BYTE_FIELDS: int = 2
@@ -202,6 +206,8 @@ var _load_revision: int = 1
 var _step_closure: bool = false
 var _step_closure_revision: int = 0
 var _step_closure_bank: int = 0
+## Decision 1952: `Itinerary._anchor_refusal` answers as last read, with the revision and bank they were read at.
+var _anchor_memo: PackedInt64Array = PackedInt64Array()
 var _worker_row: int = -1
 ## Decision 1952: while true (the test framework sets it; the game and the dig benchmark leave it false) the caches
 ## keyed on this store's load revision also compute their answer live, answer live, and report a remembered answer
@@ -219,6 +225,7 @@ func _init() -> void:
 	"""Fixed reusable hot scratch has one explicit small allocation, independent of resident count."""
 	_identity.resize(3)
 	_query_values.resize(5)
+	_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)
 
 
 func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> StringName:

@@ -315,3 +315,35 @@ func test_with_checks_on_a_stale_slot_is_reported_and_the_search_runs_live() -> 
 	assert_true(_poison_filled_slots() > 0, "slots to poison")
 	expect_diagnostic("RUNTIME_CACHE_STALE itinerary edge profile")
 	assert_equal(_search(_h._first, _h.parking, 5, Space.MAX_CHECKS), plain, "a stale slot is reported, never followed")
+
+
+func test_the_anchor_memo_answers_as_the_live_check_and_reads_afresh_on_a_new_token() -> void:
+	"""Decision 1952: every anchor and revision answers as the live check, filling and answered; an answered check
+	really comes from the memo; a moved token or another bank is read afresh; with checks on a stale slot is reported."""
+	if not _fixture(): return
+	var profiles: StationTests.Profiles = _h._profiles
+	var content: int = profiles._live.header[0]
+	for anchor: int in range(-1, profiles._live.header[1] + 1):
+		for revision: int in [0, 1, 2]:
+			var live: StringName = Itinerary._anchor_refusal_live(profiles, anchor, revision, content)
+			assert_equal(Itinerary._anchor_refusal(profiles, anchor, revision, content), live, "filling %d/%d" % [anchor, revision])
+			assert_equal(Itinerary._anchor_refusal(profiles, anchor, revision, content), live, "answered %d/%d" % [anchor, revision])
+	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), &"", "anchor 5 passes")
+	var at: int = Itinerary._anchor_memo_at(profiles, 5, 1, content)
+	assert_true(at >= 0, "remembered")
+	profiles._anchor_memo[at + 5] = 1 # Poison: the memo, not a live read, answers.
+	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), Itinerary.REFUSE_FAMILY, "answered from the memo")
+	profiles.invalidate_runtime_caches()
+	assert_equal(Itinerary._anchor_memo_at(profiles, 5, 1, content), -1, "a moved token retires the slot")
+	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), &"", "and the check is read afresh")
+	at = Itinerary._anchor_memo_at(profiles, 5, 1, content)
+	profiles._anchor_memo[at + 1] += 1
+	assert_equal(Itinerary._anchor_memo_at(profiles, 5, 1, content), -1, "another bank is not answered")
+	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), &"", "refilled")
+	profiles._anchor_memo[Itinerary._anchor_memo_at(profiles, 5, 1, content) + 5] = 1
+	WorldRoutes.Profiles.check_runtime_caches = true
+	expect_diagnostic("RUNTIME_CACHE_STALE anchor check")
+	assert_equal(Itinerary._anchor_refusal(profiles, 5, 1, content), &"", "checks on: reported and answered live")
+	profiles._loading = true
+	assert_equal(Itinerary._anchor_memo_at(profiles, 5, 1, content), -1, "a loading store is never answered")
+	profiles._loading = false

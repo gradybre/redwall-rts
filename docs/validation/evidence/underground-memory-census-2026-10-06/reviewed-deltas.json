@@ -1263,10 +1263,19 @@
      "bytes": 1,
      "carried_by": "none (new)",
      "store": "decision 1952: the static check_runtime_caches (bool, one per class, not per store), set only by the test framework, never saved"
+    },
+    {
+     "bytes": 384,
+     "carried_by": "Profiles CONTROL_RESERVE",
+     "store": "decision 1952: the itinerary anchor-check memo _anchor_memo, ANCHOR_MEMO_SLOTS x ANCHOR_MEMO_STRIDE int64 (8 x 6 x 8), runtime-only, never saved"
     }
    ],
    "delta": {
     "members_added": [
+     [
+      "_anchor_memo",
+      "PackedInt64Array"
+     ],
      [
       "_load_revision",
       "int"
@@ -1289,10 +1298,19 @@
      ]
     ],
     "resizes_added": [
+     "_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)",
      "last_of.resize(_stage.header[3])",
      "same_key.resize(_stage.header[3])"
     ],
     "int_constants_added": [
+     [
+      "ANCHOR_MEMO_SLOTS",
+      "8"
+     ],
+     [
+      "ANCHOR_MEMO_STRIDE",
+      "6"
+     ],
      [
       "CONTACT_ASSEMBLY_PALM",
       "3"
@@ -1319,7 +1337,8 @@
      ]
     ],
     "allocation_sites": {
-     "PackedInt32Array(": 2
+     "PackedInt32Array(": 2,
+     "PackedInt64Array(": 1
     }
    }
   },

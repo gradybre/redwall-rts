@@ -13,6 +13,7 @@ const Space := preload("res://scripts/core/room_space.gd")
 const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Contacts := preload("res://scripts/core/underground_connector_contacts.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _world: Vector2i = Vector2i(-1, 0)
@@ -426,3 +427,41 @@ func test_the_contact_region_walk_visits_exactly_the_present_rows() -> void:
 		assert_equal(row, owner._region_capacity, "the walk ends at the capacity")
 		assert_equal(visited, expected, "region walk %d" % trial)
 	assert_equal(Contacts._next_region(owner, owner._region_capacity), owner._region_capacity, "from the end")
+
+
+func _source_row_oracle(owner: Owner, ref: Vector2i) -> int:
+	"""The pre-1952 `_resolve_source_row` scan (without its hint)."""
+	var found: int = -1
+	for row: int in owner._source_capacity:
+		if owner._o_present[row] == 0 or owner._o_slot[row] != ref.x:
+			continue
+		if owner._o_present[row] != 1 or owner._o_generation[row] != ref.y or found >= 0:
+			return -1
+		found = row
+	return found
+
+
+func test_the_source_row_lookup_reads_only_rows_naming_the_slot() -> void:
+	"""Decision 1952: Locations' source lookup walks `_o_slot.find(slot)`. Random slots, presence bytes 0/1/2 and
+	generations, including absent rows that name the slot, duplicates and the null slot, answer as the full scan."""
+	var owner: Owner = _owner()
+	var locations: Locations = Locations.new()
+	locations._owner = owner
+	for trial: int in 24:
+		for row: int in owner._source_capacity:
+			var roll: int = _rng.randi_range(0, 9)
+			owner._o_slot[row] = [-1, 3, 5, 7][_rng.randi_range(0, 3)] if roll < 7 else 9
+			owner._o_present[row] = [0, 1, 1, 2][_rng.randi_range(0, 3)] if roll < 9 else 0
+			owner._o_generation[row] = _rng.randi_range(1, 2)
+		for ref: Vector2i in [Vector2i(3, 1), Vector2i(5, 2), Vector2i(7, 1), Vector2i(9, 1), Vector2i(-1, 0), Vector2i(11, 1)]:
+			locations._resolve_source_ref = Vector2i(-1, 0)
+			locations._resolve_source_hint = -1
+			assert_equal(locations._resolve_source_row(ref), _source_row_oracle(owner, ref), "trial %d ref %s" % [trial, ref])
+	for row: int in owner._source_capacity:
+		owner._o_slot[row] = -1
+		owner._o_present[row] = 0
+	owner._o_slot[owner._source_capacity - 1] = 4
+	owner._o_present[owner._source_capacity - 1] = 1
+	owner._o_generation[owner._source_capacity - 1] = 1
+	locations._resolve_source_ref = Vector2i(-1, 0)
+	assert_equal(locations._resolve_source_row(Vector2i(4, 1)), owner._source_capacity - 1, "the last row is reached")

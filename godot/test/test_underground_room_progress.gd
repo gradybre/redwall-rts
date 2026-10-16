@@ -176,7 +176,7 @@ func test_a_haul_restored_before_every_tick_ends_as_the_uninterrupted_haul() -> 
 	assert_true(ticks > 2000, "restored before every one of %d ticks" % ticks)
 
 
-func _after_haul(a: Runtime, b: Runtime, armed: Array[bool]) -> void:
+func _after_haul(a: Runtime, _b_runtime: Runtime, armed: Array[bool]) -> void:
 	"""The haul test's own fixture step on both worlds, once the haul has landed in both."""
 	if armed[0]: return
 	var builder_a: Builder = a._foremen[0].builders()[0]

@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "846a7ae62a72a1fbd3aad194b10f7f1a78867aa04798b06d37bfaeb619bca21b"
+REVIEWED_SHA = "da306661d2e2054feeae152df139804027c887ae1f01a9fee3d4ad2240a0b593"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -422,6 +422,136 @@ def cold_load_images(memory, index: dict) -> dict:
     return {"rows": {"contact_scope": contacts, "haul_admissions": planner}, "bytes": contacts + planner}
 
 
+ROOM_RUNTIME = {"_directory": "Directory", "_generation": "PackedInt32Array", "_state": "PackedByteArray",
+                "_storage": "PackedInt32Array", "_output": "PackedInt32Array", "_staging": "PackedInt32Array",
+                "_foremen": "Array", "_foreman_rows": "PackedInt32Array", "_refusals": "Array", "_owners": "Builder.Owners",
+                "_math": "IntMath.IntResult", "_face": "WorkFace", "_contact_access": "Vector2i", "_contact_travel": "int"}
+ROOM_FOREMAN = {"_ctx": "Builder.Context", "_room": "Vector2i", "_builders": "Array", "_order": "DigOrder.Order",
+                "_cube": "PackedByteArray", "_state": "int", "_error": "StringName", "_abandon_error": "StringName",
+                "_last_refusal": "StringName", "_done": "int", "_registered": "bool", "_epoch": "int",
+                "_blocked_at": "PackedInt64Array", "_blocked": "PackedByteArray", "_blocked_ticks": "int",
+                "_column_tries": "int"}
+ROOM_BUILDER = {"_ctx": "Context", "_crew": "Crew", "_stage": "int", "_stage_ticks": "int", "_error": "StringName",
+                "_index": "int", "_site": "Vector2i", "_operation": "int", "_job": "int", "_station": "Vector2i",
+                "_work_profile": "int", "_at": "Vector2i", "_legs": "PackedInt32Array", "_plan": "Claim",
+                "_foot": "Footprint", "_leg_profiles": "PackedInt32Array", "_leg": "int", "_leg_state": "int",
+                "_leg_job": "bool", "_finished": "int", "_cubes": "int", "_column_cubes": "int", "_accepted_mwu": "int",
+                "_math": "IntMath.IntResult", "_actor": "Routes.Actor", "_tick": "Work.TickResult",
+                "_queue": "PackedInt32Array", "_hauler": "Hauler", "_departed": "bool", "_haul_store": "Vector2i",
+                "_haul_source": "Vector2i", "_haul_marker": "int", "_haul_trips": "int", "_haul_mwu": "int",
+                "_walk": "Walk", "_failed_from": "int", "_resuming": "bool", "_release_pending": "bool"}
+ROOM_CLAIM = {"home_legs": "PackedInt32Array", "home_profiles": "PackedInt32Array", "approach_legs": "PackedInt32Array",
+              "approach_profiles": "PackedInt32Array", "store_legs": "PackedInt32Array", "store_profiles": "PackedInt32Array",
+              "start": "Vector2i", "store": "Vector2i", "trips": "PackedInt32Array", "stands": "PackedInt32Array",
+              "carries": "PackedInt32Array"}
+ROOM_WALK = {"ticks_left": "int", "leaving": "bool", "origin": "Vector3i", "_math": "IntMath.IntResult"}
+ROOM_FOOTPRINT = {"_profiles": "Profiles", "_boxes": "PackedInt32Array", "_body": "PackedInt32Array",
+                  "_extents": "PackedInt32Array", "_serial": "int", "_overflow": "bool"}
+ROOM_DISPATCH = {"_entry": "Callable", "_rooms": "Callable"}
+ROOM_STATELESS = ("underground_room_composer", "underground_room_parking", "underground_room_progress",
+                  "underground_room_dig_order")
+ROOM_WIRE_NAMES = ("HEADER_BYTES", "CODE_BYTES", "RUNTIME_FIXED_BYTES", "ROW_BYTES", "FOREMAN_FIXED_BYTES", "SITE_BYTES",
+                   "BUILDER_FIXED_BYTES", "LEG_LIST_BYTES", "TRIP_LIST_BYTES", "HAUL_PLAN_BYTES", "HAULER_BYTES",
+                   "BUILDER_BYTES", "MAX_KEPT", "MAX_SITES", "MAX_BUILDERS", "MAX_WIRE_BYTES")
+
+
+def room_index(index: dict) -> dict:
+    """The index with the room dig's constant sources re-read without their inline comments."""
+    index = dict(index)
+    for name in ("underground_entry_progress", "underground_room_claim", "underground_room_runtime",
+                 "underground_room_footprint", "underground_profiles", "excavation_sites", "residents"):
+        source = module(index, CORE + name + ".gd")
+        clean = re.sub(r"(?m)^(const [A-Z][A-Z0-9_]*: int = [^#\n]+?)[ \t]+#.*$", r"\1", source.text)
+        index[name] = audit.parse_module(name, source.relative_path, clean)
+    return index
+
+
+def room_wire_bound(memory, index: dict) -> dict:
+    """Decision 1936: the room-dig record's bound, recomputed from the codec's own constant expressions. Each is read
+    whole (continuation lines joined); the only names it may use are its earlier constants and the entry codec's and
+    the cube plan's, resolved from their sources; anything else refuses."""
+    index = room_index(index)
+    source = module(index, CORE + "underground_room_progress.gd").text
+    joined = re.sub(r"\\\n\s*", " ", source)
+    known = {"EntryProgress." + name: memory.resolve(index, "underground_entry_progress", name) for name in
+             ("CODE_BYTES", "HAULER_FIXED_BYTES", "MAX_QUEUE", "MAX_LEGS", "LEG_BYTES")}
+    known.update({"Claim." + name: memory.resolve(index, "underground_room_claim", name) for name in
+                  ("MAX_LEGS", "MAX_TRIP_EDGES")})
+    values = {}
+    for name in ROOM_WIRE_NAMES:
+        found = re.search(r"^const " + name + r": int = ([^\n#]+)", joined, re.M)
+        require(found is not None, "room wire constant " + name)
+        expression = found.group(1).strip()
+        for key in sorted(list(known) + list(values), key=len, reverse=True):
+            expression = re.sub(r"(?<![\w.])" + re.escape(key) + r"\b", str({**known, **values}[key]), expression)
+        require(re.fullmatch(r"[0-9xA-Fa-f+* ()]+", expression) is not None, "room wire term " + name + ": " + expression)
+        values[name] = eval(expression, {"__builtins__": {}}, {})
+    require(values["MAX_KEPT"] == memory.resolve(index, "underground_room_runtime", "MAX_KEPT")
+            and values["MAX_SITES"] == memory.resolve(index, "excavation_sites", "MAX_SITE_CAPACITY"),
+            "room wire bounds follow the runtime and Sites")
+    return values
+
+
+def room_dig_runtime(memory, index: dict) -> dict:
+    """Decision 1936: the room-dig runtime the host composes with the Session's room owners and retains while it is
+    mounted, at its worst case for 256 residents. The record is allocated whole; at most MAX_KEPT foremen are kept,
+    their orders together cover each Site at most once (one foreman a room) and each resident builds in one dig."""
+    index = room_index(index)
+    for name in ROOM_STATELESS:
+        require(not memory.explicit_members(module(index, CORE + name + ".gd").text), "stateless room module: " + name)
+    runtime = exact_members(memory, index, CORE + "underground_room_runtime.gd", ROOM_RUNTIME)
+    foreman = exact_members(memory, index, CORE + "underground_room_foreman.gd", ROOM_FOREMAN)
+    builder = exact_members(memory, index, CORE + "underground_room_builder.gd", ROOM_BUILDER)
+    exact_members(memory, index, CORE + "underground_room_claim.gd", ROOM_CLAIM)
+    walk = exact_members(memory, index, CORE + "underground_room_walk.gd", ROOM_WALK)
+    foot = exact_members(memory, index, CORE + "underground_room_footprint.gd", ROOM_FOOTPRINT)
+    exact_members(memory, index, CORE + "underground_dispatch.gd", ROOM_DISPATCH)
+    hauler = exact_members(memory, index, CORE + "underground_entry_hauler.gd", ENTRY_HAULER)
+    r = lambda name, key: memory.resolve(index, name, key)
+    rooms, kept, sites = r("underground_room_runtime", "ROOM_CAPACITY"), r("underground_room_runtime", "MAX_KEPT"), \
+        r("excavation_sites", "MAX_SITE_CAPACITY")
+    builders, legs, trips = r("residents", "RESIDENT_LIVING_CAP"), r("underground_room_claim", "MAX_LEGS"), \
+        r("underground_room_claim", "MAX_TRIP_EDGES")
+    boxes, profiles = r("underground_room_footprint", "MAX_BOXES"), r("underground_profiles", "MAX_PROFILES")
+    queue, haul_legs = r("underground_entry_progress", "MAX_QUEUE"), r("underground_entry_progress", "MAX_LEGS")
+    columns = memory.columns(index, "underground_room_runtime", 5, {}, {"_generation", "_state", "_storage", "_output",
+                                                                       "_staging"})
+    require(memory.payload(columns) == 29 * rooms, "the room record is 29 B a row")
+    result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
+    actor = packet(memory, index, CORE + "underground_routes.gd", "Actor")
+    b = CORE + "underground_room_builder.gd"
+    rows = {
+        "runtime_record": memory.payload(columns),
+        "runtime_numeric": memory.numeric_fields(runtime, "") + result + 4 * kept
+            + memory.numeric_fields(module(index, CORE + "underground_work_face.gd").text, ""),
+        "foremen_numeric": kept * (memory.numeric_fields(foreman, "") + packet(memory, index, b, "Context")),
+        # The dig order (row, key and distance, 12 B) and the dispatch mark (1 B) of each Site.
+        "orders_and_marks": 13 * sites,
+        "builders": builders * (memory.numeric_fields(builder, "") + packet(memory, index, b, "Context")
+            + packet(memory, index, b, "Crew") + packet(memory, index, b, "HaulCrew") + result + actor
+            + packet(memory, index, CORE + "work.gd", "TickResult", "")
+            + 9 # the foreman's blocked epoch (8) and flag (1) for it
+            + 4 * (3 * legs + legs) + 4 * queue # its current legs and profiles, and its haul queue
+            + memory.numeric_fields(module(index, CORE + "underground_room_claim.gd").text, "")
+            + 4 * (3 * 3 * legs + 3 * trips + 4 + 2) # the cube plan's three leg lists, trip edges, stands, carries
+            + memory.numeric_fields(foot, "") + 24 * boxes + 24 + 24 * profiles # footprint, body, row extents
+            + memory.numeric_fields(walk, "") + result
+            + memory.numeric_fields(hauler, "") + actor
+            + haul_legs * packet(memory, index, CORE + "underground_entry_hauler.gd", "Leg")),
+    }
+    wire = room_wire_bound(memory, index)
+    require(wire["MAX_BUILDERS"] == builders, "the record's builder bound is the living cap")
+    packets = packet(memory, index, CORE + "underground_entry_progress.gd", "Writer") \
+        + packet(memory, index, CORE + "underground_entry_progress.gd", "Reader")
+    rows["progress_record"] = 2 * wire["MAX_WIRE_BYTES"] + packets
+    return {"rows": rows, "bytes": sum(rows.values()), "wire": wire,
+            "bounds": {"rooms": rooms, "kept_foremen": kept, "sites": sites, "builders": builders, "boxes": boxes,
+                       "profile_rows": profiles},
+            "scope": "Numeric and packed payload only, at every bound at once (MAX_KEPT foremen, every Site in an order, "
+                     "256 builders each with a full plan, footprint and haul). Object, Array and Variant headers are "
+                     "native overhead, unmeasured, as in every other row. The record image is charged twice, as ADR 1218's."}
+
+
 def reviewed_table() -> dict:
     raw = (ROOT / REVIEWED).read_bytes()
     require(hashlib.sha256(raw).hexdigest() == REVIEWED_SHA, "reviewed delta table changed")
@@ -473,9 +603,10 @@ def build(index: dict, projected: list, motion: dict) -> dict:
     planner = room_planner_cold(memory, index)
     images = cold_load_images(memory, index)
     stairs = stair_tables(memory, index)
+    rooms = room_dig_runtime(memory, index)
     new = {"geometry_journals": journals["bytes"], "locations_carry_and_retirement_controls": locations["bytes"],
            "first_entry_runtime_chain": entry["bytes"], "cold_load_images": images["bytes"],
-           "claw_stair_tables": stairs["bytes"]}
+           "claw_stair_tables": stairs["bytes"], "room_dig_runtime": rooms["bytes"]}
     charged = {}
     for relative, row in rows.items():
         for charge in row["charges"]:
@@ -489,6 +620,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,
             "location_air_pool": pool, "room_publication_controls": publication,
             "room_planner_cold": planner, "cold_load_images": images, "claw_stair_tables": stairs,
+            "room_dig_runtime": rooms,
             "new_retained_bytes": new, "new_contribution_bytes": sum(new.values()),
             "runtime_qualified": False, "native_measured": False}
 

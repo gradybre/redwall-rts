@@ -159,6 +159,12 @@ Run on `36b784de` (2026-10-16, Godot 4.7.2); origin/master had not moved from `c
   12,879 tests, 1,435,423 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks; analyzer `0 GDScript
   warning(s) in 0 of 1611 file(s)`; the live harness 47 checks, 0 failures at 1280×720 and 1920×1080, the removal
   frame recaptured and looked at (one judgement, beside the pointer).
+- **After M5** (`80764a57`, decision 2043's Stair-head row and the rulings recorded): full CI-style run, `ok: 538
+  suite files executed exactly once across 10 shards`, 12,879 tests, 1,435,450 assertions, 0 failures, 0 unexpected
+  errors or warnings, 0 leaks; analyzer `0 GDScript warning(s) in 0 of 1611 file(s)`; the contracts as above, PASS;
+  mutation testing of the M5 row (row depths, LOW_FROM, ALONG, TOP_OPEN, RUN_U, FIXTURE_T0, FIXTURE_TREADS, QUANTA):
+  8 of 8 killed; a `code-reviewer` pass on the delta: no CRITICAL or HIGH; the live harness 47 checks, 0 failures at
+  both sizes, `ways_cards_*` (the three offered cards in view) and `ways_dug_below_*` recaptured and looked at.
 - **Independent review** (`code-reviewer`): no CRITICAL. HIGH H1–H5 fixed (E9); re-review of the delta found N1,
   fixed. MEDIUM fixed or answered in E9; LOW fixed.
 

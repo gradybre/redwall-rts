@@ -209,6 +209,7 @@ Every row was checked against the record named.
 | Topic | Ruling | Recorded in |
 |---|---|---|
 | Activating contents 11 and 12 (1972 P-1972-1 to -6), 2026-10-16 | Brendan: **P-1972-3 "Refuse them, recorded"**: (a). Saves made before activation that hold an underground Session are refused at load, and this is recorded. **P-1972-6 "Keep 90 ticks"**: (a). The 169 u retreat keeps DEC-050's 90 ticks through a finer authored pace unit (milli-u/s); the existing paces are rescaled with their ticks unchanged. Coordinator: **P-1972-1 (a)**: widen runtime-v2 in place. **P-1972-2 (a)**: `PROFILE_BYTES` +4,096, to 282,624, with its own ledger row; master's census figures are taken at merge time. **P-1972-4**: the two `modular_runtime.gd` lines are cleared after PR #267 merges. **P-1972-5**: the Profiles edits are built now; one pin renewal follows the cost lane's merge. (Relayed by the coordinator) | [1972](../decisions/1972-activating-contents-11-and-12-scoping.md) |
+| The floor end's footing (1972 P-1972-7), 2026-10-16 | Brendan: **"Natural earth counts"**: (a). Dry, never-cut natural earth counts as support under a stop's landing (and, with the cost lane's lines, under a stair deck), by decision 1971's natural-earth test. Coordinator: M-2 (the check bound) is re-measured after the cost lane merges, `Space.MAX_CHECKS` is not raised; the demo's `MAX_SOURCES` and `modular_runtime.gd` lines are cleared after PR #267. (Relayed by the coordinator) | [1972](../decisions/1972-activating-contents-11-and-12-scoping.md) |
 
 ## Standing rules (not dated rulings)
 

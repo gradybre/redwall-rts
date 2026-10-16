@@ -16,6 +16,7 @@ Number range 1972–1980 was allocated by the coordinator and checked free on ev
 | P-1972-3 | Brendan, **"Refuse them, recorded"**: (a) | Saves made before activation that hold an underground Session are refused at load (`SAVE_UNDERGROUND_RESTORE_REFUSED`). This record is where it is recorded |
 | P-1972-4 | Coordinator | The two `demo/burrow/modular_runtime.gd` lines are cleared, but only after PR #267 (Mound POC) merges |
 | P-1972-5 | Coordinator: yes | Build the Profiles edits now, clear of the cost lane's hunks; one pin renewal after its merge |
+| P-1972-7 | Brendan, **"Natural earth counts"**: (a) (2026-10-16) | Dry, never-cut natural earth counts as support under a landing, by 1971's natural-earth test; the WorldRoutes deck half waits with the cost lane's lines ("Phase 2b") |
 | P-1972-6 | Brendan, **"Keep 90 ticks"**: (a) | Authored stair paces move to milli-u/s. Every existing authored pace is rescaled ×1,000, so its ticks stay identical; the 169 u retreat takes exactly 90 ticks |
 
 Indexed in `docs/handoff/RULINGS.md`. Sections "The brief" to "Proposals" are the scoping as it was put.
@@ -475,3 +476,59 @@ LANDING and under a stair deck.
   the proofs re-run.
 - **(c)** Leave the floor end out of this lane. Loaded travel then ends on T6, which is not the room level, and C2.3
   cannot supply a room.
+
+## Phase 2b — natural earth under a landing (P-1972-7 (a), 2026-10-16)
+
+The coordinator's further rulings (2026-10-16):
+- **M-2:** `Space.MAX_CHECKS` is not raised. It is re-measured after the cost lane merges; if it still overflows, the
+  lane stops with options.
+- **Demo files:** `demo/cast/underground_content_set.gd` (`MAX_SOURCES` 6 → 8) and the two `modular_runtime.gd` lines
+  are cleared after PR #267 merges.
+- **With the mount:** the retirement endpoints and registry rows, `GROUND_PACE_COUNT`, the republish after the sill,
+  and the presentation of sources 6/7.
+
+### Built (`underground_entry_bindings.gd`, the one cleared edit)
+
+`_timber_staged_support` keeps its rule that a LANDING must have actual solid under its whole footprint. What the
+installation's own SUPPORT leaves (`_timber_support_residual`) may now be natural earth, proved as a natural bearing
+is proved, in two halves:
+
+- **While staging** (`_timber_natural_support`): no Site ever cut a quantum it meets (`_timber_virgin_keys`), and
+  only unclaimed natural matter or support stands in it (`_timber_natural_rows`).
+- **Under the sealed candidate** (`_timber_landing_footing` in `_timber_physical`'s final pass): the terrain's
+  original footing is dry there (`Terrain.FOOTING` with the sealed Space token).
+  - Terrain facts cannot be read while staging. A natural bearing defers the same check to its final pass, and so
+    does this.
+  - The preflight pass (no Space token) skips it, because nothing is staged yet.
+
+Natural-bearing code is reused, not WorkFace's: the module already proves natural earth for the posts' bearings.
+
+### Tests (`test_underground_entry_bindings.gd`, 43 pass)
+
+- `test_a_landing_over_natural_earth_is_supported`. Mode 6: the LANDING reaches 512 u past its deck. It publishes,
+  with one natural proof, clear, and the sealed footing observing the one natural fragment.
+- `test_a_landing_over_a_dug_cube_is_not_supported`. Mode 7: the deck covers only the far half; the near half is
+  over the paid, dug cube. It refuses `ENTRY_INSTALLED_CONTACT_REQUIRED`, nothing is published and the receipts are
+  kept.
+- `test_shared_landing_stages_support_once_but_proves_every_contact` now also asserts that a landing on its deck
+  needs no natural earth and leaves no residual.
+
+### M-1 rerun: the next gap is in Locations
+
+On the scratch mount (with the check bound raised in scratch only), the floor's LANDING now stages. The sill's
+commit then refuses `LOCATION_PAID_SITE_MISSING`:
+
+- `underground_locations.gd _installed_row_site` witnesses an installed (LANDING) record only when it stands on the
+  top of one of the Placement's installed prisms, and takes its paid Site from that prism.
+- A floor stop stands on natural earth, so it has no prism and no witness.
+- The natural counterpart is the paid cube the stop stands in: the trench's cut cube, a Site of the stair's Room.
+  The non-LANDING path already uses `_installed_site_row(_cube_origin(point))`.
+- The fix: when no prism top holds the point, accept that cube if it is a paid Site of the record's Room and the
+  landing's residual is natural. That edit is in `underground_locations.gd`, which this lane was not cleared for. It
+  is asked of the coordinator (P-1972-8).
+
+**P-1972-8 — clearance for `underground_locations.gd` `_installed_row_site` (for the coordinator).**
+
+- **(a) Recommended:** clear the edit in this lane, with tests (a floor stop witnessed by its cut cube; a stop over
+  natural earth outside any paid cube refused).
+- **(b)** The cost lane's owner makes it.

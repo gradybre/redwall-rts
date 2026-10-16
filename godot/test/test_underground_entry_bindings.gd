@@ -62,11 +62,24 @@ class ObservedBinding extends Binding:
 	var timber_final_probe: Callable = Callable()
 	var datum_support_checks: int = 0
 	var staged_contact_checks: int = 0
+	var natural_support: Array[StringName] = []
+	var residual_footing: Array[int] = []
 
 	func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
 		"""Count real complete LANDING support proofs without replacing any physical decision."""
 		datum_support_checks += 1
 		return super._timber_staged_support(proof, bounds)
+
+	func _timber_residual_footing(proof: TimberClearance, token: int) -> StringName:
+		"""Record how many natural fragments each sealed footing proof observes, without replacing it."""
+		residual_footing.append(proof.count)
+		return super._timber_residual_footing(proof, token)
+
+	func _timber_natural_support(proof: TimberClearance) -> StringName:
+		"""Record each decision 1972 natural-earth verdict without replacing it."""
+		var code: StringName = super._timber_natural_support(proof)
+		natural_support.append(code)
+		return code
 
 	func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> StringName:
 		"""Every distinct endpoint still passes its own exact physical air proof."""
@@ -230,7 +243,15 @@ class TimberContent extends RefCounted:
 		if mode == 3: return _l0_image(revision)
 		if mode == 4: _lower_deck(bytes, regions, parts, vertices)
 		if mode == 5: _fractional_deck(bytes, regions, parts, vertices)
+		if mode == 6: bytes.encode_s32(regions + 32 + 8, -1536) # Decision 1972: the LANDING reaches 512 u past the deck.
+		if mode == 7: _short_deck(bytes, vertices)
 		return bytes
+
+	static func _short_deck(bytes: PackedByteArray, vertices: int) -> void:
+		"""Decision 1972: the deck covers only the LANDING's far half; its near half is over the paid, dug cube."""
+		for part: int in [0, 2]:
+			for index: int in [2, 3]:
+				bytes.encode_s32(vertices + part * 48 + index * 12 + 8, -512)
 
 	static func _l0_boxes() -> Array[PackedInt32Array]:
 		"""Exact accepted1113 L0 prisms; the second fixture group repeats them and is never installed here."""
@@ -913,6 +934,8 @@ func test_shared_landing_stages_support_once_but_proves_every_contact() -> void:
 	var result: Construction.OpResult = _router.complete_order(project)
 	assert_true(result.ok, "all distinct actual contacts publish: %s" % result.error)
 	assert_equal(_bindings.datum_support_checks, 1, "one exact assembly/LANDING support union")
+	assert_equal(_bindings.natural_support, [] as Array[StringName], "a landing on its deck needs no natural earth")
+	assert_equal(_bindings.residual_footing.max(), 0, "and leaves no residual at the sealed footing proof")
 	assert_equal(_bindings.staged_contact_checks, 4, "every complete endpoint envelope checked separately")
 	assert_equal(_f._locations._live.count, 6, "two original and four installed full endpoints")
 	_timber_conservation()
@@ -930,6 +953,38 @@ func test_shared_landing_does_not_authorize_an_unsupported_later_contact() -> vo
 	var before: Array = _image()
 	var funding: PackedByteArray = _router._funding.state_bytes()
 	assert_false(_router.complete_order(project).ok, "full later endpoint cannot fit actual support")
+	assert_equal(_image(), before, "no partial physical or endpoint publication")
+	assert_equal(_router._funding.state_bytes(), funding, "all paid receipts retained for retry")
+
+
+func test_a_landing_over_natural_earth_is_supported() -> void:
+	"""Decision 1972 (P-1972-7, "Natural earth counts"): a LANDING reaching 512 u past its deck over never-cut, dry,
+	natural ground publishes; the part the deck leaves is proved by 1971's natural-earth test, not waved through."""
+	after_each(); _catalog_mode = 6; before_each()
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	assert_true(paid.failures.is_empty(), "real paid phase and work setup")
+	if project == NULL_REF or not failures.is_empty(): return
+	var result: Construction.OpResult = _router.complete_order(project)
+	assert_true(result.ok, "the contact publishes over its deck and natural earth: %s" % result.error)
+	assert_equal(_bindings.natural_support, [&""] as Array[StringName], "one natural-earth proof, clear")
+	assert_true(_bindings.residual_footing.size() >= 1 and _bindings.residual_footing.max() == 1,
+		"the sealed candidate's terrain footing observed the one natural fragment")
+	assert_equal(_f._locations._live.count, 3, "two original and the installed endpoint")
+
+
+func test_a_landing_over_a_dug_cube_is_not_supported() -> void:
+	"""Decision 1972: what the deck leaves under the LANDING is a quantum a Site cut, so it is no natural earth; the
+	order refuses with nothing published and every paid receipt kept."""
+	after_each(); _catalog_mode = 7; before_each()
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	assert_true(paid.failures.is_empty(), "real paid phase and work setup")
+	if project == NULL_REF or not failures.is_empty(): return
+	var before: Array = _image()
+	var funding: PackedByteArray = _router._funding.state_bytes()
+	assert_false(_router.complete_order(project).ok, "a landing over the dug cube")
+	assert_equal(_bindings.natural_support, [Binding.REFUSE_TIMBER_CONTACT] as Array[StringName], "refused as cut")
 	assert_equal(_image(), before, "no partial physical or endpoint publication")
 	assert_equal(_router._funding.state_bytes(), funding, "all paid receipts retained for retry")
 

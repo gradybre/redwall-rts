@@ -44805,7 +44805,7 @@
     "godot/scripts/core/underground_connector_recipes.gd": "a23c0f6087597b1c3bee978f9008824af86856dca6ddaba1b6bc41d1d03cba1a",
     "godot/scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
     "godot/scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
-    "godot/scripts/core/underground_entry_bindings.gd": "5dd6d372951dd1a80ebe10cc3d7e19261ec64c32e404b69c0028949de8ff38d6",
+    "godot/scripts/core/underground_entry_bindings.gd": "3071197651d8013ac45657129c2f7f372910b24959cc771d1c70a556221e72aa",
     "godot/scripts/core/underground_entry_frontier.gd": "49315ddcda00a91910077d70fb7e5b123ca5d40f5590ca038cc0967069697c8e",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",

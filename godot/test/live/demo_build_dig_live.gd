@@ -40,11 +40,11 @@ const MOUTH_M: float = 7.0
 ## mouth turned once (R) to descend east, the stair-head at turn 0 descending north.
 ## The first spot of each list whose ground is open (the surface's stream and placements refuse a way: decision 2022).
 const RAMP_SPOTS: Array[Vector2i] = [Vector2i(24, 40), Vector2i(26, 40), Vector2i(28, 40)]
-## The stair-head descends north only (decision 2041 P-DF-6 (a)): its 2 × 23 strip from z 33, its landing at the north.
+## The stair-head descends north only (decision 2041 P-DF-6 (a)): its 2 × 27 strip from z 33, its landing at the north.
 const STAIR_SPOTS: Array[Vector2i] = [Vector2i(38, 33), Vector2i(40, 33), Vector2i(42, 33), Vector2i(44, 33),
 	Vector2i(46, 33), Vector2i(48, 33), Vector2i(50, 33), Vector2i(38, 34), Vector2i(42, 34)]
-## Their cells below: the ramp's 2 × 12 and the stair's 2 × 18 (build_connector_families.gd, placeholders; 2041's F40).
-const WAYS_CELLS: int = 60
+## Their cells below: the ramp's 2 × 12 and the stair's 2 × 20 (build_connector_families.gd, placeholders; 2043's M5).
+const WAYS_CELLS: int = 64
 ## Where the camera looks at level 1's two new ways from (the hatch is in the loop's own frames), and how far; and at
 ## the two new entrances' tops on the surface, low from the west as at the hatch (MOUTH_YAW_DEG).
 const WAYS_LOOK_AT: Vector3 = Vector3(36.0, 0.0, 44.0)

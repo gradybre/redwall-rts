@@ -1,7 +1,7 @@
 # 2022 — Connector items in the build panel: three families, the connector card, and refusing to cut anything off
 
-Date: 2026-10-16 · Status: Accepted (Brendan's rulings on decision 2021, 2026-10-16; the PROPOSALS at the end are this
-lane's own small calls, awaiting his word)
+Date: 2026-10-16 · Status: Accepted (Brendan's rulings on decision 2021, and on this record's PROPOSALS, all
+2026-10-16: see "Brendan's rulings")
 
 Number range: 2021–2039 (slice D1's); 2021 is the scoping record, this is the implementation record. It replaces no
 BACKLOG range. Branch `feat/build-slice-d1`.
@@ -16,11 +16,12 @@ marked", P-D1-6 "Real check now", P-D1-11 "All three types"):
   Their shapes and bills are decision 2021's placeholder table, kept in one file
   (`scripts/ui/build_connector_families.gd`) with each number's source beside it, and labelled "placeholder" on every
   card, ghost note and ledger line (P-D1-2). Nothing goes into SET-BUILD-001 §9.
-- **The Stair-head is decision 2041's F40 flight** (Brendan's approval of 2041 on 2026-10-16, noted in 2021):
-  2 × 23 cells, every row an open slot to the land, 2041 §2.4's row depths (5 rows reach level 1 from row 5; 142
-  cubes); its bill L0 + T0 + 38 treads, in all wood 78,500, stone 35,500 milli-U, 858,980 milli-WU, earth 284,000
-  milli-U (2041 §2.5); placed at rotation 0 only (P-DF-6 (a)): turned, it reads "X Not possible: No qualified stair
-  for this direction yet".
+- **The Stair-head is decision 2043's M5 flight** (Brendan's ruling P-2043-1 (a), 2026-10-16, noted in 2021; it
+  replaced 2041's F40, which this branch carried in `ff3e9072`–`ee4c9317`): today's qualified 1 m module five times,
+  2 × 27 cells, every row an open slot to the land, rows 0-1 one cube deep and module j's five rows j + 1 deep
+  (from row 7 on it reaches level 1: 2 × 20 cells below; 154 cubes); its bill L0 + five T0s + 30 treads, in all wood
+  77,500, stone 38,500 milli-U, 912,620 milli-WU, earth 308,000 milli-U (2043 §3); placed at rotation 0 only
+  (2041 P-DF-6 (a)): turned, it reads "X Not possible: No qualified stair for this direction yet".
 - **The connector card** (UI-BUILD-012, P-D1-3): a click pins the way's ghost and opens the card; Down / Up with the
   impossible one disabled and its reason (P-D1-4); "✓ Connects to "+level or why not; the placeholder's notes, "Climbers
   only" on a hatch (P-D1-8) and "Proof of concept: free; not yet a qualified descent" (P-D1-11); Add to plan and Cancel.
@@ -93,7 +94,7 @@ marked", P-D1-6 "Real check now", P-D1-11 "All three types"):
   `test_demo_build_panel.gd` (one judgement, no ghost tag), `test_build_batch_ways.gd` (`removal_preview`) and the
   live harness's "only the removal's judgement shows" (47 checks at both sizes).
 
-## PROPOSALS for Brendan
+## PROPOSALS for Brendan (ruled 2026-10-16, below)
 
 - **P-2022-1 — A way on the Surface over water or a placed thing** is refused "Cannot dig here: water" / "... a tree"
   (the Mound host's reader, decision 2002's). SET-BUILD-001 §9's ghost lists water among the "X" reasons; things are
@@ -108,6 +109,19 @@ marked", P-D1-6 "Real check now", P-D1-11 "All three types"):
   "✓ Keep <Item>: click to withdraw its removal". (a) as worded; (b) other words. **Recommend (a).**
 - **P-2022-4 — "Keep" for a withdrawn removal**: Undo after withdrawing a removal reads "Undo Keep Hatch with ladder"
   (review LOW). (a) as worded; (b) other words. **Recommend (a).**
+
+## Brendan's rulings (2026-10-16)
+
+Relayed by the coordinator: on 2026-10-16, in chat, using the AskUserQuestion tool, Brendan approved P-2022-1 to
+P-2022-4 as recommended, then P-2022-5, saying **"Approve, open the PR"**.
+
+| Item | Ruling |
+|---|---|
+| P-2022-1 | **(a)**: a Surface way over water or a placed thing is refused "Cannot dig here: ..." |
+| P-2022-2 | **(a)**: the small new words as worded |
+| P-2022-3 | **(a)**: the turn is kept between ways |
+| P-2022-4 | **(a)**: "Keep" for a withdrawn removal |
+| P-2022-5 | **(a)**: the pointer's words over a built way, as worded |
 
 ## Memory and save
 

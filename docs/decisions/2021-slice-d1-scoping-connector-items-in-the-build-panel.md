@@ -357,7 +357,16 @@ the straight F40 flight, **2 × 23 cells** (40 steps of 128 u on 512 u, 39 tread
 other rotations read "No qualified stair for this direction yet". Brendan also approved D1's Stair-head placeholder
 taking F40's numbers (2041 §2.4–2.5): 142 cut cubes; wood 78,500 and stone 35,500 milli-U; 858,980 milli-WU; earth
 out 284,000 milli-U. It stays labelled "placeholder". The table above keeps its first proposal (2 × 16 cells, 112 quanta) as
-history; decision 2022 builds the F40 row.
+history; decision 2022 built the F40 row.
+
+**Note (2026-10-16, decision 2043).** D-flight's phase 2a record 2043
+(`2043-d-flight-phase-2a-geometry-probe-and-buildability.md`, on `docs/slice-d-flight`, `5a1d3797`) found that F40
+cannot be built in place with qualified motion (§3). Brendan ruled **P-2043-1 (a)**, relayed by the coordinator: the
+full-level way is **M5**, today's qualified 1 m module five times in a straight line, joined by natural landings --
+**2 × 27 cells**, still at rotation 0 only (P-DF-6 stands); 154 cut cubes (per column rows 0-1 at depth 1, then
+module j's five rows at depth j + 1); wood 77,500 and stone 38,500 milli-U, 912,620 milli-WU, earth out 308,000
+milli-U (2043 §3). D1's Stair-head placeholder takes M5's row in decision 2022, still labelled "placeholder"; it
+replaces the F40 row above.
 
 ## Gates (this record)
 

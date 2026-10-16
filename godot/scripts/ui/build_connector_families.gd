@@ -2,9 +2,10 @@ extends RefCounted
 ## THE CONNECTOR FAMILIES AS THE BUILD PANEL PLACES THEM (decision 2021; Brendan's rulings of 2026-10-16: P-D1-1 (a),
 ## P-D1-2 (a) "Use the table, marked"). PLANNING-SIDE PLACEHOLDERS: every size and cost here is a PROPOSED value for
 ## review, labelled "placeholder" wherever it is shown, and adopted nowhere (SET-BUILD-001 §9 still says "to be
-## authored). The Stair-head's row is decision 2041's F40 flight, by Brendan's approval of 2041 on 2026-10-16
-## (P-DF-2 (a); still labelled "placeholder"). These are cells, not room_connectors.gd
-## Definitions: a Definition needs profile-qualified contacts no placeholder may invent (decision 2021 F3).
+## authored"). The Stair-head's row is decision 2043's M5 flight, by Brendan's ruling P-2043-1 (a) of 2026-10-16
+## (replacing 2041's F40, which cannot be built in place with qualified motion; still labelled "placeholder").
+## These are cells, not room_connectors.gd Definitions: a Definition needs profile-qualified contacts no placeholder
+## may invent (decision 2021 F3).
 ##
 ## THE SHAPE. A family is a strip ACROSS cells wide and ALONG cells long, anchored at its bounding box's north-west
 ## cell, falling DROP_U (one level, SET-BUILD-001 §3) from its TOP end to its FOOT end. Turn 0 descends north (the top
@@ -23,9 +24,10 @@ extends RefCounted
 ##   width 2 cells            the Passage minimum (BUILD-REQ-014), wider than the badger (tunnel_rules.gd wide bore)
 ##   headroom 3072 u          DEC-039's badger, 2611 u, rounded up to whole quanta (the legacy wide bore's height)
 ##   RAMP run 13696 u         5120 × 2.5 (decision 0212's 1:2.5) + 896 u for its eased ends (RAMP_FILLET_U)
-##   EARTH_TIMBER 2 × 23      decision 2041 §2.4's F40 flight (P-DF-2 (a)): 40 steps of 128 u on 512 u, 39 treads,
-##                            the top landing 2560 u, the sill's far edge at 22016 u, the run-out to 23552 u; every
-##                            row an open slot to the land, ROW_DEPTHS cubes deep; rotation 0 only (P-DF-6 (a))
+##   EARTH_TIMBER 2 × 27      decision 2043 §3's M5 flight (P-2043-1 (a)): today's qualified 1 m module five times in
+##                            a straight line, joined by natural landings; 27 rows of 1024 u, every row an open slot to
+##                            the land, STAIR_ROW_DEPTHS cubes deep (rows 0-1 at 1, module j's five rows at j + 1);
+##                            rotation 0 only (decision 2041 P-DF-6 (a))
 ##   STONE run 6400 u         20 risers of decision 0212's 256 u on its least tread, 320 u
 ##   LADDER_HATCH 2 × 2       the Mound hatch's 1.96 m frame (demo_build_mound_parts.gd) on GDD's 1-tile = 2 × 2 cells
 ##   SPIRAL 4 × 4             OPEN-02 (a)'s placeholder itself
@@ -33,7 +35,7 @@ extends RefCounted
 ##                            is never charged twice (SET-BUILD-001 §7.2)
 ##   fixtures                 ADR 1202's L0 (4000 milli wood, 32000 milli-WU), T0 at its own bill (1000, 12000) and ADR
 ##                            1209 D3's tread at DEC-059's work (1000, 5640): the hatch = L0 + one tread per 1024 u of
-##                            drop (the weakest number); the stair = L0 + T0 + 38 treads (2041 §2.5); the ramp none;
+##                            drop (the weakest number); the stair = L0 + five T0s + 30 treads (2043 §3); the ramp none;
 ##                            stone and spiral not proposed
 
 const Connectors := preload("res://scripts/core/room_connectors.gd")
@@ -52,23 +54,23 @@ const NAMES: Array[String] = ["Stair-head", "Stone stairs", "Burrow mouth", "Spi
 const OFFERED: Array[bool] = [true, false, true, false, true]
 const SLOPED: Array[bool] = [true, true, true, false, false]
 const ACROSS: Array[int] = [2, 2, 2, 4, 2]
-const ALONG: Array[int] = [23, 7, 14, 4, 2]
-const TOP_OPEN: Array[int] = [23, 4, 9, 4, 2]
-const LOW_FROM: Array[int] = [5, 1, 2, 0, 0]
+const ALONG: Array[int] = [27, 7, 14, 4, 2]
+const TOP_OPEN: Array[int] = [27, 4, 9, 4, 2]
+const LOW_FROM: Array[int] = [7, 1, 2, 0, 0]
 ## Each sloped family's run in u (0: a vertical family, whose drop is straight down its cells).
-const RUN_U: Array[int] = [23552, 6400, 13696, 0, 0]
+const RUN_U: Array[int] = [27648, 6400, 13696, 0, 0]
 ## At most this many quanta (`count_quanta`, or for the stair 2 × ROW_DEPTHS; test_build_connector_families.gd recounts
 ## them independently).
-const QUANTA: Array[int] = [142, 44, 84, 80, 20]
-## Decision 2041 §2.4: the F40 flight's cubes cut per column, row by row from its top (the land down).
-const STAIR_ROW_DEPTHS: Array[int] = [1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]
+const QUANTA: Array[int] = [154, 44, 84, 80, 20]
+## Decision 2043 §3: the M5 flight's cubes cut per column, row by row from its top (the land down).
+const STAIR_ROW_DEPTHS: Array[int] = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
 ## The families placed at turn 0 only (P-DF-6 (a): no stair qualified for another heading yet).
 const TURN_ZERO_ONLY: Array[bool] = [true, false, false, false, false]
 const NO_QUALIFIED_TURN: String = "No qualified stair for this direction yet"
 ## Fixture parts: how many L0s, T0s at their own bill, and treads at D3's (DEC-059) bill; -1: not proposed.
 const FIXTURE_L0: Array[int] = [1, -1, 0, -1, 1]
-const FIXTURE_T0: Array[int] = [1, -1, 0, -1, 0]
-const FIXTURE_TREADS: Array[int] = [38, -1, 0, -1, 5]
+const FIXTURE_T0: Array[int] = [5, -1, 0, -1, 0]
+const FIXTURE_TREADS: Array[int] = [30, -1, 0, -1, 5]
 const DROP_U: int = 5120
 const QUANTUM_U: int = 1024
 const HEADROOM_U: int = 3072

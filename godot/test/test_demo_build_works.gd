@@ -173,16 +173,16 @@ func test_a_run_is_walked_only_along_itself() -> void:
 
 
 func test_a_way_below_links_its_top_to_its_foot() -> void:
-	"""A stair standing on level 1 leads from its top 2 × 2 to its landing row on level 2, both ways (2041's F40:
-	2 × 23, its landing 22 rows on)."""
+	"""A stair standing on level 1 leads from its top 2 × 2 to its landing row on level 2, both ways (2043's M5:
+	2 × 27, its landing 26 rows on)."""
 	_works.configure(Rect2i(0, 0, 64, 64))
 	_works.order_way_down(0, Vector2i(10, 10))
 	_works.order_room(1, PackedInt32Array([10, 12, 11, 12, 10, 13, 11, 13]), 7)
 	assert_true(_works.order_way_down(1, Vector2i(10, 12), Families.EARTH_TIMBER, 2), "a stair on level 1, turned south")
-	assert_equal(_works.landing_of(1), Vector3i(2, 10, 33), "its foot 21 rows south")
+	assert_equal(_works.landing_of(1), Vector3i(2, 10, 37), "its foot 25 rows south")
 	assert_true(_dig_all(_works.landing_of(0)).size() >= 6, "dug from the entrance down")
-	assert_equal(_works.state(2, Vector2i(10, 34)), Works.OPEN, "its landing dug")
-	assert_false(_works.path_to(Vector3i(2, 10, 34), Vector3i(1, 11, 13)).is_empty(), "walked back up")
+	assert_equal(_works.state(2, Vector2i(10, 38)), Works.OPEN, "its landing dug")
+	assert_false(_works.path_to(Vector3i(2, 10, 38), Vector3i(1, 11, 13)).is_empty(), "walked back up")
 
 
 func test_removing_a_way_returns_its_waiting_cells_and_keeps_dug_ones() -> void:

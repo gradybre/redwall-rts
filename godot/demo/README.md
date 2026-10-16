@@ -1167,8 +1167,8 @@ check now"). The Rooms tab on every level offers three ways -- **Burrow mouth** 
 **Stair-head** (earth/timber stairs) -- then Stone stairs and Spiral stair locked ("Not yet: ..."). Every size and
 cost they show is a **placeholder** awaiting review (`scripts/ui/build_connector_families.gd`, where each number's
 source is written): the hatch is the old 2 × 2; the ramp takes 2 × 9 cells where it stands and 2 × 12 below; the
-stair-head is decision 2041's F40 flight, 2 × 23 cells open to the land and 2 × 18 below, placed descending north
-only ("No qualified stair for this direction yet" when turned). With a
+stair-head is decision 2043's M5 flight (today's module five times), 2 × 27 cells open to the land and 2 × 20 below,
+placed descending north only ("No qualified stair for this direction yet" when turned). With a
 way's card chosen, **R / Shift+R** turn it, and a **click** (or Enter at the cursor) pins its ghost -- its cells on the
 level shown, judged in words, with its access pair -- and opens the **connector card** (UI-BUILD-012, above the
 panel; in NARROW in the card row): **Down** / **Up** (the impossible one disabled with its reason: "No level above

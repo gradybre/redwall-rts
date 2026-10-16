@@ -2690,7 +2690,9 @@ class FakeDeliveryQuery extends RefCounted:
 	## Decision 1952: the fields Delivery's `_occupants_leaf` reads before its first row's answer.
 	var _placements: RefCounted = null
 	var _worker: Vector2i = Vector2i(-1, 0)
+	@warning_ignore("unused_private_class_variable")
 	var _checks: int = 1 << 40
+	@warning_ignore("unused_private_class_variable")
 	var _selection: Vector3i = Vector3i.ZERO
 
 

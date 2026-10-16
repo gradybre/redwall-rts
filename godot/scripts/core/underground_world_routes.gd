@@ -339,8 +339,11 @@ var _witness_work: int = 0
 var _descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
 var _edge_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: EDGE_MEMO_SLOTS slots of EDGE_MEMO_STRIDE.
 var _edge_memo_stamp: PackedInt64Array = PackedInt64Array() # Graph, its publication, certificates, geometry, bank, load.
+@warning_ignore("unused_private_class_variable")
 var _edge_memo_epoch: int = 1
+@warning_ignore("unused_private_class_variable")
 var _certificate_revision: int = 1 # Decision 1952: moves on every certificate bank swap; never saved.
+@warning_ignore("unused_private_class_variable")
 var _descriptor_writes: int = 0 # Decision 1952: successful `_reach_descriptor` writes.
 var _endpoint_memo: PackedInt64Array = PackedInt64Array() # Decision 1952: ENTRIES x MAX_PROFILES result words.
 var _endpoint_entries: PackedInt32Array = PackedInt32Array() # ENTRIES x ENDPOINT_ENTRY_WORDS observed boxes.

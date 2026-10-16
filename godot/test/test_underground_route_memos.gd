@@ -270,15 +270,15 @@ func test_an_edge_certificate_edited_in_place_is_read_again() -> void:
 			_edit_edge(edge, change, -1)
 
 
-func _edit_edge(edge: int, change: int, sign: int) -> void:
-	"""Negative-only in-place edits of one edge's inputs, undone by the opposite sign."""
+func _edit_edge(edge: int, change: int, step: int) -> void:
+	"""Negative-only in-place edits of one edge's inputs, undone by the opposite step."""
 	var bank: WorldRoutes.Certificates = _h._binding._live
 	match change:
 		0: bank.masks[edge * WorldRoutes.MASK_BYTES] ^= 0xFF
-		1: bank.generations[edge] += sign
-		2: bank.geometry[edge] += sign
-		3: bank.content[edge] += sign
-		4: _h._routes._live.fields[Routes.E_GENERATION * _h._routes._edge_capacity + edge] += sign
+		1: bank.generations[edge] += step
+		2: bank.geometry[edge] += step
+		3: bank.content[edge] += step
+		4: _h._routes._live.fields[Routes.E_GENERATION * _h._routes._edge_capacity + edge] += step
 
 
 
@@ -386,8 +386,8 @@ func _endpoint_ready(location: Vector2i, checks: int) -> bool:
 	return binding._locations().read_location_into(location, binding._endpoint) == &""
 
 
-func _endpoint_run(location: Vector2i, profile: int, checks: int) -> Array:
-	"""One endpoint box proof for `profile` at budget `checks`: its answer, remaining budget and fault."""
+func _endpoint_run(location: Vector2i, _profile: int, checks: int) -> Array:
+	"""One endpoint box proof for the described profile at budget `checks`: its answer, remaining budget and fault."""
 	var binding: WorldRoutes = _h._binding
 	binding._proof.remaining = checks
 	binding._proof.error = &""

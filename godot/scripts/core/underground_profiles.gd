@@ -203,8 +203,11 @@ var _loading: bool = false
 ## swap, invalidate_runtime_caches). Never saved; zero (saturated) permanently poisons readers' caches.
 var _load_revision: int = 1
 ## Decision 1952: the step-program closure (`ShortStep.uses`) as last read, and the bank and revision it was read at.
+@warning_ignore("unused_private_class_variable")
 var _step_closure: bool = false
+@warning_ignore("unused_private_class_variable")
 var _step_closure_revision: int = 0
+@warning_ignore("unused_private_class_variable")
 var _step_closure_bank: int = 0
 ## Decision 1952: `Itinerary._anchor_refusal` answers as last read, with the revision and bank they were read at.
 var _anchor_memo: PackedInt64Array = PackedInt64Array()

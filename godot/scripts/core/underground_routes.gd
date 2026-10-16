@@ -2335,13 +2335,13 @@ static func _source_word_known(value: int) -> bool:
 static func _step_closure(profiles: Profiles) -> bool:
 	"""Decision 1952 (P-1951-3): `ShortStep.uses()`, read once per Profiles bank and load revision. A loading store,
 	a missing bank or a poisoned (zero) revision reads it afresh every time."""
-	var revision: int = 0
-	if profiles != null and profiles._live != null and not profiles._loading: revision = profiles.load_revision()
-	if revision == 0:
+	var token: int = 0
+	if profiles != null and profiles._live != null and not profiles._loading: token = profiles.load_revision()
+	if token == 0:
 		return ShortStep.uses(profiles)
-	if profiles._step_closure_revision != revision or profiles._step_closure_bank != profiles._live.get_instance_id():
+	if profiles._step_closure_revision != token or profiles._step_closure_bank != profiles._live.get_instance_id():
 		profiles._step_closure = ShortStep.uses(profiles)
-		profiles._step_closure_revision = revision
+		profiles._step_closure_revision = token
 		profiles._step_closure_bank = profiles._live.get_instance_id()
 	elif Profiles.check_runtime_caches:
 		return _checked_step_closure(profiles)

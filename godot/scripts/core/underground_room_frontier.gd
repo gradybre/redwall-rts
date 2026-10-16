@@ -205,6 +205,26 @@ static func contact_into(actual: Provider, candidate: Candidate, access: Vector2
 	return code
 
 
+static func resume_contact_into(actual: Provider, candidate: Candidate, access: Vector2i, approach: int,
+		approach_revision: int, cold: int, max_checks: int, out: Face.Request) -> StringName:
+	"""Decision 1936, P-1933-2 (a): the same full observation as `contact_into`, for a Site whose phase a stopped dig
+	had started (its Project live, WORKING or with its work done), so another builder can take that paid phase
+	over. Any other live Project is still refused."""
+	var code: StringName = _guard(actual, cold, COLD_BYTES, max_checks)
+	if code != &"": return code
+	if candidate == null or candidate.get_script() != Candidate or out == null or out.get_script() != Face.Request:
+		return REFUSE_SCOPE
+	code = _candidate_leaf(actual, candidate, cold)
+	if code != &"": return code
+	if candidate.project == NULL_REF or (candidate.project_phase != Construction.PHASE_WORKING \
+			and candidate.project_phase != Construction.PHASE_WORK_DONE): return REFUSE_ACTIVE
+	var query: Query = Query.new()
+	_hold(query, actual, candidate, access, approach, approach_revision, max_checks)
+	code = _observe(query)
+	if code == &"": _copy_request(query.request, out)
+	return code
+
+
 static func _candidate_leaf(actual: Provider, candidate: Candidate, cold: int) -> StringName:
 	"""The original full Site/key/source/history is rederived before contact; caller values confer no authority."""
 	var sites: Sites = actual._ordinary_original_sites()

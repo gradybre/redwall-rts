@@ -2224,33 +2224,70 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Planned legs | `_legs`, `_leg_profiles`, `_home_legs`, `_home_profiles` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges each way) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Not saved yet: C2.3 owns the room dig's save and load (as ADR1218 did for the entry). Saved with the dispatch record, or re-derived from Sites and Routes on load? |
-| Haul plan | `_queue`, `_approach_legs`, `_approach_profiles` | 4 | never allocated | Empty unless a BRACE lacks inputs; refilled by each plan | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1934 (C2.2). The whole units the cube's BRACE lacks (compiled item ids, one per trip) and the claimed way from the storage to the station, walked after the haul. The hauler itself (`underground_entry_hauler.gd`, unchanged) keeps the trip cursor. Not saved yet: C2.3 owns the room dig's save, as ADR1218 saves the entry's haul. Saved with the builder's cursor by C2.3? |
+| Planned legs | `_legs`, `_leg_profiles` | 4 | never allocated | Empty while idle; refilled by each plan (at most one itinerary's edges each way) | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One builder's cursor: stage, Site, phase Job slot, station, work row, legs, ledgers. Decision 1936 (P-1936-4 (a)): saved with the cursor, the walk and the cube plan inside `underground_room_progress`'s record, at most `Claim.MAX_LEGS` = 16 legs. |
+| Haul plan | `_queue` | 4 | never allocated | Empty unless a BRACE lacks inputs; refilled by each plan | 1 | §6 AUXILIARY_STATE | Decision 1934 (C2.2). The whole units the cube's BRACE lacks (compiled item ids, one per trip) and the claimed way from the storage to the station, walked after the haul. The hauler itself (`underground_entry_hauler.gd`, unchanged) keeps the trip cursor. Decision 1936: saved with the builder's cursor inside `underground_room_progress`'s record, at most ADR1218's 8 units; the hauler block is written by its own unchanged codec. |
 
 ### `godot/scripts/core/underground_room_footprint.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Claimed footprint | `_boxes` | 4 | never allocated | Empty while parked; six ints per box, refilled per cube | 3 | -- | Decision 1933 (C2.1), ECON-001. One builder's cube footprint (way there, station work, way back), swept in 256 u pieces. Derived from the planned itineraries; re-planned, never saved. |
-| Standing body | `_body` | 4 | `6` = 6 | Zero before the builder is registered | 3 | -- | Decision 1933 (C2.1). The builder's body box in its standing pose, written in place. Derived, not saved. |
-| Row extents | `_extents` | 4 | `6 * profiles._live.header[1]` runtime | UNFILLED until a row is first used | 3 | -- | Decision 1933 (C2.1). Cached union of each row's body, recovery, approach and stroke boxes (6 ints per published row). Derived from Profiles, not saved. |
+| Standing body | `_body` | 4 | `6` = 6 | Zero before the builder is registered | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The builder's body box in its standing pose, written in place. Decision 1937: saved with the builder inside `underground_room_progress`'s record (the occupancy proofs read it). |
+| Row extents | -- | 4 | `6 * profiles._live.header[1]` runtime | UNFILLED until a row is first used | 3 | -- | Decision 1933 (C2.1). Cached union of each row's body, recovery, approach and stroke boxes (6 ints per published row). Decision 1937 (P-1937-1 B): kept once in a `RowExtents` table the runtime gives every builder's footprint (`RowExtents.table`), reset when the Profiles content changes. Derived from Profiles, not saved. |
 
 ### `godot/scripts/core/underground_room_foreman.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Blocked-builder epochs | `_blocked_at` | 8 | `made.size()` runtime | -1 until a builder is found blocked | 3 | -- | Decision 1933 (C2.1). One per builder (at most 4): the change epoch at which its footprint was last found blocked, so the check reruns only after something changed. Derived, not saved. |
+| Blocked-builder epochs | `_blocked_at` | 8 | `made.size()` runtime | -1 until a builder is found blocked | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). One per builder (at most 4): the change epoch at which its footprint was last found blocked, so the check reruns only after something changed. Decision 1937: saved before each builder inside `underground_room_progress`'s record, since the turn-taking ledger depends on when the check reruns. |
 | Blocked this tick | `_blocked` | 1 | `made.size()` runtime | 0 | 3 | -- | Decision 1933 (C2.1). Per-tick flags for the frozen-crew check (ROOM_FOREMAN_CREW_BLOCKED). Derived, not saved. |
-| Cube dispatch marks | `_cube` | 1 | `planned.keys.size()` runtime | One byte per Site of the room: open, taken, done, refused | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). Done is re-read from Sites (SUPPORTED_VOID, no live phase); taken and refused are dispatch state. The foreman also keeps its `_order` packet for the dig's life: rows, keys and distances, 12 B per Site (`DigOrder.Order`, not a top-level column). Not saved yet (C2.3). Re-derived from Sites on load, with refused cubes reopened? |
+| Cube dispatch marks | `_cube` | 1 | `planned.rows.size()` runtime | One byte per Site of the room: open, taken, done, refused | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). Done is re-read from Sites (SUPPORTED_VOID, no live phase); taken and refused are dispatch state. The foreman also keeps its `_order` packet's rows for the dig's life, 4 B per Site (`DigOrder.Order`, not a top-level column); decision 1937 (P-1937-1 E) drops its keys (read from Sites) and distances (only the planning sort reads them). Decision 1936: while the dig runs, each Site's row and mark are saved inside `underground_room_progress`'s record; the keys are read again from Sites on load. |
 
 ### `godot/scripts/core/underground_room_runtime.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Room dig record: generation | `_generation` | 4 | `ROOM_CAPACITY` = 16384 | Zero for a room never ordered | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room, indexed by the room's directory row. Not composed in production in C2.1 (only tests construct the runtime), so nothing is allocated in the game yet. C2.3 composes it, ledgers its 475,136 B (29 B a row since decision 1934) and saves it. Saved in §6 AUXILIARY_STATE by C2.3? |
-| Room dig record: state | `_state` | 1 | `ROOM_CAPACITY` = 16384 | RECORD_NONE | UNRESOLVED | §6 AUXILIARY_STATE | Same record: none, queued, digging, done, stopped. Saved by C2.3? |
-| Room dig record: containers | `_storage`, `_output`, `_staging` | 4 | `2 * ROOM_CAPACITY` = 32768 | Zero for a room never ordered; a null staging pair when none is named | UNRESOLVED | §6 AUXILIARY_STATE | Same record: the room's input storage, the spoil container and (decision 1934) the same-level staging container missing inputs are hauled from, each a (slot, generation) pair. Saved by C2.3? |
-| Foreman record rows | `_foreman_rows` | 4 | never allocated | One per kept foreman (at most MAX_DIGS running, plus stopped ones until released) | UNRESOLVED | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The record row of each kept foreman, so a room deleted mid-dig still settles its record. Saved with the foremen by C2.3? |
+| Room dig record: slot rows | `_room_row` | 4 | `MAX_KEPT` = 512 | -1 for a free slot | 1 | §6 AUXILIARY_STATE | Decision 1937 (P-1937-1 D): the records are a pool of `MAX_KEPT` slots; each names its room's directory row. Saved as each record's row inside `underground_room_progress`'s record, in row order. |
+| Room dig record: generation | `_generation` | 4 | `MAX_KEPT` = 512 | Zero in a free slot | 1 | §6 AUXILIARY_STATE | Decision 1933, P-C2-4 (a): one small packed record per room being dug or kept. Decision 1936: composed with the Session's room owners at mount and saved inside `underground_room_progress`'s record (only the records in use). Decision 1937: a pool of 512 slots, 33 B each with the room row (16,896 B, was 475,136). |
+| Room dig record: state | `_state` | 1 | `MAX_KEPT` = 512 | RECORD_NONE | 1 | §6 AUXILIARY_STATE | Same record: none, queued, digging, done, stopped. Saved with the row (decision 1936). |
+| Room dig record: containers | `_storage`, `_output`, `_staging` | 4 | `2 * MAX_KEPT` = 1024 | Zero for a room never ordered; a null staging pair when none is named | 1 | §6 AUXILIARY_STATE | Same record: the room's input storage, the spoil container and (decision 1934) the same-level staging container missing inputs are hauled from, each a (slot, generation) pair. Saved with the row (decision 1936). |
+| Foreman record rows | `_foreman_rows` | 4 | never allocated | One per kept foreman (at most MAX_DIGS running, plus stopped ones until released) | 1 | §6 AUXILIARY_STATE | Decision 1933 (C2.1). The record row of each kept foreman, so a room deleted mid-dig still settles its record. Decision 1936: saved with each foreman inside `underground_room_progress`'s record (at most `MAX_KEPT` = 512 kept). |
+
+### `godot/scripts/core/underground_dispatch.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Composite dispatcher | -- | -- | -- | No members but the host's two runtime readers | 3 | -- | Decision 1936 (review H4). Jobs' one dispatcher: it owns what either the entry or the room runtime owns, and reserves whom either reserves. Its answers are the runtimes', derived from saved Jobs, Construction and Routes state; it is bound again at every mount, so nothing is saved. |
+
+### `godot/scripts/core/underground_room_claim.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Cube plan | -- | -- | -- | Public packet lists (home, approach and storage legs, trip edges, stands, carried rows), empty while idle; at most `MAX_LEGS` = 16 legs per list, `MAX_TRIP_EDGES` = 32 trip edges, 2 stands and 2 carried rows | 1 | §6 AUXILIARY_STATE | Decision 1936: a builder's cube plan (the way back, the way there, the walk to the storage, each trip's searched edges and the stands). The footprint is swept from it at planning and again after a load, so the boxes are never saved. Saved with the builder's cursor inside `underground_room_progress`'s record. |
+
+### `godot/scripts/core/underground_room_composer.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless room-dig composition | -- | -- | -- | No members; the Order packet is caller-owned | 3 | -- | Decision 1936: binds the room phases' contacts to the first order's access (P-1936-1 (a)), picks the builder (P-1936-2 (a)), parks it and starts the dig. Everything it produces is the owners' or the runtime's own state. |
+
+### `godot/scripts/core/underground_room_parking.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless parking planner | -- | -- | -- | No members; the Request packet is caller-owned | 3 | -- | Decision 1936: finds or publishes a builder's TRANSIT endpoint off the access and its two spans. What it publishes is Locations' and Routes' own saved state. |
+
+### `godot/scripts/core/underground_room_progress.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless codec | -- | -- | -- | No members; framing and bounds only | 3 | -- | Decision 1936, P-1936-4 (a): the canonical wire of section 6 owner `underground_room_progress` (magic, version, the block bounds). The runtime, foremen, builders, their walks and plans and the entry hauler write and check their own fields with ADR1218's Writer and Reader. |
+
+### `godot/scripts/core/underground_room_walk.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Walk cursor | -- | -- | -- | No packed columns; zero ticks when no walk is under way | 1 | §6 AUXILIARY_STATE | Decision 1936, P-1933-1 (a) and P-1936-3 (a): a builder's timed walk in to its parking or back out (ticks left, direction, the origin it walks back to). Saved with the builder's cursor inside `underground_room_progress`'s record. |
 
 ### `godot/scripts/core/underground_room_composition.gd`
 

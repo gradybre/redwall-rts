@@ -38,6 +38,10 @@ const Footprint := preload("res://scripts/core/underground_room_footprint.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Grip := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/grip_certificate.gd")
+const Walk := preload("res://scripts/core/underground_room_walk.gd")
+const Claim := preload("res://scripts/core/underground_room_claim.gd")
+const Progress := preload("res://scripts/core/underground_room_progress.gd")
+const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const STAGE_IDLE: int = 0
 const STAGE_TRAVEL: int = 1
@@ -70,6 +74,10 @@ const REFUSE_TARGET: StringName = &"ROOM_BUILDER_TARGET_MOVED"
 const REFUSE_LOST: StringName = &"ROOM_BUILDER_CREW_LOST"
 ## Decision 1934 (P-C22-1): no certified stair row carries cargo yet, so stock is hauled only within one level.
 const REFUSE_STAIR: StringName = &"ROOM_HAUL_NO_STAIR_CARRY"
+## Decision 1936, P-1936-5 (a): the cube's plan needs more than the footprint's MAX_BOXES boxes.
+const REFUSE_FOOTPRINT: StringName = &"ROOM_BUILDER_FOOTPRINT_CAPACITY"
+## Decision 1937 (review M1): a stopped builder still not at rest after STAGE_TICK_LIMIT ticks is named once.
+const REFUSE_STUCK: StringName = &"ROOM_BUILDER_STUCK_UNDERGROUND"
 const REFUSE_OCCUPIED: StringName = &"ROUTE_OCCUPIED"
 const WAIT: StringName = &"ROOM_BUILDER_WAIT" # Internal: still on the way; never returned to the foreman.
 
@@ -93,6 +101,7 @@ class Owners extends RefCounted:
 	var transforms: Transforms = null # the crew's arrival pose on its parking (ADR1219)
 	var delivery: RefCounted = null # Decision 1934: when bound, a BRACE's missing inputs are hauled first.
 	var locations: Locations = null # The hauler finds the grip stands here (needed only with a Delivery).
+	var extents: Footprint.RowExtents = null # Decision 1937 (P-1937-1 B): the row extents all builders share.
 
 
 class Crew extends RefCounted:
@@ -133,8 +142,7 @@ var _station: Vector2i = NULL_REF
 var _work_profile: int = -1
 var _at: Vector2i = NULL_REF
 var _legs: PackedInt32Array = PackedInt32Array()
-var _home_legs: PackedInt32Array = PackedInt32Array() # The way back claimed with the cube, walked as claimed.
-var _home_profiles: PackedInt32Array = PackedInt32Array()
+var _plan: Claim = Claim.new() # Decision 1936: the cube's planned legs and trips, its footprint swept from them.
 var _foot: Footprint = null
 var _leg_profiles: PackedInt32Array = PackedInt32Array()
 var _leg: int = 0
@@ -148,8 +156,6 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _actor: Routes.Actor = Routes.Actor.new()
 var _tick: Work.TickResult = Work.TickResult.new(false, &"")
 var _queue: PackedInt32Array = PackedInt32Array() # Whole units the cube's BRACE still lacks, in bill order.
-var _approach_legs: PackedInt32Array = PackedInt32Array() # With a haul: the claimed way from the storage on.
-var _approach_profiles: PackedInt32Array = PackedInt32Array()
 var _hauler: Hauler = null
 var _departed: bool = false # Set off for the cube (or home): the claimed footprint, not the body, is occupied.
 var _haul_store: Vector2i = NULL_REF # The storage and staging endpoints the haul was planned between.
@@ -157,6 +163,10 @@ var _haul_source: Vector2i = NULL_REF
 var _haul_marker: int = -1
 var _haul_trips: int = 0
 var _haul_mwu: int = 0
+var _walk: Walk = Walk.new() # Decision 1936: the walk in to the parking, or out to where it came from.
+var _failed_from: int = STAGE_IDLE # The stage a refusal stopped the builder in (abandon recovers a work source).
+var _resuming: bool = false
+var _release_pending: bool = false # Stopped in a work source: its phase is released once it has recovered. # P-1933-2 (a): the current phase was paid before a stop and is taken over, not opened.
 
 
 func configure(ctx: Context, member: Crew) -> StringName:
@@ -167,7 +177,7 @@ func configure(ctx: Context, member: Crew) -> StringName:
 	_ctx = ctx
 	_crew = member
 	_foot = Footprint.new()
-	_foot.configure(ctx.owners.profiles)
+	_foot.configure(ctx.owners.profiles, ctx.owners.extents)
 	_at = member.parking
 	return &""
 
@@ -175,6 +185,91 @@ func configure(ctx: Context, member: Crew) -> StringName:
 static func _worker_row_of(ctx: Context, member: Crew) -> int:
 	"""The live resident row of the crew member, or -1."""
 	return ctx.owners.residents.directory().get_typed_row(member.worker)
+
+
+func worker_row() -> int:
+	"""The crew member's Resident row, or -1 once it has gone."""
+	return _worker_row_of(_ctx, _crew)
+
+
+func underground() -> bool:
+	"""Still underground: a registered route actor (Routes keeps it until it leaves from rest, or until a lost one's
+	actor is removed, as the entry foreman's `_lost_actor_row` check), or walking in or out."""
+	return _walk.walking() or _ctx.owners.routes._lost_actor_row(_crew.worker) >= 0
+
+
+func walking() -> bool:
+	"""On its timed walk in to the parking, or out (decision 1936)."""
+	return _walk.walking()
+
+
+func begin_walk_in() -> StringName:
+	"""P-1933-1 (a), ADR1219's arrival: the builder walks from where it stands to its parking (P-1936-6 (a): the
+	straight distance at its ground speed) and is registered there on arrival; already there, at once."""
+	if _registered(): return &""
+	var o: Owners = _ctx.owners
+	var locations: Locations = o.binding._locations_ref.get_ref() as Locations
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	if locations == null or not locations._live_ref(locations._live, _crew.parking): return REFUSE_SCOPE
+	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_LOST
+	_walk.origin = Vector3i(pose.x, pose.y, pose.z)
+	var code: StringName = _walk.begin(o.residents, worker_row(), _walk.origin, _point(_crew.parking), false)
+	if code == &"" and not _walk.walking(): code = register()
+	return code
+
+
+func advance_walk() -> StringName:
+	"""One tick of the walk: arriving in registers the builder on its parking; arriving out places it back."""
+	if not _walk.step(): return &""
+	return _arrive_out() if _walk.leaving else register()
+
+
+func leave() -> StringName:
+	"""P-1936-3 (a): after the dig the builder leaves the underground from rest on an endpoint and walks back to
+	where it came from. A lost builder's actor is removed (ADR1225). One not yet at rest waits (a builder stopped
+	while working stays at its station: decision 1937)."""
+	if _walk.walking() or not underground(): return &""
+	var o: Owners = _ctx.owners
+	if _release_pending:
+		if not lost() and not _at_source_ready(): return _wait_out()
+		_release_pending = false
+		var released: StringName = _release_phase()
+		if released != &"": return released
+	if lost(): return o.routes.unregister_lost_actor(_crew.worker)
+	var code: StringName = o.routes.unregister_resting_actor(_crew.worker)
+	if code == &"ROUTE_UNREGISTER_NOT_AT_REST": return _wait_out()
+	if code != &"": return code
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_LOST
+	code = _walk.begin(o.residents, worker_row(), Vector3i(pose.x, pose.y, pose.z), _walk.origin, true)
+	if code == &"" and not _walk.walking(): code = _arrive_out()
+	return code
+
+
+func _at_source_ready() -> bool:
+	"""The actor stands at READY in the source it actually holds, under its own Job and row (after a hand-over these
+	are not the builder's `_job` and work row any more: review M1)."""
+	var o: Owners = _ctx.owners
+	if o.routes.read_actor_into(_crew.worker, _actor) != &"": return false
+	return Routes.source_ready_leaf_refusal(o.routes, _crew.worker, _actor.job, _actor.profile_id,
+		_actor.profile_revision, _actor.content_revision) == &""
+
+
+func _wait_out() -> StringName:
+	"""One more tick waiting to leave from rest; named once at the stall bound (the wait goes on, reserved)."""
+	_stage_ticks += 1
+	return REFUSE_STUCK if _stage_ticks == STAGE_TICK_LIMIT else &""
+
+
+func _arrive_out() -> StringName:
+	"""Back where it came from, facing as it stood. The placement is a foreign pose change to Routes, which every
+	builder still underground must see: its occupancy roots are rebuilt at once (decision 1937), or no actor could
+	move again."""
+	var o: Owners = _ctx.owners
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	if not o.transforms.read_into(_crew.worker, pose): return REFUSE_LOST
+	if not o.transforms.place(_crew.worker, _walk.origin.x, _walk.origin.y, _walk.origin.z, pose.yaw): return REFUSE_LOST
+	return o.routes.refresh_occupancy()
 
 
 func idle() -> bool:
@@ -239,7 +334,7 @@ func register() -> StringName:
 	"""ADR1219's arrival, for a builder: its Transform is placed exactly on its parking endpoint, facing the forward
 	row's heading, and it is registered with Routes there, before any of the room's work moves. Builders arrive one
 	after another, so each one's occupancy proof sees the ones already registered (ROUTE_UNREGISTERED_RESIDENT_NEAR).
-	The walk to the parking is not modelled here; C2.3 brings the crew in (as the entry's surface walk does)."""
+	`begin_walk_in` times the walk there and calls this on arrival."""
 	if _registered(): return &""
 	var o: Owners = _ctx.owners
 	var locations: Locations = o.binding._locations_ref.get_ref() as Locations
@@ -260,10 +355,24 @@ func begin(index: int, site: Vector2i, key: int, tick: int) -> StringName:
 	if code != &"": return code
 	_index = index
 	_site = site
-	_operation = Contract.OP_BRACE
-	code = _open_phase(tick)
+	if _ctx.owners.sites.project_of(site) != NULL_REF:
+		code = _take_paid_phase()
+	else:
+		_operation = Contract.OP_BRACE
+		code = _open_phase(tick)
 	if code == &"": code = _set_off(_ctx.forward)
 	return _fail(code) if code != &"" else &""
+
+
+func _take_paid_phase() -> StringName:
+	"""P-1933-2 (a): a phase a stopped dig had started is taken over, not reopened: its own bound Job, no new inputs,
+	and Sites' `resume_phase_work` at the station instead of START."""
+	var o: Owners = _ctx.owners
+	if not _phase_started() or not o.sites.operation_into(_site, _math): return REFUSE_STATE
+	_operation = _math.value
+	_job = o.jobs.directory().get_typed_row(o.sites.job_of(_site))
+	_resuming = true
+	return &"" if _job >= 0 else REFUSE_STATE
 
 
 func _set_off(store_anchor: int) -> StringName:
@@ -274,12 +383,13 @@ func _set_off(store_anchor: int) -> StringName:
 	_departed = false
 	var code: StringName = _haul_units(_queue)
 	if code == &"": code = _plan_claim(store_anchor)
+	if code == &"" and _foot.overflowed(): code = REFUSE_FOOTPRINT
 	if code != &"": return code
 	if not _queue.is_empty():
 		_set_stage(STAGE_TO_STORE)
 		return &""
 	var result: RefCounted = _ctx.owners.jobs.assign_worker(_worker_row_of(_ctx, _crew), _job)
-	code = _reserve_inputs() if result.ok else result.error
+	code = result.error if not result.ok else (&"" if _resuming else _reserve_inputs())
 	if code == &"": _set_stage(STAGE_TRAVEL)
 	return code
 
@@ -289,7 +399,7 @@ func _haul_units(out: PackedInt32Array) -> StringName:
 	and a staging container; a staging container on another level is the stair-carry gap (decision 1934)."""
 	out.clear()
 	var o: Owners = _ctx.owners
-	if o.delivery == null or _ctx.staging == NULL_REF or _operation != Contract.OP_BRACE: return &""
+	if o.delivery == null or _ctx.staging == NULL_REF or _operation != Contract.OP_BRACE or _resuming: return &""
 	var items: PackedInt32Array = PackedInt32Array()
 	var milli: PackedInt64Array = PackedInt64Array()
 	for line: int in Contract.input_count(_operation):
@@ -317,33 +427,35 @@ func _level_refusal() -> StringName:
 
 
 func _plan_claim(store_anchor: int) -> StringName:
-	"""The cube's whole footprint before setting off: the way back (kept for going home), the station's work and the
-	way there; with a haul that way runs to the storage, through the trips and on from the storage. The legs left
-	planned are the first ones walked."""
-	_foot.clear_claim()
+	"""The cube's whole plan before setting off: the way back (kept for going home), the way there and, with a haul,
+	the walk to the storage (along `store_anchor`'s family) and the trips; then its footprint is swept from the plan.
+	The legs left planned are the first ones walked."""
+	_plan.clear()
+	_plan.start = _at
 	var code: StringName = _plan_legs(_station, _crew.parking, _ctx.backward, false)
 	if code != &"": return code
-	_claim_legs(_station)
-	_home_legs = _legs.duplicate()
-	_home_profiles = _leg_profiles.duplicate()
-	var point: Vector3i = _point(_station)
-	_foot.sweep(point, point, _work_profile)
-	if _queue.is_empty(): return _plan_approach(_at)
-	code = _plan_approach(_store())
+	_plan.home_legs = _legs.duplicate()
+	_plan.home_profiles = _leg_profiles.duplicate()
+	if not _queue.is_empty():
+		_plan.store = _store()
+		code = _plan_trips()
+	if code == &"": code = _plan_legs(_plan.store if _plan.hauls() else _at, _station, _ctx.forward, true)
 	if code != &"": return code
-	_approach_legs = _legs.duplicate()
-	_approach_profiles = _leg_profiles.duplicate()
-	code = _claim_trips()
-	if code == &"": code = _plan_legs(_at, _store(), store_anchor, false)
-	if code == &"": _claim_legs(_at)
+	_plan.approach_legs = _legs.duplicate()
+	_plan.approach_profiles = _leg_profiles.duplicate()
+	if _plan.hauls():
+		code = _plan_legs(_at, _plan.store, store_anchor, false)
+		_plan.store_legs = _legs.duplicate()
+		_plan.store_profiles = _leg_profiles.duplicate()
+	if code == &"" and not _plan.bounded(): code = REFUSE_FOOTPRINT
+	if code == &"": _sweep_claim()
 	return code
 
 
-func _plan_approach(from: Vector2i) -> StringName:
-	"""The way from `from` to the station on the forward family, claimed."""
-	var code: StringName = _plan_legs(from, _station, _ctx.forward, true)
-	if code == &"": _claim_legs(from)
-	return code
+func _sweep_claim() -> void:
+	"""The footprint swept from the plan (the same at planning and after a load)."""
+	_plan.sweep_into(_foot, _ctx.owners.locations if _ctx.owners.locations != null \
+		else _ctx.owners.binding._locations_ref.get_ref(), _ctx.owners.routes, _station, _work_profile)
 
 
 func _store() -> Vector2i:
@@ -351,29 +463,29 @@ func _store() -> Vector2i:
 	return _ctx.owners.inventory.spatial_location_of(_ctx.storage)
 
 
-func _claim_trips() -> StringName:
-	"""The trips' footprint along the routes Routes would take: empty on the haul WALK row from the storage to the
-	staging stand, between the stands and back onto the storage; loaded on each item's CARRY row between the stands;
-	and the item's lift and set-down rows standing at the two stands (ADR1206: lift +2, set-down +4)."""
+func _plan_trips() -> StringName:
+	"""The trips along the routes Routes would take: empty on the haul WALK row from the storage to the staging stand,
+	between the stands and back onto the storage; loaded on each item's CARRY row between the stands. Each searched
+	edge is kept, with the two stands and the carried rows (ADR1206: lift +2, set-down +4, swept at the stands)."""
 	var store: Vector2i = _haul_store
 	var stand_store: Vector2i = _stand_of(store)
 	var stand_source: Vector2i = _stand_of(_haul_source)
 	var walk: int = _walk_row()
 	if stand_store == NULL_REF or stand_source == NULL_REF or walk < 0: return Hauler.REFUSE_STAND
-	var code: StringName = _claim_path(store, stand_source, walk)
-	if code == &"": code = _claim_path(stand_store, stand_source, walk)
-	if code == &"": code = _claim_path(stand_store, store, walk)
+	_plan.stands = PackedInt32Array([stand_source.x, stand_source.y, stand_store.x, stand_store.y])
+	var code: StringName = _trip_path(store, stand_source, walk)
+	if code == &"": code = _trip_path(stand_store, stand_source, walk)
+	if code == &"": code = _trip_path(stand_store, store, walk)
 	for line: int in _queue.size():
 		if code != &"" or _queue.find(_queue[line]) != line: continue
 		var carry: int = Grip.carry_row_for(_queue[line])
-		code = _claim_path(stand_source, stand_store, carry)
-		_foot.sweep(_point(stand_source), _point(stand_source), carry + 2)
-		_foot.sweep(_point(stand_store), _point(stand_store), carry + 4)
+		_plan.carries.append(carry)
+		code = _trip_path(stand_source, stand_store, carry)
 	return code
 
 
-func _claim_path(from: Vector2i, to: Vector2i, row: int) -> StringName:
-	"""Search the graph as Routes would for one row and sweep every polyline segment of the edges it takes."""
+func _trip_path(from: Vector2i, to: Vector2i, row: int) -> StringName:
+	"""Search the graph as Routes would for one row and keep every edge it takes."""
 	var o: Owners = _ctx.owners
 	var remaining: PackedInt32Array = PackedInt32Array([0])
 	var code: StringName = WorldRoutes.profile_reachability_refusal(o.binding, from, to, row, _revision(row),
@@ -381,9 +493,8 @@ func _claim_path(from: Vector2i, to: Vector2i, row: int) -> StringName:
 	if code != &"": return code
 	var graph: Routes = o.routes
 	for index: int in graph._proposed_count:
-		var edge: int = graph._proposed_edges[2 * index]
-		for at: int in range(1, graph._edge_i32(graph._live, Routes.E_PATH_COUNT, edge)):
-			_foot.sweep(graph._vertex(edge, at - 1), graph._vertex(edge, at), row)
+		_plan.trips.append_array(PackedInt32Array([graph._proposed_edges[2 * index], graph._proposed_edges[2 * index + 1],
+			row]))
 	return &""
 
 
@@ -412,15 +523,6 @@ func _walk_row() -> int:
 				and profiles._live.fields[Profiles.F_TOOL * stride + row] == -1 \
 				and profiles._live.fields[Profiles.F_CARGO * stride + row] == -1: return row
 	return -1
-
-
-func _claim_legs(start: Vector2i) -> void:
-	"""Each planned leg's row swept from its start point to its end point."""
-	var from: Vector3i = _point(start)
-	for leg: int in _leg_profiles.size():
-		var to: Vector3i = _point(Vector2i(_legs[2 * leg], _legs[2 * leg + 1]))
-		_foot.sweep(from, to, _leg_profiles[leg])
-		from = to
 
 
 func _point(location: Vector2i) -> Vector3i:
@@ -465,6 +567,9 @@ func _contact(site: Vector2i, key: int) -> StringName:
 	result.edges.resize(4 * Publication.MAX_STATIONS)
 	var code: StringName = Planner.next_contact_into(o.provider, o.sites.room_of(site), key - 1, cold, Space.MAX_CHECKS,
 		candidate, contact, request, result)
+	if code == Frontier.REFUSE_ACTIVE and candidate.site == site: # P-1933-2 (a): a paid phase is taken over.
+		code = Frontier.resume_contact_into(o.provider, candidate, o.provider._ordinary_retreat, _ctx.forward,
+			_revision(_ctx.forward), cold, Space.MAX_CHECKS, contact)
 	if code == &"" and (candidate.key != key or candidate.site != site): code = REFUSE_TARGET
 	if code == &"":
 		_station = contact.location
@@ -600,6 +705,7 @@ func _set_stage(stage_value: int) -> void:
 func _fail(code: StringName) -> StringName:
 	"""Stop this builder for good; the foreman stops the room with the same code."""
 	_error = code
+	_failed_from = _stage
 	_stage = STAGE_FAILED
 	return code
 
@@ -743,8 +849,8 @@ func _haul(tick: int) -> StringName:
 	_haul_mwu += _hauler.haul_mwu()
 	_hauler = null
 	_foot.stand(_point(_at), _walk_row())
-	_legs = _approach_legs.duplicate()
-	_leg_profiles = _approach_profiles.duplicate()
+	_legs = _plan.approach_legs.duplicate()
+	_leg_profiles = _plan.approach_profiles.duplicate()
 	_leg = 0
 	_leg_state = LEG_NONE
 	_leg_job = true
@@ -781,14 +887,16 @@ func _enter() -> StringName:
 
 func _start(tick: int) -> StringName:
 	"""Record the delivery of the inputs reserved when the builder set off (or after its haul), bind the worker and
-	START. Sites proves the delivery with the worker at its station, so it is recorded here."""
+	START; a paid phase taken over resumes instead (its inputs were consumed at its first START). Sites proves the
+	delivery with the worker at its station, so it is recorded here."""
 	var o: Owners = _ctx.owners
-	if Contract.input_count(_operation) > 0:
+	if Contract.input_count(_operation) > 0 and not _resuming:
 		var delivered: Construction.OpResult = o.sites.record_deliveries(_site)
 		if not delivered.ok: return delivered.error
 	var result: Construction.OpResult = o.sites.bind_worker(_site)
-	if result.ok: result = o.sites.begin_phase_work(_site, tick)
+	if result.ok: result = o.sites.resume_phase_work(_site) if _resuming else o.sites.begin_phase_work(_site, tick)
 	if not result.ok: return result.error
+	_resuming = false
 	_set_stage(STAGE_EARN)
 	return &""
 
@@ -870,17 +978,34 @@ func lost() -> bool:
 
 func abandon() -> StringName:
 	"""The room stopped: free the resident and the owners' records for this builder's open phase. A started phase
-	keeps its paid Project for a later resume (C2.3) and only its worker is released. An unstarted one is cancelled
-	(claims released, Project and Job retired: nothing was paid). The route actor stays where it stopped."""
+	keeps its paid Project for a later resume (P-1933-2 (a)) and only its worker is released. An unstarted one is
+	cancelled (claims released, Project and Job retired: nothing was paid). A builder stopped in a work source is
+	first asked to recover to READY under its Job, and the release waits for that (`leave`), so it can leave from rest
+	(decision 1936); otherwise the route actor stays where it stopped."""
+	var was: int = _failed_from if _stage == STAGE_FAILED else _stage
 	_stage = STAGE_FAILED
+	_stage_ticks = 0
+	if _walk.walking() and not _walk.leaving: _walk.ticks_left = 0 # Its body never left where it stood.
+	var o: Owners = _ctx.owners
+	if was >= STAGE_ENTER and was <= STAGE_RECOVER and _job >= 0 and not lost() \
+			and o.routes.read_actor_into(_crew.worker, _actor) == &"" \
+			and o.routes.request_source_ready(_crew.worker, _actor.job) == &"": # Under the Job it holds (M1).
+		_release_pending = true
+		return &""
+	return _release_phase()
+
+
+func _release_phase() -> StringName:
+	"""Free the resident and this builder's open phase (see `abandon`)."""
 	var o: Owners = _ctx.owners
 	var dropped: StringName = _drop_haul() # A refused haul release is reported, but the phase is still released.
 	if _site == NULL_REF or o.sites.project_of(_site) == NULL_REF: return dropped
 	var released: Construction.OpResult = o.sites.release_worker(_site)
-	if _phase_started(): return &"" if released.ok else released.error # Never while hauling (BRACE is unstarted).
-	if not released.ok: # Sites releases a Job nobody holds as already free (TO_STORE, or a haul's own Job).
-		var code: StringName = _release_assignment(released.error)
+	if not released.ok: # Sites releases a Job nobody holds as already free (TO_STORE, a haul's own Job, or a paid
+		if _phase_started() and released.error != Sites.REFUSE_WORKER: return released.error # phase taken over
+		var code: StringName = _release_assignment(released.error) # but not yet bound: only Jobs holds it).
 		if code != &"": return dropped if dropped != &"" else code
+	if _phase_started(): return dropped # A started phase keeps its paid Project (never while hauling).
 	var cancelled: Construction.OpResult = o.sites.cancel_phase(_site, _ctx.storage)
 	return dropped if dropped != &"" or cancelled.ok else cancelled.error
 
@@ -974,11 +1099,176 @@ func go_home() -> StringName:
 	"""From the station back to its parking, along the way back claimed with the cube (never re-planned: chains
 	published since could lead outside the claimed footprint)."""
 	if _stage != STAGE_COLUMN: return REFUSE_STATE
-	_legs = _home_legs.duplicate()
-	_leg_profiles = _home_profiles.duplicate()
+	_legs = _plan.home_legs.duplicate()
+	_leg_profiles = _plan.home_profiles.duplicate()
 	_leg = 0
 	_leg_state = LEG_NONE
 	_leg_job = false
 	_departed = false
 	_set_stage(STAGE_RETREAT)
 	return &""
+
+
+# --- Decision 1936: save and load (inside `underground_room_progress`) ----------------------------------------------
+
+func _job_in_use() -> bool:
+	"""Stages that still read the current phase's Job (a released Job slot may be reused)."""
+	return _release_pending or _stage in [STAGE_TRAVEL, STAGE_ENTER, STAGE_START, STAGE_EARN, STAGE_RECOVER,
+		STAGE_TO_STORE, STAGE_HAUL]
+
+
+func write_state(w: EntryProgress.Writer) -> void:
+	"""The crew, the cursor, the cube plan, the haul ledgers, the walk, the standing body and any haul in flight."""
+	for at: Vector2i in [_crew.worker, _crew.tool, _crew.parking]:
+		w.ref(at)
+	_write_cursor(w)
+	Progress.write_legs(w, _legs, _leg_profiles)
+	Progress.write_legs(w, _plan.home_legs, _plan.home_profiles)
+	Progress.write_legs(w, _plan.approach_legs, _plan.approach_profiles)
+	Progress.write_legs(w, _plan.store_legs, _plan.store_profiles)
+	Progress.write_list(w, _plan.trips)
+	Progress.write_list(w, _plan.stands)
+	Progress.write_list(w, _plan.carries)
+	Progress.write_list(w, _queue)
+	_write_tail(w)
+	w.flag(_hauler != null)
+	if _hauler != null: _hauler.write_state(w)
+
+
+func _write_cursor(w: EntryProgress.Writer) -> void:
+	"""Stage, stall count, refusal, the cube in hand and where the builder stands."""
+	w.i32(_stage)
+	w.i32(_stage_ticks)
+	w.code(_error)
+	w.i32(_failed_from)
+	w.i32(_index)
+	w.ref(_site)
+	w.i32(_operation)
+	w.i32(_job)
+	w.ref(EntryProgress.job_ref(_ctx.owners.jobs, _job, _job_in_use()))
+	w.ref(_station)
+	w.i32(_work_profile)
+	w.ref(_at)
+	w.ref(_plan.start)
+	w.ref(_plan.store)
+
+
+func _write_tail(w: EntryProgress.Writer) -> void:
+	"""The leg cursor and flags, the ledgers, the haul endpoints and ledgers, the walk and the standing body."""
+	w.i32(_leg)
+	w.i32(_leg_state)
+	w.flag(_leg_job)
+	w.flag(_departed)
+	w.i32(_finished)
+	w.i32(_cubes)
+	w.i32(_column_cubes)
+	w.i64(_accepted_mwu)
+	w.ref(_haul_store)
+	w.ref(_haul_source)
+	w.i32(_haul_marker)
+	w.i32(_haul_trips)
+	w.i64(_haul_mwu)
+	w.flag(_resuming)
+	w.flag(_release_pending)
+	w.i32(_walk.ticks_left)
+	w.flag(_walk.leaving)
+	for axis: int in 3:
+		w.i32(_walk.origin[axis])
+	Progress.write_box(w, _foot.body())
+
+
+func read_state(r: EntryProgress.Reader, ctx: Context) -> StringName:
+	"""Decode a saved builder under the restored context, re-prove the handles it will still read and sweep its
+	footprint again from its plan."""
+	var member: Crew = Crew.new()
+	member.worker = r.ref()
+	member.tool = r.ref()
+	member.parking = r.ref()
+	_ctx = ctx
+	_crew = member
+	_foot = Footprint.new()
+	_foot.configure(ctx.owners.profiles, ctx.owners.extents)
+	var job: Vector2i = _read_cursor(r)
+	_read_plan(r)
+	_read_tail(r)
+	if r.bad: return Progress.REFUSE_SHAPE
+	var code: StringName = _restored_refusal(job)
+	if code == &"" and r.flag(): code = _read_hauler(r)
+	if code == &"": _sweep_claim()
+	return code
+
+
+func _read_cursor(r: EntryProgress.Reader) -> Vector2i:
+	"""The cursor in wire order; returns the saved Job handle."""
+	_stage = r.ranged(STAGE_IDLE, STAGE_HAUL)
+	_stage_ticks = r.ranged(0, STAGE_TICK_LIMIT + 1)
+	_error = r.code()
+	_failed_from = r.ranged(STAGE_IDLE, STAGE_HAUL)
+	_index = r.i32()
+	_site = r.ref()
+	_operation = r.i32()
+	_job = r.i32()
+	var job: Vector2i = r.ref()
+	_station = r.ref()
+	_work_profile = r.i32()
+	_at = r.ref()
+	_plan.start = r.ref()
+	_plan.store = r.ref()
+	return job
+
+
+func _read_plan(r: EntryProgress.Reader) -> void:
+	"""The current legs and the cube plan."""
+	Progress.read_legs(r, _legs, _leg_profiles)
+	Progress.read_legs(r, _plan.home_legs, _plan.home_profiles)
+	Progress.read_legs(r, _plan.approach_legs, _plan.approach_profiles)
+	Progress.read_legs(r, _plan.store_legs, _plan.store_profiles)
+	Progress.read_list(r, 3 * Claim.MAX_TRIP_EDGES, _plan.trips)
+	Progress.read_list(r, 4, _plan.stands)
+	Progress.read_list(r, 2, _plan.carries)
+	Progress.read_list(r, EntryProgress.MAX_QUEUE, _queue)
+
+
+func _read_tail(r: EntryProgress.Reader) -> void:
+	"""The tail in wire order."""
+	_leg = r.ranged(0, Claim.MAX_LEGS)
+	_leg_state = r.ranged(LEG_NONE, LEG_MOVING)
+	_leg_job = r.flag()
+	_departed = r.flag()
+	_finished = r.i32()
+	_cubes = r.i32()
+	_column_cubes = r.i32()
+	_accepted_mwu = r.i64()
+	_haul_store = r.ref()
+	_haul_source = r.ref()
+	_haul_marker = r.i32()
+	_haul_trips = r.i32()
+	_haul_mwu = r.i64()
+	_resuming = r.flag()
+	_release_pending = r.flag()
+	_walk.ticks_left = r.i32()
+	_walk.leaving = r.flag()
+	_walk.origin = Vector3i(r.i32(), r.i32(), r.i32())
+	Progress.read_box(r, _foot._body)
+
+
+func _restored_refusal(job: Vector2i) -> StringName:
+	"""The Job it still reads, its parking and every endpoint it stands on or walks to must be live; a builder
+	underground and not walking must be a registered route actor (a lost one may already be gone)."""
+	var o: Owners = _ctx.owners
+	var code: StringName = EntryProgress.job_refusal(o.jobs, _job, job, _job_in_use())
+	if code != &"": return code
+	for at: Vector2i in [_crew.parking, _station, _at, _plan.start, _plan.store, _haul_store, _haul_source]:
+		if at != NULL_REF and not o.locations.is_live_location(at): return EntryProgress.REFUSE_LOCATION
+	if _walk.walking() or lost() or _stage == STAGE_IDLE and not _registered(): return &""
+	return &"" if _registered() else EntryProgress.REFUSE_ACTOR
+
+
+func _read_hauler(r: EntryProgress.Reader) -> StringName:
+	"""The entry hauler's own block (ADR1218), under the builder's own Job and its storage and staging."""
+	var haul: HaulCrew = HaulCrew.new()
+	haul.worker = _crew.worker
+	haul.storage = _ctx.storage
+	haul.output = _ctx.staging
+	_hauler = Hauler.new()
+	return _hauler.read_state(r, _ctx.owners, haul, _job)

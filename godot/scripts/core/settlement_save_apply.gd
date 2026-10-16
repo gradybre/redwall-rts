@@ -72,7 +72,7 @@ static func apply_all(world: SaveWorld.World, staged: Capture.Staged,
 	"""Install every section in dependency order; the first refusal stops the apply."""
 	var steps: Array[Callable] = [_apply_identity, _apply_runtime, _apply_01, _apply_wiring, _apply_mount, _apply_04,
 		_apply_cross_check, _apply_07, _apply_06, _apply_08, _apply_09, _apply_11, _apply_12,
-		_apply_13, _apply_14, _apply_entry]
+		_apply_13, _apply_14, _apply_entry, _apply_rooms]
 	for step: Callable in steps:
 		var refusal: SaveHeader.Refusal = step.call(world, staged, header)
 		if not refusal.is_ok():
@@ -349,6 +349,20 @@ static func _apply_entry(world: SaveWorld.World, staged: Capture.Staged,
 	var code: StringName = world.settlement.restore_underground_entry(block.u8_column(1))
 	if code != &"":
 		return _no(SaveUnderground.REFUSE_RESTORE, "section 6: the entry record: %s" % code)
+	SaveWorld.bind_underground(world)
+	return _ok()
+
+
+static func _apply_rooms(world: SaveWorld.World, staged: Capture.Staged,
+		_header: SaveHeader.Header) -> SaveHeader.Refusal:
+	"""Decision 1936's room-dig record, after the entry's: the composed runtime (empty, its owners
+	bound by the re-mount) is rebuilt from the record and its contacts bound again."""
+	var block: S06.Block = Owners.aux_block(staged.s06, "underground_room_progress")
+	if block.element_count(1) == 0:
+		return _ok()
+	var code: StringName = world.settlement.restore_underground_rooms(block.u8_column(1))
+	if code != &"":
+		return _no(SaveUnderground.REFUSE_RESTORE, "section 6: the room-dig record: %s" % code)
 	SaveWorld.bind_underground(world)
 	return _ok()
 

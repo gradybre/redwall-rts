@@ -170,7 +170,7 @@ func test_the_room_leaf_spends_its_placement_scan() -> void:
 func _has_box(builder: Builder, point: Vector3i, row: int) -> bool:
 	"""The claim holds exactly the row's extent box standing at the point."""
 	var at: int = builder._foot._extent_at(row)
-	var e: PackedInt32Array = builder._foot._extents
+	var e: PackedInt32Array = builder._foot._rows.table
 	var boxes: PackedInt32Array = builder.claim()
 	for b: int in range(0, boxes.size(), 6):
 		var same: bool = true
@@ -209,7 +209,7 @@ func test_the_claim_holds_the_empty_walk_between_the_stands() -> void:
 	var found: bool = false
 	for b: int in range(0, boxes.size(), 6):
 		var middle2: int = boxes[b + 2] + boxes[b + 5] # Twice the middle, so no division.
-		found = found or (boxes[b] == stand_x + builder._foot._extents[at] and boxes[b + 3] == stand_x + builder._foot._extents[at + 3]
+		found = found or (boxes[b] == stand_x + builder._foot._rows.table[at] and boxes[b + 3] == stand_x + builder._foot._rows.table[at + 3]
 			and middle2 > 2 * (Phase.Z + 1024) and middle2 < 2 * (Phase.Z + 2048))
 	assert_true(found, "the WALK row's boxes along the stands' line")
 
@@ -231,7 +231,7 @@ func test_a_column_s_next_cube_hauls_from_its_station_on_the_retreat_family() ->
 	_run_until(foreman, func() -> bool: return builder.column_cubes() == 1)
 	assert_equal(builder.stage(), Builder.STAGE_TO_STORE, "to M from the station")
 	assert_false(builder._leg_profiles.is_empty(), "real legs to walk")
-	assert_equal(Vector2i(builder._approach_legs[0], builder._approach_legs[1]), _h._first, "the approach starts at M")
+	assert_equal(Vector2i(builder._plan.approach_legs[0], builder._plan.approach_legs[1]), _h._first, "the approach starts at M")
 	var code: StringName = &""
 	for step: int in 3000:
 		_h.tick += 1
@@ -280,7 +280,7 @@ func test_after_the_haul_the_builder_stands_on_the_walk_row_and_travels_under_th
 	var builder: Builder = _set_off(foreman)
 	_run_until(foreman, _hauled.bind(builder))
 	var at: int = builder._foot._extent_at(builder._walk_row())
-	var e: PackedInt32Array = builder._foot._extents
+	var e: PackedInt32Array = builder._foot._rows.table
 	var m: Vector3i = _h.store_point()
 	assert_equal(builder._foot.body(), PackedInt32Array([m.x + e[at], m.y + e[at + 1], m.z + e[at + 2],
 		m.x + e[at + 3], m.y + e[at + 4], m.z + e[at + 5]]), "standing on the haul WALK row")

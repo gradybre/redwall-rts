@@ -100,6 +100,8 @@ class World:
 	var underground: UndergroundSessionScript.Retirement.Owners = null
 	## The settlement's entry runtime, or null before the first entry request (ADR 1228).
 	var entry: RefCounted = null
+	## The settlement's room-dig runtime, or null while no Session's room owners are composed (decision 1936).
+	var rooms: RefCounted = null
 	## A load's underground content: the image a mounted save is re-mounted with (ADR 1228).
 	var content: RefCounted = null
 	var space_owner: SpaceOwnerScript = null
@@ -187,13 +189,14 @@ static func _bind_absent(world: World) -> void:
 
 
 static func bind_underground(world: World) -> void:
-	"""The mounted Session's Space owner, owner packet, entry runtime and (once its route owners
-	are composed) movement; a fresh movement while none is. Re-run after a load re-mounts."""
+	"""The mounted Session's Space owner, owner packet, entry and room-dig runtimes and (once its
+	route owners are composed) movement; a fresh movement while none is. Re-run after a load re-mounts."""
 	var s: Node = world.settlement
 	world.session = s.underground_session()
 	world.underground = world.session._retirement_owners if world.session != null else null
 	world.space_owner = world.session._space if world.session != null else null
 	world.entry = s.underground_entry() if world.session != null else null
+	world.rooms = s.underground_rooms() if world.session != null else null
 	if world.underground != null and world.underground.world_routes != null:
 		world.movement = world.underground.world_routes._movement
 		world.movement_is_absent = false

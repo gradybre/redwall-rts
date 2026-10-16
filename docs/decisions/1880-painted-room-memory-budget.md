@@ -194,6 +194,10 @@ keep one each. On five levels:
 - bytes: 81920 × (185 + 99) = **23265280**, plus up to **8110080** if slice G gives each painted store room one
   container; with this budget counted, **1416593** bytes of headroom would remain. Tight, so slices C and G must
   ledger exactly and early.
+- **Note (2026-10-16, decision 1937 P-1937-1).** Brendan: "Size it when G is designed". The "up to" 8110080 bytes
+  for painted store containers is no longer charged now: slice G must fit its store containers into the headroom
+  left when G is designed. With the room-dig runtime counted (decisions 1936/1937: 5349494 bytes and 783 bytes of
+  declaration), this budget and Q1's projects and containers leave **4176396** bytes for slice G.
 
 **Why the ruling was needed.** Recomputed for five levels under SET-BUILD-001 §10 as first written (one project per item, per partition or door piece and
 per room delta, each with a material container):

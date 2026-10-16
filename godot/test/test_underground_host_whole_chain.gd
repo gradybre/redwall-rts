@@ -46,7 +46,10 @@ func _live_chain(restoring: bool) -> Array:
 	_assert_prefix_done(o, _host.underground_entry(), worker)
 	assert_equal(tick - 1, DONE_TICK, "the finishing tick")
 	if restoring:
-		assert_true(o.jobs._dispatch_owns.get_object() == _host.underground_entry(), "the restored runtime dispatches")
+		assert_true(preload("res://scripts/core/underground_dispatch.gd").bound_to(o.jobs)
+			and _host._underground_dispatch.reserves_resident(o.residents.directory().get_typed_row(worker)) \
+			== _host.underground_entry().reserves_resident(o.residents.directory().get_typed_row(worker)),
+			"the restored runtime answers through the host's composite dispatcher (decision 1936)")
 	var record: PackedByteArray = PackedByteArray()
 	assert_equal(_host.underground_entry().capture(record), &"", "final record")
 	return [counts[0], counts[1], tick, _host.underground_entry().error()] + _snapshot() + [record] \

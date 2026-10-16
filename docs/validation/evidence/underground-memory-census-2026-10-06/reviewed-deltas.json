@@ -781,6 +781,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "no retained-storage change"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1952: the final snapshot's source and claim scans walk present rows (Owner._next_present) through two static row helpers; no member, packet or resize"
     }
    ],
    "delta": {}
@@ -1248,14 +1253,60 @@
      "bytes": 336,
      "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
      "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage; decision 1981 adds four integer constants (the rooted-travel words 10-13) and no storage"
+    },
+    {
+     "bytes": 25,
+     "carried_by": "none (new)",
+     "store": "decision 1952 (P-1951-3): _load_revision, _step_closure_revision and _step_closure_bank (int64) and _step_closure (bool), runtime-only, never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none (new)",
+     "store": "decision 1952: the test-only cache-check switch moved to the dependency-free runtime_cache_checks.gd (one static bool there, never saved); no storage here"
+    },
+    {
+     "bytes": 384,
+     "carried_by": "Profiles CONTROL_RESERVE",
+     "store": "decision 1952: the itinerary anchor-check memo _anchor_memo, ANCHOR_MEMO_SLOTS x ANCHOR_MEMO_STRIDE int64 (8 x 6 x 8), runtime-only, never saved"
     }
    ],
    "delta": {
+    "members_added": [
+     [
+      "_anchor_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_load_revision",
+      "int"
+     ],
+     [
+      "_step_closure",
+      "bool"
+     ],
+     [
+      "_step_closure_bank",
+      "int"
+     ],
+     [
+      "_step_closure_revision",
+      "int"
+     ]
+    ],
     "resizes_added": [
+     "_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)",
      "last_of.resize(_stage.header[3])",
      "same_key.resize(_stage.header[3])"
     ],
     "int_constants_added": [
+     [
+      "ANCHOR_MEMO_SLOTS",
+      "8"
+     ],
+     [
+      "ANCHOR_MEMO_STRIDE",
+      "6"
+     ],
      [
       "CONTACT_ASSEMBLY_PALM",
       "3"
@@ -1298,7 +1349,8 @@
      ]
     ],
     "allocation_sites": {
-     "PackedInt32Array(": 2
+     "PackedInt32Array(": 2,
+     "PackedInt64Array(": 1
     }
    }
   },
@@ -1471,6 +1523,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "one range() iterator in a cold path; no retained storage"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1952: _edge_profile consults WorldRoutes' memo; the live choice moves to _edge_profile_live; no member, packet or resize"
     }
    ],
    "delta": {
@@ -2272,6 +2329,21 @@
      "bytes": 0,
      "carried_by": "Budget.COLD_BYTES shared cold lease",
      "store": "ADR 1221: certificate and journal image (84,184 B) is the caller's leased cold image; restore decodes into the existing stage bank. No retained storage"
+    },
+    {
+     "bytes": 2504,
+     "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+     "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[16 x 19] with each edge's own certificate inputs, its input stamp I64[6], and three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
+    },
+    {
+     "bytes": 140872,
+     "carried_by": "new retained (world_routes_endpoint_memo)",
+     "store": "decision 1952 (P-1952-2): the endpoint-proof memo: results I64[64 x 256] (131,072 B), entries I32[64 x 34] (8,704 B), entry tags I64[64 x 2] (1,024 B) and stamp I64[9] (72 B), allocated once with WorldRoutes' fixed scratch; never saved"
+    },
+    {
+     "bytes": 16,
+     "carried_by": "none (new)",
+     "store": "decision 1952: two int64 runtime tokens of the endpoint memo (_endpoint_memo_epoch, _endpoint_memo_serial); never saved"
     }
    ],
    "delta": {
@@ -2287,6 +2359,50 @@
      [
       "_carry_edge",
       "bool"
+     ],
+     [
+      "_certificate_revision",
+      "int"
+     ],
+     [
+      "_descriptor_writes",
+      "int"
+     ],
+     [
+      "_edge_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_edge_memo_epoch",
+      "int"
+     ],
+     [
+      "_edge_memo_stamp",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_entries",
+      "PackedInt32Array"
+     ],
+     [
+      "_endpoint_entry_tags",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_endpoint_memo_epoch",
+      "int"
+     ],
+     [
+      "_endpoint_memo_serial",
+      "int"
+     ],
+     [
+      "_endpoint_memo_stamp",
+      "PackedInt64Array"
      ],
      [
       "_envelope",
@@ -2306,6 +2422,12 @@
      ]
     ],
     "resizes_added": [
+     "_edge_memo.resize(EDGE_MEMO_SLOTS * EDGE_MEMO_STRIDE)",
+     "_edge_memo_stamp.resize(EDGE_MEMO_STAMP)",
+     "_endpoint_entries.resize(ENDPOINT_MEMO_ENTRIES * ENDPOINT_ENTRY_WORDS)",
+     "_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)",
+     "_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)",
+     "_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)",
      "_envelope.resize(6)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
      "out.resize(CERT_WIRE_BYTES)"
@@ -2338,6 +2460,38 @@
      [
       "COLD_BYTES",
       "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
+     ],
+     [
+      "EDGE_MEMO_INPUTS",
+      "11"
+     ],
+     [
+      "EDGE_MEMO_SLOTS",
+      "16"
+     ],
+     [
+      "EDGE_MEMO_STAMP",
+      "6"
+     ],
+     [
+      "EDGE_MEMO_STRIDE",
+      "19"
+     ],
+     [
+      "ENDPOINT_ENTRY_WORDS",
+      "34"
+     ],
+     [
+      "ENDPOINT_MEMO_ENTRIES",
+      "64"
+     ],
+     [
+      "ENDPOINT_MEMO_STAMP",
+      "9"
+     ],
+     [
+      "ENDPOINT_SERIAL_MAX",
+      "1 << 46"
      ]
     ],
     "int_constants_removed": [
@@ -2451,8 +2605,9 @@
      ]
     },
     "allocation_sites": {
-     "PackedInt32Array(": 2,
-     "PackedInt64Array(": 1,
+     "=[": 1,
+     "PackedInt32Array(": 3,
+     "PackedInt64Array(": 7,
      "range(": 1
     }
    }

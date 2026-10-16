@@ -105,9 +105,11 @@ func test_the_profile_check_equals_the_pre_1951_code_with_the_closure_whole_or_b
 	assert_true(ShortStep.uses(_profiles), "content 6 extends the step program")
 	_assert_profiles_match("whole")
 	_profiles._live.sources[32] ^= 1 # Negative-only: the appended handling source digest no longer matches.
+	_profiles.invalidate_runtime_caches() # Decision 1952: an in-place bank edit must move the load token.
 	assert_false(ShortStep.uses(_profiles), "the closure is broken")
 	_assert_profiles_match("broken")
 	_profiles._live.sources[32] ^= 1
+	_profiles.invalidate_runtime_caches()
 
 
 func _words() -> PackedInt64Array:
@@ -154,8 +156,10 @@ func test_the_clock_check_equals_the_pre_1951_code_with_the_closure_whole_or_bro
 	if not _fixture(): return
 	assert_true(_assert_clocks_match("whole") > 0, "some step-program clocks pass, so the pass path is compared")
 	_profiles._live.sources[32] ^= 1 # Negative-only, restored below.
+	_profiles.invalidate_runtime_caches()
 	assert_true(_assert_clocks_match("broken") >= 0, "the broken closure compared")
 	_profiles._live.sources[32] ^= 1
+	_profiles.invalidate_runtime_caches()
 
 
 func test_mounted_claw_stair_and_handling_rows_answer_as_before() -> void:
@@ -171,3 +175,69 @@ func test_mounted_claw_stair_and_handling_rows_answer_as_before() -> void:
 	assert_true(owned > 0, "content 10 has owned rows: %d" % owned)
 	_assert_profiles_match("mounted")
 	assert_true(_assert_clocks_match("mounted") > 0, "some owned-program clocks pass")
+
+
+func test_the_step_closure_is_remembered_per_bank_and_load_revision() -> void:
+	"""Decision 1952: Routes reads ShortStep.uses() once per Profiles bank and load revision; a bank swap, an in-place
+	edit announced by invalidate_runtime_caches() and a poisoned revision each read it afresh."""
+	if not _fixture(): return
+	assert_true(_profiles.load_revision() > 0, "a loaded store has a live token")
+	assert_equal(Routes._step_closure(_profiles), ShortStep.uses(_profiles), "first read")
+	var revision: int = _profiles.load_revision()
+	assert_equal(_profiles._step_closure_revision, revision, "remembered at this revision")
+	_profiles._live.sources[32] ^= 1 # Negative-only, restored below.
+	Profiles.CacheChecks.enabled = false
+	assert_true(Routes._step_closure(_profiles), "the contract: an edit that does not announce itself is not seen")
+	Profiles.CacheChecks.enabled = true
+	expect_diagnostic("RUNTIME_CACHE_STALE step closure")
+	assert_false(Routes._step_closure(_profiles), "with checking on (every suite) it is answered live and reported")
+	assert_false(Routes._step_closure(_profiles), "the reported memo now holds the live answer")
+	_profiles.invalidate_runtime_caches()
+	assert_true(_profiles.load_revision() > revision, "the token moved")
+	assert_false(Routes._step_closure(_profiles), "an announced edit is read afresh")
+	_profiles._live.sources[32] ^= 1
+	_profiles.invalidate_runtime_caches()
+	assert_true(Routes._step_closure(_profiles), "and its repair")
+
+
+func test_another_bank_or_a_poisoned_token_reads_the_step_closure_afresh() -> void:
+	"""Decision 1952: a substituted bank and a saturated (zero) load revision are never answered from the memo."""
+	if not _fixture(): return
+	assert_true(Routes._step_closure(_profiles), "the whole closure, remembered")
+	var bank: Profiles.Bank = _profiles._live
+	_profiles._live = Profiles.Bank.new() # Negative-only bank substitution, restored below.
+	assert_false(Routes._step_closure(_profiles), "another bank is read afresh")
+	_profiles._live = bank
+	assert_true(Routes._step_closure(_profiles), "and the original again")
+	_profiles._load_revision = Routes.I64_MAX
+	assert_equal(_profiles.load_revision(), 0, "saturated is zero")
+	_profiles._live.sources[32] ^= 1
+	assert_false(Routes._step_closure(_profiles), "a poisoned token always reads afresh")
+	_profiles._live.sources[32] ^= 1
+
+
+func test_configure_and_every_load_move_the_profiles_token() -> void:
+	"""configure() and a successful load_file() swap each move load_revision()."""
+	var profiles: Profiles = Profiles.new()
+	var before: int = profiles.load_revision()
+	assert_equal(profiles.configure(StationTests.CONTENT_6_PROFILES, StationTests.CONTENT_6_BOXES,
+		StationTests.CONTENT_6_SOURCES, StationTests.CONTENT_6_BANK_BYTES + Profiles.CONTROL_RESERVE), &"", "configured")
+	assert_true(profiles.load_revision() > before, "configure moves it")
+	if not _fixture(): return
+	before = _h._profiles.load_revision()
+	var fresh: Profiles = Profiles.new()
+	assert_equal(fresh.configure(StationTests.CONTENT_6_PROFILES, StationTests.CONTENT_6_BOXES, StationTests.CONTENT_6_SOURCES,
+		StationTests.CONTENT_6_BANK_BYTES + Profiles.CONTROL_RESERVE), &"", "a second store")
+	assert_equal(fresh.bind_actual(_h._residents, _h._transforms, _h._inventory, _h._gear, _h._carry, _h._work, _h._pool,
+		_h._piles), &"", "bound")
+	var configured: int = fresh.load_revision()
+	assert_equal(fresh.load_file(StationTests.CONTENT_6_WIRE, StationTests.StonePins.WIRE_SHA, StationTests.CONTENT), &"",
+		"loaded")
+	assert_true(fresh.load_revision() > configured, "a load moves it")
+	configured = fresh.load_revision()
+	assert_false(fresh.load_file(StationTests.CONTENT_6_WIRE, StationTests.StonePins.WIRE_SHA, StationTests.CONTENT) == &"",
+		"a refused reload")
+	assert_equal(fresh.load_revision(), configured, "a refused load leaves the bank and the token")
+	assert_true(before > 0, "the fixture's store is live")
+	assert_equal(_h._profiles.load_revision(), before, "another store's loads leave this store's token alone")
+

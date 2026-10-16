@@ -282,61 +282,90 @@ static func _same_domain(first: Space.Domain, second: Space.Domain) -> bool:
 static func _required_checks(owner: Owner) -> int:
 	"""Precharge both finite scans and every present leaf before reading or writing reusable facts."""
 	var required: int = BINDING_CHECKS + 2 * (owner._region_capacity + owner._source_capacity)
-	for row: int in owner._source_capacity:
+	var binary: bool = Owner._binary_present(owner._o_present) # Decision 1952: visit only rows the scan counts.
+	var row: int = Owner._next_present(owner._o_present, 0, binary)
+	while row >= 0 and row < owner._source_capacity:
 		if owner._o_present[row] != 0:
 			required += RESIDENT_CHECKS if owner._o_kind[row] == Directory.KIND_RESIDENT else SOURCE_CHECKS
-	for row: int in owner._region_capacity:
+		row = Owner._next_present(owner._o_present, row + 1, binary)
+	binary = Owner._binary_present(owner._r_present)
+	row = Owner._next_present(owner._r_present, 0, binary)
+	while row >= 0 and row < owner._region_capacity:
 		if owner._r_present[row] != 0 and owner._r_claim_kind[row] != Owner.CLAIM_NONE:
 			required += SOURCE_CHECKS
+		row = Owner._next_present(owner._r_present, row + 1, binary)
 	return required
 
 
 static func _sources_refusal(owner: Owner, routes: Routes, locations: Locations) -> StringName:
-	"""Stored kinds bound leaf work; current full Directory identity must match before dispatch."""
+	"""Stored kinds bound leaf work; current full Directory identity must match before dispatch.
+	Decision 1952: the walk visits exactly the rows a full scan would read (Owner._next_present)."""
 	var sources: Owner.CoreSources = owner._sources as Owner.CoreSources
-	for row: int in owner._source_capacity:
-		if owner._o_present[row] == 0:
-			continue
-		if owner._o_present[row] != 1:
-			return &"SPACE_SOURCE_FORMAT"
-		var ref: Vector2i = Vector2i(owner._o_slot[row], owner._o_generation[row])
-		if not sources._directory.is_valid_of_kind(ref, owner._o_kind[row]):
-			return &"SPACE_SOURCE_STALE"
-		var code: StringName = _resident_into(routes, locations, ref, owner._facts) \
-			if owner._o_kind[row] == Directory.KIND_RESIDENT else Owner.CoreSources.read_final_into(sources, ref, owner._facts)
-		if code == &"":
-			code = _facts_refusal(sources, ref, owner._facts)
+	var binary: bool = Owner._binary_present(owner._o_present)
+	var row: int = Owner._next_present(owner._o_present, 0, binary)
+	while row >= 0 and row < owner._source_capacity:
+		var code: StringName = _source_row_refusal(owner, routes, locations, sources, row)
 		if code != &"":
 			return code
-		if not owner._facts_match(row, false):
-			return &"SPACE_SOURCE_DRIFT"
+		row = Owner._next_present(owner._o_present, row + 1, binary)
 	return &""
 
 
+static func _source_row_refusal(owner: Owner, routes: Routes, locations: Locations, sources: Owner.CoreSources,
+		row: int) -> StringName:
+	"""One retained source row: an absent row is skipped, an unknown presence byte refuses, a present row is read."""
+	if owner._o_present[row] == 0:
+		return &""
+	if owner._o_present[row] != 1:
+		return &"SPACE_SOURCE_FORMAT"
+	var ref: Vector2i = Vector2i(owner._o_slot[row], owner._o_generation[row])
+	if not sources._directory.is_valid_of_kind(ref, owner._o_kind[row]):
+		return &"SPACE_SOURCE_STALE"
+	var code: StringName = _resident_into(routes, locations, ref, owner._facts) \
+		if owner._o_kind[row] == Directory.KIND_RESIDENT else Owner.CoreSources.read_final_into(sources, ref, owner._facts)
+	if code == &"":
+		code = _facts_refusal(sources, ref, owner._facts)
+	if code != &"":
+		return code
+	return &"" if owner._facts_match(row, false) else &"SPACE_SOURCE_DRIFT"
+
+
 static func _claims_refusal(owner: Owner) -> StringName:
-	"""Room and project claims keep the same full identity rules as an ordinary live snapshot."""
+	"""Room and project claims keep the same full identity rules as an ordinary live snapshot.
+	Decision 1952: the walk visits exactly the rows a full scan would read (Owner._next_present)."""
 	var sources: Owner.CoreSources = owner._sources as Owner.CoreSources
-	for row: int in owner._region_capacity:
-		if owner._r_present[row] == 0:
-			continue
-		if owner._r_present[row] != 1:
-			return &"SPACE_REGION_FORMAT"
-		if owner._r_claim_kind[row] == Owner.CLAIM_NONE:
-			continue
-		var kind: int = owner._r_claim_kind[row]
-		if kind != Owner.CLAIM_ROOM and kind != Owner.CLAIM_CONSTRUCTION:
-			return &"SPACE_RESERVATION_FORMAT"
-		var ref: Vector2i = Vector2i(owner._r_claim_slot[row], owner._r_claim_generation[row])
-		var expected: int = Directory.KIND_ROOM if kind == Owner.CLAIM_ROOM else Directory.KIND_CONSTRUCTION
-		if not sources._directory.is_valid_of_kind(ref, expected):
-			return &"SPACE_SOURCE_STALE"
-		var code: StringName = Owner.CoreSources.read_final_into(sources, ref, owner._facts)
-		if code == &"":
-			code = _facts_refusal(sources, ref, owner._facts)
+	var binary: bool = Owner._binary_present(owner._r_present)
+	var row: int = Owner._next_present(owner._r_present, 0, binary)
+	while row >= 0 and row < owner._region_capacity:
+		var code: StringName = _claim_row_refusal(owner, sources, row)
 		if code != &"":
 			return code
-		if kind == Owner.CLAIM_ROOM and ref != Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row]):
-			return &"SPACE_ROOM_CLAIM_IDENTITY"
+		row = Owner._next_present(owner._r_present, row + 1, binary)
+	return &""
+
+
+static func _claim_row_refusal(owner: Owner, sources: Owner.CoreSources, row: int) -> StringName:
+	"""One region row: absent or unclaimed is skipped; a claim must name a live Room or Construction exactly."""
+	if owner._r_present[row] == 0:
+		return &""
+	if owner._r_present[row] != 1:
+		return &"SPACE_REGION_FORMAT"
+	if owner._r_claim_kind[row] == Owner.CLAIM_NONE:
+		return &""
+	var kind: int = owner._r_claim_kind[row]
+	if kind != Owner.CLAIM_ROOM and kind != Owner.CLAIM_CONSTRUCTION:
+		return &"SPACE_RESERVATION_FORMAT"
+	var ref: Vector2i = Vector2i(owner._r_claim_slot[row], owner._r_claim_generation[row])
+	var expected: int = Directory.KIND_ROOM if kind == Owner.CLAIM_ROOM else Directory.KIND_CONSTRUCTION
+	if not sources._directory.is_valid_of_kind(ref, expected):
+		return &"SPACE_SOURCE_STALE"
+	var code: StringName = Owner.CoreSources.read_final_into(sources, ref, owner._facts)
+	if code == &"":
+		code = _facts_refusal(sources, ref, owner._facts)
+	if code != &"":
+		return code
+	if kind == Owner.CLAIM_ROOM and ref != Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row]):
+		return &"SPACE_ROOM_CLAIM_IDENTITY"
 	return &""
 
 

@@ -12,6 +12,7 @@ const Reservations := preload("res://scripts/core/reservations.gd")
 const Piles := preload("res://scripts/core/ground_piles.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd") # Decision 1952.
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_PROFILES: int = 256
 const MAX_BOXES: int = 3072
@@ -20,6 +21,10 @@ const MAX_SELECTION_BOXES: int = 12
 const MAX_KEY_VARIANTS: int = 16
 const ARENA_BYTES: int = 262144
 const CONTROL_RESERVE: int = 32768
+## Decision 1952: the itinerary anchor-check memo, ANCHOR_MEMO_SLOTS direct-mapped slots of ANCHOR_MEMO_STRIDE words:
+## load revision, bank instance, anchor, profile revision, content revision, refused (1) or not (0).
+const ANCHOR_MEMO_SLOTS: int = 8
+const ANCHOR_MEMO_STRIDE: int = 6
 const I32_FIELDS: int = 18
 const I64_FIELDS: int = 3
 const BYTE_FIELDS: int = 2
@@ -203,6 +208,18 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _candidate: Selection = Selection.new()
 var _query_values: PackedInt64Array = PackedInt64Array() # tool, variant, cargo, variant, kind
 var _loading: bool = false
+## Decision 1952 (P-1951-3): a runtime token that moves whenever a bank may have changed (configure, every load_file
+## swap, invalidate_runtime_caches). Never saved; zero (saturated) permanently poisons readers' caches.
+var _load_revision: int = 1
+## Decision 1952: the step-program closure (`ShortStep.uses`) as last read, and the bank and revision it was read at.
+@warning_ignore("unused_private_class_variable")
+var _step_closure: bool = false
+@warning_ignore("unused_private_class_variable")
+var _step_closure_revision: int = 0
+@warning_ignore("unused_private_class_variable")
+var _step_closure_bank: int = 0
+## Decision 1952: `Itinerary._anchor_refusal` answers as last read, with the revision and bank they were read at.
+var _anchor_memo: PackedInt64Array = PackedInt64Array()
 var _worker_row: int = -1
 
 
@@ -210,6 +227,7 @@ func _init() -> void:
 	"""Fixed reusable hot scratch has one explicit small allocation, independent of resident count."""
 	_identity.resize(3)
 	_query_values.resize(5)
+	_anchor_memo.resize(ANCHOR_MEMO_SLOTS * ANCHOR_MEMO_STRIDE)
 
 
 func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> StringName:
@@ -227,7 +245,19 @@ func configure(profiles: int, boxes: int, sources: int, arena_bytes: int) -> Str
 	_source_capacity = sources
 	_live.allocate(profiles, boxes, sources)
 	_stage.allocate(profiles, boxes, sources)
+	invalidate_runtime_caches()
 	return &""
+
+
+func load_revision() -> int:
+	"""Decision 1952: changes on every bank write this store makes; zero poisons caches."""
+	return _load_revision if _load_revision < IntMath.INT64_MAX else 0
+
+
+func invalidate_runtime_caches() -> void:
+	"""Move the load token. Every bank write here calls it; so must anything that edits a bank in place."""
+	if _load_revision < IntMath.INT64_MAX:
+		_load_revision += 1
 
 
 func packed_memory_bytes() -> int:
@@ -298,6 +328,7 @@ func load_file(path: String, expected_sha256: String, revision: int) -> StringNa
 		var old: Bank = _live
 		_live = _stage
 		_stage = old
+		invalidate_runtime_caches()
 	_loading = false
 	return code
 

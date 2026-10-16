@@ -26,6 +26,7 @@ class TimedRuntime extends Settlement.UndergroundEntryRuntime:
 
 func test_entry_prefix_one_crew() -> void:
 	"""The whole entry prefix with its one crew mole; the prefix finishes on its pinned tick and ledger."""
+	Meter.time_answered_caches()
 	var meter: Meter = Meter.new()
 	var o: Session.Retirement.Owners = _begin_timed(meter)
 	if o == null: return

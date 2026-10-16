@@ -141,6 +141,10 @@ Run on `36b784de` (2026-10-16, Godot 4.7.2); origin/master had not moved from `c
   killed by new tests. **One equivalent survivor, I4**: `removed_landings` counting placement rows too changes
   nothing, because `_all_landings` adds the placements' own landings back (`placed ∪ (host − placed) = host ∪
   placed`). G3 (every neighbour walkable) was killed by the search never ending; G3b (`if false`) is killed by tests.
+- **After E10** (`512fd3af`): full CI-style run again, `ok: 538 suite files executed exactly once across 10 shards`,
+  12,879 tests, 1,435,423 assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks; analyzer `0 GDScript
+  warning(s) in 0 of 1611 file(s)`; the live harness 47 checks, 0 failures at 1280×720 and 1920×1080, the removal
+  frame recaptured and looked at (one judgement, beside the pointer).
 - **Independent review** (`code-reviewer`): no CRITICAL. HIGH H1–H5 fixed (E9); re-review of the delta found N1,
   fixed. MEDIUM fixed or answered in E9; LOW fixed.
 

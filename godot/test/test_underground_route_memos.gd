@@ -236,3 +236,34 @@ func test_a_starved_search_fills_nothing_a_full_search_could_borrow() -> void:
 		assert_equal(then_full, full, "full after starving at %d" % checks)
 		checks += 997
 
+
+func test_an_edge_certificate_edited_in_place_is_read_again() -> void:
+	"""Each chain edge's mask bytes, certificate generation, geometry and content, and its graph generation, edited in
+	place without any revision moving, are read again: the answer equals a plain search over the edited bytes."""
+	if not _fixture(): return
+	_memo(false)
+	var plain: Array = _search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+	assert_equal(plain[0], &"", "the reference search succeeds")
+	var chain: PackedInt32Array = plain[5]
+	for index: int in range(0, chain.size(), 2):
+		var edge: int = chain[index]
+		for change: int in 5:
+			_memo(true)
+			_search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+			_edit_edge(edge, change, 1)
+			var answered: Array = _search(_h._first, _h.parking, 5, Space.MAX_CHECKS)
+			_memo(false)
+			assert_equal(answered, _search(_h._first, _h.parking, 5, Space.MAX_CHECKS), "edge %d change %d" % [edge, change])
+			_edit_edge(edge, change, -1)
+
+
+func _edit_edge(edge: int, change: int, sign: int) -> void:
+	"""Negative-only in-place edits of one edge's inputs, undone by the opposite sign."""
+	var bank: WorldRoutes.Certificates = _h._binding._live
+	match change:
+		0: bank.masks[edge * WorldRoutes.MASK_BYTES] ^= 0xFF
+		1: bank.generations[edge] += sign
+		2: bank.geometry[edge] += sign
+		3: bank.content[edge] += sign
+		4: _h._routes._live.fields[Routes.E_GENERATION * _h._routes._edge_capacity + edge] += sign
+

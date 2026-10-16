@@ -48,9 +48,12 @@ const REFUSE_BUDGET: StringName = &"WORLD_ROUTE_COLD_LEASE"
 const REFUSE_BUSY: StringName = &"WORLD_ROUTE_BUSY"
 ## Decision 1952 (P-1951-1): the room itinerary's per-edge profile choice is remembered per (edge, anchor) while every
 ## input it reads is unchanged. A slot: epoch, edge, anchor, chosen row (-1 none), spent checks, descriptor written,
-## then that descriptor's profile, revision, content, mode and posture.
-const EDGE_MEMO_SLOTS: int = 32
-const EDGE_MEMO_STRIDE: int = 11
+## that descriptor's profile, revision, content, mode and posture, then the edge's own inputs as read: its graph
+## generation, its certificate generation, geometry and content, and its 32 mask bytes as four words. Those are
+## compared again on every answer, so an edge's certificate edited in place is never answered from the memo.
+const EDGE_MEMO_SLOTS: int = 16
+const EDGE_MEMO_STRIDE: int = 19
+const EDGE_MEMO_INPUTS: int = 11
 const EDGE_MEMO_STAMP: int = 6
 const EDGE_MEMO_MISS: int = -2
 const REFUSE_COVERAGE: StringName = &"WORLD_ROUTE_COVERAGE"
@@ -1872,11 +1875,36 @@ static func edge_profile_memo(actual: RefCounted, graph: Routes, edge: int, anch
 	var epoch: int = edge_memo_epoch(actual, graph)
 	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
 	var memo: PackedInt64Array = actual._edge_memo
-	if epoch == 0 or memo[at] != epoch or memo[at + 1] != edge or memo[at + 2] != anchor or memo[at + 4] > graph._remaining:
+	if epoch == 0 or memo[at] != epoch or memo[at + 1] != edge or memo[at + 2] != anchor or memo[at + 4] > graph._remaining \
+			or not _edge_inputs_match(actual, graph, edge, memo, at + EDGE_MEMO_INPUTS):
 		return EDGE_MEMO_MISS
 	graph._remaining -= memo[at + 4]
 	if memo[at + 5] == 1: _replay_descriptor(actual, memo, at)
 	return memo[at + 3]
+
+
+static func _edge_inputs_match(actual: RefCounted, graph: Routes, edge: int, memo: PackedInt64Array, at: int) -> bool:
+	"""The edge's graph generation and its whole certificate row are what the remembered choice read."""
+	if edge < 0 or edge >= EDGE_CAPACITY or edge >= graph._edge_capacity: return false
+	var bank: Certificates = actual._live
+	if memo[at] != graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + edge] or memo[at + 1] != bank.generations[edge] \
+			or memo[at + 2] != bank.geometry[edge] or memo[at + 3] != bank.content[edge]: return false
+	for word: int in 4:
+		if memo[at + 4 + word] != bank.masks.decode_s64(edge * MASK_BYTES + 8 * word): return false
+	return true
+
+
+static func _remember_edge_inputs(actual: RefCounted, graph: Routes, edge: int, memo: PackedInt64Array, at: int) -> bool:
+	"""Copy the edge's own inputs beside the remembered choice; false when the edge is outside the banks."""
+	if edge < 0 or edge >= EDGE_CAPACITY or edge >= graph._edge_capacity: return false
+	var bank: Certificates = actual._live
+	memo[at] = graph._live.fields[Routes.E_GENERATION * graph._edge_capacity + edge]
+	memo[at + 1] = bank.generations[edge]
+	memo[at + 2] = bank.geometry[edge]
+	memo[at + 3] = bank.content[edge]
+	for word: int in 4:
+		memo[at + 4 + word] = bank.masks.decode_s64(edge * MASK_BYTES + 8 * word)
+	return true
 
 
 static func _edge_memo_slot(edge: int, anchor: int) -> int:
@@ -1902,6 +1930,9 @@ static func remember_edge_profile(actual: RefCounted, graph: Routes, edge: int, 
 	var descriptor: Profiles.Descriptor = actual._descriptor
 	var memo: PackedInt64Array = actual._edge_memo
 	var at: int = _edge_memo_slot(edge, anchor) * EDGE_MEMO_STRIDE
+	if not _remember_edge_inputs(actual, graph, edge, memo, at + EDGE_MEMO_INPUTS):
+		memo[at] = 0
+		return
 	memo[at] = epoch
 	memo[at + 1] = edge
 	memo[at + 2] = anchor

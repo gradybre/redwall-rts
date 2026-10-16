@@ -781,6 +781,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "no retained-storage change"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1952: the final snapshot's source and claim scans walk present rows (Owner._next_present) through two static row helpers; no member, packet or resize"
     }
    ],
    "delta": {}
@@ -2285,6 +2290,11 @@
      "bytes": 2888,
      "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
      "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[352] and its input stamp I64[6], plus three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
+    },
+    {
+     "bytes": 2504,
+     "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+     "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[16 x 19] with each edge's own certificate inputs, its input stamp I64[6], and three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
     }
    ],
    "delta": {
@@ -2375,12 +2385,16 @@
       "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
      ],
      [
+      "EDGE_MEMO_INPUTS",
+      "11"
+     ],
+     [
       "EDGE_MEMO_MISS",
       "-2"
      ],
      [
       "EDGE_MEMO_SLOTS",
-      "32"
+      "16"
      ],
      [
       "EDGE_MEMO_STAMP",
@@ -2388,7 +2402,7 @@
      ],
      [
       "EDGE_MEMO_STRIDE",
-      "11"
+      "19"
      ]
     ],
     "int_constants_removed": [

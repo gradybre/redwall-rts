@@ -10,6 +10,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Space := preload("res://scripts/core/room_space.gd")
+const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _world: Vector2i = Vector2i(-1, 0)
@@ -240,3 +241,19 @@ func test_the_staged_claim_walk_continues_in_the_staged_bank() -> void:
 	owner._s_r_claim_generation[6] = 1
 	assert_true(owner._claims_refusal(true) != &"", "the later staged claim is reached and refuses")
 	assert_equal(owner._claims_refusal(false), &"", "the live bank holds nothing")
+
+
+func test_final_facts_source_walk_reads_exactly_the_scanned_rows() -> void:
+	"""Decision 1952: with a non-binary presence column the final snapshot still skips absent rows and refuses the
+	first present row in row order: a stale source before an unknown presence byte answers STALE, not FORMAT."""
+	var owner: Owner = _owner()
+	assert_equal(FinalFacts._sources_refusal(owner, null, null), &"", "the configured World row alone is sound")
+	owner._o_present[2] = 1
+	owner._o_slot[2] = 7
+	owner._o_generation[2] = 3
+	owner._o_kind[2] = Directory.KIND_ROOM
+	owner._o_present[3] = 2
+	assert_equal(FinalFacts._sources_refusal(owner, null, null), &"SPACE_SOURCE_STALE", "row 2 before row 3; row 1 never read")
+	owner._o_present[2] = 0
+	assert_equal(FinalFacts._sources_refusal(owner, null, null), &"SPACE_SOURCE_FORMAT", "then the unknown presence byte")
+

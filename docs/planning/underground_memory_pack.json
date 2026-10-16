@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "40d306f25bea75c15e1359f0e9e14a52a79e19456b634a999784a6cf6e91949c",
         "godot/scripts/core/underground_routes.gd": "66154f5e4748182b6fe84f5509ebafdddb37d8dbfa4230522df0317aa53db947",
-        "godot/scripts/core/underground_world_routes.gd": "6333a818d2d5e0081fd377039a16a5fc94c4222d04170808a7cf428947c92a57"
+        "godot/scripts/core/underground_world_routes.gd": "e7cb01eab017dae4e9929f26cfb976d1362076e55443f126b475c7017d66a63e"
       }
     },
     "current_profile_control": {
@@ -42377,6 +42377,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "no retained-storage change"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1952: the final snapshot's source and claim scans walk present rows (Owner._next_present) through two static row helpers; no member, packet or resize"
           }
         ],
         "delta": {}
@@ -43881,6 +43886,11 @@
             "bytes": 2888,
             "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
             "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[352] and its input stamp I64[6], plus three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
+          },
+          {
+            "bytes": 2504,
+            "carried_by": "WorldRoutes CONTROL_RESERVE (recounted)",
+            "store": "decision 1952 (P-1951-1): the itinerary edge-profile memo I64[16 x 19] with each edge's own certificate inputs, its input stamp I64[6], and three int64 runtime tokens (_edge_memo_epoch, _certificate_revision, _descriptor_writes); never saved"
           }
         ],
         "delta": {
@@ -43971,12 +43981,16 @@
               "SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 28 * CHANGE_CAPACITY + 1024"
             ],
             [
+              "EDGE_MEMO_INPUTS",
+              "11"
+            ],
+            [
               "EDGE_MEMO_MISS",
               "-2"
             ],
             [
               "EDGE_MEMO_SLOTS",
-              "32"
+              "16"
             ],
             [
               "EDGE_MEMO_STAMP",
@@ -43984,7 +43998,7 @@
             ],
             [
               "EDGE_MEMO_STRIDE",
-              "11"
+              "19"
             ]
           ],
           "int_constants_removed": [
@@ -44677,7 +44691,7 @@
       "presentation (outside the REQ-SET-163 simulation gate)": 0,
       "SurfaceAnchor RESERVED_BYTES (asserted by the pack)": 8,
       "entry structure reservation (decision1122, 384 B)": 0,
-      "WorldRoutes CONTROL_RESERVE (recounted)": 2946,
+      "WorldRoutes CONTROL_RESERVE (recounted)": 5450,
       "base ledger (decisions 1023, 1031)": 0,
       "WorkFace CONTROL_BYTES (2,048 B cold allowance, lease-bound)": 24
     },
@@ -44723,7 +44737,7 @@
     "world_routes_controls": {
       "numeric_bytes": 263,
       "small_packed_bytes": 120,
-      "edge_memo_bytes": 2864,
+      "edge_memo_bytes": 2480,
       "packet_numeric_bytes": {
         "Profiles.Descriptor": 184,
         "Profiles.Box": 64,
@@ -44732,7 +44746,7 @@
         "Routes.Edge": 120,
         "IntMath.IntResult": 9
       },
-      "fixed_bytes": 3892,
+      "fixed_bytes": 3508,
       "control_reserve_bytes": 4096,
       "added_by_adr_1205_bytes": 58
     },
@@ -44871,7 +44885,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "6333a818d2d5e0081fd377039a16a5fc94c4222d04170808a7cf428947c92a57",
+    "godot/scripts/core/underground_world_routes.gd": "e7cb01eab017dae4e9929f26cfb976d1362076e55443f126b475c7017d66a63e",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "a4190ded1406f501a7b4851f53f667f00a13031bba3063c62b639d46aec4d8fa",

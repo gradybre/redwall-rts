@@ -64,7 +64,7 @@ static func _search(actual: WorldRoutes, first: Vector2i, last: Vector2i,
 
 static func _anchor_refusal(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
 	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors."""
-	if StepProgram.uses(profiles):
+	if Routes._step_closure(profiles):
 		return &"" if anchor >= 2 and anchor < StepProgram.GROUND \
 			and StepProgram.profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
 	if SourceProgram.profile_refusal(profiles, anchor, revision, content) != &"" \
@@ -170,7 +170,7 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
 		if profiles._live.fields[field * stride + row] != profiles._live.fields[field * stride + anchor]: return false
 	for field: int in range(Profiles.L_QUANTITY_MIN, Profiles.L_QUANTITY_MAX + 1):
 		if profiles._live.quantities[field * stride + row] != profiles._live.quantities[field * stride + anchor]: return false
-	if StepProgram.uses(profiles):
+	if Routes._step_closure(profiles):
 		return _canonical_compatible(profiles, anchor, row)
 	var policy: int = Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0])
 	if policy == Profiles.POLICY_AUTOMATIC:

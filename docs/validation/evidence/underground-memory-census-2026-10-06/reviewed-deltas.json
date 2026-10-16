@@ -1252,7 +1252,7 @@
     {
      "bytes": 336,
      "carried_by": "Profiles CONTROL_RESERVE (load-time, released)",
-     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage"
+     "store": "two load-time key-order scratch columns, one int per profile row (2 x 42 x 4); ADR 1229 adds three integer constants (POLICY_STAIR, POLICY_STAIR_TURN, CONTACT_TREAD_FIT) and no storage; decision 1981 adds four integer constants (the rooted-travel words 10-13) and no storage"
     },
     {
      "bytes": 25,
@@ -1324,6 +1324,22 @@
       "7"
      ],
      [
+      "POLICY_ROOTED_BACKWARD",
+      "11"
+     ],
+     [
+      "POLICY_ROOTED_STAIR",
+      "12"
+     ],
+     [
+      "POLICY_ROOTED_TRAVEL",
+      "10"
+     ],
+     [
+      "POLICY_ROOTED_TURN",
+      "13"
+     ],
+     [
       "POLICY_STAIR",
       "8"
      ],
@@ -1370,10 +1386,14 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "decision 1936 resume_contact_into(): one per-call Query packet, as contact_into's; dies with the call"
     }
    ],
-   "delta": {}
+   "delta": {
+    "allocation_sites": {
+     ".new(": 1
+    }
+   }
   },
   "godot/scripts/core/underground_room_frontier_publication.gd": {
    "charges": [
@@ -2775,7 +2795,12 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "decision 1933 (C2.1) room-dig runtime reference; only tests adopt one until C2.3 composes it from the Session and ledgers its packed record (475,136 B since decision 1934)"
+     "store": "decision 1933 (C2.1) room-dig runtime reference; decision 1936 composes it with the Session's room owners (UndergroundRoomRuntime.new) and counts it in room_dig_runtime"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1936 (review H4): the composite Jobs dispatcher (UndergroundDispatch.new), bound at each mount; two Callables of native overhead, counted in room_dig_runtime's exact member set"
     }
    ],
    "delta": {
@@ -2789,6 +2814,10 @@
       "StorePolicyScript"
      ],
      [
+      "_underground_dispatch",
+      "UndergroundDispatch"
+     ],
+     [
       "_underground_entry",
       "UndergroundEntryRuntime"
      ],
@@ -2798,7 +2827,7 @@
      ]
     ],
     "allocation_sites": {
-     ".new(": 4
+     ".new(": 6
     }
    }
   },

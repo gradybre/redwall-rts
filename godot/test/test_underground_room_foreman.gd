@@ -31,6 +31,7 @@ class Kitchen extends StationTests.StepFixture:
 		o.binding = _binding; o.residents = _residents; o.pool = _pool; o.inventory = _inventory
 		o.profiles = _profiles; o.construction = _construction; o.items = _items; o.owner = _owner; o.budget = _budget
 		o.transforms = _transforms
+		o.locations = endpoints
 		return o
 
 	func crew_member() -> Builder.Crew:

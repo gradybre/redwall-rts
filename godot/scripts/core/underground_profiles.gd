@@ -78,6 +78,14 @@ const POLICY_ASSEMBLY_HANDLING: int = 7
 const POLICY_STAIR: int = 8
 ## ADR1229: the stepped half-turn on a tread; a separate policy so it never shares a key with a stair gait.
 const POLICY_STAIR_TURN: int = 9
+## Decision 1981: the rooted-travel family (the stair carry and the stair's floor end): source-proved fixed motions
+## read from stair tables, never automatic lookup. A rooted row may carry one unit (CARRY with a cargo) or walk empty.
+## Four words, so that two rooted rows at one heading never share a key: the forward handoffs (approach, retreat,
+## walk-off), the backward handoffs (back-up), the stair gaits and the half-turn.
+const POLICY_ROOTED_TRAVEL: int = 10
+const POLICY_ROOTED_BACKWARD: int = 11
+const POLICY_ROOTED_STAIR: int = 12
+const POLICY_ROOTED_TURN: int = 13
 # Field-major columns, not one record/object per profile.
 const F_SOURCE: int = 0
 const F_SPECIES: int = 1
@@ -430,7 +438,7 @@ func _validate_stage() -> StringName:
 
 func _profile_refusal(row: int, next_box: int) -> StringName:
 	"""Qualification is an explicit source certificate requirement, not inferred from positive bounds."""
-	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_STAIR_TURN \
+	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_ROOTED_TURN \
 			or _long(_stage, row, L_REVISION) <= 0:
 		return &"PROFILE_CERTIFICATE_REQUIRED"
 	if _field(_stage, row, F_SOURCE) < 0 or _field(_stage, row, F_SOURCE) >= _stage.header[3] \
@@ -439,12 +447,7 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 		return &"PROFILE_IDENTITY_FORMAT"
 	var mode: int = _field(_stage, row, F_MODE)
 	var policy: int = _stage.flags[_profile_capacity + row]
-	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
-			or _field(_stage, row, F_YAW) % 16384 != 0 \
-			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING else MODE_WALK)):
-		return &"PROFILE_POLICY_FORMAT"
-	if (policy == POLICY_STAIR or policy == POLICY_STAIR_TURN) and (_field(_stage, row, F_FAMILIES) == 0 or _field(_stage, row, F_TOOL) != -1 \
-			or _field(_stage, row, F_CARGO) != -1):
+	if _policy_refusal(row, policy, mode):
 		return &"PROFILE_POLICY_FORMAT"
 	var states: int = _field(_stage, row, F_STATES)
 	if mode < MODE_STAND or mode > MODE_CLIMB or states < 1 or states > 511 \
@@ -461,6 +464,32 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 			or next_box + count > _stage.header[2]:
 		return &"PROFILE_BOX_CENSUS"
 	return _roles_refusal(row, next_box, count)
+
+
+func _policy_refusal(row: int, policy: int, mode: int) -> bool:
+	"""An explicit policy fixes its yaw kind and mode; stair rows hold nothing; a rooted row carries exactly when CARRY."""
+	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
+			or _field(_stage, row, F_YAW) % 16384 != 0 or mode != _policy_mode(policy, mode)):
+		return true
+	if (policy == POLICY_STAIR or policy == POLICY_STAIR_TURN) and (_field(_stage, row, F_FAMILIES) == 0 or _field(_stage, row, F_TOOL) != -1 \
+			or _field(_stage, row, F_CARGO) != -1):
+		return true
+	return is_rooted_policy(policy) and (_field(_stage, row, F_TOOL) != -1 \
+		or (mode == MODE_CARRY) != (_field(_stage, row, F_CARGO) >= 0))
+
+
+static func _policy_mode(policy: int, mode: int) -> int:
+	"""The mode an explicit policy requires: WORK for source work and handling; a rooted row may also be CARRY."""
+	if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING:
+		return MODE_WORK
+	if is_rooted_policy(policy) and mode == MODE_CARRY:
+		return MODE_CARRY
+	return MODE_WALK
+
+
+static func is_rooted_policy(policy: int) -> bool:
+	"""Decision 1981: one of the four rooted-travel words (10-13)."""
+	return policy >= POLICY_ROOTED_TRAVEL and policy <= POLICY_ROOTED_TURN
 
 
 func _key_refusal(row: int) -> StringName:

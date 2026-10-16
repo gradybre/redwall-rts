@@ -15,6 +15,8 @@ extends Node3D
 ##   ROOM LINES    over each room's far (north) wall, clear of the pieces in it, its line in words
 ##                 (demo_build_rooms.gd: "✓ Kitchen ready", "! Kitchen: Needs 1 hearth").
 ## Tags are drawn over everything, outline under text, and kept off each other by demo_build_tags.gd (`shown_tags`).
+## ON THE SURFACE (decision 2002) the same for a Mound room's dug floor, which is the ground: drawn on the village's
+## layers, its tags at a constant size over the hill's cut top.
 ## Rebuilt only when the batch, the works, the furniture, the level or the cursor change. Presentation only.
 
 const Ghost := preload("res://demo/build_panel/demo_build_ghost.gd")
@@ -27,6 +29,10 @@ const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
 const Props := preload("res://demo/props/demo_props.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const MoundField := preload("res://demo/build_panel/demo_build_mound_field.gd")
+## A surface tag's size at a constant screen size (demo_build_dug.gd SURFACE_TAG_PIXEL).
+const SURFACE_TAG_PIXEL: float = 0.0006
 
 const LAYER: int = 256
 const UNITS_PER_M: float = 1024.0
@@ -72,7 +78,10 @@ var _meshes: Dictionary = {}
 var _wood: StandardMaterial3D = null
 var _stone: StandardMaterial3D = null
 var _seen: PackedInt64Array = PackedInt64Array()
-var _key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+var _key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+## Whether the rooms' lines are drawn (decision 2002: on the Surface only while the Furnish or Decor tab is open, so
+## they stand over a Mound's cut top only when furnishing; below, always).
+var lines_shown: bool = true
 ## Rebuilds since configure (checks: nothing is rebuilt on a still frame).
 var rebuilds: int = 0
 
@@ -114,7 +123,7 @@ func refresh(level: int, item: int, cursor: Vector2i, turn: int, fitting_row: in
 		return
 	rebuilds += 1
 	rooms.refresh(_works, _fittings, level)
-	var shown: bool = level >= 1 and level < _ghosts.size()
+	var shown: bool = level >= 0 and level < _ghosts.size()
 	var used: int = 0
 	if shown:
 		used = _draw_cursor(level, item, cursor, turn)
@@ -137,6 +146,7 @@ func _moved(level: int, item: int, cursor: Vector2i, turn: int, fitting_row: int
 	_key[6] = _batch.revision
 	_key[7] = _works.revision
 	_key[8] = _fittings.revision
+	_key[9] = 1 if lines_shown else 0
 	if _key == _seen:
 		return false
 	_seen = _key.duplicate()
@@ -199,8 +209,8 @@ func _ghost(level: int, at: int, cells: PackedInt32Array, kind: int, words: Stri
 	var pool: Array = _ghosts[level]
 	while pool.size() <= at:
 		var ghost: Ghost = Ghost.new()
-		var datum: Vector3i = Vector3i(_datum.x, _floors[level] - Earth.DEPTH_U, _datum.y)
-		if ghost.configure_ghost(datum, _bounds, LAYER, false) != &"":
+		var datum: Vector3i = Vector3i(_datum.x, floor_u(level), _datum.y)
+		if ghost.configure_ghost(datum, _bounds, marks_layer(level), false) != &"":
 			ghost.free()
 			return at
 		add_child(ghost)
@@ -229,9 +239,9 @@ func _place_pieces(level: int) -> void:
 			continue
 		if used == _pieces.size():
 			var node: MeshInstance3D = MeshInstance3D.new()
-			node.layers = LAYER
 			add_child(node)
 			_pieces.append(node)
+		_pieces[used].layers = LAYER if level >= 1 else Layers.SURFACE
 		var item: int = _fittings.item_of(row)
 		_pieces[used].mesh = mesh_of(item)
 		_pieces[used].transform = placed(row, level)
@@ -310,7 +320,7 @@ func placed(row: int, level: int) -> Transform3D:
 	model laid along the footprint's long side and shrunk (never grown) to stay inside it."""
 	var item: int = _fittings.item_of(row)
 	var turn: int = _fittings.turn_of(row)
-	var floor_m: float = _floors[level] / UNITS_PER_M - Earth.DEPTH_M
+	var floor_m: float = floor_u(level) / UNITS_PER_M
 	if _fittings.shapes.is_edge(item):
 		return _edge_placed(row, floor_m)
 	var size: Vector2i = _fittings.shapes.size_of(item, turn)
@@ -356,13 +366,13 @@ func _corner(cell: Vector2i, y: float) -> Vector3:
 func _place_tags(level: int, fitting_row: int) -> void:
 	"""The room lines, the fitting and waiting words, and the plain blocks' names, on the level shown."""
 	var used: int = 0
-	if level >= 1:
-		var top: float = _floors[level] / UNITS_PER_M
-		for room: int in rooms.count():
+	if level >= 0:
+		var top: float = _floors[level] / UNITS_PER_M if level >= 1 else MoundField.ROOM_TOP_M
+		for room: int in (rooms.count() if lines_shown else 0):
 			var box: Rect2i = rooms.box_of(room)
 			var north: Vector3 = _corner(Vector2i(box.position.x, box.position.y), top)
 			north.x += box.size.x / 2.0
-			used = _tag(used, rooms.line_of(room), north + Vector3(0.0, ROOM_TAG_M, 0.0))
+			used = _tag(used, rooms.line_of(room), north + Vector3(0.0, ROOM_TAG_M, 0.0), level)
 		used = _piece_tags(level, used, fitting_row)
 	for at: int in range(used, _tags.size()):
 		_tags[at].visible = false
@@ -378,14 +388,14 @@ func _piece_tags(level: int, used: int, fitting_row: int) -> int:
 			continue
 		var ordered: bool = _fittings.state_of(row) == Fittings.ORDERED
 		if row == fitting_row and ordered:
-			used = _tag(used, FITTING, _over(row, level))
+			used = _tag(used, FITTING, _over(row, level), level)
 		elif ordered:
 			waiting += 1
 			first = row if first < 0 else first
 		elif not staged(_fittings.item_of(row)):
-			used = _tag(used, Furniture.name_of(_fittings.item_of(row)), _over(row, level))
+			used = _tag(used, Furniture.name_of(_fittings.item_of(row)), _over(row, level), level)
 	if waiting > 0:
-		used = _tag(used, WAITING_ONE if waiting == 1 else WAITING % waiting, _over(first, level))
+		used = _tag(used, WAITING_ONE if waiting == 1 else WAITING % waiting, _over(first, level), level)
 	return used
 
 
@@ -395,12 +405,23 @@ func _over(row: int, level: int) -> Vector3:
 		_fittings.anchor_of(row))
 	var low: Vector2i = Vector2i(cells[0], cells[1])
 	var high: Vector2i = Vector2i(cells[cells.size() - 2], cells[cells.size() - 1]) + Vector2i.ONE
-	var y: float = _floors[level] / UNITS_PER_M - Earth.DEPTH_M + PIECE_TAG_M
+	var y: float = floor_u(level) / UNITS_PER_M + PIECE_TAG_M
 	return (_corner(low, y) + _corner(high, y)) / 2.0
 
 
-func _tag(used: int, words: String, at: Vector3) -> int:
-	"""Tag `used` (made when the pool is that short) shows `words` at `at`; returns the next free one."""
+func floor_u(level: int) -> int:
+	"""Where a piece stands on `level` (u): the dug pits' floor below the paint plane, or on the Surface the ground."""
+	return _floors[level] - (Earth.DEPTH_U if level >= 1 else 0)
+
+
+static func marks_layer(level: int) -> int:
+	"""The layer `level`'s ghosts and tags are drawn on: the dug view's, or the village's marks on the Surface."""
+	return LAYER if level >= 1 else Layers.SURFACE_MARKS
+
+
+func _tag(used: int, words: String, at: Vector3, level: int) -> int:
+	"""Tag `used` (made when the pool is that short) shows `words` at `at` on `level`'s layer (a constant size on the
+	Surface); returns the next free one."""
 	if used == _tags.size():
 		var tag: Label3D = Label3D.new()
 		tag.layers = LAYER
@@ -417,6 +438,9 @@ func _tag(used: int, words: String, at: Vector3) -> int:
 	label.text = words
 	label.offset = Vector2.ZERO
 	label.position = at
+	label.layers = marks_layer(level)
+	label.fixed_size = level < 1
+	label.pixel_size = SURFACE_TAG_PIXEL if level < 1 else TAG_PIXEL
 	label.visible = true
 	return used + 1
 

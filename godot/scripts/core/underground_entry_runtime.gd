@@ -262,7 +262,9 @@ func reserves_resident(resident_slot: int) -> bool:
 
 
 func _bind_dispatcher(o: RefCounted) -> StringName:
-	"""ADR1223: this runtime answers the JobSelector's dispatch questions from now on (a restore rebinds)."""
+	"""ADR1223: this runtime answers the JobSelector's dispatch questions from now on (a restore rebinds). Decision
+	1936: when the host's composite dispatcher is bound it already asks this runtime, so it is left in place."""
+	if preload("res://scripts/core/underground_dispatch.gd").bound_to(o.jobs): return &""
 	var bound: RefCounted = o.jobs.bind_dispatcher(owns_job, reserves_resident)
 	return &"" if bound.ok else bound.error
 

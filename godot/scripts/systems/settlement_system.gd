@@ -591,6 +591,8 @@ const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const UndergroundSession := preload("res://scripts/core/underground_session.gd")
 const UndergroundEntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
 const UndergroundRoomRuntime := preload("res://scripts/core/underground_room_runtime.gd")
+const UndergroundDispatch := preload("res://scripts/core/underground_dispatch.gd")
+const UndergroundRoomComposer := preload("res://scripts/core/underground_room_composer.gd")
 const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
@@ -922,6 +924,8 @@ var _underground_session: UndergroundSession = null
 var _underground_entry: UndergroundEntryRuntime = null
 ## Decision 1933 (C2.1): the room digs. Adopted by C2.3's composer (and by tests); null in the game until then.
 var _underground_rooms: UndergroundRoomRuntime = null
+## Decision 1936 (review H4): Jobs' one dispatcher for the mounted underground, asking the entry and the room runtime.
+var _underground_dispatch: UndergroundDispatch = null
 ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
 var _underground_reset_phase: int = 0 # 0 idle, 1 preparing, 2 prepared, 3 clearing.
 ## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
@@ -1868,6 +1872,7 @@ func mount_underground(content: UndergroundContent) -> bool:
 	_underground_session = UndergroundSession.new()
 	_underground_entry = null
 	_underground_rooms = null
+	_underground_dispatch = null
 	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
 		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
 		_transforms, _gear, _haul_carry, _ground_piles, content)
@@ -1875,8 +1880,17 @@ func mount_underground(content: UndergroundContent) -> bool:
 		_underground_session = null
 		_underground_entry = null
 		return _refuse(code)
+	_bind_underground_dispatch()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _bind_underground_dispatch() -> void:
+	"""Decision 1936: one composite dispatcher for the mounted underground, bound to Jobs before either runtime plans
+	(a runtime that binds itself later defers to it). It reads the host's current runtimes, so it outlives both."""
+	_underground_dispatch = UndergroundDispatch.new()
+	_underground_dispatch.configure(underground_entry, underground_rooms)
+	_underground_dispatch.bind(_jobs)
 
 
 func compose_underground_room_owners() -> bool:
@@ -1890,6 +1904,7 @@ func compose_underground_room_owners() -> bool:
 	if code != &"" and starting and original._operations_prefix > 0:
 		original._operations_state = 3
 	if code != &"": return _refuse(code)
+	if _underground_rooms == null: _underground_rooms = UndergroundRoomRuntime.new(_residents.directory())
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -1978,6 +1993,20 @@ func adopt_underground_rooms(runtime: UndergroundRoomRuntime) -> bool:
 	return true
 
 
+func restore_underground_rooms(record: PackedByteArray) -> StringName:
+	"""Decision 1936: a load's last step after the entry's. The composed room runtime (empty, its owners bound when
+	the entry owners were composed again) is rebuilt from its saved record, then its contacts are bound again. A
+	refusal leaves it empty."""
+	if _underground_mutations_stopped() or _underground_session == null or _underground_rooms == null \
+			or not _underground_rooms.is_empty():
+		return &"UNDERGROUND_ROOMS_RESTORE_TARGET"
+	var code: StringName = _underground_rooms.restore(record)
+	if code == &"":
+		code = UndergroundRoomComposer.rebind(_underground_rooms, _underground_session._retirement_owners.placements)
+		if code != &"": _underground_rooms._drop_restored()
+	return code
+
+
 func underground_entry() -> UndergroundEntryRuntime:
 	"""Borrow the entry runtime for status and alerts; null before the first request."""
 	return _underground_entry
@@ -2008,6 +2037,23 @@ func compose_underground_entry_owners() -> bool:
 	if starting and (final_code != &"" or (code != &"" and original._operations_prefix >= 10)):
 		original._operations_state = 3
 	if code != &"": return _refuse(code)
+	if _underground_rooms != null and _underground_rooms.bound_owners() == null:
+		_underground_rooms.bind_owners(UndergroundRoomComposer.owners_of(original._retirement_owners))
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func order_underground_room(request: UndergroundRoomComposer.Order) -> bool:
+	"""Decision 1936: dig one confirmed underground room (C3's order route calls this; nothing in the game does yet).
+	A refusal is an explicit alert."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	var code: StringName = _mounted_underground_refusal(_underground_session)
+	if code == &"" and _underground_rooms == null: code = UndergroundRoomComposer.REFUSE_SCOPE
+	if code == &"":
+		code = UndergroundRoomComposer.order(_underground_rooms, _underground_session._retirement_owners.placements, request)
+	if code != &"":
+		_alert_underground_room(code)
+		return _refuse(code)
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -2110,6 +2156,7 @@ func _release_underground_after_clear() -> bool:
 	_underground_session = null
 	_underground_entry = null
 	_underground_rooms = null
+	_underground_dispatch = null
 	return true
 
 

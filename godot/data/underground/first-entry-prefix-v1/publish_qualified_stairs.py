@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Create-only T1-T6 successor of the claw first-entry bundle (`qualified-claw-v6`), bound to content 10 (ADR 1229).
+"""Create-only T1-T6 successor of the claw first-entry bundle (`qualified-claw-v6`), bound to content 12 (ADR 1229,
+decision 1972).
+
+Decision 1972 (`qualified-stairs-v10`, Frontier revision 9): v9 on content 12 (`qualified-stair-carry-v13`, which
+carries content 10's rows 0-66 byte for byte), with the stair's floor end and the stair carry (decision 1981):
+- every stair timing is a milli-u/s row (RATE_AUTHORED_MILLI, P-1972-6 "Keep 90 ticks"), derived as
+  ceil(length x 30,000 / ticks) from DEC-050's ticks: 30 a tread, 45 a half-turn, 90 a three-step handoff. v9's
+  rows 53-55 are the same ticks (528,000 and 116,000 milli-u/s); rows 71-84 follow them;
+- two more LANDINGs, the sill's top (T6) and the floor, so the sill's and the floor's stops can stand;
+- six more stops, appended after v9's: H on L0 (343 u before A), A and U on T6, and on the floor F (its arrival A),
+  its ascent start U and F' (343 u behind F); each names a claw stair row as its travel row (the Frontier binds
+  source 4), and each stands when the sill is installed (H when T0 is).
 
 ADR 1209's descent past T0 (D1 the sill, D2 the seventh row, D3 T0's bill per tread), fitted by paw (DEC-060), on
 content 10's rows. Nothing is chosen: every number below is read from a pinned input or derived by ADR 1209's
@@ -46,19 +57,19 @@ import sys
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 OLD = HERE / "qualified-claw-v6"
-OUTPUT = HERE / "qualified-stairs-v9"
-RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/"
-RUNTIME = ROOT / "godot/data/underground/mole-worker/qualified-claw-stairs-v11"
+OUTPUT = HERE / "qualified-stairs-v10"
+RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/"
+RUNTIME = ROOT / "godot/data/underground/mole-worker/qualified-stair-carry-v13"
 SPEC = ROOT / "docs/design/underground-planning/first-entry-prefix-v1.json"
 SPEC_SHA = "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
 OLD_SHA = {
     "structure.ugconn": "e13ce51dbf394c825fbd7a240ef2568dc9ea4ec5df58b7fa19e02794a72a89e6",
     "frontier.ugfront": "0d81d4f439912f737a5848d29cbfce4ad612da30b85f2d7fe38b5c23e0e8dfc7",
 }
-PROFILE_SHA = "9791eb59b778cf9fe0b4c66dfd7181c58706abd6ed1a8e6a90a73daafa7f3317"
-GROUND_SHA = "e155bf5dfbbde5ddda7702b510d8e299ad8516154c69e024efb1a77f591bc081"
-CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 10, 8, 4, 5
-TREADS, SILL = 6, 6
+PROFILE_SHA = "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202"
+GROUND_SHA = "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c"
+CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 12, 9, 4, 5
+TREADS, SILL, FLOOR = 6, 6, 7
 RISE, RUN, L0_FAR, T0_FAR = 128, 512, -2048, -2560
 ARRIVAL, STATION, ASCENT_START = 169, 310, 343
 CLAW_X = 1430  # DEC-052 follow-up 1 (Brendan, ADR 1217 step 1)
@@ -67,9 +78,28 @@ TAP, DIG_RIGHT, DIG_LEFT, WALK, APPROACH, RETREAT = 57, 58, 62, 42, 43, 47
 APPROACH_UP, STEP_BACK, DESCENT, ASCENT, TURN, TREAD_TAP, HANDLING, TREAD_HANDLING = 45, 51, 53, 54, 55, 64, 65, 66
 OLD_PROFILE = {52: TAP, 53: DIG_RIGHT, 57: DIG_LEFT}
 OLD_TRAVEL = {43: APPROACH, 47: RETREAT, 42: WALK}
-# DEC-050: one second a tread, a second and a half a half-turn; the edge lengths are Routes' exact ceil lengths.
-TREAD_EDGE_U, TURN_EDGE_U = 528, 174
-STAIR_PACES = ((DESCENT, TREAD_EDGE_U), (ASCENT, TREAD_EDGE_U), (TURN, TURN_EDGE_U * 2 // 3))
+# DEC-050: one second a tread, a second and a half a half-turn, three seconds a three-step handoff (P-1981-3); the
+# edge lengths are Routes' exact ceil lengths. Decision 1972: each rate is ceil(length x 30,000 / ticks) milli-u/s.
+TREAD_EDGE_U, TURN_EDGE_U, HANDOFF_EDGE_U, RETREAT_EDGE_U = 528, 174, 343, 169
+TREAD_TICKS, TURN_TICKS, HANDOFF_TICKS = 30, 45, 90
+RATE_AUTHORED_MILLI = 2
+# Content 12's rooted rows (qualified-stair-carry-v13/catalog_source.gd): the empty walk-off and back-up, then per
+# item the approach, descent, ascent, half-turn, retreat and back-up.
+EMPTY_WALK_OFF, EMPTY_BACK_UP, WOOD_FIRST, STONE_FIRST = 71, 72, 73, 79
+CARRY_SPANS = ((HANDOFF_EDGE_U, HANDOFF_TICKS), (TREAD_EDGE_U, TREAD_TICKS), (TREAD_EDGE_U, TREAD_TICKS),
+               (TURN_EDGE_U, TURN_TICKS), (RETREAT_EDGE_U, HANDOFF_TICKS), (HANDOFF_EDGE_U, HANDOFF_TICKS))
+
+
+def milli_rate(length: int, ticks: int) -> int:
+    """The slowest milli-u/s pace that crosses `length` u in exactly `ticks` ticks: ceil(length x 30,000 / ticks)."""
+    return -(-length * 30000 // ticks)
+
+
+STAIR_PACES = ((DESCENT, milli_rate(TREAD_EDGE_U, TREAD_TICKS)), (ASCENT, milli_rate(TREAD_EDGE_U, TREAD_TICKS)),
+               (TURN, milli_rate(TURN_EDGE_U, TURN_TICKS)),
+               (EMPTY_WALK_OFF, milli_rate(HANDOFF_EDGE_U, HANDOFF_TICKS)),
+               (EMPTY_BACK_UP, milli_rate(HANDOFF_EDGE_U, HANDOFF_TICKS))) + tuple(
+    (first + index, milli_rate(*span)) for first in (WOOD_FIRST, STONE_FIRST) for index, span in enumerate(CARRY_SPANS))
 MOVEMENT = 1  # the adult mole's Movement profile, as every ground cap of content 10 names it
 # D3: T0's bill per tread (1,000 milli wood); DEC-059 (P3): T1-T6's fastening 12,000 x 0.47 = 5,640 mWU.
 WOOD_MILLI, BUILD_MWU = 1000, 5640
@@ -157,11 +187,12 @@ def natural_bearings(spec: dict, parts: list) -> list:
 
 
 def landings() -> list:
-    """LANDING metadata of L0 and T0..T5: each deck's top face."""
+    """LANDING metadata of L0 and T0..T5: each deck's top face; decision 1972 appends the sill's (T6) and the floor's,
+    from the seventh row's end wall (z -7168) to the sill."""
     out = [[-1024, 0, L0_FAR, 1024, 1, 0]]
-    for level in range(TREADS):
+    for level in range(TREADS + 1):
         out.append([-1024, top(level), far(level), 1024, top(level) + 1, far(level) + RUN])
-    return out
+    return out + [[-1024, top(FLOOR), -7168, 1024, top(FLOOR) + 1, far(SILL)]]
 
 
 def ground_rows(ground: bytes) -> list:
@@ -183,7 +214,8 @@ def structure(spec: dict, old: bytes, ground: bytes, profile: bytes) -> tuple:
     regions += [old_regions[3]] + [b + [SUPPORT_REQUIRED, 0] for b in bearings] + [b + [SOLID, 0] for b in parts]
     require(old_regions[3][6] == OPENING and regions[1][:6] == old_regions[1][:6]
             and regions[2][:6] == old_regions[2][:6], "OLD_REGIONS")
-    paces = ground_rows(ground) + [words([row, 0, 0, MOVEMENT, 1, rate, 1], 1) for row, rate in STAIR_PACES]
+    paces = ground_rows(ground) + [words([row, 0, 0, MOVEMENT, 1, rate, RATE_AUTHORED_MILLI], 1)
+                                   for row, rate in STAIR_PACES]
     out = b"UGCONN01" + struct.pack("<Iq7I3q", 1, 1, 1, 2, len(regions), len(parts), 4 * len(parts), 1, len(paces),
                                     CONTENT, 1, CLAW_SOURCE)
     out += profile[32 + 32 * CLAW_SOURCE:64 + 32 * CLAW_SOURCE] + old[104:136]
@@ -286,7 +318,19 @@ def stair_endpoints() -> list:
         out += [[INSTALLED_CONTACT, level + 1, landing, ROLE_TRANSIT] + stop(level, ARRIVAL) + [DESCENT],
                 [INSTALLED_CONTACT, level + 1, landing, ROLE_WORK] + stop(level, STATION) + [STEP_BACK],
                 [INSTALLED_CONTACT, level + 1, landing, ROLE_TRANSIT] + stop(level, ASCENT_START) + [ASCENT]]
-    return out
+    return out + floor_endpoints()
+
+
+def floor_endpoints() -> list:
+    """Decision 1972, appended so v9's stop indices stay: H on L0 (T0's), then the sill's A and U and the floor's F, U
+    and F' (all the sill's, assembly 7, on the two new LANDINGs 8 and 9)."""
+    sill, floor_landing, sill_landing = TREADS + 1, 2 + TREADS + 1, 2 + TREADS
+    return [[INSTALLED_CONTACT, 1, 1, ROLE_TRANSIT] + stop(-1, ARRIVAL + HANDOFF_EDGE_U) + [DESCENT],
+            [INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ARRIVAL) + [DESCENT],
+            [INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ASCENT_START) + [ASCENT],
+            [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ARRIVAL) + [DESCENT],
+            [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ASCENT_START) + [ASCENT],
+            [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ARRIVAL - HANDOFF_EDGE_U) + [DESCENT]]
 
 
 def cube_cuts() -> list:
@@ -369,7 +413,7 @@ def tread_installs(station_first: int, first_bearing: int, way_back: int) -> lis
 
 
 def serialize_frontier(tables: list, catalog: bytes, group: bytes, recipe: bytes, profile: bytes) -> bytes:
-    """UGFRNT01 with content 10 on source 4."""
+    """UGFRNT01 with the bound content on source 4."""
     counts = [len(t) for t in tables]
     out = b"UGFRNT01" + struct.pack("<I6q2i6I", 1, FRONTIER_REVISION, 1, 1, 1, 1, CONTENT, 0, CLAW_SOURCE, *counts)
     out += sha(catalog) + sha(group) + sha(recipe) + profile[32 + 32 * CLAW_SOURCE:64 + 32 * CLAW_SOURCE]
@@ -415,7 +459,7 @@ def build() -> dict:
 
 def accessor(files: dict, linked: dict, profile: bytes) -> bytes:
     """ADR 1190's accessor shape (claw-v6's), for this bundle."""
-    lines = ["extends RefCounted", "## Generated by publish_qualified_stairs.py (ADR 1229). Do not edit.", ""]
+    lines = ["extends RefCounted", "## Generated by publish_qualified_stairs.py (ADR 1229, decision 1972). Do not edit.", ""]
     names = (("CATALOG", "structure.ugconn"), ("GROUPING", "assemblies.ugasmb"), ("RECIPE", "recipes.ugrecp"),
              ("FRONTIER", "frontier.ugfront"), ("WORKPIECES", "workpieces.ugwipc"), ("GROUND", "ground-pace.ugconn"),
              ("PROFILE", "mole-worker.ugprof"))
@@ -436,10 +480,11 @@ def accessor(files: dict, linked: dict, profile: bytes) -> bytes:
 
 def manifest(files: dict, linked: dict) -> dict:
     """What was derived, from what."""
-    return {"schema": 1, "decision": ["1229", "1209", "DEC-060", "DEC-059"], "predecessor": "qualified-claw-v6 (ADR 1217 step 4e)",
+    return {"schema": 1, "decision": ["1972", "1981", "1229", "1209", "DEC-060", "DEC-059", "DEC-050"],
+            "predecessor": "qualified-stairs-v9 (DEC-059); qualified-claw-v6 (ADR 1217 step 4e)",
             "content_revision": CONTENT, "frontier_revision": FRONTIER_REVISION, "frontier_source": CLAW_SOURCE,
             "workpieces_source": PAW_SOURCE, "assemblies": 8, "parts": 52,
-            "stair_paces_u_per_s": {str(row): rate for row, rate in STAIR_PACES},
+            "stair_paces_milli_u_per_s": {str(row): rate for row, rate in STAIR_PACES},
             "entry_source_constants": linked,
             "files": {name: sha(raw).hex() for name, raw in files.items() if name not in ("manifest.json",)},
             "inputs": {str(SPEC.relative_to(ROOT)): SPEC_SHA,

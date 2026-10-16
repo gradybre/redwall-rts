@@ -1600,7 +1600,7 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 
 static func _stair_stop(profiles: Profiles, profile: int) -> bool:
 	"""ADR1229: a stop of content 10's source-proved stair and tread rows (steps, descent, ascent, half-turn, the tread
-	fitting tap). Their bounding boxes enclose whole motions over two decks or reach among the tread fixture's timber,
+	fitting tap), and decision 1972: of content 12's rooted rows (the stair carry and the stair's floor end). Their bounding boxes enclose whole motions over two decks or reach among the tread fixture's timber,
 	so they size no stop; each motion is proved per edge and per station against its installed fixture."""
 	return Routes.Stair.owns(profiles, profile) \
 		or (profile == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW and Routes.Claw2.owns(profiles, profile))
@@ -1609,11 +1609,12 @@ static func _stair_stop(profiles: Profiles, profile: int) -> bool:
 func _stair_stop_bounds(profiles: Profiles, profile: int) -> StringName:
 	"""ADR1229: the stop's footing is the claw READY stance of the tread fitting row (row 64's STANCE box: the tread
 	station's footing, 169 u ahead and 175 u behind the root), turned to face up the stair for an ascent stop; its own
-	air is that footing's column one unit high. The motions leaving it carry their own proofs."""
+	air is that footing's column one unit high. The motions leaving it carry their own proofs. Decision 1972: any stair
+	row facing up the stair (yaw 32768: the ascents and the rooted retreats) turns the footing."""
 	var tap: int = Routes.Stair.Pins.CLAW_TREAD_TAP_ROW
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + tap]
 	var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + tap]
-	var up: bool = profile == Routes.Stair.Pins.CLAW_ASCENT_ROW
+	var up: bool = Routes.Stair.owns(profiles, profile) and Routes.Stair.yaw_of(profile) == 32768
 	var point: Vector3i = _entry_contact.point
 	for box: int in range(first, first + count):
 		if not _entry_spend(24): return REFUSE_MASK_BUDGET

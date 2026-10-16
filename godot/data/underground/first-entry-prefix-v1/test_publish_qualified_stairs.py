@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for the create-only T1-T6 bundle (ADR 1229 increment 5).
+"""Tests for the create-only T1-T6 bundle (ADR 1229 increment 5; v10, decision 1972).
 
     python3 godot/data/underground/first-entry-prefix-v1/test_publish_qualified_stairs.py -v
 """
@@ -25,13 +25,42 @@ class QualifiedStairsBundle(unittest.TestCase):
             self.assertEqual((PUB.OUTPUT / name).read_bytes(), raw, name)
 
     def test_structure_appends_the_dec050_stair_paces_to_the_ground_caps(self) -> None:
-        """Content 10 on source 4; 26 ground caps, then descent/ascent at 528 u/s and the half-turn at 116 u/s."""
+        """Decision 1972: content 12 on source 4; 26 ground caps, then every stair timing in milli-u/s: v9's rows 53-55
+        at the same ticks (528,000 and 116,000), then rows 71-84."""
         structure = self.built["structure.ugconn"]
         ground = self.built["ground-pace.ugconn"]
         self.assertEqual(structure[48:136], ground[48:136])
-        self.assertEqual(struct.unpack_from("<3q", structure, 48), (10, 1, 4))
-        rows = [struct.unpack_from("<7iq", structure, len(structure) - 8 - 36 * (3 - r)) for r in range(3)]
-        self.assertEqual([(row[0], row[5], row[6]) for row in rows], [(53, 528, 1), (54, 528, 1), (55, 116, 1)])
+        self.assertEqual(struct.unpack_from("<3q", structure, 48), (12, 1, 4))
+        count = len(PUB.STAIR_PACES)
+        rows = [struct.unpack_from("<7iq", structure, len(structure) - 8 - 36 * (count - r)) for r in range(count)]
+        self.assertEqual([(row[0], row[5], row[6]) for row in rows[:3]],
+                         [(53, 528000, 2), (54, 528000, 2), (55, 116000, 2)])
+        self.assertEqual([row[0] for row in rows], [53, 54, 55] + list(range(71, 85)))
+        self.assertTrue(all(row[6] == PUB.RATE_AUTHORED_MILLI for row in rows))
+
+    def test_every_stair_timing_lands_on_dec050_ticks(self) -> None:
+        """ceil(length x 30,000 / rate) is 30 a tread, 45 a half-turn and 90 a handoff, the 169 u retreat included,
+        and each rate is the slowest that does (one milli-u/s less takes a tick more)."""
+        lengths = {53: 528, 54: 528, 55: 174, 71: 343, 72: 343}
+        for first in (73, 79):
+            lengths.update(dict(zip(range(first, first + 6), (343, 528, 528, 174, 169, 343))))
+        ticks = {528: 30, 174: 45, 343: 90, 169: 90}
+        for row, rate in PUB.STAIR_PACES:
+            length = lengths[row]
+            self.assertEqual(-(-length * 30000 // rate), ticks[length], row)
+            self.assertEqual(-(-length * 30000 // (rate - 1)), ticks[length] + 1, row)
+        self.assertEqual(dict(PUB.STAIR_PACES)[77], 56334)
+
+    def test_floor_stops_are_appended_after_v9s(self) -> None:
+        """Decision 1972: H, the sill's A and U, and the floor's F, U and F' follow v9's 44 stops, on the new LANDINGs."""
+        stops = PUB.stair_endpoints()
+        self.assertEqual(len(stops), 4 + 18 + 6)
+        self.assertEqual([s[1:3] + s[4:8] for s in stops[-6:]],
+                         [[1, 1, 0, 0, -1536, 53], [7, 8, 0, -896, -5463, 53], [7, 8, 0, -896, -5289, 54],
+                          [7, 9, 0, -1024, -5975, 53], [7, 9, 0, -1024, -5801, 54], [7, 9, 0, -1024, -6318, 53]])
+        landings = PUB.landings()
+        self.assertEqual(landings[7], [-1024, -896, -5632, 1024, -895, -5120])
+        self.assertEqual(landings[8], [-1024, -1024, -7168, 1024, -1023, -5632])
 
     def test_ground_caps_carry_the_v2_claw_digest(self) -> None:
         """Only the header digest changes from the published content-10 caps; every row is theirs."""

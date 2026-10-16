@@ -88,13 +88,14 @@ func _readers() -> void:
 
 
 func test_structure_carries_the_flight_and_the_stair_paces() -> void:
-	"""Content 10 on source 4; 52 parts in eight assemblies; content 10's ground caps and DEC-050's three stair rows."""
+	"""Content 10 on source 4; 52 parts in eight assemblies; content 10's ground caps and DEC-050's three stair rows.
+	Decision 1972: their u/s rates (528, 528, 116) are reported as stair timings in milli-u/s, with the same ticks."""
 	_readers()
 	assert_equal([_catalog._live.header[8], _catalog._live.header[10], _catalog._live.header[7]], [10, 4, 29],
 		"content, source, paces")
 	var pace: Catalog.IntMath.IntResult = Catalog.IntMath.IntResult.new()
-	for row: Vector2i in [Vector2i(Pins.CLAW_DESCENT_ROW, 528), Vector2i(Pins.CLAW_ASCENT_ROW, 528),
-			Vector2i(Pins.CLAW_TURN_ROW, 116)]:
+	for row: Vector2i in [Vector2i(Pins.CLAW_DESCENT_ROW, 528000), Vector2i(Pins.CLAW_ASCENT_ROW, 528000),
+			Vector2i(Pins.CLAW_TURN_ROW, 116000)]:
 		assert_equal(_catalog.pace_into(row.x, 1, 10, 0, 0, 1, pace), &"", "authored pace %d" % row.x)
 		assert_equal(pace.value, row.y, "DEC-050 rate of row %d" % row.x)
 	assert_equal(_assemblies._header[5], 8, "L0, T0..T6")

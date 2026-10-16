@@ -20,10 +20,15 @@ const PawPhysical10 := preload("res://data/underground/mole-worker/qualified-cla
 const PICK_INSTALL: int = 16
 
 
+static func _v2(content: int) -> bool:
+	"""Content 10's paw programs serve content 10 and its successor 12 (decision 1972)."""
+	return Paw10.Claw.serves(content)
+
+
 static func is_handling(profile: int, content: int) -> bool:
-	"""The published handling rows: pick 29 (dormant); paw 59 in content 9, paw 65 and 66 in content 10."""
+	"""The published handling rows: pick 29 (dormant); paw 59 in content 9, paw 65 and 66 in contents 10 and 12."""
 	if profile == Pick.PROFILE: return true
-	if content == Paw10.CONTENT: return Paw10.owns(profile)
+	if _v2(content): return Paw10.owns(profile)
 	return profile == Paw.PROFILE
 
 
@@ -31,44 +36,44 @@ static func is_install_tap(profile: int, content: int) -> bool:
 	"""The yaw-0 INSTALL rows whose canonical READY is the handled READY: pick 16; claw tap 52 in content 9; claw tap
 	57 and the tread fitting tap 64 in content 10."""
 	if profile == PICK_INSTALL: return true
-	if content == Paw10.CONTENT: return PawPhysical10.is_tap(profile)
+	if _v2(content): return PawPhysical10.is_tap(profile)
 	return profile == PawPhysical.TAP
 
 
 static func _paw10(profile: int, content: int) -> bool:
 	"""Content 10's paw program owns its handling rows and the taps it hands over to."""
-	return content == Paw10.CONTENT and (Paw10.owns(profile) or PawPhysical10.is_tap(profile))
+	return _v2(content) and (Paw10.owns(profile) or PawPhysical10.is_tap(profile))
 
 
 static func _paw(profile: int, content: int) -> bool:
 	"""Content 9's paw program owns its handling row and the claw tap it hands over to."""
-	return content != Paw10.CONTENT and (profile == Paw.PROFILE or profile == PawPhysical.TAP)
+	return not _v2(content) and (profile == Paw.PROFILE or profile == PawPhysical.TAP)
 
 
 static func profile_refusal(profiles: Profiles, profile: int, revision: int, content: int) -> StringName:
 	"""The handling row's own complete certificate."""
-	if content == Paw10.CONTENT and Paw10.owns(profile): return Paw10.profile_refusal(profiles, profile, revision, content)
-	if profile == Paw.PROFILE and content != Paw10.CONTENT: return Paw.profile_refusal(profiles, profile, revision, content)
+	if _v2(content) and Paw10.owns(profile): return Paw10.profile_refusal(profiles, profile, revision, content)
+	if profile == Paw.PROFILE and not _v2(content): return Paw.profile_refusal(profiles, profile, revision, content)
 	return Pick.profile_refusal(profiles, profile, revision, content)
 
 
 static func clock_refusal(source_word: int, source_clock: int, profile: int, content: int) -> StringName:
 	"""The handling clock of the row's program."""
-	if content == Paw10.CONTENT and Paw10.owns(profile): return Paw10.clock_refusal(source_word, source_clock, profile)
-	if profile == Paw.PROFILE and content != Paw10.CONTENT: return Paw.clock_refusal(source_word, source_clock, profile)
+	if _v2(content) and Paw10.owns(profile): return Paw10.clock_refusal(source_word, source_clock, profile)
+	if profile == Paw.PROFILE and not _v2(content): return Paw.clock_refusal(source_word, source_clock, profile)
 	return Pick.clock_refusal(source_word, source_clock, profile)
 
 
 static func source_of(profile: int, content: int) -> int:
 	"""The handling row's profile source."""
-	if content == Paw10.CONTENT and Paw10.owns(profile): return Paw10.SOURCE
-	return Paw.SOURCE if profile == Paw.PROFILE and content != Paw10.CONTENT else Pick.SOURCE
+	if _v2(content) and Paw10.owns(profile): return Paw10.SOURCE
+	return Paw.SOURCE if profile == Paw.PROFILE and not _v2(content) else Pick.SOURCE
 
 
 static func role_count(profile: int, content: int) -> int:
 	"""The handling row's published box count."""
-	if content == Paw10.CONTENT and Paw10.owns(profile): return Paw10.ROLE_COUNT
-	return Paw.ROLE_COUNT if profile == Paw.PROFILE and content != Paw10.CONTENT else Pick.ROLE_COUNT
+	if _v2(content) and Paw10.owns(profile): return Paw10.ROLE_COUNT
+	return Paw.ROLE_COUNT if profile == Paw.PROFILE and not _v2(content) else Pick.ROLE_COUNT
 
 
 static func part_count(profile: int, content: int) -> int:
@@ -112,20 +117,20 @@ static func occupant_refusal(bindings: RefCounted, mine: Profiles.Selection, oth
 
 static func source_station(pieces: RefCounted, placement: Vector2i, selection: Profiles.Selection) -> StringName:
 	"""The canonical handling root and part transform: L0/T0's (both programs), or content 10's tread stations."""
-	if selection != null and selection.content_revision == Paw10.CONTENT:
+	if selection != null and _v2(selection.content_revision):
 		return PawPhysical10._source_station(pieces, placement, selection)
 	return PickPhysical._source_station(pieces, placement, selection)
 
 
 static func bearer_refusal(assembly: int, point: Vector3i, bounds: PackedInt32Array, content: int) -> StringName:
 	"""The full relative bearer prism at the stationary root: L0/T0's, or content 10's derived tread bearers."""
-	if content == Paw10.CONTENT: return PawPhysical10.bearer_refusal(assembly, point, bounds)
+	if _v2(content): return PawPhysical10.bearer_refusal(assembly, point, bounds)
 	return Pick.bearer_refusal(assembly, point, bounds)
 
 
 static func part_refusal(assembly: int, part: int, turn: int, translation: Vector3i, content: int) -> StringName:
 	"""The included bearer transforms: L0/T0's, or content 10's derived tread bearers."""
-	if content == Paw10.CONTENT: return PawPhysical10.part_refusal(assembly, part, turn, translation)
+	if _v2(content): return PawPhysical10.part_refusal(assembly, part, turn, translation)
 	return Pick.part_refusal(assembly, part, turn, translation)
 
 
@@ -141,7 +146,7 @@ static func tap_certified(profiles: Profiles, profile: int, revision: int, conte
 	"""The claw seating tap 52 (content 9) at the exact canonical root of the L0 or T0 bearer: its entry, work and
 	recovery were proved clear of both whole bearer prisms by triangles (ADR 1217 step 2, `paw-seat-v1/candidate-a`).
 	Content 10: the same tap as row 57, and the tread fitting tap 64 at a tread station (DEC-060, tread-fit-v1)."""
-	if content == Paw10.CONTENT: return PawPhysical10.tap_certified(profiles, profile, revision, assembly, root, bearer)
+	if _v2(content): return PawPhysical10.tap_certified(profiles, profile, revision, assembly, root, bearer)
 	return profile == PawPhysical.TAP and revision == 1 and content == ClawEndpoint.CONTENT \
 		and ClawEndpoint._source_row_refusal(profiles, profile, content) == &"" \
 		and Pick.bearer_refusal(assembly, root, bearer) == &""

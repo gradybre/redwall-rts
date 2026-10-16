@@ -32,7 +32,7 @@ const Workpieces := preload("res://scripts/core/underground_connector_workpieces
 ## ADR1217 step 5: the handling program is the row Workpieces names (pick 29 dormant, paw 59 active).
 const Handling := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/handling_programs.gd")
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd") # ADR1229: the stair stops.
-const StairPins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ADR1212: +256 for the ADR1215 air shape in its two retained Location records (fixed 3,219 + 1,024 helper).
 const CONTROL_BYTES: int = 4352
@@ -1016,7 +1016,7 @@ func _install_contact_kind(kind: int) -> bool:
 
 func _tread_station() -> bool:
 	"""ADR1229: content 10's T1-T6 orders stand at a tread station on the tread above."""
-	return not _phase_mode and _frontier._header[5] == Handling.Paw10.CONTENT \
+	return not _phase_mode and Handling.Paw10.Claw.serves(_frontier._header[5]) \
 		and Handling.PawPhysical10.Tread.is_tread(_ordinal)
 
 
@@ -2033,7 +2033,7 @@ func _assembly_start_regions(foot: bool) -> StringName:
 func _tread_timber(owner: Owner, region: int) -> bool:
 	"""ADR 1229: at a tread station (content 10, T1-T6) the body may meet the station Room's own installed SUPPORT,
 	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body."""
-	return _frontier._header[5] == Handling.Paw10.CONTENT and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
+	return Handling.Paw10.Claw.serves(_frontier._header[5]) and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
 		and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
 		and Vector2i(owner._r_owner_slot[region], owner._r_owner_generation[region]) == _location.room
 

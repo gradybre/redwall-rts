@@ -253,7 +253,7 @@ func handling_frame_into(routes: Routes, worker: Vector2i, job: Vector2i, out: D
 		_actor.content_revision, _state)
 	if code == &"":
 		code = PawClock.source_into(_state[0], _state[1], _clock) if paw else Clock.source_into(_state[0], _state[1], _clock)
-	if code == &"" and paw and _actor.content_revision == Paw10.CONTENT:
+	if code == &"" and paw and Paw10.Claw.serves(_actor.content_revision):
 		_clock[0] = Paw10.clip_of(_actor.profile_id, _state[0])
 	if code == &"":
 		code = _sources.content(source).clip_into(_clock[0], _clock[1], _pose)

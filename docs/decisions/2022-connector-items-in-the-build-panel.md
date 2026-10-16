@@ -77,6 +77,9 @@ marked", P-D1-6 "Real check now", P-D1-11 "All three types"):
   when the ways change); a resident on a run counts at its way's landing. Declined: caching each way's judgement
   per revision (a few pending ways, judged on a change, not a frame); the "shaft of hatches" test fakes a Passage
   under a landing, which the demo never reports (a landing is no Passage, P-D1-5), and stays as the batch's rule.
+  Re-review of the delta: all five fixed; one new HIGH, N1 (with a removal pending, a new way could not come down on
+  the removed one's dug landing), fixed: a way's own landing and run read the host's raw ground. Also: a refused
+  Confirm all moves the revision so the row shows its new "X"; choosing the Stair-head resets a turn it cannot take.
 
 ## PROPOSALS for Brendan
 

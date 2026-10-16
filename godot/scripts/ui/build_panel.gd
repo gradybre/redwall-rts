@@ -641,6 +641,8 @@ func choose_card(index: int) -> void:
 	if card.usable() and card.kind != BuildCatalog.CARD_TOOL:
 		cancel_pin()
 		_chosen = card
+		if card.kind == BuildCatalog.CARD_WAY_DOWN and not Families.turn_refusal(card.item_type, _way_turn).is_empty():
+			_way_turn = 0
 		if card.kind == BuildCatalog.CARD_ROOM:
 			_furnish_type = card.room_type
 	_shown = card

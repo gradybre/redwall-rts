@@ -380,3 +380,13 @@ func test_a_new_runs_cells_may_not_pass_under_a_way_standing_below() -> void:
 	_batch.place_item(1, Vector2i(10, 15), HATCH, 0)
 	assert_equal(_batch.judge_item(0, Vector2i(10, 10), -1, RAMP, 0),
 		[Validity.KIND_NOT_POSSIBLE, Validity.overlaps_way_down("Hatch with ladder")], "its run under the hatch")
+
+
+func test_a_way_may_replace_a_removed_one_on_its_dug_landing() -> void:
+	"""Review N1: with the removal pending, a new way on the removed one's dug landing is judged on the raw ground
+	(dug: fine), while a room beside that landing still has no way in through it."""
+	_confirm_way(0, Vector2i(20, 20), HATCH, 0)
+	_dig(1, PackedInt32Array([20, 20, 21, 20, 20, 21, 21, 21]), -1)
+	_batch.toggle_way_removal(0, Vector2i(20, 20))
+	assert_equal(_batch.place_item(0, Vector2i(20, 20), HATCH, 0), Validity.KIND_CAN_BUILD, "replaced in the same batch")
+	assert_equal(_batch.items().landings(1), PackedInt32Array([20, 20, 21, 20, 20, 21, 21, 21]), "its landing")

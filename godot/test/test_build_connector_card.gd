@@ -194,3 +194,15 @@ func test_choosing_another_card_closes_the_card() -> void:
 	_panel.pin_way(Vector2i(10, 10))
 	_choose("Kitchen")
 	assert_false(_panel.pinned() or _panel.connector().visible, "a room type")
+
+
+func test_the_stair_head_card_starts_at_its_one_turn() -> void:
+	"""Review (re-review LOW): a turn kept from a ramp that the Stair-head cannot take resets to 0 when it is chosen."""
+	_choose("Burrow mouth")
+	_panel.rotate_way(1)
+	_choose("Stair-head")
+	assert_equal(_panel.way_turn(), 0, "turn 0 for the stair")
+	_panel.pin_way(Vector2i(10, 10))
+	assert_true(_panel.connector().words().begins_with("✓"), _panel.connector().words())
+	_panel.rotate_way(1)
+	assert_true(_panel.connector().words().contains("No qualified stair for this direction yet"), "turned: refused")

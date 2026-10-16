@@ -827,8 +827,9 @@ func _below_refusal(level: int, family: int, turn: int, cell: Vector2i) -> Strin
 
 
 func _ground_code(level: int, cell: Vector2i) -> int:
-	"""The host's ground reading for a cell (CELL_OK with no ground reader: nothing is claimed)."""
-	return _cells.ground_of(level, cell) if _cells.ground_bound() else Cells.CELL_OK
+	"""The host's own ground reading for a cell a way comes down onto (CELL_OK with no ground reader: nothing is
+	claimed). Read raw, not through `_ground_less_removed`: a way may come down where a removed one did (review N1)."""
+	return int(_host_ground.call(level, cell)) if _host_ground.is_valid() else Cells.CELL_OK
 
 
 func _piece_refusal(level: int, family: int, turn: int, cell: Vector2i) -> String:
@@ -1864,6 +1865,7 @@ func confirm_all(submit: Callable, submit_item: Callable = Callable(), submit_pi
 	and removal through `submit_edge(level, cell, side, kind, colour, removal) -> Dictionary` (decision 2002)."""
 	_cut_at = -1
 	if _stroke.active() or invalid_count() > 0:
+		revision += 1
 		return PackedInt32Array([0, 0])
 	var gone: PackedInt32Array = _confirm_items(submit_item)
 	var ordered: PackedInt32Array = PackedInt32Array()

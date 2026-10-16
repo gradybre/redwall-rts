@@ -104,7 +104,31 @@ revision. ARCH-BUILD-001's 16,957,440 bytes are unchanged.
 
 ## Gates
 
-GATES_PLACEHOLDER
+Run on `36b784de` (2026-10-16, Godot 4.7.2); origin/master had not moved from `c11da82e`, so nothing was merged in.
+
+- **Full CI-style run** (demo assets aside, `godot/.godot` deleted, imported with no crash; `./tools/run_tests_parallel.sh
+  --jobs 4`): `ok: 538 suite files executed exactly once across 10 shards`; 12,877 tests, 1,435,414 assertions,
+  0 failures, 0 unexpected errors or warnings, 0 leaked objects or resources; 1,463 s.
+- **Analyzer** (`tools/gdscript_warnings.py --max 0 --port 6501`): `0 GDScript warning(s) in 0 of 1611 file(s)`.
+  Functions ≤ 30 lines, a docstring on each.
+- **Contracts**: `decision_numbers.py` PASS (566 records); `ready07_arithmetic.py` PASS; `merge_gate.py` PASS;
+  `dispatch_plan.py --validate` PASS; `lane_notes.py --check` PASS; `state_registry_coverage.py` PASS;
+  `ui_refinement_contract.py` PASS; `astra_inbox.py --check` PASS; `generate_canonical_state_table.py --check` PASS.
+- **Live harness** `test/live/demo_build_dig_live.gd`, windowed with the art, at 1280×720 and 1920×1080:
+  `LIVE-SUMMARY 46 0` at both (registered minimum 43 in `test_demo_input_live.gd`); the furnish and Mound harnesses
+  pass with their new connector-card steps (60 and 46 checks). Frames looked at, in the session scratchpad
+  `d1_check/1280x720/` and `d1_check/1920x1080/` (not committed): `ways_cards_*` (the five cards),
+  `loop_connector_card_*`, `ways_connector_card_burrow_mouth_*`, `ways_connector_card_stair-head_*` (UI-BUILD-012),
+  `ways_removal_refused_*` (the refusal in words beside the pointer), `ways_dug_below_*` (the dug ramp and stair-head
+  on level 1), `loop_rooms_open_*` (the dug hatch's ladder), `ways_surface_*`, `loop_entrance_open_*`.
+- **Mutation testing** (`scratchpad/mut/run*.py`, one mutant a run against the focused suites): 74 mutants of the new
+  logic (the graph 9, the families 14, the items 7, the batch 22, the works 11, the cut-off host 5, the panel and card
+  8 -- including every review fix); **73 killed**. The survivors of the first pass (G6, F5, I2, B1, W8, H4a, H6) were
+  killed by new tests. **One equivalent survivor, I4**: `removed_landings` counting placement rows too changes
+  nothing, because `_all_landings` adds the placements' own landings back (`placed ∪ (host − placed) = host ∪
+  placed`). G3 (every neighbour walkable) was killed by the search never ending; G3b (`if false`) is killed by tests.
+- **Independent review** (`code-reviewer`): no CRITICAL. HIGH H1–H5 fixed (E9); re-review of the delta found N1,
+  fixed. MEDIUM fixed or answered in E9; LOW fixed.
 
 ## Source
 

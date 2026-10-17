@@ -135,6 +135,21 @@ func test_the_live_chain_saved_to_a_file_at_each_checkpoint_continues_byte_ident
 	arrival, hauling, in the paid phases, in the installation) and at END_TICK. Each checkpoint's
 	save is written to a FILE, loaded into a FRESH settlement and run to the next checkpoint, where
 	its save must be byte-identical to the uninterrupted run's."""
+	_continue_from_each_checkpoint()
+
+
+func test_the_chain_continues_byte_identically_with_the_runtime_caches_answering() -> void:
+	"""Decision 1953: the same chain with the framework's cache checks off, so every runtime cache (the route memos
+	of decisions 1952 and 1953) answers as in the game. A load discards them; each loaded run must still save
+	byte-identically to the uninterrupted one at the next checkpoint."""
+	var caches: GDScript = load("res://scripts/core/runtime_cache_checks.gd")
+	caches.set("enabled", false)
+	_continue_from_each_checkpoint()
+	caches.set("enabled", true)
+
+
+func _continue_from_each_checkpoint() -> void:
+	"""Save at every checkpoint, load each save into a fresh settlement and run it to the next checkpoint."""
 	assert_true(GameManager.start_game(), "a fresh clock")
 	var host: Node = _composed()
 	assert_equal(Chain.begin_entry(host), &"", "the entry begins")

@@ -698,6 +698,8 @@ reason (DANGER, hatched; never valid here). Canonical reasons:
 | “Locked: needs ”+milestone | ! | REQ-UX-015 |
 | “No level above the surface” / “No level below level 4” | X | BUILD-REQ-016, -018 |
 | “Would cut off ”+names+“: build another way in first” | X | BUILD-REQ-017 |
+| item+“ needs a passage under it: paint one there first” | ! | SET-BUILD-001 §9, BUILD-REQ-016 (decision 2021 P-D1-5, P-D1-12) |
+| item+“ does not fit in this room: it needs ”+w+“ × ”+l+“ cells” | X | BUILD-MOUND-021 (decision 2021 P-D1-12) |
 
 ### Acceptance
 
@@ -722,3 +724,13 @@ a tool strip of four toggles (Rect · Oval · Paint · Erase) stands along the i
 chosen (32 px high, inside UI-BUILD-004's rectangle); the arrows move the cell cursor relative to the camera
 (P-B10 (b)); the Rooms tab offers the Entrance on the Surface and a Way down on levels 1–3 (a lite UI-BUILD-012:
 placed by a click, no connector card yet). Proposed words for the Validity table are listed in decision 1912.
+
+**Follow-up (slice D1), 2026-10-16 ([decision 2021](decisions/2021-slice-d1-scoping-connector-items-in-the-build-panel.md),
+built in [decision 2022](decisions/2022-connector-items-in-the-build-panel.md)).** The Rooms tab on every level offers
+three way items -- Burrow mouth, Hatch with ladder, Stair-head -- then Stone and Spiral stairs locked; each card states
+its placeholder footprint and bill. UI-BUILD-011's item ghost shows a way's cells on the level shown with its access
+pair labelled "access"; R / Shift+R turn it. UI-BUILD-012 is built: a click pins the ghost and opens the card (Down /
+Up, the impossible one disabled with its reason, "✓ Connects to "+level name or the reason, the placeholder's notes,
+Add to plan and Cancel); Enter adds, Escape closes it before the panel. A click on a confirmed way with a way's card
+chosen asks for its removal, refused with "Would cut off ..." while it is the only way in (BUILD-REQ-017). The two
+reasons above were ruled with P-D1-12 (a).

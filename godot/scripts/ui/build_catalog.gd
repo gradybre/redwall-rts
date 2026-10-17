@@ -14,8 +14,11 @@ extends RefCounted
 ##                        in the Built style (built surface rooms are slice G); underground, the Mound style locks
 ##                        them "X Not possible: Mound rooms are painted on the Surface" (BUILD-MOUND-028).
 ##   Rooms, Overview      the room types locked, saying why ("Choose one level to paint on" -- a PROPOSAL).
-## THE WAY DOWN (decision 1912, Brendan's proof-of-concept ruling "Place a simple entrance"): the surface's Rooms tab
-## offers the Entrance, levels 1-3 a Way down (level 4 shows it locked: no level below). Free for now.
+## THE WAYS DOWN AND UP (decision 1912's proof of concept, per family since decision 2021: Brendan's rulings P-D1-1 (a),
+## P-D1-2 (a), P-D1-4 (a)): every level's Rooms tab offers the Burrow mouth, the Hatch with ladder and the Stair-head
+## (build_connector_families.gd), then Stone stairs and Spiral stair locked ("Not yet: ..."). On the Surface each goes
+## down; on level 4 only up; between, either (the connector card, UI-BUILD-012). Every size and cost is a PLACEHOLDER,
+## said so on the card; free for now.
 ##   Furnish              the items the chosen room type allows (room_catalog.gd) but decoration, placed on the dug
 ##                        floor of levels 1-4 (decision 1921: Brendan's Furnish-tab rulings of 2026-10-13, a proof of
 ##                        concept slice E replaces); locked on the surface and Overview, saying why.
@@ -37,6 +40,7 @@ const Validity := preload("res://scripts/ui/build_validity.gd")
 const Measures := preload("res://scripts/ui/goods_measures.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
 const Mound := preload("res://scripts/ui/build_mound.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
 const TAB_ROOMS: int = 0
 const TAB_FURNISH: int = 1
@@ -48,7 +52,7 @@ const CARD_ROOM: int = 0
 ## 1 was the old tools' card (decision 1871), removed by decision 1912.
 const CARD_ITEM: int = 2
 const CARD_TOOL: int = 3
-## A way down (build_items.gd): the Entrance on the surface, a Way down below (decision 1912's proof of concept).
+## A way down or up (build_items.gd) of one connector family, `item_type` its family (decision 2021).
 const CARD_WAY_DOWN: int = 4
 ## A Mound's front door or window (decision 2002; build_mound.gd KIND_*).
 const CARD_EDGE: int = 5
@@ -84,12 +88,16 @@ const PICTURES: Array[String] = [
 ]
 const GESTURE_PAINT: String = "Drag to paint; Esc cancels the stroke"
 const GESTURE_PLACE: String = "Click a dug floor to place; R / Shift+R turn it; Shift+click keeps it for another"
-const GESTURE_WAY_DOWN: String = "Click a spot to place it (2 × 2 cells); Esc cancels"
+const GESTURE_WAY_DOWN: String = "Click a spot, then choose Down or Up on its card; R / Shift+R turn it; click a built one to remove it"
 const FREE_FOR_NOW: String = "free for now (proof of concept)"
-const WAY_DOWN_PURPOSES: Array[String] = [
-	"A way down from the ground to underground level 1: rooms and passages there connect to it",
-	"A way down to the next level, standing on a passage or room",
+const WAY_PURPOSES: Array[String] = [
+	"A way from the ground to underground level 1: rooms and passages there connect to it",
+	"A way to the next level, down or up, standing on a passage",
+	"A way up to level 3, standing on a passage there",
 ]
+## A connector's placeholder cost on its card: "placeholder: 3 logs ...; free for now (proof of concept)".
+const WAY_COST: String = "placeholder: %s; %s"
+const WAY_FOOTPRINT: String = "%d × %d cells on this level, %d × %d below (placeholder)"
 const NOTHING_CHOSEN: String = "Choose a room type to begin"
 ## Decision 1921: the Furnish and Decor tabs with no piece chosen.
 const CHOOSE_PIECE: String = "Choose a piece to place"
@@ -276,7 +284,8 @@ func _room_cards(level: int, lock: String, out: Array[Card], style: int = Mound.
 	if surface:
 		out.append(_tool_card(&"tool:outdoor", "Outdoor", LATER_OUTDOOR, "Wells, fences, paths and other things built in the open"))
 	if level < OVERVIEW_LEVEL:
-		out.append(way_down_card(level))
+		for family: int in Families.CARD_ORDER:
+			out.append(way_card(family, level))
 	if surface:
 		out.append(_tool_card(&"tool:clear", "Clear ground", LATER_CLEAR, "Paint over a surface room to take it down"))
 	else:
@@ -305,20 +314,25 @@ func room_card(room_type: int, locked_reason: String, level: int = 1, style: int
 	return card
 
 
-func way_down_card(level: int) -> Card:
-	"""The Entrance (surface) or Way down (levels 1-3) card; on level 4, locked: no level below."""
+func way_card(family: int, level: int) -> Card:
+	"""A connector family's card on `level` (decision 2021): placed down from the Surface, up only from level 4, either
+	way between; Stone and Spiral locked for a later update. Every number on it is a placeholder."""
 	var card: Card = Card.new()
-	card.id = StringName("way_down:%d" % level)
+	card.id = StringName("way:%d:%d" % [family, level])
 	card.kind = CARD_WAY_DOWN
-	card.name = Items.name_of(level)
-	card.locked = Validity.no_level_below() if level > Items.DEEPEST_TOP else ""
-	card.cost = FREE_FOR_NOW
-	card.footprint = "2 × 2 cells"
-	card.purpose = WAY_DOWN_PURPOSES[0 if level == 0 else 1]
-	card.rules = "Lands on the cells below it, which must be diggable" if level == 0 \
-		else "Stands on a passage or room; lands on the cells below it"
+	card.item_type = family
+	card.name = Families.name_of(family)
+	card.locked = "" if Families.offered(family) else Validity.not_yet(Families.LATER)
+	_tally.resize(Ledger.SLOTS)
+	_tally.fill(0)
+	Families.bill_into(family, _tally)
+	card.cost = WAY_COST % [Ledger.cost_words(_tally), FREE_FOR_NOW]
+	card.footprint = WAY_FOOTPRINT % [Families.ACROSS[family], Families.TOP_OPEN[family], Families.ACROSS[family],
+		Families.ALONG[family] - Families.LOW_FROM[family]]
+	card.purpose = WAY_PURPOSES[0 if level == 0 else (2 if level >= 4 else 1)]
+	card.rules = Families.PLACEHOLDER + (". " + Families.CLIMBERS_ONLY if family == Families.LADDER_HATCH else "")
 	card.gesture = GESTURE_WAY_DOWN
-	card.picture = "a hole with earth steps going down"
+	card.picture = Families.PICTURES[family]
 	return card
 
 

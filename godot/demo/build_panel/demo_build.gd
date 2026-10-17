@@ -21,8 +21,10 @@ extends Node
 ## Level 1 / 2 the legacy warren's; Levels 3 and 4 show nothing). A level with no way in yet is marked "!" on the bar
 ## and still painted: each cell then says "No way in" on its ghost (BUILD-REQ-013 per cell).
 ##
-## THE CARDS. A room type -- Passage among them -- arms painting on levels 1-4; the Entrance (surface) and Way down
-## (levels 1-3) cards arm placing a way down (build_items.gd). The old Passage / Burrow home / Root cellar tool cards
+## THE CARDS. A room type -- Passage among them -- arms painting on levels 1-4; a way's card (Burrow mouth, Hatch with
+## ladder, Stair-head: decision 2021) arms placing a way: a click pins its ghost and opens the connector card (Down /
+## Up, Add to plan: UI-BUILD-012), Enter adds it, R / Shift+R turn it; a click on a confirmed way asks for its removal,
+## refused in words when it is the only way in to something (BUILD-REQ-017, demo_build_way_host.gd). The old Passage / Burrow home / Root cellar tool cards
 ## are gone (Brendan's ruling on decision 1911 P-C2 (c)). While the panel shows, the HUD's command strip (UI-SET-026)
 ## and its detail (UI-SET-036), the demo's right column, its map-layer picker and its news strip are hidden (their
 ## place is the panel's), and given back on close. Opening, painting, Undo, Redo and Discard all touch no store,
@@ -91,6 +93,7 @@ const Figure := preload("res://demo/build_panel/demo_build_figure.gd")
 const Tags := preload("res://demo/build_panel/demo_build_tags.gd")
 const BelowTask := preload("res://demo/build_panel/demo_build_below_task.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const MOLE: String = "Mole"
 ## How often a waiting order looks for a free mole again (seconds; a guard against asking every frame).
@@ -100,7 +103,11 @@ const NOBODY: String = "Nobody can dig: the ordered cells wait"
 const CUT_OFF: String = "%d ordered cells cannot be reached from an Entrance: they wait"
 const SENT: String = "%s goes to the Entrance to dig"
 const VISIT: String = "%s goes down to the dug room"
-const PLACE_HINT: String = "Place %s: click a spot, or Enter at the cursor"
+const PLACE_HINT: String = "Place %s: click a spot, or Enter at the cursor; R turns it"
+const PINNED_HINT: String = "%s: choose Down or Up on its card, then Add to plan (Enter)"
+const REMOVE_HINT: String = "✓ Remove %s: click to ask for its removal"
+const KEEP_HINT: String = "✓ Keep %s: click to withdraw its removal"
+const WayHost := preload("res://demo/build_panel/demo_build_way_host.gd")
 const Fittings := preload("res://demo/build_panel/demo_build_fittings.gd")
 const Furnish := preload("res://demo/build_panel/demo_build_furnish.gd")
 const Rooms := preload("res://demo/build_panel/demo_build_rooms.gd")
@@ -176,6 +183,10 @@ var _piece_label_moved: Vector2i = Vector2i(-1, -1)
 var _said_fit: String = ""
 ## Decision 2002: the Mound homes' store, drawing and builder.
 var mound: MoundHost = null
+## Decision 2021: what a removal would cut off (the batch's cut-off reader), and what the pointer's words were last
+## worked out for while a way is armed (cursor, batch revision, level, family, turn and pin).
+var ways: WayHost = null
+var _way_label: Vector4i = Vector4i(0, 0, -1, -1)
 
 
 func configure(tunnels: TunnelControl, shell: UiShell, camera: Camera3D, blocked: Callable, say: Callable,
@@ -219,6 +230,7 @@ func _configure_ground() -> void:
 		ground.set_level(level, _floors[level], orders.dug_height_of(level))
 	if ground.bound():
 		batch.bind_ground(ground.ground, ground.revision)
+	batch.bind_landings(works.landings_on)
 	paint = Paint.new()
 	add_child(paint)
 	take_setup(paint.configure(batch, _camera, _datum_xz(), orders.cell_bounds(), _floors))
@@ -242,6 +254,9 @@ func _configure_mounds() -> void:
 	mound = MoundHost.new()
 	add_child(mound)
 	mound.configure(batch, works, fittings, orders.cell_bounds(), Vector2(_datum_xz()) / 1024.0)
+	ways = WayHost.new()
+	ways.configure(works, mound.mounds, residents_below)
+	batch.bind_way_host(works.shapes_on, ways.cut_off, works.room_type_at)
 
 
 func bind_village(village_world: Object, water: Object, is_day: Callable) -> void:
@@ -342,6 +357,7 @@ func _build_layer() -> void:
 	panel.card_chosen.connect(_on_card_chosen)
 	panel.confirm_requested.connect(confirm_all)
 	panel.closed.connect(_on_closed)
+	panel.way_added.connect(_on_way_added)
 	_layer.add_child(panel)
 	_build_label()
 
@@ -447,7 +463,7 @@ func _mark_reachable() -> void:
 func _landed_on(level: int) -> bool:
 	"""Whether a confirmed way down lands on `level`."""
 	for row: int in works.way_count():
-		if works.way_level(row) + 1 == level:
+		if works.way_live(row) and works.way_level(row) + 1 == level:
 			return true
 	return false
 
@@ -465,6 +481,7 @@ func _process(_delta: float) -> void:
 		_hold_hud()
 	elif _holding:
 		_release_hud()
+	_pose_way()
 	paint.refresh(bar.shown_level() if open else -1, open and (armed_type() >= 0 or way_down_armed()), way_down_armed())
 	_refresh_furnish(open)
 	_sync_label(open)
@@ -575,7 +592,9 @@ func _sync_label(open: bool) -> void:
 	if not _label_box.visible:
 		return
 	var label_key: int = batch.stroke_revision * 8 + (bar.shown_level() + 1 if placing else 0)
-	if open and edge_armed():
+	if placing and not batch.stroke_active():
+		_sync_way_label()
+	elif open and edge_armed():
 		_sync_edge_label()
 	elif open and piece_armed():
 		_sync_piece_label()
@@ -583,7 +602,7 @@ func _sync_label(open: bool) -> void:
 		_seen_label = label_key
 		_piece_label = Vector4i(0, 0, -1, -1)
 		_label.text = batch.stroke_line().replace("; ", "\n") if batch.stroke_active() \
-			else PLACE_HINT % Items.name_of(bar.shown_level()) if placing else ARMED_HINT % BuildCatalog.type_name(type)
+			else ARMED_HINT % BuildCatalog.type_name(type)
 		_label_box.accessibility_name = batch.stroke_line() if batch.stroke_active() else _label.text
 		_label_box.reset_size()
 	var at: Vector2 = _pointer if _pointer.is_finite() else paint.screen_of(paint.cursor(), bar.shown_level(),
@@ -729,9 +748,12 @@ func _submit_room(draft: Object, level: int, room_type: int) -> Dictionary:
 	return {"ok": works.order_room(level, cells, room_type), "error": Validity.outside()}
 
 
-func _submit_way_down(level: int, cell: Vector2i) -> Dictionary:
-	"""The proof of concept's order route for a way down: it and its landing wait for the mole."""
-	return {"ok": works.order_way_down(level, cell), "error": Validity.outside()}
+func _submit_way_down(level: int, cell: Vector2i, family: int, turn: int, removal: bool) -> Dictionary:
+	"""The proof of concept's order route for a way (its landing and run wait for the mole), or for a removal (decision
+	2021: its waiting cells back to earth)."""
+	if removal:
+		return {"ok": works.remove_way_at(level, cell), "error": Validity.outside()}
+	return {"ok": works.order_way_down(level, cell, family, turn), "error": Validity.outside()}
 
 
 func _submit_edge(_level: int, cell: Vector2i, side: int, kind: int, colour: int, removal: bool) -> Dictionary:
@@ -994,9 +1016,18 @@ func way_in() -> int:
 	"""The confirmed Entrance residents go down by: the first whose way can be reached -- off the Mounds, or a hatch
 	on a dug Mound room's floor whose door is fitted (decision 2002) -- or -1."""
 	for row: int in works.way_count():
-		if works.way_level(row) == 0 and mound.hatch_ready(works.way_cell(row)):
+		if works.way_live(row) and works.way_level(row) == 0 and mound.hatch_ready(works.way_cell(row)):
 			return row
 	return -1
+
+
+func residents_below() -> Array:
+	"""Every resident below on a trip, as [name, Vector3i (level, x, z)] (the cut-off check's occupants)."""
+	var out: Array = []
+	for row: int in _trips.size():
+		if _still_on(_trips[row]) and _trips[row].below():
+			out.append([_name_of(_trip_actors[row]), _trips[row].at()])
+	return out
 
 
 func piece_armed() -> bool:
@@ -1109,21 +1140,75 @@ func _place_piece(cell: Vector2i, keep: bool = false) -> bool:
 
 func way_down_armed() -> bool:
 	"""Whether a click places a way down now (the panel open, its card chosen, a level with one shown)."""
-	return _setup_refusal == &"" and panel.is_open() and panel.way_down_armed() and bar.shown_level() <= Items.DEEPEST_TOP
+	return _setup_refusal == &"" and panel.is_open() and panel.way_down_armed() and bar.shown_level() <= LevelBar.LEVEL_DEEPEST
 
 
 func _place_way_down(cell: Vector2i, keep: bool = false) -> bool:
-	"""Place the chosen way down at `cell` on the level shown; it joins the batch (the card put down, unless `keep`:
-	Shift, UI-BUILD's "keeps the item for another"), or is dropped saying why."""
-	var kind: int = batch.place_item(bar.shown_level(), cell)
-	if kind == Validity.KIND_NOT_POSSIBLE:
+	"""A click (or Enter) with a way's card chosen at `cell` on the level shown: on a confirmed way, its removal is
+	asked for or withdrawn (BUILD-REQ-017: refused in words when it would cut something off); with the card open on
+	that cell, Add to plan (`keep`: Shift keeps the way's card); else its ghost is pinned there and the card opens."""
+	var removal: int = batch.toggle_way_removal(bar.shown_level(), cell)
+	if removal == Validity.KIND_NOT_POSSIBLE:
 		_say.call(batch.last_dropped())
 		return true
-	if kind >= 0:
-		_say.call(Validity.line(kind, batch.item_reason(batch.items().count() - 1)))
-		if not keep:
-			panel.clear_choice()
-	return kind >= 0
+	if removal >= 0:
+		_say.call("%s %s" % [Validity.glyph(removal), batch.last_step_words()])
+		return true
+	if panel.pinned() and panel.pinned_cell() == cell:
+		return panel.add_pinned(keep) >= 0
+	return panel.pin_way(cell)
+
+
+func _sync_way_label() -> void:
+	"""The armed way's words beside the pointer (the one place its judgement is spelled out; the ghost carries only a
+	short tag, decision 2022): over a built way, its removal's judgement alone; pinned, how to finish; else how to
+	place it, with why not when it cannot stand here. Worded again only when the cursor, the batch or the way moved."""
+	var cursor: Vector2i = paint.cursor() if not panel.pinned() else panel.pinned_cell()
+	var key: Vector4i = Vector4i(cursor.x, cursor.y, batch.revision,
+		((bar.shown_level() * 8 + panel.armed_family() + 1) * 4 + panel.way_turn()) * 2 + int(panel.pinned()))
+	if key == _way_label:
+		return
+	_way_label = key
+	_seen_label = -1
+	_label.text = _way_hint(cursor)
+	_label_box.accessibility_name = _label.text.replace("\n", "; ")
+	_label_box.reset_size()
+
+
+func _way_hint(cursor: Vector2i) -> String:
+	"""See `_sync_way_label`."""
+	var way_name: String = Families.name_of(panel.armed_family())
+	if panel.pinned():
+		return PINNED_HINT % way_name
+	var removal: Array = batch.removal_preview(bar.shown_level(), cursor)
+	if not removal.is_empty():
+		var built: String = Families.name_of((removal[2] as PackedInt32Array)[3])
+		if int(removal[0]) == Validity.KIND_NOT_POSSIBLE:
+			return Validity.line(Validity.KIND_NOT_POSSIBLE, String(removal[1]))
+		return (KEEP_HINT if bool(removal[3]) else REMOVE_HINT) % built
+	var up: bool = panel.default_up(bar.shown_level())
+	var judged: Array = batch.judge_item(bar.shown_level() - (1 if up else 0), cursor, -1, panel.armed_family(),
+		panel.way_turn())
+	var hint: String = PLACE_HINT % way_name
+	return hint if int(judged[0]) == Validity.KIND_CAN_BUILD else "%s\n%s" % [hint, Validity.line(int(judged[0]),
+		String(judged[1]))]
+
+
+func _on_way_added(kind: int) -> void:
+	"""The connector card's way went into the batch, or was dropped: said in words."""
+	if kind == Validity.KIND_NOT_POSSIBLE:
+		_say.call(batch.last_dropped())
+	elif kind >= 0:
+		var row: int = batch.items().count() - 1
+		var words: String = Validity.line(kind, batch.item_reason(row))
+		_say.call("%s: %s" % [batch.items().name_of_row(row), words])
+
+
+func _pose_way() -> void:
+	"""Hand the ghosts the armed way: its family, turn and direction, and where it is pinned."""
+	var level: int = bar.shown_level()
+	var up: bool = panel.pinned_up() if panel.pinned() else panel.default_up(level)
+	paint.set_way(panel.armed_family(), panel.way_turn(), level - 1 if up else level, panel.pinned(), panel.pinned_cell())
 
 
 # --- input ---------------------------------------------------------------------------------------------------------
@@ -1184,7 +1269,10 @@ func _world_enter(event: InputEvent) -> bool:
 	if piece_armed():
 		return _place_piece(paint.cursor(), key.shift_pressed)
 	if way_down_armed():
-		_place_way_down(paint.cursor(), key.shift_pressed)
+		if panel.pinned():
+			panel.add_pinned(key.shift_pressed)
+		else:
+			_place_way_down(paint.cursor(), key.shift_pressed)
 		return true
 	if not batch.stroke_active():
 		_pointer = Vector2.INF
@@ -1236,13 +1324,17 @@ func _panel_key(key: InputEventKey) -> bool:
 	if (piece_armed() or edge_armed()) and key.is_action_pressed(&"placement_rotate", false, true):
 		rotate_piece(-1 if key.shift_pressed else 1)
 		return true
+	if way_down_armed() and key.is_action_pressed(&"placement_rotate", false, true):
+		panel.rotate_way(-1 if key.shift_pressed else 1)
+		return true
 	return _arrow(key)
 
 
 func _arrow(key: InputEventKey) -> bool:
 	"""With a type armed, an arrow moves the cell cursor one cell relative to the camera and drags a keyboard stroke
 	with it."""
-	if (armed_type() < 0 and not piece_armed() and not edge_armed()) or not ARROW_KEYS.has(key.keycode) \
+	if (armed_type() < 0 and not piece_armed() and not edge_armed() and not way_down_armed()) \
+			or not ARROW_KEYS.has(key.keycode) \
 			or key.shift_pressed \
 			or key.ctrl_pressed or key.alt_pressed:
 		return false

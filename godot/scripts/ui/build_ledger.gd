@@ -95,7 +95,15 @@ static func add_into(cells: int, clear_height_u: int, out: PackedInt64Array) -> 
 	if out.size() != SLOTS:
 		out.resize(SLOTS)
 		out.fill(0)
-	var quanta: int = maxi(cells, 0) * quanta_per_cell(clear_height_u)
+	add_quanta_into(maxi(cells, 0) * quanta_per_cell(clear_height_u), out)
+
+
+static func add_quanta_into(quanta: int, out: PackedInt64Array) -> void:
+	"""Add `quanta` excavation quanta at the contract's prices to the tally `out` (sized to SLOTS, zeroed, when it is
+	not): a connector's cut (build_connector_families.gd, decision 2021)."""
+	if out.size() != SLOTS:
+		out.resize(SLOTS)
+		out.fill(0)
 	out[WOOD] += quanta * Excavation.BRACE_WOOD_MILLI
 	out[STONE] += quanta * Excavation.BRACE_STONE_MILLI
 	out[WORK] += quanta * (Excavation.BRACE_WORK_MWU + Excavation.CUT_WORK_MWU + Excavation.FINISH_WORK_MWU)

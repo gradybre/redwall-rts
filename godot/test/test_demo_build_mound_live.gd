@@ -7,7 +7,7 @@ extends "res://test/live_harness_case.gd"
 
 const MOUND_HARNESS: String = "res://test/live/demo_build_mound_live.gd"
 ## The harness's checks; fewer means it stopped early.
-const MOUND_CHECKS: int = 45
+const MOUND_CHECKS: int = 46
 
 
 func test_the_mound_is_planned_built_grown_and_entered_at_1280x720() -> void:

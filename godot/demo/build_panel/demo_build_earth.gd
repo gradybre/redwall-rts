@@ -344,12 +344,12 @@ func _prepare(works: Works, level: int, top_m: float, dig_cell: Vector3i) -> voi
 	_stairs.clear()
 	_heads.clear()
 	for row: int in works.way_count():
-		if not way_open(works, row):
+		if not works.way_live(row) or not way_open(works, row):
 			continue
 		if works.way_level(row) == level:
 			_stairs.append(Rect2i(works.way_cell(row), Vector2i(Works.SIDE, Works.SIDE)))
 		if works.landing_of(row).x == level:
-			_heads.append_array([works.way_cell(row) + Vector2i(0, -1), works.way_cell(row) + Vector2i(1, -1)])
+			_heads.append_array(works.head_cells(row))
 
 
 func _build() -> void:
@@ -606,7 +606,8 @@ static func stairs_down_at(works: Works, level: int, cell: Vector2i) -> bool:
 	"""Whether `cell` is under a way down standing on `level` that is dug through (its stairs are drawn there)."""
 	for row: int in works.way_count():
 		var at: Vector2i = works.way_cell(row)
-		if works.way_level(row) == level and Rect2i(at, Vector2i(2, 2)).has_point(cell) and way_open(works, row):
+		if works.way_live(row) and works.way_level(row) == level and Rect2i(at, Vector2i(2, 2)).has_point(cell) \
+				and way_open(works, row):
 			return true
 	return false
 

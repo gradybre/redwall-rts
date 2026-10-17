@@ -230,7 +230,7 @@ func test_a_way_down_on_the_hill_or_across_a_rooms_edge_is_refused() -> void:
 	_paint(KITCHEN, 0, Vector2i(10, 10), Vector2i(15, 13))
 	assert_equal(int(_batch.judge_item(0, Vector2i(11, 11), -1)[0]), Validity.KIND_CAN_BUILD, "on the floor")
 	assert_equal(_batch.judge_item(0, Vector2i(11, 8), -1), [Validity.KIND_NOT_POSSIBLE, Mound.TEXT_ON_HILL], "on the berm")
-	assert_equal(_batch.judge_item(0, Vector2i(11, 9), -1), [Validity.KIND_NOT_POSSIBLE, Mound.TEXT_SPLIT_WAY],
+	assert_equal(_batch.judge_item(0, Vector2i(11, 9), -1), [Validity.KIND_NOT_POSSIBLE, Validity.not_in_room("Hatch with ladder", 2, 2)],
 		"across the wall")
 	assert_equal(int(_batch.judge_item(0, Vector2i(30, 30), -1)[0]), Validity.KIND_CAN_BUILD, "off the hill")
 	_batch.place_item(0, Vector2i(30, 30))
@@ -314,7 +314,7 @@ func test_a_way_down_at_a_rooms_inner_corner_is_split() -> void:
 	"""A 2 × 2 way down three cells on the rooms' floor and one on the hill is split, not merely on the hill."""
 	_paint(KITCHEN, 0, Vector2i(10, 10), Vector2i(15, 13))
 	_paint(BEDROOM, 0, Vector2i(10, 14), Vector2i(13, 17))
-	assert_equal(_batch.judge_item(0, Vector2i(13, 13), -1), [Validity.KIND_NOT_POSSIBLE, Mound.TEXT_SPLIT_WAY],
+	assert_equal(_batch.judge_item(0, Vector2i(13, 13), -1), [Validity.KIND_NOT_POSSIBLE, Validity.not_in_room("Hatch with ladder", 2, 2)],
 		"three of four on the floor")
 
 

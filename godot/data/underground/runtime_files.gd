@@ -13,8 +13,9 @@ const EntryComposition := preload("res://scripts/core/underground_entry_composit
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 
 ## res:// path -> the lowercase hex SHA-256 its reader requires, in load order: the level pack (UndergroundSession),
-## the six actor images (MolePresentation.load_sources), the profile wire (mole_profile_catalog), the structure
-## catalog and stair motion (UndergroundRouteComposition), and the entry bundle (UndergroundEntryComposition).
+## the eight actor images (MolePresentation.load_sources), the profile wire (mole_profile_catalog), the structure
+## catalog and both stair motion banks (UndergroundRouteComposition; decision 1972 adds the stair-carry bank), and the
+## entry bundle (UndergroundEntryComposition).
 const FILES: Dictionary[String, String] = {
 	Session.LEVEL_PATH: Session.LEVEL_SHA,
 	Session.ACTOR_PATH: Catalog.Pins.ACTOR_SHA,
@@ -23,9 +24,12 @@ const FILES: Dictionary[String, String] = {
 	Session.STONE_ACTOR_PATH: Session.STONE_ACTOR_SHA,
 	Session.CLAW_ACTOR_PATH: Session.CLAW_ACTOR_SHA,
 	Session.PAW_ACTOR_PATH: Session.PAW_ACTOR_SHA,
+	Session.CARRY_WOOD_ACTOR_PATH: Session.CARRY_WOOD_ACTOR_SHA,
+	Session.CARRY_STONE_ACTOR_PATH: Session.CARRY_STONE_ACTOR_SHA,
 	Catalog.WIRE_PATH: Catalog.Pins.WIRE_SHA,
 	RouteComposition.CATALOG_PATH: RouteComposition.CATALOG_SHA,
 	RouteComposition.MotionPins.WIRE_PATH: RouteComposition.MotionPins.WIRE_SHA,
+	RouteComposition.CarryPins.WIRE_PATH: RouteComposition.CarryPins.WIRE_SHA,
 	EntryComposition.Bundle.RECIPE_PATH: EntryComposition.Bundle.RECIPE_SHA,
 	EntryComposition.Bundle.GROUPING_PATH: EntryComposition.Bundle.GROUPING_SHA,
 	EntryComposition.Bundle.FRONTIER_PATH: EntryComposition.Bundle.FRONTIER_SHA,

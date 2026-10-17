@@ -63,8 +63,17 @@ const CLAW_PRESENTATION_BYTES: int = 7551924
 const PAW_ACTOR_PATH: String = "res://data/underground/mole-worker/claw-work-v1/evidence/native-claw-stairs-v1/paw/compiled/paw-stairs.ugactor"
 const PAW_ACTOR_SHA: String = "9cdafc55914ba2ca25858d54ff1692df324c4e7eed019b04066b55de560bae3d"
 const PAW_PRESENTATION_BYTES: int = 6641672
+# Decision 1972 (decision 1981): content 12's stair-carry images, wood (source 6) and stone (source 7); each byte count
+# is its compilation record's admitted peak.
+const CARRY_WOOD_ACTOR_PATH: String = "res://data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/wood/compiled/stair-carry-wood.ugactor"
+const CARRY_WOOD_ACTOR_SHA: String = "b7092e0c653143fd2a6fb15311934f312d732c835029509788b75b1bd1f2f945"
+const CARRY_WOOD_PRESENTATION_BYTES: int = 7589568
+const CARRY_STONE_ACTOR_PATH: String = "res://data/underground/mole-worker/stair-carry-v1/evidence/native-stair-carry-v1/stone/compiled/stair-carry-stone.ugactor"
+const CARRY_STONE_ACTOR_SHA: String = "606936a142f755059a283d8cb8f2688fad87f65a93e577583e0c916dd5f2097e"
+const CARRY_STONE_PRESENTATION_BYTES: int = 7370344
 const PRESENTATION_SET_BYTES: int = PRESENTATION_BYTES + HANDLING_PRESENTATION_BYTES + HAUL_PRESENTATION_BYTES \
-	+ STONE_PRESENTATION_BYTES + CLAW_PRESENTATION_BYTES + PAW_PRESENTATION_BYTES
+	+ STONE_PRESENTATION_BYTES + CLAW_PRESENTATION_BYTES + PAW_PRESENTATION_BYTES + CARRY_WOOD_PRESENTATION_BYTES \
+	+ CARRY_STONE_PRESENTATION_BYTES
 const CONTROL_BYTES: int = 1024
 const HELPER_BYTES: int = 512
 const RESERVED_BYTES: int = CONTROL_BYTES + HELPER_BYTES

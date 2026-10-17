@@ -107,6 +107,8 @@ class UndergroundFixture extends Fixture:
 	var checks: int = Space.MAX_CHECKS
 	var register_building: bool = false
 	var watched_building: Vector2i = Vector2i(-1, 0)
+	## Decision 1972 (P-1972-9): another Room's retained natural strip, 128 u deep, under the target cube.
+	var retained_strip: bool = false
 	func _actual_space(obstruction: int) -> void:
 		"""A complete support/void fixture permits endpoint publication without inventing a production entrance."""
 		_routes = Routes.new(_residents, _transforms)
@@ -129,6 +131,7 @@ class UndergroundFixture extends Fixture:
 		else:
 			_void = _region(token, PackedInt32Array([X, FLOOR, Z, X + 2048, FLOOR + 2048, Z + 2048]), Space.SUPPORTED_VOID)
 		_region(token, PackedInt32Array([X, FLOOR - 128, Z, X + 2048, FLOOR, Z + 2048]), Space.SUPPORT)
+		if retained_strip: _retained_strip(token)
 		if obstruction >= 2: # Decision 1971: the target column's floor-band cube is already finished void.
 			_region(token, PackedInt32Array([X + 2048, FLOOR, Z, X + 3072, FLOOR + 1024, Z + 1024]), Space.SUPPORTED_VOID)
 		if obstruction == 3: # ...with an obstacle standing in it, clear of the stroke.
@@ -154,6 +157,19 @@ class UndergroundFixture extends Fixture:
 		_terrain = FootingTerrain.new()
 		assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual terrain")
 		_actual_catalog(domain)
+
+	func _retained_strip(token: int) -> void:
+		"""A second Room's SUPPORT under the target cube, as the stair's retained trench floor lies beside a room."""
+		commands.permit(Buildings.SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, Buildings.ROOM_TYPE_CORRIDOR)
+		var other: Vector2i = _buildings.designate_spatial_room(Buildings.ROOM_TYPE_CORRIDOR).ref
+		assert_equal(_owner.stage_source(token, other), &"", "the other Room's source")
+		var row: Owner.Region = Owner.Region.new()
+		row.box = PackedInt32Array([X + 2048, FLOOR - 128, Z, X + 3072, FLOOR, Z + 1024])
+		row.role = Space.SUPPORT
+		row.level = 1
+		row.owner = other
+		row.section = _floor
+		assert_equal(_owner.stage_add(token, row).error, &"", "the retained strip")
 
 	func _room_identity(domain: Space.Domain) -> void:
 		"""Only the initial complete-shell state is synthetic; Room and physical cut-key identities are real."""
@@ -207,6 +223,7 @@ class UndergroundFixture extends Fixture:
 
 var _paid: PaidRefresh = null
 var _actual: UndergroundFixture = null
+var _strip: bool = false
 var _face: Face = null
 var _config: Fixture.Binding.Configuration = null
 var _request: Face.Request = null
@@ -219,6 +236,7 @@ func _setup(obstruction: int = 0, checks: int = Space.MAX_CHECKS, registered_bui
 	_actual = UndergroundFixture.new()
 	_actual.checks = checks
 	_actual.register_building = registered_building
+	_actual.retained_strip = _strip
 	_actual._actual_fixture(obstruction)
 	assert_true(_actual.failures.is_empty(), "actual corridor fixture checks: %s" % _actual.failures)
 	_load_profiles(_boxes())
@@ -694,6 +712,22 @@ func test_claws_may_scrape_natural_earth_below_the_stance_plane() -> void:
 	_setup()
 	_scrape_profile(3)
 	assert_equal(_read(), &"", "natural, never-cut earth may be scraped")
+
+
+func test_a_retained_trench_floor_never_blocks_a_room_dig_beside_it() -> void:
+	"""Decision 1972 (P-1972-9): another Room's retained natural strip (the stair's trench floor) under the target cube
+	does not block a room dig beside it: the target cube above the strip is worked as before, and the floor scrape
+	into the strip is admitted, since it is never-cut natural earth (decision 1971, review M6)."""
+	_strip = true
+	_setup()
+	_strip = false
+	assert_equal(_read(), &"", "the cube above the strip is dug as before")
+	_scrape_profile(3)
+	assert_equal(_read(), &"", "the scrape into the other Room's never-cut strip is admitted")
+	var origin: Vector3i = Vector3i(X + 2048, FLOOR - 1024, Z)
+	assert_true(_actual.physical.sites.claim_quantum(origin, _actual.room).ok, "a Site under the target")
+	_actual.physical.sites._ever_cut[_actual.physical.sites.site_at(origin).x] = 1
+	assert_equal(_read(), Face.REFUSE_STROKE, "the scrape does reach the strip's quantum: cut there, it refuses")
 
 
 func test_scrape_never_enters_a_cut_cube() -> void:

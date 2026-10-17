@@ -1,7 +1,7 @@
 extends "res://test/underground_host_case.gd"
 ## Decision 1951: Routes' source-program checks read the step closure (`ShortStep.uses`) once instead of up to three
 ## times. Both rewritten checks are compared with the pre-1951 code, copied here as the oracle, over every profile
-## row, revision and content of the content-6 step rows and of the mounted content-10 claw, stair and handling rows,
+## row, revision and content of the content-6 step rows and of the mounted content-12 claw, stair and handling rows,
 ## every program phase word and several clocks, with the step closure intact and broken.
 
 const StationTests := preload("res://test/test_underground_room_station_planner.gd")
@@ -41,7 +41,7 @@ func _fixture() -> bool:
 
 
 func _mounted_fixture() -> bool:
-	"""The mounted content-10 rows (claw, stair, handling) of an actual Session, with its stair tables."""
+	"""The mounted content-12 rows (claw, stair, handling) of an actual Session, with its stair tables."""
 	var session: Session = _generate_and_mount()
 	if not failures.is_empty(): return false
 	var o: Session.Retirement.Owners = session._retirement_owners
@@ -163,16 +163,16 @@ func test_the_clock_check_equals_the_pre_1951_code_with_the_closure_whole_or_bro
 
 
 func test_mounted_claw_stair_and_handling_rows_answer_as_before() -> void:
-	"""Content 10's owned rows go through their own programs and the step rows through the step program, as before."""
+	"""The mounted content's owned rows (content 12 since decision 1972) go through their own programs, as before."""
 	if not _mounted_fixture():
-		assert_true(false, "mounted content 10")
+		assert_true(false, "mounted content")
 		return
 	var owned: int = 0
 	for profile: int in _profiles._live.header[1]:
 		if Routes.Handling.is_handling(profile, _profiles.content_revision()) or Stair.owns(_profiles, profile) \
 				or Routes.Claw2.owns(_profiles, profile) or Routes.Claw.owns(_profiles, profile):
 			owned += 1
-	assert_true(owned > 0, "content 10 has owned rows: %d" % owned)
+	assert_true(owned > 0, "the mounted content has owned rows: %d" % owned)
 	_assert_profiles_match("mounted")
 	assert_true(_assert_clocks_match("mounted") > 0, "some owned-program clocks pass")
 

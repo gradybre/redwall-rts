@@ -22,7 +22,7 @@ const INSTALLS: int = 8
 const STATIONS: int = 22
 const CUTS: int = 6
 const BEARINGS: int = 38
-const ENDPOINTS: int = 44
+const ENDPOINTS: int = 46
 const EPISODES: int = 14
 const L0_EPISODES: int = 4 # The first-entry prefix's L0 cubes, all of prefix 0.
 ## Capacities, Install, Station, rotation, Cut, Bearing, Endpoint plus travel, Episode, then the two workpiece rows.

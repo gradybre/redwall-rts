@@ -6,8 +6,9 @@ const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
 const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
 const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
-## ADR1229: the T1-T6 first-entry bundle (content 10; ADR1217 step 5 mounted the claw bundle, content 9).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
+## Decision 1972: the T1-T6 first-entry bundle v10 on content 12 (ADR1229 mounted v9 on content 10; ADR1217 step 5
+## the claw bundle, content 9).
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
 const CATALOG_ROW: int = 0 # The bundle structure has exactly one entry variant.
 const CELL_U: int = 1024
 const REFUSE_NONE_FOUND: StringName = &"ENTRY_SITE_NONE_FOUND"

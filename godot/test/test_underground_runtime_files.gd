@@ -34,7 +34,8 @@ func after_each() -> void:
 
 func test_every_listed_file_is_on_disk_at_its_pinned_digest() -> void:
 	"""The list holds the readers' own pins, so a stale file or a renewed pin without its bytes fails here."""
-	assert_equal(Files.FILES.size(), 14, "the level pack, six actors, profile, catalog, motion and four bundle files")
+	assert_equal(Files.FILES.size(), 17,
+		"the level pack, eight actors, profile, catalog, both stair motion banks and four bundle files (decision 1972)")
 	for path: String in Files.FILES:
 		assert_true(FileAccess.file_exists(path), "on disk: " + path)
 		assert_equal(FileAccess.get_sha256(path), Files.FILES[path], "pinned digest: " + path)

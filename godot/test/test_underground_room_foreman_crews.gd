@@ -260,7 +260,6 @@ func test_a_paid_phase_left_by_a_lost_builder_is_taken_over_and_the_room_finishe
 	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE kept")
 	assert_equal(runtime.release_room(room), &"", "released")
 	var wood: int = _h._inventory.lot_quantity_milli(_h.stock_wood)
-	var free_wood: int = _h._inventory.lot_available_milli(_h.stock_wood)
 	var second: Builder.Crew = _h.second_member(SECOND_PARKING)
 	var before: Transforms.Pose = Transforms.Pose.new()
 	assert_true(_h._transforms.read_into(second.worker, before), "where the taker stood, far off")

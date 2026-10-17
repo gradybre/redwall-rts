@@ -33,6 +33,8 @@ const CLAW_BACKWARD: int = 50 # Claw READY backward at the same heading.
 const CLAW_WALL: int = 70 # Claw wall row at yaw 49152 (decision 1972, rows 67-70).
 const CLAW_GROUND: int = 42 # The claw's all-yaw canonical ground WALK.
 const TICK_BOUND: int = 40000
+## Whole units of each BRACE input the Kitchen's digs need: a BRACE bills a quarter unit of each, one BRACE a Site.
+@warning_ignore("integer_division") const UNITS_EACH: int = StationTests.KITCHEN_SITES / 4
 ## A second claw parking in the Corridor, south of the access line (fixture geometry only).
 const SECOND_PARKING: Vector3i = Vector3i(Phase.X - 1024, Phase.FLOOR, Phase.Z - 1280)
 ## The room's storage M: its own Corridor endpoint (fixture geometry only).
@@ -208,7 +210,7 @@ func _haul_kitchen() -> Vector2i:
 		0, 0).ok, "one BRACE of stone in M")
 	for key: StringName in [&"wood", &"stone"]:
 		assert_true(_h._inventory.create_lot(_h.staging, _h._items.compiled_id(key),
-			(StationTests.KITCHEN_SITES / 4 - 1) * HaulTests.Grip.QUANTITY_MILLI, 1, 0, -1, 0, 0).ok, "the rest of R")
+			(UNITS_EACH - 1) * HaulTests.Grip.QUANTITY_MILLI, 1, 0, -1, 0, 0).ok, "the rest of R")
 	return room
 
 
@@ -238,7 +240,7 @@ func test_a_claw_builder_hauls_every_brace_and_digs_the_kitchen() -> void:
 		"a haul from a column's station: %s" % into_store)
 	assert_equal(seen, [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
-	assert_equal(builder.haul_trips(), 2 * StationTests.KITCHEN_SITES / 4, "a wood and a stone trip per four BRACEs")
+	assert_equal(builder.haul_trips(), 2 * UNITS_EACH, "a wood and a stone trip per four BRACEs")
 	assert_equal(_h._inventory.container_lot_count(_h.staging), 0, "R emptied")
 	assert_equal(_h.free_milli(_h.material, &"wood"), Contract.BRACE_WOOD_MILLI, "all used but one BRACE's worth")
 	assert_equal(_h.free_milli(_h.material, &"stone"), Contract.BRACE_STONE_MILLI, "all used but one BRACE's worth")
@@ -263,7 +265,7 @@ func test_two_claw_builders_haul_and_dig_the_kitchen_together() -> void:
 	assert_equal(seen, [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
 	assert_true(builders[0].haul_trips() > 0 and builders[1].haul_trips() > 0, "both builders hauled")
-	assert_equal(builders[0].haul_trips() + builders[1].haul_trips(), 2 * StationTests.KITCHEN_SITES / 4, "every unit once")
+	assert_equal(builders[0].haul_trips() + builders[1].haul_trips(), 2 * UNITS_EACH, "every unit once")
 	assert_equal(_h._inventory.container_lot_count(_h.staging), 0, "R emptied")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
 

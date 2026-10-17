@@ -92,3 +92,19 @@ room bindings, the itinerary, the builder, the entry runtime and the host. **26 
 | I4: the ground row without its WALK check | **Equivalent on content 12.** No owned all-yaw canonical ground row is anything but WALK; the claw proof also requires it |
 | E8: the zero-tick walk out without its occupancy rebuild | **Unreachable:** the crew's last station is never H |
 | E11: the busy-Routes retry | **Unreachable:** Routes holds no open transaction at a tick boundary |
+
+## 5. Final gates (at `7393c891`, after merging `origin/master` at `537a9a2e`, 2026-10-17)
+
+- **Full suite, CI-style:** `godot/.godot` deleted, `godot --headless --path godot --editor --quit`, then
+  `./tools/run_tests_parallel.sh` (10 shards): **12,955 tests, 1,467,964 assertions, 0 failures, 0 unexpected
+  errors or warnings, 0 leaks**; verify: 543 suite files, each exactly once. The first run found only the two
+  underground checkpoints stale by source fingerprint; they were regenerated (`regenerate_test_checkpoints.sh`), and
+  only their fingerprints and source digests changed, not their states.
+- **Slow tier:** the claw Kitchen (64 s) and the crew-leaves suite (165 s), measured in that run.
+- **Analyzer** (`tools/gdscript_warnings.py --max 0 --port 6433`): 0 warnings in 1,618 files.
+- **Contracts:** `decision_numbers`, `ready07_arithmetic`, `merge_gate`, `state_registry_coverage`, `lane_notes`,
+  `dispatch_plan --validate`, `generate_canonical_state_table --check`, `astra_inbox --check`, `setting_contract`,
+  `validate_save_registry_handoff`, `renew_source_pins --check`, `underground_memory_budget.py --check` with its tests,
+  and `test_ci_test_shards`: all pass. The memory pack's source digests for the room bindings and the host were
+  renewed (no byte moves; headroom 44,220,364 B unchanged).
+- **Mutation testing and review:** §4.

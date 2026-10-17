@@ -59,7 +59,8 @@ const EDGE_MEMO_STAMP: int = 6
 ## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
 ## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
 ## each entry has one result word per profile row: (entry generation << 16) | (boxes checked << 4) | answer index.
-const OBSERVED_KEY: int = 6 # Decision 1953: compile serial, Location slot, generation, point x, y, z.
+## Decision 1953: a kept observation's key words: compile serial, Location slot, generation, point x, y, z.
+const OBSERVED_KEY: int = 6
 const ENDPOINT_MEMO_ENTRIES: int = 64
 const ENDPOINT_ENTRY_WORDS: int = 34
 const ENDPOINT_MEMO_STAMP: int = 9

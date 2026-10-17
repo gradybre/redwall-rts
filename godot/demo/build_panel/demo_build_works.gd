@@ -8,8 +8,12 @@ extends RefCounted
 ## for the mole) or OPEN (dug), and the room type painted there (TYPE_NONE for a way down's landing). On the Surface
 ## (level 0) the same for MOUND rooms (decision 2002): ORDERED until dug into their hill, then OPEN; how far each is
 ## heaped, framed and topped is demo_build_mounds.gd's, and the mole's searches never walk them.
-## THE WAYS DOWN. Each confirmed way down: the level it stands on (0 for the Entrance) and its north-west cell; it
-## lands on the same 2 × 2 cells one level down. Those landing cells are ordered with it.
+## THE WAYS DOWN. Each confirmed way: the level it stands on (0 for an entrance), its north-west cell, its family and
+## quarter turns (build_connector_families.gd: decision 2021, every size a placeholder) and whether it still stands
+## (a removed one keeps its row, so a trip naming it stays valid). Its lower cells are ordered with it: its landing
+## (TYPE_NONE, a way in for the rooms beside it) and a sloped one's run (TYPE_WAY: solid earth it cuts through, walked
+## only along itself, never a way in). A hatch lands on the same 2 × 2 cells, as decision 1912's way down did.
+## `way_cell` is its top 2 × 2's north-west cell and `landing_of` its foot 2 × 2's, where it is drawn and walked.
 ##
 ## THE DIG ORDER (`next_dig`): from where the mole stands, breadth first through open cells and open ways down, the
 ## nearest ordered cell beside open space (or a landing below an open way down, or the mole's own cell): so rooms
@@ -23,12 +27,15 @@ const EARTH: int = 0
 const ORDERED: int = 1
 const OPEN: int = 2
 const TYPE_NONE: int = 255
+## A sloped way's run below its standing level: dug with it, walked only along itself (decision 2021).
+const TYPE_WAY: int = 254
 const SIDE: int = 2
 const SEARCH_LIMIT: int = 65536
 const SIDES: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 ## The surface, as one node joining every Entrance's landing (a walk through it goes up and over).
 const SURFACE: Vector3i = Vector3i(0, -1, -1)
 const QUAD: Array[Vector2i] = [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i.ONE]
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
 ## Bumped by every change; readers redraw when it moves.
 var revision: int = 0
@@ -38,6 +45,17 @@ var _type: Array[PackedByteArray] = []
 var _way_levels: PackedInt32Array = PackedInt32Array()
 var _way_xs: PackedInt32Array = PackedInt32Array()
 var _way_zs: PackedInt32Array = PackedInt32Array()
+var _way_families: PackedByteArray = PackedByteArray()
+var _way_turns: PackedByteArray = PackedByteArray()
+var _way_live: PackedByteArray = PackedByteArray()
+## Each live way's links, rebuilt when the ways change: cell (level, x, z) -> the cells (or SURFACE) it reaches; and
+## which live way owns each cell (level, x, z) it stands on, takes below, cuts as its run, or opens onto as its landing
+## (review H4: a run is left only onto its own landing; M: `on_way` reads them, never building sets).
+var _links: Dictionary = {}
+var _standing_owner: Dictionary = {}
+var _lower_owner: Dictionary = {}
+var _run_owner: Dictionary = {}
+var _foot_owner: Dictionary = {}
 var _ordered: int = 0
 ## Per level: the box around its non-earth cells (an empty Rect2i: none yet).
 var _boxes: Array[Rect2i] = []
@@ -59,6 +77,10 @@ func configure(bounds: Rect2i) -> void:
 	_way_levels.clear()
 	_way_xs.clear()
 	_way_zs.clear()
+	_way_families.clear()
+	_way_turns.clear()
+	_way_live.clear()
+	_relink()
 	_ordered = 0
 	_boxes.clear()
 	for level: int in LEVELS:
@@ -89,17 +111,67 @@ func order_room(level: int, cells: PackedInt32Array, room_type: int) -> bool:
 	return true
 
 
-func order_way_down(level: int, cell: Vector2i) -> bool:
-	"""Confirm all ordered a way down on `level` at `cell`: it and its landing below wait for the mole."""
-	if level < 0 or level >= LEVELS - 1 or _index(level + 1, cell + Vector2i.ONE) < 0 or _index(level + 1, cell) < 0:
+func order_way_down(level: int, cell: Vector2i, family: int = Families.LADDER_HATCH, turn: int = 0) -> bool:
+	"""Confirm all ordered a way of `family` turned `turn` on `level` at `cell`: its landing and run below wait for the
+	mole. False off the levels or the area."""
+	if level < 0 or level >= LEVELS - 1 or not Families.valid(family):
 		return false
+	var lower: PackedInt32Array = Families.lower_cells(family, turn, cell)
+	for at: int in range(0, lower.size(), 2):
+		if _index(level + 1, Vector2i(lower[at], lower[at + 1])) < 0:
+			return false
 	_way_levels.append(level)
 	_way_xs.append(cell.x)
 	_way_zs.append(cell.y)
-	for offset: Vector2i in QUAD:
-		_order(level + 1, cell + offset, TYPE_NONE)
+	_way_families.append(family)
+	_way_turns.append(posmod(turn, 4))
+	_way_live.append(1)
+	var run: Dictionary = _set_of(Families.run_cells(family, turn, cell))
+	for at: int in range(0, lower.size(), 2):
+		var at_cell: Vector2i = Vector2i(lower[at], lower[at + 1])
+		_order(level + 1, at_cell, TYPE_WAY if run.has(at_cell) else TYPE_NONE)
+	_relink()
 	revision += 1
 	return true
+
+
+func remove_way_at(level: int, cell: Vector2i) -> bool:
+	"""Confirm all removed the way standing on `level` at `cell` (decision 2021, P-D1-6 (a)): its row stops standing;
+	its cells still waiting go back to earth, and those dug stay dug, bare (backfill is slice F's). False with none."""
+	for row: int in _way_levels.size():
+		if way_live(row) and _way_levels[row] == level and way_anchor(row) == cell:
+			_way_live[row] = 0
+			_relink()
+			_unorder_way(row)
+			revision += 1
+			return true
+	return false
+
+
+func _unorder_way(row: int) -> void:
+	"""Way `row`'s lower cells: waiting ones back to earth, dug ones bare (no room type) -- but never a cell another
+	standing way still takes (review H2)."""
+	var lower: PackedInt32Array = Families.lower_cells(_way_families[row], _way_turns[row], way_anchor(row))
+	var below: int = _way_levels[row] + 1
+	for at: int in range(0, lower.size(), 2):
+		var index: int = _index(below, Vector2i(lower[at], lower[at + 1]))
+		var type: int = _type[below][index]
+		if _lower_owner.has(Vector3i(below, lower[at], lower[at + 1])):
+			continue
+		if type != TYPE_NONE and type != TYPE_WAY:
+			continue
+		if _state[below][index] == ORDERED:
+			_state[below][index] = EARTH
+			_ordered -= 1
+		_type[below][index] = TYPE_NONE
+
+
+static func _set_of(cells: PackedInt32Array) -> Dictionary:
+	"""`cells` (pairs) as a set of Vector2i."""
+	var out: Dictionary = {}
+	for at: int in range(0, cells.size(), 2):
+		out[Vector2i(cells[at], cells[at + 1])] = true
+	return out
 
 
 func _order(level: int, cell: Vector2i, room_type: int) -> void:
@@ -119,10 +191,48 @@ func ways_on(level: int) -> PackedInt32Array:
 	2002)."""
 	var out: PackedInt32Array = PackedInt32Array()
 	for row: int in _way_levels.size():
-		if _way_levels[row] == level:
+		if way_live(row) and _way_levels[row] == level:
 			out.append(_way_xs[row])
 			out.append(_way_zs[row])
 	return out
+
+
+func hatches_on(level: int) -> PackedInt32Array:
+	"""The north-west cells of the confirmed hatches standing on `level` (pairs): what a Mound's cutaway draws as a
+	hatch (decision 2002's E15; decision 2021: other families draw themselves)."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for row: int in _way_levels.size():
+		if way_live(row) and _way_levels[row] == level and _way_families[row] == Families.LADDER_HATCH:
+			out.append_array(PackedInt32Array([_way_xs[row], _way_zs[row]]))
+	return out
+
+
+func shapes_on(level: int) -> PackedInt32Array:
+	"""The confirmed ways standing on `level` as (x, z, family, turn) quads: the batch's shape reader (decision
+	2021)."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for row: int in _way_levels.size():
+		if way_live(row) and _way_levels[row] == level:
+			out.append_array(PackedInt32Array([_way_xs[row], _way_zs[row], _way_families[row], _way_turns[row]]))
+	return out
+
+
+func landings_on(level: int) -> PackedInt32Array:
+	"""The cells confirmed ways land on, on `level` (pairs): the batch's landings reader (decision 2021: confirmed ways
+	count, built or waiting, P-D1-7 (a))."""
+	var out: PackedInt32Array = PackedInt32Array()
+	for row: int in _way_levels.size():
+		if way_live(row) and _way_levels[row] + 1 == level:
+			out.append_array(Families.landing_cells(_way_families[row], _way_turns[row], way_anchor(row)))
+	return out
+
+
+func room_type_at(level: int, cell: Vector2i) -> int:
+	"""The room type ordered or dug at `cell` (-1: earth, a landing or a run): the batch's type reader."""
+	if state(level, cell) == EARTH:
+		return -1
+	var type: int = type_of(level, cell)
+	return -1 if type == TYPE_NONE or type == TYPE_WAY else type
 
 
 func open_cell(level: int, cell: Vector2i) -> bool:
@@ -174,8 +284,36 @@ func waiting() -> int:
 
 
 func way_count() -> int:
-	"""Confirmed ways down."""
+	"""Confirmed ways' rows, removed ones included (`way_live`)."""
 	return _way_levels.size()
+
+
+func way_row_at(level: int, anchor: Vector2i) -> int:
+	"""The standing way on `level` placed at `anchor`, or -1."""
+	for row: int in _way_levels.size():
+		if way_live(row) and _way_levels[row] == level and way_anchor(row) == anchor:
+			return row
+	return -1
+
+
+func way_live(row: int) -> bool:
+	"""Whether way `row` still stands (not removed)."""
+	return row >= 0 and row < _way_live.size() and _way_live[row] == 1
+
+
+func way_family(row: int) -> int:
+	"""Way `row`'s family (build_connector_families.gd)."""
+	return _way_families[row]
+
+
+func way_turn(row: int) -> int:
+	"""Way `row`'s quarter turns."""
+	return _way_turns[row]
+
+
+func way_anchor(row: int) -> Vector2i:
+	"""Way `row`'s north-west cell, as placed."""
+	return Vector2i(_way_xs[row], _way_zs[row])
 
 
 func way_level(row: int) -> int:
@@ -184,29 +322,55 @@ func way_level(row: int) -> int:
 
 
 func way_cell(row: int) -> Vector2i:
-	"""Way down `row`'s north-west cell."""
-	return Vector2i(_way_xs[row], _way_zs[row])
+	"""The north-west cell of way `row`'s top 2 × 2 (a hatch's own cells): where it is drawn going down and where
+	residents go in."""
+	return Families.top_corner(_way_families[row], _way_turns[row], way_anchor(row))
 
 
 func entrance() -> int:
-	"""The first confirmed Entrance's row, or -1."""
-	return _way_levels.find(0)
+	"""The first standing entrance's row, or -1."""
+	for row: int in _way_levels.size():
+		if way_live(row) and _way_levels[row] == 0:
+			return row
+	return -1
 
 
 func on_way(level: int, cell: Vector2i) -> bool:
 	"""Whether `cell` on `level` is under a confirmed way down: where one stands (below the surface, or on a Mound room's
 	floor: decision 2002) or where one lands (decision 1921: furniture keeps clear of the stairs)."""
-	for row: int in _way_levels.size():
-		var top: int = _way_levels[row]
-		if (top == level and (level > 0 or state(0, cell) != EARTH)) or top + 1 == level:
-			if Rect2i(Vector2i(_way_xs[row], _way_zs[row]), Vector2i(SIDE, SIDE)).has_point(cell):
-				return true
-	return false
+	var at: Vector3i = Vector3i(level, cell.x, cell.y)
+	if _lower_owner.has(at):
+		return true
+	return _standing_owner.has(at) and (level > 0 or state(0, cell) != EARTH)
+
+
+func down_dir(row: int) -> Vector2i:
+	"""Which way way `row`'s stairs go down where it stands, seen from above (turn 0: north)."""
+	return Families.descent(_way_turns[row])
+
+
+func rise_dir(row: int) -> Vector2i:
+	"""Which way the stairs drawn at way `row`'s foot rise: a hatch's as it goes down (turn 0: north, as decision
+	1912's way down), a run's back toward its top."""
+	var down: Vector2i = Families.descent(_way_turns[row])
+	return -down if Families.sloped(_way_families[row]) else down
+
+
+func head_cells(row: int) -> Array[Vector2i]:
+	"""The two cells just beyond way `row`'s foot 2 × 2 where its drawn stairs rise into the earth (kept square)."""
+	var foot: Vector3i = landing_of(row)
+	var corner: Vector2i = Vector2i(foot.y, foot.z)
+	var rise: Vector2i = rise_dir(row)
+	var first: Vector2i = corner + Vector2i(2 if rise.x > 0 else (-1 if rise.x < 0 else 0),
+		2 if rise.y > 0 else (-1 if rise.y < 0 else 0))
+	var along: Vector2i = Vector2i(0, 1) if rise.x != 0 else Vector2i(1, 0)
+	return [first, first + along]
 
 
 func landing_of(row: int) -> Vector3i:
-	"""Where way down `row` lands: (level below, its north-west cell)."""
-	return Vector3i(_way_levels[row] + 1, _way_xs[row], _way_zs[row])
+	"""Where way `row` comes out below: (level below, its foot 2 × 2's north-west cell)."""
+	var foot: Vector2i = Families.foot_corner(_way_families[row], _way_turns[row], way_anchor(row))
+	return Vector3i(_way_levels[row] + 1, foot.x, foot.y)
 
 
 func next_dig(from: Vector3i) -> Dictionary:
@@ -258,34 +422,93 @@ func _search(from: Vector3i, goals: Dictionary, digging: bool) -> Dictionary:
 
 
 func _neighbours(at: Vector3i) -> Array[Vector3i]:
-	"""The four cells beside `at` on its level, the other end of a way down it stands on or lands on, and the surface
-	from an Entrance's landing (or every Entrance's landing from the surface)."""
+	"""The cells beside `at` on its level (a run's cells only along the run and onto its landing), and what a standing
+	way links it to: the other end of the way, or the surface from an entrance's landing (every entrance's landing
+	from the surface)."""
 	var out: Array[Vector3i] = []
-	if at == SURFACE:
-		return _entrance_landings()
-	for side: Vector2i in SIDES:
-		out.append(Vector3i(at.x, at.y + side.x, at.z + side.y))
+	if at != SURFACE:
+		for side: Vector2i in SIDES:
+			var next: Vector3i = Vector3i(at.x, at.y + side.x, at.z + side.y)
+			if _side_step(at, next):
+				out.append(next)
+	if _links.has(at):
+		for linked: Vector3i in _links[at]:
+			out.append(linked)
+	return out
+
+
+func _side_step(at: Vector3i, next: Vector3i) -> bool:
+	"""Whether a walker may step from `at` to `next` beside it: off the runs; along one run; or between a run and its
+	own way's landing (review H4: never sideways out of a run, nor from one run to another)."""
+	var mine: int = int(_run_owner.get(at, -1))
+	var theirs: int = int(_run_owner.get(next, -1))
+	if mine == theirs:
+		return true
+	if mine >= 0 and theirs >= 0:
+		return false
+	return int(_foot_owner.get(next if mine >= 0 else at, -2)) == maxi(mine, theirs)
+
+
+func _relink() -> void:
+	"""Every standing way's links: each top 2 × 2 cell (below the Surface) to the foot cell in its place, or the
+	surface to an entrance's foot."""
+	_links.clear()
+	_standing_owner.clear()
+	_lower_owner.clear()
+	_run_owner.clear()
+	_foot_owner.clear()
 	for row: int in _way_levels.size():
-		var top: Vector3i = Vector3i(_way_levels[row], _way_xs[row], _way_zs[row])
-		if not Rect2i(Vector2i(top.y, top.z), Vector2i(SIDE, SIDE)).has_point(Vector2i(at.y, at.z)):
+		if not way_live(row):
 			continue
-		if at.x == top.x and (top.x == 0 or state(top.x, Vector2i(at.y, at.z)) == OPEN):
-			out.append(Vector3i(top.x + 1, at.y, at.z))
-		elif at.x == top.x + 1 and top.x > 0:
-			out.append(Vector3i(top.x, at.y, at.z))
-		elif at.x == 1 and top.x == 0 and state(1, Vector2i(at.y, at.z)) == OPEN:
-			out.append(SURFACE)
-	return out
+		_own_cells(row)
+		var family: int = _way_families[row]
+		var turn: int = _way_turns[row]
+		var top: int = _way_levels[row]
+		var foot: PackedInt32Array = Families.landing_cells(family, turn, way_anchor(row))
+		if top == 0:
+			for at: int in range(0, foot.size(), 2):
+				_link(SURFACE, Vector3i(1, foot[at], foot[at + 1]))
+			continue
+		var standing: PackedInt32Array = Families.standing_cells(family, turn, way_anchor(row))
+		for at: int in range(0, standing.size(), 2):
+			var from: Vector2i = Vector2i(standing[at], standing[at + 1])
+			var to: Vector2i = Families.paired_landing(family, turn, way_anchor(row), from)
+			if to != from or not Families.sloped(family):
+				_link(Vector3i(top, from.x, from.y), Vector3i(top + 1, to.x, to.y))
 
 
-func _entrance_landings() -> Array[Vector3i]:
-	"""Every cell an Entrance lands on, on level 1."""
-	var out: Array[Vector3i] = []
-	for row: int in _way_levels.size():
-		if _way_levels[row] == 0:
-			for offset: Vector2i in QUAD:
-				out.append(Vector3i(1, _way_xs[row] + offset.x, _way_zs[row] + offset.y))
-	return out
+func _own_cells(row: int) -> void:
+	"""Record live way `row`'s cells in the owner maps."""
+	var family: int = _way_families[row]
+	var turn: int = _way_turns[row]
+	var anchor: Vector2i = way_anchor(row)
+	var top: int = _way_levels[row]
+	var sets: Array = [[_standing_owner, Families.standing_cells(family, turn, anchor), top],
+		[_lower_owner, Families.lower_cells(family, turn, anchor), top + 1],
+		[_run_owner, Families.run_cells(family, turn, anchor), top + 1],
+		[_foot_owner, Families.landing_cells(family, turn, anchor), top + 1]]
+	for entry: Array in sets:
+		var cells: PackedInt32Array = entry[1]
+		for at: int in range(0, cells.size(), 2):
+			(entry[0] as Dictionary)[Vector3i(int(entry[2]), cells[at], cells[at + 1])] = row
+
+
+func run_foot(cell: Vector3i) -> Vector3i:
+	"""For a cell of a standing way's run, that way's first landing cell (where one walking it comes out); else `cell`
+	(the cut-off check's residents on a run: review M)."""
+	var row: int = int(_run_owner.get(cell, -1))
+	if row < 0:
+		return cell
+	var foot: PackedInt32Array = Families.landing_cells(_way_families[row], _way_turns[row], way_anchor(row))
+	return Vector3i(cell.x, foot[0], foot[1])
+
+
+func _link(a: Vector3i, b: Vector3i) -> void:
+	"""A way between `a` and `b`, both ways."""
+	for pair: Array in [[a, b], [b, a]]:
+		if not _links.has(pair[0]):
+			_links[pair[0]] = []
+		(_links[pair[0]] as Array).append(pair[1])
 
 
 static func _walk(came: Dictionary, end: Vector3i) -> PackedVector3Array:

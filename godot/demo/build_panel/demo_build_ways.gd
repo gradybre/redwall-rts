@@ -11,6 +11,11 @@ extends RefCounted
 ##   STAIRS DOWN where a way down stands on a level: steps cut down into the dug floor, going north into the dark (each
 ##               tread darker), between earth walls. Origin: its north-west corner, on the dug floor.
 ## The shape tells up from down from a mouth; the tag over each says which in words. Presentation only.
+## PER FAMILY (decision 2021; all drawn at a 2 × 2's north-west corner, going down or rising north, and turned by the
+## view): the Burrow mouth's RAMP (a sloped earth floor in its cut), the Hatch's HATCH (a timber frame round a dark
+## hole, its lid open, a ladder's top: the Mound hatch's measures, demo_build_mound_parts.gd) and LADDER (rails and
+## rungs up from its landing), and the Stair-head's STAIR HEAD on the Surface (a timber frame round the dark way down);
+## the Stair-head's own flight is the STAIRS above.
 
 const Quads := preload("res://demo/build_panel/demo_build_quads.gd")
 const Mouth := preload("res://demo/tunnel/tunnel_mouth.gd")
@@ -164,3 +169,100 @@ static func _cut_sides(quads: Quads, low: float, north: float, south: float, col
 	for x: float in [0.0, SIDE_M]:
 		quads.quad(Vector3(x, low, north), Vector3(x, low, south), Vector3(x, 0.0, south), Vector3(x, 0.0, north),
 			Vector3.RIGHT if x == 0.0 else Vector3.LEFT, colour)
+
+
+# --- per family (decision 2021) --------------------------------------------------------------------------------------
+
+const OAK: Color = Color(0.46, 0.31, 0.17)
+const RAIL: Color = Color(0.38, 0.26, 0.15)
+## The Mound hatch's measures (demo_build_mound_parts.gd add_hatch): hole, frame, lid, rails and rungs (m).
+const HATCH_HOLE_M: float = 1.7
+const HATCH_FRAME_M: float = 1.96
+const HATCH_BEAM_M: float = 0.16
+const LADDER_HALF_M: float = 0.3
+const RUNG_EVERY_M: float = 0.33
+
+
+static func ramp_mesh(paint: Material, depth_m: float, down: bool) -> ArrayMesh:
+	"""A ramp's earth floor over a 2 × 2: rising north from the dug floor to `depth_m` up (`down` false), or falling
+	north `depth_m` into its cut (`down` true), between earth sides."""
+	var quads: Quads = Quads.new()
+	var south_y: float = 0.0
+	var north_y: float = -depth_m if down else depth_m
+	quads.shaded(Vector3(0.0, north_y, 0.0), Vector3(SIDE_M, north_y, 0.0), Vector3(SIDE_M, south_y, SIDE_M),
+		Vector3(0.0, south_y, SIDE_M), Vector3(0.0, SIDE_M, depth_m * (1.0 if down else -1.0)).normalized(),
+		PackedColorArray([Mouth.THROAT_END if down else WORN, Mouth.THROAT_END if down else WORN, WORN, WORN]))
+	if down:
+		_cut_sides(quads, -depth_m, 0.0, SIDE_M, Mouth.CUT_DEEP)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.commit(mesh, paint)
+	return mesh
+
+
+static func hatch_mesh(paint: Material) -> ArrayMesh:
+	"""A hatch over a 2 × 2: the dark hole, a timber frame, the lid standing open to the north, a ladder's top."""
+	var quads: Quads = Quads.new()
+	var middle: Vector3 = Vector3(SIDE_M / 2.0, 0.0, SIDE_M / 2.0)
+	var hole: float = HATCH_HOLE_M / 2.0
+	quads.quad(middle + Vector3(-hole, 0.02, -hole), middle + Vector3(hole, 0.02, -hole), middle + Vector3(hole, 0.02, hole),
+		middle + Vector3(-hole, 0.02, hole), Vector3.UP, Mouth.THROAT_END)
+	var half: float = HATCH_FRAME_M / 2.0 - HATCH_BEAM_M / 2.0
+	for side: Vector3 in [Vector3(0.0, 0.0, -half), Vector3(0.0, 0.0, half)]:
+		box(quads, middle + side + Vector3(0.0, 0.06, 0.0), Vector3(HATCH_FRAME_M, 0.12, HATCH_BEAM_M), OAK)
+	for side: Vector3 in [Vector3(-half, 0.0, 0.0), Vector3(half, 0.0, 0.0)]:
+		box(quads, middle + side + Vector3(0.0, 0.06, 0.0), Vector3(HATCH_BEAM_M, 0.12, HATCH_FRAME_M), OAK)
+	box(quads, middle + Vector3(0.0, HATCH_HOLE_M / 2.0, -half - 0.05), Vector3(HATCH_HOLE_M, HATCH_HOLE_M, 0.07), OAK)
+	_ladder(quads, middle + Vector3(0.0, 0.0, 0.3), 0.0, 1.0)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.commit(mesh, paint)
+	return mesh
+
+
+static func ladder_mesh(paint: Material, height_m: float) -> ArrayMesh:
+	"""A ladder standing on a landing's 2 × 2, from the dug floor up `height_m` into the hatch above."""
+	var quads: Quads = Quads.new()
+	_ladder(quads, Vector3(SIDE_M / 2.0, 0.0, SIDE_M / 2.0 + 0.3), 0.0, height_m)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.commit(mesh, paint)
+	return mesh
+
+
+static func stair_head_mesh(paint: Material) -> ArrayMesh:
+	"""A stair-head on the Surface over a 2 × 2: a dark way down framed by two timber posts and a lintel, on a sill."""
+	var quads: Quads = Quads.new()
+	quads.quad(Vector3(0.1, 0.02, 0.1), Vector3(SIDE_M - 0.1, 0.02, 0.1), Vector3(SIDE_M - 0.1, 0.02, SIDE_M - 0.1),
+		Vector3(0.1, 0.02, SIDE_M - 0.1), Vector3.UP, Mouth.THROAT_END)
+	box(quads, Vector3(SIDE_M / 2.0, 0.06, SIDE_M - 0.08), Vector3(SIDE_M, 0.12, HATCH_BEAM_M), OAK)
+	for x: float in [0.15, SIDE_M - 0.15]:
+		box(quads, Vector3(x, 0.7, 0.2), Vector3(HATCH_BEAM_M, 1.4, HATCH_BEAM_M), OAK)
+	box(quads, Vector3(SIDE_M / 2.0, 1.45, 0.2), Vector3(SIDE_M, HATCH_BEAM_M, HATCH_BEAM_M), OAK)
+	var mesh: ArrayMesh = ArrayMesh.new()
+	quads.commit(mesh, paint)
+	return mesh
+
+
+static func _ladder(quads: Quads, foot: Vector3, from_m: float, to_m: float) -> void:
+	"""Two rails and rungs every RUNG_EVERY_M from `from_m` to `to_m` above `foot`."""
+	var length: float = to_m - from_m
+	for rail: float in [-LADDER_HALF_M, LADDER_HALF_M]:
+		box(quads, foot + Vector3(rail, from_m + length / 2.0, 0.0), Vector3(0.07, length, 0.07), RAIL)
+	var rung: float = from_m + RUNG_EVERY_M
+	while rung < to_m:
+		box(quads, foot + Vector3(0.0, rung, 0.0), Vector3(LADDER_HALF_M * 2.0, 0.05, 0.05), RAIL)
+		rung += RUNG_EVERY_M
+
+
+static func box(quads: Quads, centre: Vector3, size: Vector3, colour: Color) -> void:
+	"""An axis-aligned box's four sides and top (its bottom is never seen)."""
+	var h: Vector3 = size / 2.0
+	var c: Vector3 = centre
+	quads.quad(c + Vector3(-h.x, h.y, -h.z), c + Vector3(h.x, h.y, -h.z), c + Vector3(h.x, h.y, h.z),
+		c + Vector3(-h.x, h.y, h.z), Vector3.UP, colour)
+	for sign_x: float in [-1.0, 1.0]:
+		var x: float = h.x * sign_x
+		quads.quad(c + Vector3(x, -h.y, -h.z), c + Vector3(x, -h.y, h.z), c + Vector3(x, h.y, h.z),
+			c + Vector3(x, h.y, -h.z), Vector3(sign_x, 0.0, 0.0), colour.darkened(0.15))
+	for sign_z: float in [-1.0, 1.0]:
+		var z: float = h.z * sign_z
+		quads.quad(c + Vector3(-h.x, -h.y, z), c + Vector3(h.x, -h.y, z), c + Vector3(h.x, h.y, z),
+			c + Vector3(-h.x, h.y, z), Vector3(0.0, 0.0, sign_z), colour.darkened(0.25))

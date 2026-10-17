@@ -54,7 +54,7 @@ func _initialize() -> void:
 		_watch_stage.bind(Mounds.FRAMED, "the rooms are framed with ribs"),
 		_watch_stage.bind(Mounds.TOPPED, "the hill is topped and turfed"), _wait_finished, _hill_fits,
 		_until_day, _finished_cutaway, _finished_frames, _grow_open, _scroll.bind("Pantry"), _paint.bind("Pantry", PANTRY), _pantry_ready,
-		_scroll.bind("Entrance"), _place_the_hatch, _confirm_the_growth, _wait_grown, _hill_grew,
+		_scroll.bind("Hatch with ladder"), _place_the_hatch, _add_the_hatch, _confirm_the_growth, _wait_grown, _hill_grew,
 		_wait_hatch_landing, _down_to_level_one, _up_again, _scroll.bind("Kitchen"), _choose_kitchen, _to_furnish,
 		_scroll.bind("Hearth"), _furnish_a_hearth, _confirm_the_hearth, _wait_hearth, _chimney_shown, _close_the_panel]
 
@@ -318,10 +318,18 @@ func _pantry_ready() -> void:
 
 
 func _place_the_hatch() -> void:
-	"""The Entrance card clicked on the Pantry's floor: a way down standing in the room, to level 1 (BUILD-MOUND-021)."""
-	_click(_card_centre("Entrance"))
+	"""The Hatch with ladder card clicked on the Pantry's floor: the connector card opens for a way down standing in the
+	room, to level 1 (BUILD-MOUND-021; decision 2021)."""
+	_click(_card_centre("Hatch with ladder"))
 	root.gui_release_focus()
 	_click(_screen_of(HATCH, 0))
+	var words: String = String(_build().get("panel").call(&"connector_words"))
+	_check("the card says it connects to level 1", words.begins_with("✓ Connects to Underground level 1"), words)
+
+
+func _add_the_hatch() -> void:
+	"""Add to plan, clicked: the hatch joins the batch on the Pantry's floor."""
+	_click(_centre(_build().get("panel").call(&"connector").call(&"add_button")))
 	var items: Object = _build().get("batch").call(&"items")
 	_check("the hatch is placed on the Pantry's floor", int(items.call(&"live_count")) == 1
 		and int(_build().get("batch").call(&"item_kind", 0)) == 0, String(_build().get("batch").call(&"last_dropped")))
@@ -367,7 +375,7 @@ func _level_one_shows() -> void:
 	"""Level 1 drawn a frame later: the hatch's landing dug, its way up to the surface."""
 	var dug: Object = _build().get("dug")
 	_check("level 1: the hatch lands there, its way up drawn", int(_build().get("bar").call(&"shown_level")) == 1
-		and int(dug.call(&"stairs_shown")) >= 1 and Array(dug.call(&"tags")).has("Way up to the surface"),
+		and int(dug.call(&"stairs_shown")) >= 1 and Array(dug.call(&"tags")).has("Hatch with ladder: way up to the surface"),
 		str(dug.call(&"tags")))
 
 

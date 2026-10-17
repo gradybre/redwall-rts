@@ -15,9 +15,11 @@ extends Node3D
 ## state is read cell by cell, in words on each group's tag. The stroke (or, before one, the cell under the cursor) is
 ## drawn the same way by its own pool, whose first ghost also draws the level's 1 m grid while a room type is armed.
 ## Ghosts are rebuilt only when the batch's revision, the stroke or the cursor moves (an integer compare a frame).
-## WAYS DOWN (decision 1912): each pending one is drawn on the level it stands on (on the surface: the village's own
-## marks layer) and where it lands, with its validity; while one is being placed the cursor ghost is its 2 × 2 cells,
-## judged where they stand (build_batch.gd `judge_item`).
+## WAYS DOWN (decision 1912; per family, decision 2021): each pending one is drawn on the level it stands on (on the
+## surface: the village's own marks layer) by its standing cells and on the level below by its lower cells ("comes
+## down here"), with its validity; a pending removal by its standing cells ("Remove ..."). While one is being placed
+## the cursor ghost -- or, once pinned on the connector card, the pinned ghost -- is its cells on the level shown, judged
+## where it stands (build_batch.gd `judge_item`), with its access pair drawn beside them ("access").
 
 const Ghost := preload("res://demo/build_panel/demo_build_ghost.gd")
 const Batch := preload("res://scripts/ui/build_batch.gd")
@@ -28,7 +30,10 @@ const WorldTool := preload("res://demo/burrow/modular_world_tool.gd")
 const Items := preload("res://scripts/ui/build_items.gd")
 const Mound := preload("res://scripts/ui/build_mound.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 
+## UI-BUILD-011: a way's access pair, drawn as a labelled pattern beside it (decision 2021).
+const ACCESS_WORDS: String = "access"
 ## A way down on a Mound room's floor (decision 2002, BUILD-MOUND-021).
 const HATCH_NAME: String = Mound.TEXT_HATCH
 ## The underground levels painted on (DEC-061 Q6: levels 1-4).
@@ -56,6 +61,12 @@ var _cursor: Vector2i = Vector2i.ZERO
 var _cursor_level: int = -1
 var _armed_type: int = -1
 var _placing: bool = false
+## Decision 2021: the way being placed (`set_way`): its family, turns, the level it stands on, and where it is pinned.
+var _way_family: int = -1
+var _way_turn: int = 0
+var _way_standing: int = 0
+var _way_pinned: bool = false
+var _way_pin: Vector2i = Vector2i.ZERO
 ## Room ghosts and stroke ghosts drawn since configure (checks: a cursor move redraws no room).
 var operation_draws: int = 0
 var stroke_draws: int = 0
@@ -132,12 +143,28 @@ func screen_of(cell: Vector2i, level: int, lift_u: int = 0) -> Vector2:
 	return _camera.unproject_position(at)
 
 
+func set_way(family: int, turn: int, standing: int, pinned: bool, pin: Vector2i) -> void:
+	"""The way being placed: `family` turned `turn`, standing on `standing`, pinned at `pin` on the connector card (else
+	it follows the cursor). An integer compare a frame; the ghost redraws when any of it moves."""
+	_way_family = family
+	_way_turn = turn
+	_way_standing = standing
+	_way_pinned = pinned
+	_way_pin = pin
+
+
+func way_key() -> int:
+	"""The way's pose as one integer (what the cursor ghost was drawn for)."""
+	var pin: int = ((_way_pin.x & 1023) << 10 | (_way_pin.y & 1023)) if _way_pinned else 0
+	return ((((_way_family + 1) * 4 + _way_turn) * 8 + _way_standing + 1) * 2 + int(_way_pinned)) * (1 << 20) + pin
+
+
 func refresh(shown_level: int, active: bool, placing: bool = false) -> void:
 	"""Redraw what moved: the room ghosts of the level shown when the batch changed or the level did; its stroke pool
 	when the stroke or cursor moved (`placing`: the cursor is a way down's 2 × 2). Other levels' ghosts are hidden
 	(only one level is ever drawn)."""
 	_placing = placing
-	var cursor_key: Vector3i = Vector3i(_cursor.x, _cursor.y,
+	var cursor_key: Vector3i = Vector3i(_cursor.x + (way_key() if placing else 0), _cursor.y,
 		(_cursor_level * 64 + _armed_type + 1 + (32 if placing else 0)) if active else -1)
 	var level_moved: bool = shown_level != _seen_level
 	var batch_moved: bool = _batch.revision != _seen_revision or level_moved
@@ -190,33 +217,36 @@ func _draw_groups(level: int, pool: Array, used: int, cells: PackedInt32Array, c
 
 
 func _draw_items(level: int, pool: Array, used: int) -> int:
-	"""Each pending way down standing on `level` (its validity and name) or landing there ("lands here")."""
+	"""Each pending way standing on `level` (its validity and name) or coming down onto it ("comes down here"); each
+	pending removal where its way stands ("Remove ...")."""
 	var items: Items = _batch.items()
 	for row: int in items.count():
 		var top: int = items.level_of(row)
-		if not items.is_live(row) or (top != level and top + 1 != level):
+		if not items.is_live(row) or (top != level and (top + 1 != level or items.is_removal(row))):
 			continue
 		var ghost: Ghost = _pooled(level, pool, used)
 		if ghost == null:
 			return used
 		var kind: int = _batch.item_kind(row)
-		var name_words: String = way_name(top, items.cell_of(row))
-		var words: String = name_words if top == level else "%s lands here" % name_words
-		ghost.show_cells(Items.footprint(items.cell_of(row)), kind, "%s %s" % [Validity.glyph(kind), words])
+		var cells: PackedInt32Array = items.standing(row) if top == level else items.lower(row)
+		var name_words: String = way_name(top, items.standing(row), items.family_of(row))
+		var words: String = name_words if top == level else "%s comes down here" % name_words
+		if items.is_removal(row):
+			words = "Remove %s" % name_words
+		ghost.show_cells(cells, kind, "%s %s" % [Validity.glyph(kind), words])
 		ghost.visible = true
 		used += 1
 	return used
 
 
-func way_name(level: int, cell: Vector2i) -> String:
-	"""A way down's name at `cell` on `level`: on a Mound room's floor, what it is (BUILD-MOUND-021: "Way down,
-	connects to Underground level 1"); else the Entrance or Way down (build_items.gd)."""
-	var cells: PackedInt32Array = Items.footprint(cell)
-	if level != 0:
-		return Items.name_of(level)
+func way_name(level: int, cells: PackedInt32Array, family: int) -> String:
+	"""A way's name: a hatch wholly on a Mound room's floor says what it is (BUILD-MOUND-021: "Way down, connects to
+	Underground level 1"); else its family's (build_connector_families.gd)."""
+	if level != 0 or family != Families.LADDER_HATCH:
+		return Families.name_of(family)
 	for at: int in range(0, cells.size(), 2):
 		if not _batch.is_surface_room(Vector2i(cells[at], cells[at + 1])):
-			return Items.name_of(level)
+			return Families.name_of(family)
 	return HATCH_NAME
 
 
@@ -272,11 +302,7 @@ func _draw_stroke(level: int, shown: bool) -> void:
 func _stroke_groups(level: int, pool: Array) -> int:
 	"""The stroke's groups into the stroke pool (the first ghost, which owns the grid, always used)."""
 	if _placing:
-		var judged: Array = _batch.judge_item(level, _cursor, -1)
-		var words: String = Validity.line(int(judged[0]), String(judged[1]))
-		(pool[0] as Ghost).show_cells(Items.footprint(_cursor) if _bounds.has_point(_cursor) else PackedInt32Array(),
-			int(judged[0]), "%s: %s" % [way_name(level, _cursor), words])
-		return 1
+		return _way_ghost(level, pool)
 	if not _batch.stroke_active() or _batch.stroke_level() != level:
 		var cursor_cells: PackedInt32Array = PackedInt32Array([_cursor.x, _cursor.y]) if _bounds.has_point(_cursor) \
 			else PackedInt32Array()
@@ -288,6 +314,45 @@ func _stroke_groups(level: int, pool: Array) -> int:
 		return 1
 	(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
 	return maxi(_draw_groups(level, pool, 1, cells, _batch.stroke_cell_codes(), ""), 1)
+
+
+func _way_ghost(level: int, pool: Array) -> int:
+	"""The way being placed, on the level shown: over a built way (a click removes it), that way's cells with its
+	removal's judgement only; else its own cells there (standing, or coming down from the level above) judged where it
+	stands, and its access pair as a second ghost ("access"). The way's own ghost carries no tag: its judgement is
+	spelled out once, in the pointer's label, which stays clear of the HUD (decision 2022)."""
+	var anchor: Vector2i = _way_pin if _way_pinned else _cursor
+	if not Families.valid(_way_family) or not _bounds.has_point(anchor):
+		(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
+		return 1
+	var removal: Array = [] if _way_pinned else _batch.removal_preview(level, anchor)
+	if not removal.is_empty():
+		_removal_ghost(level, pool[0] as Ghost, removal)
+		return 1
+	if level != _way_standing and level != _way_standing + 1:
+		(pool[0] as Ghost).show_cells(PackedInt32Array(), Validity.KIND_CAN_BUILD, "")
+		return 1
+	var standing: bool = level == _way_standing
+	var kind: int = int(_batch.judge_item(_way_standing, anchor, -1, _way_family, _way_turn)[0])
+	var cells: PackedInt32Array = Families.standing_cells(_way_family, _way_turn, anchor) if standing \
+		else Families.lower_cells(_way_family, _way_turn, anchor)
+	(pool[0] as Ghost).show_cells(cells, kind, "")
+	var access: Ghost = _pooled(level, pool, 1)
+	if access == null:
+		return 1
+	access.show_cells(Families.access_pair(_way_family, _way_turn, anchor, not standing), Validity.KIND_CAN_BUILD,
+		ACCESS_WORDS)
+	access.visible = true
+	return 2
+
+
+func _removal_ghost(level: int, ghost: Ghost, removal: Array) -> void:
+	"""The built way under the pointer, on `level`, drawn as its removal is judged (its words are the pointer's)."""
+	var way: PackedInt32Array = removal[2]
+	var anchor: Vector2i = Vector2i(way[1], way[2])
+	var cells: PackedInt32Array = Families.standing_cells(way[3], way[4], anchor) if way[0] == level \
+		else Families.lower_cells(way[3], way[4], anchor)
+	ghost.show_cells(cells, int(removal[0]), "")
 
 
 func operation_ghosts(level: int) -> Array:

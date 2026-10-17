@@ -75,7 +75,7 @@ var _jobs: RefCounted = null
 var _worker_row: int = -1
 var _transforms: Transforms = null
 var _anchor: Vector3i = Vector3i.ZERO
-var _walk_left: int = 0 # ADR1219: fixed ticks of the crew's surface walk still to run before arrival at H.
+var _walk_left: int = 0 # ADR1219: fixed ticks of the crew's walk to H still to run (decision 1940: in or out).
 var _arrival_yaw: int = -1 # H's authored arrival heading, or -1 to keep the resident's own.
 var _scratch: IntMath.IntResult = IntMath.IntResult.new() # ADR1223 dispatch reads; never state.
 
@@ -98,6 +98,13 @@ func error() -> StringName:
 func is_running() -> bool:
 	"""True while the planned foreman still has work and has not refused."""
 	return _step == STEP_RUNNING and _foreman.error() == &""
+
+
+func is_leaving() -> bool:
+	"""Decision 1940: the finished entry's crew is still a route actor, or on its timed walk out to H; the host keeps
+	ticking the runtime until it has left (a leave that refused stops for good, holding its own code)."""
+	if _step != STEP_DONE or _error != REFUSE_KITCHEN_UNBUILT or _crew == null or _crew.worker == NULL_REF: return false
+	return _walk_left > 0 or _foreman._owners.routes._lost_actor_row(_crew.worker) >= 0
 
 
 func crew() -> Foreman.Crew:
@@ -126,13 +133,16 @@ func start(session: RefCounted, near: Vector3i) -> StringName:
 
 
 func walk_ticks_left() -> int:
-	"""ADR1219: fixed ticks of the crew's surface walk to H still to run; zero once it has arrived."""
+	"""ADR1219: fixed ticks of the crew's surface walk to H still to run (decision 1940: or of the finished crew's walk
+	out to H); zero once it has arrived."""
 	return _walk_left
 
 
 func advance(tick: int) -> StringName:
 	"""ADR1210 G7: one fixed tick of the planned foreman; its first refusal stops the chain for alerting.
-	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick."""
+	ADR1219: while the crew walks to H the tick is the walk's; arrival places it on H the same tick. Decision 1940:
+	once done, the tick is the crew's leave."""
+	if is_leaving(): return _leave()
 	if not is_running(): return &""
 	if _foreman.awaiting_crew(): return _replace_crew(tick, false)
 	var code: StringName = _crew_loss_refusal()
@@ -150,6 +160,39 @@ func advance(tick: int) -> StringName:
 	if not _foreman.is_done(): return &""
 	_step = STEP_DONE
 	return _stop(REFUSE_KITCHEN_UNBUILT) # ADR1227/1229: raised once, on the finishing tick (G9).
+
+
+func _leave() -> StringName:
+	"""Decision 1940: the finished crew holds a retired Job, so it is stale to every other actor's occupancy proof and
+	Routes holds it. It leaves the underground roster from rest (DEC-059's resting unregistration: it waits there until
+	it rests), then walks out to H by ADR1219's timed walk, keeping its heading, reserved until it arrives. A lost
+	crew's actor is removed (ADR1225) and nothing walks."""
+	var routes: Foreman.Routes = _foreman._owners.routes
+	if _crew_loss_refusal() != &"":
+		_walk_left = 0
+		return _end_leave(routes.unregister_lost_actor(_crew.worker) if routes._lost_actor_row(_crew.worker) >= 0 else &"")
+	if _walk_left > 0: return _walk_out()
+	var code: StringName = routes.unregister_resting_actor(_crew.worker)
+	if code == &"ROUTE_UNREGISTER_NOT_AT_REST": return &""
+	if code == &"": code = _begin_walk(_foreman._owners.locations, _transforms, _foreman._owners.residents, -1)
+	if code == &"" and _walk_left == 0: code = routes.refresh_occupancy()
+	return _end_leave(code)
+
+
+func _walk_out() -> StringName:
+	"""One tick of the walk out; arrival places the crew on H. The placement is a foreign pose change to Routes, so
+	its occupancy roots are rebuilt at once (decision 1937), or no actor still underground could move again."""
+	_walk_left -= 1
+	if _walk_left > 0: return &""
+	if not _place_on_anchor(): return _end_leave(REFUSE_SURFACE_ARRIVAL)
+	return _end_leave(_foreman._owners.routes.refresh_occupancy())
+
+
+func _end_leave(code: StringName) -> StringName:
+	"""A refused leave stops for good: no walk, its own code retained and raised once."""
+	if code == &"": return &""
+	_walk_left = 0
+	return _stop(code)
 
 
 func _halt(code: StringName) -> StringName:
@@ -254,11 +297,13 @@ func owns_job(job_slot: int) -> bool:
 
 func reserves_resident(resident_slot: int) -> bool:
 	"""ADR1223: the crew is reserved from the foreman's planning while the chain can run, and for good once it is a
-	route actor (ADR1219: it stays registered underground); a chain stopped before registration releases it."""
+	route actor (ADR1219: it stays registered underground); a chain stopped before registration releases it.
+	Decision 1940: a finished entry's crew is released once it has left the roster and walked out to H."""
 	if _foreman == null or resident_slot != _worker_row \
 			or _foreman._owners.residents.directory().get_typed_row(_crew.worker) != _worker_row:
 		return false
-	return is_running() or _foreman._owners.routes._resident_ref(resident_slot) != NULL_REF
+	return is_running() or (_step == STEP_DONE and _walk_left > 0) \
+		or _foreman._owners.routes._resident_ref(resident_slot) != NULL_REF
 
 
 func _bind_dispatcher(o: RefCounted) -> StringName:
@@ -555,9 +600,12 @@ func _read_foreman(r: Progress.Reader, o: RefCounted) -> StringName:
 
 func _walk_refusal(o: RefCounted) -> StringName:
 	"""ADR1219: a walk still under way must end on the live H at H's own point, facing the foreman's arrival
-	heading; the Transforms handle is the Session's own (re-derived, never written)."""
+	heading (decision 1940: a finished crew's walk out keeps its own, off the route roster); the Transforms handle is
+	the Session's own (re-derived, never written)."""
 	if _walk_left == 0: return &""
-	if _step != STEP_RUNNING or _arrival_yaw != _foreman.arrival_yaw(): return Progress.REFUSE_SHAPE
+	if _step == STEP_DONE and (_arrival_yaw != -1 or o.routes._lost_actor_row(_crew.worker) >= 0):
+		return Progress.REFUSE_SHAPE # Decision 1940: the walk out keeps its heading, the crew off the roster.
+	if _step != STEP_DONE and (_step != STEP_RUNNING or _arrival_yaw != _foreman.arrival_yaw()): return Progress.REFUSE_SHAPE
 	var record: Foreman.Locations.Record = Foreman.Locations.Record.new()
 	record.envelope.resize(6)
 	record.support.resize(6)

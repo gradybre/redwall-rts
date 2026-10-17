@@ -288,3 +288,37 @@ func test_the_composers_claw_builder_digs_the_kitchen_end_to_end() -> void:
 	assert_equal(_run(runtime), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
 	assert_equal(runtime.state_of(room), Runtime.RECORD_NONE, "finished, out, released")
+
+
+func test_a_builder_stopped_on_its_way_waits_to_rest_then_walks_out() -> void:
+	"""Decision 1937's B5: a dig stopped while its builder is walking a leg leaves it to finish the step to rest;
+	leaving waits for that without a refusal, then the builder walks out and is forgotten."""
+	_h = ClawKitchen.new()
+	_h.stocked = true
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var runtime: Runtime = _runtime(room, NULL_REF, [_h.crew_member()] as Array[Builder.Crew], _h.owners())
+	var foreman: Foreman = runtime.foreman_of(room)
+	var builder: Builder = foreman.builders()[0]
+	var moving: bool = false
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		runtime.advance(_h.tick)
+		var actor: Routes.Actor = Routes.Actor.new()
+		moving = builder._leg_state == Builder.LEG_MOVING and _h._routes.read_actor_into(_h._worker, actor) == &"" \
+			and actor.edge != NULL_REF
+		if moving: break
+	assert_true(moving, "the builder is on a span")
+	foreman._halt(&"TEST_STOP") # Negative-only: the dig stops mid-leg.
+	var leave_waited: bool = false
+	var seen: Array[StringName] = []
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		var actor: Routes.Actor = Routes.Actor.new()
+		leave_waited = leave_waited or (_h._routes.read_actor_into(_h._worker, actor) == &"" and actor.edge != NULL_REF)
+		seen.append_array(runtime.advance(_h.tick))
+		if not runtime.is_running(): break
+	assert_true(leave_waited, "it was still on its span after the stop")
+	assert_equal(seen, [] as Array[StringName], "waiting to rest is not a refusal")
+	assert_true(foreman.builders().is_empty(), "out and forgotten")
+	assert_equal(_h._routes._lost_actor_row(_h._worker), -1, "no route actor left")

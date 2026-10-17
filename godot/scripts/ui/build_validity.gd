@@ -58,7 +58,10 @@ const REASON_PIECE_OVERLAPS: int = 28
 const REASON_NOT_BETWEEN_FLOORS: int = 29
 const REASON_CUTS_PIECE: int = 30
 const REASON_ON_WAY_DOWN: int = 31
-const REASON_COUNT: int = 32
+## Decision 2021 (slice D1; Brendan's ruling P-D1-12 (a), "as worded"): where a connector may stand.
+const REASON_NEEDS_PASSAGE: int = 32
+const REASON_NOT_IN_ROOM: int = 33
+const REASON_COUNT: int = 34
 ## The glyph each reason carries, by REASON_* id (the table's Glyph column; proposals as decision 1871 says).
 const REASON_KINDS: Array[int] = [
 	KIND_CAN_BUILD, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
@@ -66,7 +69,7 @@ const REASON_KINDS: Array[int] = [
 	KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
-	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE,
+	KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_NOT_POSSIBLE, KIND_BLOCKED, KIND_NOT_POSSIBLE,
 ]
 
 const TEXT_TOO_NARROW: String = "Too narrow: rooms need at least 2 × 2 cells"
@@ -115,6 +118,12 @@ const FORMAT_NOT_BETWEEN_FLOORS: String = "Not between dug floors: a %s needs du
 const FORMAT_CUTS_PIECE: String = "Cuts through a %s: put it between pieces"
 ## PROPOSAL (decision 1921): furniture keeps a way down's stairs and landing clear.
 const TEXT_ON_WAY_DOWN: String = "On a way down: keep its stairs clear"
+## Decision 2021 P-D1-5 (a) and P-D1-12 (a): below the Surface a connector stands on a Passage (SET-BUILD-001 §9).
+const FORMAT_NEEDS_PASSAGE: String = "%s needs a passage under it: paint one there first"
+## Decision 2021 P-D1-12 (a): a connector partly on a Mound room's floor (BUILD-MOUND-021's "refused with its reason").
+const FORMAT_NOT_IN_ROOM: String = "%s does not fit in this room: it needs %d × %d cells"
+## UI-BUILD-012's card: where a connector leads (decision 2021).
+const FORMAT_CONNECTS: String = "Connects to %s"
 
 
 static func is_kind(kind: int) -> bool:
@@ -299,3 +308,18 @@ static func cuts_piece(name: String) -> String:
 static func on_way_down() -> String:
 	"""PROPOSAL (decision 1921): a piece over a way down's cells (X)."""
 	return TEXT_ON_WAY_DOWN
+
+
+static func needs_passage(name: String) -> String:
+	"""Decision 2021 P-D1-5 (a): a connector below the Surface with no passage under it (!)."""
+	return FORMAT_NEEDS_PASSAGE % name
+
+
+static func not_in_room(name: String, across: int, along: int) -> String:
+	"""Decision 2021 P-D1-12 (a): a connector only partly on a Mound room's floor (X)."""
+	return FORMAT_NOT_IN_ROOM % [name, across, along]
+
+
+static func connects(level_name: String) -> String:
+	"""UI-BUILD-012: "Connects to Underground level 2" (the card's line after "✓")."""
+	return FORMAT_CONNECTS % level_name

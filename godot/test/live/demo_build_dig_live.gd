@@ -1,12 +1,16 @@
 extends "res://test/live/demo_input_live.gd"
 ## THE PROOF OF CONCEPT'S WHOLE LOOP, live (decision 1912): on the real village through the real input gate -- B, the
-## Entrance placed on the surface by a click, a Passage and a Kitchen painted by drags on underground level 1,
+## entrance (a Hatch with ladder since decision 2021) placed on the surface by a click and the connector card's Add to
+## plan, a Passage and a Kitchen painted by drags on underground level 1,
 ## Confirm all clicked, a mole walking to the Entrance and digging every cell, the rooms drawn open, and a resident
 ## sent down by a right click on a dug cell; the look (decision 1913): the rooms are pits with stairs out of the
 ## landing, no two tags sit on each other, and the Entrance is a burrow mouth on the surface; their rounded walls
-## (decision 1914): mid-dig the ordered cells stay square, and every dug cell's floor is whole. Optional: -- --capture
-## <directory> for its frames.
+## (decision 1914): mid-dig the ordered cells stay square, and every dug cell's floor is whole. THE WAYS PER FAMILY
+## (decision 2021): the five way cards in the row, a Burrow mouth and a Stair-head placed through the connector card,
+## dug by the mole, drawn on level 1 and on the surface, and removing the hatch refused in words while it is the only
+## way in to the Kitchen (BUILD-REQ-017). Optional: -- --capture <directory> for its frames.
 
+const Families := preload("res://scripts/ui/build_connector_families.gd")
 const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Earth := preload("res://demo/build_panel/demo_build_earth.gd")
 
@@ -32,6 +36,23 @@ const SETTLE_STEPS: int = 30
 const MOUTH_YAW_DEG: float = 270.0
 const MOUTH_PITCH_DEG: float = 38.0
 const MOUTH_M: float = 7.0
+## Decision 2021's two more entrances, on dry ground south-east of the loop (level 1 is dry from z 32 m): the burrow
+## mouth turned once (R) to descend east, the stair-head at turn 0 descending north.
+## The first spot of each list whose ground is open (the surface's stream and placements refuse a way: decision 2022).
+const RAMP_SPOTS: Array[Vector2i] = [Vector2i(24, 40), Vector2i(26, 40), Vector2i(28, 40)]
+## The stair-head descends north only (decision 2041 P-DF-6 (a)): its 2 × 27 strip from z 33, its landing at the north.
+const STAIR_SPOTS: Array[Vector2i] = [Vector2i(38, 33), Vector2i(40, 33), Vector2i(42, 33), Vector2i(44, 33),
+	Vector2i(46, 33), Vector2i(48, 33), Vector2i(50, 33), Vector2i(38, 34), Vector2i(42, 34)]
+## Their cells below: the ramp's 2 × 12 and the stair's 2 × 20 (build_connector_families.gd, placeholders; 2043's M5).
+const WAYS_CELLS: int = 64
+## Where the camera looks at level 1's two new ways from (the hatch is in the loop's own frames), and how far; and at
+## the two new entrances' tops on the surface, low from the west as at the hatch (MOUTH_YAW_DEG).
+const WAYS_LOOK_AT: Vector3 = Vector3(36.0, 0.0, 44.0)
+const WAYS_PITCH_DEG: float = 64.0
+const WAYS_M: float = 34.0
+const TOPS_LOOK_AT: Vector3 = Vector3(28.0, 0.0, 47.0)
+const TOPS_M: float = 20.0
+const REFUSED: String = "X Not possible: Would cut off Kitchen (level 1), Passage (level 1): build another way in first"
 
 var _visitor: int = -1
 ## Times the visit was ordered again after the resident dropped it (a walk to the Entrance that got lost ends the
@@ -42,11 +63,17 @@ var _resends: int = 0
 func _initialize() -> void:
 	"""The real village; only the loop's steps."""
 	super()
-	_steps = [_open_on_the_surface, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
+	_steps = [_open_on_the_surface, _scroll_to.bind("Stair-head"), _five_way_cards, _scroll_to.bind("Hatch with ladder"),
+		_choose_the_entrance, _place_the_entrance, _add_the_entrance,
 		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage, _scroll_to.bind("Kitchen"),
 		_choose_the_kitchen, _paint_the_kitchen, _confirm_all, _wait_for_the_mole, _after_the_earth.bind(_check_square_plan),
 		_tags_apart, _wait_for_the_rooms, _after_the_earth.bind(_rooms_drawn_as_pits), _send_a_visitor,
-		_wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance, _close_the_panel]
+		_wait_for_the_visitor, _tags_apart, _report_resends, _up_to_the_entrance]
+	_steps.append_array([_back_to_the_surface, _scroll_to.bind("Burrow mouth"), _place_way.bind("Burrow mouth", RAMP_SPOTS, 1),
+		_add_way.bind("Burrow mouth"), _scroll_to.bind("Stair-head"), _place_way.bind("Stair-head", STAIR_SPOTS, 0),
+		_add_way.bind("Stair-head"), _confirm_the_ways, _ways_on_the_surface, _wait_for_the_ways, _ways_below,
+		_after_the_earth.bind(_ways_drawn), _up_for_the_removal, _scroll_to.bind("Hatch with ladder"),
+		_refuse_the_hatchs_removal, _refusal_beside_the_pointer, _close_the_panel])
 
 
 func _open_on_the_surface() -> void:
@@ -71,19 +98,40 @@ func _scroll_to(card_name: String) -> void:
 	_scroll_to_card(card_name)
 
 
+func _five_way_cards() -> void:
+	"""Decision 2021 (P-D1-1 (a)): the row offers the Burrow mouth, the Hatch with ladder and the Stair-head, with Stone
+	and Spiral stairs locked."""
+	var names: PackedStringArray = PackedStringArray()
+	for card: Object in _build().get("panel").call(&"row_cards"):
+		if int(card.get("kind")) == 4:
+			names.append("%s%s" % [card.get("name"), "" if bool(card.call(&"usable")) else " (locked)"])
+	_check("the five way cards", ", ".join(names) == "Burrow mouth, Hatch with ladder, Stair-head, Stone stairs (locked), "
+		+ "Spiral stair (locked)", ", ".join(names))
+	_capture("ways_cards")
+
+
 func _choose_the_entrance() -> void:
-	"""The Entrance card, clicked."""
-	_click(_card_centre("Entrance"))
-	_check("the Entrance card arms placing it", bool(_build().call(&"way_down_armed")))
+	"""The Hatch with ladder card, clicked."""
+	_click(_card_centre("Hatch with ladder"))
+	_check("the hatch card arms placing it", bool(_build().call(&"way_down_armed")))
 
 
 func _place_the_entrance() -> void:
-	"""A click on the ground places it: "✓" (its landing on level 1 is dry ground)."""
+	"""A click on the ground pins it and opens the connector card: "✓ Connects to Underground level 1"."""
 	root.gui_release_focus()
 	_click(_screen_of(ENTRANCE, 0))
+	var words: String = String(_build().get("panel").call(&"connector_words"))
+	_check("the connector card opens", words.begins_with("✓ Connects to Underground level 1"), words)
+	_capture("loop_connector_card")
+
+
+func _add_the_entrance() -> void:
+	"""Add to plan, clicked: the hatch joins the batch, "✓" (its landing on level 1 is dry ground)."""
+	var card: Object = _build().get("panel").call(&"connector")
+	_click(_centre(card.call(&"add_button")))
 	var items: Object = _build().get("batch").call(&"items")
 	var placed: bool = int(items.call(&"live_count")) == 1
-	_check("the Entrance is placed", placed and items.call(&"cell_of", 0) == ENTRANCE,
+	_check("the hatch is placed", placed and items.call(&"cell_of", 0) == ENTRANCE,
 		str(items.call(&"cell_of", 0)) if placed else String(_build().get("batch").call(&"last_dropped")))
 	_check("it can be built", placed and int(_build().get("batch").call(&"item_kind", 0)) == 0,
 		String(_build().get("batch").call(&"item_reason", 0)) if placed else "")
@@ -166,7 +214,7 @@ func _rooms_drawn_as_pits() -> void:
 	"""Decision 1913: the dug cells are pits in the earth (walls drawn), and the Entrance's landing has its stairs up."""
 	var dug: Object = _build().get("dug")
 	_check("the dug rooms are pits with rounded walls (1914)", int(dug.get("earth").get("patch_count")) > 0)
-	_check("stairs rise out of the Entrance's landing", int(dug.call(&"stairs_shown")) == 1)
+	_check("the ladder rises out of the hatch's landing", int(dug.call(&"stairs_shown")) == 1)
 	_check_whole_floors()
 
 
@@ -212,7 +260,7 @@ func _up_to_the_entrance() -> void:
 	var camera: Node = _village.get("_camera")
 	camera.call(&"aim", Vector3(ENTRANCE.x + 1.0, 0.0, ENTRANCE.y + 1.0), MOUTH_YAW_DEG, MOUTH_PITCH_DEG, MOUTH_M)
 	camera.call(&"snap")
-	_check("the Entrance is a burrow mouth on the surface", int(_build().get("bar").call(&"shown_level")) == 0
+	_check("the hatch is drawn on the surface", int(_build().get("bar").call(&"shown_level")) == 0
 		and int(_build().get("dug").call(&"mouths_shown")) == 1)
 	_steps.push_front(_capture_after.bind("loop_entrance_open", SETTLE_STEPS))
 
@@ -253,9 +301,138 @@ func _report_resends() -> void:
 	_check("the visit was ordered again at most %d times" % MAX_RESENDS, _resends <= MAX_RESENDS, str(_resends))
 
 
+func _back_to_the_surface() -> void:
+	"""The camera over the dry ground south of the loop, on the surface."""
+	_aim_at_the_ways()
+	_check("on the surface", int(_build().get("bar").call(&"shown_level")) == 0)
+
+
+func _aim_at_the_ways() -> void:
+	"""The camera over the three ways, far enough to see them all."""
+	var camera: Node = _village.get("_camera")
+	camera.call(&"aim", WAYS_LOOK_AT, 0.0, WAYS_PITCH_DEG, WAYS_M)
+	camera.call(&"snap")
+
+
+func _open_spot(family: int, spots: Array[Vector2i], turn: int) -> Vector2i:
+	"""The first of `spots` where a way of `family` turned `turn` times can be built (the first, to be refused, if
+	none)."""
+	var why: PackedStringArray = PackedStringArray()
+	for spot: Vector2i in spots:
+		var judged: Array = _build().get("batch").call(&"judge_item", 0, spot, -1, family, turn)
+		if int(judged[0]) == 0:
+			return spot
+		why.append("%s %s" % [spot, judged[1]])
+	_check("an open spot for %s" % Families.name_of(family), false, "; ".join(why))
+	return spots[0]
+
+
+func _place_way(card_name: String, spots: Array[Vector2i], turn: int) -> void:
+	"""`card_name`'s card clicked, R turns it `turn` times (the turn is kept from the last way), then the ground at the
+	first open spot: the connector card opens saying where it leads."""
+	_click(_card_centre(card_name))
+	root.gui_release_focus()
+	for press: int in 4:
+		if int(_build().get("panel").call(&"way_turn")) != turn:
+			_key(KEY_R)
+	_check("%s turned %d times" % [card_name, turn], int(_build().get("panel").call(&"way_turn")) == turn)
+	var at: Vector2i = _open_spot(int(_build().get("panel").call(&"armed_family")), spots, turn)
+	_click(_screen_of(at, 0))
+	var words: String = String(_build().get("panel").call(&"connector_words"))
+	_check("%s: the card says where it leads" % card_name, words.begins_with("✓ Connects to Underground level 1")
+		and words.contains("Placeholder: sizes and costs await review"), words)
+	_capture("ways_connector_card_%s" % card_name.to_lower().replace(" ", "_"))
+
+
+func _add_way(card_name: String) -> void:
+	"""Add to plan, clicked: the way joins the batch."""
+	var card: Object = _build().get("panel").call(&"connector")
+	_click(_centre(card.call(&"add_button")))
+	var items: Object = _build().get("batch").call(&"items")
+	var row: int = int(items.call(&"count")) - 1
+	_check("%s added" % card_name, row >= 0 and String(items.call(&"name_of_row", row)) == card_name
+		and int(_build().get("batch").call(&"item_kind", row)) == 0, String(_build().get("batch").call(&"last_dropped")))
+
+
+func _confirm_the_ways() -> void:
+	"""Confirm all: both ways' cells below wait for the mole (free for now)."""
+	var controls: Dictionary = _build().get("panel").call(&"controls")
+	_click(_centre(controls[&"confirm"]))
+	var works: Object = _build().get("works")
+	_check("both ways ordered", int(works.call(&"waiting")) == WAYS_CELLS, str(works.call(&"waiting")))
+	_manager().call(&"set_speed", 4)
+
+
+func _wait_for_the_ways() -> void:
+	"""Until the mole has dug both ways, in through the hatch and over the surface to each foot."""
+	_wait_until("the mole digs the burrow mouth and the stair-head", func() -> bool:
+		return int(_build().get("works").call(&"waiting")) == 0 and not bool(_build().call(&"digging")),
+		"ways_dug", 3 * WAIT_STEPS)
+
+
+func _ways_below() -> void:
+	"""Page Down: level 1, over the two ways' feet."""
+	_key(KEY_PAGEDOWN)
+	_aim_at_the_ways()
+	_check("level 1", int(_build().get("bar").call(&"shown_level")) == 1)
+
+
+func _ways_drawn() -> void:
+	"""Level 1: the ramp rising out of its landing, the stair's flight rising out of its own, the hatch's ladder."""
+	var dug: Object = _build().get("dug")
+	var tags: PackedStringArray = dug.call(&"tags")
+	_check("three ways drawn below", int(dug.call(&"stairs_shown")) == 3, str(dug.call(&"stairs_shown")))
+	_check("each named", tags.has("Burrow mouth: way up to the surface") and tags.has("Stair-head: way up to the surface")
+		and tags.has("Hatch with ladder: way up to the surface"), ", ".join(tags))
+	_capture("ways_dug_below")
+
+
+func _up_for_the_removal() -> void:
+	"""Page Up: the surface, the camera over the hatch."""
+	_key(KEY_PAGEUP)
+	var camera: Node = _village.get("_camera")
+	camera.call(&"aim", Vector3(ENTRANCE.x + 1.0, 0.0, ENTRANCE.y + 3.0), 0.0, WAYS_PITCH_DEG, 18.0)
+	camera.call(&"snap")
+	_check("back on the surface", int(_build().get("bar").call(&"shown_level")) == 0)
+
+
+func _refuse_the_hatchs_removal() -> void:
+	"""The hatch card chosen and the hatch clicked: refused, naming the Kitchen (BUILD-REQ-017)."""
+	_click(_card_centre("Hatch with ladder"))
+	root.gui_release_focus()
+	_click(_screen_of(ENTRANCE, 0))
+	var batch: Object = _build().get("batch")
+	_check("removing the only way in is refused in words", String(batch.call(&"last_dropped")) == REFUSED,
+		String(batch.call(&"last_dropped")))
+	_check("nothing pending", int(batch.call(&"pending_count")) == 0)
+	_steps.push_front(_capture_after.bind("ways_removal_refused", 2))
+
+
+func _refusal_beside_the_pointer() -> void:
+	"""The refusal's words stay beside the pointer while the way's card is chosen, and only that judgement shows: the
+	ghost over the hatch carries no tag, so no placement refusal shows beside it (decision 2022)."""
+	_check("said beside the pointer", String(_build().call(&"label_text")) == REFUSED, String(_build().call(&"label_text")))
+	var tags: PackedStringArray = PackedStringArray()
+	for ghost: Object in _build().get("paint").call(&"stroke_ghosts", 0):
+		if bool(ghost.get(&"visible")) and not String(ghost.call(&"tag_text")).is_empty():
+			tags.append(String(ghost.call(&"tag_text")))
+	_check("only the removal's judgement shows", tags.is_empty(), ", ".join(tags))
+
+
+func _ways_on_the_surface() -> void:
+	"""The surface: the hatch, the burrow mouth and the stair-head drawn (the two new tops seen low from the west)."""
+	var camera: Node = _village.get("_camera")
+	camera.call(&"aim", TOPS_LOOK_AT, MOUTH_YAW_DEG, MOUTH_PITCH_DEG, TOPS_M)
+	camera.call(&"snap")
+	var dug: Object = _build().get("dug")
+	_check("three entrances on the surface", int(dug.call(&"mouths_shown")) == 3, str(dug.call(&"mouths_shown")))
+	_steps.push_front(_capture_after.bind("ways_surface", SETTLE_STEPS))
+
+
 func _close_the_panel() -> void:
-	"""Normal speed; B closes the panel (nothing pending)."""
+	"""Normal speed; Escape puts the card down; B closes the panel (nothing pending)."""
 	_manager().call(&"set_speed", 1)
+	_build().get("panel").call(&"clear_choice")
 	_key(KEY_B)
 	_check("B closes the panel", not bool(_build().call(&"is_open")))
 

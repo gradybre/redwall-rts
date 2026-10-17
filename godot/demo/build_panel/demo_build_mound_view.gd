@@ -305,7 +305,7 @@ func daylight_shown() -> bool:
 
 func _add_hatches(kit: MeshKit) -> void:
 	"""A hatch where a way down stands on a dug Mound room's floor."""
-	var tops: PackedInt32Array = _works.ways_on(Mound.SURFACE)
+	var tops: PackedInt32Array = _works.hatches_on(Mound.SURFACE)
 	for at: int in range(0, tops.size(), 2):
 		var cell: Vector2i = Vector2i(tops[at], tops[at + 1])
 		if _mounds.is_open(cell):
@@ -438,7 +438,7 @@ func _place_tags() -> void:
 		if not words.is_empty():
 			used = _tag(used, words, _over(all[group]))
 	_mound_tags = used
-	var tops: PackedInt32Array = _works.ways_on(Mound.SURFACE)
+	var tops: PackedInt32Array = _works.hatches_on(Mound.SURFACE)
 	for at: int in range(0, tops.size(), 2):
 		var cell: Vector2i = Vector2i(tops[at], tops[at + 1])
 		if _mounds.stage_of(cell) != Mounds.NONE:

@@ -1,6 +1,6 @@
 extends "res://test/live/demo_build_dig_live.gd"
 ## THE FURNISH TAB'S WHOLE LOOP, live (decision 1921; Brendan's rulings of 2026-10-13), on the real village through the
-## real input gate: the Entrance placed, a Passage, a Kitchen and a Dormitory painted on level 1 and dug by the mole;
+## real input gate: the entrance (a Hatch with ladder, decision 2021) placed, a Passage, a Kitchen and a Dormitory painted on level 1 and dug by the mole;
 ## the Kitchen chosen, the Furnish tab clicked, a hearth and two kitchen benches placed by clicks on the dug floor (one
 ## turned with R); a bench over the Dormitory and a seat over the hearth refused in words; Confirm all (nothing taken
 ## from the stores); a resident walks in and fits each piece; "✓ Kitchen ready" over the room and on the tab; then two
@@ -38,8 +38,8 @@ var _beds_before: int = 0
 func _initialize() -> void:
 	"""The real village; only the furnish loop's steps."""
 	super()
-	_steps = [_open_over_the_rooms, _scroll_to.bind("Entrance"), _choose_the_entrance, _place_the_entrance,
-		_down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage,
+	_steps = [_open_over_the_rooms, _scroll_to.bind("Hatch with ladder"), _choose_the_entrance, _place_the_entrance,
+		_add_the_entrance, _down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage,
 		_scroll_to.bind("Kitchen"), _choose_the_kitchen, _paint_a_room.bind(BIG_KITCHEN_FROM, BIG_KITCHEN_TO, 3),
 		_scroll_to.bind("Dormitory"), _choose_card.bind("Dormitory"), _paint_a_room.bind(DORMITORY_FROM, DORMITORY_TO, 4),
 		_confirm_the_rooms, _wait_for_the_digging, _closer_over_the_rooms, _scroll_to.bind("Kitchen"),

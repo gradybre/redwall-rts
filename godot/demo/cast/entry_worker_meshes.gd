@@ -19,6 +19,8 @@ const STOCK_RADIUS_M: float = 0.9 * 0.055
 const STOCK_HEIGHT_M: float = 1.0
 const STOCK_COLOUR: Color = Color("8a5837")
 const STOCK_ROUGHNESS: float = 0.9
+## The sources whose body holds a part (pick, log or stone); decision 1972 adds the stair-carry pair (6 and 7).
+const HELD_SOURCES: Array[int] = [0, 1, 2, 3, Presentation.SOURCE_CARRY_WOOD, Presentation.SOURCE_CARRY_STONE]
 
 
 class Parts extends RefCounted:
@@ -29,7 +31,7 @@ class Parts extends RefCounted:
 
 
 static func build(manifest: Dictionary, props: Props) -> Parts:
-	"""All six sources' parts, or the first refusal; the import is freed before returning."""
+	"""All eight sources' parts, or the first refusal; the import is freed before returning."""
 	var parts: Parts = Parts.new()
 	parts.meshes.resize(Presentation.ContentSet.MAX_SOURCES)
 	parts.materials.resize(Presentation.ContentSet.MAX_SOURCES)
@@ -62,9 +64,13 @@ static func _fill(parts: Parts, body: Node, pick: Mesh) -> void:
 		parts.error = derived.error
 		return
 	var skin: Material = instance.material_override
-	var held: Array[Mesh] = [pick, pick, stock_mesh(), Presentation.Dressing.stone_mesh()]
-	var held_materials: Array[Material] = [null, null, null, Presentation.stone_material()]
-	for source: int in held.size():
+	# Decision 1972: the stair-carry images (sources 6 and 7) hold the same log and stone as the haul images.
+	var stock: Mesh = stock_mesh()
+	var stone: Mesh = Presentation.Dressing.stone_mesh()
+	var stone_material: Material = Presentation.stone_material()
+	var held: Array[Mesh] = [pick, pick, stock, stone, null, null, stock, stone]
+	var held_materials: Array[Material] = [null, null, null, stone_material, null, null, null, stone_material]
+	for source: int in HELD_SOURCES:
 		var meshes: Array[Mesh] = [derived.mesh, held[source]]
 		var materials: Array[Material] = [skin, held_materials[source]]
 		parts.meshes[source] = meshes

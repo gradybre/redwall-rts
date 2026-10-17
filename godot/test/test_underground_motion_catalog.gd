@@ -7,12 +7,12 @@ const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
-const Pins := preload("res://data/underground/mole-worker/qualified-claw-stairs-v11/catalog_source.gd")
+const Pins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const SOURCE_ROOT: String = "res://data/underground/mole-worker/evidence/contact-qualification/"
 const ACTOR_PATHS: Array[String] = ["stair-motion-v15/mole-worker.ugactor", "stair-descent-v7/mole-worker.ugactor",
 	"stair-handoffs-v1/candidate-6/result/mole-worker.ugactor"]
-const WIRE: String = "res://data/underground/mole-worker/qualified-claw-stairs-v11/motion.ugmotion"
+const WIRE: String = "res://data/underground/mole-worker/qualified-stair-carry-v13/motion.ugmotion"
 const LEVEL_PATH: String = "res://data/underground/initial_level_pack.uglvl"
 const LEVEL_SHA: String = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
 const TEMP: String = "user://motion-catalog-mutant.bin"
@@ -55,7 +55,7 @@ func after_each() -> void:
 
 func _load() -> void:
 	"""Every positive uses both original actual sources and the concrete joint capacity check."""
-	assert_equal(_motion.configure(_profiles, _levels, 262144), &"", "joint source admission")
+	assert_equal(_motion.configure(_profiles, _levels, 282624), &"", "joint source admission")
 	assert_equal(_motion.load_file(WIRE, Motion.SOURCE_WIRE_SHA, Motion.REVISION), &"", "complete motion source")
 
 
@@ -78,7 +78,7 @@ func test_actual_joint_banks_and_activation_refusal() -> void:
 	"""The concrete three-column banks preserve the full70860-byte schema twice."""
 	_load()
 	assert_equal(_motion.packed_memory_bytes(), 141720, "paired numeric banks")
-	assert_equal(_motion.admitted_bytes(), 262128, "Profiles/Levels/banks/decode/caller/controls counted (ADR1229 content 10: +3,052 B paired profile bank)")
+	assert_equal(_motion.admitted_bytes(), 270824, "Profiles/Levels/banks/decode/caller/controls counted (decision 1972 content 12: +8,696 B paired profile bank)")
 	assert_equal(_motion._live.ints.size(), 17421, "all I32 columns")
 	assert_equal(_motion._live.longs.size(), 67, "all I64 columns")
 	assert_equal(_motion._live.bytes.size(), 640, "all digest columns")
@@ -92,17 +92,17 @@ func test_independent_profile_maxima_refuse_before_bank_allocation() -> void:
 	var maximum: Profiles = Profiles.new()
 	assert_equal(maximum.configure(256, 3072, 64, 262144), &"", "legacy independent maxima stay legal alone")
 	assert_equal(maximum.load_file(Catalog.WIRE_PATH, Pins.WIRE_SHA, Catalog.CONTENT_REVISION), &"", "same smaller content")
-	assert_equal(_motion.configure(maximum, _levels, 262144), &"MOTION_JOINT_CAPACITY", "full coexistence refuses")
+	assert_equal(_motion.configure(maximum, _levels, 282624), &"MOTION_JOINT_CAPACITY", "full coexistence refuses")
 	assert_equal(_motion._live.ints.size(), 0, "no live bank copy")
 	assert_equal(_motion._stage.ints.size(), 0, "no stage bank copy")
 	assert_equal(_motion.configure(_profiles, _levels, 238903), &"MOTION_JOINT_CAPACITY", "one byte below required peak")
 	_load()
-	assert_equal(_motion.configure(maximum, _levels, 262144), &"MOTION_ALREADY_CONFIGURED", "no rebinding")
+	assert_equal(_motion.configure(maximum, _levels, 282624), &"MOTION_ALREADY_CONFIGURED", "no rebinding")
 
 
 func test_previous_shared_profile_binding_does_not_become_current_motion() -> void:
 	"""Preserved stair geometry still needs the new complete Profile digest and explicit source revision."""
-	assert_equal(_motion.configure(_profiles, _levels, 262144), &"", "current joint source admission")
+	assert_equal(_motion.configure(_profiles, _levels, 282624), &"", "current joint source admission")
 	assert_equal(_motion.load_file("res://data/underground/mole-worker/motion-catalog-v2/motion.ugmotion",
 		"2f44037e5e4eed0b4e2966cd1ac1881bdf4481dd083a26b11d8eea0c5ca0f986", 2),
 		&"MOTION_LOAD_UNAVAILABLE", "old full artifact/revision refuses")
@@ -202,7 +202,7 @@ func test_unbound_future_profiles_rates_and_exact_image_identity() -> void:
 
 func test_wire_drift_and_matching_forged_digest_do_not_publish() -> void:
 	"""Only the pinned exact source may load; a recomputed caller digest does not bless changed boxes."""
-	assert_equal(_motion.configure(_profiles, _levels, 262144), &"", "empty admitted source")
+	assert_equal(_motion.configure(_profiles, _levels, 282624), &"", "empty admitted source")
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(WIRE)
 	bytes[1000] ^= 1
 	_write(bytes)
@@ -217,7 +217,7 @@ func test_wire_drift_and_matching_forged_digest_do_not_publish() -> void:
 
 func test_oversized_column_truncated_and_reload_refuse() -> void:
 	"""Fixed wire counts refuse without allocation; successful content is load-once."""
-	assert_equal(_motion.configure(_profiles, _levels, 262144), &"", "joint admission")
+	assert_equal(_motion.configure(_profiles, _levels, 282624), &"", "joint admission")
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(WIRE)
 	bytes.encode_u32(40, 2147483647)
 	_write(bytes)
@@ -345,12 +345,12 @@ func test_changed_actual_level_and_cached_source_refuse_before_banks() -> void:
 	var changed: Levels = Levels.new()
 	assert_equal(changed.load_file(TEMP, hashing.finish().hex_encode(), 2), &"", "actual independently valid Level source")
 	assert_equal(changed.bind_domain(_domain, _ids, _domain.descriptor(), Space.VERSION), &"", "same full World is insufficient")
-	assert_equal(_motion.configure(_profiles, changed, 262144), &"MOTION_LEVEL_SOURCE", "exact original image required")
+	assert_equal(_motion.configure(_profiles, changed, 282624), &"MOTION_LEVEL_SOURCE", "exact original image required")
 	assert_equal(_motion._live.ints.size() + _motion._stage.ints.size(), 0, "no large allocation after wrong source")
 	var cached: Script = ResourceLoader.load(Pins.PATHS[0], "Script", ResourceLoader.CACHE_MODE_REUSE) as Script
 	var original: String = cached.get_source_code()
 	cached.source_code = original + "\n# explicit source-drift regression\n"
-	var refused: StringName = _motion.configure(_profiles, _levels, 262144)
+	var refused: StringName = _motion.configure(_profiles, _levels, 282624)
 	cached.source_code = original
 	assert_equal(refused, &"MOLE_CATALOG_SOURCE_DRIFT", "actual cached consumer text drift refuses")
 	assert_equal(_motion.packed_memory_bytes(), 0, "refusal did not publish admission")

@@ -4,7 +4,9 @@ extends RefCounted
 
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const MAX_SOURCES: int = 6 # ADR1211/1217: actor, assembly handling, wood haul, stone haul, claw, paw handling.
+## ADR1211/1217: actor, assembly handling, wood haul, stone haul, claw, paw handling; decision 1972: the wood and stone
+## stair-carry images (content 12's sources 6 and 7).
+const MAX_SOURCES: int = 8
 const CLIP_STRIDE: int = Content.MAX_CLIPS + 1
 
 var _contents: Array[Content] = []

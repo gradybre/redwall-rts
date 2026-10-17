@@ -62,7 +62,8 @@ func _open_on_the_surface() -> void:
 	_check("B opens the build panel on the surface", bool(_build().call(&"is_open"))
 		and int(_build().get("bar").call(&"shown_level")) == 0)
 	var dug_u: int = int(_build().get("orders").call(&"dug_height_of", 1))
-	_check("a room is priced at the claw crew's reach on the mounted content (1912 E9)", dug_u == 1024, str(dug_u))
+	# Decision 1972: content 12's side-face claw crew digs the whole column, so the clear height (4,096 u) prices it.
+	_check("a room is priced at the claw crew's reach on the mounted content (1912 E9)", dug_u == 4096, str(dug_u))
 
 
 func _scroll_to(card_name: String) -> void:

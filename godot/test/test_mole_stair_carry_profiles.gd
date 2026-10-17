@@ -150,10 +150,19 @@ func test_the_descent_row_holds_the_load_box() -> void:
 	assert_equal(body, [-424, -130, -949, 434, 850, 235, Profiles.BODY_HELD_LOAD], "derived body and load box")
 
 
-func test_rooted_rows_are_never_selected_yet() -> void:
-	"""Selection reads the rooted words as unknown until activation; no live caller can select them."""
-	for row: int in [71, 73, 74, 79]:
-		assert_equal(Profiles.selection_policy_leaf(_carry, row, 1, 12), -1, "row %d not selectable" % row)
+func test_rooted_rows_are_selectable_by_their_policy() -> void:
+	"""Decision 1972: selection reads the rooted words (10-13), so an explicit travel query can name a rooted row;
+	automatic lookup still skips them (every rooted row's policy is non-zero)."""
+	var expected: Dictionary = {71: Profiles.POLICY_ROOTED_TRAVEL, 72: Profiles.POLICY_ROOTED_BACKWARD,
+		73: Profiles.POLICY_ROOTED_TRAVEL, 74: Profiles.POLICY_ROOTED_STAIR, 75: Profiles.POLICY_ROOTED_STAIR,
+		76: Profiles.POLICY_ROOTED_TURN, 77: Profiles.POLICY_ROOTED_TRAVEL, 78: Profiles.POLICY_ROOTED_BACKWARD}
+	for row: int in expected:
+		assert_equal(Profiles.selection_policy_leaf(_carry, row, 1, 12), expected[row], "row %d" % row)
+		assert_equal(Profiles.selection_policy_leaf(_carry, row + 6, 1, 12) if row >= 73 else expected[row],
+			expected[row], "stone twin of row %d" % row)
+	assert_equal(Profiles.selection_policy_leaf(_carry, 71, 1, 11), -1, "a stale content revision")
+	assert_true(Profiles.is_table_turn(Profiles.POLICY_ROOTED_TURN) and Profiles.is_table_turn(Profiles.POLICY_STAIR_TURN)
+		and not Profiles.is_table_turn(Profiles.POLICY_ROOTED_STAIR), "the two table turns")
 
 
 func test_rooted_policy_predicates() -> void:

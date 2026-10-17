@@ -49,17 +49,18 @@ Four gaps stood between the claws and a dug room. Each is fixed here.
 3. **A settled builder held a retired Job** (`underground_room_builder.gd`). A cube's last Job retires when its
    phase settles, but the builder's route actor kept it. Every other actor's occupancy proof reads every registered
    actor's current selection, and a retired Job is stale there, so a second builder's turn was refused
-   `ROUTE_TURN_ACTOR_STALE`. After recovery the builder now stands on the READY travel row of its heading with no Job
-   (`_drop_retired_job`), and before its next turn it takes that leg's Job on the READY row of the heading it faces
-   (`_take_job_here`); the turn follows on the next tick.
+   `ROUTE_TURN_ACTOR_STALE`. After a cube's FINISH settles, the builder now stands on the READY travel row of its
+   heading with no Job (`_drop_retired_job`). A builder waiting out a rest hour between two phases of a cube drops
+   the settled phase's Job the same way (`_holds_a_job`; review M4), and takes the next phase's Job when the hour
+   allows work again.
 4. **A builder stopped on a span froze** (decision 1937's deferred B5). A dig stopped while its builder walked a leg
    released the builder's Job at once; the actor then held a retired Job, and Routes held it on its span for good.
-   `abandon` now records where the builder stopped (`_failed_from`) and, when the actor is on a span or has a route
-   queued (`_on_a_span`), defers the release. `leave` releases it once it is ready (`_ready_to_release`): a builder
-   stopped in a work source waits for READY there, as before; any other waits for `unregister_resting_actor`'s own
-   precondition (`_at_rest`: on an endpoint with no span, queue or tail, holding the idle word or its source's idle
-   READY word). The release and the leave then fall on the same tick. A wait that never ends is named once at the
-   stall bound (`ROOM_BUILDER_STUCK_UNDERGROUND`), as decision 1937's M1 rule has it.
+   `abandon` now defers the release when the actor is on a span or has a route queued (`_on_a_span`) **under the
+   phase's own Job**. `leave` releases it once it stands READY under the Job it holds (`_at_source_ready`, the same
+   wait as a builder stopped in a work source), and the release and the leave then fall on the same tick. A wait
+   that never ends is named once at the stall bound (`ROOM_BUILDER_STUCK_UNDERGROUND`), as decision 1937's M1 rule
+   has it. A builder walking home after its cube holds no Job, so it is released at once (review H1: deferring it
+   saved the retired Job's freed slot, and the stopped dig's record did not load).
 
 ## 2. The four deferred cases, closed
 
@@ -70,8 +71,16 @@ Four gaps stood between the claws and a dug room. Each is fixed here.
 | Two builders hauling | `test_two_claw_builders_haul_and_dig_the_kitchen_together`: two claw builders each haul what their own BRACE lacks through the one Delivery, take turns, and both haul; every unit is hauled once |
 | The composer's claw builder end to end | `test_the_composers_claw_builder_digs_the_kitchen_end_to_end`: the composer keeps the bound contacts, picks the idle toolless mole, parks it and the room is dug |
 
-Also: `test_a_claw_crew_digs_the_kitchen_end_to_end` (the claws dig every cube with the wall row and walk back out)
-and `test_a_builder_stopped_on_its_way_waits_to_rest_then_walks_out` (B5).
+Also:
+- `test_a_claw_crew_digs_the_kitchen_end_to_end`: the claws dig every cube with the wall row and walk back out;
+- `test_a_builder_stopped_on_its_way_waits_to_rest_then_walks_out` (B5);
+- `test_a_builder_stopped_while_walking_home_is_released_and_its_dig_saved` (review H1): the stopped dig saves and
+  restores;
+- `test_a_claw_family_takes_only_its_own_ready_rows_at_one_heading`: READY rows 46, 50 and 43 anchor; the ground,
+  wall, stair and short rows do not; at anchor 46 only 46, 50 and the ground WALK 42 travel (43 and 51/52 do at
+  yaw 0); a row failing its source proof does not;
+- `test_a_tool_free_phase_job_refuses_a_worker_holding_a_tool`;
+- `test_underground_room_foreman.gd`'s rest test asserts the actor holds no Job while it rests between phases.
 
 Two existing fixtures change with the gaps: the world-phases fixture's worker stands at its own `work_x` (the wall
 row's reach on the claw Kitchen), and its retreat row is a field (`retreat_row`); the haul fixture publishes M's
@@ -88,7 +97,8 @@ The claw Kitchen suite runs in about 57 s in a focused run (five tests), under t
 
 ## 5. Mutation testing and review
 
-See decision 1940 §4 for the lane's mutation run and the independent review, which cover decisions 1938–1940.
+Decision 1940 §4 holds the lane's mutation run and the independent review for decisions 1938–1940. Decision
+1937's deferred B5 and B9 are killed there; S3 stays deferred (§3).
 
 ## Note
 

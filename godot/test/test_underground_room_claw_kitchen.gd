@@ -373,13 +373,15 @@ func test_a_claw_family_takes_only_its_own_ready_rows_at_one_heading() -> void:
 	for row: int in [CLAW_FORWARD, CLAW_BACKWARD, CLAW_GROUND]:
 		assert_true(Itinerary._compatible(profiles, CLAW_FORWARD, row), "row %d travels with 46" % row)
 	assert_true(Itinerary._compatible(profiles, 43, 51) and Itinerary._compatible(profiles, 43, 52), "short rows at yaw 0")
-	for row: int in [43, 47, 51, 52, CLAW_WALL, 53, 54, 55]:
+	for row: int in [43, 47, 51, 52, CLAW_WALL, 53, 54, 55, 31, 32, 37]:
 		assert_false(Itinerary._compatible(profiles, CLAW_FORWARD, row), "row %d does not travel with 46" % row)
-	var species: int = Profiles.F_SPECIES * profiles._profile_capacity + CLAW_BACKWARD
-	profiles._live.fields[species] += 1
+	var mode: int = Profiles.F_MODE * profiles._profile_capacity + CLAW_BACKWARD
+	profiles._live.fields[mode] = Profiles.MODE_CARRY # Row 50 no longer passes the claw program's own proof.
 	profiles.invalidate_runtime_caches() # Decision 1952: an in-place bank edit announces itself.
 	assert_false(Itinerary._compatible(profiles, CLAW_FORWARD, CLAW_BACKWARD), "a row failing its source proof")
-	profiles._live.fields[species] -= 1
+	assert_equal(Itinerary._anchor_refusal_live(profiles, CLAW_BACKWARD, profiles._live.quantities[CLAW_BACKWARD],
+		CLAW_CONTENT), Itinerary.REFUSE_FAMILY, "and it anchors nothing")
+	profiles._live.fields[mode] = Profiles.MODE_WALK
 	profiles.invalidate_runtime_caches()
 
 

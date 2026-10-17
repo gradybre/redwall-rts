@@ -66,6 +66,9 @@ func test_the_finished_crew_leaves_the_roster_and_walks_out_to_h() -> void:
 	var stood: Transforms.Pose = _pose(o, worker)
 	var walk: int = _walk_out_ticks(o, entry, row, stood)
 	_assert_refused_record(entry, -1, entry._error, walk, "a crew still on the roster is not walking out")
+	entry._error = Settlement.UndergroundEntryRuntime.REFUSE_SURFACE_ARRIVAL
+	assert_false(entry.is_leaving(), "a refused leave (another code than G9) is over")
+	entry._error = Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT
 	assert_true(_host.run_tick(tick), "the leave tick: %s" % _host.last_refusal())
 	tick += 1
 	assert_true(o.routes._lost_actor_row(worker) < 0, "the crew left the route roster")

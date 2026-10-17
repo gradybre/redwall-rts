@@ -165,3 +165,53 @@ func test_a_claw_crew_digs_the_kitchen_end_to_end() -> void:
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
 	assert_equal(runtime.state_of(room), Runtime.RECORD_NONE, "finished, out, released")
+
+
+func _haul_kitchen() -> Vector2i:
+	"""The claw Kitchen with R holding one whole unit of wood and of stone per four BRACEs, and M one BRACE's worth,
+	so every later haul falls on the second cube of a column (a column haul)."""
+	_h = ClawKitchen.new()
+	var room: Vector2i = _h.haul_room()
+	if room == NULL_REF: return NULL_REF
+	assert_true(_h._inventory.create_lot(_h.material, _h._items.compiled_id(&"wood"), Contract.BRACE_WOOD_MILLI, 1, 0, -1,
+		0, 0).ok, "one BRACE of wood in M")
+	assert_true(_h._inventory.create_lot(_h.material, _h._items.compiled_id(&"stone"), Contract.BRACE_STONE_MILLI, 1, 0, -1,
+		0, 0).ok, "one BRACE of stone in M")
+	for key: StringName in [&"wood", &"stone"]:
+		assert_true(_h._inventory.create_lot(_h.staging, _h._items.compiled_id(key),
+			(StationTests.KITCHEN_SITES / 4 - 1) * HaulTests.Grip.QUANTITY_MILLI, 1, 0, -1, 0, 0).ok, "the rest of R")
+	return room
+
+
+func test_a_claw_builder_hauls_every_brace_and_digs_the_kitchen() -> void:
+	"""Decision 1937's deferred cases on the claws: every BRACE's inputs come from R, hauled in whole units through
+	Delivery's room branch, with no fixture step: after each haul the builder turns from the grip heading itself and
+	goes on, and a cube up a column whose inputs ran out is hauled for from its station."""
+	var room: Vector2i = _haul_kitchen()
+	if room == NULL_REF: return
+	var crew: Array[Builder.Crew] = [_h.store_member()]
+	var runtime: Runtime = _runtime(room, _h.staging, crew, _h.haul_owners())
+	var builder: Builder = runtime.foreman_of(room).builders()[0]
+	var foreman: Foreman = runtime.foreman_of(room)
+	var seen: Array[StringName] = []
+	var before: int = builder.stage()
+	var into_store: Dictionary = {}
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		seen.append_array(runtime.advance(_h.tick))
+		if builder.stage() == Builder.STAGE_TO_STORE and before != Builder.STAGE_TO_STORE:
+			into_store[before] = int(into_store.get(before, 0)) + 1
+		if builder.walking_next() and builder._leg_state != Builder.LEG_NONE:
+			assert_true(builder.in_motion(), "a turn or a leg means it has set off (after a haul too)")
+		before = builder.stage()
+		if not runtime.is_running(): break
+	print("CLAW_HAUL into_store=%s trips=%d" % [into_store, builder.haul_trips()])
+	assert_true(into_store.keys().any(func(stage: int) -> bool: return stage != Builder.STAGE_IDLE),
+		"a haul from a column's station: %s" % into_store)
+	assert_equal(seen, [] as Array[StringName], "no refusal")
+	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
+	assert_equal(builder.haul_trips(), 2 * StationTests.KITCHEN_SITES / 4, "a wood and a stone trip per four BRACEs")
+	assert_equal(_h._inventory.container_lot_count(_h.staging), 0, "R emptied")
+	assert_equal(_h.free_milli(_h.material, &"wood"), Contract.BRACE_WOOD_MILLI, "all used but one BRACE's worth")
+	assert_equal(_h.free_milli(_h.material, &"stone"), Contract.BRACE_STONE_MILLI, "all used but one BRACE's worth")
+	assert_equal(_h._construction.live_project_count(), 0, "no live Project")

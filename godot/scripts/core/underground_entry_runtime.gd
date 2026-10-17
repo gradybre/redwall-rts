@@ -32,6 +32,8 @@ const REFUSE_NO_REPLACEMENT: StringName = &"ENTRY_CREW_NO_REPLACEMENT"
 const REFUSE_KITCHEN_UNBUILT: StringName = &"ENTRY_KITCHEN_UNBUILT"
 ## ADR1229: L0, the T0 cuts and T0 (ADR1202), the descent's cuts and T1, then T2-T6 down the stair.
 const INSTALLATIONS: int = 8
+## Decision 1940: Routes refusals of an unregistration that a later tick retries (a transaction still open).
+const TRANSIENT_ROUTE_REFUSALS: Array[StringName] = [&"ROUTE_TRANSACTION_BUSY", &"ROUTE_SPACE_TRANSACTION"]
 const STEP_NONE: int = 0
 const STEP_SITE: int = 1
 const STEP_PUBLISHED: int = 2
@@ -104,7 +106,7 @@ func is_leaving() -> bool:
 	"""Decision 1940: the finished entry's crew is still a route actor, or on its timed walk out to H; the host keeps
 	ticking the runtime until it has left (a leave that refused stops for good, holding its own code)."""
 	if _step != STEP_DONE or _error != REFUSE_KITCHEN_UNBUILT or _crew == null or _crew.worker == NULL_REF: return false
-	return _walk_left > 0 or _foreman._owners.routes._lost_actor_row(_crew.worker) >= 0
+	return _walk_left > 0 or (_worker_row >= 0 and _foreman._owners.routes._resident_ref(_worker_row) == _crew.worker)
 
 
 func crew() -> Foreman.Crew:
@@ -164,16 +166,19 @@ func advance(tick: int) -> StringName:
 
 func _leave() -> StringName:
 	"""Decision 1940: the finished crew holds a retired Job, so it is stale to every other actor's occupancy proof and
-	Routes holds it. It leaves the underground roster from rest (DEC-059's resting unregistration: it waits there until
-	it rests), then walks out to H by ADR1219's timed walk, keeping its heading, reserved until it arrives. A lost
-	crew's actor is removed (ADR1225) and nothing walks."""
+	Routes holds it. It leaves the underground roster from rest (DEC-059's resting unregistration; the foreman ends it
+	at rest, so a crew not at rest is refused and named once), then walks out to H by ADR1219's timed walk, keeping
+	its heading, reserved until it arrives. A lost crew's actor is removed (ADR1225) and nothing walks. A busy Routes
+	is retried the next tick."""
 	var routes: Foreman.Routes = _foreman._owners.routes
 	if _crew_loss_refusal() != &"":
 		_walk_left = 0
-		return _end_leave(routes.unregister_lost_actor(_crew.worker) if routes._lost_actor_row(_crew.worker) >= 0 else &"")
+		var removed: StringName = routes.unregister_lost_actor(_crew.worker) if routes._lost_actor_row(_crew.worker) >= 0 \
+			else &""
+		return &"" if removed in TRANSIENT_ROUTE_REFUSALS else _end_leave(removed)
 	if _walk_left > 0: return _walk_out()
 	var code: StringName = routes.unregister_resting_actor(_crew.worker)
-	if code == &"ROUTE_UNREGISTER_NOT_AT_REST": return &""
+	if code in TRANSIENT_ROUTE_REFUSALS: return &"" # Review M3: retried next tick.
 	if code == &"": code = _begin_walk(_foreman._owners.locations, _transforms, _foreman._owners.residents, -1)
 	if code == &"" and _walk_left == 0: code = routes.refresh_occupancy()
 	return _end_leave(code)
@@ -603,8 +608,9 @@ func _walk_refusal(o: RefCounted) -> StringName:
 	heading (decision 1940: a finished crew's walk out keeps its own, off the route roster); the Transforms handle is
 	the Session's own (re-derived, never written)."""
 	if _walk_left == 0: return &""
-	if _step == STEP_DONE and (_arrival_yaw != -1 or o.routes._lost_actor_row(_crew.worker) >= 0):
-		return Progress.REFUSE_SHAPE # Decision 1940: the walk out keeps its heading, the crew off the roster.
+	if _step == STEP_DONE and (_arrival_yaw != -1 or _error != REFUSE_KITCHEN_UNBUILT or _crew.worker == NULL_REF
+			or o.routes._lost_actor_row(_crew.worker) >= 0):
+		return Progress.REFUSE_SHAPE # Decision 1940: the walk out keeps its heading, G9 held, the crew off the roster.
 	if _step != STEP_DONE and (_step != STEP_RUNNING or _arrival_yaw != _foreman.arrival_yaw()): return Progress.REFUSE_SHAPE
 	var record: Foreman.Locations.Record = Foreman.Locations.Record.new()
 	record.envelope.resize(6)

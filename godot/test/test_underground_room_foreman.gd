@@ -206,4 +206,8 @@ func _wait_out_rest(foreman: Foreman, builder: Builder, row: int) -> void:
 		_h.tick += 1
 		assert_equal(foreman.advance(_h.tick), &"", "resting")
 	assert_equal(builder.stage(), stage, "still resting while the hour forbids work")
+	if stage == Builder.STAGE_BETWEEN: # Decision 1939 (review M4): its settled Job is not left stale on its actor.
+		var actor: Routes.Actor = Routes.Actor.new()
+		assert_equal(_h._routes.read_actor_into(_h._worker, actor), &"", "resting at its station")
+		assert_equal(actor.job, NULL_REF, "holding no Job while it rests between phases")
 	assert_true(_h._jobs.schedule().resolve(row, 8, false).ok, "a working hour again")

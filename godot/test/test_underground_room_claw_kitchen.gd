@@ -20,6 +20,8 @@ const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Itinerary := preload("res://scripts/core/underground_room_itinerary.gd")
+const Bindings := preload("res://scripts/core/underground_room_world_bindings.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
@@ -324,3 +326,79 @@ func test_a_builder_stopped_on_its_way_waits_to_rest_then_walks_out() -> void:
 	assert_equal(seen, [] as Array[StringName], "waiting to rest is not a refusal")
 	assert_true(foreman.builders().is_empty(), "out and forgotten")
 	assert_equal(_h._routes._lost_actor_row(_h._worker), -1, "no route actor left")
+
+
+func test_a_builder_stopped_while_walking_home_is_released_and_its_dig_saved() -> void:
+	"""Review H1 (decision 1939): a builder walking home after its cube holds no Job, so a stop releases it at once
+	rather than waiting to rest; the stopped dig's record still names only live Jobs and restores."""
+	_h = ClawKitchen.new()
+	_h.stocked = true
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var runtime: Runtime = _runtime(room, NULL_REF, [_h.crew_member()] as Array[Builder.Crew], _h.owners())
+	var foreman: Foreman = runtime.foreman_of(room)
+	var builder: Builder = foreman.builders()[0]
+	var actor: Routes.Actor = Routes.Actor.new()
+	var homeward: bool = false
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		runtime.advance(_h.tick)
+		homeward = builder.stage() == Builder.STAGE_RETREAT and _h._routes.read_actor_into(_h._worker, actor) == &"" \
+			and actor.edge != NULL_REF
+		if homeward or not runtime.is_running(): break
+	assert_true(homeward and actor.job == NULL_REF, "walking home on a span, holding no Job")
+	if not homeward: return
+	foreman._halt(&"TEST_STOP") # Negative-only: the dig stops on the way home.
+	assert_false(builder._release_pending, "released at once: no Job to keep")
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(runtime.capture(bytes), &"", "the stopped dig is saved")
+	var fresh: Runtime = Runtime.new(_h._residents.directory())
+	assert_true(fresh.bind_owners(_h.owners()), "owners")
+	assert_equal(fresh.restore(bytes), &"", "and restores")
+
+
+func test_a_claw_family_takes_only_its_own_ready_rows_at_one_heading() -> void:
+	"""Decision 1939 (review M2): a claw READY row anchors its family; the canonical ground, wall and stair rows do
+	not. In the family, the READY and short rows at the anchor's own heading and the all-yaw ground WALK share travel;
+	a row at another heading, a stair or wall row, and a row failing its source proof do not."""
+	_h = ClawKitchen.new()
+	if _h.confirmed_room() == NULL_REF: return
+	var profiles: Profiles = _h._profiles
+	for anchor: int in [CLAW_FORWARD, CLAW_BACKWARD, 43]:
+		assert_equal(Itinerary._anchor_refusal_live(profiles, anchor, profiles._live.quantities[anchor], CLAW_CONTENT), &"",
+			"READY row %d anchors" % anchor)
+	for anchor: int in [CLAW_GROUND, CLAW_WALL, 53, 51]:
+		assert_equal(Itinerary._anchor_refusal_live(profiles, anchor, profiles._live.quantities[anchor], CLAW_CONTENT),
+			Itinerary.REFUSE_FAMILY, "row %d is no anchor" % anchor)
+	for row: int in [CLAW_FORWARD, CLAW_BACKWARD, CLAW_GROUND]:
+		assert_true(Itinerary._compatible(profiles, CLAW_FORWARD, row), "row %d travels with 46" % row)
+	assert_true(Itinerary._compatible(profiles, 43, 51) and Itinerary._compatible(profiles, 43, 52), "short rows at yaw 0")
+	for row: int in [43, 47, 51, 52, CLAW_WALL, 53, 54, 55]:
+		assert_false(Itinerary._compatible(profiles, CLAW_FORWARD, row), "row %d does not travel with 46" % row)
+	var species: int = Profiles.F_SPECIES * profiles._profile_capacity + CLAW_BACKWARD
+	profiles._live.fields[species] += 1
+	profiles.invalidate_runtime_caches() # Decision 1952: an in-place bank edit announces itself.
+	assert_false(Itinerary._compatible(profiles, CLAW_FORWARD, CLAW_BACKWARD), "a row failing its source proof")
+	profiles._live.fields[species] -= 1
+	profiles.invalidate_runtime_caches()
+
+
+func test_a_tool_free_phase_job_refuses_a_worker_holding_a_tool() -> void:
+	"""Decision 1939 (review LOW): the room bindings admit a claw (tool-free) Job's worker only with no tool."""
+	_h = ClawKitchen.new()
+	_h.stocked = true
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var runtime: Runtime = _runtime(room, NULL_REF, [_h.crew_member()] as Array[Builder.Crew], _h.owners())
+	var builder: Builder = runtime.foreman_of(room).builders()[0]
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		runtime.advance(_h.tick)
+		if builder.stage() == Builder.STAGE_EARN or not runtime.is_running(): break
+	assert_equal(builder.stage(), Builder.STAGE_EARN, "working a claw phase")
+	var job: Vector2i = _h._jobs.ref_of(builder._job)
+	var row: int = _h._residents.directory().get_typed_row(_h._worker)
+	var provider: Bindings = _h.provider
+	assert_equal(provider._ordinary_tool_leaf(_h._worker, job, NULL_REF, row), &"", "no tool: admitted")
+	assert_equal(provider._ordinary_tool_leaf(_h._worker, job, Vector2i(0, 1), row), Bindings.ROOM_REFUSE_WORKER,
+		"a tool on a tool-free Job: refused")

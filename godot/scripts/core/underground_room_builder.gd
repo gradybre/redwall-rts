@@ -231,7 +231,7 @@ func leave() -> StringName:
 	if _walk.walking() or not underground(): return &""
 	var o: Owners = _ctx.owners
 	if _release_pending:
-		if not lost() and not _ready_to_release(): return _wait_out()
+		if not lost() and not _at_source_ready(): return _wait_out()
 		_release_pending = false
 		var released: StringName = _release_phase()
 		if released != &"": return released
@@ -251,23 +251,6 @@ func _on_a_span() -> bool:
 	left holding a retired Job is stale to every other actor's proof, and Routes holds it)."""
 	if _ctx.owners.routes.read_actor_into(_crew.worker, _actor) != &"": return false
 	return _actor.edge != NULL_REF or _actor.phase != Routes.PHASE_IDLE
-
-
-func _ready_to_release() -> bool:
-	"""A builder stopped in a work source waits for READY; one stopped on a span, for rest on an endpoint."""
-	if _failed_from >= STAGE_ENTER and _failed_from <= STAGE_RECOVER: return _at_source_ready()
-	return _at_rest()
-
-
-func _at_rest() -> bool:
-	"""Unregister_resting_actor's own precondition: on an endpoint with no span, route or tail, and the idle word or
-	its source's idle READY word (not still fading in), so the release and the leave happen on the same tick."""
-	var routes: Routes = _ctx.owners.routes
-	var row: int = routes._lost_actor_row(_crew.worker)
-	if row < 0: return true
-	var word: int = routes._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row]
-	return routes._at_rest(row) and (word == Routes.PHASE_IDLE
-		or word == Routes._source_word_for(routes._profiles, Routes.PHASE_IDLE, Routes.SourceProgram.READY))
 
 
 func _at_source_ready() -> bool:
@@ -775,8 +758,6 @@ func _start_leg(tick: int) -> StringName:
 	if not _registered():
 		code = o.routes.admit_travel_actor(_crew.worker, _job_ref(), _at, profile, _revision(profile), _ctx.content,
 			0, -1, _crew.tool)
-	elif _leg_state == LEG_NONE and _needs_turn(profile) and _actor.job != _job_ref():
-		return _take_job_here() # The turn is under the leg's own Job: select it at this heading first.
 	elif _leg_state == LEG_NONE and _needs_turn(profile):
 		_leg_state = LEG_TURNED
 		_departed = true
@@ -789,15 +770,6 @@ func _start_leg(tick: int) -> StringName:
 		_leg_state = LEG_MOVING
 		_departed = true
 	return &"" if code == REFUSE_OCCUPIED else code # Another builder is in the way: wait (the stall bound holds).
-
-
-func _take_job_here() -> StringName:
-	"""Decision 1939: the actor (no Job since its cube settled) takes the leg's Job on the READY row of the heading it
-	faces; the turn to the leg's row follows on the next tick."""
-	var o: Owners = _ctx.owners
-	var row: int = Itinerary.family_row(o.profiles, _ctx.forward, _actor.yaw, Profiles.POLICY_READY_FORWARD)
-	if row < 0: return REFUSE_LEG
-	return o.routes.refresh_travel_actor(_crew.worker, _job_ref(), row, _revision(row), _ctx.content, 0, -1, _crew.tool)
 
 
 func _registered() -> bool:
@@ -999,7 +971,7 @@ func _between(tick: int) -> StringName:
 	the next phase and re-enter WORK."""
 	if not may_work():
 		_stage_ticks = 0 # A rest is not a stall.
-		return &""
+		return _drop_retired_job() if _holds_a_job() else &"" # Decision 1939 (review M4): not stale while it rests.
 	var code: StringName = _open_phase(tick)
 	if code == &"": code = _assign()
 	if code == &"": code = _refresh_work()
@@ -1021,7 +993,6 @@ func abandon() -> StringName:
 	first asked to recover to READY under its Job, and the release waits for that (`leave`), so it can leave from rest
 	(decision 1936); otherwise the route actor stays where it stopped."""
 	var was: int = _failed_from if _stage == STAGE_FAILED else _stage
-	_failed_from = was # Where it stopped, for when it may be released (`_ready_to_release`).
 	_stage = STAGE_FAILED
 	_stage_ticks = 0
 	if _walk.walking() and not _walk.leaving: _walk.ticks_left = 0 # Its body never left where it stood.
@@ -1031,7 +1002,9 @@ func abandon() -> StringName:
 			and o.routes.request_source_ready(_crew.worker, _actor.job) == &"": # Under the Job it holds (M1).
 		_release_pending = true
 		return &""
-	if _job >= 0 and not lost() and _on_a_span(): # Decision 1939: released at rest, never mid-step (B5).
+	if _job >= 0 and not lost() and _on_a_span() and _actor.job != NULL_REF and _actor.job == o.jobs.ref_of(_job):
+		# Decision 1939 (B5): a leg walked under the phase Job keeps it until rest, never released mid-step. A builder
+		# walking home holds no Job (review H1), so it is released at once.
 		_release_pending = true
 		return &""
 	return _release_phase()
@@ -1115,6 +1088,11 @@ func _drop_retired_job() -> StringName:
 	var row: int = Itinerary.family_row(o.profiles, _ctx.forward, _yaw(_work_profile), Profiles.POLICY_READY_FORWARD)
 	if row < 0: return REFUSE_LEG
 	return o.routes.refresh_travel_actor(_crew.worker, NULL_REF, row, _revision(row), _ctx.content, 0, -1, _crew.tool)
+
+
+func _holds_a_job() -> bool:
+	"""The builder's route actor still names a Job (the phase it just settled, before a rest is waited out)."""
+	return _ctx.owners.routes.read_actor_into(_crew.worker, _actor) == &"" and _actor.job != NULL_REF
 
 
 func at_column_end() -> bool:

@@ -65,6 +65,7 @@ func test_the_finished_crew_leaves_the_roster_and_walks_out_to_h() -> void:
 	_assert_finished_crew_is_held(o, entry, worker, row)
 	var stood: Transforms.Pose = _pose(o, worker)
 	var walk: int = _walk_out_ticks(o, entry, row, stood)
+	_assert_refused_record(entry, -1, entry._error, walk, "a crew still on the roster is not walking out")
 	assert_true(_host.run_tick(tick), "the leave tick: %s" % _host.last_refusal())
 	tick += 1
 	assert_true(o.routes._lost_actor_row(worker) < 0, "the crew left the route roster")
@@ -85,15 +86,28 @@ func test_the_finished_crew_leaves_the_roster_and_walks_out_to_h() -> void:
 
 
 func _assert_walk_record(entry: Settlement.UndergroundEntryRuntime) -> void:
-	"""A walk-out record that claims H's arrival heading (a walk in) is refused on restore."""
-	var bytes: PackedByteArray = PackedByteArray()
-	var kept: int = entry._arrival_yaw
-	entry._arrival_yaw = entry._foreman.arrival_yaw()
-	assert_equal(entry.capture(bytes), &"", "captured")
-	entry._arrival_yaw = kept
-	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
-	assert_equal(fresh.restore(bytes, _host.underground_session()), Progress.REFUSE_SHAPE,
+	"""Walk-out records the leave never writes are refused on restore: one claiming H's arrival heading (a walk in),
+	and one holding another code than G9 (a refused leave walks nowhere: review M1)."""
+	_assert_refused_record(entry, entry._foreman.arrival_yaw(), entry._error, entry._walk_left,
 		"a finished crew's walk out keeps its own heading")
+	_assert_refused_record(entry, -1, Settlement.UndergroundEntryRuntime.REFUSE_SURFACE_ARRIVAL, entry._walk_left,
+		"a refused leave has no walk")
+
+
+func _assert_refused_record(entry: Settlement.UndergroundEntryRuntime, yaw: int, code: StringName, walk: int,
+		why: String) -> void:
+	"""Capture the runtime with its walk fields set as given (then put back), and expect the restore to refuse it."""
+	var bytes: PackedByteArray = PackedByteArray()
+	var kept: Array = [entry._arrival_yaw, entry._error, entry._walk_left]
+	entry._arrival_yaw = yaw
+	entry._error = code
+	entry._walk_left = walk
+	assert_equal(entry.capture(bytes), &"", "captured")
+	entry._arrival_yaw = kept[0]
+	entry._error = kept[1]
+	entry._walk_left = kept[2]
+	var fresh: Settlement.UndergroundEntryRuntime = Settlement.UndergroundEntryRuntime.new()
+	assert_equal(fresh.restore(bytes, _host.underground_session()), Progress.REFUSE_SHAPE, why)
 
 
 func _assert_arrived(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i,

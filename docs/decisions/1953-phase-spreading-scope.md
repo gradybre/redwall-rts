@@ -1,6 +1,7 @@
 # 1953 — Phase spreading: what "spread it out" has to change, and the choice it needs
 
-Date: 2026-10-17 · Status: **Proposed. A ruling is needed before any code is written** (P-1953-1 below).
+Date: 2026-10-17 · Status: **Accepted.** Brendan ruled P-1953-1 "Work ahead in the background", (C) staged, on
+2026-10-17 (see "Brendan's ruling").
 
 Lane PHASE-SPREADING, branch `perf/phase-spreading`, cut from master `537a9a2e`. That base has:
 
@@ -155,6 +156,29 @@ editing files held by other lanes. If (C)'s size is not wanted now, **(D)** is t
 | B | the same, plus `underground_space_owner.gd` and `underground_locations.gd` (slice D holds `_installed_row_site`) | the same |
 | C | `underground_world_routes.gd` (not `_carry_eligible`), `underground_routes.gd`, `underground_connector_placements.gd`, `excavation_sites.gd` | none; exclusion tokens would touch World/`resource_nodes.gd`/`buildings.gd` if chosen over the live re-check |
 | D | `underground_world_routes.gd`, `underground_routes.gd` | none |
+
+## Brendan's ruling (2026-10-17)
+
+Brendan ruled in chat on 2026-10-17, and the coordinator relayed the ruling: **"Work ahead in the background"**, which
+is (C), staged.
+
+**Stage 1 is built first:**
+
+- The next transition's route requalification is compiled speculatively, against a private image and off the live
+  owners, in per-tick slices with a stated per-tick check budget.
+- At START or settlement, only results whose inputs are provably unchanged are reused; the rest is redone
+  synchronously.
+- The surface exclusions are re-checked live at START, so no new owner tokens are needed.
+
+**The hard requirements:**
+
+- Behaviour stays byte-identical to master, proved by the SHA trace. The speculation may change only how much work the
+  synchronous step does, never an outcome.
+- The speculation's state never enters a save. Discarding it at load must give the same result, proved by next-tick
+  save/load parity.
+- Its memory is measured and routed through ADR 1212.
+- No hooks are added to slice D's or the C2 lane's files.
+- If stage 1 shows that (C) cannot stay exact, the lane stops and reports.
 
 ## Source
 

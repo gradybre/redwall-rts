@@ -1027,7 +1027,8 @@ func _install_contact_kind(kind: int) -> bool:
 
 
 func _tread_station() -> bool:
-	"""ADR1229: content 10's T1-T6 orders stand at a tread station on the tread above."""
+	"""ADR1229: the T1-T6 orders (content 10, and content 12 since decision 1972) stand at a tread station on the
+	tread above."""
 	return not _phase_mode and Handling.Paw10.Claw.serves(_frontier._header[5]) \
 		and Handling.PawPhysical10.Tread.is_tread(_ordinal)
 
@@ -2043,7 +2044,7 @@ func _assembly_start_regions(foot: bool) -> StringName:
 
 
 func _tread_timber(owner: Owner, region: int) -> bool:
-	"""ADR 1229: at a tread station (content 10, T1-T6) the body may meet the station Room's own installed SUPPORT,
+	"""ADR 1229: at a tread station (T1-T6; content 10 or 12) the body may meet the station Room's own installed SUPPORT,
 	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body."""
 	return Handling.Paw10.Claw.serves(_frontier._header[5]) and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
 		and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \

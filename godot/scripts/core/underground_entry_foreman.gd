@@ -937,10 +937,20 @@ func _install(tick: int) -> StringName:
 		_retreat = _pending_retreat
 		_pending_retreat = NULL_REF
 		_index += 1
-		return _next_step()
+		code = _publish_sill_edges()
+		return code if code != &"" else _next_step()
 	_stage_ticks = 0 if _installer.progress_marker() != _last_install_stage else _stage_ticks
 	_last_install_stage = _installer.progress_marker()
 	return &""
+
+
+func _publish_sill_edges() -> StringName:
+	"""Decision 1972: once the sill's stops stand (after its commit), the sill's edges and the stair carry (H to T6 and
+	back) are published between the live stops; before that, nothing (the stair path gates them on the sill's A)."""
+	var stops: StairPath.Stops = _stops()
+	if stops.at(StairPath.KIND_A, StairPath.SILL_LEVEL) == NULL_REF: return &""
+	return StairPath.publish(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
+		_owners.locations, stops, _content)
 
 
 func _resume_installation(tick: int) -> StringName:

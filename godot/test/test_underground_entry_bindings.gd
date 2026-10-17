@@ -1037,8 +1037,8 @@ func test_a_landing_whose_natural_earth_is_not_dry_footing_is_refused() -> void:
 
 
 func test_a_stop_over_natural_earth_outside_any_paid_cube_is_refused() -> void:
-	"""Decision 1972 (P-1972-8): a stop no installed prism holds is witnessed only by the paid cube whose floor it
-	stands on; a stop on the LANDING's natural part, above unpaid ground, has none and is refused."""
+	"""Decision 1972: a stop no installed prism holds has no paid witness, so a stop on the LANDING's natural part is
+	refused (P-1972-8's paid-cube witness waits for slice D's F40, which needs a stop on natural earth)."""
 	after_each()
 	_catalog_mode = 6
 	_extra_transit_points = [Vector3i(512, 0, -1280)]

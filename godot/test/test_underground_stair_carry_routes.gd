@@ -15,8 +15,11 @@ const CARRY_PACES: Array[Vector3i] = [Vector3i(53, 528000, 2), Vector3i(54, 5280
 	Vector3i(79, 114334, 2), Vector3i(80, 528000, 2), Vector3i(81, 528000, 2), Vector3i(82, 116000, 2),
 	Vector3i(83, 56334, 2), Vector3i(84, 114334, 2)]
 const HAUL_JOB: Vector2i = Vector2i(500, 1)
+const StairPathOwner := preload("res://scripts/core/underground_entry_stair_path.gd")
 ## The flat fixture: one 128 u World-owned SUPPORT slab under a long floor, as the stair's floor decks were proved on.
 var _flat: bool = false
+## A row given the EARTH_TIMBER family bit before the catalog loads (-1: none), so only the owner rule can refuse it.
+var _widened: int = -1
 
 
 func _select_content() -> void:
@@ -39,6 +42,8 @@ func _load_motion() -> void:
 
 func _space(lower_deck: bool, obstacle: bool) -> Space.Domain:
 	"""The two-deck fixture, or the flat floor."""
+	if _widened >= 0:
+		_profiles._live.fields[Profiles.F_FAMILIES * _profiles._profile_capacity + _widened] |= 1
 	return _flat_space() if _flat else super._space(lower_deck, obstacle)
 
 
@@ -161,10 +166,27 @@ func test_stair_timings_are_reported_in_milli_u_per_s() -> void:
 
 
 func test_a_milli_pace_on_a_row_the_stair_program_does_not_own_is_refused() -> void:
-	"""RATE_AUTHORED_MILLI is a stair timing only: the narrow approach (row 43) may not carry one."""
+	"""RATE_AUTHORED_MILLI is a stair timing only: the narrow approach (row 43), even given the EARTH_TIMBER family
+	bit, may not carry one."""
+	_widened = Pins.CLAW_APPROACH_ROWS[0]
 	_paces = CARRY_PACES.duplicate()
 	_paces.insert(0, Vector3i(Pins.CLAW_APPROACH_ROWS[0], 114334, Catalog.RATE_AUTHORED_MILLI))
 	_catalog_expected = &"CONNECTOR_PACE_UNAUTHORED"
+	_compose()
+	_widened = -1
+
+
+func test_a_milli_pace_above_the_cap_times_one_thousand_is_refused() -> void:
+	"""A milli-u/s stair pace is held to the mole's u/s cap times 1,000: one milli-u/s over it refuses."""
+	_compose()
+	var cap: Catalog.IntMath.IntResult = Catalog.IntMath.IntResult.new()
+	assert_true(_movement.profile_speed_into(1, cap) and cap.value > 0, "the adult mole's cap")
+	var over: int = cap.value * Catalog.MILLI + 1
+	after_each()
+	before_each()
+	_paces = CARRY_PACES.duplicate()
+	_paces[6] = Vector3i(74, over, Catalog.RATE_AUTHORED_MILLI)
+	_catalog_expected = &"CONNECTOR_PACE_EXCEEDS_CAP"
 	_compose()
 
 
@@ -200,3 +222,43 @@ func test_the_loaded_half_turn_on_the_floor_ends_facing_up() -> void:
 	var program: int = _motion.program_of(76)
 	assert_equal([poses[21][0], poses[21][1]], [f + _motion.root_at(program, 132), _motion.heading_at(program, 132)], "key 132")
 	assert_equal([poses[44][0], poses[44][1], poses[44][2]], [u, 32768, turned], "faces up on the floor ascent start")
+
+
+func test_a_change_in_a_rooted_rows_sweep_requalifies_its_stair_edge() -> void:
+	"""Decision 1972: WorldRoutes skips a rooted row's sweep only on a ground edge. On the EARTH_TIMBER CARRY edge the
+	loaded descent's sweep is checked, so an obstacle staged in it after publication is not carried over: the refresh
+	re-proves the edge and no loaded row fits it any more."""
+	_compose()
+	var a: Vector3i = Vector3i(X + 1024, UP, FAR + 169)
+	var b: Vector3i = a + Vector3i(0, -128, -512)
+	var added: Routes.Result = _publish(_edge(_location(a, 0, false, 235), _location(b, 1, false, 300), a, b, 0,
+		Profiles.MODE_CARRY))
+	assert_equal(_masked(added.ref), [74, 80] as Array[int], "the loaded descents fit it")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, PackedInt32Array([X + 900, 600, FAR - 670, X + 1100, 700, FAR - 650]), Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "sealed")
+	_owner.publish(token)
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	var begun: Routes.Result = _binding.begin_prepare(_lease)
+	assert_equal(begun.error, &"", "preparation")
+	assert_equal(_routes.stage_refresh(begun.token, added.ref), &"WORLD_ROUTE_NO_FITTING_PROFILE",
+		"re-proved, not carried: the obstacle blocks both loaded descents")
+	_binding.abort(begun.token)
+	assert_equal(_budget.release(_lease), &"", "lease")
+	_lease = 0
+
+
+func test_a_live_walk_edge_never_hides_its_carry_twin() -> void:
+	"""Decision 1972: the stair path joins stops per mode, so the descent's live WALK edge does not stand in for the
+	CARRY edge over the same span, and once that is published it is joined too."""
+	_compose()
+	var a: Vector3i = Vector3i(X + 1024, UP, FAR + 169)
+	var b: Vector3i = a + Vector3i(0, -128, -512)
+	var top: Vector2i = _location(a, 0, false, 235)
+	var bottom: Vector2i = _location(b, 1, false, 300)
+	assert_equal(_publish(_edge(top, bottom, a, b, 0)).error, &"", "the WALK descent")
+	assert_true(StairPathOwner._joined(_routes, top, bottom, Profiles.MODE_WALK), "the WALK edge is joined")
+	assert_false(StairPathOwner._joined(_routes, top, bottom, Profiles.MODE_CARRY), "its CARRY twin is not")
+	assert_equal(_publish(_edge(top, bottom, a, b, 0, Profiles.MODE_CARRY)).error, &"", "the CARRY descent")
+	assert_true(StairPathOwner._joined(_routes, top, bottom, Profiles.MODE_CARRY), "now joined in CARRY too")
+	assert_false(StairPathOwner._joined(_routes, bottom, top, Profiles.MODE_CARRY), "never the reverse")

@@ -9,12 +9,14 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Movement := preload("res://scripts/core/movement.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
-## ADR1229: the T1-T6 first-entry bundle (content 10, Frontier on source 4, workpieces on source 5); ADR1217 step 5
-## mounted the claw bundle `qualified-claw-v6` (content 9).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
-## ADR1229: the claw stair tables Routes samples for the stair and short-step rows 51-55.
+## Decision 1972: the T1-T6 first-entry bundle on content 12 (`qualified-stairs-v10`, Frontier revision 9 on source 4,
+## workpieces on source 5); ADR1229 mounted v9 (content 10), ADR1217 step 5 the claw bundle `qualified-claw-v6`.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
+## ADR1229: the claw stair tables Routes samples for the stair and short-step rows 51-55; decision 1972: the stair-carry
+## tables for the rooted rows 71-84, a second bank of the same owner.
 const StairMotion := preload("res://scripts/core/underground_stair_motion.gd")
 const MotionPins := preload("res://data/underground/mole-worker/qualified-claw-stair-motion-v1/catalog_source.gd")
+const CarryPins := preload("res://data/underground/mole-worker/qualified-stair-carry-motion-v1/catalog_source.gd")
 const PROFILE_CONTENT_REVISION: int = Bundle.CONTENT_REVISION
 # ADR1190/1195: the mounted graph selects the published first-entry structure, which carries the same
 # ground paces plus the L0/T0 regions; selecting it before the first WorldRoutes binding is final.
@@ -22,8 +24,8 @@ const CATALOG_REVISION: int = Bundle.CATALOG_REVISION
 const CATALOG_PATH: String = Bundle.CATALOG_PATH
 const CATALOG_SHA: String = Bundle.CATALOG_SHA
 ## ADR1200/1206/1217/1229: content 6's fifteen, claw WALK 42, the narrow claw rows 43-50 and the short steps 51/52 as
-## ground caps, then DEC-050's authored stair paces (descent 53, ascent 54, half-turn 55).
-const GROUND_PACE_COUNT: int = 29
+## the 26 ground caps; decision 1972: then 17 authored milli-u/s stair paces (53-55 and the rooted rows 71-84).
+const GROUND_PACE_COUNT: int = 43
 
 const CATALOG_DIGEST_0: int = Bundle.CATALOG_DIGEST_0
 const CATALOG_DIGEST_1: int = Bundle.CATALOG_DIGEST_1
@@ -127,9 +129,10 @@ static func _bind_profiles(session: RefCounted) -> StringName:
 
 
 static func _bind_stair_motion(routes: Routes) -> StringName:
-	"""ADR1229: load the pinned claw stair tables once and lend them to this Session's Routes."""
+	"""ADR1229/decision 1972: load the pinned claw and stair-carry tables once; lend them to this Session's Routes."""
 	var motion: StairMotion = StairMotion.new()
 	var code: StringName = motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA)
+	if code == &"": code = motion.load_carry_file(CarryPins.WIRE_PATH, CarryPins.WIRE_SHA)
 	return routes.bind_stair_motion(motion) if code == &"" else code
 
 

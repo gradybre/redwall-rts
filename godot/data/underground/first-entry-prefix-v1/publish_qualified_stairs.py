@@ -3,15 +3,16 @@
 decision 1972).
 
 Decision 1972 (`qualified-stairs-v10`, Frontier revision 9): v9 on content 12 (`qualified-stair-carry-v13`, which
-carries content 10's rows 0-66 byte for byte), with the stair's floor end and the stair carry (decision 1981):
+carries content 10's rows 0-66 byte for byte), with the stair carry (decision 1981) from H down to the sill (T6) and
+back. Brendan, 2026-10-17: "Switch on without floor end": the floor end (its stops F, U and F', its edges) is deferred
+to slice D's full-level flight (F40), which reworks it; decision 1972 records the removed parts as F40's inventory.
 - every stair timing is a milli-u/s row (RATE_AUTHORED_MILLI, P-1972-6 "Keep 90 ticks"), derived as
   ceil(length x 30,000 / ticks) from DEC-050's ticks: 30 a tread, 45 a half-turn, 90 a three-step handoff. v9's
   rows 53-55 are the same ticks (528,000 and 116,000 milli-u/s); rows 71-84 follow them;
-- two more LANDINGs, the sill's top (T6) and the floor, so the sill's and the floor's stops can stand;
-- five more stops, appended after v9's: A and U on T6, and on the floor F (its arrival A), its ascent start U and F'
-  (343 u behind F); each names a claw stair row as its travel row (the Frontier binds source 4), and each stands
-  when the sill is installed. H, where a loaded carrier steps on 343 u before A on L0, is the prefix's L0 station
-  (0, 0, -1536), already a stop.
+- one more LANDING, the sill's top (T6), so the sill's stops can stand;
+- two more stops, appended after v9's: A and U on T6 (the loaded half-turn's ends there); each names a claw stair row
+  as its travel row (the Frontier binds source 4), and each stands when the sill is installed. H, where a loaded
+  carrier steps on 343 u before A on L0, is the prefix's L0 station (0, 0, -1536), already a stop.
 
 ADR 1209's descent past T0 (D1 the sill, D2 the seventh row, D3 T0's bill per tread), fitted by paw (DEC-060), on
 content 10's rows. Nothing is chosen: every number below is read from a pinned input or derived by ADR 1209's
@@ -70,7 +71,7 @@ OLD_SHA = {
 PROFILE_SHA = "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202"
 GROUND_SHA = "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c"
 CONTENT, FRONTIER_REVISION, CLAW_SOURCE, PAW_SOURCE = 12, 9, 4, 5
-TREADS, SILL, FLOOR = 6, 6, 7
+TREADS, SILL = 6, 6
 RISE, RUN, L0_FAR, T0_FAR = 128, 512, -2048, -2560
 ARRIVAL, STATION, ASCENT_START = 169, 310, 343
 CLAW_X = 1430  # DEC-052 follow-up 1 (Brendan, ADR 1217 step 1)
@@ -188,12 +189,11 @@ def natural_bearings(spec: dict, parts: list) -> list:
 
 
 def landings() -> list:
-    """LANDING metadata of L0 and T0..T5: each deck's top face; decision 1972 appends the sill's (T6) and the floor's,
-    from the seventh row's end wall (z -7168) to the sill."""
+    """LANDING metadata of L0 and T0..T5: each deck's top face; decision 1972 appends the sill's (T6)."""
     out = [[-1024, 0, L0_FAR, 1024, 1, 0]]
     for level in range(TREADS + 1):
         out.append([-1024, top(level), far(level), 1024, top(level) + 1, far(level) + RUN])
-    return out + [[-1024, top(FLOOR), -7168, 1024, top(FLOOR) + 1, far(SILL)]]
+    return out
 
 
 def ground_rows(ground: bytes) -> list:
@@ -319,19 +319,16 @@ def stair_endpoints() -> list:
         out += [[INSTALLED_CONTACT, level + 1, landing, ROLE_TRANSIT] + stop(level, ARRIVAL) + [DESCENT],
                 [INSTALLED_CONTACT, level + 1, landing, ROLE_WORK] + stop(level, STATION) + [STEP_BACK],
                 [INSTALLED_CONTACT, level + 1, landing, ROLE_TRANSIT] + stop(level, ASCENT_START) + [ASCENT]]
-    return out + floor_endpoints()
+    return out + sill_endpoints()
 
 
-def floor_endpoints() -> list:
-    """Decision 1972, appended so v9's stop indices stay: the sill's A and U and the floor's F, U and F' (all the sill's,
-    assembly 7, on the two new LANDINGs 8 and 9). H needs no new stop: it is the prefix's L0 station, 343 u before A
-    (claw-v6's endpoint 3, (0, 0, -1536))."""
-    sill, floor_landing, sill_landing = TREADS + 1, 2 + TREADS + 1, 2 + TREADS
+def sill_endpoints() -> list:
+    """Decision 1972, appended so v9's stop indices stay: the sill's A and U (the sill's, assembly 7, on the new
+    LANDING 8). H needs no new stop: it is the prefix's L0 station, 343 u before A (claw-v6's endpoint 3,
+    (0, 0, -1536)). The floor's stops wait for slice D's F40 (Brendan, 2026-10-17)."""
+    sill, sill_landing = TREADS + 1, 2 + TREADS
     return [[INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ARRIVAL) + [DESCENT],
-            [INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ASCENT_START) + [ASCENT],
-            [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ARRIVAL) + [DESCENT],
-            [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ASCENT_START) + [ASCENT],
-            [INSTALLED_CONTACT, sill, floor_landing, ROLE_TRANSIT] + stop(FLOOR, ARRIVAL - HANDOFF_EDGE_U) + [DESCENT]]
+            [INSTALLED_CONTACT, sill, sill_landing, ROLE_TRANSIT] + stop(SILL, ASCENT_START) + [ASCENT]]
 
 
 def cube_cuts() -> list:

@@ -1,7 +1,8 @@
 # 1972 — Activating contents 11 and 12: scoping, stopped for the coordinator
 
 Date: 2026-10-16 · Status: Accepted. Brendan ruled P-1972-3 and P-1972-6, and the coordinator P-1972-1, -2, -4 and -5,
-on 2026-10-16 (see "Rulings"). Phase 2 (the build of everything outside the cost lane's files) follows.
+on 2026-10-16 (see "Rulings"). Phase 2 (the build of everything outside the cost lane's files) follows. On 2026-10-17
+Brendan ruled option (d), "Switch on without floor end": "Phase 3b" mounts content 12 without the floor end.
 
 Number range 1972–1980 was allocated by the coordinator and checked free on every local and remote ref. Branch
 `feat/activate-content-11-12`, from origin/master `a0daf1ab` (#260 content 11, #262 C2.1, #264 C2.2, #265 dig cost,
@@ -20,6 +21,7 @@ Number range 1972–1980 was allocated by the coordinator and checked free on ev
 | P-1972-8 | Coordinator: (a) (2026-10-16) | This lane edits `underground_locations.gd` `_installed_row_site` only (the cost lane edits another function there), with a floor-stop and a natural-stop test; the terrain-footing refusal gets a negative test through a test double |
 | P-1972-9 | Coordinator: (a) (2026-10-16), the coordinator's call under P-1972-7 | Retain the trench floor: natural earth 128 u deep under the Placement's cut set at a natural landing's floor, as the Room's SUPPORT, less the bearings kept; WorldRoutes stays at +33 / −2 |
 | P-1972-6 | Brendan, **"Keep 90 ticks"**: (a) | Authored stair paces move to milli-u/s. Every existing authored pace is rescaled ×1,000, so its ticks stay identical; the 169 u retreat takes exactly 90 ticks |
+| Phase 3a options | Brendan, **"Switch on without floor end"**: (d) (2026-10-17) | Mount with the stair carry from H down to T6 and back. The floor end (F, U, F′, its edges and the trench retention P-1972-9) waits for slice D's F40. The ~95-character `_carry_eligible` skip in WorldRoutes is cleared ("Phase 3b") |
 
 Indexed in `docs/handoff/RULINGS.md`. Sections "The brief" to "Proposals" are the scoping as it was put.
 
@@ -786,3 +788,177 @@ This lane keeps its edits to what activation needs.
 
 **Recommendation: (a).** It keeps every budget, all three parts are bounded, and the clipped decks also remove an
 over-wide fixture artifact from the runtime proof.
+
+## Phase 3b — mounted without the floor end (Brendan, 2026-10-17: "Switch on without floor end")
+
+Brendan chose option (d) of Phase 3a. Content 12 is mounted with the stair carry from H on L0 down to the sill (T6)
+and back. The floor end waits for slice D's full-level flight (F40), which reworks that floor anyway. The coordinator
+cleared the `_carry_eligible` skip in WorldRoutes. Nothing was sent to slice D.
+
+### Built
+
+- **WorldRoutes `_carry_eligible`** (the cleared line, +95 characters): a rooted stair row is skipped on a ground
+  edge, `if edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile): continue`. A rooted row's
+  certificate is span-exact, so it can never serve a ground edge. Without the skip the empty rooted rows 71/72
+  kind-match every ground WALK edge and each is swept against every Space change since its certificate (M-2).
+- **`qualified-stairs-v10`, republished in place** (create-only and never merged, so no successor is needed):
+  - one more LANDING, the sill's top (T6); the floor's LANDING is gone;
+  - two more stops after v9's 44: A and U on T6 (46 endpoints). H is claw-v6's endpoint 3, (0, 0, −1536);
+  - the 17 milli-u/s stair paces are unchanged (rows 53–55 and 71–84).
+- **`underground_entry_stair_path.gd`:** levels L0, T0..T5 and the sill (no floor level, no F′ kind). Past the
+  descent's 33 WALK edges, the plan holds the sill's two WALK edges (T5 → T6 on the descent, T6 → T5 on the ascent)
+  and 17 CARRY edges: H → A(L0), seven descents to T6, the half-turn A → U on T6, seven ascents to U(L0), U(L0) → H.
+  They wait for the sill's arrival A(T6), so the chain up to the sill is unchanged.
+- **`underground_entry_foreman.gd`:** after each installation's `STAGE_DONE` the foreman publishes the edges that
+  installation made possible (`_publish_sill_edges`), so the carry edges stand as soon as the sill is in.
+- **`underground_entry_bindings.gd`:** the trench retention (P-1972-9) is removed, so it cannot run at the sill's
+  commit: `_stage_natural_support` retains only a natural landing's own footprint, and `_cut_floor_footing` is gone.
+- **The mount's other items:**
+  - the catalog accessor (`mole_profile_catalog.gd`: v13 pins, 85 rows, 637 boxes, 8 sources);
+  - `Budget.PROFILE_BYTES` 282,624 (P-1972-2 (a));
+  - the route and entry composition and entry site on bundle v10, 43 ground paces, the stair-carry tables loaded
+    into the stair motion owner's second bank;
+  - the retirement scope's 46 endpoints;
+  - decision 1971's LEGACY band in `underground_room_approach.gd` deleted (the claw crew now digs the whole column);
+  - the Session's presentation set with the two stair-carry images (sources 6 and 7);
+  - `mole_presentation.gd` presenting a stair row from its own source, and the held stock and stone meshes;
+  - `runtime_files.gd` and the demo pack; `renew_source_pins.py` ACTIVE on content 12;
+  - the source-only motion catalog and clock (`underground_motion_catalog.gd`, `underground_motion_clock.gd`) rebound
+    to content 12's motion wire (`qualified-stair-carry-v13/motion.ugmotion`, revision 12, the same tables), as
+    ADR1229 rebound them to content 10's; the clock census pin is renewed for that digest only;
+  - the save registry's SOURCE32/SOURCE64 rows and the census (below).
+
+### P-1972-7 kept, P-1972-8 removed, and why
+
+- **P-1972-7, natural earth under a landing, is kept** (`_timber_natural_support`, `_timber_landing_footing` and
+  `_timber_prism_residual`):
+  - it is Brendan's ruling ("Natural earth counts"), and F40 needs it;
+  - it is harmless: it acts only when a landing stands partly on natural earth. Every mounted landing (L0, T0..T6)
+    stands on installed timber, so the proof is empty and returns at once (`proof.count == 0`), and the chain's
+    ticks are unchanged. The independent review confirmed it inert: with all three branches forced to refuse, the
+    whole chain stays green;
+  - `test_underground_entry_bindings.gd` covers it on a fixture, refusals included.
+- **P-1972-8, the Locations paid-cube witness, is removed** (`underground_locations.gd` is master's again):
+  - no mounted stop reaches it (the review forced it to refuse and the whole chain stayed green);
+  - but it is not harmless. It witnesses any stop on an authored landing that no prism top holds, if the stop lies
+    on the floor of a completed same-Room paid cube, and nothing checks what is under that floor: a stop over a cube
+    dug above another would be witnessed over void. Its three guards had no test that could fail;
+  - F40 needs a witness for stops on natural earth; it should add one with a never-cut check under the floor. The
+    removed code is in the inventory below;
+  - `test_a_stop_over_natural_earth_outside_any_paid_cube_is_refused` stays: without the witness that stop is
+    refused as before.
+
+### M-2, measured on the mount (skip in, floor end out, `Space.MAX_CHECKS` unchanged)
+
+Log: `scratchpad/activate_m1/m2-final.log`.
+
+- **Peak per-preparation checks: 1,000,378 of 1,048,576 (95.4 %), a margin of 48,198.** Content 10's own peak on
+  master was 1,038,133.
+- The descent finishes on tick 8,348 with `ENTRY_KITCHEN_UNBUILT`, as before.
+- Every planned edge is published (none missing). At the end: 49 WALK edges (29 ground, 20 EARTH_TIMBER, the sill's
+  two among them) and 19 CARRY edges: the stair carry's 17 on EARTH_TIMBER and the ground hauls' 2.
+- The whole-chain test now asserts the sill's stops, no stop below them, and exactly 17 EARTH_TIMBER CARRY edges
+  beside the ground hauls' 2 (`test_underground_host_whole_chain.gd`).
+
+### Memory
+
+- Stair-carry tables: +33,784 B (`CARRY_RESERVED_BYTES`); the shared profile reserve for content 12: +4,096 B.
+- Live with reserve: 105,779,636 B of the 150,000,000 B gate (headroom 44,220,364). The ledger rows are in
+  `docs/systems_architecture.md`; `ready07_arithmetic.py` passes with them.
+
+### The floor end: F40's inventory
+
+Everything below was built and measured on this branch before the ruling, then removed. Commit `a8c4a831` on
+`feat/activate-content-11-12` holds it whole. This is the inventory F40 starts from.
+
+**The data (`publish_qualified_stairs.py`, bundle v10 before the ruling).**
+
+- A second LANDING appended after the sill's, the floor:
+  `[-1024, top(FLOOR), -7168, 1024, top(FLOOR) + 1, far(SILL)]`, from the seventh row's end wall to the sill, with
+  `FLOOR = 7`.
+- Three more stops, all the sill's (assembly 7), on that LANDING (49 endpoints in all):
+  - F, the floor arrival, `stop(FLOOR, ARRIVAL)`, travel row DESCENT, at (0, −1024, −5975);
+  - U, the floor ascent start, `stop(FLOOR, ASCENT_START)`, ASCENT, at (0, −1024, −5801);
+  - F′, `stop(FLOOR, ARRIVAL - HANDOFF_EDGE_U)`, DESCENT, at (0, −1024, −6318).
+
+**The stair path (`underground_entry_stair_path.gd`).**
+
+- `LEVELS = Tread.TREADS + 3`, `FLOOR_LEVEL = Tread.TREADS + 1`, `KIND_B = 6` (F′), with a `b` handle in `Stops`.
+- `classify`: `if level == FLOOR_LEVEL and behind == Tread.ARRIVAL - HANDOFF_U: return Vector2i(KIND_B, level)`.
+- `floor_plan(walk)`, seven WALK edges (family 0): T5 → T6 → F; F → U on the floor (row 55); U(floor) → U(T6) →
+  U(T5); F → F′ (walk-off, row 71) and F′ → F (back-up, row 72).
+- `carry_plan()`, 21 CARRY edges: H → A(L0); eight descents to F; F → F′ and F′ → F; the half-turn F → U(floor);
+  eight ascents to U(L0); U(L0) → H.
+- `_planned` gated every edge past the descent on F (`stops.a[FLOOR_LEVEL + 1]`).
+
+**The trench retention, P-1972-9 (`underground_entry_bindings.gd`).**
+
+- `_stage_natural_support`, after the landing footprint: for each CUT row of the Placement's Frontier whose floor is
+  the landing's (`cut[1] == _cube[1]`), the slab `cut[1] - NATURAL_DEPTH_U .. cut[1]` retained by
+  `_retain_natural(proof, token, cut, true)`, proved whole (`_timber_natural_support(proof, bounds)`), not fragment
+  by fragment.
+- `_cut_floor_footing(proof, token)` at the sealed final pass: the same slabs observed by
+  `_timber_terrain(proof, cut, Terrain.FOOTING, token)`.
+- `test_underground_work_face.gd`'s `test_a_retained_trench_floor_never_blocks_a_room_dig_beside_it` stays. It tests
+  the general rule (another Room's retained strip blocks neither a dig nor its floor scrape), which F40 needs too.
+
+**The Locations witness, P-1972-8 (`underground_locations.gd` `_installed_row_site`).** After the prism loop, a
+`held` flag set by any prism top holding the stop; when none does:
+
+```gdscript
+	if held: return found
+	var origin: Vector3i = _cube_origin(record.point)
+	var floor_row: int = _installed_site_row(physical, origin) if origin.y == record.point.y else -1
+	if floor_row < 0 or physical._phase[floor_row] != Sites.SUPPORTED_VOID or physical._room_slot[floor_row] != record.room.x \
+			or physical._room_generation[floor_row] != record.room.y: return NULL_REF
+	return Vector2i(floor_row, Sites.SITE_GENERATION)
+```
+
+F40 should add, before reusing it, a check that the earth under that floor was never cut, and a test for each
+guard (wrong phase, foreign Room, a point not on the cube's floor).
+
+**What was measured with it** (Phases 2b–3a above):
+
+- every floor and CARRY edge published (all 33 past the descent), the floor's stops stood on natural earth;
+- **the cost that stopped it:** the trench's 48 SUPPORT rows made the sill's completion requalification need
+  1,687,943 checks (161 % of `MAX_CHECKS`), and publishing all 33 floor and CARRY edges in one preparation 544,031.
+
+**What F40 has to settle.** The flight's floor (world −512) is not a room level; level 1's floors are −5,632,
+−4,608 and −3,584 ("What the stair carry supplies"). F40's longer flight moves the floor, so F, U and F′ move with
+it, and the retention's cost has to fit under `MAX_CHECKS` (Phase 3a's options (a) to (c)). Decision 1981's rows 71
+and 72 (the empty walk-off and back-up) and the loaded walk-off and back-up uses of the approach rows are published
+in content 12 and paced in the bundle, but no edge uses them until F40.
+
+### The independent review (`code-reviewer`, 2026-10-17)
+
+No CRITICAL finding. Both HIGH findings are fixed:
+
+- **H1, the P-1972-8 witness:** removed (above, "P-1972-7 kept, P-1972-8 removed").
+- **H2, the `_carry_eligible` skip's `edge.family < 0` guard had no test that could fail:**
+  `test_a_change_in_a_rooted_rows_sweep_requalifies_its_stair_edge` stages an obstacle in the loaded descent's sweep
+  after its CARRY edge is published; the refresh re-proves the edge and refuses it. Without the guard the edge would
+  be carried over unproved. The reviewer also proposed keying the skip on "no ground pace row" instead of
+  `Stair.is_rooted`; that is a different WorldRoutes line from the one cleared, so it is left for the cost lane.
+
+MEDIUM:
+
+- **M1:** the milli-pace owner test now gives row 43 the EARTH_TIMBER family bit first, so only the owner rule can
+  refuse it.
+- **M2:** `test_a_milli_pace_above_the_cap_times_one_thousand_is_refused`.
+- **M3:** the carry bank's rollback moved into `_append_carry`, so a refusal cuts the columns back wherever it is
+  called; `test_a_malformed_carry_bank_is_refused_and_cut_back_to_the_claw_bank` covers a wrong row and a deck out of
+  span.
+- **M4:** the whole-chain test now checks that the sill's stops are the lowest installed stops, from the Frontier,
+  instead of an always-true stop lookup.
+- **M5, a refusal publishing the sill's edges fails the finished entry:** intended. It is the same rule as every
+  tread station's stair edges (`_connect_contact` returns the stair path's refusal), and the alert names the
+  code. A stair whose carry edges cannot be published is not a working stair.
+- **M6:** `test_a_live_walk_edge_never_hides_its_carry_twin` covers `_joined`'s mode check in the fast tier.
+- **M7, `Stair.owns`' digest comparison on each stair `pace_into`:** about 128 character reads per call, no
+  allocation, for each actor on a stair. Not changed here (it would add cached state to Profiles' readers); it is
+  for the cost lane's next measurement.
+
+LOW: the stale "content 10" comments are corrected; `_timber_staged_support`'s docstring now says it refuses
+nothing itself; the loaded policies and cargo fields are constants; the held meshes are built once. Left as they
+are: `ENDPOINTS = 46` and the census counts in `paw_program.gd` are literal because the census and registry parse
+them; `CARRY_RESERVED_BYTES` stays on one line because the census parser reads only single-line constants.

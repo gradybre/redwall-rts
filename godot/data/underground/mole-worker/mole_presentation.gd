@@ -31,6 +31,9 @@ const SOURCE_HAUL: int = 2
 const SOURCE_STONE: int = 3
 const SOURCE_CLAW: int = 4
 const SOURCE_PAW: int = 5
+## Decision 1972: content 12's stair-carry images (decision 1981).
+const SOURCE_CARRY_WOOD: int = 6
+const SOURCE_CARRY_STONE: int = 7
 # Body = part 0, held item (pick or haul stock) = part 1. Every pick clip shows both parts.
 const ACTOR_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 const HANDLING_MASKS: PackedInt32Array = [3, 3, 3]
@@ -42,6 +45,10 @@ const STONE_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 # claw image's 16 clips, the v2 paw image's 6).
 const CLAW_MASKS: PackedInt32Array = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 const PAW_MASKS: PackedInt32Array = [1, 1, 1, 1, 1, 1]
+# native-stair-carry-v1 plan.json part_visibility_masks: wood (hold, the six loaded clips, the empty walk-off and back-up
+# with the stock hidden) and stone (hold and the six loaded clips).
+const CARRY_WOOD_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3, 1, 1]
+const CARRY_STONE_MASKS: PackedInt32Array = [3, 3, 3, 3, 3, 3, 3]
 # Stone image part 1 is the tunnel dressing's own lump (bore_dressing.gd::stone_mesh), bound by its exact fingerprint.
 const STONE_PART: int = 1
 # Haul image clip ordinals, in plan order. Rows that select them are content-5 work (ADR1198 step 4).
@@ -81,7 +88,8 @@ var _located: PackedInt32Array = PackedInt32Array([0, 0])
 
 static func load_sources(sources: ContentSet, include_haul: bool, include_stone: bool = false,
 		include_claw: bool = false) -> StringName:
-	"""Actor and assembly images are required; haul, stone and the claw pair are optional, inside the declared set."""
+	"""Actor and assembly images are required; haul, stone and the claw images (with content 12's stair-carry pair)
+	are optional, inside the declared set."""
 	return load_sources_within(sources, Session.PRESENTATION_SET_BYTES, include_haul, include_stone, include_claw)
 
 
@@ -109,13 +117,25 @@ static func load_sources_within(sources: ContentSet, budget: int, include_haul: 
 
 
 static func _load_claw_pair(sources: ContentSet) -> StringName:
-	"""ADR1217 step 5: the claw image (source 4) and the paw-handling image (source 5), whose ready joins it holds."""
+	"""ADR1217 step 5: the claw image (source 4) and the paw-handling image (source 5), whose ready joins it holds;
+	decision 1972: then the stair-carry pair (sources 6 and 7)."""
 	var code: StringName = sources.load_source(SOURCE_CLAW, Session.CLAW_ACTOR_PATH, Session.CLAW_ACTOR_SHA,
 		Session.CLAW_PRESENTATION_BYTES, CLAW_MASKS)
 	if code == &"":
 		code = sources.load_source(SOURCE_PAW, Session.PAW_ACTOR_PATH, Session.PAW_ACTOR_SHA,
 			Session.PAW_PRESENTATION_BYTES, PAW_MASKS)
-	return paw_timing_refusal(sources.content(SOURCE_PAW)) if code == &"" else code
+	if code == &"": code = paw_timing_refusal(sources.content(SOURCE_PAW))
+	return _load_carry_pair(sources) if code == &"" else code
+
+
+static func _load_carry_pair(sources: ContentSet) -> StringName:
+	"""Decision 1972: content 12's stair-carry images (sources 6 and 7), whose holds join the haul images'."""
+	var code: StringName = sources.load_source(SOURCE_CARRY_WOOD, Session.CARRY_WOOD_ACTOR_PATH,
+		Session.CARRY_WOOD_ACTOR_SHA, Session.CARRY_WOOD_PRESENTATION_BYTES, CARRY_WOOD_MASKS)
+	if code == &"":
+		code = sources.load_source(SOURCE_CARRY_STONE, Session.CARRY_STONE_ACTOR_PATH, Session.CARRY_STONE_ACTOR_SHA,
+			Session.CARRY_STONE_PRESENTATION_BYTES, CARRY_STONE_MASKS)
+	return code
 
 
 static func paw_timing_refusal(image: Content) -> StringName:
@@ -339,16 +359,18 @@ func present_claw(routes: Routes, worker: Vector2i, out: Driver.Frame) -> String
 
 
 func present_stair(routes: Routes, worker: Vector2i, out: Driver.Frame) -> StringName:
-	"""ADR1229: a stair or short-step row on the v2 claw image: the motion's own clip at the key Routes presents."""
+	"""ADR1229: a stair or short-step row on the v2 claw image, and decision 1972: a rooted row on its stair-carry image
+	(source 6 or 7): the motion's own clip at the key Routes presents."""
 	var motion: Routes.StairMotion = routes._stair_motion
+	var source: int = Stair.source_of(_actor.profile_id)
 	if motion == null or _sources.source_for_row(routes._profiles, _actor.profile_id, _actor.profile_revision,
-			_actor.content_revision) != SOURCE_CLAW:
-		return &"MOLE_PRESENTATION_SOURCE_ABSENT" if not _sources.has_source(SOURCE_CLAW) else &"MOLE_PRESENTATION_ROW_SOURCE"
+			_actor.content_revision) != source:
+		return &"MOLE_PRESENTATION_SOURCE_ABSENT" if not _sources.has_source(source) else &"MOLE_PRESENTATION_ROW_SOURCE"
 	var code: StringName = Routes.source_state_leaf_into(routes, worker, _actor.job, _actor.profile_id,
 		_actor.profile_revision, _actor.content_revision, _state)
-	if code == &"": code = present_clip(SOURCE_CLAW, motion.clip_of(motion.program_of(_actor.profile_id)), _state[1])
+	if code == &"": code = present_clip(source, motion.clip_of(motion.program_of(_actor.profile_id)), _state[1])
 	if code != &"": return code
-	_program_source = SOURCE_CLAW
+	_program_source = source
 	_key[0] = -1
 	_publish_row(worker, out)
 	out.phase = _state[0]

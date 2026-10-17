@@ -405,7 +405,7 @@ static func dug_height_u(profiles: Object, clear_height_u: int, identity_row: in
 	P-C2-3 (a)): the clear height capped at the band the claw crew's published dig rows reach from the floor
 	(`underground_room_approach.gd reachable_height_u` with `crew_identity_row`), in whole quanta; the clear height
 	when no such row is published. The planner's plan (`_make_plan`) and the build ledger's price both read it. It
-	follows the mounted content: content 10's claw rows reach 1,024 u; content 12's wall rows (decisions 1971 and 1972,
+	follows the mounted content: content 10's claw crew has no side-face row and digs 0; content 12's wall rows (decisions 1971 and 1972,
 	"Painted height") set no limit, so a room is dug to the level's clear height. `identity_row` names another crew
 	(-2: the claw crew). A crew
 	whose rows are published but reach nothing digs 0 (review M2); only profiles without that crew's row at all fall

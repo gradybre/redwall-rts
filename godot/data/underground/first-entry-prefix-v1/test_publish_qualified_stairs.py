@@ -51,19 +51,18 @@ class QualifiedStairsBundle(unittest.TestCase):
             self.assertEqual(-(-length * 30000 // (rate - 1)), ticks[length] + 1, row)
         self.assertEqual(dict(PUB.STAIR_PACES)[77], 56334)
 
-    def test_floor_stops_are_appended_after_v9s(self) -> None:
-        """Decision 1972: the sill's A and U, and the floor's F, U and F' follow v9's 44 stops, on the new LANDINGs; H
-        is the prefix's L0 station at (0, 0, -1536), 343 u before A, already a stop."""
+    def test_sill_stops_are_appended_after_v9s(self) -> None:
+        """Decision 1972: the sill's A and U follow v9's 44 stops, on the sill's new LANDING; H is the prefix's L0
+        station at (0, 0, -1536), 343 u before A, already a stop; the floor's stops wait for slice D's F40."""
         stops = PUB.stair_endpoints()
-        self.assertEqual(len(stops), 4 + 18 + 5)
-        self.assertEqual([s[1:3] + s[4:8] for s in stops[-5:]],
-                         [[7, 8, 0, -896, -5463, 53], [7, 8, 0, -896, -5289, 54],
-                          [7, 9, 0, -1024, -5975, 53], [7, 9, 0, -1024, -5801, 54], [7, 9, 0, -1024, -6318, 53]])
+        self.assertEqual(len(stops), 4 + 18 + 2)
+        self.assertEqual([s[1:3] + s[4:8] for s in stops[-2:]],
+                         [[7, 8, 0, -896, -5463, 53], [7, 8, 0, -896, -5289, 54]])
         old = PUB.read_frontier((PUB.OLD / "frontier.ugfront").read_bytes())[4]
         self.assertEqual(old[3][4:7], [0, 0, PUB.L0_FAR + PUB.ARRIVAL + PUB.HANDOFF_EDGE_U], "H is claw-v6's L0 station")
         landings = PUB.landings()
+        self.assertEqual(len(landings), 8)
         self.assertEqual(landings[7], [-1024, -896, -5632, 1024, -895, -5120])
-        self.assertEqual(landings[8], [-1024, -1024, -7168, 1024, -1023, -5632])
 
     def test_ground_caps_carry_the_v2_claw_digest(self) -> None:
         """Only the header digest changes from the published content-10 caps; every row is theirs."""

@@ -222,6 +222,12 @@ Every row was checked against the record named.
 | The Locations witness for natural-earth stops (1972 P-1972-8), 2026-10-16 | Coordinator: **(a)**, cleared: this lane edits `underground_locations.gd` `_installed_row_site` only, with a floor-stop and a natural-stop test; and the terrain-footing refusal gets a negative test (a test double), not a deferral. (Relayed by the coordinator) | [1972](../decisions/1972-activating-contents-11-and-12-scoping.md) |
 | Retaining the trench floor (1972 P-1972-9), 2026-10-16 | Coordinator: **(a)**, as the coordinator's call under Brendan's P-1972-7 ("Natural earth counts"): natural earth 128 u deep under the Placement's cut set at a natural landing's floor level is retained as the Room's SUPPORT (less the bearings already kept), by the same three proofs; WorldRoutes stays at its +33 / -2 lines and no Sites binding is added. (Relayed by the coordinator) | [1972](../decisions/1972-activating-contents-11-and-12-scoping.md) |
 
+## 2026-10-17
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Mounting content 12 without the floor end (1972 Phase 3a, option (d)), 2026-10-17 | Brendan: **"Switch on without floor end"**: (d). Content 12 is mounted with the stair carry from H on L0 down to the sill (T6) and back; the floor end (stops F, U and F′, the floor and CARRY edges onto the floor, the walk-off and back-up) is deferred to slice D's F40, and decision 1972 records it as F40's inventory. Coordinator: the ~95-character `_carry_eligible` skip in WorldRoutes is cleared; P-1972-9's trench retention is removed so it cannot run at the sill's commit; decision 1981's floor-end rows stay published but unused until F40; P-1972-7 and P-1972-8 are kept only if harmless (the lane kept P-1972-7 and removed P-1972-8's witness, which could witness a stop over void). (Relayed by the coordinator) | [1972](../decisions/1972-activating-contents-11-and-12-scoping.md) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

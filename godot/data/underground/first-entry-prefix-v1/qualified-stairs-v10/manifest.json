@@ -46,18 +46,18 @@
     "STATION_COUNT": 22,
     "CUT_COUNT": 6,
     "BEARING_COUNT": 38,
-    "ENDPOINT_COUNT": 49,
+    "ENDPOINT_COUNT": 46,
     "EPISODE_COUNT": 14
   },
   "files": {
-    "structure.ugconn": "d329a0455bd45ea7334a282cbed9abc528efd0d7e5553d8cfa0206ea260b2e7e",
-    "assemblies.ugasmb": "67996358b76918f303f356ba939110c394377f83aef8f5f0bb898df4d8746530",
-    "recipes.ugrecp": "7a2dc5e9ec3c6fd8700fc1e8c1534ac19483c0a24af3f22df56af83d5ae95ee5",
-    "frontier.ugfront": "fd4b580c526cd01910ba36a4e7bdcace391505939ec8dbb77450fbce01390a71",
-    "workpieces.ugwipc": "81d4871d4cdffa4c0735e9c89a0772d2bf4652fc7f2d802b8e35ceb579e49959",
+    "structure.ugconn": "053b14a47f9ae6f6b12ebd7c852c5690cea29d62bc6e50065d2fd19c078f1115",
+    "assemblies.ugasmb": "757c4261fd5bf44b6c02693ad48d9212b8fb8f3b8d4620e627b2a4847077763b",
+    "recipes.ugrecp": "74e8c4f252b21b4b3b521eefd91db52587058036d132f0d3c8a3b18688323746",
+    "frontier.ugfront": "8ee90bbff55e11c45604af294cb47fb21e2b097c99484f000310464b48d0d006",
+    "workpieces.ugwipc": "ea5ee9fd7e987fd17d6e29039f5fe8eec6360fbb949b3dcab204191e175a37f2",
     "ground-pace.ugconn": "8e189a6694b568542829ad9b7d57e57edee64647999d3fb39021d9c926c59d7d",
     "mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
-    "catalog_source.gd": "fc91f3d4bbd2d4e496efd7275f80759fedb7ec2ef1332aa1ed27f5aa708f4754"
+    "catalog_source.gd": "e7cfff468cfe4e7d014f6f15d3f0345d5f864fb61fdcca3070df7f8ea0327340"
   },
   "inputs": {
     "docs/design/underground-planning/first-entry-prefix-v1.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",

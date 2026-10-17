@@ -1,7 +1,8 @@
 extends "res://test/framework/test_case.gd"
 ## Decision 1972 (P-1972-1 (a)): content 10's programs and certificates serve content 12 (`qualified-stair-carry-v13`)
 ## through one predicate; the claw program owns the wall rows 67-70 and the stair program the rooted rows 71-84; the
-## stair motion owner appends the stair-carry tables; the stair path classifies and plans the floor end and the carry.
+## stair motion owner appends the stair-carry tables; the stair path classifies and plans the carry from H to the sill
+## (Brendan, 2026-10-17: "Switch on without floor end"; the floor end waits for F40).
 ## Fixture stores only, through the actual Profiles loader: nothing here is the mounted catalog.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
@@ -178,33 +179,51 @@ func test_the_stair_motion_owner_appends_the_carry_tables() -> void:
 	assert_equal(motion.program_of(53), 2, "the claw descent is still program 2")
 
 
-func test_the_stair_path_classifies_h_the_floor_and_f_prime() -> void:
-	"""H is 343 u before A on L0; the floor's A (F) and U are level 7; F' is 343 u behind F; the sill is level 6."""
+func test_the_stair_path_classifies_h_and_the_sill_but_no_floor_stop() -> void:
+	"""H is 343 u before A on L0; the sill (T6) is the last level; the floor's A (F), U and F' are no stops (F40)."""
 	assert_equal(StairPath.classify(Vector3i(0, 0, -1536)), Vector2i(StairPath.KIND_H, -1), "H")
-	assert_equal(StairPath.classify(Vector3i(0, -1024, -5975)), Vector2i(StairPath.KIND_A, 7), "F")
-	assert_equal(StairPath.classify(Vector3i(0, -1024, -5801)), Vector2i(StairPath.KIND_U, 7), "the floor ascent start")
-	assert_equal(StairPath.classify(Vector3i(0, -1024, -6318)), Vector2i(StairPath.KIND_B, 7), "F'")
 	assert_equal(StairPath.classify(Vector3i(0, -896, -5463)), Vector2i(StairPath.KIND_A, 6), "A on the sill")
+	assert_equal(StairPath.classify(Vector3i(0, -896, -5289)), Vector2i(StairPath.KIND_U, 6), "U on the sill")
+	assert_equal(StairPath.classify(Vector3i(0, -1024, -5975)), Vector2i(-1, 0), "no F")
+	assert_equal(StairPath.classify(Vector3i(0, -1024, -5801)), Vector2i(-1, 0), "no floor ascent start")
+	assert_equal(StairPath.classify(Vector3i(0, -1024, -6318)), Vector2i(-1, 0), "no F'")
 	assert_equal(StairPath.classify(Vector3i(0, -896, -5806)), Vector2i(-1, 0), "no F' on the sill")
-	assert_equal(StairPath.classify(Vector3i(0, -1152, -6487)), Vector2i(-1, 0), "no level below the floor")
 
 
-func test_the_stair_path_plans_the_floor_end_and_the_carry_after_the_descent() -> void:
-	"""Six words an edge; the descent's 33 WALK edges first, then 7 floor-end WALK edges and 21 CARRY edges, which
-	wait for F."""
+func test_the_stair_path_plans_the_sill_and_the_carry_after_the_descent() -> void:
+	"""Six words an edge; the descent's 33 WALK edges first, then the sill's 2 WALK edges and 17 CARRY edges, which
+	wait for the sill's arrival A(T6)."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
-	assert_equal(plan.size(), StairPath.PLAN_WORDS * (33 + 7 + 21), "edge census")
+	assert_equal(plan.size(), StairPath.PLAN_WORDS * (33 + 2 + 17), "edge census")
 	assert_equal(StairPath.descent_words(), StairPath.PLAN_WORDS * 33, "the descent's words")
 	var carry: int = 0
 	for at: int in range(0, plan.size(), StairPath.PLAN_WORDS):
 		if plan[at + 5] == Profiles.MODE_CARRY:
 			carry += 1
 			assert_equal(plan[at + 4], 0, "every CARRY edge is EARTH_TIMBER")
-	assert_equal(carry, 21, "H -> A, eight descents, F <-> F', the turn, eight ascents and U -> H")
+			assert_true(plan[at + 1] <= StairPath.SILL_LEVEL and plan[at + 3] <= StairPath.SILL_LEVEL, "never below T6")
+	assert_equal(carry, 17, "H -> A, seven descents, the turn on T6, seven ascents and U -> H")
 	var stops: StairPath.Stops = StairPath.Stops.new()
 	stops.h = Vector2i(1, 1)
 	stops.a[0] = Vector2i(2, 1)
-	var first_carry: int = StairPath.descent_words() + StairPath.PLAN_WORDS * 7
-	assert_false(StairPath._planned(stops, plan, first_carry), "H -> A(L0) waits for F")
-	stops.a[StairPath.FLOOR_LEVEL + 1] = Vector2i(3, 1)
-	assert_true(StairPath._planned(stops, plan, first_carry), "planned once F exists")
+	var first_carry: int = StairPath.descent_words() + StairPath.PLAN_WORDS * 2
+	assert_false(StairPath._planned(stops, plan, first_carry), "H -> A(L0) waits for the sill")
+	stops.a[StairPath.SILL_LEVEL + 1] = Vector2i(3, 1)
+	assert_true(StairPath._planned(stops, plan, first_carry), "planned once A(T6) exists")
+
+
+func test_a_malformed_carry_bank_is_refused_and_cut_back_to_the_claw_bank() -> void:
+	"""The carry tables are validated after they are appended: a program naming another row, or a key whose deck is
+	outside its program's span, refuses, and the columns are cut back to the claw bank exactly."""
+	var good: PackedByteArray = FileAccess.get_file_as_bytes(CarryMotion.WIRE_PATH)
+	var key_deck: int = StairMotion.HEADER_BYTES + 4 * StairMotion.PROGRAM_FIELDS * StairMotion.CARRY_PROGRAMS \
+		+ 4 * StairMotion.K_DECK
+	for fault: Vector2i in [Vector2i(StairMotion.HEADER_BYTES + 4 * StairMotion.P_ROW, 70), Vector2i(key_deck, 999)]:
+		var motion: StairMotion = StairMotion.new()
+		assert_equal(motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA), &"", "claw tables")
+		var bad: PackedByteArray = good.duplicate()
+		bad.encode_s32(fault.x, fault.y)
+		assert_equal(motion._append_carry(bad), StairMotion.REFUSE_FORMAT, "fault at %d refused" % fault.x)
+		assert_equal([motion.program_of(71), motion.packed_memory_bytes()], [-1, StairMotion.RESERVED_BYTES],
+			"cut back to the claw bank")
+		assert_equal(motion.program_of(53), 2, "the claw descent untouched")

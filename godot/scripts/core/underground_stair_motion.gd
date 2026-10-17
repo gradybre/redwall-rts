@@ -42,8 +42,7 @@ const CARRY_PROGRAMS: int = 14
 const CARRY_KEYS: int = 1634
 const CARRY_DECKS: int = 18
 ## Its retained columns (its profile digest is checked at load and not kept): 33,784 B.
-const CARRY_RESERVED_BYTES: int = 4 * (PROGRAM_FIELDS * CARRY_PROGRAMS + KEY_FIELDS * CARRY_KEYS \
-	+ DECK_FIELDS * CARRY_DECKS)
+const CARRY_RESERVED_BYTES: int = 4 * PROGRAM_FIELDS * CARRY_PROGRAMS + 4 * KEY_FIELDS * CARRY_KEYS + 4 * DECK_FIELDS * CARRY_DECKS
 const REFUSE_SOURCE: StringName = &"STAIR_MOTION_SOURCE"
 const REFUSE_FORMAT: StringName = &"STAIR_MOTION_FORMAT"
 
@@ -85,11 +84,7 @@ func load_carry_file(path: String, expected_sha: String) -> StringName:
 		return REFUSE_FORMAT
 	if bytes.slice(32, 64).hex_encode() != CarryContent.WIRE_SHA: return REFUSE_SOURCE
 	var code: StringName = _append_carry(bytes)
-	if code != &"":
-		_programs.resize(PROGRAM_FIELDS * PROGRAMS)
-		_keys.resize(KEY_FIELDS * KEYS)
-		_decks.resize(DECK_FIELDS * DECKS)
-		return code
+	if code != &"": return code
 	_carry_loaded = true
 	_program_count = PROGRAMS + CARRY_PROGRAMS
 	return &""
@@ -108,7 +103,8 @@ static func _read_pinned(path: String, size: int, sha: String) -> PackedByteArra
 
 
 func _append_carry(bytes: PackedByteArray) -> StringName:
-	"""Decode the carry tables after the claw tables, rebasing each program's first key and deck."""
+	"""Decode the carry tables after the claw tables, rebasing each program's first key and deck; a refusal cuts the
+	columns back to the claw bank."""
 	var programs: PackedInt32Array = PackedInt32Array()
 	programs.resize(PROGRAM_FIELDS * CARRY_PROGRAMS)
 	var keys: PackedInt32Array = PackedInt32Array()
@@ -123,7 +119,12 @@ func _append_carry(bytes: PackedByteArray) -> StringName:
 	_programs.append_array(programs)
 	_keys.append_array(keys)
 	_decks.append_array(decks)
-	return _validate_carry()
+	var code: StringName = _validate_carry()
+	if code != &"":
+		_programs.resize(PROGRAM_FIELDS * PROGRAMS)
+		_keys.resize(KEY_FIELDS * KEYS)
+		_decks.resize(DECK_FIELDS * DECKS)
+	return code
 
 
 func _validate_carry() -> StringName:

@@ -40,6 +40,11 @@ const MAX_KEY: int = 270
 const STEP_CLIP_INTERVALS: int = 4
 ## Ticks per second times milli-u per u: a pace of p milli-u/s crosses L u in ceil(L * 30,000 / p) ticks.
 const MILLI_TICKS: int = 30000
+## Decision 1972: the loaded rows' policies by move (approach, descent, ascent, turn, retreat, back-up).
+const LOADED_POLICIES: Array[int] = [Profiles.POLICY_ROOTED_TRAVEL, Profiles.POLICY_ROOTED_STAIR,
+	Profiles.POLICY_ROOTED_STAIR, Profiles.POLICY_ROOTED_TURN, Profiles.POLICY_ROOTED_TRAVEL,
+	Profiles.POLICY_ROOTED_BACKWARD]
+const CARGO_FIELDS: Array[int] = [Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]
 
 
 static func owns(actual: Profiles, profile: int) -> bool:
@@ -101,8 +106,7 @@ static func policy_of(profile: int) -> int:
 	if not is_carry_row(profile): return Profiles.POLICY_STAIR_TURN if profile == LAST else Profiles.POLICY_STAIR
 	if profile == Pins.STAIR_EMPTY_FLOOR_ROWS[0]: return Profiles.POLICY_ROOTED_TRAVEL
 	if profile == Pins.STAIR_EMPTY_FLOOR_ROWS[1]: return Profiles.POLICY_ROOTED_BACKWARD
-	return [Profiles.POLICY_ROOTED_TRAVEL, Profiles.POLICY_ROOTED_STAIR, Profiles.POLICY_ROOTED_STAIR,
-		Profiles.POLICY_ROOTED_TURN, Profiles.POLICY_ROOTED_TRAVEL, Profiles.POLICY_ROOTED_BACKWARD][_carry_name(profile)]
+	return LOADED_POLICIES[_carry_name(profile)]
 
 
 static func yaw_of(profile: int) -> int:
@@ -147,7 +151,7 @@ static func _cargo_matches(actual: Profiles, profile: int) -> bool:
 	var template: int = -1
 	if _carry_name(profile) >= 0:
 		template = STONE_CARRY_ROW if source_of(profile) == STONE_SOURCE else WOOD_CARRY_ROW
-	for field: int in [Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]:
+	for field: int in CARGO_FIELDS:
 		var expected: int = -1 if template < 0 else actual._live.fields[field * stride + template]
 		if actual._live.fields[field * stride + profile] != expected: return false
 	return template < 0 or actual._live.fields[Profiles.F_CARGO * stride + profile] >= 0

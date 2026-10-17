@@ -28,8 +28,6 @@ const REFUSE_BUSY: StringName = &"ROOM_APPROACH_REENTRY"
 const REFUSE_HEIGHT: StringName = &"ROOM_APPROACH_HEIGHT_UNREACHABLE"
 ## Decision 1971: a crew that strikes a side face in the floor band digs every quantum of a column (no stroke limit).
 const UNLIMITED_HEIGHT_U: int = Space.I32_MAX
-## Decision 1971: the content revision whose pre-1971 band rule survives until content 11 is activated (LEGACY).
-const LEGACY_CONTENT: int = 10
 ## Identity of the digging actor: a WORK row counts only when it shares every one of these with the request's row.
 const IDENTITY_FIELDS: Array[int] = [Profiles.F_SOURCE, Profiles.F_SPECIES, Profiles.F_STAGE, Profiles.F_RIG,
 	Profiles.F_POSTURE, Profiles.F_TOOL, Profiles.F_TOOL_VARIANT, Profiles.F_CARGO, Profiles.F_CARGO_VARIANT]
@@ -681,21 +679,7 @@ static func reachable_height_u(profiles: Profiles, identity_row: int) -> int:
 		if _dig_row(profiles, identity_row, row) and _side_patch(profiles, row):
 			var anchor: int = _anchor_height(profiles, row)
 			if anchor > 0 and anchor < Space.QUANTUM_U: return UNLIMITED_HEIGHT_U
-	return _legacy_band_height_u(profiles, identity_row) if profiles._live.header[0] == LEGACY_CONTENT else 0
-
-
-static func _legacy_band_height_u(profiles: Profiles, identity_row: int) -> int:
-	"""LEGACY, content 10 only, deleted by the content-11 activation lane (decision 1971 §6): content 10's claw crew has
-	no side-face row, and the demo keeps pricing its old 1,024 u (the seating tap's band) until activation. This is
-	the pre-1971 rule: the top of the highest band holding, strictly inside, any dig row's anchor."""
-	var height: int = 0
-	for row: int in profiles._live.header[1]:
-		if not _dig_row(profiles, identity_row, row): continue
-		var anchor: int = _anchor_height(profiles, row)
-		if anchor > 0 and anchor % Space.QUANTUM_U != 0:
-			@warning_ignore("integer_division") var band: int = anchor / Space.QUANTUM_U
-			height = maxi(height, (band + 1) * Space.QUANTUM_U)
-	return height
+	return 0
 
 
 static func _side_patch(profiles: Profiles, row: int) -> bool:

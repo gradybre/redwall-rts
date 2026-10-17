@@ -1,7 +1,9 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and Slice C accepted
-the claim list (see "Brendan's rulings and the claims agreed"). The build follows in this record's later sections.
+Date: 2026-10-17 · Status: Accepted, build stopped. Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
+needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
+on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
 
 Number range: 2044–2049, the D-flight lane's phase 2b. This is the 2b-1 record.
 - **Branch:** `feat/slice-d-m5-flight`, cut from `docs/slice-d-flight` with origin/master `4c4fec92` (#272) merged in.
@@ -253,3 +255,123 @@ mount) and applies it at each of five landings:
 7. The live chain to level 1's floor, with exact ledgers (2043 §3: 154 Sites, 36 installs, wood 77,500, stone
    38,500, 912,620 milli-WU).
 8. Gates: the full suite CI-style, the analyzer on port 6505, mutation testing, an independent review, frames.
+
+## Stopped before building (2026-10-17)
+
+A read-only research pass over the entry pipeline on master `537a9a2e`, checked line by line where load-bearing,
+found the following. **No held file was edited.**
+
+### Corrections to this record
+
+- **G4 / P-2044-4 is wrong: a cube is three tasks, not one.** The foreman plans one Task per phase (BRACE, CUT,
+  FINISH), and the census counts them so: `tools/underground_current_census.py:308`,
+  `tasks = 3 * EPISODE + INSTALL`.
+  - The top-metre stage is therefore about 48 × 3 = 144 tasks, and layer 2 is 40 × 3 + 7 = 127. Both are well over
+    `Progress.MAX_TASKS` 64 (`underground_entry_progress.gd:31`).
+  - Restoring a save also requires every future task's station Location to be live (`underground_entry_foreman.gd`
+    `_task_refusal`). That rules out planning deep stations ahead.
+  - **P-2044-4 (a), as ruled, cannot hold.** It is re-asked as P-2044-8.
+- **G5: one EPISODE row per cube,** and stations and endpoints are larger than estimated. The Frontier is about
+  49 KB, not 40–45 KB. P-2044-2 (a) still applies.
+- **Capacity table: Locations capacity is 1,024** (`underground_budget.gd:12`), not 4,096. M5 needs about 280 for the
+  entry, shared with rooms. It fits.
+- **Claim 5: WorkArea cannot publish deep stations,** and claims 12 (installer) and 13 (Contacts) are required, not
+  conditional:
+  - a station at depth cannot be a surface kind;
+  - Contacts' phase mode proves single-profile reach only, and refuses across a stair.
+
+### Needs outside the agreed claims
+
+1. **The entry runtime** (`underground_entry_runtime.gd`, the C2 follow-up's).
+   - It plans the whole prefix up front for `INSTALLATIONS = 8` (`:34, :366-367`). Its `_station_paths` assumes one
+     deep batch of land stations (`:379-391`).
+   - The foreman cannot add stages later: `configure_installation` refuses unless the stage is OPEN at index 0
+     (`underground_entry_foreman.gd:751`).
+   - So M5's 36 installs and staged planning need the runtime changed.
+2. **Data certificates that know only today's module:**
+   - `qualified-claw-runtime-v2/tread_geometry.gd`: `is_tread` covers assemblies 2–7, and its station and bearer
+     rules are linear.
+   - `qualified-claw-runtime-v2/paw_physical_certificate.gd`: it dispatches on `Tread.is_tread`.
+   - `qualified-assembly-v1/physical_certificate.gd` and `source_program.gd`: they accept only assemblies 0 and 1,
+     with hard-coded L0 and T0 roots and exterior air for the body.
+   - Module j's T0 and treads are refused by all four.
+3. **The confirmation budget** (`underground_entry_bindings.gd`, claimed).
+   - `_entry_cut_set_refusal` charges `17 + EPISODES × 32` checks per cube (`:378`), and the natural bearings
+     `EPISODES × 32` each (`:479-480`).
+   - For M5's 154 cubes and about 150 bearings that is about 1.5 M checks, over the 1,048,576 budget, so confirmation
+     would refuse.
+   - The fix is within a claimed file, but it changes a proof's cost model.
+4. **An unverified physical question in unclaimed code** (Sites, the space owner). Can a paid cut take a cube that
+   holds its own Room's retained SUPPORT? Floor stations and their strips stand over cubes that are cut later, so
+   their Locations and SUPPORT must be retired first.
+5. **Not needed:** `underground_connector_delivery.gd`, `underground_room_world_bindings.gd`, the Session,
+   `underground_routes.gd` and the rest of WorldRoutes. Spoil keeps going to R's pile: ECON-003's "adjacent" rule is
+   not enforced for entry cuts anywhere, and M5's 308 U fits R at 77 % of a pile.
+
+**Motion:** nothing found makes M5 infeasible with qualified motion. Rows 56/58/60/62 exist at all four headings.
+The blockers are runtime and certificate generality.
+
+### Proposals
+
+**P-2044-7 — The entry runtime (for the coordinator with the C2 follow-up lane).**
+
+- **(a) A narrow, cleared edit in this lane.** `INSTALLATIONS` read from the mounted Frontier, and planning moved to
+  the foreman stage by stage (the runtime asks for the next stage when one finishes). `_station_paths` takes the
+  stage's batch. These are a few functions, in an order agreed with C2.
+- (b) The C2 follow-up lane makes the same edit, and 2b-1 waits for it.
+- (c) Keep the up-front plan and raise every bound it meets instead: tasks, endpoints, legs and the confirmation
+  budget. This is the largest change, with the most memory.
+
+**Recommendation: (a).**
+
+**P-2044-8 — Progress tasks (re-asks P-2044-4).**
+
+- **(a) Raise `MAX_TASKS` (to 160 at least, the largest stage's 144 plus margin), `MAX_ENDPOINTS` (59 land
+  endpoints) and `MAX_LEGS`, bump the save version to 4, and add census rows.** The hauler reads `MAX_LEGS` through
+  the shared constant, so the off-limits hauler file itself does not change.
+- (b) Sub-stages of at most 21 cubes inside the foreman, with no save change. That is about eight sub-stages for the
+  top metre, each with its stations live at its own plan time.
+- (c) Both.
+
+**Recommendation: (a).** The ruled (a) does not hold.
+
+**P-2044-9 — The module-blind certificates.**
+
+- **(a) New successor files that are module-aware** (a `tread_geometry` successor reading
+  `full-level-flight-v1/flight_geometry.gd`, and paw/assembly certificate successors for module T0s), wired from the
+  claimed foreman, Contacts and bindings. The published files stay as they are.
+- (b) Claim the four files and edit them in place.
+
+**Recommendation: (a).**
+
+**P-2044-10 — The confirmation budget.**
+
+- **(a) In `underground_entry_bindings.gd` (claimed), index the episodes by cube once, so each cube costs
+  O(log EPISODES) instead of O(EPISODES).** Re-measure.
+- (b) Confirm M5 module by module, as separate Placement stages. That needs P-2044-5 re-ruled.
+- (c) Raise the entry check budget.
+
+**Recommendation: (a).**
+
+**P-2044-11 — Floor stations over cubes still to be cut.**
+
+- **(a) Before building, prove on a fixture that retiring a station's Location, its strip SUPPORT and its edges
+  frees the cube below for its own Room's cut. If Sites or the space owner refuses, report it.**
+- (b) Stand every deep station only on floors that are never cut later. Each cube is then struck from the landing
+  side through longer walks, which is not possible for every cube.
+
+**Recommendation: (a).**
+
+### What this means for 2b-1
+
+2b-1 is larger than 2044 scoped:
+
+- the runtime (P-2044-7);
+- four certificates (P-2044-9);
+- Contacts and the installer (required);
+- the progress format (P-2044-8);
+- the confirmation cost (P-2044-10);
+- a physical question in Sites (P-2044-11).
+
+The lane has stopped for the coordinator and Brendan. Nothing was built; the claims of record stand unused.
+

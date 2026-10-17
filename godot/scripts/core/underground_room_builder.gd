@@ -246,6 +246,13 @@ func leave() -> StringName:
 	return code
 
 
+func _on_a_span() -> bool:
+	"""The actor is walking a span or has a route queued: its Job stays until it comes to rest (decision 1939: an actor
+	left holding a retired Job is stale to every other actor's proof, and Routes holds it)."""
+	if _ctx.owners.routes.read_actor_into(_crew.worker, _actor) != &"": return false
+	return _actor.edge != NULL_REF or _actor.phase != Routes.PHASE_IDLE
+
+
 func _at_source_ready() -> bool:
 	"""The actor stands at READY in the source it actually holds, under its own Job and row (after a hand-over these
 	are not the builder's `_job` and work row any more: review M1)."""
@@ -895,6 +902,9 @@ func _start(tick: int) -> StringName:
 		if not delivered.ok: return delivered.error
 	var result: Construction.OpResult = o.sites.bind_worker(_site)
 	if result.ok: result = o.sites.resume_phase_work(_site) if _resuming else o.sites.begin_phase_work(_site, tick)
+	if not result.ok and _resuming and _proof_lost(result.error): # Decision 1938: the stopped dig's proof is stale.
+		o.sites._spatial().refresh_static_proof(_site)
+		result = o.sites.resume_phase_work(_site)
 	if not result.ok: return result.error
 	_resuming = false
 	_set_stage(STAGE_EARN)
@@ -961,7 +971,7 @@ func _between(tick: int) -> StringName:
 	the next phase and re-enter WORK."""
 	if not may_work():
 		_stage_ticks = 0 # A rest is not a stall.
-		return &""
+		return _drop_retired_job() if _holds_a_job() else &"" # Decision 1939 (review M4): not stale while it rests.
 	var code: StringName = _open_phase(tick)
 	if code == &"": code = _assign()
 	if code == &"": code = _refresh_work()
@@ -990,6 +1000,11 @@ func abandon() -> StringName:
 	if was >= STAGE_ENTER and was <= STAGE_RECOVER and _job >= 0 and not lost() \
 			and o.routes.read_actor_into(_crew.worker, _actor) == &"" \
 			and o.routes.request_source_ready(_crew.worker, _actor.job) == &"": # Under the Job it holds (M1).
+		_release_pending = true
+		return &""
+	if _job >= 0 and not lost() and _on_a_span() and _actor.job != NULL_REF and _actor.job == o.jobs.ref_of(_job):
+		# Decision 1939 (B5): a leg walked under the phase Job keeps it until rest, never released mid-step. A builder
+		# walking home holds no Job (review H1), so it is released at once.
 		_release_pending = true
 		return &""
 	return _release_phase()
@@ -1062,7 +1077,22 @@ func _recover(tick: int) -> StringName:
 	_at = _station
 	_foot.stand(_point(_station), _work_profile)
 	_set_stage(STAGE_COLUMN) # The foreman sends it up its column, or home.
-	return &""
+	return _drop_retired_job()
+
+
+func _drop_retired_job() -> StringName:
+	"""Decision 1939: the cube's last Job is retired. Another actor's occupancy proof reads every registered actor's
+	selection, and a retired Job is stale there (ROUTE_TURN_ACTOR_STALE), so the builder stands at its station on the
+	READY travel row of its heading with no Job until its next leg."""
+	var o: Owners = _ctx.owners
+	var row: int = Itinerary.family_row(o.profiles, _ctx.forward, _yaw(_work_profile), Profiles.POLICY_READY_FORWARD)
+	if row < 0: return REFUSE_LEG
+	return o.routes.refresh_travel_actor(_crew.worker, NULL_REF, row, _revision(row), _ctx.content, 0, -1, _crew.tool)
+
+
+func _holds_a_job() -> bool:
+	"""The builder's route actor still names a Job (the phase it just settled, before a rest is waited out)."""
+	return _ctx.owners.routes.read_actor_into(_crew.worker, _actor) == &"" and _actor.job != NULL_REF
 
 
 func at_column_end() -> bool:

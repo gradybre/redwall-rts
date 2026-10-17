@@ -231,12 +231,12 @@ func test_a_full_spoil_pile_stops_the_room_before_any_unpaid_cut() -> void:
 	assert_equal(_h._routes.read_actor_into(_h._worker, Routes.Actor.new()), &"ROUTE_ACTOR_NOT_REGISTERED", "no route actor")
 
 
-func test_a_paid_phase_left_by_a_lost_builder_is_taken_over_up_to_the_room_bindings() -> void:
+func test_a_paid_phase_left_by_a_lost_builder_is_taken_over_and_the_room_finished() -> void:
 	"""P-1933-2 (a): the first builder dies earning its BRACE; the dig stops and keeps the paid phase (its actor is
 	removed, ADR1225). Re-ordered with another mole, the new builder takes that phase over: the frontier's resume
 	contact proves its station, it takes the Site's own Job and walks there, and no second input is claimed. The room
-	bindings then refuse to bind a new worker to a started phase (`ROOM_PHASE_WORKER`: their worker check needs the
-	worker already registered once work has begun), so the paid phase stays kept: the named gap of decision 1937."""
+	bindings admit the new worker to the vacant started phase (decision 1938), Sites resumes the paid work, and the
+	room is dug to the end, each BRACE paid once."""
 	_h = WideKitchen.new()
 	var room: Vector2i = _h.confirmed_room()
 	if room == NULL_REF: return
@@ -260,36 +260,39 @@ func test_a_paid_phase_left_by_a_lost_builder_is_taken_over_up_to_the_room_bindi
 	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE kept")
 	assert_equal(runtime.release_room(room), &"", "released")
 	var wood: int = _h._inventory.lot_quantity_milli(_h.stock_wood)
-	var free_wood: int = _h._inventory.lot_available_milli(_h.stock_wood)
 	var second: Builder.Crew = _h.second_member(SECOND_PARKING)
 	var before: Transforms.Pose = Transforms.Pose.new()
 	assert_true(_h._transforms.read_into(second.worker, before), "where the taker stood, far off")
 	assert_equal(runtime.order_room(room, _h.material, _h.material), &"", "ordered again")
 	assert_equal(runtime.start_room(room, _h.owners(), [second] as Array[Builder.Crew]), &"", "started again")
 	var taker: Builder = runtime.foreman_of(room).builders()[0]
+	var foreman: Foreman = runtime.foreman_of(room)
 	var seen: Array[StringName] = []
 	var reached: bool = false
+	var resumed: bool = false
 	for step: int in TICK_BOUND:
 		_h.tick += 1
 		seen.append_array(runtime.advance(_h.tick))
 		reached = reached or (taker._resuming and taker.stage() == Builder.STAGE_START)
-		if not seen.is_empty(): break
+		resumed = resumed or (reached and taker.stage() == Builder.STAGE_EARN)
+		if resumed and _h._inventory.lot_quantity_milli(_h.stock_wood) != wood: break
+		if not runtime.is_running(): break
 	assert_true(reached, "the paid phase taken over, the builder at its station")
-	assert_equal(seen, [&"ROOM_PHASE_WORKER"] as Array[StringName], "the room bindings' worker check, named")
-	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), wood, "no second input consumed")
-	assert_equal(_h._inventory.lot_available_milli(_h.stock_wood), free_wood, "nor reserved: the paid inputs stand")
-	assert_equal(_h._construction.live_project_count(), 1, "the paid BRACE still kept")
+	assert_true(resumed, "Sites resumed the paid work (decision 1938: the room bindings admit the new worker)")
+	assert_equal(seen, [] as Array[StringName], "no refusal")
 	var taker_row: int = _h._residents.directory().get_typed_row(second.worker)
 	for step: int in TICK_BOUND:
 		_h.tick += 1
-		runtime.advance(_h.tick)
+		seen.append_array(runtime.advance(_h.tick))
 		if not runtime.is_running(): break
-	assert_false(runtime.is_running(), "the taker walked out")
+	assert_equal(seen, [] as Array[StringName], "the whole dig, without a refusal")
+	assert_equal(foreman.done_cubes(), foreman.total_cubes(), "every cube done, the taken-over one included")
+	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
+	assert_equal(_h._inventory.lot_quantity_milli(_h.stock_wood), 0,
+		"each BRACE's wood consumed once: the stock was sized to one bill per Site")
+	assert_equal(runtime.state_of(room), Runtime.RECORD_NONE, "finished and released by itself")
 	var after: Transforms.Pose = Transforms.Pose.new()
 	assert_true(_h._transforms.read_into(second.worker, after), "its pose")
 	assert_equal(Vector3i(after.x, after.y, after.z), Vector3i(before.x, before.y, before.z), "back where it stood")
-	assert_equal(_h._jobs.job_of(taker_row), NULL_REF, "the taken-over Job it was assigned is released, not kept")
-	assert_true(runtime.foreman_of(room).builders().is_empty(), "the stopped dig forgets the builder once it is out")
-	assert_false(runtime.reserves_resident(taker_row), "and reserves it no longer")
-	assert_equal(runtime.release_room(room), &"", "released again")
-	assert_equal(runtime.order_room(room, _h.material, _h.material), &"", "and orderable a third time")
+	assert_equal(_h._jobs.job_of(taker_row), NULL_REF, "holding no Job")
+	assert_false(runtime.reserves_resident(taker_row), "and reserved no longer")

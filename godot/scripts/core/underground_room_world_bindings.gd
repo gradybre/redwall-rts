@@ -756,22 +756,39 @@ func _ordinary_job_leaf(worker: Vector2i, job: Vector2i, resident: int) -> Strin
 			or jobs._kind[row] != Jobs.JOB_KIND_BUILD or jobs._is_coordinator[row] != 0 or jobs._coordinator_slot[row] != -1 \
 			or jobs._worker_slot[row] != worker.x or jobs._worker_generation[row] != worker.y \
 			or jobs._requester_slot[row] != _entry_project.x or jobs._requester_generation[row] != _entry_project.y \
-			or jobs._tool_gate[row] != Jobs.GATE_SATISFIED or jobs._agent_present[resident] != 1 \
+			or not _ordinary_gate(jobs._tool_gate[row]) or jobs._agent_present[resident] != 1 \
 			or jobs._agent_persistent_id[resident] != graph._ids._persistent_id[worker.x] \
 			or jobs._agent_job_slot[resident] != job.x or jobs._agent_job_generation[resident] != job.y \
 			or sites._job_slot[_entry_site.x] != job.x or sites._job_generation[_entry_site.x] != job.y \
 			or sites._job_site[row] != _entry_site.x: return ROOM_REFUSE_WORKER
 	var project: int = _ordinary_project_row()
 	if project < 0 or jobs._remaining_mwu[row] != sites._construction._remaining_mwu[project]: return ROOM_REFUSE_WORKER
-	if _ordinary_needs_worker() and (sites._worker_site[resident] != _entry_site.x or sites._worker_generation[resident] != worker.y):
+	if _ordinary_needs_worker() and (sites._worker_site[resident] != _entry_site.x or sites._worker_generation[resident] != worker.y) \
+			and not _ordinary_vacant(sites, resident):
 		return ROOM_REFUSE_WORKER
 	return &""
 
 
+func _ordinary_vacant(sites: Sites, resident: int) -> bool:
+	"""P-1933-2 (a), decision 1938: a started phase whose worker was released (its dig stopped) admits the Job's newly
+	assigned worker to bind to it. That worker is registered to no Site and nobody else is registered to this one.
+	Productive work still needs the registration, which Sites checks before it asks here."""
+	return sites._worker_site[resident] == Sites.NO_ROW and sites._registered_worker_row(_entry_site.x) == Sites.NO_ROW
+
+
+func _ordinary_gate(gate: int) -> bool:
+	"""A tooled Job's gate is satisfied; decision 1939 (DEC-052): a tool-free Job (the claws') needs no tool."""
+	return gate == Jobs.GATE_SATISFIED or gate == Jobs.GATE_NOT_REQUIRED
+
+
 func _ordinary_tool_leaf(worker: Vector2i, job: Vector2i, tool: Vector2i, resident: int) -> StringName:
-	"""Physical equipped geometry is not a productive claim; actual Work/Gear assignment and durability also hold."""
+	"""Physical equipped geometry is not a productive claim; actual Work/Gear assignment and durability also hold.
+	A tool-free Job (decision 1939, DEC-052: the claws) holds no tool and no claim, as Sites' own rule."""
 	var profiles: EntryProfiles = _ordinary_config.profiles
 	var work: RefCounted = profiles._work
+	var row_of_job: int = RoomFace.FinishCheck._typed_row(_ordinary_config.routes._ids, job, Directory.KIND_JOB)
+	if row_of_job >= 0 and _ordinary_config.routes._jobs._tool_gate[row_of_job] == Jobs.GATE_NOT_REQUIRED:
+		return &"" if tool == NULL_REF and work.tool_lot_of(resident) == NULL_REF else ROOM_REFUSE_WORKER
 	var gear: RoomGear = profiles._gear
 	if tool.x < 0 or tool.x >= RoomGear.LOT_CAPACITY or tool.y <= 0 \
 			or work._tool_lot_slot[resident] != tool.x or work._tool_lot_generation[resident] != tool.y \

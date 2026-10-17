@@ -763,9 +763,17 @@ func _ordinary_job_leaf(worker: Vector2i, job: Vector2i, resident: int) -> Strin
 			or sites._job_site[row] != _entry_site.x: return ROOM_REFUSE_WORKER
 	var project: int = _ordinary_project_row()
 	if project < 0 or jobs._remaining_mwu[row] != sites._construction._remaining_mwu[project]: return ROOM_REFUSE_WORKER
-	if _ordinary_needs_worker() and (sites._worker_site[resident] != _entry_site.x or sites._worker_generation[resident] != worker.y):
+	if _ordinary_needs_worker() and (sites._worker_site[resident] != _entry_site.x or sites._worker_generation[resident] != worker.y) \
+			and not _ordinary_vacant(sites, resident):
 		return ROOM_REFUSE_WORKER
 	return &""
+
+
+func _ordinary_vacant(sites: Sites, resident: int) -> bool:
+	"""P-1933-2 (a), decision 1938: a started phase whose worker was released (its dig stopped) admits the Job's newly
+	assigned worker to bind to it. That worker is registered to no Site and nobody else is registered to this one.
+	Productive work still needs the registration, which Sites checks before it asks here."""
+	return sites._worker_site[resident] == Sites.NO_ROW and sites._registered_worker_row(_entry_site.x) == Sites.NO_ROW
 
 
 func _ordinary_tool_leaf(worker: Vector2i, job: Vector2i, tool: Vector2i, resident: int) -> StringName:

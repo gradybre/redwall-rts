@@ -895,6 +895,9 @@ func _start(tick: int) -> StringName:
 		if not delivered.ok: return delivered.error
 	var result: Construction.OpResult = o.sites.bind_worker(_site)
 	if result.ok: result = o.sites.resume_phase_work(_site) if _resuming else o.sites.begin_phase_work(_site, tick)
+	if not result.ok and _resuming and _proof_lost(result.error): # Decision 1938: the stopped dig's proof is stale.
+		o.sites._spatial().refresh_static_proof(_site)
+		result = o.sites.resume_phase_work(_site)
 	if not result.ok: return result.error
 	_resuming = false
 	_set_stage(STAGE_EARN)

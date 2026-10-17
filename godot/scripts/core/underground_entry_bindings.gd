@@ -16,6 +16,9 @@ const ENTRY_FIXED_BYTES: int = 4096
 const ENTRY_EPISODE_FIELDS: int = 19
 const ENTRY_BEARING_FIELDS: int = 9
 const TIMBER_SCOPE_CHECKS: int = 2048
+## Decision 1972: natural earth under a landing is retained to the natural bearings' depth (ADR 1209: y -1152..-1024
+## under a floor at -1024), which holds every stair fixture deck that stands on the floor under the landing.
+const NATURAL_DEPTH_U: int = 128
 const REFUSE_ENTRY_SOURCE: StringName = &"ENTRY_SOURCE_MISMATCH"
 const REFUSE_ENTRY_CUTS: StringName = &"ENTRY_EXACT_CUT_SET_REQUIRED"
 const REFUSE_ENTRY_BEARING: StringName = &"ENTRY_NATURAL_BEARING_REMOVED"
@@ -1026,6 +1029,7 @@ func _timber_physical(space_token: int, staging: bool) -> StringName:
 	code = _timber_dependencies(proof, space_token if not staging else 0, staging)
 	if code == &"": code = _timber_connections(proof)
 	if code == &"": code = _timber_parts(proof, space_token, staging)
+	if code == &"" and not staging and space_token != 0: code = _timber_landing_footing(proof, space_token)
 	if code == &"" and not staging: code = _timber_contact_air(proof, space_token, false)
 	if code == &"": code = _timber_scope_leaf(proof)
 	_entry_checks = proof.remaining
@@ -1513,6 +1517,7 @@ func _stage_timber_datums(proof: TimberClearance, token: int) -> StringName:
 		proof.box[4] = _cube[1]
 		proof.box[1] = int(_cube[1]) - 1
 		code = _timber_staged_support(proof, proof.box)
+		if code == &"": code = _stage_natural_support(proof, token)
 		if code == &"": code = _timber_create_datum(proof, token)
 		if code != &"": return code
 	return _timber_contact_air(proof, token, true)
@@ -1531,7 +1536,15 @@ func _timber_prior_landing(proof: TimberClearance, endpoint: int) -> int:
 
 
 func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
-	"""Metadata cannot enlarge a platform: the complete declared landing must have actual installed solid under it."""
+	"""Metadata cannot enlarge a platform: the complete declared landing must have actual solid under it, installed
+	(the installation's own SUPPORT) or, decision 1972 (P-1972-7, Brendan: "Natural earth counts"), natural earth.
+	This step only leaves what the installation does not cover in the proof's fragments and refuses nothing itself;
+	`_stage_natural_support` then proves that residual natural, or refuses."""
+	return _timber_support_residual(proof, bounds)
+
+
+func _timber_support_residual(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""What of `bounds` the installation's own staged SUPPORT does not cover, left in the proof's fragments."""
 	proof.start(bounds)
 	var owner: Owner = _entry_placements._space
 	for row: int in owner._region_capacity:
@@ -1541,7 +1554,112 @@ func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) ->
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, true, proof.cover)
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	return &"" if proof.count == 0 else REFUSE_TIMBER_CONTACT
+	return &""
+
+
+func _timber_natural_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""Decision 1971's natural-earth test, as a natural bearing is proved, on one region to be retained while staging:
+	no Site ever cut a quantum it meets and only unclaimed natural matter or support stands in it. Its dry original
+	footing is a terrain fact, observed under the sealed candidate (`_timber_landing_footing`), as a natural
+	bearing's is. So never a dug void, backfill or another installation."""
+	var code: StringName = _timber_virgin_keys(proof, bounds)
+	if code == &"": code = _timber_natural_rows(proof, bounds)
+	if code != &"": return REFUSE_MASK_BUDGET if code == REFUSE_MASK_BUDGET else REFUSE_TIMBER_CONTACT
+	return &""
+
+
+func _stage_natural_support(proof: TimberClearance, token: int) -> StringName:
+	"""Decision 1972 (P-1972-7, Brendan: "Natural earth counts"): when a landing stands partly on natural earth, the
+	natural earth under its footprint, to `NATURAL_DEPTH_U`, is proved (cut history and matter) and retained as the
+	Room's SUPPORT, as a natural bearing is, so the Space records the floor a stop stands on. No mounted landing does
+	so: the floor end that needs it waits for slice D's F40 (Brendan, 2026-10-17, "Switch on without floor end"); the
+	trench-floor retention P-1972-9 added for it is not kept (decision 1972 records it as F40's inventory)."""
+	if proof.count == 0: return &""
+	return _retain_natural(proof, token, _natural_box(NATURAL_DEPTH_U))
+
+
+func _retain_natural(proof: TimberClearance, token: int, bounds: PackedInt32Array) -> StringName:
+	"""Prove what staged SUPPORT leaves of `bounds` natural earth, fragment by fragment (a landing's footprint may hold
+	timber in a dug cube), then stage it as the Room's SUPPORT."""
+	var code: StringName = _timber_support_residual(proof, bounds)
+	if code == &"" and proof.count > 0: code = _natural_fragments(proof)
+	for fragment: int in proof.count:
+		if code != &"": return code
+		if not proof.spend(_entry_placements._space._source_capacity + 16): return REFUSE_MASK_BUDGET
+		_region.owner = _timber_room()
+		_region.section = NULL_REF
+		_region.level = _entry_contact.level
+		_region.role = Space.SUPPORT
+		_region.claim_kind = Owner.CLAIM_NONE
+		_region.claim_ref = NULL_REF
+		for axis: int in 6: _region.box[axis] = proof.fragments[fragment * 6 + axis]
+		code = _entry_placements._space.stage_add(token, _region).error
+		if code == &"": code = _timber_scope_leaf(proof)
+	return code
+
+
+func _natural_fragments(proof: TimberClearance) -> StringName:
+	"""The natural-earth proof over each residual fragment."""
+	var box: PackedInt32Array = PackedInt32Array()
+	box.resize(6)
+	for fragment: int in proof.count:
+		for axis: int in 6: box[axis] = proof.fragments[fragment * 6 + axis]
+		var code: StringName = _timber_natural_support(proof, box)
+		if code != &"": return code
+	return &""
+
+
+func _natural_box(depth: int) -> PackedInt32Array:
+	"""The current landing's footprint (`_cube`), from `depth` below its floor up to the floor."""
+	var box: PackedInt32Array = _cube.duplicate()
+	box[4] = _cube[1]
+	box[1] = int(_cube[1]) - depth
+	return box
+
+
+func _timber_landing_footing(proof: TimberClearance, token: int) -> StringName:
+	"""Decision 1972: under the sealed candidate, every landing of this group that stands partly on natural earth
+	stands on the terrain's dry original footing there (no water), to the retained depth; a landing on installed
+	timber alone has no natural strip under it and is not observed."""
+	for endpoint: int in _entry_frontier._header[8 + Frontier.ENDPOINT]:
+		if not proof.spend(32): return REFUSE_MASK_BUDGET
+		if _entry_frontier._field(Frontier.ENDPOINT, endpoint, 0) != Frontier.INSTALLED_CONTACT \
+				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
+		var prior: int = _timber_prior_landing(proof, endpoint)
+		if prior < 0: return REFUSE_MASK_BUDGET
+		if prior > 0: continue
+		var code: StringName = _timber_landing_into(endpoint)
+		if code == &"": code = _timber_prism_residual(proof, _natural_box(1))
+		if code != &"": return code
+		if proof.count == 0: continue
+		code = _timber_prism_residual(proof, _natural_box(NATURAL_DEPTH_U))
+		if code == &"": code = _timber_residual_footing(proof, token)
+		if code != &"": return code
+	return &""
+
+
+func _timber_prism_residual(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+	"""What of `bounds` no installed timber prism of this Placement's groups up to this one covers: natural earth,
+	whether retained by staging or as a natural bearing (both are SUPPORT rows, so only the prisms tell them apart)."""
+	proof.start(bounds)
+	var groups: Placements.Assemblies = _entry_placements._assemblies
+	for group: int in _timber_assembly + 1:
+		for part: int in range(groups._first_part[group], groups._first_part[group] + groups._part_count[group]):
+			if not proof.spend(96): return REFUSE_MASK_BUDGET
+			if Locations.installed_prism_into(_entry_placements, _timber_placement.x, part, proof.cover) != &"": continue
+			if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
+	return &""
+
+
+func _timber_residual_footing(proof: TimberClearance, token: int) -> StringName:
+	"""The terrain's dry footing under each residual fragment, from the sealed candidate's facts."""
+	var box: PackedInt32Array = PackedInt32Array()
+	box.resize(6)
+	for fragment: int in proof.count:
+		for axis: int in 6: box[axis] = proof.fragments[fragment * 6 + axis]
+		var code: StringName = _timber_terrain(proof, box, Terrain.FOOTING, token)
+		if code != &"": return REFUSE_MASK_BUDGET if code == REFUSE_MASK_BUDGET else REFUSE_TIMBER_CONTACT
+	return &""
 
 
 func _timber_create_datum(proof: TimberClearance, token: int) -> StringName:
@@ -1600,7 +1718,8 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 
 static func _stair_stop(profiles: Profiles, profile: int) -> bool:
 	"""ADR1229: a stop of content 10's source-proved stair and tread rows (steps, descent, ascent, half-turn, the tread
-	fitting tap). Their bounding boxes enclose whole motions over two decks or reach among the tread fixture's timber,
+	fitting tap), and decision 1972: of content 12's rooted rows (the stair carry). Their bounding boxes enclose whole
+	motions over two decks or reach among the tread fixture's timber,
 	so they size no stop; each motion is proved per edge and per station against its installed fixture."""
 	return Routes.Stair.owns(profiles, profile) \
 		or (profile == Routes.Stair.Pins.CLAW_TREAD_TAP_ROW and Routes.Claw2.owns(profiles, profile))
@@ -1609,11 +1728,12 @@ static func _stair_stop(profiles: Profiles, profile: int) -> bool:
 func _stair_stop_bounds(profiles: Profiles, profile: int) -> StringName:
 	"""ADR1229: the stop's footing is the claw READY stance of the tread fitting row (row 64's STANCE box: the tread
 	station's footing, 169 u ahead and 175 u behind the root), turned to face up the stair for an ascent stop; its own
-	air is that footing's column one unit high. The motions leaving it carry their own proofs."""
+	air is that footing's column one unit high. The motions leaving it carry their own proofs. Decision 1972: any stair
+	row facing up the stair (yaw 32768: the ascents and the rooted retreats) turns the footing."""
 	var tap: int = Routes.Stair.Pins.CLAW_TREAD_TAP_ROW
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + tap]
 	var count: int = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + tap]
-	var up: bool = profile == Routes.Stair.Pins.CLAW_ASCENT_ROW
+	var up: bool = Routes.Stair.owns(profiles, profile) and Routes.Stair.yaw_of(profile) == 32768
 	var point: Vector3i = _entry_contact.point
 	for box: int in range(first, first + count):
 		if not _entry_spend(24): return REFUSE_MASK_BUDGET

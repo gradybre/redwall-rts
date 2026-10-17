@@ -492,6 +492,12 @@ static func is_rooted_policy(policy: int) -> bool:
 	return policy >= POLICY_ROOTED_TRAVEL and policy <= POLICY_ROOTED_TURN
 
 
+static func is_table_turn(policy: int) -> bool:
+	"""Decision 1972: a half-turn whose heading is its stair table's, never the actor's current one: the claw stair
+	turn (9) and the rooted turn (13)."""
+	return policy == POLICY_STAIR_TURN or policy == POLICY_ROOTED_TURN
+
+
 func _key_refusal(row: int) -> StringName:
 	"""Absent objects use exact -1 keys and zero quantity; no wildcard masks a live item."""
 	var yaw_kind: int = _field(_stage, row, F_YAW_KIND)
@@ -658,7 +664,7 @@ static func selection_policy_leaf(actual: RefCounted, profile_id: int, profile_r
 			or profile_revision <= 0 or profile_revision != actual._live.quantities[L_REVISION * actual._profile_capacity + profile_id]:
 		return -1
 	var policy: int = actual._live.flags[actual._profile_capacity + profile_id]
-	return policy if policy <= POLICY_STAIR_TURN else -1
+	return policy if policy <= POLICY_ROOTED_TURN else -1
 
 
 func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
@@ -666,12 +672,14 @@ func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int,
 	"""Explicit source travel still proves the actual current actor, Job, tool, cargo and orientation."""
 	var policy: int = selection_policy_leaf(self, profile_id, profile_revision, revision)
 	if (policy < POLICY_READY_FORWARD or policy > POLICY_CANONICAL_GROUND or policy == POLICY_SOURCE_WORK) \
-			and policy != POLICY_STAIR and policy != POLICY_STAIR_TURN:
+			and policy != POLICY_STAIR and policy != POLICY_STAIR_TURN and not is_rooted_policy(policy):
 		return &"PROFILE_TRAVEL_SELECTION_REQUIRED"
-	var code: StringName = _prepare_query(worker, job, MODE_WALK, posture, connector_family, equipped_tool_hint, out)
+	# Decision 1972: a rooted row names its own mode (WALK, or CARRY with the actor's actual cargo).
+	var mode: int = _policy_mode(policy, _field(_live, profile_id, F_MODE))
+	var code: StringName = _prepare_query(worker, job, mode, posture, connector_family, equipped_tool_hint, out)
 	if code != &"":
 		return code
-	if not _matches(profile_id, MODE_WALK, posture, connector_family):
+	if not _matches(profile_id, mode, posture, connector_family):
 		return &"PROFILE_VARIANT_UNAUTHORED"
 	_write_selection(profile_id, worker, job, out)
 	return &""
@@ -802,10 +810,10 @@ func _matches(row: int, mode: int, posture: int, family: int) -> bool:
 	var quantity: int = _candidate.cargo_quantity_milli
 	if quantity < _long(_live, row, L_QUANTITY_MIN) or quantity > _long(_live, row, L_QUANTITY_MAX):
 		return false
-	# ADR1229: the half-turn's heading is its own table's (Routes checks the start heading); every other exact row
-	# matches the actor's current heading.
+	# ADR1229 / decision 1972: a half-turn's heading is its own table's (Routes checks the start heading); every other
+	# exact row matches the actor's current heading.
 	if _field(_live, row, F_YAW_KIND) == YAW_EXACT and _field(_live, row, F_YAW) != _pose.yaw \
-			and _live.flags[_profile_capacity + row] != POLICY_STAIR_TURN:
+			and not is_table_turn(_live.flags[_profile_capacity + row]):
 		return false
 	return family == -1 or (_field(_live, row, F_FAMILIES) & (1 << family)) != 0
 

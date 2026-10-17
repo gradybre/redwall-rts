@@ -8,6 +8,7 @@ extends RefCounted
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Claw := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/claw_program.gd")
 ## ADR1229: content 10's claw rows (42-50, 56-64) on the v2 claw image; the same clock, its own row-to-clip map.
+## Decision 1972: also content 12's, whose wall rows 67-70 play M1's dig clips.
 const Claw10 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
 const ONE: int = 65536
 
@@ -15,7 +16,7 @@ const ONE: int = 65536
 static func frames_into(content: Content, profile: int, state: PackedInt64Array, pose: PackedInt32Array,
 		out: PackedInt32Array, content_revision: int = Claw.CONTENT) -> StringName:
 	"""Write the frame pair and blend weight of one source state (phase, time, old) into `out`."""
-	var program: GDScript = Claw10 if content_revision == Claw10.CONTENT else Claw
+	var program: GDScript = Claw10 if Claw10.serves(content_revision) else Claw
 	if content == null or state.size() < 3 or pose.size() != 3 or out.size() != 7 \
 			or profile < program.FIRST or profile > program.LAST \
 			or (program == Claw10 and not Claw10.in_block(profile)):

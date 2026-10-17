@@ -3,7 +3,8 @@ extends "res://test/framework/test_case.gd"
 ## Locations and Space owners. Two decks one tread apart (a 512 u deck 128 u above the next, as T_k above T_k+1) are
 ## World-owned SUPPORT in completed void; a synthetic catalog (test-only) carries one EARTH_TIMBER variant and
 ## DEC-050's paces (528 u/s over a 528 u tread edge, 116 u/s over the 174 u half-turn). The actual mole is driven by
-## real route ticks.
+## real route ticks. Decision 1972: the content is chosen by `_select_content`, so a subclass reruns every test on
+## content 12 (`test_underground_stair_carry_routes.gd`); every stair pace is a milli-u/s row (P-1972-6).
 
 const Binding := preload("res://scripts/core/underground_world_routes.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
@@ -50,8 +51,9 @@ const LOW: int = 384
 const CATALOG_TEMP: String = "user://stair-routes-catalog.bin"
 const PROFILE_WIRE: String = "res://data/underground/mole-worker/qualified-claw-stairs-v11/mole-worker.ugprof"
 const GROUND_WIRE: String = "res://data/underground/mole-worker/qualified-claw-stairs-v11/ground-pace.ugconn"
-## DEC-050 as authored connector paces: one tread (528 u) a second, a half-turn (174 u) in a second and a half.
-const STAIR_PACES: Array[Vector2i] = [Vector2i(53, 528), Vector2i(54, 528), Vector2i(55, 116)]
+## DEC-050 as authored connector paces: one tread (528 u) a second, a half-turn (174 u) in a second and a half
+## (decision 1972: milli-u/s rows, x = row, y = rate, z = kind).
+const STAIR_PACES: Array[Vector3i] = [Vector3i(53, 528000, 2), Vector3i(54, 528000, 2), Vector3i(55, 116000, 2)]
 
 var _residents: Residents = null
 var _transforms: Transforms = null
@@ -84,6 +86,26 @@ var _worker: Vector2i = NULL_REF
 var _floors: Array[Vector2i] = []
 var _lease: int = 0
 var _tick: int = 0
+## The profile content under test (decision 1972): revision, census, wire, ground caps and stair paces.
+var _content: int = 10
+var _counts: Vector3i = Vector3i(67, 547, 6)
+var _wire: String = PROFILE_WIRE
+var _wire_sha: String = Pins.WIRE_SHA
+var _ground_wire: String = GROUND_WIRE
+var _paces: Array[Vector3i] = STAIR_PACES
+## The catalog load's expected result (a subclass expects a refusal for a malformed pace).
+var _catalog_expected: StringName = &""
+
+
+func _select_content() -> void:
+	"""Content 10 (the published fixture); a subclass selects content 12."""
+	_content = 10
+	_counts = Vector3i(67, 547, 6)
+
+
+func _load_motion() -> void:
+	"""The claw stair tables; a subclass also appends the stair-carry tables."""
+	assert_equal(_motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA), &"", "stair tables")
 
 
 func before_each() -> void:
@@ -105,7 +127,8 @@ func before_each() -> void:
 	_construction = Construction.new(_buildings)
 	_budget = Budget.new()
 	_motion = StairMotion.new()
-	assert_equal(_motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA), &"", "stair tables")
+	_select_content()
+	_load_motion()
 	_tick = 0
 
 
@@ -164,13 +187,13 @@ func _compose(lower_deck: bool = true, obstacle: bool = false, bind_motion: bool
 	_work = Work.new(_jobs)
 	assert_true(_work.bind_gear(_gear).ok, "Work")
 	_profiles = Profiles.new()
-	var packed: int = 2 * (67 * Profiles.PROFILE_WIRE_BYTES + 547 * 28 + 6 * 32 + 32)
-	assert_equal(_profiles.configure(67, 547, 6, packed + Profiles.CONTROL_RESERVE), &"", "content-10 capacity")
+	var packed: int = 2 * (_counts.x * Profiles.PROFILE_WIRE_BYTES + _counts.y * 28 + _counts.z * 32 + 32)
+	assert_equal(_profiles.configure(_counts.x, _counts.y, _counts.z, packed + Profiles.CONTROL_RESERVE), &"", "capacity")
 	assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "readers")
-	assert_equal(_profiles.load_file(PROFILE_WIRE, Pins.WIRE_SHA, 10), &"", "content 10")
+	assert_equal(_profiles.load_file(_wire, _wire_sha, _content), &"", "content %d" % _content)
 	var domain: Space.Domain = _space(lower_deck, obstacle)
 	_catalog_owner(domain)
-	_route_owners(bind_motion)
+	if _catalog_expected == &"": _route_owners(bind_motion)
 
 
 func _space(lower_deck: bool, obstacle: bool) -> Space.Domain:
@@ -229,14 +252,14 @@ func _catalog_owner(domain: Space.Domain) -> void:
 	var file: FileAccess = FileAccess.open(CATALOG_TEMP, FileAccess.WRITE)
 	file.store_buffer(bytes)
 	file.close()
-	assert_equal(_catalog.load_file(CATALOG_TEMP, FileAccess.get_sha256(CATALOG_TEMP), 1), &"", "stair catalog")
+	assert_equal(_catalog.load_file(CATALOG_TEMP, FileAccess.get_sha256(CATALOG_TEMP), 1), _catalog_expected, "stair catalog")
 
 
-static func stair_catalog_image() -> PackedByteArray:
-	"""Test-only UGCONN01: content 10, source 4; one family-0 variant; content 10's ground caps and three stair rows."""
-	var ground: PackedByteArray = FileAccess.get_file_as_bytes(GROUND_WIRE)
+func stair_catalog_image() -> PackedByteArray:
+	"""Test-only UGCONN01: the content on source 4; one family-0 variant; its ground caps and the stair rows."""
+	var ground: PackedByteArray = FileAccess.get_file_as_bytes(_ground_wire)
 	var rows: int = ground.decode_u32(44)
-	var bytes: PackedByteArray = _catalog_header(rows + STAIR_PACES.size())
+	var bytes: PackedByteArray = _catalog_header(rows + _paces.size())
 	_append(bytes, [0, 0, 1, 0, 0, 0, 0, -128, -512, 0, 0, 0, 0, 0, 2, 0, 5, 0, 1, 0, 4, 0, 0,
 		Profiles.MODE_WALK, 0, 1], 1)
 	_append(bytes, [0, 0, 0, 0])
@@ -255,8 +278,8 @@ static func stair_catalog_image() -> PackedByteArray:
 	return bytes
 
 
-static func _catalog_header(paces: int) -> PackedByteArray:
-	"""Version 1, revision 1, the census, content 10 on source 4, and both source digests."""
+func _catalog_header(paces: int) -> PackedByteArray:
+	"""Version 1, revision 1, the census, the content on source 4, and both source digests."""
 	var bytes: PackedByteArray = "UGCONN01".to_ascii_buffer()
 	bytes.resize(72)
 	bytes.encode_u32(8, 1)
@@ -264,7 +287,7 @@ static func _catalog_header(paces: int) -> PackedByteArray:
 	var counts: PackedInt32Array = PackedInt32Array([1, 2, 5, 1, 4, 1, paces])
 	for index: int in 7:
 		bytes.encode_u32(20 + index * 4, counts[index])
-	bytes.encode_s64(48, 10)
+	bytes.encode_s64(48, _content)
 	bytes.encode_s64(56, 1)
 	bytes.encode_s64(64, 4)
 	bytes.append_array(Pins.CLAW_SOURCE_SHA.hex_decode())
@@ -272,23 +295,23 @@ static func _catalog_header(paces: int) -> PackedByteArray:
 	return bytes
 
 
-static func _append_paces(bytes: PackedByteArray, ground: PackedByteArray, rows: int) -> void:
-	"""Content 10's ground caps in their order, with the stair rows inserted at their profile's place."""
+func _append_paces(bytes: PackedByteArray, ground: PackedByteArray, rows: int) -> void:
+	"""The content's ground caps in their order, with the stair rows inserted at their profile's place."""
 	var pending: int = 0
 	for row: int in rows:
 		var profile: int = ground.decode_s32(136 + 36 * row)
-		while pending < STAIR_PACES.size() and STAIR_PACES[pending].x < profile:
-			_append_stair_pace(bytes, STAIR_PACES[pending])
+		while pending < _paces.size() and _paces[pending].x < profile:
+			_append_stair_pace(bytes, _paces[pending])
 			pending += 1
 		bytes.append_array(ground.slice(136 + 36 * row, 172 + 36 * row))
-	while pending < STAIR_PACES.size():
-		_append_stair_pace(bytes, STAIR_PACES[pending])
+	while pending < _paces.size():
+		_append_stair_pace(bytes, _paces[pending])
 		pending += 1
 
 
-static func _append_stair_pace(bytes: PackedByteArray, pace: Vector2i) -> void:
-	"""(profile, EARTH_TIMBER, variant 0, Movement 1 rev 1, rate, RATE_AUTHORED), profile revision 1."""
-	_append(bytes, [pace.x, 0, 0, 1, 1, pace.y, Catalog.RATE_AUTHORED], 1)
+static func _append_stair_pace(bytes: PackedByteArray, pace: Vector3i) -> void:
+	"""(profile, EARTH_TIMBER, variant 0, Movement 1 rev 1, rate, its kind), profile revision 1."""
+	_append(bytes, [pace.x, 0, 0, 1, 1, pace.y, pace.z], 1)
 
 
 static func _append(bytes: PackedByteArray, words: Array, revision: int = -1) -> void:
@@ -350,7 +373,8 @@ func _location(point: Vector3i, floor_index: int, facing_up: bool, behind: int) 
 	return added.location
 
 
-func _edge(first: Vector2i, last: Vector2i, a: Vector3i, b: Vector3i, family: int) -> Routes.Edge:
+func _edge(first: Vector2i, last: Vector2i, a: Vector3i, b: Vector3i, family: int,
+		mode: int = Profiles.MODE_WALK) -> Routes.Edge:
 	"""One straight span in the span datum; the length is the exact ceil length Routes recomputes."""
 	var edge: Routes.Edge = Routes.Edge.new()
 	edge.from_location = first
@@ -359,9 +383,9 @@ func _edge(first: Vector2i, last: Vector2i, a: Vector3i, b: Vector3i, family: in
 	edge.level = 0
 	edge.family = family
 	edge.variant = 0
-	edge.mode = Profiles.MODE_WALK
+	edge.mode = mode
 	edge.posture = Profiles.POSTURE_UPRIGHT
-	edge.content_revision = 10
+	edge.content_revision = _content
 	edge.geometry_revision = _owner.revision()
 	edge.point_count = 2
 	edge.points = PackedInt32Array([a.x, a.y, a.z, b.x, b.y, b.z])
@@ -387,7 +411,7 @@ func _publish(edge: Routes.Edge) -> Routes.Result:
 func _masked(edge: Vector2i) -> Array[int]:
 	"""Profiles whose bit the live certificate holds."""
 	var out: Array[int] = []
-	for profile: int in 67:
+	for profile: int in _counts.x:
 		if _binding._live.admits(edge.x, profile): out.append(profile)
 	return out
 
@@ -395,7 +419,7 @@ func _masked(edge: Vector2i) -> Array[int]:
 func _drive(start: Vector2i, target: Vector2i, profile: int, at: Vector3i, yaw: int, ticks: int) -> Array:
 	"""Admit the mole at `start` on `profile`, request the route and run `ticks` real ticks; every pose."""
 	assert_true(_transforms.place(_worker, at.x, at.y, at.z, yaw), "pose")
-	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, start, profile, 1, 10, 0, -1, NULL_REF), &"", "admitted")
+	assert_equal(_routes.admit_travel_actor(_worker, NULL_REF, start, profile, 1, _content, 0, -1, NULL_REF), &"", "admitted")
 	_tick += 1
 	assert_equal(_routes.request_route(_worker, target, _tick), &"", "route")
 	return _run(ticks)

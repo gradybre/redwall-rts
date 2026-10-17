@@ -108,12 +108,12 @@ func test_content_eleven_digs_the_painted_height() -> void:
 	assert_equal(mini(4096, Approach.reachable_height_u(_wall, Wall.CLAW_DIG_ROWS[0])), 4096, "the clear height: 4 quanta")
 
 
-func test_content_ten_keeps_its_legacy_band_until_activation() -> void:
-	"""LEGACY (deleted at activation): content 10 has no side-face claw row and keeps 1,024 u from the tap's band;
-	any other content without a side-face row reaches nothing."""
-	assert_equal(Approach.reachable_height_u(_stairs, Stairs.CLAW_DIG_ROWS[0]), 1024, "content 10: 1 quantum, as before")
+func test_content_without_a_side_face_row_reaches_nothing() -> void:
+	"""Decision 1972 deleted decision 1971's LEGACY band: content 10's claw crew has no side-face row, so it reaches
+	nothing at any content revision."""
+	assert_equal(Approach.reachable_height_u(_stairs, Stairs.CLAW_DIG_ROWS[0]), 0, "content 10: no side-face row")
 	_stairs._live.header[0] = 12
-	assert_equal(Approach.reachable_height_u(_stairs, Stairs.CLAW_DIG_ROWS[0]), 0, "no side-face row, no legacy: nothing")
+	assert_equal(Approach.reachable_height_u(_stairs, Stairs.CLAW_DIG_ROWS[0]), 0, "relabelled 12: still nothing")
 	_stairs._live.header[0] = 10
 
 

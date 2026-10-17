@@ -3,6 +3,10 @@ extends "res://test/underground_host_case.gd"
 ## the whole entry restored along the way. Split from test_underground_host.gd so CI can shard it
 ## apart (decision 1243); fixture: underground_host_case.gd.
 
+const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Frontier := preload("res://scripts/core/underground_entry_frontier.gd")
+
 
 func test_fixed_ticks_with_the_entry_restored_every_tick_end_byte_identical() -> void:
 	"""ADR1218/1219: the live run_tick chain from the surface walk, through arrival and registration on H, the
@@ -104,6 +108,34 @@ func test_the_live_chain_builds_the_descent_down_the_stair_to_the_sill() -> void
 		"and the crew never reached a seek threshold (no shift change was needed)")
 	assert_false(_host.begin_underground_entry(Vector3i(60 * 2048 + 512, 512, 50 * 2048 + 512)), "a finished entry")
 	assert_equal(_host.last_refusal(), Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT, "re-raises G9")
+	_assert_stair_carry_published(o, entry)
+
+
+func _assert_stair_carry_published(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime) -> void:
+	"""Decision 1972: once the sill is in, its stops A/U stand and the stair carry H <-> T6 is published (17 CARRY
+	edges, all EARTH_TIMBER, beside the ground hauls' two); Brendan, 2026-10-17, "Switch on without floor end": no
+	stop below the sill."""
+	var stops: StairPath.Stops = entry._foreman._stops()
+	assert_true(stops.h != StairPath.NULL_REF, "H stands on L0")
+	assert_true(stops.at(StairPath.KIND_A, StairPath.SILL_LEVEL) != StairPath.NULL_REF
+		and stops.at(StairPath.KIND_U, StairPath.SILL_LEVEL) != StairPath.NULL_REF, "the sill's A and U stand")
+	var frontier: RefCounted = entry._foreman._owners.frontier
+	var endpoint: PackedInt32Array = PackedInt32Array()
+	endpoint.resize(Frontier.row_fields(Frontier.ENDPOINT))
+	var lowest: int = 0
+	for selector: int in frontier.row_count(Frontier.ENDPOINT, frontier.content_revision()):
+		if frontier.endpoint_into(selector, endpoint) == &"" and endpoint[0] == Frontier.INSTALLED_CONTACT:
+			lowest = mini(lowest, endpoint[5])
+	assert_equal(lowest, -896, "the sill's stops are the lowest installed stops: none on the floor (F40)")
+	var edge: Session.Retirement.Routes.Edge = Session.Retirement.Routes.Edge.new()
+	var carry: PackedInt32Array = PackedInt32Array([0, 0])
+	for row: int in o.routes._edge_capacity:
+		if o.routes._live.present[row] != 1: continue
+		var ref: Vector2i = Vector2i(row, o.routes._live.fields[Session.Retirement.Routes.E_GENERATION \
+			* o.routes._edge_capacity + row])
+		if o.routes.edge_metadata_into(ref, edge) != &"" or edge.mode != Profiles.MODE_CARRY: continue
+		carry[0 if edge.family == 0 else 1] += 1
+	assert_equal(carry, PackedInt32Array([17, 2]), "the stair carry H <-> T6 (17 EARTH_TIMBER), the ground hauls' 2")
 
 
 ## DEC-059: the whole-entry restore variant replaces the runtime by its record this often (ticks; prime), and

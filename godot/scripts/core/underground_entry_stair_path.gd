@@ -9,6 +9,12 @@ extends RefCounted
 ## Its edges are each approved motion over exactly its span (ADR 1209, DEC-050): X->P on the narrow approach,
 ## P->A(L0) and S->A on the step forward, A->S on the step back, A(j-1)->A(j) on the descent, A->U on the half-turn,
 ## U(j)->U(j-1) on the ascent and U(L0)->X on the yaw-32768 approach. WorldRoutes decides which rows each edge admits.
+## Decision 1972 (decision 1981's stair carry, content 12): once the sill is installed its stops (A and U on T6)
+## exist; H on L0 (343 u before A, where a loaded carrier steps on) is the prefix's L0 station. Only then are the
+## sill's WALK edges (T5 -> T6 on the descent, T6 -> T5 on the ascent) and every CARRY edge (H -> A(L0), each descent
+## down to T6, the half-turn on T6, each ascent up to U(L0), U(L0) -> H) published, so the entry's own chain is
+## unchanged until its last tread is in. Brendan, 2026-10-17: "Switch on without floor end": the floor's stops and
+## edges wait for slice D's F40 (decision 1972 records them as its inventory).
 
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
@@ -17,7 +23,11 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const LEVELS: int = Tread.TREADS + 1 # L0 (level -1) and T0..T5 carry stops; the sill carries none.
+## Decision 1972: L0 (level -1), T0..T5 and the sill T6 carry stops.
+const LEVELS: int = Tread.TREADS + 2
+const SILL_LEVEL: int = Tread.TREADS
+## ADR 1142's handoff span (the approach): H stands this far before A on L0.
+const HANDOFF_U: int = 343
 const CROSSING_Z: int = -664
 const REFUSE_LEASE: StringName = &"ENTRY_STAIR_PATH_LEASE"
 const REFUSE_OWNER: StringName = &"ENTRY_STAIR_PATH_OWNER"
@@ -27,12 +37,17 @@ const KIND_P: int = 1
 const KIND_A: int = 2
 const KIND_S: int = 3
 const KIND_U: int = 4
+## Decision 1972: H on L0.
+const KIND_H: int = 5
+## Words per planned edge: [from kind, from level, to kind, to level, family, mode].
+const PLAN_WORDS: int = 6
 
 
 class Stops extends RefCounted:
 	## Live stop handles by kind and level index (level + 1); NULL_REF where the stop is not (yet) live.
 	var x: Vector2i = NULL_REF
 	var p: Vector2i = NULL_REF
+	var h: Vector2i = NULL_REF
 	var a: Array[Vector2i] = []
 	var s: Array[Vector2i] = []
 	var u: Array[Vector2i] = []
@@ -48,6 +63,7 @@ class Stops extends RefCounted:
 		"""One stop handle, or NULL_REF."""
 		if kind == KIND_X: return x
 		if kind == KIND_P: return p
+		if kind == KIND_H: return h
 		if level < -1 or level >= LEVELS - 1: return NULL_REF
 		return a[level + 1] if kind == KIND_A else (s[level + 1] if kind == KIND_S else u[level + 1])
 
@@ -60,6 +76,7 @@ static func classify(point: Vector3i) -> Vector2i:
 	@warning_ignore("integer_division") var level: int = -point.y / Tread.RISE - 1
 	if level >= LEVELS - 1: return Vector2i(-1, 0)
 	var behind: int = point.z - Tread.far_z(level)
+	if level < 0 and behind == Tread.ARRIVAL + HANDOFF_U: return Vector2i(KIND_H, level)
 	if behind == Tread.ARRIVAL: return Vector2i(KIND_A, level)
 	if behind == Tread.ASCENT_START: return Vector2i(KIND_U, level)
 	if behind == Tread.STATION: return Vector2i(KIND_P if level < 0 else KIND_S, level)
@@ -71,19 +88,52 @@ static func record(stops: Stops, kind_level: Vector2i, handle: Vector2i) -> void
 	match kind_level.x:
 		KIND_X: stops.x = handle
 		KIND_P: stops.p = handle
+		KIND_H: stops.h = handle
 		KIND_A: stops.a[kind_level.y + 1] = handle
 		KIND_S: stops.s[kind_level.y + 1] = handle
 		KIND_U: stops.u[kind_level.y + 1] = handle
 
 
 static func edge_plan() -> PackedInt32Array:
-	"""Every stair edge as [from kind, from level, to kind, to level, family], in a fixed order."""
-	var out: PackedInt32Array = PackedInt32Array([KIND_X, -1, KIND_P, -1, -1, KIND_P, -1, KIND_A, -1, -1,
-		KIND_U, -1, KIND_X, -1, -1])
-	for level: int in LEVELS - 1:
-		out.append_array(PackedInt32Array([KIND_A, level - 1, KIND_A, level, 0, KIND_A, level, KIND_S, level, -1,
-			KIND_S, level, KIND_A, level, -1, KIND_A, level, KIND_U, level, 0, KIND_U, level, KIND_U, level - 1, 0]))
+	"""Every stair edge as [from kind, from level, to kind, to level, family, mode], in a fixed order: the descent's
+	WALK edges (ADR 1229), then the sill's and the stair carry (decision 1972)."""
+	var walk: int = Profiles.MODE_WALK
+	var out: PackedInt32Array = PackedInt32Array([KIND_X, -1, KIND_P, -1, -1, walk, KIND_P, -1, KIND_A, -1, -1, walk,
+		KIND_U, -1, KIND_X, -1, -1, walk])
+	for level: int in Tread.TREADS:
+		out.append_array(PackedInt32Array([KIND_A, level - 1, KIND_A, level, 0, walk,
+			KIND_A, level, KIND_S, level, -1, walk, KIND_S, level, KIND_A, level, -1, walk,
+			KIND_A, level, KIND_U, level, 0, walk, KIND_U, level, KIND_U, level - 1, 0, walk]))
+	out.append_array(PackedInt32Array([KIND_A, SILL_LEVEL - 1, KIND_A, SILL_LEVEL, 0, walk,
+		KIND_U, SILL_LEVEL, KIND_U, SILL_LEVEL - 1, 0, walk]))
+	out.append_array(carry_plan())
 	return out
+
+
+static func carry_plan() -> PackedInt32Array:
+	"""The stair carry, H to the sill and back: H -> A(L0), every descent to T6, the half-turn on T6, every ascent to
+	U(L0), U(L0) -> H."""
+	var carry: int = Profiles.MODE_CARRY
+	var out: PackedInt32Array = PackedInt32Array([KIND_H, -1, KIND_A, -1, 0, carry])
+	for level: int in range(0, SILL_LEVEL + 1):
+		out.append_array(PackedInt32Array([KIND_A, level - 1, KIND_A, level, 0, carry]))
+	out.append_array(PackedInt32Array([KIND_A, SILL_LEVEL, KIND_U, SILL_LEVEL, 0, carry]))
+	for level: int in range(SILL_LEVEL, -1, -1):
+		out.append_array(PackedInt32Array([KIND_U, level, KIND_U, level - 1, 0, carry]))
+	out.append_array(PackedInt32Array([KIND_U, -1, KIND_H, -1, 0, carry]))
+	return out
+
+
+static func _planned(stops: Stops, plan: PackedInt32Array, at: int) -> bool:
+	"""Both stops are live, and an edge past the descent (the sill's or a CARRY edge) waits until the sill's arrival
+	A(T6) exists, that is until the sill is installed."""
+	if stops.at(plan[at], plan[at + 1]) == NULL_REF or stops.at(plan[at + 2], plan[at + 3]) == NULL_REF: return false
+	return at < descent_words() or stops.at(KIND_A, SILL_LEVEL) != NULL_REF
+
+
+static func descent_words() -> int:
+	"""Plan words of the descent's own WALK edges (X/P/U on L0 and five per tread T0..T5)."""
+	return PLAN_WORDS * (3 + 5 * Tread.TREADS)
 
 
 static func publish(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted, locations: Locations,
@@ -98,12 +148,12 @@ static func publish(binding: WorldRoutes, routes: Routes, budget: Budget, owner:
 	if lease <= 0: return REFUSE_LEASE
 	var begun: Routes.Result = binding.begin_prepare(lease)
 	var code: StringName = begun.error
-	for at: int in range(0, plan.size(), 5):
+	for at: int in range(0, plan.size(), PLAN_WORDS):
 		if code != &"": break
-		var first: Vector2i = stops.at(plan[at], plan[at + 1])
-		var last: Vector2i = stops.at(plan[at + 2], plan[at + 3])
-		if first == NULL_REF or last == NULL_REF or _joined(routes, first, last): continue
-		code = _stage_edge(routes, begun.token, locations, owner, [first, last], plan[at + 4], content_revision)
+		if not _planned(stops, plan, at): continue
+		var ends: Array[Vector2i] = [stops.at(plan[at], plan[at + 1]), stops.at(plan[at + 2], plan[at + 3])]
+		if _joined(routes, ends[0], ends[1], plan[at + 5]): continue
+		code = _stage_edge(routes, begun.token, locations, owner, ends, plan.slice(at + 4, at + 6), content_revision)
 	if code == &"": code = binding.seal(begun.token)
 	if code == &"": code = binding.publish(begun.token)
 	binding.abort(begun.token)
@@ -114,27 +164,27 @@ static func publish(binding: WorldRoutes, routes: Routes, budget: Budget, owner:
 static func _missing_count(routes: Routes, stops: Stops, plan: PackedInt32Array) -> int:
 	"""Planned edges with both stops live and no live edge between them."""
 	var count: int = 0
-	for at: int in range(0, plan.size(), 5):
-		var first: Vector2i = stops.at(plan[at], plan[at + 1])
-		var last: Vector2i = stops.at(plan[at + 2], plan[at + 3])
-		if first != NULL_REF and last != NULL_REF and not _joined(routes, first, last): count += 1
+	for at: int in range(0, plan.size(), PLAN_WORDS):
+		if _planned(stops, plan, at) and not _joined(routes, stops.at(plan[at], plan[at + 1]),
+				stops.at(plan[at + 2], plan[at + 3]), plan[at + 5]):
+			count += 1
 	return count
 
 
-static func _joined(routes: Routes, first: Vector2i, last: Vector2i) -> bool:
-	"""Whether a live edge already runs from `first` to `last`."""
+static func _joined(routes: Routes, first: Vector2i, last: Vector2i, mode: int) -> bool:
+	"""Whether a live edge of `mode` already runs from `first` to `last` (a WALK edge never hides its CARRY twin)."""
 	var edge: Routes.Edge = Routes.Edge.new()
 	for row: int in routes._edge_capacity:
 		if routes._live.present[row] != 1: continue
 		if routes.edge_metadata_into(Vector2i(row, routes._live.fields[Routes.E_GENERATION * routes._edge_capacity + row]),
-				edge) == &"" and edge.from_location == first and edge.to_location == last:
+				edge) == &"" and edge.from_location == first and edge.to_location == last and edge.mode == mode:
 			return true
 	return false
 
 
 static func _stage_edge(routes: Routes, token: int, locations: Locations, owner: RefCounted, ends: Array[Vector2i],
-		family: int, content_revision: int) -> StringName:
-	"""One straight two-point span in its start stop's section, Room and level."""
+		family_mode: PackedInt32Array, content_revision: int) -> StringName:
+	"""One straight two-point span of the planned family and mode in its start stop's section, Room and level."""
 	var first: Locations.Record = _record(locations, ends[0])
 	var last: Locations.Record = _record(locations, ends[1])
 	if first == null or last == null: return REFUSE_OWNER
@@ -143,8 +193,8 @@ static func _stage_edge(routes: Routes, token: int, locations: Locations, owner:
 	edge.to_location = ends[1]
 	edge.section = first.section
 	edge.room = first.room
-	edge.level = first.level; edge.family = family; edge.variant = 0
-	edge.mode = Profiles.MODE_WALK; edge.posture = Profiles.POSTURE_UPRIGHT
+	edge.level = first.level; edge.family = family_mode[0]; edge.variant = 0
+	edge.mode = family_mode[1]; edge.posture = Profiles.POSTURE_UPRIGHT
 	edge.content_revision = content_revision
 	edge.geometry_revision = owner.revision()
 	edge.point_count = 2

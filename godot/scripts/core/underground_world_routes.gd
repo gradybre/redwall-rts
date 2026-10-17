@@ -884,6 +884,7 @@ func _carry_eligible(edge: Routes.Edge) -> bool:
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"":
 			return false
+		if edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile): continue # Decision 1972.
 		if _kind_matches(edge) and not _profile_sweeps_clean(edge):
 			return false
 	return true
@@ -1045,7 +1046,8 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 
 
 func _stair_row(profile: int) -> bool:
-	"""ADR1229: content 10's source-proved travel rows (steps, descent, ascent, half-turn), once the tables are bound."""
+	"""ADR1229: the source-proved travel rows (steps, descent, ascent, half-turn), and decision 1972: content 12's
+	rooted stair-carry rows, once the tables are bound."""
 	return _routes()._stair_motion != null and Routes.Stair.owns(_profiles, profile)
 
 
@@ -1597,8 +1599,8 @@ func _selection_refusal(selection: Profiles.Selection) -> StringName:
 			or _descriptor.rig != selection.rig or _descriptor.mode != selection.mode \
 			or _descriptor.posture != selection.posture or _descriptor.yaw_kind != selection.orientation \
 			or (_descriptor.yaw_kind != Profiles.YAW_ALL and _descriptor.yaw != selection.yaw \
-				and Profiles.selection_policy_leaf(_profiles, selection.profile_id, selection.profile_revision,
-					selection.content_revision) != Profiles.POLICY_STAIR_TURN) \
+				and not Profiles.is_table_turn(Profiles.selection_policy_leaf(_profiles, selection.profile_id,
+					selection.profile_revision, selection.content_revision))) \
 			or _descriptor.certificate_flags != Profiles.CERT_REQUIRED:
 		return &"WORLD_ROUTE_PROFILE_STALE"
 	return &""

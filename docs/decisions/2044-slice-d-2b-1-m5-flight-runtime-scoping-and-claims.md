@@ -1,11 +1,41 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Proposed. This is a scoping record only. No held file is edited until the coordinator
-confirms the claims below with Slice C. PROPOSALS P-2044-1 to P-2044-6 are waiting.
+Date: 2026-10-17 · Status: Accepted. Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and Slice C accepted
+the claim list (see "Brendan's rulings and the claims agreed"). The build follows in this record's later sections.
 
 Number range: 2044–2049, the D-flight lane's phase 2b. This is the 2b-1 record.
 - **Branch:** `feat/slice-d-m5-flight`, cut from `docs/slice-d-flight` with origin/master `4c4fec92` (#272) merged in.
 - **Worktree:** `scratchpad/wt-m5`. The analyzer runs on port 6505.
+
+## Brendan's rulings and the claims agreed (2026-10-17)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2044-1 | **(a)**, "Measure, trim, prefilter" | Measure M5 on a scratch mount first; add the `_carry_eligible` edge prefilter only if it overflows |
+| P-2044-3 | **(a)**, "Measure, trim, prefilter" | Retain only stop footprints and walk strips under the landings; clip decision 1981's carry floor decks in a data successor, its proofs re-run |
+| P-2044-2 | **(a)**, "Raise MAX_BYTES" | One Frontier; `MAX_BYTES` raised to the measured size with a memory-ledger row |
+| P-2044-4 | **(a)**, "Approve all" | Plan per stage; `MAX_TASKS` 64 and the save unchanged |
+| P-2044-5 | **(a)**, "Approve all" | One 232-part variant and one Placement |
+| P-2044-6 | **(a)**, "Approve all" | Reinstate P-1972-8's Locations witness with a never-cut check and a test per guard |
+
+Indexed in `docs/handoff/RULINGS.md`.
+
+**Boundaries agreed with Slice C** (their `perf/phase-spreading`, from `537a9a2e`):
+
+- **Mine:** `underground_world_routes.gd` `_carry_eligible` and any new prefilter helper, plus the files claimed below.
+- **Theirs:** the rest of WorldRoutes, all of `underground_routes.gd`, `work.gd`, `excavation_sites.gd`, and the
+  phase-start and settlement paths.
+- **Hooks:** if spreading needs a hook in the entry foreman, they ask through the coordinator.
+- **Off-limits:**
+  - the C2 follow-up's four files: `underground_room_world_bindings.gd`, `underground_entry_runtime.gd`,
+    `underground_connector_delivery.gd` and `underground_entry_hauler.gd`;
+  - the room builder, room foreman and room runtime.
+- **Anything else,** the Session included, is reported before it is edited.
+
+**A gate to re-run after their merge.** Once phase-spreading lands, phase preparation spans several ticks, so this
+lane's check-peak measurement is re-run against it.
 
 ## What 2b-1 is
 

@@ -16,6 +16,8 @@ const CARRY_PACES: Array[Vector3i] = [Vector3i(53, 528000, 2), Vector3i(54, 5280
 	Vector3i(83, 56334, 2), Vector3i(84, 114334, 2)]
 const HAUL_JOB: Vector2i = Vector2i(500, 1)
 const StairPathOwner := preload("res://scripts/core/underground_entry_stair_path.gd")
+const Presenter := preload("res://data/underground/mole-worker/mole_presentation.gd")
+const PresentationSuite := preload("res://test/test_mole_presentation.gd")
 ## The flat fixture: one 128 u World-owned SUPPORT slab under a long floor, as the stair's floor decks were proved on.
 var _flat: bool = false
 ## A row given the EARTH_TIMBER family bit before the catalog loads (-1: none), so only the owner rule can refuse it.
@@ -262,3 +264,30 @@ func test_a_live_walk_edge_never_hides_its_carry_twin() -> void:
 	assert_equal(_publish(_edge(top, bottom, a, b, 0, Profiles.MODE_CARRY)).error, &"", "the CARRY descent")
 	assert_true(StairPathOwner._joined(_routes, top, bottom, Profiles.MODE_CARRY), "now joined in CARRY too")
 	assert_false(StairPathOwner._joined(_routes, bottom, top, Profiles.MODE_CARRY), "never the reverse")
+
+
+func test_a_loaded_stair_row_is_drawn_on_its_own_stair_carry_image() -> void:
+	"""Decision 1972: the presenter draws a rooted row from its own source (the wood stair carry, source 6), at the
+	key Routes presents, never on the claw image the claw stair rows use."""
+	_compose()
+	var a: Vector3i = Vector3i(X + 1024, UP, FAR + 169)
+	var b: Vector3i = a + Vector3i(0, -128, -512)
+	var top: Vector2i = _location(a, 0, false, 235)
+	_publish(_edge(top, _location(b, 1, false, 300), a, b, 0, Profiles.MODE_CARRY))
+	_carry_wood()
+	assert_equal(_admit(top, 74, a, 0), &"", "admitted with the wood")
+	var sources: Presenter.ContentSet = Presenter.ContentSet.new()
+	assert_equal(Presenter.load_sources(sources, true, true, true), &"", "the eight pinned images")
+	var presenter: Presenter = Presenter.new()
+	assert_equal(presenter.configure(sources), &"", "presenter")
+	var actors: Array[Node] = []
+	for source: int in Presenter.ContentSet.MAX_SOURCES:
+		var actor: PresentationSuite.RecordingActor = PresentationSuite.RecordingActor.new()
+		actors.append(actor)
+		actor.borrow(sources.content(source)._palette)
+		assert_equal(presenter.adopt_actor(source, actor), &"", "source %d actor" % source)
+	var frame: Presenter.Driver.Frame = Presenter.Driver.Frame.new()
+	assert_equal(presenter.present_row(_routes, _worker, _tick, frame), &"", "the loaded descent is drawn")
+	assert_equal([presenter.visible_source(), frame.profile_id], [Presenter.SOURCE_CARRY_WOOD, 74],
+		"on the wood stair-carry image")
+	for actor: Node in actors: actor.free()

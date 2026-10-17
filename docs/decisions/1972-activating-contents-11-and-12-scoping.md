@@ -970,3 +970,42 @@ the mounted v10 bundle with content 12's 85 rows it spends **525,592** (50.1 %):
 the 36 carried paths. The assertion is now three fifths of the bound. The fixture must follow the mounted bundle
 (the paid-handling suites build on it and need its 46 endpoints), so it cannot stay on v9. The mounted chain's peak,
 1,000,378 (95.4 %), is unchanged by this; the confirmation is one of the preparations inside it.
+
+### Gates (phase 3b)
+
+- **The full CI-style run** (no staged art, `godot/.godot` deleted, a fresh import, `./tools/run_tests_parallel.sh`,
+  10 shards, at `ea86aaf0`): **12,871 tests, 1,448,585 assertions, 0 failures, 0 unexpected errors or warnings,
+  0 leaks**; verify passed, 536 suites each exactly once. The first run, at `4d55a6e3`, found the three suites the
+  second commit fixes (the presentation set, the runtime file list, the work-area fixture).
+- **The analyzer** (`tools/gdscript_warnings.py --max 0`): 0 warnings in 1,607 files.
+- **The contracts:** `decision_numbers`, `ready07_arithmetic`, `merge_gate`, `state_registry_coverage`,
+  `lane_notes`, `dispatch_plan --validate`, `generate_canonical_state_table --check`, `astra_inbox --check`,
+  `setting_contract`, `renew_source_pins --check` and `underground_memory_budget.py --check`, with the census tool
+  tests: all pass. (`test_audit_underground_metal_cache.py` and `test_export_underground_envelopes.py` need Python's
+  `hashlib.file_digest` and `numpy`, which this machine's Python lacks; neither touches this work.)
+- **Mutation testing** (an APFS clone, re-pinned per mutant): 16 of 16 killed. The mutants: the skip's family guard,
+  the stair path's sill gate, a floor level, a short carry plan, `_joined`'s mode check, the milli owner rule and
+  cap, the carry bank's rollback and validation, the loaded policies, the deleted LEGACY band, Routes' CARRY
+  admission, the table-turn exemption, the natural-support early return, the presenter's stair source, and the sill
+  publication. The presenter's source survived the first pass; `test_a_loaded_stair_row_is_drawn_on_its_own_stair_carry_image`
+  (added after the full run, its suite passing) kills it.
+- **The independent review:** above.
+- **Frames** (`scratchpad/activate_check/{1280x720,1920x1080}/`, from scratch capture scripts, not committed):
+  - **the loaded stair carry H ↔ T6, on the mounted Session's live chain:** the entry runs to its end (tick 8,348);
+    a second adult mole is given one unit of wood through the real Reservations and HaulCarry, admitted on H with
+    row 73 and moved by the real Routes edge by edge over the published CARRY edges: the approach (90 ticks), seven
+    descents (30 each), the half-turn on the sill (45), seven ascents (30 each) and the retreat to H (90). Each tick
+    is drawn by the demo's `EntryWorkerView` presenter on the wood stair-carry image, over boxes of the bundle's
+    installed parts; 43 frames a size. The mole walks the treads with the log held in both paws, turns on the sill
+    and climbs back facing up;
+  - **the claw crew digging at a wall:** on the mounted Session, row 67 is the claw program's wall row (yaw 0); the
+    runtime presenter draws `ClawProgram.frames_into` at content revision 12 on the demo's claw Actor, facing a wall
+    521 u ahead: entry, three stroke keys and recovery, opaque and see-through; 10 frames a size.
+
+### Found while taking the frames (for C2.3, not changed here)
+
+When the entry ends (`ENTRY_KITCHEN_UNBUILT`), its crew stays a registered Routes actor on the stair (T5's station)
+with a retired Job, so its current profile is `PROFILE_JOB_STALE`. Any other actor whose path passes near it is held
+with `ROUTE_OCCUPANT_PROFILE_STALE`: the loaded carrier stopped at T0 until the crew was unregistered
+(`unregister_resting_actor`) and moved off the stair. This is the finished entry's own state, not activation's, but
+C2.3's haulers will meet it on the first loaded trip down.

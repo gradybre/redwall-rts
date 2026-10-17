@@ -59,6 +59,10 @@ const EDGE_MEMO_STAMP: int = 6
 ## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
 ## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
 ## each entry has one result word per profile row: (entry generation << 16) | (boxes checked << 4) | answer index.
+## Decision 1953: the per-preparation pace memo, PACE_SLOTS direct-mapped slots of PACE_WORDS int64: preparation
+## serial, profile, profile revision, family, variant, paced value (the answer's code is kept in `_pace_codes`).
+const PACE_SLOTS: int = 256
+const PACE_WORDS: int = 6
 ## Decision 1953: a kept observation's key words: compile serial, Location slot, generation, point x, y, z.
 const OBSERVED_KEY: int = 6
 const ENDPOINT_MEMO_ENTRIES: int = 64
@@ -363,6 +367,10 @@ var _observed: Array[Locations.Record] = [Locations.Record.new(), Locations.Reco
 var _observed_key: PackedInt64Array = PackedInt64Array()
 var _observe_serial: int = 1
 var _observe_next: int = 0
+## Decision 1953: `_catalog.pace_into` as last answered in this preparation (`_pace_serial` moves per `_begin_proof`).
+var _pace_memo: PackedInt64Array = PackedInt64Array()
+var _pace_codes: Array[StringName] = []
+var _pace_serial: int = 1
 var _section: Owner.Region = Owner.Region.new()
 var _edge: Routes.Edge = Routes.Edge.new()
 var _pace: IntMath.IntResult = IntMath.IntResult.new()
@@ -457,6 +465,8 @@ func _allocate_scratch() -> void:
 	_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
 	_observed_key.resize(2 * OBSERVED_KEY)
+	_pace_memo.resize(PACE_SLOTS * PACE_WORDS)
+	_pace_codes.resize(PACE_SLOTS)
 	for record: Locations.Record in _observed:
 		record.envelope.resize(6)
 		record.support.resize(6)
@@ -838,6 +848,7 @@ func _pin_preparation(token: int, cold_token: int, space_token: int, location_to
 
 func _begin_proof() -> StringName:
 	"""No snapshot or fragments allocate before the exact lease and finite coexistence peak are admitted."""
+	_pace_serial = _next_revision(_pace_serial) # Decision 1953: a new preparation keeps no pace answer.
 	if _domain._checks < 3 * SOURCE_PASS_CHECKS:
 		return &"WORLD_ROUTE_CHECK_CAPACITY"
 	var code: StringName = _preparation_refusal()
@@ -1046,8 +1057,7 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		return &"WORLD_ROUTE_PROFILE_KIND"
 	if _stair_row(profile): return _stair_edge_refusal(profile, edge)
 	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
-	code = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
-		edge.family, edge.variant, _catalog_revision, _pace)
+	code = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"":
 		return code
 	if Routes.ShortStep.is_short(profile) and Routes._step_closure(_profiles): # Decisions 1951 and 1952.
@@ -1075,8 +1085,7 @@ func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var first: Vector3i = _point(edge, 0)
 	if program < 0 or edge.point_count != 2 or edge.rotation != 0 or _point(edge, 1) - first != motion.end_of(program):
 		return &"WORLD_ROUTE_STAIR_SPAN"
-	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
-		edge.family, edge.variant, _catalog_revision, _pace)
+	var code: StringName = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"": return code
 	var intervals: int = motion.key_count(program) - 1 if motion.rooted(program) else Routes.Stair.STEP_CLIP_INTERVALS
 	if Routes.Stair.key_step(intervals, Routes.Stair.ticks_for(edge.length_u, _pace.value)) < 0:
@@ -1183,6 +1192,44 @@ func _observe_endpoint(location: Vector2i, point: Vector3i) -> StringName:
 			or _endpoint.point != point or _endpoint.payload_revision <= 0:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
 	return &""
+
+
+func _compile_pace(profile: int, family: int, variant: int) -> StringName:
+	"""Decision 1953: `_catalog.pace_into` for this edge's family and variant. Within one preparation (sealed owners,
+	one catalog and Movement) the same arguments give the same answer, so a repeat is answered from `_pace_memo`; a
+	refusal leaves `_pace` untouched and an answer sets it, as the call does. Checked live while CacheChecks is on."""
+	var slot: int = posmod(profile * 31 + family * 7 + variant, PACE_SLOTS)
+	var at: int = slot * PACE_WORDS
+	var hit: bool = _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS \
+		and _pace_memo[at] == _pace_serial and _pace_memo[at + 1] == profile \
+		and _pace_memo[at + 2] == _descriptor.profile_revision and _pace_memo[at + 3] == family and _pace_memo[at + 4] == variant
+	if hit and not Profiles.CacheChecks.enabled: return _replay_pace(at)
+	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
+		family, variant, _catalog_revision, _pace)
+	if hit and (code != _pace_codes[slot] or (code == &"" and _pace.value != _pace_memo[at + 5])):
+		Profiles.CacheChecks.report("pace", "profile %d changed inside one preparation" % profile)
+	if _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS:
+		_remember_pace(at, profile, family, variant, code)
+	return code
+
+
+func _replay_pace(at: int) -> StringName:
+	"""Decision 1953: the kept answer; an answer sets `_pace` exactly as `IntResult.succeed` does."""
+	@warning_ignore("integer_division") var code: StringName = _pace_codes[at / PACE_WORDS]
+	if code == &"": _pace.succeed(_pace_memo[at + 5])
+	return code
+
+
+func _remember_pace(at: int, profile: int, family: int, variant: int, code: StringName) -> void:
+	"""Decision 1953: keep one pace answer for the rest of this preparation."""
+	_pace_memo[at] = _pace_serial
+	_pace_memo[at + 1] = profile
+	_pace_memo[at + 2] = _descriptor.profile_revision
+	_pace_memo[at + 3] = family
+	_pace_memo[at + 4] = variant
+	_pace_memo[at + 5] = _pace.value if code == &"" else 0
+	@warning_ignore("integer_division") var slot: int = at / PACE_WORDS
+	_pace_codes[slot] = code
 
 
 func _observed_slot(location: Vector2i, point: Vector3i) -> int:

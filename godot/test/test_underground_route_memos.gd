@@ -642,10 +642,19 @@ func test_an_observation_is_kept_only_inside_its_compile() -> void:
 	assert_equal(binding._observed_slot(_h.parking, point), -1, "the next compile keeps nothing")
 	binding._location_token = 0
 	binding._remember_observation(_h.parking, point)
-	assert_equal(binding._observed_slot(_h.parking, point), -1, "the live (unprepared) path is never kept")
+	assert_equal(binding._observed_slot(_h.parking, point), -1, "the live (unprepared) path is never answered")
+	binding._location_token = 1
+	assert_equal(binding._observed_slot(_h.parking, point), -1, "nor kept")
+	binding._remember_observation(_h.parking, point)
+	assert_true(binding._observed_slot(_h.parking, point) >= 0, "kept on the prepared path")
 	binding._compiling = false
+	assert_equal(binding._observed_slot(_h.parking, point), -1, "a compile that is over answers nothing")
+	binding._remember_observation(_h.parking, point + Vector3i(0, 0, 1))
+	binding._compiling = true
+	assert_equal(binding._observed_slot(_h.parking, point + Vector3i(0, 0, 1)), -1, "and keeps nothing")
 	binding._observe_serial = 0
 	assert_equal(binding._observed_slot(_h.parking, point), -1, "a saturated serial keeps nothing")
+	binding._compiling = false
 
 
 func test_a_pace_is_kept_only_inside_its_preparation() -> void:
@@ -687,6 +696,13 @@ func _assert_pace_memo_retires(binding: WorldRoutes) -> void:
 	var slot: int = posmod(profile * 31 - 7, WorldRoutes.PACE_SLOTS)
 	binding._pace_codes[slot] = &"POISON"
 	assert_equal(binding._compile_pace(profile, -1, 0), &"POISON", "answered from the memo")
+	assert_true(binding._compile_pace(profile, 0, -7) != &"POISON", "the same slot for another family is read afresh")
+	binding._pace_codes[slot] = &"POISON"
+	binding._descriptor.profile_revision += 1
+	assert_true(binding._compile_pace(profile, -1, 0) != &"POISON", "another profile revision is read afresh")
+	binding._descriptor.profile_revision -= 1
+	assert_equal(binding._compile_pace(profile, -1, 0), &"", "refilled at the true revision")
+	binding._pace_codes[slot] = &"POISON"
 	binding._compiling = false
 	assert_equal(binding._compile_pace(profile, -1, 0), &"", "outside a compile: read afresh")
 	binding._compiling = true

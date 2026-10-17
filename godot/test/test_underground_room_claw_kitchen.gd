@@ -15,6 +15,7 @@ const GroupTests := preload("res://test/test_underground_connector_assemblies.gd
 const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
 const ProfileCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const Runtime := preload("res://scripts/core/underground_room_runtime.gd")
+const Composer := preload("res://scripts/core/underground_room_composer.gd")
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
@@ -265,3 +266,25 @@ func test_two_claw_builders_haul_and_dig_the_kitchen_together() -> void:
 	assert_equal(builders[0].haul_trips() + builders[1].haul_trips(), 2 * StationTests.KITCHEN_SITES / 4, "every unit once")
 	assert_equal(_h._inventory.container_lot_count(_h.staging), 0, "R emptied")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
+
+
+func test_the_composers_claw_builder_digs_the_kitchen_end_to_end() -> void:
+	"""Decision 1936's order on the claws: the composer keeps the bound contacts, picks the idle toolless mole, parks
+	it off the access, and the dig runs to the end with no fixture step."""
+	_h = ClawKitchen.new()
+	_h.stocked = true
+	var room: Vector2i = _h.confirmed_room()
+	if room == NULL_REF: return
+	var runtime: Runtime = Runtime.new(_h._residents.directory())
+	assert_true(runtime.bind_owners(_h.owners()), "owners")
+	var order: Composer.Order = Composer.Order.new()
+	order.room = room; order.access = _h._first; order.travel = _h.provider._ordinary_travel
+	order.storage = _h.material; order.output = _h.material
+	assert_equal(Composer.order(runtime, _h.placements, order), &"", "ordered")
+	var crew: Builder.Crew = runtime.foreman_of(room).builders()[0].crew()
+	assert_equal(crew.worker, _h._worker, "the idle claw mole")
+	assert_equal(crew.tool, NULL_REF, "no tool")
+	var foreman: Foreman = runtime.foreman_of(room)
+	assert_equal(_run(runtime), [] as Array[StringName], "no refusal")
+	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
+	assert_equal(runtime.state_of(room), Runtime.RECORD_NONE, "finished, out, released")

@@ -421,6 +421,33 @@ No CRITICAL, 1 HIGH and 4 MEDIUM.
 - Both publishers were republished after these edits, because each pins its own bytes. The content-13 wire is
   byte-identical (`fdfcf875…`).
 
+## After the activation merge (#272, 2026-10-17)
+
+Merging #272 (content 12 mounted, decision 1972) into #271 broke two expectations in
+`test_mole_earth_carry_profiles.gd`. **Both were stale, not defects.**
+
+- **Rooted rows are selectable now.** Activation made Profiles select the rooted words 10–13, so rows 90–95 select
+  10/12/12/13/10/11, exactly as their stone templates 79–84 do. The test now asserts that equality, and that a stale
+  content revision selects nothing. It used to assert −1, "never selected yet".
+- **Content 12 is certified now.** `qualified-claw-runtime-v1/grip_certificate.gd` admits content 12 since #272
+  (P-1972-1). The successor hands any content other than 13 to that certificate, by design, so it now certifies
+  content 12's wood and stone as well. The test asserts that it agrees with the previous certificate, and that
+  content 12 has no earth family. It used to assert "content 12 refused".
+
+**One republication.** #272 renewed the consumer digests in content 12's accessor, which content 13's publisher pins
+as an input. Content 13 was republished: only its accessor's consumer digests and its manifest's input hash moved. The
+wire (`fdfcf875…`), ground paces, motion bank and stair tables are byte-identical. #271 is unmerged, so nothing
+published on master moves.
+
+**Gates after the merge:**
+
+- the lane's three suites: 32 tests, 0 failures;
+- the analyzer on port 6503: 0 warnings in 1,614 files;
+- `decision_numbers`: PASS, 569 records;
+- the publisher tests: OK;
+- the full suite CI-style: `ok: 12904 tests, 1451699 assertions, 0 failures`, 0 unexpected errors or warnings, 0
+  leaks.
+
 ## Consequences
 
 - **Not this lane's.** The earth carry serves the flight's deep spoil and every level-1 room past its first pile.

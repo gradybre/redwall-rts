@@ -136,10 +136,14 @@ func test_the_earth_item_is_excavated_earth() -> void:
 		[PackedInt32Array([85, 86, 87, 88, 89]), PackedInt32Array([90, 91, 92, 93, 94, 95])], "row ids")
 
 
-func test_rooted_earth_rows_are_never_selected_yet() -> void:
-	"""Selection reads the rooted words as unknown until activation."""
+func test_rooted_earth_rows_select_as_their_stone_templates() -> void:
+	"""Since content 12's activation (#272) Profiles selects the rooted words: each earth stair row selects exactly as
+	its stone template, and a stale content revision selects nothing."""
 	for row: int in Earth.EARTH_STAIR_ROWS:
-		assert_equal(Profiles.selection_policy_leaf(_earth, row, 1, 13), -1, "row %d not selectable" % row)
+		var leaf: int = Profiles.selection_policy_leaf(_earth, row, 1, 13)
+		assert_equal(leaf, Profiles.selection_policy_leaf(_earth, row - 11, 1, 13), "row %d as row %d" % [row, row - 11])
+		assert_true(Profiles.is_rooted_policy(leaf), "row %d rooted" % row)
+		assert_equal(Profiles.selection_policy_leaf(_earth, row, 1, 12), -1, "row %d, stale revision" % row)
 
 
 func test_the_certificate_certifies_all_three_families() -> void:
@@ -161,9 +165,11 @@ func test_the_certificate_certifies_all_three_families() -> void:
 
 
 func test_the_certificate_refuses_other_content_and_edited_rows() -> void:
-	"""Content 12 is not content 13; an earth trip edited to 1,000 or a cargo moved to stone is refused."""
-	assert_false(Cert.uses(_carry), "content 12")
-	assert_equal(Cert.profile_refusal(_carry, 37), Cert.REFUSE_PROFILE, "content 12's stone row")
+	"""Content 12 is the previous certificate's (it certifies content 12 since #272); edited earth rows are refused."""
+	assert_equal(Cert.uses(_carry), Previous.uses(_carry), "content 12 follows the previous certificate")
+	assert_true(Cert.uses(_carry), "which certifies content 12's wood and stone since #272")
+	assert_equal(Cert.profile_refusal(_carry, 37), Previous.profile_refusal(_carry, 37), "content 12's stone row")
+	assert_equal(Cert.profile_refusal(_carry, 85), Cert.REFUSE_PROFILE, "content 12 has no earth family")
 	assert_equal(Cert.profile_refusal(_earth, 90), Cert.REFUSE_PROFILE, "a stair row is not a grip row")
 	assert_equal(Cert.profile_refusal(null, 85), Cert.REFUSE_PROFILE, "no store")
 	var light: Profiles = _loaded_copy(85, [Vector2i(Q_MIN_AT, 1000), Vector2i(Q_MAX_AT, 1000)])

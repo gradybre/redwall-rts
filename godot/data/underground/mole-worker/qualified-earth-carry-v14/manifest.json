@@ -26,7 +26,7 @@
   "inputs": {
     "godot/data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
     "godot/data/underground/mole-worker/qualified-stair-carry-v13/ground-pace.ugconn": "3234f2d25eeed0e535f68316d555919855741c9067263eb7443edaf94991d75c",
-    "godot/data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd": "5d1d4cd897780bd339fdc77f26bbd40c858fc2e107fe43f1ee7abef9d0e82ff7",
+    "godot/data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd": "c1e2fd08a40b80c387f30513a115dafe6197f0d54109df7b9147c0bc3af6c195",
     "godot/data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab"
   },
   "ground_sha256": "ad60a1c8a8300a529b3622744d58f07b6edd87a641f7295d610fee58695a3477",

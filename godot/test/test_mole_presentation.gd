@@ -89,17 +89,21 @@ func _masks(presenter: Presentation) -> PackedInt32Array:
 
 
 func test_pinned_sources_load_inside_the_declared_set_reservation() -> void:
-	"""Six exact images, each at its exact peak, summed into the Session's explicit set reservation."""
+	"""Eight exact images (decision 1972 adds the stair-carry pair), each at its exact peak, summed into the Session's
+	explicit set reservation."""
 	var sources: ContentSet = _loaded(true, true, true)
 	assert_equal(Session.HANDLING_ACTOR_SHA, Assembly.ACTOR_SHA, "handling pin is row 29's source digest")
 	assert_equal(Session.HANDLING_ACTOR_SHA, Catalog.Pins.HANDLING_SOURCE_SHA, "same digest the catalog requires")
-	assert_equal(Session.PRESENTATION_SET_BYTES, 42735176, "7141920 + 6628488 + 7486168 + 7285004 + 7551924 + 6641672")
+	assert_equal(Session.PRESENTATION_SET_BYTES, 57695088,
+		"7141920 + 6628488 + 7486168 + 7285004 + 7551924 + 6641672 + 7589568 + 7370344")
 	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES, "every source reserved, none shared")
 	var peaks: PackedInt32Array = [Session.PRESENTATION_BYTES, Session.HANDLING_PRESENTATION_BYTES,
 		Session.HAUL_PRESENTATION_BYTES, Session.STONE_PRESENTATION_BYTES, Session.CLAW_PRESENTATION_BYTES,
-		Session.PAW_PRESENTATION_BYTES]
-	var clips: PackedInt32Array = [14, 3, 12, 10, 16, 6] # ADR1229: the v2 claw and paw images.
-	for source: int in 6:
+		Session.PAW_PRESENTATION_BYTES, Session.CARRY_WOOD_PRESENTATION_BYTES, Session.CARRY_STONE_PRESENTATION_BYTES]
+	# ADR1229: the v2 claw and paw images; decision 1972: the stair-carry images, one clip a mask entry.
+	var clips: PackedInt32Array = [14, 3, 12, 10, 16, 6, Presentation.CARRY_WOOD_MASKS.size(),
+		Presentation.CARRY_STONE_MASKS.size()]
+	for source: int in 8:
 		assert_equal(sources.content(source).required_peak_bytes(), peaks[source], "exact declared peak %d" % source)
 		assert_equal(sources.content(source).clip_count(), clips[source], "clip count %d" % source)
 	assert_equal(sources.content(2).source_digest(), Session.HAUL_ACTOR_SHA, "haul pin")
@@ -244,19 +248,22 @@ func test_stone_clips_apply_their_mask_and_hide_the_other_sources() -> void:
 
 
 func test_last_image_is_refused_when_the_set_budget_is_one_byte_short() -> void:
-	"""The declared set is the plain sum; one byte less refuses the sixth image (paw handling) and admits the rest."""
+	"""The declared set is the plain sum; one byte less refuses the eighth image (decision 1972's stone stair carry)
+	and admits the rest."""
 	var sources: ContentSet = ContentSet.new()
+	var last: int = Presentation.SOURCE_CARRY_STONE
 	assert_equal(Presentation.load_sources_within(sources, Session.PRESENTATION_SET_BYTES - 1, true, true, true),
-		&"CONTENT_SET_BUDGET", "the paw image does not fit")
-	assert_false(sources.has_source(Presentation.SOURCE_PAW), "paw absent")
-	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES - Session.PAW_PRESENTATION_BYTES,
-		"only the first five reservations")
-	assert_equal(sources.load_source(5, Session.PAW_ACTOR_PATH, Session.PAW_ACTOR_SHA,
-		Session.PAW_PRESENTATION_BYTES - 1, Presentation.PAW_MASKS), &"ACTOR_CONTENT_PRESENTATION_RESERVE",
-		"the exact declared peak, never less")
-	assert_equal(sources.load_source(5, Session.PAW_ACTOR_PATH, Session.PAW_ACTOR_SHA,
-		Session.PAW_PRESENTATION_BYTES, Presentation.PAW_MASKS), &"CONTENT_SET_BUDGET", "exact peak over budget")
-	assert_false(sources.has_source(5), "every refusal leaves the source absent")
+		&"CONTENT_SET_BUDGET", "the stone stair-carry image does not fit")
+	assert_false(sources.has_source(last), "stone stair carry absent")
+	assert_equal(sources.reserved_bytes(), Session.PRESENTATION_SET_BYTES - Session.CARRY_STONE_PRESENTATION_BYTES,
+		"only the first seven reservations")
+	assert_equal(sources.load_source(last, Session.CARRY_STONE_ACTOR_PATH, Session.CARRY_STONE_ACTOR_SHA,
+		Session.CARRY_STONE_PRESENTATION_BYTES - 1, Presentation.CARRY_STONE_MASKS),
+		&"ACTOR_CONTENT_PRESENTATION_RESERVE", "the exact declared peak, never less")
+	assert_equal(sources.load_source(last, Session.CARRY_STONE_ACTOR_PATH, Session.CARRY_STONE_ACTOR_SHA,
+		Session.CARRY_STONE_PRESENTATION_BYTES, Presentation.CARRY_STONE_MASKS), &"CONTENT_SET_BUDGET",
+		"exact peak over budget")
+	assert_false(sources.has_source(last), "every refusal leaves the source absent")
 
 
 func test_absent_haul_source_refuses_without_changing_the_shown_actor() -> void:
@@ -338,7 +345,7 @@ func test_row_59_handling_cycle_is_drawn_from_the_actual_clock() -> void:
 	assert_equal(presenter.present_handling(routes, worker, ref, frame), &"", "completed handling frame")
 	assert_equal([frame.phase, frame.frames[0], frame.frames[1], frame.ready], [Clock.HANDLED_READY, 63, 63, true],
 		"recovery final pose")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 0, -1, -1, 0, 1, -1, -1]), "pick actors hidden throughout")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 0, -1, -1, 0, 1, 0, 0]), "pick actors hidden throughout")
 	assert_equal((presenter.actor(0) as RecordingActor).poses, 0, "pick actor never posed by handling")
 	assert_equal(presenter.handling_frame_into(routes, worker, Vector2i(ref.x, ref.y + 1), frame),
 		&"MOLE_PRESENTATION_NOT_HANDLING", "exact Job generation")
@@ -381,6 +388,6 @@ func test_claw_row_is_drawn_from_its_source_clock_on_the_claw_image() -> void:
 		[Presentation.Paw.Claw.CLIP_STAND + 8, 0, Presentation.ONE, true], "stand key 8 at READY")
 	assert_equal(frame.source_digest, Session.CLAW_ACTOR_SHA, "the claw image")
 	assert_equal(presenter.visible_source(), Presentation.SOURCE_CLAW, "claw actor shown")
-	assert_equal(_masks(presenter), PackedInt32Array([0, 0, -1, -1, 1, 0, -1, -1]), "body only; every other actor hidden")
+	assert_equal(_masks(presenter), PackedInt32Array([0, 0, -1, -1, 1, 0, 0, 0]), "body only; every other actor hidden")
 	probe.after_each()
 	assert_true(probe.failures.is_empty(), "actual claw fixture: %s" % probe.failures)

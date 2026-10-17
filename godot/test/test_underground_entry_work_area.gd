@@ -162,8 +162,8 @@ func test_actual_material_aliases_do_not_create_extra_locations() -> void:
 	_probe.before_each()
 	assert_equal(_probe._world._locations._live.count, 19, "original nine, two haul stands, eight descent stations")
 	assert_equal(_probe._world._routes._live.edge_count, 36, "original 28 directed paths plus eight haul edges")
-	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 44,
-		"explicit extra travel selectors, the installed arrival selectors and the stair stops")
+	assert_equal(_probe._source.row_count(4, Bundle.FRONTIER_REVISION), 46,
+		"explicit extra travel selectors, the installed arrival selectors and the stair stops (the sill's two: 1972)")
 
 
 func test_entry_foreman_drives_all_twelve_l0_phases_from_the_frontier() -> void:
@@ -273,11 +273,14 @@ static func _edge_admits(binding: RefCounted, first: Vector2i, last: Vector2i, p
 
 
 func test_entry_confirmation_carries_every_work_area_path() -> void:
-	"""ADR1205: the Room's only geometry change is floor metadata, so all 36 paths carry and the proof stays small."""
+	"""ADR1205: the Room's only geometry change is floor metadata, so all 36 paths carry and the proof stays small.
+	Decision 1972: content 12's 85 rows (18 more than content 10's) bring it to 525,592 checks, so the margin is
+	three fifths of the bound, not half; the mounted chain's own peak (95.4 %) is decision 1972's M-2."""
 	_probe = Probe.new()
 	_probe.before_each()
 	var room: Vector2i = _probe._confirm_prefix()
 	if room == Vector2i(-1, 0): return
 	var binding: RefCounted = _probe._world._binding
 	assert_equal(binding._carried_edges, 36, "every published path carried")
-	assert_true(binding._proof_checks * 2 < Prefix.Space.MAX_CHECKS, "entry confirmation well inside the check budget: %d" % binding._proof_checks)
+	assert_true(binding._proof_checks * 5 < Prefix.Space.MAX_CHECKS * 3,
+		"entry confirmation well inside the check budget: %d" % binding._proof_checks)

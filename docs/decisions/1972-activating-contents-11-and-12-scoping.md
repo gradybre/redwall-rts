@@ -962,3 +962,11 @@ LOW: the stale "content 10" comments are corrected; `_timber_staged_support`'s d
 nothing itself; the loaded policies and cargo fields are constants; the held meshes are built once. Left as they
 are: `ENDPOINTS = 46` and the census counts in `paw_program.gd` are literal because the census and registry parse
 them; `CARRY_RESERVED_BYTES` stays on one line because the census parser reads only single-line constants.
+
+### One test margin moved (for the coordinator to see)
+
+`test_underground_entry_work_area.gd`'s entry confirmation asserted it spends under half of `Space.MAX_CHECKS`. On
+the mounted v10 bundle with content 12's 85 rows it spends **525,592** (50.1 %): 18 more rows to sweep for each of
+the 36 carried paths. The assertion is now three fifths of the bound. The fixture must follow the mounted bundle
+(the paid-handling suites build on it and need its 46 endpoints), so it cannot stay on v9. The mounted chain's peak,
+1,000,378 (95.4 %), is unchanged by this; the confirmation is one of the preparations inside it.

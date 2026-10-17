@@ -193,6 +193,11 @@ geometry within the sweeps is unchanged (ADR 1205's carry premise). So stage 1 r
   (`_pace_serial`) is answered from `_pace_memo`. A refusal leaves `_pace` untouched and an answer calls
   `IntResult.succeed`, exactly as the call does. The catalog's own scratch (`_descriptor`, `_number`) is read only
   inside the same call.
+- **Refusing another kind's profiles from the bank's own columns.** About 85 profiles are tried per edge, and most are
+  of another mode, posture or family. `_other_kind` reads the certificate flags, mode, posture and family mask straight
+  from the Profiles bank (the columns `descriptor_into` copies) and skips the proof that would refuse on kind. When the
+  last profile is skipped, `_restored_descriptor` writes its descriptor, so `_descriptor` is left exactly as the full
+  loop leaves it.
 
 STAGE1_RESULTS
 

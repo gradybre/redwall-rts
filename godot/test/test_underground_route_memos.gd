@@ -638,13 +638,17 @@ func test_an_observation_is_kept_only_inside_its_compile() -> void:
 	assert_true(WorldRoutes._records_equal(copy, binding._endpoint), "every field copied")
 	copy.air[7] = 98
 	assert_false(WorldRoutes._records_equal(copy, binding._endpoint), "and compared")
-	binding._observe_serial = WorldRoutes._next_revision(binding._observe_serial)
+	binding._location_token = 0
+	assert_equal(binding._observed_slot(_h.parking, point), -1, "the live (unprepared) path is never answered")
+	binding._location_token = 1
+	var serial: int = binding._observe_serial
+	assert_equal(binding._compile_edge(null), WorldRoutes.REFUSE_CONTEXT, "a compile, refused at once")
+	assert_true(binding._observe_serial == WorldRoutes._next_revision(serial), "still moves the serial")
 	assert_equal(binding._observed_slot(_h.parking, point), -1, "the next compile keeps nothing")
 	binding._location_token = 0
 	binding._remember_observation(_h.parking, point)
-	assert_equal(binding._observed_slot(_h.parking, point), -1, "the live (unprepared) path is never answered")
 	binding._location_token = 1
-	assert_equal(binding._observed_slot(_h.parking, point), -1, "nor kept")
+	assert_equal(binding._observed_slot(_h.parking, point), -1, "the live (unprepared) path is never kept")
 	binding._remember_observation(_h.parking, point)
 	assert_true(binding._observed_slot(_h.parking, point) >= 0, "kept on the prepared path")
 	binding._compiling = false
@@ -696,6 +700,8 @@ func _assert_pace_memo_retires(binding: WorldRoutes) -> void:
 	var slot: int = posmod(profile * 31 - 7, WorldRoutes.PACE_SLOTS)
 	binding._pace_codes[slot] = &"POISON"
 	assert_equal(binding._compile_pace(profile, -1, 0), &"POISON", "answered from the memo")
+	assert_true(binding._compile_pace(profile, WorldRoutes.PACE_SLOTS - 1, 0) != &"POISON",
+		"a family one slot period away, at the same variant, is read afresh")
 	assert_true(binding._compile_pace(profile, 0, -7) != &"POISON", "the same slot for another family is read afresh")
 	binding._pace_codes[slot] = &"POISON"
 	binding._descriptor.profile_revision += 1
@@ -712,7 +718,9 @@ func _assert_pace_memo_retires(binding: WorldRoutes) -> void:
 	assert_equal(binding._compile_pace(profile, -1, 0), &"", "checks on: reported and read live")
 	WorldRoutes.Profiles.CacheChecks.enabled = false
 	binding._pace_codes[slot] = &"POISON"
-	binding._pace_serial = WorldRoutes._next_revision(binding._pace_serial)
+	var serial: int = binding._pace_serial
+	binding._begin_proof()
+	assert_true(binding._pace_serial == WorldRoutes._next_revision(serial), "every preparation moves the serial")
 	assert_equal(binding._compile_pace(profile, -1, 0), &"", "a new preparation keeps nothing")
 	binding._compiling = false
 
@@ -741,3 +749,71 @@ func test_other_kind_profiles_are_refused_as_the_full_proof_refuses_them() -> vo
 	binding._descriptor.profile_id = -9
 	binding._restored_descriptor(-1, &"")
 	assert_equal(binding._descriptor.profile_id, -9, "nothing skipped, nothing written")
+
+
+func test_with_checks_on_a_kept_observation_is_observed_live_and_compared() -> void:
+	"""Decision 1953: with the framework's checks on, a kept observation is never followed: the endpoint is observed
+	live (here outside any transaction, so it refuses) and the difference is reported."""
+	if not _fixture(): return
+	var binding: WorldRoutes = _h._binding
+	assert_true(binding._locations().read_location_into(_h.parking, binding._endpoint) == &"", "a real record")
+	var point: Vector3i = binding._endpoint.point
+	binding._proof = WorldRoutes.Clearance.new()
+	binding._proof.allocate(Space.Snapshot.new(), Space.MAX_CHECKS)
+	binding._compiling = true
+	binding._location_token = 1
+	binding._remember_observation(_h.parking, point)
+	WorldRoutes.Profiles.CacheChecks.enabled = true
+	expect_diagnostic("RUNTIME_CACHE_STALE endpoint observation")
+	assert_true(binding._endpoint_observation_refusal(_h.parking, point) != &"", "observed live: refused")
+	binding._compiling = false
+	binding._location_token = 0
+	binding._proof = null
+
+
+func test_the_kind_fast_path_tests_every_condition_of_kind_matches() -> void:
+	"""Decision 1953: for one certified profile, an edge of its own mode and posture, with no family or one its mask
+	holds, is of its kind; changing the mode, the posture, the family to one outside the mask, or the profile's
+	certificate flags, makes it of another kind, and the full proof agrees each time."""
+	if not _fixture(): return
+	var binding: WorldRoutes = _h._binding
+	binding._content_revision = _h._profiles._live.header[0]
+	var profile: int = _certified_profile(binding)
+	assert_true(profile >= 0, "a certified profile")
+	var mask: int = binding._descriptor.family_mask
+	var edge: Routes.Edge = _h._routes._edge
+	edge.mode = binding._descriptor.mode
+	edge.posture = binding._descriptor.posture
+	edge.family = -1
+	assert_false(binding._other_kind(profile, edge), "its own kind, with no family")
+	var outside: int = 0
+	while (mask & (1 << outside)) != 0: outside += 1
+	for family: int in 62:
+		edge.family = family
+		assert_equal(binding._other_kind(profile, edge), (mask & (1 << family)) == 0, "family %d" % family)
+	edge.family = -1
+	for change: int in 4:
+		_change_kind(profile, edge, change, outside, 1)
+		var full: bool = _h._profiles.descriptor_into(profile, binding._content_revision, binding._descriptor) == &"" \
+			and not binding._kind_matches(edge)
+		assert_true(full and binding._other_kind(profile, edge), "change %d: another kind" % change)
+		_change_kind(profile, edge, change, -1, -1)
+	assert_false(binding._other_kind(profile, edge), "every change undone")
+	_h._profiles.invalidate_runtime_caches()
+
+
+func _certified_profile(binding: WorldRoutes) -> int:
+	"""The first profile whose certificate is the required one, its descriptor left in the binding."""
+	for row: int in _h._profiles._live.header[1]:
+		_h._profiles.descriptor_into(row, binding._content_revision, binding._descriptor)
+		if binding._descriptor.certificate_flags == WorldRoutes.Profiles.CERT_REQUIRED: return row
+	return -1
+
+
+func _change_kind(profile: int, edge: Routes.Edge, change: int, family: int, sign: int) -> void:
+	"""Apply (sign 1) or undo (sign -1) one kind change; the certificate flags change is negative-only and restored."""
+	match change:
+		0: edge.mode += sign
+		1: edge.posture += sign
+		2: edge.family = family
+		3: _h._profiles._live.flags[profile] = 0 if sign > 0 else WorldRoutes.Profiles.CERT_REQUIRED

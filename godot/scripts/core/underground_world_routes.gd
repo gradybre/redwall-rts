@@ -987,11 +987,11 @@ func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, locatio
 
 func _compile_edge(edge: Routes.Edge) -> StringName:
 	"""Each finite profile qualifies separately, so a narrow valid mouse route does not promise badger clearance."""
+	_observe_serial = _next_revision(_observe_serial) # Decision 1953: a new compile; saturated (0) keeps nothing.
 	if edge == null or edge.ref.x < 0 or edge.ref.x >= EDGE_CAPACITY or edge.ref.y <= 0 \
 			or edge.geometry_revision != _target_revision or edge.content_revision != _content_revision:
 		return REFUSE_CONTEXT
 	_stage.clear_row(edge.ref.x)
-	_observe_serial = _next_revision(_observe_serial) # Decision 1953: a new compile; saturated (0) keeps nothing.
 	var code: StringName = _path_refusal(edge)
 	if code == &"" and _carry_edge:
 		code = _endpoint_observation_refusal(edge.from_location, _point(edge, 0))

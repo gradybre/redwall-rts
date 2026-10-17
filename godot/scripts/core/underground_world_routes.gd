@@ -1009,18 +1009,49 @@ func _compile_edge(edge: Routes.Edge) -> StringName:
 
 
 func _compile_profiles(edge: Routes.Edge) -> StringName:
-	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved."""
+	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved.
+	Decision 1953: a profile of another kind is refused from the bank's own columns without writing `_descriptor`;
+	if it is the last profile proved, its descriptor is written before returning, as the full proof would have."""
 	var accepted: int = 0
+	var skipped: int = -1
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend():
-			return _proof.error
+			return _restored_descriptor(skipped, _proof.error)
+		if _other_kind(profile, edge):
+			skipped = profile
+			continue
+		skipped = -1
 		var code: StringName = _profile_edge_refusal(profile, edge)
 		if _proof.error != &"":
 			return _proof.error
 		if code == &"":
 			_stage.admit(edge.ref.x, profile)
 			accepted += 1
-	return &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE"
+	return _restored_descriptor(skipped, &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE")
+
+
+func _other_kind(profile: int, edge: Routes.Edge) -> bool:
+	"""Decision 1953: whether `descriptor_into` would succeed and `_kind_matches` then fail, read from the bank's own
+	columns (the same ones `descriptor_into` copies). With the framework's cache checks on, the full proof runs and the
+	answer is compared."""
+	var bank: Profiles.Bank = _profiles._live
+	if _content_revision <= 0 or _content_revision != _profiles.content_revision() or profile < 0 \
+			or profile >= bank.header[1]: return false
+	var stride: int = _profiles._profile_capacity
+	var family_mask: int = bank.fields[Profiles.F_FAMILIES * stride + profile]
+	var other: bool = bank.flags[profile] != Profiles.CERT_REQUIRED or bank.fields[Profiles.F_MODE * stride + profile] != edge.mode \
+		or bank.fields[Profiles.F_POSTURE * stride + profile] != edge.posture \
+		or (edge.family >= 0 and (family_mask & (1 << edge.family)) == 0)
+	if not other or not Profiles.CacheChecks.enabled: return other
+	if _profile_edge_refusal(profile, edge) != &"WORLD_ROUTE_PROFILE_KIND":
+		Profiles.CacheChecks.report("profile kind", "profile %d is not refused on kind" % profile)
+	return true
+
+
+func _restored_descriptor(skipped: int, code: StringName) -> StringName:
+	"""Decision 1953: write the skipped last profile's descriptor, which its full proof would have left."""
+	if skipped >= 0: _profiles.descriptor_into(skipped, _content_revision, _descriptor)
+	return code
 
 
 func _path_refusal(edge: Routes.Edge) -> StringName:

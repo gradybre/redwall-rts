@@ -157,6 +157,105 @@ editing files held by other lanes. If (C)'s size is not wanted now, **(D)** is t
 | C | `underground_world_routes.gd` (not `_carry_eligible`), `underground_routes.gd`, `underground_connector_placements.gd`, `excavation_sites.gd` | none; exclusion tokens would touch World/`resource_nodes.gd`/`buildings.gd` if chosen over the live re-check |
 | D | `underground_world_routes.gd`, `underground_routes.gd` | none |
 
+## 6. Stage 1: what was measured before building, and what was built
+
+**Where the entry stall time goes.** Real timers at `537a9a2e` (not instrumentation), entry run, 28 ticks of 20 ms or
+more, 13.6 s in all:
+
+| Part | Time |
+|---|---:|
+| Route requalification (`WorldRoutes.edge_refusal`, all edges) | 6.9 s |
+| - `_carry_eligible` (slice D holds it) | 1.7 s |
+| - per-profile proofs that ran geometry on the staged image (admitted, uncarried, or refused after segment 0's geometry) | 2.9 s |
+| - per-profile proofs refused before any geometry (heading at segment 0, endpoint body, kind, stair and step spans) | 1.7 s |
+| - endpoint observations (`_endpoint_observation_refusal`, 44,306 calls) | 0.7 s |
+| Everything else in the stalls (Space survey and staging, Locations stage refresh, final preflight, economic START and settlement) | 6.7 s |
+
+**Why a geometric proof cannot be reused across preparations exactly.** Every scan of the proof image
+(`Clearance.blocked`, `subtract_role`, `_solid_contacts_covered`, `_body_blocked`) spends one check per image row. Without a
+limit, `subtract_role` also spends the current fragment count for every row of its role anywhere in the image. A proof's
+spend therefore depends on the whole staged image, not only on the rows inside its sweeps, and the image gains rows as
+the dig proceeds.
+
+The budget is part of the outcome. A spend that runs out refuses the edge, and the activation lane measured a peak of
+95.4% of `MAX_CHECKS`. Reusing a geometric proof's answer on another image could change that outcome, even where its
+geometry within the sweeps is unchanged (ADR 1205's carry premise). So stage 1 reuses nothing across preparations.
+
+**What was built** (exact, runtime only, never saved, checked live while `CacheChecks.enabled`):
+
+- **Observing each endpoint once per edge compile.** Every profile proof re-observed both endpoints. Within one
+  compile, the sealed staged Locations, the tokens and the target revision cannot change. So a repeated successful
+  prepared observation is answered from one of two kept records (`_observed`, `_observed_key`), with the same
+  `PREPARED_OBSERVATION_CHECKS` spent first. Failures, and the unprepared live path that tests subclass, are always
+  observed afresh.
+- **Pace once per preparation.** `_catalog.pace_into` is a function of the catalog, Profiles and Movement, which are
+  sealed for the whole preparation, and of (profile, revision, family, variant). A repeat inside one preparation
+  (`_pace_serial`) is answered from `_pace_memo`. A refusal leaves `_pace` untouched and an answer calls
+  `IntResult.succeed`, exactly as the call does. The catalog's own scratch (`_descriptor`, `_number`) is read only
+  inside the same call.
+
+STAGE1_RESULTS
+
+## 7. Stage 2: a private staged world, prepared ahead in slices
+
+**What it would do.** It would compute the whole next transition ahead of time, in per-tick slices, against a private
+copy of the staged world: the survey, the staging, the Locations refresh and the route requalification. At START or
+settlement, the transaction would adopt the result when the live world is provably the one it was computed against,
+and run synchronously otherwise.
+
+**Why only whole-preparation identity is exact.** As §6 shows, proof spends depend on the whole staged image. The only
+cheap exact test is therefore that nothing published since the speculation began:
+
+- the Space geometry revision and journal;
+- the Locations and Routes publication tokens;
+- the certificate revision;
+- the Profiles and catalog revisions.
+
+Three inputs have no token, and would be re-run live at adoption:
+
+- the surface exclusions;
+- resident occupancy (the survey's contact and occupancy checks read residents who move every tick);
+- the economic leaves (inventory, jobs).
+
+Those live re-runs set the adoption tick's ceiling.
+
+**What it would take:**
+
+- **Private staging.** Space, Locations and Routes stage into private banks rather than their own stage bank, and
+  "prepared" stops meaning "the world is frozen". The files are:
+  - `underground_space_owner.gd`, `underground_locations.gd` (slice D holds `_installed_row_site`) and
+    `underground_routes.gd`;
+  - the geometry journal;
+  - `underground_space_authority.gd`'s cold operation (to be agreed with you).
+- **Resumable slices.** `SpaceAuthority._prepare` → `prepare_companions` → `ConnectorPlacements.prepare_phase_refresh`
+  / `_phase_prepare_routes` → `Routes.stage_refresh` → `WorldRoutes.edge_refusal` become a state machine. That covers
+  the entry world bindings' and room world bindings' `prepare_companions`, and `underground_world_bindings.gd`'s staged
+  physical geometry. Each slice is bounded so a tick stays near its stated budget. A single edge (about 4–8 ms) is
+  itself larger than 2 ms, so an edge's profiles must be resumable too.
+- **Prediction.** Settlement follows the work in progress. START comes right after a settlement in the same hand-over
+  tick (DEC-059 P2), so its speculation must start from the predicted post-settlement world, two transitions ahead.
+- **A second cold lease.** The speculation needs a second cold lease, about another 1 MB of cold memory (ADR 1212). The
+  shared cold arena is sized for one lease today.
+- **Saving.** Saves must ignore the speculation (it is discarded at load and rebuilt), so the Session's quiescence test
+  must distinguish it from a live preparation.
+- **Held files.** Of these, slice D holds `underground_locations.gd` `_installed_row_site` and `_carry_eligible` (which a
+  sliced compile must call). The C2 lane holds the room builder and runtime, which need no change, because adoption
+  happens inside `begin_phase_work` / `settle_phase`. The entry foreman needs none either.
+
+**Size.** Roughly 2,000–4,000 changed lines across about ten of the most heavily reviewed core files. It needs its own
+ADR, because it changes what "prepared" means and adds a third bank or a private-image contract. It is several weeks of
+work with the same gates as this lane.
+
+**Expected effect.**
+
+- **With one active transition**, which is the entry crew and a single room builder, the speculation usually holds.
+  START and settlement then cost only the adoption's live re-checks plus payment and publication: an estimated 5–15 ms
+  rather than 0.4–0.8 s in the entry and about 60 ms in the room.
+- **With several foremen digging at once**, each publication invalidates the others' speculation, and those
+  transitions fall back to today's synchronous stall.
+- **A resident walking through a speculated edge's body** invalidates only the occupancy re-run, which is live anyway.
+- **The per-tick ceiling** while speculating is the slice budget plus the existing tick.
+
 ## Brendan's ruling (2026-10-17)
 
 Brendan ruled in chat on 2026-10-17, and the coordinator relayed the ruling: **"Work ahead in the background"**, which

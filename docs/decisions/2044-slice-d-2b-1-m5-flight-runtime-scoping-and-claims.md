@@ -392,3 +392,23 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion. Ev
 room world bindings, no Session, no Routes, and in WorldRoutes only `_carry_eligible`. Indexed in
 `docs/handoff/RULINGS.md`.
 
+### Order with Slice C, and the follow-ons (2026-10-17, from the coordinator)
+
+**The entry runtime.**
+
+- Slice C's C2 follow-up, PR #273 (`feat/room-dig-followups`), merges first.
+- It adds hunks to `underground_entry_runtime.gd` around start, advance, `owns_job` and `_read_foreman`, and two
+  refusal constants. It touches neither `INSTALLATIONS`, nor the planning loop, nor `_station_paths`.
+- P-2044-7's three-part edit lands on top of it, when the coordinator says so.
+- #273 adds no save field, so the progress move to version 4 has no ordering constraint.
+- If the files #273 regenerates conflict, they are regenerated, never hand-merged: the memory pack and the two ADR
+  1240 checkpoints.
+
+**Follow-ons after 2b-1:**
+
+- **2b-2:** the earth carry's activation.
+- **Stair-leg Delivery** (decision 1941 §2; Brendan ruled P-1941-1 (b), "Wait for M5"). It is built once, against
+  M5's real flight. Until then `ROOM_HAUL_NO_STAIR_CARRY` stays raised on every live level, so **D2 and C3 depend on
+  it too.**
+- **D2:** the connector bound to the room-dig runtime.
+

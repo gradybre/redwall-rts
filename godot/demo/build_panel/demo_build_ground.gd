@@ -14,7 +14,8 @@ extends RefCounted
 ## With no underground composed in the run, every cell reads OK and nothing is finished (the order route then says
 ## why nothing can be ordered).
 ## THE PROOF OF CONCEPT'S CELLS (decision 1912, demo_build_works.gd) come first: a cell it has ordered or dug reads
-## FINISHED (a way in for the cells beside it, "occupied" under a new stroke), and its revision moves this one.
+## FINISHED (a way in for the cells beside it, "occupied" under a new stroke) -- but a sloped way's run (decision
+## 2021: solid earth it cuts through) reads OCCUPIED, never a way in -- and its revision moves this one.
 
 const Cells := preload("res://scripts/ui/build_cell_validity.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
@@ -115,7 +116,7 @@ func revision() -> int:
 func ground(level: int, cell: Vector2i) -> int:
 	"""Cell `cell`'s ground code on `level` (build_cell_validity.gd CELL_*), cached until `revision` moves."""
 	if _works != null and _works.state(level, cell) != Works.EARTH:
-		return Cells.CELL_FINISHED
+		return Cells.CELL_OCCUPIED if _works.type_of(level, cell) == Works.TYPE_WAY else Cells.CELL_FINISHED
 	if level <= 0 or level >= LEVELS or _heights[level] <= 0 or not _bounds.has_point(cell) or not bound():
 		return Cells.CELL_OK
 	var index: int = (cell.y - _bounds.position.y) * _bounds.size.x + cell.x - _bounds.position.x

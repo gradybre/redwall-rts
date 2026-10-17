@@ -6,7 +6,7 @@ extends "res://test/live_harness_case.gd"
 
 const FURNISH_HARNESS: String = "res://test/live/demo_build_furnish_live.gd"
 ## The harness's checks (59 on this branch: decision 1914 added two); fewer means it stopped early.
-const FURNISH_CHECKS: int = 59
+const FURNISH_CHECKS: int = 60
 
 
 func test_the_furnish_tab_places_fits_and_readies_rooms_at_1280x720() -> void:

@@ -21,6 +21,11 @@
      "bytes": 0,
      "carried_by": "PROFILE_BYTES joint (motion census)",
      "store": "ADR1229: content 10 (67 rows, 547 boxes, 6 sources; paired bank 44,212 B, +3,052 B over content 9) in the Motion/Profile joint, 262,128 of 278,528"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "PROFILE_BYTES joint (motion census)",
+     "store": "Decision 1972: content 12 (85 rows, 637 boxes, 8 sources; paired bank 52,908 B, +8,696 B over content 10) in the Motion/Profile joint, 270,824 of 282,624 (with the Session and retirement slices, 280,552)"
     }
    ],
    "delta": {
@@ -33,27 +38,27 @@
     "int_constants_added": [
      [
       "BOX_COUNT",
-      "547"
+      "637"
      ],
      [
       "CONTENT_REVISION",
-      "10"
+      "12"
      ],
      [
       "PAIRED_BANK_BYTES",
-      "44212"
+      "52908"
      ],
      [
       "PROFILE_COUNT",
-      "67"
+      "85"
      ],
      [
       "SOURCE_COUNT",
-      "6"
+      "8"
      ],
      [
       "WIRE_BYTES",
-      "22114"
+      "26462"
      ]
     ],
     "int_constants_removed": [
@@ -637,6 +642,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR 1217 step 5: PROFILE_BYTES 262,144 -> 278,528 (+16,384 B reserve) so content 9's paired profile bank keeps the Motion/Profile/Level joint plus the Session and retirement slices inside one assigned reserve"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "joint pack (the reserve is a pack contribution)",
+     "store": "Decision 1972 (P-1972-2 (a)): PROFILE_BYTES 278,528 -> 282,624 (+4,096 B reserve), its own ledger row, so content 12's paired bank keeps the joint plus the Session and retirement slices inside one assigned reserve"
     }
    ],
    "delta": {
@@ -647,7 +657,7 @@
      ],
      [
       "PROFILE_BYTES",
-      "278528"
+      "282624"
      ]
     ],
     "int_constants_removed": [
@@ -667,10 +677,21 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "no retained-storage change"
+     "store": "decision 1972: two constants (a milli-u/s stair pace kind and its scale), no retained storage"
     }
    ],
-   "delta": {}
+   "delta": {
+    "int_constants_added": [
+     [
+      "MILLI",
+      "1000"
+     ],
+     [
+      "RATE_AUTHORED_MILLI",
+      "2"
+     ]
+    ]
+   }
   },
   "godot/scripts/core/underground_connector_contacts.gd": {
    "charges": [
@@ -1216,13 +1237,18 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR1229: rebound to the content-10 motion wire (revision 10); banks and tables unchanged"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "Decision 1972: rebound to the content-12 motion wire (revision 12); banks and tables unchanged"
     }
    ],
    "delta": {
     "int_constants_added": [
      [
       "REVISION",
-      "10"
+      "12"
      ]
     ]
    }
@@ -1562,6 +1588,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "ADR1229: GROUND_PACE_COUNT 24 -> 29 inside the Catalog fixed MAX_PACES bank; one StairMotion per route composition, lent to Routes, charged in the census claw_stair_tables row (9,580 B)"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "Decision 1972: qualified-stairs-v10's 26 ground caps and 17 milli-u/s stair rows (43) inside the Catalog's fixed MAX_PACES = 256 bank; the stair-carry tables are charged as the stair motion owner's second bank"
     }
    ],
    "delta": {
@@ -1588,7 +1619,7 @@
      ],
      [
       "GROUND_PACE_COUNT",
-      "29"
+      "43"
      ],
      [
       "PROFILE_CONTENT_REVISION",
@@ -1879,10 +1910,23 @@
      "bytes": 0,
      "carried_by": "presentation (outside the REQ-SET-163 simulation gate)",
      "store": "ADR1229: presentation constants for the v2 claw and paw images; no simulation member, packet or resize"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "presentation set reservation (cold, demo presentation only)",
+     "store": "Decision 1972: the two stair-carry images' declared peaks (7,589,568 and 7,370,344 B) join PRESENTATION_SET_BYTES; presentation only, never simulation-owned"
     }
    ],
    "delta": {
     "int_constants_added": [
+     [
+      "CARRY_STONE_PRESENTATION_BYTES",
+      "7370344"
+     ],
+     [
+      "CARRY_WOOD_PRESENTATION_BYTES",
+      "7589568"
+     ],
      [
       "CLAW_PRESENTATION_BYTES",
       "7551924"

@@ -90,8 +90,8 @@ func test_published_content_5_keeps_content_4_and_appends_the_haul_source_block(
 	"""Rows 30-36 are the tool-free source-2 block; the full live wire still hashes to the published pin."""
 	var profiles: Profiles = _fixture._profiles
 	assert_equal(Catalog.catalog_refusal(profiles), &"", "complete live wire matches the published digest")
-	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 67,
-		"content 4, the haul and stone blocks, then content 10's claw, stair and paw rows (ADR1229)")
+	assert_equal(profiles.profile_count(Catalog.CONTENT_REVISION), 85,
+		"content 4, the haul and stone blocks, content 10's claw, stair and paw rows (ADR1229), then content 12's (1972)")
 	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	assert_true(profiles.source_hash_into(2, Catalog.CONTENT_REVISION, digest), "third source exists")

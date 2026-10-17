@@ -2320,8 +2320,8 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Pinned source identity | `_source32` | 4 | `SOURCE32` = 1356 | Zero before bind; discarded with the Scope | 3 | -- | ADR1191. Synchronous cold retirement Scope pins the original source tuple; never saved and never treated as permission. ADR1229: sized by the T1-T6 bundle's Frontier census (8/22/6/38/44/14). |
-| Pinned source revisions | `_source64` | 8 | `SOURCE64` = 158 | Zero before bind | 3 | -- | ADR1191. Same transient Scope. ADR1229: the T1-T6 bundle's 22 stations and 44 endpoints. |
+| Pinned source identity | `_source32` | 4 | `SOURCE32` = 1372 | Zero before bind; discarded with the Scope | 3 | -- | ADR1191. Synchronous cold retirement Scope pins the original source tuple; never saved and never treated as permission. ADR1229: sized by the T1-T6 bundle's Frontier census (8/22/6/38/44/14); decision 1972: `qualified-stairs-v10`'s, 8/22/6/38/46/14 (the sill's two stops). |
+| Pinned source revisions | `_source64` | 8 | `SOURCE64` = 160 | Zero before bind | 3 | -- | ADR1191. Same transient Scope. ADR1229: the T1-T6 bundle's 22 stations and 44 endpoints; decision 1972: v10's 46 endpoints. |
 | Pinned source digests | `_source_digest` | 1 | `320` = 320 | Zero before bind | 3 | -- | ADR1191. Same transient Scope. |
 | Pinned Placement row | `_placement_row` | 4 | `18` = 18 | Zero before bind | 3 | -- | ADR1191. Exact original Placement observation for the final recheck. |
 | Pinned Placement longs | `_placement_longs` | 8 | `2` = 2 | Zero before bind | 3 | -- | ADR1191. |

@@ -1,10 +1,10 @@
 extends "res://test/framework/test_case.gd"
-## Decision 1933 (C2.1), ECON-001: a room builder's footprint over the mounted content-10 rows: the standing body,
+## Decision 1933 (C2.1), ECON-001: a room builder's footprint over the mounted content-12 rows (decision 1972; rows 0-66 are content 10's): the standing body,
 ## swept legs in short pieces, the cached row extents and the half-open overlap test the foreman's set-off rule uses.
 
 const Footprint := preload("res://scripts/core/underground_room_footprint.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v9/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
 const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
 const WALK: int = 42 # claw WALK, all yaws: boxes (-712, 0, -712)..(712, 930, 712) and (-402, -1, -402)..(402, 0, 402)
 const TAP: int = 63 # the paw seating tap: stance support, body, recovery, approach, stroke, point and patch
@@ -18,7 +18,7 @@ func before_each() -> void:
 	_profiles = Profiles.new()
 	assert_equal(_profiles.configure(Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, Catalog.SOURCE_COUNT,
 		Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "profile bank")
-	assert_equal(_profiles.load_file(Bundle.PROFILE_PATH, Bundle.PROFILE_SHA, Bundle.CONTENT_REVISION), &"", "content 10")
+	assert_equal(_profiles.load_file(Bundle.PROFILE_PATH, Bundle.PROFILE_SHA, Bundle.CONTENT_REVISION), &"", "content 12")
 	_foot = Footprint.new()
 	_foot.configure(_profiles)
 

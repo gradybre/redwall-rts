@@ -2284,7 +2284,7 @@ func _actor_profile_into(worker: Vector2i, job: Vector2i, mode: int, posture: in
 	if mode == Profiles.MODE_WORK and profile_id >= 0:
 		return _profiles.query_work_profile_into(worker, job, profile_id, profile_revision,
 			content_revision, posture, family, hint, out)
-	if mode == Profiles.MODE_WALK and profile_id >= 0 and Profiles.selection_policy_leaf(_profiles,
+	if (mode == Profiles.MODE_WALK or mode == Profiles.MODE_CARRY) and profile_id >= 0 and Profiles.selection_policy_leaf(_profiles,
 			profile_id, profile_revision, content_revision) != Profiles.POLICY_AUTOMATIC:
 		return _profiles.query_travel_profile_into(worker, job, profile_id, profile_revision,
 			content_revision, posture, family, hint, out)

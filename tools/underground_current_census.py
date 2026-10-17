@@ -92,12 +92,13 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "1ac6f0e8118ef2b55702a53aefa03b49e2cfe33f42fdb20ae851c11e02b413b0"
+REVIEWED_SHA = "fb805cab3b1204f3195746ef3f2a28b5748eb3499853f6c80ced9b28196e4bd1"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
-FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v9/frontier.ugfront")
-FRONTIER_SHA = "182b304c2a0d9ff7b337dac2566f98a2587171d97c18c9bb89c9b3afe1d5e49f"
+# Decision 1972: qualified-stairs-v10 (the same install and episode counts; two more sill stops).
+FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v10/frontier.ugfront")
+FRONTIER_SHA = "8ee90bbff55e11c45604af294cb47fb21e2b097c99484f000310464b48d0d006"
 CORE = "godot/scripts/core/"
 
 
@@ -419,8 +420,10 @@ def contact_retirement_cold(memory, index: dict) -> dict:
                      "owners' existing paired banks. Coexistence inside one lease is runtime-enforced, not re-proved here."}
 
 
+# Decision 1972: `_carry_loaded` and `_program_count` track the optional stair-carry bank, appended into the same three
+# columns; the route composition loads it at mount, so every Session retains it (decision 1972).
 STAIR_MOTION = {"_programs": "PackedInt32Array", "_keys": "PackedInt32Array", "_decks": "PackedInt32Array",
-                "_digest": "PackedByteArray", "_loaded": "bool"}
+                "_digest": "PackedByteArray", "_loaded": "bool", "_carry_loaded": "bool", "_program_count": "int"}
 
 
 def stair_tables(memory, index: dict) -> dict:
@@ -434,7 +437,15 @@ def stair_tables(memory, index: dict) -> dict:
             in module(index, CORE + "underground_stair_motion.gd").text, "stair tables reservation")
     require("motion.load_file(MotionPins.WIRE_PATH, MotionPins.WIRE_SHA)"
             in module(index, CORE + "underground_route_composition.gd").text, "one table load per route composition")
-    return {"rows": {"tables": 4 * words, "profile_digest": 32}, "bytes": 4 * words + 32}
+    # Decision 1972: the stair-carry bank (decision 1981's rooted rows 71-84) is appended once per Session too; its
+    # profile digest is checked at load and not kept.
+    carry = sum(memory.resolve(index, name, fields) * memory.resolve(index, name, count) for fields, count in
+                (("PROGRAM_FIELDS", "CARRY_PROGRAMS"), ("KEY_FIELDS", "CARRY_KEYS"), ("DECK_FIELDS", "CARRY_DECKS")))
+    require("motion.load_carry_file(CarryPins.WIRE_PATH, CarryPins.WIRE_SHA)"
+            in module(index, CORE + "underground_route_composition.gd").text, "one carry table load per composition")
+    require(4 * carry == memory.resolve(index, name, "CARRY_RESERVED_BYTES") == 33784, "stair-carry reservation")
+    return {"rows": {"tables": 4 * words, "profile_digest": 32, "carry_tables": 4 * carry},
+            "bytes": 4 * words + 32 + 4 * carry}
 
 
 def cold_load_images(memory, index: dict) -> dict:
@@ -661,7 +672,7 @@ def build(index: dict, projected: list, motion: dict) -> dict:
             charged[charge["carried_by"]] += charge["bytes"]
     require(charged.get("new contribution", 0) == journals["bytes"] + locations["bytes"],
             "reviewed new-contribution rows disagree with the recount")
-    require(motion["joint"]["total"] + 1536 + 8192 <= 278528, "PROFILE_BYTES joint") # ADR1217 step 5
+    require(motion["joint"]["total"] + 1536 + 8192 <= 282624, "PROFILE_BYTES joint") # ADR1217 step 5; decision 1972
     return {"scope": __doc__.strip().splitlines()[0], "reviewed_inputs": rows, "charged_by_carrier": charged,
             "geometry_journals": journals, "locations_controls": locations, "first_entry_runtime": entry,
             "world_routes_controls": controls, "world_routes_cold": cold, "contact_retirement_cold": retirement,

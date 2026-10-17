@@ -681,6 +681,13 @@ bytes are identical apart from the two source digests.
   - checkpoints;
   - the memory census row for the tables.
 
+**Activated without the floor end (decision 1972, Brendan 2026-10-17: "Switch on without floor end").** Content 12
+is mounted with the stair carry from H down to the sill (T6) and back: the approach H → A(L0), the descents, the
+half-turn on T6, the ascents and the retreat. The floor-end rows stay published but unused until slice D's F40:
+rows 71 and 72 (the empty walk-off and back-up), and the loaded walk-off and back-up uses (W1/S1 on F → F′, W6/S6
+on F′ → F). Their paces are in `qualified-stairs-v10`; no stop F, U or F′ and no floor edge exists to use them.
+Decision 1972 ("Phase 3b") holds the removed floor end as F40's inventory.
+
 **C2.3** binds Delivery and the hauler, and retires `ROOM_HAUL_NO_STAIR_CARRY`:
 
 - **`underground_connector_delivery.gd`:** the leg-by-leg reach. Ground carry (32/37) to H, the rooted stair-carry

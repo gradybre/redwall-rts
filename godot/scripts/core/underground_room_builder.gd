@@ -751,6 +751,8 @@ func _start_leg(tick: int) -> StringName:
 	if not _registered():
 		code = o.routes.admit_travel_actor(_crew.worker, _job_ref(), _at, profile, _revision(profile), _ctx.content,
 			0, -1, _crew.tool)
+	elif _leg_state == LEG_NONE and _needs_turn(profile) and _actor.job != _job_ref():
+		return _take_job_here() # The turn is under the leg's own Job: select it at this heading first.
 	elif _leg_state == LEG_NONE and _needs_turn(profile):
 		_leg_state = LEG_TURNED
 		_departed = true
@@ -763,6 +765,15 @@ func _start_leg(tick: int) -> StringName:
 		_leg_state = LEG_MOVING
 		_departed = true
 	return &"" if code == REFUSE_OCCUPIED else code # Another builder is in the way: wait (the stall bound holds).
+
+
+func _take_job_here() -> StringName:
+	"""Decision 1939: the actor (no Job since its cube settled) takes the leg's Job on the READY row of the heading it
+	faces; the turn to the leg's row follows on the next tick."""
+	var o: Owners = _ctx.owners
+	var row: int = Itinerary.family_row(o.profiles, _ctx.forward, _actor.yaw, Profiles.POLICY_READY_FORWARD)
+	if row < 0: return REFUSE_LEG
+	return o.routes.refresh_travel_actor(_crew.worker, _job_ref(), row, _revision(row), _ctx.content, 0, -1, _crew.tool)
 
 
 func _registered() -> bool:
@@ -1065,7 +1076,17 @@ func _recover(tick: int) -> StringName:
 	_at = _station
 	_foot.stand(_point(_station), _work_profile)
 	_set_stage(STAGE_COLUMN) # The foreman sends it up its column, or home.
-	return &""
+	return _drop_retired_job()
+
+
+func _drop_retired_job() -> StringName:
+	"""Decision 1939: the cube's last Job is retired. Another actor's occupancy proof reads every registered actor's
+	selection, and a retired Job is stale there (ROUTE_TURN_ACTOR_STALE), so the builder stands at its station on the
+	READY travel row of its heading with no Job until its next leg."""
+	var o: Owners = _ctx.owners
+	var row: int = Itinerary.family_row(o.profiles, _ctx.forward, _yaw(_work_profile), Profiles.POLICY_READY_FORWARD)
+	if row < 0: return REFUSE_LEG
+	return o.routes.refresh_travel_actor(_crew.worker, NULL_REF, row, _revision(row), _ctx.content, 0, -1, _crew.tool)
 
 
 func at_column_end() -> bool:

@@ -32,6 +32,10 @@ const CLAW_BACKWARD: int = 50 # Claw READY backward at the same heading.
 const CLAW_WALL: int = 70 # Claw wall row at yaw 49152 (decision 1972, rows 67-70).
 const CLAW_GROUND: int = 42 # The claw's all-yaw canonical ground WALK.
 const TICK_BOUND: int = 40000
+## A second claw parking in the Corridor, south of the access line (fixture geometry only).
+const SECOND_PARKING: Vector3i = Vector3i(Phase.X - 1024, Phase.FLOOR, Phase.Z - 1280)
+## The room's storage M: its own Corridor endpoint (fixture geometry only).
+const CLAW_STORE_POINT: Vector3i = Vector3i(Phase.X - 3072, Phase.FLOOR, Phase.Z - 1024)
 
 
 class ClawKitchen extends HaulTests.HaulKitchen:
@@ -86,13 +90,19 @@ class ClawKitchen extends HaulTests.HaulKitchen:
 		request.height_u = mini(4096, Approach.reachable_height_u(_profiles, CLAW_WALL))
 		return request
 
+	func store_point() -> Vector3i:
+		"""M's own endpoint in the Corridor, not a parking (the composer never parks a builder on a storage)."""
+		return CLAW_STORE_POINT
+
 	func finite_stock_and_worker() -> void:
-		"""M on the parking; the claws hold no tool. Stocked, M holds one BRACE bill per Site."""
+		"""M on its own endpoint joined to the access; the claws hold no tool. Stocked, M holds one BRACE bill per
+		Site."""
 		storage_binding = Locations.InventoryLocations.new(endpoints)
 		assert_true(_inventory.bind_spatial_locations(storage_binding, 4).ok, "actual storage authority")
-		var made: Inventory.OpResult = _inventory.create_spatial_ground_staging(parking)
+		storage = _joined_endpoint(CLAW_STORE_POINT)
+		var made: Inventory.OpResult = _inventory.create_spatial_ground_staging(storage)
 		assert_true(made.ok, "the room's storage M: %s" % made.error)
-		material = made.ref; storage = parking
+		material = made.ref
 		if stocked:
 			stock_wood = stock(&"wood", StationTests.KITCHEN_SITES * Contract.BRACE_WOOD_MILLI)
 			stock_stone = stock(&"stone", StationTests.KITCHEN_SITES * Contract.BRACE_STONE_MILLI)
@@ -100,6 +110,24 @@ class ClawKitchen extends HaulTests.HaulKitchen:
 		assert_true(_jobs.priorities().spawn(worker).ok, "actual priorities")
 		assert_true(_jobs.schedule().spawn(worker, _jobs.schedule().default_template_id().value).ok, "actual schedule")
 		assert_true(_jobs.schedule().resolve(worker, 8, false).ok and _jobs.spawn_agent(worker).ok, "actual worker availability")
+
+	func _joined_endpoint(point: Vector3i) -> Vector2i:
+		"""A Corridor endpoint joined to the access by two straight ground spans (the second parking's shape)."""
+		var spot: Vector2i = _endpoint(point, Locations.ROLE_TRANSIT)
+		var access: Vector3i = Vector3i(Phase.X - 1024, Phase.FLOOR, Phase.Z + 512)
+		var token: int = _begin()
+		for reverse: bool in [false, true]:
+			var edge: Routes.Edge = _edge()
+			edge.from_location = _first if reverse else spot; edge.to_location = spot if reverse else _first
+			var from: Vector3i = access if reverse else point
+			var to: Vector3i = point if reverse else access
+			edge.points = PackedInt32Array([from.x, from.y, from.z, to.x, to.y, to.z])
+			edge.length_u = _ceil_length(from - to)
+			assert_equal(_routes.stage_add(token, edge).error, &"", "a storage span")
+		assert_equal(_binding.seal(token), &"", "storage span certificates")
+		assert_equal(_binding.publish(token), &"", "storage span publication")
+		_end(token)
+		return spot
 
 	func _mole_at(point: Vector3i, spot: Vector2i) -> Builder.Crew:
 		"""One more claw mole (no tool), still far off on the surface."""
@@ -189,7 +217,7 @@ func test_a_claw_builder_hauls_every_brace_and_digs_the_kitchen() -> void:
 	goes on, and a cube up a column whose inputs ran out is hauled for from its station."""
 	var room: Vector2i = _haul_kitchen()
 	if room == NULL_REF: return
-	var crew: Array[Builder.Crew] = [_h.store_member()]
+	var crew: Array[Builder.Crew] = [_h.crew_member()]
 	var runtime: Runtime = _runtime(room, _h.staging, crew, _h.haul_owners())
 	var builder: Builder = runtime.foreman_of(room).builders()[0]
 	var foreman: Foreman = runtime.foreman_of(room)
@@ -205,7 +233,6 @@ func test_a_claw_builder_hauls_every_brace_and_digs_the_kitchen() -> void:
 			assert_true(builder.in_motion(), "a turn or a leg means it has set off (after a haul too)")
 		before = builder.stage()
 		if not runtime.is_running(): break
-	print("CLAW_HAUL into_store=%s trips=%d" % [into_store, builder.haul_trips()])
 	assert_true(into_store.keys().any(func(stage: int) -> bool: return stage != Builder.STAGE_IDLE),
 		"a haul from a column's station: %s" % into_store)
 	assert_equal(seen, [] as Array[StringName], "no refusal")
@@ -214,4 +241,27 @@ func test_a_claw_builder_hauls_every_brace_and_digs_the_kitchen() -> void:
 	assert_equal(_h._inventory.container_lot_count(_h.staging), 0, "R emptied")
 	assert_equal(_h.free_milli(_h.material, &"wood"), Contract.BRACE_WOOD_MILLI, "all used but one BRACE's worth")
 	assert_equal(_h.free_milli(_h.material, &"stone"), Contract.BRACE_STONE_MILLI, "all used but one BRACE's worth")
+	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
+
+
+func test_two_claw_builders_haul_and_dig_the_kitchen_together() -> void:
+	"""Two claw builders, each hauling whatever its own BRACE lacks from R through the one Delivery, take turns where
+	their footprints meet and dig the Kitchen together."""
+	var room: Vector2i = _haul_kitchen()
+	if room == NULL_REF: return
+	var crew: Array[Builder.Crew] = [_h.crew_member(), _h.second_member(SECOND_PARKING)]
+	var runtime: Runtime = _runtime(room, _h.staging, crew, _h.haul_owners())
+	var foreman: Foreman = runtime.foreman_of(room)
+	var builders: Array[Builder] = []
+	builders.assign(foreman.builders()) # Kept: a finished dig forgets its builders once out.
+	var seen: Array[StringName] = []
+	for step: int in TICK_BOUND:
+		_h.tick += 1
+		seen.append_array(runtime.advance(_h.tick))
+		if not runtime.is_running(): break
+	assert_equal(seen, [] as Array[StringName], "no refusal")
+	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
+	assert_true(builders[0].haul_trips() > 0 and builders[1].haul_trips() > 0, "both builders hauled")
+	assert_equal(builders[0].haul_trips() + builders[1].haul_trips(), 2 * StationTests.KITCHEN_SITES / 4, "every unit once")
+	assert_equal(_h._inventory.container_lot_count(_h.staging), 0, "R emptied")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")

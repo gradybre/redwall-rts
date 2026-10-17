@@ -59,6 +59,7 @@ const EDGE_MEMO_STAMP: int = 6
 ## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
 ## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
 ## each entry has one result word per profile row: (entry generation << 16) | (boxes checked << 4) | answer index.
+const OBSERVED_KEY: int = 6 # Decision 1953: compile serial, Location slot, generation, point x, y, z.
 const ENDPOINT_MEMO_ENTRIES: int = 64
 const ENDPOINT_ENTRY_WORDS: int = 34
 const ENDPOINT_MEMO_STAMP: int = 9
@@ -354,6 +355,13 @@ var _endpoint_memo_serial: int = 0
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
 var _endpoint: Locations.Record = Locations.Record.new()
+## Decision 1953: within one edge compile (`_observe_serial`), each endpoint is observed once. The two successful
+## prepared observations are kept (key: serial, Location slot and generation, point) and copied back into `_endpoint`
+## on a repeat, with the same spend. Runtime only, never saved; reset by every compile.
+var _observed: Array[Locations.Record] = [Locations.Record.new(), Locations.Record.new()]
+var _observed_key: PackedInt64Array = PackedInt64Array()
+var _observe_serial: int = 1
+var _observe_next: int = 0
 var _section: Owner.Region = Owner.Region.new()
 var _edge: Routes.Edge = Routes.Edge.new()
 var _pace: IntMath.IntResult = IntMath.IntResult.new()
@@ -447,6 +455,10 @@ func _allocate_scratch() -> void:
 	_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)
 	_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
+	_observed_key.resize(2 * OBSERVED_KEY)
+	for record: Locations.Record in _observed:
+		record.envelope.resize(6)
+		record.support.resize(6)
 	_endpoint.support.resize(6)
 	_section.box.resize(6)
 
@@ -967,6 +979,7 @@ func _compile_edge(edge: Routes.Edge) -> StringName:
 			or edge.geometry_revision != _target_revision or edge.content_revision != _content_revision:
 		return REFUSE_CONTEXT
 	_stage.clear_row(edge.ref.x)
+	_observe_serial = _next_revision(_observe_serial) # Decision 1953: a new compile; saturated (0) keeps nothing.
 	var code: StringName = _path_refusal(edge)
 	if code == &"" and _carry_edge:
 		code = _endpoint_observation_refusal(edge.from_location, _point(edge, 0))
@@ -1144,8 +1157,23 @@ func _stair_covered_refusal(room: Vector2i) -> StringName:
 
 
 func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
-	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable."""
+	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable.
+	Decision 1953: inside one edge compile a repeated successful prepared observation is answered from `_observed`
+	(the same spend first); with the framework's cache checks on it is observed live and compared."""
 	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
+	var slot: int = _observed_slot(location, point)
+	if slot >= 0 and not Profiles.CacheChecks.enabled:
+		_copy_record(_observed[slot], _endpoint)
+		return &""
+	var code: StringName = _observe_endpoint(location, point)
+	if slot >= 0 and (code != &"" or not _records_equal(_observed[slot], _endpoint)):
+		Profiles.CacheChecks.report("endpoint observation", "location %d changed inside one compile" % location.x)
+	if code == &"" and slot < 0: _remember_observation(location, point)
+	return code
+
+
+func _observe_endpoint(location: Vector2i, point: Vector3i) -> StringName:
+	"""The observation itself: the prepared (or live) record, then its World, revision, point and payload checks."""
 	var code: StringName = _prepared_endpoint_into(self, location, _endpoint) \
 		if _location_token != 0 else _locations().read_location_into(location, _endpoint)
 	if code != &"": return code
@@ -1154,6 +1182,59 @@ func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> Strin
 			or _endpoint.point != point or _endpoint.payload_revision <= 0:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
 	return &""
+
+
+func _observed_slot(location: Vector2i, point: Vector3i) -> int:
+	"""Decision 1953: the kept observation of `location` at `point` in this compile, or -1. Only the prepared path
+	(sealed staged Locations, which cannot change during a compile) is kept."""
+	if not _compiling or _location_token == 0 or _observe_serial <= 0: return -1
+	for slot: int in 2:
+		var at: int = slot * OBSERVED_KEY
+		if _observed_key[at] == _observe_serial and _observed_key[at + 1] == location.x \
+				and _observed_key[at + 2] == location.y and _observed_key[at + 3] == point.x \
+				and _observed_key[at + 4] == point.y and _observed_key[at + 5] == point.z: return slot
+	return -1
+
+
+func _remember_observation(location: Vector2i, point: Vector3i) -> void:
+	"""Decision 1953: keep a successful prepared observation for the rest of this compile."""
+	if not _compiling or _location_token == 0 or _observe_serial <= 0: return
+	var slot: int = _observe_next
+	_observe_next = 1 - _observe_next
+	var at: int = slot * OBSERVED_KEY
+	_observed_key[at] = _observe_serial
+	_observed_key[at + 1] = location.x
+	_observed_key[at + 2] = location.y
+	_observed_key[at + 3] = point.x
+	_observed_key[at + 4] = point.y
+	_observed_key[at + 5] = point.z
+	_copy_record(_endpoint, _observed[slot])
+
+
+static func _copy_record(from: Locations.Record, to: Locations.Record) -> void:
+	"""Every field a successful observation writes (`_copy_route_observation` overwrites them all)."""
+	to.point = from.point
+	to.room = from.room
+	to.section = from.section
+	to.level = from.level
+	to.role = from.role
+	to.world = from.world
+	to.payload_revision = from.payload_revision
+	to.geometry_revision = from.geometry_revision
+	to.air_count = from.air_count
+	for axis: int in 6:
+		to.envelope[axis] = from.envelope[axis]
+		to.support[axis] = from.support[axis]
+	for index: int in 6 * Locations.MAX_AIR_EXTRA:
+		to.air[index] = from.air[index]
+
+
+static func _records_equal(a: Locations.Record, b: Locations.Record) -> bool:
+	"""Decision 1953, checks on: whether two observed records hold the same values."""
+	return a.point == b.point and a.room == b.room and a.section == b.section and a.level == b.level \
+		and a.role == b.role and a.world == b.world and a.payload_revision == b.payload_revision \
+		and a.geometry_revision == b.geometry_revision and a.air_count == b.air_count \
+		and a.envelope == b.envelope and a.support == b.support and a.air == b.air
 
 
 func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:

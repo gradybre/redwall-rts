@@ -1,7 +1,7 @@
 # 1941 — Stair-leg Delivery: scoping, stopped for a ruling
 
-Date: 2026-10-17 · Status: Proposed. Follow-up 4 of the C2 follow-ups (the coordinator, 2026-10-17). Nothing is built
-for it; the lane stops here for the ruling in §3.
+Date: 2026-10-17 · Status: Accepted: deferred to M5 (Brendan, P-1941-1 (b), 2026-10-17). Follow-up 4 of the C2
+follow-ups (the coordinator, 2026-10-17). Nothing is built for it.
 
 Branch `feat/room-dig-followups`. Number range 1938–1949.
 
@@ -77,6 +77,14 @@ As decision 1981 §3 lists, plus what this check found.
   under 2b-2, and no synthetic stair is maintained. The machinery waits.
 - **(c) Build only the leg helper and the hauler's leg list now**, proved by the live H ↔ sill round trip.
   Delivery's reach and the room builder wait for M5.
+
+## 4. Ruling
+
+**P-1941-1: (b), defer it to M5.** Brendan, 2026-10-17, choosing the coordinator's recommendation "Wait for M5":
+the stair-leg Delivery is built and proved once, end to end, on M5's real flight and floor end. Nothing is built
+now, no synthetic two-level fixture is kept, and slice D's 2b-2 files are left alone.
+`ROOM_HAUL_NO_STAIR_CARRY` stays raised for every live level until then. §2 stays as the build list for that
+lane. (Relayed by the coordinator.)
 
 ## Note on M5
 

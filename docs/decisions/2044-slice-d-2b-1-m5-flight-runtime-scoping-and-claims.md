@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted, build stopped. Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. Building (P-2044-7 to -11 ruled the same day; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -374,4 +374,21 @@ The blockers are runtime and certificate generality.
 - a physical question in Sites (P-2044-11).
 
 The lane has stopped for the coordinator and Brendan. Nothing was built; the claims of record stand unused.
+
+## Brendan's rulings on the stop proposals (2026-10-17)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion. Every ruling is the recommended option.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2044-7 | **(a)**, "Narrow edit here, ordered" | This lane edits `underground_entry_runtime.gd` for three things only: `INSTALLATIONS` read from the Frontier, planning stage by stage, and `_station_paths` per batch. **Not yet.** The coordinator is agreeing the order with Slice C (default: their C2 follow-up merges first), and the runtime edit is the build's small last step |
+| P-2044-8 | **(a)**, "Raise to 160, save v4" | `MAX_TASKS` to at least 160, plus `MAX_ENDPOINTS` and `MAX_LEGS`, with the entry-progress save at version 4 and census rows. **This replaces P-2044-4 (a)**, whose premise (one task per cube) was wrong |
+| P-2044-9 | **(a)** | New module-aware successor files for `tread_geometry`, `paw_physical_certificate`, `qualified-assembly-v1/physical_certificate` and `source_program`, wired from the claimed foreman, Contacts and bindings; the originals are not edited |
+| P-2044-10 | **(a)** | Episodes indexed by cube once in `underground_entry_bindings.gd`, then re-measured |
+| P-2044-11 | **(a)** | A fixture first proves that retiring a station's Location, support strip and edges frees the cube below for its own Room's cut. The floor stations are built on it only if it passes; otherwise the lane stops and reports |
+
+**Claims now:** this record's list, plus the successor files. Contacts, the installer and
+`underground_entry_progress.gd` are now required, not conditional. Boundaries otherwise unchanged: no Delivery, no
+room world bindings, no Session, no Routes, and in WorldRoutes only `_carry_eligible`. Indexed in
+`docs/handoff/RULINGS.md`.
 

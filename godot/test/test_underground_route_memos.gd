@@ -659,6 +659,122 @@ func test_an_observation_is_kept_only_inside_its_compile() -> void:
 	binding._observe_serial = 0
 	assert_equal(binding._observed_slot(_h.parking, point), -1, "a saturated serial keeps nothing")
 	binding._compiling = false
+	binding._location_token = 0
+
+
+func test_an_answered_observation_spends_first_and_leaves_exactly_what_was_kept() -> void:
+	"""Decision 1953: a repeat inside one compile spends the same checks before it answers, refuses when they do not
+	fit, and leaves `_endpoint` exactly as the kept observation left it."""
+	if not _fixture(): return
+	var binding: WorldRoutes = _h._binding
+	assert_true(binding._locations().read_location_into(_h.parking, binding._endpoint) == &"", "a real record")
+	var point: Vector3i = binding._endpoint.point
+	binding._proof = WorldRoutes.Clearance.new()
+	binding._proof.allocate(Space.Snapshot.new(), Space.MAX_CHECKS)
+	binding._compiling = true
+	binding._location_token = 1
+	binding._remember_observation(_h.parking, point)
+	var kept: WorldRoutes.Locations.Record = WorldRoutes.Locations.Record.new()
+	kept.envelope.resize(6)
+	kept.support.resize(6)
+	WorldRoutes._copy_record(binding._endpoint, kept)
+	binding._endpoint.point = Vector3i(-1, -1, -1)
+	binding._endpoint.payload_revision = 0
+	binding._endpoint.air[0] = -5
+	var before: int = binding._proof.remaining
+	assert_equal(binding._endpoint_observation_refusal(_h.parking, point), &"", "answered")
+	assert_equal(before - binding._proof.remaining, WorldRoutes.Locations.PREPARED_OBSERVATION_CHECKS, "the same spend")
+	assert_true(WorldRoutes._records_equal(binding._endpoint, kept), "left exactly as kept")
+	binding._proof.remaining = WorldRoutes.Locations.PREPARED_OBSERVATION_CHECKS - 1
+	assert_true(binding._endpoint_observation_refusal(_h.parking, point) != &"", "a spend that does not fit refuses")
+	binding._compiling = false
+	binding._location_token = 0
+	binding._proof = null
+
+
+func test_a_compile_answered_from_the_caches_leaves_what_a_checked_compile_leaves() -> void:
+	"""Decision 1953: in a real route preparation, each published edge compiled with the framework's checks on (every
+	cache recomputed live) and again with them off (the caches answering, the pace memo filled by the first) gives
+	the same code, spend, proof error, certificate row, descriptor, endpoint record and pace."""
+	if not _fixture(): return
+	var binding: WorldRoutes = _h._binding
+	var graph: Routes = _h._routes
+	var cold: int = _h._budget.acquire(StationTests.Budget.COLD_BYTES)
+	var token: int = binding.begin_prepare(cold).token
+	assert_true(token != 0, "a real preparation")
+	var compared: int = 0
+	for index: int in (graph._live.edge_count if token != 0 else 0):
+		var edge: Routes.Edge = graph._edge
+		graph._read_edge(graph._live, graph._live.ordered[index], edge)
+		var checked: Array = _compiled(edge, token, true)
+		assert_equal(_compiled(edge, token, false), checked, "edge %d" % edge.ref.x)
+		compared += 1 if checked[0] == &"" else 0
+	assert_true(compared > 0, "some edges qualify")
+	if token != 0: assert_true(binding.abort(token), "the preparation is abandoned")
+	assert_equal(_h._budget.release(cold), &"", "the lease is released")
+
+
+func _compiled(edge: Routes.Edge, token: int, checks: bool) -> Array:
+	"""One compile and everything it leaves; the proof's budget and error are put back for the next."""
+	var binding: WorldRoutes = _h._binding
+	var remaining: int = binding._proof.remaining
+	WorldRoutes.Profiles.CacheChecks.enabled = checks
+	var code: StringName = binding.edge_refusal(edge, token, 0, 0)
+	WorldRoutes.Profiles.CacheChecks.enabled = false
+	var row: int = edge.ref.x
+	var left: Array = [code, remaining - binding._proof.remaining, binding._proof.error,
+		binding._stage.masks.slice(row * WorldRoutes.MASK_BYTES, (row + 1) * WorldRoutes.MASK_BYTES),
+		binding._stage.generations[row], binding._stage.geometry[row], binding._stage.content[row],
+		_fields(binding._descriptor), _fields(binding._endpoint), [binding._pace.ok, binding._pace.value]]
+	binding._proof.remaining = remaining
+	binding._proof.error = &""
+	return left
+
+
+func _fields(object: Object) -> Array:
+	"""Every script variable of `object`, packed arrays copied."""
+	var values: Array = []
+	for property: Dictionary in object.get_property_list():
+		if property["usage"] & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			var value: Variant = object.get(property["name"])
+			values.append(value.duplicate() if value is PackedInt32Array or value is PackedInt64Array else value)
+	return values
+
+
+func test_a_kept_pace_is_read_afresh_when_what_pace_into_reads_moves() -> void:
+	"""Decision 1953: a kept pace answers only while Profiles' load token and every Movement profile's revision and
+	speed equal the preparation's stamp; any of them moving sends the next call to `pace_into`."""
+	if not _fixture(): return
+	var binding: WorldRoutes = _h._binding
+	binding._content_revision = _h._profiles._live.header[0]
+	binding._catalog_revision = binding._catalog._live.header[0]
+	binding._compiling = true
+	binding._pace_serial = WorldRoutes._next_revision(binding._pace_serial)
+	var profile: int = _pacing_profile(binding)
+	assert_true(profile >= 0, "a pacing profile")
+	var slot: int = posmod(profile * 31 - 7, WorldRoutes.PACE_SLOTS)
+	var movement: WorldRoutes.Movement = binding._catalog._movement
+	for move: int in 3:
+		assert_true(binding._pace_inputs_hold(true), "stamped")
+		binding._compile_pace(profile, -1, 0)
+		binding._pace_codes[slot] = &"POISON"
+		assert_equal(binding._compile_pace(profile, -1, 0), &"POISON", "move %d: answered while nothing moved" % move)
+		match move:
+			0: _h._profiles.invalidate_runtime_caches()
+			1: movement._profile_speed_u_per_s[0] += 1
+			2: assert_true(movement.revise_profile(0), "a Movement profile revised")
+		assert_true(binding._compile_pace(profile, -1, 0) != &"POISON", "move %d: read afresh" % move)
+		if move == 1: movement._profile_speed_u_per_s[0] -= 1
+	binding._compiling = false
+
+
+func _pacing_profile(binding: WorldRoutes) -> int:
+	"""The first profile that paces with no family, its descriptor left in the binding."""
+	for row: int in _h._profiles._live.header[1]:
+		if _h._profiles.descriptor_into(row, binding._content_revision, binding._descriptor) != &"": continue
+		if binding._catalog.pace_into(row, binding._descriptor.profile_revision, binding._content_revision, -1, 0,
+				binding._catalog_revision, binding._pace) == &"": return row
+	return -1
 
 
 func test_a_pace_is_kept_only_inside_its_preparation() -> void:

@@ -63,6 +63,9 @@ const EDGE_MEMO_STAMP: int = 6
 ## serial, profile, profile revision, family, variant, paced value (the answer's code is kept in `_pace_codes`).
 const PACE_SLOTS: int = 256
 const PACE_WORDS: int = 6
+## Decision 1953: what `pace_into` reads beyond its arguments, stamped per preparation: Profiles' load token, the level
+## pack's content revision, and each Movement profile's revision and speed.
+const PACE_INPUT_WORDS: int = 10
 ## Decision 1953: a kept observation's key words: compile serial, Location slot, generation, point x, y, z.
 const OBSERVED_KEY: int = 6
 const ENDPOINT_MEMO_ENTRIES: int = 64
@@ -371,6 +374,7 @@ var _observe_next: int = 0
 var _pace_memo: PackedInt64Array = PackedInt64Array()
 var _pace_codes: Array[StringName] = []
 var _pace_serial: int = 1
+var _pace_inputs: PackedInt64Array = PackedInt64Array()
 var _section: Owner.Region = Owner.Region.new()
 var _edge: Routes.Edge = Routes.Edge.new()
 var _pace: IntMath.IntResult = IntMath.IntResult.new()
@@ -464,13 +468,14 @@ func _allocate_scratch() -> void:
 	_endpoint_entry_tags.resize(2 * ENDPOINT_MEMO_ENTRIES)
 	_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
+	_endpoint.support.resize(6)
 	_observed_key.resize(2 * OBSERVED_KEY)
 	_pace_memo.resize(PACE_SLOTS * PACE_WORDS)
 	_pace_codes.resize(PACE_SLOTS)
+	_pace_inputs.resize(PACE_INPUT_WORDS)
 	for record: Locations.Record in _observed:
 		record.envelope.resize(6)
 		record.support.resize(6)
-	_endpoint.support.resize(6)
 	_section.box.resize(6)
 
 
@@ -849,6 +854,7 @@ func _pin_preparation(token: int, cold_token: int, space_token: int, location_to
 func _begin_proof() -> StringName:
 	"""No snapshot or fragments allocate before the exact lease and finite coexistence peak are admitted."""
 	_pace_serial = _next_revision(_pace_serial) # Decision 1953: a new preparation keeps no pace answer.
+	_pace_inputs_hold(true)
 	if _domain._checks < 3 * SOURCE_PASS_CHECKS:
 		return &"WORLD_ROUTE_CHECK_CAPACITY"
 	var code: StringName = _preparation_refusal()
@@ -1233,7 +1239,8 @@ func _compile_pace(profile: int, family: int, variant: int) -> StringName:
 	var at: int = slot * PACE_WORDS
 	var hit: bool = _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS \
 		and _pace_memo[at] == _pace_serial and _pace_memo[at + 1] == profile \
-		and _pace_memo[at + 2] == _descriptor.profile_revision and _pace_memo[at + 3] == family and _pace_memo[at + 4] == variant
+		and _pace_memo[at + 2] == _descriptor.profile_revision and _pace_memo[at + 3] == family and _pace_memo[at + 4] == variant \
+		and _pace_inputs_hold(false)
 	if hit and not Profiles.CacheChecks.enabled: return _replay_pace(at)
 	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
 		family, variant, _catalog_revision, _pace)
@@ -1242,6 +1249,26 @@ func _compile_pace(profile: int, family: int, variant: int) -> StringName:
 	if _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS:
 		_remember_pace(at, profile, family, variant, code)
 	return code
+
+
+func _pace_inputs_hold(stamp: bool) -> bool:
+	"""Decision 1953: whether everything `pace_into` reads beyond its arguments still equals this preparation's stamp
+	(`stamp` true writes it). An unbound catalog or a poisoned Profiles load token never holds."""
+	var movement: Movement = _catalog._movement if _catalog != null else null
+	if movement == null or _catalog._levels == null or _profiles.load_revision() == 0 \
+			or _pace_inputs.size() != PACE_INPUT_WORDS: return false
+	var held: bool = _pace_input(0, _profiles.load_revision(), stamp)
+	held = _pace_input(1, _catalog._levels.content_revision(), stamp) and held
+	for profile: int in Movement.PROFILE_COUNT:
+		held = _pace_input(2 + 2 * profile, movement.profile_revision_of(profile), stamp) and held
+		held = _pace_input(3 + 2 * profile, movement._profile_speed_u_per_s[profile], stamp) and held
+	return held
+
+
+func _pace_input(at: int, value: int, stamp: bool) -> bool:
+	"""Decision 1953: one stamped input word, written when stamping; whether it equals `value`."""
+	if stamp: _pace_inputs[at] = value
+	return _pace_inputs[at] == value
 
 
 func _replay_pace(at: int) -> StringName:

@@ -216,10 +216,10 @@ geometry within the sweeps is unchanged (ADR 1205's carry premise). So stage 1 r
 **Exactness.** Stage 1 changes no outcome. Four checks show it:
 
 - **SHA trace.** The dig benchmark's per-tick SHA-256 of every owner it drives (`REDWALL_DIG_TRACE`; 11,453 lines over
-  the room run and the entry run) is byte-identical to master `cb8035d7`. The benchmark runs with the caches
-  answering.
-- **Checkpoints.** The two underground checkpoints were regenerated, also with the caches answering. Every save
-  point's SHA-256, size and tick equals master's; only the source fingerprint moved.
+  the room run and the entry run) is byte-identical to master `cb8035d7`, and again, after merging #273, to master
+  `9440b9d1`. The benchmark runs with the caches answering.
+- **Checkpoints.** The two underground checkpoints were regenerated, also with the caches answering, before and after
+  merging #273. Every save point's SHA-256, size and tick equals master's; only the source fingerprint moved.
 - **Save/load parity.** `test_settlement_save_underground.gd` runs the live entry chain to tick 8,400 with the caches
   answering, and saves at every checkpoint. Those saves equal the checked run's, byte for byte. Each save, loaded
   into a fresh settlement (which discards the caches) and run to the next checkpoint, saves byte-identically there.

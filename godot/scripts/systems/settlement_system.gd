@@ -2312,8 +2312,9 @@ func _run_stages(tick_index: int) -> bool:
 func _advance_underground_entry(tick_index: int) -> void:
 	"""ADR1210 G7: the planned first-entry foreman takes one fixed tick after ProductiveWork. Its BUILD Jobs are
 	not ticked there (they resolve to no removal Project), so its Work is earned exactly once, here. A refusal
-	stops the chain and raises its gap alert once; it never fails the settlement tick."""
-	if _underground_entry == null or not _underground_entry.is_running(): return
+	stops the chain and raises its gap alert once; it never fails the settlement tick. Decision 1940: a finished
+	entry's crew is ticked on until it has left the route roster and walked out to H."""
+	if _underground_entry == null or not (_underground_entry.is_running() or _underground_entry.is_leaving()): return
 	var code: StringName = _underground_entry.advance(tick_index)
 	if code != &"": _alert_underground_entry(code)
 

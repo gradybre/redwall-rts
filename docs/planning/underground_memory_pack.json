@@ -6832,7 +6832,7 @@
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
       "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
-      "godot/scripts/systems/settlement_system.gd": "baec3b53a9bf97ae783c35739ef710c603bfb0e166c420479e2d599e222267d1"
+      "godot/scripts/systems/settlement_system.gd": "9f5eef3cff07c6c197901d73b10a2f24b1e600b19cbb3c1effda9f1992d72a10"
     },
     "current_composition_source_sha256": {
       "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
@@ -45128,7 +45128,7 @@
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
-    "godot/scripts/systems/settlement_system.gd": "baec3b53a9bf97ae783c35739ef710c603bfb0e166c420479e2d599e222267d1",
+    "godot/scripts/systems/settlement_system.gd": "9f5eef3cff07c6c197901d73b10a2f24b1e600b19cbb3c1effda9f1992d72a10",
     "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
@@ -45152,7 +45152,7 @@
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
-    "godot/scripts/core/underground_room_world_bindings.gd": "4648625c6c0e6223097c604a1ebc0f6d0c0cda198d92e3b7992481b44c94f95b",
+    "godot/scripts/core/underground_room_world_bindings.gd": "36bb09926ee13aa2df2913e18ff264e01e1071e1ff93576add4dc5a15c63da52",
     "godot/scripts/core/underground_route_composition.gd": "e98d4e5314bbeb014b704fe30a9e5482d5631e5432f61e0344786b93c2b6bb23",
     "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
     "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",

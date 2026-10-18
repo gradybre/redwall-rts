@@ -951,10 +951,11 @@ func _certified_profile(binding: WorldRoutes) -> int:
 	return -1
 
 
-func _change_kind(profile: int, edge: Routes.Edge, change: int, family: int, sign: int) -> void:
-	"""Apply (sign 1) or undo (sign -1) one kind change; the certificate flags change is negative-only and restored."""
+func _change_kind(profile: int, edge: Routes.Edge, change: int, family: int, direction: int) -> void:
+	"""Apply (direction 1) or undo (direction -1) one kind change; the certificate flags change is negative-only and
+	restored."""
 	match change:
-		0: edge.mode += sign
-		1: edge.posture += sign
+		0: edge.mode += direction
+		1: edge.posture += direction
 		2: edge.family = family
-		3: _h._profiles._live.flags[profile] = 0 if sign > 0 else WorldRoutes.Profiles.CERT_REQUIRED
+		3: _h._profiles._live.flags[profile] = 0 if direction > 0 else WorldRoutes.Profiles.CERT_REQUIRED

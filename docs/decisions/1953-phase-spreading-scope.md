@@ -211,7 +211,48 @@ geometry within the sweeps is unchanged (ADR 1205's carry premise). So stage 1 r
   last profile is skipped, `_restored_descriptor` writes its descriptor, so `_descriptor` is left exactly as the full
   loop leaves it.
 
-STAGE1_RESULTS
+**Stage 1's results.**
+
+**Exactness.** Stage 1 changes no outcome. Four checks show it:
+
+- **SHA trace.** The dig benchmark's per-tick SHA-256 of every owner it drives (`REDWALL_DIG_TRACE`; 11,453 lines over
+  the room run and the entry run) is byte-identical to master `cb8035d7`. The benchmark runs with the caches
+  answering.
+- **Checkpoints.** The two underground checkpoints were regenerated, also with the caches answering. Every save
+  point's SHA-256, size and tick equals master's; only the source fingerprint moved.
+- **Save/load parity.** `test_settlement_save_underground.gd` runs the live entry chain to tick 8,400 with the caches
+  answering, and saves at every checkpoint. Those saves equal the checked run's, byte for byte. Each save, loaded
+  into a fresh settlement (which discards the caches) and run to the next checkpoint, saves byte-identically there.
+- **Differential compiles.** `test_underground_route_memos.gd` compiles every published edge in a real preparation
+  twice, once with every cache recomputed live and once with the caches answering. The code, spend, proof error,
+  certificate row, descriptor, endpoint record and pace are equal. The first edge is also replayed at every budget up
+  to its whole spend (1,830 checks), so the budget runs out after each profile in turn.
+
+**Mutation.** 29 mutants of the three caches and the pace stamp were run against the memo suite, each last run after
+the test that answers it. 28 were killed. The survivor removes the check-mode comparison in `_other_kind`, which only
+reports a fast path that disagrees with the full proof; it is equivalent while the two agree.
+
+**Memory.** 19,048 B, runtime only, never saved (ADR 1212, census item `world_routes_compile_memos`). The headroom
+below the 150 MB gate goes from 44,220,364 to 44,201,316 B.
+
+**Measured effect.** Master `cb8035d7` against this branch, three alternating rounds each, on a quiet machine
+(load 1.4–2.8). The figures are the means of the three rounds:
+
+| | master | stage 1 | change |
+|---|---:|---:|---:|
+| Room START, p50 | 57.3 ms | 53.5 ms | −6.7% |
+| Room settlement, p50 | 59.0 ms | 54.7 ms | −7.3% |
+| Room settlement, p95 | 71.5 ms | 67.9 ms | −5.1% |
+| Entry stalls, count | 28 | 28 | 0 |
+| Entry stalls, sum | 12.68 s | 11.70 s | −7.7% |
+| Entry stall, p50 | 415 ms | 392 ms | −5.5% |
+| Entry stall, max | 678 ms | 647 ms | −4.5% |
+| Room earning tick, p50 / p95 | 2.10 / 3.28 ms | 2.09 / 3.30 ms | none |
+
+**Where the 2 ms target stands.** Unmet, and stage 1 does not move it materially. The steady earning tick is
+unchanged at about 2.1 ms p50 and 3.3 ms p95 (the dig-tick-cost lanes' territory). A START or settlement is still one
+synchronous tick of about 54 ms in a room and 0.4–0.65 s in the entry. Stage 1 trims the requalification inside those
+ticks by 5–8%. Only stage 2 (§7) takes the stalls out of the tick.
 
 ## 7. Stage 2: a private staged world, prepared ahead in slices
 

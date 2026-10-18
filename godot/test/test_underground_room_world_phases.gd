@@ -83,6 +83,7 @@ class Fixture extends WorldFixture:
 	var corridor: Vector2i = NULL_REF
 	var defer_contacts: bool = false
 	var location_capacity: int = 16 # Fixed fixture arenas; a multi-cube loop raises them before _actual_fixture.
+	var work_x: int = X + 1280 # The WORK station's x; decision 1939's claw Kitchen sets its own row's reach.
 	var edge_capacity: int = 32
 
 	func _actual_fixture(_obstruction: int = 0) -> void:
@@ -98,12 +99,12 @@ class Fixture extends WorldFixture:
 		_world_ref = _residents.directory().create(Directory.KIND_WORLD)
 		_worker = _residents.ref_of(_residents.spawn(&"mole").value)
 		_transforms = Transforms.new(_residents.directory())
-		assert_true(_transforms.place(_worker, X + 1280, FLOOR, Z + 512, 49152), "actual Mole pose")
+		assert_true(_transforms.place(_worker, work_x, FLOOR, Z + 512, 49152), "actual Mole pose")
 		_buildings = Buildings.new(_residents.directory()); _construction = Construction.new(_buildings)
 		_budget = Budget.new()
 		_actual_profiles(); _actual_space(0); _actual_binding()
 		_first = _endpoint(Vector3i(X - 1024, FLOOR, Z + 512), Locations.ROLE_TRANSIT)
-		_last = _endpoint(Vector3i(X + 1280, FLOOR, Z + 512), Locations.ROLE_WORK)
+		_last = _endpoint(Vector3i(work_x, FLOOR, Z + 512), Locations.ROLE_WORK)
 		_bind_phase_provider()
 
 	func _actual_profiles() -> void:
@@ -245,8 +246,8 @@ class Fixture extends WorldFixture:
 		edge.family = -1; edge.variant = 0; edge.mode = Profiles.MODE_WALK
 		edge.posture = Profiles.POSTURE_UPRIGHT; edge.content_revision = 1
 		edge.geometry_revision = _owner.revision(); edge.point_count = 2
-		edge.points = PackedInt32Array([X - 1024, FLOOR, Z + 512, X + 1280, FLOOR, Z + 512])
-		edge.length_u = 2304
+		edge.points = PackedInt32Array([X - 1024, FLOOR, Z + 512, work_x, FLOOR, Z + 512])
+		edge.length_u = work_x - (X - 1024)
 		return edge
 
 	func _bind_phase_provider() -> void:
@@ -299,6 +300,7 @@ class SourceFixture extends Fixture:
 	var accepted_mwu: int = 0
 	var storage_binding: Locations.InventoryLocations = null
 	var observe_final: bool = false
+	var retreat_row: int = 9 # Decision 1938: the claw Kitchen retreats on its own row.
 
 	func _new_provider() -> Provider:
 		"""Only explicit adversarial cases add the post-observation mutation hook."""
@@ -358,7 +360,7 @@ class SourceFixture extends Fixture:
 		"""Use the actual backward source for directed retreat; reuse the same inherited issuer/context."""
 		defer_contacts = true
 		super._bind_phase_provider()
-		assert_equal(provider.bind_room_phase_contacts(_binding, face, placements, _first, 9, 1,
+		assert_equal(provider.bind_room_phase_contacts(_binding, face, placements, _first, retreat_row, 1,
 			Provider.ROOM_CONTROL_BYTES), &"", "actual backward source retreat")
 
 	func _edge() -> Routes.Edge:
@@ -374,7 +376,7 @@ class SourceFixture extends Fixture:
 		assert_equal(_routes.stage_add(token, forward).error, &"", "full forward5 clearance")
 		var reverse: Routes.Edge = _edge()
 		reverse.from_location = _last; reverse.to_location = _first
-		reverse.points = PackedInt32Array([X + 1280, FLOOR, Z + 512, X - 1024, FLOOR, Z + 512])
+		reverse.points = PackedInt32Array([work_x, FLOOR, Z + 512, X - 1024, FLOOR, Z + 512])
 		assert_equal(_routes.stage_add(token, reverse).error, &"", "full backward9 clearance")
 		assert_equal(_binding.seal(token), &"", "actual directed certificates sealed")
 		assert_equal(_binding.publish(token), &"", "actual graph plus certificate publication")

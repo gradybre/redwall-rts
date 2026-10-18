@@ -100,7 +100,12 @@ static func _remember_anchor(profiles: Profiles, anchor: int, revision: int, con
 
 
 static func _anchor_refusal_live(profiles: Profiles, anchor: int, revision: int, content: int) -> StringName:
-	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors."""
+	"""The exact finite forward/backward programme fixes heading and source; ordinary untagged rows are not anchors.
+	Decision 1939: a program-owned source's (the claws') READY row anchors its own family."""
+	if _owned(profiles, anchor):
+		var policy: int = Profiles.selection_policy_leaf(profiles, anchor, revision, content)
+		return &"" if (policy == Profiles.POLICY_READY_FORWARD or policy == Profiles.POLICY_READY_BACKWARD) \
+			and Routes._source_profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
 	if Routes._step_closure(profiles):
 		return &"" if anchor >= 2 and anchor < StepProgram.GROUND \
 			and StepProgram.profile_refusal(profiles, anchor, revision, content) == &"" else REFUSE_FAMILY
@@ -226,6 +231,7 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
 		if profiles._live.fields[field * stride + row] != profiles._live.fields[field * stride + anchor]: return false
 	for field: int in range(Profiles.L_QUANTITY_MIN, Profiles.L_QUANTITY_MAX + 1):
 		if profiles._live.quantities[field * stride + row] != profiles._live.quantities[field * stride + anchor]: return false
+	if _owned(profiles, anchor): return _owned_compatible(profiles, anchor, row)
 	if Routes._step_closure(profiles):
 		return _canonical_compatible(profiles, anchor, row)
 	var policy: int = Profiles.selection_policy_leaf(profiles, row, profiles._live.quantities[row], profiles._live.header[0])
@@ -234,6 +240,29 @@ static func _compatible(profiles: Profiles, anchor: int, row: int) -> bool:
 	return row >= 2 and row < 10 and profiles._live.fields[Profiles.F_YAW * stride + row] \
 		== profiles._live.fields[Profiles.F_YAW * stride + anchor] \
 		and SourceProgram.profile_refusal(profiles, row, profiles._live.quantities[row], profiles._live.header[0]) == &""
+
+
+static func _owned(profiles: Profiles, row: int) -> bool:
+	"""Decision 1939: a row of a source its own program owns (the claws, Routes' `_source_owner`), not the parent or
+	step program's source 0, whose rows the fixed positions below describe."""
+	return Routes._source_owner(profiles, row, profiles._live.header[0]) >= 0
+
+
+static func _owned_compatible(profiles: Profiles, anchor: int, row: int) -> bool:
+	"""Decision 1939: in a program-owned family, the READY and short-step rows at the anchor's heading and the source's
+	all-yaw canonical ground WALK share travel, each passing its owner's own source proof (Routes'). Stair and other
+	rows are not travel legs."""
+	var stride: int = profiles._profile_capacity
+	var revision: int = profiles._live.quantities[row]
+	var policy: int = Profiles.selection_policy_leaf(profiles, row, revision, profiles._live.header[0])
+	var exact: bool = profiles._live.fields[Profiles.F_YAW_KIND * stride + row] == Profiles.YAW_EXACT \
+		and profiles._live.fields[Profiles.F_YAW * stride + row] == profiles._live.fields[Profiles.F_YAW * stride + anchor]
+	var travel: bool = exact and (policy == Profiles.POLICY_READY_FORWARD or policy == Profiles.POLICY_READY_BACKWARD \
+		or policy == Profiles.POLICY_SHORT_FORWARD or policy == Profiles.POLICY_SHORT_BACKWARD)
+	var ground: bool = policy == Profiles.POLICY_CANONICAL_GROUND \
+		and profiles._live.fields[Profiles.F_YAW_KIND * stride + row] == Profiles.YAW_ALL \
+		and profiles._live.fields[Profiles.F_MODE * stride + row] == Profiles.MODE_WALK
+	return (travel or ground) and Routes._source_profile_refusal(profiles, row, revision, profiles._live.header[0]) == &""
 
 
 static func _canonical_compatible(profiles: Profiles, anchor: int, row: int) -> bool:

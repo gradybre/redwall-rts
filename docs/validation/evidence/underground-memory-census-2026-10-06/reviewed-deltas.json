@@ -2392,7 +2392,7 @@
     {
      "bytes": 0,
      "carried_by": "new retained (world_routes_compile_memos)",
-     "store": "decision 1953: per-compile endpoint observations (_observed_key I64[12], two Locations.Record copies in _observed) and the per-preparation pace memo (_pace_memo I64[256 x 6], _pace_codes 256 StringName slots); counted by the census item world_routes_compile_memos, never saved"
+     "store": "decision 1953: per-compile endpoint observations (_observed_key I64[12], two Locations.Record copies in _observed's two Variant slots) and the per-preparation pace memo (_pace_memo I64[256 x 6], _pace_codes 256 StringName slots, input stamp _pace_inputs I64[10]); counted by the census item world_routes_compile_memos, never saved"
     },
     {
      "bytes": 24,
@@ -2483,6 +2483,10 @@
       "Array[StringName]"
      ],
      [
+      "_pace_inputs",
+      "PackedInt64Array"
+     ],
+     [
       "_pace_memo",
       "PackedInt64Array"
      ],
@@ -2513,6 +2517,7 @@
      "_envelope.resize(6)",
      "_observed_key.resize(2 * OBSERVED_KEY)",
      "_pace_codes.resize(PACE_SLOTS)",
+     "_pace_inputs.resize(PACE_INPUT_WORDS)",
      "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
      "out.resize(CERT_WIRE_BYTES)",
@@ -2583,6 +2588,10 @@
      [
       "OBSERVED_KEY",
       "6"
+     ],
+     [
+      "PACE_INPUT_WORDS",
+      "10"
      ],
      [
       "PACE_SLOTS",
@@ -2707,7 +2716,7 @@
      ".new(": 2,
      "=[": 3,
      "PackedInt32Array(": 3,
-     "PackedInt64Array(": 9,
+     "PackedInt64Array(": 10,
      "range(": 1
     }
    }

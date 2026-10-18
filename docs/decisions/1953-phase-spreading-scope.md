@@ -159,6 +159,16 @@ editing files held by other lanes. If (C)'s size is not wanted now, **(D)** is t
 
 ## 6. Stage 1: what was measured before building, and what was built
 
+**How stage 1 changed, and who directed it.** The ruling's stage 1 was a speculative, off-live compile of the next
+transition's route requalification, reused at START where its inputs are provably unchanged. Measuring first showed
+that this cannot stay exact for the expensive part (below: a geometric proof's spend depends on the whole staged image),
+and that what can be reused exactly is the work inside one preparation that does not depend on the image. The lane
+reported that to the coordinator on 2026-10-17. The coordinator directed: carry on with stage 1 as the exact
+within-preparation reuse (the pace memo and once-per-edge endpoint observation "help under any later choice"), prove it
+with the trace and save/load parity, and write up stage 2 for Brendan. So stage 1 as built is **exact synchronous
+reuse, not speculation**: it shortens the stalls but cannot remove them. Removing them is stage 2 (§7), which goes back
+to Brendan with these results.
+
 **Where the entry stall time goes.** Real timers at `537a9a2e` (not instrumentation), entry run, 28 ticks of 20 ms or
 more, 13.6 s in all:
 
@@ -188,9 +198,11 @@ geometry within the sweeps is unchanged (ADR 1205's carry premise). So stage 1 r
   prepared observation is answered from one of two kept records (`_observed`, `_observed_key`), with the same
   `PREPARED_OBSERVATION_CHECKS` spent first. Failures, and the unprepared live path that tests subclass, are always
   observed afresh.
-- **Pace once per preparation.** `_catalog.pace_into` is a function of the catalog, Profiles and Movement, which are
-  sealed for the whole preparation, and of (profile, revision, family, variant). A repeat inside one preparation
-  (`_pace_serial`) is answered from `_pace_memo`. A refusal leaves `_pace` untouched and an answer calls
+- **Pace once per preparation.** `_catalog.pace_into` is a function of (profile, revision, family, variant), the
+  catalog and content revisions pinned for the preparation, and what it reads beyond them: Profiles' load token, the
+  level pack's content revision, and each Movement profile's revision and speed. Those are stamped at `_begin_proof`
+  (`_pace_inputs`). A repeat inside one preparation (`_pace_serial`) is answered from `_pace_memo` only while every
+  stamped word still holds; nothing in production moves them mid-preparation, but nothing forbids it either. A refusal leaves `_pace` untouched and an answer calls
   `IntResult.succeed`, exactly as the call does. The catalog's own scratch (`_descriptor`, `_number`) is read only
   inside the same call.
 - **Refusing another kind's profiles from the bank's own columns.** About 85 profiles are tried per edge, and most are

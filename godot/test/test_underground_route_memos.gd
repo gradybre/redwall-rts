@@ -11,6 +11,8 @@ const Space := StationTests.Space
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MISS: int = -2
+## Decision 1953: the most budgets one compile is replayed at (its whole spend, which is about 1,800 checks).
+const SHORT_BUDGETS: int = 4096
 
 var _h: StationTests.StepFixture = null
 
@@ -710,14 +712,37 @@ func test_a_compile_answered_from_the_caches_leaves_what_a_checked_compile_leave
 		assert_equal(_compiled(edge, token, false), checked, "edge %d" % edge.ref.x)
 		compared += 1 if checked[0] == &"" else 0
 	assert_true(compared > 0, "some edges qualify")
+	if token != 0: _assert_short_budgets_leave_the_same(token)
 	if token != 0: assert_true(binding.abort(token), "the preparation is abandoned")
 	assert_equal(_h._budget.release(cold), &"", "the lease is released")
 
 
+func _assert_short_budgets_leave_the_same(token: int) -> void:
+	"""The first edge again at every budget up to its whole spend (at most SHORT_BUDGETS), so the budget runs out after
+	each profile in turn, including after profiles refused on kind."""
+	var binding: WorldRoutes = _h._binding
+	var graph: Routes = _h._routes
+	var edge: Routes.Edge = graph._edge
+	graph._read_edge(graph._live, graph._live.ordered[0], edge)
+	var full: int = binding._proof.remaining
+	var spent: int = _compiled(edge, token, true)[1]
+	assert_true(spent > 0 and spent <= SHORT_BUDGETS, "the whole spend is replayed")
+	for budget: int in range(1, mini(spent, SHORT_BUDGETS) + 1):
+		binding._proof.remaining = budget
+		var checked: Array = _compiled(edge, token, true)
+		binding._proof.remaining = budget
+		assert_equal(_compiled(edge, token, false), checked, "budget %d" % budget)
+	binding._proof.remaining = full
+
+
 func _compiled(edge: Routes.Edge, token: int, checks: bool) -> Array:
-	"""One compile and everything it leaves; the proof's budget and error are put back for the next."""
+	"""One compile and everything it leaves, from a poisoned descriptor and pace so nothing is inherited from the
+	compile before; the proof's budget and error are put back for the next."""
 	var binding: WorldRoutes = _h._binding
 	var remaining: int = binding._proof.remaining
+	binding._descriptor.profile_id = -9
+	binding._descriptor.mode = -9
+	binding._pace.succeed(-9)
 	WorldRoutes.Profiles.CacheChecks.enabled = checks
 	var code: StringName = binding.edge_refusal(edge, token, 0, 0)
 	WorldRoutes.Profiles.CacheChecks.enabled = false

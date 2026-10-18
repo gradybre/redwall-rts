@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "a71350dccc06edd0fe77ac2362cfd2c78f1e52984dfa605afaca8b53376fc409"
+REVIEWED_SHA = "22099ef921c61448494559e74915637136909472007dfe4179cac57e7058ab76"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -226,18 +226,20 @@ def world_routes_compile_memos(memory, index: dict) -> dict:
     """Decision 1953: WorldRoutes' per-compile endpoint observations and per-preparation pace memo, fixed packets
     retained for the World's life (their contents live for one compile or one preparation)."""
     source = module(index, CORE + "underground_world_routes.gd").text
-    require(re.findall(r"^\t(_observed_key|_pace_memo|_pace_codes)\.resize\((.+)\)$", source, re.M)
+    require(re.findall(r"^\t(_observed_key|_pace_memo|_pace_codes|_pace_inputs)\.resize\((.+)\)$", source, re.M)
             == [("_observed_key", "2 * OBSERVED_KEY"), ("_pace_memo", "PACE_SLOTS * PACE_WORDS"),
-                ("_pace_codes", "PACE_SLOTS")], "WorldRoutes compile memo packets")
+                ("_pace_codes", "PACE_SLOTS"), ("_pace_inputs", "PACE_INPUT_WORDS")], "WorldRoutes compile memo packets")
     require("var _observed: Array[Locations.Record] = [Locations.Record.new(), Locations.Record.new()]" in source,
             "two kept observation records")
     key = memory.resolve(index, "underground_world_routes", "OBSERVED_KEY")
     slots = memory.resolve(index, "underground_world_routes", "PACE_SLOTS")
     words = memory.resolve(index, "underground_world_routes", "PACE_WORDS")
+    inputs = memory.resolve(index, "underground_world_routes", "PACE_INPUT_WORDS")
+    require(inputs == 2 + 2 * memory.resolve(index, "movement", "PROFILE_COUNT"), "pace input stamp words")
     record = packet(memory, index, CORE + "underground_locations.gd", "Record") + 48 + 72
     # An Array element is one Variant (24 B on the 64-bit qualification build); the StringName codes are interned.
-    rows = {"observation_keys": 8 * 2 * key, "observation_records": 2 * record, "pace_words": 8 * slots * words,
-            "pace_codes": 24 * slots}
+    rows = {"observation_keys": 8 * 2 * key, "observation_slots": 24 * 2, "observation_records": 2 * record,
+            "pace_words": 8 * slots * words, "pace_codes": 24 * slots, "pace_inputs": 8 * inputs}
     return {"rows": rows, "bytes": sum(rows.values()),
             "scope": "Runtime only, never saved; allocated once with WorldRoutes' fixed scratch."}
 

@@ -331,8 +331,8 @@ DECISION_1952_ADDED=underground_pack['current_source_census']['world_routes_endp
 assert DECISION_1952_ADDED==140872
 # Decision1953 (stage 1): the census adds WorldRoutes' route compile memos (runtime only, never saved); its own row.
 DECISION_1953_ADDED=underground_pack['current_source_census']['world_routes_compile_memos']['bytes']
-assert DECISION_1953_ADDED==18920
-assert '| Route compile memos (WorldRoutes; runtime only) | 1 | 18920 | 18920 |' in s
+assert DECISION_1953_ADDED==19048
+assert '| Route compile memos (WorldRoutes; runtime only) | 1 | 19048 | 19048 |' in s
 assert '| Endpoint-proof memo (WorldRoutes; runtime only) | 1 | 140872 | 140872 |' in s
 # Decision1936: the census adds the room-dig runtime the host composes with the Session's room owners, at every
 # bound at once (record pool, kept foremen, orders, 256 builders, one record image). It is its own row. Decision
@@ -526,8 +526,8 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
 assert len(allocations)==65 and sum(allocations)==DECISION_1953_ADDED+DECISION_1972_CARRY+DECISION_1972_PROFILE+DECISION_1952_ADDED+DECISION_1936_RUNTIME+DECISION_1229_ADDED+DECISION_1217_PROFILE+DECISION_1221_IMAGES+DECISION_1223_ADDED+DECISION_1219_ADDED+DECISION_1218_RECORD+DECISION_1212_MUTABLE+DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==97409948 # decision 1952: +140,872; decision 1972: +37,880; decision 1953: +18,920
-assert live==105798556 and candidate==91157400 and live+candidate==196955956
+assert payload==97410076 # decision 1952: +140,872; decision 1972: +37,880; decision 1953: +19,048
+assert live==105798684 and candidate==91157528 and live+candidate==196956212
 GATE=underground_pack['gate_bytes'] # REQ-SET-163 as amended by DEC-053 (supersedes DEC-051): 150 MB.
 assert GATE==150000000
 assert live==underground_pack['live_with_reserve_bytes']
@@ -597,7 +597,7 @@ assert [tuple(c[:7]) for c in budget_rows]==[(t,m,a,str(w),str(len(m.split(', ')
 assert sum(int(c[6]) for c in budget_rows)==DECISION_1880_PLANNED
 assert f'The table sums to **{DECISION_1880_PLANNED} bytes**' in s
 DECISION_1880_LIVE=live+DECISION_1880_PLANNED
-assert (payload+DECISION_1880_PLANNED,DECISION_1880_LIVE,GATE-DECISION_1880_LIVE)==(114367388,122755996,27244004) # decision 1972: +37,880; decision 1953: +18,920
+assert (payload+DECISION_1880_PLANNED,DECISION_1880_LIVE,GATE-DECISION_1880_LIVE)==(114367516,122756124,27243876) # decision 1972: +37,880; decision 1953: +19,048
 assert DECISION_1880_LIVE<GATE
 for label,value in [('Painted-room budget held outside the live total (decision 1880)',DECISION_1880_PLANNED),
                     ('One live world plus reserve with decision 1880 folded in',DECISION_1880_LIVE),
@@ -646,10 +646,10 @@ assert (DECISION_1880_Q1_BYTES,DECISION_1880_STORE_CONTAINERS)==(23265280,811008
 # when G is designed. C+G's projection without it (the 1880 budget and Q1's projects and containers) leaves this
 # much for G. It is a figure, not an allowance.
 DECISION_1880_LEFT_FOR_G=GATE-DECISION_1880_LIVE-DECISION_1880_Q1_BYTES
-assert DECISION_1880_LEFT_FOR_G==3978724>0 # decision 1952: -140,872; decision 1972: -37,880; decision 1953: -18,920
+assert DECISION_1880_LEFT_FOR_G==3978596>0 # decision 1952: -140,872; decision 1972: -37,880; decision 1953: -19,048
 for text in ['projects ≤ 81920 items + 81920 rooms + 1024 outdoor items = 164864','containers ≤ 164864 + 18432 = 183296',
-             'that is 23265280 bytes. Slice G sizes its store containers','leaves 3978724 bytes for slice G','projects ≤81920+81920+1024=164864',
-             'containers ≤183296','164864 projects and 183296 containers','headroom is 27244004 bytes (27.2 MB)']:
+             'that is 23265280 bytes. Slice G sizes its store containers','leaves 3978596 bytes for slice G','projects ≤81920+81920+1024=164864',
+             'containers ≤183296','164864 projects and 183296 containers','headroom is 27243876 bytes (27.2 MB)']:
  assert text in s,text
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}

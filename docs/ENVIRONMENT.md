@@ -199,6 +199,11 @@ python3 tools/demo_texture_imports.py --godot godot         # the compression st
   release export flushes only on error lines. The debug template reports both as SCRIPT ERROR and carries on. The
   demo's playtest log (`user://logs/playtest-*.log`, beside `godot.log`) flushes every line, for this reason. On
   Windows it is in `%APPDATA%\Godot\app_userdata\Redwall Demo\logs`.
+- **The clean import can crash, and its exit status is the only sign** (decision 1953). On 4.7.2 macOS,
+  `godot --headless --path godot --editor --quit` after `rm -rf godot/.godot` once died with signal 11 while
+  reimporting a font (`propagate_notification()` called from a worker thread), exit 134. A suite run on that
+  half-imported project then hung for hours in a live harness (`demo_lens_live.gd`). Check the import's exit status
+  before a full run, and import again if it is not 0.
 - **A script `Logger` held in a static var aborts the process at exit** (`recursive_mutex lock failed`, status 134):
   remove it with `OS.remove_logger` and drop the last reference while the tree is still up.
 - **A screenshot stalls the clock into a CRITICAL pause.** Reading back and PNG-encoding a HiDPI frame

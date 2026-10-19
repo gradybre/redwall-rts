@@ -179,6 +179,26 @@ func test_a_work_station_box_may_not_meet_another_rooms_claim() -> void:
 		"the claimed box decides, not the AABB")
 	_section(q, second)
 	assert_true(Planner._foreign_claim(q, 0, in_corridor), "a room's section over another room's Site: no such survey")
+	q.air_counts[0] = 2 # Extra boxes: proved as a route sweep, never held to the Site survey.
+	assert_true(Planner._work_box_clear(q, 0, in_corridor), "two claimed boxes are not checked here")
+	q.air_counts[0] = 1
+	assert_false(Planner._work_box_clear(q, 0, in_corridor), "one claimed box is")
+	var owner: Owner = _h._owner
+	var row: int = q.sections[0]
+	var kept: Vector2i = Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row])
+	owner._r_owner_slot[row] = _h.endpoints._world.x; owner._r_owner_generation[row] = _h.endpoints._world.y # Negative-only.
+	for axis: int in 6: q.air[axis] = [Phase.X - 1424, Phase.FLOOR, Phase.Z + 112, Phase.X - 504, Phase.FLOOR + 900,
+		Phase.Z + 912][axis]
+	assert_false(Planner._foreign_claim(q, 0, in_second), "a world section: no Site, and this box meets no claim")
+	for axis: int in 6: q.air[axis] = [Phase.X + 2160, Phase.FLOOR, Phase.Z + 2160, Phase.X + 3080, Phase.FLOOR + 900,
+		Phase.Z + 2960][axis]
+	assert_true(Planner._foreign_claim(q, 0, in_second), "a world section exempts not even the room the box stands in")
+	owner._r_owner_slot[row] = kept.x; owner._r_owner_generation[row] = kept.y
+	var project: Vector2i = Vector2i(7, 3)
+	assert_true(Planner._exempt(Owner.CLAIM_CONSTRUCTION, project, NULL_REF, project), "the Site's own phase claim")
+	assert_false(Planner._exempt(Owner.CLAIM_CONSTRUCTION, project, second, Vector2i(8, 3)), "another phase's claim")
+	assert_true(Planner._exempt(Owner.CLAIM_ROOM, second, second, NULL_REF), "the survey's own room's claim")
+	assert_false(Planner._exempt(Owner.CLAIM_ROOM, first, second, NULL_REF), "another room's claim")
 
 
 func _query(room: Vector2i) -> Planner.Query:

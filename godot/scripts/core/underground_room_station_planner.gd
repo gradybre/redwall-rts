@@ -557,7 +557,7 @@ static func _station_fits(q: Query, index: int) -> bool:
 	_slice(q.tables[SECTION], section, q.other)
 	if q.footing[0] < q.other[0] or q.footing[2] < q.other[2] or q.footing[3] > q.other[3] or q.footing[5] > q.other[5]:
 		return false
-	return q.air_counts[index] > 1 or not _foreign_claim(q, index, point)
+	return _work_box_clear(q, index, point)
 
 
 static func _station_air(q: Query, index: int, point: Vector3i, last: bool) -> bool:
@@ -758,6 +758,12 @@ static func _fits(q: Query, low: Vector3i, high: Vector3i, stroke: bool) -> bool
 static func _set_box(out: PackedInt32Array, low: Vector3i, high: Vector3i) -> void:
 	"""Write a half-open box from two corners."""
 	out[0] = low.x; out[1] = low.y; out[2] = low.z; out[3] = high.x; out[4] = high.y; out[5] = high.z
+
+
+static func _work_box_clear(q: Query, index: int, point: Vector3i) -> bool:
+	"""Decision 1942: the WORK station's air as Locations will prove it: two or more claimed boxes go through the
+	route-sweep survey (no claim check); one box, or the one AABB, must meet no claim its Site survey keeps."""
+	return q.air_counts[index] > 1 or not _foreign_claim(q, index, point)
 
 
 static func _foreign_claim(q: Query, index: int, point: Vector3i) -> bool:

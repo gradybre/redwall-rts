@@ -348,6 +348,7 @@ func test_a_stopped_foreman_under_a_digging_or_done_record_is_refused() -> void:
 	for state: int in [Runtime.RECORD_DIGGING, Runtime.RECORD_DONE]:
 		var wrong: PackedByteArray = bytes.duplicate()
 		wrong.encode_s32(STATE_AT, state)
+		wrong[FLAG_AT] = 0 # Only the foreman's state may refuse it (the release flag is checked on its own).
 		assert_equal(_restored(wrong), Progress.REFUSE_SHAPE, "a stopped foreman under state %d" % state)
 
 

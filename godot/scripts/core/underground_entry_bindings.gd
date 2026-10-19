@@ -415,7 +415,11 @@ const CUBE_KEY_OFFSET: int = 1 << 17
 
 func _entry_cube_key(origin: Vector3i) -> int:
 	"""A world cube origin's lattice key relative to the Space datum."""
-	var datum: Vector3i = _entry_placements._space._domain._datum
+	return _cube_key(origin, _entry_placements._space._domain._datum)
+
+
+static func _cube_key(origin: Vector3i, datum: Vector3i) -> int:
+	"""The lattice key of the cube holding `origin`: three 18-bit offset lattice coordinates."""
 	return ((Locations._floor_div(int(origin.x) - datum.x, 1024) + CUBE_KEY_OFFSET) << 36) \
 		| ((Locations._floor_div(int(origin.y) - datum.y, 1024) + CUBE_KEY_OFFSET) << 18) \
 		| (Locations._floor_div(int(origin.z) - datum.z, 1024) + CUBE_KEY_OFFSET)

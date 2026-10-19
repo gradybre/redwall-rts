@@ -310,9 +310,42 @@ crews and claims are presentation-side, unsaved and outside the census.
   proved stops after 5-15 cubes on a copy of this work. Whichever of the two lanes merges second raises this test's
   stop point to five cubes as a cross-check. C3 does not touch the station planner.
 
-## Gates
+## Gates (final, at `14fd5103`; origin/master `8a7d045d` had not moved)
 
-Recorded at the end of the lane: see "Gates (final)" below.
+- **Full CI-style run:** fresh import (exit 0) in a clean worktree, art-free, `./tools/run_tests_parallel.sh`, 10
+  shards:
+  - every shard and the verify passed: 551 suite files, each run exactly once;
+  - 13,060 tests and 1,475,436 assertions, 0 failures;
+  - 0 unexpected errors and 0 unexpected warnings (289 expected, 456 tolerated);
+  - 0 leaked objects and 0 leaked resources.
+- **The run before it found two pins.** The earlier run, at `d57fc567`, failed one suite: decision 1152's pin of the
+  old whole-host contract (§3a), since updated. The run before that, at `f28e805a`, failed the registry pins for
+  record version 2 and the demo input harness's Opened words, both since updated.
+- **Analyzer:** `tools/gdscript_warnings.py --max 0`: 0 warnings in 1,634 files.
+- **Contracts:** 30 of 30 pass, including:
+  - `decision_numbers.py`;
+  - `ready07_arithmetic.py`;
+  - the memory budget, census and registry checks;
+  - `generate_canonical_state_table.py --check`.
+- **SHA trace** (`tools/benchmark_dig_tick.gd`): byte-identical to master on both benches (room `007e8e18…`, entry
+  `189417c8…`).
+- **Checkpoints:** regenerated. The saves are byte-identical; only the source fingerprints moved.
+- **Memory:** this lane adds +34,426 B (runtime +34,320, declarations +106). Headroom goes from 44,201,316 to
+  44,166,890 B, and 3,944,170 B are left for slice G. The review fixes add 0 B: three reviewed allocation sites, one
+  way-in live at a time.
+- **Live harness** `demo_build_crew_live.gd`:
+  - 40 of 40 at 1280×720 and at 1920×1080, windowed with frames captured, and 40 of 40 headless;
+  - the dig loop harness and the input harness pass inside the full run.
+- **Independent review:** one `code-reviewer` pass. All of CRITICAL, HIGH and MEDIUM were fixed, or recorded as D2's
+  or slice H's (§3b).
+- **Mutation:** 97 of my own mutants (core 40 + 19, occupancy 5, demo 33).
+  - All killed except four that are equivalent:
+    - R15: the reserved-resident byte filter is only a shortcut before the exact check;
+    - C10: no-Sites refused before or after the contacts, with the same outcome and nothing kept;
+    - N19: the way-in reset at mount is redundant with the reset at release and the gated bind;
+    - D10: every crew number that has waiting cells is held.
+  - The reviewer's M6 survives: a DONE record whose foreman's crew is not out. It needs a forged foreman image, and
+    no tick produces one.
 
 ## Source
 

@@ -16,6 +16,10 @@ What changed since the 2026-10-12 section below, which is kept as it was written
   - It orders the room with the 1-4 moles the player named, or the first idle mole.
   - The room foreman digs it, each phase paying when its work starts (BUILD-REQ-019).
   - `stop_underground_room` is the player's one Stop.
+  - Room phases now admit residents who are not crew (ADR 1219's reach rule, decision 1991 §3a). Before, any surface
+    resident refused every phase.
+  - A crew digs with as many members as the access has parkings for. On the claw Kitchen that is two; the others
+    stay free (§3b).
 - **No painted room is dug for real yet.** No level has a way in: the qualified stair ends at the sill, and level 1's
   floors are 5 m down. The route's way-in seam (`bind_underground_way_in`) is slice D2's to fill, after slice D's M5
   flight; until then every painted room is refused `ROOM_DIG_NO_WAY_IN`. Materials for a dig below the surface also

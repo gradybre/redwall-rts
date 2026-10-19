@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. Stopped on 2026-10-19 at the check bound (P-2044-15, "Third stop" at the end): steps 2.2–2.8 are built and the live chain reaches module 0's T3. On 2026-10-18 the lane stopped twice at the claim boundary (P-2044-12, then P-2044-13 and P-2044-14); Brendan ruled all three (a) the same day, with a budget-only pre-clearance (see the rulings at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. Stopped on 2026-10-19 at landing 1 (P-2044-16, "Fourth stop" at the end): the M2 interim is built and its chain reaches module 0's sill; the rows P-2044-14 allows cannot cross a landing. Before that, the check bound (P-2044-15, ruled). On 2026-10-18 the lane stopped twice at the claim boundary (P-2044-12, then P-2044-13 and P-2044-14); Brendan ruled all three (a) the same day, with a budget-only pre-clearance (see the rulings at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -723,3 +723,49 @@ If the skip cannot be proved exact, the lane stops and the outcome change goes t
 
 **Order:** record these; merge master `8a7d045d`; build and gate the M2 interim inside today's bound; then stop and
 name the compile skip's functions and its proof, for clearance while M2's PR runs CI.
+
+## Fourth stop: M2 cannot leave the stair at landing 1 on the ruled rows (2026-10-19)
+
+**Built** (commit `64938108`): the M2 interim. `publish_m5_flight.py --m2` publishes `qualified-stairs-m2-v1` (12
+rows, 15 assemblies, 97 parts; Frontier INSTALL/STATION/CUT/BEARING/ENDPOINT/EPISODE 15/49/11/80/97/34, 14,340
+bytes, so it fits the original 28,597 bound), `flight_geometry.gd` gains `LAYOUT_M2`, and the runtime mounts it through
+`tread_geometry.gd`'s `MODULES` (2), from which the work area's rows (12), endpoints (29) and batches (5) follow. M5's
+bundle still rebuilds byte for byte; the switch back is that count and the three bundle preloads.
+
+**On the live mount** the chain runs every task of stages 0–2 (module 0's cuts, the top metre of all 12 rows, L0 and
+T0–T5) and refuses at module 0's sill, the installation that makes landing 1. Two refusals there were fixed: a strip
+in the sill's bearing range is natural floor for Contacts and is no bearing the sill must touch (bindings
+`_timber_connections`). The third is not a bug:
+
+- The sill's INSTALL creates the landing's stops. **F_back** (F's point, 343 u beyond the sill's far edge, on the
+  narrow retreat 47, the T0′ order's retreat) has the retreat's body box, which reaches 412 u uphill and 930 u up. The
+  sill's deck (SUPPORT, 64–128 u above the floor) begins 343 u uphill, so the stop's air overlaps the sill by 69 u and
+  the bindings refuse it (`ENTRY_INSTALLED_CONTACT_REQUIRED`). This is real: a mole standing there is inside the sill.
+- **The same is true of every ground row this lane proposed at the landing**, which P-2044-14 (a) adopted on that
+  recommendation. Approach 43 (F → P′, F → H′) carries the same +412 u body: 69 u into the sill. Approach 45 (U0′ → U)
+  ends at U (169 u beyond) facing uphill with its body 521 u ahead: 352 u into the sill. The claw WALK 42 (the floor
+  walks to the deep stations) is ±712 u: 369 u into the sill at F, and still 26 u at F′ (686 u). The recommendation
+  did not check the ground rows' bodies against the sill deck. That was this lane's error.
+- At F′ (686 u), rows 43 and 47 clear the sill by 274 u and row 45 by 165 u. But F and U are joined to F′ only by
+  decision 1972's walk-off and back-up (rows 71/72), which P-2044-14 (a) deferred to stair-leg Delivery with their
+  deck question (their floor decks reach back under the stair and need the Room's support there).
+
+So no landing can be crossed on the rows P-2044-14 (a) allows. M2 cannot reach module 1, and M5 cannot either.
+
+### P-2044-16 — Crossing a landing (for the coordinator and Brendan)
+
+- **(a) Publish rows 71/72 at each landing and join the ground at F′.** F → F′ on the walk-off (71) and F′ → U on the
+  back-up (72), as decision 1972 built them. The ground joins move to F′: F′ → P′ and F′ → H′ on 43, H′ → F′ on 47 (the
+  T0′ order's retreat), P′ → F′ on 45 (replacing U0′ → U). The deep stations' WALK 42 joins start from P′ (712 u
+  clear) rather than F. The walk-off and back-up decks need the floor under them to be the Room's SUPPORT: retain
+  module j-1's floor (never dug deeper, so safe to retain; P-2044-3 (b) for those rows only). This needs a ruling,
+  because it reverses P-2044-14's "no edges on rows 71/72" and widens P-2044-3's retention. No file outside the claims.
+- (b) Clip the 71/72 decks in a data successor. This needs the stair motion owner, which is off-limits (P-2044-14's (b)).
+- (c) Land M1 now: today's one module (v10's entry) with M2's runtime, and take the landing with (a) or (b).
+
+**Recommendation: (a).** It uses only motion that is already qualified, and the retention is of floor that is never
+undermined.
+
+**Measured on M2** (scratch mount, through module 0's T5): the WorldRoutes peak is **766,237 of 1,048,576 (73.1 %)**,
+at a stage-2 phase with 48 live edges; T5's completion used 700,292. Image volumes reach 99 (master's 74–79). No other
+cold operation refused before the sill.

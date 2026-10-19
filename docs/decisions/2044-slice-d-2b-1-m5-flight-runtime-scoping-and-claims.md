@@ -769,3 +769,34 @@ undermined.
 **Measured on M2** (scratch mount, through module 0's T5): the WorldRoutes peak is **766,237 of 1,048,576 (73.1 %)**,
 at a stage-2 phase with 48 live edges; T5's completion used 700,292. Image volumes reach 99 (master's 74–79). No other
 cold operation refused before the sill.
+
+## Brendan's ruling on P-2044-16 (2026-10-19)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2044-16 | **(a), "Publish rows 71/72"** | At each landing the walk-off (71, F → F′) and back-up (72) are published. The ground joins move to F′, and P′ is the hub for the claw WALK 42 walks to the deep stations. Module j−1's floor is kept as the Room's support |
+
+**This reverses P-2044-14 (a)** ("no edges on rows 71/72") **and widens P-2044-3** (which retained only stop footprints
+and walk strips). P-2044-14's recommendation, made by this lane, **had not checked the ground rows' bodies against the
+sill deck**; the fourth stop above gives the numbers.
+
+**Before building**, the lane runs a body-clearance check, as a test, of rows 71/72, every ground join and the row-42
+walks against every installed part at each landing (the sill deck, the posts and the next module's T0). If any
+collides, the lane stops and reports the numbers before building.
+
+**WorldRoutes clearance (Slice C, on `8a7d045d`).** Slice C holds `_carry_eligible`, `_compile_profiles`,
+`_profile_edge_refusal` and `_compile_edge` (routing only) for this lane, for the next round. Its cautions:
+
+1. Skipping changes spend, and spend is part of the outcome. "Identical to master" holds only in scenarios that stay
+   under the bound. The differential scenarios must be shown never to hit the budget refusal on master; if one does,
+   its changed outcome is P-2044-15's ruled effect and is named, not hidden.
+2. Which SHA-trace and checkpoint fields are spend (check counts) and which are outcome is decided up front.
+3. Stage 1's endpoint observation cache spends `PREPARED_OBSERVATION_CHECKS` before answering. The CacheChecks
+   full-proof run still goes through `_endpoint_observation_refusal`, and `test_underground_route_memos.gd`'s
+   differential compile stays green with the skip on.
+
+**Order:** the clearance test, then P-2044-16 (a), then M2 to completion within today's `Space.MAX_CHECKS` with the
+full gates and frames; stop and report. The compile skip, the bindings and Locations cost fixes and M5 follow on the
+same branch in the next round, unless M2 itself needs one of them.

@@ -2914,7 +2914,7 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "decision 1991 (slice C3): the way-in seam slice D2 fills (UndergroundRoomConfirm.WayIn.new, an empty RefCounted; native overhead), held by the host and bound again at every mount; the painted Confirm route itself is stateless"
+     "store": "decision 1991 (slice C3): the way-in seam slice D2 fills (UndergroundRoomConfirm.WayIn.new, an empty RefCounted; native overhead), held by the host, reset to a fresh base WayIn at every mount and release (review H-3: one live at a time) and bound again by D2 after each mount; order_painted_room returns a transient Result; the painted Confirm route itself is stateless"
     }
    ],
    "delta": {
@@ -2945,7 +2945,7 @@
      ]
     ],
     "allocation_sites": {
-     ".new(": 7
+     ".new(": 10
     }
    }
   },

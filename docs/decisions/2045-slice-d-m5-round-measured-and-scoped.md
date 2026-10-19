@@ -87,8 +87,9 @@ operation stays under the bound (Slice C's caution 1), and each is checked by th
 | 0 | tick 1 | 13 | L0: rows 0–1, 4 cubes × 3 phases, + L0 |
 | 1 | tick 2,232 | 7 | T0: row 2, 2 cubes × 3, + T0 |
 | 2 | tick 3,361 | 150 | the top metre of rows 3–26 (48 cubes) + T1–T6 (module 0) |
-| 3 | tick 34,926 | 127 | landing 1: layer 2 of rows 7–26 (40 cubes) + T0′–T6′ (module 1) |
-| 4–6 | — | 97 / 67 / 37 (planned sizes) | layers 3, 4, 5 (30, 20, 10 cubes) + seven installs each |
+| 3 | tick 34,926 (32,748 with M stocked) | 127 | landing 1: layer 2 of rows 7–26 (40 cubes) + T0′–T6′ (module 1) |
+| 4 | tick 42,735 (M stocked) | 97 | landing 2: layer 3 of rows 12–26 (30 cubes) + T0″–T6″ (module 2) |
+| 5–6 | not reached | 67 / 37 (from the Frontier) | layers 4 and 5 (20 and 10 cubes) + seven installs each |
 
 Every stage fits `Progress.MAX_TASKS` 160 (P-2044-8 (a)). In all: 498 tasks, 154 cubes × 3 + 36 installs.
 
@@ -106,24 +107,31 @@ The sill is where M5 first differs in kind from M2: it publishes landing 1 and t
 ### 4.3 Per module, per cold operation
 
 Peaks per interval, cache checks off, against `Space.MAX_CHECKS` 1,048,576 (share in brackets). "Past the bound"
-figures come from the unbounded clone and are each operation's true spend.
+figures come from the unbounded clone and are each operation's true spend; from module 1 on that clone also kept M
+stocked (§4.6), so its ticks run about 2,200 earlier than the bounded chain's. A module here is its landing's deep
+stage plus its seven treads (module 1: ticks 32,748–42,735; module 2: from 42,735).
 
 | Interval | WorldRoutes | Locations | Bindings entry op | Bindings timber |
 |---|---:|---:|---:|---:|
-| Stage 0: L0 (to tick 2,232) | 478,272 (45.6 %) | 378,861 | 542,447 | 254,544 |
-| Stage 1: T0 (to tick 3,361) | 467,836 | 198,208 | 367,526 | 250,019 |
-| Stage 2: the top metre, T1–T5 (to tick 34,926) | 573,472 (54.7 %) | 420,139 | 384,420 | 235,992 |
-| Module 0's sill (tick 34,927), **refuses** | 594,209 | 551,624 | **1,048,603 tried** | 613,485 |
-| — past the bound: the sill | 1,745,283 (166 %) | 1,565,004 (149 %) | 1,704,420 (163 %) | 613,485 |
-| — past the bound: landing 1's floor graph (tick 35,000) | **3,331,208 (318 %)** | — | — | — |
-| — past the bound: landing 1's deep phases | about 1,095,000 (104 %) | up to 1,816,683 (173 %) | — | — |
-| Modules 1–4 | PENDING the unbounded run | | | |
+| The entry's confirmation (tick 0) | 478,272 (45.6 %) | 378,861 | 542,447 | — |
+| Stage 0, L0 (ticks 1–2,232) | 467,836 | 198,208 | 367,526 | 250,019 |
+| Stage 1, T0 (to tick 3,361) | 482,204 | 420,139 | 384,420 | 235,992 |
+| Stage 2, the top metre's 48 cubes (to tick 30,000) | 573,472 (54.7 %), rising about 4,000 a 1,000 ticks | 287,881 | — | — |
+| Stage 2, T1–T5 and module 0's sill (to tick 34,927), **refuses** | 594,209 | 551,624 | **1,048,603 tried** | 613,485 |
+| *Past the bound:* T1–T5 and the sill | 1,745,283 (166 %) | 1,565,004 (149 %) | 1,704,420 (163 %) | 613,485 |
+| *Past the bound:* landing 1's floor graph published (tick 35,000) | **3,331,208 (318 %)** | — | — | — |
+| *Past the bound, module 1:* landing 1's floor graph published | **3,331,208 (318 %)** | 1,816,683 (173 %) | — | — |
+| *Past the bound, module 1:* landing 1's deep phases (40 cubes) | 1,094,904 at first, falling to 928,841 as stations retire; 12 preparations over the bound | 1,517,751 (145 %) | — | — |
+| *Past the bound, module 1:* T0′–T6′ and module 1's sill (to tick 42,735) | 627,407 | **1,972,180 (188 %)** | **1,953,599 (186 %)** | 686,927 |
+| *Past the bound, module 2:* landing 2's floor graph published (60 new ground edges, 654 image volumes) | **3,808,940 (363 %)** | **2,275,188 (217 %)** | — | — |
+| *Past the bound, module 2:* landing 2's deep phases (30 cubes; to tick 49,454) | up to 1,392,269 (133 %); 60 preparations over the bound | 1,966,254 (188 %) | — | — |
+| Modules 3 and 4 | **not reached** (§4.6: the chain stops at module 2's T0″) | | | |
 
 ### 4.4 What dominates past the bound (landing 1)
 
 From the backtrace tracer, ticks 34,926–35,770 (about thirteen preparations):
 
-- **WorldRoutes, 13.9 M in all.**
+- **WorldRoutes** (13.9 M charged over the window).
   - The **deep floor graph's publication** (tick 35,000): 80 new ground edges compiled in full, 320 admitted
     profile proofs at about 10,000 checks each: **3,331,208** in one preparation.
   - **Every deep phase on landing 1 after it: about 1,095,000** with 111 carried ground edges, 42 carried stair
@@ -134,10 +142,8 @@ From the backtrace tracer, ticks 34,926–35,770 (about thirteen preparations):
     stair rows), full-proof volume scans about 8.5 M (`subtract_role` under `_body_covered` 2,032,148,
     `_solid_contacts_covered` 1,714,960 + 1,271,468, `_body_blocked` 1,695,440, `_subtract_pending_bearer` 847,720,
     stance `blocked`/`covered` about 800,000), `_carry_hull_clean` 377,251.
-  - The floor walks' rows 43 and 47 are the narrow approach and retreat, whose proofs never carry
-    (`_may_excuse_pending`, ADR 1205): a deep station's edges are re-proved in full at every preparation.
-- **Locations, 1,816,683 at the peak (12 M over the window).** The witness passes and per-record refreshes over the
-  47 new installed records: `_installed_landing_count` under `_installed_row_site` and `_installed_record_kind`
+- **Locations, 1,816,683 at the peak.** The witness passes and per-record refreshes over the 47 new installed
+  records; the largest call sites over the window: `_installed_landing_count` under `_installed_row_site` and `_installed_record_kind`
   (1,445,640 each), `_installed_record_kind` / `_installed_surface_site` in `_derive_witnesses` (about 1.3 M each),
   `_pass_landing_count` (705,600 twice), `_covered` 784,392, `_record_obstacles_refusal` 667,512.
 - **Bindings, the sill: 1,704,420**: the contacts' air (`_timber_air_box`, one Region scan per contact: 214,320 in
@@ -145,21 +151,36 @@ From the backtrace tracer, ticks 34,926–35,770 (about thirteen preparations):
   41,920), the part partition (33,088 + 32,768 scope re-checks), the new Locations' datum lookups
   (`_timber_datum_ref` 70,044).
 
+**Landing 2 is worse than landing 1, though it has fewer stations (30 against 40):** the image has grown to 654
+volumes (423 at landing 1), so a full ground compile's volume scans cost more: the floor graph's 60 new edges took
+3,808,940, about 15,300 checks for each of 240 admitted profile proofs (10,000 at landing 1). Every scan in a full
+proof charges one check per image row, so this grows with every module however few edges a landing has.
+
 ### 4.5 Frontier bytes
 
 `Frontier.required_bytes` for M5's table census (36 / 190 / 26 / 235 / 301 / 154 rows): **51,476 B** (wire file
 49,656 B). M2's: 16,232. The bound before this round, 28,597, is 22,879 short; the shared bindings reserve
 `Budget.BINDINGS_AND_GROWTH_BYTES` (524,544) is fully assigned, so it must grow by the same amount (P-2045-1).
 
-### 4.6 A haul from a deep floor is refused (not a budget refusal)
+### 4.6 Two functional stops past the bound (not budget refusals; claimed code, for the build phase)
 
-In the unbounded clone the chain then stopped at **tick 35,770, stage 3 task 6**:
+**1. A haul from a deep floor.** In the unbounded clone the chain first stopped at **tick 35,770, stage 3 task 6**:
 `PROFILE_VARIANT_UNAUTHORED`, from `Profiles.query_travel_profile_into` under Routes `refresh_travel_actor`, called by
 the hauler's `_next_leg` for a haul the foreman began from landing 1's floor (`_open` → `_begin_haul` →
 `_haul`): the leg is a claw floor row that the hauler's tooled posture does not match. It happened with R stocked
 at 3,000 and at 12,000 milli. M2's deep stage (10 cubes) never hauled from a floor. The foreman's deep haul legs are
 this lane's (claimed); the fix (climb to the surface leg by leg before a haul, as the installer does since 2044) is
-for the build phase. For the measurement, the clone stocked M directly so that no phase hauls mid-stage.
+for the build phase. For the measurement, the clone then stocked M directly (scratch) so that no phase hauls
+mid-stage. (A run that also kept R at 12,000 milli of each stock stopped at tick 48,054 with the inventory's
+`CAPACITY_EXCEEDED`, R's pile filling with stock beside the spoil; that is the stand-in's own artifact, and R went
+back to the suites' 3,000.)
+
+**2. Module 2's T0″ from landing 2.** With M stocked, the chain ran through module 1 and landing 2's deep stage and
+stopped at **tick 49,454, stage 4 task 90 (installation 15, module 2's T0″)** with `ROUTE_TURN_PROFILE`: the
+installer, climbing off landing 2's floor leg by leg (2044's fix), is on landing 1 at (0, −1,024, −6,825) with its
+next leg to (300, −2,048, −11,882). Two landings below the surface never occurred in M2. The installer and the stair
+path are this lane's; the fix is for the build phase. **Modules 3 and 4 were therefore not reached**, and nothing
+is projected for them here.
 
 ## 5. The ground-edge re-proof (the brief's question), and how it is proved exact
 

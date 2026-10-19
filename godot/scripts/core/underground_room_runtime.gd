@@ -6,6 +6,9 @@ extends RefCounted
 ## Decision 1936 (C2.3): SettlementSystem builds it when the Session's room owners are composed (so its record is
 ## allocated in every mounted game), binds the owners it borrows, and saves it as `underground_room_progress`. A
 ## finished dig's record is cleared once its crew has walked out; a stopped one is kept until it is released.
+## Decision 1991 (C3): a record names the crew the player chose (P-1990-4 (a)); a QUEUED record waits for that crew
+## to be free and the composer starts it then (`UndergroundRoomComposer.start_waiting`). The player's one Stop
+## (P-1990-5 (a), `stop_room`) halts a dig and releases its record once the crew has walked out.
 
 const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
@@ -15,6 +18,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const WorkFace := preload("res://scripts/core/underground_work_face.gd")
 const Progress := preload("res://scripts/core/underground_room_progress.gd")
 const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
+const Residents := preload("res://scripts/core/residents.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## One record per room row; `_init` refuses a directory whose room capacity differs (as Buildings asserts).
 const ROOM_CAPACITY: int = 16384
@@ -35,9 +39,12 @@ const REFUSE_CAPACITY: StringName = &"ROOM_DIG_CAPACITY"
 const REFUSE_CREW_BUSY: StringName = &"ROOM_DIG_CREW_BUSY"
 ## Decision 1936: a dig's record is kept until its crew has walked back out (P-1936-3 (a)).
 const REFUSE_CREW_OUT: StringName = &"ROOM_DIG_CREW_OUT"
-## The bytes of the packed record per kept room: generation, state, and the storage, output and staging container
-## references (decision 1934 added the staging one).
-const RECORD_BYTES: int = 4 + 1 + 3 * 2 * 4
+## Decision 1991: the crew a record names, at most a foreman's builders (ECON-001, Foreman.MAX_BUILDERS; a test pins
+## the two equal), as (slot, generation) pairs.
+const CREW_REFS: int = 4
+## The bytes of the packed record per kept room: generation, state, the storage, output and staging container
+## references (decision 1934 added the staging one), the named crew and the release-once-out flag (decision 1991).
+const RECORD_BYTES: int = 4 + 1 + 3 * 2 * 4 + CREW_REFS * 2 * 4 + 1
 ## Decision 1937 (P-1937-1 D): the records are a pool of MAX_KEPT slots, each naming its room's directory row.
 const SLOT_BYTES: int = RECORD_BYTES + 4
 
@@ -48,6 +55,11 @@ var _state: PackedByteArray = PackedByteArray()
 var _storage: PackedInt32Array = PackedInt32Array()
 var _output: PackedInt32Array = PackedInt32Array()
 var _staging: PackedInt32Array = PackedInt32Array()
+var _crew: PackedInt32Array = PackedInt32Array() # Decision 1991: CREW_REFS (slot, generation) pairs per slot, -1 none.
+var _release_out: PackedByteArray = PackedByteArray() # Decision 1991: 1 = release once the crew is out (Stop).
+var _builder_rows: PackedByteArray = PackedByteArray() # Decision 1991 (M7): 1 where a kept builder's resident is.
+var _filter_count: int = -1
+var _filter_last: int = 0
 var _foremen: Array[Foreman] = [] # Running ones, and stopped or done ones until their record is released.
 var _foreman_rows: PackedInt32Array = PackedInt32Array() # The record row of each foreman, in step with `_foremen`.
 var _refusals: Array[StringName] = [] # This tick's new refusals, one per room that stopped.
@@ -68,6 +80,10 @@ func _init(directory: Directory) -> void:
 	_storage.resize(2 * MAX_KEPT)
 	_output.resize(2 * MAX_KEPT)
 	_staging.resize(2 * MAX_KEPT)
+	_crew.resize(2 * CREW_REFS * MAX_KEPT)
+	_crew.fill(-1)
+	_release_out.resize(MAX_KEPT)
+	_builder_rows.resize(Residents.RESIDENT_CAPACITY)
 
 
 static func packed_bytes() -> int:
@@ -115,10 +131,31 @@ func owns_job(job_slot: int) -> bool:
 
 func reserves_resident(resident_slot: int) -> bool:
 	"""Decision 1936: a builder is reserved while its dig runs, between cubes too, and afterwards for as long as it is
-	still underground (a registered route actor, or walking in or out)."""
+	still underground (a registered route actor, or walking in or out). Decision 1991 (decision 1937's review M7): a
+	resident no kept builder names is answered from one byte, so Jobs' per-resident question no longer walks every
+	kept foreman; only a resident some builder names is checked in full."""
+	if _foremen.is_empty(): return false
+	_refresh_builder_rows()
+	if resident_slot < 0 or resident_slot >= _builder_rows.size() or _builder_rows[resident_slot] == 0: return false
 	for foreman: Foreman in _foremen:
 		if foreman.reserves_resident(resident_slot): return true
 	return false
+
+
+func _refresh_builder_rows() -> void:
+	"""The byte filter: each kept builder's Resident row. Exact without hooks: a foreman's builders are fixed when it
+	is made and only ever shed, so a filter is stale only after a foreman is added, which changes the last foreman
+	(every append does) or the count. A shed builder or a dropped foreman only leaves a byte set, which the full
+	check answers."""
+	var last: int = _foremen[_foremen.size() - 1].get_instance_id()
+	if _foremen.size() == _filter_count and last == _filter_last: return
+	_filter_count = _foremen.size()
+	_filter_last = last
+	_builder_rows.fill(0)
+	for foreman: Foreman in _foremen:
+		for builder: Builder in foreman.builders():
+			var row: int = builder.worker_row()
+			if row >= 0 and row < _builder_rows.size(): _builder_rows[row] = 1
 
 
 func _row(room: Vector2i) -> int:
@@ -128,12 +165,15 @@ func _row(room: Vector2i) -> int:
 	return row if row >= 0 and row < ROOM_CAPACITY else -1
 
 
-func order_room(room: Vector2i, storage: Vector2i, output: Vector2i, staging: Vector2i = NULL_REF) -> StringName:
+func order_room(room: Vector2i, storage: Vector2i, output: Vector2i, staging: Vector2i = NULL_REF,
+		crew: PackedInt32Array = PackedInt32Array()) -> StringName:
 	"""Queue a confirmed room for digging with the containers its inputs come from and its spoil goes to, and (or
 	null) the same-level staging container missing inputs are hauled from (decision 1934). A record of the same room
-	must be released first; one left by a deleted room on a reused row is replaced."""
+	must be released first; one left by a deleted room on a reused row is replaced. `crew` names up to CREW_REFS
+	residents as (slot, generation) pairs, the player's choice (decision 1991); empty, the first idle mole digs."""
 	var row: int = _row(room)
 	if row < 0 or storage == NULL_REF or output == NULL_REF: return REFUSE_ROOM
+	if crew.size() % 2 != 0 or crew.size() > 2 * CREW_REFS: return REFUSE_CREW_BUSY
 	var slot: int = _slot(row)
 	if (slot >= 0 and _generation[slot] == room.y) or _digging(row): return REFUSE_STATE
 	if _crew_out_on(row): return REFUSE_CREW_OUT # A deleted room's crew is still walking out.
@@ -146,6 +186,9 @@ func order_room(room: Vector2i, storage: Vector2i, output: Vector2i, staging: Ve
 	_storage[2 * slot] = storage.x; _storage[2 * slot + 1] = storage.y
 	_output[2 * slot] = output.x; _output[2 * slot + 1] = output.y
 	_staging[2 * slot] = staging.x; _staging[2 * slot + 1] = staging.y
+	for at: int in 2 * CREW_REFS:
+		_crew[2 * CREW_REFS * slot + at] = crew[at] if at < crew.size() else -1
+	_release_out[slot] = 0
 	return &""
 
 
@@ -159,7 +202,10 @@ func _set_state(row: int, state: int) -> void:
 	var slot: int = _slot(row)
 	if slot < 0: return
 	_state[slot] = state
-	if state == RECORD_NONE: _room_row[slot] = -1
+	if state != RECORD_NONE: return
+	_room_row[slot] = -1
+	for at: int in 2 * CREW_REFS: _crew[2 * CREW_REFS * slot + at] = -1 # Decision 1991: a freed slot names no crew.
+	_release_out[slot] = 0
 
 
 func start_room(room: Vector2i, owners: Builder.Owners, crew: Array[Builder.Crew]) -> StringName:
@@ -252,10 +298,13 @@ func _heal_occupancy() -> void:
 
 func _release_done() -> void:
 	"""Review M-b: a finished dig whose crew is out releases its record by itself (Sites keep the dug room), so kept
-	records are only digs under way, stopped ones and finished ones still walking out."""
+	records are only digs under way, stopped ones and finished ones still walking out. Decision 1991: so does a dig
+	the player stopped (`stop_room`), once its crew is out."""
 	for index: int in range(_foremen.size() - 1, -1, -1):
 		var foreman: Foreman = _foremen[index]
-		if foreman.state() != Foreman.STATE_DONE or foreman.crew_out(): continue
+		if foreman.is_running() or foreman.crew_out(): continue
+		var slot: int = _slot(_foreman_rows[index])
+		if foreman.state() != Foreman.STATE_DONE and (slot < 0 or _release_out[slot] == 0): continue
 		_set_state(_foreman_rows[index], RECORD_NONE)
 		_foremen.remove_at(index)
 		_foreman_rows.remove_at(index)
@@ -316,6 +365,50 @@ func cancel_queued(room: Vector2i) -> StringName:
 	return &""
 
 
+func stop_room(room: Vector2i) -> StringName:
+	"""Decision 1991, P-1990-5 (a): the player's one Stop. A QUEUED room is forgotten at once; a dig under way is
+	halted (each builder's open phase released: an unstarted one cancelled, a paid one kept for a later re-order,
+	P-1933-2 (a)) and its record released once the crew has walked out; one stopped by a refusal is released then too.
+	A finished dig has nothing to stop."""
+	var row: int = _row(room)
+	var slot: int = _slot(row)
+	if row < 0 or (slot >= 0 and _generation[slot] != room.y): return REFUSE_ROOM
+	if slot < 0: return REFUSE_STATE # Nothing kept for this room.
+	if _state[slot] == RECORD_QUEUED: return cancel_queued(room)
+	if _state[slot] == RECORD_DONE: return REFUSE_STATE
+	for index: int in _foremen.size():
+		if _foreman_rows[index] == row and _foremen[index].is_running():
+			_foremen[index].stop()
+			_settle_record(index)
+	_release_out[slot] = 1
+	_release_done()
+	return &""
+
+
+func crew_of(room: Vector2i) -> PackedInt32Array:
+	"""Decision 1991: the crew a kept record names, as (slot, generation) pairs; empty when it names none."""
+	var out: PackedInt32Array = PackedInt32Array()
+	var slot: int = _slot(_row(room))
+	if slot < 0 or _generation[slot] != room.y: return out
+	for at: int in CREW_REFS:
+		var base: int = 2 * CREW_REFS * slot + 2 * at
+		if _crew[base] >= 0: out.append_array(PackedInt32Array([_crew[base], _crew[base + 1]]))
+	return out
+
+
+func queued_into(out: Array[Vector2i]) -> void:
+	"""Decision 1991: every QUEUED room, in room-row order (so the composer starts them in one canonical order)."""
+	out.clear()
+	if _directory == null: return
+	var rows: PackedInt32Array = PackedInt32Array()
+	for slot: int in MAX_KEPT:
+		if _room_row[slot] >= 0 and _state[slot] == RECORD_QUEUED: rows.append(_room_row[slot])
+	rows.sort()
+	for row: int in rows:
+		var ref: Vector2i = _directory.ref_of_slot(_directory.owner_slot_of_typed_row(Directory.KIND_ROOM, row))
+		if ref.y == _generation[_slot(row)]: out.append(ref)
+
+
 func _crew_out_on(row: int) -> bool:
 	"""A foreman kept for the row still has a builder underground."""
 	for index: int in _foremen.size():
@@ -362,6 +455,8 @@ func _write_state(w: EntryProgress.Writer) -> void:
 		w.i32(_state[slot])
 		for column: PackedInt32Array in [_storage, _output, _staging]:
 			w.ref(Vector2i(column[2 * slot], column[2 * slot + 1]))
+		for at: int in 2 * CREW_REFS: w.i32(_crew[2 * CREW_REFS * slot + at]) # Decision 1991.
+		w.flag(_release_out[slot] == 1)
 	w.i32(_foremen.size())
 	for index: int in _foremen.size():
 		w.i32(_foreman_rows[index])
@@ -401,6 +496,8 @@ func _read_state(r: EntryProgress.Reader) -> StringName:
 		_output[2 * slot] = at.x; _output[2 * slot + 1] = at.y
 		at = r.ref()
 		_staging[2 * slot] = at.x; _staging[2 * slot + 1] = at.y
+		for crew_at: int in 2 * CREW_REFS: _crew[2 * CREW_REFS * slot + crew_at] = r.i32() # Decision 1991.
+		_release_out[slot] = 1 if r.flag() else 0
 	for index: int in r.ranged(0, MAX_KEPT):
 		var row: int = r.ranged(0, ROOM_CAPACITY - 1)
 		var foreman: Foreman = Foreman.new()
@@ -408,7 +505,49 @@ func _read_state(r: EntryProgress.Reader) -> StringName:
 		if code != &"": return code
 		_foremen.append(foreman)
 		_foreman_rows.append(row)
-	return Progress.REFUSE_SHAPE if r.bad else &""
+	if r.bad: return Progress.REFUSE_SHAPE
+	return &"" if _records_agree() else Progress.REFUSE_SHAPE
+
+
+func _records_agree() -> bool:
+	"""Decision 1937's review M3, closed by decision 1991: the cross-record invariants a load must re-prove. Every
+	foreman names a kept record and no record has two; a QUEUED record has none; a DIGGING record's foreman runs; a
+	DONE one's finished with its crew still out (else it was released) and a STOPPED one's failed; every other record
+	has exactly one; a named crew is well formed (pairs, no resident twice)."""
+	var seen: PackedInt32Array = PackedInt32Array()
+	for index: int in _foremen.size():
+		var slot: int = _slot(_foreman_rows[index])
+		if slot < 0 or seen.has(slot) or not _state_agrees(_state[slot], _foremen[index]): return false
+		seen.append(slot)
+	for slot: int in MAX_KEPT:
+		if _room_row[slot] < 0: continue
+		if (_state[slot] == RECORD_QUEUED) == seen.has(slot): return false # Only a QUEUED record has no foreman.
+		if not _crew_well_formed(slot): return false
+	return true
+
+
+static func _state_agrees(record: int, foreman: Foreman) -> bool:
+	"""A kept record's state against its foreman's."""
+	match record:
+		RECORD_DIGGING: return foreman.is_running()
+		RECORD_DONE: return foreman.state() == Foreman.STATE_DONE and foreman.crew_out()
+		RECORD_STOPPED: return foreman.state() == Foreman.STATE_FAILED
+	return false
+
+
+func _crew_well_formed(slot: int) -> bool:
+	"""A named crew: whole pairs, nulls only after the last member, no resident named twice."""
+	var named: PackedInt32Array = PackedInt32Array()
+	var ended: bool = false
+	for at: int in CREW_REFS:
+		var resident: int = _crew[2 * CREW_REFS * slot + 2 * at]
+		var generation: int = _crew[2 * CREW_REFS * slot + 2 * at + 1]
+		if resident < 0:
+			ended = true
+			if resident != -1 or generation != -1: return false
+		elif ended or named.has(resident) or generation < 0: return false
+		else: named.append(resident)
+	return true
 
 
 func _drop_restored() -> void:

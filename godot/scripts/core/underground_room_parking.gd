@@ -94,7 +94,21 @@ static func _parking_at(owners: RefCounted, request: Request, access: Locations.
 	if found == NULL_REF and _occupied(owners.locations, point): return NULL_REF
 	if found == NULL_REF: found = _publish_endpoint(owners, request, access, point)
 	if found == NULL_REF or request.taken.has(found): return NULL_REF
-	return found if _joined(owners, request, found) or _publish_spans(owners, request, found, access) else NULL_REF
+	if _joined(owners, request, found): return found
+	# Decision 1991 (decision 1937's review M5): spans already published between the two that still do not join are
+	# never published again; the candidate is passed over, so a failed parking adds nothing on later orders.
+	if _span_between(owners.routes, found, request.access): return NULL_REF
+	return found if _publish_spans(owners, request, found, access) else NULL_REF
+
+
+static func _span_between(routes: Routes, a: Vector2i, b: Vector2i) -> bool:
+	"""Some live authored span already runs from `a` to `b` (Routes' own edge columns; a scan at order time only)."""
+	var stride: int = routes._edge_capacity
+	for row: int in stride:
+		if routes._live.present[row] != 1: continue
+		if routes._edge_pair(routes._live, Routes.E_FROM_SLOT, row) == a \
+				and routes._edge_pair(routes._live, Routes.E_TO_SLOT, row) == b: return true
+	return false
 
 
 static func _existing(locations: Locations, access: Locations.Record, point: Vector3i) -> Vector2i:

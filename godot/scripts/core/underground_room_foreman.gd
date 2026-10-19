@@ -34,6 +34,8 @@ const REFUSE_STUCK: StringName = &"ROOM_FOREMAN_NO_CUBE_REACHABLE"
 ## Every builder that could still move waits on another's body or footprint: nothing can ever change.
 const REFUSE_BLOCKED: StringName = &"ROOM_FOREMAN_CREW_BLOCKED"
 const REFUSE_NOT_DONE: StringName = &"ROOM_FOREMAN_SITES_NOT_DONE"
+## Decision 1991, P-1990-5 (a): the player stopped the dig ("Stop digging"); not a fault.
+const REFUSE_PLAYER_STOP: StringName = &"ROOM_DIG_STOPPED"
 
 
 var _ctx: Builder.Context = null
@@ -356,6 +358,15 @@ func _halt(code: StringName) -> StringName:
 		var released: StringName = builder.abandon()
 		if released != &"" and _abandon_error == &"": _abandon_error = released
 	return code
+
+
+func stop() -> StringName:
+	"""Decision 1991, P-1990-5 (a): the player's Stop, through the one stopping path (`_halt`): each builder's open
+	phase is released (an unpaid one cancelled, a paid one kept for a re-order to take over) and the crew walks out
+	from rest. Only a running dig stops."""
+	if _state != STATE_DIGGING: return REFUSE_STATE
+	_halt(REFUSE_PLAYER_STOP)
+	return &""
 
 
 func reserves_resident(resident_slot: int) -> bool:

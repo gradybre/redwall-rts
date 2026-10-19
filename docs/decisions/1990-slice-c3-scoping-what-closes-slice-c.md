@@ -45,6 +45,22 @@ retire hook there after a column finishes) and `underground_room_builder.gd` (it
 three files is asked first. Whichever of C3 and the retirement lane merges second merges master and regenerates the
 pins, census and checkpoints.
 
+**Recorded after the rulings (2026-10-19), from the build (decision 1991):**
+
+- **The tick order** (the coordinator's requirement): the runtime's `advance`, then at its end the retirement lane's
+  `Retirement.retire_finished`, then `_release_done`, then the host's `UndergroundRoomComposer.start_waiting`. So
+  retirement sees a stopped dig's stations before its record is released.
+- **Record version 2 refuses version-1 records** (`ROOM_SAVE_VERSION`): the coordinator's call under DEC-055 item 1
+  and Brendan's precedent P-1972-3 ("Refuse them, recorded"), not a new ruling.
+- **A C2 defect found by C3** (item 24's test; decision 1991 §3): a dig stopped at the BRACE to CUT hand-over (or CUT
+  to FINISH) left the cube BRACED (or open) with the next phase cancelled unpaid, and a re-order always opened BRACE
+  on it, which Sites refused. Decision 1938's resume covered only a started phase. Fixed in the builder
+  (`_next_operation`); decision 1938 carries a pointer.
+- **The two-room stop case stops after the first cube.** Stopped later, on master the second room meets
+  `ROOM_STATION_GEOMETRY_CLOSED` (the station planner's reservation-marker spill into a neighbouring dug room). That
+  limit, and the single-heading limit that hits 7 × 7 and 4 × 12 rooms, are tracked and fixed in decisions 1942/1943
+  (the station-chain retirement lane), not by C3; whichever lane merges second raises the stop point to five cubes.
+
 ## 1. Why no painted room can be dug for real before M5 and D2
 
 Paths under `godot/` at `8a7d045d`.

@@ -348,7 +348,8 @@ func test_a_builder_stopped_while_walking_home_is_released_and_its_dig_saved() -
 		if homeward or not runtime.is_running(): break
 	assert_true(homeward and actor.job == NULL_REF, "walking home on a span, holding no Job")
 	if not homeward: return
-	foreman._halt(&"TEST_STOP") # Negative-only: the dig stops on the way home.
+	# Decision 1991: the player's Stop (the runtime settles the record STOPPED with the foreman, as a load requires).
+	assert_equal(runtime.stop_room(room), &"", "the dig stops on the way home")
 	assert_false(builder._release_pending, "released at once: no Job to keep")
 	var bytes: PackedByteArray = PackedByteArray()
 	assert_equal(runtime.capture(bytes), &"", "the stopped dig is saved")

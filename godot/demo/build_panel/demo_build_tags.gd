@@ -10,7 +10,7 @@ extends RefCounted
 ## the engine draws it. Presentation only.
 
 ## Screen pixels kept between two tags, and the least change of lift worth redrawing a tag for.
-const GAP_PX: float = 4.0
+const GAP_PX: float = 8.0 # Decision 1991: 4 px left a crew's stacked tags cramped at 1280 x 720.
 const MOVE_PX: float = 0.5
 const LIFT_SLACK_PX: float = 0.01
 

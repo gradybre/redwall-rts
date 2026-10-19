@@ -131,6 +131,11 @@ func _middle(cells: PackedInt32Array) -> Vector3:
 	return (world_corner(low) + world_corner(high + Vector2i.ONE)) / 2.0
 
 
+func tag() -> Label3D:
+	"""The tag (decision 1991: spaced with the level's other tags, demo_build_tags.gd)."""
+	return _tag
+
+
 func tag_text() -> String:
 	"""What the tag says (checks)."""
 	return _tag.text if _tag != null and _tag.visible else ""

@@ -49,3 +49,8 @@ decision 1939 §5.
 
 The edit is in `worker_refusal`, as cleared. Decision 1939 adds two further edits to the same file, outside
 `worker_refusal` (`_ordinary_job_leaf`'s tool gate and `_ordinary_tool_leaf`'s tool-free branch).
+
+**Note (2026-10-19, decision 1991 §3).** The resume here covers a *started* phase only. A dig stopped on the tick a
+BRACE hands over to CUT (or CUT to FINISH) leaves the cube BRACED (or open) with no live phase, and a re-order used to
+open BRACE on it, which Sites refused (`EXCAVATION_PHYSICAL_PHASE`). Slice C3 found this with the player's Stop and
+fixed it in the builder: `_next_operation` opens the phase the cube needs next, by Sites' own record.

@@ -39,6 +39,11 @@ extends Control
 ## its ghost at a cell (`pin_way`); the card offers Down / Up (P-D1-4 (a)), says where it leads or why not, and "Add to
 ## plan" (Enter: `add_pinned`) puts it in the batch -- the card chosen is put down unless Shift keeps it; Cancel or
 ## Escape (after the stroke, before the rest) closes it. R / Shift+R turn the way (`rotate_way`).
+## THE CREW AND THE ROOM CARD (decision 1991; Brendan's rulings P-1990-4 (a), P-1990-5 (a)). The host names the crew
+## Confirm all will send ("Crew: Bramble, Teasel", or "Crew: the first free mole": `set_crew_line`), shown on the
+## footer's ledger under the plan's totals. A click on a confirmed room (no card armed) opens UI-BUILD-015, the room's
+## card (`show_room`, in the connector card's place), with UI-BUILD-016 "Stop digging" (`room_stop_requested`); Close
+## or Escape (after the stroke) puts it away.
 
 const Batch := preload("res://scripts/ui/build_batch.gd")
 const Stroke := preload("res://scripts/ui/build_stroke.gd")
@@ -52,6 +57,7 @@ const Ledger := preload("res://scripts/ui/build_ledger.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
 const LevelBar := preload("res://scripts/ui/level_bar.gd")
 const ConnectorCard := preload("res://scripts/ui/build_connector_card.gd")
+const RoomCard := preload("res://scripts/ui/build_room_card.gd")
 const Families := preload("res://scripts/ui/build_connector_families.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
@@ -97,6 +103,8 @@ signal confirm_requested
 signal closed(kept: bool)
 ## The connector card's way went into the batch (or was dropped, kind "X"): the batch's kind (decision 2021).
 signal way_added(kind: int)
+## Decision 1991: UI-BUILD-016 "Stop digging" pressed on the room card.
+signal room_stop_requested
 
 var _batch: Batch = null
 var _catalog: BuildCatalog = null
@@ -156,6 +164,11 @@ var _door_colour: int = Mound.COLOUR_OAK
 ## Decision 2021: the connector card, the armed way's quarter turns, and the way pinned on the card (its cell, whether
 ## it goes up).
 var _connector: ConnectorCard = null
+## Decision 1991: the room card (UI-BUILD-015) and the crew's words for the ledger.
+var _room_card: RoomCard = null
+var _crew_line: String = ""
+## Decision 1991: the host's note on the plan ("proof of concept, free" while the demo digs with its mole).
+var _plan_note: String = ""
 var _way_turn: int = 0
 var _pinned: bool = false
 var _pin_cell: Vector2i = Vector2i.ZERO
@@ -197,6 +210,10 @@ func build() -> void:
 	_build_question()
 	_build_ledger_open()
 	_build_connector()
+	_room_card = RoomCard.new()
+	_room_card.stop_pressed.connect(room_stop_requested.emit)
+	_room_card.close_pressed.connect(hide_room)
+	add_child(_room_card)
 
 
 func _build_connector() -> void:
@@ -402,6 +419,7 @@ func place(geometry: UiLayout.Geometry) -> void:
 	_place_footer()
 	_place_ledger_open()
 	_connector.place_in(BuildLayout.connector_rect(geometry))
+	_room_card.place_in(BuildLayout.room_card_rect(geometry))
 
 
 func _place_tabs() -> void:
@@ -559,6 +577,7 @@ func _finish_close(kept: bool) -> void:
 		_batch.cancel_stroke()
 	visible = false
 	cancel_pin()
+	hide_room()
 	_chosen = null
 	_furnish_type = -1
 	_tab = BuildCatalog.TAB_ROOMS
@@ -574,6 +593,7 @@ func set_level(level: int, reachable: bool = true) -> void:
 		return
 	if level != _level and level < LevelBar.LEVEL_OVERVIEW:
 		_style = Mound.STYLE_MOUND if level == Mound.SURFACE else Mound.STYLE_BUILT
+	if level != _level: hide_room() # Decision 1991: the room card is the level's.
 	_level = level
 	_reachable = reachable
 	cancel_pin()
@@ -816,6 +836,53 @@ func cancel_pin() -> void:
 func connector() -> ConnectorCard:
 	"""The connector card (checks)."""
 	return _connector
+
+
+func room_card() -> RoomCard:
+	"""Decision 1991: the room card, UI-BUILD-015 (checks)."""
+	return _room_card
+
+
+func show_room(room_name: String, words: String, state: int) -> void:
+	"""Decision 1991: open the room card for a confirmed room (`state`: RoomCard.STATE_*; the connector card, if
+	pinned, is put away)."""
+	cancel_pin()
+	_room_card.show_room(room_name, words, state)
+
+
+func hide_room() -> void:
+	"""Put the room card away."""
+	if _room_card != null:
+		_room_card.visible = false
+
+
+func room_shown() -> bool:
+	"""Whether the room card is open."""
+	return _room_card != null and _room_card.visible
+
+
+func set_crew_line(words: String) -> void:
+	"""Decision 1991, P-1990-4 (a): who Confirm all sends to dig, in words, on the footer's ledger."""
+	if words == _crew_line:
+		return
+	_crew_line = words
+	if _ledger != null:
+		_sync_ledger()
+
+
+func set_plan_note(note: String) -> void:
+	"""Decision 1991: a short note shown with the crew on the ledger when it fits, and always in the expanded ledger and
+	the accessible name (the demo: "Proof of concept, free", P-1990-1 (b))."""
+	if note == _plan_note:
+		return
+	_plan_note = note
+	if _ledger != null:
+		_sync_ledger()
+
+
+func crew_line() -> String:
+	"""The crew's words now (checks)."""
+	return _crew_line
 
 
 func connector_words() -> String:
@@ -1106,6 +1173,9 @@ func _sync_ledger() -> void:
 	_ledger.accessibility_name = summary
 	_ledger.tooltip_text = summary
 	_ledger.text = _short_ledger(any) + (" ▾" if _ledger.button_pressed else " ▴")
+	if not _crew_line.is_empty() and any:
+		_ledger.accessibility_name = "%s; %s" % [summary, _crew_line] + ("; " + _plan_note if not _plan_note.is_empty() else "")
+		_ledger.tooltip_text = _ledger.accessibility_name
 	_ledger_text.text = ledger_lines(summary)
 	_place_ledger_open()
 
@@ -1137,8 +1207,25 @@ func _short_ledger(any: bool) -> String:
 	is in the expanded view."""
 	if not any:
 		return "Plan: nothing yet"
-	return "Plan: %s · %s\nwork %s" % [Measures.need_cell(&"wood", _tally[Ledger.WOOD]),
-		Measures.need_cell(&"stone", _tally[Ledger.STONE]), Ledger.work_text(int(_tally[Ledger.WORK]))]
+	var second: String = "work " + Ledger.work_text(int(_tally[Ledger.WORK]))
+	if not _crew_line.is_empty(): second = _crew_second_line(second) # Decision 1991: the footer names the crew.
+	return "Plan: %s · %s\n%s" % [Measures.need_cell(&"wood", _tally[Ledger.WOOD]),
+		Measures.need_cell(&"stone", _tally[Ledger.STONE]), second]
+
+
+func _crew_second_line(work: String) -> String:
+	"""The ledger's second line with the crew, the longest that fits the button's width: the work, the crew and the
+	host's note; else the crew and the note; else the work and the crew; else the crew alone (what is left out stays
+	in the tooltip, the accessible name and the expanded ledger)."""
+	var font: Font = _ledger.get_theme_font(&"font")
+	var room: float = _ledger.size.x - 2.0 * BuildLayout.GAP - 16.0
+	if font == null or room <= 0.0:
+		return _crew_line
+	var note: String = " · " + _plan_note if not _plan_note.is_empty() else ""
+	for line: String in ["%s · %s%s" % [work, _crew_line, note], _crew_line + note, "%s · %s" % [work, _crew_line]]:
+		if font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TEXT_PX).x <= room:
+			return line
+	return _crew_line
 
 
 func ledger_lines(summary: String) -> String:
@@ -1153,6 +1240,8 @@ func ledger_lines(summary: String) -> String:
 	_item_lines(lines)
 	_piece_lines(lines)
 	_mound_lines(lines)
+	if not _crew_line.is_empty(): lines.append(_crew_line)
+	if not _plan_note.is_empty(): lines.append(_plan_note)
 	lines.append(summary)
 	return "\n".join(lines)
 
@@ -1316,6 +1405,8 @@ func escape() -> bool:
 		refresh(true)
 	elif _pinned:
 		cancel_pin()
+	elif room_shown():
+		hide_room()
 	elif _question_kind != QUESTION_NONE:
 		_question_kind = QUESTION_NONE
 		refresh(true)
@@ -1347,4 +1438,5 @@ func controls() -> Dictionary:
 	"""The panel's named controls (checks and the host's focus region)."""
 	return {&"tabs": _tabs, &"ledger": _ledger, &"undo": _undo, &"redo": _redo, &"discard": _discard,
 		&"confirm": _confirm, &"yes": _question_yes, &"no": _question_no, &"status": _status, &"where": _where,
-		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll, &"cards": _scroll, &"connector": _connector}
+		&"frame": _frame, &"info": _info, &"ledger_scroll": _ledger_scroll, &"cards": _scroll, &"connector": _connector,
+		&"room_card": _room_card}

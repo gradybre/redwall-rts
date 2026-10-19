@@ -11,7 +11,9 @@ const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd
 const Claim := preload("res://scripts/core/underground_room_claim.gd")
 const Footprint := preload("res://scripts/core/underground_room_footprint.gd")
 const MAGIC: int = 0x50444D52 # "RMDP"
-const VERSION: int = 1
+## Decision 1991: 2 adds each record row's named crew and release-once-out flag. A version-1 record is refused
+## (ROOM_SAVE_VERSION), as DEC-055 item 1 refuses a save from another revision before 1.0 (P-1972-3's precedent).
+const VERSION: int = 2
 const KIND_RUNTIME: int = 1
 const HEADER_BYTES: int = 12
 const CODE_BYTES: int = EntryProgress.CODE_BYTES
@@ -19,8 +21,9 @@ const CODE_BYTES: int = EntryProgress.CODE_BYTES
 ## tools/underground_current_census.py.
 ## Runtime: the contacts' access (8) and retreat row (4), the record-row and foreman counts (4 each).
 const RUNTIME_FIXED_BYTES: int = 20
-## One record row in use: its row, generation and state, and its three container references.
-const ROW_BYTES: int = 36
+## One record row in use: its row, generation and state, its three container references, and (decision 1991) its
+## named crew (four resident references) and its release-once-out flag.
+const ROW_BYTES: int = 36 + 4 * 8 + 1
 ## One foreman: its record row and room, state, three codes, ledgers and latch, epoch, context (content, two rows,
 ## three containers) and its order and builder counts.
 const FOREMAN_FIXED_BYTES: int = 4 + 8 + 4 + 3 * CODE_BYTES + 4 + 1 + 8 + 8 + 4 + 8 + 4 + 4 + 24 + 4 + 4

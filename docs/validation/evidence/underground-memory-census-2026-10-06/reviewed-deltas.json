@@ -2910,6 +2910,11 @@
      "bytes": 0,
      "carried_by": "none",
      "store": "decision 1936 (review H4): the composite Jobs dispatcher (UndergroundDispatch.new), bound at each mount; two Callables of native overhead, counted in room_dig_runtime's exact member set"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1991 (slice C3): the way-in seam slice D2 fills (UndergroundRoomConfirm.WayIn.new, an empty RefCounted; native overhead), held by the host and bound again at every mount; the painted Confirm route itself is stateless"
     }
    ],
    "delta": {
@@ -2933,10 +2938,14 @@
      [
       "_underground_rooms",
       "UndergroundRoomRuntime"
+     ],
+     [
+      "_underground_way_in",
+      "UndergroundRoomConfirm.WayIn"
      ]
     ],
     "allocation_sites": {
-     ".new(": 6
+     ".new(": 7
     }
    }
   },

@@ -45032,7 +45032,7 @@
       "control_bytes": 12288
     },
     "room_planner_cold": {
-      "control_bytes": 52968,
+      "control_bytes": 56040,
       "lease_bytes": 1048960,
       "scope": "Cold and released before publish_into admits its own lifetime in the same lease."
     },

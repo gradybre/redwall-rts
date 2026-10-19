@@ -406,7 +406,7 @@ def publication_controls(memory, index: dict) -> dict:
 
 PLANNER_FORMULA = ("const CONTROL_BYTES: int = 5 * 6 * MAX_REGIONS * 4 + 5 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \\\n"
     "\t+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4 + 4 + AIR_BOXES * 6 * 4) \\\n"
-    "\t+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024\n")
+    "\t+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024 + 2 * MAX_REGIONS * 8\n")
 
 
 def room_planner_cold(memory, index: dict) -> dict:
@@ -423,9 +423,10 @@ def room_planner_cold(memory, index: dict) -> dict:
     # Decision 1942: a fifth table, the claimed rows meeting the hull, with each one's kind and claim ref.
     total = (5 * 6 * c["MAX_REGIONS"] * 4 + 5 * c["MAX_REGIONS"] * 4 + 2 * 6 * c["MAX_FRAGMENTS"] * 4
              + c["MAX_CANDIDATES"] * 8 + 2 * c["MAX_EDGES"] * 4 + c["MAX_CHAIN"] * (56 + boxes * 24)
-             + c["MAX_PRIMITIVES"] * 24 + 192 + 1024)
+             + c["MAX_PRIMITIVES"] * 24 + 192 + 1024
+             + 2 * c["MAX_REGIONS"] * 8) # Decision 1943: the distinct turning lines, (distance, value) keys.
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(total == 52968 and total <= shared, "planner cold slice inside the shared cold arena")
+    require(total == 56040 and total <= shared, "planner cold slice inside the shared cold arena")
     return {"control_bytes": total, "lease_bytes": shared,
             "scope": "Cold and released before publish_into admits its own lifetime in the same lease."}
 

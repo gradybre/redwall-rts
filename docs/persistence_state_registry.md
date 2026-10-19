@@ -2229,7 +2229,7 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Static Room-station plan | -- | -- | -- | No retained planner, Query or Request at quiescence | 3 | -- | ADR1213. Stateless module; one private Query (fixed region, fragment, candidate and chain scratch; declared logical CONTROL_BYTES 52,968 including ADR1215 station air, decision 1942's claimed-row table and decision 1943's seven-station chain scratch, not a native measurement) lives only inside the caller's original cold lease and dies before publish_into allocates. Output is the caller's ADR1161 Request; a plan is not a route, contact or paid permission. |
+| Static Room-station plan | -- | -- | -- | No retained planner, Query or Request at quiescence | 3 | -- | ADR1213. Stateless module; one private Query (fixed region, fragment, candidate and chain scratch; declared logical CONTROL_BYTES 56,040 including ADR1215 station air, decision 1942's claimed-row table and decision 1943's seven-station chain scratch and turning lines, not a native measurement) lives only inside the caller's original cold lease and dies before publish_into allocates. Output is the caller's ADR1161 Request; a plan is not a route, contact or paid permission. |
 
 ### `godot/scripts/core/underground_room_dig_order.gd`
 

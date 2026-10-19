@@ -117,6 +117,7 @@ func test_the_way_in_belongs_to_the_mounted_session() -> void:
 	var counting: CountingWayIn = CountingWayIn.new()
 	assert_true(host.bind_underground_way_in(counting), "bound")
 	assert_true(host.reset(), "reset releases the session")
+	assert_false(host._underground_way_in is CountingWayIn, "the old session's seam is let go at once")
 	assert_false(host.bind_underground_way_in(counting), "nothing mounted: refused")
 	assert_equal(Chain.mount_and_compose(host, _content), &"", "mounted again")
 	assert_equal(host.order_painted_room(_painted(PackedInt32Array())).code, Confirm.REFUSE_NO_WAY_IN, "no way in")

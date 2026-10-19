@@ -278,6 +278,29 @@ func test_a_mole_digging_a_stopped_cell_lets_it_go_and_plans_again() -> void:
 	assert_false(trip.digging_cell() == cell, "it stopped digging there at once (no wait out on a stopped cell)")
 
 
+func test_a_mole_whose_cell_another_now_holds_lets_it_go() -> void:
+	"""Review LOW: a cell stopped and ordered again may be claimed by another mole while this one waits out its dig;
+	this one lets it go and never opens it."""
+	_confirm_kitchen_with(PackedInt32Array([1]))
+	var trip: BelowTask = _build.diggers[0]
+	var row: int = _build._trips.find(trip)
+	var brain: Object = (_cast.call(&"actor", _build._trip_actors[row]) as Node).get(&"brain")
+	trip.arrived(brain)
+	var frames: int = 0
+	while trip.digging_cell().x < 1 and frames < 3000:
+		trip.step(brain, 0.1)
+		frames += 1
+	var cell: Vector3i = trip.digging_cell()
+	assert_true(cell.x >= 1, "digging a cell below: %s" % cell)
+	_build.works.unclaim(cell, trip.key())
+	assert_true(_build.works.claim(cell, trip.key() + 1), "another mole holds it now")
+	var opened: int = trip.dug
+	trip.step(brain, 0.1)
+	assert_false(trip.digging_cell() == cell, "it let the cell go at once")
+	assert_equal(_build.works.claimed_by(cell), trip.key() + 1, "the other still holds it")
+	assert_equal(trip.dug, opened, "nothing opened")
+
+
 func test_return_cells_is_one_step_and_refuses_nothing_to_return() -> void:
 	"""build_batch.gd `return_cells`: one pending operation, one Undo step; empty input or a stroke in progress
 	returns -1."""

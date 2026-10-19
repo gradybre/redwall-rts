@@ -85,6 +85,8 @@ class Fixture extends WorldFixture:
 	var location_capacity: int = 16 # Fixed fixture arenas; a multi-cube loop raises them before _actual_fixture.
 	var work_x: int = X + 1280 # The WORK station's x; decision 1939's claw Kitchen sets its own row's reach.
 	var edge_capacity: int = 32
+	var lot_capacity: int = 64 # Decision 1942: a room past the Kitchen's size raises these before _actual_fixture.
+	var site_capacity: int = 128
 
 	func _actual_fixture(_obstruction: int = 0) -> void:
 		"""Create one real generated World and a Mole, with no phase permission or paid progress assigned privately."""
@@ -93,7 +95,7 @@ class Fixture extends WorldFixture:
 		var forage: Forage = Forage.new(_residents.directory(), _jobs)
 		var fishing: Fishing = Fishing.new(_residents.directory(), forage, _jobs)
 		_world = World.new(_residents.directory(), _nodes, forage, fishing, Rng.new(), null, null, _jobs)
-		_inventory = Inventory.new(32, 64); _items = Items.new()
+		_inventory = Inventory.new(32, lot_capacity); _items = Items.new()
 		assert_true(_items.load_default(_inventory).ok, "actual item definitions")
 		assert_true(_world.generate(World.bound_request(_items).request).ok, "actual terrain")
 		_world_ref = _residents.directory().create(Directory.KIND_WORLD)
@@ -136,7 +138,7 @@ class Fixture extends WorldFixture:
 		provider = _new_provider()
 		assert_equal(provider.configure(_world, phase_terrain, _owner, _sources, _budget), &"", "actual phase provider")
 		authority = Authority.new(); assert_equal(authority.configure(_owner, provider, 32), &"", "actual spatial authority")
-		sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, authority, 64, 128)
+		sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, authority, 64, site_capacity)
 		assert_equal(sites.initialization_refusal(), &"", "actual paid Site owner")
 		assert_equal(authority.bind_sites(sites), &"", "original Site identity")
 		router = Router.new(_construction, _inventory, _pool, _items, _jobs, _work, sites)

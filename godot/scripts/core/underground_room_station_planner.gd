@@ -15,6 +15,7 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Face := preload("res://scripts/core/underground_work_face.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_STATIONS: int = Publication.MAX_STATIONS
 const MAX_CHAIN: int = MAX_STATIONS + 2 # Room to detect, and name, a chain one or two stations too long.
@@ -24,11 +25,12 @@ const MAX_CANDIDATES: int = 2048
 const MAX_EDGES: int = 256
 const MAX_PRIMITIVES: int = 32 # Air primitives of one station's adjoining sources, before merging.
 const AIR_BOXES: int = Publication.AIR_BOXES
-## Declared logical cold slice (45,752 B): four region tables and their section refs, two fragment arenas,
+## Declared logical cold slice (52,664 B): five region tables (decision 1942 added the claimed rows) and their section
+## and claim refs, two fragment arenas,
 ## candidate keys, edge/plane scratch, the chain packets and their ADR1215 air boxes, the primitive scratch,
 ## eight six-int boxes and a 1,024 B scalar/reference allowance.
 ## Not a native measurement. The Query dies before publish_into admits its own lifetime in the same lease.
-const CONTROL_BYTES: int = 4 * 6 * MAX_REGIONS * 4 + 2 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \
+const CONTROL_BYTES: int = 5 * 6 * MAX_REGIONS * 4 + 5 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \
 	+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4 + 4 + AIR_BOXES * 6 * 4) \
 	+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024
 const IDENTITY_FIELDS: Array[int] = [Profiles.F_SOURCE, Profiles.F_SPECIES, Profiles.F_STAGE, Profiles.F_RIG,
@@ -55,6 +57,10 @@ class Query extends RefCounted:
 	## Private cold packet; dies before publish_into allocates. No owner, bank or caller packet is retained after return.
 	var profiles: Profiles = null
 	var owner: Owner = null
+	var sites: Sites = null # Decision 1942: the provider's Sites, for the room a WORK station's cube belongs to.
+	var claims: PackedInt32Array = PackedInt32Array() # Decision 1942: claimed rows meeting the hull, boxes of six.
+	var claim_refs: PackedInt32Array = PackedInt32Array() # Each claimed row's kind, claim slot and generation.
+	var claim_count: int = 0 # -1 once more than MAX_REGIONS meet the hull (the owner is then scanned in full).
 	var origin: Vector3i = Vector3i.ZERO
 	var axis: int = 0
 	var lateral: int = 2
@@ -179,6 +185,7 @@ static func facing_face(actual: Provider, yaw: int) -> int:
 static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, face: int, yaw: int, checks: int) -> void:
 	"""Pin the original immutable owners and allocate every fixed scratch packet once."""
 	q.profiles = actual._ordinary_config.profiles; q.owner = actual._ordinary_config.owner
+	q.sites = actual._ordinary_original_sites()
 	q.locations = actual._ordinary_config.locations
 	q.origin = Frontier._origin(actual._ordinary_original_sites(), candidate.key)
 	@warning_ignore("integer_division") var axis: int = face / 2
@@ -195,6 +202,7 @@ static func _hold(q: Query, actual: Provider, candidate: Frontier.Candidate, fac
 		table.resize(6 * MAX_REGIONS)
 		q.tables[kind] = table
 	q.section_refs.resize(2 * MAX_REGIONS)
+	q.claims.resize(6 * MAX_REGIONS); q.claim_refs.resize(3 * MAX_REGIONS)
 	q.front.resize(6 * MAX_FRAGMENTS); q.back.resize(6 * MAX_FRAGMENTS)
 	q.keys.resize(MAX_CANDIDATES); q.edges.resize(MAX_EDGES); q.planes.resize(MAX_EDGES)
 	q.points.resize(3 * MAX_CHAIN); q.spans.resize(4 * MAX_CHAIN); q.sections.resize(2 * MAX_CHAIN)
@@ -256,6 +264,7 @@ static func _regions(q: Query) -> StringName:
 	for row: int in owner._region_capacity:
 		if not _spend(q, 4): return REFUSE_CAPACITY
 		if owner._r_present[row] != 1: continue
+		if owner._r_claim_kind[row] != Owner.CLAIM_NONE: _keep_claim(q, owner, row)
 		var role: int = owner._r_role[row]
 		var kind: int = SECTION if role == Space.FLOOR_DATUM else VOID if role == Space.SUPPORTED_VOID \
 			else SUPPORT if role == Space.SUPPORT else BLOCKER
@@ -270,6 +279,22 @@ static func _regions(q: Query) -> StringName:
 			q.section_refs[2 * q.counts[kind]] = row; q.section_refs[2 * q.counts[kind] + 1] = owner._r_generation[row]
 		q.counts[kind] += 1
 	return &""
+
+
+static func _keep_claim(q: Query, owner: Owner, row: int) -> void:
+	"""Decision 1942: a claimed row meeting the hull, with its claim, for `_foreign_claim` (no extra check is spent:
+	the row's scan already paid). Past MAX_REGIONS the table is abandoned and the owner is scanned when needed."""
+	if q.claim_count < 0: return
+	_region_box(owner, row, q.other)
+	if not Space.overlaps(q.other, q.hull): return
+	if q.claim_count >= MAX_REGIONS:
+		q.claim_count = -1
+		return
+	_put(q.claims, q.claim_count, q.other)
+	q.claim_refs[3 * q.claim_count] = owner._r_claim_kind[row]
+	q.claim_refs[3 * q.claim_count + 1] = owner._r_claim_slot[row]
+	q.claim_refs[3 * q.claim_count + 2] = owner._r_claim_generation[row]
+	q.claim_count += 1
 
 
 static func _hull(q: Query) -> void:
@@ -530,7 +555,9 @@ static func _station_fits(q: Query, index: int) -> bool:
 	if not last: return true
 	var section: int = _section_at(q, point)
 	_slice(q.tables[SECTION], section, q.other)
-	return q.footing[0] >= q.other[0] and q.footing[2] >= q.other[2] and q.footing[3] <= q.other[3] and q.footing[5] <= q.other[5]
+	if q.footing[0] < q.other[0] or q.footing[2] < q.other[2] or q.footing[3] > q.other[3] or q.footing[5] > q.other[5]:
+		return false
+	return q.air_counts[index] > 1 or not _foreign_claim(q, index, point)
 
 
 static func _station_air(q: Query, index: int, point: Vector3i, last: bool) -> bool:
@@ -731,6 +758,71 @@ static func _fits(q: Query, low: Vector3i, high: Vector3i, stroke: bool) -> bool
 static func _set_box(out: PackedInt32Array, low: Vector3i, high: Vector3i) -> void:
 	"""Write a half-open box from two corners."""
 	out[0] = low.x; out[1] = low.y; out[2] = low.z; out[3] = high.x; out[4] = high.y; out[5] = high.z
+
+
+static func _foreign_claim(q: Query, index: int, point: Vector3i) -> bool:
+	"""Decision 1942: a WORK station published with a single air box (no extra boxes) is proved by Locations against
+	one Space survey: for a station on a world section, `snapshot_into`, in which every claimed row is an obstacle; for
+	one on a room's section, `snapshot_for_site_into` for the Site holding its point, which must be that room's, and
+	which omits only that room's claims and the Site's own phase claim. The planner's region tables treat every room
+	marker as nonphysical (a route sweep's view, which is how a TRANSIT station or extra air boxes are proved), so
+	that one box must also meet no claimed row the survey keeps. True also when no such Site exists."""
+	if q.air_counts[index] == 1:
+		_slice(q.air, index * AIR_BOXES, q.box) # The one claimed box is the published envelope.
+	else:
+		for axis: int in 6: q.box[axis] = q.envelope[axis]
+	var room: Vector2i = _section_room(q, index)
+	var project: Vector2i = NULL_REF
+	if room != NULL_REF:
+		var site: Vector2i = q.sites.site_at(_cube_origin(q, point))
+		if site == NULL_REF or q.sites.room_of(site) != room: return true # LOCATION_PAID_SITE_MISSING.
+		project = q.sites.project_of(site)
+	if q.claim_count < 0: return _owner_claim(q, room, project)
+	for at: int in q.claim_count:
+		if _exempt(q.claim_refs[3 * at], Vector2i(q.claim_refs[3 * at + 1], q.claim_refs[3 * at + 2]), room, project): continue
+		_slice(q.claims, at, q.other)
+		if Space.overlaps(q.box, q.other): return true
+	return false
+
+
+static func _section_room(q: Query, index: int) -> Vector2i:
+	"""The room owning the station's section, as Publication names the record's room; null for a world section."""
+	var owner: Owner = q.owner
+	var row: int = q.sections[index * 2]
+	var section: Vector2i = Vector2i(owner._r_owner_slot[row], owner._r_owner_generation[row])
+	return NULL_REF if section == q.locations._world else section
+
+
+static func _cube_origin(q: Query, point: Vector3i) -> Vector3i:
+	"""The paid-cube datum holding a point (Locations' `_cube_origin`: floor division on the domain's datum)."""
+	var datum: Vector3i = q.owner._domain._datum
+	var origin: Vector3i = Vector3i.ZERO
+	for axis: int in 3:
+		var offset: int = int(point[axis]) - datum[axis]
+		@warning_ignore("integer_division")
+		var quanta: int = offset / Space.QUANTUM_U
+		if offset < quanta * Space.QUANTUM_U: quanta -= 1
+		origin[axis] = datum[axis] + quanta * Space.QUANTUM_U
+	return origin
+
+
+static func _exempt(kind: int, claim: Vector2i, room: Vector2i, project: Vector2i) -> bool:
+	"""Space's `_exempt_claim`: the survey's own room's claims and its Site's own phase claim."""
+	return (kind == Owner.CLAIM_ROOM and room != NULL_REF and claim == room) \
+		or (kind == Owner.CLAIM_CONSTRUCTION and project != NULL_REF and claim == project)
+
+
+static func _owner_claim(q: Query, room: Vector2i, project: Vector2i) -> bool:
+	"""More claimed rows meet the hull than the table holds: scan the owner itself (each row spends its check)."""
+	var owner: Owner = q.owner
+	for row: int in owner._region_capacity:
+		if not _spend(q, 4): return true
+		if owner._r_present[row] != 1 or owner._r_claim_kind[row] == Owner.CLAIM_NONE \
+				or _exempt(owner._r_claim_kind[row], Vector2i(owner._r_claim_slot[row], owner._r_claim_generation[row]), room,
+				project): continue
+		_region_box(owner, row, q.other)
+		if Space.overlaps(q.box, q.other): return true
+	return false
 
 
 static func _blocked(q: Query) -> bool:

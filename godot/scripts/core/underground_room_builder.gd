@@ -1105,6 +1105,57 @@ func last_index() -> int:
 	return _index
 
 
+func station() -> Vector2i:
+	"""The WORK station of the cube in hand, or of the last cube while idle (decision 1942), or null."""
+	return _station
+
+
+func last_site() -> Vector2i:
+	"""The Site of the cube in hand, or of the last cube while idle (decision 1942), or null."""
+	return _site
+
+
+func holds(ref: Vector2i) -> bool:
+	"""Decision 1942: this builder still holds the endpoint: its parking or where it stands, or, while out at work (or
+	stopped there), its station, any planned leg's end, its stands or its haul endpoints. An idle builder's last
+	station and plan are only history (`forget_retired`)."""
+	if ref == _crew.parking or ref == _at: return true
+	if _stage == STAGE_IDLE: return false
+	if ref == _station or ref == _plan.start or ref == _plan.store or ref == _haul_store or ref == _haul_source:
+		return true
+	return _pair_in(_legs, ref) or _pair_in(_plan.home_legs, ref) or _pair_in(_plan.approach_legs, ref) \
+		or _pair_in(_plan.store_legs, ref) or _pair_in(_plan.stands, ref)
+
+
+static func _pair_in(pairs: PackedInt32Array, ref: Vector2i) -> bool:
+	"""`ref` is one of the (slot, generation) pairs."""
+	for at: int in range(0, pairs.size() - 1, 2):
+		if pairs[at] == ref.x and pairs[at + 1] == ref.y: return true
+	return false
+
+
+func forget_retired(chain: PackedInt32Array) -> void:
+	"""Decision 1942: an idle builder whose last station or plan named a retired station forgets them (a save must
+	name only live endpoints); its next cube plans afresh. Nothing else changes."""
+	if _stage != STAGE_IDLE or not _names_any(chain): return
+	_station = NULL_REF
+	_plan.clear()
+	_legs.clear()
+	_leg_profiles.clear()
+	_leg = 0
+	_sweep_claim()
+
+
+func _names_any(chain: PackedInt32Array) -> bool:
+	"""The station, the current legs or any planned leg names one of the chain's (slot, generation) pairs."""
+	for at: int in range(0, chain.size() - 1, 2):
+		var ref: Vector2i = Vector2i(chain[at], chain[at + 1])
+		if ref == _station or ref == _plan.start or ref == _plan.store or _pair_in(_legs, ref) \
+				or _pair_in(_plan.home_legs, ref) or _pair_in(_plan.approach_legs, ref) or _pair_in(_plan.store_legs, ref):
+			return true
+	return false
+
+
 func continue_column(index: int, site: Vector2i, key: int, tick: int) -> StringName:
 	"""Painted height (decision 1971): the next cube up the same column is taken straight from where the builder
 	stands. A refused contact leaves it at the station (the foreman then sends it home); a later refusal fails it."""

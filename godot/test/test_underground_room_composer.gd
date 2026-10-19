@@ -171,3 +171,23 @@ func test_a_busy_mole_is_waited_for_and_the_room_starts_once_it_is_free() -> voi
 	assert_equal(Composer.start_waiting(_runtime, _h.placements), [] as Array[StringName], "started")
 	assert_equal(_runtime.state_of(_room), Runtime.RECORD_DIGGING, "now it digs the Kitchen")
 	assert_equal(_runtime.foreman_of(_room).builders()[0].crew().worker, mole, "the mole it waited for")
+
+
+func test_a_named_crew_waits_for_its_own_busy_member_not_for_any_idle_mole() -> void:
+	"""Decision 1991, P-1990-4 (a): a named crew whose member is busy waits for that member; another idle mole is not
+	sent in its place. Once the member is free, it is the one that digs."""
+	if _room == NULL_REF: return
+	var named: Vector2i = _idle_mole()
+	var row: int = _h._residents.directory().get_typed_row(named)
+	var other: Vector2i = _idle_mole()
+	var held: Jobs.OpResult = _h._jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(_h._jobs.assign_worker(row, held.value).ok, "the named mole is busy")
+	var order: Composer.Order = _order(_h._first)
+	order.crew = PackedInt32Array([named.x, named.y])
+	assert_equal(Composer.order(_runtime, _h.placements, order), &"", "accepted")
+	assert_equal(_runtime.state_of(_room), Runtime.RECORD_QUEUED, "waiting for its own member")
+	assert_null(_runtime.foreman_of(_room), "the idle mole not sent instead")
+	assert_true(_h._jobs.release_worker(row).ok, "free")
+	assert_equal(Composer.start_waiting(_runtime, _h.placements), [] as Array[StringName], "started")
+	assert_equal(_runtime.foreman_of(_room).builders()[0].crew().worker, named, "by the named mole")
+	assert_false(_runtime.reserves_resident(_h._residents.directory().get_typed_row(other)), "not the other")

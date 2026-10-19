@@ -7,6 +7,8 @@ extends "res://test/live/demo_build_dig_live.gd"
 ## a pending Kitchen, what was dug kept, and the crew walking out once the Passage is done. Optional:
 ## -- --capture <directory> for its frames.
 
+const Tags := preload("res://demo/build_panel/demo_build_tags.gd")
+
 ## The crew selected: up to two moles -- the village's own (the staged demo village has one) -- or, with no mole in
 ## the village (art-free placeholders), two residents.
 var _crew: PackedInt32Array = PackedInt32Array()
@@ -19,7 +21,7 @@ func _initialize() -> void:
 	super()
 	_steps = [_open_on_the_surface, _scroll_to.bind("Hatch with ladder"), _choose_the_entrance, _place_the_entrance,
 		_add_the_entrance, _down_to_level_one, _scroll_to.bind("Passage"), _choose_the_passage, _paint_the_passage,
-		_scroll_to.bind("Kitchen"), _choose_the_kitchen, _paint_the_kitchen, _select_the_crew, _tags_apart, _crew_named,
+		_scroll_to.bind("Kitchen"), _choose_the_kitchen, _paint_the_kitchen, _select_the_crew, _tags_apart, _plan_tags_apart, _crew_named,
 		_confirm_with_the_crew, _wait_for_both_digging, _tags_apart, _put_the_card_down, _click_the_kitchen,
 		_stop_digging, _capture_after.bind("stopped", 12), _stopped_words, _tags_apart, _wait_for_the_crew_out,
 		_kitchen_kept, _close_keeping_the_plan, _keep]
@@ -168,3 +170,15 @@ func _stopped_words() -> void:
 		_check("the crew's words follow the Stop", not label.contains("(%d cells waiting)" % (24 - _dug_at_stop))
 			or int(trip.call(&"waiting")) > 0, label)
 	_manager().call(&"set_speed", 4)
+
+
+func _plan_tags_apart() -> void:
+	"""The plan's own tags on the level shown (its ghosts' words, "✓ Passage", "✓ Hatch with ladder comes down here")
+	and the level's tags, read here apart from the panel's spacing list: none sits on another."""
+	var tags: Array[Label3D] = []
+	var level: int = int(_build().get("bar").call(&"shown_level"))
+	_build().get("paint").call(&"shown_tags", level, tags)
+	_build().get("dug").call(&"shown_tags", tags)
+	var camera: Camera3D = _build().get("_camera")
+	var pairs: int = int(Tags.overlaps(camera, tags))
+	_check("the plan's tags sit on none of each other", pairs == 0, "%d pairs over %d tags" % [pairs, tags.size()])

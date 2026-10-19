@@ -313,3 +313,20 @@ func test_a_parking_whose_spans_never_join_is_not_published_again() -> void:
 	Parking.find_into(owners, unjoined, again)
 	assert_equal(owners.routes._live.edge_count, later, "a second ask publishes nothing more")
 	assert_true(later >= edges, "edges never removed")
+
+
+func test_a_stopped_foreman_under_a_digging_or_done_record_is_refused() -> void:
+	"""Review M3, the other way round: a failed foreman saved under a DIGGING (or DONE) record is refused."""
+	if _room == NULL_REF: return
+	_digging()
+	for step: int in 50:
+		_h.tick += 1
+		_runtime.advance(_h.tick)
+	assert_equal(_runtime.stop_room(_room), &"", "stopped, its crew still underground")
+	var bytes: PackedByteArray = _captured()
+	assert_equal(bytes.decode_s32(STATE_AT), Runtime.RECORD_STOPPED, "saved STOPPED")
+	assert_equal(_restored(bytes), &"", "as it is, it restores")
+	for state: int in [Runtime.RECORD_DIGGING, Runtime.RECORD_DONE]:
+		var wrong: PackedByteArray = bytes.duplicate()
+		wrong.encode_s32(STATE_AT, state)
+		assert_equal(_restored(wrong), Progress.REFUSE_SHAPE, "a stopped foreman under state %d" % state)

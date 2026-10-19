@@ -416,8 +416,10 @@ func test_the_ledgers_second_line_keeps_the_crew_and_the_note_before_the_work() 
 	var px: int = BuildPanel.TEXT_PX
 	var crew: String = "Crew: Tuppen"
 	var note: String = "proof of concept"
+	ledger.size = Vector2(4000.0, 44.0) # Wide: the whole line, to read the work as the panel words it.
 	_build.panel.set_crew_line(crew)
-	var work: String = ledger.text.get_slice("\n", 1).get_slice(" · ", 0) # "work about ..." as the panel words it.
+	var work: String = ledger.text.get_slice("\n", 1).get_slice(" · ", 0)
+	assert_true(work.begins_with("work "), "the work read: %s" % work)
 	var crew_note: float = font.get_string_size(crew + " · " + note, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
 	var work_crew: float = font.get_string_size(work + " · " + crew, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
 	var all_three: float = font.get_string_size(work + " · " + crew + " · " + note, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x

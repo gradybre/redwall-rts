@@ -403,3 +403,24 @@ func test_a_cube_with_no_live_phase_is_continued_from_its_own_phase() -> void:
 		_h.sites._phase[site.x] = phase # Negative-only: the mapping read in isolation.
 		assert_equal(builder._next_operation(site), expected[phase], "phase %d" % phase)
 	_h.sites._phase[site.x] = kept
+
+
+func test_a_new_dig_after_a_finished_one_reserves_its_own_crew() -> void:
+	"""Review M7's filter (decision 1991): after the Kitchen's dig is done and released (its foreman dropped), the
+	northern room's dig with another mole is a foreman of the same count; the filter still sees the new builder, and
+	the first mole is free again."""
+	if _runtime == null: return
+	var first: int = _h._residents.directory().get_typed_row(_h._worker)
+	var kitchen: Confirm.Result = _confirm(_painted(Phase.Z, _worker_crew()), _way)
+	assert_true(_runtime.reserves_resident(first), "the Kitchen's builder reserved")
+	var step: int = 0
+	while _runtime.kept() > 0 and step < TICK_BOUND:
+		_tick(); step += 1
+	assert_equal(_runtime.state_of(kitchen.room), Runtime.RECORD_NONE, "dug and released")
+	var mole: Vector2i = _h.second_member(KitchenTests.SECOND_PARKING).worker
+	var second: int = _h._residents.directory().get_typed_row(mole)
+	var north: Confirm.Result = _confirm(_painted(NORTH_Z, PackedInt32Array([mole.x, mole.y])), _way)
+	assert_equal(north.code, &"", "the northern room ordered with the second mole")
+	assert_equal(_runtime.foreman_of(north.room).builders()[0].crew().worker, mole, "its builder")
+	assert_true(_runtime.reserves_resident(second), "the new builder reserved at once")
+	assert_false(_runtime.reserves_resident(first), "the first mole free")

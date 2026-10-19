@@ -165,6 +165,22 @@ class Landing:
         """(row, start root) of every rooted motion on the landing."""
         return [(DESCENT, self.sill_a), (TURN, self.f), (ASCENT, self.u), (WALK_OFF, self.f), (BACK_UP, self.fp)]
 
+    def rooted_on_floor(self) -> list:
+        """(row, start root, clipped) of every rooted motion that starts on the landing floor."""
+        return [(TURN, self.f, False), (ASCENT, self.u, False), (WALK_OFF, self.f, False), (BACK_UP, self.fp, False)]
+
+    def next_module_rooted(self) -> list:
+        """(row, start root, clipped) of the next module's descents, ascents and half-turns (A0' to its sill), whose
+        bodies may reach back under the landing's deck rows."""
+        if self.last:
+            return []
+        out = []
+        for level in range(-1, V10.SILL + 1):
+            if level < V10.SILL: out.append((DESCENT, PUB.stop_point(self.landing, level, V10.ARRIVAL), True))
+            if level >= 0: out.append((ASCENT, PUB.stop_point(self.landing, level, V10.ASCENT_START), True))
+            out.append((TURN, PUB.stop_point(self.landing, level, V10.ARRIVAL), True))
+        return out
+
 
 def collisions(layout: int, boxes: dict) -> list:
     """Every body/part overlap on every landing of a layout, as readable lines."""
@@ -279,6 +295,32 @@ class LandingClearance(unittest.TestCase):
                         self.assertGreaterEqual(point[2] + box[2], low, "M%d landing %d stop %s on %d" % (
                             layout, landing, point, row))
                         self.assertLessEqual(point[2] + box[5], high)
+
+    def test_rooted_bodies_below_a_landing_floor_are_covered(self) -> None:
+        """Where a rooted row's body dips below a landing floor (the descent onto T0' from A0' reaches 130 u down), the
+        Room's support, its parts or a cut cube holds every unit of it; natural earth is not a Region, so WorldRoutes
+        would otherwise need it to be exterior air, which it is not."""
+        deepest = 0
+        for layout in (2, 5):
+            PUB.select(layout)
+            spec = V10.json.loads(V10.pinned(V10.SPEC, V10.SPEC_SHA))
+            parts = PUB.parts_all(spec)
+            covers = parts + PUB.bearings_all(spec, parts) + PUB.cut_groups() \
+                + [box for j in range(1, PUB.MODULES + 1) for _, box in PUB.strip_boxes(j)]
+            for landing in range(1, PUB.MODULES + 1):
+                floor = -PUB.MODULE_DROP * landing
+                rows = PUB.deck_rows(landing)
+                for row, root, clip in Landing(landing).rooted_on_floor() + Landing(landing).next_module_rooted():
+                    for body in (b for b in self.boxes[row] if b[6] in BODY_ROLES):
+                        box = swept(body, root, root)
+                        box[4] = min(box[4], floor)
+                        if clip:  # Only the part under the landing's deck rows (the next module's own rows are cut).
+                            box[2], box[5] = max(box[2], -1024 * (rows[-1] + 1)), min(box[5], -1024 * rows[0])
+                        if box[1] >= box[4] or box[2] >= box[5]: continue
+                        deepest = max(deepest, floor - box[1])
+                        self.assertEqual(uncovered(box, covers), 0, "M%d landing %d row %d at %s" % (
+                            layout, landing, row, root))
+        self.assertEqual(deepest, PUB.DECK_DEPTH, "the deck slab is exactly as deep as the deepest body")
 
     def test_rooted_decks_are_covered_by_the_rooms_support(self) -> None:
         """Every fixture deck of 53/54/55/71/72 at each landing lies in parts, bearings and the retained floor."""

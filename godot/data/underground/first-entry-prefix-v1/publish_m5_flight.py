@@ -88,6 +88,9 @@ def assembly_count() -> int:
 NATURAL_KIND, STRIP_KIND = 0, 2
 STRIP_HALF_X = 768  # Inside every post bearing (|x| >= 768): strips never meet a bearing.
 STRIP_DEPTH = 128  # NATURAL_DEPTH_U, decision 1972.
+DECK_DEPTH = 258  # P-2044-16 (a): the deepest rooted body under a landing's deck rows, the ascent from T1' to T0'
+# (its body reaches 161 u back under the landing row, 258 u below the floor), past the decks' 128;
+# test_landing_clearance.py derives it from the profile wire.
 DEEP_X = (-300, 300)  # 2044: row 56's contact (224, 0, -544) lands in the column; turns (+-712) stay in the slot.
 DEEP_INSIDE = 406  # The land stations' stand-off (1430 - 1024).
 DIG_FORWARD = 56  # Claw dig row at yaw 0 (CLAW_DIG_ROWS[0]).
@@ -279,15 +282,15 @@ def deck_rows(landing: int) -> range:
 
 
 def strip_boxes(landing: int) -> list:
-    """(row, box) for landing j's retained floor (kind 2), all 128 u deep under the floor: the deck rows' full slot
+    """(row, box) for landing j's retained floor (kind 2) under the floor: the deck rows (`DECK_DEPTH` deep) at full slot
     width as a centre slab (x +-768) and two side bands (768 <= |x| <= 1,024, where the posts' natural bearings already
     are, so staging keeps only what they leave), row -1 (never retired); then module j's rows at x +-768, one each."""
     y = -MODULE_DROP * landing
     rows = deck_rows(landing)
     near, far = -1024 * rows[0], -1024 * (rows[-1] + 1)
-    out = [(-1, [-STRIP_HALF_X, y - STRIP_DEPTH, far, STRIP_HALF_X, y, near]),
-           (-1, [-1024, y - STRIP_DEPTH, far, -STRIP_HALF_X, y, near]),
-           (-1, [STRIP_HALF_X, y - STRIP_DEPTH, far, 1024, y, near])]
+    out = [(-1, [-STRIP_HALF_X, y - DECK_DEPTH, far, STRIP_HALF_X, y, near]),
+           (-1, [-1024, y - DECK_DEPTH, far, -STRIP_HALF_X, y, near]),
+           (-1, [STRIP_HALF_X, y - DECK_DEPTH, far, 1024, y, near])]
     return out + [(row, strip_box(landing, row)) for row in range(5 * landing + 2, ROWS)]
 
 

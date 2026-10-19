@@ -932,21 +932,22 @@ func _carry_hull_clean(edge: Routes.Edge) -> bool:
 	"""Decision 2044 (P-2044-1 (a), the edge-bound prefilter): one box holding every serving profile's every box swept
 	along every segment, and every stair row's fixture decks; when no change since the certificate meets it, none can
 	meet any sweep it holds, so the per-profile test would carry the edge too. Its descriptor reads are charged as that
-	test charges them; the change test is charged once, not once per profile, segment and box."""
-	var hull: PackedInt32Array = PackedInt32Array([2147483647, 2147483647, 2147483647, -2147483648, -2147483648,
-		-2147483648])
+	test charges them, and each swept box and deck one check; the change test is charged once, not once per profile,
+	segment and box. The hull is held in `_support`, the stance scratch, free while an edge's carry is decided."""
+	var hull: PackedInt32Array = _support
+	for axis: int in 6: hull[axis] = 2147483647 if axis < 3 else -2147483648
 	var motion: Routes.StairMotion = _routes()._stair_motion
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend() or _profiles.descriptor_into(profile, _content_revision, _descriptor) != &"": return false
 		if (edge.family < 0 and Routes.Stair.is_rooted(profile) and _stair_row(profile)) or not _kind_matches(edge): continue
 		for segment: int in edge.point_count - 1:
 			for ordinal: int in _descriptor.box_count:
-				if _profile_box_into(ordinal, _body) != &"" \
+				if not _proof.spend() or _profile_box_into(ordinal, _body) != &"" \
 						or _sweep_into(_body, _point(edge, segment), _point(edge, segment + 1), _envelope) != &"": return false
 				for axis: int in 6: hull[axis] = mini(hull[axis], _envelope[axis]) if axis < 3 else maxi(hull[axis], _envelope[axis])
 		var program: int = motion.program_of(profile) if _stair_row(profile) else -1
 		for ordinal: int in (motion.deck_count(program) if program >= 0 else 0):
-			if not motion.deck_into(program, ordinal, _point(edge, 0), _envelope): return false
+			if not _proof.spend() or not motion.deck_into(program, ordinal, _point(edge, 0), _envelope): return false
 			for axis: int in 6: hull[axis] = mini(hull[axis], _envelope[axis]) if axis < 3 else maxi(hull[axis], _envelope[axis])
 	if hull[0] > hull[3] or not _proof.spend(1 + _relevant): return false
 	return _owner()._journal.clean(hull, _since, CLEARANCE_INERT_ROLE) and not _staged_change_meets(hull)

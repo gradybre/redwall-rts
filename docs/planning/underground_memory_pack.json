@@ -4226,7 +4226,7 @@
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
         "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
-        "godot/scripts/core/underground_world_routes.gd": "3f40b2aadc0fec95fd57c303febe5e6e3504b2dbf274e32182c5282e6db632c8"
+        "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04"
       }
     },
     "current_profile_control": {
@@ -42433,7 +42433,7 @@
           {
             "bytes": 3896,
             "carried_by": "new contribution",
-            "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved"
+            "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved; with the cache checks on, a kept prism set is re-derived and compared (_cached_prisms_hold), unspent, no storage"
           }
         ],
         "delta": {
@@ -42847,7 +42847,7 @@
             "PackedInt32Array(": 5,
             "PackedInt64Array(": 3,
             "in[": -1,
-            "range(": 3
+            "range(": 4
           }
         }
       },
@@ -44032,7 +44032,7 @@
           {
             "bytes": 0,
             "carried_by": "none",
-            "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean's six-word hull, one cold-path local per prepared stair edge; no retained member"
+            "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
           }
         ],
         "delta": {
@@ -44350,7 +44350,7 @@
           "allocation_sites": {
             ".new(": 2,
             "=[": 3,
-            "PackedInt32Array(": 4,
+            "PackedInt32Array(": 3,
             "PackedInt64Array(": 10,
             "range(": 1
           }
@@ -45198,7 +45198,7 @@
     "godot/scripts/core/underground_entry_structure.gd": "7af358c244f576419d123ae40aaa9b7bee701df4a78afe1c25b523981c988c79",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-    "godot/scripts/core/underground_locations.gd": "f8dce6e0e790f920886e07d97b72372b05f2c7ee73906f734b851893f14ee6e4",
+    "godot/scripts/core/underground_locations.gd": "7800ce1d67c6cabee4ca8a5284a4522fd738f732480269765f115c6ed290d589",
     "godot/scripts/core/underground_motion_catalog.gd": "315633cb8b3c12e1c5ee8f0d22d76cbad4132428c9a509721a565af1f5de7901",
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
@@ -45213,7 +45213,7 @@
     "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_world_retirement.gd": "9ad293e84928ff8cd5c6c3bf4c8c534577b6afea3efc1c4adf202a7c8a80dd0f",
-    "godot/scripts/core/underground_world_routes.gd": "3f40b2aadc0fec95fd57c303febe5e6e3504b2dbf274e32182c5282e6db632c8",
+    "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
   "registry_sha256": "98d39f8ba92ea9f50aeef039ecb58e09cda79f39b4ddccd134607db6d13024a7",

@@ -332,7 +332,8 @@ func _retire_landing_floor() -> StringName:
 	"""Decision 2044 (P-2044-16 (a)): a later module's T0 order, on its last leg onto its station (off the floor's
 	stops, the bearer not yet set down), retires
 	its landing's deep floor: the hub D and the last deep stations (the landing row's), whose air reaches the bearer's
-	place. Their cuts are done; nothing comes back for them. Idempotent: nothing is left to retire on later ticks."""
+	place. Their cuts are done; nothing comes back for them. `_install` calls it once, on the tick the installer
+	reaches that leg; it is idempotent, so a second call retires nothing."""
 	var ordinal: int = _tasks[_index].install_ordinal
 	if not Tread.is_t0(ordinal) or Tread.module_of(ordinal) == 0: return &""
 	var landing: int = Tread.module_of(ordinal)
@@ -1250,10 +1251,12 @@ func _plan_retreat(install: PackedInt32Array, plan: Installer.Plan) -> StringNam
 func _install(tick: int) -> StringName:
 	"""Delegate every tick to the installer until its one whole-group commit, then take the next step."""
 	if _installer.stage() == Installer.STAGE_RESUME: return _resume_installation(tick)
-	var code: StringName = _retire_landing_floor() if _installer.stage() == Installer.STAGE_LEG_STATION else &""
+	var code: StringName = _installer.advance(tick)
 	if code != &"": return code
-	code = _installer.advance(tick)
-	if code != &"": return code
+	# Decision 2044: once, on the tick the installer reaches its last leg (its progress marker changes into it).
+	if _installer.stage() == Installer.STAGE_LEG_STATION and _installer.progress_marker() != _last_install_stage:
+		code = _retire_landing_floor()
+		if code != &"": return code
 	if _installer.stage() == Installer.STAGE_DONE:
 		_install_mwu += _installer.accepted_mwu()
 		_haul_mwu += _installer.haul_mwu()

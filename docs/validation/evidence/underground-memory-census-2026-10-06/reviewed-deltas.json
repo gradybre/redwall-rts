@@ -836,7 +836,7 @@
     {
      "bytes": 3896,
      "carried_by": "new contribution",
-     "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved"
+     "store": "decision 2044 (P-2044-15/16, M2): the witness pass's landing cache (_landing_boxes, 7 x PASS_LANDINGS 64 int32 = 1,792 B; _landing_key, 4 int64 = 32 B), the prism cache key widened to its eight inputs (_prism_key 5 -> 8 int64, +24 B) and the prisms' height order (_prism_tops, Catalog.MAX_PARTS 256 int64 = 2,048 B); runtime only, rebuilt per pass, never saved; with the cache checks on, a kept prism set is re-derived and compared (_cached_prisms_hold), unspent, no storage"
     }
    ],
    "delta": {
@@ -1250,7 +1250,7 @@
      "PackedInt32Array(": 5,
      "PackedInt64Array(": 3,
      "in[": -1,
-     "range(": 3
+     "range(": 4
     }
    }
   },
@@ -2435,7 +2435,7 @@
     {
      "bytes": 0,
      "carried_by": "none",
-     "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean's six-word hull, one cold-path local per prepared stair edge; no retained member"
+     "store": "decision 2044 (P-2044-16, Slice C clearance): the carried stair form and _carry_hull_clean, whose hull is held in the existing _support stance scratch; no retained member, packet or allocation site"
     }
    ],
    "delta": {
@@ -2753,7 +2753,7 @@
     "allocation_sites": {
      ".new(": 2,
      "=[": 3,
-     "PackedInt32Array(": 4,
+     "PackedInt32Array(": 3,
      "PackedInt64Array(": 10,
      "range(": 1
     }

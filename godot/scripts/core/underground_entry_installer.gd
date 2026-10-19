@@ -208,11 +208,13 @@ func _after_order(queue: PackedInt32Array, tick: int) -> StringName:
 
 
 func _climbs() -> bool:
-	"""Decision 2044: the way up crosses a landing (a floor walk, the retreat to F' or the back-up), so it turns."""
+	"""Decision 2044: the way up crosses a landing (a floor walk or the back-up onto F), so it turns. Every way up from
+	below a landing backs up F' -> F, so the retreat row alone (module 0's H -> X too) never decides it: module 0's
+	orders keep their haul as before."""
 	var pins: Script = Routes.Stair.Pins
 	for at: int in range(2, _plan.ups.size(), 4):
 		var row: int = int(_plan.ups[at])
-		if row == pins.CLAW_WALK_ROW or row == pins.CLAW_RETREAT_ROWS[0] or row in pins.STAIR_EMPTY_FLOOR_ROWS:
+		if row == pins.CLAW_WALK_ROW or row in pins.STAIR_EMPTY_FLOOR_ROWS:
 			return true
 	return false
 

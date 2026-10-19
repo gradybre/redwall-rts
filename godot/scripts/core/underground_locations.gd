@@ -18,6 +18,7 @@ const Router := preload("res://scripts/core/modular_projects.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd")
 const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const ConnectorFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const ContactRetirementScope := preload("res://scripts/core/underground_entry_contact_retirement_scope.gd")
@@ -2508,7 +2509,10 @@ func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
 	(P-2044-15, "Exact cost fixes"): a prism is a pure function of the Placement row (its generation fixes its
 	transform), the paid prefix, the Catalog and the Placement bank's revision, so the prisms are kept while all of
 	those stay the same, across passes and the per-record refreshes outside them: the same boxes are never re-derived."""
-	if _prisms_cached(issuer, row, prefix): return int(_prism_key[4])
+	if _prisms_cached(issuer, row, prefix):
+		if CacheChecks.enabled and not _cached_prisms_hold(issuer, row, prefix):
+			CacheChecks.report("installed prisms", "row %d prefix %d" % [row, prefix])
+		return int(_prism_key[4])
 	_prism_key[0] = 0
 	var at: int = 0
 	for group: int in prefix:
@@ -2528,6 +2532,19 @@ func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
 	_prism_key[7] = issuer.get_instance_id()
 	_prism_key[0] = 1
 	return at
+
+
+func _cached_prisms_hold(issuer: RefCounted, row: int, prefix: int) -> bool:
+	"""Decision 2044: with the cache checks on, kept prisms are re-derived (unspent) and must equal the live ones."""
+	var at: int = 0
+	for group: int in prefix:
+		var part_first: int = issuer._assemblies._first_part[group]
+		for part: int in range(part_first, part_first + issuer._assemblies._part_count[group]):
+			if at >= int(_prism_key[4]) or installed_prism_into(issuer, row, part, _region.box) != &"": return false
+			for axis: int in 6:
+				if _prism_boxes[at * 6 + axis] != _region.box[axis]: return false
+			at += 1
+	return at == int(_prism_key[4])
 
 
 func _order_prisms(count: int) -> bool:

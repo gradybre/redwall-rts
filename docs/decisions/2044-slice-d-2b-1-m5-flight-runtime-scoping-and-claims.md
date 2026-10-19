@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. **Stopped at the claim boundary for P-2044-13 and P-2044-14** (2026-10-18; "Second stop after P-2044-12" at the end). Earlier the same day the lane stopped for P-2044-12, which Brendan ruled (a). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. Building. On 2026-10-18 the lane stopped twice at the claim boundary (P-2044-12, then P-2044-13 and P-2044-14); Brendan ruled all three (a) the same day, with a budget-only pre-clearance (see the rulings at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -604,3 +604,28 @@ Sites read no tread or module geometry. Locations, Contacts, the installer, the 
 foreman, the runtime, the work area, the site, the compositions and the census are claimed. One file remains
 unproved until the mount runs: `underground_entry_world_bindings.gd`'s per-phase episode lookup budget with 154
 episodes.
+
+## Brendan's rulings on P-2044-13 and P-2044-14 (2026-10-18)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion. Every ruling is the recommended option.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2044-13 | **(a)**, "One change to the dispatch" | `qualified-claw-runtime-v1/handling_programs.gd` is cleared for one change only: content 12's tread certificate points at a new module-aware successor, which hands assemblies 0–7 to today's certificate unchanged. A test proves today's entry behaves byte for byte as before |
+| P-2044-14 | **(a)**, "Keep tables, defer floor carry" | Today's stair-carry tables stay. On M5's floors no edge uses rows 71/72 or the loaded walk-off and back-up rows. Each landing is joined on qualified ground rows over retained walk strips: F → P′ on row 43, U0′ → U on row 45. F′ stands with no edge |
+| Pre-clearance | **"Yes, budget only"** | If measurement shows `underground_entry_world_bindings.gd`'s per-phase episode lookup budget is short for 154 episodes, that one budget constant may be raised, with a memory-ledger row and a test. Any other edit to that file, or to any other file outside the claims, still stops the lane |
+
+**P-2044-14 supersedes P-2044-3's deck clipping.** P-2044-3 (a) asked for decision 1981's carry floor decks to be
+clipped in a data successor. That successor cannot load without the off-limits stair motion owner, so no clipped
+tables are published. P-2044-3's other half stands: only stop footprints and walk strips are retained as support.
+
+**What stair-leg Delivery (decision 1941 §2) inherits.** It is built once, on M5. It also takes over what 2b-1 now
+leaves out:
+
+- the floor walk-off and back-up edges (rows 71 and 72, F ↔ F′) at each landing;
+- the loaded walk-off and back-up on the floors (the approach and back-up rows 73/78 and 79/84 used at a floor);
+- with them, the deck question: those rows' floor decks reach about 5,975 u back under the stair. They need either
+  that floor retained as the Room's support (each module's floor is never dug deeper, so retaining it is safe, but
+  it costs check budget) or clipped tables, which needs the stair motion owner cleared.
+
+Indexed in `docs/handoff/RULINGS.md`.

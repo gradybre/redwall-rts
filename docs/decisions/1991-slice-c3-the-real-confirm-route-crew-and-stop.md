@@ -308,7 +308,9 @@ crews and claims are presentation-side, unsaved and outside the census.
   the station planner treating other rooms' reservation markers as nonphysical while Locations' Site survey does not:
   once room A has a dug void, B's WORK box spills 7 u into A's cell and publication is refused. That lane fixes it and
   proved stops after 5-15 cubes on a copy of this work. Whichever of the two lanes merges second raises this test's
-  stop point to five cubes as a cross-check. C3 does not touch the station planner.
+  stop point to five cubes as a cross-check. C3 does not touch the station planner. **Done on the merge with `0b8093a2`** (C3 merged
+  second): `test_a_stop_after_five_cubes_leaves_no_station_geometry_closed` stops room A after five cubes mid-paid
+  phase. Room B digs whole and the re-order finishes A, with no refusal. The one-cube case is kept.
 
 ## Gates (final, at `14fd5103`; origin/master `8a7d045d` had not moved)
 

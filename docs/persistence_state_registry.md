@@ -2229,7 +2229,7 @@ as source-qualified motion. No composed save adapter is claimed here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Static Room-station plan | -- | -- | -- | No retained planner, Query or Request at quiescence | 3 | -- | ADR1213. Stateless module; one private Query (fixed region, fragment, candidate and chain scratch; declared logical CONTROL_BYTES 45,752 including ADR1215 station air, not a native measurement) lives only inside the caller's original cold lease and dies before publish_into allocates. Output is the caller's ADR1161 Request; a plan is not a route, contact or paid permission. |
+| Static Room-station plan | -- | -- | -- | No retained planner, Query or Request at quiescence | 3 | -- | ADR1213. Stateless module; one private Query (fixed region, fragment, candidate and chain scratch; declared logical CONTROL_BYTES 52,664 including ADR1215 station air and decision 1942's claimed-row table, not a native measurement) lives only inside the caller's original cold lease and dies before publish_into allocates. Output is the caller's ADR1161 Request; a plan is not a route, contact or paid permission. |
 
 ### `godot/scripts/core/underground_room_dig_order.gd`
 
@@ -2302,6 +2302,12 @@ as source-qualified motion. No composed save adapter is claimed here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless parking planner | -- | -- | -- | No members; the Request packet is caller-owned | 3 | -- | Decision 1936: finds or publishes a builder's TRANSIT endpoint off the access and its two spans. What it publishes is Locations' and Routes' own saved state. |
+
+### `godot/scripts/core/underground_room_station_retirement.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless station-chain retirement | -- | -- | -- | No members; the chain and kept lists are caller-owned scratch | 3 | -- | Decision 1942: once the live graph holds `RETIRE_FROM_EDGES` edges, a finished column's station chain (its WORK station and the TRANSIT stations leading to it alone) leaves Routes, then Locations, through their own staging calls under one cold lease. What it removes is Routes' and Locations' own saved state; an idle builder that named a retired station forgets it in its own saved cursor. |
 
 ### `godot/scripts/core/underground_room_progress.gd`
 

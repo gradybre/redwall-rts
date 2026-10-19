@@ -289,17 +289,28 @@ func test_a_batchs_second_room_waits_for_the_crew_holding_nothing() -> void:
 
 
 func test_a_stop_partway_walks_the_crew_out_then_the_waiting_room_starts_and_a_reorder_finishes() -> void:
-	"""P-1990-5 (a): Stop the first room after some cubes. Its crew walks out from rest, its record is released once
-	out (the release comes before the waiting room's start, in the host's order), and the second room starts with
-	that crew and is dug whole. Re-ordering the first room digs only what is left, taking over any paid phase, so
-	every cube's BRACE is paid exactly once."""
+	"""P-1990-5 (a): Stop the first room after its first cube (see `_stop_partway`)."""
+	_stop_partway(1)
+
+
+func test_a_stop_after_five_cubes_leaves_no_station_geometry_closed() -> void:
+	"""Decision 1991 E13's cross-check, run by whichever lane merged second (decision 1942's planner fix): room A
+	stopped after five cubes; room B digs whole and the re-order finishes A, with no ROOM_STATION_GEOMETRY_CLOSED."""
+	_stop_partway(5)
+
+
+func _stop_partway(cubes: int) -> void:
+	"""Stop the first room once `cubes` are dug, mid-paid phase. Its crew walks out from rest, its record is released
+	once out (the release comes before the waiting room's start, in the host's order), and the second room starts
+	with that crew and is dug whole. Re-ordering the first room digs only what is left, taking over any paid phase,
+	so every cube's BRACE is paid exactly once; no refusal is raised on the way."""
 	if _runtime == null: return
 	var wood: int = _h.free_milli(_h.material, &"wood")
 	var rooms: Array[Vector2i] = _batch()
 	var foreman: Foreman = _runtime.foreman_of(rooms[0])
 	var step: int = 0
 	var builder: Builder = foreman.builders()[0]
-	while (foreman.done_cubes() < 1 or builder.stage() != Builder.STAGE_EARN) and step < TICK_BOUND:
+	while (foreman.done_cubes() < cubes or builder.stage() != Builder.STAGE_EARN) and step < TICK_BOUND:
 		_tick(); step += 1
 	assert_equal(builder.stage(), Builder.STAGE_EARN, "stopped while a paid phase is under way")
 	assert_equal(_runtime.stop_room(rooms[0]), &"", "stopped by the player")
@@ -313,7 +324,7 @@ func test_a_stop_partway_walks_the_crew_out_then_the_waiting_room_starts_and_a_r
 	assert_equal(_runtime.state_of(rooms[1]), Runtime.RECORD_DIGGING, "then the waiting room started")
 	assert_equal(_projects_on(rooms[0]), 1, "the paid phase is kept for a re-order; nothing else is open")
 	var dug_before: int = _dug(rooms[0])
-	assert_true(dug_before >= 1 and dug_before < StationTests.KITCHEN_SITES, "what was dug stays dug: %d" % dug_before)
+	assert_true(dug_before >= cubes and dug_before < StationTests.KITCHEN_SITES, "what was dug stays dug: %d" % dug_before)
 	while (_runtime.is_running() or _runtime.kept() > 0) and step < TICK_BOUND:
 		seen.append_array(_tick()); step += 1
 	assert_equal(_dug(rooms[1]), StationTests.KITCHEN_SITES, "the second room dug whole")

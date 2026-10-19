@@ -19,6 +19,7 @@ const WorkFace := preload("res://scripts/core/underground_work_face.gd")
 const Progress := preload("res://scripts/core/underground_room_progress.gd")
 const EntryProgress := preload("res://scripts/core/underground_entry_progress.gd")
 const Residents := preload("res://scripts/core/residents.gd")
+const Retirement := preload("res://scripts/core/underground_room_station_retirement.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## One record per room row; `_init` refuses a directory whose room capacity differs (as Buildings asserts).
 const ROOM_CAPACITY: int = 16384
@@ -285,6 +286,7 @@ func advance(tick: int) -> Array[StringName]:
 			code = foreman.advance_out(tick) # P-1936-3 (a): the crew walks back out.
 		foreman.shed_crew()
 		if code != &"": _refusals.append(code)
+	Retirement.retire_finished(_foremen, _owners) # Decision 1942: finished columns' chains, past the edge bound.
 	_release_done()
 	return _refusals
 

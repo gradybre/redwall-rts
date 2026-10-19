@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. Building (P-2044-7 to -11 ruled the same day; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. **Stopped again on 2026-10-18 at the claim boundary:** the P-2044-11 proof passes, but retiring a deep station's strip needs an unclaimed file (P-2044-12, "Build restarted, then stopped" at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -412,3 +412,97 @@ room world bindings, no Session, no Routes, and in WorldRoutes only `_carry_elig
   it too.**
 - **D2:** the connector bound to the room-dig runtime.
 
+
+## Build restarted, then stopped at the claim boundary again (2026-10-18)
+
+The previous build agent was stopped by a usage limit before committing code. A fresh agent restarted the build on
+2026-10-18 from the coordinator's brief.
+
+**Done:**
+
+- `origin/master` (`9440b9d1`, #273) merged (`0acc7262`). Only `docs/handoff/RULINGS.md` conflicted; both sides were
+  kept. The memory pack and the two ADR 1240 checkpoints merged cleanly.
+- **P-2044-11, the fixture proof: passes at the owner level.** `godot/test/test_underground_m5_station_retirement.gd`,
+  5 tests, 61 assertions, 0 failures, 0 diagnostics, 0 leaks. Two real-owner fixtures are reused as helpers:
+  - the paid cycle (`test_underground_space_authority.gd`: the real Space owner, Space authority, Sites,
+    Construction, Inventory and Work around one claimed Room cube);
+  - the endpoint layer (`test_underground_work_face.gd`'s level-1 corridor: the real Locations, Routes, WorldRoutes
+    and Sites over the Room's SUPPORT strip, the floor a station stands on).
+- **What the proof shows:**
+  - A live Room SUPPORT strip in the cube's work reach refuses its paid BRACE when it opens
+    (`SPACE_WORK_CONTACT_OBSTRUCTED`), and nothing moves or is spent.
+  - Once the strip is retired, BRACE, CUT and FINISH all complete for the cube's own Room. The cube ends as its
+    supported void, with no SUPPORT left in it and one cube of earth out.
+  - A strip clear of the reach is not refused, but the cut leaves it standing inside the dug void (SUPPORT over
+    nothing). So retirement must come first and is never left to the cut.
+  - A station retires in a fixed order:
+    - its route edge first (Locations refuses `LOCATION_ROUTE_RETAINED` while an edge names it);
+    - then its Location;
+    - then the strip under it.
+
+    The neighbouring station, on the strip outside the cube, still proves its footing. A station left on a retired
+    strip refuses `LOCATION_COVERAGE_MISSING`.
+
+So Sites and the Space owner do not refuse the cut once the station is retired. **But no claimed file can retire the
+strip in the running game.** Per the coordinator's rule, the lane stopped here. No held file has been edited.
+
+### Why the strip's retirement needs an unclaimed file
+
+1. **Every entry phase refuses a cube that a claim-free SUPPORT row overlaps.**
+   - Every phase's preparation (`underground_space_authority.gd:838`) calls the World bindings'
+     `stage_physical_geometry`.
+   - For the entry that reaches `underground_entry_structure.gd` `_walk_claims`, which returns `REFUSE_PROTECTED`
+     (`STRUCTURE_NEIGHBOR_PROTECTION`, `:158`) for any claim-free SUPPORT meeting the paid cube. It does so in the
+     STAGE and PREPARED passes alike, whatever the reach.
+   - A station's strip lies in the cube under it. So the strip must be gone before that cube's first phase opens.
+2. **A strip can only be removed by a Space transaction that also refreshes Locations and WorldRoutes.**
+   - Routes accepts an edge or an endpoint only at the current Space revision: `_path_edge_current`
+     (`underground_routes.gd:1871`), `_profile_endpoint_refusal` and `at_contact_refusal`
+     (`ROUTE_CONTACT_GEOMETRY_STALE`).
+   - A bare Space publish would therefore stale every edge and Location, and stop all movement until the next
+     requalification.
+   - The issuers that publish with that refresh are:
+     - the Space authority's paid phases. Their companion is Placements' phase refresh, which refreshes only
+       (`underground_connector_placements.gd:1911, 1928`; Locations refuses removals in a phase,
+       `LOCATION_ROOM_REFRESH_ONLY`, `underground_locations.gd:1733`);
+     - Placements' installations, through `underground_entry_bindings.gd` (claimed);
+     - room orders;
+     - the World publisher.
+3. **Layer j + 1's stations stand on floors cut in the same stage, between installations.**
+   - 2043 §3 strikes each cube from its uphill neighbour at depth j. The stations in rows 2 + 5j to 25 stand over
+     cubes that the same stage cuts next. Only the landing row's station does not.
+   - No installation runs mid-stage, so the only transaction that could carry the removal is a paid phase. That
+     needs `underground_entry_structure.gd` or `underground_space_authority.gd`, or a new Placements transaction.
+     None is claimed.
+   - There is no qualified alternative to the order. A strike from the deeper floor needs a way down that does not
+     exist before the module's treads (2043 F2).
+4. **Not affected:**
+   - F, U and F′ and every natural landing: each stands on module j − 1's run-out, which is never deepened;
+   - the posts' natural bearings: they lie in layer j + 2 under module j's rows, which are never cut.
+
+   Only the deep cut stations and the floor walks to them are affected.
+
+### P-2044-12 — Retiring a deep station's strip mid-stage (for the coordinator and Brendan)
+
+- **(a) Clear `underground_entry_structure.gd` for one STAGE hook, and `underground_entry_frontier.gd` for the data
+  it reads.**
+  - At an episode's BRACE START, the Space candidate also removes the Room's station strips that the Frontier marks
+    as retired by that episode.
+  - Each strip is retired by the BRACE START of the cube cut just before the cube under it, whose reach never meets
+    it.
+  - The station's edges and Location retire just before, through their own preparations (proved above).
+  - The phase's own refresh then re-proves every Location and edge against the candidate.
+  - About 40 lines in the structure, plus the Frontier's parser for the new field (a format change).
+- (b) A new station-retirement transaction in `underground_connector_placements.gd`, issued by the foreman. It
+  removes a station's edges, its Location and its strip under one Space, Locations and Routes publication, as an
+  installation does. This is a new transaction kind of several hundred lines, with its own proofs.
+- (c) Keep M5 to what needs no mid-stage retirement: the top metre, module 0 and the floor stops at landing 1. That
+  does not reach level 1.
+
+**Recommendation: (a).** It rides on the phase transaction that already refreshes everything, and adds no new
+publication path.
+
+### A gate to re-run later
+
+Whatever is built, **the check-peak measurement (P-2044-1) must be re-run once Slice C's `perf/phase-spreading`
+merges**, because phase preparation then spans several ticks (see "Brendan's rulings and the claims agreed").

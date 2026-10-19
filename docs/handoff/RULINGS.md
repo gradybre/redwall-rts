@@ -236,6 +236,12 @@ Every row was checked against the record named.
 | How phases spread (1953 P-1953-1), 2026-10-17 | **"Work ahead in the background"**: (C), staged. Stage 1: speculatively requalify the next transition's route edges off the live owners in per-tick slices with a stated check budget; at START/settlement reuse only results whose inputs are provably unchanged and redo the rest synchronously; re-check surface exclusions live at START (no new owner tokens). Byte-identical to master (SHA trace), speculation never saved (next-tick save/load parity), memory through ADR 1212, no hooks in slice D's or the C2 lane's files. (Relayed by the coordinator) | [1953](../decisions/1953-phase-spreading-scope.md) |
 | Phase spreading stage 2 (1953 P-1953-2), 2026-10-18 | Brendan: **"After M5, re-measure"**. Stage 1 (exact synchronous reuse, stalls about 7% shorter) merges now. Stage 2 (a private staged world prepared in slices) is not started; it is revisited after slice D's M5 flight lands and its held files are free, starting from a fresh measurement on master. REQ-SET-163's 2 ms tick stays unmet until then. (Relayed by the coordinator) | [1953](../decisions/1953-phase-spreading-scope.md) |
 
+## 2026-10-19
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Closing Slice C, and the post-M5 follow-ups (C3's inventory) | Brendan: **"Keep waiting for M5"**. Slice C closes once C3 and the station-chain retirement lane (`feat/room-station-retirement`, 1942–1949) merge. The stair-leg Delivery (1941, P-1941-1) and phase-spreading stage 2 (1953, P-1953-2) become follow-ups right after M5 lands, not Slice C close-out blockers. (Relayed by the coordinator) | [1990](../decisions/1990-slice-c3-scoping-what-closes-slice-c.md) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

@@ -9,6 +9,10 @@ extends RefCounted
 ## ADR1229 (the T1-T6 bundle `qualified-stairs-v8`): eight more cut stations (indices 11-18) for the cube rows 4-7 the
 ## descent cuts (ADR 1209 D2), at the same +-1430 and row centres; the outer footing, pair air and the section reach
 ## the seventh row by the rule they were sized with (footing one cube past the last row, pair air 280 u inside it).
+## Decision 2044 (M5, decision 2043 §3): the top metre of all 27 rows is cut from land stations, so forty more cut
+## stations follow (indices 19-58, rows 7-26, as the descent's); the footing and pair air reach the 27th row by the
+## same rule. The descent's cut stations come in batches of eight (four rows), each joined to M just before its first
+## cut and retired with the batch after it, as ADR1229 did for the descent's one batch.
 
 const Anchor := preload("res://scripts/core/underground_surface_anchor.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -17,12 +21,14 @@ const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const ENDPOINTS: int = 19
+const ENDPOINTS: int = 59
 ## ADR1229: the descent cuts seven cube rows (rows 0-2 for L0/T0, rows 3-6 for T2-T6 and the stair foot).
-const CUT_ROWS: int = 7
+const CUT_ROWS: int = 27
 const FIRST_DEEP_STATION: int = 11
 const STORAGE: Array[int] = [1, 2]
-const WORK: Array[int] = [0, 3, 4, 5, 6, 7, 8]
+## Decision 2044: the work area publishes H and stage 0's four cut stations only; stage 1's pair (7, 8) is a batch of
+## its own, joined when its first cut opens (see SURFACE_BATCHES).
+const WORK: Array[int] = [0, 3, 4, 5, 6]
 ## ADR1229: every Space phase and installation requalifies every live path inside one Space.MAX_CHECKS bound, which
 ## holds the first-entry work area's paths but not twice as many. So the descent's eight cut stations get their
 ## paths only when the first of them is about to be worked (T0 installed), in the same preparation that retires the
@@ -32,6 +38,14 @@ const WORK: Array[int] = [0, 3, 4, 5, 6, 7, 8]
 const DEEP_WORK: Array[int] = [11, 12, 13, 14, 15, 16, 17, 18]
 const DEEP_STORAGE: Array[int] = [1]
 const DONE_WORK: Array[int] = [5, 6, 7, 8]
+## Decision 2044: the cut stations in batches. The surface pairs come first: batch 0 is stage 0's four (rows 0-1,
+## joined by `publish_paths`), batch 1 stage 1's two (row 2). Each is retired when a later step starts with the crew off
+## it, so an installation's completion requalifies no path to a station whose cuts are done: on M5's denser Space those
+## sixteen paths alone took T0's completion past Space.MAX_CHECKS. Batches 2-7 are the descent's in eights; batch 2 is
+## ADR1229's DEEP_WORK.
+const SURFACE_BATCHES: Array = [[3, 4, 5, 6], [7, 8]]
+const BATCH_SIZE: int = 8
+const BATCHES: int = 8
 const STAND_M: int = 9
 const STAND_R: int = 10
 ## Stand = stock point + the content-5 grip offset R-S at yaw 16384: (0,0,576) turned a quarter is (576,0,0),
@@ -132,7 +146,20 @@ static func foot(origin: Vector3i, index: int) -> PackedInt32Array:
 	if index == 0: return _offset(H_FOOT, point(origin, 0))
 	if index == STAND_M or index == STAND_R: return _offset(STAND_FOOT, point(origin, index))
 	if index < 3: return _offset(STORAGE_FOOT, origin)
-	return _offset(LEFT_FOOT if point(origin, index).x < origin.x else RIGHT_FOOT, origin)
+	var left: bool = point(origin, index).x < origin.x
+	if index < 5: return _offset(LEFT_FOOT if left else RIGHT_FOOT, origin)
+	return _row_foot(origin, index, left)
+
+
+static func _row_foot(origin: Vector3i, index: int, left: bool) -> PackedInt32Array:
+	"""Decision 2044: a cut station after the first pair stands on its own row's slice of the outer footing strip.
+	The SurfaceAnchor refreshes every published endpoint on each create, at a cost set by the Space regions under its
+	boxes; twenty-seven rows of stations on one shared full-length strip made that quadratic past the cold budget. The
+	first pair keeps the full strip under its full-length pair air."""
+	var at: Vector3i = point(origin, index)
+	var strip: Array[int] = LEFT_FOOT if left else RIGHT_FOOT
+	return PackedInt32Array([strip[0] + origin.x, strip[1] + origin.y, at.z - 512, strip[3] + origin.x, strip[4] + origin.y,
+		at.z + 512])
 
 
 static func _offset(box: Array[int], at: Vector3i) -> PackedInt32Array:
@@ -175,6 +202,63 @@ static func close_deep_paths(binding: WorldRoutes, routes: Routes, budget: Budge
 	var begun: Routes.Result = binding.begin_prepare(lease)
 	var code: StringName = _stage_retirements(routes, begun.token, published, DEEP_WORK) if begun.error == &"" \
 		else begun.error
+	return _finish_batch(binding, budget, lease, begun.token, code)
+
+
+static func batch_stations(batch: int) -> Array[int]:
+	"""Decision 2044: the work-area indices of one batch: a surface pair group, or eight of the descent's stations."""
+	var out: Array[int] = []
+	if batch < SURFACE_BATCHES.size():
+		for index: int in SURFACE_BATCHES[batch]: out.append(index)
+		return out
+	for at: int in BATCH_SIZE: out.append(FIRST_DEEP_STATION + BATCH_SIZE * (batch - SURFACE_BATCHES.size()) + at)
+	return out
+
+
+static func batch_of(published: Published, station: Vector2i) -> int:
+	"""The batch a cut station's handle belongs to, or -1 (H, the storages and the stands are in none)."""
+	for batch: int in BATCHES:
+		for index: int in batch_stations(batch):
+			if published.endpoints.size() > index and published.endpoints[index] == station: return batch
+	return -1
+
+
+static func batch_joined(routes: Routes, published: Published, batch: int) -> bool:
+	"""Decision 2044: whether M is joined to this batch now (a path from M to any of its stations exists)."""
+	var stations: Array[int] = batch_stations(batch)
+	var edge: Routes.Edge = Routes.Edge.new()
+	for row: int in routes._edge_capacity:
+		if routes._live.present[row] != 1: continue
+		if routes.edge_metadata_into(Vector2i(row, routes._live.fields[Routes.E_GENERATION * routes._edge_capacity + row]),
+				edge) == &"" and edge.from_location == published.endpoints[STORAGE[0]] \
+				and _listed(published, stations, edge.to_location):
+			return true
+	return false
+
+
+static func join_batch(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted,
+		origin: Vector3i, published: Published, content_revision: int, batch: int) -> StringName:
+	"""Decision 2044: join a batch's stations both ways: a surface group to M and R (as `publish_paths` pairs them), a
+	descent batch to M only (the first of them is ADR1229's `open_deep_paths`). An earlier batch is retired separately
+	once the crew has left it."""
+	var first_deep: int = SURFACE_BATCHES.size()
+	if batch == first_deep: return open_deep_paths(binding, routes, budget, owner, origin, published, content_revision)
+	var lease: int = budget.acquire(Budget.COLD_BYTES)
+	if lease <= 0: return &"ENTRY_WORK_AREA_LEASE"
+	var begun: Routes.Result = binding.begin_prepare(lease)
+	var code: StringName = _stage_pairs(routes, begun.token, origin, published, owner, content_revision,
+		STORAGE if batch < first_deep else DEEP_STORAGE, batch_stations(batch)) if begun.error == &"" else begun.error
+	return _finish_batch(binding, budget, lease, begun.token, code)
+
+
+static func close_batch(binding: WorldRoutes, routes: Routes, budget: Budget, published: Published,
+		batch: int) -> StringName:
+	"""Decision 2044: once a batch's cuts are done and the crew has left it, its paths retire."""
+	var lease: int = budget.acquire(Budget.COLD_BYTES)
+	if lease <= 0: return &"ENTRY_WORK_AREA_LEASE"
+	var begun: Routes.Result = binding.begin_prepare(lease)
+	var code: StringName = _stage_retirements(routes, begun.token, published, batch_stations(batch)) \
+		if begun.error == &"" else begun.error
 	return _finish_batch(binding, budget, lease, begun.token, code)
 
 

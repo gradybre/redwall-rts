@@ -21,7 +21,8 @@ const ContactPath := preload("res://scripts/core/underground_entry_contact_path.
 const Hauler := preload("res://scripts/core/underground_entry_hauler.gd")
 const Progress := preload("res://scripts/core/underground_entry_progress.gd")
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
-const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
+## Decision 2044 (P-2044-9 (a)): the module-aware M5 tread geometry (module 0 is the published one).
+const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const StairPins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const OPERATIONS: Array[int] = [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]
@@ -258,6 +259,7 @@ func _open(tick: int) -> StringName:
 	"""Admit the real phase Project and its BUILD Job, haul any missing inputs, then take the Job."""
 	var task: Task = _tasks[_index]
 	var paths: StringName = _station_paths.call(task.station) if _station_paths.is_valid() else &""
+	if paths == &"": paths = _open_deep_floor(task)
 	if paths != &"": return paths
 	var opened: RefCounted = _owners.sites.open_phase(task.site, task.operation)
 	if not opened.ok: return opened.error
@@ -289,7 +291,101 @@ func _phase_units(task: Task, out: PackedInt32Array) -> StringName:
 	for line: int in Contract.input_count(task.operation):
 		items.append(_owners.items.compiled_id(Contract.input_key(task.operation, line)))
 		milli.append(Contract.input_milli(task.operation, line))
+	var code: StringName = Hauler.units_into(_owners, _crew.storage, items, milli, out)
+	if code != &"" or out.is_empty() or _deep_landing(task.station) == 0: return code
+	return _stage_units(items, out) # Decision 2044: below the surface, the whole stage's inputs in one trip to M.
+
+
+func _stage_units(items: PackedInt32Array, out: PackedInt32Array) -> StringName:
+	"""Decision 2044: whole units covering every input of the stage's remaining phases from this one on (a deep stage's
+	braces), beyond M's free stock: the crew climbs to M once a stage instead of once a cube."""
+	var milli: PackedInt64Array = PackedInt64Array()
+	milli.resize(items.size())
+	milli.fill(0)
+	for at: int in range(_index, _tasks.size()):
+		var step: Task = _tasks[at]
+		if step.install_ordinal >= 0: continue
+		for line: int in Contract.input_count(step.operation):
+			var item: int = items.find(_owners.items.compiled_id(Contract.input_key(step.operation, line)))
+			if item >= 0: milli[item] += Contract.input_milli(step.operation, line)
 	return Hauler.units_into(_owners, _crew.storage, items, milli, out)
+
+
+func _deep_landing(station: Vector2i) -> int:
+	"""Decision 2044: the landing whose deep station this is, or 0."""
+	var at: Vector3i = StairPath.classify_deep(_local_of(station))
+	return at.x if at.x > 0 else 0
+
+
+func _open_deep_floor(task: Task) -> StringName:
+	"""Decision 2044: before a deep stage's first phase opens, its landing's floor walks are published (once)."""
+	var landing: int = _deep_landing(task.station)
+	if landing == 0: return &""
+	var deep: StairPath.Deep = _deep(landing)
+	var stops: StairPath.Stops = _stops()
+	if StairPath._joined(_owners.routes, stops.f[landing], deep.at(deep.first_row, 1), Profiles.MODE_WALK): return &""
+	return StairPath.publish_floor(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
+		_owners.locations, stops, deep, _content)
+
+
+func _retire_deep_rows(task: Task) -> StringName:
+	"""Decision 2044: before a deep cube's BRACE starts, the stations of its row and of every row past it have
+	struck their last cube and the crew has left them: their edges and Locations leave, so the row's strip can go
+	with this BRACE (the entry structure's hook, P-2044-12 (a))."""
+	var landing: int = _deep_landing(task.station)
+	if landing == 0 or task.operation != Contract.OP_BRACE: return &""
+	var deep: StairPath.Deep = _deep(landing)
+	var struck: int = StairPath.classify_deep(_local_of(task.station)).y + 1
+	for row: int in range(struck, Tread.ROWS - 1):
+		if deep.at(row, 0) == NULL_REF and deep.at(row, 1) == NULL_REF: continue
+		var code: StringName = StairPath.retire_row(_owners.binding, _owners.routes, _owners.locations, _paid.budget,
+			deep, row)
+		if code != &"": return code
+	return &""
+
+
+## Decision 2044 (P-2044-7 (a)): the runtime plans stage by stage. A stage is the episodes that need one installed
+## prefix, that installation, and every installation after it that needs no new cut (a module's chained treads).
+
+
+func installations() -> int:
+	"""The mounted Frontier's INSTALL rows."""
+	return _owners.frontier.row_count(Frontier.INSTALL, _owners.frontier.content_revision())
+
+
+func planned_installations() -> int:
+	"""Installations configured so far, over every stage."""
+	return _install_count
+
+
+func stage_last(first: int) -> int:
+	"""The last installation of the stage that opens with installation `first`; -1 when there is none."""
+	var count: int = installations()
+	if first < 0 or first >= count: return -1
+	var last: int = first
+	while last + 1 < count and not _prefix_has_episodes(last + 1): last += 1
+	return last
+
+
+func _prefix_has_episodes(prefix: int) -> bool:
+	"""Whether some episode waits for exactly this installed prefix."""
+	var episode: PackedInt32Array = PackedInt32Array()
+	episode.resize(Frontier.row_fields(Frontier.EPISODE))
+	for ordinal: int in _owners.frontier.row_count(Frontier.EPISODE, _owners.frontier.content_revision()):
+		if _owners.frontier.episode_into(ordinal, episode) == &"" and episode[7] == prefix: return true
+	return false
+
+
+func begin_stage() -> StringName:
+	"""Once every planned step has settled, drop them so the next stage's steps can be configured (`configure_installation`
+	from `planned_installations()` to `stage_last` of it). The ledgers carry on."""
+	if _stage != STAGE_DONE or _index != _tasks.size() or _install_count >= installations(): return REFUSE_PLAN
+	_tasks.clear()
+	_index = 0
+	_stage = STAGE_OPEN
+	_stage_ticks = 0
+	_error = &""
+	return &""
 
 
 func _begin_haul(task: Task, project: Vector2i, queue: PackedInt32Array, tick: int) -> StringName:
@@ -297,13 +393,21 @@ func _begin_haul(task: Task, project: Vector2i, queue: PackedInt32Array, tick: i
 	ADR1219: an unregistered worker is admitted at its arrival on the arrival's own profile (the first leg)."""
 	var legs: Array[Hauler.Leg] = []
 	var start: Vector2i = task.station
+	var from: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT,
+		_owners.residents.directory().get_typed_row(_crew.worker))
 	if _arriving():
 		start = _crew.arrival
+		from = _crew.arrival
 		legs.append(_haul_leg(_crew.arrival, _arrival_profile, _arrival_revision))
 		_take_arrival_retreat()
-	if _retreat != NULL_REF: legs.append(_haul_leg(_retreat, _retreat_profile, _retreat_revision))
+	if _retreat != NULL_REF:
+		legs.append(_haul_leg(_retreat, _retreat_profile, _retreat_revision))
+		from = _retreat
 	_retreat = NULL_REF
-	legs.append(_haul_leg(_owners.inventory.spatial_location_of(_crew.storage), task.travel_profile, task.travel_revision))
+	var material: Vector2i = _owners.inventory.spatial_location_of(_crew.storage)
+	var route: PackedInt64Array = _all_legs(_route_hops(from, material, task.travel_profile)) # Decision 2044.
+	for at: int in range(0, route.size(), 4):
+		legs.append(_haul_leg(Vector2i(route[at], route[at + 1]), route[at + 2], route[at + 3]))
 	_hauler = Hauler.new()
 	_haul_marker = -1
 	var code: StringName = _hauler.begin(_owners, _crew, project, _job, queue, legs, start, tick)
@@ -333,7 +437,7 @@ func _haul(tick: int) -> StringName:
 	_hauler = null
 	var task: Task = _tasks[_index]
 	_set_stage(STAGE_TRAVEL)
-	return _leg(_owners.jobs.ref_of(_job), task.station, task.travel_profile, task.travel_revision, tick)
+	return _begin_travel(task, _owners.jobs.ref_of(_job), tick) # Decision 2044: back down the stair when needed.
 
 
 func _place_actor(task: Task, job: Vector2i, tick: int) -> StringName:
@@ -426,20 +530,31 @@ func _assign() -> StringName:
 
 
 func _begin_travel(task: Task, job: Vector2i, tick: int) -> StringName:
-	"""A pending installation retreat leg goes first on its own profile; then the station's travel profile."""
+	"""A pending installation retreat leg goes first on its own profile; then the station's travel profile.
+	Decision 2044: on M5 the way to a station below the surface (or back up from one) is a run of legs along the stair,
+	derived afresh at each leg's end from where the crew stands, so nothing about it is saved."""
 	if _retreat != NULL_REF:
 		var target: Vector2i = _retreat
 		_retreat = NULL_REF
 		return _leg(job, target, _retreat_profile, _retreat_revision, tick)
-	return _leg(job, task.station, task.travel_profile, task.travel_revision, tick)
+	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT,
+		_owners.residents.directory().get_typed_row(_crew.worker))
+	var hops: Array = _route_hops(here, task.station, task.travel_profile)
+	if hops.is_empty(): return REFUSE_PLAN
+	var first: PackedInt64Array = _first_leg(hops)
+	if first[0] == task.station.x and first[1] == task.station.y:
+		return _leg(job, task.station, task.travel_profile, task.travel_revision, tick)
+	return _leg(job, Vector2i(first[0], first[1]), first[2], first[3], tick)
 
 
 func _leg(job: Vector2i, target: Vector2i, profile: int, revision: int, tick: int) -> StringName:
-	"""Hand the recovered source to one explicit travel profile and request the real itinerary."""
+	"""Hand the recovered source to one explicit travel profile and request the real itinerary. Decision 2044: a
+	yaw-exact row is first turned to (as the installer's legs are), when the crew does not already face it."""
 	_leg_target = target
 	_leg_profile = profile
 	_leg_revision = revision
-	var code: StringName = _owners.routes.refresh_travel_actor(_crew.worker, job, profile, revision, _content,
+	var code: StringName = _face_profile(job, profile)
+	if code == &"": code = _owners.routes.refresh_travel_actor(_crew.worker, job, profile, revision, _content,
 		0, -1, NULL_REF)
 	return _owners.routes.request_route(_crew.worker, target, tick) if code == &"" else code
 
@@ -485,7 +600,8 @@ func _start(tick: int) -> StringName:
 	ADR1225: a phase a lost crew had already started is not paid again; the replacement is bound and resumes it."""
 	var task: Task = _tasks[_index]
 	if _phase_started(task): return _resume_started(task)
-	var code: StringName = _reserve_inputs(task)
+	var code: StringName = _retire_deep_rows(task)
+	if code == &"": code = _reserve_inputs(task)
 	if code != &"": return code
 	var result: RefCounted = _owners.sites.bind_worker(task.site)
 	if result.ok: result = _owners.sites.begin_phase_work(task.site, tick)
@@ -748,15 +864,17 @@ func accepted_mwu() -> int:
 
 func configure_installation(paid: Installer.Paid, ordinal: int) -> StringName:
 	"""Append the episodes needing this installed prefix, then the paid installation; nothing is touched."""
-	if paid == null or ordinal != _install_count or _stage != STAGE_OPEN or _index != 0 or _tasks.is_empty():
+	if paid == null or ordinal != _install_count or _stage != STAGE_OPEN or _index != 0 \
+			or (_tasks.is_empty() and _install_count == 0):
 		return REFUSE_PLAN
 	var install: PackedInt32Array = PackedInt32Array()
 	install.resize(Frontier.row_fields(Frontier.INSTALL))
 	if _owners.frontier.installation_into(ordinal, install) != &"": return REFUSE_PLAN
 	var before: int = _tasks.size()
 	var code: StringName = _append_episodes(ordinal) if ordinal > 0 else &""
-	# ADR1229: a tread after the first follows the previous tread directly; no cut is planned between them.
-	if code != &"" or (_tasks[_tasks.size() - 1].install_ordinal >= 0 and not Tread.is_tread(install[0] - 1)):
+	# ADR1229: a tread after the first follows the previous tread directly; no cut is planned between them. Decision
+	# 2044: a later module's T1 follows its T0 likewise; a stage never opens on an installation.
+	if code != &"" or _tasks.is_empty() or (_tasks[_tasks.size() - 1].install_ordinal >= 0 and not Tread.is_tread(install[0])):
 		_tasks.resize(before)
 		return REFUSE_PLAN
 	var step: Task = Task.new()
@@ -837,40 +955,171 @@ func _finish_plan(plan: Installer.Plan) -> Installer.Plan:
 
 
 func _stops() -> StairPath.Stops:
-	"""ADR1229: every live installed stair stop of the mounted bundle, by kind and level."""
+	"""ADR1229: every live installed stair stop of the mounted bundle, by kind and level. Decision 2044: one pass over
+	the live Locations of the entry's Room, each filed by its own source-local point (M5 has 301 selectors)."""
 	var stops: StairPath.Stops = StairPath.Stops.new()
-	var endpoint: PackedInt32Array = PackedInt32Array()
-	endpoint.resize(Frontier.row_fields(Frontier.ENDPOINT))
-	for selector: int in _owners.frontier.row_count(Frontier.ENDPOINT, _owners.frontier.content_revision()):
-		if _owners.frontier.endpoint_into(selector, endpoint) != &"" or endpoint[0] != Frontier.INSTALLED_CONTACT: continue
-		var kind: Vector2i = StairPath.classify(Vector3i(endpoint[4], endpoint[5], endpoint[6]))
-		var handle: Vector2i = _resolve_endpoint(_placement.x, selector) if kind.x >= 0 else NULL_REF
-		if handle != NULL_REF: StairPath.record(stops, kind, handle)
+	var locations: Locations = _owners.locations
+	var room: Vector2i = _entry_room()
+	for row: int in locations._capacity:
+		if locations._live.present[row] != 1 or locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != room: continue
+		var kind: Vector2i = StairPath.classify(_local_of_row(row))
+		if kind.x >= 0: StairPath.record(stops, kind, Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row)))
 	return stops
+
+
+func _entry_room() -> Vector2i:
+	"""The entry Placement's Room."""
+	var p: RefCounted = _owners.placements
+	return Vector2i(p._live.i32[p.ROOM_SLOT * p._capacity + _placement.x], p._live.i32[(p.ROOM_SLOT + 1) * p._capacity + _placement.x])
+
+
+func _local_of_row(row: int) -> Vector3i:
+	"""A live Location row's point in the Placement's source frame (rotation 0: a translation)."""
+	var locations: Locations = _owners.locations
+	return Vector3i(locations._get32(locations._live, Locations.X, row), locations._get32(locations._live, Locations.Y, row),
+		locations._get32(locations._live, Locations.Z, row)) - _world_point(_placement.x, 0, 0, 0)
+
+
+func _local_of(location: Vector2i) -> Vector3i:
+	"""A live Location's source-local point; (0, 1, 0), which no stop or station has, for none."""
+	if location == NULL_REF or not _owners.locations._live_ref(_owners.locations._live, location): return Vector3i(0, 1, 0)
+	return _local_of_row(location.x)
+
+
+func _deep(landing: int) -> StairPath.Deep:
+	"""Decision 2044: landing j's live deep stations, by row and column."""
+	var deep: StairPath.Deep = StairPath.Deep.new()
+	deep.landing = landing
+	deep.first_row = Tread.deep_first_row(landing) - 1
+	for index: int in 2 * (Tread.ROWS - 1 - deep.first_row): deep.handles.append(NULL_REF)
+	var locations: Locations = _owners.locations
+	var room: Vector2i = _entry_room()
+	for row: int in locations._capacity:
+		if locations._live.present[row] != 1 or locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != room: continue
+		var at: Vector3i = StairPath.classify_deep(_local_of_row(row))
+		if at.x == landing:
+			deep.handles[(at.y - deep.first_row) * 2 + at.z] = Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row))
+	return deep
+
+
+## Decision 2044: M5's ways between two places. The surface (M, R, the work area and the crossing arrival X) is joined
+## to the stair at X; a landing's floor stops and deep stations are joined among themselves on the claw WALK. Every
+## other way climbs to X and descends again, one published edge a hop.
+
+
+func _surface(local: Vector3i) -> bool:
+	"""A place on the surface: anything at the stair top's height that is not a stair stop (X included)."""
+	var kind: int = StairPath.classify(local).x
+	return local.y == 0 and (kind < 0 or kind == StairPath.KIND_X)
+
+
+func _floor_of(local: Vector3i) -> int:
+	"""The landing whose floor a place stands on (a floor stop, a later module's H' or a deep station), else 0."""
+	var deep: Vector3i = StairPath.classify_deep(local)
+	if deep.x > 0: return deep.x
+	var kind: Vector2i = StairPath.classify(local)
+	if kind.x == StairPath.KIND_F or kind.x == StairPath.KIND_UF or kind.x == StairPath.KIND_FP: return kind.y
+	return StairPath.module_of_level(kind.y) if kind.x == StairPath.KIND_H and kind.y >= 0 else 0
+
+
+func _route_hops(from: Vector2i, target: Vector2i, final_profile: int) -> Array:
+	"""Hops [stop, row] from `from` to `target`, the last on `final_profile` when the target is on the surface."""
+	var a: Vector3i = _local_of(from)
+	var b: Vector3i = _local_of(target)
+	if (from == NULL_REF or _surface(a)) and _surface(b): return [[target, final_profile]]
+	if _floor_of(a) > 0 and _floor_of(a) == _floor_of(b) and StairPath.classify_deep(b).x > 0:
+		return [[target, StairPath.FLOOR_ROW]]
+	var stops: StairPath.Stops = _stops()
+	var out: Array = _hops_to_crossing(stops, a)
+	out.append_array(_hops_from_crossing(stops, b, target, final_profile))
+	return out
+
+
+func _hops_to_crossing(stops: StairPath.Stops, local: Vector3i) -> Array:
+	"""Hops from a place up to the crossing arrival X (none from X itself)."""
+	if _surface(local): return [] if StairPath.classify(local).x == StairPath.KIND_X else [[stops.x, StairPins.CLAW_WALK_ROW]]
+	var deep: Vector3i = StairPath.classify_deep(local)
+	if deep.x > 0: return [[stops.uf[deep.x], StairPath.FLOOR_ROW]] + StairPath.hops_up_from_floor(stops, deep.x)
+	var kind: Vector2i = StairPath.classify(local)
+	var level: int = kind.y
+	match kind.x:
+		StairPath.KIND_F: return [[stops.uf[level], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up_from_floor(stops, level)
+		StairPath.KIND_UF: return StairPath.hops_up_from_floor(stops, level)
+		StairPath.KIND_H:
+			var module: int = StairPath.module_of_level(level)
+			if module == 0: return [[stops.x, StairPins.CLAW_RETREAT_ROWS[0]]] # The prefix's H backs off to X.
+			return [[stops.f[module], StairPins.CLAW_RETREAT_ROWS[0]], [stops.uf[module], StairPins.CLAW_TURN_ROW]] \
+				+ StairPath.hops_up_from_floor(stops, module)
+		StairPath.KIND_S: return [[stops.a[level + 1], StairPins.CLAW_STEP_FORWARD_ROW],
+			[stops.u[level + 1], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up(stops, level)
+		StairPath.KIND_A: return [[stops.u[level + 1], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up(stops, level)
+		StairPath.KIND_U: return StairPath.hops_up(stops, level)
+	return []
+
+
+func _hops_from_crossing(stops: StairPath.Stops, local: Vector3i, target: Vector2i, final_profile: int) -> Array:
+	"""Hops from the crossing arrival X down to a place."""
+	if _surface(local): return [[target, final_profile]]
+	var deep: Vector3i = StairPath.classify_deep(local)
+	if deep.x > 0: return StairPath.hops_down_to_floor(stops, deep.x) + [[target, StairPath.FLOOR_ROW]]
+	var kind: Vector2i = StairPath.classify(local)
+	if kind.x == StairPath.KIND_H and kind.y >= 0:
+		return StairPath.hops_down_to_floor(stops, StairPath.module_of_level(kind.y)) + [[target, StairPins.CLAW_APPROACH_ROWS[0]]]
+	if kind.x == StairPath.KIND_S: return StairPath.hops_down(stops, kind.y) + [[target, StairPins.CLAW_STEP_BACK_ROW]]
+	return []
+
+
+func _first_leg(hops: Array) -> PackedInt64Array:
+	"""The first run of hops on one row as one leg [slot, generation, profile, revision]."""
+	return _all_legs(hops).slice(0, 4)
+
+
+func _all_legs(hops: Array) -> PackedInt64Array:
+	"""Hops as legs: each run of consecutive hops on one row is one route to the run's last stop."""
+	var pairs: Array = []
+	for at: int in hops.size():
+		if at + 1 < hops.size() and hops[at + 1][1] == hops[at][1]: continue
+		pairs.append_array([hops[at][0], hops[at][1]])
+	return _legs(pairs)
+
+
+func _face_profile(job: Vector2i, profile: int) -> StringName:
+	"""Turn to a yaw-exact row's heading when the crew does not already face it (decision 2044's leg changes)."""
+	var profiles: RefCounted = _owners.profiles
+	if profile < 0 or profiles._live.fields[Profiles.F_YAW_KIND * profiles._profile_capacity + profile] != Profiles.YAW_EXACT:
+		return &""
+	var yaw: int = profiles._live.fields[Profiles.F_YAW * profiles._profile_capacity + profile]
+	if _owners.routes.read_actor_into(_crew.worker, _actor) != &"" or _actor.yaw == yaw: return &""
+	return WorldRoutes.turn_actor(_owners.binding, _crew.worker, job, yaw, Space.MAX_CHECKS)
 
 
 func _plan_stairs(plan: Installer.Plan) -> bool:
 	"""ADR1229: a tread order walks down from the crossing arrival (walk-in step, step forward, descent to the stop
 	above the station) and retracts that stop at FUND. DEC-059 (P1): from the previous tread's station it walks
-	straight down instead (step forward, one descent); from any other tread station it first climbs back to the
-	crossing arrival (step forward, half-turn, ascent, approach). Any other order has none of these."""
-	if not Tread.is_tread(plan.ordinal): return true
+	straight down instead (step forward, one descent); from anywhere else below it first climbs back to the crossing
+	arrival. Decision 2044: on M5 the same holds in every module, the way down crossing every landing above it, and a
+	later module's T0 is reached the same way: down to its landing's F, then the narrow approach onto H'."""
+	var t0: bool = Tread.is_t0(plan.ordinal) and Tread.module_of(plan.ordinal) > 0
+	if not Tread.is_tread(plan.ordinal) and not t0: return true
 	var stops: StairPath.Stops = _stops()
-	var level: int = plan.ordinal - 2
-	if plan.arrival != stops.x or stops.s[level + 1] != plan.station: return false
-	plan.downs = _legs([stops.p, StairPins.CLAW_APPROACH_ROWS[0], stops.a[0], StairPins.CLAW_STEP_FORWARD_ROW,
-		stops.a[level + 1], StairPins.CLAW_DESCENT_ROW])
-	plan.retract = stops.a[level + 1]
+	var module: int = Tread.module_of(plan.ordinal)
+	var level: int = StairPath.global_level(module, Tread.level_of(plan.ordinal) - 1)
+	if t0:
+		plan.arrival = stops.x
+		plan.downs = _all_legs(StairPath.hops_down_to_floor(stops, module))
+	else:
+		if plan.arrival != stops.x or stops.s[level + 1] != plan.station: return false
+		plan.downs = _all_legs(StairPath.hops_down(stops, level))
+		plan.retract = stops.a[level + 1]
 	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT,
 		_owners.residents.directory().get_typed_row(_crew.worker))
 	var from: int = stops.s.find(here) - 1
-	if here != NULL_REF and from >= 0 and from == level - 1:
+	if here != NULL_REF and not t0 and from >= 0 and from == level - 1:
 		plan.chain = _legs([stops.a[level], StairPins.CLAW_STEP_FORWARD_ROW, stops.a[level + 1],
 			StairPins.CLAW_DESCENT_ROW]) # DEC-059 (P1): straight down from the previous tread's station.
-	elif here != NULL_REF and from >= 0:
-		plan.ups = _legs([stops.a[from + 1], StairPins.CLAW_STEP_FORWARD_ROW, stops.u[from + 1], StairPins.CLAW_TURN_ROW,
-			stops.u[0], StairPins.CLAW_ASCENT_ROW, stops.x, StairPins.CLAW_APPROACH_ROWS[2]])
-	return not plan.downs.is_empty() and plan.retract != NULL_REF
+	elif here != NULL_REF and not _surface(_local_of(here)):
+		plan.ups = _all_legs(_hops_to_crossing(stops, _local_of(here)))
+	return not plan.downs.is_empty() and (t0 or plan.retract != NULL_REF)
 
 
 func _legs(pairs: Array) -> PackedInt64Array:
@@ -889,7 +1138,7 @@ func _legs(pairs: Array) -> PackedInt64Array:
 func _connect_contact(install: PackedInt32Array, plan: Installer.Plan) -> StringName:
 	"""A station on an installed contact has no route edge yet: publish M <-> (arrival <->) contact via WorldRoutes.
 	ADR1229: a tread station is reached down the stair: every stair edge between live stops is published instead."""
-	if Tread.is_tread(plan.ordinal):
+	if Tread.is_tread(plan.ordinal) or (Tread.is_t0(plan.ordinal) and Tread.module_of(plan.ordinal) > 0):
 		return StairPath.publish(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
 			_owners.locations, _stops(), _content)
 	var station: PackedInt32Array = PackedInt32Array()
@@ -915,6 +1164,8 @@ func _plan_retreat(install: PackedInt32Array, plan: Installer.Plan) -> StringNam
 	var retreat: Vector2i = _resolve_endpoint(_placement.x, install[8])
 	if retreat == NULL_REF: return REFUSE_PLAN
 	if retreat == plan.station: return &""
+	# Decision 2044: from a station on the stair the way out is a run of legs, derived where the next step starts.
+	if Tread.is_tread(plan.ordinal) or (Tread.is_t0(plan.ordinal) and Tread.module_of(plan.ordinal) > 0): return &""
 	var profile: IntMath.IntResult = IntMath.IntResult.new()
 	var revision: IntMath.IntResult = IntMath.IntResult.new()
 	if _owners.frontier.endpoint_travel_into(install[8], profile, revision) != &"": return REFUSE_PLAN

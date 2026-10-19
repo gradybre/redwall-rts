@@ -35,8 +35,10 @@ const STAGE_RESUME: int = 12 # DEC-057: the crew was lost; the replacement re-ha
 const STAGE_LEG_STAIRS: int = 13
 ## DEC-059 (P1): from the previous tread's station straight down to this one (step forward, one descent).
 const STAGE_LEG_CHAIN: int = 14
-const Tread := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/tread_geometry.gd")
+## Decision 2044 (P-2044-9 (a)): the module-aware M5 tread geometry (module 0 is the published one).
+const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 ## DEC-059 (P1): the first tread's haul brings every tread's wood to M at once (D3: each tread's bill is T0's).
+## Decision 2044: every module's T1 does so for its own module (`Tread.first_tread`); module 0's is assembly 2.
 const FIRST_TREAD: int = 2
 const REFUSE_CHAIN_STOCK: StringName = &"ENTRY_INSTALLER_CHAIN_STOCK"
 const StairPath := preload("res://scripts/core/underground_entry_stair_path.gd")
@@ -232,7 +234,7 @@ func _units(out: PackedInt32Array) -> StringName:
 	if _o.delivery == null: return &""
 	var items: PackedInt32Array = PackedInt32Array()
 	var milli: PackedInt64Array = PackedInt64Array()
-	var batch: int = Tread.TREADS if _plan.ordinal == FIRST_TREAD else 1
+	var batch: int = Tread.TREADS if Tread.first_tread(_plan.ordinal) else 1
 	for line: int in _quote.input_count:
 		items.append(_o.items.compiled_id(_quote.input_keys[line]))
 		milli.append(_quote.input_milli[line] * batch)

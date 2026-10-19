@@ -10,8 +10,9 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAGIC: int = 0x50544E45 # "ENTP"
 ## ADR1227: 2 since a successful start clears the runtime's earlier refusal. ADR1229: 3 since the work area publishes
 ## nineteen endpoints (the descent's eight more cut stations) and the plan runs to T6. An earlier record is refused
-## with ENTRY_SAVE_VERSION (no migration before 1.0, DEC-055 item 1).
-const VERSION: int = 3
+## with ENTRY_SAVE_VERSION (no migration before 1.0, DEC-055 item 1). Decision 2044 (P-2044-8 (a)): 4 since M5 plans
+## stage by stage with up to 150 steps a stage, 59 work-area endpoints and leg lists down and up five modules.
+const VERSION: int = 4
 const KIND_RUNTIME: int = 1
 const KIND_FOREMAN: int = 2
 const CODE_BYTES: int = 64 # A refusal code, ASCII, zero-padded.
@@ -28,13 +29,16 @@ const FOREMAN_FIXED_BYTES: int = 232
 const INSTALLER_FIXED_BYTES: int = 189
 const HAULER_FIXED_BYTES: int = 88
 ## ADR1229: L0's twelve phases, T0's six, the descent's twenty-four and eight installations are fifty steps.
-const MAX_TASKS: int = 64
-const MAX_ENDPOINTS: int = 19 # ADR1229: the work area's endpoints (WorkArea.ENDPOINTS).
-const MAX_QUEUE: int = 8
-## ADR1229: a tread order walks four legs up the stair before M.
-const MAX_LEGS: int = 5
-## ADR1229: each of a tread plan's down, up and (DEC-059) chain leg lists.
-const MAX_STAIR_LEGS: int = 4
+## Decision 2044 (P-2044-8 (a)): M5's largest stage is the top metre past T0 (48 cubes, 144 phases) and T1-T6, 150.
+const MAX_TASKS: int = 160
+const MAX_ENDPOINTS: int = 59 # ADR1229: the work area's endpoints (WorkArea.ENDPOINTS); decision 2044: 27 rows.
+## Decision 2044: a deep stage hauls its braces to M in one trip, at most 40 cubes' (ten wood and ten stone units).
+const MAX_QUEUE: int = 24
+## ADR1229: a tread order walks four legs up the stair before M. Decision 2044: from the deepest module, twelve legs
+## up to X, the arrival and a retreat before them and M after (15), with room to spare.
+const MAX_LEGS: int = 24
+## ADR1229: each of a tread plan's down, up and (DEC-059) chain leg lists. Decision 2044: 15 legs down to module 4.
+const MAX_STAIR_LEGS: int = 20
 const MAX_QUOTE_LINES: int = 4
 ## One haul at most is live: the foreman's (STAGE_HAUL) or its installation's, never both.
 const MAX_WIRE_BYTES: int = HEADER_BYTES + RUNTIME_FIXED_BYTES + MAX_ENDPOINTS * 8 + CREW_BYTES + FOREMAN_FIXED_BYTES \

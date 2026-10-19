@@ -2458,15 +2458,32 @@ func _installed_row_site(issuer: RefCounted, row: int, prefix: int, record: Reco
 	var parts: int = _installed_prefix_prisms(issuer, row, prefix)
 	if parts < 0: return NULL_REF
 	var found: Vector2i = NULL_REF
+	var held: bool = false
 	for index: int in parts:
 		if not _spend(4): return NULL_REF
 		for axis: int in 6: _region.box[axis] = _prism_boxes[index * 6 + axis]
 		if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
 				or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
+		held = true
 		var site: Vector2i = _installed_part_site(record, physical)
 		if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
 		found = site
-	return found
+	return found if held else _natural_floor_site(physical, record)
+
+
+func _natural_floor_site(physical: Sites, record: Record) -> Vector2i:
+	"""Decision 1972 (P-1972-8), reinstated by decision 2044 (P-2044-6 (a)): a stop no installed prism top holds stands
+	on natural earth (an M5 landing's floor). It is witnessed only by the completed (SUPPORTED_VOID) paid cube of its
+	own Room whose floor it stands on, and only while the cube under that floor was never cut: never over a dug cube."""
+	var origin: Vector3i = _cube_origin(record.point)
+	if origin.y != record.point.y or not _spend(64): return NULL_REF
+	var floor_row: int = _installed_site_row(physical, origin)
+	if floor_row < 0 or physical._phase[floor_row] != Sites.SUPPORTED_VOID \
+			or physical._room_slot[floor_row] != record.room.x or physical._room_generation[floor_row] != record.room.y:
+		return NULL_REF
+	var below: int = _installed_site_row(physical, origin - Vector3i(0, 1024, 0))
+	if _remaining < 0 or (below >= 0 and physical._ever_cut[below] != 0): return NULL_REF
+	return Vector2i(floor_row, Sites.SITE_GENERATION)
 
 
 func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:

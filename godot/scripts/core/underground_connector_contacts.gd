@@ -1394,32 +1394,36 @@ func _resolve_all_endpoints() -> StringName:
 	if _station_location == NULL_REF or _material_location == NULL_REF or _retreat_location == NULL_REF:
 		return REFUSE_ENDPOINT
 	var code: StringName = _endpoint_payloads()
+	var deep: int = _deep_landing()
 	if code == &"" and _tread_station():
 		code = _stair_reach_refusal()
+	elif code == &"" and _landing_station():
+		code = _landing_reach_refusal() # Decision 2044: a later module's T0, down the stair to its landing.
+	elif code == &"" and deep > 0:
+		code = _deep_reach_refusal(deep) # Decision 2044: a deep cut station, down the stair to its floor.
 	elif code == &"":
 		code = _approach_refusal()
 		if code == &"": code = _path_refusal(_station_location, _retreat_location, _install[8])
-	return _phase_resolve_output() if code == &"" and _phase_mode else code
+	if code != &"" or not _phase_mode: return code
+	return _deep_output_refusal(deep) if deep > 0 else _phase_resolve_output()
 
 
 func _stair_reach_refusal() -> StringName:
 	"""ADR1229: a tread station is reached from M by the material profile to the crossing arrival, then down the
 	stair leg by leg, and left back up it to the crossing arrival; each leg is one static profile reachability. The
 	station's own arrival stop is retracted while its bearer is pending (FUND to commit), with the climb from the stop
-	its half-turn reaches; those legs are skipped then: the worker already stands on the station."""
+	its half-turn reaches; those legs are skipped then: the worker already stands on the station. Decision 2044: on M5
+	the legs cross every landing above the tread's module (`StairPath.hops_down` and `hops_up`)."""
 	var stops: StairPath.Stops = _tread_stops()
-	var level: int = _ordinal - 2
+	var module: int = Handling.PawPhysical10.Tread.module_of(_ordinal)
+	var level: int = StairPath.global_level(module, Handling.PawPhysical10.Tread.level_of(_ordinal) - 1)
 	if stops.x != _retreat_location or stops.s[level + 1] != _station_location: return REFUSE_ENDPOINT
 	var code: StringName = _path_refusal(_material_location, _retreat_location, _install[7])
-	var legs: Array = [stops.x, stops.p, StairPins.CLAW_APPROACH_ROWS[0], stops.p, stops.a[0], StairPins.CLAW_STEP_FORWARD_ROW]
-	for below: int in level + 1:
-		legs.append_array([stops.a[below], stops.a[below + 1], StairPins.CLAW_DESCENT_ROW])
+	var legs: Array = _hop_legs(stops.x, StairPath.hops_down(stops, level))
 	legs.append_array([stops.a[level + 1], stops.s[level + 1], StairPins.CLAW_STEP_BACK_ROW,
 		stops.s[level + 1], stops.a[level + 1], StairPins.CLAW_STEP_FORWARD_ROW,
 		stops.a[level + 1], stops.u[level + 1], StairPins.CLAW_TURN_ROW])
-	for above: int in range(level, -1, -1):
-		legs.append_array([stops.u[above + 1], stops.u[above], StairPins.CLAW_ASCENT_ROW])
-	legs.append_array([stops.u[0], stops.x, StairPins.CLAW_APPROACH_ROWS[2]])
+	legs.append_array(_hop_legs(stops.u[level + 1], StairPath.hops_up(stops, level)))
 	var retracted: bool = stops.a[level + 1] == NULL_REF
 	for at: int in range(0, legs.size(), 3):
 		if code != &"": break
@@ -1431,40 +1435,102 @@ func _stair_reach_refusal() -> StringName:
 	return code
 
 
+## Decision 2044: M5's stations below its stair top, reached leg by leg from the crossing arrival X.
+
+
+func _hop_legs(from: Vector2i, hops: Array) -> Array:
+	"""[first, last, row] triples for a run of `StairPath` hops starting at `from`: one published edge each."""
+	var out: Array = []
+	var at: Vector2i = from
+	for hop: Array in hops:
+		out.append_array([at, hop[0], hop[1]])
+		at = hop[0]
+	return out
+
+
+func _legs_refusal(legs: Array) -> StringName:
+	"""Each triple's edge is published and admits its row."""
+	for at: int in range(0, legs.size(), 3):
+		if legs[at] == NULL_REF or legs[at + 1] == NULL_REF: return REFUSE_ENDPOINT
+		var code: StringName = _row_path_refusal(legs[at], legs[at + 1], legs[at + 2])
+		if code != &"": return code
+	return &""
+
+
+func _landing_station() -> bool:
+	"""A later module's T0 order: its station H' stands on its landing's floor (module j's natural landing)."""
+	var tread: Script = Handling.PawPhysical10.Tread
+	return not _phase_mode and Handling.Paw10.Claw.serves(_frontier._header[5]) and tread.is_t0(_ordinal) \
+		and tread.module_of(_ordinal) > 0
+
+
+func _landing_reach_refusal() -> StringName:
+	"""M to X on the material profile, down to the landing's F, the narrow approach onto H' and back to F (the
+	order's retreat), then the half-turn and the way back up to X."""
+	var stops: StairPath.Stops = _tread_stops()
+	var landing: int = Handling.PawPhysical10.Tread.module_of(_ordinal)
+	if stops.hm[landing] != _station_location or stops.f[landing] != _retreat_location: return REFUSE_ENDPOINT
+	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
+	var legs: Array = _hop_legs(stops.x, StairPath.hops_down_to_floor(stops, landing))
+	legs.append_array([stops.f[landing], stops.hm[landing], StairPins.CLAW_APPROACH_ROWS[0],
+		stops.hm[landing], stops.f[landing], StairPins.CLAW_RETREAT_ROWS[0],
+		stops.f[landing], stops.uf[landing], StairPins.CLAW_TURN_ROW])
+	legs.append_array(_hop_legs(stops.uf[landing], StairPath.hops_up_from_floor(stops, landing)))
+	return _legs_refusal(legs) if code == &"" else code
+
+
+func _deep_landing() -> int:
+	"""A deep cut station's landing (a phase whose station stands on a landing's floor), or 0."""
+	if not _phase_mode or _station_location == NULL_REF: return 0
+	var local: Vector3i = _local_point(_station[1], _station[2], _station[3])
+	var at: Vector3i = StairPath.classify_deep(local)
+	return at.x if at.x > 0 else 0
+
+
+func _local_point(x: int, y: int, z: int) -> Vector3i:
+	"""A source-local point (the station row's own coordinates are already source-local)."""
+	return Vector3i(x, y, z)
+
+
+func _deep_reach_refusal(landing: int) -> StringName:
+	"""M to X on the material profile, down to the landing's F, then the floor walks to the station on its own
+	travel row (its retreat is the station itself)."""
+	var stops: StairPath.Stops = _tread_stops()
+	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
+	if code == &"": code = _legs_refusal(_hop_legs(stops.x, StairPath.hops_down_to_floor(stops, landing)))
+	if code == &"": code = _path_refusal(stops.f[landing], _station_location, _station[0])
+	return code if code != &"" else _path_refusal(_station_location, _retreat_location, _install[8])
+
+
+func _deep_output_refusal(landing: int) -> StringName:
+	"""The spoil's way to R: the floor walk to the landing's U, back up the stair to X, then X to R on R's own row."""
+	_phase_output_location = _resolve_endpoint(_episode[16])
+	if _phase_output_location == NULL_REF: return REFUSE_ENDPOINT
+	var code: StringName = _read_endpoint(_episode[16], _phase_output_location, _other)
+	if code != &"" or _other.role != Locations.ROLE_STORAGE: return REFUSE_MATERIAL
+	_phase_output_payload = _other.payload_revision
+	var stops: StairPath.Stops = _tread_stops()
+	code = _path_refusal(_station_location, stops.uf[landing], _station[0])
+	if code == &"": code = _legs_refusal(_hop_legs(stops.uf[landing], StairPath.hops_up_from_floor(stops, landing)))
+	return code if code != &"" else _path_refusal(stops.x, _phase_output_location, _episode[16])
+
+
 func _tread_stops() -> StairPath.Stops:
-	"""Every live installed stair stop of this Frontier, by kind and level: one pass over the live Locations matches
-	their exact role, Room and transformed source point (each leg's edge certificate is checked separately)."""
+	"""Every live installed stair stop of this Frontier, by kind and level. Decision 2044: one pass over the live
+	Locations of the station's Room, each filed by its own source-local point (rotation 0)."""
 	var stops: StairPath.Stops = StairPath.Stops.new()
-	var wanted: PackedInt32Array = PackedInt32Array()
-	for selector: int in _frontier._header[8 + Frontier.ENDPOINT]:
-		if _frontier._field(Frontier.ENDPOINT, selector, 0) != Frontier.INSTALLED_CONTACT: continue
-		var local: Vector3i = Vector3i(_frontier._field(Frontier.ENDPOINT, selector, 4),
-			_frontier._field(Frontier.ENDPOINT, selector, 5), _frontier._field(Frontier.ENDPOINT, selector, 6))
-		var kind: Vector2i = StairPath.classify(local)
-		if kind.x < 0: continue
-		wanted.append_array(PackedInt32Array([kind.x, kind.y, _frontier._field(Frontier.ENDPOINT, selector, 3),
-			_coordinate(local.x, local.y, local.z, 0), _coordinate(local.x, local.y, local.z, 1),
-			_coordinate(local.x, local.y, local.z, 2)]))
 	var locations: Locations = _placements._locations
-	if not _fragments.spend(locations._capacity): return stops
+	if _frame[3] != 0 or not _fragments.spend(locations._capacity): return stops
 	for row: int in locations._capacity:
 		if locations._live.present[row] != 1: continue
-		if not _fragments.spend(4 + wanted.size()): return stops
+		if not _fragments.spend(8): return stops
 		if locations._ref_at(locations._live, Locations.ROOM_SLOT, row) != _location.room: continue
-		_record_stop(stops, wanted, locations, row)
+		var local: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, row) - _frame[0],
+			locations._get32(locations._live, Locations.Y, row) - _frame[1],
+			locations._get32(locations._live, Locations.Z, row) - _frame[2])
+		var kind: Vector2i = StairPath.classify(local)
+		if kind.x >= 0: StairPath.record(stops, kind, Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row)))
 	return stops
-
-
-func _record_stop(stops: StairPath.Stops, wanted: PackedInt32Array, locations: Locations, row: int) -> void:
-	"""File one live Location under the stop it matches exactly, if any."""
-	var point: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, row),
-		locations._get32(locations._live, Locations.Y, row), locations._get32(locations._live, Locations.Z, row))
-	var role: int = locations._get32(locations._live, Locations.ROLE, row)
-	for at: int in range(0, wanted.size(), 6):
-		if wanted[at + 2] == role and Vector3i(wanted[at + 3], wanted[at + 4], wanted[at + 5]) == point:
-			StairPath.record(stops, Vector2i(wanted[at], wanted[at + 1]),
-				Vector2i(row, locations._get32(locations._live, Locations.GENERATION, row)))
-			return
 
 
 func _row_path_refusal(first: Vector2i, last: Vector2i, profile: int) -> StringName:

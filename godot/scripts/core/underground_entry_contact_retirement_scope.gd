@@ -20,12 +20,12 @@ const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Fronti
 ## the flattened source this scope replays, and _source_shapes refuses any other Frontier.
 ## Decision 2044: the mounted Frontier is the M2 interim's (`qualified-stairs-m2-v1`, revision 10; P-2044-15): v10's
 ## rows first, then the top metre past row 6, module 1, the landings' floor stops, deep stations and strips. M5's
-## (the target) is 36/190/26/235/297/154 (P-2044-16 (a)'s retained floor and F'/P' stops).
+## (the target) is 36/190/26/235/301/154 (P-2044-16 (a)'s retained floor and landing stops).
 const INSTALLS: int = 15
 const STATIONS: int = 49
 const CUTS: int = 11
 const BEARINGS: int = 82
-const ENDPOINTS: int = 96
+const ENDPOINTS: int = 97
 const EPISODES: int = 34
 const L0_EPISODES: int = 4 # The first-entry prefix's L0 cubes, all of prefix 0.
 ## Capacities, Install, Station, rotation, Cut, Bearing, Endpoint plus travel, Episode, then the two workpiece rows.

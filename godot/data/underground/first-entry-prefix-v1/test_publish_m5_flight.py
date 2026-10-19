@@ -128,7 +128,7 @@ class M2Bundle(unittest.TestCase):
         """15 installs, 11 cut groups, 34 one-cube episodes (24 top metre, 10 deep), 97 parts."""
         install, station, cut, bearing, endpoint, episode = self.frontier
         self.assertEqual([len(install), len(station), len(cut), len(bearing), len(endpoint), len(episode)],
-                         [15, 49, 11, 82, 96, 34])
+                         [15, 49, 11, 82, 97, 34])
         self.assertEqual([sum(1 for e in episode if e[4] == -1024 * layer) for layer in range(3)], [24, 10, 0])
         self.assertEqual(struct.unpack_from("<7I", self.built["structure.ugconn"], 20)[3], 97)
 

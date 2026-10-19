@@ -388,26 +388,29 @@ def add_floor_stops(t: Tables, landing: int) -> dict:
     """Decision 1972's floor stops on landing j (module j-1's sill's selectors): F (the descent's arrival), U (the
     ascent's start) and F' (the walk-off's end, 71/72). P-2044-16 (a): F' is a ground stop too, sized by the narrow
     retreat 47, whose body (43's, facing down the flight) clears the sill by 274 u; every ground join at F' faces down
-    the flight (43 out, 47 in). But for the last landing, P' (module j's walk-in stop) is the sill's too, sized by the
-    all-yaw claw WALK 42 as the hub of the deep stations' floor walks (P-2044-16 (a)), so it stands before T0'."""
+    the flight (43 out, 47 in). But for the last landing, D, the deep stations' hub (P-2044-16 (a)), is the sill's too:
+    the landing row's station at the slot's centre line (`DEEP_INSIDE` past module j's L0 far edge), sized by the
+    all-yaw claw WALK 42, whose stance stays on the landing row and whose body clears the sill by 870 u. It leaves with
+    the landing's last deep stations, before T0' sets its bearer down where their air reaches."""
     sill = assembly_of(landing - 1, 6)
     at = floor_landing_ordinal(landing)
     out = {"F": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_ARRIVAL) + [V10.DESCENT]),
            "U": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_ASCENT) + [V10.ASCENT]),
            "F'": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_WALK_OFF) + [RETREAT])}
     if landing < MODULES:
-        out["P"] = t.add_endpoint([INSTALLED, sill, at, TRANSIT] + stop_point(landing, -1, V10.STATION) + [DEEP_TRAVEL])
+        out["D"] = t.add_endpoint([INSTALLED, sill, at, TRANSIT] + stop_point(landing, -1, DEEP_INSIDE) + [DEEP_TRAVEL])
     return out
 
 
 def add_module_stops(t: Tables, module: int) -> dict:
-    """Module j's stops: H' (its T0's station, the previous sill's), A0'/U0' on its natural landing (its T0's, as
-    L0's are T0's in v10; P' is the landing's, `add_floor_stops`), and every tread's A/S/U and the sill's A/U,
+    """Module j's stops: H' (its T0's station, the previous sill's), P'/A0'/U0' on its natural landing (its T0's, as
+    L0's are T0's in v10, so P' stands only once T0's bearer is in), and every tread's A/S/U and the sill's A/U,
     translated."""
     sill = assembly_of(module - 1, 6)
     t0 = assembly_of(module, 0)
     floor = floor_landing_ordinal(module)
     out = {"H": t.add_endpoint([INSTALLED, sill, floor, WORK] + stop_point(module, -1, 512) + [V10.APPROACH]),
+           "P": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.STATION) + [V10.APPROACH]),
            "A0": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.ARRIVAL) + [V10.DESCENT]),
            "U0": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.ASCENT_START)
                                 + [RETREAT]),  # P-2044-16 (a): U0' backs down the landing to F' on 47.

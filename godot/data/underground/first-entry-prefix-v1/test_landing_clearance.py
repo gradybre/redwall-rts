@@ -115,6 +115,7 @@ class Landing:
         self.h = [0, -PUB.MODULE_DROP * module, T0_STATION_Z - PUB.MODULE_RUN * module]
         self.p = PUB.stop_point(module, -1, L0_P)
         self.u0 = PUB.stop_point(module, -1, L0_U)
+        self.d = PUB.stop_point(module, -1, PUB.DEEP_INSIDE)  # The deep hub: the landing row's station, centred.
         rows = PUB.deep_rows(landing)
         first = rows[0] - 1 if len(rows) else None
         self.deep = {} if first is None else {
@@ -127,10 +128,11 @@ class Landing:
         if self.last:
             return []
         edges = [(APPROACH, [self.fp, self.p]), (APPROACH, [self.fp, self.h]), (RETREAT, [self.h, self.fp]),
-                 (RETREAT, [self.u0, self.fp]), (RETREAT, [self.p, self.fp])]
+                 (RETREAT, [self.u0, self.fp]), (RETREAT, [self.p, self.fp]), (APPROACH, [self.fp, self.d]),
+                 (RETREAT, [self.d, self.fp])]
         if self.first_row is not None:
             top = self.deep[(self.first_row, 1)]
-            edges += [(WALK, self.l_walk(self.p, top)), (WALK, self.l_walk(top, self.p))]
+            edges += [(WALK, self.l_walk(self.d, top)), (WALK, self.l_walk(top, self.d))]
             for row in range(self.first_row, PUB.ROWS - 1):
                 edges += [(WALK, [self.deep[(row, 0)], self.deep[(row, 1)]]),
                           (WALK, [self.deep[(row, 1)], self.deep[(row, 0)]])]
@@ -149,10 +151,10 @@ class Landing:
 
     def ground_stops(self) -> list:
         """(row, point) for every ground stop's air, by the profile of its first selector (which sizes the Location):
-        F' and U0' on the retreat 47, H' on 43, P' and the deep stations on the claw WALK 42."""
+        F' and U0' on the retreat 47, H' and P' on 43, the deep hub D and the deep stations on the claw WALK 42."""
         if self.last:
             return []
-        return [(RETREAT, self.fp), (RETREAT, self.u0), (APPROACH, self.h), (WALK, self.p)] \
+        return [(RETREAT, self.fp), (RETREAT, self.u0), (APPROACH, self.h), (APPROACH, self.p), (WALK, self.d)] \
             + [(WALK, point) for point in self.deep.values()]
 
     def air_row(self, point: list) -> int:
@@ -242,7 +244,7 @@ class LandingClearance(unittest.TestCase):
             t = PUB.frontier_tables(V10.json.loads(V10.pinned(V10.SPEC, V10.SPEC_SHA)))
             for landing in range(1, PUB.MODULES):
                 site = Landing(landing)
-                for row, point in site.ground_stops()[:4]:
+                for row, point in site.ground_stops()[:5]:
                     first = next(e for e in t.endpoint if e[0] == V10.INSTALLED_CONTACT and e[4:7] == point)
                     self.assertEqual(first[7], row, "M%d landing %d stop %s" % (layout, landing, point))
 
@@ -261,6 +263,22 @@ class LandingClearance(unittest.TestCase):
         self.assertEqual(overlap(swept(self.boxes[WALK][0], site.f, site.f), deck)[2], 369)
         self.assertEqual(overlap(swept(self.boxes[WALK][0], site.fp, site.fp), deck)[2], 26)
         self.assertIsNone(overlap(swept(self.boxes[ASCENT_APPROACH][0], site.fp, site.fp), deck))
+
+    def test_the_landing_stops_stand_on_floor_never_cut_deeper(self) -> None:
+        """Every stop the landing keeps while the next layer is dug (F', U0', H', P', D) has its whole stance on the
+        deck rows, which are never cut deeper: a stance reaching a deep row would lose its support when that row's
+        strip goes with its first cube (a 42-sized P' reached 96 u into row 7)."""
+        for layout in (2, 5):
+            PUB.select(layout)
+            for landing in range(1, PUB.MODULES):
+                site = Landing(landing)
+                rows = PUB.deck_rows(landing)
+                low, high = -1024 * (rows[-1] + 1), -1024 * rows[0]
+                for row, point in site.ground_stops()[:5]:
+                    for box in (b for b in self.boxes[row] if b[6] == 1):  # STANCE
+                        self.assertGreaterEqual(point[2] + box[2], low, "M%d landing %d stop %s on %d" % (
+                            layout, landing, point, row))
+                        self.assertLessEqual(point[2] + box[5], high)
 
     def test_rooted_decks_are_covered_by_the_rooms_support(self) -> None:
         """Every fixture deck of 53/54/55/71/72 at each landing lies in parts, bearings and the retained floor."""

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "The slow tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full parallel run at bf49943a (10 shards, 4 at a time; decision 1895); the suites decision 1895 changed (test_settlement_save_parity_1-6, which replace test_settlement_save_parity.gd, test_underground_host_crew_loss.gd and test_checkpoint_equivalence.gd) measured in focused runs three at a time. Re-measure and edit this list when a suite crosses the threshold either way. test_demo_build_furnish_live.gd (decision 1921) measured in a focused run: 102 s. test_demo_build_mound_live.gd (decision 2002) measured in a focused run: 152 s. test_underground_room_progress.gd (decision 1937, every-tick restore parity of five room digs) measured in a focused run: 183 s. test_underground_entry_crew_leaves.gd (decision 1940, two runs of the whole entry to its finish) and test_underground_room_claw_kitchen.gd (decision 1939) measured in the full parallel run at 7393c891: 165 s and 64 s.",
+  "note": "The slow tier (decision 1240): suites measured over threshold_seconds in a full run, plus test_checkpoint_equivalence.gd, which replays every checkpoint recipe from tick 0 by design. ./tools/run_tests.sh --fast skips them, --slow runs only them; the default run and CI run everything. Values are whole seconds measured on Brendan's Mac in the full parallel run at bf49943a (10 shards, 4 at a time; decision 1895); the suites decision 1895 changed (test_settlement_save_parity_1-6, which replace test_settlement_save_parity.gd, test_underground_host_crew_loss.gd and test_checkpoint_equivalence.gd) measured in focused runs three at a time. Re-measure and edit this list when a suite crosses the threshold either way. test_demo_build_furnish_live.gd (decision 1921) measured in a focused run: 102 s. test_demo_build_mound_live.gd (decision 2002) measured in a focused run: 152 s. test_underground_room_progress.gd (decision 1937, every-tick restore parity of five room digs) measured in a focused run: 183 s. test_underground_entry_crew_leaves.gd (decision 1940, two runs of the whole entry to its finish) and test_underground_room_claw_kitchen.gd (decision 1939) measured in the full parallel run at 7393c891: 165 s and 64 s. Decision 2044 (the M2 interim's whole flight, 20,229 ticks) measured in focused runs under load: test_underground_host_whole_chain.gd 988 s and test_underground_entry_crew_leaves.gd 624 s.",
   "threshold_seconds": 60,
   "slow": {
     "test_checkpoint_equivalence.gd": 105,
@@ -18,11 +18,11 @@
     "test_settlement_save_underground.gd": 258,
     "test_underground_connector_delivery.gd": 78,
     "test_underground_connector_workpieces.gd": 71,
-    "test_underground_entry_crew_leaves.gd": 165,
+    "test_underground_entry_crew_leaves.gd": 624,
     "test_underground_entry_world_bindings.gd": 66,
     "test_underground_host.gd": 274,
     "test_underground_host_crew_loss.gd": 198,
-    "test_underground_host_whole_chain.gd": 434,
+    "test_underground_host_whole_chain.gd": 988,
     "test_underground_paid_assembly_handling.gd": 389,
     "test_underground_room_claw_kitchen.gd": 64,
     "test_underground_room_progress.gd": 183

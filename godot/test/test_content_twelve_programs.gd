@@ -179,22 +179,25 @@ func test_the_stair_motion_owner_appends_the_carry_tables() -> void:
 	assert_equal(motion.program_of(53), 2, "the claw descent is still program 2")
 
 
-func test_the_stair_path_classifies_h_and_the_sill_but_no_floor_stop() -> void:
-	"""H is 343 u before A on L0; the sill (T6) is the last level; the floor's A (F), U and F' are no stops (F40)."""
+func test_the_stair_path_classifies_h_the_sill_and_the_first_landing() -> void:
+	"""H is 343 u before A on L0; the sill (T6) is module 0's last level. Decision 2044 (M2): the floor below the sill
+	is landing 1, whose F, U (UF) and F' are stops (F40's "no floor stop" held only while the flight was one module);
+	a point on the sill F' would take is still none."""
 	assert_equal(StairPath.classify(Vector3i(0, 0, -1536)), Vector2i(StairPath.KIND_H, -1), "H")
 	assert_equal(StairPath.classify(Vector3i(0, -896, -5463)), Vector2i(StairPath.KIND_A, 6), "A on the sill")
 	assert_equal(StairPath.classify(Vector3i(0, -896, -5289)), Vector2i(StairPath.KIND_U, 6), "U on the sill")
-	assert_equal(StairPath.classify(Vector3i(0, -1024, -5975)), Vector2i(-1, 0), "no F")
-	assert_equal(StairPath.classify(Vector3i(0, -1024, -5801)), Vector2i(-1, 0), "no floor ascent start")
-	assert_equal(StairPath.classify(Vector3i(0, -1024, -6318)), Vector2i(-1, 0), "no F'")
+	assert_equal(StairPath.classify(Vector3i(0, -1024, -5975)), Vector2i(StairPath.KIND_F, 1), "F on landing 1")
+	assert_equal(StairPath.classify(Vector3i(0, -1024, -5801)), Vector2i(StairPath.KIND_UF, 1), "the floor ascent start")
+	assert_equal(StairPath.classify(Vector3i(0, -1024, -6318)), Vector2i(StairPath.KIND_FP, 1), "F' on landing 1")
 	assert_equal(StairPath.classify(Vector3i(0, -896, -5806)), Vector2i(-1, 0), "no F' on the sill")
 
 
 func test_the_stair_path_plans_the_sill_and_the_carry_after_the_descent() -> void:
 	"""Six words an edge; the descent's 33 WALK edges first, then the sill's 2 WALK edges and 17 CARRY edges, which
-	wait for the sill's arrival A(T6)."""
+	wait for the sill's arrival A(T6). Decision 2044 (M2): landing 1's twelve floor edges, module 1's P' -> A(L0'), 30
+	tread and 2 sill edges, and landing 2's five floor edges follow (102 in all)."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
-	assert_equal(plan.size(), StairPath.PLAN_WORDS * (33 + 2 + 17), "edge census")
+	assert_equal(plan.size(), StairPath.PLAN_WORDS * (33 + 2 + 17 + 12 + 1 + 30 + 2 + 5), "edge census")
 	assert_equal(StairPath.descent_words(), StairPath.PLAN_WORDS * 33, "the descent's words")
 	var carry: int = 0
 	for at: int in range(0, plan.size(), StairPath.PLAN_WORDS):
@@ -204,7 +207,7 @@ func test_the_stair_path_plans_the_sill_and_the_carry_after_the_descent() -> voi
 			assert_true(plan[at + 1] <= StairPath.SILL_LEVEL and plan[at + 3] <= StairPath.SILL_LEVEL, "never below T6")
 	assert_equal(carry, 17, "H -> A, seven descents, the turn on T6, seven ascents and U -> H")
 	var stops: StairPath.Stops = StairPath.Stops.new()
-	stops.h = Vector2i(1, 1)
+	StairPath.record(stops, Vector2i(StairPath.KIND_H, -1), Vector2i(1, 1))
 	stops.a[0] = Vector2i(2, 1)
 	var first_carry: int = StairPath.descent_words() + StairPath.PLAN_WORDS * 2
 	assert_false(StairPath._planned(stops, plan, first_carry), "H -> A(L0) waits for the sill")

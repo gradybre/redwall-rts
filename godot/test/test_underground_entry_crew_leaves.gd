@@ -13,10 +13,9 @@ func _finished_entry() -> Array:
 	var live: Array = _begin_live_entry()
 	var o: Session.Retirement.Owners = live[0]
 	var entry: Settlement.UndergroundEntryRuntime = live[1]
-	_stage(o, entry._output, &"wood", 13000)
-	_stage(o, entry._output, &"stone", 2000)
 	var tick: int = 1
-	while entry.is_running() and tick < 20000:
+	while entry.is_running() and tick < FLIGHT_TICK_LIMIT:
+		_sustain(o, entry, tick) # Decision 2044: the M2 flight outlasts the cohort's means (see DESCENT_DONE_TICK).
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
 		tick += 1
 	assert_equal(tick - 1, DESCENT_DONE_TICK, "the entry finished on its own tick")

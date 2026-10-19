@@ -37,25 +37,37 @@ const Store := preload("res://test/fixtures/checkpoint_store.gd")
 ## and the restored chain. ADR1217 step 5: 4630 -> 4670 on the claw and paw rows (new motion timings: the claw walk's
 ## 44-key loop, the walk-on past the blocked fade keys, the 32-tick dig and tap loops); every Work amount, bill and
 ## hauled unit is unchanged (DEC-052). ADR1229 increment 6b: the chain then carries on down the descent; these
-## suites stop at the prefix (task PREFIX_TASKS), and one suite runs the whole descent to the sill.
+## suites stop at the prefix (PREFIX_INSTALLS), and one suite runs the whole flight to its last sill.
 ## DEC-059: 4670 -> 4382 with brace/cut/finish x 0.47 (P3) -> 3462 with one claw entry and recovery a cube (P2).
-const DONE_TICK: int = 3462
+## Decision 2044 (M2): 3463, the tick T0's installation settles (the stage hand-over below).
+const DONE_TICK: int = 3463
 ## [task index, cut Work mWU, hauled whole units, installation Work mWU, groups INSTALLED] at the end of the prefix:
-## L0's twelve phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU).
-const DONE_LEDGER: Array = [20, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
-## ADR1229: the prefix is the foreman's first twenty tasks; task 20 is the descent's first cut.
-const PREFIX_TASKS: int = 20
+## L0's twelve phases, T0's six cuts, both installations' fastening (32,000 + 12,000 mWU). Decision 2044: the index
+## is the next stage's first task (0).
+const DONE_LEDGER: Array = [0, 25380, 9, 44000, 2] # DEC-059: six cubes x 4,230
+## ADR1229: the prefix is L0 and T0 installed. Decision 2044 (P-2044-7 (a)): the foreman plans one stage at a time
+## (L0's, then T0's, then the next ones), so the prefix ends on the tick T0's installation settles and the runtime
+## plans the next stage, not at a fixed task index.
+const PREFIX_INSTALLS: int = 2
 ## ADR1229 increment 6b: the whole descent on the flexible schedule (every hour ANYTHING, GDD 5.3), from the same
 ## start: the eight descent cubes (33,840 mWU since DEC-059), T1-T6 down the stair (6 x 5,640 mWU, one hauled unit each).
-## DEC-059: on the DEFAULT schedule since P2 (P3 12,474 and P1 10,484 were on the flexible one).
-const DESCENT_DONE_TICK: int = 8348
-## The default schedule's first work block ends at 18:00 (tick 9000); GDD 5.2 seek thresholds.
-const WORK_BLOCK_END: int = 9000
-const SEEK_HUNGER: int = 3500
-const SEEK_REST: int = 2500
-## DEC-059 (P1): task 44 installs T1; every later tread is chained down from the one before.
-const FIRST_TREAD_TASK: int = 44
-const DESCENT_LEDGER: Array = [50, 59220, 19, 77840, 8] # DEC-059: 14 cubes x 4,230; 32,000 + 12,000 + 6 x 5,640
+## DEC-059: on the DEFAULT schedule since P2 (P3 12,474 and P1 10,484 were on the flexible one), 8348.
+## Decision 2044 (the M2 interim, P-2044-15): the whole flight is two modules, fifteen groups and 34 cubes, and takes
+## past the first work block and the cohort's means. The generated cohort has two adult moles and no kitchen (G9):
+## near tick 12,000 both reach their GDD 5.2 seek thresholds, DEC-059's shift change finds no rested idle mole, and
+## the crew waits at rest. So the whole-flight suites keep every resident's hunger and rest full and R's staged stock
+## topped up (`_sustain`), stand-ins for the kitchen and stores the settlement does not have yet.
+const DESCENT_DONE_TICK: int = 20229
+const FLIGHT_TICK_LIMIT: int = 40000
+## The stand-ins: every 20 ticks the needs are refilled; every 50 ticks a staged input below 3,000 milli gets 3,000.
+const SUSTAIN_NEEDS_EVERY: int = 20
+const SUSTAIN_STOCK_EVERY: int = 50
+const SUSTAIN_STOCK_MILLI: int = 3000
+## [task index, cut Work, hauled units, installation Work, groups INSTALLED] at the finish: the last stage's 37 tasks,
+## 34 cubes x 4,230, 36 hauled units, 32,000 + 12,000 + 6 x 5,640 for module 0 and 45,840 for module 1's seven groups.
+const DESCENT_LEDGER: Array = [37, 143820, 36, 123680, 15]
+## The groups the prefix and module 0 install (L0, T0..T6).
+const MODULE_ZERO_INSTALLS: int = 8
 ## ADR1221: the live chain's route owners are cold-restored this often (ticks; prime).
 const ROUTE_RESTORE_EVERY: int = 23
 ## ADR1218 runtime wire: header, step, code, origin, section, endpoint count and the work area's endpoints (nineteen
@@ -193,8 +205,15 @@ func _snapshot() -> Array[PackedByteArray]:
 
 
 func _prefix_done(entry: Settlement.UndergroundEntryRuntime) -> bool:
-	"""ADR1229: the foreman has finished the prefix (T0 installed) and moved on to the descent's first cut."""
-	return entry._foreman != null and entry._foreman._index >= PREFIX_TASKS
+	"""ADR1229: the foreman has finished the prefix (T0 installed) and moved on to the next stage."""
+	return entry._foreman != null and _installed_groups(entry) >= PREFIX_INSTALLS \
+		and entry._foreman.planned_installations() > PREFIX_INSTALLS
+
+
+func _installed_groups(entry: Settlement.UndergroundEntryRuntime) -> int:
+	"""Groups the entry's Placement has INSTALLED (DONE_LEDGER's last field)."""
+	var placements: RefCounted = entry._foreman._owners.placements
+	return placements._get32(placements._live, placements.INSTALLED, 0)
 
 
 func _assert_prefix_done(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, worker: Vector2i) -> void:
@@ -218,6 +237,29 @@ func _done_ledger(o: Session.Retirement.Owners, foreman: RefCounted) -> Array:
 	"""[task index, cut Work, hauled units, installation Work, groups INSTALLED] (DONE_LEDGER's shape)."""
 	return [foreman._index, foreman.accepted_mwu(), foreman.haul_trips(), foreman.install_mwu(),
 		o.placements._get32(o.placements._live, o.placements.INSTALLED, 0)]
+
+
+func _sustain(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, tick: int) -> void:
+	"""Decision 2044: the whole-flight stand-ins (see DESCENT_DONE_TICK), run before each tick's run_tick."""
+	if tick % SUSTAIN_NEEDS_EVERY == 0:
+		var needs: RefCounted = o.residents.needs()
+		for at: int in range(0, needs._need_value.size(), Needs.NEED_COUNT):
+			needs._need_value[at + Needs.NEED_HUNGER] = Needs.NEED_MAX
+			needs._need_value[at + Needs.NEED_REST] = Needs.NEED_MAX
+	if tick % SUSTAIN_STOCK_EVERY != 1: return
+	for key: StringName in [&"wood", &"stone"]:
+		if _staged_milli(o, entry._output, o.items.compiled_id(key)) < SUSTAIN_STOCK_MILLI:
+			_stage(o, entry._output, key, SUSTAIN_STOCK_MILLI)
+
+
+func _staged_milli(o: Session.Retirement.Owners, container: Vector2i, item: int) -> int:
+	"""Unreserved milli of `item` in `container`."""
+	var total: int = 0
+	var lot: Vector2i = o.inventory.container_first_lot(container)
+	while lot != Vector2i(-1, 0):
+		if o.inventory.lot_item_id(lot) == item: total += o.inventory.lot_available_milli(lot)
+		lot = o.inventory.container_next_lot(lot)
+	return total
 
 
 func _stage(o: Session.Retirement.Owners, container: Vector2i, key: StringName, milli: int) -> Vector2i:

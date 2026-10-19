@@ -540,7 +540,9 @@ func test_suggested_entry_site_publishes_the_whole_work_area_on_generated_ground
 	assert_equal(EntryWorkArea.publish_paths(o.world_routes, o.routes, o.budget, o.space, at, published,
 		o.profiles.content_revision()), &"", "all 31 paths publish")
 	assert_equal(o.locations._live.count, EntryWorkArea.ENDPOINTS, "exactly the work area's endpoints")
-	assert_equal(o.routes._live.edge_count, 36, "exactly the work area's paths, eight of them ADR1198/1205 haul edges")
+	# Decision 2044: stage 1's cut pair (7, 8) is a batch of its own, joined when its first cut opens, so the work area
+	# publishes H and stage 0's four cut stations to both storages (20) and the eight ADR1198/1205 haul edges.
+	assert_equal(o.routes._live.edge_count, 28, "exactly the work area's paths, eight of them ADR1198/1205 haul edges")
 	var plan: RefCounted = EntrySite.entry_plan(session._world_ref, o.space.revision(), at, published.endpoints[0],
 		o.world_routes._catalog, frontier)
 	assert_true(plan != null, "entry plan derived from the mounted bundle")
@@ -609,16 +611,25 @@ func test_fixed_ticks_drive_the_live_foreman_until_the_first_gap() -> void:
 		"admitted on H's own approach row, then at once on the authored retreat row toward R")
 	var tick: int = arrived[0] + 1
 	var held: int = 0
-	var last: int = 0
+	var hand_overs: int = 0
 	while entry.is_running() and not _prefix_done(entry) and tick < 8000:
 		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
-		last = _assert_dispatch_held(o, entry, worker, tick)
-		held += last
+		var now: int = _assert_dispatch_held(o, entry, worker, tick)
+		if now == 0:
+			# Decision 2044 (P-2044-7 (a)): the tick a stage settles, the next stage is planned and its first Job is
+			# taken on the next tick; the crew stays reserved to the entry throughout.
+			hand_overs += 1
+			assert_equal(entry._foreman._index, 0, "a tick without an entry Job is a stage hand-over (tick %d)" % tick)
+			assert_true(entry.reserves_resident(o.residents.directory().get_typed_row(worker)), "the crew stays reserved")
+		held += now
 		tick += 1
-	assert_equal(held, tick - arrived[0] - 1, "the crew held an entry Job at every tick from arrival to the last")
-	assert_equal(last, 1, "and carries on into the descent's first cut")
+	assert_equal(held + hand_overs, tick - arrived[0] - 1,
+		"the crew held an entry Job at every tick from arrival to the last but the stage hand-overs")
+	assert_equal(hand_overs, PREFIX_INSTALLS, "one hand-over tick a stage: L0's and T0's")
 	_assert_prefix_done(o, entry, worker)
 	assert_equal(tick - 1, DONE_TICK, "the finishing tick")
+	assert_true(_host.run_tick(tick), "the next tick")
+	assert_equal(_assert_dispatch_held(o, entry, worker, tick), 1, "and carries on into the next stage's first cut")
 
 
 func _expected_walk(o: Session.Retirement.Owners, worker: Vector2i, entry: Settlement.UndergroundEntryRuntime) -> int:

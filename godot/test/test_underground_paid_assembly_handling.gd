@@ -104,7 +104,8 @@ class PaidProbe extends WorkArea.Probe:
 		super.before_each()
 		if not failures.is_empty(): return
 		pieces = Workpieces.new()
-		assert_equal(pieces.configure(4, 8, Workpieces.required_bytes(4, 8)), &"", "original finite banks (ADR1229: eight assemblies)")
+		var assemblies: int = WorkArea.Bundle.INSTALL_COUNT # ADR1229: eight assemblies; decision 2044: M2's fifteen.
+		assert_equal(pieces.configure(4, assemblies, Workpieces.required_bytes(4, assemblies)), &"", "original finite banks")
 		assert_equal(pieces.bind_actual(_placements, _router, _paid), &"", "original paid source tuple")
 		assert_equal(pieces.load_file(WorkArea.Bundle.WORKPIECES_PATH, WorkArea.Bundle.WORKPIECES_SHA, WorkArea.Bundle.WORKPIECES_REVISION), &"", "exact two source-derived workpieces")
 		assert_equal(_paid.bind_workpieces(pieces), &"", "actual reciprocal activation")
@@ -801,7 +802,19 @@ func _complete_prefix_foreman(hauled: bool = false) -> Foreman:
 	assert_equal(foreman.configure_installation(paid, 0), &"", "L0 installation from Frontier install row 0")
 	assert_equal(foreman.configure_installation(paid, 1), &"", "T0 cuts and installation from install row 1")
 	assert_equal(foreman.task_count(), 18, "six cubes x BRACE/CUT/FINISH")
+	foreman.bind_station_paths(_join_station_batch)
 	return foreman if failures.is_empty() else null
+
+
+func _join_station_batch(station: Vector2i) -> StringName:
+	"""Decision 2044: the runtime's station-path supplier, joining only. Stage 1's cut pair (stations 7 and 8) is a
+	batch of its own, joined to M and R when its first cut opens; the prefix never needs a batch it has left."""
+	var published: RefCounted = _probe._published
+	var routes: RefCounted = _probe._world._routes
+	var batch: int = WorkArea.WorkAreaSource.batch_of(published, station)
+	if batch < 0 or WorkArea.WorkAreaSource.batch_joined(routes, published, batch): return &""
+	return WorkArea.WorkAreaSource.join_batch(_probe._world._binding, routes, _probe._world._budget, _probe._world._owner,
+		Prefix.ORIGIN, published, _probe._content_revision(), batch)
 
 
 func _assert_split_landing() -> void:
@@ -962,6 +975,7 @@ func _round_trip(foreman: Foreman, seen: PackedInt64Array) -> Foreman:
 		assert_equal(code, &"", "round trip at foreman stage %d" % foreman._stage)
 		assert_equal(again, bytes, "a restored foreman writes back its record")
 		return null
+	fresh.bind_station_paths(_join_station_batch) # Decision 2044: the runtime rebinds its supplier on restore too.
 	seen[0] |= 1 << fresh._stage
 	if fresh._installer != null: seen[1] |= 1 << fresh._installer._stage
 	var hauler: Hauler = fresh._hauler if fresh._hauler != null else (fresh._installer._hauler if fresh._installer != null else null)

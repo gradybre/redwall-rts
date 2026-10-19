@@ -6,8 +6,10 @@ extends "res://test/framework/test_case.gd"
 
 const Bindings := preload("res://scripts/core/underground_entry_bindings.gd")
 const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
+const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const World := preload("res://scripts/core/world_init.gd")
 const DATUM: Vector3i = Vector3i(0, 512, 0)
 const ORIGIN: Vector3i = Vector3i(122880, 512, 102400)
@@ -46,6 +48,12 @@ func test_a_terrain_window_is_charged_by_the_tiles_it_reads() -> void:
 		Terrain.LOCAL_QUERY_CHECKS, "a whole window is the old flat charge")
 	assert_equal(Bindings.TERRAIN_TILE_CHECKS * Terrain.LOCAL_TILE_LIMIT + 1, Terrain.LOCAL_QUERY_CHECKS,
 		"the per-tile share is exact")
+
+
+func test_the_work_area_cuts_the_flights_rows() -> void:
+	"""The literal CUT_ROWS is the tread geometry's ROWS, and the endpoint count follows it (decision 2044)."""
+	assert_equal(WorkArea.CUT_ROWS, Tread.ROWS, "the flight's cube rows")
+	assert_equal(WorkArea.ENDPOINTS, WorkArea.FIRST_DEEP_STATION + 2 * (WorkArea.CUT_ROWS - 3), "a pair a row from row 3")
 
 
 func test_cut_stations_after_the_first_pair_stand_on_their_own_rows() -> void:
@@ -97,3 +105,40 @@ func test_batch_of_reads_the_published_handles() -> void:
 	for index: int in [0, 1, 2, WorkArea.STAND_M, WorkArea.STAND_R]:
 		assert_equal(WorkArea.batch_of(published, Vector2i(100 + index, 1)), -1, "endpoint %d is in no batch" % index)
 	assert_equal(WorkArea.batch_of(published, Vector2i(105, 2)), -1, "a stale generation")
+
+
+func test_region_scans_visit_present_rows_only() -> void:
+	"""Decision 2044 (P-2044-15, exact cost fixes): the bindings' region scans step from one present row to the next,
+	in the staged bank or the live one, and end at the capacity."""
+	var bank: Owner = Owner.new(null) # Only the Region presence banks `_next_region_row` reads.
+	bank._region_capacity = 9
+	bank._s_r_present = PackedByteArray([0, 0, 1, 1, 0, 0, 0, 1, 0])
+	bank._r_present = PackedByteArray([1, 0, 0, 0, 0, 0, 0, 0, 1])
+	for staged: bool in [true, false]:
+		var seen: Array[int] = []
+		var row: int = Bindings._next_region_row(bank, 0, staged)
+		while row < bank._region_capacity:
+			seen.append(row)
+			row = Bindings._next_region_row(bank, row + 1, staged)
+		assert_equal(seen, [2, 3, 7] if staged else [0, 8], "present rows of the %s bank" % ("staged" if staged else "live"))
+	assert_equal(Bindings._next_region_row(bank, 9, true), 9, "past the end")
+
+
+func test_prisms_are_ordered_by_their_tops_for_the_height_search() -> void:
+	"""Decision 2044 (P-2044-15): `_order_prisms` keys each prism by its biased top and its index (signed keys already
+	order a negative top first; the bias keeps every key non-negative), the rest of the table sorts last, and it costs
+	sixteen checks a prism."""
+	var locations: Locations = Locations.new()
+	locations._prism_boxes.resize(6 * 4)
+	locations._prism_tops.resize(4)
+	for prism: int in 3: locations._prism_boxes[prism * 6 + 4] = [100, -924, 100][prism]
+	locations._remaining = 48
+	assert_true(locations._order_prisms(3), "three prisms ordered within 48 checks")
+	assert_equal(locations._remaining, 0, "sixteen checks a prism")
+	var tops: Array = []
+	for at: int in 3: tops.append([(locations._prism_tops[at] >> 16) - Locations.TOP_BIAS, locations._prism_tops[at] & 0xFFFF])
+	assert_equal(tops, [[-924, 1], [100, 0], [100, 2]], "lowest top first; equal tops by index")
+	assert_equal(locations._prism_tops[3], 0x7FFFFFFFFFFFFFFF, "the unused slot sorts last")
+	assert_equal(locations._prism_tops.bsearch((100 + Locations.TOP_BIAS) << 16), 1, "a height finds its first prism")
+	locations._remaining = 47
+	assert_false(locations._order_prisms(3), "refused without the whole charge")

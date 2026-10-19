@@ -250,6 +250,42 @@ func test_a_change_in_a_rooted_rows_sweep_requalifies_its_stair_edge() -> void:
 	_lease = 0
 
 
+func test_a_carried_stair_edge_admits_and_spends_the_same_with_the_cache_checks_off() -> void:
+	"""Decision 2044 (P-2044-15, the carried stair form): after a change far from its sweeps and decks, the CARRY edge
+	is carried. Production (cache checks off) skips its unchanged volume scans; a checked run also proves them, unspent.
+	Both requalifications of the same live state admit the same rows at the same spend."""
+	_compose()
+	var a: Vector3i = Vector3i(X + 1024, UP, FAR + 169)
+	var b: Vector3i = a + Vector3i(0, -128, -512)
+	var ends: Array[Vector2i] = [_location(a, 0, false, 235), _location(b, 1, false, 300)]
+	var added: Routes.Result = _publish(_edge(ends[0], ends[1], a, b, 0, Profiles.MODE_CARRY))
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, PackedInt32Array([X + 9000, 600, FAR - 670, X + 9100, 700, FAR - 650]), Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "sealed")
+	_owner.publish(token)
+	var cold: int = _budget.acquire(Budget.COLD_BYTES)
+	var stops: int = _locations.begin_prepare(cold).token
+	for location: Vector2i in ends: assert_equal(_locations.stage_refresh(stops, location), &"", "stop requalified")
+	assert_equal(_locations.seal(stops), &"", "stops sealed")
+	assert_true(_locations.publish(stops), "stops published at the new revision")
+	assert_equal(_budget.release(cold), &"", "no output retained")
+	var runs: Array = []
+	for checks: bool in [false, true]:
+		Profiles.CacheChecks.enabled = checks
+		_lease = _budget.acquire(Budget.COLD_BYTES)
+		var begun: Routes.Result = _binding.begin_prepare(_lease)
+		var code: StringName = _routes.stage_refresh(begun.token, added.ref) if begun.error == &"" else begun.error
+		if code == &"": code = _binding.seal(begun.token)
+		runs.append([code, _binding._carried_edges, _binding._proof_checks])
+		_binding.abort(begun.token)
+		assert_equal(_budget.release(_lease), &"", "lease")
+		_lease = 0
+	Profiles.CacheChecks.enabled = true
+	assert_equal(runs[0], [&"", 1, runs[0][2]], "carried with the checks off")
+	assert_equal(runs[1], runs[0], "the checked run admits and spends the same")
+	assert_equal(_masked(added.ref), [74, 80] as Array[int], "the live certificate is unchanged")
+
+
 func test_a_live_walk_edge_never_hides_its_carry_twin() -> void:
 	"""Decision 1972: the stair path joins stops per mode, so the descent's live WALK edge does not stand in for the
 	CARRY edge over the same span, and once that is published it is joined too."""

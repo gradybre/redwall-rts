@@ -437,10 +437,11 @@ func _bind_paid_owners() -> void:
 	assert_equal(_provider.configure(_world._world, _world._terrain, _world._owner, _world._sources,
 		_world._budget), &"", "actual phase composer")
 	_authority = Authority.new()
-	# ADR1229: room for the T1-T6 bundle's fourteen cut cubes (the claw bundle cut six).
-	assert_equal(_authority.configure(_world._owner, _provider, 16), &"", "actual phase authority")
+	# ADR1229: room for the T1-T6 bundle's fourteen cut cubes (the claw bundle cut six). Decision 2044: the mounted M2
+	# interim cuts 34.
+	assert_equal(_authority.configure(_world._owner, _provider, 48), &"", "actual phase authority")
 	_sites = Sites.new(_world._construction, _world._inventory, _world._pool, _world._items,
-		_world._jobs, _world._work, _authority, 64, 16)
+		_world._jobs, _world._work, _authority, 64, 48)
 	assert_equal(_sites.initialization_refusal(), &"", "actual finite Site ledger")
 	assert_equal(_authority.bind_sites(_sites), &"", "exact reciprocal Site authority")
 	_router = Router.new(_world._construction, _world._inventory, _world._pool, _world._items,

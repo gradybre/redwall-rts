@@ -923,3 +923,18 @@ is outside the claims.
   every T0 order stands at its station while its bearer is pending.
 
 **Recommendation: (a).**
+
+## Brendan's rulings on P-2044-17 and the successor pattern (2026-10-19)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Question | Ruling | What it means |
+|---|---|---|
+| P-2044-17 | **(a), "Same fix as P-2044-13"** | One change to `qualified-claw-runtime-v1/endpoint_certificates.gd`: content 12 points at a new module-aware successor in `qualified-m5-runtime-v1/` that hands assemblies 0–7 to today's certificate unchanged, with a byte-identity test. The pending-bearer spans (`prepared_span_refusal`) use the successor's `_root` |
+| Pre-clearance | **"Yes, that pattern only"** | If another published module-0-only certificate or program blocks M5, the lane may apply the same pattern without stopping: one change to its dispatch, a module-aware successor handing 0–7 to today's file unchanged, and a byte-identity test. Each use is recorded here and listed in the report. Anything else outside the claims still stops the lane |
+
+**Locations, held for Slice C's `feat/room-station-retirement`.** This lane's Locations edits are limited to
+`_installed_row_site`, `_installed_landing_count`, `_installed_prefix_prisms`, `_allocate_banks`, the `_sources_pass`
+variable, and the new `_natural_floor_site`, `_prisms_cached`, `_pass_landings`, `_pass_landing_into` and
+`_pass_landing_count`. Any other Locations function needs asking first. Slice C's `feat/slice-c3-confirm` consumes D1's
+Entrance and Way-down items and asks before needing anything of this lane's.

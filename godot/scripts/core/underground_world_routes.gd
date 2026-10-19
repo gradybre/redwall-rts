@@ -59,6 +59,15 @@ const EDGE_MEMO_STAMP: int = 6
 ## of the observed endpoint's air and support boxes, the profile's boxes, the point and the Domain. An entry (by Location
 ## slot) keeps the observed boxes as ENDPOINT_ENTRY_WORDS int32 (point 3, envelope 6, support 6, air count 1, air 18);
 ## each entry has one result word per profile row: (entry generation << 16) | (boxes checked << 4) | answer index.
+## Decision 1953: the per-preparation pace memo, PACE_SLOTS direct-mapped slots of PACE_WORDS int64: preparation
+## serial, profile, profile revision, family, variant, paced value (the answer's code is kept in `_pace_codes`).
+const PACE_SLOTS: int = 256
+const PACE_WORDS: int = 6
+## Decision 1953: what `pace_into` reads beyond its arguments, stamped per preparation: Profiles' load token, the level
+## pack's content revision, and each Movement profile's revision and speed.
+const PACE_INPUT_WORDS: int = 10
+## Decision 1953: a kept observation's key words: compile serial, Location slot, generation, point x, y, z.
+const OBSERVED_KEY: int = 6
 const ENDPOINT_MEMO_ENTRIES: int = 64
 const ENDPOINT_ENTRY_WORDS: int = 34
 const ENDPOINT_MEMO_STAMP: int = 9
@@ -354,6 +363,18 @@ var _endpoint_memo_serial: int = 0
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
 var _endpoint: Locations.Record = Locations.Record.new()
+## Decision 1953: within one edge compile (`_observe_serial`), each endpoint is observed once. The two successful
+## prepared observations are kept (key: serial, Location slot and generation, point) and copied back into `_endpoint`
+## on a repeat, with the same spend. Runtime only, never saved; reset by every compile.
+var _observed: Array[Locations.Record] = [Locations.Record.new(), Locations.Record.new()]
+var _observed_key: PackedInt64Array = PackedInt64Array()
+var _observe_serial: int = 1
+var _observe_next: int = 0
+## Decision 1953: `_catalog.pace_into` as last answered in this preparation (`_pace_serial` moves per `_begin_proof`).
+var _pace_memo: PackedInt64Array = PackedInt64Array()
+var _pace_codes: Array[StringName] = []
+var _pace_serial: int = 1
+var _pace_inputs: PackedInt64Array = PackedInt64Array()
 var _section: Owner.Region = Owner.Region.new()
 var _edge: Routes.Edge = Routes.Edge.new()
 var _pace: IntMath.IntResult = IntMath.IntResult.new()
@@ -448,6 +469,13 @@ func _allocate_scratch() -> void:
 	_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)
 	_endpoint.envelope.resize(6)
 	_endpoint.support.resize(6)
+	_observed_key.resize(2 * OBSERVED_KEY)
+	_pace_memo.resize(PACE_SLOTS * PACE_WORDS)
+	_pace_codes.resize(PACE_SLOTS)
+	_pace_inputs.resize(PACE_INPUT_WORDS)
+	for record: Locations.Record in _observed:
+		record.envelope.resize(6)
+		record.support.resize(6)
 	_section.box.resize(6)
 
 
@@ -825,6 +853,8 @@ func _pin_preparation(token: int, cold_token: int, space_token: int, location_to
 
 func _begin_proof() -> StringName:
 	"""No snapshot or fragments allocate before the exact lease and finite coexistence peak are admitted."""
+	_pace_serial = _next_revision(_pace_serial) # Decision 1953: a new preparation keeps no pace answer.
+	_pace_inputs_hold(true)
 	if _domain._checks < 3 * SOURCE_PASS_CHECKS:
 		return &"WORLD_ROUTE_CHECK_CAPACITY"
 	var code: StringName = _preparation_refusal()
@@ -963,6 +993,7 @@ func edge_refusal(edge: Routes.Edge, route_token: int, space_token: int, locatio
 
 func _compile_edge(edge: Routes.Edge) -> StringName:
 	"""Each finite profile qualifies separately, so a narrow valid mouse route does not promise badger clearance."""
+	_observe_serial = _next_revision(_observe_serial) # Decision 1953: a new compile; saturated (0) keeps nothing.
 	if edge == null or edge.ref.x < 0 or edge.ref.x >= EDGE_CAPACITY or edge.ref.y <= 0 \
 			or edge.geometry_revision != _target_revision or edge.content_revision != _content_revision:
 		return REFUSE_CONTEXT
@@ -984,18 +1015,49 @@ func _compile_edge(edge: Routes.Edge) -> StringName:
 
 
 func _compile_profiles(edge: Routes.Edge) -> StringName:
-	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved."""
+	"""Each profile is proved on its own; a carried edge skips only what its unchanged inputs already proved.
+	Decision 1953: a profile of another kind is refused from the bank's own columns without writing `_descriptor`;
+	if it is the last profile proved, its descriptor is written before returning, as the full proof would have."""
 	var accepted: int = 0
+	var skipped: int = -1
 	for profile: int in _profiles.profile_count(_content_revision):
 		if not _proof.spend():
-			return _proof.error
+			return _restored_descriptor(skipped, _proof.error)
+		if _other_kind(profile, edge):
+			skipped = profile
+			continue
+		skipped = -1
 		var code: StringName = _profile_edge_refusal(profile, edge)
 		if _proof.error != &"":
 			return _proof.error
 		if code == &"":
 			_stage.admit(edge.ref.x, profile)
 			accepted += 1
-	return &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE"
+	return _restored_descriptor(skipped, &"" if accepted > 0 else &"WORLD_ROUTE_NO_FITTING_PROFILE")
+
+
+func _other_kind(profile: int, edge: Routes.Edge) -> bool:
+	"""Decision 1953: whether `descriptor_into` would succeed and `_kind_matches` then fail, read from the bank's own
+	columns (the same ones `descriptor_into` copies). With the framework's cache checks on, the full proof runs and the
+	answer is compared."""
+	var bank: Profiles.Bank = _profiles._live
+	if _content_revision <= 0 or _content_revision != _profiles.content_revision() or profile < 0 \
+			or profile >= bank.header[1]: return false
+	var stride: int = _profiles._profile_capacity
+	var family_mask: int = bank.fields[Profiles.F_FAMILIES * stride + profile]
+	var other: bool = bank.flags[profile] != Profiles.CERT_REQUIRED or bank.fields[Profiles.F_MODE * stride + profile] != edge.mode \
+		or bank.fields[Profiles.F_POSTURE * stride + profile] != edge.posture \
+		or (edge.family >= 0 and (family_mask & (1 << edge.family)) == 0)
+	if not other or not Profiles.CacheChecks.enabled: return other
+	if _profile_edge_refusal(profile, edge) != &"WORLD_ROUTE_PROFILE_KIND":
+		Profiles.CacheChecks.report("profile kind", "profile %d is not refused on kind" % profile)
+	return true
+
+
+func _restored_descriptor(skipped: int, code: StringName) -> StringName:
+	"""Decision 1953: write the skipped last profile's descriptor, which its full proof would have left."""
+	if skipped >= 0: _profiles.descriptor_into(skipped, _content_revision, _descriptor)
+	return code
 
 
 func _path_refusal(edge: Routes.Edge) -> StringName:
@@ -1032,8 +1094,7 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		return &"WORLD_ROUTE_PROFILE_KIND"
 	if _stair_row(profile): return _stair_edge_refusal(profile, edge)
 	_carried = _carry_edge and _live.admits(edge.ref.x, profile) and not _may_excuse_pending()
-	code = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
-		edge.family, edge.variant, _catalog_revision, _pace)
+	code = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"":
 		return code
 	if Routes.ShortStep.is_short(profile) and Routes._step_closure(_profiles): # Decisions 1951 and 1952.
@@ -1061,8 +1122,7 @@ func _stair_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 	var first: Vector3i = _point(edge, 0)
 	if program < 0 or edge.point_count != 2 or edge.rotation != 0 or _point(edge, 1) - first != motion.end_of(program):
 		return &"WORLD_ROUTE_STAIR_SPAN"
-	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
-		edge.family, edge.variant, _catalog_revision, _pace)
+	var code: StringName = _compile_pace(profile, edge.family, edge.variant)
 	if code != &"": return code
 	var intervals: int = motion.key_count(program) - 1 if motion.rooted(program) else Routes.Stair.STEP_CLIP_INTERVALS
 	if Routes.Stair.key_step(intervals, Routes.Stair.ticks_for(edge.length_u, _pace.value)) < 0:
@@ -1144,8 +1204,23 @@ func _stair_covered_refusal(room: Vector2i) -> StringName:
 
 
 func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
-	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable."""
+	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable.
+	Decision 1953: inside one edge compile a repeated successful prepared observation is answered from `_observed`
+	(the same spend first); with the framework's cache checks on it is observed live and compared."""
 	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
+	var slot: int = _observed_slot(location, point)
+	if slot >= 0 and not Profiles.CacheChecks.enabled:
+		_copy_record(_observed[slot], _endpoint)
+		return &""
+	var code: StringName = _observe_endpoint(location, point)
+	if slot >= 0 and (code != &"" or not _records_equal(_observed[slot], _endpoint)):
+		Profiles.CacheChecks.report("endpoint observation", "location %d changed inside one compile" % location.x)
+	if code == &"" and slot < 0: _remember_observation(location, point)
+	return code
+
+
+func _observe_endpoint(location: Vector2i, point: Vector3i) -> StringName:
+	"""The observation itself: the prepared (or live) record, then its World, revision, point and payload checks."""
 	var code: StringName = _prepared_endpoint_into(self, location, _endpoint) \
 		if _location_token != 0 else _locations().read_location_into(location, _endpoint)
 	if code != &"": return code
@@ -1154,6 +1229,118 @@ func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> Strin
 			or _endpoint.point != point or _endpoint.payload_revision <= 0:
 		return &"WORLD_ROUTE_ENDPOINT_STALE"
 	return &""
+
+
+func _compile_pace(profile: int, family: int, variant: int) -> StringName:
+	"""Decision 1953: `_catalog.pace_into` for this edge's family and variant. Within one preparation (sealed owners,
+	one catalog and Movement) the same arguments give the same answer, so a repeat is answered from `_pace_memo`; a
+	refusal leaves `_pace` untouched and an answer sets it, as the call does. Checked live while CacheChecks is on."""
+	var slot: int = posmod(profile * 31 + family * 7 + variant, PACE_SLOTS)
+	var at: int = slot * PACE_WORDS
+	var hit: bool = _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS \
+		and _pace_memo[at] == _pace_serial and _pace_memo[at + 1] == profile \
+		and _pace_memo[at + 2] == _descriptor.profile_revision and _pace_memo[at + 3] == family and _pace_memo[at + 4] == variant \
+		and _pace_inputs_hold(false)
+	if hit and not Profiles.CacheChecks.enabled: return _replay_pace(at)
+	var code: StringName = _catalog.pace_into(profile, _descriptor.profile_revision, _content_revision,
+		family, variant, _catalog_revision, _pace)
+	if hit and (code != _pace_codes[slot] or (code == &"" and _pace.value != _pace_memo[at + 5])):
+		Profiles.CacheChecks.report("pace", "profile %d changed inside one preparation" % profile)
+	if _compiling and _pace_serial > 0 and _pace_memo.size() == PACE_SLOTS * PACE_WORDS:
+		_remember_pace(at, profile, family, variant, code)
+	return code
+
+
+func _pace_inputs_hold(stamp: bool) -> bool:
+	"""Decision 1953: whether everything `pace_into` reads beyond its arguments still equals this preparation's stamp
+	(`stamp` true writes it). An unbound catalog or a poisoned Profiles load token never holds."""
+	var movement: Movement = _catalog._movement if _catalog != null else null
+	if movement == null or _catalog._levels == null or _profiles.load_revision() == 0 \
+			or _pace_inputs.size() != PACE_INPUT_WORDS: return false
+	var held: bool = _pace_input(0, _profiles.load_revision(), stamp)
+	held = _pace_input(1, _catalog._levels.content_revision(), stamp) and held
+	for profile: int in Movement.PROFILE_COUNT:
+		held = _pace_input(2 + 2 * profile, movement.profile_revision_of(profile), stamp) and held
+		held = _pace_input(3 + 2 * profile, movement._profile_speed_u_per_s[profile], stamp) and held
+	return held
+
+
+func _pace_input(at: int, value: int, stamp: bool) -> bool:
+	"""Decision 1953: one stamped input word, written when stamping; whether it equals `value`."""
+	if stamp: _pace_inputs[at] = value
+	return _pace_inputs[at] == value
+
+
+func _replay_pace(at: int) -> StringName:
+	"""Decision 1953: the kept answer; an answer sets `_pace` exactly as `IntResult.succeed` does."""
+	@warning_ignore("integer_division") var code: StringName = _pace_codes[at / PACE_WORDS]
+	if code == &"": _pace.succeed(_pace_memo[at + 5])
+	return code
+
+
+func _remember_pace(at: int, profile: int, family: int, variant: int, code: StringName) -> void:
+	"""Decision 1953: keep one pace answer for the rest of this preparation."""
+	_pace_memo[at] = _pace_serial
+	_pace_memo[at + 1] = profile
+	_pace_memo[at + 2] = _descriptor.profile_revision
+	_pace_memo[at + 3] = family
+	_pace_memo[at + 4] = variant
+	_pace_memo[at + 5] = _pace.value if code == &"" else 0
+	@warning_ignore("integer_division") var slot: int = at / PACE_WORDS
+	_pace_codes[slot] = code
+
+
+func _observed_slot(location: Vector2i, point: Vector3i) -> int:
+	"""Decision 1953: the kept observation of `location` at `point` in this compile, or -1. Only the prepared path
+	(sealed staged Locations, which cannot change during a compile) is kept."""
+	if not _compiling or _location_token == 0 or _observe_serial <= 0: return -1
+	for slot: int in 2:
+		var at: int = slot * OBSERVED_KEY
+		if _observed_key[at] == _observe_serial and _observed_key[at + 1] == location.x \
+				and _observed_key[at + 2] == location.y and _observed_key[at + 3] == point.x \
+				and _observed_key[at + 4] == point.y and _observed_key[at + 5] == point.z: return slot
+	return -1
+
+
+func _remember_observation(location: Vector2i, point: Vector3i) -> void:
+	"""Decision 1953: keep a successful prepared observation for the rest of this compile."""
+	if not _compiling or _location_token == 0 or _observe_serial <= 0: return
+	var slot: int = _observe_next
+	_observe_next = 1 - _observe_next
+	var at: int = slot * OBSERVED_KEY
+	_observed_key[at] = _observe_serial
+	_observed_key[at + 1] = location.x
+	_observed_key[at + 2] = location.y
+	_observed_key[at + 3] = point.x
+	_observed_key[at + 4] = point.y
+	_observed_key[at + 5] = point.z
+	_copy_record(_endpoint, _observed[slot])
+
+
+static func _copy_record(from: Locations.Record, to: Locations.Record) -> void:
+	"""Every field a successful observation writes (`_copy_route_observation` overwrites them all)."""
+	to.point = from.point
+	to.room = from.room
+	to.section = from.section
+	to.level = from.level
+	to.role = from.role
+	to.world = from.world
+	to.payload_revision = from.payload_revision
+	to.geometry_revision = from.geometry_revision
+	to.air_count = from.air_count
+	for axis: int in 6:
+		to.envelope[axis] = from.envelope[axis]
+		to.support[axis] = from.support[axis]
+	for index: int in 6 * Locations.MAX_AIR_EXTRA:
+		to.air[index] = from.air[index]
+
+
+static func _records_equal(a: Locations.Record, b: Locations.Record) -> bool:
+	"""Decision 1953, checks on: whether two observed records hold the same values."""
+	return a.point == b.point and a.room == b.room and a.section == b.section and a.level == b.level \
+		and a.role == b.role and a.world == b.world and a.payload_revision == b.payload_revision \
+		and a.geometry_revision == b.geometry_revision and a.air_count == b.air_count \
+		and a.envelope == b.envelope and a.support == b.support and a.air == b.air
 
 
 func _profile_endpoint_refusal(location: Vector2i, point: Vector3i) -> StringName:

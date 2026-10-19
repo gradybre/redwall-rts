@@ -2388,6 +2388,16 @@
      "bytes": 16,
      "carried_by": "none (new)",
      "store": "decision 1952: two int64 runtime tokens of the endpoint memo (_endpoint_memo_epoch, _endpoint_memo_serial); never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "new retained (world_routes_compile_memos)",
+     "store": "decision 1953: per-compile endpoint observations (_observed_key I64[12], two Locations.Record copies in _observed's two Variant slots) and the per-preparation pace memo (_pace_memo I64[256 x 6], _pace_codes 256 StringName slots, input stamp _pace_inputs I64[10]); counted by the census item world_routes_compile_memos, never saved"
+    },
+    {
+     "bytes": 24,
+     "carried_by": "none (new)",
+     "store": "decision 1953: three int64 runtime tokens (_observe_serial, _observe_next, _pace_serial); never saved"
     }
    ],
    "delta": {
@@ -2453,6 +2463,38 @@
       "PackedInt32Array"
      ],
      [
+      "_observe_next",
+      "int"
+     ],
+     [
+      "_observe_serial",
+      "int"
+     ],
+     [
+      "_observed",
+      "Array[Locations.Record]"
+     ],
+     [
+      "_observed_key",
+      "PackedInt64Array"
+     ],
+     [
+      "_pace_codes",
+      "Array[StringName]"
+     ],
+     [
+      "_pace_inputs",
+      "PackedInt64Array"
+     ],
+     [
+      "_pace_memo",
+      "PackedInt64Array"
+     ],
+     [
+      "_pace_serial",
+      "int"
+     ],
+     [
       "_proof_checks",
       "int"
      ],
@@ -2473,8 +2515,14 @@
      "_endpoint_memo.resize(ENDPOINT_MEMO_ENTRIES * Profiles.MAX_PROFILES)",
      "_endpoint_memo_stamp.resize(ENDPOINT_MEMO_STAMP)",
      "_envelope.resize(6)",
+     "_observed_key.resize(2 * OBSERVED_KEY)",
+     "_pace_codes.resize(PACE_SLOTS)",
+     "_pace_inputs.resize(PACE_INPUT_WORDS)",
+     "_pace_memo.resize(PACE_SLOTS * PACE_WORDS)",
      "changes.resize(Journal.STAGED_STRIDE * CHANGE_CAPACITY)",
-     "out.resize(CERT_WIRE_BYTES)"
+     "out.resize(CERT_WIRE_BYTES)",
+     "record.envelope.resize(6)",
+     "record.support.resize(6)"
     ],
     "int_constants_added": [
      [
@@ -2536,6 +2584,22 @@
      [
       "ENDPOINT_SERIAL_MAX",
       "1 << 46"
+     ],
+     [
+      "OBSERVED_KEY",
+      "6"
+     ],
+     [
+      "PACE_INPUT_WORDS",
+      "10"
+     ],
+     [
+      "PACE_SLOTS",
+      "256"
+     ],
+     [
+      "PACE_WORDS",
+      "6"
      ]
     ],
     "int_constants_removed": [
@@ -2649,9 +2713,10 @@
      ]
     },
     "allocation_sites": {
-     "=[": 1,
+     ".new(": 2,
+     "=[": 3,
      "PackedInt32Array(": 3,
-     "PackedInt64Array(": 7,
+     "PackedInt64Array(": 10,
      "range(": 1
     }
    }

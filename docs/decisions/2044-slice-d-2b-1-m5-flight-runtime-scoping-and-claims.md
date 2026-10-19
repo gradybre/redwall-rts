@@ -854,3 +854,13 @@ Proof plan, per Slice C's cautions: a CacheChecks mode that also runs the full p
 mask; a differential test over master's whole-chain scenarios asserting identical masks and refusals; those scenarios
 shown never to reach the budget refusal on master; spend fields (check counts) named apart from outcome fields before
 comparing the SHA trace and checkpoints.
+
+### Slice C's hold for the carried stair form (2026-10-19)
+
+Relayed by the coordinator. Slice C now also holds `_stair_edge_refusal` and `_stair_bodies_refusal` for this lane:
+six WorldRoutes functions in all, on `8a7d045d`, with nothing of Slice C's landing in WorldRoutes meanwhile. They find
+the carried-form design sound; it falls under P-2044-15 "Exact cost fixes", so no new ruling is needed. Their
+arithmetic check stands as the gate: the first deep BRACE's requalification is **measured** with the skip on (the
+remaining scans, the 178,688 re-proofs and everything else) and must land clearly under 1,048,576; the later modules
+are then projected from the measured per-edge cost as image volumes grow toward 313, and both figures are recorded
+here. If M2's first deep BRACE is not clearly under the bound, the lane stops and reports the breakdown first.

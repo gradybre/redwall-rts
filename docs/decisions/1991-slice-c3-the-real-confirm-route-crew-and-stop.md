@@ -145,6 +145,9 @@ member not yet arrived blocked the other.
 - a two-mole crew digging while its second member is still on the surface;
 - a named crew of four.
 
+Decision 1152's test that pinned the old whole-host contract (a remote unregistered resident refuses) now pins this
+rule: never placed refuses, far off is clear, within reach is NEAR, removed passes. Decision 1152 has a note.
+
 The real-route fixture (`test_underground_room_confirm.gd`'s TwoRooms) now always has one mole who is not crew. Five
 mutants on the new branch were all killed: no branch, a zero point, a point 20,000 u low, no charge, and registered
 rows sent to the reach test. The SHA trace is unchanged (the benches have only crew residents).

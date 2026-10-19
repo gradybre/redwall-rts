@@ -238,6 +238,7 @@ class Dig extends RefCounted:
 	var peak_edges: int = 0
 	var peak_locations: int = 0
 	var peak_checks: int = 0
+	var peak_published: int = 0 # The most Locations one tick added (net): a chain's stations, published at once.
 
 
 var _h: SideRooms = null
@@ -273,7 +274,9 @@ func _dig(runtime: Runtime, hook: Callable = Callable()) -> Dig:
 	for step: int in TICK_BOUND:
 		_h.top_up()
 		_h.tick += 1
+		var before: int = _h.endpoints._live.count
 		run.refusals.append_array(runtime.advance(_h.tick))
+		run.peak_published = maxi(run.peak_published, _h.endpoints._live.count - before)
 		run.ticks += 1
 		run.peak_edges = maxi(run.peak_edges, _h._routes._live.edge_count)
 		run.peak_locations = maxi(run.peak_locations, _h.endpoints._live.count)
@@ -294,17 +297,17 @@ func _dug(room: Vector2i) -> int:
 
 
 func dig_matrix(side: int, width: int, depth: int, room_type: int = KITCHEN, pick: bool = false,
-		cells: PackedInt32Array = PackedInt32Array()) -> void:
+		cells: PackedInt32Array = PackedInt32Array()) -> Dig:
 	"""One room of the matrix (the width x depth grid, or the cells given), dug whole by one mole with no refusal,
 	every BRACE paid once, the live graph and the route proof kept under their bounds by retirement."""
-	if not _prepared(pick): return
+	if not _prepared(pick): return null
 	_h.painted = cells
 	var room: Vector2i = _h.side_room(side, width, depth, room_type)
-	if room == NULL_REF: return
+	if room == NULL_REF: return null
 	var run: Dig = _dig(_runtime(room, [_h.crew_member()] as Array[Builder.Crew]))
-	print("ROOM-MATRIX %s %dx%d type=%d pick=%s cubes=%d ticks=%d peak_edges=%d peak_locations=%d peak_checks=%d" % [
+	print("ROOM-MATRIX %s %dx%d type=%d pick=%s cubes=%d ticks=%d peak_edges=%d peak_locations=%d peak_checks=%d " % [
 		SIDE_NAMES[side], width, depth, room_type, pick, _h.painted_cubes, run.ticks, run.peak_edges, run.peak_locations,
-		run.peak_checks])
+		run.peak_checks] + "longest_chain=%d" % run.peak_published)
 	assert_equal(run.refusals, [] as Array[StringName], "no refusal")
 	assert_equal(_dug(room), _h.painted_cubes, "every cube dug")
 	assert_equal(_h._construction.live_project_count(), 0, "no live Project")
@@ -314,3 +317,4 @@ func dig_matrix(side: int, width: int, depth: int, room_type: int = KITCHEN, pic
 	assert_true(run.peak_edges <= Retirement.RETIRE_FROM_EDGES + CHAIN_EDGES,
 		"the live graph stays within one chain of the retirement bound: %d" % run.peak_edges)
 	assert_true(run.peak_checks < Space.MAX_CHECKS, "every route proof within its checks: %d" % run.peak_checks)
+	return run

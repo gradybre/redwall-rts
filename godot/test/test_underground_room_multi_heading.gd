@@ -136,3 +136,81 @@ func _image(owner: Object, budget: Budget = null) -> PackedByteArray:
 	assert_equal(owner.call(&"capture_state_into", cold, image), &"", "captured")
 	assert_equal(lease_owner.release(cold), &"", "lease returned")
 	return image
+
+
+func test_the_heading_passes_classify_refusals() -> void:
+	"""Which refusals move on to the next heading: a plan that reaches no contact, missing rows, a vertical face or a
+	contact on a chain this row cannot walk (`_unreached`); after the bound heading also no travel rows or a search
+	out of checks (`_passable`); a paid phase moves on when no contact, no walkable chain or no rows (`_resumable`).
+	Any other refusal is returned."""
+	for code: StringName in Planner.RANKED + [Planner.REFUSE_HEADING, Planner.REFUSE_VERTICAL, &"ROUTE_NOT_CONNECTED"]:
+		assert_true(Planner._unreached(code) and Planner._passable(code), "%s moves on" % code)
+	for code: StringName in [Planner.REFUSE_TRAVEL, Planner.REFUSE_CAPACITY]:
+		assert_false(Planner._unreached(code), "%s stops the bound heading" % code)
+		assert_true(Planner._passable(code), "%s passes a later heading" % code)
+	for code: StringName in [&"", Planner.REFUSE_SCOPE, &"ROUTE_EDGE_REVISION", &"WORK_FACE_COLUMN_UNOPENED"]:
+		assert_false(Planner._passable(code), "%s is returned" % code)
+	for code: StringName in [Planner.Frontier.REFUSE_CONTACT, &"ROUTE_NOT_CONNECTED", Planner.REFUSE_HEADING]:
+		assert_true(Planner._resumable(code), "%s resumes on the next heading" % code)
+	for code: StringName in [&"", Planner.Frontier.REFUSE_ACTIVE, Planner.REFUSE_CAPACITY]:
+		assert_false(Planner._resumable(code), "%s is returned" % code)
+
+
+func test_a_straight_chain_keeps_three_stations_and_an_l_shaped_one_five() -> void:
+	"""`_cap`: ADR 1213's three for a straight approach, the publication's five for an L-shaped one; spans are split at
+	their integer midpoint rounded down on every axis, below zero too."""
+	var q: Planner.Query = Planner.Query.new()
+	assert_equal(Planner._cap(q), 3, "straight")
+	q.cornered = true
+	assert_equal(Planner._cap(q), Planner.Publication.MAX_STATIONS, "L-shaped")
+	assert_equal(Planner.Publication.MAX_STATIONS, 5, "five")
+	assert_equal(Planner._midpoint(Vector3i(-3, 0, 4), Vector3i(-2, 0, 4)), Vector3i(-3, 0, 4), "down below zero")
+	assert_equal(Planner._midpoint(Vector3i(2, 0, -1), Vector3i(3, 0, -1)), Vector3i(2, 0, -1), "down above zero")
+
+
+func test_turning_lines_are_each_tried_once_nearest_the_gateway_first() -> void:
+	"""`_turning_lines` on the claw's ground row (reach 712): each void region's two planes along the heading set back
+	by the reach, behind-the-gateway lines dropped, each distinct line once, nearest the gateway first."""
+	if not _prepared(): return
+	var room: Vector2i = _h.side_room(EAST, 2, 2)
+	if room == NULL_REF: return
+	var q: Planner.Query = _query(room)
+	if q == null: return
+	var start: int = q.start[q.axis]
+	var boxes: Array = [[start + 2000, start + 3000], [start + 2000, start + 3000], [start + 100, start + 5000],
+		[start - 5000, start - 1000]]
+	q.counts[Planner.VOID] = boxes.size()
+	for index: int in boxes.size():
+		q.tables[Planner.VOID][index * 6 + q.axis] = boxes[index][0]
+		q.tables[Planner.VOID][index * 6 + q.axis + 3] = boxes[index][1]
+	assert_equal(Planner._ground_reach(q), 712, "the claw ground body's reach")
+	var count: int = Planner._turning_lines(q)
+	var lines: Array[int] = []
+	for at: int in count: lines.append(int(q.lines[at] & 0xFFFFFFFF) - 2147483648)
+	assert_equal(lines, [start + 812, start + 2288, start + 2712, start + 4288] as Array[int],
+		"distinct, ahead of the gateway, nearest first")
+
+
+func test_a_builder_walks_only_headings_its_rows_cover() -> void:
+	"""`_walkable`: the claw's READY rows run every quarter turn; a yaw between them has none."""
+	if not _prepared(): return
+	for yaw: int in [0, 16384, 32768, 49152]:
+		assert_true(Planner._walkable(_h.provider, yaw), "yaw %d" % yaw)
+	assert_false(Planner._walkable(_h.provider, 8192), "no rows at yaw 8192")
+
+
+func _query(room: Vector2i) -> Planner.Query:
+	"""A planner Query held for the room's first open cube, its region tables filled (no plan is made)."""
+	var cold: int = _h._budget.acquire(Budget.COLD_BYTES)
+	var candidate: Planner.Frontier.Candidate = Planner.Frontier.Candidate.new()
+	var code: StringName = Planner.Frontier.next_site_into(_h.provider, room, -1, cold, Space.MAX_CHECKS, candidate)
+	assert_equal(code, &"", "a candidate")
+	var q: Planner.Query = Planner.Query.new()
+	var yaw: int = Planner._retreat_yaw(_h.provider)
+	Planner._hold(q, _h.provider, candidate, Planner.facing_face(_h.provider, yaw), yaw, Space.MAX_CHECKS)
+	if code == &"": code = Planner._sources(q, _h.provider)
+	if code == &"": code = Planner._gateway(q, _h.provider)
+	if code == &"": code = Planner._regions(q)
+	assert_equal(code, &"", "region tables")
+	_h._budget.release(cold)
+	return q if code == &"" else null

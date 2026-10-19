@@ -10,4 +10,6 @@ func test_an_l_shaped_kitchen_east_of_its_access_is_dug() -> void:
 		for x: int in 4:
 			if z < 2 or x >= 2:
 				cells.append(x); cells.append(z)
-	dig_matrix(EAST, 6, 4, KITCHEN, false, cells)
+	var run: Dig = dig_matrix(EAST, 6, 4, KITCHEN, false, cells)
+	if run != null:
+		assert_true(run.peak_published > 3, "an L-shaped chain of more than three stations: %d" % run.peak_published)

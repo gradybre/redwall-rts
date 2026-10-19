@@ -1093,3 +1093,79 @@ flight draws, 27 wood and 9 stone units, is recorded above).
   reviewed rows, the cube index, the M2 Frontier pin), `ready07_arithmetic.py` and the ledger; the shared first-prefix
   and source-phases fixtures' capacities; `slow_suites.json`.
 - **Frontier `MAX_BYTES`** stays unraised (see above); P-2044-2 (a)'s raise waits for M5 and the bindings reserve.
+
+## CI time (2026-10-19)
+
+CI run 39303265138 on #275 lost shards 0 and 1 at their 30-minute guard. M2's whole flight (20,229 ticks) made two
+suites each longer than a shard: `test_underground_host_whole_chain.gd` flew it three times (957 s on Brendan's Mac,
+about 50 CI minutes at the measured CI/Mac ratio of 3.2) and `test_underground_entry_crew_leaves.gd` twice (613 s), the
+latter with no shard weight, so it was packed as a small suite.
+
+**Where the time goes** (a scratch per-1,000-tick probe of one sustained flight, not committed): about 395 s with the
+runtime-cache checks on and 256 s with them off on a loaded Mac, so the checks' live re-proofs (decision 1952) are about
+a third of it. About 8-13 ms a tick throughout, and three windows of cold requalification dominate: ticks 13,000-14,000
+(installs T1-T6), 15,000-17,000 (landing 1's deep phases, 95 ms a tick) and 19,000-20,000. The checks stay on; nothing
+in the flight was shortened.
+
+**What changed** (tests only; no assertion removed or loosened):
+
+- `test_underground_host_whole_chain.gd`: its prefix test (restored every tick, about 76 s) moved verbatim to
+  `test_underground_host_prefix_restored.gd`. The descent test now flies `_whole_entry(false)` (the same loop, which also
+  counts its DEC-059 "never back at M" observation) and keeps the result; the restore test compares against that
+  instead of flying the identical uninterrupted run a second time. The restored run (`_whole_entry(true)`, by the
+  suite's own fixture) flies in a second Godot process, `test/live/whole_entry_restored.gd`, started when the descent
+  test starts, so the two flights run at once. The child inherits the worker's output, so the runner audits its engine
+  errors, script errors and leaks as the suite's own (checked with a scratch child that pushed an error and raised a
+  script error: the run failed on both); its assertions are counted and its failures recorded in the restore test,
+  which also asserts that it finished (within 1,500 s, inside CI's 30-minute guard), exited 0, ran with the cache
+  checks on, asserted every tick, replaced its runtime 1,839 times (so it was the restored flight) and never stood at M
+  after T1, and that its result has the plain result's shape. 70,848 assertions became 7,426 + 43,180 (before the
+  review's additions): the 20,249 that went are the duplicate uninterrupted flight's.
+- `test_underground_entry_crew_leaves.gd`: its lost-crew test moved to `test_underground_entry_crew_lost_at_finish.gd`
+  (one whole flight each); `_finished_entry` and `_pose` moved to `underground_host_case.gd`.
+- `test_underground_host.gd`: the five prefix-length chains moved to `test_underground_host_crew_replaced.gd` (crew lost
+  mid-haul, mid-phase, tired) and `test_underground_host_rest.gd` (the two rests).
+- `test_underground_paid_assembly_handling.gd`: its helpers became `underground_paid_assembly_case.gd` (not a suite) and
+  its fifteen tests four suites, `_handling`, `_install`, `_foreman` and `_progress`.
+
+Assertion totals are otherwise unchanged (host 29,250, paid 683, crew-leaves 40,834). Weights in
+`tools/ci_test_shard_weights.json` are each changed suite's focused local time x 3.2; `slow_suites.json` lists the
+same seconds.
+
+| Suite | Before (local s) | After (local s) |
+|---|---|---|
+| `test_underground_host_whole_chain.gd` | 957 (1,179 loaded) | 330 |
+| `test_underground_host_prefix_restored.gd` | (in whole chain) | 76 |
+| `test_underground_entry_crew_leaves.gd` | 613 (743 loaded) | 313 |
+| `test_underground_entry_crew_lost_at_finish.gd` | (in crew leaves) | 315 |
+| `test_underground_host.gd` | 199 (287 loaded) | 68 |
+| `test_underground_host_crew_replaced.gd` / `_rest.gd` | (in host) | 100 / 63 |
+| `test_underground_paid_assembly_handling.gd` | 287 (394 loaded) | 80 |
+| `_install` / `_foreman` / `_progress` | (in handling) | 82 / 82 / 80 |
+
+**Not met: the 8-CI-minute target for the three flight suites.** One sustained M2 flight is about 300 s here (about
+16 CI minutes) and each of those suites needs one: the leave and the lost crew start from the finished flight, and
+the restore comparison needs the whole restored flight. Under the rules for this fix (no shorter run, no checkpoint
+start for a whole-run claim, decision 1240; no cache checks off) they stay at about one flight. Options for the
+coordinator: (a) a committed `underground_finish` checkpoint for the two crew suites, which assert what follows the
+finish (as decision 1895 did for the crew-loss suite; its replay proof adds a flight to `test_checkpoint_equivalence.gd`
+and every fingerprinted change regenerates it, about 5 minutes); (b) make the cold requalification windows cheaper
+(Slice C's held functions, M5's next round); (c) accept about 16-18 CI minutes for these suites.
+
+**Gates** (art-free worktree, fresh import exit 0):
+
+- Full suite in one process (`./tools/run_tests.sh`, 6,056 s on a loaded Mac): 13,040 tests, 1,515,303 assertions,
+  0 failures, 0 unexpected errors or warnings, 0 leaks.
+- CI's ten shards (`tools/run_tests_parallel.sh`, 4 at a time, beside the run above) and `ci_test_shards.py verify`:
+  559 suite files executed exactly once, 13,040 tests, 1,515,302 assertions, 0 failures, 0 unexpected, 0 leaks; shard
+  walls 505, 464, 658, 834, 688, 836, 668, 696, 754 and 735 s. The plan now estimates every shard at 20.3 CI minutes.
+- After the review's additions, the whole-chain suite again: 2 tests, 43,183 assertions, 0 failures, 330 s.
+- Analyzer (`--port 6507`): 0 warnings in 1,647 files. `decision_numbers.py` and `tools/test_ci_test_shards.py` pass.
+- An independent `code-reviewer` found no assertion weakened (moved bodies byte-identical, test counts conserved)
+  and no CRITICAL or HIGH finding. Its MEDIUM (the restored flight could not be told from a plain one) and five LOWs
+  (the child's time limit inside CI's guard, a non-zero exit if the child script aborts, the result's shape, a
+  misplaced comment, a note on the counter) are fixed; the restored flight's at-M count is now asserted too.
+
+**Contracts job.** Unchanged by this branch: `tools/test_underground_memory_budget.py` ran its 285 tests in 492 s on
+master `8a7d045d` and 505 s here, side by side on this Mac; the census tests 14.2 s on both. The 15-minute timeout is
+left to its separate task.

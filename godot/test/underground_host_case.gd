@@ -365,3 +365,43 @@ func _replace_entry_with_its_record(session: Session, tick: int) -> bool:
 		return false
 	_host._underground_entry = fresh
 	return true
+
+
+func _first_trip_done(entry: Settlement.UndergroundEntryRuntime) -> bool:
+	"""The foreman's haul has delivered its first whole unit."""
+	return entry._foreman._hauler != null and entry._foreman._hauler.trips() == 1
+
+
+func _finished_entry() -> Array:
+	"""[owners, runtime, crew worker, its resident row, next tick] of the live entry run to its finishing tick."""
+	var live: Array = _begin_live_entry()
+	var o: Session.Retirement.Owners = live[0]
+	var entry: Settlement.UndergroundEntryRuntime = live[1]
+	var tick: int = 1
+	while entry.is_running() and tick < FLIGHT_TICK_LIMIT:
+		_sustain(o, entry, tick) # Decision 2044: the M2 flight outlasts the cohort's means (see DESCENT_DONE_TICK).
+		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
+		tick += 1
+	assert_equal(tick - 1, DESCENT_DONE_TICK, "the entry finished on its own tick")
+	return [o, entry, live[2], o.residents.directory().get_typed_row(live[2]), tick]
+
+
+func _pose(o: Session.Retirement.Owners, worker: Vector2i) -> Transforms.Pose:
+	"""The resident's current Transform."""
+	var pose: Transforms.Pose = Transforms.Pose.new()
+	assert_true(o.transforms.read_into(worker, pose), "the crew has a Transform")
+	return pose
+
+
+func _cold_restore_routes(o: Session.Retirement.Owners, tick: int) -> bool:
+	"""ADR1221: the Session's Routes, WorldRoutes, Contacts, Delivery, arena and the host Planner captured, blanked
+	as a fresh Session's and cold-restored."""
+	var code: StringName = RouteFixture.cold_restore_route_owners(o.routes, o.world_routes, o.space, o.budget)
+	assert_equal(code, &"", "route owners cold-restore before tick %d" % tick)
+	if code == &"":
+		code = o.connector.save_quiescence_refusal()
+		assert_equal(code, &"", "ConnectorWork quiescent before tick %d" % tick)
+	if code == &"":
+		code = RouteFixture.cold_restore_entry_owners(o.contacts, o.delivery, o.budget)
+		assert_equal(code, &"", "Contacts, Delivery, arena and Planner cold-restore before tick %d" % tick)
+	return code == &""

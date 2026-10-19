@@ -13,7 +13,7 @@ const Assembly := preload("res://data/underground/mole-worker/qualified-assembly
 const PawClock := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_clock.gd")
 const Clock := preload("res://data/underground/mole-worker/qualified-assembly-v1/handling_clock.gd")
 const Qualified := preload("res://test/test_mole_qualified_profiles.gd")
-const PaidSuite := preload("res://test/test_underground_paid_assembly_handling.gd")
+const PaidSuite := preload("res://test/underground_paid_assembly_case.gd")
 const ONE: int = 65536
 const OTHER_SHA: String = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 

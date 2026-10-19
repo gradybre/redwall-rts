@@ -697,3 +697,29 @@ which is the cleared function.
 
 **Recommendation: (b), with (c) as the interim deliverable if (b) cannot be scheduled now.** (a) alone moves the
 cost into frame hitches that grow with every module.
+
+## Brendan's rulings on P-2044-15 (2026-10-19)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Question | Ruling | What it means |
+|---|---|---|
+| The bound | **"Exact cost fixes"** | No `Space.MAX_CHECKS` raise. The bound is met by charging bounded work for what it actually does and by making requalification scale with what changed (P-2044-15 (b)) |
+| The deliverable | **"Land M2 now"** | The first two modules (the surface down to module 1's floor, about 2 m) land on master as an interim; work then continues to all five. M5 stays the target |
+
+**Slice C's conditions for the WorldRoutes compile skip** (their coordinator, 2026-10-19). Phase-spreading stage 1
+merged as #274 (master `8a7d045d`), adding three runtime caches to `underground_world_routes.gd`; `_carry_eligible`
+is untouched. Stage 2 slices wall-clock time, not checks (decision 1953 §6), and is deferred until after M5. Slice C
+clears one compile-skip hunk for this lane on these conditions:
+
+- it is built on `8a7d045d`;
+- stage 1's caches, their CacheChecks tests and the differential compile test in `test_underground_route_memos.gd`
+  keep passing;
+- the skip is proved exact: a skipped volume provably cannot intersect the carried edge's sweeps, the SHA trace is
+  byte-identical on master's scenarios, and the checkpoints match;
+- the exact functions are named before editing, so Slice C can hold them.
+
+If the skip cannot be proved exact, the lane stops and the outcome change goes to Brendan.
+
+**Order:** record these; merge master `8a7d045d`; build and gate the M2 interim inside today's bound; then stop and
+name the compile skip's functions and its proof, for clearance while M2's PR runs CI.

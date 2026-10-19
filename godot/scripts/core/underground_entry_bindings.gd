@@ -1498,6 +1498,7 @@ func _timber_connections(proof: TimberClearance) -> StringName:
 	var end: int = start + _entry_row[6]
 	for index: int in 16: _entry_row[index] = 0 #256 parts, sixteen safe low bits per reusedI32.
 	for bearing: int in range(start, end):
+		if _entry_frontier._field(Frontier.BEARING, bearing, 0) == Frontier.STRIP: continue # Decision 2044: floor.
 		var bearing_code: StringName = _timber_connect_bearing(proof, bearing)
 		if bearing_code != &"": return bearing_code
 	return _timber_connect_parts(proof)

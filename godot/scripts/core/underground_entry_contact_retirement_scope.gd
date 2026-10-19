@@ -18,14 +18,15 @@ const SURFACE_ANCHOR: int = 0 # Mirrors underground_entry_frontier.gd; no Fronti
 ## ADR1229: the accepted Frontier is the mounted T1-T6 bundle's (`qualified-stairs-v9` since DEC-059; v8 before, its accessor's table census
 ## INSTALL/STATION/CUT/BEARING/ENDPOINT/EPISODE = 8/22/6/38/44/14; ADR1202's claw bundle had 2/8/2/10/14/6). They size
 ## the flattened source this scope replays, and _source_shapes refuses any other Frontier.
-## Decision 2044: the mounted Frontier is M5's (`qualified-stairs-m5-v1`, revision 10): v10's rows first, then the
-## top metre past row 6, every later module, the landings' floor stops, deep stations and strips.
-const INSTALLS: int = 36
-const STATIONS: int = 190
-const CUTS: int = 26
-const BEARINGS: int = 230
-const ENDPOINTS: int = 301
-const EPISODES: int = 154
+## Decision 2044: the mounted Frontier is the M2 interim's (`qualified-stairs-m2-v1`, revision 10; P-2044-15): v10's
+## rows first, then the top metre past row 6, module 1, the landings' floor stops, deep stations and strips. M5's
+## (the target) is 36/190/26/230/301/154.
+const INSTALLS: int = 15
+const STATIONS: int = 49
+const CUTS: int = 11
+const BEARINGS: int = 80
+const ENDPOINTS: int = 97
+const EPISODES: int = 34
 const L0_EPISODES: int = 4 # The first-entry prefix's L0 cubes, all of prefix 0.
 ## Capacities, Install, Station, rotation, Cut, Bearing, Endpoint plus travel, Episode, then the two workpiece rows.
 const SOURCE32: int = 6 + 9 * INSTALLS + 12 * STATIONS + 7 * CUTS + 9 * BEARINGS + 8 * ENDPOINTS + 19 * EPISODES + 12

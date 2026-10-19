@@ -800,7 +800,7 @@ func _bearing_refusal(row: int, out: PackedInt32Array) -> StringName:
 		code = _world_box(_bearing, 3, out)
 	if code != &"":
 		return code
-	if _bearing[0] == Frontier.NATURAL:
+	if _bearing[0] == Frontier.NATURAL or _bearing[0] == Frontier.STRIP: # Decision 2044: a strip is natural floor.
 		code = _terrain_refusal(out, Terrain.DIG)
 		if code == &"":
 			code = _retained_earth_refusal(out)

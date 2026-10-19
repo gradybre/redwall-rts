@@ -92,7 +92,8 @@ func test_batch_of_reads_the_published_handles() -> void:
 	assert_equal(WorkArea.batch_of(published, Vector2i(105, 1)), 0, "station 5")
 	assert_equal(WorkArea.batch_of(published, Vector2i(108, 1)), 1, "station 8")
 	assert_equal(WorkArea.batch_of(published, Vector2i(111, 1)), 2, "station 11")
-	assert_equal(WorkArea.batch_of(published, Vector2i(158, 1)), WorkArea.BATCHES - 1, "the last station")
+	assert_equal(WorkArea.batch_of(published, Vector2i(100 + WorkArea.ENDPOINTS - 1, 1)), WorkArea.BATCHES - 1,
+		"the last station")
 	for index: int in [0, 1, 2, WorkArea.STAND_M, WorkArea.STAND_R]:
 		assert_equal(WorkArea.batch_of(published, Vector2i(100 + index, 1)), -1, "endpoint %d is in no batch" % index)
 	assert_equal(WorkArea.batch_of(published, Vector2i(105, 2)), -1, "a stale generation")

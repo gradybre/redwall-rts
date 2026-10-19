@@ -26,7 +26,11 @@ translation, or follows from 2043 §3's construction order and 2044's rulings:
 - **The strip kind** (P-2044-12 (a)): a BEARING of kind 2 whose second field names the episode whose BRACE start
   retires it (-1: never; a landing's own rows). A deep row's strip is retired by the first cube cut in that row.
 
-    python3 godot/data/underground/first-entry-prefix-v1/publish_m5_flight.py
+    python3 godot/data/underground/first-entry-prefix-v1/publish_m5_flight.py [--m2]
+
+Decision 2044 (P-2044-15, "Land M2 now"): `--m2` publishes `qualified-stairs-m2-v1`, the same construction with the
+first two modules only (12 rows, 15 assemblies, 97 parts), ending on module 1's floor 2,048 u down. M2 is an interim;
+M5 stays the target.
 """
 from __future__ import annotations
 
@@ -50,13 +54,37 @@ def _load(name: str, path: Path):
 V10 = _load("publish_qualified_stairs_v10", HERE / "publish_qualified_stairs.py")
 K = V10.K
 ROOT = V10.ROOT
-OUTPUT = HERE / "qualified-stairs-m5-v1"
-RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v1/"
 FRONTIER_REVISION = 10
-MODULES = 5
 MODULE_DROP, MODULE_RUN = 1024, 5120
+## The layout is chosen by `select`: M5 (five modules, the target) or M2 (2044's P-2044-15 interim: the first two,
+## ending on module 1's floor 2,048 u down). Every count below follows from MODULES.
+MODULES = 5
 ROWS = 27
 END_WALL = -1024 * ROWS
+OUTPUT = HERE / "qualified-stairs-m5-v1"
+RES = "res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v1/"
+
+
+def select(modules: int) -> None:
+    """Bind the module-count globals for M5 (5) or the M2 interim (2); nothing else is ruled."""
+    global MODULES, ROWS, END_WALL, OUTPUT, RES
+    V10.require(modules in (2, 5), "LAYOUT")
+    MODULES = modules
+    ROWS = 2 + 5 * modules
+    END_WALL = -1024 * ROWS
+    name = "qualified-stairs-m%d-v1" % modules
+    OUTPUT = HERE / name
+    RES = "res://data/underground/first-entry-prefix-v1/%s/" % name
+
+
+def part_count() -> int:
+    """v10's 52 parts and 45 a later module."""
+    return 52 + 45 * (MODULES - 1)
+
+
+def assembly_count() -> int:
+    """L0 and seven a module."""
+    return 1 + 7 * MODULES
 NATURAL_KIND, STRIP_KIND = 0, 2
 STRIP_HALF_X = 768  # Inside every post bearing (|x| >= 768): strips never meet a bearing.
 STRIP_DEPTH = 128  # NATURAL_DEPTH_U, decision 1972.
@@ -93,7 +121,7 @@ def assembly_of(module: int, k: int) -> int:
 def floor_landing_ordinal(landing: int) -> int:
     """Region ordinal of landing j's floor LANDING (j = 1..5): after v10's eight and modules 1-4's 28 tread
     LANDINGs (region 0 is the envelope)."""
-    return 1 + 8 + 28 + (landing - 1)
+    return 1 + 8 + 7 * (MODULES - 1) + (landing - 1)
 
 
 def tread_landing_ordinal(module: int, k: int) -> int:
@@ -191,14 +219,14 @@ def grouping(catalog: bytes, parts: int) -> bytes:
     for module in range(MODULES):
         base = part_base(module)
         rows += [[1, base + 7 * k, 7, base + 7 * k] for k in range(6)] + [[1, base + 42, 3, base + 42]]
-    V10.require(len(rows) == 36 and rows[7] == [1, 49, 3, 49], "GROUPING")
+    V10.require(len(rows) == assembly_count() and rows[7] == [1, 49, 3, 49], "GROUPING")
     out = b"UGASMB01" + struct.pack("<IqqqiqII", 1, 1, 1, 1, 0, 1, len(rows), parts) + V10.sha(catalog)
     return out + b"".join(V10.words(r) for r in rows) + b"UGAEND01"
 
 
 def recipes(catalog: bytes, group: bytes, old_recipe: bytes) -> bytes:
     """L0's bill, then per module T0's bill and DEC-059's tread bill for T1..T6."""
-    out = b"UGRECP01" + struct.pack("<IqqqiqI", 1, 1, 1, 1, 0, 1, 36) + V10.sha(catalog) + V10.sha(group)
+    out = b"UGRECP01" + struct.pack("<IqqqiqI", 1, 1, 1, 1, 0, 1, assembly_count()) + V10.sha(catalog) + V10.sha(group)
     out += old_recipe[116:116 + 80]
     t0 = old_recipe[116 + 80:116 + 160]
     for module in range(MODULES):
@@ -225,7 +253,7 @@ def bearer_transform(module: int, k: int) -> tuple:
 
 def workpieces(catalog: bytes, group: bytes, recipe: bytes, profile: bytes) -> bytes:
     """Set-down source 5: L0 and every T0 on paw handling 65, every other tread on 66."""
-    head = struct.pack("<9q", 1, 1, 1, 1, 1, V10.CONTENT, 36, 0, V10.PAW_SOURCE)
+    head = struct.pack("<9q", 1, 1, 1, 1, 1, V10.CONTENT, assembly_count(), 0, V10.PAW_SOURCE)
     out = b"UGWIPC01" + struct.pack("<I", 1) + head + V10.sha(catalog) + V10.sha(group) + V10.sha(recipe)
     out += profile[32 + 32 * V10.PAW_SOURCE:64 + 32 * V10.PAW_SOURCE]
     rows = [(1, 3, (1024, 192, -768), V10.HANDLING)]
@@ -495,7 +523,7 @@ def build() -> dict:
     profile = V10.pinned(V10.RUNTIME / "mole-worker.ugprof", V10.PROFILE_SHA)
     ground = V10.rebound_ground(V10.pinned(V10.RUNTIME / "ground-pace.ugconn", V10.GROUND_SHA), profile)
     catalog, parts, _ = structure(spec, old["structure.ugconn"], ground, profile)
-    V10.require(len(parts) == 232, "PART_COUNT")
+    V10.require(len(parts) == part_count(), "PART_COUNT")
     group = grouping(catalog, len(parts))
     bill = recipes(catalog, group, old["recipes.ugrecp"])
     pieces = workpieces(catalog, group, bill, profile)
@@ -519,9 +547,9 @@ def build() -> dict:
 def manifest(files: dict, linked: dict) -> dict:
     """What was derived, from what."""
     return {"schema": 1, "decision": ["2043", "2044", "1972", "1229", "1209", "DEC-060", "DEC-059", "DEC-050"],
-            "predecessor": "qualified-stairs-v10 (decision 1972)", "layout": "M5",
+            "predecessor": "qualified-stairs-v10 (decision 1972)", "layout": "M%d" % MODULES,
             "content_revision": V10.CONTENT, "frontier_revision": FRONTIER_REVISION,
-            "frontier_source": V10.CLAW_SOURCE, "workpieces_source": V10.PAW_SOURCE, "assemblies": 36, "parts": 232,
+            "frontier_source": V10.CLAW_SOURCE, "workpieces_source": V10.PAW_SOURCE, "assemblies": assembly_count(), "parts": part_count(),
             "stair_paces_milli_u_per_s": {str(row): rate for row, rate in V10.STAIR_PACES},
             "entry_source_constants": linked,
             "files": {name: V10.sha(raw).hex() for name, raw in files.items() if name != "manifest.json"},
@@ -530,7 +558,8 @@ def manifest(files: dict, linked: dict) -> dict:
 
 
 def main() -> int:
-    """Create the successor bundle exactly once."""
+    """Create the successor bundle exactly once: `--m2` publishes 2044's M2 interim, otherwise M5."""
+    select(2 if "--m2" in sys.argv[1:] else 5)
     V10.require(not OUTPUT.exists(), "OUTPUT_EXISTS")
     outputs = build()
     OUTPUT.mkdir()

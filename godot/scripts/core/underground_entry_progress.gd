@@ -31,7 +31,7 @@ const HAULER_FIXED_BYTES: int = 88
 ## ADR1229: L0's twelve phases, T0's six, the descent's twenty-four and eight installations are fifty steps.
 ## Decision 2044 (P-2044-8 (a)): M5's largest stage is the top metre past T0 (48 cubes, 144 phases) and T1-T6, 150.
 const MAX_TASKS: int = 160
-const MAX_ENDPOINTS: int = 59 # ADR1229: the work area's endpoints (WorkArea.ENDPOINTS); decision 2044: 27 rows.
+const MAX_ENDPOINTS: int = 59 # ADR1229: the work area endpoints; decision 2044: M5 (27 rows, the target). M2 uses 29.
 ## Decision 2044: a deep stage hauls its braces to M in one trip, at most 40 cubes' (ten wood and ten stone units).
 const MAX_QUEUE: int = 24
 ## ADR1229: a tread order walks four legs up the stair before M. Decision 2044: from the deepest module, twelve legs

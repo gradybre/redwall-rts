@@ -80,8 +80,9 @@ func test_floor_stops_are_filed_by_landing() -> void:
 func test_record_and_at_round_trip() -> void:
 	"""Every classified stop files where `at` reads it back."""
 	var stops: StairPath.Stops = StairPath.Stops.new()
-	var cases: Array[Vector2i] = [Vector2i(StairPath.KIND_H, 15), Vector2i(StairPath.KIND_F, 3),
-		Vector2i(StairPath.KIND_UF, 5), Vector2i(StairPath.KIND_FP, 2), Vector2i(StairPath.KIND_A, 38),
+	var cases: Array[Vector2i] = [Vector2i(StairPath.KIND_H, StairPath.MODULE_LEVELS - 1), Vector2i(StairPath.KIND_F, 1),
+		Vector2i(StairPath.KIND_UF, StairPath.MODULES), Vector2i(StairPath.KIND_FP, 2),
+		Vector2i(StairPath.KIND_A, StairPath.LEVELS - 2),
 		Vector2i(StairPath.KIND_P, 7), Vector2i(StairPath.KIND_U, -1), Vector2i(StairPath.KIND_X, -1)]
 	for index: int in cases.size():
 		StairPath.record(stops, cases[index], Vector2i(10 + index, 1))
@@ -122,30 +123,29 @@ func test_no_floor_walk_off_or_back_up_and_ground_joins() -> void:
 
 
 func test_hops_down_cross_each_landing_by_its_floor_and_p_prime() -> void:
-	"""Down to module 2's T3: P, A0, module 0's descents, F1, P'1, A0'1, module 1's descents, F2, P'2, A0'2, then
-	module 2's T0..T3."""
+	"""Down to module 1's T3: P, A0, module 0's descents, F1, P'1, A0'1, then module 1's T0..T3."""
 	var stops: StairPath.Stops = _full_stops()
-	var target: int = StairPath.global_level(2, 3)
+	var target: int = StairPath.global_level(1, 3)
 	var hops: Array = StairPath.hops_down(stops, target)
-	assert_equal(hops.size(), 2 + 2 * (7 + 3) + 4, "hop count")
+	assert_equal(hops.size(), 2 + (7 + 3) + 4, "hop count")
 	assert_equal(hops[9], [stops.f[1], StairPins.CLAW_DESCENT_ROW], "onto landing 1")
 	assert_equal(hops[10], [stops.s[StairPath.global_level(1, -1) + 1], StairPins.CLAW_APPROACH_ROWS[0]], "F -> P'")
 	assert_equal(hops[hops.size() - 1], [stops.a[target + 1], StairPins.CLAW_DESCENT_ROW], "arrives at T3's A")
 
 
 func test_hops_up_climb_back_through_each_landing() -> void:
-	"""Up from module 2's T3: its ascents to U0', U0' -> U2, the floor ascent onto module 1's sill, and so on to X."""
+	"""Up from module 1's T3: its ascents to U0', U0' -> U1, the floor ascent onto module 0's sill, then up to X."""
 	var stops: StairPath.Stops = _full_stops()
-	var hops: Array = StairPath.hops_up(stops, StairPath.global_level(2, 3))
-	assert_equal(hops[4], [stops.uf[2], StairPins.CLAW_APPROACH_ROWS[2]], "U0' -> U on landing 2")
-	assert_equal(hops[5], [stops.u[StairPath.global_level(1, 6) + 1], StairPins.CLAW_ASCENT_ROW], "onto module 1's sill")
+	var hops: Array = StairPath.hops_up(stops, StairPath.global_level(1, 3))
+	assert_equal(hops[4], [stops.uf[1], StairPins.CLAW_APPROACH_ROWS[2]], "U0' -> U on landing 1")
+	assert_equal(hops[5], [stops.u[StairPath.global_level(0, 6) + 1], StairPins.CLAW_ASCENT_ROW], "onto module 0's sill")
 	assert_equal(hops[hops.size() - 1], [stops.x, StairPins.CLAW_APPROACH_ROWS[2]], "ends at X")
-	assert_equal(hops.size(), 4 + 2 * (1 + 1 + 7) + 1, "hop count")
+	assert_equal(hops.size(), 4 + (1 + 1 + 7) + 1, "hop count")
 
 
 func test_deep_stations_classify_by_landing_row_and_column() -> void:
 	"""A deep station stands 406 u inside its uphill row at x -300/+300 on a landing's floor."""
-	var landing: int = 2
+	var landing: int = 1
 	var row: int = Tread.deep_first_row(landing)
 	var z: int = -Tread.ROW_U * Tread.ROWS + Tread.ROW_U * (Tread.ROWS - 1 - row) + Tread.DEEP_INSIDE
 	assert_equal(StairPath.classify_deep(Vector3i(-300, -1024 * landing, z)), Vector3i(landing, row, 0), "left")

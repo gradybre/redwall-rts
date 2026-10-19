@@ -13,10 +13,11 @@ const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-
 const AssemblySource := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/assembly_source_program.gd")
 const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/assembly_physical_certificate.gd")
 const Pick := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v1/catalog_source.gd")
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
 const Pins := preload("res://data/underground/mole-worker/qualified-stair-carry-v13/catalog_source.gd")
 const WIRE: String = "res://data/underground/mole-worker/qualified-stair-carry-v13/mole-worker.ugprof"
-const ASSEMBLIES: int = 36
+## The mounted bundle's assemblies: 15 for the M2 interim (P-2044-15), 36 for M5.
+const ASSEMBLIES: int = 1 + 7 * Tread.MODULES
 
 
 func _workpiece_rows() -> Array[PackedInt32Array]:
@@ -55,17 +56,19 @@ func test_module_zero_geometry_is_the_published_geometry() -> void:
 func test_later_modules_are_module_zero_moved() -> void:
 	"""Module j's T_k is assembly 1 + 7j + k, at module 0's T_k moved by (0, -1024j, -5120j)."""
 	assert_equal([Tread.module_of(8), Tread.level_of(8), Tread.base_assembly(8)], [1, 0, 1], "module 1's T0")
-	assert_equal([Tread.module_of(35), Tread.level_of(35), Tread.base_assembly(35)], [4, 6, 7], "module 4's sill")
-	assert_equal([Tread.module_of(36), Tread.level_of(-1)], [-1, -2], "no assembly beyond 35 or below 0")
-	assert_true(Tread.is_t0(15) and Tread.first_tread(16) and Tread.is_sill(21) and not Tread.is_tread(15), "kinds")
-	for module: int in range(1, 5):
+	var last: int = ASSEMBLIES - 1
+	assert_equal([Tread.module_of(last), Tread.level_of(last), Tread.base_assembly(last)], [Tread.MODULES - 1, 6, 7],
+		"the last module's sill")
+	assert_equal([Tread.module_of(ASSEMBLIES), Tread.level_of(-1)], [-1, -2], "no assembly beyond the last or below 0")
+	assert_true(Tread.is_t0(8) and Tread.first_tread(9) and Tread.is_sill(14) and not Tread.is_tread(8), "kinds")
+	for module: int in range(1, Tread.MODULES):
 		for k: int in range(1, 7):
 			var assembly: int = 1 + 7 * module + k
 			assert_equal(Tread.station_of(assembly), PublishedTread.station_of(k + 1) + Tread.offset(module),
 				"module %d T%d's station" % [module, k])
-	assert_equal(Tread.t0_station_of(29), Vector3i(0, -4096, -1536 - 4 * 5120), "module 4's T0 at H'")
+	assert_equal(Tread.t0_station_of(8), Vector3i(0, -1024, -1536 - 5120), "module 1's T0 at H'")
 	assert_equal(Tread.part_base(1), 52, "module 1 starts after the first module's 52 parts")
-	assert_equal(Tread.part_base(4), 52 + 3 * 45, "module 4")
+	assert_equal(Tread.part_base(4), 52 + 3 * 45, "module 4 (M5)")
 
 
 func test_every_bundle_bearer_is_accepted_and_only_its_own() -> void:
@@ -112,9 +115,9 @@ func test_a_later_modules_t0_and_treads_use_the_moved_prisms() -> void:
 	assert_equal(Physical.bearer_refusal(8, root, bounds), Pick.bearer_refusal(1, root, bounds), "module 1's T0 is T0's")
 	assert_equal(AssemblySource.bearer_refusal(8, root, bounds), &"", "the T0 prism around its root")
 	var prism: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
-	assert_true(Tread.bearer_prism_into(21, Tread.station_of(21), prism), "module 2's sill prism")
-	assert_equal(Physical.bearer_refusal(21, Tread.station_of(21), prism), &"", "accepted at its station")
-	assert_equal(Physical.bearer_refusal(20, Tread.station_of(21), prism), &"ASSEMBLY_SOURCE_BEARER", "not T5's")
+	assert_true(Tread.bearer_prism_into(14, Tread.station_of(14), prism), "module 1's sill prism")
+	assert_equal(Physical.bearer_refusal(14, Tread.station_of(14), prism), &"", "accepted at its station")
+	assert_equal(Physical.bearer_refusal(13, Tread.station_of(14), prism), &"ASSEMBLY_SOURCE_BEARER", "not T5's")
 	assert_equal(AssemblyPhysical.station_refusal(Vector3i(10, 20, 30), 8, Vector3i(10, 20 - 1024, 30 - 1536 - 5120)),
 		&"", "module 1's T0 station")
 	assert_equal(AssemblyPhysical.station_refusal(Vector3i.ZERO, 9, Tread.t0_station_of(9)), AssemblyPhysical.REFUSE,
@@ -128,12 +131,12 @@ func test_the_taps_are_certified_at_a_later_modules_stations() -> void:
 	assert_equal(profiles.configure(85, 637, 8, packed + Profiles.CONTROL_RESERVE), &"", "capacity")
 	assert_equal(profiles.load_file(WIRE, Pins.WIRE_SHA, 12), &"", "content 12")
 	var prism: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
-	assert_true(Tread.bearer_prism_into(17, Tread.station_of(17), prism), "module 2's T2 prism")
-	assert_true(Physical.tap_certified(profiles, 64, 1, 17, Tread.station_of(17), prism), "tread tap at its station")
-	assert_false(Physical.tap_certified(profiles, 57, 1, 17, Tread.station_of(17), prism), "not the T0 tap")
-	var root: Vector3i = Tread.t0_station_of(22)
+	assert_true(Tread.bearer_prism_into(10, Tread.station_of(10), prism), "module 1's T2 prism")
+	assert_true(Physical.tap_certified(profiles, 64, 1, 10, Tread.station_of(10), prism), "tread tap at its station")
+	assert_false(Physical.tap_certified(profiles, 57, 1, 10, Tread.station_of(10), prism), "not the T0 tap")
+	var root: Vector3i = Tread.t0_station_of(8)
 	var t0: PackedInt32Array = PackedInt32Array([-256, 0, -512, 256, 128, -384])
 	for axis: int in 6: t0[axis] += root[axis % 3]
-	assert_true(Physical.tap_certified(profiles, 57, 1, 22, root, t0), "tap 57 at module 3's T0")
+	assert_true(Physical.tap_certified(profiles, 57, 1, 8, root, t0), "tap 57 at module 1's T0")
 	assert_equal(Physical.tap_certified(profiles, 64, 1, 3, PublishedTread.station_of(3), prism),
 		Published.tap_certified(profiles, 64, 1, 3, PublishedTread.station_of(3), prism), "module 0 unchanged")

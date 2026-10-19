@@ -9,22 +9,25 @@ extends RefCounted
 ## ADR1229 (the T1-T6 bundle `qualified-stairs-v8`): eight more cut stations (indices 11-18) for the cube rows 4-7 the
 ## descent cuts (ADR 1209 D2), at the same +-1430 and row centres; the outer footing, pair air and the section reach
 ## the seventh row by the rule they were sized with (footing one cube past the last row, pair air 280 u inside it).
-## Decision 2044 (M5, decision 2043 §3): the top metre of all 27 rows is cut from land stations, so forty more cut
-## stations follow (indices 19-58, rows 7-26, as the descent's); the footing and pair air reach the 27th row by the
-## same rule. The descent's cut stations come in batches of eight (four rows), each joined to M just before its first
+## Decision 2044 (M5, decision 2043 §3): the top metre of every row is cut from land stations, so more cut stations
+## follow (indices 19 on, rows 7 on, as the descent's: 10 for the M2 interim's 12 rows, 40 for M5's 27); the footing
+## and pair air reach the last row by the same rule. The descent's cut stations come in batches of eight (four rows), each joined to M just before its first
 ## cut and retired with the batch after it, as ADR1229 did for the descent's one batch.
 
 const Anchor := preload("res://scripts/core/underground_surface_anchor.gd")
+const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-const ENDPOINTS: int = 59
-## ADR1229: the descent cuts seven cube rows (rows 0-2 for L0/T0, rows 3-6 for T2-T6 and the stair foot).
-const CUT_ROWS: int = 27
+## ADR1229: the descent cuts seven cube rows (rows 0-2 for L0/T0, rows 3-6 for T2-T6 and the stair foot). Decision
+## 2044: the flight's rows, 12 for the M2 interim (P-2044-15) and 27 for M5 (the target): the tread geometry's.
+const CUT_ROWS: int = Tread.ROWS
 const FIRST_DEEP_STATION: int = 11
+## H, M, R, the first six cut stations and two stands, then a pair of cut stations a row from row 3: 29 for M2, 59 M5.
+const ENDPOINTS: int = FIRST_DEEP_STATION + 2 * (CUT_ROWS - 3)
 const STORAGE: Array[int] = [1, 2]
 ## Decision 2044: the work area publishes H and stage 0's four cut stations only; stage 1's pair (7, 8) is a batch of
 ## its own, joined when its first cut opens (see SURFACE_BATCHES).
@@ -45,7 +48,8 @@ const DONE_WORK: Array[int] = [5, 6, 7, 8]
 ## ADR1229's DEEP_WORK.
 const SURFACE_BATCHES: Array = [[3, 4, 5, 6], [7, 8]]
 const BATCH_SIZE: int = 8
-const BATCHES: int = 8
+## The surface pair groups, then the descent's stations in eights, the last batch short: 5 for M2, 8 for M5.
+const BATCHES: int = 2 + (ENDPOINTS - FIRST_DEEP_STATION + BATCH_SIZE - 1) / BATCH_SIZE
 const STAND_M: int = 9
 const STAND_R: int = 10
 ## Stand = stock point + the content-5 grip offset R-S at yaw 16384: (0,0,576) turned a quarter is (576,0,0),
@@ -211,7 +215,8 @@ static func batch_stations(batch: int) -> Array[int]:
 	if batch < SURFACE_BATCHES.size():
 		for index: int in SURFACE_BATCHES[batch]: out.append(index)
 		return out
-	for at: int in BATCH_SIZE: out.append(FIRST_DEEP_STATION + BATCH_SIZE * (batch - SURFACE_BATCHES.size()) + at)
+	var first: int = FIRST_DEEP_STATION + BATCH_SIZE * (batch - SURFACE_BATCHES.size())
+	for index: int in range(first, mini(first + BATCH_SIZE, ENDPOINTS)): out.append(index)
 	return out
 
 

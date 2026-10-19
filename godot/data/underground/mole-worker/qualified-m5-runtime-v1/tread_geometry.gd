@@ -20,7 +20,10 @@ const SILL: int = Base.SILL
 const T0_BEARER_PART: int = Base.T0_BEARER_PART
 const T0_TURN: int = Base.T0_TURN
 const T0_TRANSLATION: Vector3i = Base.T0_TRANSLATION
-const MODULES: int = 5
+## Decision 2044 (P-2044-15, "Land M2 now"): the built flight is the M2 interim, M5's first two modules
+## (`qualified-stairs-m2-v1`), ending on module 1's floor 2,048 u down. M5's five modules stay the target: this count,
+## the mounted bundle and the work area's rows are the switch. Every function here holds for any module count.
+const MODULES: int = 2
 const ASSEMBLIES_PER_MODULE: int = TREADS + 1 # T0..T5 and the sill.
 const MODULE_DROP: int = 1024
 const MODULE_RUN: int = 5120
@@ -28,8 +31,8 @@ const MODULE_PARTS: int = 45 # T0..T5 at seven parts and the sill at three.
 const FIRST_MODULE_PARTS: int = 52 # L0, T0..T5 and the sill.
 ## Module j's H': its T0's station, L0's station (0, 0, -1536) translated (the prefix's endpoint 3).
 const T0_STATION: Vector3i = Vector3i(0, 0, -1536)
-## The slot's rows (2043 §3: L0's two and five modules of five), each one cube (ROW_U) long.
-const ROWS: int = 27
+## The slot's rows (2043 §3: L0's two and five rows a module), each one cube (ROW_U) long: 12 for M2, 27 for M5.
+const ROWS: int = 2 + 5 * MODULES
 const ROW_U: int = 1024
 ## Decision 2044: a deep station stands on the floor of the row uphill of the cube it strikes, DEEP_INSIDE u inside
 ## that row's downhill edge (the land stations' 406 u stand-off), at x DEEP_X[column]: claw dig row 56's contact

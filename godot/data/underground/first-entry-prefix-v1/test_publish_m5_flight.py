@@ -29,6 +29,7 @@ class M5Bundle(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Build once."""
+        PUB.select(5)
         cls.built = PUB.build()
         cls.frontier = tables(cls.built["frontier.ugfront"])
         cls.v10 = tables((HERE / "qualified-stairs-v10/frontier.ugfront").read_bytes())
@@ -100,6 +101,45 @@ class M5Bundle(unittest.TestCase):
         rows = [struct.unpack_from("<iiq8sq", recipe, 116 + 80 * r) for r in range(36)]
         self.assertEqual(sum(r[4] for r in rows), PUB.FIXTURE_WOOD)
         self.assertEqual(sum(r[2] for r in rows), 261200)
+
+
+class M2Bundle(unittest.TestCase):
+    """Decision 2044 (P-2044-15): the M2 interim is the same construction with the first two modules only."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Build the M2 bundle once, then restore M5."""
+        PUB.select(2)
+        try:
+            cls.built = PUB.build()
+            cls.output = PUB.OUTPUT
+        finally:
+            PUB.select(5)
+        cls.frontier = tables(cls.built["frontier.ugfront"])
+        cls.m5 = tables((HERE / "qualified-stairs-m5-v1/frontier.ugfront").read_bytes())
+
+    def test_rebuild_is_byte_identical(self) -> None:
+        """Every published M2 file rebuilds byte for byte."""
+        self.assertEqual(self.output.name, "qualified-stairs-m2-v1")
+        for name, raw in self.built.items():
+            self.assertEqual((self.output / name).read_bytes(), raw, name)
+
+    def test_counts(self) -> None:
+        """15 installs, 11 cut groups, 34 one-cube episodes (24 top metre, 10 deep), 97 parts."""
+        install, station, cut, bearing, endpoint, episode = self.frontier
+        self.assertEqual([len(install), len(station), len(cut), len(bearing), len(endpoint), len(episode)],
+                         [15, 49, 11, 80, 97, 34])
+        self.assertEqual([sum(1 for e in episode if e[4] == -1024 * layer) for layer in range(3)], [24, 10, 0])
+        self.assertEqual(struct.unpack_from("<7I", self.built["structure.ugconn"], 20)[3], 97)
+
+    def test_v10s_rows_lead_as_in_m5(self) -> None:
+        """M2 keeps v10's rows first, as M5 does; only the sill's strip count differs (landing 1's rows 5-11)."""
+        v10 = tables((HERE / "qualified-stairs-v10/frontier.ugfront").read_bytes())
+        for table, old in enumerate(v10):
+            for index, row in enumerate(old):
+                expected = list(row)
+                if table == 0 and index == 7: expected[6] = 2 + 7
+                self.assertEqual(self.frontier[table][index], expected, (table, index))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. Building. On 2026-10-18 the lane stopped twice at the claim boundary (P-2044-12, then P-2044-13 and P-2044-14); Brendan ruled all three (a) the same day, with a budget-only pre-clearance (see the rulings at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. Stopped on 2026-10-19 at the check bound (P-2044-15, "Third stop" at the end): steps 2.2–2.8 are built and the live chain reaches module 0's T3. On 2026-10-18 the lane stopped twice at the claim boundary (P-2044-12, then P-2044-13 and P-2044-14); Brendan ruled all three (a) the same day, with a budget-only pre-clearance (see the rulings at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -629,3 +629,71 @@ leaves out:
   it costs check budget) or clipped tables, which needs the stair motion owner cleared.
 
 Indexed in `docs/handoff/RULINGS.md`.
+
+## Third stop: M5 does not fit one cold-operation check bound (2026-10-19)
+
+Steps 2.2–2.8 were built (commits `5a056fcd`, `1959cf98`): the stair path for five modules and their floor stops,
+foreman stage-by-stage planning, the bindings cube index and strip staging, the Locations natural-floor witness with
+its four guard tests (P-2044-6), Contacts reach for landings and deep stations, the entry-structure strip hook
+(P-2044-12), the work area for 27 rows, and progress v4. The live chain was then driven on a scratch mount
+(`test_zz_m5_scratch_chain.gd`, not committed; it tops up R's staged stock and holds the crew's needs full, so only
+the build is measured). Every refusal it met was measured and either fixed inside the claims or is listed below.
+
+### Fixed inside the claims (measured on the mount)
+
+| Where | Measured | Fix | After |
+|---|---|---|---|
+| SurfaceAnchor, publishing the 59 work-area endpoints | each create refreshes every endpoint; all cut stations shared one full-length footing strip, so each create cost 56,902 more per earlier same-side station; endpoint 21 hit 1,048,576 | `WorkArea.foot`: a cut station after the first pair stands on its own row's slice of the strip | every cut station 579,449; the peak is a haul stand's 807,057 |
+| Entry bindings cube index (P-2044-10) | the key's x field sat at bit 62, so `key << 3` overflowed and every lookup missed (`ENTRY_EXACT_CUT_SET_REQUIRED`) | 18-bit fields; a test checks the shift at the Domain's corners | found |
+| Confirmation, 58 surface contacts | 832,342 checks: each paid a full source scan (8,448) and full terrain windows | the section's source scan is charged in full only while Locations' resolution hint is cold; a terrain window is charged 16 a tile read plus one (`LOCAL_QUERY_CHECKS` is that for a full 8×8 window) | preflight 288,520; the final recheck leaves 506,249 |
+| WorldRoutes preparations at L0's and T0's completion | 982,994, then over 1,048,576: sixteen paths to cut stations whose cuts were done were requalified | the surface cut stations are batches 0 ({3,4,5,6}) and 1 ({7,8}) of `WorkArea`, retired by the runtime's existing per-batch rule when a later step starts with the crew off them; `WORK` publishes H and batch 0 only | 603,622 and 692,536; the initial publication 743,438 |
+| Timber proofs' terrain windows | the same flat per-window charge | charged by tiles read, as the confirmation | — |
+
+### Deviation recorded: strip retirement
+
+P-2044-12's ruling text has a strip "retired by the BRACE START of the cube cut just before the cube under it". The
+turning stance spills behind every station, so no earlier cube's reach is clear of the strip it would retire; the
+strip is retired at the BRACE START of the episode its Frontier row names, which is the row's own first cube (column
+0), directly under the strip. That BRACE's reach never goes below the floor, so it never meets the strip it retires
+(the P-2044-11 proof, `test_underground_m5_station_retirement.gd`). The publisher test
+`test_every_deep_strip_is_retired_by_its_rows_first_cube` pins this.
+
+### Where it stops: three cold operations past `Space.MAX_CHECKS`
+
+The chain reaches module 0's stage 2 (all 150 tasks of prefix 2 planned, every top-metre and deep cut of module 0
+done, T1 and T2 installed) and stops at T3's installation, tick 34,174. Three separate bounds are reached, each one
+`Space.MAX_CHECKS` (1,048,576) per operation:
+
+1. **The timber installation (entry bindings).** T0's operation spends 210,000 on its preflight, 408,000 staging
+   (40,000 a part: two scans of all 6,144 Space region slots per part) and then re-checks the operation scope
+   (`TIMBER_SCOPE_CHECKS`, 2,048) after every refreshed Location (120 → 245,760) and every refreshed edge
+   (48 → 98,304). Its final proof is then short by 2,000. Both counts grow with every module. Scratch only (not
+   committed): with that charge at 256 the chain went on to T3.
+2. **WorldRoutes requalification.** A carried edge still compiles every profile's segment sweep against every
+   image volume; the volumes grew from 74–79 on master to 313 by module 0's stage 2. A carried edge now costs
+   13,000–30,000 (eligibility about 5,700 of it). T1's completion used **985,830 (94.0 %)** with 35 edges and none
+   recompiled. Module 0 ends with about 68 live edges and module 4 with about 216, so the projection is about
+   1.4 M at module 0's end and several million by module 4. The cleared prefilter in `_carry_eligible` removes only
+   the eligibility share; the compile sweep is outside it.
+3. **Locations' witness pass.** At T3's completion, `_derive_witnesses` (from `prepared_installation_leaf_refusal`)
+   ran out of the same operation's `_remaining` (`LOCATION_OPERATION_BUDGET`) with 71 live Locations.
+
+P-2044-1 (a) was "measure, then prefilter only if it overflows". It overflows, and the prefilter cannot close it:
+the growth is in the carried compile, the Locations witness pass and the bindings' per-row scope charge, none of
+which is the cleared function.
+
+### P-2044-15 — The check bound for M5 (for the coordinator and Brendan)
+
+- **(a) Budget: raise `Space.MAX_CHECKS` (`room_space.gd`).** Simplest; not a frame budget by its own comment, but
+  every installation and phase runs inside one tick, so a raised bound is a longer hitch. The figure needs a
+  measurement with the raise (the projection is several million by module 4).
+- **(b) Cost model: make the bounded work scale with what changed.** Slice C's WorldRoutes lets a carried edge
+  skip the per-profile segment sweep when the swept hull misses every change (2044's stated cost model, which needs
+  `_compile_profiles`/`_profile_edge_refusal`, outside `_carry_eligible`); this lane charges the bindings' scope
+  re-check once per refresh loop rather than per row and scans only present region rows; Locations' witness pass
+  is charged by records rather than by the whole operation's remainder. Each needs its own clearance.
+- **(c) Scope: build fewer modules in 2b-1** (for example M2: the surface to landing 2) inside today's bound, and
+  take the rest when (b) lands.
+
+**Recommendation: (b), with (c) as the interim deliverable if (b) cannot be scheduled now.** (a) alone moves the
+cost into frame hitches that grow with every module.

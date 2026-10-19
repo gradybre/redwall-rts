@@ -1057,6 +1057,10 @@ flight draws, 27 wood and 9 stone units, is recorded above).
 
 ### Gates
 
+- **Full suite, CI-style** (demo assets aside, fresh import, `tools/run_tests_parallel.sh --jobs 5`, then CI's
+  `ci_test_shards.py verify`): **552 suites executed exactly once across 10 shards, 13,040 tests, 1,535,542
+  assertions, 0 failures, 0 unexpected errors or warnings, 0 leaks.** Shards 3, 4 and 6 were rerun after the
+  first-prefix fixture's Site capacity became a named constant (its two capacity assertions had kept 16).
 - **Mutation testing** (an APFS clone, one mutant a run, the focused suite or the whole M2 flight): **19 of 21
   killed.** Killed: the successor's `later_t0` bound, record and span dispatch, moved root and span root (the last
   three by the whole flight only); the prefilter's hull axis, journal and staged-change tests; the prism order's bias,

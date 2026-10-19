@@ -13,6 +13,7 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const Connectors := preload("res://scripts/core/room_connectors.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const CacheChecks := preload("res://scripts/core/runtime_cache_checks.gd")
 const ENTRY_FIXED_BYTES: int = 4096
 const ENTRY_EPISODE_FIELDS: int = 19
 const ENTRY_BEARING_FIELDS: int = 9
@@ -1153,8 +1154,11 @@ func _timber_dependencies(proof: TimberClearance, space_token: int, staging: boo
 		var code: StringName = _timber_source_box(Frontier.CUT, row, 0, _cube)
 		if code == &"": code = _timber_cut_keys(proof, _cube, _entry_frontier._cut[6 * _entry_frontier._capacities[Frontier.CUT] + row])
 		if code != &"": return code
+	var natural: int = _timber_natural_verdicts(proof, _entry_row[5], _entry_row[6])
+	if natural == -2: return REFUSE_MASK_BUDGET
 	for row: int in range(_entry_row[5], _entry_row[5] + _entry_row[6]):
-		var code: StringName = _timber_bearing(proof, row, space_token, staging)
+		var verdict: int = -1 if natural < 0 else (natural >> (row - _entry_row[5])) & 1
+		var code: StringName = _timber_bearing(proof, row, space_token, staging, verdict)
 		if code != &"": return code
 	if _entry_placements._workpieces != null:
 		return _entry_placements._workpiece_context_leaf(_entry_placements._actual_workpieces())
@@ -1210,8 +1214,9 @@ func _timber_room() -> Vector2i:
 	return _entry_placements._pair(_entry_placements._live, Placements.ROOM_SLOT, _timber_placement.x)
 
 
-func _timber_bearing(proof: TimberClearance, row: int, space_token: int, staging: bool) -> StringName:
-	"""Revalidate explicit natural or prior installed source bearings; no part kind invents structural support."""
+func _timber_bearing(proof: TimberClearance, row: int, space_token: int, staging: bool, natural: int = -1) -> StringName:
+	"""Revalidate explicit natural or prior installed source bearings; no part kind invents structural support.
+	Decision 2045: `natural` is `_timber_natural_verdicts`' answer for this bearing (1 refused, 0 clear), or -1 to scan."""
 	if not proof.spend(12): return REFUSE_MASK_BUDGET
 	for field: int in 9:
 		_entry_bearing[field] = _entry_frontier._bearing[field * _entry_frontier._capacities[Frontier.BEARING] + row]
@@ -1219,7 +1224,8 @@ func _timber_bearing(proof: TimberClearance, row: int, space_token: int, staging
 	if code != &"": return code
 	if _entry_bearing[0] == Frontier.NATURAL or _entry_bearing[0] == Frontier.STRIP: # Decision 2044: a strip too.
 		code = _timber_virgin_keys(proof, _cube)
-		if code == &"": code = _timber_natural_rows(proof, _cube)
+		if code == &"" and natural < 0: code = _timber_natural_rows(proof, _cube)
+		elif code == &"" and natural == 1: code = REFUSE_TIMBER_BEARING
 		if code == &"" and not staging: code = _timber_terrain(proof, _cube, Terrain.FOOTING, space_token)
 	else:
 		code = _timber_installed_bearing(proof, _cube)
@@ -1263,6 +1269,49 @@ func _timber_natural_rows(proof: TimberClearance, bounds: PackedInt32Array) -> S
 	return &""
 
 
+## Decision 2045 ("Exact cost fixes"): at most this many bearings of one installation are judged in one Region pass.
+const NATURAL_VERDICTS: int = 62
+
+
+func _timber_natural_verdicts(proof: TimberClearance, first: int, count: int) -> int:
+	"""Decision 2045: `_timber_natural_rows` for every natural or strip bearing of the installation in one pass over
+	the live Region rows, not one pass a bearing: bit i is set when a row it would refuse on meets bearing first + i.
+	Each row is charged as one bearing's scan charges it, plus one check a bearing it is tested against. The boxes sit
+	in the proof's spare fragment bank, unused until a subtraction. -1: more than NATURAL_VERDICTS bearings, or a
+	bearing box the per-bearing path refuses (each is then scanned as before); -2: the budget is spent."""
+	if count > NATURAL_VERDICTS: return -1
+	var judged: int = 0
+	for at: int in count:
+		if not proof.spend(): return -2
+		var kind: int = _entry_frontier._bearing[first + at]
+		if kind != Frontier.NATURAL and kind != Frontier.STRIP: continue
+		if _timber_source_box(Frontier.BEARING, first + at, 3, _cube) != &"": return -1
+		for axis: int in 6: proof.next_fragments[at * 6 + axis] = _cube[axis]
+		judged |= 1 << at
+	return _timber_natural_pass(proof, judged, count) if judged != 0 else 0
+
+
+func _timber_natural_pass(proof: TimberClearance, judged: int, count: int) -> int:
+	"""Decision 2045: the one Region pass of `_timber_natural_verdicts` over the bearings in `judged`."""
+	var owner: Owner = _entry_placements._space
+	var refused: int = 0
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
+		if not proof.spend(): return -2
+		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
+		if not proof.spend(12): return -2
+		_timber_region_box(row, false, proof.cover)
+		var bad: bool = owner._r_claim_kind[row] != Owner.CLAIM_NONE or owner._r_role[row] not in [Space.DRY_SOLID, Space.SUPPORT]
+		for at: int in count:
+			if (judged >> at) & 1 == 0: continue
+			if not proof.spend(): return -2
+			for axis: int in 6: proof.box[axis] = proof.next_fragments[at * 6 + axis]
+			if bad and Space.overlaps(proof.box, proof.cover): refused |= 1 << at
+	return refused
+
+
 func _timber_installed_bearing(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
 	"""An exact earlier group and real retained support must cover the named source prism before this operation."""
 	var groups: Placements.Assemblies = _entry_placements._assemblies
@@ -1291,7 +1340,6 @@ func _timber_installed_bearing(proof: TimberClearance, bounds: PackedInt32Array)
 
 func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: int, space_token: int) -> StringName:
 	"""Current mixed-height exclusions and matter use the original live or exact sealed candidate scope."""
-	var checked: bool = false
 	var z: int = bounds[2]
 	while z < bounds[5]:
 		var x: int = bounds[0]
@@ -1311,13 +1359,22 @@ func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: 
 				if space_token == 0 else terrain.prepared_local_facts_refusal(_region.box, purpose,
 					_entry_placements._base_geometry_revision, space_token, _timber_token)
 			if code != &"": return code
-			# Decision 2045 ("Exact cost fixes"): a terrain read changes no part of the operation scope, so the scope
-			# re-check after the first window answers for every later one; it is charged once a call, not a window.
-			if not checked: code = _timber_scope_leaf(proof)
-			checked = true
-			if code != &"": return code
+			_terrain_scope_checked(proof)
 		z = next_z
 	return &""
+
+
+func _terrain_scope_checked(proof: TimberClearance) -> void:
+	"""Decision 2045 ("Exact cost fixes"): a terrain read changes no part of the operation scope, and every operation
+	that reads terrain re-checks its scope on entry and once more before it returns (`_timber_physical`,
+	`_workpiece_physical`), so the re-check that followed each window (2,048 checks a window) is not charged. With the
+	cache checks on it still runs after every window, unspent, and a refusal is reported."""
+	if not CacheChecks.enabled: return
+	var spent: int = proof.remaining
+	var fault: StringName = proof.error
+	if _timber_scope_leaf(proof) != &"" and proof.error == fault: CacheChecks.report("timber scope", "after a terrain read")
+	proof.remaining = spent
+	proof.error = fault
 
 
 func _timber_region_box(row: int, staged: bool, out: PackedInt32Array) -> void:

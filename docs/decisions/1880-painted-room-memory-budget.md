@@ -221,13 +221,18 @@ under §10 as first written. The adopted bound is listed in §3.1 “Still unbud
 | RoomType 8–16, item definitions 9–17, catalog fingerprint, older-save refusal, 18-bit mask, `FurnitureKindCount` 9 → 18 | G | Brendan's ruling (obligation 2) |
 | Binding painted underground room deltas to RoomProjects/ExcavationSites as one project per room (Q1), and their project bytes. ExcavationSites' source maximum (73909 sites, about 18477 cells of 4 quanta) also limits one batch | C | Brendan's ruling (obligation 3) |
 | Container owner for painted PANTRY/STORE/CELLAR rooms and `base_store_g` key items, and their container bytes (one per room: at most 81920 more, 8110080 bytes) | G | Brendan's ruling (obligation 4) |
-| Registry, capacity audit and canonical-table reruns for each implemented column | C, G | Obligation 5 travels with the columns |
-| Retiring the superseded tile-based rows (1802240 bytes) | C, G | “Added, not replacing” |
-| Folding the 16957440 bytes into §3/§2.3, the trail, `underground_memory_budget.py`, the pack and its eight pinned test values | Whichever of C or G first allocates these columns | Q2 |
+| Registry, capacity audit and canonical-table reruns for each implemented column | G (decision 1990 P-1990-3 (c)) | Obligation 5 travels with the columns |
+| Retiring the superseded tile-based rows (1802240 bytes) | G (decision 1990 P-1990-3 (c)) | “Added, not replacing” |
+| Folding the 16957440 bytes into §3/§2.3, the trail, `underground_memory_budget.py`, the pack and its eight pinned test values | **G** (was: whichever of C or G first allocates these columns; slice C allocates none, decision 1990 P-1990-3 (c), Brendan 2026-10-19) | Q2 |
 | The pending batch's draft, Undo/Redo and running ledger (presentation-side, unsaved) | B's panel lane | ARCH-BUILD-001 storage table; not in obligation 1 |
 | Scratch for re-deriving rooms after removal (split and relabel), `room_group` and the breadth-first dig order, over up to 65536 cells per level. `room_footprint.gd`'s 13-byte-per-cell scratch would be 851968 bytes at one level; today it is capped at 16384 cells | C, F | Review M4; listed in §3.1 |
 | Underground spoil ground piles' owner and bound | C | Decision 1075; ECON-003 |
 | Directory `KIND_COUNT` growth and each new owner's canonical declaration and schema bytes (about 1–2 KB) | C, G | Counted by `ready07_arithmetic.py`'s registry census when the columns are registered |
+
+**Note (2026-10-19, decision 1990 P-1990-3 (c)).** Brendan: "Move it to slice G". Slice C allocates none of these
+columns: C3's real Confirm route keeps RoomOrders' own saved rooms and Sites. The fold of the 16957440 bytes, the
+retirement of the superseded tile rows and the registry and audit reruns all pass to slice G, the first slice that
+needs the painted layout as authoritative state.
 
 ## Gates
 

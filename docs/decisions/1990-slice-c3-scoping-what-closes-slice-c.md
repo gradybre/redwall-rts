@@ -1,7 +1,7 @@
 # 1990 — Slice C3 scoping: every open Slice C item, and what C3 can build before M5
 
-Date: 2026-10-19 · Status: Accepted in part. Brendan's "Keep waiting for M5" (2026-10-19) is recorded below. P-1990-1
-to P-1990-5 await his word; nothing is built under this record until they are ruled.
+Date: 2026-10-19 · Status: Accepted. Brendan's "Keep waiting for M5" and his rulings on P-1990-1 to P-1990-5, all as
+recommended (2026-10-19), are recorded below. The build is recorded in decision 1991.
 
 Number range: 1990–1999 (the coordinator's, for C3); checked free on every local and remote ref and with
 `decision_numbers.py`. This is the scoping record; later records of the lane take 1991 onwards. Branch
@@ -26,6 +26,24 @@ Relayed by the coordinator, 2026-10-19: **"Keep waiting for M5".** Slice C close
 retirement lane (`feat/room-station-retirement`, decisions 1942–1949) merge. The stair-leg Delivery (decision 1941,
 P-1941-1 "Wait for M5") and phase-spreading stage 2 (decision 1953, P-1953-2 "After M5, re-measure") become follow-ups
 right after M5 lands, not Slice C close-out blockers. Both are classified (iii) below.
+
+## Brendan's rulings on P-1990-1 to P-1990-5 (2026-10-19)
+
+Relayed by the coordinator: on 2026-10-19, in chat, Brendan ruled all five as recommended.
+
+| Item | Ruling |
+|---|---|
+| P-1990-1 | **(b) "Keep the mole, build real".** The demo keeps decision 1912's proof-of-concept mole, labelled "Proof of concept", with crew choice and Stop added. The real Confirm route is built behind it in core, proved on fixtures including save and load through the settlement save path, with the one seam D2 fills; until then it refuses "No way in: needs a way down to level N". D2 switches the demo over and retires the mole |
+| P-1990-2 | **(a) "Stays free, show bill".** The proof of concept stays free and the ledger keeps showing the bill. The real route follows BUILD-REQ-019 (each phase pays when its work starts); this record's correction of the brief stands |
+| P-1990-3 | **(c) "Move it to slice G".** C3 allocates nothing for decision 1880's store. Under 1880 Q2 the fold moves to slice G (recorded in decision 1880's "Deferred" note, so G inherits it) |
+| P-1990-4 | **(a) "Selected moles crew it".** The 1-4 moles selected at Confirm all crew every room in that batch; with none selected, the first idle mole digs. The footer names the crew |
+| P-1990-5 | **(a) One "Stop digging".** The crew walks out, dug cells stay dug, undug cells return to the plan as pending, and re-ordering takes over any paid phase without paying twice, with BUILD-REQ-019's refunds. With a player Stop, item 24 (the actor-Job change) is taken |
+
+**The coordinator's clearance (same message).** C3 may edit `underground_room_runtime.gd` (`reserves_resident`, a new
+`stop_room`, `restore`/`_read_state`), `underground_room_foreman.gd` (the stop entry only; the retirement lane adds a
+retire hook there after a column finishes) and `underground_room_builder.gd` (item 24). Any other function in these
+three files is asked first. Whichever of C3 and the retirement lane merges second merges master and regenerates the
+pins, census and checkpoints.
 
 ## 1. Why no painted room can be dug for real before M5 and D2
 

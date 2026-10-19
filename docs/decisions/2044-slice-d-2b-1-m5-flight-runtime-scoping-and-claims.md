@@ -800,3 +800,57 @@ collides, the lane stops and reports the numbers before building.
 **Order:** the clearance test, then P-2044-16 (a), then M2 to completion within today's `Space.MAX_CHECKS` with the
 full gates and frames; stop and report. The compile skip, the bindings and Locations cost fixes and M5 follow on the
 same branch in the next round, unless M2 itself needs one of them.
+
+## P-2044-16 (a) built; M2 stops at the first deep phase on WorldRoutes (2026-10-19)
+
+**Clearance first** (`test_landing_clearance.py`, commit `1b6faef5`). On M2 and M5, every ground edge and stop at every
+landing clears every installed part; every edge's body fits the air of the stops at its ends; every fixture deck of
+rows 53/54/55/71/72 is covered by the Room's support. It also pins P-2044-14 (a)'s collisions (69, 352, 369 and 26 u).
+Two details the test settled, both within the ruling:
+
+- **F′ and U0′ are sized by the retreat 47, and the up-joins use 47, not 45.** A Location's air is sized by its first
+  selector, and no single row's body holds both 45's (521 u ahead) and 43/47's (521 u behind) at F′ while clearing
+  the sill. Every ground join at F′ therefore faces down the flight: F′ → P′ and F′ → H′ on 43, and H′ → F′, U0′ → F′
+  and P′ → F′ backing up on 47. The up route is U0′ → F′ (47), F′ → F (72), F → U (55), then the ascent.
+- **P′ belongs to the landing (module j−1's sill), sized by the claw WALK 42**, so the hub stands before T0′ and its
+  air holds the floor walks' ±712 u body (clear of the sill by 774 u).
+
+The retained floor is each landing's deck rows (5(j−1) to 5j+1, never cut deeper) at full slot width, as a centre
+slab and two side bands that staging leaves only where the posts' bearings are not, plus module j's rows at ±768 u as
+before. M5's Frontier is now 51,316 bytes (`MAX_BYTES`); M2's 16,192.
+
+**Live on the mount** (commit `96096920`). The chain installs module 0's sill, publishes the walk-off, back-up and
+every join (all qualify), walks down to landing 1, out to F′ and the hub, and reaches the deep stations. To get there
+M2 needed P-2044-15's exact cost fixes in the bindings and Locations:
+
+- the bindings' Region scans visit present rows only (an empty slot is never read, as `_entry_retained_box`);
+- the timber scope re-check runs once per refresh or staging loop, not per row (P-2044-15 (b)'s wording);
+- Locations keeps installed prisms while their inputs hold (row, generation, prefix, Catalog and Placement bank
+  revisions, issuer), and derives a witness pass's LANDING datums once.
+
+The sill's timber operation needed 1,204,739 checks before these; the sill now completes.
+
+**Where it stops.** The first deep BRACE's companion requalification needs more than 1,048,576 checks in WorldRoutes:
+71 live edges, all carried. Measured shares: the carried stair rows' volume scans about 600,000
+(`_stair_covered_refusal` 250,100 with its `subtract_cover`/`subtract_role` chains, `_stair_blocked` 43,470,
+`_subtract_room_support` under the decks 20,978), and the re-proof of profiles each certificate had refused (their
+endpoint observations) 178,688. The compile skip Slice C holds for this lane (`_carry_eligible`, `_compile_profiles`,
+`_profile_edge_refusal`, `_compile_edge`) reaches neither: a carried stair edge's proof lives in `_stair_edge_refusal`,
+`_stair_decks_refusal`, `_stair_bodies_refusal` and `_stair_covered_refusal`, which are not held.
+
+**What the skip would need (for the coordinator and Slice C):**
+
+- `_carry_eligible`: for a stair row, also sweep its fixture decks (`motion.deck_into`) against the changes since the
+  certificate, so the prefilter covers everything the volume scans read;
+- `_profile_edge_refusal`: route a carried stair row (eligible, admitted by its live certificate, nothing pending) to
+  the carried form;
+- `_stair_edge_refusal` and `_stair_bodies_refusal`: the carried form keeps the span, pace, both endpoint observations
+  (with their spend, as stage 1's cache requires) and every body box's terrain exclusions, which are not journaled, and
+  skips only `_stair_decks_refusal`, `_stair_blocked` and `_stair_covered_refusal`, whose inputs are Space volumes the
+  prefilter has proved unchanged;
+- no change to the re-proof of refused profiles: a refusal can turn on unjournaled terrain, so skipping it is not exact.
+
+Proof plan, per Slice C's cautions: a CacheChecks mode that also runs the full proof and reports any differing admit
+mask; a differential test over master's whole-chain scenarios asserting identical masks and refusals; those scenarios
+shown never to reach the budget refusal on master; spend fields (check counts) named apart from outcome fields before
+comparing the SHA trace and checkpoints.

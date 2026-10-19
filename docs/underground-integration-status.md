@@ -1,8 +1,32 @@
 # Underground integration status
 
-Last updated 2026-10-12 on branch `feat/build-panel-slice-c` (decisions 1911 and 1912; the sections dated
-2026-10-05/06 below are kept as they were written). Read this before `underground-claude-handoff-2026-10-05.md`.
+Last updated 2026-10-19 on branch `feat/slice-c3-confirm` (decisions 1990 and 1991); the 2026-10-12 section
+(decisions 1911 and 1912) and those dated 2026-10-05/06 below are kept as they were written. Read this before `underground-claude-handoff-2026-10-05.md`.
 This document supersedes that handoff's lane, worktree and overlay instructions (ADR 1192).
+
+## Slice C closes (2026-10-19, decisions 1990 and 1991)
+
+What changed since the 2026-10-12 section below, which is kept as it was written:
+
+- **The room foreman exists and is composed in the game** (slice C2, decisions 1933-1941). `SettlementSystem` builds
+  the room-dig runtime with the Session's room owners and advances it every fixed tick after the entry; room digs are
+  saved (section 6 `underground_room_progress`, record version 2 since decision 1991).
+- **Confirm all's real route exists in the game's code** (slice C3, decision 1991):
+  - `SettlementSystem.order_painted_room` (`underground_room_confirm.gd`) admits a painted room through RoomOrders.
+  - It orders the room with the 1-4 moles the player named, or the first idle mole.
+  - The room foreman digs it, each phase paying when its work starts (BUILD-REQ-019).
+  - `stop_underground_room` is the player's one Stop.
+- **No painted room is dug for real yet.** No level has a way in: the qualified stair ends at the sill, and level 1's
+  floors are 5 m down. The route's way-in seam (`bind_underground_way_in`) is slice D2's to fill, after slice D's M5
+  flight; until then every painted room is refused `ROOM_DIG_NO_WAY_IN`. Materials for a dig below the surface also
+  wait: the stair-leg Delivery is a follow-up after M5 (decision 1941), and staging settlement stock underground is
+  HAUL-H3+'s.
+- **The demo still digs with decision 1912's proof-of-concept mole.** It is free and unsaved, and now has the
+  player's crew and Stop digging (P-1990-1 (b)). D2 switches the demo to the real route and retires the mole.
+- **Decision 1880's painted store and its fold pass to slice G** (P-1990-3 (c)).
+
+Order now: slice D's M5 → the post-M5 follow-ups (stair-leg Delivery, phase-spreading stage 2's re-measure) → D2
+(the way in, and the demo switched to the real route) → slices E, F, G.
 
 ## Where it stands (2026-10-12)
 

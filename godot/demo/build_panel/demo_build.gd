@@ -912,11 +912,17 @@ func _send_crews() -> bool:
 	for crew: int in ids:
 		if works.waiting_for(crew) == 0:
 			continue
-		if works.next_dig(works.landing_of(way_in()), PackedByteArray([crew])).is_empty():
-			_say_once(CUT_OFF % works.waiting_for(crew))
-			continue
 		sent = (_send_named(crew) if crews.named(crew) else _send_first_free(crew)) or sent
 	return sent
+
+
+func _reachable(crew: int) -> bool:
+	"""Whether a cell of crew `crew` can be reached from the Entrance now (review H4); why not is said once (M6). A
+	member already below takes the cells on regardless: it finds them once the way to them is dug."""
+	if not works.next_dig(works.landing_of(way_in()), PackedByteArray([crew])).is_empty():
+		return true
+	_say_once(CUT_OFF % works.waiting_for(crew))
+	return false
 
 
 func _send_named(crew: int) -> bool:
@@ -927,7 +933,7 @@ func _send_named(crew: int) -> bool:
 		var trip: BelowTask = _dig_trip_of(i)
 		if trip != null:
 			trip.serve(crew)
-		elif not _below_now(i):
+		elif not _below_now(i) and _reachable(crew):
 			sent = _send_digger(i, crew) or sent
 	return sent
 
@@ -938,6 +944,8 @@ func _send_first_free(crew: int) -> bool:
 	for trip: BelowTask in diggers:
 		if _still_on(trip) and trip.crews.has(crew):
 			return false
+	if not _reachable(crew):
+		return false
 	var mole: int = _pick_mole()
 	if mole < 0:
 		_say_once(NOBODY)

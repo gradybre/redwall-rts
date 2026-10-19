@@ -13,6 +13,7 @@ const Works := preload("res://demo/build_panel/demo_build_works.gd")
 const Crews := preload("res://demo/build_panel/demo_build_crews.gd")
 const BelowTask := preload("res://demo/build_panel/demo_build_below_task.gd")
 const Batch := preload("res://scripts/ui/build_batch.gd")
+const BuildPanel := preload("res://scripts/ui/build_panel.gd")
 const RoomCard := preload("res://scripts/ui/build_room_card.gd")
 const BuildCatalog := preload("res://scripts/ui/build_catalog.gd")
 const Validity := preload("res://scripts/ui/build_validity.gd")
@@ -197,6 +198,8 @@ func test_with_none_selected_the_first_free_mole_digs() -> void:
 	_confirm_kitchen_with(PackedInt32Array())
 	assert_equal(_build.diggers.size(), 1, "one mole")
 	assert_true(_build._is_mole(_build._trip_actors[_build._trips.find(_build.digger)]), "a mole")
+	assert_false(_build._send_crews(), "asked again while it digs: nobody more")
+	assert_equal(_build.diggers.size(), 1, "still the one mole")
 	_build._sync_crew_line(1.0)
 	assert_equal(_build.panel.crew_line(), "Crew: the first free mole", "the footer says so")
 
@@ -256,6 +259,7 @@ func test_a_mole_digging_a_stopped_cell_lets_it_go_and_plans_again() -> void:
 	trip.step(brain, 0.1)
 	assert_equal(_build.works.state(1, Vector2i(cell.y, cell.z)), Works.EARTH, "not opened behind the Stop")
 	assert_equal(_build.works.claimed_by(cell), -1, "let go")
+	assert_false(trip.digging_cell() == cell, "it stopped digging there at once (no wait out on a stopped cell)")
 
 
 func test_return_cells_is_one_step_and_refuses_nothing_to_return() -> void:
@@ -325,7 +329,7 @@ func test_cells_put_back_complete_their_blocks_with_the_rooms_dug_cells() -> voi
 	var k: int = _build.batch.return_cells(KITCHEN, 1, back)
 	assert_true(k >= 0, "back in the plan")
 	assert_false(_build.batch.operation_reason(k).contains("Too narrow"), _build.batch.operation_reason(k))
-	var other: int = _build.batch.return_cells(3, 1, PackedInt32Array([10, 4, 10, 5]))
+	var other: int = _build.batch.return_cells(3, 1, PackedInt32Array([5, 4, 5, 5])) # Beside the dug Kitchen cells.
 	assert_true(_build.batch.operation_reason(other).contains("Too narrow"), "another type's strip: %s"
 		% _build.batch.operation_reason(other))
 
@@ -356,3 +360,76 @@ func _kitchen_open() -> int:
 		for z: int in range(KITCHEN_FROM.y, KITCHEN_TO.y + 1):
 			count += 1 if _build.works.state(1, Vector2i(x, z)) == Works.OPEN else 0
 	return count
+
+
+func test_a_stopped_cell_keeps_no_room_type_for_what_is_ordered_there_next() -> void:
+	"""A cell put back to earth by a Stop forgets its room type: a way down whose landing is later ordered over it is
+	a landing, not a piece of the stopped room."""
+	var works: Works = _build.works
+	assert_true(works.order_room(2, PackedInt32Array([4, 4, 5, 4, 4, 5, 5, 5]), KITCHEN, 0), "a Kitchen on level 2")
+	assert_equal(works.stop_room(2, Vector2i(4, 4)).size(), 8, "stopped before a cell was dug")
+	assert_equal(works.type_of(2, Vector2i(4, 4)), Works.TYPE_NONE, "no type left")
+	assert_true(works.order_way_down(1, Vector2i(4, 4)), "a way down from level 1 landing there")
+	assert_equal(works.room_type_at(2, Vector2i(4, 4)), -1, "a landing, not the Kitchen")
+
+
+func test_a_room_is_only_its_own_type_and_a_stop_leaves_its_neighbour_alone() -> void:
+	"""Two confirmed rooms side by side, a Kitchen and a Passage: each card's room is its own cells, and stopping the
+	Kitchen puts back none of the Passage."""
+	var works: Works = _build.works
+	assert_true(works.order_room(1, PackedInt32Array([6, 4, 7, 4, 6, 5, 7, 5]), KITCHEN, 0), "a Kitchen")
+	assert_true(works.order_room(1, PackedInt32Array([8, 4, 9, 4, 8, 5, 9, 5]), 7, 0), "a Passage beside it")
+	assert_equal(works.room_cells(1, Vector2i(6, 4)).size(), 8, "the Kitchen's four cells only")
+	assert_equal(works.stop_room(1, Vector2i(6, 4)).size(), 8, "its four back")
+	assert_equal(works.state(1, Vector2i(8, 4)), Works.ORDERED, "the Passage still waits")
+	assert_equal(works.waiting(), 4, "its four")
+
+
+func test_a_mole_named_again_takes_on_the_new_batch_too() -> void:
+	"""A mole already digging for one Confirm all, named for the next, digs both batches on the one trip."""
+	_confirm_kitchen_with(PackedInt32Array([1]))
+	var trip: BelowTask = _build.diggers[0]
+	_build.batch.begin_stroke(7, 1, Vector2i(12, 4))
+	_build.batch.extend_stroke(Vector2i(13, 5))
+	_build.batch.finish_stroke()
+	_selected = PackedInt32Array([1])
+	_build.confirm_all()
+	assert_equal(_build.diggers.size(), 1, "no second trip")
+	assert_equal(trip.crews.size(), 2, "the trip serves both batches")
+	_build._send_crews()
+	assert_equal(trip.crews.size(), 2, "each once, however often it is asked")
+	_step_all(8000)
+	assert_equal(_build.works.waiting(), 0, "both dug by the one mole")
+	assert_equal(trip.dug, 32, "every cell")
+
+
+func test_the_ledgers_second_line_keeps_the_crew_and_the_note_before_the_work() -> void:
+	"""Decision 1991, E8: the longest second line that fits -- the work, the crew and the note; else the crew and the
+	note; else the work and the crew; else the crew alone."""
+	_build.open_panel()
+	_build.bar.choose(1)
+	_build.batch.begin_stroke(KITCHEN, 1, KITCHEN_FROM)
+	_build.batch.extend_stroke(KITCHEN_TO)
+	_build.batch.finish_stroke()
+	var ledger: Button = _build.panel.controls()[&"ledger"]
+	var font: Font = ledger.get_theme_font(&"font")
+	var px: int = BuildPanel.TEXT_PX
+	var crew: String = "Crew: Tuppen"
+	var note: String = "proof of concept"
+	_build.panel.set_crew_line(crew)
+	var work: String = ledger.text.get_slice("\n", 1).get_slice(" · ", 0) # "work about ..." as the panel words it.
+	var crew_note: float = font.get_string_size(crew + " · " + note, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
+	var work_crew: float = font.get_string_size(work + " · " + crew, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
+	var all_three: float = font.get_string_size(work + " · " + crew + " · " + note, HORIZONTAL_ALIGNMENT_LEFT, -1.0, px).x
+	var wide: float = maxf(crew_note, work_crew) + 1.0 # Room for either pair, not for all three.
+	assert_true(wide < all_three, "the pairs are shorter than all three")
+	ledger.size = Vector2(wide + 2.0 * 8.0 + 16.0, 44.0)
+	_build.panel.set_plan_note(note)
+	assert_equal(ledger.text.get_slice("\n", 1).trim_suffix(" ▴").trim_suffix(" ▾"), crew + " · " + note,
+		"the crew and the note: %s" % ledger.text)
+	ledger.size = Vector2(4000.0, 44.0)
+	_build.panel.set_crew_line("Crew: Tuppen ")
+	assert_true(ledger.text.get_slice("\n", 1).begins_with("work "), "wide: the work first: %s" % ledger.text)
+	ledger.size = Vector2(40.0, 44.0)
+	_build.panel.set_crew_line(crew)
+	assert_true(ledger.text.get_slice("\n", 1).begins_with(crew), "narrow: the crew alone: %s" % ledger.text)

@@ -864,3 +864,62 @@ arithmetic check stands as the gate: the first deep BRACE's requalification is *
 remaining scans, the 178,688 re-proofs and everything else) and must land clearly under 1,048,576; the later modules
 are then projected from the measured per-edge cost as image volumes grow toward 313, and both figures are recorded
 here. If M2's first deep BRACE is not clearly under the bound, the lane stops and reports the breakdown first.
+
+### The carried stair form, measured; M2 stops at T0′'s station record (2026-10-19)
+
+**Built** (commit `ed7dcf90`, in Slice C's six held functions). A carried stair row (eligible, admitted by its live
+certificate) keeps its span, pace, both endpoint observations (with their spend) and its body boxes' terrain
+exclusions, and skips `_stair_decks_refusal`, `_stair_blocked` and `_stair_covered_refusal`; `_carry_eligible` now also
+sweeps a stair row's fixture decks against the changes since the certificate. Exactness: those three read only Space
+volumes, which the prefilter proved unchanged, plus the exterior remainder's natural floor, which is static terrain
+(its resource and Building facts are inside the full-box exclusions the carried form keeps). Under CacheChecks (every
+test run) the full proof also runs, its spend restored, and a contradicted carried answer is reported as
+`RUNTIME_CACHE_STALE`, so the whole suite is the differential test. Spend fields (check counts, `remaining`) are spend;
+admit masks, refusal codes, edges and checkpoints' state are outcome. `test_underground_route_memos.gd` (29/29),
+`test_underground_world_routes.gd` (57/57) and `test_underground_stair_carry_routes.gd` (16/16) stay green with it on.
+
+**Measured, not projected** (M2 on the mount, CacheChecks on, spend as production). The first deep BRACE's
+requalification: **848,220 of 1,048,576 (80.9 %)**; the peak over all of landing 1's deep phases: **859,102 (81.9 %)**,
+97 live edges, 317 image volumes. Its breakdown: 42 stair edges 55,459 (about 1,320 each) with eligibility 7,872;
+55 ground edges 736,030 compile with eligibility 29,021, of which the 4 recompiled floor walks about 200,000 and the
+carried ground edges about 10,000 each (the re-proof of profiles their certificates had refused and their endpoint
+observations). Slice C's arithmetic check: the stair share fell from about 600,000 to 55,459; the rest was never in
+the three skipped scans.
+
+**Projection.** For M2 the rest of the chain only removes the landing's floor walks (about 200,000) and adds module
+1's stair edges (about 40 × 1,320 = 53,000): it stays near 0.86 M. For M5, each later module adds about 53,000 of stair
+edges while the ground share stays about 0.74 M, so module 4 reaches about 1.0 M: M5 needs the ground edges' carried
+cost (the refused-profile re-proofs) addressed in the next round.
+
+**Also built on the way** (commits `1ebd25e1`, `aa135ec0`):
+
+- *The deep hub D.* The clearance test now checks that each landing stop's stance stays on the deck rows: a 42-sized
+  P′ reached 96 u into the first deep row and lost its support when that row's strip went (`LOCATION_COVERAGE_MISSING`
+  at the row-7 BRACE). D, the landing row's station on the centre line, is the hub; P′ is T0′'s selector again.
+- *A row's edges retire once* (its crossing touches both stations; the second removal was `ROUTE_EDGE_STALE`).
+- *The installer climbs off a landing's floor leg by leg*, turning to each row's heading, before any haul (the hauler
+  cannot turn; its leg from the hub to F′ on 47 refused `PROFILE_VARIANT_UNAUTHORED`).
+- *A later module's T0 station is underground.* The handling certificate successor and Contacts judge its body by the
+  published tread rule (void, the Room's own timber and floor, its own reservation, its own piece), not L0's surface
+  rule, whose body may not share the Room's cube reservation (`ASSEMBLY_FOREIGN_SOLID`).
+- *The landing's deep floor retires on T0′'s last leg*, before the bearer is set down: the air of D and of the landing
+  row's stations reaches the bearer's place (`LOCATION_ENVELOPE_BLOCKED`).
+
+**Where it stops.** At T0′'s FUND, Locations refreshes H′ with the bearer pending; the published endpoint certificate
+(`qualified-claw-certificate-v2/endpoint_certificate.gd`, reached through the dispatch
+`qualified-claw-runtime-v1/endpoint_certificates.gd`) places the T0 station at the Placement origin + (0, 0, −1536)
+(`_record_refusal`, `_root`) and checks the part with module 0's program, so H′ at (0, −1024, −6656) is refused. The
+pending-bearer spans (`prepared_span_refusal`) use the same `_root`. Like P-2044-13's handling dispatch, this needs a
+module-aware successor that hands module 0 to today's certificate unchanged, and one change to the dispatch file, which
+is outside the claims.
+
+### P-2044-17 — The endpoint certificate dispatch (for the coordinator and Brendan)
+
+- **(a) One change to `qualified-claw-runtime-v1/endpoint_certificates.gd`**: content 12's `Claw10` points at a new
+  module-aware successor in `qualified-m5-runtime-v1/` that hands assemblies 0–7 to today's certificate unchanged and,
+  for a later module, applies the published rules at the translated station and root (and the moved part rule), with a
+  byte-identity test for module 0, exactly as P-2044-13 (a) did for the handling dispatch.
+- (b) Install a later module's T0 without a pending-bearer excusal. Not available: the narrow approach's excusal is how
+  every T0 order stands at its station while its bearer is pending.
+
+**Recommendation: (a).**

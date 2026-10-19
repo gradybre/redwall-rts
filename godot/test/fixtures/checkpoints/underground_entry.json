@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "f932154dbdf16f05d5ba53c429357ec4c8fe31993d2d6c268c6e5081432b9b35",
+	"fingerprint": "1ccce74b845e369a84f73f27bbd3421101ecc2dc9d981203e9a8b563c3c48089",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -254,7 +254,7 @@
 		"res://scripts/core/underground_room_parking.gd": "92ddc8c07c751e22f7726045fe84479bfd2141bdac270bdd6b7c431397d35bef",
 		"res://scripts/core/underground_room_progress.gd": "ff4ca957ebbf2467207fd46083e232a0672ff7058f4782bb4135b64ed58a0d5d",
 		"res://scripts/core/underground_room_runtime.gd": "63314ae01e9c71bf92fa99abca0b1f3d973df228d2d789c2421c6a5c1ef4b70b",
-		"res://scripts/core/underground_room_station_planner.gd": "0a85ae8f11f497448a31321cf6efce6b1f282ebccd7ebda8b42300f86fbb5e11",
+		"res://scripts/core/underground_room_station_planner.gd": "f290b614c26d729d3c928d2922d0752d1b026df780384a512fe36713e17affca",
 		"res://scripts/core/underground_room_station_retirement.gd": "c9b587ae38becc0ed54948d6d74c15603b463d0e98d715d925fd663e324dff3a",
 		"res://scripts/core/underground_room_walk.gd": "dcb882c08fe1d87d14685479207d7ea22bfa59b5daead10b1b30e8ec925d0e5f",
 		"res://scripts/core/underground_room_world_bindings.gd": "36bb09926ee13aa2df2913e18ff264e01e1071e1ff93576add4dc5a15c63da52",

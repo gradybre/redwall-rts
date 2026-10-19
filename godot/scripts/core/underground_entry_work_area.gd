@@ -15,7 +15,6 @@ extends RefCounted
 ## cut and retired with the batch after it, as ADR1229 did for the descent's one batch.
 
 const Anchor := preload("res://scripts/core/underground_surface_anchor.gd")
-const Tread := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/tread_geometry.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
@@ -23,11 +22,13 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 ## ADR1229: the descent cuts seven cube rows (rows 0-2 for L0/T0, rows 3-6 for T2-T6 and the stair foot). Decision
-## 2044: the flight's rows, 12 for the M2 interim (P-2044-15) and 27 for M5 (the target): the tread geometry's.
-const CUT_ROWS: int = Tread.ROWS
+## 2044: the flight's rows, 12 for the M2 interim (P-2044-15) and 27 for M5 (the target): the tread geometry's
+## `ROWS`, written as a literal so the memory census (REG-C4-R01) can resolve it; a test holds the two equal.
+const CUT_ROWS: int = 12
 const FIRST_DEEP_STATION: int = 11
-## H, M, R, the first six cut stations and two stands, then a pair of cut stations a row from row 3: 29 for M2, 59 M5.
-const ENDPOINTS: int = FIRST_DEEP_STATION + 2 * (CUT_ROWS - 3)
+## H, M, R, the first six cut stations and two stands (FIRST_DEEP_STATION), then a pair of cut stations a row from
+## row 3: 11 + 2 * (CUT_ROWS - 3), written as a sum of products for the census (REG-C4-R01): 29 for M2, 59 for M5.
+const ENDPOINTS: int = 5 + 2 * CUT_ROWS
 const STORAGE: Array[int] = [1, 2]
 ## Decision 2044: the work area publishes H and stage 0's four cut stations only; stage 1's pair (7, 8) is a batch of
 ## its own, joined when its first cut opens (see SURFACE_BATCHES).

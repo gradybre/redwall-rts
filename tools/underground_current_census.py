@@ -92,13 +92,14 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "22099ef921c61448494559e74915637136909472007dfe4179cac57e7058ab76"
+REVIEWED_SHA = "5c27602280362c21eddabbcdb0cb1437db7417d321a5a066429141093806ded1"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
 # Decision 1972: qualified-stairs-v10 (the same install and episode counts; two more sill stops).
-FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-v10/frontier.ugfront")
-FRONTIER_SHA = "8ee90bbff55e11c45604af294cb47fb21e2b097c99484f000310464b48d0d006"
+# Decision 2044 (P-2044-15): the M2 interim bundle qualified-stairs-m2-v1 (two modules, 34 episodes).
+FRONTIER = Path("godot/data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/frontier.ugfront")
+FRONTIER_SHA = "663e1ad6875aca57e230683628372c7d711edd6383726204f153c9243aba6245"
 CORE = "godot/scripts/core/"
 
 
@@ -124,7 +125,28 @@ def frontier_counts() -> dict:
     raw = (ROOT / FRONTIER).read_bytes()
     require(hashlib.sha256(raw).hexdigest() == FRONTIER_SHA, "runtime Frontier changed")
     names = ("INSTALL", "STATION", "CUT", "BEARING", "ENDPOINT", "EPISODE")
-    return {name: int.from_bytes(raw[68 + 4 * table:72 + 4 * table], "little") for table, name in enumerate(names)}
+    counts = {name: int.from_bytes(raw[68 + 4 * table:72 + 4 * table], "little") for table, name in enumerate(names)}
+    counts["EPISODE_CUBES"] = episode_cubes(raw, counts)
+    return counts
+
+
+def episode_cubes(raw: bytes, counts: dict) -> int:
+    """Decision 2044 (P-2044-10 (a)): the whole cubes the EPISODE rows' boxes cover, which bounds the confirmation's
+    cube index (one key and one mask a distinct cube). Rows follow the 220 B header in table order, at each table's
+    wire row width; an episode's box is its first six int32 fields."""
+    widths = (36, 80, 28, 36, 40, 76)
+    offset = 220 + sum(counts[name] * widths[table] for table, name in enumerate(("INSTALL", "STATION", "CUT",
+                                                                                  "BEARING", "ENDPOINT")))
+    require(offset + 76 * counts["EPISODE"] + 8 == len(raw) and raw[-8:] == b"UGFEND01", "Frontier episode layout")
+    total = 0
+    for row in range(counts["EPISODE"]):
+        box = [int.from_bytes(raw[offset + 76 * row + 4 * field:offset + 76 * row + 4 * field + 4], "little",
+                              signed=True) for field in range(6)]
+        cubes = 1
+        for axis in range(3):
+            cubes *= -(-(box[axis + 3] - box[axis]) // 1024)
+        total += cubes
+    return total
 
 
 def journal(memory, index: dict) -> dict:
@@ -165,10 +187,18 @@ def locations_controls(memory, index: dict) -> dict:
     require(all(members.get(name) == kind for name, kind in passes.items())
             and members.get("_prism_boxes") == "PackedInt32Array" and members.get("_prism_key") == "PackedInt64Array"
             and re.findall(r"^\t_prism_boxes\.resize\((.+)\)$", source, re.M) == ["6 * ConnectorCatalog.MAX_PARTS"]
-            and re.findall(r"^\t_prism_key\.resize\((\d+)\)$", source, re.M) == ["5"], "ADR1229 witness-pass cache")
+            and re.findall(r"^\t_prism_key\.resize\((\d+)\)$", source, re.M) == ["8"], "ADR1229 witness-pass cache")
+    # Decision 2044 (M2): the key holds its eight inputs; the prisms' height order (one int64 a Catalog part) and the
+    # pass's landing cache (seven int32 a landing, PASS_LANDINGS landings, and a four-word key).
+    require(members.get("_prism_tops") == "PackedInt64Array" and members.get("_landing_boxes") == "PackedInt32Array"
+            and members.get("_landing_key") == "PackedInt64Array"
+            and re.findall(r"^\t_prism_tops\.resize\((.+)\)$", source, re.M) == ["ConnectorCatalog.MAX_PARTS"]
+            and re.findall(r"^\t_landing_boxes\.resize\((.+)\)$", source, re.M) == ["7 * PASS_LANDINGS"]
+            and re.findall(r"^\t_landing_key\.resize\((\d+)\)$", source, re.M) == ["4"], "decision 2044 pass caches")
     parts = memory.resolve(index, "underground_connector_catalog", "MAX_PARTS")
+    landings = memory.resolve(index, "underground_locations", "PASS_LANDINGS")
     numeric = sum(WIDTH[kind] for kind in added.values()) + 4 * 6 \
-        + sum(WIDTH[kind] for kind in passes.values()) + 4 * 6 * parts + 8 * 5
+        + sum(WIDTH[kind] for kind in passes.values()) + 4 * 6 * parts + 8 * 8 + 8 * parts + 4 * 7 * landings + 8 * 4
     context = packet(memory, index, relative, "ContactRetirementContext")
     return {"carry_and_air_controls_bytes": numeric, "contact_retirement_context_numeric_bytes": context,
             "bytes": numeric + context,
@@ -347,6 +377,9 @@ def entry_chain(memory, index: dict) -> dict:
         "haulers": 2 * (memory.numeric_fields(hauler, "") + actor + 4 * queue)
             + 2 * legs * packet(memory, index, CORE + "underground_entry_hauler.gd", "Leg"),
         "progress_record": entry_progress(memory, index)["bytes"],
+        # Decision 2044 (P-2044-10 (a)): the confirmation's cube index, an int64 key and an int32 mask a cube, appended
+        # (no resize) at most once per whole episode cube of the mounted Frontier.
+        "confirmation_cube_index": 12 * counts["EPISODE_CUBES"],
     }
     return {"rows": rows, "bytes": sum(rows.values()), "frontier_counts": counts, "planned_task_bound": tasks,
             "work_area_endpoints": endpoints,

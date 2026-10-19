@@ -92,6 +92,10 @@ func test_a_taken_parking_is_skipped_and_none_is_made_between_the_access_and_the
 	assert_equal(Parking.find_into(_runtime.bound_owners(), ask, found), Parking.REFUSE_NONE, "no parking")
 	assert_false(Parking._occupied(_h.endpoints, toward), "nothing published between")
 	ask.taken = []
+	ask.keep_clear = [_h.parking]
+	assert_equal(Parking.find_into(_runtime.bound_owners(), ask, found), Parking.REFUSE_NONE,
+		"a container's location is never a parking")
+	ask.keep_clear = []
 	assert_equal(Parking.find_into(_runtime.bound_owners(), ask, found), &"", "untaken")
 	assert_equal(found[0], _h.parking, "the existing endpoint is reused")
 

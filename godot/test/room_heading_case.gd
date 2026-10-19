@@ -103,22 +103,22 @@ class SideRooms extends RetirementTests.LargeRoom:
 		assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "a basic pick")
 		assert_true(_gear.equip(tool, _worker).ok, "the pick carried")
 
-	func side_room(side: int, width: int, depth: int, room_type: int = KITCHEN) -> Vector2i:
-		"""A room of width x depth cells on one side of the Corridor, admitted from a WORK station in front of its
-		first cube on that heading's own rows. Width runs along the Corridor wall, depth away from it."""
-		var plan: Dictionary = _side_plan(side, width, depth)
+	func side_room(side: int, wide: int, deep: int, room_type: int = KITCHEN) -> Vector2i:
+		"""A room of wide x deep cells on one side of the Corridor, admitted from a WORK station in front of its
+		first cube on that heading's own rows. `wide` runs along the Corridor wall, `deep` away from it."""
+		var plan: Dictionary = _side_plan(side, deep)
 		var yaw: int = plan["yaw"]
 		var forward: int = Itinerary.family_row(_profiles, PICK_FORWARD if pick else ClawTests.CLAW_FORWARD, yaw,
 			Profiles.POLICY_READY_FORWARD)
 		var wall: int = _wall_row(yaw)
 		assert_true(forward >= 0 and wall >= 0, "content 12's own rows at yaw %d: %d, %d" % [yaw, forward, wall])
 		var anchor: Vector3i = _contact_point(wall)
-		var face: int = Planner.facing_face(provider, yaw)
-		@warning_ignore("integer_division") var axis: int = face / 2
+		var struck: int = Planner.facing_face(provider, yaw)
+		@warning_ignore("integer_division") var axis: int = struck / 2
 		var lateral: int = 2 if axis == 0 else 0
 		var first: Vector3i = plan["first"]
 		var station: Vector3i = first
-		station[axis] = int(first[axis]) + (0 if face % 2 == 0 else Contract.QUANTUM_SIDE_U) - anchor[axis]
+		station[axis] = int(first[axis]) + (0 if struck % 2 == 0 else Contract.QUANTUM_SIDE_U) - anchor[axis]
 		station[lateral] = int(first[lateral]) + (Contract.QUANTUM_SIDE_U >> 1) # The root on the cell's centre line.
 		station.y = Phase.FLOOR
 		var access: Vector2i = _first # East: the Kitchen's own admission (ADR 1161's authored first contact).
@@ -131,13 +131,13 @@ class SideRooms extends RetirementTests.LargeRoom:
 		request.room_type = room_type
 		request.space_revision = _owner.revision()
 		request.origin_u = plan["origin"]
-		request.cells = painted if not painted.is_empty() else _grid(width, depth, side)
+		request.cells = painted if not painted.is_empty() else _grid(wide, deep, side)
 		request.target_origin = first
 		request.access = access; request.work_location = work
 		request.travel_profile = forward; request.travel_revision = _profiles._live.quantities[forward]
 		request.work_profile = wall; request.work_revision = _profiles._live.quantities[wall]
 		request.height_u = mini(4096, Approach.reachable_height_u(_profiles, wall))
-		request.face = face; request.yaw = yaw
+		request.face = struck; request.yaw = yaw
 		@warning_ignore("integer_division") var cubes_high: int = request.height_u / Contract.QUANTUM_SIDE_U
 		@warning_ignore("integer_division") var cells: int = request.cells.size() / 2
 		painted_cubes = cells * cubes_high
@@ -145,27 +145,27 @@ class SideRooms extends RetirementTests.LargeRoom:
 		assert_true(made.ok, "the %s room confirmed: %s" % [SIDE_NAMES[side], made.error])
 		return made.ref if made.ok else NULL_REF
 
-	func _side_plan(side: int, width: int, depth: int) -> Dictionary:
+	func _side_plan(side: int, deep: int) -> Dictionary:
 		"""Origin (the lowest corner), the first cube struck (the one touching the Corridor) and the heading."""
 		match side:
 			NORTH:
 				return {"origin": Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z + 4096),
 					"first": Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z + 4096), "yaw": 32768}
 			SOUTH:
-				return {"origin": Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z - 2048 - depth * 1024),
+				return {"origin": Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z - 2048 - deep * 1024),
 					"first": Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z - 3072), "yaw": 0}
 			WEST:
-				return {"origin": Vector3i(Phase.X - 4096 - depth * 1024, Phase.FLOOR, Phase.Z + 2048),
+				return {"origin": Vector3i(Phase.X - 4096 - deep * 1024, Phase.FLOOR, Phase.Z + 2048),
 					"first": Vector3i(Phase.X - 5120, Phase.FLOOR, Phase.Z + 2048), "yaw": 16384}
 		return {"origin": Vector3i(Phase.X + 2048, Phase.FLOOR, Phase.Z), "first": Vector3i(Phase.X + 2048, Phase.FLOOR,
 			Phase.Z), "yaw": 49152}
 
-	static func _grid(width: int, depth: int, side: int) -> PackedInt32Array:
-		"""The painted cells, x then z; depth runs along x for the east and west rooms, along z for the others."""
+	static func _grid(wide: int, deep: int, side: int) -> PackedInt32Array:
+		"""The painted cells, x then z; `deep` runs along x for the east and west rooms, along z for the others."""
 		var cells: PackedInt32Array = PackedInt32Array()
 		var along_x: bool = side == EAST or side == WEST
-		for row: int in (width if along_x else depth):
-			for column: int in (depth if along_x else width):
+		for row: int in (wide if along_x else deep):
+			for column: int in (deep if along_x else wide):
 				cells.append(column); cells.append(row)
 		return cells
 

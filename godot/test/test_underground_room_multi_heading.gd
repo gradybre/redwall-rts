@@ -214,3 +214,28 @@ func _query(room: Vector2i) -> Planner.Query:
 	assert_equal(code, &"", "region tables")
 	_h._budget.release(cold)
 	return q if code == &"" else null
+
+
+func test_runs_split_at_section_boundaries_as_each_plan_says() -> void:
+	"""On the Kitchen's own section table (the Corridor's floor to x = X + 2048, the Kitchen's beyond), each run's
+	first refusal names how it was split, the Kitchen still undug: ADR 1213's split (PLAN_MASTER) refuses a decreasing
+	run across the boundary outright (SECTION, rank 2); decision 1943's splits it at the boundary, whose first span
+	then fails its sweep into the undug room (rank 1). Going up from one unit below the boundary, that unit is its own
+	span in the Corridor (its sweep fails, rank 1), not a span refused across the boundary (rank 2)."""
+	if not _prepared(): return
+	var room: Vector2i = _h.side_room(EAST, 2, 2)
+	if room == NULL_REF: return
+	var q: Planner.Query = _query(room)
+	if q == null: return
+	var boundary: int = Phase.X + 2048
+	var inside: Vector3i = Vector3i(boundary + 512, Phase.FLOOR, Phase.Z + 512)
+	var outside: Vector3i = Vector3i(boundary - 1000, Phase.FLOOR, Phase.Z + 512)
+	q.direction = -1
+	for master: bool in [true, false]:
+		q.master = master; q.rank = -1; q.stations = 0
+		assert_false(Planner._legs(q, inside, outside, q.forward, q.backward), "no decreasing run into undug ground")
+		assert_equal(q.rank, 2 if master else 1, "master refuses the crossing" if master else "decision 1943 splits it")
+	q.direction = 1; q.master = false; q.rank = -1; q.stations = 0
+	assert_false(Planner._run(q, Vector3i(boundary - 1, Phase.FLOOR, Phase.Z + 512), inside, q.forward, q.backward, 0, 1),
+		"no run into undug ground")
+	assert_equal(q.rank, 1, "the unit below the boundary is a span of its own")

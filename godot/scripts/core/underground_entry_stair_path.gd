@@ -18,12 +18,13 @@ extends RefCounted
 ## L0 position being module j-1's natural run-out (landing j). A stop's global level is 8j + level (level -1 for L0's
 ## position, 0..6 for T0..T6), so module 0's levels and indices are v10's. Each landing j adds decision 1972's floor
 ## stops F, U and F' (here F, UF and FP, filed by landing) and, but for the last, module j's H' (its T0's station), P',
-## A0' and U0'. P-2044-14 (a): the floor walk-off and back-up rows are not published on M5's floors; a landing is
-## joined on ground rows (F -> P' on the narrow approach 43, U0' -> U on the approach 45, F -> H' on 43 and H' -> F
-## for the T0' order's retreat), with the descent onto the floor, its half-turn and the ascent from it as 1972 built
-## them. The stair carry stays module 0's, H to its sill and back (decision 1972), until stair-leg Delivery.
-## The deep stations a landing's floor carries for the next layer (2044) are joined by `publish_floor` on the all-yaw
-## claw WALK 42 and leave row by row through `retire_row`.
+## A0' and U0'. P-2044-16 (a) (reversing P-2044-14 (a), whose ground joins at F and U met the sill deck): each landing
+## has decision 1972's floor edges, the descent onto F, the floor half-turn F -> U, the ascent from U, and the empty
+## walk-off F -> F' (71) and back-up F' -> F (72); a landing is joined to its module at F', where every ground row
+## faces down the flight and clears the sill: F' -> P' and F' -> H' on the narrow approach 43, H' -> F', U0' -> F' and
+## P' -> F' on the narrow retreat 47. The stair carry stays module 0's, H to its sill and back (decision 1972), until
+## stair-leg Delivery. The deep stations a landing's floor carries for the next layer (2044) are joined to P', the
+## hub, by `publish_floor` on the all-yaw claw WALK 42, and leave row by row through `retire_row`.
 
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
@@ -208,17 +209,19 @@ static func _sill(module: int) -> PackedInt32Array:
 
 
 static func _landing(landing: int) -> PackedInt32Array:
-	"""Landing j's floor edges: the descent onto it, its half-turn and the ascent from it (decision 1972's floor plan,
-	without the walk-off and back-up, P-2044-14 (a)); but for the last landing, the ground joins to module j:
-	F -> P' and F -> H' on the narrow approach, H' -> F (the T0' order's retreat) and U0' -> U on the approach."""
+	"""Landing j's floor edges (decision 1972's floor plan, P-2044-16 (a)): the descent onto F, the half-turn F -> U,
+	the ascent from U, the walk-off F -> F' and the back-up F' -> F; but for the last landing, the ground joins to
+	module j at F': F' -> P' and F' -> H' (narrow approach), H' -> F', U0' -> F' and P' -> F' (narrow retreat)."""
 	var walk: int = Profiles.MODE_WALK
 	var sill: int = global_level(landing - 1, SILL_LEVEL)
 	var out: PackedInt32Array = PackedInt32Array([KIND_A, sill, KIND_F, landing, 0, walk,
-		KIND_F, landing, KIND_UF, landing, 0, walk, KIND_UF, landing, KIND_U, sill, 0, walk])
+		KIND_F, landing, KIND_UF, landing, 0, walk, KIND_UF, landing, KIND_U, sill, 0, walk,
+		KIND_F, landing, KIND_FP, landing, 0, walk, KIND_FP, landing, KIND_F, landing, 0, walk])
 	if landing == MODULES: return out
 	var foot: int = global_level(landing, -1)
-	out.append_array(PackedInt32Array([KIND_F, landing, KIND_P, foot, -1, walk, KIND_F, landing, KIND_H, foot, -1, walk,
-		KIND_H, foot, KIND_F, landing, -1, walk, KIND_U, foot, KIND_UF, landing, -1, walk]))
+	out.append_array(PackedInt32Array([KIND_FP, landing, KIND_P, foot, -1, walk, KIND_FP, landing, KIND_H, foot, -1, walk,
+		KIND_H, foot, KIND_FP, landing, -1, walk, KIND_U, foot, KIND_FP, landing, -1, walk,
+		KIND_P, foot, KIND_FP, landing, -1, walk]))
 	return out
 
 
@@ -397,12 +400,14 @@ static func _remove_location(locations: Locations, lease: int, stop: Vector2i) -
 
 static func hops_down(stops: Stops, level: int) -> Array:
 	"""From the crossing arrival X down to A at global `level` (level -1 of a later module: its A0'): P, A0, every
-	descent to the sill, onto the floor F, then the next module's P' and A0', until the target's module."""
+	descent to the sill, onto the floor F, the walk-off to F', then the next module's P' and A0', until the target's
+	module (P-2044-16 (a))."""
 	var out: Array = [[stops.p, StairPins.CLAW_APPROACH_ROWS[0]], [stops.a[0], StairPins.CLAW_STEP_FORWARD_ROW]]
 	var module: int = module_of_level(level)
 	for within: int in module:
 		_descend(stops, within, SILL_LEVEL, out)
 		out.append([stops.f[within + 1], StairPins.CLAW_DESCENT_ROW])
+		out.append([stops.fp[within + 1], StairPins.STAIR_EMPTY_FLOOR_ROWS[0]])
 		out.append([stops.s[global_level(within + 1, -1) + 1], StairPins.CLAW_APPROACH_ROWS[0]])
 		out.append([stops.a[global_level(within + 1, -1) + 1], StairPins.CLAW_STEP_FORWARD_ROW])
 	_descend(stops, module, level - global_level(module, 0), out)
@@ -413,6 +418,13 @@ static func hops_down_to_floor(stops: Stops, landing: int) -> Array:
 	"""From X down to landing j's floor stop F (module j-1's whole flight, then the descent onto the floor)."""
 	var out: Array = hops_down(stops, global_level(landing - 1, SILL_LEVEL))
 	out.append([stops.f[landing], StairPins.CLAW_DESCENT_ROW])
+	return out
+
+
+static func hops_down_to_walk_off(stops: Stops, landing: int) -> Array:
+	"""From X down to landing j's F', where its ground joins start: onto F, then the walk-off (P-2044-16 (a))."""
+	var out: Array = hops_down_to_floor(stops, landing)
+	out.append([stops.fp[landing], StairPins.STAIR_EMPTY_FLOOR_ROWS[0]])
 	return out
 
 
@@ -434,8 +446,15 @@ static func hops_up(stops: Stops, level: int) -> Array:
 
 
 static func hops_up_from_landing(stops: Stops, landing: int) -> Array:
-	"""From module j's U0' (on landing j) up to X: the approach to the landing's U, then the ascents above it."""
-	var out: Array = [[stops.uf[landing], StairPins.CLAW_APPROACH_ROWS[2]]]
+	"""From module j's U0' (on landing j) up to X: the retreat back to F', then the way up from there."""
+	var out: Array = [[stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]]
+	out.append_array(hops_up_from_walk_off(stops, landing))
+	return out
+
+
+static func hops_up_from_walk_off(stops: Stops, landing: int) -> Array:
+	"""From landing j's F' up to X: the back-up to F, the half-turn onto U, then the ascents (P-2044-16 (a))."""
+	var out: Array = [[stops.f[landing], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]], [stops.uf[landing], StairPins.CLAW_TURN_ROW]]
 	out.append_array(hops_up_from_floor(stops, landing))
 	return out
 
@@ -477,8 +496,9 @@ static func classify_deep(point: Vector3i) -> Vector3i:
 
 static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted,
 		locations: Locations, stops: Stops, deep: Deep, content_revision: int) -> StringName:
-	"""Join landing j's floor to its deep stations on the claw WALK: F to the landing row's column-1 station and that
-	station back to U (two L-shaped walks), the column-1 spine between rows and each row's crossing, both ways."""
+	"""Join landing j's floor to its deep stations on the claw WALK: P' (the hub, P-2044-16 (a)) to the landing row's
+	column-1 station and back (two L-shaped walks), the column-1 spine between rows and each row's crossing, both
+	ways."""
 	if binding == null or routes == null or budget == null or owner == null or locations == null or deep == null:
 		return REFUSE_OWNER
 	var lease: int = budget.acquire(Budget.COLD_BYTES)
@@ -501,7 +521,8 @@ static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, 
 static func _floor_pairs(stops: Stops, deep: Deep) -> Array:
 	"""Every floor walk of one landing as [from, to] handle pairs, in a fixed order."""
 	var top: int = deep.first_row
-	var out: Array = [[stops.f[deep.landing], deep.at(top, 1)], [deep.at(top, 1), stops.uf[deep.landing]]]
+	var hub: Vector2i = stops.s[global_level(deep.landing, -1) + 1] # P-2044-16 (a): P', the landing's hub.
+	var out: Array = [[hub, deep.at(top, 1)], [deep.at(top, 1), hub]]
 	for row: int in range(top, Tread.ROWS - 1):
 		out.append([deep.at(row, 0), deep.at(row, 1)])
 		out.append([deep.at(row, 1), deep.at(row, 0)])

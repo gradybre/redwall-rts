@@ -1465,17 +1465,16 @@ func _landing_station() -> bool:
 
 
 func _landing_reach_refusal() -> StringName:
-	"""M to X on the material profile, down to the landing's F, the narrow approach onto H' and back to F (the
-	order's retreat), then the half-turn and the way back up to X."""
+	"""M to X on the material profile, down to the landing's F' (P-2044-16 (a): onto F, then the walk-off), the narrow
+	approach onto H' and back to F' (the order's retreat), then the way back up to X from F'."""
 	var stops: StairPath.Stops = _tread_stops()
 	var landing: int = Handling.PawPhysical10.Tread.module_of(_ordinal)
-	if stops.hm[landing] != _station_location or stops.f[landing] != _retreat_location: return REFUSE_ENDPOINT
+	if stops.hm[landing] != _station_location or stops.fp[landing] != _retreat_location: return REFUSE_ENDPOINT
 	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
-	var legs: Array = _hop_legs(stops.x, StairPath.hops_down_to_floor(stops, landing))
-	legs.append_array([stops.f[landing], stops.hm[landing], StairPins.CLAW_APPROACH_ROWS[0],
-		stops.hm[landing], stops.f[landing], StairPins.CLAW_RETREAT_ROWS[0],
-		stops.f[landing], stops.uf[landing], StairPins.CLAW_TURN_ROW])
-	legs.append_array(_hop_legs(stops.uf[landing], StairPath.hops_up_from_floor(stops, landing)))
+	var legs: Array = _hop_legs(stops.x, StairPath.hops_down_to_walk_off(stops, landing))
+	legs.append_array([stops.fp[landing], stops.hm[landing], StairPins.CLAW_APPROACH_ROWS[0],
+		stops.hm[landing], stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]])
+	legs.append_array(_hop_legs(stops.fp[landing], StairPath.hops_up_from_walk_off(stops, landing)))
 	return _legs_refusal(legs) if code == &"" else code
 
 
@@ -1493,25 +1492,30 @@ func _local_point(x: int, y: int, z: int) -> Vector3i:
 
 
 func _deep_reach_refusal(landing: int) -> StringName:
-	"""M to X on the material profile, down to the landing's F, then the floor walks to the station on its own
-	travel row (its retreat is the station itself)."""
+	"""M to X on the material profile, down to the landing's F' (P-2044-16 (a)), the approach to the hub P', then the
+	floor walks to the station on its own travel row (its retreat is the station itself)."""
 	var stops: StairPath.Stops = _tread_stops()
+	var hub: Vector2i = stops.s[StairPath.global_level(landing, -1) + 1]
 	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
-	if code == &"": code = _legs_refusal(_hop_legs(stops.x, StairPath.hops_down_to_floor(stops, landing)))
-	if code == &"": code = _path_refusal(stops.f[landing], _station_location, _station[0])
+	if code == &"": code = _legs_refusal(_hop_legs(stops.x, StairPath.hops_down_to_walk_off(stops, landing)))
+	if code == &"": code = _row_path_refusal(stops.fp[landing], hub, StairPins.CLAW_APPROACH_ROWS[0])
+	if code == &"": code = _path_refusal(hub, _station_location, _station[0])
 	return code if code != &"" else _path_refusal(_station_location, _retreat_location, _install[8])
 
 
 func _deep_output_refusal(landing: int) -> StringName:
-	"""The spoil's way to R: the floor walk to the landing's U, back up the stair to X, then X to R on R's own row."""
+	"""The spoil's way to R: the floor walk to the hub P', back to F' (P-2044-16 (a)), up the stair to X, then X to R
+	on R's own row."""
 	_phase_output_location = _resolve_endpoint(_episode[16])
 	if _phase_output_location == NULL_REF: return REFUSE_ENDPOINT
 	var code: StringName = _read_endpoint(_episode[16], _phase_output_location, _other)
 	if code != &"" or _other.role != Locations.ROLE_STORAGE: return REFUSE_MATERIAL
 	_phase_output_payload = _other.payload_revision
 	var stops: StairPath.Stops = _tread_stops()
-	code = _path_refusal(_station_location, stops.uf[landing], _station[0])
-	if code == &"": code = _legs_refusal(_hop_legs(stops.uf[landing], StairPath.hops_up_from_floor(stops, landing)))
+	var hub: Vector2i = stops.s[StairPath.global_level(landing, -1) + 1]
+	code = _path_refusal(_station_location, hub, _station[0])
+	if code == &"": code = _row_path_refusal(hub, stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0])
+	if code == &"": code = _legs_refusal(_hop_legs(stops.fp[landing], StairPath.hops_up_from_walk_off(stops, landing)))
 	return code if code != &"" else _path_refusal(stops.x, _phase_output_location, _episode[16])
 
 

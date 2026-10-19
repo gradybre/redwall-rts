@@ -323,7 +323,7 @@ func _open_deep_floor(task: Task) -> StringName:
 	if landing == 0: return &""
 	var deep: StairPath.Deep = _deep(landing)
 	var stops: StairPath.Stops = _stops()
-	if StairPath._joined(_owners.routes, stops.f[landing], deep.at(deep.first_row, 1), Profiles.MODE_WALK): return &""
+	if StairPath._joined(_owners.routes, _hub(stops, landing), deep.at(deep.first_row, 1), Profiles.MODE_WALK): return &""
 	return StairPath.publish_floor(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
 		_owners.locations, stops, deep, _content)
 
@@ -1019,7 +1019,9 @@ func _floor_of(local: Vector3i) -> int:
 	if deep.x > 0: return deep.x
 	var kind: Vector2i = StairPath.classify(local)
 	if kind.x == StairPath.KIND_F or kind.x == StairPath.KIND_UF or kind.x == StairPath.KIND_FP: return kind.y
-	return StairPath.module_of_level(kind.y) if kind.x == StairPath.KIND_H and kind.y >= 0 else 0
+	if kind.x < 0 or kind.y < 0 or (kind.x != StairPath.KIND_H and kind.x != StairPath.KIND_P): return 0
+	return StairPath.module_of_level(kind.y) if kind.y == StairPath.global_level(StairPath.module_of_level(kind.y), -1) \
+		else 0
 
 
 func _route_hops(from: Vector2i, target: Vector2i, final_profile: int) -> Array:
@@ -1027,11 +1029,14 @@ func _route_hops(from: Vector2i, target: Vector2i, final_profile: int) -> Array:
 	var a: Vector3i = _local_of(from)
 	var b: Vector3i = _local_of(target)
 	if (from == NULL_REF or _surface(a)) and _surface(b): return [[target, final_profile]]
-	if _floor_of(a) > 0 and _floor_of(a) == _floor_of(b) and StairPath.classify_deep(b).x > 0:
-		return [[target, StairPath.FLOOR_ROW]]
 	var stops: StairPath.Stops = _stops()
+	if _floor_of(a) > 0 and _floor_of(a) == _floor_of(b):
+		var across: Array = _floor_hops(stops, _floor_of(a), a, b, target)
+		if not across.is_empty(): return across
 	var out: Array = _hops_to_crossing(stops, a)
 	out.append_array(_hops_from_crossing(stops, b, target, final_profile))
+	for at: int in range(out.size() - 1, -1, -1): # A crew already standing on the way joins it there.
+		if out[at][0] == from: return out.slice(at + 1)
 	return out
 
 
@@ -1039,17 +1044,22 @@ func _hops_to_crossing(stops: StairPath.Stops, local: Vector3i) -> Array:
 	"""Hops from a place up to the crossing arrival X (none from X itself)."""
 	if _surface(local): return [] if StairPath.classify(local).x == StairPath.KIND_X else [[stops.x, StairPins.CLAW_WALK_ROW]]
 	var deep: Vector3i = StairPath.classify_deep(local)
-	if deep.x > 0: return [[stops.uf[deep.x], StairPath.FLOOR_ROW]] + StairPath.hops_up_from_floor(stops, deep.x)
+	if deep.x > 0: return _to_hub(stops, deep.x, local) + [[stops.fp[deep.x], StairPins.CLAW_RETREAT_ROWS[0]]] \
+		+ StairPath.hops_up_from_walk_off(stops, deep.x)
 	var kind: Vector2i = StairPath.classify(local)
 	var level: int = kind.y
 	match kind.x:
 		StairPath.KIND_F: return [[stops.uf[level], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up_from_floor(stops, level)
 		StairPath.KIND_UF: return StairPath.hops_up_from_floor(stops, level)
+		StairPath.KIND_FP: return StairPath.hops_up_from_walk_off(stops, level)
 		StairPath.KIND_H:
 			var module: int = StairPath.module_of_level(level)
 			if module == 0: return [[stops.x, StairPins.CLAW_RETREAT_ROWS[0]]] # The prefix's H backs off to X.
-			return [[stops.f[module], StairPins.CLAW_RETREAT_ROWS[0]], [stops.uf[module], StairPins.CLAW_TURN_ROW]] \
-				+ StairPath.hops_up_from_floor(stops, module)
+			return [[stops.fp[module], StairPins.CLAW_RETREAT_ROWS[0]]] + StairPath.hops_up_from_walk_off(stops, module)
+		StairPath.KIND_P:
+			var landing: int = StairPath.module_of_level(level)
+			if landing == 0: return []
+			return [[stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]] + StairPath.hops_up_from_walk_off(stops, landing)
 		StairPath.KIND_S: return [[stops.a[level + 1], StairPins.CLAW_STEP_FORWARD_ROW],
 			[stops.u[level + 1], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up(stops, level)
 		StairPath.KIND_A: return [[stops.u[level + 1], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up(stops, level)
@@ -1061,12 +1071,53 @@ func _hops_from_crossing(stops: StairPath.Stops, local: Vector3i, target: Vector
 	"""Hops from the crossing arrival X down to a place."""
 	if _surface(local): return [[target, final_profile]]
 	var deep: Vector3i = StairPath.classify_deep(local)
-	if deep.x > 0: return StairPath.hops_down_to_floor(stops, deep.x) + [[target, StairPath.FLOOR_ROW]]
+	if deep.x > 0: return StairPath.hops_down_to_walk_off(stops, deep.x) + [[_hub(stops, deep.x),
+		StairPins.CLAW_APPROACH_ROWS[0]], [target, StairPath.FLOOR_ROW]]
 	var kind: Vector2i = StairPath.classify(local)
 	if kind.x == StairPath.KIND_H and kind.y >= 0:
-		return StairPath.hops_down_to_floor(stops, StairPath.module_of_level(kind.y)) + [[target, StairPins.CLAW_APPROACH_ROWS[0]]]
+		return StairPath.hops_down_to_walk_off(stops, StairPath.module_of_level(kind.y)) \
+			+ [[target, StairPins.CLAW_APPROACH_ROWS[0]]]
 	if kind.x == StairPath.KIND_S: return StairPath.hops_down(stops, kind.y) + [[target, StairPins.CLAW_STEP_BACK_ROW]]
 	return []
+
+
+func _hub(stops: StairPath.Stops, landing: int) -> Vector2i:
+	"""P-2044-16 (a): landing j's P', the hub of its floor walks."""
+	return stops.s[StairPath.global_level(landing, -1) + 1]
+
+
+func _to_hub(stops: StairPath.Stops, landing: int, local: Vector3i) -> Array:
+	"""Hops on landing j's floor from a place to its hub P', or [null] when none is published from there."""
+	if StairPath.classify_deep(local).x > 0: return [[_hub(stops, landing), StairPath.FLOOR_ROW]]
+	var approach: Array = [_hub(stops, landing), StairPins.CLAW_APPROACH_ROWS[0]]
+	match StairPath.classify(local).x:
+		StairPath.KIND_P: return []
+		StairPath.KIND_FP: return [approach]
+		StairPath.KIND_F: return [[stops.fp[landing], StairPins.STAIR_EMPTY_FLOOR_ROWS[0]], approach]
+		StairPath.KIND_H, StairPath.KIND_U: return [[stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]], approach]
+	return [null]
+
+
+func _from_hub(stops: StairPath.Stops, landing: int, local: Vector3i, target: Vector2i) -> Array:
+	"""Hops on landing j's floor from its hub P' to a place, or [null] when none is published to there."""
+	if StairPath.classify_deep(local).x > 0: return [[target, StairPath.FLOOR_ROW]]
+	var back: Array = [stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]
+	match StairPath.classify(local).x:
+		StairPath.KIND_P: return []
+		StairPath.KIND_FP: return [back]
+		StairPath.KIND_F: return [back, [stops.f[landing], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]]]
+		StairPath.KIND_H: return [back, [target, StairPins.CLAW_APPROACH_ROWS[0]]]
+	return [null]
+
+
+func _floor_hops(stops: StairPath.Stops, landing: int, a: Vector3i, b: Vector3i, target: Vector2i) -> Array:
+	"""P-2044-16 (a): a way between two places on landing j's floor through its hub P', or [] when either end has no
+	floor edge (the way up and down then serves)."""
+	var out: Array = _to_hub(stops, landing, a)
+	var rest: Array = _from_hub(stops, landing, b, target)
+	if null in out or null in rest: return []
+	out.append_array(rest)
+	return out
 
 
 func _first_leg(hops: Array) -> PackedInt64Array:
@@ -1098,7 +1149,8 @@ func _plan_stairs(plan: Installer.Plan) -> bool:
 	above the station) and retracts that stop at FUND. DEC-059 (P1): from the previous tread's station it walks
 	straight down instead (step forward, one descent); from anywhere else below it first climbs back to the crossing
 	arrival. Decision 2044: on M5 the same holds in every module, the way down crossing every landing above it, and a
-	later module's T0 is reached the same way: down to its landing's F, then the narrow approach onto H'."""
+	later module's T0 is reached the same way: down to its landing's F' (P-2044-16 (a)), then the narrow approach onto
+	H'."""
 	var t0: bool = Tread.is_t0(plan.ordinal) and Tread.module_of(plan.ordinal) > 0
 	if not Tread.is_tread(plan.ordinal) and not t0: return true
 	var stops: StairPath.Stops = _stops()
@@ -1106,7 +1158,7 @@ func _plan_stairs(plan: Installer.Plan) -> bool:
 	var level: int = StairPath.global_level(module, Tread.level_of(plan.ordinal) - 1)
 	if t0:
 		plan.arrival = stops.x
-		plan.downs = _all_legs(StairPath.hops_down_to_floor(stops, module))
+		plan.downs = _all_legs(StairPath.hops_down_to_walk_off(stops, module))
 	else:
 		if plan.arrival != stops.x or stops.s[level + 1] != plan.station: return false
 		plan.downs = _all_legs(StairPath.hops_down(stops, level))

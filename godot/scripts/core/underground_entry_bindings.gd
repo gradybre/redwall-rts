@@ -907,6 +907,15 @@ func _timber_cold_bytes(placement: Vector2i, assembly: int) -> int:
 	return Budget.COLD_BYTES
 
 
+## Decision 2044 (P-2044-15, "Exact cost fixes"): a Region scan visits the present rows only, found natively in the
+## present bank, and charges each one; an empty slot is never read, so it costs nothing (as `_entry_retained_box`).
+static func _next_region_row(owner: Owner, from: int, staged: bool) -> int:
+	"""The first present Region row at or after `from` (staged bank or live), else the region capacity."""
+	var bank: PackedByteArray = owner._s_r_present if staged else owner._r_present
+	var at: int = bank.find(1, from) if from < owner._region_capacity else -1
+	return at if at >= 0 and at < owner._region_capacity else owner._region_capacity
+
+
 func _timber_scope_leaf(proof: TimberClearance = null) -> StringName:
 	"""Precharge all bounded immutable-owner/hash leaves before observing the original operation scope."""
 	if not (proof.spend(TIMBER_SCOPE_CHECKS) if proof != null else _entry_spend(TIMBER_SCOPE_CHECKS)):
@@ -1017,7 +1026,10 @@ func _workpiece_air(proof: TimberClearance, bounds: PackedInt32Array, token: int
 	"""An unfinished cube or another obstacle cannot become air merely because the source calls it a set-down."""
 	var owner: Owner = _entry_placements._space
 	proof.start(bounds)
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM \
 				or _timber_claim(row, false) or _workpiece_live_row(row): continue
@@ -1026,8 +1038,8 @@ func _workpiece_air(proof: TimberClearance, bounds: PackedInt32Array, token: int
 		if not Space.overlaps(bounds, proof.cover): continue
 		if owner._r_role[row] != Space.SUPPORTED_VOID or not _timber_void_row(row, false): return REFUSE_TIMBER_CUT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	for row: int in proof.count:
-		for axis: int in 6: proof.box[axis] = proof.fragments[row * 6 + axis]
+	for fragment_row: int in proof.count:
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
 		var code: StringName = _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
 		if code != &"": return code
 	return &""
@@ -1053,7 +1065,10 @@ func _workpiece_foot(proof: TimberClearance, bounds: PackedInt32Array, token: in
 	if code != &"": return code
 	proof.start(_cube)
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1233,7 +1248,10 @@ func _timber_virgin_keys(proof: TimberClearance, bounds: PackedInt32Array) -> St
 func _timber_natural_rows(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
 	"""Retained geometry can invalidate original matter even while the immutable terrain survey is unchanged."""
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1255,7 +1273,10 @@ func _timber_installed_bearing(proof: TimberClearance, bounds: PackedInt32Array)
 	if code != &"" or not Space.contains_box(proof.cover, bounds): return REFUSE_TIMBER_BEARING
 	proof.start(bounds)
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1360,16 +1381,18 @@ func _stage_strips(proof: TimberClearance, token: int) -> StringName:
 			_region.claim_ref = NULL_REF
 			for axis: int in 6: _region.box[axis] = proof.fragments[fragment * 6 + axis]
 			code = _entry_placements._space.stage_add(token, _region).error
-			if code == &"": code = _timber_scope_leaf(proof)
 		if code != &"": return code
-	return &""
+	return _timber_scope_leaf(proof) # Decision 2044 (P-2044-15): once per staging loop, not per fragment.
 
 
 func _timber_part_clearance(proof: TimberClearance, token: int, staging: bool) -> StringName:
 	"""Paid cavities or positively observed exterior are required for all timber, including buried bearers."""
 	var owner: Owner = _entry_placements._space
 	proof.start(_cube)
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, false)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false) \
 				or _workpiece_live_row(row): continue
@@ -1379,9 +1402,9 @@ func _timber_part_clearance(proof: TimberClearance, token: int, staging: bool) -
 		if not _timber_void_row(row, false): return REFUSE_TIMBER_CUT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
 	if staging: return &""
-	for row: int in proof.count:
+	for fragment_row: int in proof.count:
 		if not proof.spend(): return REFUSE_MASK_BUDGET
-		for axis: int in 6: proof.box[axis] = proof.fragments[row * 6 + axis]
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
 		var code: StringName = _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
 		if code != &"": return REFUSE_TIMBER_CUT
 	return &""
@@ -1414,7 +1437,10 @@ func _stage_timber(placement: Vector2i, project: Vector2i, assembly: int, token:
 func _stage_timber_part(proof: TimberClearance, part: int, token: int) -> StringName:
 	"""Remove only the exact new solid from retained air, emitting disjoint residual slabs with original identities."""
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, true)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._s_r_present[row] != 1 or not _timber_void_row(row, true): continue
 		if not proof.spend(12): return REFUSE_MASK_BUDGET
@@ -1605,7 +1631,10 @@ func _timber_datum_ref() -> Vector2i:
 	"""Reuse exactly equal same-source metadata or reject ambiguity; nearby rectangles are not interchangeable."""
 	var owner: Owner = _entry_placements._space
 	var found: Vector2i = NULL_REF
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, true)
+		if row >= owner._region_capacity: break
 		if not _entry_spend(): return Vector2i(-3, 0)
 		if owner._s_r_present[row] != 1: continue
 		if not _entry_spend(12): return Vector2i(-3, 0)
@@ -1671,7 +1700,10 @@ func _timber_support_residual(proof: TimberClearance, bounds: PackedInt32Array) 
 	"""What of `bounds` the installation's own staged SUPPORT does not cover, left in the proof's fragments."""
 	proof.start(bounds)
 	var owner: Owner = _entry_placements._space
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, true)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._s_r_present[row] != 1 or owner._s_r_role[row] != Space.SUPPORT \
 				or owner._s_r_claim_kind[row] != Owner.CLAIM_NONE or not _timber_owned(row, true): continue
@@ -1961,7 +1993,10 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 		if code != &"": return code
 	var owner: Owner = _entry_placements._space
 	proof.start(_entry_contact.envelope)
-	for row: int in owner._region_capacity:
+	var row: int = -1
+	while true:
+		row = _next_region_row(owner, row + 1, staging)
+		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if (owner._s_r_present[row] if staging else owner._r_present[row]) != 1: continue
 		var role: int = owner._s_r_role[row] if staging else owner._r_role[row]
@@ -1972,8 +2007,8 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 		if not Space.overlaps(_entry_contact.envelope, proof.cover): continue
 		if role != Space.SUPPORTED_VOID or not _timber_void_row(row, staging): return REFUSE_TIMBER_CONTACT
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
-	for row: int in proof.count:
-		for axis: int in 6: proof.box[axis] = proof.fragments[row * 6 + axis]
+	for fragment_row: int in proof.count:
+		for axis: int in 6: proof.box[axis] = proof.fragments[fragment_row * 6 + axis]
 		var code: StringName = _stage_timber_exterior(proof, token) if staging \
 			else _timber_terrain(proof, proof.box, Terrain.EXTERIOR, token)
 		if code != &"": return code
@@ -2016,9 +2051,7 @@ func _timber_refresh_locations(token: int) -> StringName:
 		var ref: Vector2i = Vector2i(row, locations._live.i32[row])
 		var code: StringName = locations.stage_refresh(token, ref)
 		if code != &"": return code
-		code = _timber_scope_leaf()
-		if code != &"": return code
-	return &""
+	return _timber_scope_leaf() # Decision 2044 (P-2044-15): once per refresh loop, not per row.
 
 
 func _timber_new_locations(token: int) -> StringName:
@@ -2041,9 +2074,8 @@ func _timber_new_locations(token: int) -> StringName:
 		if code != &"" or _entry_contact.section.x < 0: return REFUSE_TIMBER_CONTACT
 		code = _timber_profile_envelope(endpoint)
 		if code == &"": code = _entry_placements._locations.stage_add(token, _entry_contact).error
-		if code == &"": code = _timber_scope_leaf()
 		if code != &"": return code
-	return &""
+	return _timber_scope_leaf() # Decision 2044 (P-2044-15): once per staging loop, not per Location.
 
 
 func _timber_selector_due(assembly: int) -> bool:
@@ -2097,8 +2129,8 @@ func _stage_timber_routes(placement: Vector2i, project: Vector2i, assembly: int,
 			break
 		if routes._live.present[row] != 1: continue
 		code = routes.stage_refresh(token, Vector2i(row, routes._live.fields[row]))
-		if code == &"": code = _timber_scope_leaf()
 		if code != &"": break
+	if code == &"": code = _timber_scope_leaf() # Decision 2044 (P-2044-15): once per refresh loop, not per row.
 	_reading = false
 	_entry_busy = false
 	return code

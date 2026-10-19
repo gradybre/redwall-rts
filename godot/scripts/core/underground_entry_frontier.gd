@@ -28,9 +28,10 @@ const SURFACE_ANCHOR: int = 0
 const INSTALLED_CONTACT: int = 1
 const SURFACE_CONTACT: int = 2
 const MAX_ROWS: int = 2048
-## Decision 2044 (P-2044-2 (a)): the M5 bundle's measured size (36 installs, 190 stations, 26 cuts, 230 bearings,
-## 301 endpoints and 154 episodes), with its memory-ledger row; was 28597.
-const MAX_BYTES: int = 51296
+## Decision 2044 (P-2044-2 (a)): the M5 bundle's measured size (36 installs, 190 stations, 26 cuts, 235 bearings,
+## 297 endpoints and 154 episodes; P-2044-16 (a)'s retained floor), with its memory-ledger row; was 28597. The M2
+## interim mounted today needs 16,192.
+const MAX_BYTES: int = 51316
 const FIXED_BYTES: int = 2048 # Exact header, capacities, streamed row and logical helper allowance.
 const WIRE_HEADER_BYTES: int = 220
 const HEADER_FIELDS: int = 14

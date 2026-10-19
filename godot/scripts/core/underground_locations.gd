@@ -374,6 +374,11 @@ var _prism_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
 var _witness_pass: int = 0
 var _in_witness_pass: bool = false
 var _sources_pass: int = 0 # ADR1229 increment 6b: the witness pass whose installed sources were proved current.
+## Decision 2044 (P-2044-15, "Exact cost fixes"): inside one witness pass, one Placement row's LANDING datums, each
+## [level, six world bounds], derived once (as the prisms above) and compared by every record of the pass.
+var _landing_boxes: PackedInt32Array = PackedInt32Array() # Sized at configure.
+var _landing_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
+const PASS_LANDINGS: int = 64 # M5's 41 LANDING regions; a variant with more takes the per-record scan.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
 var _region: Owner.Region = Owner.Region.new()
@@ -441,7 +446,9 @@ func _allocate_banks(capacity: int, arena_bytes: int) -> void:
 	_air_slots = mini(MAX_AIR_SLOTS, surplus)
 	_air_box.resize(6)
 	_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)
-	_prism_key.resize(5)
+	_prism_key.resize(8)
+	_landing_boxes.resize(7 * PASS_LANDINGS)
+	_landing_key.resize(4)
 	_live.allocate(capacity, _air_slots)
 	_stage.allocate(capacity, _air_slots)
 
@@ -2488,11 +2495,11 @@ func _natural_floor_site(physical: Sites, record: Record) -> Vector2i:
 
 func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
 	"""The installed prisms of the row's paid prefix in `_prism_boxes`, in part order; their count, or -1 when one
-	is not a complete prism or the budget is spent. ADR1229: shared by every record of one witness pass."""
-	var generation: int = issuer._live.i32[row]
-	if _in_witness_pass and _prism_key[0] == _witness_pass and _prism_key[1] == row and _prism_key[2] == generation \
-			and _prism_key[3] == prefix:
-		return int(_prism_key[4])
+	is not a complete prism or the budget is spent. ADR1229: shared by every record of one witness pass. Decision 2044
+	(P-2044-15, "Exact cost fixes"): a prism is a pure function of the Placement row (its generation fixes its
+	transform), the paid prefix, the Catalog and the Placement bank's revision, so the prisms are kept while all of
+	those stay the same, across passes and the per-record refreshes outside them: the same boxes are never re-derived."""
+	if _prisms_cached(issuer, row, prefix): return int(_prism_key[4])
 	_prism_key[0] = 0
 	var at: int = 0
 	for group: int in prefix:
@@ -2502,17 +2509,32 @@ func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
 			if installed_prism_into(issuer, row, part, _region.box) != &"": return -1
 			for axis: int in 6: _prism_boxes[at * 6 + axis] = _region.box[axis]
 			at += 1
-	if _in_witness_pass:
-		_prism_key[0] = _witness_pass
-		_prism_key[1] = row
-		_prism_key[2] = generation
-		_prism_key[3] = prefix
-		_prism_key[4] = at
+	_prism_key[1] = row
+	_prism_key[2] = issuer._live.i32[row]
+	_prism_key[3] = prefix
+	_prism_key[4] = at
+	_prism_key[5] = issuer._catalog._live.header[0]
+	_prism_key[6] = issuer._live.header[issuer.H_REVISION]
+	_prism_key[7] = issuer.get_instance_id()
+	_prism_key[0] = 1
 	return at
 
 
+func _prisms_cached(issuer: RefCounted, row: int, prefix: int) -> bool:
+	"""Whether `_prism_boxes` holds this row's prefix prisms for the same issuer, generation, Catalog and bank."""
+	return _prism_key[0] == 1 and _prism_key[1] == row and _prism_key[2] == issuer._live.i32[row] \
+		and _prism_key[3] == prefix and _prism_key[5] == issuer._catalog._live.header[0] \
+		and _prism_key[6] == issuer._live.header[issuer.H_REVISION] and _prism_key[7] == issuer.get_instance_id()
+
+
 func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
-	"""An exact authored landing is recognized before either prefix or ordinary Site fallback is considered."""
+	"""An exact authored landing is recognized before either prefix or ordinary Site fallback is considered.
+	Decision 2044: inside a witness pass the row's datums are derived once (`_pass_landings`) and each record compares
+	them at four checks a datum, as it compares the pass's prisms."""
+	if _in_witness_pass:
+		var landings: int = _pass_landings(issuer, row)
+		if landings == -1: return -1
+		if landings >= 0: return _pass_landing_count(landings, record)
 	var catalog: ConnectorCatalog = issuer._catalog
 	var variant: int = issuer._live.i32[issuer.CATALOG_ROW * issuer._capacity + row]
 	var first: int = catalog._live.variants[ConnectorCatalog.V_REGION_START * ConnectorCatalog.MAX_VARIANTS + variant]
@@ -2524,6 +2546,61 @@ func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> i
 		if catalog._live.regions[6 * ConnectorCatalog.MAX_REGIONS + at] != Space.LANDING: continue
 		if not _spend(32): return -1
 		if _installed_datum_matches(issuer, row, at, record): matched += 1
+	return matched
+
+
+func _pass_landings(issuer: RefCounted, row: int) -> int:
+	"""The row's LANDING datums in `_landing_boxes`, derived at the per-record scan's own charges once per pass; their
+	count, -1 when the budget is spent, or -2 when the variant has more than PASS_LANDINGS (the per-record scan)."""
+	var generation: int = issuer._live.i32[row]
+	if _landing_key[0] == _witness_pass and _landing_key[1] == row and _landing_key[2] == generation:
+		return int(_landing_key[3])
+	_landing_key[0] = 0
+	var catalog: ConnectorCatalog = issuer._catalog
+	var variant: int = issuer._live.i32[issuer.CATALOG_ROW * issuer._capacity + row]
+	var first: int = catalog._live.variants[ConnectorCatalog.V_REGION_START * ConnectorCatalog.MAX_VARIANTS + variant]
+	var at: int = 0
+	for index: int in catalog._live.variants[ConnectorCatalog.V_REGION_COUNT * ConnectorCatalog.MAX_VARIANTS + variant]:
+		if not _spend(): return -1
+		if catalog._live.regions[6 * ConnectorCatalog.MAX_REGIONS + first + index] != Space.LANDING: continue
+		if at >= PASS_LANDINGS: return -2
+		if not _spend(32): return -1
+		_pass_landing_into(issuer, row, first + index, at)
+		at += 1
+	_landing_key[0] = _witness_pass
+	_landing_key[1] = row
+	_landing_key[2] = generation
+	_landing_key[3] = at
+	return at
+
+
+func _pass_landing_into(issuer: RefCounted, row: int, region: int, at: int) -> void:
+	"""One LANDING datum's authored level and world bounds, as `_installed_datum_matches` derives them."""
+	var catalog: ConnectorCatalog = issuer._catalog
+	var regions: PackedInt32Array = catalog._live.regions
+	_landing_boxes[7 * at] = issuer._live.i32[issuer.LEVEL * issuer._capacity + row] \
+		+ regions[7 * ConnectorCatalog.MAX_REGIONS + region]
+	for axis: int in 3:
+		var a: int = installed_coordinate(issuer, row, regions[region], regions[ConnectorCatalog.MAX_REGIONS + region],
+			regions[2 * ConnectorCatalog.MAX_REGIONS + region], axis)
+		var b: int = installed_coordinate(issuer, row, regions[3 * ConnectorCatalog.MAX_REGIONS + region],
+			regions[4 * ConnectorCatalog.MAX_REGIONS + region], regions[5 * ConnectorCatalog.MAX_REGIONS + region], axis)
+		_landing_boxes[7 * at + 1 + axis] = mini(a, b)
+		_landing_boxes[7 * at + 4 + axis] = maxi(a, b)
+
+
+func _pass_landing_count(landings: int, record: Record) -> int:
+	"""How many of the pass's datums the record's section and level equal exactly; -1 when the budget is spent."""
+	if not _spend(4): return -1
+	if not _owner._region_live(record.section, _owner_token > 0): return 0
+	var matched: int = 0
+	for index: int in landings:
+		if not _spend(4): return -1
+		if _landing_boxes[7 * index] != record.level: continue
+		var same: bool = true
+		for axis: int in 6:
+			same = same and _landing_boxes[7 * index + 1 + axis] == _installed_section_bound(record.section.x, axis)
+		if same: matched += 1
 	return matched
 
 

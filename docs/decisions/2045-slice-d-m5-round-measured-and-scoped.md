@@ -354,6 +354,8 @@ Phase 1 only (no suite-wide gates; the build phase runs them):
   the endpoints and left a different endpoint record than an unchecked run), fixed by confirming with the segment
   proof only, then 29/29. After fix 4: `test_underground_entry_bindings.gd` and `test_underground_m5_entry_costs.gd`
   54/54. 0 unexpected errors or warnings, 0 leaks in each.
+- The analyzer (`tools/gdscript_warnings.py --max 0 --port 6505`): 0 warnings in 1,638 files. No function this
+  round added is over 30 lines, and none of the two edited files gained one.
 - `docs/validation/state_registry_coverage.py` PASS (206 modules, 847 rows).
 - `test_publish_m5_flight.py` 10/10 (the M5 bundle unchanged).
 - The M5 chain with the cache checks on, through module 0: no `RUNTIME_CACHE_STALE`.

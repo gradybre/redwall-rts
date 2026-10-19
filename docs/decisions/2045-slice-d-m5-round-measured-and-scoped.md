@@ -13,6 +13,22 @@ Number range: 2045–2049 (the D-flight lane's phase 2b). This is the M5 round's
   where they keep outcomes identical under the cache checks; write this record with the measurements, the ground
   re-proof fix and how it is proved exact, every file or function outside the claims, and proposals; then stop.
 
+## In short
+
+- **First refusal (today's bound, after this round's four exact fixes):** tick 34,927, module 0's sill, the
+  bindings' entry operation (`ROOM_MASK_OPERATION_BUDGET`, 1,048,603 tried). It is the installation that publishes
+  landing 1 and its **40 deep stations** (M2's landing 1 had 10).
+- **Measured past the bound** (a scratch clone with the budget lifted, so each number is real spend): module 0's
+  sill needs 1.70 M in the bindings and 1.57 M in Locations; landing 1's floor graph publication 3.33 M in
+  WorldRoutes; module 1's sill 1.95 M (bindings) and 1.97 M (Locations); landing 2's floor graph 3.81 M and
+  Locations 2.28 M. The cost is not module 4's accumulation, as 2044 projected: **it is the size of each landing's
+  deep stage, and it starts at landing 1.**
+- **Two functional stops past the bound** (claimed code): a haul begun on a deep floor (tick 35,770), and module 2's
+  T0″ from landing 2 (tick 49,454). Modules 3 and 4 were not reached.
+- **Outside the claims:** the bindings reserve (+22,879 B), the journal's owner compare (P-2044-18), the kept prisms'
+  key on restore (one line in Locations `restore_state_bytes`), and stage 1's observation charge. Proposals
+  P-2045-1 to -6.
+
 ## 1. What was done
 
 | Commit | What |
@@ -226,7 +242,7 @@ was reported.
 
 | # | File and function | Why | Proposal |
 |---|---|---|---|
-| O-1 | `scripts/core/underground_budget.gd` `BINDINGS_AND_GROWTH_BYTES` | +22,879 B for Frontier `MAX_BYTES` 51,476, plus whatever P-2045-5's batching or §3's scratch needs (none so far); a ledger row | P-2045-1 |
+| O-1 | `scripts/core/underground_budget.gd` `BINDINGS_AND_GROWTH_BYTES` | +22,879 B for Frontier `MAX_BYTES` 51,476 (§3's fixes added no storage); and, if P-2045-6 (a) builds the contact-air candidate list as a fixed bindings scratch, up to 24,576 B more (one int32 per Region slot); ledger rows | P-2045-1 |
 | O-2 | `scripts/core/underground_geometry_journal.gd` `_row_changed` | P-2044-18: compare the owner slot and generation, so a SUPPORT row removed and re-added with the same box and role but another owner, in one stage, is a change; with a test of the reused-slot, new-owner case. No Slice C lane holds it; phase-spreading stage 2 names the journal but waits for M5 | P-2045-2 |
 | O-3 | `scripts/core/underground_locations.gd` `restore_state_bytes` (Slice C hold) | Clear the kept prisms' key (`_prism_key[0] = 0`) on entry, before `_restore_current_refusal` re-proves the witnesses: a Placements bank restored in place keeps its instance and may restore an equal revision. The landing key needs nothing (it is keyed by the witness pass serial, which a restore never repeats). Neither stage 1's WorldRoutes caches nor C3's room runtime is involved. With a test that restores mid-preparation and compares the spend with a fresh run | P-2045-3 |
 | O-4 | `scripts/core/underground_world_routes.gd` `_endpoint_observation_refusal` (stage 1's, Slice C) | Charge an observation answered from the in-compile memo what it does, not 256 (§5 part 2) | P-2045-4 |
@@ -294,9 +310,12 @@ own (P-2045-5).
 **P-2045-5 — The deep stage's size (the measured bottleneck).**
 
 M5's landing 1 cuts layer 2 under 20 rows from 40 deep stations, all installed by module 0's sill, with their whole
-floor graph published at once and live for the whole stage. Measured: the sill's installation 1.70 M checks in the
-bindings and 1.57 M in Locations; the floor graph's publication 3.33 M in WorldRoutes; every deep phase after it
-about 1.10 M in WorldRoutes and up to 1.82 M in Locations. The bound is 1.05 M and is not to be raised (ruled).
+floor graph published at once and live for the whole stage; landing 2 does the same for 30. Measured: module 0's
+sill 1.70 M checks in the bindings and 1.57 M in Locations; landing 1's floor graph publication 3.33 M in
+WorldRoutes; landing 1's deep phases about 1.10 M (WorldRoutes) and up to 1.82 M (Locations); module 1's sill
+1.95 M and 1.97 M; landing 2's floor graph 3.81 M and Locations 2.28 M. A full ground compile's cost also grows with
+the image (10,000 checks a profile at 423 volumes, 15,300 at 654), so fewer live edges help but do not by themselves
+stop later landings from growing. The bound is 1.05 M and is not to be raised (ruled).
 
 - **(a) Batch the deep floor graph, as the work area batches the surface stations (ADR 1229): the stair path and
   foreman (claimed) publish only the next batch's stations' walks (for example four rows, eight stations), joined
@@ -310,7 +329,9 @@ about 1.10 M in WorldRoutes and up to 1.82 M in Locations. The bound is 1.05 M a
 - (c) Re-plan the dig so no landing cuts more than one module's rows at a time: not available; layer 2 of rows 12–26
   can only be struck from depth 1 (2043 §3).
 
-**Recommendation: (a), with P-2045-6.**
+**Recommendation: (a), with P-2045-6**, measured landing by landing; **if Locations still cannot fit at landing 1
+or 2 with (a) and P-2045-6 built, the lane stops and asks for (b)**, which is the change that bounds Locations by
+the batch too.
 
 **P-2045-6 — Exact cost fixes in claimed code for the sill and Locations (no new clearance; for the record).**
 
@@ -328,10 +349,11 @@ cannot fit, the lane stops again with the numbers.
 
 Phase 1 only (no suite-wide gates; the build phase runs them):
 
-- `test_underground_route_memos.gd` 29/29; `test_underground_world_routes.gd`, `test_underground_route_memos.gd`,
-  `test_underground_entry_bindings.gd`, `test_underground_stair_carry_routes.gd` 148/149 before the cache-check
-  form of heading first was fixed, then all green; `test_underground_entry_bindings.gd` and
-  `test_underground_m5_entry_costs.gd` 54/54 after fix 4. 0 unexpected errors or warnings, 0 leaks.
+- `test_underground_world_routes.gd`, `test_underground_entry_bindings.gd` and `test_underground_stair_carry_routes.gd`
+  pass with fixes 1–3; `test_underground_route_memos.gd` failed one test (the cache-checks confirmation then observed
+  the endpoints and left a different endpoint record than an unchecked run), fixed by confirming with the segment
+  proof only, then 29/29. After fix 4: `test_underground_entry_bindings.gd` and `test_underground_m5_entry_costs.gd`
+  54/54. 0 unexpected errors or warnings, 0 leaks in each.
 - `docs/validation/state_registry_coverage.py` PASS (206 modules, 847 rows).
 - `test_publish_m5_flight.py` 10/10 (the M5 bundle unchanged).
 - The M5 chain with the cache checks on, through module 0: no `RUNTIME_CACHE_STALE`.

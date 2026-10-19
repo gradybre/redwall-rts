@@ -47,19 +47,19 @@
     "INSTALL_COUNT": 15,
     "STATION_COUNT": 49,
     "CUT_COUNT": 11,
-    "BEARING_COUNT": 80,
-    "ENDPOINT_COUNT": 97,
+    "BEARING_COUNT": 82,
+    "ENDPOINT_COUNT": 96,
     "EPISODE_COUNT": 34
   },
   "files": {
     "structure.ugconn": "d57fd2510dc00d001e199df7c2a64101b4551092cf4a22a55988066f4cbd1489",
     "assemblies.ugasmb": "47d229a30cc59973d449081f28580bb4dd92dd605a618e40e6d7c4cbfe8bc53e",
     "recipes.ugrecp": "78487ba5af14f198d4d9b95aac1f005552b554dec296f23a74f7e3820dbf53cf",
-    "frontier.ugfront": "a43c7d7a13f4e3ad6fcfca6a25a1793aa562d70a4383419e7c0113e8901839c1",
+    "frontier.ugfront": "ed7125d263cdb2c2421cb68de76a89e3cfaaf7e48bdf357ecacf1f21f3e5500e",
     "workpieces.ugwipc": "a60dc6ec912a9bf4c404df77074b8db2b18fefc027368d0a83d7d047f379c9ee",
     "ground-pace.ugconn": "8e189a6694b568542829ad9b7d57e57edee64647999d3fb39021d9c926c59d7d",
     "mole-worker.ugprof": "fa96acbeac96ca3860f2368c88c9287a51a5eadba29cd9530ea14c6c5e95e202",
-    "catalog_source.gd": "3b7c4e9ad8077ead4e53538a7bfb353171945983cb90caf8a50076c423718516"
+    "catalog_source.gd": "4fe60dc61b89497512021505ec3d35b97b1334f57ec7e179f02b333b5d3b82c3"
   },
   "inputs": {
     "godot/data/underground/first-entry-prefix-v1/qualified-stairs-v10/frontier.ugfront": "8ee90bbff55e11c45604af294cb47fb21e2b097c99484f000310464b48d0d006",

@@ -44,7 +44,7 @@ class M5Bundle(unittest.TestCase):
         for table, (old, new) in enumerate(zip(self.v10, self.frontier)):
             for index, row in enumerate(old):
                 expected = list(row)
-                if table == 0 and index == 7: expected[6] = 2 + 22
+                if table == 0 and index == 7: expected[6] = 2 + 3 + 20  # Landing 1's deck slab, bands, rows 7-26.
                 self.assertEqual(new[index], expected, (table, index))
 
     def test_counts_are_2043s(self) -> None:
@@ -73,7 +73,7 @@ class M5Bundle(unittest.TestCase):
         under it; a landing's own rows are never retired."""
         bearing, episode = self.frontier[3], self.frontier[5]
         strips = [row for row in bearing if row[0] == PUB.STRIP_KIND]
-        self.assertEqual(len(strips), 22 + 17 + 12 + 7 + 2)
+        self.assertEqual(len(strips), sum(3 + max(0, 27 - (5 * j + 2)) for j in range(1, 6)))
         for row in strips:
             if row[1] < 0:
                 continue
@@ -128,7 +128,7 @@ class M2Bundle(unittest.TestCase):
         """15 installs, 11 cut groups, 34 one-cube episodes (24 top metre, 10 deep), 97 parts."""
         install, station, cut, bearing, endpoint, episode = self.frontier
         self.assertEqual([len(install), len(station), len(cut), len(bearing), len(endpoint), len(episode)],
-                         [15, 49, 11, 80, 97, 34])
+                         [15, 49, 11, 82, 96, 34])
         self.assertEqual([sum(1 for e in episode if e[4] == -1024 * layer) for layer in range(3)], [24, 10, 0])
         self.assertEqual(struct.unpack_from("<7I", self.built["structure.ugconn"], 20)[3], 97)
 
@@ -138,7 +138,7 @@ class M2Bundle(unittest.TestCase):
         for table, old in enumerate(v10):
             for index, row in enumerate(old):
                 expected = list(row)
-                if table == 0 and index == 7: expected[6] = 2 + 7
+                if table == 0 and index == 7: expected[6] = 2 + 3 + 5  # Landing 1's deck slab, bands, rows 7-11.
                 self.assertEqual(self.frontier[table][index], expected, (table, index))
 
 

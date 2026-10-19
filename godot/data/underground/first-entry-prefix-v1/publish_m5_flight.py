@@ -174,7 +174,7 @@ def structure(spec: dict, old: bytes, ground: bytes, profile: bytes) -> tuple:
     parts = parts_all(spec)
     bearings = bearings_all(spec, parts)
     cuts = cut_groups()
-    bounds = parts + bearings + cuts + [strip_box(landing, row) for landing, row in strip_rows()]
+    bounds = parts + bearings + cuts + [box for landing in range(1, MODULES + 1) for _, box in strip_boxes(landing)]
     envelope = [min(b[a] for b in bounds) for a in range(3)] + [max(b[a + 3] for b in bounds) for a in range(3)]
     old_regions = V10.regions_of(old)
     envelope[4] = old_regions[0][4]
@@ -267,9 +267,28 @@ def workpieces(catalog: bytes, group: bytes, recipe: bytes, profile: bytes) -> b
 
 
 def strip_rows() -> list:
-    """(landing, row) for every floor row a landing's strips cover: the previous module's run-out rows and every row
-    past them, to the end wall."""
-    return [(landing, row) for landing in range(1, MODULES + 1) for row in range(5 * landing, ROWS)]
+    """(landing, row) for every deep row a landing's per-row strips cover: module j's rows (5j + 2 on), each retired
+    by its own first cube (P-2044-12 (a))."""
+    return [(landing, row) for landing in range(1, MODULES + 1) for row in range(5 * landing + 2, ROWS)]
+
+
+def deck_rows(landing: int) -> range:
+    """P-2044-16 (a): the rows under landing j's walk-off and back-up decks (71: F - 1,193 to F + 5,975; 72: F' - 850
+    to F' + 6,318), module j-1's seven rows from its L0 position to its run-out: 5(j - 1) .. 5j + 1. Never cut deeper."""
+    return range(5 * (landing - 1), 5 * landing + 2)
+
+
+def strip_boxes(landing: int) -> list:
+    """(row, box) for landing j's retained floor (kind 2), all 128 u deep under the floor: the deck rows' full slot
+    width as a centre slab (x +-768) and two side bands (768 <= |x| <= 1,024, where the posts' natural bearings already
+    are, so staging keeps only what they leave), row -1 (never retired); then module j's rows at x +-768, one each."""
+    y = -MODULE_DROP * landing
+    rows = deck_rows(landing)
+    near, far = -1024 * rows[0], -1024 * (rows[-1] + 1)
+    out = [(-1, [-STRIP_HALF_X, y - STRIP_DEPTH, far, STRIP_HALF_X, y, near]),
+           (-1, [-1024, y - STRIP_DEPTH, far, -STRIP_HALF_X, y, near]),
+           (-1, [STRIP_HALF_X, y - STRIP_DEPTH, far, 1024, y, near])]
+    return out + [(row, strip_box(landing, row)) for row in range(5 * landing + 2, ROWS)]
 
 
 def strip_box(landing: int, row: int) -> list:
@@ -356,39 +375,42 @@ def add_land_top_metre(t: Tables, prefix_episodes: list) -> None:
 
 
 def add_strips(t: Tables, landing: int) -> list:
-    """Landing j's floor strips, one a row (kind 2); the episode that retires each is patched in once the deep
-    episodes exist. Returns [(bearing index, row)]."""
+    """Landing j's retained floor (kind 2, `strip_boxes`); the episode that retires each deep row's strip is patched in
+    once the deep episodes exist. Returns [(bearing index, row)], row -1 for the deck slab and bands."""
     out = []
-    for row in range(5 * landing, ROWS):
-        t.bearing.append([STRIP_KIND, -1, -1] + strip_box(landing, row))
+    for row, box in strip_boxes(landing):
+        t.bearing.append([STRIP_KIND, -1, -1] + box)
         out.append((len(t.bearing) - 1, row))
     return out
 
 
 def add_floor_stops(t: Tables, landing: int) -> dict:
-    """Decision 1972's floor stops on landing j (module j-1's sill's selectors), plus F on the narrow retreat (the
-    way a T0' order backs off its station). Indices by name."""
+    """Decision 1972's floor stops on landing j (module j-1's sill's selectors): F (the descent's arrival), U (the
+    ascent's start) and F' (the walk-off's end, 71/72). P-2044-16 (a): F' is a ground stop too, sized by the narrow
+    retreat 47, whose body (43's, facing down the flight) clears the sill by 274 u; every ground join at F' faces down
+    the flight (43 out, 47 in). But for the last landing, P' (module j's walk-in stop) is the sill's too, sized by the
+    all-yaw claw WALK 42 as the hub of the deep stations' floor walks (P-2044-16 (a)), so it stands before T0'."""
     sill = assembly_of(landing - 1, 6)
     at = floor_landing_ordinal(landing)
     out = {"F": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_ARRIVAL) + [V10.DESCENT]),
            "U": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_ASCENT) + [V10.ASCENT]),
-           "F'": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_WALK_OFF) + [V10.DESCENT])}
+           "F'": t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_WALK_OFF) + [RETREAT])}
     if landing < MODULES:
-        out["F_back"] = t.add_endpoint([INSTALLED, sill, at, TRANSIT] + floor_point(landing, FLOOR_ARRIVAL) + [RETREAT])
+        out["P"] = t.add_endpoint([INSTALLED, sill, at, TRANSIT] + stop_point(landing, -1, V10.STATION) + [DEEP_TRAVEL])
     return out
 
 
 def add_module_stops(t: Tables, module: int) -> dict:
-    """Module j's stops: H' (its T0's station, the previous sill's), P'/A0'/U0' on its natural landing (its T0's, as
-    L0's are T0's in v10), and every tread's A/S/U and the sill's A/U, translated."""
+    """Module j's stops: H' (its T0's station, the previous sill's), A0'/U0' on its natural landing (its T0's, as
+    L0's are T0's in v10; P' is the landing's, `add_floor_stops`), and every tread's A/S/U and the sill's A/U,
+    translated."""
     sill = assembly_of(module - 1, 6)
     t0 = assembly_of(module, 0)
     floor = floor_landing_ordinal(module)
     out = {"H": t.add_endpoint([INSTALLED, sill, floor, WORK] + stop_point(module, -1, 512) + [V10.APPROACH]),
-           "P": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.STATION) + [V10.APPROACH]),
            "A0": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.ARRIVAL) + [V10.DESCENT]),
            "U0": t.add_endpoint([INSTALLED, t0, floor, TRANSIT] + stop_point(module, -1, V10.ASCENT_START)
-                                + [V10.APPROACH_UP]),
+                                + [RETREAT]),  # P-2044-16 (a): U0' backs down the landing to F' on 47.
            "A": [], "S": [], "Us": []}
     for level in range(V10.TREADS + 1):
         asm, at = assembly_of(module, level), tread_landing_ordinal(module, level)
@@ -421,13 +443,13 @@ def add_module_bearings(t: Tables, module: int, naturals: list) -> dict:
 
 
 def add_module_installs(t: Tables, module: int, stops: dict, floor: dict, bearings: dict, strips: list) -> None:
-    """Module j's seven INSTALL rows: T0' from H' (backing off to F), each later tread from the station on the tread
+    """Module j's seven INSTALL rows: T0' from H' (backing off to F'), each later tread from the station on the tread
     above (the crossing arrival as its way back, as in v10), the sill retaining landing j+1's strips."""
     groups = 6 + 5 * (module - 1)
     nat = bearings["naturals"]
     t0_station = t.add_station(stops["H"], 0, TAP_ROW)
     t.install.append([assembly_of(module, 0), t0_station, bearings["primary"], groups, 1, nat, 4, V10_M,
-                      floor["F_back"]])
+                      floor["F'"]])
     for k in range(1, 7):
         station = t.add_station(stops["S"][k - 1], 0, V10.TREAD_TAP)
         group = groups + (k // 2 if k < 6 else 3)

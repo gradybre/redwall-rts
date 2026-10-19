@@ -371,6 +371,10 @@ var _sealed: bool = false
 ## generation, prefix, part count]; the pass number changes at every pass, so nothing survives one.
 var _prism_boxes: PackedInt32Array = PackedInt32Array() # Sized at configure.
 var _prism_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
+## Decision 2044 (P-2044-15): `_prism_boxes`' prisms ordered by top face, (top + TOP_BIAS) << 16 | index, unused
+## entries the largest key, so a record finds the prisms at its height by binary search.
+var _prism_tops: PackedInt64Array = PackedInt64Array() # Sized at configure.
+const TOP_BIAS: int = 1 << 30
 var _witness_pass: int = 0
 var _in_witness_pass: bool = false
 var _sources_pass: int = 0 # ADR1229 increment 6b: the witness pass whose installed sources were proved current.
@@ -447,6 +451,7 @@ func _allocate_banks(capacity: int, arena_bytes: int) -> void:
 	_air_box.resize(6)
 	_prism_boxes.resize(6 * ConnectorCatalog.MAX_PARTS)
 	_prism_key.resize(8)
+	_prism_tops.resize(ConnectorCatalog.MAX_PARTS)
 	_landing_boxes.resize(7 * PASS_LANDINGS)
 	_landing_key.resize(4)
 	_live.allocate(capacity, _air_slots)
@@ -2466,10 +2471,14 @@ func _installed_row_site(issuer: RefCounted, row: int, prefix: int, record: Reco
 	if parts < 0: return NULL_REF
 	var found: Vector2i = NULL_REF
 	var held: bool = false
-	for index: int in parts:
+	# Decision 2044 (P-2044-15): only the prisms whose top is the record's height can hold it, found by search.
+	if not _spend(16): return NULL_REF
+	for at: int in range(_prism_tops.bsearch((int(record.point.y) + TOP_BIAS) << 16), parts):
+		if (_prism_tops[at] >> 16) - TOP_BIAS != record.point.y: break
 		if not _spend(4): return NULL_REF
+		var index: int = _prism_tops[at] & 0xFFFF
 		for axis: int in 6: _region.box[axis] = _prism_boxes[index * 6 + axis]
-		if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
+		if record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
 				or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
 		held = true
 		var site: Vector2i = _installed_part_site(record, physical)
@@ -2509,6 +2518,7 @@ func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
 			if installed_prism_into(issuer, row, part, _region.box) != &"": return -1
 			for axis: int in 6: _prism_boxes[at * 6 + axis] = _region.box[axis]
 			at += 1
+	if not _order_prisms(at): return -1
 	_prism_key[1] = row
 	_prism_key[2] = issuer._live.i32[row]
 	_prism_key[3] = prefix
@@ -2518,6 +2528,15 @@ func _installed_prefix_prisms(issuer: RefCounted, row: int, prefix: int) -> int:
 	_prism_key[7] = issuer.get_instance_id()
 	_prism_key[0] = 1
 	return at
+
+
+func _order_prisms(count: int) -> bool:
+	"""Decision 2044: `_prism_tops` for the first `count` prisms (sixteen checks a prism to order them)."""
+	if not _spend(16 * count): return false
+	for at: int in _prism_tops.size():
+		_prism_tops[at] = ((int(_prism_boxes[at * 6 + 4]) + TOP_BIAS) << 16) | at if at < count else 0x7FFFFFFFFFFFFFFF
+	_prism_tops.sort()
+	return true
 
 
 func _prisms_cached(issuer: RefCounted, row: int, prefix: int) -> bool:

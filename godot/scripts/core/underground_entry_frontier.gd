@@ -28,10 +28,11 @@ const SURFACE_ANCHOR: int = 0
 const INSTALLED_CONTACT: int = 1
 const SURFACE_CONTACT: int = 2
 const MAX_ROWS: int = 2048
-## Decision 2044: the M2 interim mounted today needs 16,232 B and fits unchanged. P-2044-2 (a)'s raise to M5's
-## measured 51,476 B (36 installs, 190 stations, 26 cuts, 235 bearings, 301 endpoints, 154 episodes) lands with M5:
-## the shared bindings reserve (`Budget.BINDINGS_AND_GROWTH_BYTES`) is fully assigned and must grow with it.
-const MAX_BYTES: int = 28597 # 36789 remaining, less separate4096 Contacts and4096 EntryBindings.
+## Decision 2044: the M2 interim needed 16,232 B and fit the earlier 28,597. Decision 2045 mounts M5 and lands
+## P-2044-2 (a)'s raise to M5's measured 51,476 B (36 installs, 190 stations, 26 cuts, 235 bearings, 301 endpoints,
+## 154 episodes). The shared bindings reserve (`Budget.BINDINGS_AND_GROWTH_BYTES`) is fully assigned and must grow
+## with it by 22,879 B (P-2045-1, outside this lane's claims); until it does the memory census refuses this value.
+const MAX_BYTES: int = 51476 # 36789 remaining before the raise, less separate4096 Contacts and4096 EntryBindings.
 const FIXED_BYTES: int = 2048 # Exact header, capacities, streamed row and logical helper allowance.
 const WIRE_HEADER_BYTES: int = 220
 const HEADER_FIELDS: int = 14

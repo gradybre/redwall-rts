@@ -20,10 +20,10 @@ const SILL: int = Base.SILL
 const T0_BEARER_PART: int = Base.T0_BEARER_PART
 const T0_TURN: int = Base.T0_TURN
 const T0_TRANSLATION: Vector3i = Base.T0_TRANSLATION
-## Decision 2044 (P-2044-15, "Land M2 now"): the built flight is the M2 interim, M5's first two modules
-## (`qualified-stairs-m2-v1`), ending on module 1's floor 2,048 u down. M5's five modules stay the target: this count,
-## the mounted bundle and the work area's rows are the switch. Every function here holds for any module count.
-const MODULES: int = 2
+## Decision 2044 (P-2044-15, "Land M2 now"): the M2 interim (`qualified-stairs-m2-v1`) mounted the first two modules.
+## Decision 2045: the M5 round mounts all five (`qualified-stairs-m5-v1`), ending on level 1's floor 5,120 u down: this
+## count, the mounted bundle and the work area's rows are the switch. Every function here holds for any module count.
+const MODULES: int = 5
 const ASSEMBLIES_PER_MODULE: int = TREADS + 1 # T0..T5 and the sill.
 const MODULE_DROP: int = 1024
 const MODULE_RUN: int = 5120

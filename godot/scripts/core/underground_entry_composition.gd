@@ -14,9 +14,9 @@ const Delivery := preload("res://scripts/core/underground_connector_delivery.gd"
 const Provider := preload("res://scripts/core/underground_room_world_bindings.gd")
 ## Decision 1972: the T1-T6 first-entry bundle v10 on content 12 (ADR1229 mounted v9 on content 10; ADR1217 step 5
 ## the claw bundle, content 9).
-## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts, Frontier revision 10; P-2044-15), the first
-## two modules of the M5 flight to level 1 (the target), v10's successor.
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
+## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts; P-2044-15) mounted M5's first two modules.
+## Decision 2045: the M5 flight to level 1 (`qualified-stairs-m5-v1`, 232 parts, Frontier revision 10), v10's successor.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m5-v1/catalog_source.gd")
 const StructureScope := preload("res://scripts/core/underground_world_structure_scope.gd")
 const EntryStructure := preload("res://scripts/core/underground_entry_structure.gd")
 

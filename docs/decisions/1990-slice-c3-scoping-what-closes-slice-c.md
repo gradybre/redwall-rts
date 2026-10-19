@@ -243,6 +243,17 @@ slice H's "show who is assigned" polish.
 
 **Recommendation: (a).** One command, nothing lost: the pending cells are the plan, and Undo/Erase already remove them.
 
+## Note (2026-10-19): a second C2 defect found by C3, room phases and residents who are not crew
+
+C3 found that `_ordinary_occupants_leaf` (`underground_room_world_bindings.gd`) never got ADR 1219's rule for
+unregistered residents. So every room phase refused `ROOM_PHASE_WORKER` while any living resident was not a Routes
+actor, which in the game means always.
+
+The fixtures missed it because every resident in them was crew. It also explains the C06 result reported earlier:
+one far-off mole, not named, was enough. The coordinator cleared the fix on 2026-10-19. The leaf now mirrors
+`Routes._assembly_occupants_leaf`, at the working actor's WORK location, charging 16 checks a row. Tests, mutants and
+the unchanged SHA trace are in decision 1991 §3a, and the real-route fixture now keeps a resident who is not crew.
+
 ## Source
 
 DEC-054, DEC-059, DEC-061 (`docs/setting_decisions.md`); SET-BUILD-001 BUILD-REQ-012, -013, -019; decisions 1871, 1880,

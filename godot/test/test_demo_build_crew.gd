@@ -240,6 +240,22 @@ func test_the_room_card_says_how_far_and_who_and_stop_puts_the_rest_back_in_the_
 	assert_equal(_build.batch.pending_count(), pending, "takes them out of the plan")
 
 
+func test_stop_during_a_paint_stroke_still_puts_every_waiting_cell_back() -> void:
+	"""Review M-2: Stop digging while a stroke is being painted cancels the stroke and the waiting cells still go back
+	into the plan (none lost)."""
+	_confirm_kitchen_with(PackedInt32Array([1]))
+	_step_all(120)
+	assert_true(_build.show_room_card(1, KITCHEN_TO), "the card")
+	var waiting: int = _build.works.waiting()
+	var pending: int = _build.batch.pending_count()
+	assert_true(_build.batch.begin_stroke(KITCHEN, 1, Vector2i(20, 20)), "a stroke under way")
+	_build.stop_shown_room()
+	assert_false(_build.batch.stroke_active(), "the stroke cancelled")
+	assert_equal(_build.batch.pending_count(), pending + 1, "one pending Kitchen")
+	var k: int = _build.batch.operation_count() - 1
+	assert_true(_build.batch.operation_cell_count(k) >= waiting - 1, "the waiting cells are back in the plan")
+
+
 func test_a_mole_digging_a_stopped_cell_lets_it_go_and_plans_again() -> void:
 	"""The cell the mole stands digging is stopped: it lets the cell go at once (no cell opens behind the Stop)."""
 	_confirm_kitchen_with(PackedInt32Array([1]))
@@ -306,6 +322,20 @@ func test_the_room_card_is_ui_build_015_with_its_stop_button_016() -> void:
 	card.place_in(Rect2(10.0, 20.0, 280.0, 184.0))
 	assert_equal(card.stop_button().size, Vector2(176.0, 32.0), "UI-BUILD-016 at its minimum in the 280-wide card")
 	_build.open_panel()
+	_build.panel.show_room("Kitchen, Underground level 1", "x", RoomCard.STATE_DIGGING)
+	var usable: int = _usable_card()
+	if usable >= 0:
+		_build.panel.choose_card(usable)
+		assert_false(_build.panel.room_shown(), "review M-1: choosing a card puts it away")
+	_build.panel.show_room("Kitchen, Underground level 1", "x", RoomCard.STATE_DIGGING)
+	var hatch: int = _card_named("Hatch with ladder")
+	if hatch >= 0:
+		_build.panel.choose_card(hatch)
+		_build.panel.show_room("Kitchen, Underground level 1", "x", RoomCard.STATE_DIGGING)
+		assert_true(_build.panel.pin_way(Vector2i(10, 10)), "a way pinned")
+		assert_false(_build.panel.room_shown(), "review M-1: pinning a way puts it away")
+		assert_true(_build.panel.connector().visible, "the connector card alone")
+		_build.panel.cancel_pin()
 	_build.panel.show_room("Kitchen, Underground level 1", "x", RoomCard.STATE_DIGGING)
 	assert_true(_build.panel.escape(), "Escape")
 	assert_false(_build.panel.room_shown(), "puts it away")
@@ -435,3 +465,20 @@ func test_the_ledgers_second_line_keeps_the_crew_and_the_note_before_the_work() 
 	ledger.size = Vector2(40.0, 44.0)
 	_build.panel.set_crew_line(crew)
 	assert_true(ledger.text.get_slice("\n", 1).begins_with(crew), "narrow: the crew alone: %s" % ledger.text)
+
+
+func _usable_card() -> int:
+	"""The first card of the panel's row that a click arms (-1: none)."""
+	var cards: Array = _build.panel._cards
+	for index: int in cards.size():
+		var card: BuildCatalog.Card = cards[index]
+		if card.usable() and card.kind != BuildCatalog.CARD_TOOL: return index
+	return -1
+
+
+func _card_named(card_name: String) -> int:
+	"""The index of the panel row's card with this name (-1: none)."""
+	var cards: Array[BuildCatalog.Card] = _build.panel.row_cards()
+	for index: int in cards.size():
+		if cards[index].name == card_name: return index
+	return -1

@@ -1,8 +1,9 @@
 extends "res://test/live/demo_build_dig_live.gd"
 ## SLICE C3 IN THE DEMO, live (decision 1991; Brendan's rulings P-1990-1 (b), P-1990-4 (a), P-1990-5 (a)): on the real
 ## village through the real input gate -- the Entrance placed and a Passage and a Kitchen painted (the dig loop's own
-## steps), two moles selected (two residents in an art-free village, where no mole lives), the footer's ledger naming
-## them as the crew, Confirm all clicked, both crew members down digging side by side, a click on the Kitchen opening
+## steps), the crew selected (the staged village's one mole with art; two residents in an art-free village, where no
+## mole lives), the footer's ledger naming it, Confirm all clicked, every crew member down digging, a click on the
+## Kitchen opening
 ## its room card (UI-BUILD-015), "Stop digging" (UI-BUILD-016) clicked: the Kitchen's waiting cells back in the plan as
 ## a pending Kitchen, what was dug kept, and the crew walking out once the Passage is done. Optional:
 ## -- --capture <directory> for its frames.
@@ -167,8 +168,9 @@ func _stopped_words() -> void:
 	"""After the Stop the crew's own words no longer say it digs (nothing is left for it but the Passage, or nothing)."""
 	for trip: Object in _build().get("diggers"):
 		var label: String = String(trip.call(&"label"))
-		_check("the crew's words follow the Stop", not label.contains("(%d cells waiting)" % (24 - _dug_at_stop))
-			or int(trip.call(&"waiting")) > 0, label)
+		var waiting: int = int(trip.call(&"waiting"))
+		_check("the crew's words follow the Stop", (waiting > 0 and label.contains("(%d cells waiting)" % waiting))
+			or (waiting == 0 and not label.begins_with("Digging")), "%s (%d waiting)" % [label, waiting])
 	_manager().call(&"set_speed", 4)
 
 

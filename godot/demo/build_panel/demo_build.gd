@@ -1129,6 +1129,7 @@ func stop_shown_room() -> void:
 	var cell: Vector2i = Vector2i(_card_at.y, _card_at.z)
 	var type: int = works.room_type_at(level, cell)
 	var kept: Vector2i = _a_dug_cell(level, cell)
+	if batch.stroke_active(): batch.cancel_stroke() # Review M-2: the cells go back into the plan, never lost.
 	var back: PackedInt32Array = works.stop_room(level, cell)
 	if kept.x != -1: _card_at = Vector3i(level, kept.x, kept.y) # The card stays on what is dug (else it closes).
 	if type < 0 or back.is_empty():

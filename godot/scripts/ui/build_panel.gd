@@ -660,6 +660,7 @@ func choose_card(index: int) -> void:
 	var card: BuildCatalog.Card = _cards[index]
 	if card.usable() and card.kind != BuildCatalog.CARD_TOOL:
 		cancel_pin()
+		hide_room() # Decision 1991 (review M-1): arming a card puts the room card away.
 		_chosen = card
 		if card.kind == BuildCatalog.CARD_WAY_DOWN and not Families.turn_refusal(card.item_type, _way_turn).is_empty():
 			_way_turn = 0
@@ -771,6 +772,7 @@ func pin_way(cell: Vector2i) -> bool:
 	no way armed."""
 	if not way_down_armed():
 		return false
+	hide_room() # Decision 1991 (review M-1): the room card and the connector card are never open together.
 	_pinned = true
 	_pin_cell = cell
 	_pin_up = default_up(_level)

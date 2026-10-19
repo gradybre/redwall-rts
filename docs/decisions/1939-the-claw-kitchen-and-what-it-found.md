@@ -105,3 +105,9 @@ Decision 1940 §4 holds the lane's mutation run and the independent review for d
 Files edited beyond the four cleared ones (the coordinator cleared the room builder, foreman and runtime modules and
 their tests): `underground_room_itinerary.gd` (gap 1) and, in `underground_room_world_bindings.gd`, functions other
 than `worker_refusal` (gap 2).
+
+## Note (2026-10-19, decision 1991)
+
+Every resident in this fixture was crew, so it could not show that the room phases refused while a resident who is
+not crew lived (`ROOM_PHASE_WORKER`). Decision 1991 §3a fixed that, and decision 1990's note records it as a C2 defect
+found by C3. The real-route fixture now keeps one mole who is not crew.

@@ -396,10 +396,20 @@ func crew_of(room: Vector2i) -> PackedInt32Array:
 	return out
 
 
+func containers_into(room: Vector2i, out: Array[Vector2i]) -> void:
+	"""Decision 1991: a kept record's storage, output and staging containers (the null reference where none)."""
+	out.clear()
+	var slot: int = _slot(_row(room))
+	if slot < 0 or _generation[slot] != room.y: return
+	out.append(Vector2i(_storage[2 * slot], _storage[2 * slot + 1]))
+	out.append(Vector2i(_output[2 * slot], _output[2 * slot + 1]))
+	out.append(Vector2i(_staging[2 * slot], _staging[2 * slot + 1]))
+
+
 func queued_into(out: Array[Vector2i]) -> void:
 	"""Decision 1991: every QUEUED room, in room-row order (so the composer starts them in one canonical order)."""
 	out.clear()
-	if _directory == null: return
+	if _directory == null or _state.count(RECORD_QUEUED) == 0: return # Native count: no scan while nothing waits.
 	var rows: PackedInt32Array = PackedInt32Array()
 	for slot: int in MAX_KEPT:
 		if _room_row[slot] >= 0 and _state[slot] == RECORD_QUEUED: rows.append(_room_row[slot])
@@ -513,7 +523,8 @@ func _records_agree() -> bool:
 	"""Decision 1937's review M3, closed by decision 1991: the cross-record invariants a load must re-prove. Every
 	foreman names a kept record and no record has two; a QUEUED record has none; a DIGGING record's foreman runs; a
 	DONE one's finished with its crew still out (else it was released) and a STOPPED one's failed; every other record
-	has exactly one; a named crew is well formed (pairs, no resident twice)."""
+	has exactly one; the release flag is 0, or 1 on a STOPPED (or since finished) record; a named crew is well formed
+	(pairs, no resident twice)."""
 	var seen: PackedInt32Array = PackedInt32Array()
 	for index: int in _foremen.size():
 		var slot: int = _slot(_foreman_rows[index])
@@ -522,6 +533,8 @@ func _records_agree() -> bool:
 	for slot: int in MAX_KEPT:
 		if _room_row[slot] < 0: continue
 		if (_state[slot] == RECORD_QUEUED) == seen.has(slot): return false # Only a QUEUED record has no foreman.
+		if _release_out[slot] > 1 or (_release_out[slot] == 1 and _state[slot] != RECORD_STOPPED \
+				and _state[slot] != RECORD_DONE): return false # The flag is set only by a Stop.
 		if not _crew_well_formed(slot): return false
 	return true
 

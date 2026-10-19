@@ -22,6 +22,8 @@ const EntryRuntime := preload("res://scripts/core/underground_entry_runtime.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_SCOPE: StringName = &"ROOM_DIG_SCOPE"
 const REFUSE_OTHER_ACCESS: StringName = &"ROOM_DIG_OTHER_ACCESS"
@@ -34,6 +36,11 @@ const REFUSE_CREW_SIZE: StringName = &"ROOM_DIG_CREW_SIZE"
 const REFUSE_CREW_MEMBER: StringName = &"ROOM_DIG_CREW_NOT_A_DIGGER"
 ## Decision 1991, internal: the crew is busy; the record keeps waiting (never an alert).
 const WAIT: StringName = &"ROOM_DIG_WAITING_FOR_CREW"
+## Decision 1991 (review C-1): on the fixed tick a room waiting for "the first idle mole" looks through one eighth of
+## the resident slots, the window keyed by the tick (64 slots at 512), so the scan costs an eighth on every tick
+## rather than a whole pass on each; such a room starts at most seven ticks later than a full scan would. A choice of
+## cost, not a rule.
+const IDLE_WINDOWS: int = 8
 
 
 class Order extends RefCounted:
@@ -46,6 +53,17 @@ class Order extends RefCounted:
 	var output: Vector2i = NULL_REF
 	var staging: Vector2i = NULL_REF
 	var crew: PackedInt32Array = PackedInt32Array()
+
+
+class Idle extends RefCounted:
+	## Decision 1991 (review C-1): one fixed tick's idle diggers, scanned once (lazily, by the first waiting room that
+	## names no live crew) and handed out in slot order, so N waiting rooms cost one resident scan, not N.
+	var scanned: bool = false
+	var slots: PackedInt32Array = PackedInt32Array()
+	var next: int = 0
+	var from: int = 0
+	var to: int = Residents.RESIDENT_CAPACITY
+	var mole: int = -1 # The mole's species id, read once per tick.
 
 
 static func owners_of(o: RefCounted) -> Builder.Owners:
@@ -86,34 +104,54 @@ static func crew_refusal(owners: Builder.Owners, crew: PackedInt32Array) -> Stri
 		if seen.has(slot): return REFUSE_CREW_SIZE
 		seen.append(slot)
 	if not crew.is_empty(): return &""
+	var mole: int = _mole_id(owners.residents)
 	for slot: int in Residents.RESIDENT_CAPACITY:
-		if could_dig(owners.residents, slot): return &""
+		if _could_dig_as(owners.residents, slot, mole): return &""
 	return REFUSE_NO_MOLE
 
 
 static func could_dig(residents: Residents, slot: int) -> bool:
 	"""A living adult mole free of tools: one who digs with its claws (DEC-052) whenever it is idle."""
-	return residents.is_alive(slot) and residents.life_stage_code_of(slot) == Residents.LIFE_STAGE_ADULT \
-		and residents.species_key(residents.species_of(slot).value) == &"mole" and not residents.has_equipped_tool(slot)
+	return _could_dig_as(residents, slot, _mole_id(residents))
+
+
+static func _mole_id(residents: Residents) -> int:
+	"""The mole's compiled species id, or -1 when the catalog has none."""
+	var id: IntMath.IntResult = residents.species_id(&"mole")
+	return id.value if id.ok else -1
+
+
+static func _could_dig_as(residents: Residents, slot: int, mole: int) -> bool:
+	"""`could_dig` without allocating (review C-1): the cheap column reads first, the species by its raw id."""
+	return mole >= 0 and residents.life_stage_code_of(slot) == Residents.LIFE_STAGE_ADULT \
+		and residents._species[slot] == mole and residents.is_alive(slot) and not residents.has_equipped_tool(slot)
 
 
 static func _slot_of(residents: Residents, ref: Vector2i) -> int:
-	"""A live resident reference's slot, or -1."""
-	if ref.x < 0 or ref.y < 0 or not residents.directory().is_valid(ref): return -1
+	"""A live resident reference's slot, or -1. The kind is checked (ARCH-ID-003, review H-2): another kind's
+	reference never names the resident at its typed row."""
+	if ref.x < 0 or ref.y < 0 or not residents.directory().is_valid_of_kind(ref, Directory.KIND_RESIDENT): return -1
 	return residents.directory().get_typed_row(ref)
 
 
-static func start_waiting(runtime: Runtime, placements: RefCounted) -> Array[StringName]:
+static func start_waiting(runtime: Runtime, placements: RefCounted, tick: int = -1) -> Array[StringName]:
 	"""Decision 1991: every QUEUED room whose crew is free now starts, in room-row order. A named member who can no
-	longer dig is dropped (none left: the first idle mole digs). A start refused now (no parking, or the foreman's
-	plan) forgets the record and is returned for its alert; the room stays confirmed and may be ordered again."""
+	longer dig is dropped (none left: the first idle mole digs, looked for in this tick's window of slots; with no
+	tick, all of them). A start refused now (no parking, or the foreman's plan) forgets the record and is returned for
+	its alert; the room stays confirmed and may be ordered again."""
 	var refused: Array[StringName] = []
 	var owners: Builder.Owners = runtime.bound_owners() if runtime != null else null
 	if owners == null or placements == null or runtime.kept() == 0: return refused
 	var waiting: Array[Vector2i] = []
 	runtime.queued_into(waiting)
+	var idle: Idle = Idle.new()
+	idle.mole = _mole_id(owners.residents)
+	if tick >= 0:
+		@warning_ignore("integer_division") var width: int = Residents.RESIDENT_CAPACITY / IDLE_WINDOWS
+		idle.from = (tick % IDLE_WINDOWS) * width
+		idle.to = idle.from + width
 	for room: Vector2i in waiting:
-		var code: StringName = _start(runtime, owners, room, runtime.contacts_access())
+		var code: StringName = _start(runtime, owners, room, runtime.contacts_access(), idle)
 		if code == WAIT: continue
 		if code != &"":
 			runtime.cancel_queued(room)
@@ -121,32 +159,51 @@ static func start_waiting(runtime: Runtime, placements: RefCounted) -> Array[Str
 	return refused
 
 
-static func _start(runtime: Runtime, owners: Builder.Owners, room: Vector2i, access: Vector2i) -> StringName:
+static func _start(runtime: Runtime, owners: Builder.Owners, room: Vector2i, access: Vector2i,
+		idle: Idle = null) -> StringName:
 	"""Start a QUEUED room now if its crew is free: park each builder off the access and hand the crew to a foreman.
-	WAIT when the crew is busy."""
+	WAIT when the crew is busy. `idle` shares one resident scan across a tick's waiting rooms."""
 	var crew: Array[Builder.Crew] = []
-	if not _crew_into(runtime, owners, runtime.crew_of(room), crew): return WAIT
+	if not _crew_into(runtime, owners, runtime.crew_of(room), crew, idle): return WAIT
 	var code: StringName = _park_all(runtime, owners, room, access, crew)
 	if code == &"": code = runtime.start_room(room, owners, crew)
 	return code
 
 
 static func _crew_into(runtime: Runtime, owners: Builder.Owners, named: PackedInt32Array,
-		out: Array[Builder.Crew]) -> bool:
+		out: Array[Builder.Crew], idle: Idle = null) -> bool:
 	"""The crew to start with now, or false while it is busy. Named members who can no longer dig are dropped; with
 	none named (or none left), the first idle mole by slot."""
 	out.clear()
+	var mole: int = idle.mole if idle != null else _mole_id(owners.residents)
 	for at: int in range(0, named.size(), 2):
 		var slot: int = _slot_of(owners.residents, Vector2i(named[at], named[at + 1]))
-		if slot < 0 or not could_dig(owners.residents, slot): continue
+		if slot < 0 or not _could_dig_as(owners.residents, slot, mole): continue
 		if not _idle(runtime, owners, slot): return false
 		out.append(_member(owners.residents, slot))
 	if not out.is_empty(): return true
-	for slot: int in Residents.RESIDENT_CAPACITY:
-		if could_dig(owners.residents, slot) and _idle(runtime, owners, slot):
-			out.append(_member(owners.residents, slot))
-			return true
-	return false
+	var first: int = _first_idle(runtime, owners, mole, idle)
+	if first < 0: return false
+	out.append(_member(owners.residents, first))
+	return true
+
+
+static func _first_idle(runtime: Runtime, owners: Builder.Owners, mole: int, idle: Idle) -> int:
+	"""The first idle digger by slot, or -1. With `idle`, the residents are scanned once per tick and each candidate
+	is checked again when handed out (a room started earlier this tick may have taken it)."""
+	if idle == null:
+		for slot: int in Residents.RESIDENT_CAPACITY:
+			if _could_dig_as(owners.residents, slot, mole) and _idle(runtime, owners, slot): return slot
+		return -1
+	if not idle.scanned:
+		idle.scanned = true
+		for slot: int in range(idle.from, idle.to):
+			if _could_dig_as(owners.residents, slot, mole) and _idle(runtime, owners, slot): idle.slots.append(slot)
+	while idle.next < idle.slots.size():
+		var slot: int = idle.slots[idle.next]
+		idle.next += 1
+		if _idle(runtime, owners, slot): return slot
+	return -1
 
 
 static func _idle(runtime: Runtime, owners: Builder.Owners, slot: int) -> bool:
@@ -167,7 +224,8 @@ static func _member(residents: Residents, slot: int) -> Builder.Crew:
 static func _park_all(runtime: Runtime, owners: Builder.Owners, room: Vector2i, access: Vector2i,
 		crew: Array[Builder.Crew]) -> StringName:
 	"""Each builder's parking, off the access, away from the room's cells and off every other builder's (decision
-	1935's finding)."""
+	1935's finding). Decision 1991 (review H-1): the first builder must park; a later member with no parking left off
+	this access is left out of this dig (the access's geometry has room for fewer bodies) and stays free."""
 	var ctx: Builder.Context = Foreman._context(owners, NULL_REF, NULL_REF) # Only its travel rows and content.
 	if ctx.forward < 0 or ctx.backward < 0: return Foreman.REFUSE_ROWS
 	var ask: Parking.Request = Parking.Request.new()
@@ -175,22 +233,42 @@ static func _park_all(runtime: Runtime, owners: Builder.Owners, room: Vector2i, 
 	ask.room_box = _room_box(owners.sites, room)
 	if ask.room_box.is_empty(): return REFUSE_NO_CELLS
 	ask.taken = runtime.parkings()
-	for member: Builder.Crew in crew:
+	var containers: Array[Vector2i] = []
+	runtime.containers_into(room, containers)
+	for container: Vector2i in containers:
+		if container != NULL_REF: ask.keep_clear.append(owners.inventory.spatial_location_of(container))
+	for at: int in crew.size():
 		var found: Array[Vector2i] = []
 		var code: StringName = Parking.find_into(owners, ask, found)
-		if code != &"": return code
-		member.parking = found[0]
+		if code != &"" and at == 0: return code
+		if code != &"":
+			crew.resize(at)
+			return &""
+		crew[at].parking = found[0]
 		ask.taken.append(found[0])
 	return &""
+
+
 static func access_refusal(runtime: Runtime, request: Order) -> StringName:
-	"""Decision 1991: the order's way in would be refused as another access (P-1936-1 (a)), read without binding
-	anything, so Confirm can refuse before RoomOrders admits the room."""
+	"""Decision 1991: what `order` would refuse about the way in, read without binding anything, so Confirm can refuse
+	before RoomOrders admits the room (review M-3): a full record pool, another access (P-1936-1 (a)), or, before the
+	first bind, a retreat row out of range. The provider's own first bind can still refuse after admission."""
 	var owners: Builder.Owners = runtime.bound_owners() if runtime != null else null
 	if owners == null or request == null: return REFUSE_SCOPE
-	var provider: Provider = owners.provider
-	if provider._ordinary_routes == null: return &""
-	return &"" if provider._ordinary_retreat == request.access and provider._ordinary_travel == request.travel \
-		else REFUSE_OTHER_ACCESS
+	if runtime.kept() >= Runtime.MAX_KEPT: return Runtime.REFUSE_CAPACITY
+	if owners.provider._ordinary_routes != null:
+		return &"" if _same_access(owners.provider, request) else REFUSE_OTHER_ACCESS
+	return &"" if _travel_in_range(owners, request.travel) else REFUSE_SCOPE
+
+
+static func _same_access(provider: Provider, request: Order) -> bool:
+	"""The bound contacts are this order's access and retreat row."""
+	return provider._ordinary_retreat == request.access and provider._ordinary_travel == request.travel
+
+
+static func _travel_in_range(owners: Builder.Owners, travel: int) -> bool:
+	"""A retreat travel row the live route profiles hold."""
+	return travel >= 0 and travel < owners.profiles._live.header[1]
 
 
 static func _contacts(runtime: Runtime, owners: Builder.Owners, placements: RefCounted, request: Order) -> StringName:
@@ -198,11 +276,10 @@ static func _contacts(runtime: Runtime, owners: Builder.Owners, placements: RefC
 	the work face they borrow alive); a later order on another access is refused."""
 	var provider: Provider = owners.provider
 	if provider._ordinary_routes != null:
-		if provider._ordinary_retreat != request.access or provider._ordinary_travel != request.travel:
-			return REFUSE_OTHER_ACCESS
+		if not _same_access(provider, request): return REFUSE_OTHER_ACCESS
 		runtime.note_contacts(request.access, request.travel)
 		return &""
-	if request.travel < 0 or request.travel >= owners.profiles._live.header[1]: return REFUSE_SCOPE
+	if not _travel_in_range(owners, request.travel): return REFUSE_SCOPE
 	var code: StringName = bind_contacts(runtime, owners, placements, request.access, request.travel)
 	if code == &"": runtime.note_contacts(request.access, request.travel)
 	return code

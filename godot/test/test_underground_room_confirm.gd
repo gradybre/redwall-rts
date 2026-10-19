@@ -33,6 +33,7 @@ class TwoRooms extends KitchenTests.ClawKitchen:
 	## endpoint stands in front of the northern room, joined to the access both ways.
 	var north_work: Vector2i = Vector2i(-1, 0)
 	var north_transit: Vector2i = Vector2i(-1, 0)
+	var bystander: Vector2i = Vector2i(-1, 0)
 
 	func prepare() -> bool:
 		"""The fixture's owners, paths, stock and worker, as `confirmed_room` makes them, without its confirmation;
@@ -43,6 +44,9 @@ class TwoRooms extends KitchenTests.ClawKitchen:
 		stock(&"wood", StationTests.KITCHEN_SITES * Contract.BRACE_WOOD_MILLI)
 		stock(&"stone", StationTests.KITCHEN_SITES * Contract.BRACE_STONE_MILLI)
 		north_work = _joined_work(NORTH_STATION)
+		# The game always has residents who are not crew (decision 1991's occupancy finding): one claw mole stays on
+		# the surface, far off, never a route actor, through every test.
+		bystander = _mole_at(Vector3i(Phase.X, Phase.FLOOR, Phase.Z), Vector2i(-1, 0)).worker
 		return failures.is_empty()
 
 	func _joined_work(point: Vector3i) -> Vector2i:
@@ -302,8 +306,8 @@ func test_a_stop_partway_walks_the_crew_out_then_the_waiting_room_starts_and_a_r
 
 
 func test_a_waiting_record_with_its_crew_saves_and_restores_canonically() -> void:
-	"""Decision 1991's record version 2: a QUEUED record keeps its named crew and a stopped one its release flag
-	across a capture and a restore, re-encoding to the same bytes."""
+	"""Decision 1991's record version 2: a QUEUED record keeps its named crew across a capture and a restore,
+	re-encoding to the same bytes. The waiting room is not started between (the runtime's advance alone runs)."""
 	if _runtime == null: return
 	var rooms: Array[Vector2i] = _batch()
 	for step: int in 200: _tick()
@@ -312,9 +316,11 @@ func test_a_waiting_record_with_its_crew_saves_and_restores_canonically() -> voi
 	var code: StringName = _runtime.capture(bytes)
 	var tries: int = 0
 	while code != &"" and tries < 400:
-		_tick(); tries += 1
+		_h.tick += 1; tries += 1
+		if _runtime.is_running(): _runtime.advance(_h.tick)
 		code = _runtime.capture(bytes)
 	assert_equal(code, &"", "captured at a quiet tick")
+	assert_equal(_runtime.state_of(rooms[1]), Runtime.RECORD_QUEUED, "the second room was waiting at the capture")
 	var fresh: Runtime = Runtime.new(_h._residents.directory())
 	assert_true(fresh.bind_owners(_h.owners()), "owners")
 	assert_equal(fresh.restore(bytes), &"", "restored")
@@ -424,3 +430,28 @@ func test_a_new_dig_after_a_finished_one_reserves_its_own_crew() -> void:
 	assert_equal(_runtime.foreman_of(north.room).builders()[0].crew().worker, mole, "its builder")
 	assert_true(_runtime.reserves_resident(second), "the new builder reserved at once")
 	assert_false(_runtime.reserves_resident(first), "the first mole free")
+
+
+func test_a_route_node_is_never_a_parking_and_a_member_with_no_parking_left_stays_free() -> void:
+	"""Review H-1: the corridor's TRANSIT endpoint on the northern room's way is a route node, never reused as a
+	parking; a crew of two off this access, which has room for one parked body, digs with the first member and leaves
+	the second free (not reserved, not parked), and the Kitchen is dug to the end."""
+	if _runtime == null: return
+	var routes: Routes = _h.owners().routes
+	assert_true(Composer.Parking._routed_elsewhere(routes, _h.north_transit, _h._first), "a route node")
+	var crew: PackedInt32Array = _worker_crew()
+	crew.append_array(PackedInt32Array([_h.bystander.x, _h.bystander.y]))
+	var result: Confirm.Result = _confirm(_painted(Phase.Z, crew), _way)
+	assert_equal(result.code, &"", "confirmed and ordered")
+	var foreman: Foreman = _runtime.foreman_of(result.room)
+	assert_equal(foreman.builders().size(), 1, "one parked body")
+	var parking: Vector2i = foreman.builders()[0].crew().parking
+	assert_false(parking == _h.north_transit or parking == _h._first, "off the route and the access")
+	assert_false(Composer.Parking._routed_elsewhere(routes, parking, _h._first), "a parking: spans to the access only")
+	assert_false(_runtime.reserves_resident(_h._residents.directory().get_typed_row(_h.bystander)), "second free")
+	var seen: Array[StringName] = []
+	for step: int in TICK_BOUND:
+		seen.append_array(_tick())
+		if not _runtime.is_running() and _runtime.kept() == 0: break
+	assert_equal(seen, [] as Array[StringName], "no refusal")
+	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")

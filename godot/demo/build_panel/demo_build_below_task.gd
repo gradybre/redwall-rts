@@ -210,9 +210,10 @@ func _arrive_below() -> void:
 
 
 func _dig(delta: float) -> void:
-	"""The short wait, then the cell opens (DIG) or the piece appears (FIT). A cell the player stopped meanwhile is
-	let go at once and the next planned (decision 1991)."""
-	if mode == MODE_DIG and _works.state(_target.x, Vector2i(_target.y, _target.z)) != Works.ORDERED:
+	"""The short wait, then the cell opens (DIG) or the piece appears (FIT). A cell the player stopped meanwhile, or
+	one another mole now holds (stopped and ordered again), is let go at once and the next planned (decision 1991)."""
+	if mode == MODE_DIG and (_works.state(_target.x, Vector2i(_target.y, _target.z)) != Works.ORDERED
+			or _works.claimed_by(_target) != key()):
 		_figure.set_digging(false)
 		_let_go()
 		stage = STAGE_PLAN
@@ -304,9 +305,9 @@ func label() -> String:
 	if mode == MODE_VISIT:
 		return "Going down to the dug rooms" if stage == STAGE_GOING else "In the dug rooms below"
 	if mode == MODE_FIT:
-		var waiting: int = _fittings.waiting() if _fittings != null else 0
+		var pieces: int = _fittings.waiting() if _fittings != null else 0
 		return "Going to the Entrance to fit furniture" if stage == STAGE_GOING \
-			else "Fitting the furniture (%d %s waiting)" % [waiting, "piece" if waiting == 1 else "pieces"]
+			else "Fitting the furniture (%d %s waiting)" % [pieces, "piece" if pieces == 1 else "pieces"]
 	if stage == STAGE_GOING:
 		return "Going to the Entrance to dig"
 	if stage == STAGE_OUT or (stage == STAGE_WALK and _target.x < 0):

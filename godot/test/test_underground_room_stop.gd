@@ -10,6 +10,7 @@ const Foreman := preload("res://scripts/core/underground_room_foreman.gd")
 const Builder := preload("res://scripts/core/underground_room_builder.gd")
 const Composer := preload("res://scripts/core/underground_room_composer.gd")
 const Parking := preload("res://scripts/core/underground_room_parking.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
 const Progress := preload("res://scripts/core/underground_room_progress.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
@@ -239,7 +240,10 @@ func test_a_named_crew_and_the_release_flag_round_trip_in_record_version_2() -> 
 	assert_equal(fresh.restore(bytes), &"", "restored")
 	assert_equal(fresh.crew_of(other), _named(), "the waiting crew")
 	var slot: int = fresh._slot(fresh._row(_room))
-	assert_true(slot < 0 or fresh._release_out[slot] == 1, "the stopped record still releases once out")
+	assert_true(slot >= 0, "the stopped record was captured while its crew was still underground")
+	if slot >= 0:
+		assert_equal(fresh._state[slot], Runtime.RECORD_STOPPED, "STOPPED")
+		assert_equal(fresh._release_out[slot], 1, "the stopped record still releases once out")
 
 
 func test_a_version_1_record_is_refused() -> void:
@@ -306,13 +310,28 @@ func test_a_parking_whose_spans_never_join_is_not_published_again() -> void:
 	var unjoined: Parking.Request = Parking.Request.new()
 	unjoined.access = ask.access; unjoined.content = ask.content; unjoined.room_box = ask.room_box
 	unjoined.forward = ask.backward; unjoined.backward = ask.backward # Rows that cannot join it both ways.
-	var edges: int = owners.routes._live.edge_count
 	var again: Array[Vector2i] = []
 	Parking.find_into(owners, unjoined, again)
 	var later: int = owners.routes._live.edge_count
 	Parking.find_into(owners, unjoined, again)
 	assert_equal(owners.routes._live.edge_count, later, "a second ask publishes nothing more")
-	assert_true(later >= edges, "edges never removed")
+	# The path itself (review M-5): an endpoint with spans to the access that do not join on the asked rows.
+	var access: Locations.Record = Parking._record()
+	assert_equal(owners.locations.read_location_into(_h._first, access), &"", "the access")
+	var point: Vector3i = Parking._point(owners.locations, found[0].x)
+	var rows: int = owners.profiles._live.header[1]
+	var tried: int = 0
+	for row: int in rows:
+		var other: Parking.Request = Parking.Request.new()
+		other.access = ask.access; other.content = ask.content; other.room_box = ask.room_box
+		other.forward = row; other.backward = row
+		if Parking._joined(owners, other, found[0]): continue
+		var before: int = owners.routes._live.edge_count
+		assert_equal(Parking._parking_at(owners, other, access, point), NULL_REF, "passed over on row %d" % row)
+		assert_equal(owners.routes._live.edge_count, before, "no span published on row %d" % row)
+		tried += 1
+	print("P1ROWS ", tried, " of ", rows)
+	assert_true(tried > 0, "some row does not join it")
 
 
 func test_a_stopped_foreman_under_a_digging_or_done_record_is_refused() -> void:
@@ -330,3 +349,29 @@ func test_a_stopped_foreman_under_a_digging_or_done_record_is_refused() -> void:
 		var wrong: PackedByteArray = bytes.duplicate()
 		wrong.encode_s32(STATE_AT, state)
 		assert_equal(_restored(wrong), Progress.REFUSE_SHAPE, "a stopped foreman under state %d" % state)
+
+
+func test_a_stop_before_the_crew_walked_in_releases_the_record_at_once() -> void:
+	"""Review M-5 (M11): a dig stopped before any builder is underground has no crew to wait for; `stop_room` releases
+	its record itself, since the host advances only while something runs."""
+	if _room == NULL_REF: return
+	_digging()
+	var foreman: Foreman = _runtime.foreman_of(_room)
+	assert_false(foreman.crew_out(), "nobody underground yet")
+	assert_equal(_runtime.stop_room(_room), &"", "stopped")
+	assert_equal(_runtime.state_of(_room), Runtime.RECORD_NONE, "released without a tick")
+	assert_equal(_runtime.kept(), 0, "nothing kept")
+	assert_false(_runtime.is_running(), "nothing runs")
+
+
+func test_a_release_flag_on_a_record_nobody_stopped_is_refused() -> void:
+	"""Review LOW: the release flag is set only by a Stop; a load finding it on a DIGGING record (or above 1) refuses."""
+	if _room == NULL_REF: return
+	_digging()
+	var bytes: PackedByteArray = _captured()
+	assert_equal(bytes.decode_s32(STATE_AT), Runtime.RECORD_DIGGING, "digging")
+	assert_equal(bytes[FLAG_AT], 0, "the flag field located, clear")
+	assert_equal(_restored(bytes), &"", "as captured")
+	var flagged: PackedByteArray = bytes.duplicate()
+	flagged[FLAG_AT] = 1
+	assert_false(_restored(flagged) == &"", "a flag nobody set")

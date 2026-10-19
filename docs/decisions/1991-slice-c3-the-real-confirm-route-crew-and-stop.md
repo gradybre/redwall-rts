@@ -109,6 +109,144 @@ phase. The fix is in `underground_room_builder.gd`:
 - Tests: the stop at either hand-over, then a re-order that finishes the room with every BRACE paid exactly once; and
   the mapping for each phase in isolation.
 
+## 3a. A second C2 defect found by C3: the room phases refused while anyone who is not crew lived
+
+**Every room phase refused `ROOM_PHASE_WORKER` as soon as one living resident was not a Routes actor.** That
+includes every mole still on the surface, so it covers the game always. `_ordinary_occupants_leaf`
+(`underground_room_world_bindings.gd`) still required every living resident to be a route actor. ADR 1219 replaced
+that requirement in the five other occupancy proofs, and its amendment added a sixth
+(`Routes._assembly_occupants_leaf`): an unregistered resident occupies a reach cube of `UNREGISTERED_REACH_U` around
+its Transform. The room bindings' leaf was never changed.
+
+**Why the fixtures missed it.** Every resident in them was crew. A second mole was spawned only as a crew member,
+which registers when it arrives.
+
+**How it was found.** The unexplained C06 result reported earlier was one far-off claw mole, not named, making a
+one-mole dig on the claw Kitchen refuse at 0 of 16 cubes. The review's two-mole crews failed for the same reason: a
+member not yet arrived blocked the other.
+
+**The fix.** The coordinator cleared it on 2026-10-19. The leaf now mirrors `_assembly_occupants_leaf`:
+
+- A living resident with no Routes registration, other than the working actor itself, is tested with
+  `Routes.unregistered_body_refusal` at the working actor's WORK location (`_ordinary_work_point`, the point
+  `_ordinary_worker_leaf` proved its selection stands on).
+- The test is charged ADR 1219's 16 checks for the row, on top of the leaf's 8.
+- A registered resident keeps the exact body proof, unchanged.
+
+**Tests** (`test_underground_room_occupants.gd`):
+
+- a far bystander: the dig finishes, 16 of 16;
+- a bystander that comes within reach while the builder works: `ROUTE_UNREGISTERED_RESIDENT_NEAR`;
+- the leaf itself:
+  - NEAR above the WORK location;
+  - clear far off, charging exactly 8 × 512 + 16;
+  - `ROOM_PHASE_OPERATION_CAPACITY` one check short;
+- a registered resident who is not crew: the exact proof runs, more than the reach charge;
+- a two-mole crew digging while its second member is still on the surface;
+- a named crew of four.
+
+The real-route fixture (`test_underground_room_confirm.gd`'s TwoRooms) now always has one mole who is not crew. Five
+mutants on the new branch were all killed: no branch, a zero point, a point 20,000 u low, no charge, and registered
+rows sent to the reach test. The SHA trace is unchanged (the benches have only crew residents).
+
+## 3b. The review's findings, fixed
+
+An independent `code-reviewer` read `8a7d045d..2079f7d4` and returned 1 CRITICAL, 3 HIGH and 7 MEDIUM findings.
+
+**C-1, cost of waiting rooms.** Before the fix, `start_waiting` scanned all 512 resident slots for each waiting room
+with no live named crew, every fixed tick, and allocated an `IntResult` and a `StringName` per adult. The reviewer
+measured 954 µs per tick for 1 waiting room, 9.2 ms for 10 and 45.8 ms for 50, with 255 hungry moles in a debug
+build. Now:
+
+- One `Idle` scan serves every waiting room on a tick: slots are handed out in order and each is checked again when
+  handed out.
+- The species is compared by its raw id, read once per tick (`_could_dig_as`).
+- `queued_into` returns at once, through a native `count`, while nothing waits.
+- On the tick, the scan covers one eighth of the slots (`IDLE_WINDOWS` = 8, a window keyed by the tick index, which
+  is saved). A room waiting for "the first idle mole" can therefore start up to seven ticks later than a full scan
+  would. This is a choice of cost, not a rule. A player order still scans every slot.
+
+Measured on the same probe: 78 µs for 1 waiting room, 94 µs for 10 and 173 µs for 50.
+
+**H-1, crews of more than one never finished.** There were two causes, both in parking:
+
+- The second builder parked in the corridor between the access and the room, on the first builder's way.
+- It parked on the storage container's endpoint (the claw fixture's "access" endpoints are STORAGE). A body there
+  blocks every fetch: `ROOM_FOREMAN_CREW_BLOCKED` at 11 or 14 of 16 cubes.
+
+`underground_room_parking.gd` now:
+
+- never parks between the access and the room (`_between`);
+- never reuses an endpoint some span joins to anything but the access (`_routed_elsewhere`: a route's TRANSIT node);
+- never parks on the order's containers (`keep_clear`, read from the runtime's `containers_into` and Inventory's
+  `spatial_location_of`);
+- failing the access's floor, takes an endpoint already authored as a parking (`_authored_parking`), publishing
+  nothing.
+
+A member beyond the parkings the access has room for is left out of that dig and stays free. The first member must
+park. On the claw Kitchen, a named crew of four digs with two parked moles to 16 of 16, and the other two stay free.
+
+**H-2.** A crew reference is checked with its kind (`is_valid_of_kind(…, KIND_RESIDENT)`, ARCH-ID-003).
+
+**H-3.** D2's way in belongs to the mounted session:
+
+- it is reset to the base `WayIn` at mount and at release;
+- binding it is refused while resetting or with nothing mounted;
+- a test covers bind, reset, remount, then refused.
+
+**M-1.** Pinning a way, or arming a card, puts the room card away.
+
+**M-2.** Stop during a paint stroke cancels the stroke first, so the cells always go back into the plan.
+
+**M-3.** More of what `order` refuses is now read before admission: a full record pool, and a retreat row out of range
+before the first bind. `order_painted_room` returns the whole `Result`. Still possible after admission: the
+provider's own first bind, a parking, and a reused row whose old crew is still out. In each case the room stays
+confirmed and undug, and may be ordered again.
+
+**M-4, recorded as a D2 obligation.** RoomOrders' admission (`confirm_room`) checks only connectivity and topology:
+neither BUILD-REQ-002's 2 × 2 block nor the type minimum, and it never joins a leftover to the room it came from. The
+demo's E9 judges cells put back against the room's dug part, but in the real route a stopped room stays confirmed
+and is re-ordered whole. When D2 switches the panel to the real route, the panel's put-back cells must be either:
+
+- re-ordered as the same room (the real Stop), or
+- refused by the same rules core enforces.
+
+**M-5 and M-6.** The surviving mutants now have tests:
+
+- access read before admission;
+- `_span_between`, on the path itself;
+- the stop that releases at once;
+- the busy named member;
+- filter freshness.
+
+Vacuous assertions were made strict:
+
+- the release flag at capture;
+- the save at QUEUED;
+- the crew's words after a Stop;
+- the host test's alert claim, removed.
+
+The live harness's header now says the staged village sends its one mole.
+
+**M-7, recorded and not changed.** QUEUED rooms reserve nothing, and the host selects Jobs before rooms start, so a
+named mole freed and immediately given another Job could keep its room waiting. A soft reservation for a waiting
+room's named crew would also hold the mole idle. That is a player-facing choice for slice H's "who is assigned"
+work.
+
+**LOW items:**
+
+- The load refuses a release flag on a record nobody stopped.
+- A demo mole digging a cell that another mole now holds lets it go.
+
+The rest are recorded here as known:
+
+- A malformed crew is named `ROOM_DIG_CREW_BUSY` by the runtime (the composer refuses it first as `CREW_SIZE`).
+- A QUEUED record of a deleted room is replaced when its row is reused.
+- A partial parking failure leaves an unjoined endpoint, which is reused and never re-spanned.
+- The demo crew number wraps after 255 live batches.
+- The card reads "Stopped" for a never-stopped room with a pending same-type extension beside it.
+- `order` may start a new room ahead of an older one waiting for the same mole.
+
 ## 4. The demo (P-1990-1 (b), P-1990-4 (a), P-1990-5 (a))
 
 | Piece | Files |

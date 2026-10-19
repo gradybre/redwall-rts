@@ -85,14 +85,17 @@ func test_the_games_route_refuses_every_painted_room_until_d2_binds_a_way_in() -
 	and alerted, and nothing is admitted or recorded. The host asks whatever seam is bound."""
 	var host: Node = _composed()
 	var rooms: int = host.underground_session().room_orders().buildings_owner().live_room_count()
-	assert_equal(host.order_painted_room(_painted(PackedInt32Array())), NULL_REF, "refused")
+	var result: Confirm.Result = host.order_painted_room(_painted(PackedInt32Array()))
+	assert_equal(result.code, Confirm.REFUSE_NO_WAY_IN, "refused, the Result naming it")
+	assert_false(result.admitted, "not admitted")
+	assert_equal(result.room, NULL_REF, "no room")
 	assert_equal(host.last_refusal(), Confirm.REFUSE_NO_WAY_IN, "no way in")
 	assert_equal(host.underground_session().room_orders().buildings_owner().live_room_count(), rooms, "nothing admitted")
 	assert_equal(host.underground_rooms().kept(), 0, "nothing recorded")
 	assert_false(host.bind_underground_way_in(null), "a null seam refused")
 	var counting: CountingWayIn = CountingWayIn.new()
 	assert_true(host.bind_underground_way_in(counting), "D2's seam bound")
-	assert_equal(host.order_painted_room(_painted(PackedInt32Array())), NULL_REF, "its refusal")
+	assert_equal(host.order_painted_room(_painted(PackedInt32Array())).code, Confirm.REFUSE_NO_WAY_IN, "its refusal")
 	assert_equal(counting.calls, 1, "the bound seam was asked")
 
 
@@ -101,9 +104,23 @@ func test_a_crew_that_cannot_dig_is_refused_in_the_game_before_the_way_in() -> v
 	var host: Node = _composed()
 	var counting: CountingWayIn = CountingWayIn.new()
 	assert_true(host.bind_underground_way_in(counting), "bound")
-	assert_equal(host.order_painted_room(_painted(PackedInt32Array([999, 1]))), NULL_REF, "refused")
+	assert_equal(host.order_painted_room(_painted(PackedInt32Array([999, 1]))).code, Composer.REFUSE_CREW_MEMBER,
+		"refused")
 	assert_equal(host.last_refusal(), Composer.REFUSE_CREW_MEMBER, "not a digger")
 	assert_equal(counting.calls, 0, "the seam was not asked")
+
+
+func test_the_way_in_belongs_to_the_mounted_session() -> void:
+	"""Review H-3: D2's seam is bound after a mount and dropped by the reset that releases the session, so a remounted
+	host refuses every painted room again until it is bound again; with nothing mounted it cannot be bound."""
+	var host: Node = _composed()
+	var counting: CountingWayIn = CountingWayIn.new()
+	assert_true(host.bind_underground_way_in(counting), "bound")
+	assert_true(host.reset(), "reset releases the session")
+	assert_false(host.bind_underground_way_in(counting), "nothing mounted: refused")
+	assert_equal(Chain.mount_and_compose(host, _content), &"", "mounted again")
+	assert_equal(host.order_painted_room(_painted(PackedInt32Array())).code, Confirm.REFUSE_NO_WAY_IN, "no way in")
+	assert_equal(counting.calls, 0, "the old session's seam was never asked")
 
 
 func test_stop_in_the_game_is_named_for_a_room_with_no_record() -> void:
@@ -117,9 +134,10 @@ func test_stop_in_the_game_is_named_for_a_room_with_no_record() -> void:
 	assert_equal(host.underground_rooms().kept(), 0, "forgotten")
 
 
-func test_a_waiting_room_whose_start_is_refused_is_forgotten_and_alerted_on_the_tick() -> void:
+func test_a_waiting_room_whose_start_is_refused_is_forgotten_on_the_tick() -> void:
 	"""The host starts waiting rooms after the runtime's advance. Here no way in was ever bound (no contacts), so the
-	start (its parking off the access) is refused: the record is forgotten, the room stays, and the tick goes on."""
+	start (its parking off the access) is refused: the record is forgotten, the room stays, and the tick goes on.
+	(The refusal's alert goes to UIManager's HUD, which a headless host has none of: not asserted here.)"""
 	var host: Node = _composed()
 	var crew: PackedInt32Array = _a_mole(host)
 	if crew.is_empty(): return # An art-free village with no mole: nothing to name.
@@ -128,6 +146,7 @@ func test_a_waiting_room_whose_start_is_refused_is_forgotten_and_alerted_on_the_
 		"queued with a free crew")
 	assert_true(host.run_tick(1), "the tick runs")
 	assert_equal(host.underground_rooms().kept(), 0, "the refused start forgot the record")
+	assert_true(host.directory().is_valid(room), "the room itself stays")
 
 
 func test_a_named_crew_round_trips_through_the_settlement_save_and_saves_identically() -> void:

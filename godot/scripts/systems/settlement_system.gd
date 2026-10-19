@@ -1876,6 +1876,7 @@ func mount_underground(content: UndergroundContent) -> bool:
 	_underground_entry = null
 	_underground_rooms = null
 	_underground_dispatch = null
+	_underground_way_in = UndergroundRoomConfirm.WayIn.new() # Decision 1991: a mount starts with no way in.
 	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
 		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
 		_transforms, _gear, _haul_carry, _ground_piles, content)
@@ -2063,35 +2064,40 @@ func order_underground_room(request: UndergroundRoomComposer.Order) -> bool:
 
 func bind_underground_way_in(way_in: UndergroundRoomConfirm.WayIn) -> bool:
 	"""Decision 1991: THE SEAM SLICE D2 FILLS. Its way in gives a painted room its approach and its order its access,
-	retreat row and containers; until it is bound, every painted room is refused ROOM_DIG_NO_WAY_IN."""
-	if way_in == null: return _refuse(UndergroundRoomConfirm.REFUSE_SCOPE)
+	retreat row and containers; until it is bound, every painted room is refused ROOM_DIG_NO_WAY_IN. It belongs to
+	the mounted session: bound after the mount, and dropped on release (review H-3), so a remount binds it again."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	if way_in == null or _underground_session == null: return _refuse(UndergroundRoomConfirm.REFUSE_SCOPE)
 	_underground_way_in = way_in
 	_last_refusal = REFUSE_NONE
 	return true
 
 
-func order_painted_room(painted: UndergroundRoomConfirm.Painted) -> Vector2i:
+func order_painted_room(painted: UndergroundRoomConfirm.Painted) -> UndergroundRoomConfirm.Result:
 	"""Decision 1991 (C3): Confirm all's real route for one painted underground room -- admitted through RoomOrders,
 	ordered with the crew the player chose, dug by the room foreman, each phase paying when its work starts
-	(BUILD-REQ-019). The admitted room, or null with `last_refusal` (an alert too); a refusal after admission leaves
-	the room confirmed and undug, and `order_underground_room` may order it again."""
+	(BUILD-REQ-019). The whole Result (review M-3): its code (also `last_refusal`, and an alert), and the room with
+	`admitted` -- a refusal after admission leaves the room confirmed and undug, and `order_underground_room` may
+	order it again."""
+	var result: UndergroundRoomConfirm.Result = UndergroundRoomConfirm.Result.new()
 	if _underground_mutations_stopped():
-		_refuse(&"UNDERGROUND_HOST_RESETTING")
-		return Vector2i(-1, 0)
+		result.code = &"UNDERGROUND_HOST_RESETTING"
+		_refuse(result.code)
+		return result
 	var code: StringName = _mounted_underground_refusal(_underground_session)
 	if code == &"" and _underground_rooms == null: code = UndergroundRoomConfirm.REFUSE_SCOPE
-	var result: UndergroundRoomConfirm.Result = null
 	if code == &"":
 		var session: UndergroundSession = _underground_session
 		result = UndergroundRoomConfirm.confirm(session.room_orders(), _underground_rooms,
 			session._retirement_owners.placements, _underground_way_in, session.room_orders().world_ref(),
 			session.space_owner().revision(), painted)
 		code = result.code
+	result.code = code
 	if code != &"":
 		_alert_underground_room(code)
 		_refuse(code)
 	else: _last_refusal = REFUSE_NONE
-	return result.room if result != null and result.admitted else Vector2i(-1, 0)
+	return result
 
 
 func stop_underground_room(room: Vector2i) -> bool:
@@ -2205,6 +2211,7 @@ func _release_underground_after_clear() -> bool:
 	_underground_entry = null
 	_underground_rooms = null
 	_underground_dispatch = null
+	_underground_way_in = UndergroundRoomConfirm.WayIn.new() # Decision 1991: D2's seam dies with its session.
 	return true
 
 
@@ -2379,7 +2386,7 @@ func _advance_underground_rooms(tick_index: int) -> void:
 	# its retirement step and its releases, so a crew that walked out this tick is free).
 	if _underground_rooms.kept() == 0 or _underground_session == null: return
 	for code: StringName in UndergroundRoomComposer.start_waiting(_underground_rooms,
-			_underground_session._retirement_owners.placements):
+			_underground_session._retirement_owners.placements, tick_index):
 		_alert_underground_room(code)
 
 

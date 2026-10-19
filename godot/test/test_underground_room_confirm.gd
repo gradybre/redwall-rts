@@ -95,6 +95,15 @@ class ClawWayIn extends Confirm.WayIn:
 		return &""
 
 
+class OtherAccessWayIn extends ClawWayIn:
+	## The fixture's way in, but its order names another access than the one the contacts are bound to.
+	func approach_into(request: Approach.Request, order: Composer.Order) -> StringName:
+		"""As the fixture's, then another access."""
+		var code: StringName = super.approach_into(request, order)
+		order.access = h._last
+		return code
+
+
 var _h: TwoRooms = null
 var _way: ClawWayIn = null
 var _runtime: Runtime = null
@@ -187,6 +196,22 @@ func test_a_crew_that_cannot_dig_is_refused_before_the_way_in_or_admission() -> 
 		"no such resident")
 	assert_equal(_way.calls, 0, "the way in was never asked")
 	assert_equal(_room_count(), rooms, "nothing admitted")
+
+
+func test_an_order_on_another_access_is_refused_before_admission() -> void:
+	"""E1 (review M-3): once the contacts are bound to one access, a painted room whose way in names another is refused
+	ROOM_DIG_OTHER_ACCESS before RoomOrders admits it: no room, no record."""
+	if _runtime == null: return
+	assert_equal(_confirm(_painted(Phase.Z, _worker_crew()), _way).code, &"", "the first binds the contacts")
+	var rooms: int = _room_count()
+	var kept: int = _runtime.kept()
+	var other: OtherAccessWayIn = OtherAccessWayIn.new()
+	other.h = _h
+	var result: Confirm.Result = _confirm(_painted(NORTH_Z, _worker_crew()), other)
+	assert_equal(result.code, Composer.REFUSE_OTHER_ACCESS, "another access")
+	assert_false(result.admitted, "not admitted")
+	assert_equal(_room_count(), rooms, "no room")
+	assert_equal(_runtime.kept(), kept, "no record")
 
 
 func test_a_named_claw_mole_digs_the_painted_kitchen_end_to_end() -> void:

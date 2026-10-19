@@ -827,6 +827,11 @@
      "bytes": 6201,
      "carried_by": "new contribution",
      "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
+    },
+    {
+     "bytes": 0,
+     "carried_by": "none",
+     "store": "decision 1943: FRONTIER_MAX_STATIONS (5) and FRONTIER_HEAP_WORDS (168 -> 280) size only the room-frontier publication's cold Query packets, charged in its CONTROL_BYTES row; no Locations member or bank changes"
     }
    ],
    "delta": {
@@ -901,6 +906,14 @@
       "4 * AIR_FIELDS"
      ],
      [
+      "FRONTIER_HEAP_WORDS",
+      "2 * FRONTIER_MAX_STATIONS * 14 * 2"
+     ],
+     [
+      "FRONTIER_MAX_STATIONS",
+      "5"
+     ],
+     [
       "MAX_AIR_EXTRA",
       "3"
      ],
@@ -914,6 +927,10 @@
      ]
     ],
     "int_constants_removed": [
+     [
+      "FRONTIER_HEAP_WORDS",
+      "168"
+     ],
      [
       "SCHEMA",
       "1"
@@ -1424,14 +1441,31 @@
   "godot/scripts/core/underground_room_frontier_publication.gd": {
    "charges": [
     {
-     "bytes": 920,
-     "carried_by": "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES",
-     "store": "ADR 1215 air shape in the caller and private Requests (2 x 300) and four Query Records (4 x 80)"
+     "bytes": 3400,
+     "carried_by": "Room publication CONTROL_BYTES (11,450 of 12,288) inside Budget.COLD_BYTES",
+     "store": "ADR 1215 air shape in the caller and private Requests (2 x 500) and six Query Records (6 x 80), and decision 1943's two further stations (2 x 960: Record, section Region, Request packets, refs and edges, two heap-patch removals, caller Result refs, object/header allowance) over ADR 1161's 8,050"
     }
    ],
    "delta": {
     "resizes_added": [
-     "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
+     "air.resize(MAX_STATIONS * AIR_BOXES * 6)",
+     "air_counts.resize(MAX_STATIONS)",
+     "q.context.edges.resize(4 * MAX_STATIONS)",
+     "q.context.refs.resize(2 * MAX_STATIONS)",
+     "q.edges.resize(4 * MAX_STATIONS)",
+     "q.refs.resize(2 * MAX_STATIONS)",
+     "q.request.points.resize(3 * MAX_STATIONS)",
+     "q.request.profiles.resize(4 * MAX_STATIONS)",
+     "q.request.sections.resize(2 * MAX_STATIONS)"
+    ],
+    "resizes_removed": [
+     "q.context.edges.resize(12)",
+     "q.context.refs.resize(6)",
+     "q.edges.resize(12)",
+     "q.refs.resize(6)",
+     "q.request.points.resize(9)",
+     "q.request.profiles.resize(12)",
+     "q.request.sections.resize(6)"
     ],
     "int_constants_added": [
      [
@@ -1440,13 +1474,21 @@
      ],
      [
       "CONTROL_BYTES",
-      "9216"
+      "12288"
+     ],
+     [
+      "MAX_STATIONS",
+      "Locations.FRONTIER_MAX_STATIONS"
      ]
     ],
     "int_constants_removed": [
      [
       "CONTROL_BYTES",
       "8192"
+     ],
+     [
+      "MAX_STATIONS",
+      "3"
      ]
     ],
     "classes": {

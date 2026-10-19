@@ -4225,7 +4225,7 @@
         "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
         "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
         "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
-        "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
+        "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
         "godot/scripts/core/underground_world_routes.gd": "8bf8971d30f127a9a212eea331f60cd7ecbfbce5fe8a706b66359bd8fef588b7"
       }
     },
@@ -42423,6 +42423,11 @@
             "bytes": 6201,
             "carried_by": "new contribution",
             "store": "ADR1229 increment 6b: the installed-witness pass's prism cache (_prism_boxes, 6 x Catalog.MAX_PARTS int32 = 6,144 B; _prism_key, 5 int64) and its counters (_witness_pass, _sources_pass, _in_witness_pass): within one synchronous pass the paid prefix's prisms and the source verdict are derived once and shared by every record; nothing survives a pass; never saved"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1943: FRONTIER_MAX_STATIONS (5) and FRONTIER_HEAP_WORDS (168 -> 280) size only the room-frontier publication's cold Query packets, charged in its CONTROL_BYTES row; no Locations member or bank changes"
           }
         ],
         "delta": {
@@ -42497,6 +42502,14 @@
               "4 * AIR_FIELDS"
             ],
             [
+              "FRONTIER_HEAP_WORDS",
+              "2 * FRONTIER_MAX_STATIONS * 14 * 2"
+            ],
+            [
+              "FRONTIER_MAX_STATIONS",
+              "5"
+            ],
+            [
               "MAX_AIR_EXTRA",
               "3"
             ],
@@ -42510,6 +42523,10 @@
             ]
           ],
           "int_constants_removed": [
+            [
+              "FRONTIER_HEAP_WORDS",
+              "168"
+            ],
             [
               "SCHEMA",
               "1"
@@ -43020,14 +43037,31 @@
       "godot/scripts/core/underground_room_frontier_publication.gd": {
         "charges": [
           {
-            "bytes": 920,
-            "carried_by": "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES",
-            "store": "ADR 1215 air shape in the caller and private Requests (2 x 300) and four Query Records (4 x 80)"
+            "bytes": 3400,
+            "carried_by": "Room publication CONTROL_BYTES (11,450 of 12,288) inside Budget.COLD_BYTES",
+            "store": "ADR 1215 air shape in the caller and private Requests (2 x 500) and six Query Records (6 x 80), and decision 1943's two further stations (2 x 960: Record, section Region, Request packets, refs and edges, two heap-patch removals, caller Result refs, object/header allowance) over ADR 1161's 8,050"
           }
         ],
         "delta": {
           "resizes_added": [
-            "air.resize(MAX_STATIONS * AIR_BOXES * 6)"
+            "air.resize(MAX_STATIONS * AIR_BOXES * 6)",
+            "air_counts.resize(MAX_STATIONS)",
+            "q.context.edges.resize(4 * MAX_STATIONS)",
+            "q.context.refs.resize(2 * MAX_STATIONS)",
+            "q.edges.resize(4 * MAX_STATIONS)",
+            "q.refs.resize(2 * MAX_STATIONS)",
+            "q.request.points.resize(3 * MAX_STATIONS)",
+            "q.request.profiles.resize(4 * MAX_STATIONS)",
+            "q.request.sections.resize(2 * MAX_STATIONS)"
+          ],
+          "resizes_removed": [
+            "q.context.edges.resize(12)",
+            "q.context.refs.resize(6)",
+            "q.edges.resize(12)",
+            "q.refs.resize(6)",
+            "q.request.points.resize(9)",
+            "q.request.profiles.resize(12)",
+            "q.request.sections.resize(6)"
           ],
           "int_constants_added": [
             [
@@ -43036,13 +43070,21 @@
             ],
             [
               "CONTROL_BYTES",
-              "9216"
+              "12288"
+            ],
+            [
+              "MAX_STATIONS",
+              "Locations.FRONTIER_MAX_STATIONS"
             ]
           ],
           "int_constants_removed": [
             [
               "CONTROL_BYTES",
               "8192"
+            ],
+            [
+              "MAX_STATIONS",
+              "3"
             ]
           ],
           "classes": {
@@ -44893,7 +44935,7 @@
       "new contribution": 10684,
       "Profiles CONTROL_RESERVE": 384,
       "LOCATION_AND_TOPOLOGY_BYTES unassigned remainder (recounted)": 5376,
-      "Room publication CONTROL_BYTES (8,970 of 9,216) inside Budget.COLD_BYTES": 920,
+      "Room publication CONTROL_BYTES (11,450 of 12,288) inside Budget.COLD_BYTES": 3400,
       "Budget.COLD_BYTES shared cold lease": 1792,
       "Routes HEADER_RESERVE (fixed numeric controls)": 24,
       "Routes 48 * RESIDENT_CAPACITY occupancy reservation (unchanged)": 0,
@@ -44982,13 +45024,15 @@
     },
     "room_publication_controls": {
       "reviewed_controls": 8050,
-      "request_air_bytes": 300,
+      "request_air_bytes": 500,
       "record_air_bytes": 80,
-      "controls": 8970,
-      "control_bytes": 9216
+      "stations": 5,
+      "per_station_growth_bytes": 960,
+      "controls": 11450,
+      "control_bytes": 12288
     },
     "room_planner_cold": {
-      "control_bytes": 52664,
+      "control_bytes": 52968,
       "lease_bytes": 1048960,
       "scope": "Cold and released before publish_into admits its own lifetime in the same lease."
     },
@@ -45147,14 +45191,14 @@
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
     "godot/scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
-    "godot/scripts/core/underground_locations.gd": "605f8912f5eab8379b7bf024ee07431699998c39b97cfedd2e8bfe8715fddcc0",
+    "godot/scripts/core/underground_locations.gd": "8702f95dad5eaa427302219650b56a7dff8ee7014698821fa359a85067c82b5c",
     "godot/scripts/core/underground_motion_catalog.gd": "315633cb8b3c12e1c5ee8f0d22d76cbad4132428c9a509721a565af1f5de7901",
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
     "godot/scripts/core/underground_room_world_bindings.gd": "36bb09926ee13aa2df2913e18ff264e01e1071e1ff93576add4dc5a15c63da52",
     "godot/scripts/core/underground_route_composition.gd": "e98d4e5314bbeb014b704fe30a9e5482d5631e5432f61e0344786b93c2b6bb23",
-    "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
+    "godot/scripts/core/underground_routes.gd": "b6b570efc04ea821915f7e43be7f1f98f2ffdac21d7dda67867ea4fd8c1d9dbc",
     "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
     "godot/scripts/core/underground_space_authority.gd": "d06385b658b460a38ecfcb7c5839d1e4efdead623c0223cca5a1a634857041ee",
     "godot/scripts/core/underground_space_owner.gd": "bfbad4b67a7e5cb9ccecf4f5500c322610abe8f3854f5fe364a1723a5a21aa1a",

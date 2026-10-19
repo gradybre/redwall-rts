@@ -32,7 +32,7 @@ const AIR_BOXES: int = Publication.AIR_BOXES
 ## row's yaw is a multiple of 16384, underground_profiles.gd).
 const FULL_TURN: int = 65536
 const QUARTER_TURN: int = 16384
-## Declared logical cold slice (52,664 B): five region tables (decision 1942 added the claimed rows) and their section
+## Declared logical cold slice (52,968 B): five region tables (decision 1942 added the claimed rows) and their section
 ## and claim refs, two fragment arenas,
 ## candidate keys, edge/plane scratch, the chain packets and their ADR1215 air boxes, the primitive scratch,
 ## eight six-int boxes and a 1,024 B scalar/reference allowance.
@@ -791,7 +791,8 @@ static func _leg(q: Query, first: Vector3i, last: Vector3i, forward: int, backwa
 	@warning_ignore("integer_division")
 	var section: int = _section_at(q, (first + last) / 2)
 	var arrival: int = _section_at(q, last)
-	if section < 0 or arrival < 0 or q.stations >= MAX_CHAIN: _note(q, 2 if q.stations < MAX_CHAIN else 6); return false
+	var longest: int = _cap(q) + 2 # MAX_CHAIN for a cornered approach; a straight one keeps its old bound of five.
+	if section < 0 or arrival < 0 or q.stations >= longest: _note(q, 2 if q.stations < longest else 6); return false
 	_slice(q.tables[SECTION], section, q.box)
 	if Publication.section_span_refusal(first, last, q.box) != &"": _note(q, 2); return false
 	if not _sweep(q, forward, first, last) or not _sweep(q, backward, last, first): return false
@@ -1024,9 +1025,10 @@ static func _emit(q: Query, next: int) -> int:
 static func _output(q: Query, out: Publication.Request) -> void:
 	"""Only a complete admissible chain is written; unused tails are explicit nulls and zeros."""
 	out.gateway = q.entry; out.count = q.stations
-	out.sections = PackedInt32Array([-1, 0, -1, 0, -1, 0])
-	out.points = PackedInt32Array(); out.points.resize(9)
-	out.profiles = PackedInt64Array(); out.profiles.resize(12)
+	out.sections = PackedInt32Array(); out.sections.resize(2 * MAX_STATIONS)
+	for index: int in MAX_STATIONS: out.sections[index * 2] = -1
+	out.points = PackedInt32Array(); out.points.resize(3 * MAX_STATIONS)
+	out.profiles = PackedInt64Array(); out.profiles.resize(4 * MAX_STATIONS)
 	for index: int in q.stations:
 		out.sections[index * 2] = q.sections[index * 2]; out.sections[index * 2 + 1] = q.sections[index * 2 + 1]
 		for axis: int in 3: out.points[index * 3 + axis] = q.points[index * 3 + axis]

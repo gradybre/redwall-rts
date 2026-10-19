@@ -35,7 +35,11 @@ const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a r
 const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
 const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
 const PREPARED_OBSERVATION_CHECKS: int = 256 # Fixed context/row reads; Routes charges each observation before copying.
-const FRONTIER_HEAP_WORDS: int = 168 # Six removals times14 bounded index/value writes; one caller-owned cold patch.
+## Decision 1943: the stations one room-frontier publication may add (a straight approach still uses at most three).
+const FRONTIER_MAX_STATIONS: int = 5
+## Two removals a station (its endpoint and its edges' rows) times 14 bounded index/value writes, as index/value pairs;
+## one caller-owned cold patch (168 words at three stations, before decision 1943).
+const FRONTIER_HEAP_WORDS: int = 2 * FRONTIER_MAX_STATIONS * 14 * 2
 ## ADR1215 per-motion air: a Location's air is its envelope plus up to MAX_AIR_EXTRA further half-open boxes,
 ## held in a fixed pool sized only by arena surplus beyond 228N+256 (zero slots: the schema-1 single-box model).
 const MAX_AIR_EXTRA: int = 3
@@ -263,7 +267,7 @@ class FrontierContext extends RefCounted:
 	var room: Vector2i = NULL_REF
 	var world: Vector2i = NULL_REF
 	var count: int = 0
-	var refs: PackedInt32Array = PackedInt32Array() # Three full prospective refs; no expected row pointer escapes.
+	var refs: PackedInt32Array = PackedInt32Array() # FRONTIER_MAX_STATIONS full prospective refs; no row pointer escapes.
 	var cold: int = 0
 	var revision: int = 0
 	var profiles: int = 0
@@ -3115,7 +3119,8 @@ func _rebuild_allocation(bank: Bank) -> void:
 func hold_frontier(context: FrontierContext) -> StringName:
 	"""Guard the whole synchronous observation window before any callback can prepare or publish a half transaction."""
 	if context == null or _contact_retirement != null or context.get_script() != FrontierContext or _frontier != null or _token != 0 \
-			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
+			or context.count < 1 or context.count > FRONTIER_MAX_STATIONS or context.refs.size() != 2 * FRONTIER_MAX_STATIONS \
+			or context.edges.size() != 4 * FRONTIER_MAX_STATIONS \
 			or context.locations != self or context.owner != _owner or context.budget != _cold \
 			or context.live != _live or context.candidate != _stage or context.world != _world \
 			or context.revision != _owner._header[17] or _owner._stage_token != 0 \
@@ -3128,7 +3133,8 @@ func hold_frontier(context: FrontierContext) -> StringName:
 func begin_frontier_prepare(context: FrontierContext) -> Result:
 	"""Use the held original scope to copy exactly one inactive bank without reopening the generic mutation door."""
 	if context == null or _contact_retirement != null or context.get_script() != FrontierContext or _frontier != context or _token != 0 \
-			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
+			or context.count < 1 or context.count > FRONTIER_MAX_STATIONS or context.refs.size() != 2 * FRONTIER_MAX_STATIONS \
+			or context.edges.size() != 4 * FRONTIER_MAX_STATIONS \
 			or context.locations != self or context.owner != _owner or context.budget != _cold \
 			or context.live != _live or context.candidate != _stage or context.world != _world \
 			or context.revision != _owner._header[17] or _owner._stage_token != 0 or _remaining < 0 \
@@ -3142,7 +3148,8 @@ func begin_frontier_prepare(context: FrontierContext) -> Result:
 static func frontier_scope_refusal(actual: RefCounted, context: FrontierContext, sealed: bool = true) -> StringName:
 	"""Only this exact original receiver, banks, token and still-live Space can expose a prospective row."""
 	if actual == null or context == null or actual._contact_retirement != null or context.get_script() != FrontierContext or actual._frontier != context \
-			or context.count < 1 or context.count > 3 or context.refs.size() != 6 or context.edges.size() != 12 \
+			or context.count < 1 or context.count > FRONTIER_MAX_STATIONS or context.refs.size() != 2 * FRONTIER_MAX_STATIONS \
+			or context.edges.size() != 4 * FRONTIER_MAX_STATIONS \
 			or context.locations != actual or context.owner != actual._owner or context.budget != actual._cold \
 			or context.live != actual._live or context.candidate != actual._stage or context.world != actual._world \
 			or context.location_token <= 0 or context.location_token != actual._token \
@@ -3201,7 +3208,7 @@ static func frontier_rows_refusal(actual: RefCounted, context: FrontierContext, 
 	"""Expected Records remain private to the coordinator; no observer can rewrite both candidate and expected payload."""
 	var code: StringName = frontier_scope_refusal(actual, context)
 	if code != &"": return code
-	if records.size() != 3 or actual._stage.header[13] != actual._live.header[13] + 1 \
+	if records.size() != FRONTIER_MAX_STATIONS or actual._stage.header[13] != actual._live.header[13] + 1 \
 			or actual._stage.count != actual._live.count + context.count \
 			or actual._stage.free_count != actual._live.free_count - context.count: return &"LOCATION_FRONTIER_ROWS"
 	for index: int in context.count:
@@ -3221,7 +3228,8 @@ static func frontier_heap_refusal(before: PackedInt32Array, after: PackedInt32Ar
 		refs: PackedInt32Array, removals: int, patch: PackedInt32Array, clear_tail: bool) -> StringName:
 	"""Replay exact original minimum removals in one fixed sparse patch; no full heap or live row is copied or written."""
 	if patch.size() != FRONTIER_HEAP_WORDS or before.size() != after.size() or before.size() > MAX_LOCATIONS \
-			or count < removals or count > before.size() or removals < 1 or removals > 6 or refs.size() < 2 * removals:
+			or count < removals or count > before.size() or removals < 1 or removals > 2 * FRONTIER_MAX_STATIONS \
+			or refs.size() < 2 * removals:
 		return &"FRONTIER_ALLOCATION_CHANGED"
 	patch.fill(-1)
 	for index: int in removals:

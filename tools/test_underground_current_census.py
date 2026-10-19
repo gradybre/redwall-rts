@@ -42,7 +42,7 @@ class CurrentCensusTests(unittest.TestCase):
                          "room_dig_runtime": 5349494, # decision 1936: the room-dig runtime at every bound
                          "world_routes_endpoint_memo": 140872, # decision 1952: the endpoint-proof memo
                          "world_routes_compile_memos": 19048}) # decision 1953: the route compile memos
-        self.assertEqual(result["room_publication_controls"]["controls"], 8970)
+        self.assertEqual(result["room_publication_controls"]["controls"], 11450) # decision 1943: five stations
         self.assertEqual(result["location_air_pool"]["remaining_bytes"], 1472)
         self.assertEqual(result["world_routes_cold"]["world_routes_cold_bytes"], 379648)
 
@@ -141,7 +141,7 @@ class CurrentCensusTests(unittest.TestCase):
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(
-            "const CONTROL_BYTES: int = 9216", "const CONTROL_BYTES: int = 8192", 1)
+            "const CONTROL_BYTES: int = 12288", "const CONTROL_BYTES: int = 11264", 1)
         with self.assertRaisesRegex(ValueError, "publication controls exceed CONTROL_BYTES"):
             census.publication_controls(memory, self.changed("underground_room_frontier_publication", text))
 

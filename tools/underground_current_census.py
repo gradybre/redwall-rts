@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "22099ef921c61448494559e74915637136909472007dfe4179cac57e7058ab76"
+REVIEWED_SHA = "b63c7a1da4e2c339ae708c3124c35c1ab7f1fae2fa757658bc2a68793559948b"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -383,17 +383,24 @@ def publication_controls(memory, index: dict) -> dict:
     source = module(index, CORE + "underground_room_frontier_publication.gd").text
     request = memory.class_body(source, "Request")
     require(re.findall(r"^\t\tair\.resize\(([^)]+)\)$", request, re.M) == ["MAX_STATIONS * AIR_BOXES * 6"]
-            and "var air_counts: PackedInt32Array = PackedInt32Array([0, 0, 0])" in request, "Request air shape")
+            and re.findall(r"^\t\tair_counts\.resize\(([^)]+)\)$", request, re.M) == ["MAX_STATIONS"],
+            "Request air shape")
     stations = memory.resolve(index, "underground_room_frontier_publication", "MAX_STATIONS")
     request_air = 4 * stations * (1 + memory.resolve(index, "underground_locations", "MAX_AIR_EXTRA")) * 6 + 4 * stations
     require(source.count("var request: Request = Request.new()") == 1 and "var input: Request = null" in source
             and source.count("Locations.Record.new()") == 2, "two Requests and four Query Records")
-    controls = 8050 + 2 * request_air + 4 * 80
+    # Decision 1943: ADR 1161 reviewed three stations. Each further one adds a Location Record (116) and a section
+    # Region (60), two Request packets' sections/points/profiles (2 x 52), private refs and edges (48), the sparse
+    # heap patch's two removals (224) and the caller Result's refs (24): 576 B, plus a 384 B allowance for its two
+    # objects and four packed headers. Every Record, the gateway's included, carries its 80 B of ADR 1215 air.
+    require(stations >= 3, "publication reviewed at three stations")
+    controls = 8050 + 2 * request_air + (1 + stations) * 80 + (stations - 3) * (576 + 384)
     ceiling = memory.resolve(index, "underground_room_frontier_publication", "CONTROL_BYTES")
     require(controls <= ceiling, "publication controls exceed CONTROL_BYTES")
     require("if CONTROL_BYTES + maxi(config.locations.cold_peak_bytes(), maxi(Face.COLD_BYTES, WorldRoutes.COLD_BYTES)) > Budget.COLD_BYTES:"
             in source, "publication control charged inside the shared cold arena at runtime")
     return {"reviewed_controls": 8050, "request_air_bytes": request_air, "record_air_bytes": 80,
+            "stations": stations, "per_station_growth_bytes": 576 + 384,
             "controls": controls, "control_bytes": ceiling}
 
 
@@ -418,7 +425,7 @@ def room_planner_cold(memory, index: dict) -> dict:
              + c["MAX_CANDIDATES"] * 8 + 2 * c["MAX_EDGES"] * 4 + c["MAX_CHAIN"] * (56 + boxes * 24)
              + c["MAX_PRIMITIVES"] * 24 + 192 + 1024)
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(total == 52664 and total <= shared, "planner cold slice inside the shared cold arena")
+    require(total == 52968 and total <= shared, "planner cold slice inside the shared cold arena")
     return {"control_bytes": total, "lease_bytes": shared,
             "scope": "Cold and released before publish_into admits its own lifetime in the same lease."}
 

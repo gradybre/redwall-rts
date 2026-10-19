@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. **Stopped again on 2026-10-18 at the claim boundary:** the P-2044-11 proof passes, but retiring a deep station's strip needs an unclaimed file (P-2044-12, "Build restarted, then stopped" at the end). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. Building. On 2026-10-18 the lane stopped at the claim boundary (P-2044-12: retiring a deep station's strip needed an unclaimed file); Brendan ruled it (a) the same day, and the build resumed. Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -506,3 +506,14 @@ publication path.
 
 Whatever is built, **the check-peak measurement (P-2044-1) must be re-run once Slice C's `perf/phase-spreading`
 merges**, because phase preparation then spans several ticks (see "Brendan's rulings and the claims agreed").
+
+## Brendan's ruling on P-2044-12 (2026-10-18)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2044-12 | **(a)**, "Small hook in entry structure" | `underground_entry_structure.gd` is cleared for this lane, for one hook of about 40 lines and nothing else: when a cube's BRACE starts, the hook removes the support strip the Frontier marks for retirement, on the cube cut just before the cube under it, whose reach never meets that strip. `underground_entry_frontier.gd`'s parser gains the one new data field; that is a format change, recorded in the census and the memory ledger |
+
+Slice C was told of the claim. Indexed in `docs/handoff/RULINGS.md`. The build resumes at step 2.2 of the brief
+(P-2044-9), with the hook added where it fits.

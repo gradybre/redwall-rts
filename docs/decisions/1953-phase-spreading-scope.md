@@ -353,6 +353,18 @@ is (C), staged.
 - No hooks are added to slice D's or the C2 lane's files.
 - If stage 1 shows that (C) cannot stay exact, the lane stops and reports.
 
+## Brendan's ruling on stage 2 (2026-10-18)
+
+**P-1953-2: what happens with stage 2.** Put to Brendan with stage 1's measured results (§6) and the stage 2 scope (§7).
+Brendan ruled in chat on 2026-10-18, relayed by the coordinator: **"After M5, re-measure"**.
+
+- Stage 1 merges now, as built: exact synchronous reuse. The stalls remain.
+- Stage 2 is not started. It is revisited once slice D's M5 flight has landed and its held files are free:
+  `_carry_eligible`, `_installed_row_site`, `underground_entry_structure.gd` and `underground_entry_frontier.gd`.
+- The revisit starts from a fresh measurement on master, covering the dig tick, START and settlement in the room and the
+  entry, with M5's flight in place, before any stage 2 design is adopted.
+- REQ-SET-163's 2 ms tick stays unmet until then. The steady earning tick is 2.09 / 3.30 ms (p50 / p95).
+
 ## Source
 
 - Decision 1952 and its rulings (`docs/handoff/RULINGS.md`, 2026-10-16).

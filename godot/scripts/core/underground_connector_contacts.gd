@@ -1103,7 +1103,7 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 		return REFUSE_GEOMETRY
 	if role == Profiles.STANCE_SUPPORT:
 		return &"" if Space.contains_box(_location.support, _bounds) else REFUSE_GEOMETRY
-	if _tread_station(): return _tread_role_volume(role, source_profile)
+	if _tread_station() or _landing_station(): return _tread_role_volume(role, source_profile) # Decision 2044.
 	if _location.air_count > 0: # ADR1215: installation contacts are single-box; extra air is never proved here.
 		return REFUSE_GEOMETRY
 	_fragments.start(_bounds)
@@ -1119,7 +1119,9 @@ func _role_geometry(role: int, source_profile: int = -1) -> StringName:
 
 func _tread_role_volume(role: int, source_profile: int) -> StringName:
 	"""ADR1229: a tread station's stop records only its footing, so each body box is proved against the actual
-	Regions, as the tread fitting and seating proofs stood: completed void, the station Room's own installed timber,
+	Regions. Decision 2044 (P-2044-16 (a)): so is a later module's T0 station on its landing, inside the Room's
+	completed cubes as a tread station is (the handling certificate judges its body the same way). As the tread
+	fitting and seating proofs stood: completed void, the station Room's own installed timber,
 	the order's own piece (held, or reached by the certified tap) and the stroke's target, then proved exterior air.
 	The Room's own reservation marker is nonphysical (as everywhere)."""
 	_fragments.start(_bounds)
@@ -1492,10 +1494,10 @@ func _local_point(x: int, y: int, z: int) -> Vector3i:
 
 
 func _deep_reach_refusal(landing: int) -> StringName:
-	"""M to X on the material profile, down to the landing's F' (P-2044-16 (a)), the approach to the hub P', then the
+	"""M to X on the material profile, down to the landing's F' (P-2044-16 (a)), the approach to the hub D, then the
 	floor walks to the station on its own travel row (its retreat is the station itself)."""
 	var stops: StairPath.Stops = _tread_stops()
-	var hub: Vector2i = stops.s[StairPath.global_level(landing, -1) + 1]
+	var hub: Vector2i = stops.d[landing]
 	var code: StringName = _path_refusal(_material_location, stops.x, _install[7])
 	if code == &"": code = _legs_refusal(_hop_legs(stops.x, StairPath.hops_down_to_walk_off(stops, landing)))
 	if code == &"": code = _row_path_refusal(stops.fp[landing], hub, StairPins.CLAW_APPROACH_ROWS[0])
@@ -1504,7 +1506,7 @@ func _deep_reach_refusal(landing: int) -> StringName:
 
 
 func _deep_output_refusal(landing: int) -> StringName:
-	"""The spoil's way to R: the floor walk to the hub P', back to F' (P-2044-16 (a)), up the stair to X, then X to R
+	"""The spoil's way to R: the floor walk to the hub D, back to F' (P-2044-16 (a)), up the stair to X, then X to R
 	on R's own row."""
 	_phase_output_location = _resolve_endpoint(_episode[16])
 	if _phase_output_location == NULL_REF: return REFUSE_ENDPOINT
@@ -1512,7 +1514,7 @@ func _deep_output_refusal(landing: int) -> StringName:
 	if code != &"" or _other.role != Locations.ROLE_STORAGE: return REFUSE_MATERIAL
 	_phase_output_payload = _other.payload_revision
 	var stops: StairPath.Stops = _tread_stops()
-	var hub: Vector2i = stops.s[StairPath.global_level(landing, -1) + 1]
+	var hub: Vector2i = stops.d[landing]
 	code = _path_refusal(_station_location, hub, _station[0])
 	if code == &"": code = _row_path_refusal(hub, stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0])
 	if code == &"": code = _legs_refusal(_hop_legs(stops.fp[landing], StairPath.hops_up_from_walk_off(stops, landing)))
@@ -2103,7 +2105,8 @@ func _assembly_start_regions(foot: bool) -> StringName:
 			continue
 		# ADR1229: the Room's own reservation marker is nonphysical for a tread station's body too (the Room's riser
 		# behind the station lies inside it).
-		if (foot or _tread_station()) and Handling.own_room_marker(owner, region, _location.room): continue
+		if (foot or _tread_station() or _landing_station()) and Handling.own_room_marker(owner, region, _location.room):
+			continue
 		var role: int = owner._r_role[region]
 		if role == Space.SUPPORTED_VOID or (not foot and _tread_timber(owner, region)):
 			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
@@ -2115,9 +2118,9 @@ func _assembly_start_regions(foot: bool) -> StringName:
 
 func _tread_timber(owner: Owner, region: int) -> bool:
 	"""ADR 1229: at a tread station (T1-T6; content 10 or 12) the body may meet the station Room's own installed SUPPORT,
-	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body."""
-	return Handling.Paw10.Claw.serves(_frontier._header[5]) and Handling.PawPhysical10.Tread.is_tread(_ordinal) \
-		and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
+	the timber its approved proofs stood among (tread-fit-v1); everywhere else SUPPORT blocks a body. Decision 2044:
+	so may a later module's T0 station on its landing, whose floor is the Room's own retained SUPPORT."""
+	return (_tread_station() or _landing_station()) and owner._r_role[region] == Space.SUPPORT and owner._r_claim_kind[region] == Owner.CLAIM_NONE \
 		and Vector2i(owner._r_owner_slot[region], owner._r_owner_generation[region]) == _location.room
 
 

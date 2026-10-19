@@ -328,6 +328,22 @@ func _open_deep_floor(task: Task) -> StringName:
 		_owners.locations, stops, deep, _content)
 
 
+func _retire_landing_floor() -> StringName:
+	"""Decision 2044 (P-2044-16 (a)): a later module's T0 order, on its last leg onto its station (off the floor's
+	stops, the bearer not yet set down), retires
+	its landing's deep floor: the hub D and the last deep stations (the landing row's), whose air reaches the bearer's
+	place. Their cuts are done; nothing comes back for them. Idempotent: nothing is left to retire on later ticks."""
+	var ordinal: int = _tasks[_index].install_ordinal
+	if not Tread.is_t0(ordinal) or Tread.module_of(ordinal) == 0: return &""
+	var landing: int = Tread.module_of(ordinal)
+	var stops: StairPath.Stops = _stops()
+	var deep: StairPath.Deep = _deep(landing)
+	var left: Array[Vector2i] = [stops.d[landing]]
+	for index: int in deep.handles.size(): left.append(deep.handles[index])
+	if left.count(NULL_REF) == left.size(): return &""
+	return StairPath.retire_stops(_owners.binding, _owners.routes, _owners.locations, _paid.budget, left)
+
+
 func _retire_deep_rows(task: Task) -> StringName:
 	"""Decision 2044: before a deep cube's BRACE starts, the stations of its row and of every row past it have
 	struck their last cube and the crew has left them: their edges and Locations leave, so the row's strip can go
@@ -1018,7 +1034,8 @@ func _floor_of(local: Vector3i) -> int:
 	var deep: Vector3i = StairPath.classify_deep(local)
 	if deep.x > 0: return deep.x
 	var kind: Vector2i = StairPath.classify(local)
-	if kind.x == StairPath.KIND_F or kind.x == StairPath.KIND_UF or kind.x == StairPath.KIND_FP: return kind.y
+	if kind.x == StairPath.KIND_F or kind.x == StairPath.KIND_UF or kind.x == StairPath.KIND_FP \
+			or kind.x == StairPath.KIND_D: return kind.y
 	if kind.x < 0 or kind.y < 0 or (kind.x != StairPath.KIND_H and kind.x != StairPath.KIND_P): return 0
 	return StairPath.module_of_level(kind.y) if kind.y == StairPath.global_level(StairPath.module_of_level(kind.y), -1) \
 		else 0
@@ -1060,6 +1077,8 @@ func _hops_to_crossing(stops: StairPath.Stops, local: Vector3i) -> Array:
 			var landing: int = StairPath.module_of_level(level)
 			if landing == 0: return []
 			return [[stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]] + StairPath.hops_up_from_walk_off(stops, landing)
+		StairPath.KIND_D:
+			return [[stops.fp[level], StairPins.CLAW_RETREAT_ROWS[0]]] + StairPath.hops_up_from_walk_off(stops, level)
 		StairPath.KIND_S: return [[stops.a[level + 1], StairPins.CLAW_STEP_FORWARD_ROW],
 			[stops.u[level + 1], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up(stops, level)
 		StairPath.KIND_A: return [[stops.u[level + 1], StairPins.CLAW_TURN_ROW]] + StairPath.hops_up(stops, level)
@@ -1082,36 +1101,37 @@ func _hops_from_crossing(stops: StairPath.Stops, local: Vector3i, target: Vector
 
 
 func _hub(stops: StairPath.Stops, landing: int) -> Vector2i:
-	"""P-2044-16 (a): landing j's P', the hub of its floor walks."""
-	return stops.s[StairPath.global_level(landing, -1) + 1]
+	"""P-2044-16 (a): landing j's deep hub D, the hub of its floor walks."""
+	return stops.d[landing]
 
 
 func _to_hub(stops: StairPath.Stops, landing: int, local: Vector3i) -> Array:
-	"""Hops on landing j's floor from a place to its hub P', or [null] when none is published from there."""
+	"""Hops on landing j's floor from a place to its hub D, or [null] when none is published from there."""
 	if StairPath.classify_deep(local).x > 0: return [[_hub(stops, landing), StairPath.FLOOR_ROW]]
 	var approach: Array = [_hub(stops, landing), StairPins.CLAW_APPROACH_ROWS[0]]
+	var back: Array = [stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]
 	match StairPath.classify(local).x:
-		StairPath.KIND_P: return []
+		StairPath.KIND_D: return []
 		StairPath.KIND_FP: return [approach]
 		StairPath.KIND_F: return [[stops.fp[landing], StairPins.STAIR_EMPTY_FLOOR_ROWS[0]], approach]
-		StairPath.KIND_H, StairPath.KIND_U: return [[stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]], approach]
+		StairPath.KIND_H, StairPath.KIND_U, StairPath.KIND_P: return [back, approach]
 	return [null]
 
 
 func _from_hub(stops: StairPath.Stops, landing: int, local: Vector3i, target: Vector2i) -> Array:
-	"""Hops on landing j's floor from its hub P' to a place, or [null] when none is published to there."""
+	"""Hops on landing j's floor from its hub D to a place, or [null] when none is published to there."""
 	if StairPath.classify_deep(local).x > 0: return [[target, StairPath.FLOOR_ROW]]
 	var back: Array = [stops.fp[landing], StairPins.CLAW_RETREAT_ROWS[0]]
 	match StairPath.classify(local).x:
-		StairPath.KIND_P: return []
+		StairPath.KIND_D: return []
 		StairPath.KIND_FP: return [back]
 		StairPath.KIND_F: return [back, [stops.f[landing], StairPins.STAIR_EMPTY_FLOOR_ROWS[1]]]
-		StairPath.KIND_H: return [back, [target, StairPins.CLAW_APPROACH_ROWS[0]]]
+		StairPath.KIND_H, StairPath.KIND_P: return [back, [target, StairPins.CLAW_APPROACH_ROWS[0]]]
 	return [null]
 
 
 func _floor_hops(stops: StairPath.Stops, landing: int, a: Vector3i, b: Vector3i, target: Vector2i) -> Array:
-	"""P-2044-16 (a): a way between two places on landing j's floor through its hub P', or [] when either end has no
+	"""P-2044-16 (a): a way between two places on landing j's floor through its hub D, or [] when either end has no
 	floor edge (the way up and down then serves)."""
 	var out: Array = _to_hub(stops, landing, a)
 	var rest: Array = _from_hub(stops, landing, b, target)
@@ -1230,7 +1250,9 @@ func _plan_retreat(install: PackedInt32Array, plan: Installer.Plan) -> StringNam
 func _install(tick: int) -> StringName:
 	"""Delegate every tick to the installer until its one whole-group commit, then take the next step."""
 	if _installer.stage() == Installer.STAGE_RESUME: return _resume_installation(tick)
-	var code: StringName = _installer.advance(tick)
+	var code: StringName = _retire_landing_floor() if _installer.stage() == Installer.STAGE_LEG_STATION else &""
+	if code != &"": return code
+	code = _installer.advance(tick)
 	if code != &"": return code
 	if _installer.stage() == Installer.STAGE_DONE:
 		_install_mwu += _installer.accepted_mwu()

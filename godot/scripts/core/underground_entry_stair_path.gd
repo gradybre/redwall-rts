@@ -21,10 +21,10 @@ extends RefCounted
 ## A0' and U0'. P-2044-16 (a) (reversing P-2044-14 (a), whose ground joins at F and U met the sill deck): each landing
 ## has decision 1972's floor edges, the descent onto F, the floor half-turn F -> U, the ascent from U, and the empty
 ## walk-off F -> F' (71) and back-up F' -> F (72); a landing is joined to its module at F', where every ground row
-## faces down the flight and clears the sill: F' -> P' and F' -> H' on the narrow approach 43, H' -> F', U0' -> F' and
-## P' -> F' on the narrow retreat 47. The stair carry stays module 0's, H to its sill and back (decision 1972), until
-## stair-leg Delivery. The deep stations a landing's floor carries for the next layer (2044) are joined to P', the
-## hub, by `publish_floor` on the all-yaw claw WALK 42, and leave row by row through `retire_row`.
+## faces down the flight and clears the sill: F' -> P', F' -> H' and F' -> D on the narrow approach 43, H' -> F',
+## U0' -> F', P' -> F' and D -> F' on the narrow retreat 47. The stair carry stays module 0's, H to its sill and back
+## (decision 1972), until stair-leg Delivery. The deep stations a landing's floor carries for the next layer (2044) are
+## joined to D, the hub, by `publish_floor` on the all-yaw claw WALK 42, and leave row by row through `retire_row`.
 
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
@@ -62,6 +62,8 @@ const KIND_H: int = 5
 const KIND_F: int = 6
 const KIND_UF: int = 7
 const KIND_FP: int = 8
+## P-2044-16 (a): the deep hub D on a landing (the landing row's station on the centre line), filed by landing.
+const KIND_D: int = 9
 ## Words per planned edge: [from kind, from level, to kind, to level, family, mode].
 const PLAN_WORDS: int = 6
 ## Decision 2044: the deep stations' floor walks (all-yaw claw WALK) and where a column's stations stand.
@@ -81,6 +83,7 @@ class Stops extends RefCounted:
 	var f: Array[Vector2i] = []
 	var uf: Array[Vector2i] = []
 	var fp: Array[Vector2i] = []
+	var d: Array[Vector2i] = []
 
 	func _init() -> void:
 		"""Every level starts absent."""
@@ -93,6 +96,7 @@ class Stops extends RefCounted:
 			f.append(NULL_REF)
 			uf.append(NULL_REF)
 			fp.append(NULL_REF)
+			d.append(NULL_REF)
 
 	func at(kind: int, level: int) -> Vector2i:
 		"""One stop handle, or NULL_REF: a stair stop by global level, a floor stop by landing, H/H' by level -1 of
@@ -101,8 +105,9 @@ class Stops extends RefCounted:
 		if kind == KIND_P and level == -1: return p
 		@warning_ignore("integer_division") var module: int = (level + 1) / MODULE_LEVELS
 		if kind == KIND_H: return hm[module] if level >= -1 and level < LEVELS - 1 else NULL_REF
-		if kind == KIND_F or kind == KIND_UF or kind == KIND_FP:
+		if kind == KIND_F or kind == KIND_UF or kind == KIND_FP or kind == KIND_D:
 			if level < 1 or level > MODULES: return NULL_REF
+			if kind == KIND_D: return d[level]
 			return f[level] if kind == KIND_F else (uf[level] if kind == KIND_UF else fp[level])
 		if level < -1 or level >= LEVELS - 1: return NULL_REF
 		if kind == KIND_P: return s[level + 1]
@@ -131,6 +136,7 @@ static func classify(point: Vector3i) -> Vector2i:
 	@warning_ignore("integer_division") var level: int = depth / Tread.RISE - 1
 	if module > MODULES or (module == MODULES and level != -1): return Vector2i(-1, 0)
 	var behind: int = point.z + Tread.MODULE_RUN * module - Tread.far_z(level)
+	if level < 0 and module > 0 and module < MODULES and behind == Tread.DEEP_INSIDE: return Vector2i(KIND_D, module)
 	if level < 0 and module > 0:
 		var floor_kind: int = _floor_kind(behind)
 		if floor_kind >= 0: return Vector2i(floor_kind, module)
@@ -167,6 +173,7 @@ static func record(stops: Stops, kind_level: Vector2i, handle: Vector2i) -> void
 		KIND_F: stops.f[level] = handle
 		KIND_UF: stops.uf[level] = handle
 		KIND_FP: stops.fp[level] = handle
+		KIND_D: stops.d[level] = handle
 
 
 static func edge_plan() -> PackedInt32Array:
@@ -211,7 +218,8 @@ static func _sill(module: int) -> PackedInt32Array:
 static func _landing(landing: int) -> PackedInt32Array:
 	"""Landing j's floor edges (decision 1972's floor plan, P-2044-16 (a)): the descent onto F, the half-turn F -> U,
 	the ascent from U, the walk-off F -> F' and the back-up F' -> F; but for the last landing, the ground joins to
-	module j at F': F' -> P' and F' -> H' (narrow approach), H' -> F', U0' -> F' and P' -> F' (narrow retreat)."""
+	module j and the deep hub at F': F' -> P', F' -> H' and F' -> D (narrow approach), H' -> F', U0' -> F', P' -> F'
+	and D -> F' (narrow retreat)."""
 	var walk: int = Profiles.MODE_WALK
 	var sill: int = global_level(landing - 1, SILL_LEVEL)
 	var out: PackedInt32Array = PackedInt32Array([KIND_A, sill, KIND_F, landing, 0, walk,
@@ -221,7 +229,8 @@ static func _landing(landing: int) -> PackedInt32Array:
 	var foot: int = global_level(landing, -1)
 	out.append_array(PackedInt32Array([KIND_FP, landing, KIND_P, foot, -1, walk, KIND_FP, landing, KIND_H, foot, -1, walk,
 		KIND_H, foot, KIND_FP, landing, -1, walk, KIND_U, foot, KIND_FP, landing, -1, walk,
-		KIND_P, foot, KIND_FP, landing, -1, walk]))
+		KIND_P, foot, KIND_FP, landing, -1, walk, KIND_FP, landing, KIND_D, landing, -1, walk,
+		KIND_D, landing, KIND_FP, landing, -1, walk]))
 	return out
 
 
@@ -496,7 +505,7 @@ static func classify_deep(point: Vector3i) -> Vector3i:
 
 static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted,
 		locations: Locations, stops: Stops, deep: Deep, content_revision: int) -> StringName:
-	"""Join landing j's floor to its deep stations on the claw WALK: P' (the hub, P-2044-16 (a)) to the landing row's
+	"""Join landing j's floor to its deep stations on the claw WALK: D (the hub, P-2044-16 (a)) to the landing row's
 	column-1 station and back (two L-shaped walks), the column-1 spine between rows and each row's crossing, both
 	ways."""
 	if binding == null or routes == null or budget == null or owner == null or locations == null or deep == null:
@@ -521,7 +530,7 @@ static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, 
 static func _floor_pairs(stops: Stops, deep: Deep) -> Array:
 	"""Every floor walk of one landing as [from, to] handle pairs, in a fixed order."""
 	var top: int = deep.first_row
-	var hub: Vector2i = stops.s[global_level(deep.landing, -1) + 1] # P-2044-16 (a): P', the landing's hub.
+	var hub: Vector2i = stops.d[deep.landing] # P-2044-16 (a): D, the landing's hub.
 	var out: Array = [[hub, deep.at(top, 1)], [deep.at(top, 1), hub]]
 	for row: int in range(top, Tread.ROWS - 1):
 		out.append([deep.at(row, 0), deep.at(row, 1)])
@@ -552,14 +561,19 @@ static func retire_row(binding: WorldRoutes, routes: Routes, locations: Location
 		row: int) -> StringName:
 	"""A finished deep row leaves before its own cubes are cut: every edge touching its two stations, published,
 	then the stations themselves (2044; their strip goes with the row's first cube, P-2044-12 (a))."""
-	if binding == null or routes == null or locations == null or budget == null or deep == null: return REFUSE_OWNER
-	var stations: Array[Vector2i] = [deep.at(row, 0), deep.at(row, 1)]
+	if deep == null: return REFUSE_OWNER
+	return retire_stops(binding, routes, locations, budget, [deep.at(row, 0), deep.at(row, 1)])
+
+
+static func retire_stops(binding: WorldRoutes, routes: Routes, locations: Locations, budget: Budget,
+		stations: Array[Vector2i]) -> StringName:
+	"""Every edge touching the given floor stops, published, then the stops themselves (NULL_REF entries skipped)."""
+	if binding == null or routes == null or locations == null or budget == null: return REFUSE_OWNER
 	var lease: int = budget.acquire(Budget.COLD_BYTES)
 	if lease <= 0: return REFUSE_LEASE
 	var begun: Routes.Result = binding.begin_prepare(lease)
 	var code: StringName = begun.error
-	for stop: Vector2i in stations:
-		if code == &"" and stop != NULL_REF: code = _stage_touching(routes, begun.token, stop)
+	if code == &"": code = _stage_touching(routes, begun.token, stations)
 	if code == &"": code = binding.seal(begun.token)
 	if code == &"": code = binding.publish(begun.token)
 	binding.abort(begun.token)
@@ -570,13 +584,19 @@ static func retire_row(binding: WorldRoutes, routes: Routes, locations: Location
 	return code
 
 
-static func _stage_touching(routes: Routes, token: int, stop: Vector2i) -> StringName:
-	"""Every live edge that starts or ends at `stop` leaves the graph."""
+static func _stage_touching(routes: Routes, token: int, stops: Array[Vector2i]) -> StringName:
+	"""Every live edge that starts or ends at one of `stops` leaves the graph, once (a row's crossing touches both)."""
 	var edge: Routes.Edge = Routes.Edge.new()
 	for row: int in routes._edge_capacity:
 		if routes._live.present[row] != 1: continue
 		var ref: Vector2i = Vector2i(row, routes._live.fields[Routes.E_GENERATION * routes._edge_capacity + row])
 		var code: StringName = routes.edge_metadata_into(ref, edge)
-		if code == &"" and (edge.from_location == stop or edge.to_location == stop): code = routes.stage_remove(token, ref)
+		if code == &"" and (_listed(stops, edge.from_location) or _listed(stops, edge.to_location)):
+			code = routes.stage_remove(token, ref)
 		if code != &"": return code
 	return &""
+
+
+static func _listed(stops: Array[Vector2i], stop: Vector2i) -> bool:
+	"""One of the given live stops (NULL_REF never matches)."""
+	return stop != NULL_REF and stop in stops

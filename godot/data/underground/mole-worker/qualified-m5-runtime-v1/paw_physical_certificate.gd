@@ -4,8 +4,8 @@ extends RefCounted
 ## call about an assembly of module 0 (L0, T0..T6: assemblies 0-7) is handed to the published certificate unchanged, so
 ## today's entry behaves byte for byte as before. A later module's assembly is judged by the published rules moved by
 ## its module translation (`tread_geometry.gd` here):
-## - a module's T0 (installed from its natural landing): the L0/T0 rules (`assembly_physical_certificate.gd`), with
-##   T0's station, part and transform translated;
+## - a module's T0 (installed from its natural landing): T0's station, part and transform translated, its prism by
+##   the L0/T0 rules (`assembly_physical_certificate.gd`), its body by the published underground (tread) volume rule;
 ## - its T1..T6: the published tread rules at the module's derived station and staged bearer.
 ## Its proofs, volumes and owners are the published certificate's own; nothing here is retained between calls.
 
@@ -79,8 +79,11 @@ static func admission_refusal(bindings: RefCounted, graph: RefCounted, pieces: R
 
 static func _volumes(b: RefCounted, g: RefCounted, p: RefCounted, assembly: int, selection: Profiles.Selection,
 		target: int, room: Vector2i) -> StringName:
-	"""Body then stance: a T0 in real air and footing, a tread also within its Room's own timber (published rules)."""
-	var tread: bool = Tread.is_tread(assembly)
+	"""Body then stance by the published rules: a tread's station stands inside its Room's own paid cubes, so its body
+	meets only void, the Room's own timber and its own reservation (`_tread_volume`). Decision 2044 (P-2044-16 (a)): a
+	later module's T0 is installed from its landing, a station inside the Room's completed cubes too, so it takes the
+	same underground rule rather than L0's surface one (whose body may not share the Room's cube reservation)."""
+	var tread: bool = Tread.is_tread(assembly) or Tread.module_of(assembly) > 0
 	for part: int in Source.PART_COUNT:
 		var code: StringName = Published._box_into(selection, part, b._bounds)
 		if code == &"":

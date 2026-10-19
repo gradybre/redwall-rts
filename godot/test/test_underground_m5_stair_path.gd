@@ -32,7 +32,8 @@ func _full_stops() -> StairPath.Stops:
 		stops.f[index] = Vector2i(next + 1, 1)
 		stops.uf[index] = Vector2i(next + 2, 1)
 		stops.fp[index] = Vector2i(next + 3, 1)
-		next += 4
+		stops.d[index] = Vector2i(next + 4, 1)
+		next += 5
 	stops.h = stops.hm[0]
 	return stops
 
@@ -74,6 +75,8 @@ func test_floor_stops_are_filed_by_landing() -> void:
 		assert_equal(StairPath.classify(_stop(landing, -1, StairPath.FLOOR_WALK_OFF_BEHIND)),
 			Vector2i(StairPath.KIND_FP, landing), "F' %d" % landing)
 	assert_equal(StairPath.classify(_stop(StairPath.MODULES, -1, Tread.STATION)), Vector2i(-1, 0), "no P' on the last")
+	assert_equal(StairPath.classify(_stop(1, -1, Tread.DEEP_INSIDE)), Vector2i(StairPath.KIND_D, 1), "D on landing 1")
+	assert_equal(StairPath.classify(_stop(StairPath.MODULES, -1, Tread.DEEP_INSIDE)), Vector2i(-1, 0), "no D on the last")
 	assert_equal(StairPath.classify(_stop(StairPath.MODULES, 0, Tread.ARRIVAL)), Vector2i(-1, 0), "no tread below")
 
 
@@ -98,7 +101,7 @@ func test_module_zero_plan_is_v10s_then_the_landings() -> void:
 	sill."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
 	var head: int = StairPath.descent_words() + 2 * StairPath.PLAN_WORDS + StairPath.carry_plan().size()
-	var per_module: int = StairPath.PLAN_WORDS * (5 + 5 + 1 + 5 * Tread.TREADS + 2)
+	var per_module: int = StairPath.PLAN_WORDS * (5 + 7 + 1 + 5 * Tread.TREADS + 2)
 	assert_equal(plan.size(), head + (StairPath.MODULES - 1) * per_module + 5 * StairPath.PLAN_WORDS, "plan length")
 	assert_equal(plan.slice(StairPath.descent_words() + 2 * StairPath.PLAN_WORDS, head), StairPath.carry_plan(),
 		"the stair carry stays module 0's")
@@ -106,7 +109,8 @@ func test_module_zero_plan_is_v10s_then_the_landings() -> void:
 
 func test_landings_cross_on_71_72_and_join_at_f_prime() -> void:
 	"""P-2044-16 (a): each landing has the walk-off F -> F' and back-up F' -> F (family 0); the ground joins all start or
-	end at F' (F' -> P', F' -> H', H' -> F', U0' -> F', P' -> F'); nothing on the ground touches F or U."""
+	end at F' (F' -> P', F' -> H', F' -> D, H' -> F', U0' -> F', P' -> F', D -> F'); nothing on the ground touches F
+	or U."""
 	var plan: PackedInt32Array = StairPath.edge_plan()
 	var floor_edges: Dictionary = {}
 	var joins: Dictionary = {}
@@ -126,9 +130,11 @@ func test_landings_cross_on_71_72_and_join_at_f_prime() -> void:
 				Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_H, foot),
 				Vector4i(StairPath.KIND_H, foot, StairPath.KIND_FP, landing),
 				Vector4i(StairPath.KIND_U, foot, StairPath.KIND_FP, landing),
-				Vector4i(StairPath.KIND_P, foot, StairPath.KIND_FP, landing)]:
+				Vector4i(StairPath.KIND_P, foot, StairPath.KIND_FP, landing),
+				Vector4i(StairPath.KIND_FP, landing, StairPath.KIND_D, landing),
+				Vector4i(StairPath.KIND_D, landing, StairPath.KIND_FP, landing)]:
 			assert_true(joins.has(join), "landing %d join %s" % [landing, join])
-	assert_equal(joins.size(), 5 * (StairPath.MODULES - 1), "no other ground join")
+	assert_equal(joins.size(), 7 * (StairPath.MODULES - 1), "no other ground join")
 
 
 func test_hops_down_cross_each_landing_by_its_floor_and_p_prime() -> void:

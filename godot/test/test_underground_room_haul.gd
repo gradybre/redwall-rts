@@ -134,8 +134,8 @@ class HaulKitchen extends ForemanTests.Kitchen:
 		var stand_m: Vector3i = m - offset
 		var stand_r: Vector3i = SOURCE_POINT - offset
 		var token: int = _begin()
-		_span(token, parking, stand_store, [m, stand_m], Profiles.MODE_WALK)
-		_span(token, stand_store, parking, [stand_m, m], Profiles.MODE_WALK)
+		_span(token, storage, stand_store, [m, stand_m], Profiles.MODE_WALK) # M's endpoint (here, the parking).
+		_span(token, stand_store, storage, [stand_m, m], Profiles.MODE_WALK)
 		_span(token, stand_store, stand_source, [stand_m, stand_r], Profiles.MODE_WALK)
 		_span(token, stand_source, stand_store, [stand_r, stand_m], Profiles.MODE_WALK)
 		_span(token, stand_source, stand_store, [stand_r, stand_r - offset, stand_m - offset, stand_m], Profiles.MODE_CARRY)

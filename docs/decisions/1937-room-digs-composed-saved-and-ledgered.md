@@ -135,6 +135,10 @@ cannot ledger that bound as it stands without a ruling (§6).
    - the composer's claws builder digging end to end. On content 6 it is refused `PROFILE_VARIANT_UNAUTHORED`,
      and the composer tests run the pick mole to prove the dispatcher.
 
+**Note (2026-10-17, the C2 follow-ups).** Gap 1 is closed by decision 1938 (a resumed builder takes the paid phase
+to the end) and gap 3 by decision 1939 (the claw Kitchen, on the mounted content 12). Decision 1940 releases the
+finished entry's crew. Decision 1941 scopes the stair-leg Delivery.
+
 ## 7. Other choices
 
 - **Kept records are bounded** at `MAX_KEPT` = 2 × `MAX_DIGS` = 512. Ordering past it is refused

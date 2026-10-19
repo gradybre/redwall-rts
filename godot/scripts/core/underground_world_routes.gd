@@ -1134,9 +1134,40 @@ func _profile_edge_refusal(profile: int, edge: Routes.Edge) -> StringName:
 		code = Routes.ShortStep.span_refusal(profile, _point(edge, 0), _point(edge, edge.point_count - 1), edge.point_count, _pace.value)
 		if code != &"": return code
 	if not _carried:
-		code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
+		code = _heading_first_refusal(profile, edge) # Decision 2045: the pure heading test before the observations.
+		if code == &"": code = _profile_endpoint_refusal(edge.from_location, _point(edge, 0))
 		if code == &"": code = _profile_endpoint_refusal(edge.to_location, _point(edge, edge.point_count - 1))
 	return _profile_segments_refusal(edge) if code == &"" else code
+
+
+func _heading_first_refusal(profile: int, edge: Routes.Edge) -> StringName:
+	"""Decision 2045 ("Exact cost fixes", P-2044-15): `_profile_segments_refusal`'s heading test, run before the two
+	endpoint observations. It reads only the descriptor, the selection policy and the immutable path, so a profile it
+	refuses is refused by the full proof as well (the proof refuses at that segment's heading, or earlier); a pass
+	changes nothing, the full proof still runs. One check a segment, as the segment loop charges. With the cache checks
+	on, a refusal is confirmed, unspent, by the segment proof (the full proof is the endpoints and then the segments,
+	so a refused segment proof refuses it; the endpoint observations and their scratch are left as they were)."""
+	var code: StringName = _segment_headings_refusal(edge)
+	if code != &"WORLD_ROUTE_PROFILE_HEADING" or not Profiles.CacheChecks.enabled: return code
+	var spent: int = _proof.remaining
+	if _profile_segments_refusal(edge) == &"" and _proof.error == &"":
+		Profiles.CacheChecks.report("heading first", "edge %d row %d" % [edge.ref.x, profile])
+	_proof.remaining = spent # The checked proof is not charged: a checked run spends what an unchecked one does.
+	_proof.error = &""
+	return code
+
+
+func _segment_headings_refusal(edge: Routes.Edge) -> StringName:
+	"""Decision 2045: every segment's heading against the profile's (its selection policy's backward rows reversed)."""
+	if _descriptor.yaw_kind == Profiles.YAW_ALL: return &""
+	var policy: int = Profiles.selection_policy_leaf(_profiles, _descriptor.profile_id, _descriptor.profile_revision, _content_revision)
+	var backward: bool = policy == Profiles.POLICY_READY_BACKWARD or policy == Profiles.POLICY_SHORT_BACKWARD
+	var heading: int = (_descriptor.yaw + 32768) % 65536 if backward else _descriptor.yaw
+	for segment: int in edge.point_count - 1:
+		if not _proof.spend(): return _proof.error
+		if Routes.heading_for_delta(_point(edge, segment + 1) - _point(edge, segment), heading) != heading:
+			return &"WORLD_ROUTE_PROFILE_HEADING"
+	return &""
 
 
 func _stair_row(profile: int) -> bool:

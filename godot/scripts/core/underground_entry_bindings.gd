@@ -1291,6 +1291,7 @@ func _timber_installed_bearing(proof: TimberClearance, bounds: PackedInt32Array)
 
 func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: int, space_token: int) -> StringName:
 	"""Current mixed-height exclusions and matter use the original live or exact sealed candidate scope."""
+	var checked: bool = false
 	var z: int = bounds[2]
 	while z < bounds[5]:
 		var x: int = bounds[0]
@@ -1310,7 +1311,10 @@ func _timber_terrain(proof: TimberClearance, bounds: PackedInt32Array, purpose: 
 				if space_token == 0 else terrain.prepared_local_facts_refusal(_region.box, purpose,
 					_entry_placements._base_geometry_revision, space_token, _timber_token)
 			if code != &"": return code
-			code = _timber_scope_leaf(proof)
+			# Decision 2045 ("Exact cost fixes"): a terrain read changes no part of the operation scope, so the scope
+			# re-check after the first window answers for every later one; it is charged once a call, not a window.
+			if not checked: code = _timber_scope_leaf(proof)
+			checked = true
 			if code != &"": return code
 		z = next_z
 	return &""
@@ -1840,18 +1844,43 @@ func _timber_create_datum(proof: TimberClearance, token: int) -> StringName:
 
 
 func _timber_profile(endpoint: int) -> int:
-	"""A WORK selector uses its exact source station heading; other roles retain the explicit travel profile."""
+	"""A WORK selector uses its exact source station heading; other roles retain the explicit travel profile.
+	Decision 2045 ("Exact cost fixes", P-2044-15): when the STATION rows are ordered by endpoint the scan starts at
+	the endpoint's first row and stops after its last; it reads the same rows in the same order as the full scan."""
 	if _entry_contact.role != Locations.ROLE_WORK: return _entry_frontier._travel_profile[endpoint]
 	var found: int = -1
 	var rotation: int = _entry_placements._get32(_entry_placements._live, Placements.ROTATION, _timber_placement.x)
-	for row: int in _entry_frontier._header[8 + Frontier.STATION]:
+	var rows: int = _entry_frontier._header[8 + Frontier.STATION]
+	var start: Vector2i = _station_rows_start(endpoint, rows)
+	if start.x < 0: return -2
+	for row: int in range(start.x, rows):
 		if not _entry_spend(12): return -2
-		if _entry_frontier._field(Frontier.STATION, row, 0) != endpoint: continue
+		if _entry_frontier._field(Frontier.STATION, row, 0) != endpoint:
+			if start.y == 1: break
+			continue
 		var profile: int = _entry_frontier._field(Frontier.STATION, row, 5) if rotation == 0 else \
 			_entry_frontier._rotation_profile[(rotation - 1) * _entry_frontier._capacities[Frontier.STATION] + row]
 		if found >= 0 and found != profile: return -1
 		found = profile
 	return found
+
+
+func _station_rows_start(endpoint: int, rows: int) -> Vector2i:
+	"""Decision 2045: (first row to read, 1 when the STATION rows are ordered by endpoint so the read may stop at the
+	first other endpoint), or x -2 when the budget is spent. The order is checked at one check a row; the first row
+	of `endpoint` is then found by binary search at 12 a probe. Unordered rows are read from 0, as before."""
+	for row: int in range(1, rows):
+		if not _entry_spend(): return Vector2i(-2, 0)
+		if _entry_frontier._field(Frontier.STATION, row - 1, 0) > _entry_frontier._field(Frontier.STATION, row, 0):
+			return Vector2i(0, 0)
+	var low: int = 0
+	var high: int = rows
+	while low < high:
+		if not _entry_spend(12): return Vector2i(-2, 0)
+		@warning_ignore("integer_division") var middle: int = (low + high) / 2
+		if _entry_frontier._field(Frontier.STATION, middle, 0) < endpoint: low = middle + 1
+		else: high = middle
+	return Vector2i(low, 1)
 
 
 func _timber_profile_envelope(endpoint: int) -> StringName:

@@ -1,6 +1,6 @@
 # 2044 — Slice D phase 2b-1: the M5 flight runtime, scoping and file claims (stopped for the coordinator)
 
-Date: 2026-10-17 · Status: Accepted. Building. On 2026-10-18 the lane stopped at the claim boundary (P-2044-12: retiring a deep station's strip needed an unclaimed file); Brendan ruled it (a) the same day, and the build resumed. Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
+Date: 2026-10-17 · Status: Accepted. **Stopped at the claim boundary for P-2044-13 and P-2044-14** (2026-10-18; "Second stop after P-2044-12" at the end). Earlier the same day the lane stopped for P-2044-12, which Brendan ruled (a). Before that: building (P-2044-7 to -11 ruled 2026-10-17; see the rulings at the end). Earlier: Brendan ruled P-2044-1 to P-2044-6, all (a), on 2026-10-17, and
 Slice C accepted the claim list. Before any held file was edited, the build's first research pass found that 2b-1
 needs files outside the agreed claims (the off-limits entry runtime among them). It also found that P-2044-4 (a) rests
 on a miscount. Per the coordinator's rule, the lane stopped: see "Stopped before building" and P-2044-7 to P-2044-11.
@@ -517,3 +517,90 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
 
 Slice C was told of the claim. Indexed in `docs/handoff/RULINGS.md`. The build resumes at step 2.2 of the brief
 (P-2044-9), with the hook added where it fits.
+
+## Second stop after P-2044-12: two more files outside the claims (2026-10-18)
+
+After the P-2044-12 ruling, the build resumed with a design pass over every piece of the runtime before writing
+code. The aim was to find every file outside the claims at once, rather than one at a time. Two were found. No file
+outside the claims was edited.
+
+### The design the pass settled (within the claims)
+
+- **Deep stations.** For layer j + 1, station S(r, c) stands on row r's floor at depth j and strikes cube
+  (r + 1, c)'s top face with claw dig row 56 (yaw 0). Its contact point (224, 0, −544) lands 138 u inside the cube.
+  - Placement: x = −512 for column 0 and +400 for column 1; z = −1024(r + 1) + 406. Travel is on the narrow approach
+    row 43.
+  - Row 56's and row 43's bodies then stay inside the 2 m slot, and their stances inside the station's own column.
+- **The floor graph.** A spine runs down column 1 (S(r, 1) ↔ S(r + 1, 1)), with one crossing per row
+  (S(r, 0) ↔ S(r, 1)). The cut order is row-major from the end wall: (26, 0), (26, 1), (25, 0), (25, 1), and so on.
+- **When each strip retires (P-2044-12's hook fits this order exactly):**
+  - cube (r, 0)'s strips (its station and its half of the crossing) are retired by (r + 1, 1)'s BRACE start;
+  - cube (r, 1)'s strips (its station, its half of the crossing and the spine through row r) are retired by
+    (r, 0)'s BRACE start.
+
+  In each case the crew has already left the station, its edges and Location have retired, and the retiring cube's
+  reach never meets the strip. That reach lies above its own floor, as `_entry_contact_bounds` builds it. The
+  landing row's stations are never undermined and keep their strips.
+- **The Frontier data field.** A third BEARING kind, a strip. Its field 1 names the episode whose BRACE start
+  retires it, and the row size is unchanged. The bindings retain strips at the previous sill's commit; the entry
+  structure's hook removes them.
+- **Material and spoil for deep cubes.** A stage's brace inputs are hauled to M once, at the surface, when the stage
+  starts. Each deep phase then only claims stock at M. Contacts proves the station's reach to M and R across the
+  stair leg by leg, as it already does for tread stations (Contacts is claimed).
+
+### P-2044-13 — The handling dispatch (`qualified-claw-runtime-v1/handling_programs.gd`, not claimed)
+
+- Every assembly-specific handling proof reaches the paw certificate through this one data file's content-keyed
+  dispatch: the Workpieces' load-time part check (`underground_connector_workpieces.gd:466`), Routes, WorldRoutes
+  and Contacts.
+- For content 12 it calls `qualified-claw-runtime-v2/paw_physical_certificate.gd`, whose `Tread.is_tread` covers
+  assemblies 2–7. Anything else falls through to the pick certificate, which accepts assemblies 0 and 1 only.
+- So the 232-part M5 bundle's workpieces for modules 1–4 (assemblies 8–35) are refused when the bundle loads, and the
+  bundle cannot mount.
+- P-2044-9's successor certificates are new files, but nothing in the claims can route to them: Routes, WorldRoutes
+  and Workpieces all preload this dispatch.
+
+Options:
+
+- **(a) Clear `handling_programs.gd` for one change.** Its content-12 paw certificate (`PawPhysical10`) points at the
+  new module-aware successor. The successor delegates assemblies 0–7 to the published v2 certificate unchanged, so
+  today's entry behaves byte for byte as before, and adds module j's T0–T6 (module-translated stations, bearers and
+  part transforms).
+- (b) A successor dispatch file, with its preload switched in Routes, WorldRoutes, Workpieces, Contacts and the
+  presentation. This needs off-limits files.
+- (c) Re-rule P-2044-5 to two variants placed five times, so every Placement's assemblies stay 0–7. Every runtime
+  owner then has to handle several Placements, which is a far larger change.
+
+**Recommendation: (a).**
+
+### P-2044-14 — Clipped floor decks need the stair motion owner (off-limits)
+
+- P-2044-3 (a) asked for decision 1981's carry floor decks to be clipped in a data successor. Those decks are the
+  stair-carry tables' decks, read by WorldRoutes through the stair motion owner.
+- `underground_stair_motion.gd` `load_carry_file` refuses any wire but the one its own pins name
+  (`expected_sha != CarryPins.WIRE_SHA`). A successor table can therefore never be loaded without editing the stair
+  motion owner, which is off-limits.
+
+Options:
+
+- **(a) Leave the carry tables as they are.**
+  - On M5's floors, publish no edges on rows 71/72 or the loaded walk-off/back-up rows.
+  - Between modules, walk on qualified ground rows over retained walk strips. Each landing stop is joined like L0's:
+    F → P′ on the narrow approach 43, and U0′ → U on the approach 45.
+  - The floor walk-off, back-up and floor CARRY edges then wait for stair-leg Delivery (decision 1941 §2), which is
+    built on M5 anyway.
+  - P-2044-3's "retain only stop footprints and walk strips" holds, and no clipped successor is needed in 2b-1.
+  - F′ (the walk-off's end) has no edge until then.
+- (b) Clear `underground_stair_motion.gd` to load a clipped successor of the carry tables.
+- (c) P-2044-3 (b): retain each module's whole floor (never undermined, since each module stops at its own depth),
+  and rely on P-2044-1's prefilter for the check bound.
+
+**Recommendation: (a).** It needs no new claim and defers only what stair-leg Delivery will rebuild.
+
+### What was not found
+
+The pass found no other file outside the claims. Session, Placements, ConnectorWork, the entry plan, the cut map and
+Sites read no tread or module geometry. Locations, Contacts, the installer, the bindings, the structure hook, the
+foreman, the runtime, the work area, the site, the compositions and the census are claimed. One file remains
+unproved until the mount runs: `underground_entry_world_bindings.gd`'s per-phase episode lookup budget with 154
+episodes.

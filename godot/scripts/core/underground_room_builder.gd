@@ -70,6 +70,8 @@ const REFUSE_SCOPE: StringName = &"ROOM_BUILDER_SCOPE"
 const REFUSE_STATE: StringName = &"ROOM_BUILDER_STATE"
 const REFUSE_STALL: StringName = &"ROOM_BUILDER_STALLED"
 const REFUSE_LEG: StringName = &"ROOM_BUILDER_LEG_PROFILE"
+## Decision 1943: the content has no READY sibling of the bound travel rows at the cube's work-row heading.
+const REFUSE_HEADING_ROWS: StringName = &"ROOM_BUILDER_HEADING_ROWS"
 const REFUSE_TARGET: StringName = &"ROOM_BUILDER_TARGET_MOVED"
 const REFUSE_LOST: StringName = &"ROOM_BUILDER_CREW_LOST"
 ## Decision 1934 (P-C22-1): no certified stair row carries cargo yet, so stock is hauled only within one level.
@@ -439,14 +441,17 @@ func _plan_claim(store_anchor: int) -> StringName:
 	The legs left planned are the first ones walked."""
 	_plan.clear()
 	_plan.start = _at
-	var code: StringName = _plan_legs(_station, _crew.parking, _ctx.backward, false)
+	var forward: int = _heading_row(_ctx.forward, Profiles.POLICY_READY_FORWARD) # Decision 1943: the cube's heading.
+	var backward: int = _heading_row(_ctx.backward, Profiles.POLICY_READY_BACKWARD)
+	if forward < 0 or backward < 0: return REFUSE_HEADING_ROWS
+	var code: StringName = _plan_legs(_station, _crew.parking, backward, false)
 	if code != &"": return code
 	_plan.home_legs = _legs.duplicate()
 	_plan.home_profiles = _leg_profiles.duplicate()
 	if not _queue.is_empty():
 		_plan.store = _store()
 		code = _plan_trips()
-	if code == &"": code = _plan_legs(_plan.store if _plan.hauls() else _at, _station, _ctx.forward, true)
+	if code == &"": code = _plan_legs(_plan.store if _plan.hauls() else _at, _station, forward, true)
 	if code != &"": return code
 	_plan.approach_legs = _legs.duplicate()
 	_plan.approach_profiles = _leg_profiles.duplicate()
@@ -457,6 +462,14 @@ func _plan_claim(store_anchor: int) -> StringName:
 	if code == &"" and not _plan.bounded(): code = REFUSE_FOOTPRINT
 	if code == &"": _sweep_claim()
 	return code
+
+
+func _heading_row(row: int, policy: int) -> int:
+	"""Decision 1943: the bound travel row itself when the cube's work row shares its heading (as before), else that
+	row's own sibling at the work row's yaw (ADR 1213's family), or -1 when the content has none."""
+	var yaw: int = _yaw(_work_profile)
+	if yaw == _yaw(row): return row
+	return Itinerary.family_row(_ctx.owners.profiles, row, yaw, policy)
 
 
 func _sweep_claim() -> void:
@@ -575,8 +588,7 @@ func _contact(site: Vector2i, key: int) -> StringName:
 	var code: StringName = Planner.next_contact_into(o.provider, o.sites.room_of(site), key - 1, cold, Space.MAX_CHECKS,
 		candidate, contact, request, result)
 	if code == Frontier.REFUSE_ACTIVE and candidate.site == site: # P-1933-2 (a): a paid phase is taken over.
-		code = Frontier.resume_contact_into(o.provider, candidate, o.provider._ordinary_retreat, _ctx.forward,
-			_revision(_ctx.forward), cold, Space.MAX_CHECKS, contact)
+		code = Planner.resume_contact_into(o.provider, candidate, _ctx.forward, cold, Space.MAX_CHECKS, contact)
 	if code == &"" and (candidate.key != key or candidate.site != site): code = REFUSE_TARGET
 	if code == &"":
 		_station = contact.location

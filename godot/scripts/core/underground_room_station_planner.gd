@@ -25,6 +25,10 @@ const MAX_CANDIDATES: int = 2048
 const MAX_EDGES: int = 256
 const MAX_PRIMITIVES: int = 32 # Air primitives of one station's adjoining sources, before merging.
 const AIR_BOXES: int = Publication.AIR_BOXES
+## Decision 1943: headings are tried a quarter turn apart on Profiles' yaw circle ([0, 65536); an exact-yaw policy
+## row's yaw is a multiple of 16384, underground_profiles.gd).
+const FULL_TURN: int = 65536
+const QUARTER_TURN: int = 16384
 ## Declared logical cold slice (52,664 B): five region tables (decision 1942 added the claimed rows) and their section
 ## and claim refs, two fragment arenas,
 ## candidate keys, edge/plane scratch, the chain packets and their ADR1215 air boxes, the primitive scratch,
@@ -137,21 +141,70 @@ static func plan_into(actual: Provider, candidate: Frontier.Candidate, face: int
 static func next_contact_into(actual: Provider, room: Vector2i, after_key: int, cold: int, max_checks: int,
 		candidate: Frontier.Candidate, contact: Face.Request, request: Publication.Request,
 		result: Publication.Result) -> StringName:
-	"""One foreman step: the next unpaid Site and a proved contact, publishing a planned chain when none exists yet."""
+	"""One foreman step: the next unpaid Site and a proved contact, publishing a planned chain when none exists yet.
+	Decision 1943: the access's bound heading is tried first, exactly as before; only when it reaches no contact
+	(`_unreached`) is each other horizontal heading tried in turn, a quarter turn at a time, on the bound rows' own
+	siblings at that yaw. A heading whose rows are missing refuses plainly. When none succeeds the bound heading's
+	refusal is returned, unless another heading got past planning (its refusal is then the one to retry)."""
 	var code: StringName = Frontier.next_site_into(actual, room, after_key, cold, max_checks, candidate)
 	if code != &"": return code
+	var base: int = _retreat_yaw(actual)
+	code = _contact_at(actual, room, base, cold, max_checks, candidate, contact, request, result)
+	if code == &"" or not _unreached(code) or base < 0: return code
+	var first: StringName = code
+	for turn: int in range(1, 4):
+		var other: StringName = _contact_at(actual, room, (base + turn * QUARTER_TURN) % FULL_TURN, cold, max_checks,
+			candidate, contact, request, result)
+		if other == &"": return &""
+		if not _unreached(other): first = other
+	return first
+
+
+static func _unreached(code: StringName) -> bool:
+	"""Decision 1943: this heading reaches no contact for the cube: its plan finds no chain (RANKED), its rows are
+	missing, or an existing contact lies on another heading's chain that its own travel family cannot walk. Only
+	these move on to the next heading; any other refusal (an occupied span, a busy owner) is returned as before."""
+	return RANKED.has(code) or code == REFUSE_HEADING or code == REFUSE_VERTICAL or code == &"ROUTE_NOT_CONNECTED"
+
+
+static func _contact_at(actual: Provider, room: Vector2i, yaw: int, cold: int, max_checks: int, candidate: Frontier.Candidate,
+		contact: Face.Request, request: Publication.Request, result: Publication.Result) -> StringName:
+	"""One heading: an existing contact on that heading's forward row, else a planned and published chain, then the
+	re-derived candidate's contact. Every refusal before publication leaves the caller packets unchanged."""
 	var q: Query = Query.new()
 	q.profiles = actual._ordinary_config.profiles
-	q.yaw = _retreat_yaw(actual)
-	code = _sources(q, actual)
+	q.yaw = yaw
+	var code: StringName = _sources(q, actual)
 	if code != &"": return code
 	var revision: int = q.profiles._live.quantities[q.forward]
 	code = Frontier.contact_into(actual, candidate, actual._ordinary_retreat, q.forward, revision, cold, max_checks, contact)
 	if code != Frontier.REFUSE_CONTACT: return code
-	code = plan_into(actual, candidate, facing_face(actual, q.yaw), q.yaw, cold, max_checks, request)
+	var face: int = facing_face(actual, yaw)
+	if face < 0: return REFUSE_HEADING # No WORK row strikes from this yaw.
+	code = plan_into(actual, candidate, face, yaw, cold, max_checks, request)
 	if code == &"": code = Publication.publish_into(actual, candidate, request, cold, max_checks, result)
 	if code == &"": code = Frontier.next_site_into(actual, room, candidate.key - 1, cold, max_checks, candidate)
 	if code == &"": code = Frontier.contact_into(actual, candidate, actual._ordinary_retreat, q.forward, revision, cold, max_checks, contact)
+	return code
+
+
+static func resume_contact_into(actual: Provider, candidate: Frontier.Candidate, bound_forward: int, cold: int,
+		max_checks: int, contact: Face.Request) -> StringName:
+	"""Decision 1943: a paid phase a stopped dig left is taken over at whichever heading its station was planned on:
+	the bound forward row first (as before), then the forward row of each other yaw, a quarter turn at a time."""
+	var profiles: Profiles = actual._ordinary_config.profiles
+	var base: int = _retreat_yaw(actual)
+	var code: StringName = Frontier.resume_contact_into(actual, candidate, actual._ordinary_retreat, bound_forward,
+		profiles._live.quantities[bound_forward], cold, max_checks, contact)
+	if code != Frontier.REFUSE_CONTACT or base < 0: return code
+	for turn: int in range(1, 4):
+		var q: Query = Query.new()
+		q.profiles = profiles
+		q.yaw = (base + turn * QUARTER_TURN) % FULL_TURN
+		if _sources(q, actual) != &"": continue
+		var other: StringName = Frontier.resume_contact_into(actual, candidate, actual._ordinary_retreat, q.forward,
+			profiles._live.quantities[q.forward], cold, max_checks, contact)
+		if other != Frontier.REFUSE_CONTACT: return other
 	return code
 
 
@@ -473,7 +526,7 @@ static func _chain(q: Query) -> bool:
 		if q.ground < 0: _note(q, 3); return false
 		var turn: Vector3i = q.start
 		turn[q.lateral] = q.root[q.lateral]
-		if not _leg(q, at, turn, q.ground, q.ground): return false
+		if not _run(q, at, turn, q.ground, q.ground, q.lateral, signi(turn[q.lateral] - at[q.lateral])): return false
 		at = turn
 	if q.direction * (q.root[q.axis] - at[q.axis]) <= 0: return false
 	return _heading(q, at)
@@ -655,22 +708,33 @@ static func _extend(q: Query, profile: int, point: Vector3i) -> void:
 
 static func _legs(q: Query, first: Vector3i, last: Vector3i, forward: int, backward: int) -> bool:
 	"""Split one heading run at each section boundary; each span stays inside its own section."""
+	return _run(q, first, last, forward, backward, q.axis, q.direction)
+
+
+static func _run(q: Query, first: Vector3i, last: Vector3i, forward: int, backward: int, axis: int,
+		direction: int) -> bool:
+	"""Split one straight run along `axis` at each section boundary it crosses, in either direction (decision 1943:
+	the gateway turn and the runs of every heading, not only increasing ones). A boundary point is a station: it is
+	inside both sections' closed plan extents (Publication.section_span_refusal)."""
 	var at: Vector3i = first
 	while at != last:
-		var section: int = _section_at(q, at)
+		var probe: Vector3i = at
+		probe[axis] += direction # The section the next step enters, also from a section's low edge going down.
+		var section: int = _section_at(q, probe)
 		if section < 0: _note(q, 2); return false
 		var next: Vector3i = last
-		var bound: int = q.tables[SECTION][section * 6 + q.axis + (3 if q.direction > 0 else 0)]
-		if q.direction > 0 and last[q.axis] > bound: next[q.axis] = bound
-		elif q.direction < 0 and last[q.axis] < bound: _note(q, 2); return false
+		var bound: int = q.tables[SECTION][section * 6 + axis + (3 if direction > 0 else 0)]
+		if direction * (last[axis] - bound) > 0: next[axis] = bound
 		if not _leg(q, at, next, forward, backward): return false
 		at = next
 	return true
 
 
 static func _leg(q: Query, first: Vector3i, last: Vector3i, forward: int, backward: int) -> bool:
-	"""Both directed sources sweep the whole span; the arrival becomes the next station."""
-	var section: int = _section_at(q, first)
+	"""Both directed sources sweep the whole span; the arrival becomes the next station. The span's section is the one
+	holding its midpoint (a span leaving a section's low edge lies in the section below it)."""
+	@warning_ignore("integer_division")
+	var section: int = _section_at(q, (first + last) / 2)
 	var arrival: int = _section_at(q, last)
 	if section < 0 or arrival < 0 or q.stations >= MAX_CHAIN: _note(q, 2 if q.stations < MAX_CHAIN else 6); return false
 	_slice(q.tables[SECTION], section, q.box)
@@ -706,10 +770,20 @@ static func _work_fits(q: Query) -> bool:
 	for index: int in _field(q, q.work, Profiles.F_BOX_COUNT):
 		var box: int = _field(q, q.work, Profiles.F_FIRST_BOX) + index
 		var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
+		if role == Profiles.CONTACT_PATCH and not _patch_on_target(q, box):
+			_note(q, 1); return false
 		if role == Profiles.CONTACT_POINT or role == Profiles.CONTACT_PATCH: continue
 		if not _fits(q, _box_low(q, box, q.root), _box_high(q, box, q.root), role == Profiles.WORK_STROKE):
 			_note(q, 1); return false
 	return true
+
+
+static func _patch_on_target(q: Query, box: int) -> bool:
+	"""Decision 1943: WorkFace's patch rule (`patch_refusal`): the whole patch lies on the struck face, inside the
+	struck cube's extent across the face (its column shares the target's plan extent)."""
+	var low: Vector3i = _box_low(q, box, q.root)
+	var high: Vector3i = _box_high(q, box, q.root)
+	return low[q.lateral] >= q.target[q.lateral] and high[q.lateral] <= q.target[q.lateral + 3]
 
 
 static func _box_low(q: Query, box: int, at: Vector3i) -> Vector3i:

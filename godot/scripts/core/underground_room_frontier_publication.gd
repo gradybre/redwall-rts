@@ -480,9 +480,14 @@ static func _edge_into(q: Query, ordinal: int) -> StringName:
 	var first_ref: Vector2i = q.request.gateway if index == 0 else _new_ref(q, index - 1)
 	var last_ref: Vector2i = _new_ref(q, index)
 	var section: Owner.Region = q.outer_section if index == 0 else q.sections[index - 1]
+	var owner: Locations.Record = first
+	if section_span_refusal(first.point, last.point, section.box) != &"" \
+			and section_span_refusal(first.point, last.point, q.sections[index].box) == &"":
+		section = q.sections[index] # Decision 1943: a run down across a section's low edge lies in the next one.
+		owner = last
 	q.edge.from_location = last_ref if reverse else first_ref
 	q.edge.to_location = first_ref if reverse else last_ref
-	q.edge.section = first.section; q.edge.room = first.room; q.edge.level = section.level
+	q.edge.section = owner.section; q.edge.room = owner.room; q.edge.level = section.level
 	q.edge.family = -1; q.edge.variant = 0; q.edge.rotation = 0
 	q.edge.mode = Profiles.MODE_WALK; q.edge.posture = Profiles.POSTURE_UPRIGHT
 	q.edge.content_revision = q.context.profiles; q.edge.geometry_revision = q.context.revision; q.edge.point_count = 2

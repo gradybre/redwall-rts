@@ -19,6 +19,9 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_STATIONS: int = Publication.MAX_STATIONS
 const MAX_CHAIN: int = MAX_STATIONS + 2 # Room to detect, and name, a chain one or two stations too long.
+## Decision 1943: a straight approach (a turn at the gateway, then the heading run) publishes at most ADR 1213's three
+## stations, as before; only an L-shaped approach may use the publication's whole MAX_STATIONS.
+const STRAIGHT_STATIONS: int = 3
 const MAX_REGIONS: int = 192 # Per kind (void, support, blocker, section) inside the query hull.
 const MAX_FRAGMENTS: int = 96
 const MAX_CANDIDATES: int = 2048
@@ -65,6 +68,7 @@ class Query extends RefCounted:
 	var claims: PackedInt32Array = PackedInt32Array() # Decision 1942: claimed rows meeting the hull, boxes of six.
 	var claim_refs: PackedInt32Array = PackedInt32Array() # Each claimed row's kind, claim slot and generation.
 	var claim_count: int = 0 # -1 once more than MAX_REGIONS meet the hull (the owner is then scanned in full).
+	var cornered: bool = false # Decision 1943: plan L-shaped ground approaches (after the straight ones all failed).
 	var origin: Vector3i = Vector3i.ZERO
 	var axis: int = 0
 	var lateral: int = 2
@@ -134,6 +138,9 @@ static func plan_into(actual: Provider, candidate: Frontier.Candidate, face: int
 	if code == &"": code = _gateway(q, actual)
 	if code == &"": code = _regions(q)
 	if code == &"": code = _plan(q)
+	if RANKED.has(code) and not q.exhausted: # Decision 1943: no straight approach fits; try an L-shaped one.
+		q.cornered = true
+		code = _plan(q)
 	if code == &"": _output(q, out)
 	return code
 
@@ -521,6 +528,7 @@ static func _chain(q: Query) -> bool:
 	"""Work station, then the gateway turn, then heading legs (full travel, else the finite step)."""
 	q.stations = 0; q.entry = q.gateway
 	if not _work_fits(q): return false
+	if q.cornered: return _cornered(q)
 	var at: Vector3i = q.start
 	if q.start[q.lateral] != q.root[q.lateral]:
 		if q.ground < 0: _note(q, 3); return false
@@ -530,6 +538,48 @@ static func _chain(q: Query) -> bool:
 		at = turn
 	if q.direction * (q.root[q.axis] - at[q.axis]) <= 0: return false
 	return _heading(q, at)
+
+
+static func _cornered(q: Query) -> bool:
+	"""Decision 1943: an L-shaped ground approach. From the gateway the all-yaw ground row runs along the heading's own
+	axis to a turning line, then along that line to the root's line (each run split at section boundaries), and the
+	body turns in place there onto the heading run. The turning line is tried at each void region's plane set back by
+	the ground body's own reach, in table order, so the ground body clears the region's edge."""
+	if q.ground < 0:
+		_note(q, 3); return false
+	var reach: int = _ground_reach(q)
+	for index: int in q.counts[VOID]:
+		for side: int in 2:
+			var plane: int = q.tables[VOID][index * 6 + q.axis + 3 * side]
+			var line: int = plane + (reach if side == 0 else -reach)
+			if _turning(q, line): return true
+			if q.exhausted: return false
+	return false
+
+
+static func _turning(q: Query, line: int) -> bool:
+	"""One turning line: strictly past the gateway and short of the root along the heading, then the three runs."""
+	if q.direction * (line - q.start[q.axis]) <= 0 or q.direction * (q.root[q.axis] - line) <= 0: return false
+	q.stations = 0; q.entry = q.gateway
+	var corner: Vector3i = q.start
+	corner[q.axis] = line
+	if not _run(q, q.start, corner, q.ground, q.ground, q.axis, q.direction): return false
+	var turn: Vector3i = corner
+	turn[q.lateral] = q.root[q.lateral]
+	if turn != corner and not _run(q, corner, turn, q.ground, q.ground, q.lateral, signi(turn[q.lateral] - corner[q.lateral])):
+		return false
+	return _heading(q, turn)
+
+
+static func _ground_reach(q: Query) -> int:
+	"""The ground row's farthest horizontal box extent from its root (its body in any facing)."""
+	var reach: int = 0
+	var bank: PackedInt32Array = q.profiles._live.boxes
+	var stride: int = q.profiles._box_capacity
+	for index: int in _field(q, q.ground, Profiles.F_BOX_COUNT):
+		var box: int = _field(q, q.ground, Profiles.F_FIRST_BOX) + index
+		for axis: int in [0, 2, 3, 5]: reach = maxi(reach, absi(bank[axis * stride + box]))
+	return reach
 
 
 static func _heading(q: Query, at: Vector3i) -> bool:
@@ -552,15 +602,20 @@ static func _complete(q: Query) -> bool:
 	for index: int in q.stations:
 		if not _station_fits(q, index):
 			_note(q, 5); return false
-	if q.stations <= MAX_STATIONS or _regateway(q): return true
+	if q.stations <= _cap(q) or _regateway(q): return true
 	_note(q, 6)
 	return false
+
+
+static func _cap(q: Query) -> int:
+	"""Decision 1943: the stations one publication may hold for this kind of approach."""
+	return MAX_STATIONS if q.cornered else STRAIGHT_STATIONS
 
 
 static func _regateway(q: Query) -> bool:
 	"""An over-long chain may start at an existing TRANSIT station it passes through exactly (latest first)."""
 	for keep: int in range(q.stations - 2, -1, -1):
-		if q.stations - keep - 1 > MAX_STATIONS: return false
+		if q.stations - keep - 1 > _cap(q): return false
 		var ref: Vector2i = _existing_station(q, keep)
 		if ref == NULL_REF: continue
 		var drop: int = keep + 1

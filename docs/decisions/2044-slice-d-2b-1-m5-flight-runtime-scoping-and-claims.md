@@ -938,3 +938,154 @@ Relayed by the coordinator: Brendan answered in chat through AskUserQuestion.
 variable, and the new `_natural_floor_site`, `_prisms_cached`, `_pass_landings`, `_pass_landing_into` and
 `_pass_landing_count`. Any other Locations function needs asking first. Slice C's `feat/slice-c3-confirm` consumes D1's
 Entrance and Way-down items and asks before needing anything of this lane's.
+
+## P-2044-17 built; M2 runs to the Kitchen gap (2026-10-19)
+
+**P-2044-17 (a)** (commit `46d1a646`). `qualified-m5-runtime-v1/endpoint_certificate.gd` is the module-aware
+successor; the dispatch `qualified-claw-runtime-v1/endpoint_certificates.gd` changes in one line (`Claw10`). Every
+installation of module 0 (assemblies 0–7), and every refusal, goes to the published certificate unchanged; a later
+module's T0 takes the published proofs with its station root at the Placement origin plus its translated T0 station
+(H′), and its part checked by the M5 handling certificate's moved rule. `test_underground_m5_endpoint_certificate.gd`
+checks the dispatch, that only a later T0 is the successor's, module 0's answers equal the published ones, the moved
+root and spans, and the refusals. **Successor-pattern uses this round: P-2044-17 itself only** (ruled); the
+pre-clearance was not used.
+
+**Also built to finish the chain** (commits `f07601db`, `e694b385`):
+
+- *The retained deck slab is 258 u deep* (`DECK_DEPTH`): the deepest rooted body under a landing (the descent onto F
+  and the ascent from U on T0′/T1′) reached 258 u below the landing floor and found no cover at 2 u
+  (`WORLD_ROUTE_NO_FITTING_PROFILE`). The clearance test pins that every rooted body below a landing floor is covered
+  and that the deepest is exactly `DECK_DEPTH`.
+- *The edge-bound prefilter* (`_carry_hull_clean`, the one new private helper P-2044-1 named): one hull of every
+  serving profile's sweeps and every stair row's decks, tested once against the changes since the certificate; a
+  clean hull carries the edge as the per-profile test would. Module 1's sill preparation was 1,042,408 checks without
+  it.
+- *Locations finds a stop's prisms by height*: the witness pass orders the prefix prisms by top (`_order_prisms`, 16
+  checks a prism) and `_installed_row_site` binary-searches the record's height (16, then 4 a candidate), where it
+  scanned every prism for every record (T5′'s refresh overflowed).
+
+**The run.** The whole M2 flight on the mounted Session: fifteen groups installed once each, 34 cubes, every Project
+retired, G9 at the Kitchen on tick **20,229**; the ledger [37, 143,820 mWU cut, 36 hauled units, 123,680 mWU
+fastening, 15 INSTALLED]; 27 wood and 9 stone units hauled from R. The whole-entry restore variant (runtime record
+every 11 ticks, route owners cold-restored every 23) ends byte-identical.
+
+**Measured peaks** (the whole M2 flight, cache checks off, against `Space.MAX_CHECKS` 1,048,576):
+
+| Cold operation | Peak used | Share |
+|---|---|---|
+| WorldRoutes preparation | 856,569 | 81.7 % |
+| Bindings timber clearance | 338,071 | 32.2 % |
+| Bindings entry operation (lowest remaining 141,440) | at most 907,136 | 86.5 % |
+| Locations operation (lowest remaining 91,229, reached in module 1) | at most 957,347 | 91.3 % |
+
+Locations is now the tightest; M5's three further modules must be re-measured there with the ground-edge re-proof
+work this record already defers to the next round.
+
+### What the generated cohort cannot sustain
+
+On real needs the M2 chain stalls at tick 12,100 (T1′'s stage, RECOVER, at rest): the generated cohort has two adult
+moles and no kitchen, both reach their GDD 5.2 seek thresholds near tick 12,000, and DEC-059's shift change finds no
+rested idle mole, so the crew waits at rest while its needs fall to 0 with no alert. Module 0 alone (8,348 ticks)
+never met this. The whole-flight suites therefore keep every resident's hunger and rest full and top R's staged stock
+up as it is drawn (`underground_host_case.gd` `_sustain`, the stand-ins for the kitchen and stores the settlement
+lacks); the prefix suites run on real needs as before. **A crew that cannot be relieved and never eats is a DEC-059
+gap for its owner**, not changed here.
+
+### The suites, census, ledger and pins
+
+- **Prefix.** P-2044-7 (a)'s stages hand over between L0's, T0's and the next stage's plans, so the prefix ends when T0
+  is INSTALLED and the next stage is planned (tick 3,463), not at task 20; the crew holds no entry Job on each
+  hand-over tick, still reserved to the entry.
+- **Fixtures on the mounted bundle.** The work-area fixture reads `qualified-stairs-m2-v1` (the contact-retirement
+  scope replays its table census); the first-prefix fixture's Sites and phase authority hold 48 cubes (was 16), the
+  source-phases probe 64 Locations (was 32), and the paid-handling foreman fixture binds the runtime's station-path
+  supplier (stage 1's pair is joined when its first cut opens).
+- **Census and memory.** `underground_entry_structure.gd` joins the ADR 1212 projected inputs (its storage delta is
+  empty); the reviewed rows charge the Locations pass caches (+3,896 B); the current census reads the mounted M2
+  Frontier and charges the confirmation cube index (34 × 12 B). One ledger row, decision 2044, carries the M2 growth:
+  **+288,256 B** (room-dig builders and record +263,168 through the shared `EntryProgress.MAX_LEGS` 24 of
+  P-2044-8; the entry chain and record +21,192; Locations +3,896). Live with reserve 106,086,940 B, 43,913,060 B under
+  the 150 MB gate.
+- **Frontier `MAX_BYTES` stays 28,597 for M2** (it needs 16,232). P-2044-2 (a)'s raise to M5's 51,476 cannot land
+  without growing the fully assigned shared bindings reserve (`underground_budget.gd` `BINDINGS_AND_GROWTH_BYTES`
+  524,544 by 22,879), which is outside this lane's claims: it comes back with M5.
+- **The work area writes `CUT_ROWS` as a literal** (12), which the census's capacity grammar can resolve; a test holds
+  it equal to the tread geometry's `ROWS`.
+- **SET-BUILD-001 §9** names M5 as the target and M2 as the mounted interim.
+
+### The independent review, and what was fixed
+
+An independent `code-reviewer` read this round's diff (`74ecb343..HEAD`). Fixed (commit `663093f9`):
+
+- *The landing floor's retirement ran every tick of T0′'s last leg*, rebuilding Stops and Deep (a 1,024-row scan
+  each) and allocating. It now runs once, on the tick the installer's progress marker reaches that leg.
+- *The installer's climb test matched the retreat row 47*, which module 0's H → X retreat uses too, so module 0's tread
+  orders climbed instead of hauling. Only a floor walk (42) or the back-up (71/72) decides it now; every way up from
+  below a landing backs up F′ → F. The whole flight's tick and ledger are unchanged either way.
+- *The prefilter allocated its hull per edge and swept uncharged.* The hull is held in the stance scratch `_support`,
+  and every swept box and deck costs one check.
+- *The kept prisms had no cross-check.* With the cache checks on (every test run) a kept prism set is re-derived,
+  unspent, and a difference is reported as `RUNTIME_CACHE_STALE`.
+- *The carried stair form was never run as production runs it.*
+  `test_a_carried_stair_edge_admits_and_spends_the_same_with_the_cache_checks_off` requalifies a carried CARRY edge
+  with the checks off and on: the same admitted rows and the same spend.
+
+**Not fixed here; for the coordinator.**
+
+- **P-2044-18 (proposed): the geometry journal does not see an owner change.** The carried stair form skips
+  `_stair_decks_refusal`, `_stair_blocked` and `_stair_covered_refusal`, which read each SUPPORT row's owner (the
+  edge's Room's timber only). `underground_geometry_journal.gd` `_row_changed` compares visibility, role and box, not
+  owner, and `stage_remove` frees a slot for reuse inside the same stage. A SUPPORT row removed and re-added with the
+  same box and role but another owner, in one stage, would go unseen, and the edge would be carried where the full
+  proof refuses it. Nothing in the entry does that today (its SUPPORT is the Room's), and the cache checks run the full
+  proof in every test, but production would not. **Recommendation: (a)** compare the owner slot and generation in
+  `_row_changed` (one line in a file outside this lane's claims, and the ADR 1205 ground carry gains the same
+  guarantee); (b) refuse to carry a stair row whose decks or bodies meet a SUPPORT row of any other owner (a scan per
+  edge, most of what the carried form saves).
+- *Kept prisms make Locations' spend depend on history* (a fresh Locations after a load re-derives what an unbroken
+  run kept). Spend is not outcome while it stays under the bound: a re-derivation costs at most 112 checks a part
+  (about 12,500 for M2's prefix), against the measured peak's 91,229 checks of headroom. M5 must re-measure it. Tying
+  the key to one operation needs the Locations functions that open an operation, which Slice C holds.
+- *A placements bank restored in place keeps its instance and may restore an equal revision*, so a kept key could match
+  stale prisms; the new cross-check would report it in tests. Clearing the key needs `restore_state_bytes`, held by
+  Slice C.
+
+LOW and MEDIUM items left as they are: `TOP_BIAS` is a no-op for the order (signed keys already order negative tops
+first; the test's docstring now says so); the bundle switch spans several literals (each has its own test); the
+whole-flight stand-ins could mask a consumption bug (the prefix suites keep real stock and needs, and the stock the
+flight draws, 27 wood and 9 stone units, is recorded above).
+
+### Gates
+
+- **Mutation testing** (an APFS clone, one mutant a run, the focused suite or the whole M2 flight): **19 of 21
+  killed.** Killed: the successor's `later_t0` bound, record and span dispatch, moved root and span root (the last
+  three by the whole flight only); the prefilter's hull axis, journal and staged-change tests; the prism order's bias,
+  count and charge; the region scan's start and bank; the last landing's joins and the walk-off direction; the
+  census's cube count and landing-cache bytes; the carried body proof's unspent restore; the landing floor's
+  retirement. **Survived (2):** the successor's own `later_t0` guard in `_original_context_refusal` (equivalent: both
+  callers dispatch on it first), and the carried form's cache-checks gate (`if _carried: continue`; every suite runs
+  with the checks on, so no test can see whether the unspent full proof ran; the gate is the differential's own
+  switch).
+- **Analyzer** (`tools/gdscript_warnings.py --max 0 --port 6505`): the six warnings it found in this round's files
+  (two integer divisions, a confusable local, three fixture fields read only by duck typing) are cleared.
+- **Contracts:** every check in the merge-gate list passes, including `ready07_arithmetic.py`, the memory budget and
+  census tests, the registry and the schemas.
+- **Frames** (`scratchpad/m2flight_check/{1280x720,1920x1080}/`, 67 a size, from a scratch capture script not
+  committed): the mounted Session's live M2 chain, sustained as the suites sustain it, drawn by the demo's
+  `EntryWorkerView` presenter over boxes of the M2 bundle's parts and bearings every 90 ticks once T1 is in and the
+  crew is below the surface. They show module 0's treads, the descent onto landing 1 (row 53), the walk-off on 71,
+  the deep cuts on the landing (56, with 42 between stations), the back-up on 72 and the climb (54), T0′'s taps at H′
+  (57, 65), and module 1's treads down to 1,792 u. Natural earth is not drawn, so on a landing's floor the mole
+  stands over the dark background.
+
+### Deviations from the claims (for the coordinator)
+
+- **Locations, beyond the names held for this lane:** new functions `_order_prisms` and `_cached_prisms_hold`; new
+  members `_landing_boxes`, `_landing_key`, `_prism_tops`; constants `PASS_LANDINGS`, `TOP_BIAS` and the
+  `CacheChecks` preload; their resizes in `_allocate_banks`. No other Locations function changed.
+- **WorldRoutes:** `_carry_hull_clean` is the one new private helper; it holds its hull in the existing `_support`
+  scratch, adding no member.
+- **Tools and shared fixtures:** the census, memory-budget and room-memory tools (the projected entry structure, the
+  reviewed rows, the cube index, the M2 Frontier pin), `ready07_arithmetic.py` and the ledger; the shared first-prefix
+  and source-phases fixtures' capacities; `slow_suites.json`.
+- **Frontier `MAX_BYTES`** stays unraised (see above); P-2044-2 (a)'s raise waits for M5 and the bindings reserve.

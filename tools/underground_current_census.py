@@ -397,7 +397,7 @@ def publication_controls(memory, index: dict) -> dict:
             "controls": controls, "control_bytes": ceiling}
 
 
-PLANNER_FORMULA = ("const CONTROL_BYTES: int = 4 * 6 * MAX_REGIONS * 4 + 2 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \\\n"
+PLANNER_FORMULA = ("const CONTROL_BYTES: int = 5 * 6 * MAX_REGIONS * 4 + 5 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \\\n"
     "\t+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4 + 4 + AIR_BOXES * 6 * 4) \\\n"
     "\t+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024\n")
 
@@ -413,11 +413,12 @@ def room_planner_cold(memory, index: dict) -> dict:
     c = {key: memory.resolve(index, name, key) for key in
          ("MAX_REGIONS", "MAX_FRAGMENTS", "MAX_CANDIDATES", "MAX_EDGES", "MAX_CHAIN", "MAX_PRIMITIVES")}
     boxes = 1 + memory.resolve(index, "underground_locations", "MAX_AIR_EXTRA")
-    total = (4 * 6 * c["MAX_REGIONS"] * 4 + 2 * c["MAX_REGIONS"] * 4 + 2 * 6 * c["MAX_FRAGMENTS"] * 4
+    # Decision 1942: a fifth table, the claimed rows meeting the hull, with each one's kind and claim ref.
+    total = (5 * 6 * c["MAX_REGIONS"] * 4 + 5 * c["MAX_REGIONS"] * 4 + 2 * 6 * c["MAX_FRAGMENTS"] * 4
              + c["MAX_CANDIDATES"] * 8 + 2 * c["MAX_EDGES"] * 4 + c["MAX_CHAIN"] * (56 + boxes * 24)
              + c["MAX_PRIMITIVES"] * 24 + 192 + 1024)
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(total == 45752 and total <= shared, "planner cold slice inside the shared cold arena")
+    require(total == 52664 and total <= shared, "planner cold slice inside the shared cold arena")
     return {"control_bytes": total, "lease_bytes": shared,
             "scope": "Cold and released before publish_into admits its own lifetime in the same lease."}
 
@@ -514,7 +515,7 @@ ROOM_ORDER_ROWS_ONLY = ("planned.keys.clear()", "planned.distance.clear()")
 ROOM_ONE_IMAGE = ("w.bytes = out", "var c: Progress.Checker = Progress.check(bytes)")
 ROOM_DISPATCH = {"_entry": "Callable", "_rooms": "Callable"}
 ROOM_STATELESS = ("underground_room_composer", "underground_room_parking", "underground_room_progress",
-                  "underground_room_dig_order")
+                  "underground_room_dig_order", "underground_room_station_retirement") # Decision 1942: no members.
 ROOM_WIRE_NAMES = ("HEADER_BYTES", "CODE_BYTES", "RUNTIME_FIXED_BYTES", "ROW_BYTES", "FOREMAN_FIXED_BYTES", "SITE_BYTES",
                    "BUILDER_FIXED_BYTES", "LEG_LIST_BYTES", "TRIP_LIST_BYTES", "HAUL_PLAN_BYTES", "HAULER_BYTES",
                    "BUILDER_BYTES", "MAX_KEPT", "MAX_SITES", "MAX_BUILDERS", "MAX_WIRE_BYTES")

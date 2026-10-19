@@ -230,9 +230,8 @@ func test_a_station_retires_edges_first_then_its_location_then_the_strip_under_i
 	still re-proves its footing; a station left standing on the retired strip would not."""
 	_face_fixture()
 	var f: FaceCase.UndergroundFixture = _face._actual
-	var floor: int = FaceCase.FLOOR
-	var cube: PackedInt32Array = PackedInt32Array([FaceCase.X + 1024, floor - 1024, FaceCase.Z,
-		FaceCase.X + 2048, floor, FaceCase.Z + 1024])
+	var cube: PackedInt32Array = PackedInt32Array([FaceCase.X + 1024, FaceCase.FLOOR - 1024, FaceCase.Z,
+		FaceCase.X + 2048, FaceCase.FLOOR, FaceCase.Z + 1024])
 	var station: Vector2i = f._last
 	assert_true(Space.contains_box(cube, _record(station).support), "the station's footing lies in the cube below")
 	var edge: Vector2i = _publish_edge(_walk_edge(f._first, station))

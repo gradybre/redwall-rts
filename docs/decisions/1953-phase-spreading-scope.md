@@ -232,6 +232,14 @@ geometry within the sweeps is unchanged (ADR 1205's carry premise). So stage 1 r
 the test that answers it. 28 were killed. The survivor removes the check-mode comparison in `_other_kind`, which only
 reports a fast path that disagrees with the full proof; it is equivalent while the two agree.
 
+**Gates.** The complete suite, run as CI's ten shards (`./tools/run_tests_parallel.sh`, with a watchdog capping each
+live harness at 900 s and each shard worker at 3,600 s), passed: 12,996 tests, 0 failures, 546 suite files each run
+once, and nothing for the watchdog to stop. The analyzer reports 0 warnings, and all 59 CI contract commands pass.
+An earlier complete run hung for six hours in `demo_lens_live.gd` at 1280x720. Its clean import had crashed (signal
+11 while reimporting a font, exit 134), and the suite ran on the half-imported project. After a clean re-import,
+the same harness passed 11 runs out of 11 on this branch (five at each size, plus one more at 1280x720), and once on
+master; it reads no underground state. So the hang was the crashed import, not stage 1.
+
 **Memory.** 19,048 B, runtime only, never saved (ADR 1212, census item `world_routes_compile_memos`). The headroom
 below the 150 MB gate goes from 44,220,364 to 44,201,316 B.
 
@@ -299,6 +307,14 @@ Those live re-runs set the adoption tick's ceiling.
 - **Held files.** Of these, slice D holds `underground_locations.gd` `_installed_row_site` and `_carry_eligible` (which a
   sliced compile must call). The C2 lane holds the room builder and runtime, which need no change, because adoption
   happens inside `begin_phase_work` / `settle_phase`. The entry foreman needs none either.
+- **Dependencies on slice D.** Two more slice-D-held files sit on the entry's START path, and stage 2 would not edit
+  them; it depends on slice D for them:
+  - `underground_entry_structure.gd` (P-2044-12), the entry's natural-bearing structure proof. A speculated entry
+    START needs it either to run against the private image or to stay a live re-run at adoption. The second costs
+    nothing from slice D but adds its time to the adoption tick.
+  - `underground_entry_frontier.gd`, the entry's episode source, which the entry world bindings read when they
+    stage. Predicting the next entry transition reads the next episode from it. Reading needs no change; any new
+    read accessor would be slice D's to add.
 
 **Size.** Roughly 2,000–4,000 changed lines across about ten of the most heavily reviewed core files. It needs its own
 ADR, because it changes what "prepared" means and adds a third bank or a private-image contract. It is several weeks of

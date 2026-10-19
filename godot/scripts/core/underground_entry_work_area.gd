@@ -50,6 +50,7 @@ const DONE_WORK: Array[int] = [5, 6, 7, 8]
 const SURFACE_BATCHES: Array = [[3, 4, 5, 6], [7, 8]]
 const BATCH_SIZE: int = 8
 ## The surface pair groups, then the descent's stations in eights, the last batch short: 5 for M2, 8 for M5.
+@warning_ignore("integer_division")
 const BATCHES: int = 2 + (ENDPOINTS - FIRST_DEEP_STATION + BATCH_SIZE - 1) / BATCH_SIZE
 const STAND_M: int = 9
 const STAND_R: int = 10

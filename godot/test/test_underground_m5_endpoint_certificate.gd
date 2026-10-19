@@ -20,7 +20,9 @@ class Context extends RefCounted:
 class Issuer extends RefCounted:
 	## A Placement bank of one row at a fixed origin.
 	const X: int = 0
+	@warning_ignore("unused_private_class_variable")
 	var _capacity: int = 1
+	@warning_ignore("unused_private_class_variable")
 	var _live: Live = Live.new()
 
 
@@ -32,6 +34,7 @@ class Live extends RefCounted:
 class Installation extends RefCounted:
 	## A Routes binding holding the installation context.
 	var _installation: Context = null
+	@warning_ignore("unused_private_class_variable")
 	var _locations_ref: WeakRef = null
 
 

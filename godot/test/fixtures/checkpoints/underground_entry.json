@@ -1,6 +1,6 @@
 {
 	"engine": "4.7.2.stable",
-	"fingerprint": "08d94bbba19c965348f92ac87429777ad9d0ef33d4a394d27815629a8d7a253e",
+	"fingerprint": "4ae5aca98ce373085a2d253d25d65479055addf6668e76af5a4fbdd3735ce67a",
 	"name": "underground_entry",
 	"points": {
 		"first_brace_after_2000": {
@@ -217,7 +217,7 @@
 		"res://scripts/core/underground_connector_work.gd": "491db9b077295a1dc4c028817d7fcf86e4cfa95544e9377e83fb7082b4fdf647",
 		"res://scripts/core/underground_connector_workpieces.gd": "4932c58d3530ece356ac7f45df624c76f536e6ebab11cecac20ddf5a0660d9bc",
 		"res://scripts/core/underground_dispatch.gd": "f77718342e7b65a45ca7dbd500205fd6aef7609735bd5cba51e8541833dfc49d",
-		"res://scripts/core/underground_entry_bindings.gd": "ed24de48aa0293535acedf1ef340b73d3a707dc654b8e1c222a3939bc7bd3210",
+		"res://scripts/core/underground_entry_bindings.gd": "92aa343cfa02da2d83e51fde31c02b0cb069ae42764af62c6e00f5d7cbd76b7c",
 		"res://scripts/core/underground_entry_composition.gd": "424bbc326797b806bfed4eab40c1b2a1896d420176f86862ab1cdfe156c31121",
 		"res://scripts/core/underground_entry_contact_path.gd": "a8ba918d5825a65b1a31754fc72bcf0b14e5a10ed5438010845d76148e183765",
 		"res://scripts/core/underground_entry_contact_retirement.gd": "907fc15d9e6eb95fbeda072306aa70eaff12d3fda302e7e2f1d41dc15a296aac",
@@ -233,7 +233,7 @@
 		"res://scripts/core/underground_entry_site.gd": "7306c442d7ca9dc0ef4cba0edd2aa15ff7bb80723dea87744f3b0a13ac4345d5",
 		"res://scripts/core/underground_entry_stair_path.gd": "ecae6febbff87ce7049b3b9db618bc2468aa723cc61142b82ff54cf826b21ac4",
 		"res://scripts/core/underground_entry_structure.gd": "7af358c244f576419d123ae40aaa9b7bee701df4a78afe1c25b523981c988c79",
-		"res://scripts/core/underground_entry_work_area.gd": "ad2bfaa7925b113e1758717b96a97ac971fc203a2a53ec52ed639af16b08f2c3",
+		"res://scripts/core/underground_entry_work_area.gd": "28494551f6d1ad2afe9499864f9f9a72e9cbb5c1f585a39c9b63b726cd6cc1b2",
 		"res://scripts/core/underground_entry_world_bindings.gd": "f7c89ea91adbaba9e2091ad12446019848977d4af6789be3eb9f14fb4351783c",
 		"res://scripts/core/underground_final_facts.gd": "528d1cbd4ed611a0782cffef98331509ad063ccda97ef3ba7b097d1f8dbcd96f",
 		"res://scripts/core/underground_furniture_work.gd": "b3adf99266cb8659afe55eedd73a3fade96b5554873696726ee558a8d3bdbac8",

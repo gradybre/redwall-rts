@@ -601,6 +601,7 @@ func _entry_terrain_box(bounds: PackedInt32Array, purpose: int, space_token: int
 
 
 ## Decision 2044: Terrain's per-tile share of a full window's LOCAL_QUERY_CHECKS (its sixteen tile/leaf checks).
+@warning_ignore("integer_division")
 const TERRAIN_TILE_CHECKS: int = (Terrain.LOCAL_QUERY_CHECKS - 1) / Terrain.LOCAL_TILE_LIMIT
 
 
@@ -1356,8 +1357,8 @@ func _timber_parts(proof: TimberClearance, token: int, staging: bool) -> StringN
 		if code == &"" and staging: code = _stage_timber_part(proof, part, token)
 		if code != &"": return code
 	if not staging: return &""
-	var code: StringName = _stage_timber_datums(proof, token)
-	return _stage_strips(proof, token) if code == &"" else code
+	var datums: StringName = _stage_timber_datums(proof, token)
+	return _stage_strips(proof, token) if datums == &"" else datums
 
 
 func _stage_strips(proof: TimberClearance, token: int) -> StringName:

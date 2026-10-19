@@ -349,6 +349,33 @@ crews and claims are presentation-side, unsaved and outside the census.
   - The reviewer's M6 survives: a DONE record whose foreman's crew is not out. It needs a forged foreman image, and
     no tick produces one.
 
+## Note (2026-10-19): CI shard 4 timed out on PR #277; shard weights refreshed
+
+PR #277's CI cancelled shard 4 at the job's 30-minute limit. The shard planner places suites that have no measured
+weight by their file size. Fifty-five suites from slices B, C and D had no weight, among them:
+
+- `test_underground_room_progress.gd`: 113 s alone, 157 s in the parallel run;
+- this lane's `test_underground_room_confirm.gd`: 172 s alone.
+
+That left shard 4 with decision 1942's 651 s retirement suite plus 157 s of room progress, 1,078 s locally. The other
+shards took 509–979 s.
+
+**No hang.** Each test in `test_underground_room_confirm.gd` was timed from inside the suite:
+
+- a whole Kitchen dig is about 2,900 fixed ticks, about 14 s;
+- the two stop cases are about 6,200 ticks, about 35 s;
+- every loop ends far below its 60,000-tick bound.
+
+The room progress suite takes the same time on master `0b8093a2` (113 s), so it did not regress.
+
+**The fix:**
+
+- `tools/ci_test_shard_weights.json` is refreshed with `ci_test_shards.py weights` from the verified local parallel run
+  of the merged head (`0c7061e5`, 553 suites).
+- The planner's estimate is now 725 s for every shard. The longest, 725 s, is retirement's 651 s suite alone with small
+  ones. #277's CI took roughly 1.8–2× local time, so about 24 minutes.
+- `test_underground_room_confirm.gd` joins the slow tier (172 s).
+
 ## Source
 
 Decisions 1880, 1912, 1933, 1936-1941, 1990; DEC-055, DEC-059, DEC-061; SET-BUILD-001 BUILD-REQ-002, -012, -013,

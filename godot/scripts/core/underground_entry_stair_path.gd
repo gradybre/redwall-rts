@@ -72,8 +72,9 @@ const KIND_D: int = 9
 const PLAN_WORDS: int = 6
 ## Decision 2044: the deep stations' floor walks (all-yaw claw WALK) and where a column's stations stand.
 const FLOOR_ROW: int = 42
-## Decision 2045 (P-2045-5 (a)): station rows joined at once on a landing's floor (eight stations, at most 18 walks).
-const FLOOR_BLOCK_ROWS: int = 4
+## Decision 2045 (P-2045-5 (a)): station rows joined at once on a landing's floor (four stations, at most 10 walks;
+## four rows still took landing 2's first block to 1,291,518 checks, two take it to 864,051).
+const FLOOR_BLOCK_ROWS: int = 2
 
 
 class Stops extends RefCounted:

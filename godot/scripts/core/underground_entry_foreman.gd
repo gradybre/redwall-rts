@@ -268,9 +268,31 @@ func _open(tick: int) -> StringName:
 	var ref: Vector2i = _owners.jobs.ref_of(_job)
 	var queue: PackedInt32Array = PackedInt32Array()
 	if code == &"": code = _phase_units(task, queue)
-	if code == &"" and not queue.is_empty(): return _begin_haul(task, opened.ref, queue, tick)
+	if code == &"" and not queue.is_empty(): return _haul_or_climb(task, opened.ref, queue, tick)
 	if code == &"": code = _assign()
 	return _place_actor(task, ref, tick) if code == &"" else code
+
+
+func _haul_or_climb(task: Task, project: Vector2i, queue: PackedInt32Array, tick: int) -> StringName:
+	"""Decision 2045: a phase short of inputs hauls them from the surface. A crew standing below it (a deep stage whose
+	first phases needed none, so it is already on a landing's floor) first walks up to the crossing arrival X on its
+	own legs, turning onto each row as it goes (the hauler cannot turn), and `_travel` begins the haul there. A pending
+	installation retreat is walked first, as `_begin_travel` walks it."""
+	var row: int = _owners.residents.directory().get_typed_row(_crew.worker)
+	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT, row)
+	var held: bool = _owners.jobs.job_of(row) == _owners.jobs.ref_of(_job)
+	if here == NULL_REF or _arriving() or _surface(_local_of(here)):
+		var released: RefCounted = _owners.jobs.release_worker(row) if held else null # The climb's own Job.
+		if released != null and not released.ok: return released.error
+		return _begin_haul(task, project, queue, tick)
+	var code: StringName = &"" if held else _assign() # The climb walks under the phase's own BUILD Job.
+	if code != &"": return code
+	_set_stage(STAGE_TRAVEL)
+	if _retreat != NULL_REF: return _begin_travel(task, _owners.jobs.ref_of(_job), tick)
+	var hops: Array = _hops_to_crossing(_stops(), _local_of(here))
+	if hops.is_empty(): return REFUSE_PLAN
+	var first: PackedInt64Array = _first_leg(hops)
+	return _leg(_owners.jobs.ref_of(_job), Vector2i(first[0], first[1]), first[2], first[3], tick)
 
 
 func _create_phase_job(task: Task, project: Vector2i) -> StringName:
@@ -586,6 +608,11 @@ func _travel(tick: int) -> StringName:
 	if _actor.phase == Routes.PHASE_HELD: return &"ENTRY_FOREMAN_ROUTE_HELD"
 	if _actor.location != _leg_target or Routes.source_ready_leaf_refusal(_owners.routes, _crew.worker, job,
 			_leg_profile, _leg_revision, _content) != &"": return &""
+	var queue: PackedInt32Array = PackedInt32Array()
+	code = &"" if _phase_started(task) else _phase_units(task, queue) # Decision 2045: still short, so climb or haul.
+	if code != &"" or not queue.is_empty():
+		_stage_ticks = 0
+		return code if code != &"" else _haul_or_climb(task, _owners.sites.project_of(task.site), queue, tick)
 	if _leg_target != task.station:
 		_stage_ticks = 0
 		return _begin_travel(task, job, tick)
@@ -841,7 +868,7 @@ func _resume(tick: int) -> StringName:
 	var queue: PackedInt32Array = PackedInt32Array()
 	var code: StringName = &"" if _phase_started(task) else _phase_units(task, queue)
 	if code == &"" and not queue.is_empty():
-		return _begin_haul(task, _owners.sites.project_of(task.site), queue, tick)
+		return _haul_or_climb(task, _owners.sites.project_of(task.site), queue, tick)
 	if code == &"": code = _assign()
 	return _place_actor(task, _owners.jobs.ref_of(_job), tick) if code == &"" else code
 

@@ -1,7 +1,8 @@
 # 2045 — Slice D, the M5 round: the full flight mounted, measured and scoped (stopped for rulings)
 
 Date: 2026-10-19 · Status: Accepted. Phase 1 (measure and scope) stopped for rulings; Brendan ruled P-2045-1 to
-P-2045-6, all (a), on 2026-10-19 (see "Brendan's rulings"), and the build phase continues below.
+P-2045-6, all (a), on 2026-10-19 (see "Brendan's rulings"). The build phase stopped again under that ruling's own
+condition: WorldRoutes and Locations still do not fit (see "Build phase"; P-2045-7 to P-2045-10 wait for rulings).
 
 Number range: 2045–2049 (the D-flight lane's phase 2b). This is the M5 round's record; decision
 [2044](2044-slice-d-2b-1-m5-flight-runtime-scoping-and-claims.md) holds the lane's claims, every ruling so far
@@ -381,3 +382,124 @@ Decision 2044 (claims, P-2044-1 to -17, the M2 measurements and Slice C's cautio
 order); 1972 "Phase 3b"; 1953 §6 (stage 1's caches); decision 1990 (C3's seam, for awareness: D2 fills it). The
 coordinator's brief and Slice C's answers of 2026-10-19. Measurements: `scratchpad/m5r/` (logs `a1`–`a3`, `b1`–`b2`,
 `u1`–`u5`, `v1`), from the clones `m5a`, `m5b`, `m5u` and `m5v`.
+
+## Build phase (2026-10-19): built, re-measured, and stopped under the P-2045-5/-6 ruling
+
+The rulings' stop condition holds: **after P-2045-5 (a) and P-2045-6 (a), WorldRoutes (at module 0's sill) and
+Locations (from module 0's sill on) still cannot fit `Space.MAX_CHECKS`.** The lane stops here, before (b) (the
+Placements transaction) and before the census pass, the full gates and the frames, which wait for a chain that
+reaches level 1. Two non-budget stops were found past the bound as well: one is fixed, one is a design gap.
+
+### Built
+
+| Commit | What |
+|---|---|
+| `e0f01b30` | The rulings, here and in `docs/handoff/RULINGS.md` |
+| `ada355ea` | **P-2045-1** `BINDINGS_AND_GROWTH_BYTES` 547,423 (+22,879). **P-2045-2** the journal's `_row_changed` compares the owner slot and generation; `test_underground_geometry_journal_owner.gd` (4 tests: unchanged row, reused slot with a new owner slot, a new owner generation, box/role/presence still count). **P-2045-3** Locations `restore_state_bytes` forgets the kept prisms first; `test_a_restore_re_derives_kept_prisms_and_spends_as_a_fresh_load` (an in-place restore with prisms kept, and kept boxes that no longer match, spends exactly what the same restore spends with nothing kept, and re-derives the prisms). `restore_state_bytes` refuses while an operation is open, so "mid-preparation" is between two preparations of a running entry |
+| `ba11e40c` | **P-2045-5 (a)**: the deep floor graph is joined a block at a time (stair path `floor_block`, `floor_missing`, `_floor_pairs(…, row)`, foreman `_open_deep_floor`): D to the landing row's column-1 station, one straight walk down the column-1 spine to the block's nearest row (over the spine strips), and the block's own spine and crossings; a block's walks leave with its stations (`retire_row`). **P-2045-6 (a)**: the bindings' Region scans read a row's z extent first (`Z_READ_CHECKS` 2 of a box read's 12) and the rest only when it meets the tested bounds (`_z_misses`): the contacts' air, the part clearance and staging, the natural rows and installed bearings, the workpiece air and foot, the support residual and the datum lookup |
+| `4fb4c06f`, `1af18805` | **P-2045-6 (a)** in the held Locations functions: a Placement row's LANDING datums are kept for the open Locations operation (its token) as well as a witness pass, keyed also by the Catalog revision, and sorted by (level, low z) so a record compares only its own (`_landing_scope`, `_order_landings`, `_landing_order_key`, `_landing_sorted`, `_checked_landing_count`, `_scanned_landing_count`); with the cache checks on a kept count is compared, unspent, with the per-record scan. Registry rows updated |
+| `506b44e1` | **P-2045-4 (a)**, after Slice C's question: an observation answered from stage 1's in-compile memo is charged `ANSWERED_OBSERVATION_CHECKS` (51: both kept keys compared, one record copied) instead of 256. **The cases, measured:** over the preparations above 600,000 checks, 157,668 observations were answered and 62,725 observed live; module 0's sill requalification answered 263 (67,328 checks charged for them, about 13,400 of real work) and observed 88; landing 2's block publications answered none (every observation was a first one). The memos differential (29/29, every short budget) stays green; the save/load parity re-runs with the census pass |
+| `dff8923f` | The M2-pinned suites on the mounted M5 bundle: the work area (59 Locations, 301 endpoints), the handling certificates and bundle source (`qualified-stairs-m5-v1`), the first-prefix fixture's Sites (160) |
+| `1b591b60` | **Stop 1 fixed** (`_haul_or_climb`, foreman): a phase short of inputs on a deep floor walks the crew up to X on its own legs under the phase's BUILD Job, turning as it goes, and hauls from there; every leg's end re-checks. **Two-row floor blocks**: four rows took landing 2's first block to 1,291,518 checks; two take it to 864,051 |
+| `ad7d3723` | origin/master `1b71992b` merged (#275 M2, #276, #277); no conflicts; the focused suites (259 tests) pass after a fresh import. Generated files are regenerated in the census pass |
+
+Built and removed again (not committed): taking a ground row at the crew's current heading before a turn, for the
+U0' stop below. Every candidate (approach 45, retreat 49, the all-yaw walk 42) is refused there with
+`WORLD_ROUTE_ENDPOINT_BODY`, so it changed nothing.
+
+Focused suites after each step: 0 failures, 0 unexpected errors or warnings, 0 leaks. The cache checks (every test
+run) found no `RUNTIME_CACHE_STALE`.
+
+### Re-measured, every landing reached (cache checks off)
+
+Bounded is today's `Space.MAX_CHECKS`; unbounded is the scratch clone with the bound lifted (real spend). "M stocked"
+runs fed M directly so that no phase hauls, as in §4.6; the others ran the real haul.
+
+| Point | WorldRoutes | Locations | Bindings entry | Bindings timber |
+|---|---:|---:|---:|---:|
+| Module 0 before its sill (to tick 30,000) | ≤ 573,472 | ≤ 414,000 | ≤ 542,447 | ≤ 231,669 |
+| Module 0's sill (tick 34,927) | **1,691,368 (161 %)** | **1,108,077 (106 %)** | 956,047 (91 %) | 403,812 |
+| Landing 1, two-row blocks | 590,822 – 610,838 | **1,091,580 – 1,304,088** | — | — |
+| Module 1's sill (M stocked) | 557,940 | **1,397,555** | 969,679 (92 %) | 398,387 |
+| Landing 2, two-row blocks (M stocked, to tick 50,300) | 780,725 – 865,311 | **1,258,989 – 1,629,919** | — | — |
+| Modules 3 and 4 | not reached (below) | | | |
+
+Before this phase the same points were: the sill 1,745,283 / 1,565,004 / 1,704,420; landing 1's floor graph
+3,331,208 / 1,816,683; module 1's sill 627,407 / 1,972,180 / 1,953,599; landing 2's floor graph 3,808,940 /
+2,275,188. The batching took every landing's WorldRoutes peak under the bound; the bindings now fit with 8 % to spare.
+
+**First refusal, bounded:** tick 34,927, module 0's sill (task 150 of stage 2), WorldRoutes
+`WORLD_ROUTE_CHECK_CAPACITY` in the installation's route requalification (`_stage_timber_routes`). Of its 1.69 M,
+770,048 is `_preparation_refusal`'s source pass, charged twice for each of the 44 old edges the sill's staging
+does not let carry (29 ground, 15 stair), and most of the rest is those edges' full proofs.
+
+**Where Locations still spends** (landing 2, the traced window): outside the held functions, the per-record scans of
+every Placement slot in `_installed_record_kind` and `_installed_surface_site` (with their source charge, 1,024
+outside a witness pass), and `_record_geometry_refusal`'s `_covered` and `_record_obstacles_refusal`; together about
+70 % of each witness pass and refresh. The held functions' remaining share (`_natural_floor_site`'s two Site
+lookups, the landing counts) is about a fifth: no fix inside the claims can bring 1.63 M under 1.05 M.
+
+### Non-budget stops
+
+1. **Fixed: a haul from a deep floor** (`1b591b60`). Landing 1's stage runs through with the real haul.
+2. **A design gap: climbing up through a landing.** A crew coming up module j arrives at U0' (landing j) facing up
+   the flight; the way on up (P-2044-16 (a): U0' → F' backing on the retreat 47, then 72, 55 and the ascent) needs it
+   to face down. Routes turns only a ground actor (`ROUTE_TURN_PROFILE`: the crew still carries the stair's family),
+   and no ground row at its heading fits U0''s air (approach 45, retreat 49 and the all-yaw walk 42 are each refused
+   `WORLD_ROUTE_ENDPOINT_BODY`). M2 never climbed through a landing. Every later module needs it: module 2's T0''
+   installer (tick 49,454 earlier) and landing 2's hauls (tick 50,336) both stop here. **This is §4.6's stop 2.**
+3. **New: `STEP2_ACTIVITY_FORBIDS_WORK`** at tick 45,414 in the real-haul run, when T0''s order was committed at X:
+   the crew's schedule forbade work. The whole flight now spans days, and the entry runtime ends the chain on this
+   refusal although its gap text says it waits for a work hour (`underground_entry_runtime.gd`, the C2 follow-up's
+   file). The M-stocked runs, whose timing differs, did not meet it.
+
+### Everything else needed outside the claims (one list)
+
+| # | File and function | Why | Proposal |
+|---|---|---|---|
+| O-6 | `underground_world_routes.gd` `edge_refusal` / `_preparation_refusal` (Slice C) | The prepared source and claim pass is charged before and after every uncarried edge (2 × `SOURCE_PASS_CHECKS`); module 0's sill pays 770,048 of its 1.69 M for it. Charged once per preparation, with the cache checks re-running it per edge unspent, the sill would be about 0.92 M. Needs Slice C to confirm no callback inside a preparation can change source or claim truth | P-2045-7 |
+| O-7 | `underground_locations.gd` `_installed_record_kind`, `_installed_surface_site`, `_record_geometry_refusal` (`_covered`, `_record_obstacles_refusal`) (Slice C hold) | The per-record scans above; exact fixes of the same kind as §3 (find the record's Room's Placement rows once per pass or operation, keyed like the kept prisms; the z-first Region read) | P-2045-8 |
+| O-8 | Data and paths in the claims, but a design choice: the M5 bundle's U0' stop and the stair path's up-route | Climbing through a landing | P-2045-9 |
+| O-9 | `underground_entry_runtime.gd` (the C2 follow-up's) | `STEP2_ACTIVITY_FORBIDS_WORK` should wait, as its gap text says, not end the chain | P-2045-10 |
+
+### Proposals
+
+**P-2045-7 — The route requalification's source pass.**
+- **(a) Clear `edge_refusal`/`_preparation_refusal` to prove the prepared source and claim pass once per
+  preparation and charge it once, re-running it per edge, unspent, under the cache checks.** Exact if nothing inside a
+  preparation can change source or claim truth, which Slice C confirms first.
+- (b) Leave it, and spread the sill's staging so fewer old edges lose their carry (not exact: it changes what the
+  sill stages).
+
+**Recommendation: (a).**
+
+**P-2045-8 — Locations' per-record scans.**
+- **(a) Clear the three Locations functions for exact fixes of §3's kind, measured landing by landing.**
+- (b) The Placements transaction (P-2045-5 (b)): deep stations' Locations per batch, so fewer records are witnessed
+  at once. Larger, and the scans per record stay.
+
+**Recommendation: (a)**; (b) only if (a) does not bring landing 2 under the bound.
+
+**P-2045-9 — Climbing up through a landing.**
+- **(a) Re-size U0' (the M5 publisher, the clearance test) so that the all-yaw walk 42 fits there, then turn at U0'
+  on 42 before the retreat 47.** The clearance test decides first whether the body clears module j−1's sill and
+  module j's T0 (42's ±712 u body reaches about 480 u past the sill's far edge, with T0's deck below the floor).
+- (b) Keep each landing's hub D as a lasting stop (today it retires with T0's last leg) and route the way up through
+  it on 42 (U0' → D, a turn at D, D → F' on 47). It needs the same fit at U0' for the first walk.
+- (c) Qualify a rooted half-turn from facing up to facing down on a landing floor: new motion, which is ruled out.
+
+**Recommendation: (a)**, proved by the clearance test before any runtime change; if the body does not clear, stop
+with the numbers.
+
+**P-2045-10 — The schedule refusal ends the chain.**
+- **(a) The C2 follow-up's owner (or this lane, cleared) makes the entry runtime wait on
+  `STEP2_ACTIVITY_FORBIDS_WORK`, as its gap row says.**
+- (b) The whole-flight suites hold the crew's schedule open as they hold its needs (a stand-in only).
+
+**Recommendation: (a)**, with (b) for the suites until it lands.
+
+### Gates
+
+Not run: the census pass, the full sharded suite, the analyzer over the new code and the frames wait for a chain
+that reaches level 1, per the brief. The focused suites, the registry coverage, the decision numbers and the
+source pins pass on `ad7d3723`.

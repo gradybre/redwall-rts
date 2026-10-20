@@ -2094,9 +2094,9 @@ func order_painted_room(painted: UndergroundRoomConfirm.Painted) -> UndergroundR
 		code = result.code
 	result.code = code
 	if code != &"":
-		_alert_underground_room(code, UndergroundRoomConfirm.pick_words(code,
-			_underground_rooms.bound_owners() if _underground_rooms != null else null,
-			painted.crew if painted != null else PackedInt32Array()))
+		var words: String = UndergroundRoomConfirm.pick_words(code, _underground_rooms.bound_owners(), painted.crew) \
+			if painted != null and _underground_rooms != null else ""
+		_alert_underground_room(code, words)
 		_refuse(code)
 	else: _last_refusal = REFUSE_NONE
 	return result

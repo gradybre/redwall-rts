@@ -114,7 +114,38 @@ One independent `code-reviewer` pass on the phase 1 diff: no CRITICAL, two HIGH,
 
 ## Gates
 
-(Filled in below as they are run.)
+- **Full suite, CI-style** at `555599b5` (no demo art in this worktree; `godot/.godot` deleted and re-imported,
+  exit 0; `./tools/run_tests_parallel.sh --jobs 4`, master's 10 shards): every shard and the verify passed,
+  `ok: 568 suite files executed exactly once across 10 shards`; 13,150 tests, 1,544,779 assertions, 0 failures,
+  0 unexpected errors or warnings (289 expected, 456 tolerated), 0 leaked objects or resources; 1,990 s. (A first run
+  at `fa5d3aa2` passed every shard but its verify refused "shards used different manifests", because a test file
+  was edited while it ran; it was rerun untouched.) The last commit after it reorders two assertions in one test,
+  and its two suites pass: 33 tests, 249 assertions, 0 failures, nothing unexpected or leaked.
+- **Analyzer** (`tools/gdscript_warnings.py --max 0 --port 6513`): `0 GDScript warning(s) in 0 of 1664 file(s)`.
+- **Contracts:** `decision_numbers.py` PASS (583 records); `ready07_arithmetic.py`, `merge_gate.py`,
+  `setting_contract.py`, `dispatch_plan.py --validate`, `astra_inbox.py --check`,
+  `validate_save_registry_handoff.py`, `generate_canonical_state_table.py --check`, the cycle 1–3 handoffs,
+  `audit_registry_capacities.py --check`, both schema checks, `lane_notes.py --check`,
+  `state_registry_coverage.py` (211 modules) and `underground_memory_budget.py --check` pass;
+  `test_underground_current_census.py` 15 tests OK. No byte is added to the census: every new store is category 3,
+  and what the way in publishes lives in Locations', Routes' and Inventory's existing bounded banks.
+- **Mutation testing** (`scratchpad/d2mut/run.py`, one mutant a run, against the two suites, in a separate
+  worktree): 48 mutants over the way in, the front and the readers; **42 killed** (four first-pass survivors were
+  killed by the tests added for them). **Six survive, each explained:**
+  - F2, the WORK-mode check dropped: every content-12 row with a horizontal planar contact patch is a WORK row, so
+    the patch check refuses the same rows;
+  - F19, `span_pair`'s per-direction "already spanned" skip dropped: `span_pair` now returns early when both
+    directions exist, and this file never publishes one direction alone;
+  - F20, a corner sought even when the station lines up with the access: `existing` then returns the access itself
+    (TRANSIT accepts the access's STORAGE role), so the result is the same;
+  - F21, the forward and retreat reachability checks dropped: no fixture publishes spans that WorldRoutes' seal
+    certifies but the rows cannot walk; the checks stay as the guard parking has;
+  - W3, the request's Space revision not re-read: publishing Locations and Routes does not move the Space owner's
+    revision in this fixture; the line keeps admission fresh if it ever does;
+  - L1, `==` to `>=` in `reaches_level`: no published layout goes deeper than one level.
+- **Independent review:** one `code-reviewer` pass; see "Review". Both HIGH answered (H1 a misreading, H2 fixed),
+  MEDIUM fixed or answered.
+- **Frames:** none; phase 1 draws nothing.
 
 ## Source
 

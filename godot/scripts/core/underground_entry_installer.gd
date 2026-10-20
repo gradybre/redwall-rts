@@ -237,6 +237,9 @@ func _leg_ups(tick: int) -> StringName:
 	var arrived: int = _arrived(leg.target, leg.profile, leg.revision, tick)
 	if arrived < 0: return &"ENTRY_INSTALLER_ROUTE_HELD"
 	if arrived == 0: return &""
+	# Decision 2045 (P-2045-10 (a)): at X, still holding the order's Job, wait for a work hour before the haul's own.
+	var worker: int = _o.residents.directory().get_typed_row(_crew.worker)
+	if 4 * (_stair_leg + 1) >= _plan.ups.size() and _o.jobs.schedule().rests_now(worker): return &""
 	_stair_leg += 1
 	if 4 * _stair_leg < _plan.ups.size(): return _face_and_travel(_plan_leg(_plan.ups, 4 * _stair_leg), tick)
 	_plan.ups = PackedInt64Array()

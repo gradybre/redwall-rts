@@ -282,6 +282,7 @@ func _haul_or_climb(task: Task, project: Vector2i, queue: PackedInt32Array, tick
 	var here: Vector2i = _owners.routes._resident_pair(Routes.R_LOCATION_SLOT, row)
 	var held: bool = _owners.jobs.job_of(row) == _owners.jobs.ref_of(_job)
 	if here == NULL_REF or _arriving() or _surface(_local_of(here)):
+		if held and _owners.jobs.schedule().rests_now(row): return &"" # P-2045-10 (a): at X, wait for a work hour.
 		var released: RefCounted = _owners.jobs.release_worker(row) if held else null # The climb's own Job.
 		if released != null and not released.ok: return released.error
 		return _begin_haul(task, project, queue, tick)

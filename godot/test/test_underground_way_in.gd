@@ -322,3 +322,108 @@ func test_the_real_confirm_route_admits_and_digs_the_north_room_from_its_publish
 	var foreman: Foreman = _runtime.foreman_of(result.room)
 	assert_equal(_dig_to_the_end(result.room), [] as Array[StringName], "no refusal")
 	assert_equal(foreman.done_cubes(), StationTests.KITCHEN_SITES, "every cube dug")
+
+
+func _access() -> Locations.Record:
+	"""The access endpoint's packet."""
+	var access: Locations.Record = Front.record()
+	assert_equal(_h.endpoints.read_location_into(_h._first, access), &"", "the access")
+	return access
+
+
+func _kitchen_candidate() -> Front.Candidate:
+	"""The Kitchen heading's candidate, read from the mounted rows."""
+	var c: Front.Candidate = Front.Candidate.new()
+	assert_equal(Front.heading_into(_h._profiles, _h.foot(), 0, c), &"", "the heading")
+	return c
+
+
+func test_place_mirrors_for_a_patch_behind_its_root_on_z() -> void:
+	"""A patch planar on z and lying toward -z: the station stands north of a room's south-facing cell, on its centre
+	line, and strikes the cell's +Z face (face 5); the corner is on the access's z line."""
+	if _runtime == null: return
+	var c: Front.Candidate = _kitchen_candidate()
+	c.axis = 2
+	c.patch_low = Vector3i(c.patch_low.z, c.patch_low.y, -c.patch_low.x)
+	c.patch_high = Vector3i(c.patch_high.z, c.patch_high.y, -c.patch_high.x)
+	var request: Approach.Request = _request(Phase.Z - 3072)
+	request.origin_u = Vector3i(Phase.X - 2048, Phase.FLOOR, Phase.Z - 3072)
+	assert_true(Front.place(_h._profiles, request, _access(), 4, c), "cell (0, 1) faces the corridor")
+	assert_equal([c.ahead, c.face], [-1, 5], "toward -z, the +Z face")
+	assert_equal(c.point, Vector3i(Phase.X - 1536, Phase.FLOOR, Phase.Z - 1024 + 521), "the station")
+	assert_equal(c.corner, Vector3i(Phase.X - 1536, Phase.FLOOR, Phase.Z + 512), "the corner on the access line")
+	assert_false(Front.place(_h._profiles, request, _access(), 0, c), "cell (0, 0) has the room behind it")
+
+
+func test_place_refuses_a_corner_over_the_room() -> void:
+	"""A room that also holds the cell under the corner cannot be reached from it."""
+	if _runtime == null: return
+	var c: Front.Candidate = _kitchen_candidate()
+	var request: Approach.Request = _request(NORTH_Z)
+	assert_true(Front.place(_h._profiles, request, _access(), 0, c), "the north room's first cell")
+	request.cells.append_array(PackedInt32Array([-3, 0]))
+	assert_false(Front.place(_h._profiles, request, _access(), 0, c), "its corner now stands on a room cell")
+
+
+func test_a_room_on_another_floor_has_no_front() -> void:
+	"""The station stands on the access's own floor: a room whose floor is a quantum higher gets none."""
+	if _runtime == null: return
+	var counts: Array[int] = [_endpoints(), _spans(), _containers()]
+	var request: Approach.Request = _request(Phase.Z)
+	request.origin_u.y += 1024
+	assert_equal(_way.approach_into(request, Composer.Order.new()), Front.REFUSE_NO_FRONT, "no front")
+	assert_equal([_endpoints(), _spans(), _containers()], counts, "nothing made")
+
+
+func test_cells_are_tried_nearest_the_access_first() -> void:
+	"""By the distance of each cell's centre from the access, ties by cell order, whatever order they are listed in."""
+	if _runtime == null: return
+	var request: Approach.Request = _request(Phase.Z)
+	request.cells = PackedInt32Array([1, 1, 1, 0, 0, 1, 0, 0])
+	assert_equal(Front.cells_by_distance(request, _access().point), PackedInt32Array([6, 2, 4, 0]), "nearest first")
+	assert_true(Front.has_cell(request, Vector2i(1, 0)), "listed")
+	assert_false(Front.has_cell(request, Vector2i(0, 2)), "not listed")
+	assert_false(Front.has_cell(request, Vector2i(1, 2)), "x alone is not enough")
+
+
+func test_a_body_touching_the_room_face_is_clear_and_one_unit_more_is_not() -> void:
+	"""Half-open boxes: the body may end exactly on the room's face, not one unit past it."""
+	if _runtime == null: return
+	var request: Approach.Request = _request(Phase.Z)
+	var probe: Vector3i = Vector3i(Phase.X, Phase.FLOOR, Phase.Z + 512)
+	var reach: int = Front.extent(_h._profiles, KitchenTests.CLAW_FORWARD, probe)[3] - probe.x
+	var touching: Vector3i = Vector3i(Phase.X + 2048 - reach, Phase.FLOOR, Phase.Z + 512)
+	assert_true(Front.body_clear(_h._profiles, KitchenTests.CLAW_FORWARD, request, _access(), touching), "touching")
+	assert_false(Front.body_clear(_h._profiles, KitchenTests.CLAW_FORWARD, request, _access(),
+		touching + Vector3i(1, 0, 0)), "one unit into the room")
+
+
+func test_an_endpoint_of_another_role_at_the_point_is_never_reused_or_doubled() -> void:
+	"""A WORK station is not a TRANSIT corner, and a STORAGE endpoint is not a WORK station: nothing is published over
+	either, and the published list stays empty."""
+	if _runtime == null: return
+	var made: PackedInt32Array = PackedInt32Array()
+	var endpoints: int = _endpoints()
+	var rows: PackedInt32Array = PackedInt32Array([KitchenTests.CLAW_GROUND])
+	var foot: WayIn.Foot = _h.foot()
+	assert_equal(Front.endpoint_at(_runtime.bound_owners(), foot, _access(), _point(_h._last), Locations.ROLE_TRANSIT,
+		rows, made), NULL_REF, "a WORK station is no corner")
+	assert_equal(Front.endpoint_at(_runtime.bound_owners(), foot, _access(), KitchenTests.CLAW_STORE_POINT,
+		Locations.ROLE_WORK, rows, made), NULL_REF, "a store is no station")
+	assert_equal(Front.endpoint_at(_runtime.bound_owners(), foot, _access(), KitchenTests.CLAW_STORE_POINT,
+		Locations.ROLE_TRANSIT, rows, made), _h.storage, "a store serves as a corner, as a parking does")
+	assert_equal([made, _endpoints()], [PackedInt32Array(), endpoints], "nothing published")
+
+
+func test_a_pile_point_taken_by_a_station_refuses_and_withdraws_the_front() -> void:
+	"""P-2052-2 (a): the pile's point holds a WORK station, so no pile can stand there: WAY_IN_CONTAINER, and the
+	north room's station and corner, published first in the same call, are withdrawn."""
+	if _runtime == null: return
+	var foot: WayIn.Foot = _h.foot()
+	foot.pile_point = _point(_h._last)
+	var way: WayIn.StairWayIn = WayIn.StairWayIn.new()
+	assert_equal(way.configure(_runtime.bound_owners(), foot), &"", "configured")
+	var counts: Array[int] = [_endpoints(), _spans(), _containers()]
+	assert_equal(way.approach_into(_request(NORTH_Z), Composer.Order.new()), WayIn.REFUSE_CONTAINER, "no pile")
+	assert_equal([_endpoints(), _spans(), _containers()], counts, "the front withdrawn, nothing made")
+	assert_equal(way.pending(), PackedInt32Array(), "nothing listed")

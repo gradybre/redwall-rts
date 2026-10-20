@@ -43,7 +43,7 @@ class Candidate extends RefCounted:
 	var forward_revision: int = 0
 	var yaw: int = -1
 	var axis: int = -1 # The patch's planar axis (0 x, 2 z): the heading's axis.
-	var ahead: int = 0 # +1 or -1: the patch lies ahead of the root along `axis`.
+	var ahead: int = 0 # +1 or -1: the patch lies ahead of the root along `axis` (set by `place`).
 	var patch_low: Vector3i = Vector3i.ZERO
 	var patch_high: Vector3i = Vector3i.ZERO
 	var cube: Vector3i = Vector3i.ZERO
@@ -68,7 +68,7 @@ static func find_into(owners: RefCounted, foot: RefCounted, request: Approach.Re
 	for heading: int in foot.wall_rows.size():
 		if heading_into(owners.profiles, foot, heading, out) != &"": continue
 		for cell: int in cells_by_distance(request, access.point):
-			if place(owners.profiles, foot, request, access, cell, out): return &""
+			if place(owners.profiles, request, access, cell, out): return &""
 	return REFUSE_NO_FRONT
 
 
@@ -97,7 +97,6 @@ static func patch_into(profiles: Profiles, content: int, wall: Profiles.Descript
 		for axis: int in HORIZONTAL:
 			if box.low[axis] == box.high[axis] and box.low[axis] != 0:
 				out.axis = axis
-				out.ahead = 1 if box.low[axis] > 0 else -1
 				out.patch_low = box.low; out.patch_high = box.high
 				return &""
 		return REFUSE_NO_FRONT
@@ -121,11 +120,12 @@ static func cube_of(request: Approach.Request, at: int) -> Vector3i:
 	return request.origin_u + Vector3i(request.cells[at] * CELL_U, 0, request.cells[at + 1] * CELL_U)
 
 
-static func place(profiles: Profiles, foot: RefCounted, request: Approach.Request, access: Locations.Record,
-		at: int, out: Candidate) -> bool:
+static func place(profiles: Profiles, request: Approach.Request, access: Locations.Record, at: int,
+		out: Candidate) -> bool:
 	"""Whether the heading's station can face the cell at `at`: the cell is on the room's edge on the station's side,
 	the patch lies exactly on its face, the station and its corner stand on the access's floor in its surveyed air off
 	the room, and the station lies ahead of the corner. Fills the cube, face, station point and corner."""
+	out.ahead = 1 if out.patch_low[out.axis] > 0 else -1
 	var cube: Vector3i = cube_of(request, at)
 	var behind: Vector2i = Vector2i(request.cells[at], request.cells[at + 1])
 	behind[out.axis >> 1] -= out.ahead

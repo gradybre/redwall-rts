@@ -3076,7 +3076,11 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
 
 
 func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
-	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact."""
+	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact.
+	Decision 2045 (P-2045-3 (a)): the kept installed prisms are forgotten first. A Placements bank restored in place
+	keeps its instance and may restore an equal revision, so the key alone cannot tell restored prisms from kept ones;
+	the restore's own witnesses and every later pass re-derive them, as a fresh load does."""
+	_prism_key[0] = 0
 	if _frontier != null:
 		_remaining = -1
 		return &"LOCATION_FRONTIER_CONTEXT"

@@ -1260,6 +1260,39 @@ func test_installed_contact_refresh_and_restore_use_actual_lower_paid_site() -> 
 	assert_equal(_f._budget.release(cold), &"", "original scope released")
 
 
+func test_a_restore_re_derives_kept_prisms_and_spends_as_a_fresh_load() -> void:
+	"""Decision 2045 (P-2045-3 (a)): between preparations of a running entry, an in-place restore of Locations forgets
+	the kept installed prisms first, so its witnesses re-derive them: it spends exactly what the same restore spends
+	with nothing kept (a fresh load), and kept prisms that no longer match the restored banks are never used."""
+	if not _completed_timber(): return
+	var ref: Vector2i = _installed_contact_ref()
+	var cold: int = _f._budget.acquire(Budget.COLD_BYTES)
+	_refresh_spend(cold, ref)
+	assert_equal(_f._locations._prism_key[0], 1, "a preparation keeps the prisms")
+	var image: PackedByteArray = _location_image(cold)
+	var derived: PackedInt32Array = _f._locations._prism_boxes.duplicate()
+	_f._locations._prism_key[0] = 0
+	assert_equal(_f._locations.restore_state_bytes(cold, image), &"", "a restore with nothing kept")
+	var fresh: int = _f._locations._domain._checks - _f._locations._remaining
+	assert_equal(_f._locations._prism_key[0], 1, "its witnesses keep them again")
+	for axis: int in 6: _f._locations._prism_boxes[axis] += 512 # Kept boxes that no longer match the banks.
+	assert_equal(_f._locations.restore_state_bytes(cold, image), &"", "an in-place restore with prisms kept")
+	assert_equal(_f._locations._domain._checks - _f._locations._remaining, fresh, "it spends what a fresh load spends")
+	assert_true(_f._locations._prism_boxes == derived, "the prisms were re-derived, not reused")
+	assert_equal(_f._budget.release(cold), &"", "original scope released")
+
+
+func _refresh_spend(cold: int, ref: Vector2i) -> int:
+	"""The checks one preparation's refresh of `ref` spends, through publication."""
+	var token: int = _f._locations.begin_prepare(cold).token
+	var before: int = _f._locations._remaining
+	assert_equal(_f._locations.stage_refresh(token, ref), &"", "refresh")
+	var spent: int = before - _f._locations._remaining
+	assert_equal(_f._locations.seal(token), &"", "sealed")
+	assert_true(_f._locations.publish(token), "published")
+	return spent
+
+
 func test_installed_restore_refuses_missing_prefix_paid_site_and_stale_source() -> void:
 	"""The real installed witness is rederived on load; existing bytes do not authorize lost physical dependencies."""
 	if not _completed_timber(): return

@@ -250,13 +250,17 @@ static func _staged_side(owner: RefCounted, row: int, staged: bool, out: PackedI
 
 
 static func _row_changed(owner: RefCounted, row: int, full: bool = false) -> bool:
-	"""Compare exactly what the view's snapshot copies: visibility, effective role and the half-open box."""
+	"""Compare exactly what the view's snapshot copies: visibility, effective role, owner and the half-open box.
+	Decision 2045 (P-2045-2 (a), P-2044-18): the owner too, so a SUPPORT row removed and re-added in its reused slot
+	with the same box and role but another owner, inside one stage, is a change (the carried stair rows read it)."""
 	var before: bool = _visible(owner, row, false, full)
 	if before != _visible(owner, row, true, full):
 		return true
 	if not before:
 		return false
 	return _role(owner, row, false) != _role(owner, row, true) \
+		or owner._r_owner_slot[row] != owner._s_r_owner_slot[row] \
+		or owner._r_owner_generation[row] != owner._s_r_owner_generation[row] \
 		or owner._r_lo_x[row] != owner._s_r_lo_x[row] or owner._r_lo_y[row] != owner._s_r_lo_y[row] \
 		or owner._r_lo_z[row] != owner._s_r_lo_z[row] or owner._r_hi_x[row] != owner._s_r_hi_x[row] \
 		or owner._r_hi_y[row] != owner._s_r_hi_y[row] or owner._r_hi_z[row] != owner._s_r_hi_z[row]

@@ -4540,7 +4540,8 @@ static func frontier_leaf_refusal(actual: RefCounted, context: Locations.Frontie
 	if actual._stage.revision != actual._live.revision + 1 \
 			or actual._stage.edge_count != actual._live.edge_count + 2 * context.count \
 			or actual._stage.vertex_count != actual._live.vertex_count + 4 * context.count \
-			or actual._stage.free_count != actual._live.free_count - 2 * context.count or context.edges.size() != 12:
+			or actual._stage.free_count != actual._live.free_count - 2 * context.count \
+			or context.edges.size() != 4 * Locations.FRONTIER_MAX_STATIONS:
 		return &"ROUTE_FRONTIER_ROWS"
 	var code: StringName = _retained_paths_refusal(actual, context.revision, context.profiles)
 	if code == &"": code = _frontier_order_refusal(actual)

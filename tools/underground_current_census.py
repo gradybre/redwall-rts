@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "ad5e3579788f8b189098d48036f9430110682ee5a8457c16d4944f6dceb64846"
+REVIEWED_SHA = "dab7a73cea98411434fae2f1389018560a6dfce0d8584e852c7b7d8c8d2ef94d"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -430,7 +430,7 @@ def publication_controls(memory, index: dict) -> dict:
             "controls": controls, "control_bytes": ceiling}
 
 
-PLANNER_FORMULA = ("const CONTROL_BYTES: int = 4 * 6 * MAX_REGIONS * 4 + 2 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \\\n"
+PLANNER_FORMULA = ("const CONTROL_BYTES: int = 5 * 6 * MAX_REGIONS * 4 + 5 * MAX_REGIONS * 4 + 2 * 6 * MAX_FRAGMENTS * 4 \\\n"
     "\t+ MAX_CANDIDATES * 8 + 2 * MAX_EDGES * 4 + MAX_CHAIN * (3 * 4 + 4 * 8 + 2 * 4 + 4 + AIR_BOXES * 6 * 4) \\\n"
     "\t+ MAX_PRIMITIVES * 6 * 4 + 8 * 6 * 4 + 1024\n")
 
@@ -446,11 +446,12 @@ def room_planner_cold(memory, index: dict) -> dict:
     c = {key: memory.resolve(index, name, key) for key in
          ("MAX_REGIONS", "MAX_FRAGMENTS", "MAX_CANDIDATES", "MAX_EDGES", "MAX_CHAIN", "MAX_PRIMITIVES")}
     boxes = 1 + memory.resolve(index, "underground_locations", "MAX_AIR_EXTRA")
-    total = (4 * 6 * c["MAX_REGIONS"] * 4 + 2 * c["MAX_REGIONS"] * 4 + 2 * 6 * c["MAX_FRAGMENTS"] * 4
+    # Decision 1942: a fifth table, the claimed rows meeting the hull, with each one's kind and claim ref.
+    total = (5 * 6 * c["MAX_REGIONS"] * 4 + 5 * c["MAX_REGIONS"] * 4 + 2 * 6 * c["MAX_FRAGMENTS"] * 4
              + c["MAX_CANDIDATES"] * 8 + 2 * c["MAX_EDGES"] * 4 + c["MAX_CHAIN"] * (56 + boxes * 24)
              + c["MAX_PRIMITIVES"] * 24 + 192 + 1024)
     shared = memory.resolve(index, "underground_budget", "COLD_BYTES")
-    require(total == 45752 and total <= shared, "planner cold slice inside the shared cold arena")
+    require(total == 52664 and total <= shared, "planner cold slice inside the shared cold arena")
     return {"control_bytes": total, "lease_bytes": shared,
             "scope": "Cold and released before publish_into admits its own lifetime in the same lease."}
 
@@ -516,6 +517,8 @@ def cold_load_images(memory, index: dict) -> dict:
 
 ROOM_RUNTIME = {"_directory": "Directory", "_room_row": "PackedInt32Array", "_generation": "PackedInt32Array", "_state": "PackedByteArray",
                 "_storage": "PackedInt32Array", "_output": "PackedInt32Array", "_staging": "PackedInt32Array",
+                "_crew": "PackedInt32Array", "_release_out": "PackedByteArray", "_builder_rows": "PackedByteArray",
+                "_filter_count": "int", "_filter_last": "int",
                 "_foremen": "Array", "_foreman_rows": "PackedInt32Array", "_refusals": "Array", "_owners": "Builder.Owners",
                 "_math": "IntMath.IntResult", "_face": "WorkFace", "_contact_access": "Vector2i", "_contact_travel": "int"}
 ROOM_FOREMAN = {"_ctx": "Builder.Context", "_room": "Vector2i", "_builders": "Array", "_order": "DigOrder.Order",
@@ -547,7 +550,7 @@ ROOM_ORDER_ROWS_ONLY = ("planned.keys.clear()", "planned.distance.clear()")
 ROOM_ONE_IMAGE = ("w.bytes = out", "var c: Progress.Checker = Progress.check(bytes)")
 ROOM_DISPATCH = {"_entry": "Callable", "_rooms": "Callable"}
 ROOM_STATELESS = ("underground_room_composer", "underground_room_parking", "underground_room_progress",
-                  "underground_room_dig_order")
+                  "underground_room_dig_order", "underground_room_station_retirement") # Decision 1942: no members.
 ROOM_WIRE_NAMES = ("HEADER_BYTES", "CODE_BYTES", "RUNTIME_FIXED_BYTES", "ROW_BYTES", "FOREMAN_FIXED_BYTES", "SITE_BYTES",
                    "BUILDER_FIXED_BYTES", "LEG_LIST_BYTES", "TRIP_LIST_BYTES", "HAUL_PLAN_BYTES", "HAULER_BYTES",
                    "BUILDER_BYTES", "MAX_KEPT", "MAX_SITES", "MAX_BUILDERS", "MAX_WIRE_BYTES")
@@ -624,15 +627,17 @@ def room_dig_runtime(memory, index: dict) -> dict:
         r("underground_room_claim", "MAX_TRIP_EDGES")
     boxes, profiles = r("underground_room_footprint", "MAX_BOXES"), r("underground_profiles", "MAX_PROFILES")
     queue, haul_legs = r("underground_entry_progress", "MAX_QUEUE"), r("underground_entry_progress", "MAX_LEGS")
-    columns = memory.columns(index, "underground_room_runtime", 6, {}, {"_room_row", "_generation", "_state", "_storage",
-                                                                       "_output", "_staging"})
-    require(memory.payload(columns) == 33 * kept, "the record pool is 33 B a kept record")
+    columns = memory.columns(index, "underground_room_runtime", 8, {}, {"_room_row", "_generation", "_state", "_storage",
+                                                                       "_output", "_staging", "_crew", "_release_out"})
+    # Decision 1991: each slot also names its crew (4 resident references, 32 B) and a release-once-out byte.
+    require(memory.payload(columns) == 66 * kept, "the record pool is 66 B a kept record")
     result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
     actor = packet(memory, index, CORE + "underground_routes.gd", "Actor")
     b = CORE + "underground_room_builder.gd"
     rows = {
         "runtime_record": memory.payload(columns),
         "runtime_numeric": memory.numeric_fields(runtime, "") + result + 4 * kept
+            + r("residents", "RESIDENT_CAPACITY") # Decision 1991 (review M7): one byte a Resident row
             + memory.numeric_fields(module(index, CORE + "underground_work_face.gd").text, ""),
         "foremen_numeric": kept * (memory.numeric_fields(foreman, "") + packet(memory, index, b, "Context")),
             "orders_and_marks": 5 * sites, # Decision 1937 (P-1937-1 E): each Site's row and mark.

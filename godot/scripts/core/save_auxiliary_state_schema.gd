@@ -45,14 +45,14 @@ const REFUSE_TABLE: StringName = &"SAVE_S6_TABLE"
 # Generated from docs/planning/canonical_state_registry.json and
 # docs/planning/registry_capacity_audit.json by tools/generate_auxiliary_state_schema.py.
 # Registry RWL-CANONICAL-REGISTRY-2026-10-15-RD1 v17.
-# Do not hand-edit. 26 owners, 210 fields, 14 UNPROVED (zero-only) fields.
+# Do not hand-edit. 26 owners, 214 fields, 14 UNPROVED (zero-only) fields.
 
 const SECTION_SCHEMA_VERSION: int = 11
 const REGISTRY_VERSION: int = 17
 const OWNER_COUNT: int = 26
-const FIELD_COUNT: int = 210
-const EMPTY_SECTION_BYTES: int = 12446739
-const MAX_SECTION_BYTES: int = 26286174
+const FIELD_COUNT: int = 214
+const EMPTY_SECTION_BYTES: int = 12446779
+const MAX_SECTION_BYTES: int = 26450054
 
 const OWNER_KEYS: Array[String] = [
 	"buildings", "command_dispatch", "construction_extension", "construction_paid_ledger",
@@ -70,11 +70,11 @@ const OWNER_SCHEMAS: Array[int] = [
 
 const OWNER_FIELD_BEGIN: Array[int] = [
 	0, 2, 6, 22, 24, 26, 33, 37, 38, 56, 96, 101, 109, 113, 129, 140, 160, 163, 165, 167, 169, 173,
-	175, 178, 206, 208,
+	175, 178, 210, 212,
 ]
 
 const OWNER_FIELD_COUNTS: Array[int] = [
-	2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 2, 2, 2, 4, 2, 3, 28, 2, 2,
+	2, 4, 16, 2, 2, 7, 4, 1, 18, 40, 5, 8, 4, 16, 11, 20, 3, 2, 2, 2, 4, 2, 3, 32, 2, 2,
 ]
 
 const FIELD_KEYS: Array[String] = [
@@ -117,8 +117,8 @@ const FIELD_KEYS: Array[String] = [
 	"storage_length", "_storage", "output_length", "_output", "staging_length", "_staging",
 	"foreman_rows_length", "_foreman_rows", "cube_length", "_cube", "legs_length", "_legs",
 	"leg_profiles_length", "_leg_profiles", "queue_length", "_queue", "blocked_at_length",
-	"_blocked_at", "body_length", "_body", "room_row_length", "_room_row", "wire_length", "wire",
-	"wire_length", "wire",
+	"_blocked_at", "body_length", "_body", "room_row_length", "_room_row", "crew_length", "_crew",
+	"release_out_length", "_release_out", "wire_length", "wire", "wire_length", "wire",
 ]
 
 const FIELD_TYPES: Array[int] = [
@@ -128,7 +128,7 @@ const FIELD_TYPES: Array[int] = [
 	2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2,
 	2, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4,
 	0, 4, 2, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 1, 0, 0, 2, 0, 1, 0, 1, 2, 1, 0, 1, 2, 1, 2, 1, 2, 1, 2,
-	1, 0, 1, 2, 1, 2, 1, 2, 1, 4, 1, 2, 1, 2, 1, 0, 1, 0,
+	1, 0, 1, 2, 1, 2, 1, 2, 1, 4, 1, 2, 1, 2, 1, 2, 1, 0, 1, 0, 1, 0,
 ]
 
 const RULE_KINDS: Array[int] = [
@@ -138,7 +138,7 @@ const RULE_KINDS: Array[int] = [
 	1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	1, 1, 1, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 1, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
-	0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
+	0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
 ]
 
 const RULE_VALUES: Array[int] = [
@@ -152,8 +152,8 @@ const RULE_VALUES: Array[int] = [
 	16384, 16384, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82944,
 	82944, 82944, 82944, 82944, 82944, 8192, 8192, 8192, 8192, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 262144, 262144, 1024, 1, 74, 1, 43776, 1, 5436, 1, 4591, 1, 8, 1,
-	110464, 1, 1, 32, 1, 1198536, 1, 512, 1, 512, 1, 1024, 1, 1024, 1, 1024, 1, 512, 1, 73909, 1,
-	32, 1, 16, 1, 8, 1, 4, 1, 6, 1, 512, 1, 320608, 1, 84184,
+	110464, 1, 1, 32, 1, 1345480, 1, 512, 1, 512, 1, 1024, 1, 1024, 1, 1024, 1, 512, 1, 73909, 1,
+	32, 1, 16, 1, 8, 1, 4, 1, 6, 1, 512, 1, 4096, 1, 512, 1, 320608, 1, 84184,
 ]
 
 const UNPROVED_FIELDS: Array[String] = [

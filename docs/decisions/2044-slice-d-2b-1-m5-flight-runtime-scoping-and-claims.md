@@ -1169,3 +1169,27 @@ and every fingerprinted change regenerates it, about 5 minutes); (b) make the co
 **Contracts job.** Unchanged by this branch: `tools/test_underground_memory_budget.py` ran its 285 tests in 492 s on
 master `8a7d045d` and 505 s here, side by side on this Mac; the census tests 14.2 s on both. The 15-minute timeout is
 left to its separate task.
+
+## Merge of master `e841d89e` (#276 station-chain retirement, #277 slice C3; 2026-10-19)
+
+- **Memory.** Decision 1991's +34,426 B and this record's +288,256 B are independent and add exactly: the regenerated
+  pack reads live with reserve **106,121,366 B**, headroom **43,878,634 B**, new mutable 11,125,640 B, declaration
+  26,534 B; the room-dig runtime is 5,646,982 B (decision 1936's 5,349,494 + 1991's 34,320 + this record's 263,168),
+  its record image `MAX_WIRE_BYTES` 1,345,480. #276 adds none. `ready07_arithmetic.py` keeps both ledger rows (1991's
+  first, then this record's, cumulative 97,732,758 / 106,121,366) and rebases the decision 1880 figures (planned
+  payload 114,690,198, folded live 123,078,806, folded headroom 26,921,194, 3,655,914 B left for slice G);
+  `systems_architecture.md` §2.3 and §10 carry the same numbers. The census's reviewed-deltas file merged cleanly
+  (1991's way-in row) and its pin is that file's new SHA-256.
+- **Save registry.** This branch had widened the room-dig record (P-2044-8's `MAX_LEGS` 24) without raising its
+  section 6 bound, which stayed at 1,198,536 under the codec's 1,328,584. The merge sets the registry's
+  `max_count` to the merged codec maximum, 1,345,480, and regenerates the capacity audit and the section 6 schema;
+  section 6's maximum length grows by 130,048 to 26,450,054 B (`test_save_section_auxiliary.gd` pins it).
+- **Generated files** (the memory pack, both checkpoint recipes, the capacity audit, the section 6 schema) were
+  regenerated with their tools, not hand-merged.
+- **Shard weights.** Master's file is now measured from a local verified parallel run (#277), and against this
+  branch's verified run its suites agree with this Mac at a median ratio of 1.01, not 3.2, so the "CI time" section's
+  x 3.2 no longer applies. `tools/ci_test_shard_weights.json` is regenerated with `ci_test_shards.py weights` from
+  the merged head's verified ten-shard run (all 566 suites, the M5 suites included; every shard estimates 703 s).
+  The slow tier keeps both sides' entries, this branch's seconds for its own suites.
+- **Gates** (fresh import, art-free): ten shards and verify, 566 suite files once, 13,117 tests, 1,544,531 assertions,
+  0 failures, 0 unexpected, 0 leaks; analyzer 0 warnings (1,659 files); all 44 contracts-job commands pass.

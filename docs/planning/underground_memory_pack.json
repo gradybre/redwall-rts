@@ -6832,7 +6832,7 @@
       "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310",
       "godot/scripts/core/inventory.gd": "7e93fe28fd7e15e5ee0d401af47b06e91939ec4cd86c0195b5dfac8a3ecdff77",
       "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
-      "godot/scripts/systems/settlement_system.gd": "9f5eef3cff07c6c197901d73b10a2f24b1e600b19cbb3c1effda9f1992d72a10"
+      "godot/scripts/systems/settlement_system.gd": "26c0d12094a8f2097238533541b3d55da8e16b68eec1fe83de274ce721321d2a"
     },
     "current_composition_source_sha256": {
       "godot/scripts/core/underground_session.gd": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712",
@@ -44545,6 +44545,11 @@
             "bytes": 0,
             "carried_by": "none",
             "store": "decision 1936 (review H4): the composite Jobs dispatcher (UndergroundDispatch.new), bound at each mount; two Callables of native overhead, counted in room_dig_runtime's exact member set"
+          },
+          {
+            "bytes": 0,
+            "carried_by": "none",
+            "store": "decision 1991 (slice C3): the way-in seam slice D2 fills (UndergroundRoomConfirm.WayIn.new, an empty RefCounted; native overhead), held by the host, reset to a fresh base WayIn at every mount and release (review H-3: one live at a time) and bound again by D2 after each mount; order_painted_room returns a transient Result; the painted Confirm route itself is stateless"
           }
         ],
         "delta": {
@@ -44568,10 +44573,14 @@
             [
               "_underground_rooms",
               "UndergroundRoomRuntime"
+            ],
+            [
+              "_underground_way_in",
+              "UndergroundRoomConfirm.WayIn"
             ]
           ],
           "allocation_sites": {
-            ".new(": 6
+            ".new(": 10
           }
         }
       },
@@ -45039,7 +45048,7 @@
       "control_bytes": 9216
     },
     "room_planner_cold": {
-      "control_bytes": 45752,
+      "control_bytes": 52664,
       "lease_bytes": 1048960,
       "scope": "Cold and released before publish_into admits its own lifetime in the same lease."
     },
@@ -45060,20 +45069,20 @@
     },
     "room_dig_runtime": {
       "rows": {
-        "runtime_record": 16896,
-        "runtime_numeric": 2075,
+        "runtime_record": 33792,
+        "runtime_numeric": 2603,
         "foremen_numeric": 49664,
         "orders_and_marks": 369545,
         "row_extents": 6144,
         "builders": 3839744,
-        "progress_record": 1328594
+        "progress_record": 1345490
       },
-      "bytes": 5612662,
+      "bytes": 5646982,
       "wire": {
         "HEADER_BYTES": 12,
         "CODE_BYTES": 64,
         "RUNTIME_FIXED_BYTES": 20,
-        "ROW_BYTES": 36,
+        "ROW_BYTES": 69,
         "FOREMAN_FIXED_BYTES": 281,
         "SITE_BYTES": 8,
         "BUILDER_FIXED_BYTES": 278,
@@ -45085,7 +45094,7 @@
         "MAX_KEPT": 512,
         "MAX_SITES": 73909,
         "MAX_BUILDERS": 256,
-        "MAX_WIRE_BYTES": 1328584
+        "MAX_WIRE_BYTES": 1345480
       },
       "bounds": {
         "rooms": 16384,
@@ -45125,11 +45134,11 @@
       "first_entry_runtime_chain": 36323,
       "cold_load_images": 196694,
       "claw_stair_tables": 43364,
-      "room_dig_runtime": 5612662,
+      "room_dig_runtime": 5646982,
       "world_routes_endpoint_memo": 140872,
       "world_routes_compile_memos": 19048
     },
-    "new_contribution_bytes": 6063543,
+    "new_contribution_bytes": 6097863,
     "runtime_qualified": false,
     "native_measured": false
   },
@@ -45141,7 +45150,7 @@
     "connector_workpieces": 29928,
     "guarded_haul_transfers": 3072,
     "connector_delivery": 4096,
-    "current_census_new_retained": 6063543,
+    "current_census_new_retained": 6097863,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -45156,12 +45165,12 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524544
   },
-  "new_mutable_and_reserved_bytes": 11091320,
-  "declaration_bytes": 26428,
-  "declaration_delta_bytes": 5243,
-  "live_with_reserve_bytes": 106086940,
+  "new_mutable_and_reserved_bytes": 11125640,
+  "declaration_bytes": 26534,
+  "declaration_delta_bytes": 5349,
+  "live_with_reserve_bytes": 106121366,
   "gate_bytes": 150000000,
-  "headroom_bytes": 43913060,
+  "headroom_bytes": 43878634,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "48a6d74a8e1e26e7959ac9af9046ca6dce014f0cfe3ab177de383bc34b980fa4",
     "godot/scripts/core/entity_directory.gd": "1b1eb7ab8b145dfbfce6f2558a7e71b9cef5fc1601dcb4355f73e4dc7580ffbf",
@@ -45179,7 +45188,7 @@
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
-    "godot/scripts/systems/settlement_system.gd": "9f5eef3cff07c6c197901d73b10a2f24b1e600b19cbb3c1effda9f1992d72a10",
+    "godot/scripts/systems/settlement_system.gd": "26c0d12094a8f2097238533541b3d55da8e16b68eec1fe83de274ce721321d2a",
     "godot/data/underground/mole-worker/work-step-v1/source_program.gd": "7134c58f0a48c8eb1184484f1caf41089696cc90083c5cd7038fafeb3fce7879",
     "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
@@ -45203,7 +45212,7 @@
     "godot/scripts/core/underground_motion_clock.gd": "3e0668d8afae1ba6bd1228078b60f9cada97ef94be3870f6db4c87cd0279a776",
     "godot/scripts/core/underground_phase_structure.gd": "8ca9a827a4002f5ceaf73869548ea5cb61bcc39d0cc618deab33773aca4e2a7c",
     "godot/scripts/core/underground_profiles.gd": "4684fce53085b62f4fea85a26a862bd6a99b881dec10827a4802f8d5d0119bdc",
-    "godot/scripts/core/underground_room_world_bindings.gd": "36bb09926ee13aa2df2913e18ff264e01e1071e1ff93576add4dc5a15c63da52",
+    "godot/scripts/core/underground_room_world_bindings.gd": "f2cef760257d586cabf68600479e0fe3772c76c8e234d8530abdbef66e8ba513",
     "godot/scripts/core/underground_route_composition.gd": "f5c3f915f8266338a754c9f41fe11f2fb3f765270ebf9c21a1ca5516718113ce",
     "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
     "godot/scripts/core/underground_session.gd": "9d7794b1a78d566d51f7ea99d5832905ebb9e47d470ab0bbbaadf07927bb88bf",
@@ -45216,7 +45225,7 @@
     "godot/scripts/core/underground_world_routes.gd": "0c004f9fc8beb9403787521208d542782d53b8473510a3b5c9f1a737fce01c04",
     "godot/scripts/core/work.gd": "5fa066d25328b0c871d77c949164c5ebaec2f98fd985ddd8cd40570f866c7310"
   },
-  "registry_sha256": "98d39f8ba92ea9f50aeef039ecb58e09cda79f39b4ddccd134607db6d13024a7",
+  "registry_sha256": "e873eddb1957f4cb77d94e0807111a8d0223d8ae880f01ba1a78a90f9341e6fc",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

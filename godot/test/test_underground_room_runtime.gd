@@ -46,12 +46,14 @@ func _crew() -> Array[Builder.Crew]:
 
 
 func test_the_record_is_one_small_row_per_room() -> void:
-	"""Generation, state and three container references (decision 1934 added staging): 29 bytes per record, kept in
-	a pool of MAX_KEPT slots that each name their room's row (decision 1937, P-1937-1 D): 33 bytes a slot."""
-	assert_equal(Runtime.RECORD_BYTES, 29, "4 + 1 + 8 + 8 + 8")
-	assert_equal(Runtime.SLOT_BYTES, 33, "and the room row")
-	assert_equal(Runtime.packed_bytes(), Runtime.MAX_KEPT * 33, "one slot per kept record")
-	assert_equal(Runtime.packed_bytes(), 16896, "the ledger figure")
+	"""Generation, state and three container references (decision 1934 added staging), and (decision 1991) the named
+	crew's four resident references and the release-once-out flag: 62 bytes per record, kept in a pool of MAX_KEPT
+	slots that each name their room's row (decision 1937, P-1937-1 D): 66 bytes a slot."""
+	assert_equal(Runtime.RECORD_BYTES, 62, "4 + 1 + 8 + 8 + 8 + 32 + 1")
+	assert_equal(Runtime.SLOT_BYTES, 66, "and the room row")
+	assert_equal(Runtime.packed_bytes(), Runtime.MAX_KEPT * 66, "one slot per kept record")
+	assert_equal(Runtime.packed_bytes(), 33792, "the ledger figure")
+	assert_equal(Runtime.CREW_REFS, Runtime.Foreman.MAX_BUILDERS, "a crew is at most a foreman's builders")
 	assert_equal(Runtime.ROOM_CAPACITY, Directory.KIND_CAPACITY[Directory.KIND_ROOM], "the directory's room rows")
 
 

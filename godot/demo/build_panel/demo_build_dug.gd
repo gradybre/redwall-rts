@@ -30,7 +30,7 @@ const TAG_PRIORITY: int = 5
 const TAG_PIXEL: float = 0.01
 ## A surface tag's size at a constant screen size (tunnel_overlay.gd LABEL_PIXEL).
 const SURFACE_TAG_PIXEL: float = 0.0006
-const WAITING: String = "Waiting for the mole: %d cells"
+const WAITING: String = "Proof of concept, free: %d cells wait for the crew"
 const DIGGING: String = "Digging"
 ## A way's tags on a level (decision 2021: by its family's name).
 const WAY_DOWN: String = "%s: way down"

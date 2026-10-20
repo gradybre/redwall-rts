@@ -26,6 +26,7 @@ const WorkFace := preload("res://scripts/core/underground_work_face.gd")
 const Approach := preload("res://scripts/core/underground_room_approach.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Space := preload("res://scripts/core/room_space.gd")
+const UndergroundRoutes := preload("res://scripts/core/underground_routes.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
@@ -85,6 +86,8 @@ class Fixture extends WorldFixture:
 	var location_capacity: int = 16 # Fixed fixture arenas; a multi-cube loop raises them before _actual_fixture.
 	var work_x: int = X + 1280 # The WORK station's x; decision 1939's claw Kitchen sets its own row's reach.
 	var edge_capacity: int = 32
+	var lot_capacity: int = 64 # Decision 1942: a room past the Kitchen's size raises these before _actual_fixture.
+	var site_capacity: int = 128
 
 	func _actual_fixture(_obstruction: int = 0) -> void:
 		"""Create one real generated World and a Mole, with no phase permission or paid progress assigned privately."""
@@ -93,7 +96,7 @@ class Fixture extends WorldFixture:
 		var forage: Forage = Forage.new(_residents.directory(), _jobs)
 		var fishing: Fishing = Fishing.new(_residents.directory(), forage, _jobs)
 		_world = World.new(_residents.directory(), _nodes, forage, fishing, Rng.new(), null, null, _jobs)
-		_inventory = Inventory.new(32, 64); _items = Items.new()
+		_inventory = Inventory.new(32, lot_capacity); _items = Items.new()
 		assert_true(_items.load_default(_inventory).ok, "actual item definitions")
 		assert_true(_world.generate(World.bound_request(_items).request).ok, "actual terrain")
 		_world_ref = _residents.directory().create(Directory.KIND_WORLD)
@@ -136,7 +139,7 @@ class Fixture extends WorldFixture:
 		provider = _new_provider()
 		assert_equal(provider.configure(_world, phase_terrain, _owner, _sources, _budget), &"", "actual phase provider")
 		authority = Authority.new(); assert_equal(authority.configure(_owner, provider, 32), &"", "actual spatial authority")
-		sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, authority, 64, 128)
+		sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, authority, 64, site_capacity)
 		assert_equal(sites.initialization_refusal(), &"", "actual paid Site owner")
 		assert_equal(authority.bind_sites(sites), &"", "original Site identity")
 		router = Router.new(_construction, _inventory, _pool, _items, _jobs, _work, sites)
@@ -853,16 +856,27 @@ func test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fit
 	assert_equal(_h.sites._ever_cut.count(1), 0, "selector test seeds no paid phase history")
 
 
-func test_even_a_remote_living_resident_requires_actual_physical_registration() -> void:
-	"""No position-only cull may invent physical profiles; whole-host registration is an explicit prerequisite."""
+func test_a_living_resident_who_is_not_registered_is_proved_by_its_reach() -> void:
+	"""Decision 1991 §3a (ADR1219's rule, which here supersedes this suite's earlier whole-host registration contract):
+	a living resident who is not a route actor is never ignored. Never placed, it refuses (its position is unknown);
+	placed far off, it is clear; within reach of the working actor, ROUTE_UNREGISTERED_RESIDENT_NEAR; removed, the
+	same exact registered population passes."""
 	_h = Fixture.new(); _h._actual_fixture()
 	_h._assigned_work_actor()
 	_h.provider._entry_remaining = Space.MAX_CHECKS
 	assert_equal(_h.provider._ordinary_occupants_leaf(_h._worker), &"", "only exact current worker present")
 	var other: Vector2i = _h._residents.ref_of(_h._residents.spawn(&"mouse").value)
+	_h.provider._entry_remaining = Space.MAX_CHECKS
+	assert_equal(_h.provider._ordinary_occupants_leaf(_h._worker), UndergroundRoutes.STANDING_REFUSALS[1], "never placed: refused")
 	assert_true(_h._transforms.place(other, X + 50000, 512, Z + 50000, 0), "actual remote surface resident")
-	assert_equal(_h.provider._ordinary_occupants_leaf(_h._worker), Provider.ROOM_REFUSE_WORKER, "remote unregistered actor also refuses")
-	assert_true(_h._residents.despawn(other).ok, "actual removal closes the unsupported host state")
+	_h.provider._entry_remaining = Space.MAX_CHECKS
+	assert_equal(_h.provider._ordinary_occupants_leaf(_h._worker), &"", "remote and unregistered: clear by its reach")
+	var work: Vector3i = _h.provider._ordinary_work_point()
+	assert_true(_h._transforms.place(other, work.x, work.y + 2048, work.z, 0), "overhead of the work")
+	_h.provider._entry_remaining = Space.MAX_CHECKS
+	assert_equal(_h.provider._ordinary_occupants_leaf(_h._worker), &"ROUTE_UNREGISTERED_RESIDENT_NEAR", "within reach")
+	assert_true(_h._residents.despawn(other).ok, "actual removal")
+	_h.provider._entry_remaining = Space.MAX_CHECKS
 	assert_equal(_h.provider._ordinary_occupants_leaf(_h._worker), &"", "same exact registered population retries")
 
 

@@ -69,7 +69,9 @@ const VERB_ERASE: int = 1
 const VERB_PLACE: int = 2
 ## A pending door or window taken back by a click (decision 2002): its row's live flag is turned the other way round.
 const VERB_REMOVE: int = 3
-const VERBS: Array[String] = ["Paint", "Erase", "Place", "Remove"]
+## Decision 1991 (P-1990-5 (a)): a stopped room's undug cells put back in the plan as a pending operation.
+const VERB_RETURN: int = 4
+const VERBS: Array[String] = ["Paint", "Erase", "Place", "Remove", "Return"]
 ## A step entry at or past ITEM_TAG names a way down (build_items.gd row = entry - ITEM_TAG), not an operation; at or
 ## past PIECE_TAG, a piece of furniture (build_furniture.gd row = entry - PIECE_TAG; decision 1921).
 const ITEM_TAG: int = 1 << 24
@@ -273,6 +275,7 @@ func bind_way_host(shapes: Callable, cut_off: Callable, room_type: Callable = Ca
 	_host_shapes = shapes
 	_host_cut_off = cut_off
 	_host_type = room_type
+	_cells.bind_room_type(room_type) # Decision 1991: a room's own confirmed cells complete its 2 × 2 blocks.
 	_changed()
 
 
@@ -526,13 +529,16 @@ func _judge_with(level: int, made: PackedInt32Array) -> PackedByteArray:
 	"""`made` judged per cell on `level` among the pending rooms there the stroke leaves alone."""
 	var sets: Array[PackedInt32Array] = []
 	var styles: PackedByteArray = PackedByteArray()
+	var types: PackedInt32Array = PackedInt32Array()
 	for k: int in _drafts.size():
 		if _levels[k] == level and _counts[k] > 0 and not _targets.has(k):
 			sets.append(_drafts[k].visible_cells())
 			styles.append(_styles[k])
+			types.append(_types[k])
 	sets.append(made)
 	styles.append(_stroke_style)
-	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets, level != Mound.SURFACE)
+	types.append(_stroke.room_type)
+	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets, level != Mound.SURFACE, types)
 	if level == Mound.SURFACE:
 		_mark_doorless(sets, styles, judged)
 	return judged[judged.size() - 1]
@@ -1413,6 +1419,25 @@ func _new_operation(room_type: int, level: int, style: int = Mound.STYLE_BUILT) 
 	return _drafts.size() - 1
 
 
+func return_cells(room_type: int, level: int, cells: PackedInt32Array) -> int:
+	"""Decision 1991, P-1990-5 (a): the undug cells of a room the player stopped, back in the plan as one pending
+	operation of its type (one step: Undo takes them out of the plan). Its index, or -1 when there is nothing to
+	return or the planner refuses the cells. Judged as any painted room (a strip left narrower than 2 × 2 reads "Too
+	narrow" and holds Confirm all back until it is erased or grown)."""
+	if cells.is_empty() or _stroke.active():
+		return -1
+	var k: int = _new_operation(room_type, level)
+	if k < 0:
+		return -1
+	var error: StringName = _drafts[k].apply_cells(cells, false)
+	_recount(k)
+	if error != &"" or _counts[k] == 0:
+		_prune()
+		return -1
+	_record(PackedInt32Array([VERB_RETURN, k]))
+	return _drafts.size() - 1 # The newest operation, after the step's prune renumbered any emptied ones away.
+
+
 func _record(step: PackedInt32Array) -> void:
 	"""One batch step (its verb, then each operation it changed once): onto Undo, oldest dropped past HISTORY_LIMIT;
 	Redo is cleared. A step that changed no operation keeps nothing."""
@@ -1775,7 +1800,7 @@ func _judge(k: int) -> void:
 		_set_judgement(k, Validity.KIND_NOT_POSSIBLE, hill)
 	elif draft.confirmation_error() != &"":
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.shape(shape_words(draft.confirmation_error())))
-	elif _counts[k] < least:
+	elif _counts[k] < least and _counts[k] + _confirmed_joined(k, least - _counts[k]) < least:
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.too_small(BuildCatalog.type_name(_types[k]), least, _counts[k]))
 	elif _codes[k].has(Cells.CELL_NO_WAY_IN):
 		_set_judgement(k, Validity.KIND_BLOCKED, Validity.no_way_in())
@@ -1783,6 +1808,32 @@ func _judge(k: int) -> void:
 		_set_judgement(k, Validity.KIND_BLOCKED, Mound.TEXT_NO_DOOR)
 	elif _refused_at[k] == draft.revision and not _refusals[k].is_empty():
 		_set_judgement(k, _refused_kind[k], _refusals[k])
+
+
+func _confirmed_joined(k: int, wanted: int) -> int:
+	"""Decision 1991: the confirmed cells of operation `k`'s own room type joined to it (4-connected, read through the
+	host's room-type reader), counted up to `wanted`: a stopped room's cells put back in the plan are sized with what
+	of it is dug (SET-BUILD-001 §4's minimum is the room's, not the pending part's)."""
+	if not _host_type.is_valid() or wanted <= 0:
+		return 0
+	var cells: PackedInt32Array = _drafts[k].visible_cells()
+	var seen: Dictionary = {}
+	var queue: Array[Vector2i] = []
+	for at: int in range(0, cells.size(), 2):
+		seen[Vector2i(cells[at], cells[at + 1])] = true
+		queue.append(Vector2i(cells[at], cells[at + 1]))
+	var found: int = 0
+	var head: int = 0
+	while head < queue.size() and found < wanted:
+		var cell: Vector2i = queue[head]
+		head += 1
+		for side: Vector2i in Cells.SIDES:
+			var next: Vector2i = cell + side
+			if seen.has(next) or int(_host_type.call(_levels[k], next)) != _types[k]: continue
+			seen[next] = true
+			queue.append(next)
+			found += 1
+	return found
 
 
 func _op_hill(k: int) -> String:
@@ -1805,12 +1856,14 @@ func _judge_level(level: int) -> void:
 	var ops: PackedInt32Array = PackedInt32Array()
 	var sets: Array[PackedInt32Array] = []
 	var styles: PackedByteArray = PackedByteArray()
+	var types: PackedInt32Array = PackedInt32Array()
 	for k: int in _drafts.size():
 		if _levels[k] == level and _counts[k] > 0:
 			ops.append(k)
 			sets.append(_drafts[k].visible_cells())
 			styles.append(_styles[k])
-	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets, level != Mound.SURFACE)
+			types.append(_types[k])
+	var judged: Array[PackedByteArray] = _cells.judge_level(level, sets, level != Mound.SURFACE, types)
 	if level == Mound.SURFACE:
 		_mark_doorless(sets, styles, judged)
 	for at: int in ops.size():

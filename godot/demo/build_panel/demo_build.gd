@@ -35,7 +35,15 @@ extends Node
 ## nothing reaches the settlement -- and sends a mole (the first selected mole, else the first one free): it walks to
 ## the Entrance and digs the ordered cells one by one, drawn below by a stand-in figure (demo_build_below_task.gd);
 ## the dug rooms are drawn open (demo_build_dug.gd) and count as finished space for the next plan. With residents
-## selected, a right click on a dug cell sends them down into it. Slice C3 replaces all of it with the real thing.
+## selected, a right click on a dug cell sends them down into it. Slice C3 (decision 1991; Brendan, P-1990-1 (b)) built
+## the real route in core behind it (underground_room_confirm.gd); slice D2 switches the panel to it and retires this.
+##
+## THE CREW AND THE STOP (decision 1991; P-1990-4 (a), P-1990-5 (a)). The moles selected when Confirm all is pressed
+## (1 to 4; demo_build_crews.gd) are that batch's crew and dig its cells side by side, each cell claimed by one; with
+## none selected the first free mole digs. The footer's ledger names the crew before Confirm all. With no card armed, a
+## click on a confirmed room opens its card (UI-BUILD-015): how far it is dug, its crew, and "Stop digging"
+## (UI-BUILD-016) -- its cells still waiting go back to earth and back into the plan as pending cells, what is dug
+## stays dug, and a crew with nothing left walks out. Still free and unsaved, said on the card ("Proof of concept").
 ##
 ## THE FURNISH TAB (decision 1921; Brendan's rulings of 2026-10-13: "A resident fits it", "Room becomes valid",
 ## "Footprint + rotation"). An item card chosen on levels 1-4 arms placing it: its ghost follows the cursor on the dug
@@ -82,7 +90,7 @@ const LABEL_GAP: float = 8.0
 const ARMED_HINT: String = "Paint %s: drag on the floor, or Enter to set a corner"
 const ORDERED: String = "Confirm all: %d ordered, %d kept back"
 ## Decision 1912 (P-C2 (c)): the panel plans; digging what it plans comes later, and it says so.
-const OPENED: String = "Build on %s: place an Entrance from the surface, paint rooms and passages below, Confirm all, and a mole digs them (free for now)"
+const OPENED: String = "Build on %s: place an Entrance from the surface, paint rooms and passages below, Confirm all, and the selected moles (or the first free one) dig them (proof of concept: free)"
 const CLOSED_KEPT: String = "Build panel closed; its pending changes are kept"
 ## The demo's Build command (UI-SET-027, P-B3 as Brendan approved on 2026-10-12): what it does here.
 const BUILD_COMMAND: String = "Open the build panel: place an Entrance, paint rooms and passages below, and a mole digs them"
@@ -119,6 +127,21 @@ const PIECE_LABEL: String = "Place %s%s\n%s"
 const MoundHost := preload("res://demo/build_panel/demo_build_mound_host.gd")
 const Mound := preload("res://scripts/ui/build_mound.gd")
 const EDGE_HINT: String = "Place %s: click a Mound room's outer edge"
+const Crews := preload("res://demo/build_panel/demo_build_crews.gd")
+## Decision 1991: the room card's words and the Stop's notice.
+const CARD_TITLE: String = "%s, %s"
+const CARD_DUG: String = "%d of %d cells dug"
+const CARD_DONE: String = "Dug: all %d cells"
+const CARD_NOTE: String = "Proof of concept: free; the real dig needs a way down (slice D)"
+const CARD_STOPPED: String = "Stopped: %d of %d cells dug; %d back in the plan"
+const RoomCard := preload("res://scripts/ui/build_room_card.gd")
+const STOPPED: String = "Stopped digging the %s: %d cells back in the plan; dug cells stay dug"
+const NOTHING_STOPPED: String = "Nothing left to stop: the %s is dug"
+const CREW_DONE: String = "Crew: nobody digging now"
+## Decision 1991 (P-1990-1 (b)): said where the player confirms, on the footer's ledger.
+const PLAN_NOTE: String = "proof of concept"
+## How often the footer's crew line reads the selection again (seconds).
+const CREW_EVERY_S: float = 0.25
 
 var panel: BuildPanel = null
 var bar: LevelBar = null
@@ -158,8 +181,16 @@ var dug: Dug = null
 var _floors: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0])
 var _cast: Node = null
 var _selection: Callable = Callable()
-## The dig trip under way (null: none), and every trip below with its figure.
+## The newest dig trip (null: none; decision 1991: `diggers` holds every one), and every trip below with its figure.
 var digger: BelowTask = null
+var diggers: Array[BelowTask] = []
+## Decision 1991: the crews of the Confirm alls, the crew number of the one being confirmed, and the room card's room
+## (level, x, z of the cell clicked; x -1: none shown) with the works revision its words were written at.
+var crews: Crews = Crews.new()
+var _batch_crew: int = 0
+var _card_at: Vector3i = Vector3i(0, -1, 0)
+var _card_revision: int = -1
+var _crew_in: float = 0.0
 var _trips: Array[BelowTask] = []
 var _figures: Array[Figure] = []
 var _spacer: Tags = Tags.new()
@@ -358,6 +389,7 @@ func _build_layer() -> void:
 	panel.confirm_requested.connect(confirm_all)
 	panel.closed.connect(_on_closed)
 	panel.way_added.connect(_on_way_added)
+	panel.room_stop_requested.connect(stop_shown_room)
 	_layer.add_child(panel)
 	_build_label()
 
@@ -724,9 +756,10 @@ func confirm_all() -> void:
 	1912); then a mole is sent to dig them."""
 	if _blocked.is_valid() and bool(_blocked.call()):
 		return
+	_batch_crew = crews.begin(selected_crew(), works.waiting_for)
 	var result: PackedInt32Array = batch.confirm_all(_submit_room, _submit_way_down, _submit_piece, _submit_edge)
 	if result[0] > 0 and works.waiting() > 0:
-		_send_mole()
+		_send_crews()
 	mound.send_worker()
 	if fittings.waiting_below() > 0:
 		_send_fitter()
@@ -745,7 +778,7 @@ func _submit_room(draft: Object, level: int, room_type: int) -> Dictionary:
 	var cells: PackedInt32Array = (draft.call(&"snapshot") as Dictionary).cells
 	if level == Mound.SURFACE:
 		return {"ok": mound.submit_room(cells, room_type), "error": Validity.outside()}
-	return {"ok": works.order_room(level, cells, room_type), "error": Validity.outside()}
+	return {"ok": works.order_room(level, cells, room_type, _batch_crew), "error": Validity.outside()}
 
 
 func _submit_way_down(level: int, cell: Vector2i, family: int, turn: int, removal: bool) -> Dictionary:
@@ -753,7 +786,7 @@ func _submit_way_down(level: int, cell: Vector2i, family: int, turn: int, remova
 	2021: its waiting cells back to earth)."""
 	if removal:
 		return {"ok": works.remove_way_at(level, cell), "error": Validity.outside()}
-	return {"ok": works.order_way_down(level, cell, family, turn), "error": Validity.outside()}
+	return {"ok": works.order_way_down(level, cell, family, turn, _batch_crew), "error": Validity.outside()}
 
 
 func _submit_edge(_level: int, cell: Vector2i, side: int, kind: int, colour: int, removal: bool) -> Dictionary:
@@ -773,20 +806,23 @@ func _tick_works(delta: float) -> void:
 	its own level, the tags kept off each other, and -- every SEND_EVERY_S while cells wait and no mole is digging -- a
 	mole sent again."""
 	var shown: int = bar.shown_level() if panel.is_open() else -1
-	var dig_cell: Vector3i = digger.digging_cell() if digging() else Dug.Earth.NO_CELL
+	var at_work: BelowTask = _digging_trip()
+	var dig_cell: Vector3i = at_work.digging_cell() if at_work != null else Dug.Earth.NO_CELL
 	dug.refresh(shown, dig_cell)
 	dug.earth.set_grid(shown >= 1 and panel.shown_tab() != BuildCatalog.TAB_DECOR)
-	if digging():
-		_show_dig(dig_cell)
+	if at_work != null:
+		_show_dig(at_work, dig_cell)
 	if works.revision != _marked_at:
 		_mark_reachable()
 	for k: int in _trips.size():
 		_figures[k].visible = _trips[k].below() and shown >= 1 and _trips[k].at().x == shown and _still_on(_trips[k])
 	_space_tags(shown)
 	_send_in -= delta
-	if _send_in <= 0.0 and works.waiting() > 0 and not digging():
+	if _send_in <= 0.0 and works.waiting() > 0:
 		_send_in = SEND_EVERY_S
-		_send_mole()
+		_send_crews()
+	_sync_crew_line(delta)
+	_sync_room_card()
 	_fit_in -= delta
 	if _fit_in <= 0.0 and fittings.waiting_below() > 0 and not fitting():
 		_fit_in = SEND_EVERY_S
@@ -794,14 +830,15 @@ func _tick_works(delta: float) -> void:
 	mound.tick(delta, panel.is_open() and bar.shown_level() == Mound.SURFACE, armed_edge_kind())
 
 
-func _show_dig(dig_cell: Vector3i) -> void:
-	"""The cell being dug (none: x < 1) deepens, and a mole standing on it stands on its floor so far (review M2);
-	anywhere else the mole stands on a dug floor."""
-	var share: float = digger.dig_share()
+func _show_dig(trip: BelowTask, dig_cell: Vector3i) -> void:
+	"""The cell `trip` is digging (none: x < 1) deepens, and a mole standing on it stands on its floor so far (review
+	M2); anywhere else the mole stands on a dug floor. Decision 1991: the earth draws one cell deepening at a time, the
+	first crew member's; the others' cells open when their wait is over."""
+	var share: float = trip.dig_share()
 	if dig_cell.x >= 1:
 		dug.set_progress(share)
-	var row: int = _trips.find(digger)
-	var on_it: bool = row >= 0 and dig_cell.x >= 1 and digger.at() == dig_cell
+	var row: int = _trips.find(trip)
+	var on_it: bool = row >= 0 and dig_cell.x >= 1 and trip.at() == dig_cell
 	if row >= 0:
 		_figures[row].set_sink(Dug.Earth.dug_depth_m(share) if on_it else Figure.SINK_M)
 
@@ -826,6 +863,7 @@ func _collect_tags() -> void:
 	else:
 		dug.shown_tags(_tag_list)
 	furnish.shown_tags(_tag_list)
+	paint.shown_tags(bar.shown_level(), _tag_list) # Decision 1991: the plan's ghosts' tags too.
 
 
 func tag_overlaps() -> int:
@@ -837,8 +875,20 @@ func tag_overlaps() -> int:
 
 
 func digging() -> bool:
-	"""Whether a mole is on its dig trip now."""
-	return digger != null and _still_on(digger)
+	"""Whether a mole is on a dig trip now."""
+	for trip: BelowTask in diggers:
+		if _still_on(trip): return true
+	return false
+
+
+func _digging_trip() -> BelowTask:
+	"""The first dig trip whose mole is digging a cell now, else the first still under way, else null."""
+	var any: BelowTask = null
+	for trip: BelowTask in diggers:
+		if not _still_on(trip): continue
+		if trip.digging_cell().x >= 1: return trip
+		any = trip if any == null else any
+	return any
 
 
 func _still_on(trip: BelowTask) -> bool:
@@ -849,26 +899,247 @@ func _still_on(trip: BelowTask) -> bool:
 	return (_cast.call(&"actor", _trip_actors[row]) as Node).get(&"brain").get(&"task") == trip
 
 
-func _send_mole() -> bool:
-	"""A mole to the Entrance to dig (see `_pick_mole`) -- only when no mole is digging, an Entrance exists and an
-	ordered cell can be reached from it (review H4); each reason not to is said once, not every SEND_EVERY_S (M6)."""
-	if digging() or way_in() < 0 or _cast == null:
+func _send_crews() -> bool:
+	"""Decision 1991: every crew with cells waiting gets its moles down -- a named crew's each member, an unnamed
+	crew the first free mole (decision 1912's rule) -- only when an Entrance exists and one of its cells can be reached
+	from it (review H4); each reason not to is said once (M6). True when someone was sent."""
+	if way_in() < 0 or _cast == null:
 		return false
-	if works.next_dig(works.landing_of(way_in())).is_empty():
-		_say_once(CUT_OFF % works.waiting())
+	var sent: bool = false
+	crews.forget_finished(works.waiting_for)
+	var ids: PackedInt32Array = crews.ids()
+	if works.waiting_for(0) > 0: ids.insert(0, 0) # Cells ordered for any crew (no Confirm all named one).
+	for crew: int in ids:
+		if works.waiting_for(crew) == 0:
+			continue
+		sent = (_send_named(crew) if crews.named(crew) else _send_first_free(crew)) or sent
+	return sent
+
+
+func _reachable(crew: int) -> bool:
+	"""Whether a cell of crew `crew` can be reached from the Entrance now (review H4); why not is said once (M6). A
+	member already below takes the cells on regardless: it finds them once the way to them is dug."""
+	if not works.next_dig(works.landing_of(way_in()), PackedByteArray([crew])).is_empty():
+		return true
+	_say_once(CUT_OFF % works.waiting_for(crew))
+	return false
+
+
+func _send_named(crew: int) -> bool:
+	"""Each named member of `crew` digs for it: one already on a dig trip takes its cells on too; one below on another
+	trip waits; the rest go down."""
+	var sent: bool = false
+	for i: int in crews.members_of(crew):
+		var trip: BelowTask = _dig_trip_of(i)
+		if trip != null:
+			trip.serve(crew)
+		elif not _below_now(i) and _reachable(crew):
+			sent = _send_digger(i, crew) or sent
+	return sent
+
+
+func _send_first_free(crew: int) -> bool:
+	"""An unnamed crew: nothing to do while a mole digs for it; else the first free mole (any resident with no mole in
+	the village), who becomes the crew."""
+	for trip: BelowTask in diggers:
+		if _still_on(trip) and trip.crews.has(crew):
+			return false
+	if not _reachable(crew):
 		return false
 	var mole: int = _pick_mole()
 	if mole < 0:
 		_say_once(NOBODY)
 		return false
-	var trip: BelowTask = _send(mole, BelowTask.MODE_DIG, Vector3i.ZERO)
+	crews.set_sent(crew, mole)
+	return _send_digger(mole, crew)
+
+
+func _send_digger(i: int, crew: int) -> bool:
+	"""Resident `i` down to dig crew `crew`'s cells."""
+	var trip: BelowTask = _send(i, BelowTask.MODE_DIG, Vector3i.ZERO)
+	trip.crews = PackedByteArray([crew])
 	if not _still_on(trip):
 		_say_once(NOBODY)
 		return false
 	digger = trip
+	diggers = diggers.filter(func(other: BelowTask) -> bool: return _still_on(other))
+	diggers.append(trip)
 	_said = ""
-	_say.call(SENT % _name_of(mole) if _is_mole(mole) else NO_MOLE % _name_of(mole))
+	_say.call(SENT % _name_of(i) if _is_mole(i) else NO_MOLE % _name_of(i))
 	return true
+
+
+func _dig_trip_of(i: int) -> BelowTask:
+	"""Resident `i`'s dig trip under way, or null."""
+	var row: int = _trip_actors.find(i)
+	while row >= 0:
+		if _still_on(_trips[row]) and _trips[row].mode == BelowTask.MODE_DIG:
+			return _trips[row]
+		row = _trip_actors.find(i, row + 1)
+	return null
+
+
+func selected_crew() -> PackedInt32Array:
+	"""Decision 1991, P-1990-4 (a): the selected moles, in selection order (any selected resident when no mole lives in
+	the village: decision 1912's art-free rule); demo_build_crews.gd keeps four."""
+	var selected: PackedInt32Array = PackedInt32Array(_selection.call()) if _selection.is_valid() else PackedInt32Array()
+	var out: PackedInt32Array = PackedInt32Array()
+	if _cast == null:
+		return out
+	var moles: bool = _has_mole()
+	for i: int in selected:
+		if i >= 0 and i < int(_cast.call(&"actor_count")) and (_is_mole(i) or not moles):
+			out.append(i)
+	return out
+
+
+func crew_words() -> String:
+	"""The footer's crew line: who Confirm all would send now."""
+	var chosen: PackedInt32Array = selected_crew()
+	var names: PackedStringArray = PackedStringArray()
+	for i: int in chosen:
+		names.append(Crews.first_name(_name_of(i)))
+	return Crews.words(names, chosen.size(), _cast == null or _has_mole())
+
+
+func _sync_crew_line(delta: float) -> void:
+	"""The panel's crew line while it is open, read again every CREW_EVERY_S (the selection is the demo's)."""
+	_crew_in -= delta
+	if _crew_in > 0.0 or not panel.is_open() or _cast == null:
+		return
+	_crew_in = CREW_EVERY_S
+	panel.set_crew_line(crew_words())
+	panel.set_plan_note(PLAN_NOTE)
+
+
+# --- decision 1991: the room card and its Stop ---------------------------------------------------------------------
+
+func _room_card_at(screen: Vector2) -> bool:
+	"""A left click with no card armed on a confirmed room of the level shown opens its card (picked on the paint
+	plane, then on the dug floor). False when the click is on no room."""
+	var level: int = bar.shown_level()
+	if level < 1:
+		return false
+	for lift: int in [0, -Dug.Earth.DEPTH_U]:
+		var hit: Paint.WorldTool.Pick = paint.pick(screen, level, lift)
+		if hit.ok and works.room_type_at(level, hit.cell) >= 0:
+			return show_room_card(level, hit.cell)
+	return false
+
+
+func show_room_card(level: int, cell: Vector2i) -> bool:
+	"""Open the room card for the confirmed room at `cell` on `level`; false when there is none."""
+	if works.room_type_at(level, cell) < 0:
+		return false
+	_card_at = Vector3i(level, cell.x, cell.y)
+	_write_room_card()
+	return true
+
+
+func _sync_room_card() -> void:
+	"""The open card's words follow the works (cold: only when they changed)."""
+	if panel.room_shown() and _card_at.y >= 0 and works.revision != _card_revision:
+		_write_room_card()
+
+
+func _write_room_card() -> void:
+	"""The card for `_card_at`'s room now (it is put away when the room is gone)."""
+	_card_revision = works.revision
+	var cell: Vector2i = Vector2i(_card_at.y, _card_at.z)
+	var type: int = works.room_type_at(_card_at.x, cell)
+	if type < 0:
+		panel.hide_room()
+		return
+	var counts: Vector2i = _room_counts(_card_at.x, cell)
+	var back: int = _pending_beside(_card_at.x, type, works.room_cells(_card_at.x, cell))
+	var state: int = RoomCard.STATE_DIGGING if counts.x < counts.y else (RoomCard.STATE_STOPPED if back > 0
+		else RoomCard.STATE_DUG)
+	var first: String = CARD_DUG % [counts.x, counts.y] + " · " + _crew_of_room(_card_at.x, cell, false)
+	if state == RoomCard.STATE_STOPPED:
+		first = CARD_STOPPED % [counts.x, counts.x + back, back]
+	elif state == RoomCard.STATE_DUG:
+		first = CARD_DONE % counts.y
+	panel.show_room(CARD_TITLE % [BuildCatalog.type_name(type), LevelBar.level_name(_card_at.x)],
+		"%s\n%s" % [first, CARD_NOTE], state)
+
+
+func _pending_beside(level: int, type: int, cells: PackedInt32Array) -> int:
+	"""Pending cells of `type` on `level` in operations touching `cells` (a stopped room's cells put back in the plan,
+	P-1990-5 (a)); counted once each."""
+	var room: Dictionary = {}
+	for at: int in range(0, cells.size(), 2):
+		room[Vector2i(cells[at], cells[at + 1])] = true
+	var count: int = 0
+	for k: int in batch.operation_count():
+		if batch.operation_level(k) != level or batch.operation_type(k) != type: continue
+		var pending: PackedInt32Array = batch.operation_cells(k)
+		if _touches(pending, room): count += pending.size() >> 1
+	return count
+
+
+static func _touches(cells: PackedInt32Array, room: Dictionary) -> bool:
+	"""Whether any of `cells` is beside (or on) a cell of `room`."""
+	for at: int in range(0, cells.size(), 2):
+		var cell: Vector2i = Vector2i(cells[at], cells[at + 1])
+		if room.has(cell): return true
+		for side: Vector2i in Works.SIDES:
+			if room.has(cell + side): return true
+	return false
+
+
+func _room_counts(level: int, cell: Vector2i) -> Vector2i:
+	"""(dug, all) cells of the confirmed room at `cell`."""
+	var cells: PackedInt32Array = works.room_cells(level, cell)
+	var open: int = 0
+	for at: int in range(0, cells.size(), 2):
+		open += 1 if works.state(level, Vector2i(cells[at], cells[at + 1])) == Works.OPEN else 0
+	@warning_ignore("integer_division") var total: int = cells.size() / 2
+	return Vector2i(open, total)
+
+
+func _crew_of_room(level: int, cell: Vector2i, done: bool) -> String:
+	"""Who digs the room: its batch's crew while cells wait, in the footer's words."""
+	var names: PackedStringArray = PackedStringArray()
+	var cells: PackedInt32Array = works.room_cells(level, cell)
+	for at: int in range(0, cells.size(), 2):
+		var here: Vector2i = Vector2i(cells[at], cells[at + 1])
+		if works.state(level, here) == Works.ORDERED:
+			for i: int in crews.members_of(works.crew_of(level, here)):
+				if not names.has(Crews.first_name(_name_of(i))): names.append(Crews.first_name(_name_of(i)))
+	if not names.is_empty():
+		return Crews.words(names, names.size(), true)
+	return CREW_DONE if done else Crews.FIRST_FREE
+
+
+func _a_dug_cell(level: int, cell: Vector2i) -> Vector2i:
+	"""A dug cell of the room at `cell`, or (-1, -1)."""
+	var cells: PackedInt32Array = works.room_cells(level, cell)
+	for at: int in range(0, cells.size(), 2):
+		if works.state(level, Vector2i(cells[at], cells[at + 1])) == Works.OPEN:
+			return Vector2i(cells[at], cells[at + 1])
+	return Vector2i(-1, -1)
+
+
+func stop_shown_room() -> void:
+	"""P-1990-5 (a), "Stop digging" on the card: the room's cells still waiting go back to earth and into the plan as
+	pending cells (one step: Undo takes them out); its dug cells stay; a crew with nothing left walks out."""
+	if _card_at.y < 0:
+		return
+	var level: int = _card_at.x
+	var cell: Vector2i = Vector2i(_card_at.y, _card_at.z)
+	var type: int = works.room_type_at(level, cell)
+	var kept: Vector2i = _a_dug_cell(level, cell)
+	if batch.stroke_active(): batch.cancel_stroke() # Review M-2: the cells go back into the plan, never lost.
+	var back: PackedInt32Array = works.stop_room(level, cell)
+	if kept.x != -1: _card_at = Vector3i(level, kept.x, kept.y) # The card stays on what is dug (else it closes).
+	if type < 0 or back.is_empty():
+		_say.call(NOTHING_STOPPED % BuildCatalog.type_name(maxi(type, 0)))
+		return
+	batch.return_cells(type, level, back)
+	panel.refresh(true)
+	_write_room_card()
+	@warning_ignore("integer_division") var count: int = back.size() / 2
+	_say.call(STOPPED % [BuildCatalog.type_name(type), count])
 
 
 func fitting() -> bool:
@@ -1377,7 +1648,9 @@ func _panel_click(button: InputEventMouseButton) -> bool:
 		var on_floor: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level(), pick_lift())
 		_pointer = button.position
 		return on_floor.ok and _place_piece(on_floor.cell, button.shift_pressed)
-	if button.button_index != MOUSE_BUTTON_LEFT or (armed_type() < 0 and not way_down_armed()):
+	if button.button_index == MOUSE_BUTTON_LEFT and armed_type() < 0 and not way_down_armed():
+		return _room_card_at(button.position) # Decision 1991: a confirmed room's card.
+	if button.button_index != MOUSE_BUTTON_LEFT:
 		return false
 	var hit: Paint.WorldTool.Pick = paint.pick(button.position, bar.shown_level())
 	_pointer = button.position

@@ -43,7 +43,7 @@
     "godot/scripts/core/underground_work_face.gd": "1ad3eab1c62df90f0e41c78f0ccf484f4d04b630ca825b50dedcca2a6be4f731",
     "godot/scripts/core/underground_connector_contacts.gd": "6e92297d747030f97e40dcd343bec7d977f8b8a5da7a4ee398ff93aeaf9d06d0",
     "godot/scripts/core/underground_routes.gd": "0fde2c69d853462a375dd6dd025368c9bf47b14fccb87dd6b27b5775688f5f15",
-    "godot/scripts/core/underground_world_routes.gd": "8d7fd7d0a7a76cc45bbb78ca8ee593e2d837932a24d11877cfd37986d198a577",
+    "godot/scripts/core/underground_world_routes.gd": "6ec017155ed4d9fa85419b32c4c7e3423bab302d7bc461fbba480024d51e7d39",
     "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
     "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
     "godot/data/underground/mole-worker/mole_profile_driver.gd": "db7c2051d5d4d4b642a5c1442be4241de3dd4802780bcace6d91d44e5f643064",
@@ -170,6 +170,11 @@
       "path": "godot/scripts/core/underground_world_routes.gd",
       "from": "9132ff5ae441a4c168385fbc2e1966c584ec95557b4a64bc5e46714a507c2828",
       "to": "8d7fd7d0a7a76cc45bbb78ca8ee593e2d837932a24d11877cfd37986d198a577"
+    },
+    {
+      "path": "godot/scripts/core/underground_world_routes.gd",
+      "from": "8d7fd7d0a7a76cc45bbb78ca8ee593e2d837932a24d11877cfd37986d198a577",
+      "to": "6ec017155ed4d9fa85419b32c4c7e3423bab302d7bc461fbba480024d51e7d39"
     }
   ]
 }

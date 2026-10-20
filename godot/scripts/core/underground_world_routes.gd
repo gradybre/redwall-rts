@@ -68,6 +68,9 @@ const PACE_WORDS: int = 6
 const PACE_INPUT_WORDS: int = 10
 ## Decision 1953: a kept observation's key words: compile serial, Location slot, generation, point x, y, z.
 const OBSERVED_KEY: int = 6
+## Decision 2045 (P-2045-4 (a)): answering an observation compares both kept keys (2 x OBSERVED_KEY words) and copies
+## one kept record (nine scalars, the envelope and support, and the air boxes).
+const ANSWERED_OBSERVATION_CHECKS: int = 2 * OBSERVED_KEY + 9 + 12 + 6 * Locations.MAX_AIR_EXTRA
 const ENDPOINT_MEMO_ENTRIES: int = 64
 const ENDPOINT_ENTRY_WORDS: int = 34
 const ENDPOINT_MEMO_STAMP: int = 9
@@ -1290,9 +1293,13 @@ func _stair_covered_refusal(room: Vector2i) -> StringName:
 func _endpoint_observation_refusal(location: Vector2i, point: Vector3i) -> StringName:
 	"""The endpoint is live, refreshed to this proof's revision and still at the path's end; its payload is immutable.
 	Decision 1953: inside one edge compile a repeated successful prepared observation is answered from `_observed`
-	(the same spend first); with the framework's cache checks on it is observed live and compared."""
-	if not _proof.spend(Locations.PREPARED_OBSERVATION_CHECKS): return _proof.error
+	(the same spend first); with the framework's cache checks on it is observed live and compared. Decision 2045
+	(P-2045-4 (a)): an answered observation is charged what answering does (ANSWERED_OBSERVATION_CHECKS), not a fresh
+	observation's PREPARED_OBSERVATION_CHECKS. Whether it is answered depends only on this compile's own earlier
+	observations, so the spend is the same in a checked run, an unchecked one and after any load."""
 	var slot: int = _observed_slot(location, point)
+	if not _proof.spend(ANSWERED_OBSERVATION_CHECKS if slot >= 0 else Locations.PREPARED_OBSERVATION_CHECKS):
+		return _proof.error
 	if slot >= 0 and not Profiles.CacheChecks.enabled:
 		_copy_record(_observed[slot], _endpoint)
 		return &""

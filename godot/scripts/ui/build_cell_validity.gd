@@ -50,6 +50,12 @@ var _bounds: Rect2i = Rect2i()
 var _ground: Callable = Callable()
 var _ground_revision: Callable = Callable()
 var _landings: Callable = Callable()
+## Decision 1991: the confirmed room type at a cell (`room_type(level, cell) -> int`, -1 none), and the set types and
+## level being judged: a drafted cell completes its 2 × 2 block with its room's own confirmed cells (BUILD-REQ-002,
+## "a 2 × 2 block of its room": a stopped room's cells put back in the plan are judged with what of it is dug).
+var _room_type: Callable = Callable()
+var _set_types: PackedInt32Array = PackedInt32Array()
+var _judging_level: int = -1
 ## Per cell of one level: 0 not drafted, else the drafted set's index + 1 (cleared after each judgement).
 var _member: PackedInt32Array = PackedInt32Array()
 ## The breadth-first queue, and which cells were reached (by index into `_member`).
@@ -138,12 +144,21 @@ static func words_of(code: int) -> String:
 	return Validity.cannot_dig(DIG_WORDS[code]) if DIG_WORDS.has(code) else ""
 
 
-func judge_level(level: int, sets: Array[PackedInt32Array], way_in: bool = true) -> Array[PackedByteArray]:
+func bind_room_type(room_type: Callable) -> void:
+	"""Decision 1991: `room_type(level, cell) -> int`, the confirmed room type there (-1 none)."""
+	_room_type = room_type
+
+
+func judge_level(level: int, sets: Array[PackedInt32Array], way_in: bool = true,
+		types: PackedInt32Array = PackedInt32Array()) -> Array[PackedByteArray]:
 	"""Each drafted set on `level` (canonical cell pairs; one set per room, the stroke as its own) judged per cell:
 	the codes, aligned with each set's cells. A set with a cell outside the planning area is judged as it can be
 	(that cell CELL_PROTECTED: no ground there). Without `way_in` (the Surface, decision 2002: its way in is a door
-	the batch judges) no cell is judged for a way in."""
+	the batch judges) no cell is judged for a way in. With `types` (each set's room type) and a bound room-type reader,
+	a cell's 2 × 2 block may be completed by confirmed cells of its own type (decision 1991)."""
 	judgements += 1
+	_set_types = types
+	_judging_level = level
 	var out: Array[PackedByteArray] = []
 	for index: int in sets.size():
 		out.append(_mark(sets[index], index + 1))
@@ -153,6 +168,7 @@ func judge_level(level: int, sets: Array[PackedInt32Array], way_in: bool = true)
 		_way_in(level, sets, out)
 	for cells: PackedInt32Array in sets:
 		_unmark(cells)
+	_set_types = PackedInt32Array()
 	return out
 
 
@@ -208,9 +224,14 @@ func _in_block(cell: Vector2i, id: int) -> bool:
 
 
 func _is(cell: Vector2i, id: int) -> bool:
-	"""Whether `cell` belongs to set `id`."""
+	"""Whether `cell` belongs to set `id`, or (decision 1991) is a confirmed cell of that set's room type."""
 	var index: int = _index(cell)
-	return index >= 0 and _member[index] == id
+	if index < 0:
+		return false
+	if _member[index] == id:
+		return true
+	return id > 0 and id <= _set_types.size() and _room_type.is_valid() and _member[index] == 0 \
+		and int(_room_type.call(_judging_level, cell)) == _set_types[id - 1]
 
 
 func _way_in(level: int, sets: Array[PackedInt32Array], out: Array[PackedByteArray]) -> void:

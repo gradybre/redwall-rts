@@ -355,6 +355,17 @@ func _removal_ghost(level: int, ghost: Ghost, removal: Array) -> void:
 	ghost.show_cells(cells, int(removal[0]), "")
 
 
+func shown_tags(level: int, out: Array[Label3D]) -> void:
+	"""Decision 1991: the shown ghosts' tags on `level` (the plan's and the stroke's), appended to `out` so the level's
+	tags are spaced together and none sits on another."""
+	if not DRAWN.has(level):
+		return
+	for pool: Array in [_ghosts[level], _stroke_ghosts[level]]:
+		for ghost: Ghost in pool:
+			if ghost.visible and ghost.tag().visible and not ghost.tag().text.is_empty():
+				out.append(ghost.tag())
+
+
 func operation_ghosts(level: int) -> Array:
 	"""`level`'s room ghosts (checks)."""
 	return _ghosts[level] if DRAWN.has(level) else []

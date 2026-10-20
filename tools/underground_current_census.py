@@ -92,7 +92,7 @@ def delta(before: str, after: str) -> dict:
 
 EVIDENCE = Path("docs/validation/evidence/underground-memory-census-2026-10-06")
 REVIEWED = EVIDENCE / "reviewed-deltas.json"
-REVIEWED_SHA = "22099ef921c61448494559e74915637136909472007dfe4179cac57e7058ab76"
+REVIEWED_SHA = "4fb75646bb98984ed2fa2a12b4e701fcda140ade8d486792ba84fe358dd86242"
 # ADR1217 step 5: the runtime Frontier is the claw bundle's (same row census as qualified-stone-v5's).
 # ADR1229: the mounted T1-T6 bundle's Frontier (ADR1217 step 5 mounted qualified-claw-v6's).
 # DEC-059 (P3): qualified-stairs-v9, the same rows with T1-T6 fastened in 5,640 mWU.
@@ -484,6 +484,8 @@ def cold_load_images(memory, index: dict) -> dict:
 
 ROOM_RUNTIME = {"_directory": "Directory", "_room_row": "PackedInt32Array", "_generation": "PackedInt32Array", "_state": "PackedByteArray",
                 "_storage": "PackedInt32Array", "_output": "PackedInt32Array", "_staging": "PackedInt32Array",
+                "_crew": "PackedInt32Array", "_release_out": "PackedByteArray", "_builder_rows": "PackedByteArray",
+                "_filter_count": "int", "_filter_last": "int",
                 "_foremen": "Array", "_foreman_rows": "PackedInt32Array", "_refusals": "Array", "_owners": "Builder.Owners",
                 "_math": "IntMath.IntResult", "_face": "WorkFace", "_contact_access": "Vector2i", "_contact_travel": "int"}
 ROOM_FOREMAN = {"_ctx": "Builder.Context", "_room": "Vector2i", "_builders": "Array", "_order": "DigOrder.Order",
@@ -592,15 +594,17 @@ def room_dig_runtime(memory, index: dict) -> dict:
         r("underground_room_claim", "MAX_TRIP_EDGES")
     boxes, profiles = r("underground_room_footprint", "MAX_BOXES"), r("underground_profiles", "MAX_PROFILES")
     queue, haul_legs = r("underground_entry_progress", "MAX_QUEUE"), r("underground_entry_progress", "MAX_LEGS")
-    columns = memory.columns(index, "underground_room_runtime", 6, {}, {"_room_row", "_generation", "_state", "_storage",
-                                                                       "_output", "_staging"})
-    require(memory.payload(columns) == 33 * kept, "the record pool is 33 B a kept record")
+    columns = memory.columns(index, "underground_room_runtime", 8, {}, {"_room_row", "_generation", "_state", "_storage",
+                                                                       "_output", "_staging", "_crew", "_release_out"})
+    # Decision 1991: each slot also names its crew (4 resident references, 32 B) and a release-once-out byte.
+    require(memory.payload(columns) == 66 * kept, "the record pool is 66 B a kept record")
     result = packet(memory, index, CORE + "int_math.gd", "IntResult", "")
     actor = packet(memory, index, CORE + "underground_routes.gd", "Actor")
     b = CORE + "underground_room_builder.gd"
     rows = {
         "runtime_record": memory.payload(columns),
         "runtime_numeric": memory.numeric_fields(runtime, "") + result + 4 * kept
+            + r("residents", "RESIDENT_CAPACITY") # Decision 1991 (review M7): one byte a Resident row
             + memory.numeric_fields(module(index, CORE + "underground_work_face.gd").text, ""),
         "foremen_numeric": kept * (memory.numeric_fields(foreman, "") + packet(memory, index, b, "Context")),
             "orders_and_marks": 5 * sites, # Decision 1937 (P-1937-1 E): each Site's row and mark.

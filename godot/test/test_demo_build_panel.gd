@@ -239,7 +239,7 @@ func test_the_old_tool_cards_are_gone_and_passage_paints() -> void:
 	paints CORRIDOR (BUILD-REQ-014); no card opens the Dig tool; the panel says digging comes later."""
 	_command.select(PackedInt32Array([0]))
 	_build.open_panel()
-	assert_true(_said[-1].contains("a mole digs them (free for now)"), _said[-1])
+	assert_true(_said[-1].contains("the selected moles (or the first free one) dig them (proof of concept: free)"), _said[-1])
 	assert_equal(_card("Burrow home"), -1, "no Burrow home card")
 	assert_equal(_card("Root cellar"), -1, "no Root cellar card")
 	_build.bar.choose(1)
@@ -514,12 +514,12 @@ func test_the_mole_is_the_selected_one_and_figures_are_reused() -> void:
 	var selected: PackedInt32Array = PackedInt32Array([1])
 	_build.bind_cast(cast, func() -> PackedInt32Array: return selected)
 	_build.works.order_way_down(0, Vector2i(4, 4))
-	assert_true(_build._send_mole(), "sent")
+	assert_true(_build._send_crews(), "sent")
 	assert_true(_said[-1].begins_with(_build._name_of(1)), "the selected mole: %s" % _said[-1])
 	(cast.call(&"actor", 1) as Node).get(&"brain").call(&"release")
 	assert_false(_build.digging(), "its trip taken by another order")
 	selected = PackedInt32Array()
-	assert_true(_build._send_mole(), "sent again")
+	assert_true(_build._send_crews(), "sent again")
 	assert_equal(_build._figures.size(), 1, "the figure reused")
 
 
@@ -529,7 +529,7 @@ func test_with_no_mole_anyone_digs_and_says_so() -> void:
 	(cast.call(&"actor", 0) as Node).set(&"species", "Otter")
 	_build.bind_cast(cast, func() -> PackedInt32Array: return PackedInt32Array())
 	_build.works.order_way_down(0, Vector2i(4, 4))
-	assert_true(_build._send_mole(), "someone sent")
+	assert_true(_build._send_crews(), "someone sent")
 	assert_true(_said[-1].begins_with("No mole lives in the village: "), _said[-1])
 
 
@@ -542,8 +542,8 @@ func test_cells_cut_off_from_every_entrance_are_said_once_and_send_nobody() -> v
 	for cell: Vector2i in [Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5), Vector2i(5, 5)]:
 		_build.works.open_cell(1, cell)
 	var before: int = _said.size()
-	assert_false(_build._send_mole(), "nobody sent")
-	assert_false(_build._send_mole(), "nor the next time")
+	assert_false(_build._send_crews(), "nobody sent")
+	assert_false(_build._send_crews(), "nor the next time")
 	assert_equal(_said.size(), before + 1, "said once")
 	assert_true(_said[-1].ends_with("cannot be reached from an Entrance: they wait"), _said[-1])
 

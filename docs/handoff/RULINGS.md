@@ -236,6 +236,12 @@ Every row was checked against the record named.
 | How phases spread (1953 P-1953-1), 2026-10-17 | **"Work ahead in the background"**: (C), staged. Stage 1: speculatively requalify the next transition's route edges off the live owners in per-tick slices with a stated check budget; at START/settlement reuse only results whose inputs are provably unchanged and redo the rest synchronously; re-check surface exclusions live at START (no new owner tokens). Byte-identical to master (SHA trace), speculation never saved (next-tick save/load parity), memory through ADR 1212, no hooks in slice D's or the C2 lane's files. (Relayed by the coordinator) | [1953](../decisions/1953-phase-spreading-scope.md) |
 | Phase spreading stage 2 (1953 P-1953-2), 2026-10-18 | Brendan: **"After M5, re-measure"**. Stage 1 (exact synchronous reuse, stalls about 7% shorter) merges now. Stage 2 (a private staged world prepared in slices) is not started; it is revisited after slice D's M5 flight lands and its held files are free, starting from a fresh measurement on master. REQ-SET-163's 2 ms tick stays unmet until then. (Relayed by the coordinator) | [1953](../decisions/1953-phase-spreading-scope.md) |
 
+## 2026-10-19
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Pick moles on turned headings (1943 P-1943-1), 2026-10-19 | Brendan: **"Claws for turns, warn"**. No new pick content: a pick mole digs only where content 12's pick rows reach (its finite step is published at +X only). At Confirm, a room with cells a pick-only crew cannot reach is reported in words (for example "Pick diggers can't reach 18 cells: add a claw digger"), so a dig never stops halfway unexplained; if it still happens mid-dig (the crew changes), the room stops with a named, worded reason, never a bare `ROOM_STATION_GEOMETRY_CLOSED`. (Relayed by the coordinator) | [1943](../decisions/1943-rooms-dug-on-every-side-of-their-access.md) "Brendan's ruling" (its premise corrected by the coordinator the same day: C3's crew rule admits claws only, so no pick crew reaches a dig; the per-cell warning is an open obligation for a slice that lets pick holders crew) |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

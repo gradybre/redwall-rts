@@ -255,7 +255,7 @@ jobs:
     # Keep the existing required-check name. A skipped or failed matrix must never go green here.
     name: Godot headless suite
     if: ${{ always() }}
-    needs: [godot-shards, godot-gates, contracts]
+    needs: [godot-shards, godot-gates, contracts, underground-memory]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -264,9 +264,10 @@ jobs:
           SHARDS_RESULT: ${{ needs.godot-shards.result }}
           GATES_RESULT: ${{ needs.godot-gates.result }}
           CONTRACTS_RESULT: ${{ needs.contracts.result }}
+          UNDERGROUND_MEMORY_RESULT: ${{ needs.underground-memory.result }}
         run: |
           set -euo pipefail
-          for result in "$SHARDS_RESULT" "$GATES_RESULT" "$CONTRACTS_RESULT"; do
+          for result in "$SHARDS_RESULT" "$GATES_RESULT" "$CONTRACTS_RESULT" "$UNDERGROUND_MEMORY_RESULT"; do
             if [[ "$result" != success ]]; then
               echo "error: a required shard or gate was failed, cancelled, or skipped ($result)." >&2
               exit 1
@@ -289,9 +290,10 @@ jobs:
   contracts:
     name: Specification contracts
     runs-on: ubuntu-latest
-    # The full current-source memory/refusal checks alone now take over four
-    # minutes. Keep every command and zero-finding gate; allow the remaining
-    # contracts to execute before the hang guard (decision 1185).
+    # Fifteen minutes is the hang guard, not a target (decision 1185). The
+    # joint underground allocation pack and refusal checks grew to about 13
+    # minutes on their own and moved to the underground-memory job below
+    # (decision 1244); what remains here takes about two minutes.
     timeout-minutes: 15
 
     # These validators existed and passed long before anything ran them
@@ -299,7 +301,7 @@ jobs:
     # when someone remembered. The memory ledger in particular has been wrong
     # on master more than once between hand runs. Nothing here needs the
     # engine and none of it touches Git LFS. This remains a separate job
-    # without an LFS checkout; its expanded source checks take several minutes.
+    # without an LFS checkout.
     #
     # Deliberately excluded: validate_blocker_package.py and
     # validate_executor_followup.py, which are report GENERATORS. They always
@@ -318,13 +320,6 @@ jobs:
 
       - name: Memory ledger arithmetic
         run: python3 docs/validation/ready07_arithmetic.py
-
-      - name: Joint underground allocation pack and refusal checks
-        run: |
-          set -euo pipefail
-          python3 tools/underground_memory_budget.py --check
-          python3 tools/test_underground_memory_budget.py
-          python3 tools/test_underground_current_census.py
 
       - name: Merge gate (ledger chain, double budgets, row arithmetic)
         run: python3 docs/validation/merge_gate.py
@@ -428,3 +423,42 @@ jobs:
           python3 tools/test_balance_report.py
           python3 tools/test_soak_report.py
           python3 tools/test_stage_art_passes.py
+          python3 tools/test_unittest_shard.py
+
+  underground-memory:
+    name: Underground memory budget shard ${{ matrix.shard }} / 3
+    runs-on: ubuntu-latest
+    # Decision 1185's hang guard: fifteen minutes is an upper bound, never a
+    # wall-clock target, and a cancelled job is incomplete validation, not a
+    # pass. This step alone reached 12.7-13.5 minutes inside the 15-minute
+    # contracts job (run 39360724357), so it has its own jobs and its 285
+    # refusal tests run in three disjoint shards of unchanged tests (decision
+    # 1244). Each shard runs about 5 minutes. When any shard passes about 10
+    # minutes, add a shard; do not raise the guard. --check and the census run
+    # exactly as the contracts job ran them; the refusal module is unchanged and
+    # only divided. No engine and no LFS checkout, as before.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Joint underground allocation pack check
+        if: matrix.shard == 0
+        run: python3 tools/underground_memory_budget.py --check
+
+      # The shard count is the matrix's own size, so removing a matrix entry
+      # cannot silently drop that entry's tests: the remaining shards re-divide
+      # all of them.
+      - name: Joint underground allocation refusal tests
+        run: >-
+          python3 tools/unittest_shard.py tools/test_underground_memory_budget.py
+          --shard ${{ strategy.job-index }}/${{ strategy.job-total }}
+
+      - name: Current-source census tests
+        if: matrix.shard == 0
+        run: python3 tools/test_underground_current_census.py

@@ -911,6 +911,20 @@ func _timber_cold_bytes(placement: Vector2i, assembly: int) -> int:
 
 ## Decision 2044 (P-2044-15, "Exact cost fixes"): a Region scan visits the present rows only, found natively in the
 ## present bank, and charges each one; an empty slot is never read, so it costs nothing (as `_entry_retained_box`).
+## Decision 2045 ("Exact cost fixes", P-2045-6 (a)): a Region row's box is read in two steps, its z extent first (two
+## words, Z_READ_CHECKS) and the rest (the other ten of a box read's twelve checks) only when that extent meets the
+## bounds the scan tests. Every such scan then skips the row (no overlap) or, for `_timber_datum_ref`, an exact
+## equality, both of which need the z extents to meet: the same rows are kept, in the same order.
+const Z_READ_CHECKS: int = 2
+
+
+static func _z_misses(owner: Owner, row: int, staged: bool, bounds: PackedInt32Array) -> bool:
+	"""Decision 2045: whether the row's half-open z extent misses `bounds` (or, for an equality test, differs)."""
+	var low: int = owner._s_r_lo_z[row] if staged else owner._r_lo_z[row]
+	var high: int = owner._s_r_hi_z[row] if staged else owner._r_hi_z[row]
+	return low >= bounds[5] or bounds[2] >= high
+
+
 static func _next_region_row(owner: Owner, from: int, staged: bool) -> int:
 	"""The first present Region row at or after `from` (staged bank or live), else the region capacity."""
 	var bank: PackedByteArray = owner._s_r_present if staged else owner._r_present
@@ -1035,7 +1049,9 @@ func _workpiece_air(proof: TimberClearance, bounds: PackedInt32Array, token: int
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM \
 				or _timber_claim(row, false) or _workpiece_live_row(row): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, false, bounds): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, false, proof.cover)
 		if not Space.overlaps(bounds, proof.cover): continue
 		if owner._r_role[row] != Space.SUPPORTED_VOID or not _timber_void_row(row, false): return REFUSE_TIMBER_CUT
@@ -1073,7 +1089,9 @@ func _workpiece_foot(proof: TimberClearance, bounds: PackedInt32Array, token: in
 		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, false, _cube): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, false, proof.cover)
 		if not Space.overlaps(_cube, proof.cover): continue
 		if owner._r_claim_kind[row] != Owner.CLAIM_NONE or owner._r_role[row] not in [Space.SUPPORT, Space.DRY_SOLID]:
@@ -1261,7 +1279,9 @@ func _timber_natural_rows(proof: TimberClearance, bounds: PackedInt32Array) -> S
 		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, false, bounds): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, false, proof.cover)
 		if not Space.overlaps(bounds, proof.cover): continue
 		if owner._r_claim_kind[row] != Owner.CLAIM_NONE or owner._r_role[row] not in [Space.DRY_SOLID, Space.SUPPORT]:
@@ -1329,7 +1349,9 @@ func _timber_installed_bearing(proof: TimberClearance, bounds: PackedInt32Array)
 		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, false, bounds): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, false, proof.cover)
 		if not Space.overlaps(bounds, proof.cover): continue
 		if not _timber_owned(row, false) or owner._r_claim_kind[row] != Owner.CLAIM_NONE \
@@ -1458,7 +1480,9 @@ func _timber_part_clearance(proof: TimberClearance, token: int, staging: bool) -
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._r_present[row] != 1 or owner._r_role[row] == Space.FLOOR_DATUM or _timber_claim(row, false) \
 				or _workpiece_live_row(row): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, false, _cube): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, false, proof.cover)
 		if not Space.overlaps(_cube, proof.cover): continue
 		if not _timber_void_row(row, false): return REFUSE_TIMBER_CUT
@@ -1505,11 +1529,22 @@ func _stage_timber_part(proof: TimberClearance, part: int, token: int) -> String
 		if row >= owner._region_capacity: break
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._s_r_present[row] != 1 or not _timber_void_row(row, true): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, true, _cube): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, true, proof.box)
 		if not Space.overlaps(_cube, proof.box): continue
 		var code: StringName = _timber_partition_row(proof, row, token)
 		if code != &"": return code
+	_part_region(owner, part)
+	if not proof.spend(owner._source_capacity + 32): return REFUSE_MASK_BUDGET
+	var added: Owner.Result = owner.stage_add(token, _region)
+	return _timber_scope_leaf(proof) if added.error == &"" else added.error
+
+
+func _part_region(owner: Owner, part: int) -> void:
+	"""`_region` as the new part's own row: the Room's, at the part's level and the Placement's section on that level,
+	SUPPORT for a tread, riser, post or ramp deck and OBSTACLE otherwise, over `_cube`."""
 	var catalog: ConnectorCatalog = _entry_placements._catalog
 	var at: int = catalog._live.variants[ConnectorCatalog.V_PART_START * ConnectorCatalog.MAX_VARIANTS \
 		+ _entry_placements._live.header[Placements.H_CATALOG_ROW]] + part
@@ -1523,9 +1558,6 @@ func _stage_timber_part(proof: TimberClearance, part: int, token: int) -> String
 	_region.claim_kind = Owner.CLAIM_NONE
 	_region.claim_ref = NULL_REF
 	for axis: int in 6: _region.box[axis] = _cube[axis]
-	if not proof.spend(owner._source_capacity + 32): return REFUSE_MASK_BUDGET
-	var added: Owner.Result = owner.stage_add(token, _region)
-	return _timber_scope_leaf(proof) if added.error == &"" else added.error
 
 
 func _timber_partition_row(proof: TimberClearance, row: int, token: int) -> StringName:
@@ -1699,9 +1731,10 @@ func _timber_datum_ref() -> Vector2i:
 		if row >= owner._region_capacity: break
 		if not _entry_spend(): return Vector2i(-3, 0)
 		if owner._s_r_present[row] != 1: continue
-		if not _entry_spend(12): return Vector2i(-3, 0)
-		if owner._s_r_role[row] != Space.FLOOR_DATUM \
-				or owner._s_r_level[row] != _entry_contact.level or not _timber_owned(row, true): continue
+		if not _entry_spend(Z_READ_CHECKS): return Vector2i(-3, 0)
+		if owner._s_r_role[row] != Space.FLOOR_DATUM or owner._s_r_level[row] != _entry_contact.level \
+				or not _timber_owned(row, true) or _z_misses(owner, row, true, _cube): continue
+		if not _entry_spend(12 - Z_READ_CHECKS): return Vector2i(-3, 0)
 		_timber_region_box(row, true, _clip)
 		if _clip != _cube: continue
 		if found != NULL_REF: return Vector2i(-2, 0)
@@ -1769,7 +1802,9 @@ func _timber_support_residual(proof: TimberClearance, bounds: PackedInt32Array) 
 		if not proof.spend(): return REFUSE_MASK_BUDGET
 		if owner._s_r_present[row] != 1 or owner._s_r_role[row] != Space.SUPPORT \
 				or owner._s_r_claim_kind[row] != Owner.CLAIM_NONE or not _timber_owned(row, true): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, true, bounds): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, true, proof.cover)
 		if not proof.subtract_cover(): return REFUSE_MASK_BUDGET
 	return &""
@@ -2089,7 +2124,9 @@ func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> Strin
 		var role: int = owner._s_r_role[row] if staging else owner._r_role[row]
 		if role == Space.FLOOR_DATUM or _timber_claim(row, staging) \
 				or (not staging and _workpiece_live_row(row)): continue
-		if not proof.spend(12): return REFUSE_MASK_BUDGET
+		if not proof.spend(Z_READ_CHECKS): return REFUSE_MASK_BUDGET
+		if _z_misses(owner, row, staging, _entry_contact.envelope): continue
+		if not proof.spend(12 - Z_READ_CHECKS): return REFUSE_MASK_BUDGET
 		_timber_region_box(row, staging, proof.cover)
 		if not Space.overlaps(_entry_contact.envelope, proof.cover): continue
 		if role != Space.SUPPORTED_VOID or not _timber_void_row(row, staging): return REFUSE_TIMBER_CONTACT

@@ -1071,7 +1071,9 @@ func test_datum_and_profile_budget_exhaustion_stays_distinct_from_physical_refus
 
 func test_datum_lookup_charges_every_presence_and_all_live_metadata_reads() -> void:
 	"""Decision 2044 (P-2044-15, exact cost fixes): the scan visits present rows only (one native search), so an empty
-	slot costs nothing; any live candidate retains its presence charge and the full metadata charge."""
+	slot costs nothing; any live candidate retains its presence charge and its metadata charge. Decision 2045 (P-2045-6
+	(a)): a row whose role, level or owner rules it out, or whose z extent differs, is charged the presence and the z
+	extent only (Z_READ_CHECKS); a candidate that passes them is charged the whole box read (12)."""
 	var owner: Owner = _f._owner
 	var before: PackedByteArray = owner._s_r_present.duplicate()
 	var last: int = owner._region_capacity - 1
@@ -1082,11 +1084,11 @@ func test_datum_lookup_charges_every_presence_and_all_live_metadata_reads() -> v
 	assert_equal(_bindings._entry_checks, 0, "empty slots are not charged")
 	owner._s_r_present[last] = 1
 	owner._s_r_role[last] = Space.OBSTACLE
-	_bindings._entry_checks = 12
+	_bindings._entry_checks = Binding.Z_READ_CHECKS
 	assert_equal(_bindings._timber_datum_ref(), Vector2i(-3, 0), "live row cannot use incomplete metadata allowance")
-	_bindings._entry_checks = 13
+	_bindings._entry_checks = 1 + Binding.Z_READ_CHECKS
 	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "complete live charge does not invent a matching datum")
-	assert_equal(_bindings._entry_checks, 0, "the presence and live metadata charges retained")
+	assert_equal(_bindings._entry_checks, 0, "the presence and the ruled-out row's metadata charges retained")
 	owner._s_r_present = before
 	owner._s_r_role[last] = role
 

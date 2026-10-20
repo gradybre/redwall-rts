@@ -25,6 +25,10 @@ extends RefCounted
 ## U0' -> F', P' -> F' and D -> F' on the narrow retreat 47. The stair carry stays module 0's, H to its sill and back
 ## (decision 1972), until stair-leg Delivery. The deep stations a landing's floor carries for the next layer (2044) are
 ## joined to D, the hub, by `publish_floor` on the all-yaw claw WALK 42, and leave row by row through `retire_row`.
+## Decision 2045 (P-2045-5 (a)): they are joined a block of FLOOR_BLOCK_ROWS station rows at a time, counted from the
+## end wall, as the work area joins its surface stations in batches (ADR1229): D to the landing row's column-1 station,
+## one straight walk down the column-1 spine to the block's nearest row, and the block's own spine and crossings. A
+## block's walks leave with its stations; the next block is joined when its first phase opens.
 
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
@@ -68,6 +72,8 @@ const KIND_D: int = 9
 const PLAN_WORDS: int = 6
 ## Decision 2044: the deep stations' floor walks (all-yaw claw WALK) and where a column's stations stand.
 const FLOOR_ROW: int = 42
+## Decision 2045 (P-2045-5 (a)): station rows joined at once on a landing's floor (eight stations, at most 18 walks).
+const FLOOR_BLOCK_ROWS: int = 4
 
 
 class Stops extends RefCounted:
@@ -504,18 +510,20 @@ static func classify_deep(point: Vector3i) -> Vector3i:
 
 
 static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, owner: RefCounted,
-		locations: Locations, stops: Stops, deep: Deep, content_revision: int) -> StringName:
-	"""Join landing j's floor to its deep stations on the claw WALK: D (the hub, P-2044-16 (a)) to the landing row's
-	column-1 station and back (two L-shaped walks), the column-1 spine between rows and each row's crossing, both
-	ways."""
+		locations: Locations, stops: Stops, deep: Deep, row: int, content_revision: int) -> StringName:
+	"""Join landing j's floor to the deep stations of station row `row`'s block on the claw WALK: D (the hub,
+	P-2044-16 (a)) to the landing row's column-1 station and back (two L-shaped walks), the column-1 spine down to the
+	block and within it, and each of its rows' crossings, both ways (decision 2045). Nothing is prepared when every
+	walk is already live."""
 	if binding == null or routes == null or budget == null or owner == null or locations == null or deep == null:
 		return REFUSE_OWNER
+	if not floor_missing(routes, stops, deep, row): return &""
 	var lease: int = budget.acquire(Budget.COLD_BYTES)
 	if lease <= 0: return REFUSE_LEASE
 	var begun: Routes.Result = binding.begin_prepare(lease)
 	var code: StringName = begun.error
 	var staged: int = 0
-	for pair: Array in _floor_pairs(stops, deep):
+	for pair: Array in _floor_pairs(stops, deep, row):
 		if code != &"": break
 		if pair[0] == NULL_REF or pair[1] == NULL_REF or _joined(routes, pair[0], pair[1], Profiles.MODE_WALK): continue
 		code = _stage_floor_edge(routes, begun.token, locations, owner, [pair[0], pair[1]], content_revision)
@@ -527,17 +535,37 @@ static func publish_floor(binding: WorldRoutes, routes: Routes, budget: Budget, 
 	return code
 
 
-static func _floor_pairs(stops: Stops, deep: Deep) -> Array:
-	"""Every floor walk of one landing as [from, to] handle pairs, in a fixed order."""
+static func floor_block(deep: Deep, row: int) -> Vector2i:
+	"""Decision 2045: the station rows (nearest, farthest) of the block holding station row `row`. Blocks are counted
+	from the last station row (by the end wall), FLOOR_BLOCK_ROWS rows each; the one nearest the landing may be short."""
+	var last: int = Tread.ROWS - 2
+	@warning_ignore("integer_division") var block: int = (last - clampi(row, deep.first_row, last)) / FLOOR_BLOCK_ROWS
+	var far: int = last - FLOOR_BLOCK_ROWS * block
+	return Vector2i(maxi(deep.first_row, far - FLOOR_BLOCK_ROWS + 1), far)
+
+
+static func floor_missing(routes: Routes, stops: Stops, deep: Deep, row: int) -> bool:
+	"""Decision 2045: whether a walk of station row `row`'s block, between two live stops, is not yet published."""
+	for pair: Array in _floor_pairs(stops, deep, row):
+		if pair[0] != NULL_REF and pair[1] != NULL_REF and not _joined(routes, pair[0], pair[1], Profiles.MODE_WALK):
+			return true
+	return false
+
+
+static func _floor_pairs(stops: Stops, deep: Deep, row: int) -> Array:
+	"""The floor walks of station row `row`'s block as [from, to] handle pairs, in a fixed order: the hub's, the long
+	spine walk to the block's nearest row (decision 2045, P-2045-5 (a)), then each block row's crossing and spine."""
 	var top: int = deep.first_row
 	var hub: Vector2i = stops.d[deep.landing] # P-2044-16 (a): D, the landing's hub.
+	var block: Vector2i = floor_block(deep, row)
 	var out: Array = [[hub, deep.at(top, 1)], [deep.at(top, 1), hub]]
-	for row: int in range(top, Tread.ROWS - 1):
-		out.append([deep.at(row, 0), deep.at(row, 1)])
-		out.append([deep.at(row, 1), deep.at(row, 0)])
-		if row + 1 < Tread.ROWS - 1:
-			out.append([deep.at(row, 1), deep.at(row + 1, 1)])
-			out.append([deep.at(row + 1, 1), deep.at(row, 1)])
+	if block.x > top: out.append_array([[deep.at(top, 1), deep.at(block.x, 1)], [deep.at(block.x, 1), deep.at(top, 1)]])
+	for at: int in range(block.x, block.y + 1):
+		out.append([deep.at(at, 0), deep.at(at, 1)])
+		out.append([deep.at(at, 1), deep.at(at, 0)])
+		if at + 1 <= block.y:
+			out.append([deep.at(at, 1), deep.at(at + 1, 1)])
+			out.append([deep.at(at + 1, 1), deep.at(at, 1)])
 	return out
 
 

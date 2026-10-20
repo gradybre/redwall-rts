@@ -318,14 +318,14 @@ func _deep_landing(station: Vector2i) -> int:
 
 
 func _open_deep_floor(task: Task) -> StringName:
-	"""Decision 2044: before a deep stage's first phase opens, its landing's floor walks are published (once)."""
+	"""Decision 2044: before a deep phase opens, its landing's floor walks to its station are published. Decision 2045
+	(P-2045-5 (a)): only the station's block of rows is joined; a block's walks leave with its stations, and the next
+	block is joined when its first phase opens (nothing is prepared while the block is joined)."""
 	var landing: int = _deep_landing(task.station)
 	if landing == 0: return &""
-	var deep: StairPath.Deep = _deep(landing)
-	var stops: StairPath.Stops = _stops()
-	if StairPath._joined(_owners.routes, _hub(stops, landing), deep.at(deep.first_row, 1), Profiles.MODE_WALK): return &""
+	var row: int = StairPath.classify_deep(_local_of(task.station)).y
 	return StairPath.publish_floor(_owners.binding, _owners.routes, _paid.budget, _owners.binding._owner(),
-		_owners.locations, stops, deep, _content)
+		_owners.locations, _stops(), _deep(landing), row, _content)
 
 
 func _retire_landing_floor() -> StringName:

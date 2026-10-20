@@ -384,6 +384,9 @@ var _sources_pass: int = 0 # ADR1229 increment 6b: the witness pass whose instal
 var _landing_boxes: PackedInt32Array = PackedInt32Array() # Sized at configure.
 var _landing_key: PackedInt64Array = PackedInt64Array() # Sized at configure.
 const PASS_LANDINGS: int = 64 # M5's 41 LANDING regions; a variant with more takes the per-record scan.
+## Decision 2045 (P-2045-6 (a)): the datums are kept for a whole Locations operation (its token) as well as a pass, and
+## ordered by (level, low z, index) so a record finds its candidates by search.
+var _landing_sorted: PackedInt64Array = PackedInt64Array() # Sized at configure.
 var _remaining: int = 0
 var _snapshot: Space.Snapshot = null
 var _region: Owner.Region = Owner.Region.new()
@@ -454,7 +457,8 @@ func _allocate_banks(capacity: int, arena_bytes: int) -> void:
 	_prism_key.resize(8)
 	_prism_tops.resize(ConnectorCatalog.MAX_PARTS)
 	_landing_boxes.resize(7 * PASS_LANDINGS)
-	_landing_key.resize(4)
+	_landing_key.resize(5)
+	_landing_sorted.resize(PASS_LANDINGS)
 	_live.allocate(capacity, _air_slots)
 	_stage.allocate(capacity, _air_slots)
 
@@ -2566,11 +2570,28 @@ func _prisms_cached(issuer: RefCounted, row: int, prefix: int) -> bool:
 func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
 	"""An exact authored landing is recognized before either prefix or ordinary Site fallback is considered.
 	Decision 2044: inside a witness pass the row's datums are derived once (`_pass_landings`) and each record compares
-	them at four checks a datum, as it compares the pass's prisms."""
-	if _in_witness_pass:
+	them at four checks a datum, as it compares the pass's prisms. Decision 2045 (P-2045-6 (a)): likewise for the rest
+	of one Locations operation (its refreshes), and a record compares only the datums of its own level and low z."""
+	if _landing_scope() != 0:
 		var landings: int = _pass_landings(issuer, row)
 		if landings == -1: return -1
-		if landings >= 0: return _pass_landing_count(landings, record)
+		if landings >= 0: return _checked_landing_count(issuer, row, record, _pass_landing_count(landings, record))
+	return _scanned_landing_count(issuer, row, record)
+
+
+func _checked_landing_count(issuer: RefCounted, row: int, record: Record, kept: int) -> int:
+	"""Decision 2045: with the cache checks on, a count from kept datums is compared, unspent, with the per-record
+	scan, and a difference is reported."""
+	if kept < 0 or not CacheChecks.enabled: return kept
+	var spent: int = _remaining
+	var scanned: int = _scanned_landing_count(issuer, row, record)
+	_remaining = spent
+	if scanned >= 0 and scanned != kept: CacheChecks.report("landing datums", "row %d: %d kept, %d scanned" % [row, kept, scanned])
+	return kept
+
+
+func _scanned_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
+	"""The per-record scan: every region of the row's variant, each LANDING compared in full."""
 	var catalog: ConnectorCatalog = issuer._catalog
 	var variant: int = issuer._live.i32[issuer.CATALOG_ROW * issuer._capacity + row]
 	var first: int = catalog._live.variants[ConnectorCatalog.V_REGION_START * ConnectorCatalog.MAX_VARIANTS + variant]
@@ -2589,7 +2610,9 @@ func _pass_landings(issuer: RefCounted, row: int) -> int:
 	"""The row's LANDING datums in `_landing_boxes`, derived at the per-record scan's own charges once per pass; their
 	count, -1 when the budget is spent, or -2 when the variant has more than PASS_LANDINGS (the per-record scan)."""
 	var generation: int = issuer._live.i32[row]
-	if _landing_key[0] == _witness_pass and _landing_key[1] == row and _landing_key[2] == generation:
+	var scope: int = _landing_scope()
+	if scope != 0 and _landing_key[0] == scope and _landing_key[1] == row and _landing_key[2] == generation \
+			and _landing_key[4] == issuer._catalog._live.header[0]:
 		return int(_landing_key[3])
 	_landing_key[0] = 0
 	var catalog: ConnectorCatalog = issuer._catalog
@@ -2603,11 +2626,36 @@ func _pass_landings(issuer: RefCounted, row: int) -> int:
 		if not _spend(32): return -1
 		_pass_landing_into(issuer, row, first + index, at)
 		at += 1
-	_landing_key[0] = _witness_pass
+	if not _order_landings(at): return -1
+	_landing_key[0] = scope
 	_landing_key[1] = row
 	_landing_key[2] = generation
 	_landing_key[3] = at
+	_landing_key[4] = issuer._catalog._live.header[0]
 	return at
+
+
+func _landing_scope() -> int:
+	"""Decision 2045: how long derived LANDING datums are kept: a witness pass (its serial, negated) or else the open
+	Locations operation (its token, never repeated); 0 when neither, so nothing is kept. The datums are a pure function
+	of the Placement row's generation and the Catalog; the scope only bounds how long that is trusted."""
+	if _in_witness_pass: return -_witness_pass
+	return _token
+
+
+static func _landing_order_key(level: int, low_z: int, index: int) -> int:
+	"""Decision 2045: (level, low z) first, then the datum's index; the index fits PASS_LANDINGS (64)."""
+	return (level * 4294967296 + (low_z + 2147483648)) * PASS_LANDINGS + index
+
+
+func _order_landings(count: int) -> bool:
+	"""Decision 2045: `_landing_sorted` keyed by (level, low z, index), charged four checks a datum."""
+	if not _spend(4 * count): return false
+	for at: int in PASS_LANDINGS:
+		_landing_sorted[at] = _landing_order_key(_landing_boxes[7 * at], _landing_boxes[7 * at + 3], at) if at < count \
+			else 9223372036854775807
+	_landing_sorted.sort()
+	return true
 
 
 func _pass_landing_into(issuer: RefCounted, row: int, region: int, at: int) -> void:
@@ -2626,13 +2674,18 @@ func _pass_landing_into(issuer: RefCounted, row: int, region: int, at: int) -> v
 
 
 func _pass_landing_count(landings: int, record: Record) -> int:
-	"""How many of the pass's datums the record's section and level equal exactly; -1 when the budget is spent."""
+	"""How many of the kept datums the record's section and level equal exactly; -1 when the budget is spent.
+	Decision 2045 (P-2045-6 (a)): only the datums of the record's level and low z can equal it; they are found by search
+	(16 checks) and compared at four checks each, as every datum was before. The count is the same."""
 	if not _spend(4): return -1
 	if not _owner._region_live(record.section, _owner_token > 0): return 0
+	if not _spend(16): return -1
+	var low: int = _landing_order_key(record.level, _installed_section_bound(record.section.x, 2), 0)
 	var matched: int = 0
-	for index: int in landings:
+	for at: int in range(_landing_sorted.bsearch(low), landings):
+		if _landing_sorted[at] >= low + PASS_LANDINGS: break
 		if not _spend(4): return -1
-		if _landing_boxes[7 * index] != record.level: continue
+		var index: int = posmod(_landing_sorted[at], PASS_LANDINGS)
 		var same: bool = true
 		for axis: int in 6:
 			same = same and _landing_boxes[7 * index + 1 + axis] == _installed_section_bound(record.section.x, axis)

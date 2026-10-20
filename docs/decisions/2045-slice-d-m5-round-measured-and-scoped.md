@@ -2,7 +2,8 @@
 
 Date: 2026-10-19 · Status: Accepted. Phase 1 (measure and scope) stopped for rulings; Brendan ruled P-2045-1 to
 P-2045-6, all (a), on 2026-10-19 (see "Brendan's rulings"). The build phase stopped again under that ruling's own
-condition: WorldRoutes and Locations still do not fit (see "Build phase"; P-2045-7 to P-2045-10 wait for rulings).
+condition: WorldRoutes and Locations still did not fit (see "Build phase"). Brendan ruled P-2045-7 to P-2045-10, all
+(a), on 2026-10-19/20, and the build continues (see "Brendan's rulings on P-2045-7 to -10").
 
 Number range: 2045–2049 (the D-flight lane's phase 2b). This is the M5 round's record; decision
 [2044](2044-slice-d-2b-1-m5-flight-runtime-scoping-and-claims.md) holds the lane's claims, every ruling so far
@@ -504,3 +505,19 @@ Not run: the census pass, the full sharded suite and the frames wait for a chain
 brief. The focused suites, the registry coverage, the decision numbers and the source pins pass on `ad7d3723`; the
 analyzer (port 6505) reports 0 warnings in 1,660 files once the journal test's duck-typed fixture fields are
 annotated.
+
+## Brendan's rulings on P-2045-7 to -10 (2026-10-19/20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion; every ruling is the recommended (a).
+Slice C cleared every function involved, with conditions.
+
+| Proposal | Ruling | What it means, with Slice C's conditions |
+|---|---|---|
+| P-2045-7 | **(a)** | WorldRoutes `edge_refusal` and `_preparation_refusal` are held for this lane. **Built as Slice C designed, not as a bare "charge once":** charging once while still scanning every time would undercount real work, and the bound is also the worst-case stall ceiling. So the repeated scan itself is skipped: `prepared_identity_refusal` (cheap) still runs on every call; the source and claim pass (`SpaceOwner.prepared_refusal`'s `_sources_refusal(true)` and `_claims_refusal(true)`) is memoised once per preparation, keyed on the Space owner's source and claim columns (as `prepared_has_changes` reads them), charged once plus the key compare; under the cache checks every skipped pass also runs in full and a difference is reported. The bracket around `_compile_edge` keeps its meaning, because real drift forces a rescan. This is the ruled "charge once", done honestly. **The memo's key is recorded below for phase-spreading stage 2** |
+| P-2045-8 | **(a)** | `_installed_record_kind`, `_installed_surface_site` and `_record_geometry_refusal` are free for exact fixes only, proved under the cache checks. Slice C's multi-heading lane edits Locations `_rebuild_allocation` (FRONTIER_HEAP_WORDS sizing): **not touched here**; a need for it stops the lane. The Placements transaction stays a fallback, asked for before it starts |
+| P-2045-9 | **(a)** | U0' is re-sized so the all-yaw walk 42 fits there and the crew turns; the clearance test is written first |
+| P-2045-10 | **(a)** | In `underground_entry_runtime.gd` (held by this lane), `STEP2_ACTIVITY_FORBIDS_WORK` waits for a work hour instead of ending the chain; decision 1940's finished-crew walk-out and alert path stay intact; a test on a real schedule shows a wait across a rest hour resumes and does not restart. The suites may hold the crew's schedule open as they hold its needs |
+
+Then: re-measure every landing (modules 3 and 4 included), reach level 1, the census pass and regeneration after the
+merge, the full sharded suite (every suite under about 8 CI-minutes), frames; stop and report. A cold operation that
+still cannot fit stops the lane with its numbers. Indexed in `docs/handoff/RULINGS.md`.

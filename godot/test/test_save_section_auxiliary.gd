@@ -125,7 +125,7 @@ func test_table_rules_and_pinned_lengths() -> void:
 	"""The compiled table is coherent and its rules are the proved ones; unproved stays zero-only."""
 	assert_true(Schema.table_refusal().is_ok(), "table_refusal accepts the compiled table")
 	assert_equal(Schema.EMPTY_SECTION_BYTES, 12446779, "the empty section length (decisions 1936/1937: +329; decision 1991: +40)")
-	assert_equal(Schema.MAX_SECTION_BYTES, 26320006, "the maximum section length (ADR1229 6b: +1,948; DEC-059: +84; decisions 1936/1937: +1,291,998; decision 1991: +33,832)")
+	assert_equal(Schema.MAX_SECTION_BYTES, 26450054, "the maximum section length (ADR1229 6b: +1,948; DEC-059: +84; decisions 1936/1937: +1,291,998; decision 1991: +33,832; decision 2044: +130,048, the room-dig record at MAX_LEGS 24)")
 	assert_equal(Schema.rule_kind_of(0, 0), Schema.RULE_FIXED, "buildings._r_spatial_kind FIXED")
 	assert_equal(Schema.rule_value_of(0, 0), 16384, "at ROOM_CAPACITY")
 	assert_equal(Schema.rule_kind_of(ECOLOGY, 0), Schema.RULE_SCALAR, "ecology._last_day")
@@ -135,7 +135,7 @@ func test_table_rules_and_pinned_lengths() -> void:
 	assert_equal(Schema.rule_value_of(ENTRY_PROGRESS, 1), 4591, "progress_record max_count (ADR1229 increment 6b)")
 	assert_equal(Schema.OWNER_KEYS[ROOM_PROGRESS], "underground_room_progress", "decision 1936's owner")
 	assert_equal(Schema.rule_kind_of(ROOM_PROGRESS, 1), Schema.RULE_BOUNDED, "the room-dig record is bounded")
-	assert_equal(Schema.rule_value_of(ROOM_PROGRESS, 1), 1215432, "at the codec's MAX_WIRE_BYTES (decision 1991: 66-byte slots)")
+	assert_equal(Schema.rule_value_of(ROOM_PROGRESS, 1), 1345480, "at the codec's MAX_WIRE_BYTES (decision 1991: 66-byte slots; decision 2044: MAX_LEGS 24)")
 	assert_equal(Schema.field_count_of(ROOM_PROGRESS), 32, "the record and fifteen declared columns, each with its length")
 	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 27), "_room_row", "the record pool's rows, before decision 1991's columns")
 	assert_equal(Schema.field_key_of(ROOM_PROGRESS, 29), "_crew", "decision 1991: the crew column")

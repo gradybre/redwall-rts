@@ -7,8 +7,9 @@ extends RefCounted
 
 const Pick := preload("res://data/underground/mole-worker/qualified-assembly-v1/endpoint_certificate.gd")
 const Claw := preload("res://data/underground/mole-worker/qualified-claw-certificate-v1/endpoint_certificate.gd")
-## ADR 1229: content 10's successor (rows 43/47, tap 57, paw handling 65 on the v2 images).
-const Claw10 := preload("res://data/underground/mole-worker/qualified-claw-certificate-v2/endpoint_certificate.gd")
+## ADR 1229: content 10's successor (rows 43/47, tap 57, paw handling 65 on the v2 images). Decision 2044 (P-2044-17
+## (a)): reached through its module-aware successor, which hands every module-0 installation to it unchanged.
+const Claw10 := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/endpoint_certificate.gd")
 ## Decision 1972: content 12 is content 10's successor and takes content 10's certificate.
 const ClawProgram10 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/claw_program.gd")
 

@@ -16,7 +16,9 @@ const Paw := preload("res://data/underground/mole-worker/qualified-claw-runtime-
 const PawPhysical := preload("res://data/underground/mole-worker/qualified-claw-runtime-v1/paw_physical_certificate.gd")
 const ClawEndpoint := preload("res://data/underground/mole-worker/qualified-claw-certificate-v1/endpoint_certificate.gd")
 const Paw10 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/paw_program.gd")
-const PawPhysical10 := preload("res://data/underground/mole-worker/qualified-claw-runtime-v2/paw_physical_certificate.gd")
+## Decision 2044 (P-2044-13 (a)): content 12's tread certificate is the module-aware M5 successor, which hands every
+## module-0 assembly (0-7) to the published v2 certificate unchanged and judges M5's later modules by its moved rules.
+const PawPhysical10 := preload("res://data/underground/mole-worker/qualified-m5-runtime-v1/paw_physical_certificate.gd")
 const PICK_INSTALL: int = 16
 
 

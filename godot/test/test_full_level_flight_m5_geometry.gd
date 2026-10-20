@@ -25,10 +25,12 @@ func _stop(layout: int, beyond: int) -> Vector3i:
 	return Vector3i(out[0], out[1], out[2])
 
 
-func test_only_the_two_layouts_are_valid() -> void:
-	"""M5 and F40; anything else refuses every derived number and leaves every packet untouched."""
-	assert_equal([Flight.layout_valid(M5), Flight.layout_valid(F40)], [true, true], "valid")
-	for bad: int in [-1, 2, 7]:
+func test_only_the_three_layouts_are_valid() -> void:
+	"""M5, its M2 interim (2044 P-2044-15) and F40; anything else refuses every derived number and leaves every
+	packet untouched."""
+	assert_equal([Flight.layout_valid(M5), Flight.layout_valid(Flight.LAYOUT_M2), Flight.layout_valid(F40)],
+		[true, true, true], "valid")
+	for bad: int in [-1, 3, 7]:
 		assert_false(Flight.layout_valid(bad), "%d" % bad)
 		assert_equal([Flight.module_count(bad), Flight.layout_row_count(bad), Flight.layout_floor_depth(bad, 0),
 			Flight.layout_tread_count(bad), Flight.tread_module(bad, 0), Flight.tread_k(bad, 0),
@@ -183,3 +185,20 @@ func test_m5_bill_is_2043_s() -> void:
 	var wrong: PackedInt64Array = PackedInt64Array([7, 7, 7])
 	assert_false(Flight.layout_fixture_bill_into(M5, wrong) or Flight.layout_total_bill_into(M5, wrong), "packet")
 	assert_equal(wrong, PackedInt64Array([7, 7, 7]), "untouched")
+
+
+func test_m2_is_m5s_first_two_modules() -> void:
+	"""Decision 2044 (P-2044-15): M2 has M5's first two modules exactly, ending on module 1's floor 2,048 u down."""
+	var m2: int = Flight.LAYOUT_M2
+	assert_equal([Flight.module_count(m2), Flight.layout_row_count(m2), Flight.layout_tread_count(m2)], [2, 12, 14],
+		"two modules, twelve rows, fourteen treads")
+	assert_equal(Flight.layout_end_wall_z(m2), -12288, "the end wall")
+	for row: int in Flight.layout_row_count(m2):
+		assert_equal(Flight.layout_floor_depth(m2, row), Flight.layout_floor_depth(M5, row), "row %d's depth" % row)
+	for tread: int in Flight.layout_tread_count(m2):
+		assert_equal([Flight.layout_tread_top_y(m2, tread), Flight.layout_tread_far_z(m2, tread),
+			Flight.layout_post_length(m2, tread), Flight.layout_is_sill(m2, tread)],
+			[Flight.layout_tread_top_y(M5, tread), Flight.layout_tread_far_z(M5, tread),
+			Flight.layout_post_length(M5, tread), Flight.layout_is_sill(M5, tread)], "tread %d" % tread)
+	assert_equal(Flight.layout_part_count(m2), 97, "the M2 bundle's 97 parts")
+	assert_equal(Flight.module_translation(m2, 2), Vector3i(0, 1, 0), "no third module")

@@ -8,7 +8,9 @@ const WorkArea := preload("res://scripts/core/underground_entry_work_area.gd")
 const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 ## Decision 1972: the T1-T6 first-entry bundle v10 on content 12 (ADR1229 mounted v9 on content 10; ADR1217 step 5
 ## the claw bundle, content 9).
-const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-v10/catalog_source.gd")
+## Decision 2044: the M2 interim (`qualified-stairs-m2-v1`, 97 parts, Frontier revision 10; P-2044-15), the first
+## two modules of the M5 flight to level 1 (the target), v10's successor.
+const Bundle := preload("res://data/underground/first-entry-prefix-v1/qualified-stairs-m2-v1/catalog_source.gd")
 const CATALOG_ROW: int = 0 # The bundle structure has exactly one entry variant.
 const CELL_U: int = 1024
 const REFUSE_NONE_FOUND: StringName = &"ENTRY_SITE_NONE_FOUND"

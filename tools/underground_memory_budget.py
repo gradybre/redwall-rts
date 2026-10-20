@@ -626,9 +626,13 @@ def entry_bindings_reservation(index: dict) -> dict:
     expected = {"_entry_frontier": "Frontier", "_entry_placements": "Placements", "_entry_authority": "AdmissionAuthority",
         "_entry_request": "EntryPlan.Request", "_entry_pin": "EntryPlan.Request", "_placement_request": "Placements.Request",
         "_entry_candidate": "Directory.CreateCandidate", "_entry_anchor": "Locations.Record", "_entry_contact": "Locations.Record",
-        "_entry_transform": "Connectors.Placement", "_entry_row": "PackedInt32Array", "_entry_bearing": "PackedInt32Array"}
+        "_entry_transform": "Connectors.Placement", "_entry_row": "PackedInt32Array", "_entry_bearing": "PackedInt32Array",
+        "_entry_cube_keys": "PackedInt64Array", "_entry_cube_masks": "PackedInt32Array"}
     assert {k: v for k, v in fields.items() if v not in {"int", "bool", "Vector2i", "Vector3i"}} == expected, \
         "unreconciled EntryBindings retained member"
+    # Decision 2044 (P-2044-10 (a)): the confirmation's cube index grows by append only, one key and mask a whole
+    # episode cube; the current census charges it from the mounted Frontier (first_entry_runtime_chain).
+    assert not re.search(r"_entry_cube_(?:keys|masks)\.resize\(", source), "cube index is appended, never resized"
     record = class_body(index["underground_locations"].text, "Record")
     boxes = RECORD_BOXES
     packets = sum(anchor_packet_bytes(record, boxes, name, source) for name in ("_entry_anchor", "_entry_contact"))

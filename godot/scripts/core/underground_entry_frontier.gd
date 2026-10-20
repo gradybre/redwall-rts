@@ -21,10 +21,16 @@ const ENDPOINT: int = 4
 const EPISODE: int = 5
 const NATURAL: int = 0
 const INSTALLED_PART: int = 1
+## Decision 2044 (P-2044-12 (a)): a support strip of natural floor that a stop or a walk stands on. Its second field
+## names the EPISODE whose BRACE start retires it (the entry structure's hook), or -1 when it is never retired.
+const STRIP: int = 2
 const SURFACE_ANCHOR: int = 0
 const INSTALLED_CONTACT: int = 1
 const SURFACE_CONTACT: int = 2
 const MAX_ROWS: int = 2048
+## Decision 2044: the M2 interim mounted today needs 16,232 B and fits unchanged. P-2044-2 (a)'s raise to M5's
+## measured 51,476 B (36 installs, 190 stations, 26 cuts, 235 bearings, 301 endpoints, 154 episodes) lands with M5:
+## the shared bindings reserve (`Budget.BINDINGS_AND_GROWTH_BYTES`) is fully assigned and must grow with it.
 const MAX_BYTES: int = 28597 # 36789 remaining, less separate4096 Contacts and4096 EntryBindings.
 const FIXED_BYTES: int = 2048 # Exact header, capacities, streamed row and logical helper allowance.
 const WIRE_HEADER_BYTES: int = 220
@@ -435,6 +441,8 @@ func _bearing_refusal(row: int) -> StringName:
 	var part: int = _field(BEARING, row, 2)
 	if kind == NATURAL:
 		if assembly != -1 or part != -1: return REFUSE_REFERENCE
+	elif kind == STRIP:
+		if part != -1 or (assembly != -1 and not _valid_row(EPISODE, assembly)): return REFUSE_REFERENCE
 	elif kind == INSTALLED_PART:
 		if not _valid_row(INSTALL, assembly): return REFUSE_REFERENCE
 		if part < _assemblies._first_part[assembly] \

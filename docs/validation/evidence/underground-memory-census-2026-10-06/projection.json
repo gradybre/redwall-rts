@@ -92,6 +92,10 @@
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_connector_source_facts.gd-2acb5aac8231.txt",
       "sha256": "2acb5aac8231fad21c26ce321f7c1d03576f0e4d39c3eb3ae5a6a8d146c50160"
     },
+    "godot/scripts/core/underground_entry_structure.gd": {
+      "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_entry_structure.gd-4965b8e31417.txt",
+      "sha256": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa"
+    },
     "godot/scripts/core/underground_entry_world_bindings.gd": {
       "locator": "docs/validation/evidence/underground-memory-census-2026-10-06/reviewed-sources/underground_entry_world_bindings.gd-dcc07743ea14.txt",
       "sha256": "dcc07743ea142f4665e939387726fdcbf2a4db609f1f9047c606d3e405550c0b"

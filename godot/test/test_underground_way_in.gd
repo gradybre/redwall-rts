@@ -507,7 +507,30 @@ func test_a_cell_whose_cube_would_wrap_int32_is_never_placed() -> void:
 	if _runtime == null: return
 	var c: Front.Candidate = _kitchen_candidate()
 	var request: Approach.Request = _request(Phase.Z)
-	request.cells = PackedInt32Array([1 << 21, 0])
+	request.cells = PackedInt32Array([1 << 22, 0]) # 2^22 m wraps an int32 cube back onto cell (0, 0)'s.
 	assert_false(Front.cell_in_range(request, 0), "out of range")
 	assert_false(Front.place(_h._profiles, request, _access(), 0, c), "never placed")
 	assert_true(Front.cell_in_range(_request(Phase.Z), 0), "an ordinary cell")
+
+
+func test_a_wall_row_at_another_yaw_than_its_walk_is_refused_by_the_heading() -> void:
+	"""The approach's own rule: the forward row walks at the wall row's yaw, or the heading offers nothing."""
+	if _runtime == null: return
+	var foot: WayIn.Foot = _h.foot()
+	foot.wall_rows = PackedInt32Array([_wall_at_another_yaw()])
+	assert_equal(Front.heading_into(_h._profiles, foot, 0, Front.Candidate.new()), Front.REFUSE_NO_FRONT, "refused")
+	assert_equal(Front.heading_into(_h._profiles, _h.foot(), 0, Front.Candidate.new()), &"", "the paired heading")
+
+
+func test_a_patch_reaching_past_its_cube_is_not_on_the_face() -> void:
+	"""The patch must lie inside the struck cube on its other two axes: one unit past the cube's top is refused."""
+	if _runtime == null: return
+	var c: Front.Candidate = _kitchen_candidate()
+	var cube: Vector3i = Vector3i(Phase.X + 2048, Phase.FLOOR, Phase.Z)
+	var point: Vector3i = Vector3i(cube.x - c.patch_low.x, Phase.FLOOR, Phase.Z + 512)
+	assert_true(Front.patch_on_face(c, point, cube, cube.x), "the Kitchen's patch")
+	c.patch_high.y = 1024
+	assert_true(Front.patch_on_face(c, point, cube, cube.x), "up to the cube's top")
+	c.patch_high.y = 1025
+	assert_false(Front.patch_on_face(c, point, cube, cube.x), "one unit past its top")
+	assert_false(Front.patch_on_face(c, point + Vector3i(1, 0, 0), cube, cube.x), "off the face plane")

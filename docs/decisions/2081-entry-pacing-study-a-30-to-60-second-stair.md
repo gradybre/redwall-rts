@@ -1,7 +1,8 @@
 # 2081 — Entry pacing study: what a 30–60 second full-level stair would take (stopped for rulings)
 
-Date: 2026-10-20 · Status: **Proposed.** A docs-only study. No code, data or test is changed. It waits on Brendan's
-rulings P-2081-1 to P-2081-9 below.
+Date: 2026-10-20 · Status: **Accepted.** A docs-only study; no code, data or test is changed. Brendan ruled P-2081-1
+to P-2081-9 on 2026-10-20, all (a) as recommended (see "Brendan's rulings"). The batched build is a new lane after M5
+merges; its brief is the last section.
 
 Number: **2081**, from the range 2081–2089 the coordinator gave this study. It was checked free on every local and
 remote ref (`git for-each-ref refs/heads refs/remotes`, then `git ls-tree` of each ref's `docs/decisions/`); 2051, 2052
@@ -15,6 +16,26 @@ be ~30s–1m"**. He confirmed the reading: **the whole full-level stair, from Co
 30–60 real seconds at 1x game speed.** He asked for options before anything changes: **"Study options first"**.
 
 At 1x the game runs 30 ticks a second (REQ-SET-002), so the target is **900–1,800 ticks**, midpoint 1,350.
+
+## Brendan's rulings (2026-10-20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion. Every proposal is **(a)**, as
+recommended.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2081-1, P-2081-2 | **(a), "Batched build + time scale"** | The full-level stair keeps M5's geometry, bill and final state and is built in a few long episodes per module at one entry time scale on everything the entry crew does, set so the build lands near 45 s. **The batched build's transitions are measured first; the lane stops if their real-time sum exceeds about 15 s** |
+| P-2081-9 | **(a), "Finish M5, then batch"** | M5 finishes as briefed and lands as the exact, per-cube reference; the batched build is a new lane after it merges. D2 carries on meanwhile |
+| P-2081-3 | **(a), "Approve all"** | The entry crew never hauls; the village's haulers keep M stocked (the labelled stand-in now, HAUL-H3+ later); an empty M makes the build wait and say so |
+| P-2081-4 | **(a), "Approve all"** | Deep spoil goes to the foot's ground pile (P-2042-4 (a), P-2052-2); haulers carry it up later, off the build's clock |
+| P-2081-5 | **(a), "Approve all"** | A started stair build runs to the end through rest and sleep hours; DEC-059's shift change stays as the safety net |
+| P-2081-6 | **(a), "Approve all"** | One crew, as today |
+| P-2081-7 | **(a), "Approve all"** | No entry-only clock, no world skip, no way shown open before it is open |
+| P-2081-8 | **(a), "Approve all"** | Entry only for now; rooms keep DEC-059's rates; a room-pace study follows D2 |
+
+Indexed in `docs/handoff/RULINGS.md`. The rulings are engineering scope for the entry; the policy numbers (the entry
+time scale, the rest exemption) become a `DEC-nnn` in `docs/setting_decisions.md` when the batched lane fixes them by
+measurement (its step 2 below).
 
 ## In short
 
@@ -420,6 +441,64 @@ the batched build is checked against.
 5. **Phase-spreading stage 2** (decision 1953) stays "After M5, re-measure". It is a prerequisite for every
    per-cube option (about 25 minutes of transitions today) and the fallback for (g) if its commits' real time does
    not fit.
+
+## Batched build lane: brief
+
+For the coordinator to start after M5 (`feat/slice-d-m5-full`, decision 2045) merges, as ruled (P-2081-9).
+
+- **Decision range: 2082–2089** (proposed; free on every ref on 2026-10-20). 2082 is the lane's record.
+- **Branch:** `feat/entry-batched-build` from origin/master after M5's merge, in its own worktree.
+
+**Scope.**
+
+1. **The batched plan.** A create-only Frontier successor of `qualified-stairs-m5-v1` whose episodes are blocks, not
+   cubes: per module, one or a few dig episodes (the module's cubes, braced, cut and finished, committed per block)
+   and one fitting episode (the module's installs), with one claw entry and recovery per episode. Geometry, parts,
+   bill, spoil and the final installed state stay M5's, byte for byte where the census and checkpoints compare them.
+2. **The entry time scale** (P-2081-2): one integer factor applied to every duration of the entry crew's Work and
+   motion (work amounts, clips, walks, stair edges), entry episodes only; rooms and other residents unchanged. The
+   value is set by measurement so the whole build lands near 1,350 ticks; it and the rest exemption are written as a
+   `DEC-nnn` for Brendan, with BAL-UG-001's entry rows and SET-BUILD-001 §9.
+3. **Logistics:** the crew never hauls (P-2081-3: a stocked-M wait with words when M is empty; the labelled stand-in
+   stocks M until HAUL-H3+); deep spoil to the foot pile (P-2081-4); no schedule pause once begun (P-2081-5); one crew
+   (P-2081-6).
+4. **Out of scope:** room digs (P-2081-8), any fast-forward or early "open" (P-2081-7), stair-leg Delivery, 2b-2 and
+   phase-spreading stage 2 (each its own lane).
+
+**Claims it inherits from M5** (decision 2044 "The file claims", plus 2045's clearances), released by the M5 lane on
+merge and re-confirmed with Slice C before editing:
+
+- `underground_entry_foreman.gd` (the block plan replaces the per-cube plan; the per-cube path stays for the reference
+  suites), `underground_entry_installer.gd`, `underground_entry_hauler.gd` (idle on the entry path),
+  `underground_entry_stair_path.gd`, `underground_entry_bindings.gd`, `underground_entry_work_area.gd`,
+  `underground_entry_site.gd`, `underground_entry_composition.gd`, `underground_route_composition.gd`,
+  `underground_entry_frontier.gd` (`MAX_BYTES`), `underground_entry_contact_retirement_scope.gd`,
+  `underground_entry_progress.gd` (save v4; a v5 if the block plan's record needs it), `underground_entry_runtime.gd`,
+  `underground_connector_contacts.gd`, `data/underground/runtime_files.gd`, the M5 publisher and bundle (a successor,
+  never an edit), `flight_geometry.gd`, `qualified-m5-runtime-v1/tread_geometry.gd`;
+- the held functions in `underground_locations.gd` (`_installed_row_site`, `_installed_record_kind`,
+  `_installed_surface_site`, `_record_geometry_refusal`; not `_rebuild_allocation`) and `underground_world_routes.gd`
+  (`_carry_eligible`, `_profile_edge_refusal`, `edge_refusal`, `_preparation_refusal`);
+- the census, memory pack, ledger rows, ADR 1240 checkpoints, pins and registry rows, in one pass at the end.
+- **Not claimed:** `underground_routes.gd` (a clip and edge playback scale there needs Slice C's agreement first),
+  Profiles, stair motion, the connector catalog and placements, the Session, the room builder and foreman.
+
+**The gate to pass first (before any runtime change).**
+
+1. On M5's merged mount, with the cache checks off as production runs: commit a candidate block (start with one
+   module's top-metre layer, then P-2045-5's two-row blocks if that refuses) in a scratch harness, and record for
+   every transition the build would make its check spend against `Space.MAX_CHECKS` (no raise, P-2044-15) and its
+   wall time.
+2. **Stop and report if** any transition exceeds `Space.MAX_CHECKS`, or the transitions' real-time sum for the whole
+   build exceeds **about 15 s** on the development Mac (Brendan's condition on P-2081-1). The report gives the numbers
+   and the fallback: phase-spreading stage 2 first (decision 1953, "After M5, re-measure").
+3. Only then the DEC for the time scale, the successor bundle and the block foreman, the whole-build suite (asserting
+   on the entry's state, never on a tick count from today's chain, as P-2052-8 asks), the census pass, the full sharded
+   gates, mutation, an independent review and frames at 1280×720 and 1920×1080.
+
+**Tests that change.** M5's whole-flight suites stay as the per-cube reference. `test_underground_m5_rest_wait.gd`
+keeps its own schedule for the per-cube path; the batched path adds a test that a started build runs through a rest
+hour (P-2081-5).
 
 ## Source
 

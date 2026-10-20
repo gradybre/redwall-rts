@@ -13,6 +13,9 @@ Number range: 1895–1899 was allocated to this lane by the coordinator. This la
 - 2026-10-12, in chat via AskUserQuestion, on the PROPOSALS below (each the recommended option):
   - Proposals 1 and 4, **"Approve both"**: the local runner keeps CI's 10 shards and 4 jobs as its default (pass
     `--jobs 5` on an idle machine); the CI weights are refreshed from this branch's first CI run once it merges.
+    *Note (2026-10-20, decision 1943):* CI now runs 12 Godot shards, not 10 (the coordinator's call, when decision
+    1943's room coverage matrix added about 1,100 s of suite time); the local runner reads the count from the
+    workflow, so its default follows. No guard or timeout was raised.
   - Proposals 2 and 3, **"Approve both"**: `test_underground_host_whole_chain.gd` and
     `test_underground_paid_assembly_handling.gd` stay unsplit until a CI shard nears its 30-minute guard; checkpoint
     files stay committed, revisited at about 50 MB of growth.

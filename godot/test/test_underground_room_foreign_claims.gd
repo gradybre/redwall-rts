@@ -170,7 +170,14 @@ func test_a_work_station_box_may_not_meet_another_rooms_claim() -> void:
 		q.envelope = PackedInt32Array([point.x - 400, point.y, point.z + int(extent[0]), point.x + int(extent[2]),
 			point.y + 900, point.z + int(extent[1])])
 		q.air_counts[0] = 0
+		var before: int = q.remaining
 		assert_equal(Planner._foreign_claim(q, 0, point), row[3], row[4])
+		assert_equal(q.remaining, before, "the claims table answers without scanning the owner: " + row[4])
+		var table: int = q.claim_count
+		q.claim_count = -1 # More claimed rows than the table holds: the owner itself is scanned, to the same answer.
+		assert_equal(Planner._foreign_claim(q, 0, point), row[3], "scanning the owner: " + row[4])
+		assert_true(q.remaining < before, "the owner scan spends its checks")
+		q.claim_count = table; q.remaining = before
 	q.air_counts[0] = 1 # One claimed box: it is the published envelope, whatever the one AABB was.
 	for axis: int in 6: q.air[axis] = q.envelope[axis]
 	q.envelope = PackedInt32Array([in_corridor.x - 400, in_corridor.y, in_corridor.z - 400, in_corridor.x + 1400,

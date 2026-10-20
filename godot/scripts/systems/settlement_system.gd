@@ -2094,7 +2094,9 @@ func order_painted_room(painted: UndergroundRoomConfirm.Painted) -> UndergroundR
 		code = result.code
 	result.code = code
 	if code != &"":
-		_alert_underground_room(code)
+		var words: String = UndergroundRoomConfirm.pick_words(code, _underground_rooms.bound_owners(), painted.crew) \
+			if painted != null and _underground_rooms != null else ""
+		_alert_underground_room(code, words)
 		_refuse(code)
 	else: _last_refusal = REFUSE_NONE
 	return result
@@ -2390,10 +2392,12 @@ func _advance_underground_rooms(tick_index: int) -> void:
 		_alert_underground_room(code)
 
 
-func _alert_underground_room(code: StringName) -> void:
-	"""The exact refusal code, then what stopped (the room's record keeps it; decision 1933)."""
+func _alert_underground_room(code: StringName, words: String = "") -> void:
+	"""The exact refusal code, then what stopped (the room's record keeps it; decision 1933): in words for a pick
+	refusal (decision 1943, P-1943-1), else the code."""
 	UIManager.push_refusal(code)
-	UIManager.push_alert("An underground room stopped being dug: %s" % code)
+	var said: String = words if words != "" else UndergroundRoomConfirm.pick_words(code)
+	UIManager.push_alert("An underground room stopped being dug: %s" % (said if said != "" else String(code)))
 
 
 func _alert_underground_entry(code: StringName) -> void:

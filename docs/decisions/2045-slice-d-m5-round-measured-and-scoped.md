@@ -500,6 +500,7 @@ with the numbers.
 
 ### Gates
 
-Not run: the census pass, the full sharded suite, the analyzer over the new code and the frames wait for a chain
-that reaches level 1, per the brief. The focused suites, the registry coverage, the decision numbers and the
-source pins pass on `ad7d3723`.
+Not run: the census pass, the full sharded suite and the frames wait for a chain that reaches level 1, per the
+brief. The focused suites, the registry coverage, the decision numbers and the source pins pass on `ad7d3723`; the
+analyzer (port 6505) reports 0 warnings in 1,660 files once the journal test's duck-typed fixture fields are
+annotated.

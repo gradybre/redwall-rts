@@ -8,6 +8,7 @@ const Space := preload("res://scripts/core/room_space.gd")
 const BOX: Array[int] = [0, -1024, 0, 1024, 0, 1024]
 
 
+@warning_ignore_start("unused_private_class_variable") # Read only by the journal, through duck typing.
 class FakeOwner extends RefCounted:
 	## The SpaceOwner columns the journal reads, live (`_r_`) and staged (`_s_r_`), for one region slot.
 	var _region_capacity: int = 1
@@ -37,6 +38,7 @@ class FakeOwner extends RefCounted:
 	var _s_r_hi_x: PackedInt32Array = PackedInt32Array([BOX[3]])
 	var _s_r_hi_y: PackedInt32Array = PackedInt32Array([BOX[4]])
 	var _s_r_hi_z: PackedInt32Array = PackedInt32Array([BOX[5]])
+@warning_ignore_restore("unused_private_class_variable")
 
 
 func _changes(owner: FakeOwner) -> int:

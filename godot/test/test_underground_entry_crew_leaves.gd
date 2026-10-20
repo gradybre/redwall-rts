@@ -1,25 +1,13 @@
 extends "res://test/underground_host_case.gd"
 ## Decision 1940: once the live entry is done, its crew leaves the underground route roster from rest and walks out
-## to H by ADR1219's timed walk, reserved until it arrives; a lost crew's actor is removed. Each test runs the whole
-## entry to its finishing tick first (DESCENT_DONE_TICK), so this suite is in the slow tier.
+## to H by ADR1219's timed walk, reserved until it arrives. The test runs the whole entry to its finishing tick first
+## (DESCENT_DONE_TICK), so this suite is in the slow tier. A lost crew's removal is in
+## test_underground_entry_crew_lost_at_finish.gd (split so CI can shard the two whole flights apart; decision 2044, CI
+## time); `_finished_entry()` is underground_host_case.gd's.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Haul := preload("res://scripts/core/haul_planner.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
-
-
-func _finished_entry() -> Array:
-	"""[owners, runtime, crew worker, its resident row, next tick] of the live entry run to its finishing tick."""
-	var live: Array = _begin_live_entry()
-	var o: Session.Retirement.Owners = live[0]
-	var entry: Settlement.UndergroundEntryRuntime = live[1]
-	var tick: int = 1
-	while entry.is_running() and tick < FLIGHT_TICK_LIMIT:
-		_sustain(o, entry, tick) # Decision 2044: the M2 flight outlasts the cohort's means (see DESCENT_DONE_TICK).
-		assert_true(_host.run_tick(tick), "the settlement tick itself never fails: %s" % _host.last_refusal())
-		tick += 1
-	assert_equal(tick - 1, DESCENT_DONE_TICK, "the entry finished on its own tick")
-	return [o, entry, live[2], o.residents.directory().get_typed_row(live[2]), tick]
 
 
 func _walk_out_ticks(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime, row: int,
@@ -30,13 +18,6 @@ func _walk_out_ticks(o: Session.Retirement.Owners, entry: Settlement.Underground
 	var length: int = Settlement.UndergroundEntryRuntime.ceil_length(entry._anchor - Vector3i(from.x, from.y, from.z))
 	assert_true(speed.ok and Haul.travel_ticks_into(length, speed.value, ticks), "the walk out is timed")
 	return ticks.value
-
-
-func _pose(o: Session.Retirement.Owners, worker: Vector2i) -> Transforms.Pose:
-	"""The resident's current Transform."""
-	var pose: Transforms.Pose = Transforms.Pose.new()
-	assert_true(o.transforms.read_into(worker, pose), "the crew has a Transform")
-	return pose
 
 
 func _assert_finished_crew_is_held(o: Session.Retirement.Owners, entry: Settlement.UndergroundEntryRuntime,
@@ -125,23 +106,3 @@ func _assert_arrived(o: Session.Retirement.Owners, entry: Settlement.Underground
 	assert_true(worker in _eligible_moles(o), "an idle mole again, holding no Job")
 	assert_equal(o.routes._occupancy_expected_revision, o.transforms.mutation_revision(), "occupancy rebuilt")
 	assert_equal(entry.advance(DESCENT_DONE_TICK + 10000), &"", "a left crew's entry no longer ticks")
-
-
-func test_a_finished_crew_lost_before_it_leaves_is_removed_from_the_roster() -> void:
-	"""Decision 1940, ADR1225: a crew that dies on its last station is removed from the roster where it lies; it walks
-	nowhere, and the entry stops leaving and reserving it."""
-	var done: Array = _finished_entry()
-	var o: Session.Retirement.Owners = done[0]
-	var entry: Settlement.UndergroundEntryRuntime = done[1]
-	var worker: Vector2i = done[2]
-	var row: int = done[3]
-	var stood: Transforms.Pose = _pose(o, worker)
-	_kill(o, worker)
-	assert_true(_host.run_tick(done[4]), "the tick it is removed: %s" % _host.last_refusal())
-	assert_true(o.routes._lost_actor_row(worker) < 0, "the lost crew's actor is removed")
-	assert_equal(entry.walk_ticks_left(), 0, "it walks nowhere")
-	var at: Transforms.Pose = _pose(o, worker)
-	assert_equal(Vector3i(at.x, at.y, at.z), Vector3i(stood.x, stood.y, stood.z), "it lies where it rested")
-	assert_false(entry.is_leaving(), "the entry is not leaving any more")
-	assert_false(entry.reserves_resident(row), "nor reserving it")
-	assert_equal(entry.error(), Settlement.UndergroundEntryRuntime.REFUSE_KITCHEN_UNBUILT, "G9 still held")

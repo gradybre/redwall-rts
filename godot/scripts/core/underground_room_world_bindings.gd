@@ -942,21 +942,36 @@ func _ordinary_local_leaf(purpose: int) -> StringName:
 
 
 func _ordinary_occupants_leaf(except_worker: Vector2i) -> StringName:
-	"""Every living actual resident needs a current full physical selection, including released terminal workers."""
+	"""Every living actual resident needs a current full physical selection, including released terminal workers.
+	Decision 1991 (C3, a C2 defect; ADR1219's rule, as `Routes._assembly_occupants_leaf`): a living resident who is not
+	a route actor (a surface resident, a crew member not yet arrived) occupies its reach cube around its Transform
+	instead, tested against the working actor's body at its WORK location; the working actor itself must be one."""
 	var graph: RoomRoutes = _ordinary_config.routes
 	var residents: RoomResidents = graph._residents
 	for row: int in RoomRoutes.RESIDENT_CAPACITY:
 		if not _entry_spend(8): return ROOM_REFUSE_CAPACITY
 		if residents._present[row] != 1 or residents._needs._present[row] != 1 or residents._needs._health[row] <= 0: continue
 		var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
-		if RoomFace.FinishCheck._typed_row(graph._ids, worker, Directory.KIND_RESIDENT) != row \
-			or graph._resident_ref(row) != worker: return ROOM_REFUSE_WORKER
+		if RoomFace.FinishCheck._typed_row(graph._ids, worker, Directory.KIND_RESIDENT) != row: return ROOM_REFUSE_WORKER
+		if graph._resident_ref(row) == NULL_REF and worker != except_worker:
+			if not _entry_spend(16): return ROOM_REFUSE_CAPACITY # ADR1219's reach test, 16 checks per row.
+			var missing: StringName = RoomRoutes.unregistered_body_refusal(graph, row, _ordinary_work_point())
+			if missing != &"": return missing
+			continue
+		if graph._resident_ref(row) != worker: return ROOM_REFUSE_WORKER
 		if worker == except_worker: continue
 		if not _entry_spend(256): return ROOM_REFUSE_CAPACITY
 		var code: StringName = RoomRoutes.physical_selection_into(graph, row, graph._occupant_selection)
 		if code == &"": code = _ordinary_occupant_boxes(graph._occupant_selection)
 		if code != &"": return code
 	return &""
+
+
+func _ordinary_work_point() -> Vector3i:
+	"""The working actor's root: its WORK location, which `_ordinary_worker_leaf` proved its selection stands on."""
+	var location: Vector2i = _ordinary_query.location
+	return Vector3i(_ordinary_location(location, RoomLocations.X), _ordinary_location(location, RoomLocations.Y),
+		_ordinary_location(location, RoomLocations.Z))
 
 
 func _ordinary_occupant_boxes(actor: EntryProfiles.Selection) -> StringName:

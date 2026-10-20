@@ -40,7 +40,7 @@ class CurrentCensusTests(unittest.TestCase):
                          # decision 2044 (M2): +3,896 Locations pass caches; +21,192 entry chain (P-2044-8 bounds, M2 Frontier)
                          "locations_carry_and_retirement_controls": 10258, "first_entry_runtime_chain": 36323,
                          "cold_load_images": 196694, "claw_stair_tables": 43364, # ADR1229: the T1-T6 plan and tables; decision 1972: +33,784 stair-carry tables
-                         "room_dig_runtime": 5612662, # decision 1936 at every bound; decision 2044 P-2044-8: MAX_LEGS 24
+                         "room_dig_runtime": 5646982, # decision 1936 at every bound; decision 1991: +34,320 (crew, release flag, filter, wider image); decision 2044 P-2044-8: MAX_LEGS 24 (+263,168)
                          "world_routes_endpoint_memo": 140872, # decision 1952: the endpoint-proof memo
                          "world_routes_compile_memos": 19048}) # decision 1953: the route compile memos
         self.assertEqual(result["room_publication_controls"]["controls"], 8970)
@@ -73,12 +73,12 @@ class CurrentCensusTests(unittest.TestCase):
         """Decisions 1936/1937: the record pool, kept foremen, orders, one shared extent table, 256 builders and one
         record image at MAX_WIRE_BYTES."""
         result = census.build(self.index, self.projected, self.motion)["room_dig_runtime"]
-        self.assertEqual(result["rows"], {"runtime_record": 16896, "runtime_numeric": 2075, "foremen_numeric": 49664,
+        self.assertEqual(result["rows"], {"runtime_record": 33792, "runtime_numeric": 2603, "foremen_numeric": 49664,
                                           "orders_and_marks": 369545, "row_extents": 6144, "builders": 3839744,
-                                          "progress_record": 1328594}) # Decision 1937 (P-1937-1 B-E)
+                                          "progress_record": 1345490}) # Decision 1937 (P-1937-1 B-E); decision 1991
         # Decision 2044 (P-2044-8): the shared EntryProgress.MAX_LEGS 24 widens each builder's haul legs and record.
-        self.assertEqual(result["wire"]["MAX_WIRE_BYTES"], 1328584)
-        self.assertEqual(result["rows"]["progress_record"], 1328584 + 10) # one image
+        self.assertEqual(result["wire"]["MAX_WIRE_BYTES"], 1345480)
+        self.assertEqual(result["rows"]["progress_record"], 1345480 + 10) # one image
         text = self.index["underground_room_footprint"].text.replace("const MAX_BOXES: int = 512", "const MAX_BOXES: int = 1024")
         grown = census.room_dig_runtime(memory, self.changed("underground_room_footprint", text))
         self.assertEqual(grown["rows"]["builders"] - result["rows"]["builders"], 256 * 512 * 24)
@@ -141,7 +141,7 @@ class CurrentCensusTests(unittest.TestCase):
     def test_joint_pack_fits_the_raised_gate(self):
         result = memory.build()
         self.assertEqual((result["live_with_reserve_bytes"], result["gate_bytes"], result["headroom_bytes"]),
-                         (106086940, 150000000, 43913060)) # decision 2044 (M2): +288,256 (room dig +263,168 and entry chain +21,192 from P-2044-8's bounds, Locations +3,896); decision 1953: +19,048 route compile memos; ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo; decision 1972: +33,784 stair-carry tables, +4,096 profile reserve
+                         (106121366, 150000000, 43878634)) # decision 2044 (M2): +288,256 (room dig +263,168 and entry chain +21,192 from P-2044-8's bounds, Locations +3,896); decision 1991: +34,426; decision 1953: +19,048 route compile memos; ADR1229: +5,680 entry chain, +9,580 stair tables; 6b: +808 chain, +6,201 Locations witness-pass cache; DEC-059 P1: +296 chain legs; decision 1936: +5,349,494 room-dig runtime (P-1937-1 B-E), +783 declaration; decision 1952: +140,872 endpoint memo; decision 1972: +33,784 stair-carry tables, +4,096 profile reserve
 
     def test_publication_controls_refuse_above_their_ceiling(self):
         text = self.index["underground_room_frontier_publication"].text.replace(

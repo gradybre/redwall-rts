@@ -34,6 +34,8 @@ const REFUSE_STUCK: StringName = &"ROOM_FOREMAN_NO_CUBE_REACHABLE"
 ## Every builder that could still move waits on another's body or footprint: nothing can ever change.
 const REFUSE_BLOCKED: StringName = &"ROOM_FOREMAN_CREW_BLOCKED"
 const REFUSE_NOT_DONE: StringName = &"ROOM_FOREMAN_SITES_NOT_DONE"
+## Decision 1991, P-1990-5 (a): the player stopped the dig ("Stop digging"); not a fault.
+const REFUSE_PLAYER_STOP: StringName = &"ROOM_DIG_STOPPED"
 
 
 var _ctx: Builder.Context = null
@@ -305,6 +307,35 @@ func _same_column(a: int, b: int) -> bool:
 	return _key(a) % plane == _key(b) % plane
 
 
+func retirable_station(builder: Builder) -> Vector2i:
+	"""Decision 1942: the WORK station an idle builder last worked from, once every cube of that cube's column is done
+	(no unfinished cube of it still needs the station), while the dig runs or after it finished; else null."""
+	if _state == STATE_FAILED or not builder.idle() or builder.walking() or builder.station() == NULL_REF: return NULL_REF
+	if _state == STATE_DONE: return builder.station() # Every cube is done (a finished dig keeps no order: decision 1937).
+	return builder.station() if _column_done(builder.last_site()) else NULL_REF
+
+
+func _column_done(site: Vector2i) -> bool:
+	"""Every cube of the order in the same column as `site` (one cell's painted height) is done."""
+	var sites: Sites = _ctx.owners.sites
+	if site == NULL_REF or not sites.is_live_site(site): return false
+	var plane: int = sites._domain.size_quanta.x * sites._domain.size_quanta.z
+	var column: int = sites._site_key[site.x] % plane
+	var found: bool = false
+	for at: int in _cube.size():
+		if sites._site_key[_order.rows[at]] % plane != column: continue
+		if _cube[at] != CUBE_DONE: return false
+		found = true
+	return found
+
+
+func holds(ref: Vector2i) -> bool:
+	"""Decision 1942: one of this dig's builders still holds the endpoint (`Builder.holds`)."""
+	for builder: Builder in _builders:
+		if builder.holds(ref): return true
+	return false
+
+
 func _key(at: int) -> int:
 	"""One order entry's Site key, Sites' own lattice rank of the cube (decision 1937: not kept in the order)."""
 	return _ctx.owners.sites._site_key[_order.rows[at]]
@@ -356,6 +387,15 @@ func _halt(code: StringName) -> StringName:
 		var released: StringName = builder.abandon()
 		if released != &"" and _abandon_error == &"": _abandon_error = released
 	return code
+
+
+func stop() -> StringName:
+	"""Decision 1991, P-1990-5 (a): the player's Stop, through the one stopping path (`_halt`): each builder's open
+	phase is released (an unpaid one cancelled, a paid one kept for a re-order to take over) and the crew walks out
+	from rest. Only a running dig stops."""
+	if _state != STATE_DIGGING: return REFUSE_STATE
+	_halt(REFUSE_PLAYER_STOP)
+	return &""
 
 
 func reserves_resident(resident_slot: int) -> bool:

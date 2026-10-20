@@ -1130,11 +1130,29 @@ chalk ("Waiting for the mole: N cells"); the cell being dug deepens as the mole 
 burrow mouth on the surface, and its landing below has stairs rising out of it; a Way down whose landing is dug has
 stairs going down into the dark (`demo_build_ways.gd`). The tags and the names over the figures never sit on each other
 (`demo_build_tags.gd`). With residents selected, a **right click** on a dug cell's floor sends them down into it.
-Slice C3 replaces all of this with the settlement's own room foreman, excavation and payment. Nothing here is saved.
+Slice C3 (decision 1991; Brendan's ruling P-1990-1 (b), "Keep the mole, build real") built the real route in the game's
+code behind it (`scripts/core/underground_room_confirm.gd`: RoomOrders admits the painted room, the room foreman digs
+it, each phase paying when its work starts); slice D2 switches the panel to it once a level has a way in, and retires
+this mole. Nothing here is saved, and nothing is paid (P-1990-2 (a), "Stays free, show bill").
 
 Checks: `test_build_*.gd` (batch, stroke, cell validity, items, validity, catalog, panel, ledger, layout),
 `test_demo_build_panel.gd`, `test_demo_build_works.gd`, `test_demo_build_dig.gd`, `test_demo_build_orders.gd`, and
 the live harnesses `test/live/demo_input_live.gd` (build steps) and `test/live/demo_build_dig_live.gd` (the whole loop).
+
+### The crew and Stop digging (decision 1991)
+
+Brendan's rulings of 2026-10-19, P-1990-4 (a) "Selected moles crew it" and P-1990-5 (a) "One Stop digging". **The
+crew**: the moles selected when Confirm all is pressed (1 to 4; with no mole in the village, the selected residents)
+crew every room and way that batch ordered, and dig its cells side by side, each cell claimed by one of them
+(`demo_build_crews.gd`, `demo_build_works.gd` `crew_of` / `claim`); with none selected, the first free mole digs as
+before. The footer's ledger names the crew by first name before you confirm ("Crew: Tuppen, Bramble"). **The room
+card** (UI-BUILD-015): with no card chosen, click a confirmed room on its level -- the card says how far it is dug, who
+digs it, and that this is the proof of concept. **Stop digging** (UI-BUILD-016): the room's cells still waiting go back
+to earth and back into your plan as one pending room (Undo takes them out again); what is dug stays dug, and the room's
+dug cells count toward the put-back part's 2 × 2 blocks and its minimum size; a crew with nothing left walks out.
+
+Checks: `test_demo_build_crew.gd`, and the live harness `test/live/demo_build_crew_live.gd` (run by
+`test_demo_input_live.gd`; `-- --capture <directory>` for its frames).
 
 ### The Furnish tab: a resident fits it (decision 1921)
 

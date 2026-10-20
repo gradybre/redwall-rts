@@ -21,6 +21,13 @@ extends RefCounted
 ## resident walking to an open cell. Searches stop at SEARCH_LIMIT cells -- a guard, not a tuning. EVERY ENTRANCE IS
 ## JOINED TO EVERY OTHER through the surface (the node SURFACE), so the mole reaches cells beyond a second Entrance
 ## (review H4). Per level, a box around its non-earth cells (`box_of`) keeps scans to what was ordered (review H2).
+##
+## SLICE C3 (decision 1991; Brendan, P-1990-1 (b) "Keep the mole, build real"): the proof of concept stays the demo's
+## digging until slice D2 switches it to the real route, now with the player's crew and Stop. THE CREW: each ordered
+## cell carries the number of the Confirm all that ordered it (`crew_of`); the moles of that batch's crew dig only its
+## cells (`next_dig`'s `crews`; none given: any cell), up to four at once, each cell claimed by the one mole digging it
+## (`claim`), so two never dig one cell. THE STOP (P-1990-5 (a)): `stop_room` puts a room's cells still waiting back
+## to earth and returns them (the panel puts them back in the plan); what is dug stays dug.
 
 const LEVELS: int = 5
 const EARTH: int = 0
@@ -31,6 +38,8 @@ const TYPE_NONE: int = 255
 const TYPE_WAY: int = 254
 const SIDE: int = 2
 const SEARCH_LIMIT: int = 65536
+## Decision 1991: crew numbers are one byte; 0 means any crew.
+const CREWS: int = 256
 const SIDES: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 ## The surface, as one node joining every Entrance's landing (a walk through it goes up and over).
 const SURFACE: Vector3i = Vector3i(0, -1, -1)
@@ -59,6 +68,13 @@ var _foot_owner: Dictionary = {}
 var _ordered: int = 0
 ## Per level: the box around its non-earth cells (an empty Rect2i: none yet).
 var _boxes: Array[Rect2i] = []
+## Decision 1991: per level, the crew number of each ordered or dug cell (0: any crew); cells waiting per crew; the
+## cells being dug now and by whom (cell (level, x, z) -> the digger's key).
+var _crew: Array[PackedByteArray] = []
+var _crew_waiting: PackedInt32Array = PackedInt32Array()
+var _claims: Dictionary = {}
+var _ask_crews: PackedByteArray = PackedByteArray()
+var _ask_digger: int = -1
 
 
 func configure(bounds: Rect2i) -> void:
@@ -66,14 +82,21 @@ func configure(bounds: Rect2i) -> void:
 	_bounds = bounds
 	_state.clear()
 	_type.clear()
+	_crew.clear()
 	for level: int in LEVELS:
 		var states: PackedByteArray = PackedByteArray()
 		var types: PackedByteArray = PackedByteArray()
+		var crews: PackedByteArray = PackedByteArray()
 		states.resize(bounds.size.x * bounds.size.y)
 		types.resize(bounds.size.x * bounds.size.y)
+		crews.resize(bounds.size.x * bounds.size.y)
 		types.fill(TYPE_NONE)
 		_state.append(states)
 		_type.append(types)
+		_crew.append(crews)
+	_crew_waiting.resize(CREWS)
+	_crew_waiting.fill(0)
+	_claims.clear()
 	_way_levels.clear()
 	_way_xs.clear()
 	_way_zs.clear()
@@ -100,18 +123,19 @@ func type_of(level: int, cell: Vector2i) -> int:
 	return _type[level][index] if index >= 0 else TYPE_NONE
 
 
-func order_room(level: int, cells: PackedInt32Array, room_type: int) -> bool:
-	"""Confirm all ordered a room: its earth cells wait for the mole. False when a cell is off the area."""
+func order_room(level: int, cells: PackedInt32Array, room_type: int, crew: int = 0) -> bool:
+	"""Confirm all ordered a room: its earth cells wait for crew `crew`'s moles (0: any). False when a cell is off the
+	area."""
 	for at: int in range(0, cells.size(), 2):
 		if _index(level, Vector2i(cells[at], cells[at + 1])) < 0:
 			return false
 	for at: int in range(0, cells.size(), 2):
-		_order(level, Vector2i(cells[at], cells[at + 1]), room_type)
+		_order(level, Vector2i(cells[at], cells[at + 1]), room_type, crew)
 	revision += 1
 	return true
 
 
-func order_way_down(level: int, cell: Vector2i, family: int = Families.LADDER_HATCH, turn: int = 0) -> bool:
+func order_way_down(level: int, cell: Vector2i, family: int = Families.LADDER_HATCH, turn: int = 0, crew: int = 0) -> bool:
 	"""Confirm all ordered a way of `family` turned `turn` on `level` at `cell`: its landing and run below wait for the
 	mole. False off the levels or the area."""
 	if level < 0 or level >= LEVELS - 1 or not Families.valid(family):
@@ -129,7 +153,7 @@ func order_way_down(level: int, cell: Vector2i, family: int = Families.LADDER_HA
 	var run: Dictionary = _set_of(Families.run_cells(family, turn, cell))
 	for at: int in range(0, lower.size(), 2):
 		var at_cell: Vector2i = Vector2i(lower[at], lower[at + 1])
-		_order(level + 1, at_cell, TYPE_WAY if run.has(at_cell) else TYPE_NONE)
+		_order(level + 1, at_cell, TYPE_WAY if run.has(at_cell) else TYPE_NONE, crew)
 	_relink()
 	revision += 1
 	return true
@@ -161,8 +185,7 @@ func _unorder_way(row: int) -> void:
 		if type != TYPE_NONE and type != TYPE_WAY:
 			continue
 		if _state[below][index] == ORDERED:
-			_state[below][index] = EARTH
-			_ordered -= 1
+			_back_to_earth(below, index, Vector2i(lower[at], lower[at + 1]))
 		_type[below][index] = TYPE_NONE
 
 
@@ -174,11 +197,14 @@ static func _set_of(cells: PackedInt32Array) -> Dictionary:
 	return out
 
 
-func _order(level: int, cell: Vector2i, room_type: int) -> void:
-	"""One cell ordered (a cell already ordered or open keeps its state; the type is kept if one was painted)."""
+func _order(level: int, cell: Vector2i, room_type: int, crew: int = 0) -> void:
+	"""One cell ordered for crew `crew` (a cell already ordered or open keeps its state and crew; the type is kept if
+	one was painted)."""
 	var index: int = _index(level, cell)
 	if _state[level][index] == EARTH:
 		_state[level][index] = ORDERED
+		_crew[level][index] = crew
+		_crew_waiting[crew] += 1 if level > 0 else 0
 		_ordered += 1 if level > 0 else 0
 		var box: Rect2i = _boxes[level]
 		_boxes[level] = Rect2i(cell, Vector2i.ONE) if box.size == Vector2i.ZERO else box.expand(cell).expand(cell + Vector2i.ONE)
@@ -242,8 +268,91 @@ func open_cell(level: int, cell: Vector2i) -> bool:
 		return false
 	_state[level][index] = OPEN
 	_ordered -= 1 if level > 0 else 0
+	_crew_waiting[_crew[level][index]] -= 1 if level > 0 else 0
+	_claims.erase(Vector3i(level, cell.x, cell.y))
 	revision += 1
 	return true
+
+
+func _back_to_earth(level: int, index: int, cell: Vector2i) -> void:
+	"""A cell still waiting goes back to earth: not ordered, no crew, no claim."""
+	_state[level][index] = EARTH
+	_ordered -= 1 if level > 0 else 0
+	_crew_waiting[_crew[level][index]] -= 1 if level > 0 else 0
+	_crew[level][index] = 0
+	_claims.erase(Vector3i(level, cell.x, cell.y))
+
+
+# --- decision 1991: the crew, the claims and the Stop ---------------------------------------------------------------
+
+func crew_of(level: int, cell: Vector2i) -> int:
+	"""The crew number an ordered or dug cell was ordered for (0: any, or earth)."""
+	var index: int = _index(level, cell)
+	return _crew[level][index] if index >= 0 else 0
+
+
+func waiting_for(crew: int) -> int:
+	"""Cells below the surface still waiting for crew `crew`."""
+	return _crew_waiting[crew] if crew >= 0 and crew < CREWS else 0
+
+
+func claim(cell: Vector3i, digger: int) -> bool:
+	"""`digger` (a trip's key) takes `cell` to dig; false when another holds it or it is not waiting."""
+	if state(cell.x, Vector2i(cell.y, cell.z)) != ORDERED or int(_claims.get(cell, digger)) != digger:
+		return false
+	_claims[cell] = digger
+	return true
+
+
+func unclaim(cell: Vector3i, digger: int) -> void:
+	"""`digger` lets `cell` go (nothing when another holds it)."""
+	if int(_claims.get(cell, -1)) == digger:
+		_claims.erase(cell)
+
+
+func claimed_by(cell: Vector3i) -> int:
+	"""The digger holding `cell`, or -1."""
+	return int(_claims.get(cell, -1))
+
+
+func room_cells(level: int, cell: Vector2i) -> PackedInt32Array:
+	"""The confirmed room at `cell` (4-connected cells of its room type, ordered or dug), as pairs; empty when `cell`
+	is no room's (earth, a landing or a way's run)."""
+	var type: int = room_type_at(level, cell)
+	var out: PackedInt32Array = PackedInt32Array()
+	if type < 0:
+		return out
+	var seen: Dictionary = {cell: true}
+	var queue: Array[Vector2i] = [cell]
+	var head: int = 0
+	while head < queue.size():
+		var at: Vector2i = queue[head]
+		head += 1
+		out.append_array(PackedInt32Array([at.x, at.y]))
+		for side: Vector2i in SIDES:
+			var next: Vector2i = at + side
+			if not seen.has(next) and room_type_at(level, next) == type:
+				seen[next] = true
+				queue.append(next)
+	return out
+
+
+func stop_room(level: int, cell: Vector2i) -> PackedInt32Array:
+	"""P-1990-5 (a): the room at `cell` stops being dug. Its cells still waiting go back to earth and are returned (the
+	panel puts them back in the plan); its dug cells stay dug. Empty when nothing of it was waiting."""
+	var cells: PackedInt32Array = room_cells(level, cell)
+	var back: PackedInt32Array = PackedInt32Array()
+	for at: int in range(0, cells.size(), 2):
+		var here: Vector2i = Vector2i(cells[at], cells[at + 1])
+		var index: int = _index(level, here)
+		if _state[level][index] != ORDERED:
+			continue
+		_back_to_earth(level, index, here)
+		_type[level][index] = TYPE_NONE
+		back.append_array(PackedInt32Array([here.x, here.y]))
+	if not back.is_empty():
+		revision += 1
+	return back
 
 
 func level_states(level: int) -> PackedByteArray:
@@ -373,10 +482,16 @@ func landing_of(row: int) -> Vector3i:
 	return Vector3i(_way_levels[row] + 1, foot.x, foot.y)
 
 
-func next_dig(from: Vector3i) -> Dictionary:
+func next_dig(from: Vector3i, crews: PackedByteArray = PackedByteArray(), digger: int = -1) -> Dictionary:
 	"""The nearest ordered cell the mole can dig from `from` (level, x, z): {target, path} -- the cells it walks
-	(ending where it digs from) and the cell it digs -- or {} when none can be reached."""
-	return _search(from, {}, true)
+	(ending where it digs from) and the cell it digs -- or {} when none can be reached. Decision 1991: only cells of
+	`crews` (empty: any crew) that no other digger holds (`digger`: the asker's key)."""
+	_ask_crews = crews
+	_ask_digger = digger
+	var found: Dictionary = _search(from, {}, true)
+	_ask_crews = PackedByteArray()
+	_ask_digger = -1
+	return found
 
 
 func path_to(from: Vector3i, goal: Vector3i) -> PackedVector3Array:
@@ -399,7 +514,7 @@ func path_to_any(from: Vector3i, goals: Dictionary) -> Dictionary:
 func _search(from: Vector3i, goals: Dictionary, digging: bool) -> Dictionary:
 	"""Breadth first from `from` through open cells and open ways down: the first ordered cell beside them (digging)
 	or the first of `goals` (walking)."""
-	if digging and state(from.x, Vector2i(from.y, from.z)) == ORDERED:
+	if digging and _diggable(from):
 		return {"target": from, "path": PackedVector3Array([Vector3(from)])}
 	var came: Dictionary = {from: from}
 	var queue: Array[Vector3i] = [from]
@@ -413,12 +528,20 @@ func _search(from: Vector3i, goals: Dictionary, digging: bool) -> Dictionary:
 			if not digging and goals.has(next):
 				came[next] = at
 				return {"path": _walk(came, next)}
-			if digging and state(next.x, Vector2i(next.y, next.z)) == ORDERED:
+			if digging and _diggable(next):
 				return {"target": next, "path": _walk(came, at)}
 			if next == SURFACE or state(next.x, Vector2i(next.y, next.z)) == OPEN:
 				came[next] = at
 				queue.append(next)
 	return {}
+
+
+func _diggable(cell: Vector3i) -> bool:
+	"""An ordered cell of one of the asking crew's numbers (any, with none given) that no other digger holds."""
+	if cell == SURFACE or state(cell.x, Vector2i(cell.y, cell.z)) != ORDERED:
+		return false
+	var holder: int = int(_claims.get(cell, _ask_digger))
+	return holder == _ask_digger and (_ask_crews.is_empty() or _ask_crews.has(crew_of(cell.x, Vector2i(cell.y, cell.z))))
 
 
 func _neighbours(at: Vector3i) -> Array[Vector3i]:

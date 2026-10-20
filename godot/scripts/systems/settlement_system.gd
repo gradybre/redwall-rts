@@ -593,6 +593,7 @@ const UndergroundEntryRuntime := preload("res://scripts/core/underground_entry_r
 const UndergroundRoomRuntime := preload("res://scripts/core/underground_room_runtime.gd")
 const UndergroundDispatch := preload("res://scripts/core/underground_dispatch.gd")
 const UndergroundRoomComposer := preload("res://scripts/core/underground_room_composer.gd")
+const UndergroundRoomConfirm := preload("res://scripts/core/underground_room_confirm.gd")
 const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
@@ -924,6 +925,8 @@ var _underground_session: UndergroundSession = null
 var _underground_entry: UndergroundEntryRuntime = null
 ## Decision 1933 (C2.1): the room digs. Adopted by C2.3's composer (and by tests); null in the game until then.
 var _underground_rooms: UndergroundRoomRuntime = null
+## Decision 1991: the seam slice D2 fills with a confirmed connector's way in; the base class refuses every level.
+var _underground_way_in: UndergroundRoomConfirm.WayIn = UndergroundRoomConfirm.WayIn.new()
 ## Decision 1936 (review H4): Jobs' one dispatcher for the mounted underground, asking the entry and the room runtime.
 var _underground_dispatch: UndergroundDispatch = null
 ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
@@ -1873,6 +1876,7 @@ func mount_underground(content: UndergroundContent) -> bool:
 	_underground_entry = null
 	_underground_rooms = null
 	_underground_dispatch = null
+	_underground_way_in = UndergroundRoomConfirm.WayIn.new() # Decision 1991: a mount starts with no way in.
 	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
 		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
 		_transforms, _gear, _haul_carry, _ground_piles, content)
@@ -2058,6 +2062,56 @@ func order_underground_room(request: UndergroundRoomComposer.Order) -> bool:
 	return true
 
 
+func bind_underground_way_in(way_in: UndergroundRoomConfirm.WayIn) -> bool:
+	"""Decision 1991: THE SEAM SLICE D2 FILLS. Its way in gives a painted room its approach and its order its access,
+	retreat row and containers; until it is bound, every painted room is refused ROOM_DIG_NO_WAY_IN. It belongs to
+	the mounted session: bound after the mount, and dropped on release (review H-3), so a remount binds it again."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	if way_in == null or _underground_session == null: return _refuse(UndergroundRoomConfirm.REFUSE_SCOPE)
+	_underground_way_in = way_in
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func order_painted_room(painted: UndergroundRoomConfirm.Painted) -> UndergroundRoomConfirm.Result:
+	"""Decision 1991 (C3): Confirm all's real route for one painted underground room -- admitted through RoomOrders,
+	ordered with the crew the player chose, dug by the room foreman, each phase paying when its work starts
+	(BUILD-REQ-019). The whole Result (review M-3): its code (also `last_refusal`, and an alert), and the room with
+	`admitted` -- a refusal after admission leaves the room confirmed and undug, and `order_underground_room` may
+	order it again."""
+	var result: UndergroundRoomConfirm.Result = UndergroundRoomConfirm.Result.new()
+	if _underground_mutations_stopped():
+		result.code = &"UNDERGROUND_HOST_RESETTING"
+		_refuse(result.code)
+		return result
+	var code: StringName = _mounted_underground_refusal(_underground_session)
+	if code == &"" and _underground_rooms == null: code = UndergroundRoomConfirm.REFUSE_SCOPE
+	if code == &"":
+		var session: UndergroundSession = _underground_session
+		result = UndergroundRoomConfirm.confirm(session.room_orders(), _underground_rooms,
+			session._retirement_owners.placements, _underground_way_in, session.room_orders().world_ref(),
+			session.space_owner().revision(), painted)
+		code = result.code
+	result.code = code
+	if code != &"":
+		_alert_underground_room(code)
+		_refuse(code)
+	else: _last_refusal = REFUSE_NONE
+	return result
+
+
+func stop_underground_room(room: Vector2i) -> bool:
+	"""Decision 1991, P-1990-5 (a): the player's one "Stop digging". A waiting room is forgotten; a dig under way halts
+	(unpaid phases cancelled, paid ones kept for a re-order to take over) and its record is released once the crew has
+	walked out. The room stays confirmed: what is dug stays dug."""
+	if _underground_mutations_stopped(): return _refuse(&"UNDERGROUND_HOST_RESETTING")
+	if _underground_rooms == null: return _refuse(UndergroundRoomComposer.REFUSE_SCOPE)
+	var code: StringName = _underground_rooms.stop_room(room)
+	if code != &"": return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
 func underground_session() -> UndergroundSession:
 	"""Borrow the one foundation; its own current checks reject retired or partially configured state."""
 	return _underground_session if _underground_reset_phase == 0 else null
@@ -2157,6 +2211,7 @@ func _release_underground_after_clear() -> bool:
 	_underground_entry = null
 	_underground_rooms = null
 	_underground_dispatch = null
+	_underground_way_in = UndergroundRoomConfirm.WayIn.new() # Decision 1991: D2's seam dies with its session.
 	return true
 
 
@@ -2323,8 +2378,15 @@ func _advance_underground_rooms(tick_index: int) -> void:
 	"""Decision 1933 (C2.1): every room being dug takes one fixed tick after the first entry; its BUILD Jobs resolve to
 	no removal Project, so their Work is earned only there. A refusal stops that room and raises its alert once; it
 	never fails the settlement tick; several rooms stopping on one tick each raise their own."""
-	if _underground_rooms == null or not _underground_rooms.is_running(): return
-	for code: StringName in _underground_rooms.advance(tick_index):
+	if _underground_rooms == null: return
+	if _underground_rooms.is_running():
+		for code: StringName in _underground_rooms.advance(tick_index):
+			_alert_underground_room(code)
+	# Decision 1991: then every room waiting for its crew starts once that crew is free (after the runtime's advance,
+	# its retirement step and its releases, so a crew that walked out this tick is free).
+	if _underground_rooms.kept() == 0 or _underground_session == null: return
+	for code: StringName in UndergroundRoomComposer.start_waiting(_underground_rooms,
+			_underground_session._retirement_owners.placements, tick_index):
 		_alert_underground_room(code)
 
 

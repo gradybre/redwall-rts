@@ -710,7 +710,7 @@ func _the_passage_card_is_a_room_type() -> void:
 		and passage.accessibility_name.contains("available"), passage.accessibility_name if passage else "")
 	_check("no Burrow home or Root cellar card", _card_button("Burrow home") == null and _card_button("Root cellar") == null)
 	var said: String = String(_command().get("_notice_general"))
-	_check("the panel says a mole digs them", said.contains("a mole digs them (free for now)"), said)
+	_check("the panel says the selected moles dig them", said.contains("the selected moles (or the first free one) dig them (proof of concept: free)"), said)
 
 
 func _b_closes_the_build_panel() -> void:

@@ -221,3 +221,11 @@ Sources: decisions 1093, 1117, 1120, 1121, 1150 and 1151;
 `underground_space_authority.gd`, `underground_world_bindings.gd` and
 `underground_work_face.gd` contracts; parent lane authorization recorded in
 the durable underground build queue.
+
+## Note (2026-10-19, decision 1991 §3a)
+
+The "whole-host registration" occupancy contract above is superseded for the room phases by ADR 1219's rule. A living
+resident who is not a route actor is proved by the reach cube around its Transform, and refused while it has never
+been placed. The regression test `test_a_living_resident_who_is_not_registered_is_proved_by_its_reach`
+(`test_underground_room_world_phases.gd`) now pins that rule; it replaces the test that pinned the old contract.
+

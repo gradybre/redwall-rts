@@ -67,7 +67,7 @@
  },
  "canonical_stream": "RWL-STATE-1",
  "record_count": 812,
- "packed_source_field_count": 707,
+ "packed_source_field_count": 709,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -8829,8 +8829,8 @@
      "source_member": "capture",
      "shape": {
       "count_field": "progress_length",
-      "max_count": 1198536,
-      "order": "decision1936_v1_wire"
+      "max_count": 1345480,
+      "order": "decision1991_v2_wire"
      },
      "scalar": false,
      "ordinal": 1
@@ -9249,6 +9249,70 @@
      "scalar": false,
      "hash_location": "inside progress_record (decision 1936 runtime block, record rows in use only)",
      "ordinal": 27,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "crew_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_crew",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1991 runtime block, record rows in use only)",
+     "ordinal": 28
+    },
+    {
+     "field_key": "_crew",
+     "type": "i32",
+     "type_code": 2,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_crew",
+     "shape": {
+      "count_field": "crew_length",
+      "max_count": 4096,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1991 runtime block, record rows in use only)",
+     "ordinal": 29,
+     "source_contract": "C202"
+    },
+    {
+     "field_key": "release_out_length",
+     "type": "u32",
+     "type_code": 1,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_release_out",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "scalar": true,
+     "hash_location": "inside progress_record (decision 1991 runtime block, record rows in use only)",
+     "ordinal": 30
+    },
+    {
+     "field_key": "_release_out",
+     "type": "u8",
+     "type_code": 0,
+     "hash": false,
+     "source_module": "underground_room_runtime",
+     "source_member": "_release_out",
+     "shape": {
+      "count_field": "release_out_length",
+      "max_count": 512,
+      "order": "record_row_order"
+     },
+     "scalar": false,
+     "hash_location": "inside progress_record (decision 1991 runtime block, record rows in use only)",
+     "ordinal": 31,
      "source_contract": "C202"
     }
    ]

@@ -134,25 +134,25 @@ every painted cube dug, no live Project or cold lease, **every BRACE's wood paid
 M still holds equals one bill per cube), the live graph within one chain of the retirement bound, and every route
 proof within `Space.MAX_CHECKS`.
 
-| Room | Side | Cells | Cubes | Ticks | Peak edges | Peak Locations | Peak route-proof checks | Longest chain |
-|---|---|---|---|---|---|---|---|---|
-| Kitchen | east | 2 × 2 | 16 | 2,845 | 20 | 11 | 399,120 | 3 |
-| Kitchen | north | 2 × 2 | 16 | 2,965 | 26 | 14 | 451,920 | 3 |
-| Kitchen | south | 2 × 2 | 16 | 2,853 | 26 | 14 | 453,770 | 3 |
-| Kitchen | west | 2 × 2 | 16 | 3,065 | 26 | 14 | 457,710 | 3 |
-| Kitchen, pick mole | east | 2 × 2 | 16 | 2,977 | 20 | 11 | 399,130 | 3 |
-| Kitchen | east | 7 × 7 | 196 | 41,883 | 42 | 22 | 582,956 | 4 |
-| Kitchen | east | 4 wide × 12 deep | 192 | 40,837 | 40 | 21 | 582,956 | 3 |
-| Kitchen | east | 12 wide × 4 deep | 192 | 42,581 | 42 | 22 | 582,956 | 4 |
-| Kitchen, L-shaped | east | 4 deep, 2 wide, its far end 6 wide | 64 | 13,079 | 42 | 22 | 525,982 | 4 |
-| Dormitory (3 tiles) | north | 2 × 6 | 48 | 9,469 | 38 | 20 | 488,212 | 3 |
-| Infirmary (3 tiles) | south | 6 × 2 | 48 | 9,077 | 38 | 20 | 787,670 | 3 |
-| Corridor (1 tile wide) | west | 2 × 4 | 32 | 6,371 | 38 | 20 | 497,594 | 3 |
-| Pantry (4 tiles) | south | 4 × 4 | 64 | 12,163 | 38 | 20 | 787,670 | 3 |
-| Kitchen (6 tiles) | west | 4 × 6 | 96 | 20,739 | 42 | 22 | 601,986 | 4 |
-| Bedroom (6 tiles) | north | 6 × 4 | 96 | 19,387 | 38 | 20 | 785,604 | 3 |
-| Dining room (8 tiles) | east | 8 × 4 | 128 | 26,829 | 42 | 22 | 582,956 | 4 |
-| Common room (8 tiles) | north | 8 × 4 | 128 | 26,487 | 38 | 20 | 785,604 | 3 |
+| Room | Side | Cells | Height | Cubes | Ticks | Peak edges | Peak Locations | Peak route-proof checks | Longest chain |
+|---|---|---|---|---|---|---|---|---|---|
+| Kitchen | east | 2 × 2 | floor band | 4 | 1,333 | 20 | 11 | 395,688 | 3 |
+| Kitchen | north | 2 × 2 | floor band | 4 | 1,453 | 26 | 14 | 446,858 | 3 |
+| Kitchen | south | 2 × 2 | floor band | 4 | 1,341 | 26 | 14 | 448,496 | 3 |
+| Kitchen | west | 2 × 2 | floor band | 4 | 1,553 | 26 | 14 | 451,868 | 3 |
+| Kitchen, pick mole | east | 2 × 2 | 4 m | 16 | 2,977 | 20 | 11 | 397,390 | 3 |
+| Kitchen | east | 7 × 7 | 4 m | 196 | 41,883 | 42 | 22 | 575,076 | 4 |
+| Kitchen | east | 4 wide × 12 deep | floor band | 48 | 22,693 | 40 | 21 | 568,792 | 3 |
+| Kitchen | east | 12 wide × 4 deep | floor band | 48 | 24,437 | 42 | 22 | 568,792 | 4 |
+| Kitchen, L-shaped | east | 4 deep, 2 wide, its far end 6 wide | floor band | 16 | 7,031 | 42 | 22 | 510,800 | 4 |
+| Dormitory (3 tiles) | north | 2 × 6 | floor band | 12 | 4,933 | 38 | 20 | 475,396 | 3 |
+| Infirmary (3 tiles) | south | 6 × 2 | floor band | 12 | 4,541 | 38 | 20 | 775,802 | 3 |
+| Corridor (1 tile wide) | west | 2 × 4 | floor band | 8 | 3,347 | 38 | 20 | 484,446 | 3 |
+| Pantry (4 tiles) | south | 4 × 4 | floor band | 16 | 6,115 | 38 | 20 | 775,802 | 3 |
+| Kitchen (6 tiles) | west | 4 × 6 | floor band | 24 | 11,667 | 42 | 22 | 587,376 | 4 |
+| Bedroom (6 tiles) | north | 6 × 4 | floor band | 24 | 10,309 | 38 | 20 | 774,056 | 3 |
+| Dining room (8 tiles) | east | 8 × 4 | floor band | 32 | 14,733 | 42 | 22 | 568,792 | 4 |
+| Common room (8 tiles) | north | 8 × 4 | floor band | 32 | 14,385 | 38 | 20 | 774,056 | 3 |
 
 - The GDD minimum floor areas are `room_catalog.gd`'s, from `buildings.gd`: one bed's 3 tiles (Dormitory), one
   patient bed's 3 (Infirmary), 4 (Pantry), 6 (Kitchen, Bedroom), four seats' 8 (Dining room), 8 (Common room), and
@@ -165,7 +165,17 @@ proof within `Space.MAX_CHECKS`.
 - The longest chain is the most Locations one tick added (net): a chain's stations are published at once. The
   L-shaped, 7 × 7 and 12 × 4 suites assert it exceeds three.
 - **Retirement holds the graph down.** Peaks stay within one chain of `RETIRE_FROM_EDGES` (35), and the worst route
-  proof spends 787,670 of 1,048,576 checks.
+  proof spends 775,802 of 1,048,576 checks.
+- **Heights.** Every room was first dug the full 4 m (the first build: all passed; the worst proof 787,670 checks).
+  That made the new suites 2,870 s on this machine, and #278's CI shards ran past their 30-minute guard (§7). The
+  large, room-type, side, L-shaped and stopped rooms now dig one cube a cell, the floor band: the heading search, the
+  chains and retirement are all the floor cubes'; the cubes above a floor cube are struck from its station (decision
+  1971). The full 4 m stays covered by the 7 × 7 Kitchen (Brendan's "Painted height" ruling: the coordinator kept one
+  large room dug its full height on turned headings), the pick mole's Kitchen (it stands 1,036 u tall, so it cannot
+  stand in a room one cube high) and the multi-heading suite's restored north Kitchen.
+- The fixture's arenas are sized to the matrix (64 Locations, 128 edges, 1,024 lots, 256 Sites; the route proof's
+  cost per edge follows the arena, so the 7 × 7 room's worst proof is 575,076 checks, 582,956 at the retirement
+  suite's arenas).
 
 ### Pick moles
 
@@ -220,7 +230,7 @@ suite for §8): **50 killed, 5 survived.**
 | no master plan (`PLAN_MASTER` planned as `PLAN_STRAIGHT`) | the two differ only where the bound heading's gateway turn or a decreasing run crosses a section boundary; every fixture's bound heading is +X with a one-section Corridor. The split each plan uses is tested directly (`_legs` under both), and the SHA trace guards master's rooms |
 | the contact's heading not checked walkable | content 12 publishes claw and pick READY rows at all four quarter turns, so every contact heading is walkable |
 | the turning guard admits the gateway line | `_turning_lines` already drops every line at or behind the gateway |
-| decision 1942's `_column_done` always true | accepted by the coordinator: no fixture has a builder idle mid-column while a dig runs, so a column is never offered early. The crowded one- and two-builder digs now assert no station is retired before its column is dug and that a crowded dig publishes exactly what an uncrowded one does; 1942 §5's note stands |
+| decision 1942's `_column_done` always true | accepted by the coordinator: no fixture has a builder idle mid-column while a dig runs, so a column is never offered early. The crowded two-builder dig now asserts that no station is retired before its column is dug (a test comparing a crowded and an uncrowded Kitchen's publications was added and then removed for CI time, §7); 1942 §5's note stands |
 
 
 ## 6. Memory (ADR 1212 census)
@@ -236,37 +246,54 @@ suite for §8): **50 killed, 5 survived.**
 - The memory pack is regenerated: headroom **44,201,316 B unchanged** by this lane on the retirement head; after
   the two master merges the pack reads slice D's **43,878,634 B**, this lane still adding no retained byte.
 
-## 7. Gates
+## 7. Gates, and the CI time
 
-All at the merged head `9a309628` (master `1b71992b`, slice C3's #277 and slice D's M2 flight #275 merged in):
+### Where #278's CI time went
+
+#278's first CI run (39365462386) had eight of its ten Godot shards cancelled at the 30-minute guard; master's run
+(39360724357) finished every shard in 18.6–26 min. Measured with the same runner, two 10-shard runs at once on this
+Mac (master `d41269dd` and this branch):
+- **Existing suites are not slower.** The 566 suites both share take 7,928 s on master and 7,752 s here. The
+  largest gains are noise (foreign claims +16 s, room progress +15 s, host crew loss +14 s) and several are faster
+  (whole chain −80 s, crew lost at finish −78 s). The heading loop does not slow existing paths: a room master digs
+  runs one plan a cube, as before (§3, choices 1 and 5).
+- **The new suites were the cost.** In the first push every matrix room dug its full 4 m: 2,870 s of new suite time.
+  Now 1,261 s (the 7 × 7 room 452 s at full height; the room-type suites 176, 171 and 52 s; 12 × 4 148 s;
+  multi-heading 116 s; 4 × 12 113 s; L-shaped 34 s), after the floor band (§4), arenas sized to the matrix, and one
+  test fewer (the retirement suite's crowded-versus-uncrowded column test, about 57 s).
+- **Twelve shards, the coordinator's call.** At ten shards the total (9,013 s against master's 7,928 s) puts the
+  slowest CI shard near the guard at CI's 1.75–2× ratio. CI now runs **12 Godot shards**: the workflow's shard
+  matrix and job name ("Godot suite shard N / 12"), its verify count, `run_tests.sh`'s and `ci_test_shards.py`'s
+  usage lines, ENVIRONMENT.md and a note in decision 1895 (`run_tests_parallel.sh` reads the count from the
+  workflow). The coverage, including the full-height 7 × 7 room, stays; total CI work is unchanged; no guard or
+  timeout is raised. Weights are regenerated for every suite from this branch's paired run (`ci_test_shards.py
+  weights`): **planned 751 s a shard at twelve, against master's 793 s at ten.**
+
+### Gates
+
+At `bcfe0f8e` (master `d41269dd` merged in, with C3's #277, slice D's #275 and the contracts split #279):
 - **Fresh import** (a new worktree, no `.godot` cache): exit 0, no errors.
-- **Full CI-style run.** `./tools/run_tests_parallel.sh`, 10 shards, 4 at a time: **13,150 tests and 1,572,010
-  assertions, 0 failures, 0 unexpected errors or warnings, 0 leaked objects or resources.** All 574 suite files
-  ran exactly once (CI's verify). Wall time 2,913 s.
+- **Full CI-style run, 12 shards**, 4 at a time: **13,149 tests and 1,571,994 assertions, 0 failures, 0 unexpected
+  errors or warnings, 0 leaked objects or resources**; all 574 suite files ran exactly once (verify). Shard walls
+  596–718 s (2,048 s in all).
 - **Analyzer.** `tools/gdscript_warnings.py --max 0 --port 6437`: 0 warnings in 1,668 files.
-- **Contracts.** All 59 CI contract commands pass, including `decision_numbers.py`, `ready07_arithmetic.py`,
-  `underground_memory_budget.py --check`, `test_underground_current_census.py` and `merge_gate.py`.
-- **Source pins** current (`renew_source_pins.py --check`); this lane's one pinned change is Routes'
-  `frontier_leaf_refusal` line.
+- **Contracts.** All CI contract commands pass (64 commands read from the workflow, the memory-budget refusal tests included), and `test_ci_test_shards.py --godot` passes.
+- **Source pins** current; this lane's one pinned change is Routes' `frontier_leaf_refusal` line.
 - **Checkpoints.** Regenerated with `./tools/regenerate_test_checkpoints.sh`, never hand-merged: every save point's
-  bytes equal master's, and only the manifests' source fingerprints moved.
+  bytes equal master's; only the manifests' source fingerprints moved.
 - **SHA trace.** `tools/benchmark_dig_tick.gd` (`REDWALL_DIG_TRACE`, the room loop and the entry run) is
-  byte-identical to master `1b71992b`'s: 11,454 lines.
-- **Slice D's conditions** (their agreement to the Locations and Routes edits). On master `1b71992b` and on this head:
-  - the M2 flight suites (`test_underground_m5_*`, six), `test_underground_host_whole_chain.gd`,
-    `test_underground_host.gd`, `test_underground_entry_crew_leaves.gd` and both full-level-flight geometry suites:
-    112 tests each, the same outcomes;
-  - **Locations' spend**: a throwaway probe (every check Locations charges, summed per Locations instance and printed
-    when it is freed; reverted after) gives the same 25 instances in the same order on both, 296,752,187 checks in
-    all.
-- **Shard weights.** Every suite has one (`tools/ci_test_shard_weights.json`); the matrix suites' and the changed
-  suites' are this lane's measurements.
-- **Mutation testing** (§5) ran on this lane's code before the two master merges; neither merge changed it.
+  byte-identical to master `d41269dd`'s: 11,454 lines.
+- **Slice D's conditions.** On master `d41269dd` and on this head: the M2 flight suites (`test_underground_m5_*`,
+  six), `test_underground_host_whole_chain.gd`, `test_underground_host.gd`, `test_underground_entry_crew_leaves.gd`
+  and both full-level-flight geometry suites give 112 tests each with the same outcomes, and Locations' spend (a
+  throwaway probe summing every check Locations charges, printed per Locations instance when it is freed; reverted
+  after) is the same 25 instances in the same order on both, 296,752,187 checks in all.
+- **Mutation testing** (§5) ran on this lane's production code, which nothing after it changed (only tests, CI
+  configuration and generated files).
 - **Independent review** (code-reviewer subagent) of the first build: H1 (a cornered pass could publish a second
   WORK station for a cube that had a contact) and M1 (a run probe one past the section) fixed; M2 (master's root
   choice in other geometries) fixed by `PLAN_MASTER`; M3 (cost) recorded as §3 choice 5; M4–M8 and the LOW items
   fixed or recorded (§3 choice 6).
-
 
 ## 8. The ruling's build: a pick holder refused in words, and a worded mid-dig stop
 

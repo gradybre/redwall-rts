@@ -153,6 +153,13 @@ One independent `code-reviewer` pass on the phase 1 diff: no CRITICAL, two HIGH,
   MEDIUM fixed or answered.
 - **Frames:** none; phase 1 draws nothing.
 
+**After merging origin/master `163cf5b3`** (#278 multi-heading, twelve CI shards; merge `6412cf20`, no conflicts,
+nothing generated needed regenerating): fresh import (exit 0), `./tools/run_tests_parallel.sh --jobs 4` at 12 shards:
+`ok: 576 suite files executed exactly once across 12 shards`, 13,182 tests, 1,572,250 assertions, 0 failures, 0
+unexpected errors or warnings (289 expected, 456 tolerated), 0 leaked; 1,976 s. Shard weights regenerated from that
+run (`ci_test_shards.py weights --count 12`; `test_ci_test_shards.py` OK). Analyzer on port 6513: `0 GDScript
+warning(s) in 0 of 1673 file(s)`. Every contract above passes again (decision numbers: 584 records).
+
 ## Source
 
 Decision 2052 and Brendan's rulings on it (2026-10-20); decisions 1161, 1936, 1939, 1942, 1991; SET-BUILD-001 §9;

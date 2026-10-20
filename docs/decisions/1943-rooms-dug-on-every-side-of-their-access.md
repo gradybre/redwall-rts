@@ -233,11 +233,40 @@ suite for §8): **50 killed, 5 survived.**
   reviewed delta rows for `underground_locations.gd` and the publication are updated with their charges.
 - The planner's cold slice is **56,040 B** (was 52,664): seven-station chain scratch (+304) and the turning lines
   (`2 × MAX_REGIONS` int64, +3,072), inside the same lease.
-- The memory pack is regenerated: **headroom 44,201,316 B, unchanged.**
+- The memory pack is regenerated: headroom **44,201,316 B unchanged** by this lane on the retirement head; after
+  the two master merges the pack reads slice D's **43,878,634 B**, this lane still adding no retained byte.
 
 ## 7. Gates
 
-GATES_PLACEHOLDER
+All at the merged head `9a309628` (master `1b71992b`, slice C3's #277 and slice D's M2 flight #275 merged in):
+- **Fresh import** (a new worktree, no `.godot` cache): exit 0, no errors.
+- **Full CI-style run.** `./tools/run_tests_parallel.sh`, 10 shards, 4 at a time: **13,150 tests and 1,572,010
+  assertions, 0 failures, 0 unexpected errors or warnings, 0 leaked objects or resources.** All 574 suite files
+  ran exactly once (CI's verify). Wall time 2,913 s.
+- **Analyzer.** `tools/gdscript_warnings.py --max 0 --port 6437`: 0 warnings in 1,668 files.
+- **Contracts.** All 59 CI contract commands pass, including `decision_numbers.py`, `ready07_arithmetic.py`,
+  `underground_memory_budget.py --check`, `test_underground_current_census.py` and `merge_gate.py`.
+- **Source pins** current (`renew_source_pins.py --check`); this lane's one pinned change is Routes'
+  `frontier_leaf_refusal` line.
+- **Checkpoints.** Regenerated with `./tools/regenerate_test_checkpoints.sh`, never hand-merged: every save point's
+  bytes equal master's, and only the manifests' source fingerprints moved.
+- **SHA trace.** `tools/benchmark_dig_tick.gd` (`REDWALL_DIG_TRACE`, the room loop and the entry run) is
+  byte-identical to master `1b71992b`'s: 11,454 lines.
+- **Slice D's conditions** (their agreement to the Locations and Routes edits). On master `1b71992b` and on this head:
+  - the M2 flight suites (`test_underground_m5_*`, six), `test_underground_host_whole_chain.gd`,
+    `test_underground_host.gd`, `test_underground_entry_crew_leaves.gd` and both full-level-flight geometry suites:
+    112 tests each, the same outcomes;
+  - **Locations' spend**: a throwaway probe (every check Locations charges, summed per Locations instance and printed
+    when it is freed; reverted after) gives the same 25 instances in the same order on both, 296,752,187 checks in
+    all.
+- **Shard weights.** Every suite has one (`tools/ci_test_shard_weights.json`); the matrix suites' and the changed
+  suites' are this lane's measurements.
+- **Mutation testing** (§5) ran on this lane's code before the two master merges; neither merge changed it.
+- **Independent review** (code-reviewer subagent) of the first build: H1 (a cornered pass could publish a second
+  WORK station for a cube that had a contact) and M1 (a run probe one past the section) fixed; M2 (master's root
+  choice in other geometries) fixed by `PLAN_MASTER`; M3 (cost) recorded as §3 choice 5; M4–M8 and the LOW items
+  fixed or recorded (§3 choice 6).
+
 
 ## 8. The ruling's build: a pick holder refused in words, and a worded mid-dig stop
 

@@ -250,6 +250,12 @@ Every row was checked against the record named.
 | Closing Slice C, and the post-M5 follow-ups (C3's inventory) | Brendan: **"Keep waiting for M5"**. Slice C closes once C3 and the station-chain retirement lane (`feat/room-station-retirement`, 1942–1949) merge. The stair-leg Delivery (1941, P-1941-1) and phase-spreading stage 2 (1953, P-1953-2) become follow-ups right after M5 lands, not Slice C close-out blockers. (Relayed by the coordinator) | [1990](../decisions/1990-slice-c3-scoping-what-closes-slice-c.md) |
 | Slice C3's PROPOSALS (1990 P-1990-1–5), 2026-10-19 | **All five as recommended.** P-1990-1 (b) "Keep the mole, build real": the demo keeps decision 1912's proof-of-concept mole, labelled, with crew choice and Stop; the real Confirm route is built in core behind one seam D2 fills, refusing "No way in: needs a way down to level N" until then; D2 switches the demo and retires the mole. P-1990-2 (a) "Stays free, show bill" (the real route pays per BUILD-REQ-019). P-1990-3 (c) "Move it to slice G": C3 allocates nothing of decision 1880's store; the fold moves to G. P-1990-4 (a) "Selected moles crew it": 1-4 selected moles crew every room in the batch, else the first idle mole; the footer names the crew. P-1990-5 (a) one "Stop digging": the crew walks out, dug cells stay, undug cells return to the plan, a re-order takes over paid phases without paying twice; item 24 (actor-Job change) taken. (Relayed by the coordinator) | [1990](../decisions/1990-slice-c3-scoping-what-closes-slice-c.md) |
 
+## 2026-10-20
+
+| Topic | Ruling | Recorded in |
+|---|---|---|
+| Slice D2's scoping (2052 P-2052-1–11), 2026-10-20 | **"Approve, start phase 1"**: P-2052-1, -2, -3, -5, -6, -9, -10 and -11 **(a)** as recommended; P-2052-7 **(a)**, a labelled stand-in moves stock into R until HAUL-H3+. **P-2052-4 (b), "Keep them as proof of concept"**: in the demo the Burrow mouth, Hatch with ladder and ways on levels 1–3 stay placeable as clearly labelled proof of concept; only the Stair-head is the real, qualified way down. **P-2052-8 superseded** by a pacing ruling, **"Building the stair should be ~30s–1m"**: the whole full-level stair, Confirm to level 1 open, takes 30–60 real seconds at 1x (pacing study, decision 2081); D2 assumes no build duration; the way's progress card stays. (Relayed by the coordinator) | [2052](../decisions/2052-slice-d2-scoping-binding-a-way-down-to-room-digs.md) "Brendan's rulings" |
+
 ## Standing rules (not dated rulings)
 
 - **Windows builds only when Brendan asks** (his standing instruction; README §3.10).

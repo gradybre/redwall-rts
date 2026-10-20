@@ -1,7 +1,7 @@
 # 2052 — Slice D2 scoping: binding a finished way down to the room-dig runtime (stopped for rulings)
 
-Date: 2026-10-20 · Status: Proposed. Scoping only: no code and no data changed. Stopped for Brendan's rulings on
-P-2052-1 to P-2052-11.
+Date: 2026-10-20 · Status: Accepted. Brendan ruled P-2052-1 to P-2052-11 on 2026-10-20 (see "Brendan's rulings"):
+nine as recommended, P-2052-4 (b), and P-2052-8 superseded by a pacing ruling. Phase 1 is recorded in decision 2053.
 
 **Number.** The coordinator allocated 2051–2069 to D2, with 2051 for this record. **2051 is already used** by
 `docs/decisions/2051-frontier-renewal-replays-at-its-publishing-commit.md` on the local, unpushed branch
@@ -9,8 +9,38 @@ P-2052-1 to P-2052-11.
 `2061-entry-crew-with-no-relief-stalls-dec-059-gap.md` on `claude/magical-gould-7bddad` (the stalled-crew session).
 Either would collide if its branch merges, so this record takes **2052**, the first number in the range that is free on
 every local and remote ref (`git for-each-ref refs/heads refs/remotes` + `git ls-tree`) and passes
-`decision_numbers.py`. D2's later records should skip 2061. Branch `docs/slice-d2-scoping`, from origin/master
+`decision_numbers.py`. **D2's range is now 2052–2060 and 2062–2069** (the coordinator, 2026-10-20). Branch `docs/slice-d2-scoping`, from origin/master
 `d41269dd`.
+
+## Brendan's rulings (2026-10-20)
+
+Relayed by the coordinator: Brendan answered in chat through AskUserQuestion, saying **"Approve, start phase 1"**.
+
+| Proposal | Ruling | What it means |
+|---|---|---|
+| P-2052-1, -2, -3, -5, -6, -9, -10, -11 | **(a)**, as recommended | The front station; the foot store and pile; rooms waiting for the way down in the panel; Stop and Resume; the switch once, after stair-leg Delivery; removal of a real way refused "Not yet"; the demo's Mound hatch locked; the words, as amended below |
+| P-2052-7 | **(a)** | A labelled stand-in moves the missing whole units from the village's stores into R until HAUL-H3+ |
+| P-2052-4 | **(b), "Keep them as proof of concept"** (not the recommendation) | In the demo the Burrow mouth, the Hatch with ladder and every way on levels 1–3 stay placeable as clearly labelled proof of concept, dug free by the proof of concept's digging. Only the Stair-head is the real, qualified way down |
+| P-2052-8 | **Superseded**: "Building the stair should be ~30s–1m" | The whole full-level stair, from Confirm until level 1 is open, takes 30–60 real seconds at 1x. A separate pacing study (decision 2081) works out how. D2 hard-codes and assumes no build duration; the way's progress card stays |
+
+**What the rulings change in this record.**
+
+- **Phase 3 (§2.4, §5, §6).** The switchover retires the mole's digging of *rooms* and of the *Stair-head* only. The
+  proof of concept's digging of the Burrow mouth, the Hatch and the ways on levels 1–3 stays, labelled "Proof of
+  concept: free; not yet a qualified descent" (D1's words, P-D1-11). So `demo_build_works.gd` keeps its way digging
+  and the mole files that serve it; only room orders and the Stair-head move to the real route. A room on level 1 is
+  ordered for real only through the real Stair-head's way in; a room reached only through a proof-of-concept way
+  stays the proof of concept's, labelled, as today. The phase 3 lane names which mole files remain.
+- **P-2052-11's words.** "! Blocked: one way down for now" applies to a second **Stair-head** only. The locked
+  families' "Not yet: ..." words are dropped: those families stay placeable, labelled as proof of concept. "Module j
+  of 5" stays on the progress card; nothing states a duration.
+- **P-2052-8.** No D2 code, test or recipe assumes how many ticks the stair takes. Tests wait on the entry's state,
+  never on a tick count derived from today's chain; the checkpoint recipe's cost (§2.5, F12) is today's and may shrink
+  with decision 2081.
+- **P-2052-10 with P-2052-4 (b), for the coordinator.** P-2052-10 (a) locks the demo's Mound hatch "with the Hatch";
+  under P-2052-4 (b) the other Hatches stay placeable as proof of concept. As ruled, the Mound hatch is locked and the
+  other Hatches are not. The phase 3 lane builds that unless the coordinator confirms otherwise with Brendan; it does
+  not affect phase 1.
 
 **What was read.** Every path under `godot/` is at origin/master `d41269dd` unless marked **[M5]**. [M5] means the
 read-only M5 branch `origin/feat/slice-d-m5-full` at `e99d7afb` (decision 2045's second build phase, before

@@ -79,10 +79,10 @@ it. They form the **slow tier**, declared in `godot/test/slow_suites.json` with 
   decision 1895.
 
 **The local full-suite gate: `./tools/run_tests_parallel.sh` (decision 1895).** It runs CI's shards (the count
-CI's verify step uses, 10) as `./tools/run_tests.sh --shard N/COUNT --output-dir DIR`, `--jobs` at a time (default
+CI's verify step uses: 12 since decision 1943, 10 before) as `./tools/run_tests.sh --shard N/COUNT --output-dir DIR`, `--jobs` at a time (default
 4; 5 when nothing else runs on the machine), each with its own private `user://`. It then prints each shard's
 summary lines and `ci_test_shards.py verify`'s merged summary (`ok: <n> suite files executed exactly once across
-10 shards` and the counts), and exits 0 only when every shard and verify passed. Import first and move the demo
+12 shards` and the counts), and exits 0 only when every shard and verify passed. Import first and move the demo
 assets aside as for any CI-style run. `--output-dir` must be new or empty; by default it makes one and prints it.
 At `bf49943a` the complete suite took 1,397 s this way at 4 jobs; one process takes over an hour.
 
